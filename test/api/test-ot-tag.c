@@ -188,10 +188,47 @@ test_ot_tag_language (void)
   test_language_two_way ("ENG", "en");
   test_tag_from_language ("ENG", "en_US");
 
+  test_language_two_way ("CJA", "cja"); /* Western Cham */
+  test_language_two_way ("CJM", "cjm"); /* Eastern Cham */
   test_language_two_way ("EVN", "eve");
+
+  test_language_two_way ("HAL", "cfm"); /* BCP47 and current ISO639-3 code for Halam/Falam Chin */
+  test_tag_from_language ("HAL", "flm"); /* Retired ISO639-3 code for Halam/Falam Chin */
+
+  test_tag_from_language ("QIN", "bgr"); /* Bawm Chin */
+  test_tag_from_language ("QIN", "cbl"); /* Bualkhaw Chin */
+  test_tag_from_language ("QIN", "cka"); /* Khumi Awa Chin */
+  test_tag_from_language ("QIN", "cmr"); /* Mro-Khimi Chin */
+  test_tag_from_language ("QIN", "cnb"); /* Chinbon Chin */
+  test_tag_from_language ("QIN", "cnh"); /* Hakha Chin */
+  test_tag_from_language ("QIN", "cnk"); /* Khumi Chin */
+  test_tag_from_language ("QIN", "cnw"); /* Ngawn Chin */
+  test_tag_from_language ("QIN", "csh"); /* Asho Chin */
+  test_tag_from_language ("QIN", "csy"); /* Siyin Chin */
+  test_tag_from_language ("QIN", "ctd"); /* Tedim Chin */
+  test_tag_from_language ("QIN", "czt"); /* Zotung Chin */
+  test_tag_from_language ("QIN", "dao"); /* Daai Chin */
+  test_tag_from_language ("QIN", "hlt"); /* Matu Chin */
+  test_tag_from_language ("QIN", "mrh"); /* Mara Chin */
+  test_tag_from_language ("QIN", "pck"); /* Paite Chin */
+  test_tag_from_language ("QIN", "sez"); /* Senthang Chin */
+  test_tag_from_language ("QIN", "tcp"); /* Tawr Chin */
+  test_tag_from_language ("QIN", "tcz"); /* Thado Chin */
+  test_tag_from_language ("QIN", "yos"); /* Yos, deprecated by IANA in favor of Zou [zom] */
+  test_tag_from_language ("QIN", "zom"); /* Zou */
+  test_tag_to_language ("QIN", "bgr");   /* no single BCP47 tag for Chin; picking Bawm Chin */
 
   test_language_two_way ("FAR", "fa");
   test_tag_from_language ("FAR", "fa_IR");
+
+  test_language_two_way ("SWA", "aii"); /* Swadaya Aramaic */
+
+  test_language_two_way ("SYR", "syr"); /* Syriac [macrolanguage] */
+  test_tag_from_language ("SYR", "amw"); /* Western Neo-Aramaic */
+  test_tag_from_language ("SYR", "cld"); /* Chaldean Neo-Aramaic */
+  test_tag_from_language ("SYR", "syc"); /* Classical Syriac */
+
+  test_language_two_way ("TUA", "tru"); /* Turoyo Aramaic */
 
   test_language_two_way ("ZHH", "zh-hk"); /* Chinese (Hong Kong) */
 
@@ -237,6 +274,27 @@ test_ot_tag_language (void)
   test_tag_from_language ("APPH", "chr-fonnapa");
   test_tag_from_language ("APPH", "und-fonnapa");
   test_tag_to_language ("APPH", "und-fonnapa");
+
+  /* Estrangela Syriac */
+  test_tag_from_language ("SYRE", "aii-Syre");
+  test_tag_from_language ("SYRE", "de-Syre");
+  test_tag_from_language ("SYRE", "syr-Syre");
+  test_tag_from_language ("SYRE", "und-Syre");
+  test_tag_to_language ("SYRE", "und-Syre");
+
+  /* Western Syriac */
+  test_tag_from_language ("SYRJ", "aii-Syrj");
+  test_tag_from_language ("SYRJ", "de-Syrj");
+  test_tag_from_language ("SYRJ", "syr-Syrj");
+  test_tag_from_language ("SYRJ", "und-Syrj");
+  test_tag_to_language ("SYRJ", "und-Syrj");
+
+  /* Eastern Syriac */
+  test_tag_from_language ("SYRN", "aii-Syrn");
+  test_tag_from_language ("SYRN", "de-Syrn");
+  test_tag_from_language ("SYRN", "syr-Syrn");
+  test_tag_from_language ("SYRN", "und-Syrn");
+  test_tag_to_language ("SYRN", "und-Syrn");
 
   /* Test that x-hbot overrides the base language */
   test_tag_from_language ("ABC", "fa-x-hbotabc-zxc");
