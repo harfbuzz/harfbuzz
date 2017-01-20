@@ -70,12 +70,13 @@ openFont(const char* fontFile)
   if ((ft_error = FT_Set_Char_Size (ft_face, 2000, 1000, 0, 0)))
     abort();
   hb_font = hb_ft_font_create (ft_face, NULL);
-  hb_face = hb_ft_face_create_cached(ft_face);
+  hb_face = hb_face_reference (hb_font_get_face (hb_font));
 }
 
 static inline void
 closeFont (void)
 {
+  hb_face_destroy (hb_face);
   hb_font_destroy (hb_font);
   FT_Done_Face (ft_face);
 }
