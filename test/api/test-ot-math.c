@@ -79,6 +79,9 @@ closeFont (void)
   hb_face_destroy (hb_face);
   hb_font_destroy (hb_font);
   FT_Done_Face (ft_face);
+  hb_face = NULL;
+  hb_font = NULL;
+  ft_face = NULL;
 }
 
 static void
