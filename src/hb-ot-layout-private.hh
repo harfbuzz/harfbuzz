@@ -126,6 +126,8 @@ namespace OT {
   struct GSUB;
   struct GPOS;
   struct MATH;
+  struct fvar;
+  struct avar;
 }
 
 struct hb_ot_layout_lookup_accelerator_t
@@ -158,7 +160,11 @@ struct hb_ot_layout_t
   const struct OT::GDEF *gdef;
   const struct OT::GSUB *gsub;
   const struct OT::GPOS *gpos;
+
+  /* TODO Move the following out of this struct. */
   OT::hb_lazy_table_loader_t<struct OT::MATH> math;
+  OT::hb_lazy_table_loader_t<struct OT::fvar> fvar;
+  OT::hb_lazy_table_loader_t<struct OT::avar> avar;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

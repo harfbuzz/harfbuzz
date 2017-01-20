@@ -61,6 +61,8 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
   layout->math.init (face);
+  layout->fvar.init (face);
+  layout->avar.init (face);
 
   {
     /*
@@ -181,6 +183,8 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gpos_blob);
 
   layout->math.fini ();
+  layout->fvar.fini ();
+  layout->avar.fini ();
 
   free (layout);
 }

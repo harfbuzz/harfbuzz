@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2017  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,25 +21,43 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb-open-type-private.hh"
 
-#include "hb.h"
-
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
+#include "hb-ot-layout-private.hh"
+#include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var.h"
 
-HB_BEGIN_DECLS
+HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
 
-HB_END_DECLS
+static inline const OT::fvar&
+_get_fvar (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::fvar);
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+
+  return *(layout->fvar.get ());
+}
+
+/*
+ * OT::fvar
+ */
+
+/**
+ * hb_ot_var_has_data:
+ * @face: #hb_face_t to test
+ *
+ * This function allows to verify the presence of OpenType variation data on the face.
+ *
+ * Return value: true if face has a `fvar' table and false otherwise
+ *
+ * Since: 1.4.2
+ **/
+hb_bool_t
+hb_ot_var_has_data (hb_face_t *face)
+{
+  return &_get_fvar (face) != &OT::Null(OT::fvar);
+}

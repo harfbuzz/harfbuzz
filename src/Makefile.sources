@@ -108,6 +108,8 @@ HB_OT_sources = \
 	hb-ot-shape-fallback-private.hh \
 	hb-ot-shape-fallback.cc \
 	hb-ot-shape-private.hh \
+	hb-ot-var.cc \
+	hb-ot-var-fvar-table.hh \
 	$(NULL)
 
 HB_OT_headers = \
@@ -117,6 +119,7 @@ HB_OT_headers = \
 	hb-ot-math.h \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
+	hb-ot-var.h \
 	$(NULL)
 
 # Optional Sources and Headers with external deps
