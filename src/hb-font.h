@@ -603,15 +603,19 @@ hb_font_get_ppem (hb_font_t *font,
 		  unsigned int *x_ppem,
 		  unsigned int *y_ppem);
 
+HB_EXTERN void
+hb_font_set_var_coords (hb_font_t *font,
+			const hb_var_coord_t *coords,
+			unsigned int coords_length);
 
 HB_EXTERN void
 hb_font_set_var_coords_design (hb_font_t *font,
-			       float *coords,
+			       const float *coords,
 			       unsigned int coords_length);
 
 HB_EXTERN void
 hb_font_set_var_coords_normalized (hb_font_t *font,
-				   int *coords, /* 2.14 normalized */
+				   const int *coords, /* 2.14 normalized */
 				   unsigned int coords_length);
 
 HB_EXTERN int *

@@ -1541,10 +1541,44 @@ hb_font_get_ppem (hb_font_t *font,
  */
 
 void
+hb_font_set_var_coords (hb_font_t *font,
+			const hb_var_coord_t *coords,
+			unsigned int coords_length)
+{
+  if (font->immutable)
+    return;
+
+  if (!coords_length)
+  {
+    hb_font_set_var_coords_normalized (font, NULL, 0);
+    return;
+  }
+
+  hb_face_t *face = font->face;
+
+  unsigned int length = hb_ot_var_get_axis_count (face);
+  int normalized[length]; // XXX Remove variable-length array use...
+
+  memset (normalized, 0, length * sizeof (normalized[0]));
+
+  for (unsigned int i = 0; i < coords_length; i++)
+  {
+    unsigned int axis_index;
+    if (hb_ot_var_find_axis (face, coords[i].tag, &axis_index, NULL))
+      normalized[axis_index] = hb_ot_var_normalize_axis_value (face, axis_index, coords[i].value);
+  }
+
+  hb_font_set_var_coords_normalized (font, normalized, coords_length);
+}
+
+void
 hb_font_set_var_coords_design (hb_font_t *font,
-			       float *coords,
+			       const float *coords,
 			       unsigned int coords_length)
 {
+  if (font->immutable)
+    return;
+
   int normalized[coords_length]; // XXX Remove variable-length array use...
 
   hb_face_t *face = font->face;
@@ -1556,7 +1590,7 @@ hb_font_set_var_coords_design (hb_font_t *font,
 
 void
 hb_font_set_var_coords_normalized (hb_font_t *font,
-				   int *coords, /* 2.14 normalized */
+				   const int *coords, /* 2.14 normalized */
 				   unsigned int coords_length)
 {
   if (font->immutable)
