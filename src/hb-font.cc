@@ -1543,10 +1543,27 @@ hb_font_get_ppem (hb_font_t *font,
   if (y_ppem) *y_ppem = font->y_ppem;
 }
 
+/*
+ * Variations
+ */
+
+void
+hb_font_set_var_coords_design (hb_font_t *font,
+			       float *coords,
+			       unsigned int coords_length)
+{
+  int normalized[coords_length]; // XXX Remove variable-length array use...
+
+  hb_face_t *face = font->face;
+  for (unsigned int i = 0; i < coords_length; i++)
+    normalized[i] = hb_ot_var_normalize_axis_value (face, i, coords[i]);
+
+  hb_font_set_var_coords_normalized (font, normalized, coords_length);
+}
 
 void
 hb_font_set_var_coords_normalized (hb_font_t *font,
-				   int *coords, /* XXX 2.14 normalized */
+				   int *coords, /* 2.14 normalized */
 				   unsigned int coords_length)
 {
   if (font->immutable)
@@ -1570,7 +1587,7 @@ hb_font_get_var_coords_normalized (hb_font_t *font,
 				   unsigned int *length)
 {
   if (length)
-    *length = font->coords_length;
+    *length = font->num_coords;
 
   return font->coords;
 }
