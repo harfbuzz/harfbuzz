@@ -1540,6 +1540,17 @@ hb_font_get_ppem (hb_font_t *font,
  * Variations
  */
 
+static void
+_hb_font_adopt_var_coords_normalized (hb_font_t *font,
+				      int *coords, /* 2.14 normalized */
+				      unsigned int coords_length)
+{
+  free (font->coords);
+
+  font->coords = coords;
+  font->num_coords = coords_length;
+}
+
 void
 hb_font_set_var_coords (hb_font_t *font,
 			const hb_var_coord_t *coords,
@@ -1557,10 +1568,12 @@ hb_font_set_var_coords (hb_font_t *font,
   hb_face_t *face = font->face;
 
   unsigned int length = hb_ot_var_get_axis_count (face);
-  int normalized[length]; // XXX Remove variable-length array use...
 
-  memset (normalized, 0, length * sizeof (normalized[0]));
+  int *normalized = length ? (int *) calloc (length, sizeof (int)) : NULL;
+  if (unlikely (length && !normalized))
+    return;
 
+  /* normalized is filled with zero already. */
   for (unsigned int i = 0; i < coords_length; i++)
   {
     unsigned int axis_index;
@@ -1568,7 +1581,7 @@ hb_font_set_var_coords (hb_font_t *font,
       normalized[axis_index] = hb_ot_var_normalize_axis_value (face, axis_index, coords[i].value);
   }
 
-  hb_font_set_var_coords_normalized (font, normalized, coords_length);
+  _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
 }
 
 void
@@ -1579,13 +1592,15 @@ hb_font_set_var_coords_design (hb_font_t *font,
   if (font->immutable)
     return;
 
-  int normalized[coords_length]; // XXX Remove variable-length array use...
+  int *normalized = coords_length ? (int *) calloc (coords_length, sizeof (int)) : NULL;
+  if (unlikely (coords_length && !normalized))
+    return;
 
   hb_face_t *face = font->face;
   for (unsigned int i = 0; i < coords_length; i++)
     normalized[i] = hb_ot_var_normalize_axis_value (face, i, coords[i]);
 
-  hb_font_set_var_coords_normalized (font, normalized, coords_length);
+  _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
 }
 
 void
@@ -1603,10 +1618,7 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (coords_length)
     memcpy (copy, coords, coords_length * sizeof (coords[0]));
 
-  free (font->coords);
-
-  font->coords = copy;
-  font->num_coords = coords_length;
+  _hb_font_adopt_var_coords_normalized (font, copy, coords_length);
 }
 
 int *
