@@ -1552,10 +1552,6 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (font->immutable)
     return;
 
-  /* Skip tail zero entries. */
-  while (coords_length && !coords[coords_length - 1])
-    coords_length--;
-
   int *copy = coords_length ? (int *) calloc (coords_length, sizeof (coords[0])) : NULL;
   if (unlikely (coords_length && !copy))
     return;
