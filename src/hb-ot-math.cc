@@ -120,7 +120,7 @@ hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
 
 /**
  * hb_ot_math_is_glyph_extended_shape:
- * @font: a #hb_font_t to test
+ * @face: a #hb_face_t to test
  * @glyph: a glyph index to test
  *
  * Return value: true if the glyph is an extended shape, false otherwise
