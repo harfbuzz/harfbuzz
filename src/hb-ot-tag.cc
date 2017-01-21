@@ -28,9 +28,6 @@
 
 #include "hb-private.hh"
 
-#include <string.h>
-
-
 
 /* hb_script_t */
 
