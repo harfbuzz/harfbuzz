@@ -625,7 +625,7 @@ hb_ft_font_create (FT_Face           ft_face,
     int hbCoords[mm_var->num_axis];
     if (!FT_Get_Var_Blend_Coordinates (ft_face, mm_var->num_axis, coords))
     {
-      for (int i = 0; i < mm_var->num_axis; ++i)
+      for (unsigned int i = 0; i < mm_var->num_axis; ++i)
 	hbCoords[i] = coords[i] >> 2;
 
       hb_font_set_var_coords_normalized (font, hbCoords, mm_var->num_axis);
