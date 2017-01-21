@@ -53,14 +53,22 @@ typedef struct hb_ot_var_axis_t {
   hb_tag_t tag;
   unsigned int name_id;
   float min_value;
-  float def_value;
+  float default_value;
   float max_value;
 } hb_ot_var_axis_t;
 
 HB_EXTERN hb_bool_t
 hb_ot_var_has_data (hb_face_t *face);
 
+#define HB_OT_VAR_NO_AXIS_INDEX		0xFFFFFFFFu
+
 #if 0
+
+HB_EXTERN hb_bool_t
+hb_ot_var_find_axis (hb_face_t        *face,
+		     hb_tag_t          axis_tag,
+		     unsigned int     *axis_index,
+		     hb_ot_var_axis_t *axis_info);
 
 HB_EXTERN unsigned int
 Xhb_ot_var_get_axes (hb_face_t        *face,

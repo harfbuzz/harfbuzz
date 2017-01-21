@@ -63,7 +63,7 @@ struct AxisRecord
     return_trace (c->check_struct (this));
   }
 
-  protected:
+  public:
   Tag		axisTag;	/* Tag identifying the design variation for the axis. */
   Fixed		minValue;	/* The minimum coordinate value for the axis. */
   Fixed		defaultValue;	/* The default coordinate value for the axis. */
@@ -89,23 +89,67 @@ struct fvar
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) /*&&
-		  mathConstants.sanitize (c, this) &&
-		  mathGlyphInfo.sanitize (c, this) &&
-		  mathVariants.sanitize (c, this)*/);
+		  likely (version.major == 1) &&
+		  c->check_struct (this) &&
+		  instanceSize >= axisCount * 4 + 4 &&
+		  axisSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
+		  instanceSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
+		  c->check_range (this, things) &&
+		  c->check_range (&StructAtOffset<char> (this, things),
+				  axisCount * axisSize + instanceCount * instanceSize));
   }
 
-#if 0
-  inline hb_position_t get_constant (hb_ot_math_constant_t  constant,
-				     hb_font_t		   *font) const
-  { return (this+mathConstants).get_value (constant, font); }
+  inline const AxisRecord * get_axes (void) const
+  { return &StructAtOffset<AxisRecord> (this, things); }
 
-  inline const MathGlyphInfo &get_math_glyph_info (void) const
-  { return this+mathGlyphInfo; }
+  inline const InstanceRecord * get_instances (void) const
+  { return &StructAtOffset<InstanceRecord> (get_axes () + axisCount, 0); }
 
-  inline const MathVariants &get_math_variants (void) const
-  { return this+mathVariants; }
-#endif
+  inline unsigned int get_axis_count (void) const
+  { return axisCount; }
+
+  inline bool find_axis (hb_tag_t tag, unsigned int *index, hb_ot_var_axis_t *info) const
+  {
+    const AxisRecord *axes = get_axes ();
+    unsigned int count = get_axis_count ();
+    for (unsigned int i = 0; i < count; i++)
+      if (axes[i].axisTag == tag)
+      {
+        if (index)
+	  *index = i;
+	if (info)
+	{
+	  const AxisRecord &axis = axes[i];
+	  info->tag = axis.axisTag;
+	  info->name_id =  axis.axisNameID;
+	  info->default_value = axis.defaultValue / 65536.;
+	  /* Ensure order, to simplify client math. */
+	  info->min_value = MIN<float> (info->default_value, axis.minValue / 65536.);
+	  info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
+	}
+        return true;
+      }
+    if (index)
+      *index = HB_OT_VAR_NO_AXIS_INDEX;
+    return false;
+  }
+
+  inline int normalize_axis_value (hb_tag_t tag, float v, unsigned int *axis_index) const
+  {
+    hb_ot_var_axis_t axis;
+    if (!find_axis (tag, axis_index, &axis))
+      return 0;
+
+    v = MAX (MIN (v, axis.max_value), axis.min_value); /* Clamp. */
+
+    if (v == axis.default_value)
+      return 0;
+    else if (v < axis.default_value)
+      v = (v - axis.default_value) / (axis.default_value - axis.min_value);
+    else
+      v = (v - axis.default_value) / (axis.max_value - axis.default_value);
+    return (int) (v * 16384. + (v >= 0. ? .5 : -.5));
+  }
 
   protected:
   FixedVersion<>version;	/* Version of the fvar table
