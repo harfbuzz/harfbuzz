@@ -609,6 +609,10 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
 				   int *coords, /* XXX 2.14 normalized */
 				   unsigned int coords_length);
 
+HB_EXTERN int *
+hb_font_get_var_coords_normalized (hb_font_t *font,
+				   unsigned int *length);
+
 HB_END_DECLS
 
 #endif /* HB_FONT_H */

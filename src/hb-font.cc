@@ -1565,6 +1565,16 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   font->num_coords = coords_length;
 }
 
+int *
+hb_font_get_var_coords_normalized (hb_font_t *font,
+				   unsigned int *length)
+{
+  if (length)
+    *length = font->coords_length;
+
+  return font->coords;
+}
+
 
 #ifndef HB_DISABLE_DEPRECATED
 
