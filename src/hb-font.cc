@@ -1556,10 +1556,10 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (unlikely (coords_length && !copy))
     return;
 
-  free (font->coords);
-
   if (coords_length)
     memcpy (copy, coords, coords_length * sizeof (coords[0]));
+
+  free (font->coords);
 
   font->coords = copy;
   font->num_coords = coords_length;
