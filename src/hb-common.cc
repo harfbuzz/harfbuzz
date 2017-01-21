@@ -607,7 +607,8 @@ hb_version_atleast (unsigned int major,
 }
 
 
-/* hb_feature_t */
+
+/* hb_feature_t and hb_var_coord_t */
 
 static bool
 parse_space (const char **pp, const char *end)
@@ -654,6 +655,28 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
 }
 
 static bool
+parse_float (const char **pp, const char *end, float *pv)
+{
+  char buf[32];
+  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  strncpy (buf, *pp, len);
+  buf[len] = '\0';
+
+  char *p = buf;
+  char *pend = p;
+  float v;
+
+  errno = 0;
+  v = strtof (p, &pend);
+  if (errno || p == pend)
+    return false;
+
+  *pv = v;
+  *pp += pend - p;
+  return true;
+}
+
+static bool
 parse_bool (const char **pp, const char *end, unsigned int *pv)
 {
   parse_space (pp, end);
@@ -673,6 +696,8 @@ parse_bool (const char **pp, const char *end, unsigned int *pv)
   return true;
 }
 
+/* hb_feature_t */
+
 static bool
 parse_feature_value_prefix (const char **pp, const char *end, hb_feature_t *feature)
 {
@@ -687,7 +712,7 @@ parse_feature_value_prefix (const char **pp, const char *end, hb_feature_t *feat
 }
 
 static bool
-parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
+parse_tag (const char **pp, const char *end, hb_tag_t *tag)
 {
   parse_space (pp, end);
 
@@ -706,7 +731,7 @@ parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
   if (p == *pp || *pp - p > 4)
     return false;
 
-  feature->tag = hb_tag_from_string (p, *pp - p);
+  *tag = hb_tag_from_string (p, *pp - p);
 
   if (quote)
   {
@@ -759,12 +784,11 @@ parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *fea
   return !had_equal || had_value;
 }
 
-
 static bool
 parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 {
   return parse_feature_value_prefix (pp, end, feature) &&
-	 parse_feature_tag (pp, end, feature) &&
+	 parse_tag (pp, end, &feature->tag) &&
 	 parse_feature_indices (pp, end, feature) &&
 	 parse_feature_value_postfix (pp, end, feature) &&
 	 parse_space (pp, end) &&
@@ -850,6 +874,66 @@ hb_feature_to_string (hb_feature_t *feature,
     s[len++] = '=';
     len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->value));
   }
+  assert (len < ARRAY_LENGTH (s));
+  len = MIN (len, size - 1);
+  memcpy (buf, s, len);
+  buf[len] = '\0';
+}
+
+/* hb_var_coord_t */
+
+static bool
+parse_var_coord_value (const char **pp, const char *end, hb_var_coord_t *var_coord)
+{
+  parse_char (pp, end, '='); /* Optional. */
+  return parse_float (pp, end, &var_coord->value);
+}
+
+static bool
+parse_one_var_coord (const char **pp, const char *end, hb_var_coord_t *var_coord)
+{
+  return parse_tag (pp, end, &var_coord->tag) &&
+	 parse_var_coord_value (pp, end, var_coord) &&
+	 parse_space (pp, end) &&
+	 *pp == end;
+}
+
+hb_bool_t
+hb_var_coord_from_string (const char *str, int len,
+			  hb_var_coord_t *var_coord)
+{
+  hb_var_coord_t coord;
+
+  if (len < 0)
+    len = strlen (str);
+
+  if (likely (parse_one_var_coord (&str, str + len, &coord)))
+  {
+    if (var_coord)
+      *var_coord = coord;
+    return true;
+  }
+
+  if (var_coord)
+    memset (var_coord, 0, sizeof (*var_coord));
+  return false;
+}
+
+void
+hb_var_coord_to_string (hb_var_coord_t *var_coord,
+			char *buf, unsigned int size)
+{
+  if (unlikely (!size)) return;
+
+  char s[128];
+  unsigned int len = 0;
+  hb_tag_to_string (var_coord->tag, s + len);
+  len += 4;
+  while (len && s[len - 1] == ' ')
+    len--;
+  s[len++] = '=';
+  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", var_coord->value));
+
   assert (len < ARRAY_LENGTH (s));
   len = MIN (len, size - 1);
   memcpy (buf, s, len);
