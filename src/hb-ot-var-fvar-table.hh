@@ -99,14 +99,48 @@ struct fvar
 				  axisCount * axisSize + instanceCount * instanceSize));
   }
 
-  inline const AxisRecord * get_axes (void) const
-  { return &StructAtOffset<AxisRecord> (this, things); }
-
-  inline const InstanceRecord * get_instances (void) const
-  { return &StructAtOffset<InstanceRecord> (get_axes () + axisCount, 0); }
-
   inline unsigned int get_axis_count (void) const
   { return axisCount; }
+
+  inline bool get_axis (unsigned int index, hb_ot_var_axis_t *info) const
+  {
+    if (unlikely (index >= axisCount))
+      return false;
+
+    if (info)
+    {
+      const AxisRecord &axis = get_axes ()[index];
+      info->tag = axis.axisTag;
+      info->name_id =  axis.axisNameID;
+      info->default_value = axis.defaultValue / 65536.;
+      /* Ensure order, to simplify client math. */
+      info->min_value = MIN<float> (info->default_value, axis.minValue / 65536.);
+      info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
+    }
+
+    return true;
+  }
+
+  inline unsigned int get_axis_infos (unsigned int      start_offset,
+				      unsigned int     *axes_count /* IN/OUT */,
+				      hb_ot_var_axis_t *axes_array /* OUT */) const
+  {
+    if (axes_count)
+    {
+      unsigned int count = axisCount;
+      start_offset = MIN (start_offset, count);
+
+      count -= start_offset;
+      axes_array += start_offset;
+
+      count = MIN (count, *axes_count);
+      *axes_count = count;
+
+      for (unsigned int i = 0; i < count; i++)
+	get_axis (start_offset + i, axes_array + i);
+    }
+    return axisCount;
+  }
 
   inline bool find_axis (hb_tag_t tag, unsigned int *index, hb_ot_var_axis_t *info) const
   {
@@ -117,27 +151,17 @@ struct fvar
       {
         if (index)
 	  *index = i;
-	if (info)
-	{
-	  const AxisRecord &axis = axes[i];
-	  info->tag = axis.axisTag;
-	  info->name_id =  axis.axisNameID;
-	  info->default_value = axis.defaultValue / 65536.;
-	  /* Ensure order, to simplify client math. */
-	  info->min_value = MIN<float> (info->default_value, axis.minValue / 65536.);
-	  info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
-	}
-        return true;
+	return get_axis (i, info);
       }
     if (index)
       *index = HB_OT_VAR_NO_AXIS_INDEX;
     return false;
   }
 
-  inline int normalize_axis_value (hb_tag_t tag, float v, unsigned int *axis_index) const
+  inline int normalize_axis_value (unsigned int axis_index, float v) const
   {
     hb_ot_var_axis_t axis;
-    if (!find_axis (tag, axis_index, &axis))
+    if (!get_axis (axis_index, &axis))
       return 0;
 
     v = MAX (MIN (v, axis.max_value), axis.min_value); /* Clamp. */
@@ -150,6 +174,13 @@ struct fvar
       v = (v - axis.default_value) / (axis.max_value - axis.default_value);
     return (int) (v * 16384. + (v >= 0. ? .5 : -.5));
   }
+
+  protected:
+  inline const AxisRecord * get_axes (void) const
+  { return &StructAtOffset<AxisRecord> (this, things); }
+
+  inline const InstanceRecord * get_instances (void) const
+  { return &StructAtOffset<InstanceRecord> (get_axes () + axisCount, 0); }
 
   protected:
   FixedVersion<>version;	/* Version of the fvar table

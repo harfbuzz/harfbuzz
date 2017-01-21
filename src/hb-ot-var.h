@@ -62,7 +62,14 @@ hb_ot_var_has_data (hb_face_t *face);
 
 #define HB_OT_VAR_NO_AXIS_INDEX		0xFFFFFFFFu
 
-#if 0
+HB_EXTERN unsigned int
+hb_ot_var_get_axis_count (hb_face_t *face);
+
+HB_EXTERN unsigned int
+hb_ot_var_get_axes (hb_face_t        *face,
+		    unsigned int      start_offset,
+		    unsigned int     *axes_count /* IN/OUT */,
+		    hb_ot_var_axis_t *axes_array /* OUT */);
 
 HB_EXTERN hb_bool_t
 hb_ot_var_find_axis (hb_face_t        *face,
@@ -70,13 +77,13 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     unsigned int     *axis_index,
 		     hb_ot_var_axis_t *axis_info);
 
-HB_EXTERN unsigned int
-Xhb_ot_var_get_axes (hb_face_t        *face,
-		    unsigned int      start_offset,
-		    unsigned int     *axes_count /* IN/OUT */,
-		    hb_ot_var_axis_t *axes_array /* OUT */);
 
-/* TODO Add "find_axis", etc API? Are they needed at all? */
+HB_EXTERN int
+hb_ot_var_normalize_axis_value (hb_face_t    *face,
+				unsigned int  axis_index,
+				float         v);
+
+#if 0
 
 HB_EXTERN unsigned int
 Xhb_ot_var_get_named_instances (hb_face_t        *face, ... );
