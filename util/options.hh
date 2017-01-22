@@ -285,7 +285,10 @@ struct font_options_t : option_group_t
 {
   font_options_t (option_parser_t *parser,
 		  int default_font_size_,
-		  unsigned int subpixel_bits_) {
+		  unsigned int subpixel_bits_)
+  {
+    variations = NULL;
+    num_variations = 0;
     default_font_size = default_font_size_;
     subpixel_bits = subpixel_bits_;
     font_file = NULL;
@@ -299,6 +302,7 @@ struct font_options_t : option_group_t
   }
   ~font_options_t (void) {
     g_free (font_file);
+    free (variations);
     g_free (font_funcs);
     hb_font_destroy (font);
   }
@@ -309,6 +313,8 @@ struct font_options_t : option_group_t
 
   char *font_file;
   int face_index;
+  hb_variation_t *variations;
+  unsigned int num_variations;
   int default_font_size;
   unsigned int subpixel_bits;
   mutable double font_size_x;

@@ -254,6 +254,47 @@ parse_features (const char *name G_GNUC_UNUSED,
   return true;
 }
 
+static gboolean
+parse_variations (const char *name G_GNUC_UNUSED,
+	        const char *arg,
+	        gpointer    data,
+	        GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  char *s = (char *) arg;
+  char *p;
+
+  font_opts->num_variations = 0;
+  g_free (font_opts->variations);
+  font_opts->variations = NULL;
+
+  if (!*s)
+    return true;
+
+  /* count the variations first, so we can allocate memory */
+  p = s;
+  do {
+    font_opts->num_variations++;
+    p = strchr (p, ',');
+    if (p)
+      p++;
+  } while (p);
+
+  font_opts->variations = (hb_variation_t *) calloc (font_opts->num_variations, sizeof (*font_opts->variations));
+
+  /* now do the actual parsing */
+  p = s;
+  font_opts->num_variations = 0;
+  while (p && *p) {
+    char *end = strchr (p, ',');
+    if (hb_variation_from_string (p, end ? end - p : -1, &font_opts->variations[font_opts->num_variations]))
+      font_opts->num_variations++;
+    p = end ? end + 1 : NULL;
+  }
+
+  return true;
+}
+
 
 void
 view_options_t::add_options (option_parser_t *parser)
@@ -415,6 +456,54 @@ font_options_t::add_options (option_parser_t *parser)
 		     "Font options:",
 		     "Options controlling the font",
 		     this);
+
+  const gchar *variations_help = "Comma-separated list of font variations\n"
+    "\n"
+    "    XXXXXXXXXXXXXXX\n"
+    "    Features can be enabled or disabled, either globally or limited to\n"
+    "    specific character ranges.  The format for specifying feature settings\n"
+    "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
+    "    and 'inherited' are also accepted, though, not documented below.\n"
+    "\n"
+    "    The range indices refer to the positions between Unicode characters,\n"
+    "    unless the --utf8-clusters is provided, in which case range indices\n"
+    "    refer to UTF-8 byte indices. The position before the first character\n"
+    "    is always 0.\n"
+    "\n"
+    "    The format is Python-esque.  Here is how it all works:\n"
+    "\n"
+    "      Syntax:       Value:    Start:    End:\n"
+    "\n"
+    "    Setting value:\n"
+    "      \"kern\"        1         0         ∞         # Turn feature on\n"
+    "      \"+kern\"       1         0         ∞         # Turn feature on\n"
+    "      \"-kern\"       0         0         ∞         # Turn feature off\n"
+    "      \"kern=0\"      0         0         ∞         # Turn feature off\n"
+    "      \"kern=1\"      1         0         ∞         # Turn feature on\n"
+    "      \"aalt=2\"      2         0         ∞         # Choose 2nd alternate\n"
+    "\n"
+    "    Setting index:\n"
+    "      \"kern[]\"      1         0         ∞         # Turn feature on\n"
+    "      \"kern[:]\"     1         0         ∞         # Turn feature on\n"
+    "      \"kern[5:]\"    1         5         ∞         # Turn feature on, partial\n"
+    "      \"kern[:5]\"    1         0         5         # Turn feature on, partial\n"
+    "      \"kern[3:5]\"   1         3         5         # Turn feature on, range\n"
+    "      \"kern[3]\"     1         3         3+1       # Turn feature on, single char\n"
+    "\n"
+    "    Mixing it all:\n"
+    "\n"
+    "      \"aalt[3:5]=2\" 2         3         5         # Turn 2nd alternate on for range";
+
+  GOptionEntry entries2[] =
+  {
+    {"variations",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_variations,	variations_help,	"list"},
+    {NULL}
+  };
+  parser->add_group (entries2,
+		     "variations",
+		     "Varitions options:",
+		     "Options controlling font variations used",
+		     this);
 }
 
 void
@@ -560,6 +649,8 @@ font_options_t::get_font (void) const
   int scale_y = (int) scalbnf (font_size_y, subpixel_bits);
   hb_font_set_scale (font, scale_x, scale_y);
   hb_face_destroy (face);
+
+  hb_font_set_variations (font, variations, num_variations);
 
   void (*set_font_funcs) (hb_font_t *) = NULL;
   if (!font_funcs)
