@@ -604,9 +604,9 @@ hb_font_get_ppem (hb_font_t *font,
 		  unsigned int *y_ppem);
 
 HB_EXTERN void
-hb_font_set_var_coords (hb_font_t *font,
-			const hb_var_coord_t *coords,
-			unsigned int coords_length);
+hb_font_set_variations (hb_font_t *font,
+			const hb_variation_t *variations,
+			unsigned int variations_length);
 
 HB_EXTERN void
 hb_font_set_var_coords_design (hb_font_t *font,

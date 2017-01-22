@@ -1552,14 +1552,14 @@ _hb_font_adopt_var_coords_normalized (hb_font_t *font,
 }
 
 void
-hb_font_set_var_coords (hb_font_t *font,
-			const hb_var_coord_t *coords,
-			unsigned int coords_length)
+hb_font_set_variations (hb_font_t *font,
+			const hb_variation_t *variations,
+			unsigned int variations_length)
 {
   if (font->immutable)
     return;
 
-  if (!coords_length)
+  if (!variations_length)
   {
     hb_font_set_var_coords_normalized (font, NULL, 0);
     return;
@@ -1567,18 +1567,18 @@ hb_font_set_var_coords (hb_font_t *font,
 
   hb_face_t *face = font->face;
 
-  unsigned int length = hb_ot_var_get_axis_count (face);
+  unsigned int coords_length = hb_ot_var_get_axis_count (face);
 
-  int *normalized = length ? (int *) calloc (length, sizeof (int)) : NULL;
-  if (unlikely (length && !normalized))
+  int *normalized = coords_length ? (int *) calloc (coords_length, sizeof (int)) : NULL;
+  if (unlikely (coords_length && !normalized))
     return;
 
   /* normalized is filled with zero already. */
-  for (unsigned int i = 0; i < coords_length; i++)
+  for (unsigned int i = 0; i < variations_length; i++)
   {
     unsigned int axis_index;
-    if (hb_ot_var_find_axis (face, coords[i].tag, &axis_index, NULL))
-      normalized[axis_index] = hb_ot_var_normalize_axis_value (face, axis_index, coords[i].value);
+    if (hb_ot_var_find_axis (face, variations[i].tag, &axis_index, NULL))
+      normalized[axis_index] = hb_ot_var_normalize_axis_value (face, axis_index, variations[i].value);
   }
 
   _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);

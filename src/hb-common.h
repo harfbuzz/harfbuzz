@@ -379,17 +379,17 @@ HB_EXTERN void
 hb_feature_to_string (hb_feature_t *feature,
 		      char *buf, unsigned int size);
 
-typedef struct hb_var_coord_t {
+typedef struct hb_variation_t {
   hb_tag_t tag;
   float    value;
-} hb_var_coord_t;
+} hb_variation_t;
 
 HB_EXTERN hb_bool_t
-hb_var_coord_from_string (const char *str, int len,
-			  hb_var_coord_t *var_coord);
+hb_variation_from_string (const char *str, int len,
+			  hb_variation_t *variation);
 
 HB_EXTERN void
-hb_var_coord_to_string (hb_var_coord_t *var_coord,
+hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size);
 
 

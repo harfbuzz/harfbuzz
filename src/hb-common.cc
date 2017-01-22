@@ -608,7 +608,7 @@ hb_version_atleast (unsigned int major,
 
 
 
-/* hb_feature_t and hb_var_coord_t */
+/* hb_feature_t and hb_variation_t */
 
 static bool
 parse_space (const char **pp, const char *end)
@@ -880,59 +880,59 @@ hb_feature_to_string (hb_feature_t *feature,
   buf[len] = '\0';
 }
 
-/* hb_var_coord_t */
+/* hb_variation_t */
 
 static bool
-parse_var_coord_value (const char **pp, const char *end, hb_var_coord_t *var_coord)
+parse_variation_value (const char **pp, const char *end, hb_variation_t *variation)
 {
   parse_char (pp, end, '='); /* Optional. */
-  return parse_float (pp, end, &var_coord->value);
+  return parse_float (pp, end, &variation->value);
 }
 
 static bool
-parse_one_var_coord (const char **pp, const char *end, hb_var_coord_t *var_coord)
+parse_one_variation (const char **pp, const char *end, hb_variation_t *variation)
 {
-  return parse_tag (pp, end, &var_coord->tag) &&
-	 parse_var_coord_value (pp, end, var_coord) &&
+  return parse_tag (pp, end, &variation->tag) &&
+	 parse_variation_value (pp, end, variation) &&
 	 parse_space (pp, end) &&
 	 *pp == end;
 }
 
 hb_bool_t
-hb_var_coord_from_string (const char *str, int len,
-			  hb_var_coord_t *var_coord)
+hb_variation_from_string (const char *str, int len,
+			  hb_variation_t *variation)
 {
-  hb_var_coord_t coord;
+  hb_variation_t var;
 
   if (len < 0)
     len = strlen (str);
 
-  if (likely (parse_one_var_coord (&str, str + len, &coord)))
+  if (likely (parse_one_variation (&str, str + len, &var)))
   {
-    if (var_coord)
-      *var_coord = coord;
+    if (variation)
+      *variation = var;
     return true;
   }
 
-  if (var_coord)
-    memset (var_coord, 0, sizeof (*var_coord));
+  if (variation)
+    memset (variation, 0, sizeof (*variation));
   return false;
 }
 
 void
-hb_var_coord_to_string (hb_var_coord_t *var_coord,
+hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size)
 {
   if (unlikely (!size)) return;
 
   char s[128];
   unsigned int len = 0;
-  hb_tag_to_string (var_coord->tag, s + len);
+  hb_tag_to_string (variation->tag, s + len);
   len += 4;
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
-  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", var_coord->value));
+  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", variation->value));
 
   assert (len < ARRAY_LENGTH (s));
   len = MIN (len, size - 1);
