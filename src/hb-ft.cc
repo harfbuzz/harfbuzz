@@ -736,6 +736,16 @@ hb_ft_font_set_funcs (hb_font_t *font)
     FT_Set_Transform (ft_face, &matrix, NULL);
   }
 
+  unsigned int num_coords;
+  int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+  if (num_coords)
+  {
+    FT_Fixed ft_coords[num_coords];
+    for (unsigned int i = 0; i < num_coords; i++)
+      ft_coords[i] = coords[i] << 2;
+    FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+  }
+
   ft_face->generic.data = blob;
   ft_face->generic.finalizer = (FT_Generic_Finalizer) _release_blob;
 

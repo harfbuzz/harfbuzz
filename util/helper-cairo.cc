@@ -28,6 +28,7 @@
 
 #include <cairo-ft.h>
 #include <hb-ft.h>
+#include FT_MULTIPLE_MASTERS_H
 
 #include "helper-cairo-ansi.hh"
 #ifdef CAIRO_HAS_SVG_SURFACE
@@ -76,7 +77,8 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 
   cairo_font_face_t *cairo_face;
   /* We cannot use the FT_Face from hb_font_t, as doing so will confuse hb_font_t because
-   * cairo will reset the face size.  As such, create new face... */
+   * cairo will reset the face size.  As such, create new face...
+   * TODO Perhaps add API to hb-ft to encapsulate this code. */
   FT_Face ft_face = NULL;//hb_ft_font_get_face (font);
   if (!ft_face)
   {
@@ -100,7 +102,19 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 					     CAIRO_FONT_WEIGHT_NORMAL);
   }
   else
+  {
+    unsigned int num_coords;
+    int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+    if (num_coords)
+    {
+      FT_Fixed ft_coords[num_coords];
+      for (unsigned int i = 0; i < num_coords; i++)
+        ft_coords[i] = coords[i] << 2;
+      FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+    }
+
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
+  }
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
 
