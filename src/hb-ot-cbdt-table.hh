@@ -216,7 +216,7 @@ struct IndexSubtableRecord
 
   USHORT firstGlyphIndex;
   USHORT lastGlyphIndex;
-  OffsetTo<IndexSubtable, ULONG> offsetToSubtable;
+  LOffsetTo<IndexSubtable> offsetToSubtable;
 
   DEFINE_SIZE_STATIC(8);
 };
@@ -275,7 +275,7 @@ struct BitmapSizeTable
   }
 
   protected:
-  OffsetTo<IndexSubtableArray, ULONG> indexSubtableArrayOffset;
+  LOffsetTo<IndexSubtableArray> indexSubtableArrayOffset;
   ULONG indexTablesSize;
   ULONG numberOfIndexSubtables;
   ULONG colorRef;

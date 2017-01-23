@@ -1334,7 +1334,7 @@ struct VariationStore
 
   protected:
   USHORT				format;
-  OffsetTo<VarRegionList, ULONG>	regions;
+  LOffsetTo<VarRegionList>		regions;
   OffsetArrayOf<VarData, ULONG>		dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
@@ -1433,8 +1433,8 @@ struct FeatureTableSubstitutionRecord
   }
 
   protected:
-  USHORT			featureIndex;
-  OffsetTo<Feature, ULONG>	feature;
+  USHORT		featureIndex;
+  LOffsetTo<Feature>	feature;
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -1481,9 +1481,9 @@ struct FeatureVariationRecord
   }
 
   protected:
-  OffsetTo<ConditionSet, ULONG>
+  LOffsetTo<ConditionSet>
 			conditions;
-  OffsetTo<FeatureTableSubstitution, ULONG>
+  LOffsetTo<FeatureTableSubstitution>
 			substitutions;
   public:
   DEFINE_SIZE_STATIC (8);
