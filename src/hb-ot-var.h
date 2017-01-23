@@ -60,6 +60,11 @@ typedef struct hb_ot_var_axis_t {
 HB_EXTERN hb_bool_t
 hb_ot_var_has_data (hb_face_t *face);
 
+/**
+ * HB_OT_VAR_NO_AXIS_INDEX:
+ *
+ * Since: 1.4.2
+ */
 #define HB_OT_VAR_NO_AXIS_INDEX		0xFFFFFFFFu
 
 HB_EXTERN unsigned int
@@ -82,13 +87,6 @@ HB_EXTERN int
 hb_ot_var_normalize_axis_value (hb_face_t    *face,
 				unsigned int  axis_index,
 				float         v);
-
-#if 0
-
-HB_EXTERN unsigned int
-Xhb_ot_var_get_named_instances (hb_face_t        *face, ... );
-
-#endif
 
 
 HB_END_DECLS

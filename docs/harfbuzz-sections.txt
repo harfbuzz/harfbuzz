@@ -245,6 +245,7 @@ hb_font_get_scale
 hb_font_get_user_data
 hb_font_get_variation_glyph
 hb_font_get_variation_glyph_func_t
+hb_font_get_var_coords_normalized
 hb_font_glyph_from_string
 hb_font_glyph_to_string
 hb_font_is_immutable
@@ -252,9 +253,16 @@ hb_font_make_immutable
 hb_font_reference
 hb_font_set_funcs
 hb_font_set_funcs_data
+hb_font_set_parent
 hb_font_set_ppem
 hb_font_set_scale
 hb_font_set_user_data
+hb_variation_t
+hb_variation_from_string
+hb_variation_to_string
+hb_font_set_variations
+hb_font_set_var_coords_design
+hb_font_set_var_coords_normalized
 hb_font_subtract_glyph_origin_for_direction
 hb_font_t
 hb_reference_table_func_t
@@ -266,7 +274,6 @@ hb_font_get_font_h_extents_func_t
 hb_font_get_font_v_extents_func_t
 hb_font_get_h_extents
 hb_font_get_v_extents
-hb_font_set_parent
 </SECTION>
 
 <SECTION>
@@ -304,6 +311,9 @@ HB_GOBJECT_TYPE_FONT
 HB_GOBJECT_TYPE_FONT_FUNCS
 HB_GOBJECT_TYPE_MEMORY_MODE
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
+HB_GOBJECT_TYPE_OT_MATH_CONSTANT
+HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS
+HB_GOBJECT_TYPE_OT_MATH_KERN
 HB_GOBJECT_TYPE_SCRIPT
 HB_GOBJECT_TYPE_SHAPE_PLAN
 HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS
@@ -328,6 +338,9 @@ hb_gobject_font_funcs_get_type
 hb_gobject_font_get_type
 hb_gobject_memory_mode_get_type
 hb_gobject_ot_layout_glyph_class_get_type
+hb_gobject_ot_math_constant_get_type
+hb_gobject_ot_math_glyph_part_flags_get_type
+hb_gobject_ot_math_kern_get_type
 hb_gobject_script_get_type
 hb_gobject_shape_plan_get_type
 hb_gobject_unicode_combining_class_get_type
@@ -384,12 +397,14 @@ hb_ot_shape_glyphs_closure
 HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX
 HB_OT_LAYOUT_NO_FEATURE_INDEX
 HB_OT_LAYOUT_NO_SCRIPT_INDEX
+HB_OT_LAYOUT_NO_VARIATIONS_INDEX
 HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
 HB_OT_TAG_JSTF
 hb_ot_layout_collect_lookups
 hb_ot_layout_feature_get_lookups
+hb_ot_layout_feature_with_variations_get_lookups
 hb_ot_layout_get_attach_points
 hb_ot_layout_get_glyph_class
 hb_ot_layout_get_glyphs_in_class
@@ -410,6 +425,7 @@ hb_ot_layout_lookup_would_substitute
 hb_ot_layout_script_find_language
 hb_ot_layout_script_get_language_tags
 hb_ot_layout_table_choose_script
+hb_ot_layout_table_find_feature_variations
 hb_ot_layout_table_find_script
 hb_ot_layout_table_get_feature_tags
 hb_ot_layout_table_get_script_tags
@@ -420,6 +436,19 @@ hb_ot_layout_language_get_required_feature_index
 Xhb_ot_layout_lookup_enumerate_sequences
 Xhb_ot_layout_lookup_position
 Xhb_ot_layout_lookup_substitute
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-var</FILE>
+HB_OT_TAG_avar
+HB_OT_TAG_fvar
+HB_OT_VAR_NO_AXIS_INDEX
+hb_ot_var_axis_t
+hb_ot_var_has_data
+hb_ot_var_find_axis
+hb_ot_var_get_axis_count
+hb_ot_var_get_axes
+hb_ot_var_normalize_axis_value
 </SECTION>
 
 <SECTION>
@@ -486,8 +515,8 @@ hb_set_union
 
 <SECTION>
 <FILE>hb-shape</FILE>
-hb_feature_from_string
 hb_feature_t
+hb_feature_from_string
 hb_feature_to_string
 hb_shape
 hb_shape_full
@@ -498,6 +527,8 @@ hb_shape_list_shapers
 <FILE>hb-shape-plan</FILE>
 hb_shape_plan_create
 hb_shape_plan_create_cached
+hb_shape_plan_create2
+hb_shape_plan_create_cached2
 hb_shape_plan_destroy
 hb_shape_plan_execute
 hb_shape_plan_get_empty

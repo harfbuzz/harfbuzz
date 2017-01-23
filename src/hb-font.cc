@@ -1551,6 +1551,11 @@ _hb_font_adopt_var_coords_normalized (hb_font_t *font,
   font->num_coords = coords_length;
 }
 
+/**
+ * hb_font_set_variations:
+ *
+ * Since: 1.4.2
+ */
 void
 hb_font_set_variations (hb_font_t *font,
 			const hb_variation_t *variations,
@@ -1584,6 +1589,11 @@ hb_font_set_variations (hb_font_t *font,
   _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
 }
 
+/**
+ * hb_font_set_var_coords_design:
+ *
+ * Since: 1.4.2
+ */
 void
 hb_font_set_var_coords_design (hb_font_t *font,
 			       const float *coords,
@@ -1603,6 +1613,11 @@ hb_font_set_var_coords_design (hb_font_t *font,
   _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
 }
 
+/**
+ * hb_font_set_var_coords_normalized:
+ *
+ * Since: 1.4.2
+ */
 void
 hb_font_set_var_coords_normalized (hb_font_t *font,
 				   const int *coords, /* 2.14 normalized */
@@ -1621,6 +1636,11 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   _hb_font_adopt_var_coords_normalized (font, copy, coords_length);
 }
 
+/**
+ * hb_font_set_var_coords_normalized:
+ *
+ * Since: 1.4.2
+ */
 int *
 hb_font_get_var_coords_normalized (hb_font_t *font,
 				   unsigned int *length)

@@ -379,6 +379,11 @@ HB_EXTERN void
 hb_feature_to_string (hb_feature_t *feature,
 		      char *buf, unsigned int size);
 
+/**
+ * hb_variation_t:
+ *
+ * Since: 1.4.2
+ */
 typedef struct hb_variation_t {
   hb_tag_t tag;
   float    value;
