@@ -440,8 +440,6 @@ Xhb_ot_layout_lookup_substitute
 
 <SECTION>
 <FILE>hb-ot-var</FILE>
-HB_OT_TAG_avar
-HB_OT_TAG_fvar
 HB_OT_TAG_VAR_AXIS_ITALIC
 HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
 HB_OT_TAG_VAR_AXIS_SLANT

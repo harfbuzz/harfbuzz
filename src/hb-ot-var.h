@@ -36,9 +36,6 @@
 HB_BEGIN_DECLS
 
 
-#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
-#define HB_OT_TAG_avar HB_TAG('a','v','a','r')
-
 #define HB_OT_TAG_VAR_AXIS_ITALIC	HB_TAG('i','t','a','l')
 #define HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE	HB_TAG('o','p','s','z')
 #define HB_OT_TAG_VAR_AXIS_SLANT	HB_TAG('s','l','n','t')

@@ -81,6 +81,8 @@ struct AxisRecord
  * fvar — Font Variations Table
  */
 
+#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
+
 struct fvar
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_fvar;

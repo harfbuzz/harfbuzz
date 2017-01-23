@@ -88,6 +88,8 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
  * avar — Axis Variations Table
  */
 
+#define HB_OT_TAG_avar HB_TAG('a','v','a','r')
+
 struct avar
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_avar;
