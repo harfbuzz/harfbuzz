@@ -50,7 +50,7 @@ struct hb_ot_face_metrics_accelerator_t
   unsigned short line_gap;
   bool has_font_extents;
 
-  const OT::_mtx *table;
+  const OT::hmtxvmtx *table;
   hb_blob_t *blob;
 
   inline void init (hb_face_t *face,
@@ -91,7 +91,7 @@ struct hb_ot_face_metrics_accelerator_t
 
     this->has_font_extents = got_font_extents;
 
-    this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
+    this->blob = OT::Sanitizer<OT::hmtxvmtx>::sanitize (face->reference_table (_mtx_tag));
 
     /* Cap num_metrics() and num_advances() based on table length. */
     unsigned int len = hb_blob_get_length (this->blob);
@@ -107,7 +107,7 @@ struct hb_ot_face_metrics_accelerator_t
       hb_blob_destroy (this->blob);
       this->blob = hb_blob_get_empty ();
     }
-    this->table = OT::Sanitizer<OT::_mtx>::lock_instance (this->blob);
+    this->table = OT::Sanitizer<OT::hmtxvmtx>::lock_instance (this->blob);
   }
 
   inline void fini (void)
