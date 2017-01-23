@@ -442,6 +442,11 @@ Xhb_ot_layout_lookup_substitute
 <FILE>hb-ot-var</FILE>
 HB_OT_TAG_avar
 HB_OT_TAG_fvar
+HB_OT_TAG_VAR_AXIS_ITALIC
+HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
+HB_OT_TAG_VAR_AXIS_SLANT
+HB_OT_TAG_VAR_AXIS_WEIGHT
+HB_OT_TAG_VAR_AXIS_WIDTH
 HB_OT_VAR_NO_AXIS_INDEX
 hb_ot_var_axis_t
 hb_ot_var_has_data
@@ -584,6 +589,8 @@ hb_unicode_script_func_t
 <FILE>hb-uniscribe</FILE>
 hb_uniscribe_font_get_hfont
 hb_uniscribe_font_get_logfontw
+<SUBSECTION Private>
+hb_directwrite_shape_experimental_width
 </SECTION>
 
 <SECTION>
