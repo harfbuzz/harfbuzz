@@ -311,7 +311,7 @@ view_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "view",
 		     "View options:",
-		     "Options controlling output rendering",
+		     "Options for output rendering",
 		     this);
 }
 
@@ -340,7 +340,7 @@ shape_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "shape",
 		     "Shape options:",
-		     "Options controlling the shaping process",
+		     "Options for the shaping process",
 		     this);
 
   const gchar *features_help = "Comma-separated list of font features\n"
@@ -387,7 +387,7 @@ shape_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries2,
 		     "features",
 		     "Features options:",
-		     "Options controlling font features used",
+		     "Options for font features used",
 		     this);
 }
 
@@ -454,45 +454,20 @@ font_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "font",
 		     "Font options:",
-		     "Options controlling the font",
+		     "Options for the font",
 		     this);
 
   const gchar *variations_help = "Comma-separated list of font variations\n"
     "\n"
-    "    XXXXXXXXXXXXXXX\n"
-    "    Features can be enabled or disabled, either globally or limited to\n"
-    "    specific character ranges.  The format for specifying feature settings\n"
-    "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
+    "    Variations are set globally. The format for specifying variation settings\n"
+    "    follows.  All valid CSS font-variation-settings values other than 'normal'\n"
     "    and 'inherited' are also accepted, though, not documented below.\n"
     "\n"
-    "    The range indices refer to the positions between Unicode characters,\n"
-    "    unless the --utf8-clusters is provided, in which case range indices\n"
-    "    refer to UTF-8 byte indices. The position before the first character\n"
-    "    is always 0.\n"
+    "    The format is a tag, optionally followed by an equals sign, followed by a\n"
+    "    number. For example:\n"
     "\n"
-    "    The format is Python-esque.  Here is how it all works:\n"
-    "\n"
-    "      Syntax:       Value:    Start:    End:\n"
-    "\n"
-    "    Setting value:\n"
-    "      \"kern\"        1         0         ∞         # Turn feature on\n"
-    "      \"+kern\"       1         0         ∞         # Turn feature on\n"
-    "      \"-kern\"       0         0         ∞         # Turn feature off\n"
-    "      \"kern=0\"      0         0         ∞         # Turn feature off\n"
-    "      \"kern=1\"      1         0         ∞         # Turn feature on\n"
-    "      \"aalt=2\"      2         0         ∞         # Choose 2nd alternate\n"
-    "\n"
-    "    Setting index:\n"
-    "      \"kern[]\"      1         0         ∞         # Turn feature on\n"
-    "      \"kern[:]\"     1         0         ∞         # Turn feature on\n"
-    "      \"kern[5:]\"    1         5         ∞         # Turn feature on, partial\n"
-    "      \"kern[:5]\"    1         0         5         # Turn feature on, partial\n"
-    "      \"kern[3:5]\"   1         3         5         # Turn feature on, range\n"
-    "      \"kern[3]\"     1         3         3+1       # Turn feature on, single char\n"
-    "\n"
-    "    Mixing it all:\n"
-    "\n"
-    "      \"aalt[3:5]=2\" 2         3         5         # Turn 2nd alternate on for range";
+    "      \"wght=500\"\n"
+    "      \"slnt=-7.5\"\n";
 
   GOptionEntry entries2[] =
   {
@@ -502,7 +477,7 @@ font_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries2,
 		     "variations",
 		     "Varitions options:",
-		     "Options controlling font variations used",
+		     "Options for font variations used",
 		     this);
 }
 
@@ -520,7 +495,7 @@ text_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "text",
 		     "Text options:",
-		     "Options controlling the input text",
+		     "Options for the input text",
 		     this);
 }
 
@@ -548,7 +523,7 @@ output_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "output",
 		     "Output destination & format options:",
-		     "Options controlling the destination and form of the output",
+		     "Options for the destination & form of the output",
 		     this);
 }
 
@@ -810,7 +785,7 @@ format_options_t::add_options (option_parser_t *parser)
          "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
          "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
          "\nOutput syntax options:",
-		     "Options controlling the syntax of the output",
+		     "Options for the syntax of the output",
 		     this);
 }
 
