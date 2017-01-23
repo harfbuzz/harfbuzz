@@ -27,6 +27,7 @@
 #include "hb-open-type-private.hh"
 
 #include "hb-ot-layout-private.hh"
+#include "hb-ot-var-avar-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var.h"
 
@@ -105,16 +106,48 @@ hb_ot_var_find_axis (hb_face_t        *face,
   return fvar.find_axis (axis_tag, axis_index, axis_info);
 }
 
+
 /**
- * hb_ot_var_normalize_axis_value:
+ * hb_ot_var_normalize_variations:
  *
  * Since: 1.4.2
  **/
-int
-hb_ot_var_normalize_axis_value (hb_face_t    *face,
-				unsigned int  axis_index,
-				float         v)
+void
+hb_ot_var_normalize_variations (hb_face_t            *face,
+				const hb_variation_t *variations, /* IN */
+				unsigned int          variations_length,
+				int                  *coords, /* OUT */
+				unsigned int          coords_length)
+{
+  for (unsigned int i = 0; i < coords_length; i++)
+    coords[i] = 0;
+
+  const OT::fvar &fvar = _get_fvar (face);
+  for (unsigned int i = 0; i < variations_length; i++)
+  {
+    unsigned int axis_index;
+    if (hb_ot_var_find_axis (face, variations[i].tag, &axis_index, NULL) &&
+	axis_index < coords_length)
+      coords[axis_index] = fvar.normalize_axis_value (axis_index, variations[i].value);
+  }
+
+  /* TODO avar */
+}
+
+/**
+ * hb_ot_var_normalize_coords:
+ *
+ * Since: 1.4.2
+ **/
+void
+hb_ot_var_normalize_coords (hb_face_t    *face,
+			    unsigned int coords_length,
+			    const float *design_coords, /* IN */
+			    int *normalized_coords /* OUT */)
 {
   const OT::fvar &fvar = _get_fvar (face);
-  return fvar.normalize_axis_value (axis_index, v);
+  for (unsigned int i = 0; i < coords_length; i++)
+    normalized_coords[i] = fvar.normalize_axis_value (i, design_coords[i]);
+
+  /* TODO avar */
 }

@@ -83,10 +83,18 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     hb_ot_var_axis_t *axis_info);
 
 
-HB_EXTERN int
-hb_ot_var_normalize_axis_value (hb_face_t    *face,
-				unsigned int  axis_index,
-				float         v);
+HB_EXTERN void
+hb_ot_var_normalize_variations (hb_face_t            *face,
+				const hb_variation_t *variations, /* IN */
+				unsigned int          variations_length,
+				int                  *coords, /* OUT */
+				unsigned int          coords_length);
+
+HB_EXTERN void
+hb_ot_var_normalize_coords (hb_face_t    *face,
+			    unsigned int coords_length,
+			    const float *design_coords, /* IN */
+			    int *normalized_coords /* OUT */);
 
 
 HB_END_DECLS
