@@ -114,7 +114,7 @@ retry:
  * shapers will be used in the given order, otherwise the default shapers list
  * will be used.
  *
- * Return value: %FALSE if all shapers failed, %TRUE otherwise
+ * Return value: false if all shapers failed, true otherwise
  *
  * Since: 0.9.2
  **/
