@@ -952,6 +952,7 @@ struct ArrayOf
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), array);
 };
+template <typename Type> struct LArrayOf : ArrayOf<Type, ULONG> {};
 
 /* Array of Offset's */
 template <typename Type, typename OffsetType=USHORT>

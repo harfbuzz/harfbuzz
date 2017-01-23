@@ -348,8 +348,8 @@ struct CBLC
   }
 
   protected:
-  FixedVersion<>version;
-  ArrayOf<BitmapSizeTable, ULONG> sizeTables;
+  FixedVersion<>		version;
+  LArrayOf<BitmapSizeTable>	sizeTables;
 
   public:
   DEFINE_SIZE_ARRAY(8, sizeTables);
