@@ -33,19 +33,24 @@
 
 HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
 
+/*
+ * fvar/avar
+ */
+
 static inline const OT::fvar&
 _get_fvar (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::fvar);
-
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-
   return *(layout->fvar.get ());
 }
-
-/*
- * fvar/avar
- */
+static inline const OT::avar&
+_get_avar (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::avar);
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  return *(layout->avar.get ());
+}
 
 /**
  * hb_ot_var_has_data:
@@ -131,7 +136,8 @@ hb_ot_var_normalize_variations (hb_face_t            *face,
       coords[axis_index] = fvar.normalize_axis_value (axis_index, variations[i].value);
   }
 
-  /* TODO avar */
+  const OT::avar &avar = _get_avar (face);
+  avar.map_coords (coords, coords_length);
 }
 
 /**
@@ -149,5 +155,6 @@ hb_ot_var_normalize_coords (hb_face_t    *face,
   for (unsigned int i = 0; i < coords_length; i++)
     normalized_coords[i] = fvar.normalize_axis_value (i, design_coords[i]);
 
-  /* TODO avar */
+  const OT::avar &avar = _get_avar (face);
+  avar.map_coords (normalized_coords, coords_length);
 }

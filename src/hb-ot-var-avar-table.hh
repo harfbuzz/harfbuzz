@@ -50,7 +50,39 @@ struct AxisValueMap
   DEFINE_SIZE_STATIC (4);
 };
 
-typedef ArrayOf<AxisValueMap> SegmentMaps;
+struct SegmentMaps : ArrayOf<AxisValueMap>
+{
+  inline int map (int value) const
+  {
+    /* The following special-cases are not part of OpenType, which requires
+     * that at least -1, 0, and +1 must be mapped. But we include these as
+     * part of a better error recovery scheme. */
+
+    if (!len)
+      return value;
+
+    if (value <= array[0].fromCoord)
+      return value - array[0].fromCoord + array[0].toCoord;
+
+    unsigned int i;
+    unsigned int count = len;
+    for (i = 1; i < count && value > array[i].fromCoord; i++)
+      ;
+
+    if (value >= array[i].fromCoord)
+      return value - array[i].fromCoord + array[i].toCoord;
+
+    if (unlikely (array[i-1].fromCoord == array[i].fromCoord))
+      return array[i-1].toCoord;
+
+    int denom = array[i].fromCoord - array[i-1].fromCoord;
+    return array[i-1].toCoord +
+	   (array[i].toCoord - array[i-1].toCoord) *
+	   (value - array[i-1].fromCoord + denom/2) / denom;
+  }
+
+  DEFINE_SIZE_ARRAY (2, array);
+};
 
 /*
  * avar — Axis Variations Table
@@ -78,6 +110,18 @@ struct avar
     }
 
     return_trace (true);
+  }
+
+  inline void map_coords (int *coords, unsigned int coords_length) const
+  {
+    unsigned int count = MIN<unsigned int> (coords_length, axisCount);
+
+    const SegmentMaps *map = &axisSegmentMapsZ;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      coords[i] = map->map (coords[i]);
+      map = &StructAfter<SegmentMaps> (*map);
+    }
   }
 
   protected:
