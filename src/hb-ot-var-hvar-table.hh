@@ -39,12 +39,52 @@ struct DeltaSetIndexMap
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (this, 1, 12));
+		  c->check_array (mapData, get_width (), mapCount));
   }
 
-  USHORT x;
+  unsigned int map (unsigned int v) const /* Returns 16.16 outer.inner. */
+  {
+    /* If count is zero, pass value unchanged.  This takes
+     * care of direct mapping for advance map. */
+    if (!mapCount)
+      return v;
+
+    if (v >= mapCount)
+      v = mapCount - 1;
+
+    unsigned int u = 0;
+    { /* Fetch it. */
+      unsigned int w = get_width ();
+      const BYTE *p = mapData + w * v;
+      for (; w; w--)
+	u = (u << 8) + *p++;
+    }
+
+    { /* Repack it. */
+      unsigned int n = get_inner_bitcount ();
+      unsigned int outer = u >> n;
+      unsigned int inner = u & ((1 << n) - 1);
+      u = (outer<<16) | inner;
+    }
+
+    return u;
+  }
+
+  protected:
+  inline bool get_width (void) const
+  { return ((format >> 4) & 3) + 1; }
+
+  inline bool get_inner_bitcount (void) const
+  { return (format & 0xF) + 1; }
+
+  protected:
+  USHORT format;		/* A packed field that describes the compressed
+				 * representation of delta-set indices. */
+  USHORT mapCount;		/* The number of mapping entries. */
+  BYTE mapData[VAR];		/* The delta-set index mapping data. */
+
   public:
-  DEFINE_SIZE_STATIC (2);
+  DEFINE_SIZE_ARRAY (4, mapData);
 };
 
 
@@ -71,6 +111,16 @@ struct HVARVVAR
 		  lsbMap.sanitize (c, this) &&
 		  rsbMap.sanitize (c, this));
   }
+
+  inline float get_advance_delta (hb_codepoint_t glyph,
+				  int *coords, unsigned int coord_count) const
+  {
+    unsigned int varidx = (this+advMap).map (glyph);
+    return (this+varStore).get_delta (varidx, coords, coord_count);
+  }
+
+  inline bool has_sidebearing_deltas (void) const
+  { return lsbMap && rsbMap; }
 
   protected:
   FixedVersion<>version;	/* Version of the metrics variation table

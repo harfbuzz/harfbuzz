@@ -1323,6 +1323,14 @@ struct VariationStore
 					     this+regions);
   }
 
+  inline float get_delta (unsigned int index,
+			  int *coords, unsigned int coord_count) const
+  {
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    return get_delta (outer, inner, coords, coord_count);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
