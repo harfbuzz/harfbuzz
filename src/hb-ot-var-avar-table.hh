@@ -28,7 +28,6 @@
 #define HB_OT_VAR_AVAR_TABLE_HH
 
 #include "hb-open-type-private.hh"
-#include "hb-ot-var.h"
 
 namespace OT {
 
