@@ -618,7 +618,7 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
 				   const int *coords, /* 2.14 normalized */
 				   unsigned int coords_length);
 
-HB_EXTERN int *
+HB_EXTERN const int *
 hb_font_get_var_coords_normalized (hb_font_t *font,
 				   unsigned int *length);
 

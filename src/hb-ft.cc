@@ -742,7 +742,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
   }
 
   unsigned int num_coords;
-  int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   if (num_coords)
   {
     FT_Fixed *ft_coords = (FT_Fixed *) calloc (num_coords, sizeof (FT_Fixed));

@@ -104,13 +104,17 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   else
   {
     unsigned int num_coords;
-    int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+    const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
     if (num_coords)
     {
-      FT_Fixed ft_coords[num_coords];
-      for (unsigned int i = 0; i < num_coords; i++)
-        ft_coords[i] = coords[i] << 2;
-      FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+      FT_Fixed *ft_coords = (FT_Fixed *) calloc (num_coords, sizeof (FT_Fixed));
+      if (ft_coords)
+      {
+	for (unsigned int i = 0; i < num_coords; i++)
+	  ft_coords[i] = coords[i] << 2;
+	FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+	free (ft_coords);
+      }
     }
 
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
