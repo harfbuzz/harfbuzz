@@ -138,7 +138,8 @@ struct hb_ot_face_metrics_accelerator_t
 	return this->default_advance;
     }
 
-    return this->table->longMetric[MIN (glyph, this->num_advances - 1)].advance;
+    return this->table->longMetric[MIN (glyph, this->num_advances - 1)].advance
+	 + this->var->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
   }
 };
 
@@ -524,6 +525,7 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
   bool ret = ot_font->glyf->get_extents (glyph, extents);
   if (!ret)
     ret = ot_font->cbdt->get_extents (glyph, extents);
+  // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
   extents->width     = font->em_scale_x (extents->width);
@@ -541,6 +543,7 @@ hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
   metrics->ascender = font->em_scale_y (ot_font->h_metrics.ascender);
   metrics->descender = font->em_scale_y (ot_font->h_metrics.descender);
   metrics->line_gap = font->em_scale_y (ot_font->h_metrics.line_gap);
+  // TODO Hook up variations.
   return ot_font->h_metrics.has_font_extents;
 }
 
@@ -554,6 +557,7 @@ hb_ot_get_font_v_extents (hb_font_t *font HB_UNUSED,
   metrics->ascender = font->em_scale_x (ot_font->v_metrics.ascender);
   metrics->descender = font->em_scale_x (ot_font->v_metrics.descender);
   metrics->line_gap = font->em_scale_x (ot_font->v_metrics.line_gap);
+  // TODO Hook up variations.
   return ot_font->v_metrics.has_font_extents;
 }
 
