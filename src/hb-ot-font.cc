@@ -54,9 +54,13 @@ struct hb_ot_face_metrics_accelerator_t
   const OT::hmtxvmtx *table;
   hb_blob_t *blob;
 
+  const OT::HVARVVAR *var;
+  hb_blob_t *var_blob;
+
   inline void init (hb_face_t *face,
 		    hb_tag_t _hea_tag,
 		    hb_tag_t _mtx_tag,
+		    hb_tag_t _var_tag,
 		    hb_tag_t os2_tag,
 		    unsigned int default_advance = 0)
   {
@@ -109,14 +113,19 @@ struct hb_ot_face_metrics_accelerator_t
       this->blob = hb_blob_get_empty ();
     }
     this->table = OT::Sanitizer<OT::hmtxvmtx>::lock_instance (this->blob);
+
+    this->var_blob = OT::Sanitizer<OT::HVARVVAR>::sanitize (face->reference_table (_var_tag));
+    this->var = OT::Sanitizer<OT::HVARVVAR>::lock_instance (this->var_blob);
   }
 
   inline void fini (void)
   {
     hb_blob_destroy (this->blob);
+    hb_blob_destroy (this->var_blob);
   }
 
-  inline unsigned int get_advance (hb_codepoint_t glyph) const
+  inline unsigned int get_advance (hb_codepoint_t  glyph,
+				   hb_font_t      *font) const
   {
     if (unlikely (glyph >= this->num_metrics))
     {
@@ -129,10 +138,7 @@ struct hb_ot_face_metrics_accelerator_t
 	return this->default_advance;
     }
 
-    if (glyph >= this->num_advances)
-      glyph = this->num_advances - 1;
-
-    return this->table->longMetric[glyph].advance;
+    return this->table->longMetric[MIN (glyph, this->num_advances - 1)].advance;
   }
 };
 
@@ -441,8 +447,8 @@ _hb_ot_font_create (hb_face_t *face)
     return NULL;
 
   ot_font->cmap.init (face);
-  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_os2);
-  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE,
+  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_HVAR, HB_OT_TAG_os2);
+  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_OT_TAG_VVAR, HB_TAG_NONE,
 			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
   ot_font->cbdt.init (face);
@@ -488,23 +494,23 @@ hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
 }
 
 static hb_position_t
-hb_ot_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
+hb_ot_get_glyph_h_advance (hb_font_t *font,
 			   void *font_data,
 			   hb_codepoint_t glyph,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  return font->em_scale_x (ot_font->h_metrics.get_advance (glyph));
+  return font->em_scale_x (ot_font->h_metrics.get_advance (glyph, font));
 }
 
 static hb_position_t
-hb_ot_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
+hb_ot_get_glyph_v_advance (hb_font_t *font,
 			   void *font_data,
 			   hb_codepoint_t glyph,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  return font->em_scale_y (-(int) ot_font->v_metrics.get_advance (glyph));
+  return font->em_scale_y (-(int) ot_font->v_metrics.get_advance (glyph, font));
 }
 
 static hb_bool_t

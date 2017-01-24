@@ -98,8 +98,8 @@ struct DeltaSetIndexMap
 
 struct HVARVVAR
 {
-  static const hb_tag_t HVARTag	= HB_OT_TAG_hmtx;
-  static const hb_tag_t VVARTag	= HB_OT_TAG_vmtx;
+  static const hb_tag_t HVARTag	= HB_OT_TAG_HVAR;
+  static const hb_tag_t VVARTag	= HB_OT_TAG_VVAR;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -112,8 +112,8 @@ struct HVARVVAR
 		  rsbMap.sanitize (c, this));
   }
 
-  inline float get_advance_delta (hb_codepoint_t glyph,
-				  int *coords, unsigned int coord_count) const
+  inline float get_advance_var (hb_codepoint_t glyph,
+				int *coords, unsigned int coord_count) const
   {
     unsigned int varidx = (this+advMap).map (glyph);
     return (this+varStore).get_delta (varidx, coords, coord_count);
