@@ -71,10 +71,10 @@ struct DeltaSetIndexMap
   }
 
   protected:
-  inline bool get_width (void) const
+  inline unsigned int get_width (void) const
   { return ((format >> 4) & 3) + 1; }
 
-  inline bool get_inner_bitcount (void) const
+  inline unsigned int get_inner_bitcount (void) const
   { return (format & 0xF) + 1; }
 
   protected:
