@@ -1627,7 +1627,7 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
 }
 
 /**
- * hb_font_set_var_coords_normalized:
+ * hb_font_get_var_coords_normalized:
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
