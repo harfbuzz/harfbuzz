@@ -1,3 +1,34 @@
+Overview of changes leading to 1.4.2
+Monday, January 23, 2017
+====================================
+
+- Implement OpenType Font Variation tables avar/fvar/HVAR/VVAR.
+- hb-shape and hb-view now accept --variations.
+- New API:
+
+hb_variation_t
+hb_variation_from_string()
+hb_variation_to_string()
+
+hb_font_set_variations()
+hb_font_set_var_coords_design()
+hb_font_get_var_coords_normalized()
+
+hb-ot-var.h:
+hb_ot_var_axis_t
+hb_ot_var_has_data()
+hb_ot_var_get_axis_count()
+hb_ot_var_get_axes()
+hb_ot_var_find_axis()
+hb_ot_var_normalize_variations()
+hb_ot_var_normalize_coords()
+
+- MVAR to be implemented later.  Access to named instances to be
+  implemented later as well.
+
+- Misc fixes.
+
+
 Overview of changes leading to 1.4.1
 Thursday, January 5, 2017
 ====================================
