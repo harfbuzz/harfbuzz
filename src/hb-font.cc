@@ -1196,7 +1196,7 @@ hb_font_get_empty (void)
     NULL, /* user_data */
     NULL, /* destroy */
 
-    hb_font_t::NOTHING, /* dirty_bits */
+    hb_font_t::NOTHING, /* dirty */
 
     {
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
