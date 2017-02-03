@@ -1372,6 +1372,35 @@ hb_font_get_parent (hb_font_t *font)
 }
 
 /**
+ * hb_font_set_face:
+ * @font: a font.
+ * @face: new face.
+ *
+ * Sets font-face of @font.
+ *
+ * Since: 1.4.3
+ **/
+void
+hb_font_set_face (hb_font_t *font,
+		  hb_face_t *face)
+{
+  if (font->immutable)
+    return;
+
+  if (unlikely (!face))
+    face = hb_face_get_empty ();
+
+  if (font->face == face)
+    return;
+
+  hb_face_t *old = font->face;
+
+  font->face = hb_face_reference (face);
+
+  hb_face_destroy (old);
+}
+
+/**
  * hb_font_get_face:
  * @font: a font.
  *
