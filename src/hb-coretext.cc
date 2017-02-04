@@ -69,8 +69,8 @@ hb_coretext_face_create (CGFontRef cg_font)
 }
 
 
-HB_SHAPER_DATA_ENSURE_DECLARE(coretext, face)
-HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext, font)
 
 
 /*

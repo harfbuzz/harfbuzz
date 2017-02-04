@@ -39,8 +39,6 @@
 #include "hb-ot-map-private.hh"
 
 
-HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
-
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {

@@ -28,6 +28,10 @@
 #include "hb-shaper-impl-private.hh"
 
 
+HB_SHAPER_DATA_ENSURE_DEFINE(fallback, face)
+HB_SHAPER_DATA_ENSURE_DEFINE(fallback, font)
+
+
 /*
  * shaper face data
  */
