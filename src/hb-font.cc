@@ -1596,7 +1596,8 @@ _hb_font_adopt_var_coords_normalized (hb_font_t *font,
 				      unsigned int coords_length)
 {
   if (font->num_coords == coords_length &&
-      0 == memcmp (font->coords, coords, coords_length * sizeof (coords[0])))
+      (coords_length == 0 ||
+       0 == memcmp (font->coords, coords, coords_length * sizeof (coords[0]))))
   {
     free (coords);
     return;
