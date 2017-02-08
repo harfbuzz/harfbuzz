@@ -35,7 +35,9 @@ struct output_buffer_t
 		    format (parser),
 		    gs (NULL),
 		    line_no (0),
-		    font (NULL) {}
+		    font (NULL),
+		    output_format (HB_BUFFER_SERIALIZE_FORMAT_INVALID),
+		    format_flags (HB_BUFFER_SERIALIZE_FLAG_DEFAULT) {}
 
   void init (const font_options_t *font_opts)
   {
