@@ -171,8 +171,7 @@
 <pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
 hb_ot_math_has_data (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
 <p>This function allows to verify the presence of an OpenType MATH table on the
-face. If so, such a table will be loaded into memory and sanitized. You can
-then safely call other functions for math layout and shaping.</p>
+face.</p>
 <div class="refsect3">
 <a name="id-1.3.3.18.7.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -190,7 +189,7 @@ then safely call other functions for math layout and shaping.</p>
 </div>
 <div class="refsect3">
 <a name="id-1.3.3.18.7.2.6"></a><h4>Returns</h4>
-<p> <span class="type">TRUE</span> if face has a MATH table and <span class="type">FALSE</span> otherwise</p>
+<p> true if face has a MATH table, false otherwise</p>
 <p></p>
 </div>
 <p class="since">Since 1.3.3</p>
@@ -375,8 +374,8 @@ hb_ot_math_is_glyph_extended_shape (<em class="parameter"><code><a class="link" 
 </colgroup>
 <tbody>
 <tr>
-<td class="parameter_name"><p>font</p></td>
-<td class="parameter_description"><p>a <a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> to test</p></td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a <a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> to test</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -389,7 +388,7 @@ hb_ot_math_is_glyph_extended_shape (<em class="parameter"><code><a class="link" 
 </div>
 <div class="refsect3">
 <a name="id-1.3.3.18.7.7.5"></a><h4>Returns</h4>
-<p> <span class="type">TRUE</span> if the glyph is an extended shape and <span class="type">FALSE</span> otherwise</p>
+<p> true if the glyph is an extended shape, false otherwise</p>
 <p></p>
 </div>
 <p class="since">Since 1.3.3</p>

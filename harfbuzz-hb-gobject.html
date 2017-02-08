@@ -90,6 +90,18 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS" title="HB_GOBJECT_TYPE_OT_MATH_CONSTANT">HB_GOBJECT_TYPE_OT_MATH_CONSTANT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-GLYPH-PART-FLAGS:CAPS" title="HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS">HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-KERN:CAPS" title="HB_GOBJECT_TYPE_OT_MATH_KERN">HB_GOBJECT_TYPE_OT_MATH_KERN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SCRIPT:CAPS" title="HB_GOBJECT_TYPE_SCRIPT">HB_GOBJECT_TYPE_SCRIPT</a></td>
 </tr>
 <tr>
@@ -230,6 +242,30 @@
 </td>
 <td class="function_name">
 <a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-ot-layout-glyph-class-get-type" title="hb_gobject_ot_layout_glyph_class_get_type ()">hb_gobject_ot_layout_glyph_class_get_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-ot-math-constant-get-type" title="hb_gobject_ot_math_constant_get_type ()">hb_gobject_ot_math_constant_get_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-ot-math-glyph-part-flags-get-type" title="hb_gobject_ot_math_glyph_part_flags_get_type ()">hb_gobject_ot_math_glyph_part_flags_get_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-ot-math-kern-get-type" title="hb_gobject_ot_math_kern_get_type ()">hb_gobject_ot_math_kern_get_type</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -414,6 +450,24 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS"></a><h3>HB_GOBJECT_TYPE_OT_MATH_CONSTANT</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_OT_MATH_CONSTANT (hb_gobject_ot_math_constant_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-OT-MATH-GLYPH-PART-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS (hb_gobject_ot_math_glyph_part_flags_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-OT-MATH-KERN:CAPS"></a><h3>HB_GOBJECT_TYPE_OT_MATH_KERN</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_OT_MATH_KERN (hb_gobject_ot_math_kern_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="HB-GOBJECT-TYPE-SCRIPT:CAPS"></a><h3>HB_GOBJECT_TYPE_SCRIPT</h3>
 <pre class="programlisting">#define HB_GOBJECT_TYPE_SCRIPT (hb_gobject_script_get_type ())
 </pre>
@@ -564,6 +618,25 @@ hb_gobject_memory_mode_get_type (<em class="parameter"><code><span class="type">
 <pre class="programlisting"><span class="returnvalue">GType</span>
 hb_gobject_ot_layout_glyph_class_get_type
                                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-gobject-ot-math-constant-get-type"></a><h3>hb_gobject_ot_math_constant_get_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+hb_gobject_ot_math_constant_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-gobject-ot-math-glyph-part-flags-get-type"></a><h3>hb_gobject_ot_math_glyph_part_flags_get_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+hb_gobject_ot_math_glyph_part_flags_get_type
+                               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-gobject-ot-math-kern-get-type"></a><h3>hb_gobject_ot_math_kern_get_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+hb_gobject_ot_math_kern_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">

@@ -59,6 +59,13 @@
 <td class="function_type">unsigned <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-feature-with-variations-get-lookups" title="hb_ot_layout_feature_with_variations_get_lookups ()">hb_ot_layout_feature_with_variations_get_lookups</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-get-attach-points" title="hb_ot_layout_get_attach_points ()">hb_ot_layout_get_attach_points</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -207,6 +214,14 @@
 <a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
 </td>
 <td class="function_name">
+<a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-table-find-feature-variations" title="hb_ot_layout_table_find_feature_variations ()">hb_ot_layout_table_find_feature_variations</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
 <a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-table-find-script" title="hb_ot_layout_table_find_script ()">hb_ot_layout_table_find_script</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -272,6 +287,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-VARIATIONS-INDEX:CAPS" title="HB_OT_LAYOUT_NO_VARIATIONS_INDEX">HB_OT_LAYOUT_NO_VARIATIONS_INDEX</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GDEF:CAPS" title="HB_OT_TAG_GDEF">HB_OT_TAG_GDEF</a></td>
 </tr>
 <tr>
@@ -326,6 +345,19 @@ hb_ot_layout_feature_get_lookups (<em class="parameter"><code><a class="link" hr
                                   <em class="parameter"><code>unsigned <span class="type">int</span> *lookup_count</code></em>,
                                   <em class="parameter"><code>unsigned <span class="type">int</span> *lookup_indexes</code></em>);</pre>
 <p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-layout-feature-with-variations-get-lookups"></a><h3>hb_ot_layout_feature_with_variations_get_lookups ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_ot_layout_feature_with_variations_get_lookups
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> feature_index</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> variations_index</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> start_offset</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> *lookup_count</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> *lookup_indexes</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -522,6 +554,17 @@ hb_ot_layout_table_choose_script (<em class="parameter"><code><a class="link" hr
 </div>
 <hr>
 <div class="refsect2">
+<a name="hb-ot-layout-table-find-feature-variations"></a><h3>hb_ot_layout_table_find_feature_variations ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_ot_layout_table_find_feature_variations
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
+                                <em class="parameter"><code>const <span class="type">int</span> *coords</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> num_coords</code></em>,
+                                <em class="parameter"><code>unsigned <span class="type">int</span> *variations_index</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="hb-ot-layout-table-find-script"></a><h3>hb_ot_layout_table_find_script ()</h3>
 <pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
 hb_ot_layout_table_find_script (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
@@ -599,6 +642,12 @@ hb_ot_layout_language_get_required_feature_index
 </div>
 <hr>
 <div class="refsect2">
+<a name="HB-OT-LAYOUT-NO-VARIATIONS-INDEX:CAPS"></a><h3>HB_OT_LAYOUT_NO_VARIATIONS_INDEX</h3>
+<pre class="programlisting">#define HB_OT_LAYOUT_NO_VARIATIONS_INDEX 0xFFFFFFFFu
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="HB-OT-TAG-GDEF:CAPS"></a><h3>HB_OT_TAG_GDEF</h3>
 <pre class="programlisting">#define HB_OT_TAG_GDEF HB_TAG('G','D','E','F')
 </pre>
@@ -625,7 +674,7 @@ hb_ot_layout_language_get_required_feature_index
 <div class="refsect2">
 <a name="hb-ot-layout-glyph-class-t"></a><h3>enum hb_ot_layout_glyph_class_t</h3>
 <div class="refsect3">
-<a name="id-1.3.3.14.8.9.3"></a><h4>Members</h4>
+<a name="id-1.3.3.14.8.10.3"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

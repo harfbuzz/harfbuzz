@@ -277,6 +277,7 @@
 <ANCHOR id="hb-font-get-user-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-user-data">
 <ANCHOR id="hb-font-get-variation-glyph" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-variation-glyph">
 <ANCHOR id="hb-font-get-variation-glyph-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-variation-glyph-func-t">
+<ANCHOR id="hb-font-get-var-coords-normalized" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-var-coords-normalized">
 <ANCHOR id="hb-font-glyph-from-string" href="harfbuzz/harfbuzz-hb-font.html#hb-font-glyph-from-string">
 <ANCHOR id="hb-font-glyph-to-string" href="harfbuzz/harfbuzz-hb-font.html#hb-font-glyph-to-string">
 <ANCHOR id="hb-font-is-immutable" href="harfbuzz/harfbuzz-hb-font.html#hb-font-is-immutable">
@@ -284,9 +285,15 @@
 <ANCHOR id="hb-font-reference" href="harfbuzz/harfbuzz-hb-font.html#hb-font-reference">
 <ANCHOR id="hb-font-set-funcs" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-funcs">
 <ANCHOR id="hb-font-set-funcs-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-funcs-data">
+<ANCHOR id="hb-font-set-parent" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-parent">
 <ANCHOR id="hb-font-set-ppem" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-ppem">
 <ANCHOR id="hb-font-set-scale" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-scale">
 <ANCHOR id="hb-font-set-user-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-user-data">
+<ANCHOR id="hb-variation-from-string" href="harfbuzz/harfbuzz-hb-font.html#hb-variation-from-string">
+<ANCHOR id="hb-variation-to-string" href="harfbuzz/harfbuzz-hb-font.html#hb-variation-to-string">
+<ANCHOR id="hb-font-set-variations" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-variations">
+<ANCHOR id="hb-font-set-var-coords-design" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-var-coords-design">
+<ANCHOR id="hb-font-set-var-coords-normalized" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-var-coords-normalized">
 <ANCHOR id="hb-font-subtract-glyph-origin-for-direction" href="harfbuzz/harfbuzz-hb-font.html#hb-font-subtract-glyph-origin-for-direction">
 <ANCHOR id="hb-reference-table-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-reference-table-func-t">
 <ANCHOR id="hb-font-funcs-set-font-h-extents-func" href="harfbuzz/harfbuzz-hb-font.html#hb-font-funcs-set-font-h-extents-func">
@@ -295,7 +302,6 @@
 <ANCHOR id="hb-font-get-font-extents-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-font-extents-func-t">
 <ANCHOR id="hb-font-get-h-extents" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-h-extents">
 <ANCHOR id="hb-font-get-v-extents" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-v-extents">
-<ANCHOR id="hb-font-set-parent" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-parent">
 <ANCHOR id="harfbuzz-hb-font.other_details" href="harfbuzz/harfbuzz-hb-font.html#harfbuzz-hb-font.other_details">
 <ANCHOR id="hb-font-funcs-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-funcs-t">
 <ANCHOR id="hb-font-get-glyph-h-advance-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-glyph-h-advance-func-t">
@@ -304,6 +310,7 @@
 <ANCHOR id="hb-font-get-glyph-v-advance-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-glyph-v-advance-func-t">
 <ANCHOR id="hb-font-get-glyph-v-kerning-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-glyph-v-kerning-func-t">
 <ANCHOR id="hb-font-get-glyph-v-origin-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-glyph-v-origin-func-t">
+<ANCHOR id="hb-variation-t" href="harfbuzz/harfbuzz-hb-font.html#hb-variation-t">
 <ANCHOR id="hb-font-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-t">
 <ANCHOR id="hb-font-get-font-h-extents-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-font-h-extents-func-t">
 <ANCHOR id="hb-font-get-font-v-extents-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-font-v-extents-func-t">
@@ -398,6 +405,7 @@
 <ANCHOR id="harfbuzz-hb-ot-layout.functions_details" href="harfbuzz/harfbuzz-hb-ot-layout.html#harfbuzz-hb-ot-layout.functions_details">
 <ANCHOR id="hb-ot-layout-collect-lookups" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-collect-lookups">
 <ANCHOR id="hb-ot-layout-feature-get-lookups" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-feature-get-lookups">
+<ANCHOR id="hb-ot-layout-feature-with-variations-get-lookups" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-feature-with-variations-get-lookups">
 <ANCHOR id="hb-ot-layout-get-attach-points" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-get-attach-points">
 <ANCHOR id="hb-ot-layout-get-glyph-class" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-get-glyph-class">
 <ANCHOR id="hb-ot-layout-get-glyphs-in-class" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-get-glyphs-in-class">
@@ -417,6 +425,7 @@
 <ANCHOR id="hb-ot-layout-script-find-language" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-script-find-language">
 <ANCHOR id="hb-ot-layout-script-get-language-tags" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-script-get-language-tags">
 <ANCHOR id="hb-ot-layout-table-choose-script" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-table-choose-script">
+<ANCHOR id="hb-ot-layout-table-find-feature-variations" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-table-find-feature-variations">
 <ANCHOR id="hb-ot-layout-table-find-script" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-table-find-script">
 <ANCHOR id="hb-ot-layout-table-get-feature-tags" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-table-get-feature-tags">
 <ANCHOR id="hb-ot-layout-table-get-script-tags" href="harfbuzz/harfbuzz-hb-ot-layout.html#hb-ot-layout-table-get-script-tags">
@@ -427,6 +436,7 @@
 <ANCHOR id="HB-OT-LAYOUT-DEFAULT-LANGUAGE-INDEX:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-DEFAULT-LANGUAGE-INDEX:CAPS">
 <ANCHOR id="HB-OT-LAYOUT-NO-FEATURE-INDEX:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-FEATURE-INDEX:CAPS">
 <ANCHOR id="HB-OT-LAYOUT-NO-SCRIPT-INDEX:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-SCRIPT-INDEX:CAPS">
+<ANCHOR id="HB-OT-LAYOUT-NO-VARIATIONS-INDEX:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-VARIATIONS-INDEX:CAPS">
 <ANCHOR id="HB-OT-TAG-GDEF:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-TAG-GDEF:CAPS">
 <ANCHOR id="HB-OT-TAG-GPOS:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-TAG-GPOS:CAPS">
 <ANCHOR id="HB-OT-TAG-GSUB:CAPS" href="harfbuzz/harfbuzz-hb-ot-layout.html#HB-OT-TAG-GSUB:CAPS">
@@ -491,6 +501,8 @@
 <ANCHOR id="harfbuzz-hb-shape-plan.functions_details" href="harfbuzz/harfbuzz-hb-shape-plan.html#harfbuzz-hb-shape-plan.functions_details">
 <ANCHOR id="hb-shape-plan-create" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-create">
 <ANCHOR id="hb-shape-plan-create-cached" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-create-cached">
+<ANCHOR id="hb-shape-plan-create2" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-create2">
+<ANCHOR id="hb-shape-plan-create-cached2" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-create-cached2">
 <ANCHOR id="hb-shape-plan-destroy" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-destroy">
 <ANCHOR id="hb-shape-plan-execute" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-execute">
 <ANCHOR id="hb-shape-plan-get-empty" href="harfbuzz/harfbuzz-hb-shape-plan.html#hb-shape-plan-get-empty">
@@ -581,6 +593,9 @@
 <ANCHOR id="HB-GOBJECT-TYPE-FONT-FUNCS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-MEMORY-MODE:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-MEMORY-MODE:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS">
+<ANCHOR id="HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS">
+<ANCHOR id="HB-GOBJECT-TYPE-OT-MATH-GLYPH-PART-FLAGS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-GLYPH-PART-FLAGS:CAPS">
+<ANCHOR id="HB-GOBJECT-TYPE-OT-MATH-KERN:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-KERN:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-SCRIPT:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SCRIPT:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-SHAPE-PLAN:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SHAPE-PLAN:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-UNICODE-COMBINING-CLASS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-COMBINING-CLASS:CAPS">
@@ -605,6 +620,9 @@
 <ANCHOR id="hb-gobject-font-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-font-get-type">
 <ANCHOR id="hb-gobject-memory-mode-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-memory-mode-get-type">
 <ANCHOR id="hb-gobject-ot-layout-glyph-class-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-layout-glyph-class-get-type">
+<ANCHOR id="hb-gobject-ot-math-constant-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-math-constant-get-type">
+<ANCHOR id="hb-gobject-ot-math-glyph-part-flags-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-math-glyph-part-flags-get-type">
+<ANCHOR id="hb-gobject-ot-math-kern-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-math-kern-get-type">
 <ANCHOR id="hb-gobject-script-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-script-get-type">
 <ANCHOR id="hb-gobject-shape-plan-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-shape-plan-get-type">
 <ANCHOR id="hb-gobject-unicode-combining-class-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-unicode-combining-class-get-type">
