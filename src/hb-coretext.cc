@@ -1222,6 +1222,9 @@ fail:
  * AAT shaper
  */
 
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, face)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font)
+
 /*
  * shaper face data
  */
