@@ -68,6 +68,7 @@ HB_NODIST_headers = \
 HB_FALLBACK_sources = hb-fallback-shape.cc
 
 HB_OT_sources = \
+	hb-ot-base-table.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.hh \

@@ -30,6 +30,7 @@
 
 #include "hb-font-private.hh"
 
+#include "hb-ot-base-table.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-cbdt-table.hh"
 #include "hb-ot-glyf-table.hh"

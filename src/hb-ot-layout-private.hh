@@ -122,6 +122,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t    *font,
  */
 
 namespace OT {
+  struct BASE;
   struct GDEF;
   struct GSUB;
   struct GPOS;
@@ -162,6 +163,7 @@ struct hb_ot_layout_t
   const struct OT::GPOS *gpos;
 
   /* TODO Move the following out of this struct. */
+  OT::hb_lazy_table_loader_t<struct OT::BASE> base;
   OT::hb_lazy_table_loader_t<struct OT::MATH> math;
   OT::hb_lazy_table_loader_t<struct OT::fvar> fvar;
   OT::hb_lazy_table_loader_t<struct OT::avar> avar;
