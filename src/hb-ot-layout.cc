@@ -31,6 +31,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
 
+#include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"

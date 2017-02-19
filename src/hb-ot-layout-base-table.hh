@@ -109,7 +109,7 @@ struct MinMaxTable {
   ArrayOf<FeatMinMaxRecord> featMinMaxRecordTable;
 
   public:
-  DEFINE_SIZE_ARRAY (6, featMinMaxRecordTable);
+  DEFINE_SIZE_ARRAY (8, featMinMaxRecordTable);
 
 };
 
@@ -127,10 +127,10 @@ struct BaseValuesTable {
   protected:
   USHORT    defaultIndex;
   USHORT    baseCoordCount;
-  ArrayOf<BaseCoord> baseCoordTable;
+  OffsetArrayOf<BaseCoord> baseCoordTable;
 
   public:
-  DEFINE_SIZE_ARRAY (4, baseCoordTable);
+  DEFINE_SIZE_ARRAY (6, baseCoordTable);
 
 };
 
@@ -142,7 +142,7 @@ struct BaseScriptTable {
   ArrayOf<BaseLangSysRecord> baseLangSysRecordTable;
 
   public:
-    DEFINE_SIZE_ARRAY (6, baseLangSysRecordTable);
+    DEFINE_SIZE_ARRAY (8, baseLangSysRecordTable);
 };
 
 
@@ -153,7 +153,7 @@ struct BaseScriptRecord {
   OffsetTo<BaseScriptTable> baseScript;
 
   public:
-    DEFINE_SIZE_STATIC (4);
+    DEFINE_SIZE_STATIC (6);
 };
 
 struct BaseScriptList {
@@ -163,7 +163,7 @@ struct BaseScriptList {
   ArrayOf<BaseScriptRecord> baseScriptRecordTable;
 
   public:
-  DEFINE_SIZE_ARRAY (2, baseScriptRecordTable);
+  DEFINE_SIZE_ARRAY (4, baseScriptRecordTable);
   
 };
 
@@ -182,10 +182,10 @@ struct BaseTagList
 
   protected:
   USHORT    baseTagCount;
-  ArrayOf<BaselineTag> BaseTagListTable;
+  ArrayOf<BaselineTag> baseTagListTable;
 
   public:
-  DEFINE_SIZE_STATIC (4);
+  DEFINE_SIZE_ARRAY (4, baseTagListTable);
 };
 
 struct VertAxis
@@ -210,6 +210,32 @@ struct HorizAxis
   DEFINE_SIZE_STATIC (4);
 };
 
+
+struct BASEFormat1_1
+{
+
+  protected:
+  FixedVersion<>version;
+  OffsetTo<HorizAxis> horizAxis;
+  OffsetTo<VertAxis> vertAxis;
+  LOffsetTo<VariationStore> itemVarStore;
+
+  public:
+  DEFINE_SIZE_STATIC (12);
+};
+
+struct BASEFormat1_0
+{
+
+  protected:
+  FixedVersion<>version;
+  OffsetTo<HorizAxis> horizAxis;
+  OffsetTo<VertAxis> vertAxis;
+
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
 struct BASE
 {
   static const hb_tag_t tableTag = HB_OT_TAG_BASE;
@@ -217,18 +243,19 @@ struct BASE
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (version.sanitize (c) &&
-      likely (version.major == 1));
+    return_trace (u.version.sanitize (c) &&
+      likely (u.version.major == 1));
   }
 
   protected:
-  FixedVersion<>version;    /* Version of the BASE table: 1.0 or 1.1 */
-  OffsetTo<HorizAxis> horizAxis;
-  OffsetTo<VertAxis> vertAxis;
-  //LOffsetTo<ItemVarStore> itemVarStore;
+  union {
+    FixedVersion<>version;    /* Version of the BASE table: 1.0 or 1.1 */
+    BASEFormat1_0  format1_0;
+    BASEFormat1_1  format1_1;
+  } u;
 
   public:
-  DEFINE_SIZE_MIN (6);
+  DEFINE_SIZE_UNION (4, version);
 };
 
 
