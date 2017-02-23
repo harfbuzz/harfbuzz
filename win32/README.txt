@@ -36,7 +36,7 @@ PREFIX: Optional.  Base directory of where the third-party headers, libraries
 Explanation of options, set by <option>=1:
 ------------------------------------------
 GLIB: Enable GLib support in HarfBuzz, which also uses the GLib unicode
-      callback instead of the bundled UCDN unicode callback.  This requires the
+      callback if the bundled UCDN unicode callback is disabled.  This requires the
       GLib libraries, and is required for building all tool and test programs.
 
 GOBJECT: Enable building the HarfBuzz-GObject DLL, and thus implies GLib
