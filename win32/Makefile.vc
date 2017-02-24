@@ -14,6 +14,21 @@
 !include ..\src\hb-ucdn\Makefile.sources
 !include ..\util\Makefile.sources
 
+# We need to include the sources in ..\src\hb-ucdn indirectly
+!if [call create-lists.bat header hb_ucdn_srcs.mak hb_ucdn_SRCS]
+!endif
+
+!if [for %c in ($(LIBHB_UCDN_sources)) do @call create-lists.bat file hb_ucdn_srcs.mak hb-ucdn\%c]
+!endif
+
+!if [call create-lists.bat footer hb_ucdn_srcs.mak]
+!endif
+
+!include hb_ucdn_srcs.mak
+
+!if [del /f /q hb_ucdn_srcs.mak]
+!endif
+
 # Include the Makefile portion that enables features based on user input
 !include config-msvc.mak
 

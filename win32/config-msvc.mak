@@ -136,7 +136,7 @@ HB_CFLAGS =		\
 	$(HB_CFLAGS)		\
 	$(HB_UCDN_CFLAGS)
 
-HB_SOURCES = $(HB_SOURCES) $(LIBHB_UCDN_sources) $(HB_UCDN_sources)
+HB_SOURCES = $(HB_SOURCES) $(hb_ucdn_SRCS) $(HB_UCDN_sources)
 !endif
 
 # Enable GLib if desired
