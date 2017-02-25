@@ -144,7 +144,7 @@ struct FeatMinMaxRecord {
 
 };
 
-struct MinMaxTable {
+struct MinMax {
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -152,17 +152,17 @@ struct MinMaxTable {
     return_trace (c->check_struct (this) &&
       minCoord.sanitize (c, this) &&
       maxCoord.sanitize (c, this) &&
-      featMinMaxRecordTable.sanitize (c, this));
+      featMinMaxRecords.sanitize (c, this));
   }
 
   protected:
   OffsetTo<BaseCoord>   minCoord;
   OffsetTo<BaseCoord>   maxCoord;
   USHORT    featMinMaxCount;
-  ArrayOf<FeatMinMaxRecord> featMinMaxRecordTable;
+  ArrayOf<FeatMinMaxRecord> featMinMaxRecords;
 
   public:
-  DEFINE_SIZE_ARRAY (8, featMinMaxRecordTable);
+  DEFINE_SIZE_ARRAY (8, featMinMaxRecords);
 
 };
 
@@ -177,33 +177,33 @@ struct BaseLangSysRecord {
 
   protected:
   Tag baseLangSysTag;
-  OffsetTo<MinMaxTable> minMax;
+  OffsetTo<MinMax> minMax;
 
   public:
   DEFINE_SIZE_STATIC (6); 
 
 };
 
-struct BaseValuesTable {
+struct BaseValues {
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      baseCoordTable.sanitize (c, this));
+      baseCoords.sanitize (c, this));
   }
 
   protected:
   USHORT    defaultIndex;
   USHORT    baseCoordCount;
-  OffsetArrayOf<BaseCoord> baseCoordTable;
+  OffsetArrayOf<BaseCoord> baseCoords;
 
   public:
-  DEFINE_SIZE_ARRAY (6, baseCoordTable);
+  DEFINE_SIZE_ARRAY (6, baseCoords);
 
 };
 
-struct BaseScriptTable {
+struct BaseScript {
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -211,17 +211,17 @@ struct BaseScriptTable {
     return_trace (c->check_struct (this) &&
       baseValues.sanitize (c, this) &&
       defaultMinMax.sanitize (c, this) &&
-      baseLangSysRecordTable.sanitize (c, this));
+      baseLangSysRecords.sanitize (c, this));
   }
 
   protected:
-  OffsetTo<BaseValuesTable>  baseValues;
-  OffsetTo<MinMaxTable>  defaultMinMax;
+  OffsetTo<BaseValues>  baseValues;
+  OffsetTo<MinMax>  defaultMinMax;
   USHORT    baseLangSysCount;
-  ArrayOf<BaseLangSysRecord> baseLangSysRecordTable;
+  ArrayOf<BaseLangSysRecord> baseLangSysRecords;
 
   public:
-    DEFINE_SIZE_ARRAY (8, baseLangSysRecordTable);
+    DEFINE_SIZE_ARRAY (8, baseLangSysRecords);
 };
 
 
@@ -236,7 +236,7 @@ struct BaseScriptRecord {
 
   protected:
   Tag baseScriptTag;
-  OffsetTo<BaseScriptTable> baseScript;
+  OffsetTo<BaseScript> baseScript;
 
   public:
     DEFINE_SIZE_STATIC (6);
@@ -248,15 +248,15 @@ struct BaseScriptList {
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      baseScriptRecordTable.sanitize (c, this));
+      baseScriptRecords.sanitize (c, this));
   }
 
   protected:
   USHORT    baseScriptCount;
-  ArrayOf<BaseScriptRecord> baseScriptRecordTable;
+  ArrayOf<BaseScriptRecord> baseScriptRecords;
 
   public:
-  DEFINE_SIZE_ARRAY (4, baseScriptRecordTable);
+  DEFINE_SIZE_ARRAY (4, baseScriptRecords);
   
 };
 
@@ -283,15 +283,15 @@ struct BaseTagList
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      baseTagListTable.sanitize (c, this));
+      baselineTags.sanitize (c, this));
   }
 
   protected:
   USHORT    baseTagCount;
-  ArrayOf<BaselineTag> baseTagListTable;
+  ArrayOf<BaselineTag> baselineTags;
 
   public:
-  DEFINE_SIZE_ARRAY (4, baseTagListTable);
+  DEFINE_SIZE_ARRAY (4, baselineTags);
 };
 
 struct Axis
