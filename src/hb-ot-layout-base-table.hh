@@ -43,11 +43,16 @@
 
 namespace OT {
 
+#define NO_COORD -32767
+
 /*
  * BASE -- The BASE Table
  */
 
 struct BaseCoordFormat1 {
+
+  inline SHORT get_coord () const
+  { return coordinate; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -64,6 +69,9 @@ struct BaseCoordFormat1 {
 };
 
 struct BaseCoordFormat2 {
+
+  inline SHORT get_coord () const
+  { return coordinate; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -83,6 +91,9 @@ struct BaseCoordFormat2 {
 
 struct BaseCoordFormat3 {
 
+  inline SHORT get_coord (void ) const
+  { return coordinate; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -99,6 +110,18 @@ struct BaseCoordFormat3 {
 };
 
 struct BaseCoord {
+
+  inline hb_position_t get_value (hb_font_t *font, hb_direction_t dir) const
+  { 
+    SHORT coord;
+    switch (u.baseCoordFormat) {
+    case 1: coord = u.format1.get_coord();
+    case 2: coord = u.format2.get_coord();
+    case 3: coord = u.format3.get_coord();
+    default: return 0;
+    }
+    return font->em_scale (coord, dir); 
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -126,6 +149,21 @@ struct BaseCoord {
 
 struct FeatMinMaxRecord {
 
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir) const
+  { 
+    if (unlikely(minCoord == Null(OffsetTo<BaseCoord>))) return NO_COORD;
+    return (this+minCoord).get_value(font, dir); 
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir) const
+  { 
+    if (unlikely(maxCoord == Null(OffsetTo<BaseCoord>))) return NO_COORD;
+    return (this+maxCoord).get_value(font, dir); 
+  }
+
+  inline Tag get_tag () const
+  { return featureTableTag; }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -146,6 +184,42 @@ struct FeatMinMaxRecord {
 
 struct MinMax {
 
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir) const
+  { 
+    if (unlikely(minCoord == Null(OffsetTo<BaseCoord>))) return NO_COORD;
+    return (this+minCoord).get_value(font, dir);
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir) const
+  { 
+    if (unlikely(maxCoord == Null(OffsetTo<BaseCoord>))) return NO_COORD;
+    return (this+maxCoord).get_value(font, dir);
+  }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir, Tag featureTableTag) const
+  {
+    for (unsigned int i = 0; i < featMinMaxCount; i++) 
+    {
+      if (featMinMaxRecords[i].get_tag() == featureTableTag)
+        return featMinMaxRecords[i].get_min_value(font, dir);
+      // we could take advantage of alphabetical order by comparing Tags, not currently possible
+      //if (featMinMaxRecords[i].get_tag() > featureTableTag)
+      //  break;
+    }
+    return get_min_value (font, dir);
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir, Tag featureTableTag) const
+  {
+    for (unsigned int i = 0; i < featMinMaxCount; i++) 
+    {
+      if (featMinMaxRecords[i].get_tag() == featureTableTag)
+        return featMinMaxRecords[i].get_max_value(font, dir);
+      // we could use alphabetical order to break here
+    }
+    return get_min_value (font, dir);
+  }  
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -153,13 +227,14 @@ struct MinMax {
       minCoord.sanitize (c, this) &&
       maxCoord.sanitize (c, this) &&
       featMinMaxRecords.sanitize (c, this));
+    // TODO: test alphabetical order?
   }
 
   protected:
   OffsetTo<BaseCoord>       minCoord;
   OffsetTo<BaseCoord>       maxCoord;
   USHORT                    featMinMaxCount;
-  ArrayOf<FeatMinMaxRecord> featMinMaxRecords;
+  ArrayOf<FeatMinMaxRecord> featMinMaxRecords; /* All FeatMinMaxRecords are listed alphabetically */
 
   public:
   DEFINE_SIZE_ARRAY (8, featMinMaxRecords);
@@ -168,16 +243,32 @@ struct MinMax {
 
 struct BaseLangSysRecord {
 
+  inline Tag get_tag(void) const
+  { return baseLangSysTag; }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir) const
+  { return (this+minMax).get_min_value(font, dir); }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir) const
+  { return (this+minMax).get_max_value(font, dir); }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir, Tag featureTableTag) const
+  { return (this+minMax).get_min_value(font, dir, featureTableTag); }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir, Tag featureTableTag) const
+  { return (this+minMax).get_max_value(font, dir, featureTableTag); }  
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+      minMax != Null(OffsetTo<MinMax>) &&
       minMax.sanitize (c, base));
   }
 
   protected:
   Tag               baseLangSysTag;
-  OffsetTo<MinMax>  minMax;
+  OffsetTo<MinMax>  minMax; // not supposed to be NULL
 
   public:
   DEFINE_SIZE_STATIC (6); 
@@ -205,6 +296,62 @@ struct BaseValues {
 
 struct BaseScript {
 
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir) const 
+  {
+    if (unlikely(defaultMinMax == Null(OffsetTo<MinMax>))) return NO_COORD;
+    return (this+defaultMinMax).get_min_value(font, dir);
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir) const 
+  {
+    if (unlikely(defaultMinMax == Null(OffsetTo<MinMax>))) return NO_COORD;
+    return (this+defaultMinMax).get_max_value(font, dir);
+  }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir, Tag baseLangSysTag) const
+  { 
+    for (unsigned int i = 0; i < baseLangSysCount; i++) 
+    {
+      if (baseLangSysRecords[i].get_tag() == baseLangSysTag)
+        return baseLangSysRecords[i].get_min_value(font, dir);
+      // we could use alphabetical order to break here
+    }
+    return get_min_value (font, dir);
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir, Tag baseLangSysTag) const
+  {
+    for (unsigned int i = 0; i < baseLangSysCount; i++) 
+    {
+      if (baseLangSysRecords[i].get_tag() == baseLangSysTag)
+        return baseLangSysRecords[i].get_max_value(font, dir);
+      // we could use alphabetical order to break here
+    }
+    return get_max_value (font, dir);
+  }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir, Tag baseLangSysTag, Tag featureTableTag) const
+  {
+    for (unsigned int i = 0; i < baseLangSysCount; i++) 
+    {
+      if (baseLangSysRecords[i].get_tag() == baseLangSysTag)
+        return baseLangSysRecords[i].get_min_value(font, dir, featureTableTag);
+      // we could use alphabetical order to break here
+    }
+    return get_min_value (font, dir);
+  }
+
+  inline hb_position_t get_max_value (hb_font_t *font, hb_direction_t dir, Tag baseLangSysTag, Tag featureTableTag) const
+  {
+    for (unsigned int i = 0; i < baseLangSysCount; i++)
+    {
+      if (baseLangSysRecords[i].get_tag() == baseLangSysTag)
+        return baseLangSysRecords[i].get_max_value(font, dir);
+      // we could use alphabetical order to break here
+    }
+    return get_max_value (font, dir);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -227,6 +374,16 @@ struct BaseScript {
 
 struct BaseScriptRecord {
 
+  inline const BaseScript *get_baseScript (void) const
+  {
+    return &(this+baseScript);
+  }
+
+  inline bool get_tag (void) const
+  {
+    return baseScriptTag;
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -244,6 +401,22 @@ struct BaseScriptRecord {
 
 struct BaseScriptList {
 
+  inline const BaseScript *get_baseScript_from_tag (Tag baseScriptTag) const
+  {
+    for (unsigned int i = 0; i < baseScriptCount; i++)
+      if (baseScriptRecords[i].get_tag() == baseScriptTag)
+        return baseScriptRecords[i].get_baseScript();
+      // we could use alphabetical order to break here
+    return NULL;
+  }
+
+  inline hb_position_t get_min_value (hb_font_t *font, hb_direction_t dir, Tag baseScriptTag) const 
+  {
+    const BaseScript *baseScript = get_baseScript_from_tag (baseScriptTag);
+    if (baseScript == NULL) return NO_COORD;
+    return baseScript->get_min_value(font, dir);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -260,35 +433,26 @@ struct BaseScriptList {
   
 };
 
-struct BaselineTag {
+struct BaseTagList
+{
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  inline bool hasTag(Tag tag) const
+  {
+    for (unsigned int i = 0; i < baseTagCount; i++)
+      if (baselineTags[i] == tag)
+        return true;
+    return false;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
   protected:
-  Tag   tag;
-
-  public:
-  DEFINE_SIZE_STATIC (4);
-
-};
-
-struct BaseTagList
-{
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      baselineTags.sanitize (c, this));
-  }
-
-  protected:
-  USHORT                baseTagCount;
-  ArrayOf<BaselineTag>  baselineTags;
+  USHORT        baseTagCount;
+  ArrayOf<Tag>  baselineTags; // must be in alphabetical order
 
   public:
   DEFINE_SIZE_ARRAY (4, baselineTags);
@@ -296,6 +460,12 @@ struct BaseTagList
 
 struct Axis
 {
+
+  inline bool hasTag(Tag tag) const
+  {
+    if (unlikely(baseTagList == Null(OffsetTo<BaseTagList>))) return false;
+    return (this+baseTagList).hasTag(tag);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
