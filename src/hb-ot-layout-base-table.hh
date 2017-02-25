@@ -100,7 +100,6 @@ struct BaseCoordFormat3 {
 
 struct BaseCoord {
 
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -295,7 +294,7 @@ struct BaseTagList
   DEFINE_SIZE_ARRAY (4, baseTagListTable);
 };
 
-struct VertAxis
+struct Axis
 {
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -314,26 +313,6 @@ struct VertAxis
   DEFINE_SIZE_STATIC (4);
 };
 
-struct HorizAxis
-{
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      baseTagList.sanitize (c, this) &&
-      baseScriptList.sanitize (c, this));
-  }
-
-  protected:
-  OffsetTo<HorizAxis> baseTagList;
-  OffsetTo<VertAxis> baseScriptList;
-
-  public:
-  DEFINE_SIZE_STATIC (4);
-};
-
-
 struct BASEFormat1_1
 {
 
@@ -348,8 +327,8 @@ struct BASEFormat1_1
 
   protected:
   FixedVersion<>version;
-  OffsetTo<HorizAxis> horizAxis;
-  OffsetTo<VertAxis> vertAxis;
+  OffsetTo<Axis> horizAxis;
+  OffsetTo<Axis> vertAxis;
   LOffsetTo<VariationStore> itemVarStore;
 
   public:
@@ -369,8 +348,8 @@ struct BASEFormat1_0
 
   protected:
   FixedVersion<>version;
-  OffsetTo<HorizAxis> horizAxis;
-  OffsetTo<VertAxis> vertAxis;
+  OffsetTo<Axis> horizAxis;
+  OffsetTo<Axis> vertAxis;
 
   public:
   DEFINE_SIZE_STATIC (8);
