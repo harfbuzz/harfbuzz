@@ -1,3 +1,15 @@
+Overview of changes leading to 1.4.3
+Saturday, February 25, 2017
+====================================
+
+- Route Adlam script to Arabic shaper.
+- Misc fixes.
+- New API:
+  hb_font_set_face()
+- Deprecate API:
+  hb_graphite2_font_get_gr_font()
+
+
 Overview of changes leading to 1.4.2
 Monday, January 23, 2017
 ====================================
