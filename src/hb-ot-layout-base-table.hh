@@ -48,6 +48,13 @@ namespace OT {
  */
 
 struct BaseCoordFormat1 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
   protected:
   USHORT    baseCoordFormat;
   SHORT   coordinate;
@@ -57,6 +64,13 @@ struct BaseCoordFormat1 {
 };
 
 struct BaseCoordFormat2 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
   protected:
   USHORT    baseCoordFormat;
   SHORT   coordinate;
@@ -68,6 +82,13 @@ struct BaseCoordFormat2 {
 };
 
 struct BaseCoordFormat3 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && deviceTable.sanitize (c, this));
+  }
+
   protected:
   USHORT    baseCoordFormat;
   SHORT   coordinate;
@@ -78,6 +99,20 @@ struct BaseCoordFormat3 {
 };
 
 struct BaseCoord {
+
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.baseCoordFormat.sanitize (c)) return_trace (false);
+    switch (u.baseCoordFormat) {
+    case 1: return_trace (u.format1.sanitize (c));
+    case 2: return_trace (u.format2.sanitize (c));
+    case 3: return_trace (u.format3.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
   protected:
   union {
     USHORT    baseCoordFormat;
@@ -91,6 +126,15 @@ struct BaseCoord {
 };
 
 struct FeatMinMaxRecord {
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      minCoord.sanitize (c, base) &&
+      maxCoord.sanitize (c, base));
+  }
+
   protected:
   Tag featureTableTag;
   OffsetTo<BaseCoord>   minCoord;
@@ -102,6 +146,16 @@ struct FeatMinMaxRecord {
 };
 
 struct MinMaxTable {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      minCoord.sanitize (c, this) &&
+      maxCoord.sanitize (c, this) &&
+      featMinMaxRecordTable.sanitize (c, this));
+  }
+
   protected:
   OffsetTo<BaseCoord>   minCoord;
   OffsetTo<BaseCoord>   maxCoord;
@@ -114,6 +168,14 @@ struct MinMaxTable {
 };
 
 struct BaseLangSysRecord {
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      minMax.sanitize (c, base));
+  }
+
   protected:
   Tag baseLangSysTag;
   OffsetTo<MinMaxTable> minMax;
@@ -124,6 +186,14 @@ struct BaseLangSysRecord {
 };
 
 struct BaseValuesTable {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseCoordTable.sanitize (c, this));
+  }
+
   protected:
   USHORT    defaultIndex;
   USHORT    baseCoordCount;
@@ -135,6 +205,16 @@ struct BaseValuesTable {
 };
 
 struct BaseScriptTable {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseValues.sanitize (c, this) &&
+      defaultMinMax.sanitize (c, this) &&
+      baseLangSysRecordTable.sanitize (c, this));
+  }
+
   protected:
   OffsetTo<BaseValuesTable>  baseValues;
   OffsetTo<MinMaxTable>  defaultMinMax;
@@ -148,6 +228,13 @@ struct BaseScriptTable {
 
 struct BaseScriptRecord {
 
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseScript.sanitize (c, base));
+  }
+
   protected:
   Tag baseScriptTag;
   OffsetTo<BaseScriptTable> baseScript;
@@ -157,6 +244,13 @@ struct BaseScriptRecord {
 };
 
 struct BaseScriptList {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseScriptRecordTable.sanitize (c, this));
+  }
 
   protected:
   USHORT    baseScriptCount;
@@ -169,6 +263,12 @@ struct BaseScriptList {
 
 struct BaselineTag {
 
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
   protected:
   Tag   tag;
 
@@ -179,6 +279,13 @@ struct BaselineTag {
 
 struct BaseTagList
 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseTagListTable.sanitize (c, this));
+  }
 
   protected:
   USHORT    baseTagCount;
@@ -191,6 +298,14 @@ struct BaseTagList
 struct VertAxis
 {
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseTagList.sanitize (c, this) &&
+      baseScriptList.sanitize (c, this));
+  }
+
   protected:
   OffsetTo<BaseTagList> baseTagList;
   OffsetTo<BaseScriptList> baseScriptList;
@@ -201,6 +316,14 @@ struct VertAxis
 
 struct HorizAxis
 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      baseTagList.sanitize (c, this) &&
+      baseScriptList.sanitize (c, this));
+  }
 
   protected:
   OffsetTo<HorizAxis> baseTagList;
@@ -213,6 +336,15 @@ struct HorizAxis
 
 struct BASEFormat1_1
 {
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      horizAxis.sanitize (c, this) &&
+      vertAxis.sanitize (c, this) && 
+      itemVarStore.sanitize (c, this));
+  }
 
   protected:
   FixedVersion<>version;
@@ -227,6 +359,14 @@ struct BASEFormat1_1
 struct BASEFormat1_0
 {
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      horizAxis.sanitize (c, this) &&
+      vertAxis.sanitize (c, this));
+  }
+
   protected:
   FixedVersion<>version;
   OffsetTo<HorizAxis> horizAxis;
@@ -240,11 +380,16 @@ struct BASE
 {
   static const hb_tag_t tableTag = HB_OT_TAG_BASE;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (u.version.sanitize (c) &&
-      likely (u.version.major == 1));
+    if (!u.version.sanitize (c)) return_trace (false);
+    if (!likely(u.version.major == 1)) return_trace (false);
+    switch (u.version.minor) {
+    case 0: return_trace (u.format1_0.sanitize (c));
+    case 1: return_trace (u.format1_1.sanitize (c));
+    default:return_trace (true);
+    }
   }
 
   protected:
