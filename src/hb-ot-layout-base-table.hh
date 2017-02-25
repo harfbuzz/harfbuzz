@@ -57,7 +57,7 @@ struct BaseCoordFormat1 {
 
   protected:
   USHORT    baseCoordFormat;
-  SHORT   coordinate;
+  SHORT     coordinate;
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -73,7 +73,7 @@ struct BaseCoordFormat2 {
 
   protected:
   USHORT    baseCoordFormat;
-  SHORT   coordinate;
+  SHORT     coordinate;
   USHORT    referenceGlyph;
   USHORT    baseCoordPoint;
 
@@ -90,9 +90,9 @@ struct BaseCoordFormat3 {
   }
 
   protected:
-  USHORT    baseCoordFormat;
-  SHORT   coordinate;
-  OffsetTo<Device>    deviceTable;
+  USHORT           baseCoordFormat;
+  SHORT            coordinate;
+  OffsetTo<Device> deviceTable;
 
   public:
   DEFINE_SIZE_STATIC (6);
@@ -114,7 +114,7 @@ struct BaseCoord {
 
   protected:
   union {
-    USHORT    baseCoordFormat;
+    USHORT            baseCoordFormat;
     BaseCoordFormat1  format1;
     BaseCoordFormat2  format2;
     BaseCoordFormat3  format3;
@@ -135,7 +135,7 @@ struct FeatMinMaxRecord {
   }
 
   protected:
-  Tag featureTableTag;
+  Tag                   featureTableTag;
   OffsetTo<BaseCoord>   minCoord;
   OffsetTo<BaseCoord>   maxCoord;
 
@@ -156,9 +156,9 @@ struct MinMax {
   }
 
   protected:
-  OffsetTo<BaseCoord>   minCoord;
-  OffsetTo<BaseCoord>   maxCoord;
-  USHORT    featMinMaxCount;
+  OffsetTo<BaseCoord>       minCoord;
+  OffsetTo<BaseCoord>       maxCoord;
+  USHORT                    featMinMaxCount;
   ArrayOf<FeatMinMaxRecord> featMinMaxRecords;
 
   public:
@@ -176,8 +176,8 @@ struct BaseLangSysRecord {
   }
 
   protected:
-  Tag baseLangSysTag;
-  OffsetTo<MinMax> minMax;
+  Tag               baseLangSysTag;
+  OffsetTo<MinMax>  minMax;
 
   public:
   DEFINE_SIZE_STATIC (6); 
@@ -194,9 +194,9 @@ struct BaseValues {
   }
 
   protected:
-  USHORT    defaultIndex;
-  USHORT    baseCoordCount;
-  OffsetArrayOf<BaseCoord> baseCoords;
+  USHORT                    defaultIndex;
+  USHORT                    baseCoordCount;
+  OffsetArrayOf<BaseCoord>  baseCoords;
 
   public:
   DEFINE_SIZE_ARRAY (6, baseCoords);
@@ -215,10 +215,10 @@ struct BaseScript {
   }
 
   protected:
-  OffsetTo<BaseValues>  baseValues;
-  OffsetTo<MinMax>  defaultMinMax;
-  USHORT    baseLangSysCount;
-  ArrayOf<BaseLangSysRecord> baseLangSysRecords;
+  OffsetTo<BaseValues>        baseValues;
+  OffsetTo<MinMax>            defaultMinMax;
+  USHORT                      baseLangSysCount;
+  ArrayOf<BaseLangSysRecord>  baseLangSysRecords;
 
   public:
     DEFINE_SIZE_ARRAY (8, baseLangSysRecords);
@@ -235,8 +235,8 @@ struct BaseScriptRecord {
   }
 
   protected:
-  Tag baseScriptTag;
-  OffsetTo<BaseScript> baseScript;
+  Tag                   baseScriptTag;
+  OffsetTo<BaseScript>  baseScript;
 
   public:
     DEFINE_SIZE_STATIC (6);
@@ -252,7 +252,7 @@ struct BaseScriptList {
   }
 
   protected:
-  USHORT    baseScriptCount;
+  USHORT                    baseScriptCount;
   ArrayOf<BaseScriptRecord> baseScriptRecords;
 
   public:
@@ -287,8 +287,8 @@ struct BaseTagList
   }
 
   protected:
-  USHORT    baseTagCount;
-  ArrayOf<BaselineTag> baselineTags;
+  USHORT                baseTagCount;
+  ArrayOf<BaselineTag>  baselineTags;
 
   public:
   DEFINE_SIZE_ARRAY (4, baselineTags);
@@ -306,8 +306,8 @@ struct Axis
   }
 
   protected:
-  OffsetTo<BaseTagList> baseTagList;
-  OffsetTo<BaseScriptList> baseScriptList;
+  OffsetTo<BaseTagList>     baseTagList;
+  OffsetTo<BaseScriptList>  baseScriptList;
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -326,9 +326,9 @@ struct BASEFormat1_1
   }
 
   protected:
-  FixedVersion<>version;
-  OffsetTo<Axis> horizAxis;
-  OffsetTo<Axis> vertAxis;
+  FixedVersion<>            version;
+  OffsetTo<Axis>            horizAxis;
+  OffsetTo<Axis>            vertAxis;
   LOffsetTo<VariationStore> itemVarStore;
 
   public:
@@ -347,9 +347,9 @@ struct BASEFormat1_0
   }
 
   protected:
-  FixedVersion<>version;
-  OffsetTo<Axis> horizAxis;
-  OffsetTo<Axis> vertAxis;
+  FixedVersion<>  version;
+  OffsetTo<Axis>  horizAxis;
+  OffsetTo<Axis>  vertAxis;
 
   public:
   DEFINE_SIZE_STATIC (8);
@@ -373,9 +373,9 @@ struct BASE
 
   protected:
   union {
-    FixedVersion<>version;    /* Version of the BASE table: 1.0 or 1.1 */
-    BASEFormat1_0  format1_0;
-    BASEFormat1_1  format1_1;
+    FixedVersion<>  version;    /* Version of the BASE table: 1.0 or 1.1 */
+    BASEFormat1_0   format1_0;
+    BASEFormat1_1   format1_1;
   } u;
 
   public:
