@@ -719,6 +719,30 @@ struct BASE
   inline SHORT get_vert_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
   { return u.format1_0.get_vert_base_coord(baseScriptIndex, baselineTagIndex); }
 
+  inline unsigned int get_horiz_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
+  { return u.format1_0.get_horiz_lang_tag_index(baseScriptIndex, baseLangSysTag); }
+
+  inline unsigned int get_horiz_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
+  { return u.format1_0.get_horiz_feature_tag_index(baseScriptIndex, baseLangSysIndex, featureTableTag); }
+
+  inline SHORT get_horiz_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  { return u.format1_0.get_horiz_max_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+
+  inline SHORT get_horiz_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  { return u.format1_0.get_horiz_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+
+  inline unsigned int get_vert_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
+  { return u.format1_0.get_vert_lang_tag_index(baseScriptIndex, baseLangSysTag); }
+
+  inline unsigned int get_vert_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
+  { return u.format1_0.get_vert_feature_tag_index(baseScriptIndex, baseLangSysIndex, featureTableTag); }
+
+  inline SHORT get_vert_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  { return u.format1_0.get_vert_max_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+
+  inline SHORT get_vert_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  { return u.format1_0.get_vert_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
