@@ -28,18 +28,7 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
-
-#define HB_OT_TAG_BASE      HB_TAG('B','A','S','E')
-
-// https://www.microsoft.com/typography/otspec/baselinetags.htm
-
-#define HB_OT_TAG_BASE_HANG HB_TAG('h','a','n','g')
-#define HB_OT_TAG_BASE_ICFB HB_TAG('i','c','f','b')
-#define HB_OT_TAG_BASE_ICFT HB_TAG('i','c','f','t')
-#define HB_OT_TAG_BASE_IDEO HB_TAG('i','d','e','o')
-#define HB_OT_TAG_BASE_IDTB HB_TAG('i','d','t','b')
-#define HB_OT_TAG_BASE_MATH HB_TAG('m','a','t','h')
-#define HB_OT_TAG_BASE_ROMN HB_TAG('r','o','m','n')
+#include "hb-ot-base.h"
 
 namespace OT {
 
@@ -743,7 +732,7 @@ struct BASE
   inline SHORT get_vert_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
   { return u.format1_0.get_vert_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.version.sanitize (c)) return_trace (false);

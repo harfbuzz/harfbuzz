@@ -68,6 +68,7 @@ HB_NODIST_headers = \
 HB_FALLBACK_sources = hb-fallback-shape.cc
 
 HB_OT_sources = \
+	hb-ot-base.cc \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-base-table.hh \
@@ -121,6 +122,7 @@ HB_OT_headers = \
 	hb-ot-font.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
+	hb-ot-base.h \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
 	hb-ot-var.h \
