@@ -1021,13 +1021,14 @@ static inline bool apply_lookup (hb_apply_context_t *c,
      */
 
     end += delta;
-    if (end < int (match_positions[idx]))
+    if (end <= int (match_positions[idx]))
     {
       /* End might end up being smaller than match_positions[idx] if the recursed
-       * lookup ended up removing too many items.
+       * lookup ended up removing many items, more than we have had matched.
        * Just never rewind end back and get out of here.
        * https://bugs.chromium.org/p/chromium/issues/detail?id=659496 */
       end = match_positions[idx];
+      /* There can't be any further changes. */
       break;
     }
 
@@ -1040,7 +1041,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
     }
     else
     {
-      /* NOTE: delta is non-positive. */
+      /* NOTE: delta is negative. */
       delta = MAX (delta, (int) next - (int) count);
       next -= delta;
     }
