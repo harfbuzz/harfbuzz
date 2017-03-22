@@ -667,11 +667,7 @@ parse_float (const char **pp, const char *end, float *pv)
   float v;
 
   errno = 0;
-#if defined (_MSC_VER) && (_MSC_VER < 1800)
   v = strtod (p, &pend);
-#else
-  v = strtof (p, &pend);
-#endif
   if (errno || p == pend)
     return false;
 
