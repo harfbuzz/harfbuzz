@@ -125,6 +125,14 @@ _hb_ot_layout_create (hb_face_t *face)
       /* 2c0c90c6f6087ffbfea76589c93113a9cbb0e75f  cantarell-fonts-0.0.21/otf/Cantarell-Bold.otf */
       /* 55461f5b853c6da88069ffcdf7f4dd3f8d7e3e6b  cantarell-fonts-0.0.21/otf/Cantarell-Bold-Oblique.otf */
       || (188 == gdef_len && 3426 == gpos_len && 264 == gsub_len)
+      /* d125afa82a77a6475ac0e74e7c207914af84b37a padauk-2.80/Padauk.ttf RHEL 7.2 */
+      || (1058 == gdef_len && 11818 == gpos_len && 47032 == gsub_len)
+      /* 0f7b80437227b90a577cc078c0216160ae61b031 padauk-2.80/Padauk-Bold.ttf RHEL 7.2*/
+      || (1046 == gdef_len && 12600 == gpos_len && 47030 == gsub_len)
+      /* d3dde9aa0a6b7f8f6a89ef1002e9aaa11b882290 padauk-2.80/Padauk.ttf Ubuntu 16.04 */
+      || (1058 == gdef_len && 16770 == gpos_len && 71796 == gsub_len)
+      /* 5f3c98ccccae8a953be2d122c1b3a77fd805093f padauk-2.80/Padauk-Bold.ttf Ubuntu 16.04 */
+      || (1046 == gdef_len && 17862 == gpos_len && 71790 == gsub_len)
       /* 6c93b63b64e8b2c93f5e824e78caca555dc887c7 padauk-2.80/Padauk-book.ttf */
       || (1046 == gdef_len && 17112 == gpos_len && 71788 == gsub_len)
       /* d89b1664058359b8ec82e35d3531931125991fb9 padauk-2.80/Padauk-bookbold.ttf */
