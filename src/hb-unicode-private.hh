@@ -350,7 +350,7 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
  */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
 #define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
-#define HB_MODIFIED_COMBINING_CLASS_CCC132 128 /* sign u */
+#define HB_MODIFIED_COMBINING_CLASS_CCC132 132 /* sign u */
 
 
 /* Misc */
