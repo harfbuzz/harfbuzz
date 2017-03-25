@@ -345,9 +345,7 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define HB_MODIFIED_COMBINING_CLASS_CCC118 118 /* sign u / sign uu */
 #define HB_MODIFIED_COMBINING_CLASS_CCC122 122 /* mai * */
 
-/* Tibetan
- * Modify U+0F74 (ccc=132) to reorder before ccc=130 marks.
- */
+/* Tibetan */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
 #define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
 #define HB_MODIFIED_COMBINING_CLASS_CCC132 132 /* sign u */
