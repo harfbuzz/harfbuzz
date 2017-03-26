@@ -46,6 +46,17 @@ try:
 except NameError:
 	unichr = chr
 
+try:
+	unicode = unicode
+except NameError:
+	unicode = str
+
+def tounicode(s, encoding='ascii', errors='strict'):
+	if not isinstance(s, unicode):
+		return s.decode(encoding, errors)
+	else:
+		return s
+
 class ColorFormatter:
 
 	class Null:
@@ -445,7 +456,7 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8')
+		return u','.join ("U+%04X" % ord (u) for u in tounicode (s, 'utf-8'))
 
 	@staticmethod
 	def parse (s):
