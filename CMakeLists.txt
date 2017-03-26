@@ -62,6 +62,26 @@ execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
 file(REMOVE "${HB_VERSION_H}.tmp")
 ##
 
+## Extract variables from src/Makefile.sources
+file(READ src/Makefile.sources MAKEFILESOURCES)
+function (extract_make_variable variable)
+  string(REGEX MATCH "${variable} = \\\\\n([^$]+)" temp ${MAKEFILESOURCES})
+  string(REPLACE "hb-buffer-deserialize-json.hh" "" temp ${temp})
+  string(REPLACE "hb-buffer-deserialize-text.hh" "" temp ${temp})
+  string(REPLACE "hb-ot-shape-complex-indic-machine.hh" "" temp ${temp})
+  string(REPLACE "hb-ot-shape-complex-myanmar-machine.hh" "" temp ${temp})
+  string(REPLACE "hb-ot-shape-complex-use-machine.hh" "" temp ${temp})
+  string(REGEX REPLACE "hb-" "src/hb-" temp ${temp})
+  string(REGEX MATCHALL "src/[^ ]+" temp ${temp})
+  SET(${variable} ${temp} PARENT_SCOPE)
+endfunction(extract_make_variable)
+
+extract_make_variable(HB_BASE_sources)
+extract_make_variable(HB_BASE_headers)
+extract_make_variable(HB_OT_sources)
+extract_make_variable(HB_OT_headers)
+##
+
 ## Define source and headers of projects
 set(project_sources
   ${project_sources}
@@ -76,15 +96,15 @@ set(project_sources
 set(project_headers
   ${HB_VERSION_H}
 
-  {{HB_BASE_headers}}
-  {{HB_OT_headers}}
+  ${HB_BASE_headers}
+  ${HB_OT_headers}
   )
 
 set(project_sources
   ${project_sources}
 
-  {{HB_BASE_sources}}
-  {{HB_OT_sources}}
+  ${HB_BASE_sources}
+  ${HB_OT_sources}
   )
 
 if (HB_HAVE_FREETYPE)
@@ -109,9 +129,9 @@ if (HB_HAVE_FREETYPE)
     add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
   endif ()
 
-  set(project_headers ${project_headers} {{HB_FT_headers}})
+  set(project_headers ${project_headers} src/hb-ft.h)
 
-  set(project_sources ${project_sources} {{HB_FT_sources}})
+  set(project_sources ${project_sources} src/hb-ft.cc)
 endif ()
 
 if (HB_BUILTIN_UCDN)
@@ -134,9 +154,9 @@ if (APPLE AND HB_HAVE_CORETEXT)
   # Apple Advanced Typography
   add_definitions(-DHAVE_CORETEXT)
 
-  set(project_headers ${project_headers} {{HB_CORETEXT_headers}})
+  set(project_headers ${project_headers} src/hb-coretext.h)
 
-  set(project_sources ${project_sources} {{HB_CORETEXT_sources}})
+  set(project_sources ${project_sources} src/hb-coretext.cc)
 
   find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
   mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
@@ -148,9 +168,9 @@ endif ()
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
 
-  set(project_headers ${project_headers} {{HB_UNISCRIBE_sources}})
+  set(project_headers ${project_headers} src/hb-uniscribe.cc)
 
-  set(project_sources ${project_sources} {{HB_UNISCRIBE_headers}})
+  set(project_sources ${project_sources} src/hb-uniscribe.h)
 
   set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} usp10 gdi32 rpcrt4)
 endif ()

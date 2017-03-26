@@ -24,7 +24,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew link --force icu4c; fi # icu4c is keg-only
 script:
   # CMake
-  - ./preparecmake.py; mkdir build; cd build
+  - mkdir build; cd build
   - cmake ..
   - make
   - cd ..

@@ -65,7 +65,7 @@ HB_NODIST_headers = \
 	hb-version.h \
 	$(NULL)
 
-HB_FALLBACK_sources = hb-fallback-shape.cc $(NULL)
+HB_FALLBACK_sources = hb-fallback-shape.cc
 
 HB_OT_sources = \
 	hb-ot-font.cc \
@@ -127,35 +127,35 @@ HB_OT_headers = \
 
 # Optional Sources and Headers with external deps
 
-HB_FT_sources = hb-ft.cc $(NULL)
-HB_FT_headers = hb-ft.h $(NULL)
+HB_FT_sources = hb-ft.cc
+HB_FT_headers = hb-ft.h
 
-HB_GLIB_sources = hb-glib.cc $(NULL)
-HB_GLIB_headers = hb-glib.h $(NULL)
+HB_GLIB_sources = hb-glib.cc
+HB_GLIB_headers = hb-glib.h
 
-HB_GRAPHITE2_sources = hb-graphite2.cc $(NULL)
-HB_GRAPHITE2_headers = hb-graphite2.h $(NULL)
+HB_GRAPHITE2_sources = hb-graphite2.cc
+HB_GRAPHITE2_headers = hb-graphite2.h
 
 # System-dependent sources and headers
 
-HB_CORETEXT_sources = hb-coretext.cc $(NULL)
-HB_CORETEXT_headers = hb-coretext.h $(NULL)
+HB_CORETEXT_sources = hb-coretext.cc
+HB_CORETEXT_headers = hb-coretext.h
 
-HB_DIRECTWRITE_sources = hb-directwrite.cc $(NULL)
-HB_DIRECTWRITE_headers = hb-directwrite.h $(NULL)
+HB_DIRECTWRITE_sources = hb-directwrite.cc
+HB_DIRECTWRITE_headers = hb-directwrite.h
 
-HB_UNISCRIBE_sources = hb-uniscribe.cc $(NULL)
-HB_UNISCRIBE_headers = hb-uniscribe.h $(NULL)
+HB_UNISCRIBE_sources = hb-uniscribe.cc
+HB_UNISCRIBE_headers = hb-uniscribe.h
 
 # Additional supplemental sources
-HB_UCDN_sources  = hb-ucdn.cc $(NULL)
+HB_UCDN_sources  = hb-ucdn.cc
 
 # Sources for libharfbuzz-gobject and libharfbuzz-icu
-HB_ICU_sources = hb-icu.cc $(NULL)
-HB_ICU_headers = hb-icu.h $(NULL)
+HB_ICU_sources = hb-icu.cc
+HB_ICU_headers = hb-icu.h
 
-HB_GOBJECT_sources = hb-gobject-structs.cc $(NULL)
-HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h $(NULL)
-HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers) $(NULL)
-HB_GOBJECT_ENUM_sources = hb-gobject-enums.cc $(NULL)
-HB_GOBJECT_ENUM_headers = hb-gobject-enums.h $(NULL)
+HB_GOBJECT_sources = hb-gobject-structs.cc
+HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h
+HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers)
+HB_GOBJECT_ENUM_sources = hb-gobject-enums.cc
+HB_GOBJECT_ENUM_headers = hb-gobject-enums.h
