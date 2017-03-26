@@ -1,6 +1,21 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
+## Disallow in-source builds
+if ("${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
+  message(FATAL_ERROR
+    "
+In-source builds are not permitted!  Make a separate folder for"
+    " building, e.g.,"
+    "
+  mkdir build; cd build; cmake .."
+    "
+Before that, remove the files created by this failed run with"
+    "
+  rm -rf CMakeCache.txt CMakeFiles")
+endif ()
+##
+
 ## HarfBuzz build configurations
 option(HB_INSTALL "Generate installation target" ON)
 option(HB_HAVE_FREETYPE "Use FreeType" OFF)
@@ -20,57 +35,67 @@ add_definitions(-DHB_NO_MT)
 add_definitions(-DHB_DISABLE_DEPRECATED)
 ##
 
-## execute ragel tasks
-find_program(RAGEL "ragel")
+if(EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+  # perhaps we are on dist directory
+  set(ALREADY_BUILT)
+  set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
+endif()
 
-if (RAGEL)
-  message(STATUS "ragel found at: ${RAGEL}")
-else (RAGEL)
-  message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/")
-endif (RAGEL)
+if(NOT DEFINED ALREADY_BUILT)
+  ## execute ragel tasks
+  find_program(RAGEL "ragel")
 
-function (ragel_preproc src_dir src_sans_rl out_sfx)
-  add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx}
-    COMMAND ${RAGEL} -G2 -o ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx} ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl -I ${CMAKE_CURRENT_SOURCE_DIR} ${ARGN}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl
-    )
-  add_custom_target(harfbuzz_${src_sans_rl} DEPENDS ${PROJECT_BINARY_DIR}/${src_sans_rl})
-endfunction(ragel_preproc)
+  if (RAGEL)
+    message(STATUS "ragel found at: ${RAGEL}")
+  else (RAGEL)
+    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/")
+  endif (RAGEL)
 
-ragel_preproc(src hb-buffer-deserialize-json .hh)
-ragel_preproc(src hb-buffer-deserialize-text .hh)
-ragel_preproc(src hb-ot-shape-complex-indic-machine .hh)
-ragel_preproc(src hb-ot-shape-complex-myanmar-machine .hh)
-ragel_preproc(src hb-ot-shape-complex-use-machine .hh)
-##
+  function (ragel_preproc src_dir src_sans_rl out_sfx)
+    add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx}
+      COMMAND ${RAGEL} -G2 -o ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx} ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl -I ${CMAKE_CURRENT_SOURCE_DIR} ${ARGN}
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl
+      )
+    add_custom_target(harfbuzz_${src_sans_rl} DEPENDS ${PROJECT_BINARY_DIR}/${src_sans_rl})
+  endfunction(ragel_preproc)
 
-## Make hb-version.h
-file(READ configure.ac CONFIGUREAC)
-string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
-set(HB_VERSION ${CMAKE_MATCH_1})
-set(HB_VERSION_MAJOR ${CMAKE_MATCH_2})
-set(HB_VERSION_MINOR ${CMAKE_MATCH_3})
-set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
+  ragel_preproc(src hb-buffer-deserialize-json .hh)
+  ragel_preproc(src hb-buffer-deserialize-text .hh)
+  ragel_preproc(src hb-ot-shape-complex-indic-machine .hh)
+  ragel_preproc(src hb-ot-shape-complex-myanmar-machine .hh)
+  ragel_preproc(src hb-ot-shape-complex-use-machine .hh)
+  ##
 
-set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-set(HB_VERSION_H "${PROJECT_BINARY_DIR}/hb-version.h")
-set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
-configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
-execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-  "${HB_VERSION_H}.tmp"
-  "${HB_VERSION_H}")
-file(REMOVE "${HB_VERSION_H}.tmp")
-##
+  ## Make hb-version.h
+  file(READ configure.ac CONFIGUREAC)
+  string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
+  set(HB_VERSION ${CMAKE_MATCH_1})
+  set(HB_VERSION_MAJOR ${CMAKE_MATCH_2})
+  set(HB_VERSION_MINOR ${CMAKE_MATCH_3})
+  set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
+
+  set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
+  set(HB_VERSION_H "${PROJECT_BINARY_DIR}/hb-version.h")
+  set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
+  configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+    "${HB_VERSION_H}.tmp"
+    "${HB_VERSION_H}")
+  file(REMOVE "${HB_VERSION_H}.tmp")
+  ##
+endif()
 
 ## Extract variables from src/Makefile.sources
 file(READ src/Makefile.sources MAKEFILESOURCES)
 function (extract_make_variable variable)
   string(REGEX MATCH "${variable} = \\\\\n([^$]+)" temp ${MAKEFILESOURCES})
-  string(REPLACE "hb-buffer-deserialize-json.hh" "" temp ${temp})
-  string(REPLACE "hb-buffer-deserialize-text.hh" "" temp ${temp})
-  string(REPLACE "hb-ot-shape-complex-indic-machine.hh" "" temp ${temp})
-  string(REPLACE "hb-ot-shape-complex-myanmar-machine.hh" "" temp ${temp})
-  string(REPLACE "hb-ot-shape-complex-use-machine.hh" "" temp ${temp})
+  if(NOT DEFINED ALREADY_BUILT)
+    string(REPLACE "hb-buffer-deserialize-json.hh" "" temp ${temp})
+    string(REPLACE "hb-buffer-deserialize-text.hh" "" temp ${temp})
+    string(REPLACE "hb-ot-shape-complex-indic-machine.hh" "" temp ${temp})
+    string(REPLACE "hb-ot-shape-complex-myanmar-machine.hh" "" temp ${temp})
+    string(REPLACE "hb-ot-shape-complex-use-machine.hh" "" temp ${temp})
+  endif()
   string(REGEX REPLACE "hb-" "src/hb-" temp ${temp})
   string(REGEX MATCHALL "src/[^ ]+" temp ${temp})
   SET(${variable} ${temp} PARENT_SCOPE)
@@ -83,15 +108,17 @@ extract_make_variable(HB_OT_headers)
 ##
 
 ## Define source and headers of projects
-set(project_sources
-  ${project_sources}
+if(NOT DEFINED ALREADY_BUILT)
+  set(project_sources
+    ${project_sources}
 
-  ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-json.hh
-  ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-text.hh
-  ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-indic-machine.hh
-  ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-myanmar-machine.hh
-  ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-use-machine.hh
-  )
+    ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-json.hh
+    ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-text.hh
+    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-indic-machine.hh
+    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-myanmar-machine.hh
+    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-use-machine.hh
+    )
+endif()
 
 set(project_headers
   ${HB_VERSION_H}
