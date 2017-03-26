@@ -2,6 +2,16 @@ platform: x64
 
 environment:
   matrix:
+    - compiler: cmake
+      generator: Visual Studio 14
+      platform: Win32
+    - compiler: cmake
+      generator: Visual Studio 14 Win64
+      platform: x64
+    - compiler: cmake
+      generator: Visual Studio 14 ARM
+      platform: ARM
+
     - compiler: msvc
       ARCH: amd64
       VCPKG_ARCH: x64-windows
@@ -40,6 +50,13 @@ install:
 #  - 'if "%compiler%"=="msvc" cd ..'
 
 build_script:
+  - 'if "%compiler%"=="cmake" set PATH=c:\msys64\mingw64\bin;%PATH%'
+  - 'if "%compiler%"=="cmake" md build'
+  - 'if "%compiler%"=="cmake" cd build'
+  - 'if "%compiler%"=="cmake" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -G "%generator%" ../'
+  - 'if "%compiler%"=="cmake" set PATH=C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%'
+  - 'if "%compiler%"=="cmake" msbuild harfbuzz.sln /p:Configuration=Debug /p:Platform=%platform%'
+
   - 'if "%compiler%"=="msvc" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh; make distdir"'
   - 'if "%compiler%"=="msvc" cd harfbuzz-*\win32'
   - 'if "%compiler%"=="msvc" nmake /f Makefile.vc CFG=%CFG% UNISCRIBE=1 DIRECTWRITE=1' # FREETYPE=1 FREETYPE_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\include ADDITIONAL_LIB_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\lib'
