@@ -345,10 +345,17 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define HB_MODIFIED_COMBINING_CLASS_CCC118 118 /* sign u / sign uu */
 #define HB_MODIFIED_COMBINING_CLASS_CCC122 122 /* mai * */
 
-/* Tibetan */
+/* Tibetan
+ * 
+ * In case of multiple vowel-signs, use u first (but after achung) 
+ * this allows Dzongkha multi-vowel shortcuts to render correctly 
+ */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
-#define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
-#define HB_MODIFIED_COMBINING_CLASS_CCC132 132 /* sign u */
+#define HB_MODIFIED_COMBINING_CLASS_CCC130 132 /* sign i */
+#define HB_MODIFIED_COMBINING_CLASS_CCC132 131 /* sign u */
+#define HB_MODIFIED_COMBINING_CLASS_CCC138 138 /* sign e */
+#define HB_MODIFIED_COMBINING_CLASS_CCC140 140 /* sign o */
+
 
 
 /* Misc */
