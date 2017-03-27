@@ -17,31 +17,43 @@ endif ()
 ##
 
 ## HarfBuzz build configurations
-option(HB_INSTALL "Generate installation target" ON)
 option(HB_HAVE_FREETYPE "Use FreeType" OFF)
-option(HB_HAVE_UNISCRIBE "Uniscribe shaper" OFF)
-option(HB_HAVE_DIRECWRITE "DirectWrite shaper" OFF)
+option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper on Windows" OFF)
+option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper on Windows" OFF)
 option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
 
 include_directories(AFTER
   ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${PROJECT_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}/src
   )
 
+# feel free to discuss these or more with the maintainers
 add_definitions(-DHAVE_OT)
-add_definitions(-DHAVE_ATEXIT)
 add_definitions(-DHB_NO_MT)
 add_definitions(-DHB_DISABLE_DEPRECATED)
+
+if (BUILD_SHARED_LIBS)
+  add_definitions(-DHAVE_ATEXIT)
+endif ()
+
+if (MSVC)
+  add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+endif ()
+
+if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
+  add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+endif ()
 ##
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+set(IN_HB_DIST FALSE)
+if (EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
   # perhaps we are on dist directory
-  set(ALREADY_BUILT)
-  set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-endif()
+  set(IN_HB_DIST TRUE)
+  set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+endif ()
 
-if(NOT DEFINED ALREADY_BUILT)
+if (NOT IN_HB_DIST)
   ## execute ragel tasks
   find_program(RAGEL "ragel")
 
@@ -52,11 +64,11 @@ if(NOT DEFINED ALREADY_BUILT)
   endif (RAGEL)
 
   function (ragel_preproc src_dir src_sans_rl out_sfx)
-    add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx}
-      COMMAND ${RAGEL} -G2 -o ${PROJECT_BINARY_DIR}/${src_sans_rl}${out_sfx} ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl -I ${CMAKE_CURRENT_SOURCE_DIR} ${ARGN}
+    add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/src/${src_sans_rl}${out_sfx}
+      COMMAND ${RAGEL} -G2 -o ${PROJECT_BINARY_DIR}/src/${src_sans_rl}${out_sfx} ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl -I ${CMAKE_CURRENT_SOURCE_DIR} ${ARGN}
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl
       )
-    add_custom_target(harfbuzz_${src_sans_rl} DEPENDS ${PROJECT_BINARY_DIR}/${src_sans_rl})
+    add_custom_target(harfbuzz_${src_sans_rl} DEPENDS ${PROJECT_BINARY_DIR}/src/${src_sans_rl})
   endfunction(ragel_preproc)
 
   ragel_preproc(src hb-buffer-deserialize-json .hh)
@@ -66,7 +78,7 @@ if(NOT DEFINED ALREADY_BUILT)
   ragel_preproc(src hb-ot-shape-complex-use-machine .hh)
   ##
 
-  ## Make hb-version.h
+  ## Generate hb-version.h
   file(READ configure.ac CONFIGUREAC)
   string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
   set(HB_VERSION ${CMAKE_MATCH_1})
@@ -75,7 +87,7 @@ if(NOT DEFINED ALREADY_BUILT)
   set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
   set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-  set(HB_VERSION_H "${PROJECT_BINARY_DIR}/hb-version.h")
+  set(HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
   set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
   configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
   execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
@@ -83,22 +95,23 @@ if(NOT DEFINED ALREADY_BUILT)
     "${HB_VERSION_H}")
   file(REMOVE "${HB_VERSION_H}.tmp")
   ##
-endif()
+endif ()
 
 ## Extract variables from src/Makefile.sources
 file(READ src/Makefile.sources MAKEFILESOURCES)
 function (extract_make_variable variable)
-  string(REGEX MATCH "${variable} = \\\\\n([^$]+)" temp ${MAKEFILESOURCES})
-  if(NOT DEFINED ALREADY_BUILT)
+  string(REGEX MATCH "${variable} = ([^$]+)" temp ${MAKEFILESOURCES})
+  if (NOT IN_HB_DIST)
+    # these should be built first and will be added from a different path
     string(REPLACE "hb-buffer-deserialize-json.hh" "" temp ${temp})
     string(REPLACE "hb-buffer-deserialize-text.hh" "" temp ${temp})
     string(REPLACE "hb-ot-shape-complex-indic-machine.hh" "" temp ${temp})
     string(REPLACE "hb-ot-shape-complex-myanmar-machine.hh" "" temp ${temp})
     string(REPLACE "hb-ot-shape-complex-use-machine.hh" "" temp ${temp})
-  endif()
-  string(REGEX REPLACE "hb-" "src/hb-" temp ${temp})
+  endif ()
+  string(REGEX REPLACE "\thb" "src/hb" temp ${temp})
   string(REGEX MATCHALL "src/[^ ]+" temp ${temp})
-  SET(${variable} ${temp} PARENT_SCOPE)
+  set(${variable} ${temp} PARENT_SCOPE)
 endfunction(extract_make_variable)
 
 extract_make_variable(HB_BASE_sources)
@@ -108,17 +121,17 @@ extract_make_variable(HB_OT_headers)
 ##
 
 ## Define source and headers of projects
-if(NOT DEFINED ALREADY_BUILT)
+if (NOT IN_HB_DIST)
   set(project_sources
     ${project_sources}
 
-    ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-json.hh
-    ${PROJECT_BINARY_DIR}/hb-buffer-deserialize-text.hh
-    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-indic-machine.hh
-    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-myanmar-machine.hh
-    ${PROJECT_BINARY_DIR}/hb-ot-shape-complex-use-machine.hh
+    ${PROJECT_BINARY_DIR}/src/hb-buffer-deserialize-json.hh
+    ${PROJECT_BINARY_DIR}/src/hb-buffer-deserialize-text.hh
+    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-indic-machine.hh
+    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-myanmar-machine.hh
+    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-use-machine.hh
     )
-endif()
+endif ()
 
 set(project_headers
   ${HB_VERSION_H}
@@ -142,17 +155,25 @@ if (HB_HAVE_FREETYPE)
     ft2build.h freetype2/freetype/freetype.h
     PATHS ${FREETYPE_DIR}/include
     )
-  find_library(FREETYPE_LIBRARY
-    freetype libfreetype
-    PATHS ${FREETYPE_DIR}/lib
-    DOC "freetype library"
-    )
+
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    find_library(FREETYPE_DEBUG_LIBRARY freetyped)
+    set(FREETYPE_ACTUAL_LIBRARY ${FREETYPE_DEBUG_LIBRARY})
+  else ()
+    find_library(FREETYPE_LIBRARY
+      freetype libfreetype
+      PATHS ${FREETYPE_DIR}/lib
+      DOC "freetype library"
+      )
+    set(FREETYPE_ACTUAL_LIBRARY ${FREETYPE_LIBRARY})
+  endif ()
+
   if (FREETYPE_INCLUDE_DIR)
     include_directories(AFTER ${FREETYPE_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR}/freetype2)
   endif ()
 
-  if (FREETYPE_INCLUDE_DIR AND FREETYPE_LIBRARY)
-    set (THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_LIBRARY})
+  if (FREETYPE_INCLUDE_DIR AND FREETYPE_ACTUAL_LIBRARY)
+    set (THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_ACTUAL_LIBRARY})
     add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
   endif ()
 
@@ -195,9 +216,9 @@ endif ()
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
 
-  set(project_headers ${project_headers} src/hb-uniscribe.cc)
+  set(project_headers ${project_headers} src/hb-uniscribe.h)
 
-  set(project_sources ${project_sources} src/hb-uniscribe.h)
+  set(project_sources ${project_sources} src/hb-uniscribe.cc)
 
   set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} usp10 gdi32 rpcrt4)
 endif ()
@@ -215,14 +236,19 @@ endif ()
 set(project_sources ${project_sources} ${project_headers})
 ##
 
-add_library(harfbuzz STATIC ${project_sources})
+add_library(harfbuzz ${project_sources})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
-if (HB_INSTALL)
-  install(TARGETS harfbuzz DESTINATION lib)
-  install(FILES
-    ${project_headers}
+## Install
+if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+  install(FILES ${project_headers} DESTINATION include/harfbuzz)
+endif ()
 
-    DESTINATION
-    include/harfbuzz)
-endif()
+if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
+  install(TARGETS harfbuzz
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+    )
+endif ()
+##

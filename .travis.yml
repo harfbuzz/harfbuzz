@@ -23,14 +23,6 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ragel freetype glib gobject-introspection cairo icu4c graphite2; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew link --force icu4c; fi # icu4c is keg-only
 script:
-  # CMake
-  - mkdir build; cd build
-  - cmake ..
-  - make
-  - cd ..
-  - rm -rf build
-
-  # automake
   - NOCONFIGURE=1 ./autogen.sh
   - export CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then export CONFIGURE_OPTS="$CONFIGURE_OPTS  --enable-gtk-doc"; fi
@@ -57,4 +49,3 @@ addons:
       - libicu-dev # for extra unicode functions
       - libgraphite2-dev # for extra shapers
       - # libgirepository1.0-dev # for gobject-introspection
-      - cmake
