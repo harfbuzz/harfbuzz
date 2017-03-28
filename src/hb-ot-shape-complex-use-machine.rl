@@ -89,7 +89,7 @@ SMBlw	= 42; # SYM_MOD_BELOW
 
 
 consonant_modifiers = CMAbv* CMBlw* ((H B | SUB) VS? CMAbv? CMBlw*)*;
-medial_consonants = MPre? MAbv? MBlw? MPst?;
+medial_consonants = MPre? MAbv? MBlw* MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
 vowel_modifiers = VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst* FM?;
