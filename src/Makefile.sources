@@ -5,8 +5,6 @@ NULL =
 HB_BASE_sources = \
 	hb-atomic-private.hh \
 	hb-blob.cc \
-	hb-buffer-deserialize-json.hh \
-	hb-buffer-deserialize-text.hh \
 	hb-buffer-private.hh \
 	hb-buffer-serialize.cc \
 	hb-buffer.cc \
@@ -45,6 +43,11 @@ HB_BASE_sources = \
 	hb-unicode.cc \
 	hb-utf-private.hh \
 	hb-warning.cc \
+	$(NULL)
+
+HB_BASE_RAGEL_GENERATED_sources = \
+	hb-buffer-deserialize-json.hh \
+	hb-buffer-deserialize-text.hh \
 	$(NULL)
 
 HB_BASE_headers = \
@@ -91,15 +94,12 @@ HB_OT_sources = \
 	hb-ot-shape-complex-hangul.cc \
 	hb-ot-shape-complex-hebrew.cc \
 	hb-ot-shape-complex-indic.cc \
-	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.cc \
 	hb-ot-shape-complex-myanmar.cc \
-	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-tibetan.cc \
 	hb-ot-shape-complex-use.cc \
-	hb-ot-shape-complex-use-machine.hh \
 	hb-ot-shape-complex-use-private.hh \
 	hb-ot-shape-complex-use-table.cc \
 	hb-ot-shape-complex-private.hh \
@@ -113,6 +113,12 @@ HB_OT_sources = \
 	hb-ot-var-fvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	$(NULL)
+
+HB_OT_RAGEL_GENERATED_sources = \
+	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-myanmar-machine.hh \
+	hb-ot-shape-complex-use-machine.hh \
 	$(NULL)
 
 HB_OT_headers = \
