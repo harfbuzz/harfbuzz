@@ -253,19 +253,13 @@ built-sources: $(BUILT_SOURCES)
 .PHONY: unicode-tables arabic-table indic-table use-table built-sources
 
 RAGEL_GENERATED = \
-	$(srcdir)/hb-buffer-deserialize-json.hh \
-	$(srcdir)/hb-buffer-deserialize-text.hh \
-	$(srcdir)/hb-ot-shape-complex-indic-machine.hh \
-	$(srcdir)/hb-ot-shape-complex-myanmar-machine.hh \
-	$(srcdir)/hb-ot-shape-complex-use-machine.hh \
+	$(HB_BASE_RAGEL_GENERATED_sources) \
+	$(HB_OT_RAGEL_GENERATED_sources) \
 	$(NULL)
 BUILT_SOURCES += $(RAGEL_GENERATED)
 EXTRA_DIST += \
-	hb-buffer-deserialize-json.rl \
-	hb-buffer-deserialize-text.rl \
-	hb-ot-shape-complex-indic-machine.rl \
-	hb-ot-shape-complex-myanmar-machine.rl \
-	hb-ot-shape-complex-use-machine.rl \
+	$(HB_BASE_RAGEL_sources) \
+	$(HB_OT_RAGEL_sources) \
 	$(NULL)
 MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
 $(srcdir)/%.hh: $(srcdir)/%.rl

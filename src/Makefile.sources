@@ -49,6 +49,10 @@ HB_BASE_RAGEL_GENERATED_sources = \
 	hb-buffer-deserialize-json.hh \
 	hb-buffer-deserialize-text.hh \
 	$(NULL)
+HB_BASE_RAGEL_sources = \
+	hb-buffer-deserialize-json.rl \
+	hb-buffer-deserialize-text.rl \
+	$(NULL)
 
 HB_BASE_headers = \
 	hb.h \
@@ -119,6 +123,11 @@ HB_OT_RAGEL_GENERATED_sources = \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-use-machine.hh \
+	$(NULL)
+HB_OT_RAGEL_sources = \
+	hb-ot-shape-complex-indic-machine.rl \
+	hb-ot-shape-complex-myanmar-machine.rl \
+	hb-ot-shape-complex-use-machine.rl \
 	$(NULL)
 
 HB_OT_headers = \
