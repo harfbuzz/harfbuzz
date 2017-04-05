@@ -36,9 +36,11 @@ HB_DEFINES =
 HB_CFLAGS = /DHAVE_CONFIG_H
 HB_UCDN_CFLAGS = /I..\src\hb-ucdn
 HB_SOURCES =	\
-	$(HB_BASE_sources)		\
-	$(HB_FALLBACK_sources)	\
-	$(HB_OT_sources)
+	$(HB_BASE_sources)			\
+	$(HB_BASE_RAGEL_GENERATED_sources)	\
+	$(HB_FALLBACK_sources)			\
+	$(HB_OT_sources)			\
+	$(HB_OT_RAGEL_GENERATED_sources)
 
 HB_HEADERS =	\
 	$(HB_BASE_headers)		\

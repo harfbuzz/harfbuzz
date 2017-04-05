@@ -24,7 +24,7 @@ option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
 
 include_directories(AFTER
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
   )
 
@@ -53,29 +53,47 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
   set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
 endif ()
 
+## Extract variables from src/Makefile.sources
+file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources MAKEFILESOURCES)
+function (extract_make_variable variable directory)
+  string(REGEX MATCH "${variable} = ([^$]+)" temp ${MAKEFILESOURCES})
+  string(REGEX REPLACE "\thb" "${directory}/hb" temp ${temp})
+  string(REGEX MATCHALL "src/[^ ]+" temp ${temp})
+  set(${variable} ${temp} PARENT_SCOPE)
+endfunction ()
+
+extract_make_variable(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src")
+extract_make_variable(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src")
+extract_make_variable(HB_OT_sources "${PROJECT_SOURCE_DIR}/src")
+extract_make_variable(HB_OT_headers "${PROJECT_SOURCE_DIR}/src")
+if (IN_HB_DIST)
+  extract_make_variable(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src")
+  extract_make_variable(HB_OT_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src")
+else ()
+  extract_make_variable(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src")
+  extract_make_variable(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src")
+endif ()
+##
+
 if (NOT IN_HB_DIST)
   ## execute ragel tasks
   find_program(RAGEL "ragel")
 
   if (RAGEL)
     message(STATUS "ragel found at: ${RAGEL}")
-  else (RAGEL)
+  else ()
     message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/")
-  endif (RAGEL)
+  endif ()
 
-  function (ragel_preproc src_dir src_sans_rl out_sfx)
-    add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/src/${src_sans_rl}${out_sfx}
-      COMMAND ${RAGEL} -G2 -o ${PROJECT_BINARY_DIR}/src/${src_sans_rl}${out_sfx} ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl -I ${CMAKE_CURRENT_SOURCE_DIR} ${ARGN}
-      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}/${src_sans_rl}.rl
+  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
+    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
+    set(target_name ${CMAKE_MATCH_1})
+    add_custom_command(OUTPUT ${ragel_output}
+      COMMAND ${RAGEL} -G2 -o ${ragel_output} ${PROJECT_SOURCE_DIR}/src/${target_name}.rl -I ${PROJECT_SOURCE_DIR} ${ARGN}
+      DEPENDS ${PROJECT_SOURCE_DIR}/src/${target_name}.rl
       )
-    add_custom_target(harfbuzz_${src_sans_rl} DEPENDS ${PROJECT_BINARY_DIR}/src/${src_sans_rl})
-  endfunction(ragel_preproc)
-
-  ragel_preproc(src hb-buffer-deserialize-json .hh)
-  ragel_preproc(src hb-buffer-deserialize-text .hh)
-  ragel_preproc(src hb-ot-shape-complex-indic-machine .hh)
-  ragel_preproc(src hb-ot-shape-complex-myanmar-machine .hh)
-  ragel_preproc(src hb-ot-shape-complex-use-machine .hh)
+    add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
+  endforeach ()
   ##
 
   ## Generate hb-version.h
@@ -97,54 +115,20 @@ if (NOT IN_HB_DIST)
   ##
 endif ()
 
-## Extract variables from src/Makefile.sources
-file(READ src/Makefile.sources MAKEFILESOURCES)
-function (extract_make_variable variable)
-  string(REGEX MATCH "${variable} = ([^$]+)" temp ${MAKEFILESOURCES})
-  if (NOT IN_HB_DIST)
-    # these should be built first and will be added from a different path
-    string(REPLACE "hb-buffer-deserialize-json.hh" "" temp ${temp})
-    string(REPLACE "hb-buffer-deserialize-text.hh" "" temp ${temp})
-    string(REPLACE "hb-ot-shape-complex-indic-machine.hh" "" temp ${temp})
-    string(REPLACE "hb-ot-shape-complex-myanmar-machine.hh" "" temp ${temp})
-    string(REPLACE "hb-ot-shape-complex-use-machine.hh" "" temp ${temp})
-  endif ()
-  string(REGEX REPLACE "\thb" "src/hb" temp ${temp})
-  string(REGEX MATCHALL "src/[^ ]+" temp ${temp})
-  set(${variable} ${temp} PARENT_SCOPE)
-endfunction(extract_make_variable)
-
-extract_make_variable(HB_BASE_sources)
-extract_make_variable(HB_BASE_headers)
-extract_make_variable(HB_OT_sources)
-extract_make_variable(HB_OT_headers)
-##
-
 ## Define source and headers of projects
-if (NOT IN_HB_DIST)
-  set(project_sources
-    ${project_sources}
+set(project_sources
+  ${HB_BASE_sources}
+  ${HB_BASE_RAGEL_GENERATED_sources}
 
-    ${PROJECT_BINARY_DIR}/src/hb-buffer-deserialize-json.hh
-    ${PROJECT_BINARY_DIR}/src/hb-buffer-deserialize-text.hh
-    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-indic-machine.hh
-    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-myanmar-machine.hh
-    ${PROJECT_BINARY_DIR}/src/hb-ot-shape-complex-use-machine.hh
-    )
-endif ()
+  ${HB_OT_sources}
+  ${HB_OT_RAGEL_GENERATED_sources}
+  )
 
 set(project_headers
   ${HB_VERSION_H}
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
-  )
-
-set(project_sources
-  ${project_sources}
-
-  ${HB_BASE_sources}
-  ${HB_OT_sources}
   )
 
 if (HB_HAVE_FREETYPE)
@@ -173,27 +157,26 @@ if (HB_HAVE_FREETYPE)
   endif ()
 
   if (FREETYPE_INCLUDE_DIR AND FREETYPE_ACTUAL_LIBRARY)
-    set (THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_ACTUAL_LIBRARY})
+    set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_ACTUAL_LIBRARY})
     add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
   endif ()
 
-  set(project_headers ${project_headers} src/hb-ft.h)
-
-  set(project_sources ${project_sources} src/hb-ft.cc)
+  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 endif ()
 
 if (HB_BUILTIN_UCDN)
   include_directories(src/hb-ucdn)
   add_definitions(-DHAVE_UCDN)
 
-  set(project_headers ${project_headers} src/hb-ucdn/ucdn.h)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.h)
 
   set(project_sources
     ${project_sources}
 
-    src/hb-ucdn.cc
-    src/hb-ucdn/ucdn.c
-    src/hb-ucdn/unicodedata_db.h)
+    ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
+    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.c
+    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/unicodedata_db.h)
 else ()
   add_definitions(-DHB_NO_UNICODE_FUNCS)
 endif ()
@@ -202,9 +185,8 @@ if (APPLE AND HB_HAVE_CORETEXT)
   # Apple Advanced Typography
   add_definitions(-DHAVE_CORETEXT)
 
-  set(project_headers ${project_headers} src/hb-coretext.h)
-
-  set(project_sources ${project_sources} src/hb-coretext.cc)
+  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-coretext.cc)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
 
   find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
   mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
@@ -216,9 +198,8 @@ endif ()
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
 
-  set(project_headers ${project_headers} src/hb-uniscribe.h)
-
-  set(project_sources ${project_sources} src/hb-uniscribe.cc)
+  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.cc)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.h)
 
   set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} usp10 gdi32 rpcrt4)
 endif ()
@@ -226,9 +207,8 @@ endif ()
 if (WIN32 AND HB_HAVE_DIRECTWRITE)
   add_definitions(-DHAVE_DIRECTWRITE)
 
-  set(project_headers ${project_headers} src/hb-directwrite.h)
-
-  set(project_sources ${project_sources} src/hb-directwrite.cc)
+  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-directwrite.cc)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
 
   set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} dwrite rpcrt4)
 endif ()
