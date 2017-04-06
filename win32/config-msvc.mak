@@ -42,6 +42,7 @@ HB_SOURCES =	\
 	$(HB_OT_sources)			\
 	$(HB_OT_RAGEL_GENERATED_sources)
 
+
 HB_HEADERS =	\
 	$(HB_BASE_headers)		\
 	$(HB_NODIST_headers)	\
@@ -177,6 +178,17 @@ HB_TESTS = \
 	$(CFG)\$(PLAT)\test-version.exe
 
 !else
+
+# Define some of the macros in GLib's msvc_recommended_pragmas.h
+# to reduce some unneeded build-time warnings
+HB_CFLAGS =	\
+	$(HB_CFLAGS)			\
+	/wd4244				\
+	/D_CRT_SECURE_NO_WARNINGS	\
+	/D_CRT_NONSTDC_NO_WARNINGS
+
+!endif
+
 !if "$(ICU)" == "1"
 # use ICU for Unicode functions
 # and define some of the macros in GLib's msvc_recommended_pragmas.h
@@ -192,16 +204,6 @@ HB_CFLAGS =	$(HB_CFLAGS) /DU_HAVE_INT8_T
 HB_SOURCES = $(HB_SOURCES) $(HB_ICU_sources)
 HB_HEADERS = $(HB_HEADERS) $(HB_ICU_headers)
 HB_DEP_LIBS = $(HB_DEP_LIBS) $(HB_ICU_DEP_LIBS)
-!endif
-
-# Define some of the macros in GLib's msvc_recommended_pragmas.h
-# to reduce some unneeded build-time warnings
-HB_CFLAGS =	\
-	$(HB_CFLAGS)			\
-	/wd4244				\
-	/D_CRT_SECURE_NO_WARNINGS	\
-	/D_CRT_NONSTDC_NO_WARNINGS
-
 !endif
 
 !if "$(UNISCRIBE)" == "1"
