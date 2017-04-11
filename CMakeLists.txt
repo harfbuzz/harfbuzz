@@ -22,6 +22,7 @@ option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper on Windows" OFF)
 option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper on Windows" OFF)
 option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
+option(HB_HAVE_GLIB "Use glib unicode functions" OFF)
 
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
@@ -177,8 +178,25 @@ if (HB_BUILTIN_UCDN)
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.c
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn/unicodedata_db.h)
-else ()
-  add_definitions(-DHB_NO_UNICODE_FUNCS)
+endif ()
+
+if (HB_HAVE_GLIB)
+  add_definitions(-DHAVE_GLIB)
+
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindGLIB.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_GLIB QUIET glib-2.0)
+
+  find_library(GLIB_LIBRARIES NAMES glib-2.0 HINTS ${PC_GLIB_LIBDIR} ${PC_GLIB_LIBRARY_DIRS})
+  find_path(GLIBCONFIG_INCLUDE_DIR NAMES glibconfig.h HINTS ${PC_LIBDIR} ${PC_LIBRARY_DIRS} ${PC_GLIB_INCLUDEDIR} ${PC_GLIB_INCLUDE_DIRS} PATH_SUFFIXES glib-2.0/include)
+  find_path(GLIB_INCLUDE_DIR NAMES glib.h HINTS ${PC_GLIB_INCLUDEDIR} ${PC_GLIB_INCLUDE_DIRS} PATH_SUFFIXES glib-2.0)
+
+  include_directories(${GLIBCONFIG_INCLUDE_DIR} ${GLIB_INCLUDE_DIR})
+
+  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-glib.cc)
+  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
+
+  set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${GLIB_LIBRARIES})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
