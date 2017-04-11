@@ -158,23 +158,21 @@ if (HB_HAVE_FREETYPE)
   endif ()
 
   if (FREETYPE_INCLUDE_DIR AND FREETYPE_ACTUAL_LIBRARY)
-    set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_ACTUAL_LIBRARY})
+    list(APPEND THIRD_PARTY_LIBS ${FREETYPE_ACTUAL_LIBRARY})
     add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
   endif ()
 
-  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 endif ()
 
 if (HB_BUILTIN_UCDN)
   include_directories(src/hb-ucdn)
   add_definitions(-DHAVE_UCDN)
 
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.h)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.h)
 
-  set(project_sources
-    ${project_sources}
-
+  list(APPEND project_sources
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.c
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn/unicodedata_db.h)
@@ -193,42 +191,42 @@ if (HB_HAVE_GLIB)
 
   include_directories(${GLIBCONFIG_INCLUDE_DIR} ${GLIB_INCLUDE_DIR})
 
-  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-glib.cc)
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-glib.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
 
-  set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${GLIB_LIBRARIES})
+  list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
   # Apple Advanced Typography
   add_definitions(-DHAVE_CORETEXT)
 
-  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-coretext.cc)
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-coretext.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
 
   find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
   mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
   if (APPLICATION_SERVICES_FRAMEWORK)
-    set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${APPLICATION_SERVICES_FRAMEWORK})
+    list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
   endif (APPLICATION_SERVICES_FRAMEWORK)
 endif ()
 
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
 
-  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.cc)
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.h)
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.h)
 
-  set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} usp10 gdi32 rpcrt4)
+  list(APPEND THIRD_PARTY_LIBS usp10 gdi32 rpcrt4)
 endif ()
 
 if (WIN32 AND HB_HAVE_DIRECTWRITE)
   add_definitions(-DHAVE_DIRECTWRITE)
 
-  set(project_sources ${project_sources} ${PROJECT_SOURCE_DIR}/src/hb-directwrite.cc)
-  set(project_headers ${project_headers} ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-directwrite.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
 
-  set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} dwrite rpcrt4)
+  list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
 
 set(project_sources ${project_sources} ${project_headers})
