@@ -17,12 +17,14 @@ endif ()
 ##
 
 ## HarfBuzz build configurations
-option(HB_HAVE_FREETYPE "Use FreeType" OFF)
-option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper on Windows" OFF)
-option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper on Windows" OFF)
-option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
+option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
+option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
+option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
+option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper backend on Windows" OFF)
+option(HB_HAVE_CORETEXT "Enable CoreText shaper backend on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
-option(HB_HAVE_GLIB "Use glib unicode functions" OFF)
+option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
+option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
 if (HB_BUILD_UTILS)
   set(HB_HAVE_GLIB ON)
@@ -65,12 +67,14 @@ function (prepend var prefix)
   set(listVar "")
   foreach (f ${ARGN})
     list(APPEND listVar "${prefix}${f}")
-  endforeach (f)
+  endforeach ()
   set(${var} "${listVar}" PARENT_SCOPE)
 endfunction ()
 
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/util/Makefile.sources UTILSOURCES)
+file(READ ${PROJECT_SOURCE_DIR}/src/hb-ucdn/Makefile.sources UCDNSOURCES)
+
 function (extract_make_variable variable file)
   string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${file})
   string(REGEX MATCHALL "[^ \n\t\\]+" list ${CMAKE_MATCH_1})
@@ -88,6 +92,8 @@ extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
 extract_make_variable(HB_SHAPE_sources ${UTILSOURCES})
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 
+extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES})
+
 prepend(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_sources})
 prepend(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_headers})
 prepend(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_OT_sources})
@@ -102,6 +108,8 @@ endif ()
 prepend(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_VIEW_sources})
 prepend(HB_SHAPE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_SHAPE_sources})
 prepend(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_OT_SHAPE_CLOSURE_sources})
+
+prepend(LIBHB_UCDN_sources "${PROJECT_SOURCE_DIR}/src/hb-ucdn/" ${LIBHB_UCDN_sources})
 
 file(READ configure.ac CONFIGUREAC)
 string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
@@ -194,16 +202,27 @@ if (HB_HAVE_FREETYPE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 endif ()
 
+if (HB_HAVE_GRAPHITE2)
+  add_definitions(-DHAVE_GRAPHITE2)
+
+  find_path(GRAPHITE2_INCLUDE_DIR graphite2/Font.h)
+  find_library(GRAPHITE2_LIBRARY graphite2)
+
+  include_directories(${GRAPHITE2_INCLUDE_DIR})
+
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-graphite2.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-graphite2.h)
+
+  list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
+endif ()
+
 if (HB_BUILTIN_UCDN)
   include_directories(src/hb-ucdn)
   add_definitions(-DHAVE_UCDN)
 
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.h)
-
   list(APPEND project_sources
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
-    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.c
-    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/unicodedata_db.h)
+    ${LIBHB_UCDN_sources})
 endif ()
 
 if (HB_HAVE_GLIB)
@@ -223,6 +242,24 @@ if (HB_HAVE_GLIB)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
+endif ()
+
+if (HB_HAVE_ICU)
+  add_definitions(-DHAVE_ICU)
+
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindICU.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_ICU QUIET icu-uc)
+
+  find_path(ICU_INCLUDE_DIR NAMES unicode/utypes.h HINTS ${PC_ICU_INCLUDE_DIRS} ${PC_ICU_INCLUDEDIR})
+  find_library(ICU_LIBRARY NAMES libicuuc cygicuuc cygicuuc32 icuuc HINTS ${PC_ICU_LIBRARY_DIRS} ${PC_ICU_LIBDIR})
+
+  include_directories(${ICU_INCLUDE_DIR})
+
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-icu.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
+
+  list(APPEND THIRD_PARTY_LIBS ${ICU_LIBRARY})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
