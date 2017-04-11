@@ -17,10 +17,11 @@ endif ()
 ##
 
 ## HarfBuzz build configurations
-option(HB_HAVE_FREETYPE "Use FreeType" OFF)
-option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper on Windows" OFF)
-option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper on Windows" OFF)
-option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
+option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
+option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
+option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
+option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper backend on Windows" OFF)
+option(HB_HAVE_CORETEXT "Enable CoreText shaper backend on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
 option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
@@ -199,6 +200,20 @@ if (HB_HAVE_FREETYPE)
 
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
+endif ()
+
+if (HB_HAVE_GRAPHITE2)
+  add_definitions(-DHAVE_GRAPHITE2)
+
+  find_path(GRAPHITE2_INCLUDE_DIR graphite2/Font.h)
+  find_library(GRAPHITE2_LIBRARY graphite2)
+
+  include_directories(${GRAPHITE2_INCLUDE_DIR})
+
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-graphite2.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-graphite2.h)
+
+  list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
 endif ()
 
 if (HB_BUILTIN_UCDN)
