@@ -71,6 +71,8 @@ endfunction ()
 
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/util/Makefile.sources UTILSOURCES)
+file(READ ${PROJECT_SOURCE_DIR}/src/hb-ucdn/Makefile.sources UCDNSOURCES)
+
 function (extract_make_variable variable file)
   string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${file})
   string(REGEX MATCHALL "[^ \n\t\\]+" list ${CMAKE_MATCH_1})
@@ -88,6 +90,8 @@ extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
 extract_make_variable(HB_SHAPE_sources ${UTILSOURCES})
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 
+extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES})
+
 prepend(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_sources})
 prepend(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_headers})
 prepend(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_OT_sources})
@@ -102,6 +106,8 @@ endif ()
 prepend(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_VIEW_sources})
 prepend(HB_SHAPE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_SHAPE_sources})
 prepend(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_OT_SHAPE_CLOSURE_sources})
+
+prepend(LIBHB_UCDN_sources "${PROJECT_SOURCE_DIR}/src/hb-ucdn/" ${LIBHB_UCDN_sources})
 
 file(READ configure.ac CONFIGUREAC)
 string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
@@ -198,12 +204,9 @@ if (HB_BUILTIN_UCDN)
   include_directories(src/hb-ucdn)
   add_definitions(-DHAVE_UCDN)
 
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.h)
-
   list(APPEND project_sources
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
-    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/ucdn.c
-    ${PROJECT_SOURCE_DIR}/src/hb-ucdn/unicodedata_db.h)
+    ${LIBHB_UCDN_sources})
 endif ()
 
 if (HB_HAVE_GLIB)
