@@ -22,7 +22,8 @@ option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper on Windows" OFF)
 option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper on Windows" OFF)
 option(HB_HAVE_CORETEXT "Enable CoreText shaper on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
-option(HB_HAVE_GLIB "Use glib unicode functions" OFF)
+option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
+option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
 if (HB_BUILD_UTILS)
   set(HB_HAVE_GLIB ON)
@@ -65,7 +66,7 @@ function (prepend var prefix)
   set(listVar "")
   foreach (f ${ARGN})
     list(APPEND listVar "${prefix}${f}")
-  endforeach (f)
+  endforeach ()
   set(${var} "${listVar}" PARENT_SCOPE)
 endfunction ()
 
@@ -226,6 +227,24 @@ if (HB_HAVE_GLIB)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
+endif ()
+
+if (HB_HAVE_ICU)
+  add_definitions(-DHAVE_ICU)
+
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindICU.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_ICU QUIET icu-uc)
+
+  find_path(ICU_INCLUDE_DIR NAMES unicode/utypes.h HINTS ${PC_ICU_INCLUDE_DIRS} ${PC_ICU_INCLUDEDIR})
+  find_library(ICU_LIBRARY NAMES libicuuc cygicuuc cygicuuc32 icuuc HINTS ${PC_ICU_LIBRARY_DIRS} ${PC_ICU_LIBDIR})
+
+  include_directories(${ICU_INCLUDE_DIR})
+
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-icu.cc)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
+
+  list(APPEND THIRD_PARTY_LIBS ${ICU_LIBRARY})
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
