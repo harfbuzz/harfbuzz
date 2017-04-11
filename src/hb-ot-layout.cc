@@ -101,10 +101,18 @@ _hb_ot_layout_create (hb_face_t *face)
       || (928 == gdef_len && 59332 == gpos_len && 23298 == gsub_len)
       /* sha1sum:6d400781948517c3c0441ba42acb309584b73033  tahomabd.ttf from Windows 8.1 */
       || (940 == gdef_len && 60732 == gpos_len && 23310 == gsub_len)
+      /* tahoma.ttf v6.04 from Windows 8.1 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
+      || (964 == gdef_len && 60072 == gpos_len && 23836 == gsub_len)
+      /* tahomabd.ttf v6.04 from Windows 8.1 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
+      || (976 == gdef_len && 61456 == gpos_len && 23832 == gsub_len)
       /* sha1sum:e55fa2dfe957a9f7ec26be516a0e30b0c925f846  tahoma.ttf from Windows 10 */
       || (994 == gdef_len && 60336 == gpos_len && 24474 == gsub_len)
       /* sha1sum:7199385abb4c2cc81c83a151a7599b6368e92343  tahomabd.ttf from Windows 10 */
       || (1006 == gdef_len && 61740 == gpos_len && 24470 == gsub_len)
+      /* tahoma.ttf v6.91 from Windows 10 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
+      || (1006 == gdef_len && 61346 == gpos_len && 24576 == gsub_len)
+      /* tahomabd.ttf v6.91 from Windows 10 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
+      || (1018 == gdef_len && 62828 == gpos_len && 24572 == gsub_len)
       /* sha1sum:b9c84d820c49850d3d27ec498be93955b82772b5  tahoma.ttf from Windows 10 AU */
       || (1006 == gdef_len && 61352 == gpos_len && 24576 == gsub_len)
       /* sha1sum:2bdfaab28174bdadd2f3d4200a30a7ae31db79d2  tahomabd.ttf from Windows 10 AU */
