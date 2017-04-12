@@ -38,7 +38,6 @@ include_directories(AFTER
 
 # feel free to discuss these or more with the maintainers
 add_definitions(-DHAVE_OT)
-add_definitions(-DHB_NO_MT)
 add_definitions(-DHB_DISABLE_DEPRECATED)
 
 if (BUILD_SHARED_LIBS)
