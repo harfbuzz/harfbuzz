@@ -302,6 +302,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
 		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
 		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
 		void mutex_unlock (int *m) { __sync_lock_release (m); }
+		int main () { return 0; }
 ")
 try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
   ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
@@ -317,6 +318,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
 		void memory_barrier (void) { __machine_rw_barrier (); }
 		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
 		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
+		int main () { return 0; }
 ")
 try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
   ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
