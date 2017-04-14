@@ -321,8 +321,8 @@ file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
 try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
   ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
   SOURCES ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
-if (HB_HB_HAVE_SOLARIS_ATOMIC_OPS)
-  add_definitions(-DHB_HAVE_SOLARIS_ATOMIC_OPS)
+if (HB_HAVE_SOLARIS_ATOMIC_OPS)
+  add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
 endif ()
 ##
 
