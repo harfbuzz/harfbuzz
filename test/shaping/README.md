@@ -31,7 +31,7 @@ $ ./hb-unicode-encode 41 42 43 627 | ./record-it.sh ../../util/hb-shape font.ttf
 ```
 
 If you created a new test file, add it to `Makefile.am` so it is run.
-Check that `make test` does indeed run it, and that the test passes.
+Check that `make check` does indeed run it, and that the test passes.
 When everything looks good, `git add` the new font as well as new
 test file if you created any.  You can see what new files are there
 by running `git status tests fonts/sha1sum`.  And commit!
