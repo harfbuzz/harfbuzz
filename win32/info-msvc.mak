@@ -6,17 +6,21 @@ BUILT_LIBRARIES = HarfBuzz
 
 !if "$(NO_UCDN)" != "1"
 UNICODE_IMPL = ucdn
-!else
-!if "$(GLIB)" == "1"
+!elseif "$(GLIB)" == "1"
 UNICODE_IMPL = GLib
+!elseif "$(ICU)" == "1"
+UNICODE_IMPL = ICU
+!endif
+
+!if "$(GLIB)" == "1"
 INC_FEATURES = $(INC_FEATURES) GLib
 BUILT_TOOLS = hb-shape.exe hb-ot-shape-closure.exe
 !if "$(CAIRO_FT)" == "1"
 BUILT_TOOLS = hb-view.exe $(BUILT_TOOLS)
 !endif
-!elseif "$(ICU)" == "1"
-UNICODE_IMPL = ICU
 !endif
+!if "$(ICU)" == "1"
+INC_FEATURES = $(INC_FEATURES) ICU
 !endif
 
 !if "$(FREETYPE)" == "1"

@@ -87,8 +87,10 @@ VSVER = 10
 VSVER = 11
 !elseif $(VCVERSION) > 1799 && $(VCVERSION) < 1900
 VSVER = 12
-!elseif $(VCVERSION) > 1899 && $(VCVERSION) < 2000
+!elseif $(VCVERSION) > 1899 && $(VCVERSION) < 1910
 VSVER = 14
+!elseif $(VCVERSION) > 1909 && $(VCVERSION) < 2000
+VSVER = 15
 !else
 VSVER = 0
 !endif

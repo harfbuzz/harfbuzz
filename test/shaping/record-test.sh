@@ -48,20 +48,20 @@ pyftsubset \
 	--no-hinting \
 	"$dir/font.ttf" \
 	--text="$text"
-if ! test -s "$dir/font.ttf.subset"; then
-	echo "Subsetter didn't produce nonempty subset font in $dir/font.ttf.subset" >&2
+if ! test -s "$dir/font.subset.ttf"; then
+	echo "Subsetter didn't produce nonempty subset font in $dir/font.subset.ttf" >&2
 	exit 2
 fi
 
 # Verify that subset font produces same glyphs!
-glyphs_subset=`echo "$text" | $hb_shape $options "$dir/font.ttf.subset"`
+glyphs_subset=`echo "$text" | $hb_shape $options "$dir/font.subset.ttf"`
 
 if ! test "x$glyphs" = "x$glyphs_subset"; then
 	echo "Subset font produced different glyphs!" >&2
 	echo "Perhaps font doesn't have glyph names; checking visually..." >&2
 	hb_view=${hb_shape/shape/view}
 	echo "$text" | $hb_view $options "$dir/font.ttf" --output-format=png --output-file="$dir/orig.png"
-	echo "$text" | $hb_view $options "$dir/font.ttf.subset" --output-format=png --output-file="$dir/subset.png"
+	echo "$text" | $hb_view $options "$dir/font.subset.ttf" --output-format=png --output-file="$dir/subset.png"
 	if ! cmp "$dir/orig.png" "$dir/subset.png"; then
 		echo "Images differ.  Please inspect $dir/*.png." >&2
 		echo "$glyphs"
@@ -74,9 +74,9 @@ if ! test "x$glyphs" = "x$glyphs_subset"; then
 	glyphs=$glyphs_subset
 fi
 
-sha1sum=`sha1sum "$dir/font.ttf.subset" | cut -d' ' -f1`
+sha1sum=`sha1sum "$dir/font.subset.ttf" | cut -d' ' -f1`
 subset="fonts/sha1sum/$sha1sum.ttf"
-mv "$dir/font.ttf.subset" "$subset"
+mv "$dir/font.subset.ttf" "$subset"
 
 # There ought to be an easier way to do this, but it escapes me...
 unicodes_file=`mktemp`
