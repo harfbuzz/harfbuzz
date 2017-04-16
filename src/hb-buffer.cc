@@ -113,7 +113,7 @@ hb_segment_properties_hash (const hb_segment_properties_t *p)
 /* Internal API */
 
 bool
-hb_buffer_t::enlarge (unsigned int size)
+hb_buffer_t::enlarge (unsigned int size, bool exact)
 {
   if (unlikely (in_error))
     return false;
@@ -123,7 +123,7 @@ hb_buffer_t::enlarge (unsigned int size)
     return false;
   }
 
-  unsigned int new_allocated = allocated;
+  unsigned int new_allocated = exact ? size + 1 : allocated;
   hb_glyph_position_t *new_pos = NULL;
   hb_glyph_info_t *new_info = NULL;
   bool separate_out = out_info != info;
@@ -1222,7 +1222,7 @@ hb_buffer_clear_contents (hb_buffer_t *buffer)
 hb_bool_t
 hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
 {
-  return buffer->ensure (size);
+  return buffer->ensure_exact (size);
 }
 
 /**

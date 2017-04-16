@@ -252,10 +252,12 @@ struct hb_buffer_t {
   HB_INTERNAL void delete_glyph (void);
 
   /* Internal methods */
-  HB_INTERNAL bool enlarge (unsigned int size);
+  HB_INTERNAL bool enlarge (unsigned int size, bool exact);
 
   inline bool ensure (unsigned int size)
-  { return likely (!size || size < allocated) ? true : enlarge (size); }
+  { return likely (!size || size < allocated) ? true : enlarge (size, false); }
+  inline bool ensure_exact (unsigned int size)
+  { return likely (!size || size < allocated) ? true : enlarge (size, true); }
 
   inline bool ensure_inplace (unsigned int size)
   { return likely (!size || size < allocated); }
