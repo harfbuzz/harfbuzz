@@ -916,6 +916,8 @@ resize_and_retry:
 	  run_advance = -run_advance;
       DEBUG_MSG (CORETEXT, run, "Run advance: %g", run_advance);
 
+      CFRange range = CTRunGetStringRange (run);
+
       /* CoreText does automatic font fallback (AKA "cascading") for  characters
        * not supported by the requested font, and provides no way to turn it off,
        * so we must detect if the returned run uses a font other than the requested
@@ -978,7 +980,6 @@ resize_and_retry:
 	}
 	if (!matched)
 	{
-	  CFRange range = CTRunGetStringRange (run);
           DEBUG_MSG (CORETEXT, run, "Run used fallback font: %ld..%ld",
 		     range.location, range.location + range.length);
 	  if (!buffer->ensure_inplace (buffer->len + range.length))
@@ -1030,7 +1031,12 @@ resize_and_retry:
       if (num_glyphs == 0)
 	continue;
 
-      if (!buffer->ensure_inplace (buffer->len + num_glyphs))
+      /* CoreText throws away the PDF token, while the OpenType backend will add a zero-advance
+       * glyph for this. We need to make sure the two produce the same output. */
+      UniChar endGlyph = CFStringGetCharacterAtIndex (string_ref, range.location + range.length - 1);
+      bool endsWithPDF = endGlyph == 0x202c;
+
+      if (!buffer->ensure_inplace (buffer->len + num_glyphs + (endsWithPDF ? 1 : 0)))
 	goto resize_and_retry;
 
       hb_glyph_info_t *run_info = buffer->info + buffer->len;
@@ -1120,6 +1126,20 @@ resize_and_retry:
 	    info++;
 	  }
 	}
+        if (endsWithPDF) {
+          /* Ensure a zero-advance glyph the PDF token */
+          if (unlikely (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))) {
+            memmove (run_info + 1, run_info, num_glyphs * sizeof (hb_glyph_info_t));
+            info = run_info;
+          }
+          info->codepoint = 0xffff;
+          info->cluster = log_clusters[range.location + range.length - 1];
+          info->mask = 0;
+          info->var1.u32 = 0;
+          info->var2.u32 = 0;
+
+          buffer->len++;
+        }
 	SCRATCH_RESTORE();
 	advances_so_far += run_advance;
       }
