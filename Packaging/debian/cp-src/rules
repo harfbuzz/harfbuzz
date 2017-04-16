@@ -1,0 +1,37 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+#export DH_VERBOSE=1
+
+export CONFIG_SHELL=/bin/bash
+export DEB_BUILD_MAINT_OPTIONS := hardening=+all,-pie
+
+CONFIG_OPTS = --prefix=/usr \
+              --libdir=\$${prefix}/lib \
+              --mandir=\$${prefix}/share/man
+
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+	CROSS = --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+else
+	CROSS = --build $(DEB_BUILD_GNU_TYPE)
+endif
+
+%:
+	dh $@ --parallel --with autotools-dev
+
+override_dh_auto_configure:
+	$(CURDIR)/autogen.sh
+	$(CURDIR)/configure $(CROSS) ${CONFIG_OPTS}
+
+override_dh_install: 
+	dh_install
+	find $(CURDIR)/debian/libharfbuzz/usr/lib -name "*.la" -delete
+	-rm -rf $(CURDIR)/debian/libharfbuzz/usr/lib/pkgconfig 
+	touch @
+
+override_dh_strip:
+	dh_strip --dbg-package=harfbuzz-dbg
+	# deal with some lintian failure
+	chmod 0644 $(CURDIR)/debian/lib*/usr/lib/lib*.so.*
+

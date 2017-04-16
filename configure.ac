@@ -482,6 +482,12 @@ fi
 
 dnl ===========================================================================
 
+# We need this in order to pass things through automake when it doesn't like them.
+BLANK1=''; AC_SUBST(BLANK1)
+AC_SUBST([BLANK2],[""])
+
+dnl ===========================================================================
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
