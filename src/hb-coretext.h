@@ -30,12 +30,8 @@
 #include "hb.h"
 
 #include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-#  include <CoreText/CoreText.h>
-#  include <CoreGraphics/CoreGraphics.h>
-#else
-#  include <ApplicationServices/ApplicationServices.h>
-#endif
+#include <CoreText/CoreText.h>
+#include <CoreGraphics/CoreGraphics.h>
 
 HB_BEGIN_DECLS
 
