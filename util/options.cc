@@ -33,6 +33,9 @@
 #include <hb-ot.h>
 #endif
 
+#include <errno.h>
+#include <string.h>
+
 struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);

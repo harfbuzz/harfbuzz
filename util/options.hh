@@ -38,7 +38,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <locale.h>
-#include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h> /* for isatty() */

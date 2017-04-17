@@ -31,6 +31,10 @@
 #include FT_MULTIPLE_MASTERS_H
 
 #include "helper-cairo-ansi.hh"
+
+#include <errno.h>
+#include <string.h>
+
 #ifdef CAIRO_HAS_SVG_SURFACE
 #  include <cairo-svg.h>
 #endif
