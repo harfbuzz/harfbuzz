@@ -168,7 +168,7 @@ typedef enum
  * hb_unicode_funcs_t
  */
 
-typedef struct hb_unicode_funcs_t hb_unicode_funcs_t;
+typedef struct hb_unicode_funcs hb_unicode_funcs_t;
 
 
 /*

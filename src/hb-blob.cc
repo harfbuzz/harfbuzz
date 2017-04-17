@@ -50,7 +50,7 @@
 #endif
 
 
-struct hb_blob_t {
+struct hb_blob {
   hb_object_header_t header;
   ASSERT_POD ();
 

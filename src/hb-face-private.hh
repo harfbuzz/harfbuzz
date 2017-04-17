@@ -40,7 +40,7 @@
  * hb_face_t
  */
 
-struct hb_face_t {
+struct hb_face {
   hb_object_header_t header;
   ASSERT_POD ();
 

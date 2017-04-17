@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
  * hb_face_t
  */
 
-typedef struct hb_face_t hb_face_t;
+typedef struct hb_face hb_face_t;
 
 HB_EXTERN hb_face_t *
 hb_face_create (hb_blob_t    *blob,

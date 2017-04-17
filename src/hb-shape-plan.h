@@ -36,7 +36,7 @@
 
 HB_BEGIN_DECLS
 
-typedef struct hb_shape_plan_t hb_shape_plan_t;
+typedef struct hb_shape_plan hb_shape_plan_t;
 
 HB_EXTERN hb_shape_plan_t *
 hb_shape_plan_create (hb_face_t                     *face,

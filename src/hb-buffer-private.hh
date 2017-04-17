@@ -70,7 +70,7 @@ HB_MARK_AS_FLAG_T (hb_buffer_scratch_flags_t);
  * hb_buffer_t
  */
 
-struct hb_buffer_t {
+struct hb_buffer {
   hb_object_header_t header;
   ASSERT_POD ();
 

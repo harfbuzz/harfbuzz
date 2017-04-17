@@ -138,7 +138,7 @@ hb_segment_properties_hash (const hb_segment_properties_t *p);
  * and output glyphs and their information after shaping.
  */
 
-typedef struct hb_buffer_t hb_buffer_t;
+typedef struct hb_buffer hb_buffer_t;
 
 HB_EXTERN hb_buffer_t *
 hb_buffer_create (void);
