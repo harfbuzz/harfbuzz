@@ -253,8 +253,8 @@ built-sources: $(BUILT_SOURCES)
 .PHONY: unicode-tables arabic-table indic-table use-table built-sources
 
 RAGEL_GENERATED = \
-	$(HB_BASE_RAGEL_GENERATED_sources) \
-	$(HB_OT_RAGEL_GENERATED_sources) \
+	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \
+	$(patsubst %,$(srcdir)/%,$(HB_OT_RAGEL_GENERATED_sources)) \
 	$(NULL)
 BUILT_SOURCES += $(RAGEL_GENERATED)
 EXTRA_DIST += \
