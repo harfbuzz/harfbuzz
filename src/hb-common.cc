@@ -186,8 +186,10 @@ lang_equal (hb_language_t  v1,
   const unsigned char *p1 = (const unsigned char *) v1;
   const unsigned char *p2 = (const unsigned char *) v2;
 
-  while (*p1 && *p1 == canon_map[*p2])
-    p1++, p2++;
+  while (*p1 && *p1 == canon_map[*p2]) {
+    p1++;
+    p2++;
+  }
 
   return *p1 == canon_map[*p2];
 }
