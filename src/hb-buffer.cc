@@ -1380,6 +1380,31 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 }
 
 /**
+ * hb_buffer_compact_glyphs:
+ * @buffer: an #hb_buffer_t.
+ *
+ * Since: ???
+ **/
+void
+hb_buffer_compact_glyphs (hb_buffer_t * buffer)
+{
+    assert (buffer->have_positions);
+    assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
+    
+    unsigned int count = buffer->len;
+    hb_glyph_info_t     *info = buffer->info;
+    hb_glyph_position_t *pos  = buffer->pos;
+    
+    for (unsigned int i = 0; i < count; i++)
+    {
+        pos[i].compact[0] = info[i].cluster;
+        pos[i].compact[1] = info[i].codepoint;
+        pos[i].compact[2] = pos [i].x_advance;
+        pos[i].compact[3] = pos [i].x_offset;
+    }
+}
+
+/**
  * hb_buffer_reverse:
  * @buffer: an #hb_buffer_t.
  *

@@ -65,7 +65,9 @@ typedef struct hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
   uint32_t       cluster;
-
+  
+  uint32_t       _filler[4]; // only to keep ASSERT equal size happy
+  
   /*< private >*/
   hb_var_int_t   var1;
   hb_var_int_t   var2;
@@ -92,7 +94,9 @@ typedef struct hb_glyph_position_t {
   hb_position_t  y_advance;
   hb_position_t  x_offset;
   hb_position_t  y_offset;
-
+  
+  uint32_t       compact[4];
+  
   /*< private >*/
   hb_var_int_t   var;
 } hb_glyph_position_t;
@@ -377,6 +381,8 @@ HB_EXTERN hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
                                unsigned int *length);
 
+HB_EXTERN void
+hb_buffer_compact_glyphs (hb_buffer_t * buffer);
 
 HB_EXTERN void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
