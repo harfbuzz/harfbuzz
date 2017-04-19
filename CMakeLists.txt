@@ -19,12 +19,16 @@ endif ()
 ## HarfBuzz build configurations
 option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
 option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
-option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
-option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper backend on Windows" OFF)
-option(HB_HAVE_CORETEXT "Enable CoreText shaper backend on macOS" ON)
 option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
 option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
+if (APPLE)
+  option(HB_HAVE_CORETEXT "Enable CoreText shaper backend on macOS" ON)
+endif ()
+if (WIN32)
+  option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
+  option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper backend on Windows" OFF)
+endif ()
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
 if (HB_BUILD_UTILS)
   set(HB_HAVE_GLIB ON)
@@ -68,45 +72,35 @@ function (prepend var prefix)
   set(${var} "${listVar}" PARENT_SCOPE)
 endfunction ()
 
+function (extract_make_variable variable file prefix)
+  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${file})
+  string(REGEX MATCHALL "[^ \n\t\\]+" list ${CMAKE_MATCH_1})
+  prepend(list ${prefix} ${list})
+  set(${variable} ${list} PARENT_SCOPE)
+endfunction ()
+
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/util/Makefile.sources UTILSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/src/hb-ucdn/Makefile.sources UCDNSOURCES)
 
-function (extract_make_variable variable file)
-  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${file})
-  string(REGEX MATCHALL "[^ \n\t\\]+" list ${CMAKE_MATCH_1})
-  set(${variable} ${list} PARENT_SCOPE)
-endfunction ()
+extract_make_variable(HB_BASE_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
+extract_make_variable(HB_BASE_headers ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
+extract_make_variable(HB_OT_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
+extract_make_variable(HB_OT_headers ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 
-extract_make_variable(HB_BASE_sources ${SRCSOURCES})
-extract_make_variable(HB_BASE_headers ${SRCSOURCES})
-extract_make_variable(HB_OT_sources ${SRCSOURCES})
-extract_make_variable(HB_OT_headers ${SRCSOURCES})
-extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
-extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES})
-
-extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
-extract_make_variable(HB_SHAPE_sources ${UTILSOURCES})
-extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
-
-extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES})
-
-prepend(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_sources})
-prepend(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_headers})
-prepend(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_OT_sources})
-prepend(HB_OT_headers "${PROJECT_SOURCE_DIR}/src/" ${HB_OT_headers})
 if (IN_HB_DIST)
-  prepend(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_BASE_RAGEL_GENERATED_sources})
-  prepend(HB_OT_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/" ${HB_OT_RAGEL_GENERATED_sources})
+  set(RAGEL_GENERATED_DIR "${PROJECT_SOURCE_DIR}/src/")
 else ()
-  prepend(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/" ${HB_BASE_RAGEL_GENERATED_sources})
-  prepend(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/" ${HB_OT_RAGEL_GENERATED_sources})
+  set(RAGEL_GENERATED_DIR "${PROJECT_BINARY_DIR}/src/")
 endif ()
-prepend(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_VIEW_sources})
-prepend(HB_SHAPE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_SHAPE_sources})
-prepend(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/" ${HB_OT_SHAPE_CLOSURE_sources})
+extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES} ${RAGEL_GENERATED_DIR})
+extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES} ${RAGEL_GENERATED_DIR})
 
-prepend(LIBHB_UCDN_sources "${PROJECT_SOURCE_DIR}/src/hb-ucdn/" ${LIBHB_UCDN_sources})
+extract_make_variable(HB_VIEW_sources ${UTILSOURCES} "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_SHAPE_sources ${UTILSOURCES} "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES} "${PROJECT_SOURCE_DIR}/util/")
+
+extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES} "${PROJECT_SOURCE_DIR}/src/hb-ucdn/")
 
 file(READ configure.ac CONFIGUREAC)
 string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
@@ -123,7 +117,7 @@ if (NOT IN_HB_DIST)
   if (RAGEL)
     message(STATUS "ragel found at: ${RAGEL}")
   else ()
-    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/")
+    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/ or, use harfbuzz releases https://github.com/behdad/harfbuzz/releases")
   endif ()
 
   foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
@@ -135,6 +129,8 @@ if (NOT IN_HB_DIST)
       )
     add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
   endforeach ()
+
+  mark_as_advanced(RAGEL)
   ##
 
   ## Generate hb-version.h
@@ -166,37 +162,29 @@ set(project_headers
   )
 
 if (HB_HAVE_FREETYPE)
-  set(FREETYPE_DIR "$ENV{FREETYPE_DIR}"
-    CACHE PATH "root path for freetype lib/ and include/ folders"
-    )
-  find_path(FREETYPE_INCLUDE_DIR
-    ft2build.h freetype2/freetype/freetype.h
-    PATHS ${FREETYPE_DIR}/include
-    )
+  add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
 
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindFreetype2.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_FREETYPE2 QUIET freetype2)
+
+  find_path(FREETYPE2_HEADER_DIR NAMES freetype.h HINTS ${PC_FREETYPE2_INCLUDE_DIRS} ${PC_FREETYPE2_INCLUDEDIR} $ENV{FREETYPE_DIR}/include PATH_SUFFIXES freetype)
+  find_path(FREETYPE2_ROOT_INCLUDE_DIR NAMES freetype/freetype.h HINTS ${PC_FREETYPE2_INCLUDE_DIRS} ${PC_FREETYPE2_INCLUDEDIR} $ENV{FREETYPE_DIR}/include)
   if (CMAKE_BUILD_TYPE MATCHES Debug)
-    find_library(FREETYPE_DEBUG_LIBRARY freetyped)
-    set(FREETYPE_ACTUAL_LIBRARY ${FREETYPE_DEBUG_LIBRARY})
+    set(FREETYPE2_LIBRARY_NAME freetyped)
   else ()
-    find_library(FREETYPE_LIBRARY
-      freetype libfreetype
-      PATHS ${FREETYPE_DIR}/lib
-      DOC "freetype library"
-      )
-    set(FREETYPE_ACTUAL_LIBRARY ${FREETYPE_LIBRARY})
+    set(FREETYPE2_LIBRARY_NAME freetype)
   endif ()
+  find_library(FREETYPE2_LIBRARIES ${FREETYPE2_LIBRARY_NAME} HINTS ${PC_FREETYPE2_LIBDIR} ${PC_FREETYPE2_LIBRARY_DIRS} $ENV{FREETYPE_DIR}/lib)
 
-  if (FREETYPE_INCLUDE_DIR)
-    include_directories(AFTER ${FREETYPE_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR}/freetype2)
-  endif ()
-
-  if (FREETYPE_INCLUDE_DIR AND FREETYPE_ACTUAL_LIBRARY)
-    list(APPEND THIRD_PARTY_LIBS ${FREETYPE_ACTUAL_LIBRARY})
-    add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
-  endif ()
+  include_directories(AFTER ${FREETYPE2_HEADER_DIR} ${FREETYPE2_ROOT_INCLUDE_DIR})
 
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
+
+  list(APPEND THIRD_PARTY_LIBS ${FREETYPE2_LIBRARIES})
+
+  mark_as_advanced(FREETYPE2_HEADER_DIR FREETYPE2_ROOT_INCLUDE_DIR FREETYPE2_LIBRARIES)
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
@@ -211,6 +199,8 @@ if (HB_HAVE_GRAPHITE2)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-graphite2.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
+
+  mark_as_advanced(GRAPHITE2_INCLUDE_DIR GRAPHITE2_LIBRARY)
 endif ()
 
 if (HB_BUILTIN_UCDN)
@@ -239,6 +229,8 @@ if (HB_HAVE_GLIB)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
+
+  mark_as_advanced(GLIB_LIBRARIES GLIBCONFIG_INCLUDE_DIR GLIB_INCLUDE_DIR)
 endif ()
 
 if (HB_HAVE_ICU)
@@ -257,6 +249,8 @@ if (HB_HAVE_ICU)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
 
   list(APPEND THIRD_PARTY_LIBS ${ICU_LIBRARY})
+
+  mark_as_advanced(ICU_INCLUDE_DIR ICU_LIBRARY)
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
@@ -267,10 +261,11 @@ if (APPLE AND HB_HAVE_CORETEXT)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
 
   find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
-  mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
   if (APPLICATION_SERVICES_FRAMEWORK)
     list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
   endif (APPLICATION_SERVICES_FRAMEWORK)
+  
+  mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
 endif ()
 
 if (WIN32 AND HB_HAVE_UNISCRIBE)
@@ -290,8 +285,6 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
 
   list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
-
-set(project_sources ${project_sources} ${project_headers})
 ##
 
 ## Atomic ops availability detection
@@ -326,7 +319,7 @@ if (HB_HAVE_SOLARIS_ATOMIC_OPS)
 endif ()
 ##
 
-add_library(harfbuzz ${project_sources})
+add_library(harfbuzz ${project_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 if (HB_BUILD_UTILS)
@@ -349,6 +342,8 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
+
+  mark_as_advanced(CAIRO_LIBRARIESNAMES)
 endif ()
 
 ## Install
