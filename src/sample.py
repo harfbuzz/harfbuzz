@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+
+from os import environ
+environ['LD_LIBRARY_PATH'] = '/usr/local/lib/girepository-1.0'
+environ['GI_TYPELIB_PATH'] = '/usr/local/lib/girepository-1.0'
+
+from gi import require_version
+require_version('HarfBuzz', '0.0')
+
 import sys
 import array
 from gi.repository import HarfBuzz as hb
@@ -9,15 +17,15 @@ from gi.repository import GLib
 
 # Python 2/3 compatibility
 try:
-	unicode
+    unicode
 except NameError:
-	unicode = str
+    unicode = str
 
 def tounicode(s, encoding='utf-8'):
-	if not isinstance(s, unicode):
-		return s.decode(encoding)
-	else:
-		return s
+    if not isinstance(s, unicode):
+        return s.decode(encoding)
+    else:
+        return s
 
 fontdata = open (sys.argv[1], 'rb').read ()
 text = tounicode(sys.argv[2])
@@ -35,9 +43,9 @@ hb.ot_font_set_funcs (font)
 
 buf = hb.buffer_create ()
 class Debugger(object):
-	def message (self, buf, font, msg, data, _x_what_is_this):
-		print(msg)
-		return True
+    def message (self, buf, font, msg, data, _x_what_is_this):
+        print(msg)
+        return True
 debugger = Debugger()
 hb.buffer_set_message_func (buf, debugger.message, 1, 0)
 
@@ -69,10 +77,10 @@ infos = hb.buffer_get_glyph_infos (buf)
 positions = hb.buffer_get_glyph_positions (buf)
 
 for info,pos in zip(infos, positions):
-	gid = info.codepoint
-	cluster = info.cluster
-	x_advance = pos.x_advance
-	x_offset = pos.x_offset
-	y_offset = pos.y_offset
+    gid = info.codepoint
+    cluster = info.cluster
+    x_advance = pos.x_advance
+    x_offset = pos.x_offset
+    y_offset = pos.y_offset
 
-	print("gid%d=%d@%d,%d+%d" % (gid, cluster, x_advance, x_offset, y_offset))
+    print("gid %d : %d @ %d + (%d, %d)" % (gid, cluster, x_advance, x_offset, y_offset))
