@@ -32,6 +32,10 @@
 #ifndef HB_ATOMIC_PRIVATE_HH
 #define HB_ATOMIC_PRIVATE_HH
 
+#if defined(__clang__ ) && defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
 #include "hb-private.hh"
 
 
