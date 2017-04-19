@@ -73,10 +73,8 @@ typedef LONG hb_atomic_int_impl_t;
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
 
 #include <libkern/OSAtomic.h>
-#ifdef __MAC_OS_X_MIN_REQUIRED
+#ifdef __APPLE__
 #include <AvailabilityMacros.h>
-#elif defined(__IPHONE_OS_MIN_REQUIRED)
-#include <Availability.h>
 #endif
 
 
@@ -86,7 +84,11 @@ typedef int32_t hb_atomic_int_impl_t;
 
 #define hb_atomic_ptr_impl_get(P)		(OSMemoryBarrier (), (void *) *(P))
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
+#if __aarch64__
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
+#else
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
+#endif
 #else
 #if __ppc64__ || __x86_64__ || __aarch64__
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
