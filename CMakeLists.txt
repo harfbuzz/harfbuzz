@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
-## Disallow in-source builds
-if ("${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
+## Disallow in-source builds, as CMake generated make files can collide with autotools ones
+if (NOT MSVC AND "${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
   message(FATAL_ERROR
     "
 In-source builds are not permitted!  Make a separate folder for"
@@ -14,7 +14,7 @@ Before that, remove the files created by this failed run with"
     "
   rm -rf CMakeCache.txt CMakeFiles")
 endif ()
-##
+
 
 ## HarfBuzz build configurations
 option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
@@ -53,14 +53,16 @@ endif ()
 if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
   add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
 endif ()
-##
 
+
+## Detect if cmake is in distribution or regular repository folder
 set(IN_HB_DIST FALSE)
 if (EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
   # perhaps we are on dist directory
   set(IN_HB_DIST TRUE)
   set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
 endif ()
+
 
 ## Extract variables from Makefile files
 # http://stackoverflow.com/a/27630120/1414809
@@ -108,7 +110,7 @@ set(HB_VERSION ${CMAKE_MATCH_1})
 set(HB_VERSION_MAJOR ${CMAKE_MATCH_2})
 set(HB_VERSION_MINOR ${CMAKE_MATCH_3})
 set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
-##
+
 
 if (NOT IN_HB_DIST)
   ## Define ragel tasks
@@ -131,7 +133,7 @@ if (NOT IN_HB_DIST)
   endforeach ()
 
   mark_as_advanced(RAGEL)
-  ##
+
 
   ## Generate hb-version.h
   set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
@@ -142,7 +144,8 @@ if (NOT IN_HB_DIST)
     "${HB_VERSION_H}.tmp"
     "${HB_VERSION_H}")
   file(REMOVE "${HB_VERSION_H}.tmp")
-  ##
+
+
 endif ()
 
 ## Define sources and headers of the project
@@ -161,6 +164,8 @@ set(project_headers
   ${HB_OT_headers}
   )
 
+
+## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE)
   add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
 
@@ -285,7 +290,7 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
 
   list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
-##
+
 
 ## Atomic ops availability detection
 file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
@@ -317,11 +322,14 @@ try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
 if (HB_HAVE_SOLARIS_ATOMIC_OPS)
   add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
 endif ()
-##
 
+
+## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
+
+## Additional harfbuzz build artifacts
 if (HB_BUILD_UTILS)
   # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
   find_package(PkgConfig)
@@ -343,8 +351,9 @@ if (HB_BUILD_UTILS)
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
 
-  mark_as_advanced(CAIRO_LIBRARIESNAMES)
+  mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
 endif ()
+
 
 ## Install
 if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
@@ -358,4 +367,3 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     RUNTIME DESTINATION bin
     )
 endif ()
-##
