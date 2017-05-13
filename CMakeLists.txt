@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
+
+## Limit framework build to Xcode generator
+if (BUILD_FRAMEWORK)
+  # for a framework on macOS, use `cmake .. -DBUILD_FRAMEWORK:BOOL=true -G Xcode`
+  if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
+    message(FATAL_ERROR
+      "You should use Xcode generator with BUILD_FRAMEWORK enabled")
+  endif ()
+  set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
+  set(CMAKE_MACOSX_RPATH ON)
+  set(BUILD_SHARED_LIBS ON)
+endif ()
+
+
 ## Disallow in-source builds, as CMake generated make files can collide with autotools ones
 if (NOT MSVC AND "${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
   message(FATAL_ERROR
@@ -55,7 +69,7 @@ if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
 endif ()
 
 
-## Detect if cmake is in distribution or regular repository folder
+## Detect if we are running inside a distribution or regular repository folder
 set(IN_HB_DIST FALSE)
 if (EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
   # perhaps we are on dist directory
@@ -112,8 +126,8 @@ set(HB_VERSION_MINOR ${CMAKE_MATCH_3})
 set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 
+## Define ragel tasks
 if (NOT IN_HB_DIST)
-  ## Define ragel tasks
   find_program(RAGEL "ragel")
 
   if (RAGEL)
@@ -133,20 +147,22 @@ if (NOT IN_HB_DIST)
   endforeach ()
 
   mark_as_advanced(RAGEL)
+endif ()
 
 
-  ## Generate hb-version.h
+## Generate hb-version.h
+if (NOT IN_HB_DIST)
   set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
   set(HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
   set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
   configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
   execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
     "${HB_VERSION_H}.tmp"
-    "${HB_VERSION_H}")
+    "${HB_VERSION_H}"
+    )
   file(REMOVE "${HB_VERSION_H}.tmp")
-
-
 endif ()
+
 
 ## Define sources and headers of the project
 set(project_sources
@@ -214,7 +230,8 @@ if (HB_BUILTIN_UCDN)
 
   list(APPEND project_sources
     ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
-    ${LIBHB_UCDN_sources})
+    ${LIBHB_UCDN_sources}
+    )
 endif ()
 
 if (HB_HAVE_GLIB)
@@ -329,6 +346,20 @@ add_library(harfbuzz ${project_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 
+## Additional framework build configs
+if (BUILD_FRAMEWORK)
+  set(CMAKE_MACOSX_RPATH ON)
+  set_target_properties(harfbuzz PROPERTIES
+    FRAMEWORK TRUE
+    PUBLIC_HEADER "${project_headers}"
+    XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+  )
+  set(MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz")
+  set(MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}")
+  set(MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}")
+endif ()
+
+
 ## Additional harfbuzz build artifacts
 if (HB_BUILD_UTILS)
   # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
@@ -365,5 +396,6 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
+    FRAMEWORK DESTINATION Library/Frameworks
     )
 endif ()
