@@ -50,6 +50,7 @@ TESTS = \
 	tests/context-matching.tests \
 	tests/cursive-positioning.tests \
 	tests/default-ignorables.tests \
+	tests/emoji-flag-tags.tests \
 	tests/fallback-positioning.tests \
 	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
