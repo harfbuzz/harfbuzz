@@ -221,7 +221,13 @@ struct hb_language_item_t {
   }
 
   inline hb_language_item_t & operator = (const char *s) {
-    lang = (hb_language_t) strdup (s);
+    /* If a custom allocated is used calling strdup() pairs
+    badly with a call to the custom free() in finish() below.
+    Therefore don't call strdup(), implement its behavior.
+    */
+    size_t len = strlen(s) + 1;
+    lang = (hb_language_t) malloc(len);
+    memcpy((unsigned char *) lang, s, len);
     for (unsigned char *p = (unsigned char *) lang; *p; p++)
       *p = canon_map[*p];
 
