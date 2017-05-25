@@ -22,6 +22,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew uninstall libtool && brew install libtool; fi # Workaround Travis/brew bug
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ragel freetype glib gobject-introspection cairo icu4c graphite2; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew link --force icu4c; fi # icu4c is keg-only
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export SED=$(brew --cellar)/../Library/ENV/4.3/sed; fi;
 script:
   - NOCONFIGURE=1 ./autogen.sh
   - export CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
