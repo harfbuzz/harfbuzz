@@ -168,7 +168,6 @@ extern "C" void  hb_free_impl(void *ptr);
 
 #  if defined(_WIN32_WCE)
      /* Some things not defined on Windows CE. */
-#    define strdup _strdup
 #    define vsnprintf _vsnprintf
 #    define getenv(Name) NULL
 #    if _WIN32_WCE < 0x800
@@ -180,9 +179,6 @@ static int errno = 0; /* Use something better? */
 #  endif
 #  if defined(_MSC_VER) && _MSC_VER < 1900
 #    define snprintf _snprintf
-#  elif defined(_MSC_VER) && _MSC_VER >= 1900
-#    /* Covers VC++ Error for strdup being a deprecated POSIX name and to instead use _strdup instead */
-#    define strdup _strdup
 #  endif
 #endif
 
