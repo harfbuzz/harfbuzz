@@ -227,9 +227,12 @@ struct hb_language_item_t {
     */
     size_t len = strlen(s) + 1;
     lang = (hb_language_t) malloc(len);
-    memcpy((unsigned char *) lang, s, len);
-    for (unsigned char *p = (unsigned char *) lang; *p; p++)
-      *p = canon_map[*p];
+    if (likely (lang))
+    {
+      memcpy((unsigned char *) lang, s, len);
+      for (unsigned char *p = (unsigned char *) lang; *p; p++)
+	*p = canon_map[*p];
+    }
 
     return *this;
   }
@@ -271,6 +274,11 @@ retry:
     return NULL;
   lang->next = first_lang;
   *lang = key;
+  if (unlikely (!lang->lang))
+  {
+    free (lang);
+    return NULL;
+  }
 
   if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
     lang->finish ();
