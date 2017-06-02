@@ -441,6 +441,26 @@ if $have_coretext; then
 fi
 AM_CONDITIONAL(HAVE_CORETEXT, $have_coretext)
 
+
+dnl ===========================================================================
+
+AC_CACHE_CHECK([for C compiler stdatomic.h], hb_cv_have_stdatomic, [
+	hb_cv_have_stdatomic=false
+	AC_TRY_LINK([#include <stdatomic.h>], [
+		atomic_int a;
+		atomic_init(&a, 0);
+		#ifdef __STDC_NO_ATOMICS__
+			#error c11 atomics are not supported
+		#else
+			return 0;
+		#endif
+		], hb_cv_have_stdatomic=true
+	)
+])
+if $hb_cv_have_stdatomic; then
+	AC_DEFINE(HAVE_STDATOMIC, 1, [Have C compiler stdatomic.h])
+fi
+
 dnl ===========================================================================
 
 AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [

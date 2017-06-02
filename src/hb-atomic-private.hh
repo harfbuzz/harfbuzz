@@ -46,6 +46,18 @@
 /* Defined externally, i.e. in config.h; must have typedef'ed hb_atomic_int_impl_t as well. */
 
 
+#elif !defined(HB_NO_MT) && HAVE_STDATOMIC
+
+#include <stdatomic.h>
+
+typedef atomic_int hb_atomic_int_impl_t;
+#define HB_ATOMIC_INT_IMPL_INIT(V) (V)
+#define hb_atomic_int_impl_add(AI, V)		atomic_fetch_add (&(AI), (V))
+
+#define hb_atomic_ptr_impl_get(P)		(atomic_thread_fence (memory_order_release), (void *) *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
+//(atomic_compare_exchange_strong ((atomic_int *) (P), (int *) (O), (size_t) (N)))
+
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
 
 #include <windows.h>
