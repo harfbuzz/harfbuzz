@@ -74,10 +74,9 @@ extern "C" void  hb_free_impl(void *ptr);
 /* Compiler attributes */
 
 
-#if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define _HB_BOOLEAN_EXPR(expr) ((expr) ? 1 : 0)
-#define likely(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 1))
-#define unlikely(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 0))
+#if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
+#define likely(expr) (__builtin_expect (!!(expr), 1))
+#define unlikely(expr) (__builtin_expect (!!(expr), 0))
 #else
 #define likely(expr) (expr)
 #define unlikely(expr) (expr)
