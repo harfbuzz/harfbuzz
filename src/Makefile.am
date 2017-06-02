@@ -262,7 +262,7 @@ EXTRA_DIST += \
 	$(HB_OT_RAGEL_sources) \
 	$(NULL)
 MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
-$(srcdir)/%.hh: $(srcdir)/%.rl
+%.hh: $(srcdir)/%.rl
 	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
 
