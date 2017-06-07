@@ -1249,7 +1249,7 @@ _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
   }
   hb_blob_destroy (mort_blob);
 
-  return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+  return hb_coretext_aat_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
 }
 
 void
@@ -1267,7 +1267,7 @@ struct hb_coretext_aat_shaper_font_data_t {};
 hb_coretext_aat_shaper_font_data_t *
 _hb_coretext_aat_shaper_font_data_create (hb_font_t *font)
 {
-  return hb_coretext_shaper_font_data_ensure (font) ? (hb_coretext_aat_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+  return hb_coretext_aat_shaper_font_data_ensure (font) ? (hb_coretext_aat_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
 }
 
 void
