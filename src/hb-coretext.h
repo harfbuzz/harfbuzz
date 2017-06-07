@@ -45,6 +45,9 @@ HB_BEGIN_DECLS
 
 
 HB_EXTERN hb_face_t *
+hb_coretext_face_create_from_ct_font (CTFontRef ct_font);
+
+HB_EXTERN hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font);
 
 
