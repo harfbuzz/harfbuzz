@@ -671,6 +671,30 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
 }
 
 static bool
+parse_uint32 (const char **pp, const char *end, uint32_t *pv)
+{
+  char buf[32];
+  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  strncpy (buf, *pp, len);
+  buf[len] = '\0';
+
+  char *p = buf;
+  char *pend = p;
+  unsigned int v;
+
+  /* Intentionally use strtol instead of strtoul, such that
+   * -1 turns into "big number"... */
+  errno = 0;
+  v = strtol (p, &pend, 0);
+  if (errno || p == pend)
+    return false;
+
+  *pv = v;
+  *pp += pend - p;
+  return true;
+}
+
+static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
   char buf[32];
@@ -693,7 +717,7 @@ parse_float (const char **pp, const char *end, float *pv)
 }
 
 static bool
-parse_bool (const char **pp, const char *end, unsigned int *pv)
+parse_bool (const char **pp, const char *end, uint32_t *pv)
 {
   parse_space (pp, end);
 
@@ -792,8 +816,8 @@ static bool
 parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *feature)
 {
   bool had_equal = parse_char (pp, end, '=');
-  bool had_value = parse_uint (pp, end, (unsigned int*) &feature->value) ||
-                   parse_bool (pp, end, (unsigned int*) &feature->value);
+  bool had_value = parse_uint32 (pp, end, &feature->value) ||
+                   parse_bool (pp, end, &feature->value);
   /* CSS doesn't use equal-sign between tag and value.
    * If there was an equal-sign, then there *must* be a value.
    * A value without an eqaul-sign is ok, but not required. */

@@ -552,10 +552,10 @@ hb_buffer_t::merge_clusters_impl (unsigned int start,
   if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
     return;
 
-  unsigned int cluster = info[start].cluster;
+  uint32_t cluster = info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN<unsigned int> (cluster, info[i].cluster);
+    cluster = MIN (cluster, info[i].cluster);
 
   /* Extend end */
   while (end < len && info[end - 1].cluster == info[end].cluster)
@@ -583,10 +583,10 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   if (unlikely (end - start < 2))
     return;
 
-  unsigned int cluster = out_info[start].cluster;
+  uint32_t cluster = out_info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN<unsigned int> (cluster, out_info[i].cluster);
+    cluster = MIN (cluster, out_info[i].cluster);
 
   /* Extend start */
   while (start && out_info[start - 1].cluster == out_info[start].cluster)

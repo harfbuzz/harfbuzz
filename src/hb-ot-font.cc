@@ -44,7 +44,7 @@
 struct hb_ot_face_metrics_accelerator_t
 {
   unsigned int num_metrics;
-  unsigned int num_advances;
+  uint32_t num_advances;
   unsigned int default_advance;
   unsigned short ascender;
   unsigned short descender;
@@ -138,7 +138,7 @@ struct hb_ot_face_metrics_accelerator_t
 	return this->default_advance;
     }
 
-    return this->table->longMetric[MIN<hb_codepoint_t> (glyph, this->num_advances - 1)].advance
+    return this->table->longMetric[MIN (glyph, this->num_advances - 1)].advance
 	 + this->var->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
   }
 };
