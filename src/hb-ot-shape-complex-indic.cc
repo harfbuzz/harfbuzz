@@ -177,15 +177,15 @@ set_indic_properties (hb_glyph_info_t &info)
    */
 
   /* The following act more like the Bindus. */
-  if (unlikely (hb_in_range (u, 0x0953u, 0x0954u)))
+  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0953u, 0x0954u)))
     cat = OT_SM;
   /* The following act like consonants. */
-  else if (unlikely (hb_in_ranges (u, 0x0A72u, 0x0A73u,
+  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0A72u, 0x0A73u,
 				      0x1CF5u, 0x1CF6u)))
     cat = OT_C;
   /* TODO: The following should only be allowed after a Visarga.
    * For now, just treat them like regular tone marks. */
-  else if (unlikely (hb_in_range (u, 0x1CE2u, 0x1CE8u)))
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CE2u, 0x1CE8u)))
     cat = OT_A;
   /* TODO: The following should only be allowed after some of
    * the nasalization marks, maybe only for U+1CE9..U+1CF1.
@@ -193,7 +193,7 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0x1CEDu))
     cat = OT_A;
   /* The following take marks in standalone clusters, similar to Avagraha. */
-  else if (unlikely (hb_in_ranges (u, 0xA8F2u, 0xA8F7u,
+  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0xA8F2u, 0xA8F7u,
 				      0x1CE9u, 0x1CECu,
 				      0x1CEEu, 0x1CF1u)))
   {
@@ -201,7 +201,7 @@ set_indic_properties (hb_glyph_info_t &info)
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
   else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
-  else if (unlikely (hb_in_range (u, 0x2010u, 0x2011u)))
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;
   else if (unlikely (u == 0x25CCu)) cat = OT_DOTTEDCIRCLE;
 
@@ -1738,7 +1738,7 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
 #endif
   }
 
-  if ((ab == 0x0DDAu || hb_in_range (ab, 0x0DDCu, 0x0DDEu)))
+  if ((ab == 0x0DDAu || hb_in_range<hb_codepoint_t> (ab, 0x0DDCu, 0x0DDEu)))
   {
     /*
      * Sinhala split matras...  Let the fun begin.

@@ -279,7 +279,7 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  hb_codepoint_t  glyph,
 				  unsigned int    start_offset,
 				  unsigned int   *caret_count /* IN/OUT */,
-				  int            *caret_array /* OUT */)
+				  hb_position_t  *caret_array /* OUT */)
 {
   return _get_gdef (font->face).get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
 }
