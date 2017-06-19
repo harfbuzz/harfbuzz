@@ -71,7 +71,7 @@ endif ()
 
 ## Detect if we are running inside a distribution or regular repository folder
 set(IN_HB_DIST FALSE)
-if (EXISTS "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
   # perhaps we are on dist directory
   set(IN_HB_DIST TRUE)
   set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
@@ -128,7 +128,7 @@ set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 ## Define ragel tasks
 if (NOT IN_HB_DIST)
-  find_program(RAGEL "ragel")
+  find_program(RAGEL "ragel" CMAKE_FIND_ROOT_PATH_BOTH)
 
   if (RAGEL)
     message(STATUS "ragel found at: ${RAGEL}")
