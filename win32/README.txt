@@ -11,7 +11,22 @@ backends are enabled, and this is the base configuration that is built if no
 options (see below) are specified.  A 'clean' target is provided-it is recommended
 that one cleans the build and redo the build if any configuration option changed.
 An 'install' target is also provided to copy the built items in their appropriate
-locations under $(PREFIX), which is described below.
+locations under $(PREFIX), which is described below.  A 'reallyclean' target is
+provided that not only does what is done for the 'clean' target, but also removes
+the sources/headers that are generated from the Ragel sources.  Therefore, if one
+is not building from a release tarball, or is rebuilding after using the 'reallyclean'
+target or when the Ragel (*.rl) sources are updated, the Ragel state machine
+compiler (ragel.exe) is needed, and needs to be passed in via RAGEL=<path_to_ragel_exe>
+if ragel.exe is not already in the PATH.
+
+We now support building from a GIT checkout via NMake for convenience.  In addition to
+the requirements as outlined in the later part of this file, you will need to run the
+setup.py (Python 2.7.x or later) script to generate the headers (src\hb-version.h and
+win32\config.h.win32) that are normally shipped in a release tarball before running
+NMake, and you will need to pass RAGEL=<path_to_ragel_exe> if the Ragel state machine
+compiler (ragel.exe) is not in your PATH when invoking NMake.  Note that the
+'reallyclean' target does not remove these 2 generated headers, so re-run the setup.py
+script if necessary.
 
 Invoke the build by issuing the command:
 nmake /f Makefile.vc CFG=[release|debug] [PREFIX=...] <option1=1 option2=1 ...>
@@ -32,6 +47,7 @@ PREFIX: Optional.  Base directory of where the third-party headers, libraries
         2012: 11
         2013: 12
         2015: 14
+        2017: 15
 
 Explanation of options, set by <option>=1:
 ------------------------------------------
@@ -74,5 +90,7 @@ DIRECTWRITE: Enable DirectWrite platform shaper support,
 PYTHON: Full path to the Python interpretor to be used, if it is not in %PATH%.
 
 PERL: Full path to the PERL interpretor to be used, if it is not in %PATH%.
+
+RAGEL: Full path to the Ragel state machine compiler executable, if not in %PATH%
 
 LIBTOOL_DLL_NAME: Enable libtool-style DLL names.

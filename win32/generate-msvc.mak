@@ -24,3 +24,9 @@ $(HB_GOBJECT_ENUM_GENERATED_SOURCES): ..\src\hb-gobject-enums.h.tmpl ..\src\hb-g
 # Create the build directories
 $(CFG)\$(PLAT)\harfbuzz $(CFG)\$(PLAT)\harfbuzz-gobject $(CFG)\$(PLAT)\util:
 	@-md $@
+
+.SUFFIXES: .c .cc .hh .rl
+
+# Generate headers from Ragel sources
+{..\src\}.rl{..\src\}.hh:
+	$(RAGEL) -e -F1 -o $@ $<

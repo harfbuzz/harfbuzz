@@ -52,7 +52,7 @@ $(CFG)\$(PLAT)\harfbuzz-gobject.lib: $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll
 # $(dependent_objects)
 # <<
 # 	@-if exist $@.manifest mt /manifest $@.manifest /outputresource:$@;2
-$(HARFBUZZ_DLL_FILENAME).dll: config.h $(harfbuzz_dll_OBJS) $(CFG)\$(PLAT)\harfbuzz
+$(HARFBUZZ_DLL_FILENAME).dll: config.h $(HB_RAGEL_GENERATED_ACTUAL_SOURCES) $(harfbuzz_dll_OBJS) $(CFG)\$(PLAT)\harfbuzz
 	link /DLL $(LDFLAGS) $(HB_DEP_LIBS) /implib:$(CFG)\$(PLAT)\harfbuzz.lib -out:$@ @<<
 $(harfbuzz_dll_OBJS)
 <<
@@ -125,3 +125,6 @@ clean:
 	@-if exist $(CFG)\$(PLAT)\harfbuzz-gobject\hb-gobject-enums.cc del $(CFG)\$(PLAT)\harfbuzz-gobject\hb-gobject-enums.cc
 	@-del vc$(VSVER)0.pdb
 	@-del config.h
+
+reallyclean: clean
+	@-del /f /q $(HB_RAGEL_GENERATED_ACTUAL_SOURCES)

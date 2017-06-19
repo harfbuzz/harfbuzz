@@ -30,6 +30,11 @@ UNISCRIBE_LIB = usp10.lib gdi32.lib rpcrt4.lib user32.lib
 # Directwrite is needed for DirectWrite shaping support
 DIRECTWRITE_LIB = dwrite.lib
 
+# Full path to Ragel state machine compiler if not already in PATH
+!if "$(RAGEL)" == ""
+RAGEL = ragel
+!endif
+
 # Please do not change anything beneath this line unless maintaining the NMake Makefiles
 # Bare minimum features and sources built into HarfBuzz on Windows
 HB_DEFINES =
@@ -47,6 +52,8 @@ HB_HEADERS =	\
 	$(HB_BASE_headers)		\
 	$(HB_NODIST_headers)	\
 	$(HB_OT_headers)
+
+RAGEL_RAW_GEN_SRCS = $(HB_OT_RAGEL_GENERATED_sources) $(HB_BASE_RAGEL_GENERATED_sources)
 
 # Minimal set of (system) libraries needed for the HarfBuzz DLL
 HB_DEP_LIBS =
