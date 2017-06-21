@@ -132,6 +132,15 @@ NULL=
 !if [call create-lists.bat footer hb_srcs.mak]
 !endif
 
+!if [call create-lists.bat header hb_srcs.mak HB_RAGEL_GENERATED_ACTUAL_SOURCES]
+!endif
+
+!if [for %s in ($(RAGEL_RAW_GEN_SRCS)) do @call create-lists.bat file hb_srcs.mak ..\src\%s]
+!endif
+
+!if [call create-lists.bat footer hb_srcs.mak]
+!endif
+
 !include hb_srcs.mak
 
 !if [del /f /q hb_srcs.mak]

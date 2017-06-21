@@ -133,9 +133,15 @@ help:
 	@echo NO_UCDN:
 	@echo Do not use the bundled Unicode callback, which is the default.  GLib or
 	@echo ICU-based unicode callback is therefore required.
-	@echo
+	@echo.
 	@echo UNISCRIBE:
 	@echo Enable Uniscribe support.
+	@echo.
+	@echo RAGEL:
+	@echo Set the full path to the Ragel state machine compiler, if not already in
+	@echo PATH.  The Ragel state machine compiler is required if not building from
+	@echo a release tarball, or a rebuild is to be carried out after using the
+	@echo 'reallyclean' target.
 	@echo.
 	@echo Note that GLib2 support is required for all utility and test programs.
 	@echo ======
