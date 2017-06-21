@@ -480,7 +480,27 @@ if test "$os_win32" = no && ! $have_pthread; then
 	AC_SEARCH_LIBS(sched_yield,rt,AC_DEFINE(HAVE_SCHED_YIELD, 1, [Have sched_yield]))
 fi
 
+dnl ==========================================================================
+
+AC_ARG_WITH(skia,
+       [AS_HELP_STRING([--with-skia=@<:@yes/no/auto@:>@],
+                       [Use skia @<:@default=auto@:>@])],,
+       [with_skia=auto])
+have_skia=false
+if test "x$with_skia" = "xyes" -o "x$with_skia" = "xauto"; then
+       PKG_CHECK_MODULES(SKIA, skia >= 1.8.0, have_skia=true, :)
+fi
+if test "x$with_skia" = "xyes" -a "x$have_skia" != "xtrue"; then
+       AC_MSG_ERROR([skia support requested but not found])
+fi
+if $have_skia; then
+       AC_DEFINE(HAVE_SKIA, 1, [Have Skia graphics library])
+fi
+AM_CONDITIONAL(HAVE_SKIA, $have_skia)
+
+
 dnl ===========================================================================
+
 
 AC_CONFIG_FILES([
 Makefile
