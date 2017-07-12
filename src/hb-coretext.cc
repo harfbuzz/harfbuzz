@@ -641,22 +641,23 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  /* active_features.qsort (); */
 	  for (unsigned int j = 0; j < active_features.len; j++)
 	  {
-	    CFStringRef keys[2] = {
+	    CFStringRef keys[] = {
 	      kCTFontFeatureTypeIdentifierKey,
 	      kCTFontFeatureSelectorIdentifierKey
 	    };
-	    CFNumberRef values[2] = {
+	    CFNumberRef values[] = {
 	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.feature),
 	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.setting)
 	    };
+	    ASSERT_STATIC (ARRAY_LENGTH (keys) == ARRAY_LENGTH (values));
 	    CFDictionaryRef dict = CFDictionaryCreate (kCFAllocatorDefault,
 						       (const void **) keys,
 						       (const void **) values,
-						       2,
+						       ARRAY_LENGTH (keys),
 						       &kCFTypeDictionaryKeyCallBacks,
 						       &kCFTypeDictionaryValueCallBacks);
-	    CFRelease (values[0]);
-	    CFRelease (values[1]);
+	    for (unsigned int i = 0; i < ARRAY_LENGTH (values); i++)
+	      CFRelease (values[i]);
 
 	    CFArrayAppendValue (features_array, dict);
 	    CFRelease (dict);
