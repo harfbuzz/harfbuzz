@@ -71,6 +71,7 @@ TESTS = \
 	tests/tibetan-vowels.tests \
 	tests/use.tests \
 	tests/use-marchen.tests \
+	tests/use-syllable.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)

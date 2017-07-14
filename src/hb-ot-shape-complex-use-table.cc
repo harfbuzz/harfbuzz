@@ -9,7 +9,7 @@
  * # IndicSyllabicCategory-9.0.0.txt
  * # Date: 2016-05-21, 02:46:00 GMT [RP]
  * # IndicPositionalCategory-9.0.0.txt
- * # Date: 2016-02-25, 00:48:00 GMT [RP]
+ * # Date: 2016-06-09, 19:33:00 GMT [RP]
  * # Blocks-9.0.0.txt
  * # Date: 2016-02-05, 23:48:00 GMT [KW]
  * UnicodeData.txt does not have a header.
@@ -410,7 +410,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* AA00 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* AA10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* AA20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VAbv,  VPre,
+  /* AA20 */     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VAbv,  VPre,
   /* AA30 */  VPre,  VAbv,  VBlw,  MPst,  MPre,  MBlw,  MBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* AA40 */     B,     B,     B,  FAbv,     B,     B,     B,     B,     B,     B,     B,     B,  FAbv,  FPst,     O,     O,
   /* AA50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
