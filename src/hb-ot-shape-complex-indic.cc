@@ -200,6 +200,14 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_Symbol;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
+  else if (unlikely (hb_in_range (u, 0x17CDu, 0x17D1u) ||
+		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */
+  {
+    /* These can occur mid-syllable (eg. before matras), even though Unicode marks them as Syllable_Modifier. */
+    cat = OT_M;
+    pos = POS_ABOVE_C;
+  }
+
   else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;

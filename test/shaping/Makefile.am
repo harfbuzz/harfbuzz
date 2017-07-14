@@ -59,6 +59,7 @@ TESTS = \
 	tests/indic-joiners.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
+	tests/indic-syllable.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
 	tests/mark-filtering-sets.tests \
