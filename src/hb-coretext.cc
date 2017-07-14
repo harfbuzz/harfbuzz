@@ -869,6 +869,7 @@ resize_and_retry:
 						    1,
 						    &kCFTypeDictionaryKeyCallBacks,
 						    &kCFTypeDictionaryValueCallBacks);
+      CFRelease (level_number);
       if (unlikely (!options))
         FAIL ("CFDictionaryCreate failed");
 
