@@ -346,12 +346,13 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define HB_MODIFIED_COMBINING_CLASS_CCC122 122 /* mai * */
 
 /* Tibetan
- * Modify U+0F74 (ccc=132) to reorder before ccc=130 marks.
+ * 
+ * In case of multiple vowel-signs, use u first (but after achung) 
+ * this allows Dzongkha multi-vowel shortcuts to render correctly 
  */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
-#define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
-#define HB_MODIFIED_COMBINING_CLASS_CCC132 128 /* sign u */
-
+#define HB_MODIFIED_COMBINING_CLASS_CCC130 132 /* sign i */
+#define HB_MODIFIED_COMBINING_CLASS_CCC132 131 /* sign u */
 
 /* Misc */
 
