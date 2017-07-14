@@ -857,6 +857,30 @@ resize_and_retry:
 	  CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, chars_len - start),
 					  kCTFontAttributeName, last_range->font);
       }
+      /* Enable/disable kern if requested.
+       *
+       * Note: once kern is disabled, reenabling it doesn't currently seem to work in CoreText.
+       */
+      if (num_features)
+      {
+	unsigned int zeroint = 0;
+	CFNumberRef zero = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &zeroint);
+	for (unsigned int i = 0; i < num_features; i++)
+	{
+	  const hb_feature_t &feature = features[i];
+	  if (feature.tag == HB_TAG('k','e','r','n') &&
+	      feature.start < chars_len && feature.start < feature.end)
+	  {
+	    CFRange feature_range = CFRangeMake (feature.start,
+	                                         MIN (feature.end, chars_len) - feature.start);
+	    if (feature.value)
+	      CFAttributedStringRemoveAttribute (attr_string, feature_range, kCTKernAttributeName);
+	    else
+	      CFAttributedStringSetAttribute (attr_string, feature_range, kCTKernAttributeName, zero);
+	  }
+	}
+	CFRelease (zero);
+      }
 
       int level = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
       CFNumberRef level_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &level);
