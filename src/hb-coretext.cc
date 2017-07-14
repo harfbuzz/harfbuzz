@@ -700,9 +700,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  active_features.remove (feature - active_features.array);
       }
     }
-
-    if (!range_records.len) /* No active feature found. */
-      goto fail_features;
   }
   else
   {
@@ -834,7 +831,7 @@ resize_and_retry:
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 				      kCTFontAttributeName, face_data->ct_font);
 
-      if (num_features)
+      if (num_features && range_records.len)
       {
 	unsigned int start = 0;
 	range_record_t *last_range = &range_records[0];
