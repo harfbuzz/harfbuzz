@@ -203,7 +203,8 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (hb_in_range (u, 0x17CDu, 0x17D1u) ||
 		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */
   {
-    /* These can occur mid-syllable (eg. before matras), even though Unicode marks them as Syllable_Modifier. */
+    /* These can occur mid-syllable (eg. before matras), even though Unicode marks them as Syllable_Modifier.
+     * https://github.com/roozbehp/unicode-data/issues/5 */
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
