@@ -64,6 +64,9 @@ TESTS = \
 	tests/mongolian-variation-selector.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
+	tests/tibetan-contractions-1.tests \
+	tests/tibetan-contractions-2.tests \
+	tests/tibetan-vowels.tests \
 	tests/use.tests \
 	tests/use-marchen.tests \
 	tests/vertical.tests \
