@@ -56,6 +56,7 @@ TESTS = \
 	tests/hangul-jamo.tests \
 	tests/hyphens.tests \
 	tests/indic-joiner-candrabindu.tests \
+	tests/indic-joiners.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
 	tests/language-tags.tests \
