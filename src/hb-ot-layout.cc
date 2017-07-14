@@ -1218,6 +1218,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
       c.set_lookup_index (lookup_index);
       c.set_lookup_mask (lookups[table_index][i].mask);
+      c.set_manual_zwnj (lookups[table_index][i].manual_zwnj);
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
       apply_string<Proxy> (&c,
 			   proxy.table.get_lookup (lookup_index),

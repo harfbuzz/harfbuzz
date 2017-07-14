@@ -410,13 +410,17 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
 
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
+  hb_ot_map_feature_flags_t all_flags = F_MANUAL_ZWJ;
+  // Khmer: for some fonts not using BLWF for RegShift
+  if (plan->props.script == HB_SCRIPT_KHMER)
+    all_flags |= F_MANUAL_ZWNJ;
   for (; i < INDIC_BASIC_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | all_flags);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
   for (; i < INDIC_NUM_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | all_flags);
   }
 
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
@@ -665,7 +669,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
-
 
   /* 1. Find base consonant:
    *
@@ -1112,6 +1115,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   for (unsigned int i = start + 1; i < end; i++)
     if (is_joiner (info[i])) {
       bool non_joiner = info[i].indic_category() == OT_ZWNJ;
+      // Khmer: disable BLWF for the RegShift
+      if (non_joiner && is_one_of (info[i+1], FLAG (OT_RS)))
+	info[i+1].mask &= ~indic_plan->mask_array[BLWF];
       unsigned int j = i;
 
       do {

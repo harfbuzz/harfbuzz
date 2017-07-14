@@ -85,6 +85,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  unsigned int  feature_index,
 				  unsigned int  variations_index,
 				  hb_mask_t     mask,
+				  bool          manual_zwnj,
 				  bool          auto_zwj)
 {
   unsigned int lookup_indices[32];
@@ -112,6 +113,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
         return;
       lookup->mask = mask;
       lookup->index = lookup_indices[i];
+      lookup->manual_zwnj = manual_zwnj;
       lookup->auto_zwj = auto_zwj;
     }
 
@@ -243,6 +245,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
     map->index[1] = feature_index[1];
     map->stage[0] = info->stage[0];
     map->stage[1] = info->stage[1];
+    map->manual_zwnj = (info->flags & F_MANUAL_ZWNJ) != 0;
     map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
     if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
@@ -285,6 +288,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 		     required_feature_index[table_index],
 		     variations_index,
 		     1 /* mask */,
+		     false /* manual_zwnj */,
 		     true /* auto_zwj */);
 
       for (unsigned i = 0; i < m.features.len; i++)
@@ -293,6 +297,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 		       m.features[i].index[table_index],
 		       variations_index,
 		       m.features[i].mask,
+		       m.features[i].manual_zwnj,
 		       m.features[i].auto_zwj);
 
       /* Sort lookups and merge duplicates */
@@ -307,6 +312,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 	  else
 	  {
 	    m.lookups[table_index][j].mask |= m.lookups[table_index][i].mask;
+	    m.lookups[table_index][j].manual_zwnj &= m.lookups[table_index][i].manual_zwnj;
 	    m.lookups[table_index][j].auto_zwj &= m.lookups[table_index][i].auto_zwj;
 	  }
 	m.lookups[table_index].shrink (j + 1);

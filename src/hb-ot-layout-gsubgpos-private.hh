@@ -345,8 +345,8 @@ struct hb_apply_context_t :
       match_glyph_data = NULL;
       matcher.set_match_func (NULL, NULL);
       matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS, and if not asked not to. */
+      matcher.set_ignore_zwnj (!c->manual_zwnj && (context_match || c->table_index == 1));
       /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
       matcher.set_ignore_zwj (context_match || c->table_index == 1 || c->auto_zwj);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
@@ -463,6 +463,7 @@ struct hb_apply_context_t :
   hb_buffer_t *buffer;
   hb_direction_t direction;
   hb_mask_t lookup_mask;
+  bool manual_zwnj;
   bool auto_zwj;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
@@ -482,6 +483,7 @@ struct hb_apply_context_t :
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (1),
+			manual_zwnj (false),
 			auto_zwj (true),
 			recurse_func (NULL),
 			nesting_level_left (HB_MAX_NESTING_LEVEL),
@@ -495,6 +497,7 @@ struct hb_apply_context_t :
 			debug_depth (0) {}
 
   inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
+  inline void set_manual_zwnj (bool manual_zwnj_) { manual_zwnj = manual_zwnj_; }
   inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
   inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   inline void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
