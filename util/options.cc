@@ -777,6 +777,7 @@ format_options_t::add_options (option_parser_t *parser)
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					NULL},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							NULL},
+    {"show-messages",	0, 0, G_OPTION_ARG_NONE,	&this->show_messages,		"Output shaping debug messages",					NULL},
     {NULL}
   };
   parser->add_group (entries,
@@ -818,7 +819,8 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
   unsigned int start = 0;
 
-  while (start < num_glyphs) {
+  while (start < num_glyphs)
+  {
     char buf[1024];
     unsigned int consumed;
     start += hb_buffer_serialize_glyphs (buffer, start, num_glyphs,
@@ -845,7 +847,8 @@ format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
 					    hb_font_t    *font,
 					    GString      *gs)
 {
-  if (show_text) {
+  if (show_text)
+  {
     serialize_line_no (line_no, gs);
     g_string_append_c (gs, '(');
     g_string_append_len (gs, text, text_len);
@@ -853,7 +856,8 @@ format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
     g_string_append_c (gs, '\n');
   }
 
-  if (show_unicode) {
+  if (show_unicode)
+  {
     serialize_line_no (line_no, gs);
     serialize_unicode (buffer, gs);
     g_string_append_c (gs, '\n');

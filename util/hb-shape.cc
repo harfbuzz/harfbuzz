@@ -39,7 +39,7 @@ struct output_buffer_t
 		    output_format (HB_BUFFER_SERIALIZE_FORMAT_INVALID),
 		    format_flags (HB_BUFFER_SERIALIZE_FLAG_DEFAULT) {}
 
-  void init (const font_options_t *font_opts)
+  void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     options.get_file_handle ();
     gs = g_string_new (NULL);
@@ -75,6 +75,9 @@ struct output_buffer_t
     if (format.show_extents)
       flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
     format_flags = (hb_buffer_serialize_flags_t) flags;
+
+    if (format.show_messages)
+      hb_buffer_set_message_func (buffer, message_func, this, NULL);
   }
   void new_line (void)
   {
@@ -108,13 +111,39 @@ struct output_buffer_t
 				       output_format, format_flags, gs);
     fprintf (options.fp, "%s", gs->str);
   }
-  void finish (const font_options_t *font_opts)
+  void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
+    hb_buffer_set_message_func (buffer, NULL, NULL, NULL);
     hb_font_destroy (font);
     g_string_free (gs, true);
     gs = NULL;
     font = NULL;
   }
+
+  static hb_bool_t
+  message_func (hb_buffer_t *buffer,
+		hb_font_t *font,
+		const char *message,
+		void *user_data)
+  {
+    output_buffer_t *that = (output_buffer_t *) user_data;
+    that->message (buffer, font, message);
+    return true;
+  }
+
+  void
+  message (hb_buffer_t *buffer,
+	   hb_font_t *font,
+	   const char *message)
+  {
+    g_string_set_size (gs, 0);
+    format.serialize_line_no (line_no, gs);
+    g_string_append_printf (gs, "HB: %s	buffer: ", message);
+    format.serialize_glyphs (buffer, font, output_format, format_flags, gs);
+    g_string_append_c (gs, '\n');
+    fprintf (options.fp, "%s", gs->str);
+  }
+
 
   protected:
   output_options_t options;

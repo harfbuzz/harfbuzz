@@ -46,23 +46,6 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-static hb_bool_t
-message_func (hb_buffer_t *buffer,
-	      hb_font_t *font,
-	      const char *message,
-	      void *user_data)
-{
-  fprintf (stderr, "HB: %s\n", message);
-  char buf[4096];
-  hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (buffer),
-			      buf, sizeof (buf), NULL,
-			      font,
-			      HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-			      HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-  fprintf (stderr, "HB: buffer [%s]\n", buf);
-  return true;
-}
-
 template <typename consumer_t, int default_font_size, int subpixel_bits>
 struct main_font_text_t
 {
@@ -87,16 +70,14 @@ struct main_font_text_t
     if (!input.text && !input.text_file)
       input.text_file = g_strdup ("-");
 
-    consumer.init (&font_opts);
-
     hb_buffer_t *buffer = hb_buffer_create ();
-    if (debug)
-      hb_buffer_set_message_func (buffer, message_func, NULL, NULL);
+    consumer.init (buffer, &font_opts);
+    hb_buffer_destroy (buffer);
+
     unsigned int text_len;
     const char *text;
     while ((text = input.get_line (&text_len)))
-      consumer.consume_line (buffer, text, text_len, input.text_before, input.text_after);
-    hb_buffer_destroy (buffer);
+      consumer.consume_line (text, text_len, input.text_before, input.text_after);
 
     consumer.finish (&font_opts);
 
