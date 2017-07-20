@@ -76,7 +76,7 @@ struct output_buffer_t
       flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
     format_flags = (hb_buffer_serialize_flags_t) flags;
 
-    if (format.show_messages)
+    if (format.trace)
       hb_buffer_set_message_func (buffer, message_func, this, NULL);
   }
   void new_line (void)
