@@ -46,6 +46,7 @@ cp "$fontfile" "$dir/font.ttf"
 pyftsubset \
 	--glyph-names \
 	--no-hinting \
+	--layout-features='*' \
 	"$dir/font.ttf" \
 	--text="$text"
 if ! test -s "$dir/font.subset.ttf"; then
