@@ -37,7 +37,8 @@ struct shape_consumer_t
 		  : failed (false),
 		    shaper (parser),
 		    output (parser),
-		    font (NULL) {}
+		    font (NULL),
+		    buffer (NULL) {}
 
   void init (hb_buffer_t  *buffer_,
 	     const font_options_t *font_opts)
