@@ -632,9 +632,9 @@ hb_ft_font_create (FT_Face           ft_face,
 
 	hb_font_set_var_coords_normalized (font, coords, mm_var->num_axis);
       }
-      free (coords);
-      free (ft_coords);
     }
+    free (coords);
+    free (ft_coords);
     free (mm_var);
   }
 #endif
