@@ -2373,7 +2373,7 @@ and output glyphs and their information after shaping.</p>
 <a name="hb-glyph-info-t-struct"></a><h3>hb_glyph_info_t</h3>
 <pre class="programlisting">typedef struct {
   hb_codepoint_t codepoint;
-  hb_mask_t      mask;
+  hb_mask_t      mask; /* Holds hb_glyph_flags_t after hb_shape() */
   uint32_t       cluster;
 } hb_glyph_info_t;
 </pre>
@@ -2724,6 +2724,11 @@ set and retrieved using <a class="link" href="harfbuzz-Buffers.html#hb-buffer-se
 <p>serialize glyph extents.</p>
 </td>
 <td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-BUFFER-SERIALIZE-FLAG-GLYPH-FLAGS:CAPS"></a>HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS</p></td>
+<td> </td>
+<td> </td>
 </tr>
 </tbody>
 </table></div>
