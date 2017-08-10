@@ -240,6 +240,8 @@ parse_features (const char *name G_GNUC_UNUSED,
   } while (p);
 
   shape_opts->features = (hb_feature_t *) calloc (shape_opts->num_features, sizeof (*shape_opts->features));
+  if (!shape_opts->features)
+    return false;
 
   /* now do the actual parsing */
   p = s;
@@ -281,6 +283,8 @@ parse_variations (const char *name G_GNUC_UNUSED,
   } while (p);
 
   font_opts->variations = (hb_variation_t *) calloc (font_opts->num_variations, sizeof (*font_opts->variations));
+  if (!font_opts->variations)
+    return false;
 
   /* now do the actual parsing */
   p = s;
