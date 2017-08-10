@@ -493,7 +493,7 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
     return NULL;
 
   buffer = (FT_Byte *) malloc (length);
-  if (buffer == NULL)
+  if (!buffer)
     return NULL;
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
@@ -521,7 +521,7 @@ hb_ft_face_create (FT_Face           ft_face,
 {
   hb_face_t *face;
 
-  if (ft_face->stream->read == NULL) {
+  if (!ft_face->stream->read) {
     hb_blob_t *blob;
 
     blob = hb_blob_create ((const char *) ft_face->stream->base,
