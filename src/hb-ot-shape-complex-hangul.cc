@@ -372,7 +372,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	    buffer->merge_out_clusters (start, end);
 	  continue;
 	}
-	else if (!tindex)
+	else if ((!tindex && buffer->idx + 1 < count && isT (buffer->cur(+1).codepoint)))
 	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2); /* Mark unsafe between LV and T. */
       }
 
