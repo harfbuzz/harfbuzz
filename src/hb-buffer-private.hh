@@ -288,6 +288,19 @@ struct hb_buffer_t {
     return ret;
   }
   HB_INTERNAL bool message_impl (hb_font_t *font, const char *fmt, va_list ap) HB_PRINTF_FUNC(3, 0);
+
+  static inline void
+  set_cluster (hb_glyph_info_t &info, unsigned int cluster, unsigned int mask = 0)
+  {
+    if (info.cluster != cluster)
+    {
+      if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
+	info.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+      else
+	info.mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+    }
+    info.cluster = cluster;
+  }
 };
 
 

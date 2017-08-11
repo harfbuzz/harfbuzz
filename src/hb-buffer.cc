@@ -552,7 +552,7 @@ hb_buffer_t::merge_clusters_impl (unsigned int start,
   if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
     return;
 
-  uint32_t cluster = info[start].cluster;
+  unsigned int cluster = info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
     cluster = MIN (cluster, info[i].cluster);
@@ -568,10 +568,10 @@ hb_buffer_t::merge_clusters_impl (unsigned int start,
   /* If we hit the start of buffer, continue in out-buffer. */
   if (idx == start)
     for (unsigned int i = out_len; i && out_info[i - 1].cluster == info[start].cluster; i--)
-      out_info[i - 1].cluster = cluster;
+      set_cluster (out_info[i - 1], cluster);
 
   for (unsigned int i = start; i < end; i++)
-    info[i].cluster = cluster;
+    set_cluster (info[i], cluster);
 }
 void
 hb_buffer_t::merge_out_clusters (unsigned int start,
@@ -583,7 +583,7 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   if (unlikely (end - start < 2))
     return;
 
-  uint32_t cluster = out_info[start].cluster;
+  unsigned int cluster = out_info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
     cluster = MIN (cluster, out_info[i].cluster);
@@ -599,14 +599,16 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   /* If we hit the end of out-buffer, continue in buffer. */
   if (end == out_len)
     for (unsigned int i = idx; i < len && info[i].cluster == out_info[end - 1].cluster; i++)
-      info[i].cluster = cluster;
+      set_cluster (info[i], cluster);
 
   for (unsigned int i = start; i < end; i++)
-    out_info[i].cluster = cluster;
+    set_cluster (out_info[i], cluster);
 }
 void
 hb_buffer_t::delete_glyph ()
 {
+  /* The logic here is duplicated in hb_ot_hide_default_ignorables(). */
+
   unsigned int cluster = info[idx].cluster;
   if (idx + 1 < len && cluster == info[idx + 1].cluster)
   {
@@ -619,9 +621,10 @@ hb_buffer_t::delete_glyph ()
     /* Merge cluster backward. */
     if (cluster < out_info[out_len - 1].cluster)
     {
+      unsigned int mask = info[idx].mask;
       unsigned int old_cluster = out_info[out_len - 1].cluster;
       for (unsigned i = out_len; i && out_info[i - 1].cluster == old_cluster; i--)
-	out_info[i - 1].cluster = cluster;
+	set_cluster (out_info[i - 1], cluster, mask);
     }
     goto done;
   }
