@@ -196,7 +196,7 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
   g_assert_cmpint (len, ==, 5);
 
   for (i = 0; i < len; i++) {
-    g_assert_cmphex (glyphs[i].mask,      ==, 1);
+    g_assert_cmphex (glyphs[i].mask,      ==, 0);
     g_assert_cmphex (glyphs[i].var1.u32,  ==, 0);
     g_assert_cmphex (glyphs[i].var2.u32,  ==, 0);
   }
