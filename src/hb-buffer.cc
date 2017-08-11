@@ -267,7 +267,7 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
 
   memset (glyph, 0, sizeof (*glyph));
   glyph->codepoint = codepoint;
-  glyph->mask = 1;
+  glyph->mask = 0;
   glyph->cluster = cluster;
 
   len++;
