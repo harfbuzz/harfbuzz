@@ -58,15 +58,19 @@ struct shape_consumer_t
 
     for (unsigned int n = shaper.num_iterations; n; n--)
     {
+      const char *error = NULL;
+
       shaper.populate_buffer (buffer, text, text_len, text_before, text_after);
       if (n == 1)
 	output.consume_text (buffer, text, text_len, shaper.utf8_clusters);
-      if (!shaper.shape (font, buffer))
+      if (!shaper.shape (font, buffer, &error))
       {
 	failed = true;
-	hb_buffer_set_length (buffer, 0);
-	output.shape_failed (buffer, text, text_len, shaper.utf8_clusters);
-	return;
+	output.error (error);
+	if (hb_buffer_get_content_type (buffer) == HB_BUFFER_CONTENT_TYPE_GLYPHS)
+	  break;
+	else
+	  return;
       }
     }
 

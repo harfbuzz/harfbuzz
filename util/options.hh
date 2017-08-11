@@ -187,6 +187,7 @@ struct shape_options_t : option_group_t
     utf8_clusters = false;
     cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
     normalize_glyphs = false;
+    verify = false;
     num_iterations = 1;
 
     add_options (parser);
@@ -243,12 +244,46 @@ struct shape_options_t : option_group_t
     setup_buffer (buffer);
   }
 
-  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer)
+  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=NULL)
   {
-    hb_bool_t res = hb_shape_full (font, buffer, features, num_features, shapers);
+    if (!hb_shape_full (font, buffer, features, num_features, shapers))
+    {
+      if (error)
+        *error = "all shapers failed.";
+      return false;
+    }
+
     if (normalize_glyphs)
       hb_buffer_normalize_glyphs (buffer);
-    return res;
+
+    if (verify && !verify_buffer (buffer, error))
+      return false;
+
+    return true;
+  }
+
+  bool verify_buffer (hb_buffer_t *buffer, const char **error=NULL)
+  {
+    /* Check that clusters are monotone. */
+    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES ||
+	cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
+    {
+      bool is_forward = HB_DIRECTION_IS_FORWARD (hb_buffer_get_direction (buffer));
+
+      unsigned int num_glyphs;
+      hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);
+
+      for (unsigned int i = 1; i < num_glyphs; i++)
+	if (info[i-1].cluster != info[i].cluster &&
+	    (info[i-1].cluster < info[i].cluster) != is_forward)
+	{
+	  if (error)
+	    *error = "clusters are not monotone.";
+	  return false;
+	}
+    }
+
+    return true;
   }
 
   void shape_closure (const char *text, int text_len,
@@ -277,6 +312,7 @@ struct shape_options_t : option_group_t
   hb_bool_t utf8_clusters;
   hb_buffer_cluster_level_t cluster_level;
   hb_bool_t normalize_glyphs;
+  hb_bool_t verify;
   unsigned int num_iterations;
 };
 

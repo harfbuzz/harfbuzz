@@ -338,6 +338,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF8 byte indices, not char indices",	NULL},
     {"cluster-level",	0, 0, G_OPTION_ARG_INT,		&this->cluster_level,		"Cluster merging level (default: 0)",	"0/1/2"},
     {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	NULL},
+    {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	NULL},
     {"num-iterations",	0, 0, G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
     {NULL}
   };
@@ -874,6 +875,7 @@ format_options_t::serialize_message (unsigned int  line_no,
 				     GString      *gs)
 {
   serialize_line_no (line_no, gs);
+  g_string_append_printf (gs, "message: ");
   g_string_append_printf (gs, "%s", msg);
   g_string_append_c (gs, '\n');
 }

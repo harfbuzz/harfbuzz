@@ -94,13 +94,10 @@ struct output_buffer_t
     format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, gs);
     fprintf (options.fp, "%s", gs->str);
   }
-  void shape_failed (hb_buffer_t  *buffer,
-		     const char   *text,
-		     unsigned int  text_len,
-		     hb_bool_t     utf8_clusters)
+  void error (const char *message)
   {
     g_string_set_size (gs, 0);
-    format.serialize_message (line_no, "msg: all shapers failed", gs);
+    format.serialize_message (line_no, message, gs);
     fprintf (options.fp, "%s", gs->str);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
