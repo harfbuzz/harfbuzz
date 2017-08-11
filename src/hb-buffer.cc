@@ -1711,6 +1711,55 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 }
 
 
+/**
+ * hb_buffer_append:
+ * @buffer: an #hb_buffer_t.
+ * @source: source #hb_buffer_t.
+ * @start: start index into source buffer to copy.  Use 0 to copy from start of buffer.
+ * @end: end index into source buffer to copy.  Use (unsigned int) -1 to copy to end of buffer.
+ *
+ * Append (part of) contents of another buffer to this buffer.
+ *
+ * Since: 1.5.0
+ **/
+HB_EXTERN void
+hb_buffer_append (hb_buffer_t *buffer,
+		  hb_buffer_t *source,
+		  unsigned int start,
+		  unsigned int end)
+{
+  assert (!buffer->have_output && !source->have_output);
+  assert (buffer->have_positions == source->have_positions);
+  assert (buffer->content_type == source->content_type ||
+	  !buffer->len || !source->len);
+
+  if (end > source->len)
+    end = source->len;
+  if (start > end)
+    start = end;
+  if (start == end)
+    return;
+
+  if (!buffer->len)
+    buffer->content_type = source->content_type;
+
+  if (buffer->len + (end - start) > buffer->len) /* Overflows. */
+  {
+    buffer->in_error = true;
+    return;
+  }
+
+  unsigned int orig_len = buffer->len;
+  hb_buffer_set_length (buffer, buffer->len + (end - start));
+  if (buffer->in_error)
+    return;
+
+  memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
+  if (buffer->have_positions)
+    memcpy (buffer->pos + orig_len, source->pos + start, (end - start) * sizeof (buffer->pos[0]));
+}
+
+
 static int
 compare_info_codepoint (const hb_glyph_info_t *pa,
 			const hb_glyph_info_t *pb)
@@ -1781,7 +1830,8 @@ void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
 {
   assert (buffer->have_positions);
-  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS ||
+	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
 
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 

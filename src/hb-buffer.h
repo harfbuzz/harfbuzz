@@ -169,6 +169,7 @@ HB_EXTERN void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key);
 
+
 /**
  * hb_buffer_content_type_t:
  * @HB_BUFFER_CONTENT_TYPE_INVALID: Initial value for new buffer.
@@ -365,6 +366,11 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 			  unsigned int          item_offset,
 			  int                   item_length);
 
+HB_EXTERN void
+hb_buffer_append (hb_buffer_t *buffer,
+		  hb_buffer_t *source,
+		  unsigned int start,
+		  unsigned int end);
 
 HB_EXTERN hb_bool_t
 hb_buffer_set_length (hb_buffer_t  *buffer,
