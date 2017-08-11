@@ -931,6 +931,7 @@ struct CursivePosFormat1
     unsigned int i = buffer->idx;
     unsigned int j = skippy_iter.idx;
 
+    buffer->unsafe_to_break (i, j);
     hb_position_t entry_x, entry_y, exit_x, exit_y;
     (this+this_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
     (this+next_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
