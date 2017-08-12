@@ -1716,7 +1716,8 @@ hb_buffer_append (hb_buffer_t *buffer,
 		  unsigned int end)
 {
   assert (!buffer->have_output && !source->have_output);
-  assert (buffer->have_positions == source->have_positions);
+  assert (buffer->have_positions == source->have_positions ||
+	  !buffer->len || !source->len);
   assert (buffer->content_type == source->content_type ||
 	  !buffer->len || !source->len);
 
@@ -1729,6 +1730,8 @@ hb_buffer_append (hb_buffer_t *buffer,
 
   if (!buffer->len)
     buffer->content_type = source->content_type;
+  if (!buffer->have_positions && source->have_positions)
+    buffer->clear_positions ();
 
   if (buffer->len + (end - start) < buffer->len) /* Overflows. */
   {
