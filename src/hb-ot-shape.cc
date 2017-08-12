@@ -783,6 +783,31 @@ hb_ot_position (hb_ot_shape_context_t *c)
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
 }
 
+static inline void
+hb_propagate_flags (hb_buffer_t *buffer)
+{
+  /* Propagate cluster-level glyph flags to be the same on all cluster glyphs.
+   * Simplifies using them. */
+
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK))
+    return;
+
+  hb_glyph_info_t *info = buffer->info;
+
+  foreach_cluster (buffer, start, end)
+  {
+    unsigned int mask = 0;
+    for (unsigned int i = start; i < end; i++)
+      if (info[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
+      {
+	 mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	 break;
+      }
+    if (mask)
+      for (unsigned int i = start; i < end; i++)
+	info[i].mask |= mask;
+  }
+}
 
 /* Pull it all together! */
 
@@ -825,6 +850,8 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   if (c->plan->shaper->postprocess_glyphs)
     c->plan->shaper->postprocess_glyphs (c->plan, c->buffer, c->font);
+
+  hb_propagate_flags (c->buffer);
 
   _hb_buffer_deallocate_unicode_vars (c->buffer);
 

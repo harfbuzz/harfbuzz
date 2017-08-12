@@ -643,28 +643,12 @@ done:
   skip_glyph ();
 }
 
-static int
-unsafe_to_break_find_min (const hb_glyph_info_t *info, unsigned int start, unsigned int end,
-			  unsigned int cluster)
-{
-  for (unsigned int i = start; i < end; i++)
-    cluster = MIN (cluster, info[i].cluster);
-  return cluster;
-}
-static void
-unsafe_to_break_set_mask (hb_glyph_info_t *info, unsigned int start, unsigned int end,
-			  unsigned int cluster)
-{
-  for (unsigned int i = start; i < end; i++)
-    if (cluster != info[i].cluster)
-      info[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-}
 void
 hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end)
 {
   unsigned int cluster = (unsigned int) -1;
-  cluster = unsafe_to_break_find_min (info, start, end, cluster);
-  unsafe_to_break_set_mask (info, start, end, cluster);
+  cluster = _unsafe_to_break_find_min_cluster (info, start, end, cluster);
+  _unsafe_to_break_set_mask (info, start, end, cluster);
 }
 void
 hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
@@ -679,10 +663,10 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
   assert (idx <= end);
 
   unsigned int cluster = (unsigned int) -1;
-  cluster = unsafe_to_break_find_min (out_info, start, out_len, cluster);
-  cluster = unsafe_to_break_find_min (info, idx, end, cluster);
-  unsafe_to_break_set_mask (out_info, start, out_len, cluster);
-  unsafe_to_break_set_mask (info, idx, end, cluster);
+  cluster = _unsafe_to_break_find_min_cluster (out_info, start, out_len, cluster);
+  cluster = _unsafe_to_break_find_min_cluster (info, idx, end, cluster);
+  _unsafe_to_break_set_mask (out_info, start, out_len, cluster);
+  _unsafe_to_break_set_mask (info, idx, end, cluster);
 }
 
 void

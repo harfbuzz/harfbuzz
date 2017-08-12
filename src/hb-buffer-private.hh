@@ -57,6 +57,8 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES		= 0x00000002u,
   HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT		= 0x00000008u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK		= 0x00000010u,
+
   /* Reserved for complex shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_COMPLEX0			= 0x01000000u,
   HB_BUFFER_SCRATCH_FLAG_COMPLEX1			= 0x02000000u,
@@ -301,7 +303,51 @@ struct hb_buffer_t {
     }
     info.cluster = cluster;
   }
+
+  int
+  _unsafe_to_break_find_min_cluster (const hb_glyph_info_t *info,
+				     unsigned int start, unsigned int end,
+				     unsigned int cluster) const
+  {
+    for (unsigned int i = start; i < end; i++)
+      cluster = MIN (cluster, info[i].cluster);
+    return cluster;
+  }
+  void
+  _unsafe_to_break_set_mask (hb_glyph_info_t *info,
+			     unsigned int start, unsigned int end,
+			     unsigned int cluster)
+  {
+    for (unsigned int i = start; i < end; i++)
+      if (cluster != info[i].cluster)
+      {
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK;
+	info[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+      }
+  }
 };
+
+
+/* Loop over clusters. Duplicated in foreach_syllable(). */
+#define foreach_cluster(buffer, start, end) \
+  for (unsigned int \
+       _count = buffer->len, \
+       start = 0, end = _count ? _next_cluster (buffer, 0) : 0; \
+       start < _count; \
+       start = end, end = _next_cluster (buffer, start))
+
+static inline unsigned int
+_next_cluster (hb_buffer_t *buffer, unsigned int start)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+
+  unsigned int cluster = info[start].cluster;
+  while (++start < count && cluster == info[start].cluster)
+    ;
+
+  return start;
+}
 
 
 #define HB_BUFFER_XALLOCATE_VAR(b, func, var) \
