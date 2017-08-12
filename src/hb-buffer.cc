@@ -550,7 +550,10 @@ hb_buffer_t::merge_clusters_impl (unsigned int start,
 				  unsigned int end)
 {
   if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+  {
+    unsafe_to_break (start, end);
     return;
+  }
 
   unsigned int cluster = info[start].cluster;
 
