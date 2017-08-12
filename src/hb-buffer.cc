@@ -1730,7 +1730,7 @@ hb_buffer_append (hb_buffer_t *buffer,
   if (!buffer->len)
     buffer->content_type = source->content_type;
 
-  if (buffer->len + (end - start) > buffer->len) /* Overflows. */
+  if (buffer->len + (end - start) < buffer->len) /* Overflows. */
   {
     buffer->in_error = true;
     return;
