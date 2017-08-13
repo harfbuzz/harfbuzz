@@ -355,6 +355,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
       hb_glyph_info_t *info = &buffer->info[clusters[i].base_glyph + j];
       info->codepoint = gids[clusters[i].base_glyph + j];
       info->cluster = clusters[i].cluster;
+      info->mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
       info->var1.i32 = clusters[i].advance;     // all glyphs in the cluster get the same advance
     }
   }
