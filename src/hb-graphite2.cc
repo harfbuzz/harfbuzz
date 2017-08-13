@@ -366,7 +366,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   float yscale = (float) font->y_scale / upem;
   yscale *= yscale / xscale;
   /* Positioning. */
-  int currclus = -1;
+  unsigned int currclus = (unsigned int) -1;
   const hb_glyph_info_t *info = buffer->info;
   hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, NULL);
   if (!HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
