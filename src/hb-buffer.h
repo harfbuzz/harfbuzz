@@ -490,7 +490,7 @@ typedef enum { /*< flags >*/
   /* If the buffers have the same length, we compare them glyph-by-glyph
    * and report which aspect(s) of the glyph info/position are different. */
   HB_BUFFER_DIFF_FLAG_CODEPOINT_MISMATCH	= 0x0010,
-  HB_BUFFER_DIFF_FLAG_CLUSTER_MISMATCH		= 0x0010,
+  HB_BUFFER_DIFF_FLAG_CLUSTER_MISMATCH		= 0x0020,
   HB_BUFFER_DIFF_FLAG_MASK_MISMATCH		= 0x0040,
   HB_BUFFER_DIFF_FLAG_POSITION_MISMATCH		= 0x0080
 
