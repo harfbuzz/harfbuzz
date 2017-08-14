@@ -384,6 +384,8 @@ struct shape_options_t : option_group_t
       {
 	if (error)
 	  *error = "all shapers failed while shaping fragment.";
+	hb_buffer_destroy (reconstruction);
+	hb_buffer_destroy (fragment);
 	return false;
       }
       hb_buffer_append (reconstruction, fragment, 0, -1);
