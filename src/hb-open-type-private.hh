@@ -160,6 +160,11 @@ static_assert (Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.
  * Dispatch
  */
 
+#define TRACE_DISPATCH(this, format) \
+	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
+	 "format %d", (int) format);
+
 template <typename Context, typename Return, unsigned int MaxDebugDepth>
 struct hb_dispatch_context_t
 {

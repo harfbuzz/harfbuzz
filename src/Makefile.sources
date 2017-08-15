@@ -82,6 +82,8 @@ HB_FALLBACK_sources = \
 	$(NULL)
 
 HB_OT_sources = \
+	hb-aat-layout.cc \
+	hb-aat-layout-morx-table.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.hh \
