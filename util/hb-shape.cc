@@ -97,7 +97,7 @@ struct output_buffer_t
   void error (const char *message)
   {
     g_string_set_size (gs, 0);
-    format.serialize_message (line_no, message, gs);
+    format.serialize_message (line_no, "error", message, gs);
     fprintf (options.fp, "%s", gs->str);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
@@ -126,18 +126,18 @@ struct output_buffer_t
 		void *user_data)
   {
     output_buffer_t *that = (output_buffer_t *) user_data;
-    that->message (buffer, font, message);
+    that->trace (buffer, font, message);
     return true;
   }
 
   void
-  message (hb_buffer_t *buffer,
-	   hb_font_t *font,
-	   const char *message)
+  trace (hb_buffer_t *buffer,
+	 hb_font_t *font,
+	 const char *message)
   {
     g_string_set_size (gs, 0);
     format.serialize_line_no (line_no, gs);
-    g_string_append_printf (gs, "HB: %s	buffer: ", message);
+    g_string_append_printf (gs, "trace: %s	buffer: ", message);
     format.serialize_glyphs (buffer, font, output_format, format_flags, gs);
     g_string_append_c (gs, '\n');
     fprintf (options.fp, "%s", gs->str);

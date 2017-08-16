@@ -871,12 +871,12 @@ format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
 }
 void
 format_options_t::serialize_message (unsigned int  line_no,
+				     const char   *type,
 				     const char   *msg,
 				     GString      *gs)
 {
   serialize_line_no (line_no, gs);
-  g_string_append_printf (gs, "message: ");
-  g_string_append_printf (gs, "%s", msg);
+  g_string_append_printf (gs, "%s: %s", type, msg);
   g_string_append_c (gs, '\n');
 }
 void

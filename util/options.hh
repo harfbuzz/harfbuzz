@@ -640,6 +640,7 @@ struct format_options_t : option_group_t
 				 hb_font_t    *font,
 				 GString      *gs);
   void serialize_message (unsigned int  line_no,
+			  const char   *type,
 			  const char   *msg,
 			  GString      *gs);
   void serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
