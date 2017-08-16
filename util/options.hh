@@ -376,9 +376,20 @@ struct shape_options_t : option_group_t
       }
       assert (text_start < text_end);
 
-      //printf("start %d end %d text start %d end %d\n", start, end, text_start, text_end);
+      if (0)
+	printf("start %d end %d text start %d end %d\n", start, end, text_start, text_end);
+
       hb_buffer_clear_contents (fragment);
       copy_buffer_properties (fragment, buffer);
+
+      /* TODO: Add pre/post context text. */
+      hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
+      if (0 < text_start)
+        flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
+      if (text_end < num_chars)
+        flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_EOT);
+      hb_buffer_set_flags (fragment, flags);
+
       hb_buffer_append (fragment, text_buffer, text_start, text_end);
       if (!hb_shape_full (font, fragment, features, num_features, shapers))
       {
@@ -397,22 +408,25 @@ struct shape_options_t : option_group_t
 	text_end = text_start;
     }
 
-    hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+    bool ret = true;
+    hb_buffer_diff_flags_t diff = hb_buffer_diff (buffer, reconstruction, 0, 0);
+    if (diff)
+    {
+      if (error)
+	*error = "Safe-to-break test failed.";
+      ret = false;
 
-    unsigned int r_num_glyphs;
-    hb_glyph_info_t *r_info = hb_buffer_get_glyph_infos (reconstruction, &r_num_glyphs);
-    hb_glyph_position_t *r_pos = hb_buffer_get_glyph_positions (reconstruction, NULL);
-
-    /* TODO Compare buffers. Remove assert. */
-    assert (num_glyphs == r_num_glyphs);
-
-    //hb_buffer_set_length (buffer, 0);
-    //hb_buffer_append (buffer, reconstruction, 0, -1);
+      if (0)
+      {
+	hb_buffer_set_length (buffer, 0);
+	hb_buffer_append (buffer, reconstruction, 0, -1);
+      }
+    }
 
     hb_buffer_destroy (reconstruction);
     hb_buffer_destroy (fragment);
 
-    return true;
+    return ret;
   }
 
   void shape_closure (const char *text, int text_len,
