@@ -24,20 +24,14 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_AAT_LAYOUT_PRIVATE_HH
+#define HB_AAT_LAYOUT_PRIVATE_HH
+
+#include "hb-private.hh"
+
+#include "hb-font-private.hh"
+#include "hb-buffer-private.hh"
 #include "hb-open-type-private.hh"
-#include "hb-ot-layout-private.hh"
 
-#include "hb-aat-layout-private.hh"
-#include "hb-aat-layout-morx-table.hh"
 
-/*
- * mort/morx
- */
-
-static inline const AAT::morx&
-_get_morx (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(AAT::morx);
-  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->morx.get ());
-}
+#endif /* HB_AAT_LAYOUT_PRIVATE_HH */

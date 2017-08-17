@@ -28,6 +28,7 @@
 #define HB_AAT_LAYOUT_MORX_TABLE_HH
 
 #include <hb-open-type-private.hh>
+#include <hb-aat-layout-common-private.hh>
 
 #define HB_AAT_TAG_MORT HB_TAG('m','o','r','t')
 #define HB_AAT_TAG_MORX HB_TAG('m','o','r','x')
