@@ -1412,6 +1412,23 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 }
 
 /**
+ * hb_glyph_info_get_glyph_flags:
+ * @buffer: a #hb_glyph_info_t.
+ *
+ * Returns glyph flags encoded within a #hb_glyph_info_t.
+ *
+ * Return value:
+ * The #hb_glyph_flags_t encoded within @info.
+ *
+ * Since: 1.5.0
+ **/
+hb_glyph_flags_t
+(hb_glyph_info_get_glyph_flags) (const hb_glyph_info_t *info)
+{
+  return hb_glyph_info_get_glyph_flags (info);
+}
+
+/**
  * hb_buffer_reverse:
  * @buffer: an #hb_buffer_t.
  *
