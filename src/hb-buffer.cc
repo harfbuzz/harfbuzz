@@ -1413,7 +1413,7 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 
 /**
  * hb_glyph_info_get_glyph_flags:
- * @buffer: a #hb_glyph_info_t.
+ * @info: a #hb_glyph_info_t.
  *
  * Returns glyph flags encoded within a #hb_glyph_info_t.
  *
@@ -1882,6 +1882,12 @@ hb_buffer_t::sort (unsigned int start, unsigned int end, int(*compar)(const hb_g
  * Comparing buffers.
  */
 
+/**
+ * hb_buffer_diff:
+ *
+ *
+ * Since: 1.5.0
+ **/
 hb_buffer_diff_flags_t
 hb_buffer_diff (hb_buffer_t *buffer,
 		hb_buffer_t *reference,
