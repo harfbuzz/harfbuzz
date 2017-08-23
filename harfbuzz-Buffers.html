@@ -2373,7 +2373,7 @@ and output glyphs and their information after shaping.</p>
 <a name="hb-glyph-info-t-struct"></a><h3>hb_glyph_info_t</h3>
 <pre class="programlisting">typedef struct {
   hb_codepoint_t codepoint;
-  hb_mask_t      mask; /* Holds hb_glyph_flags_t after hb_shape() */
+  hb_mask_t      mask; /* Holds hb_glyph_flags_t after hb_shape(), plus other things. */
   uint32_t       cluster;
 } hb_glyph_info_t;
 </pre>
