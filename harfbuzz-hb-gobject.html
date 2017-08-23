@@ -54,6 +54,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-DIFF-FLAGS:CAPS" title="HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS">HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS" title="HB_GOBJECT_TYPE_BUFFER_FLAGS">HB_GOBJECT_TYPE_BUFFER_FLAGS</a></td>
 </tr>
 <tr>
@@ -79,6 +83,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS" title="HB_GOBJECT_TYPE_FONT_FUNCS">HB_GOBJECT_TYPE_FONT_FUNCS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-GLYPH-FLAGS:CAPS" title="HB_GOBJECT_TYPE_GLYPH_FLAGS">HB_GOBJECT_TYPE_GLYPH_FLAGS</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -169,6 +177,14 @@
 <span class="returnvalue">GType</span>
 </td>
 <td class="function_name">
+<a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-buffer-diff-flags-get-type" title="hb_gobject_buffer_diff_flags_get_type ()">hb_gobject_buffer_diff_flags_get_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
 <a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-buffer-flags-get-type" title="hb_gobject_buffer_flags_get_type ()">hb_gobject_buffer_flags_get_type</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -226,6 +242,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-font-get-type" title="hb_gobject_font_get_type ()">hb_gobject_font_get_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-gobject.html#hb-gobject-glyph-flags-get-type" title="hb_gobject_glyph_flags_get_type ()">hb_gobject_glyph_flags_get_type</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -396,6 +420,12 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER-DIFF-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS (hb_gobject_buffer_diff_flags_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_FLAGS</h3>
 <pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_FLAGS (hb_gobject_buffer_flags_get_type ())
 </pre>
@@ -434,6 +464,12 @@
 <div class="refsect2">
 <a name="HB-GOBJECT-TYPE-FONT-FUNCS:CAPS"></a><h3>HB_GOBJECT_TYPE_FONT_FUNCS</h3>
 <pre class="programlisting">#define HB_GOBJECT_TYPE_FONT_FUNCS (hb_gobject_font_funcs_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-GLYPH-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_GLYPH_FLAGS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_GLYPH_FLAGS (hb_gobject_glyph_flags_get_type ())
 </pre>
 </div>
 <hr>
@@ -554,6 +590,12 @@ hb_gobject_buffer_content_type_get_type
 </div>
 <hr>
 <div class="refsect2">
+<a name="hb-gobject-buffer-diff-flags-get-type"></a><h3>hb_gobject_buffer_diff_flags_get_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+hb_gobject_buffer_diff_flags_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="hb-gobject-buffer-flags-get-type"></a><h3>hb_gobject_buffer_flags_get_type ()</h3>
 <pre class="programlisting"><span class="returnvalue">GType</span>
 hb_gobject_buffer_flags_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
@@ -605,6 +647,12 @@ hb_gobject_font_funcs_get_type (<em class="parameter"><code><span class="type">v
 <pre class="programlisting"><span class="returnvalue">GType</span>
 hb_gobject_font_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-gobject-glyph-flags-get-type"></a><h3>hb_gobject_glyph_flags_get_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+hb_gobject_glyph_flags_get_type (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">

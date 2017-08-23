@@ -89,6 +89,9 @@
       <sub name="Index of new symbols in 1.1.3" link="api-index-1-1-3.html"/>
       <sub name="Index of new symbols in 1.2.3" link="api-index-1-2-3.html"/>
       <sub name="Index of new symbols in 1.3.3" link="api-index-1-3-3.html"/>
+      <sub name="Index of new symbols in 1.4.2" link="api-index-1-4-2.html"/>
+      <sub name="Index of new symbols in 1.4.3" link="api-index-1-4-3.html"/>
+      <sub name="Index of new symbols in 1.5.0" link="api-index-1-5-0.html"/>
       <sub name="Index of deprecated API" link="deprecated-api-index.html"/>
       <sub name="Annotation Glossary" link="annotation-glossary.html"/>
     </sub>
@@ -178,6 +181,7 @@
     <keyword type="function" name="hb_buffer_add_utf16 ()" link="harfbuzz-Buffers.html#hb-buffer-add-utf16" since="0.9.2"/>
     <keyword type="function" name="hb_buffer_add_utf8 ()" link="harfbuzz-Buffers.html#hb-buffer-add-utf8" since="0.9.2"/>
     <keyword type="function" name="hb_buffer_add_latin1 ()" link="harfbuzz-Buffers.html#hb-buffer-add-latin1" since="0.9.39"/>
+    <keyword type="function" name="hb_buffer_append ()" link="harfbuzz-Buffers.html#hb-buffer-append" since="1.5.0"/>
     <keyword type="function" name="hb_buffer_set_content_type ()" link="harfbuzz-Buffers.html#hb-buffer-set-content-type" since="0.9.5"/>
     <keyword type="function" name="hb_buffer_get_content_type ()" link="harfbuzz-Buffers.html#hb-buffer-get-content-type" since="0.9.5"/>
     <keyword type="function" name="hb_buffer_set_direction ()" link="harfbuzz-Buffers.html#hb-buffer-set-direction" since="0.9.2"/>
@@ -214,12 +218,15 @@
     <keyword type="function" name="hb_buffer_serialize_list_formats ()" link="harfbuzz-Buffers.html#hb-buffer-serialize-list-formats" since="0.9.7"/>
     <keyword type="function" name="hb_segment_properties_equal ()" link="harfbuzz-Buffers.html#hb-segment-properties-equal" since="0.9.7"/>
     <keyword type="function" name="hb_segment_properties_hash ()" link="harfbuzz-Buffers.html#hb-segment-properties-hash" since="0.9.7"/>
+    <keyword type="function" name="hb_buffer_diff ()" link="harfbuzz-Buffers.html#hb-buffer-diff" since="1.5.0"/>
     <keyword type="function" name="hb_buffer_set_message_func ()" link="harfbuzz-Buffers.html#hb-buffer-set-message-func" since="1.1.3"/>
+    <keyword type="function" name="hb_glyph_info_get_glyph_flags ()" link="harfbuzz-Buffers.html#hb-glyph-info-get-glyph-flags" since="1.5.0"/>
     <keyword type="function" name="hb_buffer_message_func_t ()" link="harfbuzz-Buffers.html#hb-buffer-message-func-t"/>
     <keyword type="macro" name="HB_SEGMENT_PROPERTIES_DEFAULT" link="harfbuzz-Buffers.html#HB-SEGMENT-PROPERTIES-DEFAULT:CAPS"/>
     <keyword type="macro" name="HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT" link="harfbuzz-Buffers.html#HB-BUFFER-REPLACEMENT-CODEPOINT-DEFAULT:CAPS" since="0.9.31"/>
     <keyword type="typedef" name="hb_buffer_t" link="harfbuzz-Buffers.html#hb-buffer-t"/>
     <keyword type="struct" name="hb_glyph_info_t" link="harfbuzz-Buffers.html#hb-glyph-info-t-struct"/>
+    <keyword type="enum" name="enum hb_glyph_flags_t" link="harfbuzz-Buffers.html#hb-glyph-flags-t"/>
     <keyword type="struct" name="hb_glyph_position_t" link="harfbuzz-Buffers.html#hb-glyph-position-t-struct"/>
     <keyword type="enum" name="enum hb_buffer_content_type_t" link="harfbuzz-Buffers.html#hb-buffer-content-type-t"/>
     <keyword type="enum" name="enum hb_buffer_flags_t" link="harfbuzz-Buffers.html#hb-buffer-flags-t" since="0.9.20"/>
@@ -227,6 +234,7 @@
     <keyword type="struct" name="hb_segment_properties_t" link="harfbuzz-Buffers.html#hb-segment-properties-t-struct"/>
     <keyword type="enum" name="enum hb_buffer_serialize_format_t" link="harfbuzz-Buffers.html#hb-buffer-serialize-format-t" since="0.9.2"/>
     <keyword type="enum" name="enum hb_buffer_serialize_flags_t" link="harfbuzz-Buffers.html#hb-buffer-serialize-flags-t" since="0.9.20"/>
+    <keyword type="enum" name="enum hb_buffer_diff_flags_t" link="harfbuzz-Buffers.html#hb-buffer-diff-flags-t"/>
     <keyword type="function" name="hb_blob_create ()" link="harfbuzz-hb-blob.html#hb-blob-create" since="0.9.2"/>
     <keyword type="function" name="hb_blob_create_sub_blob ()" link="harfbuzz-hb-blob.html#hb-blob-create-sub-blob" since="0.9.2"/>
     <keyword type="function" name="hb_blob_destroy ()" link="harfbuzz-hb-blob.html#hb-blob-destroy" since="0.9.2"/>
@@ -322,6 +330,7 @@
     <keyword type="function" name="hb_font_is_immutable ()" link="harfbuzz-hb-font.html#hb-font-is-immutable" since="0.9.2"/>
     <keyword type="function" name="hb_font_make_immutable ()" link="harfbuzz-hb-font.html#hb-font-make-immutable" since="0.9.2"/>
     <keyword type="function" name="hb_font_reference ()" link="harfbuzz-hb-font.html#hb-font-reference" since="0.9.2"/>
+    <keyword type="function" name="hb_font_set_face ()" link="harfbuzz-hb-font.html#hb-font-set-face" since="1.4.3"/>
     <keyword type="function" name="hb_font_set_funcs ()" link="harfbuzz-hb-font.html#hb-font-set-funcs" since="0.9.2"/>
     <keyword type="function" name="hb_font_set_funcs_data ()" link="harfbuzz-hb-font.html#hb-font-set-funcs-data" since="0.9.2"/>
     <keyword type="function" name="hb_font_set_parent ()" link="harfbuzz-hb-font.html#hb-font-set-parent" since="1.0.5"/>
@@ -502,6 +511,7 @@
     <keyword type="macro" name="HB_GOBJECT_TYPE_BLOB" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BLOB:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-DIFF-FLAGS:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS"/>
@@ -509,6 +519,7 @@
     <keyword type="macro" name="HB_GOBJECT_TYPE_FACE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FACE:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_FONT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_FONT_FUNCS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_GLYPH_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-GLYPH-FLAGS:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_MEMORY_MODE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-MEMORY-MODE:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_OT_MATH_CONSTANT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS"/>
@@ -528,6 +539,7 @@
     <keyword type="macro" name="HB_GOBJECT_TYPE_USER_DATA_KEY" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-USER-DATA-KEY:CAPS"/>
     <keyword type="function" name="hb_gobject_blob_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-blob-get-type" since="0.9.2"/>
     <keyword type="function" name="hb_gobject_buffer_content_type_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-buffer-content-type-get-type"/>
+    <keyword type="function" name="hb_gobject_buffer_diff_flags_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-buffer-diff-flags-get-type"/>
     <keyword type="function" name="hb_gobject_buffer_flags_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-buffer-flags-get-type"/>
     <keyword type="function" name="hb_gobject_buffer_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-buffer-get-type" since="0.9.2"/>
     <keyword type="function" name="hb_gobject_buffer_serialize_flags_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-buffer-serialize-flags-get-type"/>
@@ -536,6 +548,7 @@
     <keyword type="function" name="hb_gobject_face_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-face-get-type" since="0.9.2"/>
     <keyword type="function" name="hb_gobject_font_funcs_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-font-funcs-get-type" since="0.9.2"/>
     <keyword type="function" name="hb_gobject_font_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-font-get-type" since="0.9.2"/>
+    <keyword type="function" name="hb_gobject_glyph_flags_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-glyph-flags-get-type"/>
     <keyword type="function" name="hb_gobject_memory_mode_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-memory-mode-get-type"/>
     <keyword type="function" name="hb_gobject_ot_layout_glyph_class_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-ot-layout-glyph-class-get-type"/>
     <keyword type="function" name="hb_gobject_ot_math_constant_get_type ()" link="harfbuzz-hb-gobject.html#hb-gobject-ot-math-constant-get-type"/>

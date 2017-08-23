@@ -114,6 +114,7 @@
 <ANCHOR id="hb-buffer-add-utf16" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-add-utf16">
 <ANCHOR id="hb-buffer-add-utf8" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-add-utf8">
 <ANCHOR id="hb-buffer-add-latin1" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-add-latin1">
+<ANCHOR id="hb-buffer-append" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-append">
 <ANCHOR id="hb-buffer-set-content-type" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-set-content-type">
 <ANCHOR id="hb-buffer-get-content-type" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-get-content-type">
 <ANCHOR id="hb-buffer-set-direction" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-set-direction">
@@ -150,13 +151,16 @@
 <ANCHOR id="hb-buffer-serialize-list-formats" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-serialize-list-formats">
 <ANCHOR id="hb-segment-properties-equal" href="harfbuzz/harfbuzz-Buffers.html#hb-segment-properties-equal">
 <ANCHOR id="hb-segment-properties-hash" href="harfbuzz/harfbuzz-Buffers.html#hb-segment-properties-hash">
+<ANCHOR id="hb-buffer-diff" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-diff">
 <ANCHOR id="hb-buffer-set-message-func" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-set-message-func">
+<ANCHOR id="hb-glyph-info-get-glyph-flags" href="harfbuzz/harfbuzz-Buffers.html#hb-glyph-info-get-glyph-flags">
 <ANCHOR id="hb-buffer-message-func-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-message-func-t">
 <ANCHOR id="harfbuzz-Buffers.other_details" href="harfbuzz/harfbuzz-Buffers.html#harfbuzz-Buffers.other_details">
 <ANCHOR id="HB-SEGMENT-PROPERTIES-DEFAULT:CAPS" href="harfbuzz/harfbuzz-Buffers.html#HB-SEGMENT-PROPERTIES-DEFAULT:CAPS">
 <ANCHOR id="HB-BUFFER-REPLACEMENT-CODEPOINT-DEFAULT:CAPS" href="harfbuzz/harfbuzz-Buffers.html#HB-BUFFER-REPLACEMENT-CODEPOINT-DEFAULT:CAPS">
 <ANCHOR id="hb-buffer-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-t">
 <ANCHOR id="hb-glyph-info-t-struct" href="harfbuzz/harfbuzz-Buffers.html#hb-glyph-info-t-struct">
+<ANCHOR id="hb-glyph-flags-t" href="harfbuzz/harfbuzz-Buffers.html#hb-glyph-flags-t">
 <ANCHOR id="hb-glyph-position-t-struct" href="harfbuzz/harfbuzz-Buffers.html#hb-glyph-position-t-struct">
 <ANCHOR id="hb-buffer-content-type-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-content-type-t">
 <ANCHOR id="hb-buffer-flags-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-flags-t">
@@ -164,6 +168,7 @@
 <ANCHOR id="hb-segment-properties-t-struct" href="harfbuzz/harfbuzz-Buffers.html#hb-segment-properties-t-struct">
 <ANCHOR id="hb-buffer-serialize-format-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-serialize-format-t">
 <ANCHOR id="hb-buffer-serialize-flags-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-serialize-flags-t">
+<ANCHOR id="hb-buffer-diff-flags-t" href="harfbuzz/harfbuzz-Buffers.html#hb-buffer-diff-flags-t">
 <ANCHOR id="harfbuzz-hb-blob" href="harfbuzz/harfbuzz-hb-blob.html">
 <ANCHOR id="harfbuzz-hb-blob.functions" href="harfbuzz/harfbuzz-hb-blob.html#harfbuzz-hb-blob.functions">
 <ANCHOR id="hb-blob-t" href="harfbuzz/harfbuzz-hb-blob.html#hb-blob-t">
@@ -283,6 +288,7 @@
 <ANCHOR id="hb-font-is-immutable" href="harfbuzz/harfbuzz-hb-font.html#hb-font-is-immutable">
 <ANCHOR id="hb-font-make-immutable" href="harfbuzz/harfbuzz-hb-font.html#hb-font-make-immutable">
 <ANCHOR id="hb-font-reference" href="harfbuzz/harfbuzz-hb-font.html#hb-font-reference">
+<ANCHOR id="hb-font-set-face" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-face">
 <ANCHOR id="hb-font-set-funcs" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-funcs">
 <ANCHOR id="hb-font-set-funcs-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-funcs-data">
 <ANCHOR id="hb-font-set-parent" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-parent">
@@ -584,6 +590,7 @@
 <ANCHOR id="HB-GOBJECT-TYPE-BLOB:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BLOB:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-BUFFER:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS">
+<ANCHOR id="HB-GOBJECT-TYPE-BUFFER-DIFF-FLAGS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-DIFF-FLAGS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS">
@@ -591,6 +598,7 @@
 <ANCHOR id="HB-GOBJECT-TYPE-FACE:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FACE:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-FONT:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-FONT-FUNCS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS">
+<ANCHOR id="HB-GOBJECT-TYPE-GLYPH-FLAGS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-GLYPH-FLAGS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-MEMORY-MODE:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-MEMORY-MODE:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS">
 <ANCHOR id="HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-MATH-CONSTANT:CAPS">
@@ -610,6 +618,7 @@
 <ANCHOR id="HB-GOBJECT-TYPE-USER-DATA-KEY:CAPS" href="harfbuzz/harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-USER-DATA-KEY:CAPS">
 <ANCHOR id="hb-gobject-blob-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-blob-get-type">
 <ANCHOR id="hb-gobject-buffer-content-type-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-buffer-content-type-get-type">
+<ANCHOR id="hb-gobject-buffer-diff-flags-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-buffer-diff-flags-get-type">
 <ANCHOR id="hb-gobject-buffer-flags-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-buffer-flags-get-type">
 <ANCHOR id="hb-gobject-buffer-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-buffer-get-type">
 <ANCHOR id="hb-gobject-buffer-serialize-flags-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-buffer-serialize-flags-get-type">
@@ -618,6 +627,7 @@
 <ANCHOR id="hb-gobject-face-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-face-get-type">
 <ANCHOR id="hb-gobject-font-funcs-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-font-funcs-get-type">
 <ANCHOR id="hb-gobject-font-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-font-get-type">
+<ANCHOR id="hb-gobject-glyph-flags-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-glyph-flags-get-type">
 <ANCHOR id="hb-gobject-memory-mode-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-memory-mode-get-type">
 <ANCHOR id="hb-gobject-ot-layout-glyph-class-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-layout-glyph-class-get-type">
 <ANCHOR id="hb-gobject-ot-math-constant-get-type" href="harfbuzz/harfbuzz-hb-gobject.html#hb-gobject-ot-math-constant-get-type">
