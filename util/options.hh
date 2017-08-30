@@ -409,7 +409,7 @@ struct shape_options_t : option_group_t
     }
 
     bool ret = true;
-    hb_buffer_diff_flags_t diff = hb_buffer_diff (buffer, reconstruction, 0, 0);
+    hb_buffer_diff_flags_t diff = hb_buffer_diff (buffer, reconstruction, (hb_codepoint_t) -1, 0);
     if (diff)
     {
       if (error)
