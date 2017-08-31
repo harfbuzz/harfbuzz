@@ -59,7 +59,7 @@ struct view_cairo_t
   }
   void error (const char *message)
   {
-    fail (false, "%s", message);
+    g_printerr ("%s: %s\n", g_get_prgname (), message);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,

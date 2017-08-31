@@ -416,11 +416,9 @@ struct shape_options_t : option_group_t
 	*error = "Safe-to-break test failed.";
       ret = false;
 
-      if (0)
-      {
-	hb_buffer_set_length (buffer, 0);
-	hb_buffer_append (buffer, reconstruction, 0, -1);
-      }
+      /* Return the reconstructed result instead so it can be inspected. */
+      hb_buffer_set_length (buffer, 0);
+      hb_buffer_append (buffer, reconstruction, 0, -1);
     }
 
     hb_buffer_destroy (reconstruction);
