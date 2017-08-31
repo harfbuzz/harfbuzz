@@ -366,13 +366,18 @@ struct shape_options_t : option_group_t
       }
       else
       {
-	unsigned int cluster = info[end].cluster;
 	if (forward)
-	  while (text_end < num_chars && text[text_end].cluster != cluster)
+	{
+	  unsigned int cluster = info[end].cluster;
+	  while (text_end < num_chars && text[text_end].cluster < cluster)
 	    text_end++;
+	}
 	else
-	  while (text_start && text[text_start - 1].cluster != cluster)
+	{
+	  unsigned int cluster = info[end - 1].cluster;
+	  while (text_start && text[text_start - 1].cluster >= cluster)
 	    text_start--;
+	}
       }
       assert (text_start < text_end);
 
