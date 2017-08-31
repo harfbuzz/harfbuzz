@@ -394,6 +394,8 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 	     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
         end++;
 
+      buffer->unsafe_to_break (start, end);
+
       for (unsigned int j = start; j < i; j++)
         info[j].mask |= pre_mask;
       info[i].mask |= c->plan->frac_mask;
