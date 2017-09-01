@@ -23,10 +23,10 @@ for f in "$@"; do
 	$reference || echo "Running tests in $f"
 	while IFS=: read fontfile options unicodes glyphs_expected; do
 		if echo "$fontfile" | grep -q '^#'; then
-			$reference || echo "Skipping $fontfile:$unicodes"
+			$reference || echo "#hb-shape $fontfile --unicodes $unicodes"
 			continue
 		fi
-		$reference || echo "Testing $fontfile:$unicodes"
+		$reference || echo "hb-shape $fontfile --unicodes $unicodes"
 		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape $options "$srcdir/$fontfile"`
 		if test $? != 0; then
 			echo "hb-shape failed." >&2
