@@ -23,7 +23,7 @@ for f in "$@"; do
 	$reference || echo "Running tests in $f"
 	while IFS=: read fontfile options unicodes glyphs_expected; do
 		if echo "$fontfile" | grep -q '^#'; then
-			$reference || echo "#hb-shape $fontfile --unicodes $unicodes"
+			$reference || echo "# hb-shape $fontfile --unicodes $unicodes"
 			continue
 		fi
 		$reference || echo "hb-shape $fontfile --unicodes $unicodes"
