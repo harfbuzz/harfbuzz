@@ -299,6 +299,68 @@ parse_variations (const char *name G_GNUC_UNUSED,
   return true;
 }
 
+static gboolean
+parse_text (const char *name G_GNUC_UNUSED,
+	    const char *arg,
+	    gpointer    data,
+	    GError    **error G_GNUC_UNUSED)
+{
+  text_options_t *text_opts = (text_options_t *) data;
+
+  if (text_opts->text)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text or --unicodes can be provided but not both");
+    return false;
+  }
+
+  text_opts->text = g_strdup (arg);
+  return true;
+}
+
+
+static gboolean
+parse_unicodes (const char *name G_GNUC_UNUSED,
+	        const char *arg,
+	        gpointer    data,
+	        GError    **error G_GNUC_UNUSED)
+{
+  text_options_t *text_opts = (text_options_t *) data;
+
+  if (text_opts->text)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text or --unicodes can be provided but not both");
+    return false;
+  }
+
+  GString *gs = g_string_new (NULL);
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t", *s))
+      s++;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 16);
+    if (errno || s == p)
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing Unicode values at: '%s'", s);
+      return false;
+    }
+
+    g_string_append_unichar (gs, u);
+
+    s = p;
+  }
+
+  text_opts->text = g_string_free (gs, FALSE);
+  return true;
+}
+
 
 void
 view_options_t::add_options (option_parser_t *parser)
@@ -491,8 +553,9 @@ text_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"text",		0, 0, G_OPTION_ARG_STRING,	&this->text,			"Set input text",			"string"},
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
     {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.\n",		"filename"},
+    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,		"Set input Unicode codepoints",		"list of hex numbers"},
     {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
     {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
     {NULL}
