@@ -1,3 +1,16 @@
+Overview of changes leading to 1.5.1
+Tuesday, September 5, 2017
+====================================
+
+- Fix "unsafe-to-break" in fallback shaping and other corner cases.
+  All our tests pass with --verify now, meaning unsafe-to-break API
+  works as expected.
+- Add --unicodes to hb-view / hb-shape.
+- [indic] Treat Consonant_With_Stacker as consonant.  This will need
+  further tweaking.
+- hb_buffer_diff() tweaks.
+
+
 Overview of changes leading to 1.5.0
 Wednesday, August 23, 2017
 ====================================
