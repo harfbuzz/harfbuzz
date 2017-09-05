@@ -2388,6 +2388,9 @@ hb_buffer_diff (<em class="parameter"><code><a class="link" href="harfbuzz-Buffe
                 <em class="parameter"><code><a class="link" href="harfbuzz-Buffers.html#hb-buffer-t"><span class="type">hb_buffer_t</span></a> *reference</code></em>,
                 <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> dottedcircle_glyph</code></em>,
                 <em class="parameter"><code>unsigned <span class="type">int</span> position_fuzz</code></em>);</pre>
+<p>If dottedcircle_glyph is (hb_codepoint_t) -1 then <a class="link" href="harfbuzz-Buffers.html#HB-BUFFER-DIFF-FLAG-DOTTED-CIRCLE-PRESENT:CAPS"><code class="literal">HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT</code></a>
+and <a class="link" href="harfbuzz-Buffers.html#HB-BUFFER-DIFF-FLAG-NOTDEF-PRESENT:CAPS"><code class="literal">HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT</code></a> are never returned.  This should be used by most
+callers if just comparing two buffers is needed.</p>
 <p class="since">Since 1.5.0</p>
 </div>
 <hr>
