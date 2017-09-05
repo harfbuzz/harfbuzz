@@ -481,12 +481,12 @@ typedef enum { /*< flags >*/
 
   /* Buffers with different content_type cannot be meaningfully compared
    * in any further detail. */
-  HB_BUFFER_DIFF_FLAG_CONTENT_TYPE_MISMATCH	= 0X0001,
+  HB_BUFFER_DIFF_FLAG_CONTENT_TYPE_MISMATCH	= 0x0001,
 
   /* For buffers with differing length, the per-glyph comparison is not
    * attempted, though we do still scan reference for dottedcircle / .notdef
    * glyphs. */
-  HB_BUFFER_DIFF_FLAG_LENGTH_MISMATCH		= 0X0002,
+  HB_BUFFER_DIFF_FLAG_LENGTH_MISMATCH		= 0x0002,
 
   /* We want to know if dottedcircle / .notdef glyphs are present in the
    * reference, as we may not care so much about other differences in this

@@ -1893,7 +1893,7 @@ hb_buffer_diff (hb_buffer_t *buffer,
 		hb_codepoint_t dottedcircle_glyph,
 		unsigned int position_fuzz)
 {
-  if (buffer->content_type != reference->content_type)
+  if (buffer->content_type != reference->content_type && buffer->len && reference->len)
     return HB_BUFFER_DIFF_FLAG_CONTENT_TYPE_MISMATCH;
 
   hb_buffer_diff_flags_t result = HB_BUFFER_DIFF_FLAG_EQUAL;
