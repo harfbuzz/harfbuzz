@@ -26,12 +26,12 @@ for f in "$@"; do
 			$reference || echo "# hb-shape $fontfile --unicodes $unicodes"
 			continue
 		fi
-		$reference || echo "hb-shape $fontfile --unicodes $unicodes"
-		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape $options "$srcdir/$fontfile"`
+		$reference || echo "hb-shape $fontfile $options --unicodes $unicodes"
+		glyphs=`$hb_shape "$srcdir/$fontfile" $options --unicodes "$unicodes"`
 		if test $? != 0; then
 			echo "hb-shape failed." >&2
 			fails=$((fails+1))
-			continue
+			#continue
 		fi
 		if $reference; then
 			echo "$fontfile:$options:$unicodes:$glyphs"
