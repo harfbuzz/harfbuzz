@@ -555,7 +555,7 @@ text_options_t::add_options (option_parser_t *parser)
   {
     {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
     {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.\n",		"filename"},
-    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,		"Set input Unicode codepoints",		"list of hex numbers"},
+    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,		"Set input Unicode codepoints",		"list of hex numbers"},
     {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
     {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
     {NULL}
@@ -584,8 +584,8 @@ output_options_t::add_options (option_parser_t *parser)
 
   GOptionEntry entries[] =
   {
-    {"output-file",	0, 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"output-format",	0, 0, G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
+    {"output-file",   'o', 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
+    {"output-format", 'O', 0, G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
     {NULL}
   };
   parser->add_group (entries,
@@ -836,7 +836,7 @@ format_options_t::add_options (option_parser_t *parser)
     {"show-text",	0, 0, G_OPTION_ARG_NONE,	&this->show_text,		"Prefix each line of output with its corresponding input text",		NULL},
     {"show-unicode",	0, 0, G_OPTION_ARG_NONE,	&this->show_unicode,		"Prefix each line of output with its corresponding input codepoint(s)",	NULL},
     {"show-line-num",	0, 0, G_OPTION_ARG_NONE,	&this->show_line_num,		"Prefix each line of output with its corresponding input line number",	NULL},
-    {"verbose",		0, G_OPTION_FLAG_NO_ARG,
+    {"verbose",	      'v', G_OPTION_FLAG_NO_ARG,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_verbose,	"Prefix each line of output with all of the above",			NULL},
     {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Output glyph indices instead of names",				NULL},
@@ -846,7 +846,7 @@ format_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					NULL},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							NULL},
     {"show-flags",	0, 0, G_OPTION_ARG_NONE,	&this->show_flags,		"Output glyph flags",							NULL},
-    {"trace",		0, 0, G_OPTION_ARG_NONE,	&this->trace,			"Output interim shaping results",					NULL},
+    {"trace",	      'V', 0, G_OPTION_ARG_NONE,	&this->trace,			"Output interim shaping results",					NULL},
     {NULL}
   };
   parser->add_group (entries,
