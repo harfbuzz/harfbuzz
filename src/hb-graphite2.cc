@@ -389,7 +389,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   }
   else
   {
-    curradvx = gr_seg_advance_X(seg);
+    curradvx = gr_seg_advance_X(seg) * xscale;
     for (is = gr_seg_first_slot (seg); is; pPos++, info++, is = gr_slot_next_in_segment (is))
     {
       if (info->cluster != currclus)
@@ -401,7 +401,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
         pPos->x_advance = 0.;
 
       pPos->y_advance = gr_slot_advance_Y (is, grface, NULL) * yscale;
-      curradvy -= pPos->y_advance;
+      curradvy -= pPos->y_advance * yscale;
       pPos->x_offset = (gr_slot_origin_X (is) - info->var1.i32) * xscale - curradvx + pPos->x_advance;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
     }
