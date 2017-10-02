@@ -299,6 +299,9 @@ def map_to_use(data):
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
 
+		# TODO: https://github.com/behdad/harfbuzz/issues/525
+		if U == 0x1A7F: UISC = Consonant_Final; UIPC = Bottom
+
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
 		USE = values[0]

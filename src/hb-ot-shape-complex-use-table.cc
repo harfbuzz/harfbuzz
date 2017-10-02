@@ -276,7 +276,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1A50 */     B,     B,     B,     B,     B,  MPre,  MBlw,   SUB,  FAbv,  FAbv,  FAbv,   SUB,   SUB,   SUB,   SUB,     O,
   /* 1A60 */     H,  VPst,  VAbv,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VBlw,  VPst,  VPre,  VPre,
-  /* 1A70 */  VPre,  VPre,  VPre,  VAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,  VAbv,    FM,    FM,     O,     O,    FM,
+  /* 1A70 */  VPre,  VPre,  VPre,  VAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,  VAbv,    FM,    FM,     O,     O,  FBlw,
   /* 1A80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
   /* 1A90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
