@@ -208,6 +208,12 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
+  else if (unlikely (u == 0x0A51u))
+  {
+    /* https://github.com/behdad/harfbuzz/issues/524 */
+    cat = OT_M;
+    pos = POS_BELOW_C;
+  }
 
   /* According to ScriptExtensions.txt, these Grantha marks may also be used in Tamil,
    * so the Indic shaper needs to know their categories. */
