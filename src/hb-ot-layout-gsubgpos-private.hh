@@ -374,6 +374,13 @@ struct hb_apply_context_t :
 
     inline void reject (void) { num_items++; match_glyph_data--; }
 
+    inline matcher_t::may_skip_t
+    may_skip (const hb_apply_context_t *c,
+	      const hb_glyph_info_t    &info) const
+    {
+      return matcher.may_skip (c, info);
+    }
+
     inline bool next (void)
     {
       assert (num_items > 0);
@@ -736,11 +743,17 @@ static inline bool match_input (hb_apply_context_t *c,
    * - Ligatures cannot be formed across glyphs attached to different components
    *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
    *   LAM,LAM,HEH form a ligature, leaving SHADDA,FATHA next to eachother.
-   *   However, it would be wrong to ligate that SHADDA,FATHA sequence.o
-   *   There is an exception to this: If a ligature tries ligating with marks that
-   *   belong to it itself, go ahead, assuming that the font designer knows what
-   *   they are doing (otherwise it can break Indic stuff when a matra wants to
-   *   ligate with a conjunct...)
+   *   However, it would be wrong to ligate that SHADDA,FATHA sequence.
+   *   There are a couple of exceptions to this:
+   *
+   *   o If a ligature tries ligating with marks that belong to it itself, go ahead,
+   *     assuming that the font designer knows what they are doing (otherwise it can
+   *     break Indic stuff when a matra wants to ligate with a conjunct,
+   *
+   *   o If two marks want to ligate and they belong to different components of the
+   *     same ligature glyph, and said ligature glyph is to be ignored according to
+   *     mark-filtering rules, then allow.
+   *     https://github.com/behdad/harfbuzz/issues/545
    */
 
   bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->cur());
@@ -761,13 +774,41 @@ static inline bool match_input (hb_apply_context_t *c,
     unsigned int this_lig_id = _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx]);
     unsigned int this_lig_comp = _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]);
 
-    if (first_lig_id && first_lig_comp) {
+    if (first_lig_id && first_lig_comp)
+    {
       /* If first component was attached to a previous ligature component,
        * all subsequent components should be attached to the same ligature
-       * component, otherwise we shouldn't ligate them. */
+       * component, otherwise we shouldn't ligate them... */
       if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
-	return_trace (false);
-    } else {
+      {
+        if (first_lig_id != this_lig_id && this_lig_id != 0)
+	  return_trace (false);
+
+        /* ...unless, we are attached to a base ligature and that base
+	 * ligature is ignorable. */
+	bool found = false;
+	const hb_glyph_info_t *out = buffer->out_info;
+	unsigned int j = buffer->out_len;
+	while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
+	{
+	  if (_hb_glyph_info_get_lig_comp (&out[j - 1]) == 0)
+	  {
+	    j--;
+	    found = true;
+	    break;
+	  }
+	  j--;
+	}
+
+	if (!found)
+	  return_trace (false);
+
+	if (skippy_iter.may_skip (c, out[j]) != hb_apply_context_t::matcher_t::SKIP_YES)
+	  return_trace (false);
+      }
+    }
+    else
+     {
       /* If first component was NOT attached to a previous ligature component,
        * all subsequent components should also NOT be attached to any ligature
        * component, unless they are attached to the first component itself! */
