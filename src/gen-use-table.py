@@ -117,6 +117,7 @@ property_names = [
 	'Top_And_Right',
 	'Top_And_Left',
 	'Top_And_Left_And_Right',
+	'Bottom_And_Left',
 	'Bottom_And_Right',
 	'Top_And_Bottom_And_Right',
 	'Overstruck',
@@ -153,7 +154,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104E, 0x2022]) or
+		(UGC == Po and not U in [0x104E, 0x2022, 0x11A3F, 0x11A45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -252,7 +253,7 @@ use_positions = {
 	},
 	'M': {
 		'Abv': [Top],
-		'Blw': [Bottom],
+		'Blw': [Bottom, Bottom_And_Left],
 		'Pst': [Right],
 		'Pre': [Left],
 	},
