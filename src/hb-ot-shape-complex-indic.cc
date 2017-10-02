@@ -209,6 +209,7 @@ set_indic_properties (hb_glyph_info_t &info)
     pos = POS_ABOVE_C;
   }
 
+  else if (unlikely (u == 0x0980u)) cat = OT_PLACEHOLDER; /* https://github.com/behdad/harfbuzz/issues/538 */
   else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;
