@@ -321,6 +321,14 @@ typedef enum
   /*9.0*/ HB_SCRIPT_TANGUT			= HB_TAG ('T','a','n','g'),
   /*9.0*/ HB_SCRIPT_NEWA			= HB_TAG ('N','e','w','a'),
 
+  /*
+   * Since 1.6.0
+   */
+  /*10.0*/HB_SCRIPT_MASARAM_GONDI		= HB_TAG ('G','o','n','m'),
+  /*10.0*/HB_SCRIPT_NUSHU			= HB_TAG ('N','s','h','u'),
+  /*10.0*/HB_SCRIPT_SOYOMBO			= HB_TAG ('S','o','y','o'),
+  /*10.0*/HB_SCRIPT_ZANABAZAR_SQUARE		= HB_TAG ('Z','a','n','b'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 

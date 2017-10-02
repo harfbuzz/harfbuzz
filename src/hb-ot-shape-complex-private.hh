@@ -362,6 +362,11 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_MARCHEN:
     case HB_SCRIPT_NEWA:
 
+    /* Unicode-10.0 additions */
+    case HB_SCRIPT_MASARAM_GONDI:
+    case HB_SCRIPT_SOYOMBO:
+    case HB_SCRIPT_ZANABAZAR_SQUARE:
+
       /* If the designer designed the font for the 'DFLT' script,
        * use the default shaper.  Otherwise, use the specific shaper.
        * Note that for some simple scripts, there may not be *any*
