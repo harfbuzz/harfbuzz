@@ -31,10 +31,10 @@ UCDN was written by Grigori Goronzy <greg@kinoho.net>.
 
 How to Use
 
-Include ucdn.c, ucdn.h and unicodedata_db.h in your project. Now,
-just use the functions as documented in ucdn.h.
+Include ucdn.c, ucdn.h and ucdn_db.h in your project. Now, just use the
+functions as documented in ucdn.h.
 
 In some cases, it might be necessary to regenerate the Unicode
 database file. The script makeunicodedata.py (Python 3.x required)
 fetches the appropriate files and dumps the compressed database into
-unicodedata_db.h.
+ucdn_db.h.
