@@ -19,6 +19,7 @@
 
 #define B	USE_B	/* BASE */
 #define CGJ	USE_CGJ	/* CGJ */
+#define CS	USE_CS	/* CONS_WITH_STACKER */
 #define FM	USE_FM	/* CONS_FINAL_MOD */
 #define GB	USE_GB	/* BASE_OTHER */
 #define H	USE_H	/* HALANT */
@@ -163,7 +164,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 0CC0 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,  VAbv,  VAbv,  VAbv,     O,  VAbv,  VAbv,  VAbv,     H,     O,     O,
   /* 0CD0 */     O,     O,     O,     O,     O,  VPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,     O,
   /* 0CE0 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 0CF0 */     O,     R,     R,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 0CF0 */     O,    CS,    CS,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Malayalam */
 
@@ -467,7 +468,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Brahmi */
 
-  /* 11000 */ VMPst, VMAbv, VMPst,     R,     R,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11000 */ VMPst, VMAbv, VMPst,    CS,    CS,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11030 */     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,
@@ -729,6 +730,7 @@ hb_use_get_categories (hb_codepoint_t u)
 
 #undef B
 #undef CGJ
+#undef CS
 #undef FM
 #undef GB
 #undef H

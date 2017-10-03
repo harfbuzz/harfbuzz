@@ -178,6 +178,8 @@ def is_CONS_MOD(U, UISC, UGC):
 def is_CONS_SUB(U, UISC, UGC):
 	#SPEC-DRAFT return UISC == Consonant_Subjoined
 	return UISC == Consonant_Subjoined and UGC != Lo
+def is_CONS_WITH_STACKER(U, UISC, UGC):
+	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
 	return UISC in [Virama, Invisible_Stacker]
 def is_HALANT_NUM(U, UISC, UGC):
@@ -199,9 +201,7 @@ def is_OTHER(U, UISC, UGC):
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
-	#return UISC == Consonant_Preceding_Repha
-	#SPEC-OUTDATED hack to categorize Consonant_With_Stacker and Consonant_Prefixed
-	return UISC in [Consonant_Preceding_Repha, Consonant_With_Stacker, Consonant_Prefixed]
+	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SYM(U, UISC, UGC):
 	if U == 0x25CC: return False #SPEC-DRAFT
 	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
@@ -230,6 +230,7 @@ use_mapping = {
 	'M':	is_CONS_MED,
 	'CM':	is_CONS_MOD,
 	'SUB':	is_CONS_SUB,
+	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
 	'HN':	is_HALANT_NUM,
 	'ZWNJ':	is_ZWNJ,
