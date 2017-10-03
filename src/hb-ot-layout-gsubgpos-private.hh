@@ -781,9 +781,6 @@ static inline bool match_input (hb_apply_context_t *c,
        * component, otherwise we shouldn't ligate them... */
       if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
       {
-        if (first_lig_id != this_lig_id && this_lig_id != 0)
-	  return_trace (false);
-
         /* ...unless, we are attached to a base ligature and that base
 	 * ligature is ignorable. */
 	bool found = false;
