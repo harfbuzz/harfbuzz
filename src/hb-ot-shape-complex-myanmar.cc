@@ -130,8 +130,7 @@ enum syllable_type_t {
 /* Note: This enum is duplicated in the -machine.rl source file.
  * Not sure how to avoid duplication. */
 enum myanmar_category_t {
-  OT_As  = 18, /* Asat */
-  OT_D   = 19, /* Digits except zero */
+  OT_As  = 18,  /* Asat */
   OT_D0  = 20, /* Digit zero */
   OT_DB  = OT_N, /* Dot below */
   OT_GB  = OT_PLACEHOLDER,
@@ -145,7 +144,8 @@ enum myanmar_category_t {
   OT_VPre = 28,
   OT_VPst = 29,
   OT_VS   = 30, /* Variation selectors */
-  OT_P    = 31  /* Punctuation */
+  OT_P    = 31, /* Punctuation */
+  OT_D    = 32, /* Digits except zero */
 };
 
 
