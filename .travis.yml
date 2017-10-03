@@ -29,7 +29,7 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CONFIGURE_OPTS="$CONFIGURE_OPTS --with-coretext"; fi
   - ./configure $CONFIGURE_OPTS
   - make
-  - make check || (cat test/*/test-suite.log && false)
+  - make check || (cat */test-suite.log test/*/test-suite.log && false)
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SLUG" == "behdad/harfbuzz" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls -e docs; fi
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SECURE_ENV_VARS" == "true" ]; then bash .ci/deploy-docs.sh; fi
