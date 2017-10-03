@@ -55,6 +55,7 @@ TESTS = \
 	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
 	tests/hyphens.tests \
+	tests/indic-consonant-with-stacker.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-joiners.tests \
 	tests/indic-old-spec.tests \
