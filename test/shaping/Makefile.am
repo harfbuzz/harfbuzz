@@ -62,6 +62,7 @@ TESTS = \
 	tests/indic-syllable.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
+	tests/mark-attachment.tests \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
 	tests/spaces.tests \
