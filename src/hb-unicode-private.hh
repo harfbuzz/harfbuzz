@@ -108,7 +108,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     /* XXX This hack belongs to the Myanmar shaper. */
     if (unlikely (unicode == 0x1037u)) unicode = 0x103Au;
 
-    /* XXX This hack belongs to the SEA shaper (for Tai Tham):
+    /* XXX This hack belongs to the USE shaper (for Tai Tham):
      * Reorder SAKOT to ensure it comes after any tone marks. */
     if (unlikely (unicode == 0x1A60u)) return 254;
 
