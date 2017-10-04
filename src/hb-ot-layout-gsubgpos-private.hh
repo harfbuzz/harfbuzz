@@ -764,6 +764,12 @@ static inline bool match_input (hb_apply_context_t *c,
   unsigned int first_lig_id = _hb_glyph_info_get_lig_id (&buffer->cur());
   unsigned int first_lig_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
 
+  enum {
+    LIGBASE_NOT_CHECKED,
+    LIGBASE_MAY_NOT_SKIP,
+    LIGBASE_MAY_SKIP
+  } ligbase = LIGBASE_NOT_CHECKED;
+
   match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
@@ -783,29 +789,34 @@ static inline bool match_input (hb_apply_context_t *c,
       {
         /* ...unless, we are attached to a base ligature and that base
 	 * ligature is ignorable. */
-	bool found = false;
-	const hb_glyph_info_t *out = buffer->out_info;
-	unsigned int j = buffer->out_len;
-	while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
+        if (ligbase == LIGBASE_NOT_CHECKED)
 	{
-	  if (_hb_glyph_info_get_lig_comp (&out[j - 1]) == 0)
+	  bool found = false;
+	  const hb_glyph_info_t *out = buffer->out_info;
+	  unsigned int j = buffer->out_len;
+	  while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
 	  {
+	    if (_hb_glyph_info_get_lig_comp (&out[j - 1]) == 0)
+	    {
+	      j--;
+	      found = true;
+	      break;
+	    }
 	    j--;
-	    found = true;
-	    break;
 	  }
-	  j--;
+
+	  if (found && skippy_iter.may_skip (c, out[j]) == hb_apply_context_t::matcher_t::SKIP_YES)
+	    ligbase = LIGBASE_MAY_SKIP;
+	  else
+	    ligbase = LIGBASE_MAY_NOT_SKIP;
 	}
 
-	if (!found)
-	  return_trace (false);
-
-	if (skippy_iter.may_skip (c, out[j]) != hb_apply_context_t::matcher_t::SKIP_YES)
+        if (ligbase == LIGBASE_MAY_NOT_SKIP)
 	  return_trace (false);
       }
     }
     else
-     {
+    {
       /* If first component was NOT attached to a previous ligature component,
        * all subsequent components should also NOT be attached to any ligature
        * component, unless they are attached to the first component itself! */
