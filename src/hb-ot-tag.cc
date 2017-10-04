@@ -394,7 +394,6 @@ static const LangTag ot_languages[] = {
   {"gkp",	HB_TAG('G','K','P',' ')},	/* Kpelle (Guinea) */
   {"gl",	HB_TAG('G','A','L',' ')},	/* Galician */
   {"gld",	HB_TAG('N','A','N',' ')},	/* Nanai */
-  {"gle",	HB_TAG('I','R','T',' ')},	/* Irish Traditional */
   {"glk",	HB_TAG('G','L','K',' ')},	/* Gilaki */
   {"gn",	HB_TAG('G','U','A',' ')},	/* Guarani [macrolanguage] */
   {"gnn",	HB_TAG('G','N','N',' ')},	/* Gumatj */
@@ -552,7 +551,6 @@ static const LangTag ot_languages[] = {
   {"mag",	HB_TAG('M','A','G',' ')},	/* Magahi */
   {"mai",	HB_TAG('M','T','H',' ')},	/* Maithili */
   {"mak",	HB_TAG('M','K','R',' ')},	/* Makasar */
-  {"mal",	HB_TAG('M','A','L',' ')},	/* Malayalam */
   {"mam",	HB_TAG('M','A','M',' ')},	/* Mam */
   {"man",	HB_TAG('M','N','K',' ')},	/* Manding/Mandingo [macrolanguage] */
   {"mdc",	HB_TAG('M','L','E',' ')},	/* Male (Papua New Guinea) */
