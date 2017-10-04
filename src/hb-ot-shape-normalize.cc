@@ -384,7 +384,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       if (/* If there's anything between the starter and this char, they should have CCC
 	   * smaller than this character's. */
 	  (starter == buffer->out_len - 1 ||
-	   _hb_glyph_info_get_modified_combining_class (&buffer->prev()) < _hb_glyph_info_get_modified_combining_class (&buffer->cur())) &&
+	   info_cc (buffer->prev()) < info_cc (buffer->cur())) &&
 	  /* And compose. */
 	  c.compose (&c,
 		     buffer->out_info[starter].codepoint,
@@ -409,14 +409,14 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       else if (/* We sometimes custom-tailor the sorted order of marks. In that case, stop
 		* trying to combine as soon as combining-class drops. */
 	       starter < buffer->out_len - 1 &&
-	       _hb_glyph_info_get_modified_combining_class (&buffer->prev()) > _hb_glyph_info_get_modified_combining_class (&buffer->cur()))
+	       info_cc (buffer->prev()) > info_cc (buffer->cur()))
         combine = false;
     }
 
     /* Blocked, or doesn't compose. */
     buffer->next_glyph ();
 
-    if (_hb_glyph_info_get_modified_combining_class (&buffer->prev()) == 0)
+    if (info_cc (buffer->prev()) == 0)
     {
       starter = buffer->out_len - 1;
       combine = true;
