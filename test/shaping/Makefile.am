@@ -44,6 +44,7 @@ TESTS = \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/arabic-like-joining.tests \
+	tests/arabic-mark-order.tests \
 	tests/automatic-fractions.tests \
 	tests/cluster.tests \
 	tests/color-fonts.tests \

@@ -39,6 +39,8 @@
 #define complex_var_u8_1()	var2.u8[3]
 
 
+#define HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS 32
+
 enum hb_ot_shape_zero_width_marks_type_t {
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
@@ -153,6 +155,16 @@ struct hb_ot_complex_shaper_t
    * May be NULL.
    */
   bool (*disable_otl) (const hb_ot_shape_plan_t *plan);
+
+  /* reorder_marks()
+   * Called during shape().
+   * Shapers can use to modify ordering of combining marks.
+   * May be NULL.
+   */
+  void (*reorder_marks) (const hb_ot_shape_plan_t *plan,
+			 hb_buffer_t              *buffer,
+			 unsigned int              start,
+			 unsigned int              end);
 
   hb_ot_shape_zero_width_marks_type_t zero_width_marks;
 
