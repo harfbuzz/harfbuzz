@@ -57,8 +57,9 @@ GLIB: Enable GLib support in HarfBuzz, which also uses the GLib unicode
 
 GOBJECT: Enable building the HarfBuzz-GObject DLL, and thus implies GLib
          support.  This requires the GObject libraries and glib-mkenums script,
-         along with PERL to generate the enum sources and headers, which is
-         required for the build.
+         along with Python (when using GObject/GLib 2.53.4 or later) or PERL
+         (when using GObject/GLib 2.53.3 or earlier) to generate the enum
+         sources and headers, which is required for the build.
 
 INTROSPECTION: Enable build of introspection files, for making HarfBuzz
                bindings for other programming languages available, such as
