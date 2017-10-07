@@ -11,6 +11,8 @@ EXTRA_DIST = \
 	install.mak \
 	introspection-msvc.mak \
 	Makefile.vc \
-	README.txt
+	README.txt \
+	replace.py \
+	sed-enums-srcs.py
 
 -include $(top_srcdir)/git.mk

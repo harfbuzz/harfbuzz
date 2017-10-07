@@ -25,7 +25,7 @@ def open_file(filename, mode):
     if sys.version_info[0] < 3:
         return open(filename, mode=mode)
     else:
-        return open(filename, mode=mode, encoding='utf-8')
+        return open(filename, mode=mode, encoding='latin-1')
 
 def replace_multi(src, dest, replace_items):
     with open_file(src, 'r') as s:

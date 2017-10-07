@@ -107,7 +107,10 @@ help:
 	@echo GOBJECT:
 	@echo Enable the HarfBuzz-GObject library, also implies GLib2 support,
 	@echo requires the GNOME GLib2 libraries and tools, notably the glib-mkenums
-	@echo tool script, which will require a PERL interpreter (use
+	@echo tool script, which will require a Python interpretor (when using
+	@echo GObject/GLib 2.53.4 or later; use PYTHON=^$(PATH_TO_PYTHON_INTERPRETOR)
+	@echo if the Python interpretor is not already in your PATH) or PERL
+	@echo interpreter (when using GObject/GLib 2.53.3 or earlier; use
 	@echo PERL=^$(PATH_TO_PERL_INTERPRETOR)) if it is not already in your PATH).
 	@echo.
 	@echo GRAPHITE2:

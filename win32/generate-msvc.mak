@@ -12,13 +12,20 @@ config.h: config.h.win32
 # we are already using PERL, use PERL one-liners.
 !if "$(GOBJECT)" == "1"
 $(HB_GOBJECT_ENUM_GENERATED_SOURCES): ..\src\hb-gobject-enums.h.tmpl ..\src\hb-gobject-enums.cc.tmpl $(HB_ACTUAL_HEADERS)
+	-$(PYTHON) $(PREFIX)\bin\glib-mkenums \
+		--identifier-prefix hb_ --symbol-prefix hb_gobject \
+		--template ..\src\$(@F).tmpl  $(HB_ACTUAL_HEADERS) > $@.tmp
+	for %%f in ($@.tmp) do if %%~zf gtr 0 $(PYTHON) sed-enums-srcs.py --input=$@.tmp --output=$@
+	@-del $@.tmp
+	if not exist $@ \
 	$(PERL) $(PREFIX)\bin\glib-mkenums \
 		--identifier-prefix hb_ --symbol-prefix hb_gobject \
-		--template ..\src\$(@F).tmpl  $(HB_ACTUAL_HEADERS) > $@
-	$(PERL) -p -i.tmp1 -e "s/_t_get_type/_get_type/g" $@
-	$(PERL) -p -i.tmp2 -e "s/_T \(/ (/g" $@
-	@-del $@.tmp1
-	@-del $@.tmp2
+		--template ..\src\$(@F).tmpl  $(HB_ACTUAL_HEADERS) > $@.tmp
+	if exist $@.tmp $(PERL) -p -i.tmp1 -e "s/_t_get_type/_get_type/g" $@.tmp
+	if exist $@.tmp $(PERL) -p -i.tmp2 -e "s/_T \(/ (/g" $@.tmp
+	@if exist $@.tmp.tmp1 del $@.tmp.tmp1
+	@if exist $@.tmp.tmp2 del $@.tmp.tmp2
+	@if exist $@.tmp move $@.tmp $@
 !endif
 
 # Create the build directories
