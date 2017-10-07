@@ -300,6 +300,7 @@ check: harfbuzz.def # For check-defs.sh
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-defs.sh \
+	check-externs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
 	check-libstdc++.sh \
