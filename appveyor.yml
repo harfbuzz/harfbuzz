@@ -15,23 +15,6 @@ environment:
       platform: ARM
       configuration: Debug
 
-    - compiler: nmake
-      ARCH: amd64
-      VCPKG_ARCH: x64-windows
-      CFG: debug
-    - compiler: nmake
-      ARCH: x86
-      VCPKG_ARCH: x86-windows
-      CFG: debug
-#    - compiler: nmake
-#      ARCH: amd64
-#      VCPKG_ARCH: x64-windows
-#      CFG: release
-#    - compiler: nmake
-#      ARCH: x86
-#      VCPKG_ARCH: x86-windows
-#      CFG: release
-
     - compiler: msys2
       MINGW_PREFIX: /c/msys2/mingw64/
       MINGW_CHOST: x86_64-w64-mingw32
@@ -44,25 +27,12 @@ environment:
 install:
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
 
-  - 'if "%compiler%"=="nmake" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%'
-#  - 'if "%compiler%"=="nmake" git clone https://github.com/Microsoft/vcpkg'
-#  - 'if "%compiler%"=="nmake" cd vcpkg'
-#  - 'if "%compiler%"=="nmake" powershell -exec bypass scripts\bootstrap.ps1'
-#  - 'if "%compiler%"=="nmake" vcpkg install freetype:%VCPKG_ARCH%'
-#  - 'if "%compiler%"=="nmake" copy installed\%VCPKG_ARCH%\debug\lib\freetyped.lib installed\%VCPKG_ARCH%\lib'
-#  - 'if "%compiler%"=="nmake" cd ..'
-
 build_script:
   - 'if "%compiler%"=="cmake" md build'
   - 'if "%compiler%"=="cmake" cd build'
   - 'if "%compiler%"=="cmake" set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin;c:\msys64\mingw64\bin' # msys2 is added just for having "ragel" on PATH
   - 'if "%compiler%"=="cmake" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -G "%generator%" ../'
   - 'if "%compiler%"=="cmake" msbuild harfbuzz.sln /p:Configuration=%configuration% /p:Platform=%platform%'
-
-  - 'if "%compiler%"=="nmake" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh; make distdir"'
-  - 'if "%compiler%"=="nmake" cd harfbuzz-*\win32'
-  - 'if "%compiler%"=="nmake" nmake /f Makefile.vc CFG=%CFG% UNISCRIBE=1 DIRECTWRITE=1' # FREETYPE=1 FREETYPE_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\include ADDITIONAL_LIB_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\lib'
-  - 'if "%compiler%"=="nmake" nmake /f Makefile.vc CFG=%CFG% UNISCRIBE=1 DIRECTWRITE=1 install' # FREETYPE=1 install'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config}"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make; make check || (cat */test-suite.log test/*/test-suite.log && false)"'
