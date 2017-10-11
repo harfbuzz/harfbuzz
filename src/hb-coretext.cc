@@ -203,12 +203,10 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
   return ct_font;
 }
 
-typedef CGFontRef hb_coretext_shaper_face_data_t;
-
 hb_coretext_shaper_face_data_t *
 _hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
-  hb_coretext_shaper_face_data_t *cg_font = create_cg_font (face);
+  CGFontRef cg_font = create_cg_font (face);
 
   if (unlikely (!cg_font))
   {
@@ -216,13 +214,13 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
     return NULL;
   }
 
-  return cg_font;
+  return (hb_coretext_shaper_face_data_t *) cg_font;
 }
 
 void
-_hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *cg_font)
+_hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  CFRelease (cg_font);
+  CFRelease ((CGFontRef) data);
 }
 
 /*
@@ -232,8 +230,7 @@ CGFontRef
 hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
-  hb_coretext_shaper_face_data_t *cg_font = HB_SHAPER_DATA_GET (face);
-  return cg_font;
+  return (CGFontRef) HB_SHAPER_DATA_GET (face);
 }
 
 
@@ -241,17 +238,15 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
  * shaper font data
  */
 
-typedef CTFontRef hb_coretext_shaper_font_data_t;
-
 hb_coretext_shaper_font_data_t *
 _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (font->face))) return NULL;
-  hb_coretext_shaper_face_data_t *cg_font = HB_SHAPER_DATA_GET (face);
+  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
 
   float ptem = font->ptem < 0 ? HB_CORETEXT_FONT_SIZE : font->ptem;
 
-  hb_coretext_shaper_font_data_t *ct_font = create_ct_font (cg_font, ptem);
+  CTFontRef ct_font = create_ct_font (cg_font, ptem);
 
   if (unlikely (!ct_font))
   {
@@ -259,13 +254,13 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
     return NULL;
   }
 
-  return ct_font;
+  return (hb_coretext_shaper_font_data_t *) ct_font;
 }
 
 void
-_hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *ct_font)
+_hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *data)
 {
-  CFRelease (ct_font);
+  CFRelease ((CTFontRef) data);
 }
 
 
@@ -294,8 +289,7 @@ CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
   if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return NULL;
-  hb_coretext_shaper_font_data_t *ct_font = HB_SHAPER_DATA_GET (font);
-  return ct_font;
+  return (CTFontRef)_SHAPER_DATA_GET (font);
 }
 
 
@@ -527,8 +521,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
                     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  hb_coretext_shaper_face_data_t *cg_font = HB_SHAPER_DATA_GET (face);
-  hb_coretext_shaper_font_data_t *ct_font = HB_SHAPER_DATA_GET (font);
+  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
+  CTFontRef ct_font = (CTFontRef) HB_SHAPER_DATA_GET (font);
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
