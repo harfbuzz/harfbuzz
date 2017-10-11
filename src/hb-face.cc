@@ -118,8 +118,10 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 }
 
 static void
-_hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
+_hb_face_for_data_closure_destroy (void *data)
 {
+  hb_face_for_data_closure_t *closure = (hb_face_for_data_closure_t *) data;
+
   hb_blob_destroy (closure->blob);
   free (closure);
 }
@@ -169,7 +171,7 @@ hb_face_create (hb_blob_t    *blob,
 
   face = hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
-				    (hb_destroy_func_t) _hb_face_for_data_closure_destroy);
+				    _hb_face_for_data_closure_destroy);
 
   face->index = index;
 

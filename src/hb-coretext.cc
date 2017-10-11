@@ -64,10 +64,16 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 			 release_table_data);
 }
 
+static void
+_hb_cg_font_release (void *data)
+{
+  CGFontRelease ((CGFontRef) data);
+}
+
 hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font)
 {
-  return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), (hb_destroy_func_t) CGFontRelease);
+  return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), _hb_cg_font_release);
 }
 
 
@@ -116,7 +122,7 @@ static CGFontRef
 create_cg_font (hb_face_t *face)
 {
   CGFontRef cg_font = NULL;
-  if (face->destroy == (hb_destroy_func_t) CGFontRelease)
+  if (face->destroy == _hb_cg_font_release)
   {
     cg_font = CGFontRetain ((CGFontRef) face->user_data);
   }
