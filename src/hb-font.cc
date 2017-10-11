@@ -1158,7 +1158,18 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
 
-  /* TODO: copy variation coordinates. */
+  font->num_coords = parent->num_coords;
+  if (!font->num_coords)
+    font->coords = NULL;
+  else
+  {
+    unsigned int size = parent->num_coords * sizeof (parent->coords[0]);
+    font->coords = (int *) malloc (size);
+    if (unlikely (!font->coords))
+      font->num_coords = 0;
+    else
+      memcpy (font->coords, parent->coords, size);
+  }
 
   return font;
 }
