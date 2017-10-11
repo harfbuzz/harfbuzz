@@ -36,6 +36,7 @@
 #define HB_DEBUG_CORETEXT (HB_DEBUG+0)
 #endif
 
+#define HB_CORETEXT_FONT_SIZE 18.0
 
 static void
 release_table_data (void *user_data)
@@ -70,8 +71,9 @@ hb_coretext_face_create (CGFontRef cg_font)
 
 
 HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext, font)
-
+HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
+                                            abs (CTFontGetSize((CTFontRef) data) -
+                                                 (font->ptem < 0 ? HB_CORETEXT_FONT_SIZE : font->ptem)) < 1)
 
 /*
  * shaper face data
@@ -202,51 +204,24 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
   return ct_font;
 }
 
-struct hb_coretext_shaper_face_data_t {
-  CGFontRef cg_font;
-  CTFontRef ct_font;
-};
-
 hb_coretext_shaper_face_data_t *
 _hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
-  hb_coretext_shaper_face_data_t *data = (hb_coretext_shaper_face_data_t *) calloc (1, sizeof (hb_coretext_shaper_face_data_t));
-  if (unlikely (!data))
-    return NULL;
+  CGFontRef cg_font = create_cg_font (face);
 
-  data->cg_font = create_cg_font (face);
-  if (unlikely (!data->cg_font))
+  if (unlikely (!cg_font))
   {
     DEBUG_MSG (CORETEXT, face, "CGFont creation failed..");
-    free (data);
     return NULL;
   }
 
-  /* We use 36pt size instead of UPEM, because CoreText implements the 'trak' table,
-   * which can make the font too tight at large sizes.  36pt should be a good semi-neutral
-   * size.
-   *
-   * Since we always create CTFont at a fixed size, our CTFont lives in face_data
-   * instead of font_data.  Which is good, because when people change scale on
-   * hb_font_t, we won't need to update our CTFont. */
-  data->ct_font = create_ct_font (data->cg_font, 18.);
-  if (unlikely (!data->ct_font))
-  {
-    DEBUG_MSG (CORETEXT, face, "CTFont creation failed.");
-    CFRelease (data->cg_font);
-    free (data);
-    return NULL;
-  }
-
-  return data;
+  return (hb_coretext_shaper_face_data_t *) cg_font;
 }
 
 void
 _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  CFRelease (data->ct_font);
-  CFRelease (data->cg_font);
-  free (data);
+  CFRelease ((CGFontRef) data);
 }
 
 /*
@@ -256,8 +231,7 @@ CGFontRef
 hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
-  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  return face_data->cg_font;
+  return (CGFontRef) HB_SHAPER_DATA_GET (face);
 }
 
 
@@ -265,17 +239,30 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
  * shaper font data
  */
 
-struct hb_coretext_shaper_font_data_t {};
-
 hb_coretext_shaper_font_data_t *
-_hb_coretext_shaper_font_data_create (hb_font_t *font HB_UNUSED)
+_hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
-  return (hb_coretext_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  hb_face_t *face = font->face;
+  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
+  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
+
+  float ptem = font->ptem < 0 ? HB_CORETEXT_FONT_SIZE : font->ptem;
+
+  CTFontRef ct_font = create_ct_font (cg_font, ptem);
+
+  if (unlikely (!ct_font))
+  {
+    DEBUG_MSG (CORETEXT, font, "CGFont creation failed..");
+    return NULL;
+  }
+
+  return (hb_coretext_shaper_font_data_t *) ct_font;
 }
 
 void
 _hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *data)
 {
+  CFRelease ((CTFontRef) data);
 }
 
 
@@ -303,10 +290,8 @@ _hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shaper_shape_plan_data_
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
-  hb_face_t *face = font->face;
-  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
-  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  return face_data->ct_font;
+  if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return NULL;
+  return (CTFontRef)HB_SHAPER_DATA_GET (font);
 }
 
 
@@ -538,9 +523,10 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
                     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
+  CTFontRef ct_font = (CTFontRef) HB_SHAPER_DATA_GET (font);
 
-  CGFloat ct_font_size = CTFontGetSize (face_data->ct_font);
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
   CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
 
@@ -675,7 +661,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  CTFontDescriptorRef font_desc = CTFontDescriptorCreateWithAttributes (attributes);
 	  CFRelease (attributes);
 
-	  range->font = CTFontCreateCopyWithAttributes (face_data->ct_font, 0.0, NULL, font_desc);
+	  range->font = CTFontCreateCopyWithAttributes (ct_font, 0.0, NULL, font_desc);
 	  CFRelease (font_desc);
 	}
 	else
@@ -829,7 +815,7 @@ resize_and_retry:
 	CFRelease (lang);
       }
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
-				      kCTFontAttributeName, face_data->ct_font);
+				      kCTFontAttributeName, ct_font);
 
       if (num_features && range_records.len)
       {
@@ -947,7 +933,7 @@ resize_and_retry:
        */
       CFDictionaryRef attributes = CTRunGetAttributes (run);
       CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
-      if (!CFEqual (run_ct_font, face_data->ct_font))
+      if (!CFEqual (run_ct_font, ct_font))
       {
 	/* The run doesn't use our main font instance.  We have to figure out
 	 * whether font fallback happened, or this is just CoreText giving us
@@ -985,13 +971,13 @@ resize_and_retry:
 	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
 	  if (run_cg_font)
 	  {
-	    matched = CFEqual (run_cg_font, face_data->cg_font);
+	    matched = CFEqual (run_cg_font, cg_font);
 	    CFRelease (run_cg_font);
 	  }
 	}
 	if (!matched)
 	{
-	  CFStringRef font_ps_name = CTFontCopyName (face_data->ct_font, kCTFontPostScriptNameKey);
+	  CFStringRef font_ps_name = CTFontCopyName (ct_font, kCTFontPostScriptNameKey);
 	  CFStringRef run_ps_name = CTFontCopyName (run_ct_font, kCTFontPostScriptNameKey);
 	  CFComparisonResult result = CFStringCompare (run_ps_name, font_ps_name, 0);
 	  CFRelease (run_ps_name);
