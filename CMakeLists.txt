@@ -183,29 +183,19 @@ set(project_headers
 
 ## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE)
+
+  include(FindFreetype)
+  if (NOT FREETYPE_FOUND)
+    message(FATAL_ERROR "HB_HAVE_FREETYPE was set, but we failed to find it. Maybe add a CMAKE_PREFIX_PATH= to your Freetype2 install prefix")
+  endif()
+
+  list(APPEND THIRD_PARTY_LIBS ${FREETYPE_LIBRARIES})
+  include_directories(AFTER ${FREETYPE_INCLUDE_DIRS})
   add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
-
-  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindFreetype2.cmake
-  find_package(PkgConfig)
-  pkg_check_modules(PC_FREETYPE2 QUIET freetype2)
-
-  find_path(FREETYPE2_HEADER_DIR NAMES freetype.h HINTS ${PC_FREETYPE2_INCLUDE_DIRS} ${PC_FREETYPE2_INCLUDEDIR} $ENV{FREETYPE_DIR}/include PATH_SUFFIXES freetype)
-  find_path(FREETYPE2_ROOT_INCLUDE_DIR NAMES freetype/freetype.h HINTS ${PC_FREETYPE2_INCLUDE_DIRS} ${PC_FREETYPE2_INCLUDEDIR} $ENV{FREETYPE_DIR}/include)
-  if (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(FREETYPE2_LIBRARY_NAME freetyped)
-  else ()
-    set(FREETYPE2_LIBRARY_NAME freetype)
-  endif ()
-  find_library(FREETYPE2_LIBRARIES ${FREETYPE2_LIBRARY_NAME} HINTS ${PC_FREETYPE2_LIBDIR} ${PC_FREETYPE2_LIBRARY_DIRS} $ENV{FREETYPE_DIR}/lib)
-
-  include_directories(AFTER ${FREETYPE2_HEADER_DIR} ${FREETYPE2_ROOT_INCLUDE_DIR})
 
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 
-  list(APPEND THIRD_PARTY_LIBS ${FREETYPE2_LIBRARIES})
-
-  mark_as_advanced(FREETYPE2_HEADER_DIR FREETYPE2_ROOT_INCLUDE_DIR FREETYPE2_LIBRARIES)
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
