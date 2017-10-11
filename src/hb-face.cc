@@ -474,4 +474,33 @@ hb_face_t::load_num_glyphs (void) const
   hb_blob_destroy (maxp_blob);
 }
 
+/**
+ * hb_face_get_table_tags:
+ * @face: a face.
+ *
+ * Retrieves table tags for a face, if possible.
+ *
+ * Return value: total number of tables, or 0 if not possible to list.
+ *
+ * Since: 1.6.0
+ **/
+unsigned int
+hb_face_get_table_tags (hb_face_t    *face,
+			unsigned int  start_offset,
+			unsigned int *table_count, /* IN/OUT */
+			hb_tag_t     *table_tags /* OUT */)
+{
+  if (face->destroy != _hb_face_for_data_closure_destroy)
+  {
+    if (table_count)
+      *table_count = 0;
+    return 0;
+  }
 
+  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) face->user_data;
+
+  const OT::OpenTypeFontFile &ot_file = *OT::Sanitizer<OT::OpenTypeFontFile>::lock_instance (data->blob);
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+
+  return ot_face.get_table_tags (start_offset, table_count, table_tags);
+}
