@@ -241,7 +241,8 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 hb_coretext_shaper_font_data_t *
 _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
-  if (unlikely (!hb_coretext_shaper_face_data_ensure (font->face))) return NULL;
+  hb_face_t *face = font->face;
+  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
 
   float ptem = font->ptem < 0 ? HB_CORETEXT_FONT_SIZE : font->ptem;
@@ -289,7 +290,7 @@ CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
   if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return NULL;
-  return (CTFontRef)_SHAPER_DATA_GET (font);
+  return (CTFontRef)HB_SHAPER_DATA_GET (font);
 }
 
 
