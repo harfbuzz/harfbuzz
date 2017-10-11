@@ -118,17 +118,6 @@ struct hb_font_t {
   void              *user_data;
   hb_destroy_func_t  destroy;
 
-  enum dirty_t {
-    DIRTY_NOTHING	= 0x0000,
-    DIRTY_FACE		= 0x0001,
-    DIRTY_PARENT	= 0x0002,
-    DIRTY_FUNCS		= 0x0004,
-    DIRTY_SCALE		= 0x0008,
-    DIRTY_PPEM		= 0x0010,
-    DIRTY_PTEM		= 0x0020,
-    DIRTY_VARIATIONS	= 0x0040,
-  } dirty;
-
   struct hb_shaper_data_t shaper_data;
 
 
@@ -555,8 +544,6 @@ struct hb_font_t {
     return (hb_position_t) (v * scale / face->get_upem ());
   }
 };
-
-HB_MARK_AS_FLAG_T (hb_font_t::dirty_t);
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, font);
