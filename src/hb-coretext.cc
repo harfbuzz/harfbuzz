@@ -36,7 +36,7 @@
 #define HB_DEBUG_CORETEXT (HB_DEBUG+0)
 #endif
 
-#define HB_CORETEXT_FONT_SIZE 18.0
+#define HB_CORETEXT_FONT_SIZE 12.0
 
 static void
 release_table_data (void *user_data)
