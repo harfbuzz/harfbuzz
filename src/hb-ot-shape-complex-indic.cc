@@ -1283,7 +1283,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 
   /* This function relies heavily on halant glyphs.  Lots of ligation
-   * and possibly multiplication substitutions happened prior to this
+   * and possibly multiple substitutions happened prior to this
    * phase, and that might have messed up our properties.  Recover
    * from a particular case of that where we're fairly sure that a
    * class of OT_H is desired but has been lost. */
@@ -1690,7 +1690,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
         break;
 
       default:
-	/* Uniscribe merges the entire cluster... Except for Tamil & Sinhala.
+	/* Uniscribe merges the entire syllable into a single cluster... Except for Tamil & Sinhala.
 	 * This means, half forms are submerged into the main consonants cluster.
 	 * This is unnecessary, and makes cursor positioning harder, but that's what
 	 * Uniscribe does. */
