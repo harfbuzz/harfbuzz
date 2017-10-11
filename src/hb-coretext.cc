@@ -36,6 +36,7 @@
 #define HB_DEBUG_CORETEXT (HB_DEBUG+0)
 #endif
 
+/* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
 #define HB_CORETEXT_FONT_SIZE 12.0
 
 static void
