@@ -1249,22 +1249,20 @@ struct hb_coretext_aat_shaper_face_data_t {};
 hb_coretext_aat_shaper_face_data_t *
 _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
 {
-  hb_blob_t *mort_blob = face->reference_table (HB_CORETEXT_TAG_MORT);
-  /* Umm, we just reference the table to check whether it exists.
-   * Maybe add better API for this? */
-  if (!hb_blob_get_length (mort_blob))
-  {
-    hb_blob_destroy (mort_blob);
-    mort_blob = face->reference_table (HB_CORETEXT_TAG_MORX);
-    if (!hb_blob_get_length (mort_blob))
-    {
-      hb_blob_destroy (mort_blob);
-      return NULL;
-    }
-  }
-  hb_blob_destroy (mort_blob);
+  static const hb_tag_t tags[] = {HB_CORETEXT_TAG_MORX, HB_CORETEXT_TAG_MORT, HB_CORETEXT_TAG_KERX};
 
-  return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+  for (unsigned int i = 0; i < ARRAY_LENGTH (tags); i++)
+  {
+    hb_blob_t *blob = face->reference_table (tags[i]);
+    if (hb_blob_get_length (blob))
+    {
+      hb_blob_destroy (blob);
+      return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+    }
+    hb_blob_destroy (blob);
+  }
+
+  return NULL;
 }
 
 void
