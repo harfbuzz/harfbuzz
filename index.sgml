@@ -278,6 +278,7 @@
 <ANCHOR id="hb-font-get-nominal-glyph-func-t" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-nominal-glyph-func-t">
 <ANCHOR id="hb-font-get-parent" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-parent">
 <ANCHOR id="hb-font-get-ppem" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-ppem">
+<ANCHOR id="hb-font-get-ptem" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-ptem">
 <ANCHOR id="hb-font-get-scale" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-scale">
 <ANCHOR id="hb-font-get-user-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-user-data">
 <ANCHOR id="hb-font-get-variation-glyph" href="harfbuzz/harfbuzz-hb-font.html#hb-font-get-variation-glyph">
@@ -293,6 +294,7 @@
 <ANCHOR id="hb-font-set-funcs-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-funcs-data">
 <ANCHOR id="hb-font-set-parent" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-parent">
 <ANCHOR id="hb-font-set-ppem" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-ppem">
+<ANCHOR id="hb-font-set-ptem" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-ptem">
 <ANCHOR id="hb-font-set-scale" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-scale">
 <ANCHOR id="hb-font-set-user-data" href="harfbuzz/harfbuzz-hb-font.html#hb-font-set-user-data">
 <ANCHOR id="hb-variation-from-string" href="harfbuzz/harfbuzz-hb-font.html#hb-variation-from-string">

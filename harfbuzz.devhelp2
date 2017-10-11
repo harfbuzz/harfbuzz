@@ -320,6 +320,7 @@
     <keyword type="function" name="hb_font_get_nominal_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-nominal-glyph-func-t"/>
     <keyword type="function" name="hb_font_get_parent ()" link="harfbuzz-hb-font.html#hb-font-get-parent" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_ppem ()" link="harfbuzz-hb-font.html#hb-font-get-ppem" since="0.9.2"/>
+    <keyword type="function" name="hb_font_get_ptem ()" link="harfbuzz-hb-font.html#hb-font-get-ptem" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_scale ()" link="harfbuzz-hb-font.html#hb-font-get-scale" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_user_data ()" link="harfbuzz-hb-font.html#hb-font-get-user-data" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_variation_glyph ()" link="harfbuzz-hb-font.html#hb-font-get-variation-glyph" since="1.2.3"/>
@@ -335,6 +336,7 @@
     <keyword type="function" name="hb_font_set_funcs_data ()" link="harfbuzz-hb-font.html#hb-font-set-funcs-data" since="0.9.2"/>
     <keyword type="function" name="hb_font_set_parent ()" link="harfbuzz-hb-font.html#hb-font-set-parent" since="1.0.5"/>
     <keyword type="function" name="hb_font_set_ppem ()" link="harfbuzz-hb-font.html#hb-font-set-ppem" since="0.9.2"/>
+    <keyword type="function" name="hb_font_set_ptem ()" link="harfbuzz-hb-font.html#hb-font-set-ptem" since="1.6.0"/>
     <keyword type="function" name="hb_font_set_scale ()" link="harfbuzz-hb-font.html#hb-font-set-scale" since="0.9.2"/>
     <keyword type="function" name="hb_font_set_user_data ()" link="harfbuzz-hb-font.html#hb-font-set-user-data" since="0.9.2"/>
     <keyword type="function" name="hb_variation_from_string ()" link="harfbuzz-hb-font.html#hb-variation-from-string" since="1.4.2"/>
