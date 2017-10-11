@@ -108,6 +108,8 @@ struct hb_font_t {
   unsigned int x_ppem;
   unsigned int y_ppem;
 
+  float ptem;
+
   /* Font variation coordinates. */
   unsigned int num_coords;
   int *coords;
@@ -123,7 +125,8 @@ struct hb_font_t {
     DIRTY_FUNCS		= 0x0004,
     DIRTY_SCALE		= 0x0008,
     DIRTY_PPEM		= 0x0010,
-    DIRTY_VARIATIONS	= 0x0020,
+    DIRTY_PTEM		= 0x0020,
+    DIRTY_VARIATIONS	= 0x0040,
   } dirty;
 
   struct hb_shaper_data_t shaper_data;

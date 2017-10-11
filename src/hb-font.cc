@@ -1157,6 +1157,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->y_scale = parent->y_scale;
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
+  font->ptem = parent->ptem;
 
   font->num_coords = parent->num_coords;
   if (!font->num_coords)
@@ -1199,6 +1200,7 @@ hb_font_get_empty (void)
 
     0, /* x_ppem */
     0, /* y_ppem */
+    -1, /* ptem */
 
     0, /* num_coords */
     NULL, /* coords */
@@ -1595,6 +1597,45 @@ hb_font_get_ppem (hb_font_t *font,
 {
   if (x_ppem) *x_ppem = font->x_ppem;
   if (y_ppem) *y_ppem = font->y_ppem;
+}
+
+/**
+ * hb_font_set_ptem:
+ * @font: a font.
+ * @ptem: 
+ *
+ * Sets "point size" of the font.
+ *
+ * Since: 1.6.0
+ **/
+void
+hb_font_set_ptem (hb_font_t *font, float ptem)
+{
+  if (font->immutable)
+    return;
+
+  if (font->ptem == ptem)
+    return;
+
+  font->dirty |= font->DIRTY_PTEM;
+
+  font->ptem = ptem;
+}
+
+/**
+ * hb_font_get_ptem:
+ * @font: a font.
+ *
+ * Gets the "point size" of the font.  A value of -1 means unset.
+ *
+ * Return value: Point size.
+ *
+ * Since: 0.9.2
+ **/
+float
+hb_font_get_ptem (hb_font_t *font)
+{
+  return font->ptem;
 }
 
 /*

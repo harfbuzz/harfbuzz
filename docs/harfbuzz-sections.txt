@@ -246,6 +246,7 @@ hb_font_get_nominal_glyph
 hb_font_get_nominal_glyph_func_t
 hb_font_get_parent
 hb_font_get_ppem
+hb_font_get_ptem
 hb_font_get_scale
 hb_font_get_user_data
 hb_font_get_variation_glyph
@@ -261,6 +262,7 @@ hb_font_set_funcs
 hb_font_set_funcs_data
 hb_font_set_parent
 hb_font_set_ppem
+hb_font_set_ptem
 hb_font_set_scale
 hb_font_set_user_data
 hb_variation_t
