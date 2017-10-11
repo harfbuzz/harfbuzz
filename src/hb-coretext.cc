@@ -36,6 +36,7 @@
 #define HB_DEBUG_CORETEXT (HB_DEBUG+0)
 #endif
 
+#define HB_CORETEXT_FONT_SIZE 18.0
 
 static void
 release_table_data (void *user_data)
@@ -229,7 +230,7 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
    * Since we always create CTFont at a fixed size, our CTFont lives in face_data
    * instead of font_data.  Which is good, because when people change scale on
    * hb_font_t, we won't need to update our CTFont. */
-  data->ct_font = create_ct_font (data->cg_font, 18.);
+  data->ct_font = create_ct_font (data->cg_font, HB_CORETEXT_FONT_SIZE);
   if (unlikely (!data->ct_font))
   {
     DEBUG_MSG (CORETEXT, face, "CTFont creation failed.");
