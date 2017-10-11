@@ -1124,7 +1124,6 @@ hb_font_create (hb_face_t *face)
   font->parent = hb_font_get_empty ();
   font->face = hb_face_reference (face);
   font->klass = hb_font_funcs_get_empty ();
-  font->ptem = -1;
 
   font->x_scale = font->y_scale = hb_face_get_upem (face);
 
@@ -1201,7 +1200,7 @@ hb_font_get_empty (void)
 
     0, /* x_ppem */
     0, /* y_ppem */
-    -1, /* ptem */
+    0, /* ptem */
 
     0, /* num_coords */
     NULL, /* coords */
@@ -1598,7 +1597,7 @@ hb_font_set_ptem (hb_font_t *font, float ptem)
  * hb_font_get_ptem:
  * @font: a font.
  *
- * Gets the "point size" of the font.  A value of -1 means unset.
+ * Gets the "point size" of the font.  A value of 0 means unset.
  *
  * Return value: Point size.
  *

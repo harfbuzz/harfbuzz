@@ -609,7 +609,7 @@ hb_font_get_ppem (hb_font_t *font,
 
 /*
  * Point size per EM.  Used for optical-sizing in CoreText.
- * A -1 means "not set".
+ * A value of zero means "not set".
  */
 HB_EXTERN void
 hb_font_set_ptem (hb_font_t *font, float ptem);
