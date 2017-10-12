@@ -80,8 +80,8 @@ hb_coretext_face_create (CGFontRef cg_font)
 
 HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
 HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
-                                            fabsf (CTFontGetSize((CTFontRef) data) -
-                                                   (font->ptem <= 0 ? HB_CORETEXT_DEFAULT_FONT_SIZE : font->ptem)) <= .5)
+                                            fabs (CTFontGetSize((CTFontRef) data) -
+                                                  (font->ptem <= 0 ? HB_CORETEXT_DEFAULT_FONT_SIZE : font->ptem)) <= .5)
 
 /*
  * shaper face data
