@@ -856,8 +856,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
   /* 2. Decompose and reorder Matras:
    *
-   * Each matra and any syllable modifier sign in the cluster are moved to the
-   * appropriate position relative to the consonant(s) in the cluster. The
+   * Each matra and any syllable modifier sign in the syllable are moved to the
+   * appropriate position relative to the consonant(s) in the syllable. The
    * shaping engine decomposes two- or three-part matras into their constituent
    * parts before any repositioning. Matra characters are classified by which
    * consonant in a conjunct they have affinity for and are reordered to the
@@ -1283,7 +1283,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 
   /* This function relies heavily on halant glyphs.  Lots of ligation
-   * and possibly multiplication substitutions happened prior to this
+   * and possibly multiple substitutions happened prior to this
    * phase, and that might have messed up our properties.  Recover
    * from a particular case of that where we're fairly sure that a
    * class of OT_H is desired but has been lost. */
@@ -1307,7 +1307,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    * After the localized forms and basic shaping forms GSUB features have been
    * applied (see below), the shaping engine performs some final glyph
    * reordering before applying all the remaining font features to the entire
-   * cluster.
+   * syllable.
    */
 
   bool try_pref = !!indic_plan->mask_array[PREF];
@@ -1690,8 +1690,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
         break;
 
       default:
-	/* Uniscribe merges the entire cluster... Except for Tamil & Sinhala.
-	 * This means, half forms are submerged into the main consonants cluster.
+	/* Uniscribe merges the entire syllable into a single cluster... Except for Tamil & Sinhala.
+	 * This means, half forms are submerged into the main consonant's cluster.
 	 * This is unnecessary, and makes cursor positioning harder, but that's what
 	 * Uniscribe does. */
 	buffer->merge_clusters (start, end);
