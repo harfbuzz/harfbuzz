@@ -496,6 +496,7 @@
     <keyword type="function" name="hb_ft_face_create_referenced ()" link="harfbuzz-hb-ft.html#hb-ft-face-create-referenced" since="0.9.38"/>
     <keyword type="function" name="hb_ft_font_create ()" link="harfbuzz-hb-ft.html#hb-ft-font-create" since="0.9.2"/>
     <keyword type="function" name="hb_ft_font_create_referenced ()" link="harfbuzz-hb-ft.html#hb-ft-font-create-referenced" since="0.9.38"/>
+    <keyword type="function" name="hb_ft_font_changed ()" link="harfbuzz-hb-ft.html#hb-ft-font-changed"/>
     <keyword type="function" name="hb_ft_font_get_face ()" link="harfbuzz-hb-ft.html#hb-ft-font-get-face"/>
     <keyword type="function" name="hb_ft_font_set_load_flags ()" link="harfbuzz-hb-ft.html#hb-ft-font-set-load-flags" since="1.0.5"/>
     <keyword type="function" name="hb_ft_font_get_load_flags ()" link="harfbuzz-hb-ft.html#hb-ft-font-get-load-flags" since="1.0.5"/>
