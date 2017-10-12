@@ -150,7 +150,33 @@ create_cg_font (hb_face_t *face)
 static CTFontRef
 create_ct_font (CGFontRef cg_font, CGFloat font_size)
 {
-  CTFontRef ct_font = CTFontCreateWithGraphicsFont (cg_font, font_size, NULL, NULL);
+  CTFontRef ct_font = NULL;
+
+  /* CoreText does not enable trak table usage / tracking when creating a CTFont
+   * using CTFontCreateWithGraphicsFont. The only way of enabling tracking seems
+   * to be through the CTFontCreateUIFontForLanguage call. */
+  CFStringRef cg_postscript_name = CGFontCopyPostScriptName (cg_font);
+  if (CFStringHasPrefix (cg_postscript_name, CFSTR (".SFNSText")) ||
+      CFStringHasPrefix (cg_postscript_name, CFSTR (".SFNSDisplay")))
+  {
+    CTFontUIFontType font_type = kCTFontUIFontSystem;
+    if (CFStringHasSuffix (cg_postscript_name, CFSTR ("-Bold")))
+      font_type = kCTFontUIFontEmphasizedSystem;
+
+    ct_font = CTFontCreateUIFontForLanguage (font_type, font_size, NULL);
+    CFStringRef ct_result_name = CTFontCopyPostScriptName(ct_font);
+    if (CFStringCompare (ct_result_name, cg_postscript_name, 0) != kCFCompareEqualTo)
+    {
+      CFRelease(ct_font);
+      ct_font = NULL;
+    }
+    CFRelease (ct_result_name);
+  }
+  CFRelease (cg_postscript_name);
+
+  if (!ct_font)
+    ct_font = CTFontCreateWithGraphicsFont (cg_font, font_size, NULL, NULL);
+
   if (unlikely (!ct_font)) {
     DEBUG_MSG (CORETEXT, cg_font, "Font CTFontCreateWithGraphicsFont() failed");
     return NULL;
