@@ -291,6 +291,7 @@ hb_ft_face_create_cached
 hb_ft_face_create_referenced
 hb_ft_font_create
 hb_ft_font_create_referenced
+hb_ft_font_changed
 hb_ft_font_get_face
 hb_ft_font_set_load_flags
 hb_ft_font_get_load_flags

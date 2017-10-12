@@ -610,6 +610,19 @@ hb_ft_font_create (FT_Face           ft_face,
   font = hb_font_create (face);
   hb_face_destroy (face);
   _hb_ft_font_set_funcs (font, ft_face, false);
+  hb_ft_font_changed (font);
+  return font;
+}
+
+void
+hb_ft_font_changed (hb_font_t *font)
+{
+  if (font->destroy != _hb_ft_font_destroy)
+    return;
+
+  hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
+  FT_Face ft_face = ft_font->ft_face;
+
   hb_font_set_scale (font,
 		     (int) (((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM + (1u<<15)) >> 16),
 		     (int) (((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM + (1u<<15)) >> 16));
@@ -640,8 +653,6 @@ hb_ft_font_create (FT_Face           ft_face,
     free (mm_var);
   }
 #endif
-
-  return font;
 }
 
 /**
