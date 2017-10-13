@@ -38,13 +38,18 @@
 #endif
 
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
-#define HB_CORETEXT_DEFAULT_FONT_SIZE 12f
+#define HB_CORETEXT_DEFAULT_FONT_SIZE 12.f
 
 static CGFloat
 coretext_font_size (float ptem)
 {
-  ptem *= 96f / 72f;
-  return ptem <= 0f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem;
+  /* CoreText points are CSS pixels (96 per inch),
+   * NOT typographic points (72 per inch).
+   *
+   * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
+   */
+  ptem *= 96.f / 72.f;
+  return ptem <= 0.f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem;
 }
 
 static void
