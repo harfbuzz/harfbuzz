@@ -38,7 +38,14 @@
 #endif
 
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
-#define HB_CORETEXT_DEFAULT_FONT_SIZE 12.0
+#define HB_CORETEXT_DEFAULT_FONT_SIZE 12f
+
+static CGFloat
+coretext_font_size (float ptem)
+{
+  ptem *= 96f / 72f;
+  return ptem <= 0f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem;
+}
 
 static void
 release_table_data (void *user_data)
@@ -77,11 +84,10 @@ hb_coretext_face_create (CGFontRef cg_font)
   return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), _hb_cg_font_release);
 }
 
-
 HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
 HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
-                                            fabs (CTFontGetSize((CTFontRef) data) -
-                                                  (font->ptem <= 0 ? HB_CORETEXT_DEFAULT_FONT_SIZE : font->ptem)) <= .5)
+	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size (font->ptem)) <= .5
+)
 
 /*
  * shaper face data
@@ -280,9 +286,7 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
 
-  float ptem = font->ptem <= 0 ? HB_CORETEXT_DEFAULT_FONT_SIZE : font->ptem;
-
-  CTFontRef ct_font = create_ct_font (cg_font, ptem);
+  CTFontRef ct_font = create_ct_font (cg_font, coretext_font_size (font->ptem));
 
   if (unlikely (!ct_font))
   {
