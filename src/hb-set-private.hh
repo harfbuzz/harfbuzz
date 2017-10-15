@@ -35,29 +35,62 @@
  * hb_set_t
  */
 
-struct Union
+struct HbOpOr
 {
   static const bool passthru_left = true;
   static const bool passthru_right = true;
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
 };
-struct Intersect
+struct HbOpAnd
 {
   static const bool passthru_left = false;
   static const bool passthru_right = false;
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
 };
-struct Subtract
+struct HbOpMinus
 {
   static const bool passthru_left = true;
   static const bool passthru_right = false;
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
 };
-struct SymmetricDifference
+struct HbOpXor
 {
   static const bool passthru_left = true;
   static const bool passthru_right = true;
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
+};
+
+template <typename elt_t, unsigned int byte_size>
+struct vector_like_t
+{
+  elt_t& operator [] (unsigned int i) { return v[i]; }
+  const elt_t& operator [] (unsigned int i) const { return v[i]; }
+
+  template <class Op>
+  inline vector_like_t process (const vector_like_t &o) const
+  {
+    vector_like_t r;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      Op::process (r.v[i], v[i], o.v[i]);
+    return r;
+  }
+  inline vector_like_t operator | (const vector_like_t &o) const
+  { return process<HbOpOr> (o); }
+  inline vector_like_t operator & (const vector_like_t &o) const
+  { return process<HbOpAnd> (o); }
+  inline vector_like_t operator ^ (const vector_like_t &o) const
+  { return process<HbOpXor> (o); }
+  inline vector_like_t operator ~ () const
+  {
+    vector_like_t r;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      r.v[i] = ~v[i];
+    return r;
+  }
+
+  private:
+  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size);
+  elt_t v[byte_size / sizeof (elt_t)];
 };
 
 struct hb_set_t
@@ -156,22 +189,15 @@ struct hb_set_t
       return 0;
     }
 
-    typedef uint64_t elt_t;
-
     static const unsigned int PAGE_BITS = 512; /* Use to tune. */
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
-#if 1
+    typedef uint64_t elt_t;
+
+#if 0
     typedef elt_t vector_t __attribute__((vector_size (PAGE_BITS / 8)));
 #else
-  struct vector_t
-    {
-      elt_t& operator [] (unsigned int i) { return v[i]; }
-      const elt_t& operator [] (unsigned int i) const { return v[i]; }
-
-      private:
-      elt_t v[PAGE_BITS / (sizeof (elt_t) * 8)];
-    };
+    typedef vector_like_t<elt_t, PAGE_BITS / 8> vector_t;
 #endif
 
     vector_t v;
@@ -383,19 +409,19 @@ struct hb_set_t
 
   inline void union_ (const hb_set_t *other)
   {
-    process<Union> (other);
+    process<HbOpOr> (other);
   }
   inline void intersect (const hb_set_t *other)
   {
-    process<Intersect> (other);
+    process<HbOpAnd> (other);
   }
   inline void subtract (const hb_set_t *other)
   {
-    process<Subtract> (other);
+    process<HbOpMinus> (other);
   }
   inline void symmetric_difference (const hb_set_t *other)
   {
-    process<SymmetricDifference> (other);
+    process<HbOpXor> (other);
   }
   inline bool next (hb_codepoint_t *codepoint) const
   {
