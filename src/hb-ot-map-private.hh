@@ -53,8 +53,8 @@ struct hb_ot_map_t
     unsigned int auto_zwnj : 1;
     unsigned int auto_zwj : 1;
 
-    static int cmp (const feature_map_t *a, const feature_map_t *b)
-    { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
+    inline int cmp (const hb_tag_t *tag_) const
+    { return *tag_ < tag ? -1 : *tag_ > tag ? 1 : 0; }
   };
 
   struct lookup_map_t {

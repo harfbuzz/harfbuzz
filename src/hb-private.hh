@@ -488,14 +488,38 @@ struct hb_prealloced_array_t
   }
 
   template <typename T>
-  inline Type *bsearch (T *key)
+  inline Type *bsearch (T *x)
   {
-    return (Type *) ::bsearch (key, array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    int min = 0, max = (int) this->len - 1;
+    while (min <= max)
+    {
+      int mid = (min + max) / 2;
+      int c = this->array[mid].cmp (x);
+      if (c < 0)
+        max = mid - 1;
+      else if (c > 0)
+        min = mid + 1;
+      else
+        return &this->array[mid];
+    }
+    return nullptr;
   }
   template <typename T>
-  inline const Type *bsearch (T *key) const
+  inline const Type *bsearch (T *x) const
   {
-    return (const Type *) ::bsearch (key, array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    int min = 0, max = (int) this->len - 1;
+    while (min <= max)
+    {
+      int mid = (min + max) / 2;
+      int c = this->array[mid].cmp (x);
+      if (c < 0)
+        max = mid - 1;
+      else if (c > 0)
+        min = mid + 1;
+      else
+        return &this->array[mid];
+    }
+    return nullptr;
   }
 
   inline void finish (void)
