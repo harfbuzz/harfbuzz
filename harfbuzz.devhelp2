@@ -399,7 +399,7 @@
     <keyword type="function" name="hb_set_get_user_data ()" link="harfbuzz-hb-set.html#hb-set-get-user-data" since="0.9.2"/>
     <keyword type="function" name="hb_set_has ()" link="harfbuzz-hb-set.html#hb-set-has" since="0.9.2"/>
     <keyword type="function" name="hb_set_intersect ()" link="harfbuzz-hb-set.html#hb-set-intersect" since="0.9.2"/>
-    <keyword type="function" name="hb_set_invert ()" link="harfbuzz-hb-set.html#hb-set-invert" since="0.9.10"/>
+    <keyword type="function" name="hb_set_invert ()" link="harfbuzz-hb-set.html#hb-set-invert" deprecated="1.6.1" since="0.9.10"/>
     <keyword type="function" name="hb_set_is_empty ()" link="harfbuzz-hb-set.html#hb-set-is-empty" since="0.9.7"/>
     <keyword type="function" name="hb_set_is_equal ()" link="harfbuzz-hb-set.html#hb-set-is-equal" since="0.9.7"/>
     <keyword type="function" name="hb_set_next ()" link="harfbuzz-hb-set.html#hb-set-next" since="0.9.2"/>
