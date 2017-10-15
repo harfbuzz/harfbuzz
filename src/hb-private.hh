@@ -93,7 +93,8 @@ public:
     }
 private:
     void operator&() const;    // whose address can't be taken
-} nullptr = {};                // and whose name is nullptr
+} _hb_nullptr = {};            // and whose name is nullptr
+#define nullptr _hb_nullptr
 
 // Static assertions
 #ifndef static_assert
