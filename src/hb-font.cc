@@ -36,7 +36,7 @@
  */
 
 static hb_bool_t
-hb_font_get_font_h_extents_nil (hb_font_t *font,
+hb_font_get_font_h_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_font_extents_t *metrics,
 				void *user_data HB_UNUSED)
@@ -60,7 +60,7 @@ hb_font_get_font_h_extents_parent (hb_font_t *font,
 }
 
 static hb_bool_t
-hb_font_get_font_v_extents_nil (hb_font_t *font,
+hb_font_get_font_v_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_font_extents_t *metrics,
 				void *user_data HB_UNUSED)
