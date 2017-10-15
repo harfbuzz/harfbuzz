@@ -490,22 +490,17 @@ struct hb_prealloced_array_t
   template <typename T>
   inline Type *bsearch (T *x)
   {
-    int min = 0, max = (int) this->len - 1;
-    while (min <= max)
-    {
-      int mid = (min + max) / 2;
-      int c = this->array[mid].cmp (x);
-      if (c < 0)
-        max = mid - 1;
-      else if (c > 0)
-        min = mid + 1;
-      else
-        return &this->array[mid];
-    }
-    return nullptr;
+    unsigned int i;
+    return bfind (x, &i) ? &array[i] : nullptr;
   }
   template <typename T>
   inline const Type *bsearch (T *x) const
+  {
+    unsigned int i;
+    return bfind (x, &i) ? &array[i] : nullptr;
+  }
+  template <typename T>
+  inline bool bfind (T *x, unsigned int *i) const
   {
     int min = 0, max = (int) this->len - 1;
     while (min <= max)
@@ -517,9 +512,15 @@ struct hb_prealloced_array_t
       else if (c > 0)
         min = mid + 1;
       else
-        return &this->array[mid];
+      {
+        *i = mid;
+	return true;
+      }
     }
-    return nullptr;
+    if (max < 0 || max < (int) this->len && this->array[max].cmp (x) < 0)
+      max++;
+    *i = max;
+    return false;
   }
 
   inline void finish (void)
