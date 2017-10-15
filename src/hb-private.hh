@@ -200,13 +200,13 @@ private:
 #  if defined(_WIN32_WCE)
      /* Some things not defined on Windows CE. */
 #    define vsnprintf _vsnprintf
-#    define getenv(Name) NULL
+#    define getenv(Name) nullptr
 #    if _WIN32_WCE < 0x800
 #      define setlocale(Category, Locale) "C"
 static int errno = 0; /* Use something better? */
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
-#    define getenv(Name) NULL
+#    define getenv(Name) nullptr
 #  endif
 #  if defined(_MSC_VER) && _MSC_VER < 1900
 #    define snprintf _snprintf
@@ -240,11 +240,6 @@ static int errno = 0; /* Use something better? */
 #endif
 
 /* Basics */
-
-
-#ifndef NULL
-# define NULL ((void *) 0)
-#endif
 
 #undef MIN
 template <typename Type>
@@ -321,7 +316,7 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Void! */
 struct _hb_void_t {};
 typedef const _hb_void_t *hb_void_t;
-#define HB_VOID ((const _hb_void_t *) NULL)
+#define HB_VOID ((const _hb_void_t *) nullptr)
 
 /* Return the number of 1 bits in mask. */
 static inline HB_CONST_FUNC unsigned int
@@ -387,7 +382,7 @@ typedef int (*hb_compare_func_t) (const void *, const void *);
 /* arrays and maps */
 
 
-#define HB_PREALLOCED_ARRAY_INIT {0, 0, NULL}
+#define HB_PREALLOCED_ARRAY_INIT {0, 0, nullptr}
 template <typename Type, unsigned int StaticSize=16>
 struct hb_prealloced_array_t
 {
@@ -412,7 +407,7 @@ struct hb_prealloced_array_t
 
     /* Need to reallocate */
     unsigned int new_allocated = allocated + (allocated >> 1) + 8;
-    Type *new_array = NULL;
+    Type *new_array = nullptr;
 
     if (array == static_array) {
       new_array = (Type *) calloc (new_allocated, sizeof (Type));
@@ -426,7 +421,7 @@ struct hb_prealloced_array_t
     }
 
     if (unlikely (!new_array))
-      return NULL;
+      return nullptr;
 
     array = new_array;
     allocated = new_allocated;
@@ -459,14 +454,14 @@ struct hb_prealloced_array_t
     for (unsigned int i = 0; i < len; i++)
       if (array[i] == v)
 	return &array[i];
-    return NULL;
+    return nullptr;
   }
   template <typename T>
   inline const Type *find (T v) const {
     for (unsigned int i = 0; i < len; i++)
       if (array[i] == v)
 	return &array[i];
-    return NULL;
+    return nullptr;
   }
 
   inline void qsort (void)
@@ -494,7 +489,7 @@ struct hb_prealloced_array_t
   {
     if (array != static_array)
       free (array);
-    array = NULL;
+    array = nullptr;
     allocated = len = 0;
   }
 };
@@ -528,7 +523,7 @@ struct hb_lockable_set_t
 	old.finish ();
       }
       else {
-        item = NULL;
+        item = nullptr;
 	l.unlock ();
       }
     } else {
@@ -791,8 +786,8 @@ _hb_debug_msg<0> (const char *what HB_UNUSED,
 		  const char *message HB_UNUSED,
 		  ...) {}
 
-#define DEBUG_MSG_LEVEL(WHAT, OBJ, LEVEL, LEVEL_DIR, ...)	_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), NULL,    true, (LEVEL), (LEVEL_DIR), __VA_ARGS__)
-#define DEBUG_MSG(WHAT, OBJ, ...) 				_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), NULL,    false, 0, 0, __VA_ARGS__)
+#define DEBUG_MSG_LEVEL(WHAT, OBJ, LEVEL, LEVEL_DIR, ...)	_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), nullptr,    true, (LEVEL), (LEVEL_DIR), __VA_ARGS__)
+#define DEBUG_MSG(WHAT, OBJ, ...) 				_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), nullptr,    false, 0, 0, __VA_ARGS__)
 #define DEBUG_MSG_FUNC(WHAT, OBJ, ...)				_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), HB_FUNC, false, 0, 0, __VA_ARGS__)
 
 
@@ -851,7 +846,7 @@ struct hb_auto_trace_t {
   {
     _hb_warn_no_return<ret_t> (returned);
     if (!returned) {
-      _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, " ");
+      _hb_debug_msg<max_level> (what, obj, nullptr, true, plevel ? *plevel : 1, -1, " ");
     }
     if (plevel) --*plevel;
   }
@@ -863,11 +858,11 @@ struct hb_auto_trace_t {
       return v;
     }
 
-    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1,
+    _hb_debug_msg<max_level> (what, obj, nullptr, true, plevel ? *plevel : 1, -1,
 			      "return %s (line %d)",
 			      hb_printer_t<ret_t>().print (v), line);
     if (plevel) --*plevel;
-    plevel = NULL;
+    plevel = nullptr;
     returned = true;
     return v;
   }
@@ -989,7 +984,7 @@ hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), 
 template <typename T> static inline void
 hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
 {
-  hb_stable_sort (array, len, compar, (int *) NULL);
+  hb_stable_sort (array, len, compar, (int *) nullptr);
 }
 
 static inline hb_bool_t

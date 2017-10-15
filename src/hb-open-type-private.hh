@@ -192,9 +192,9 @@ struct hb_sanitize_context_t :
 {
   inline hb_sanitize_context_t (void) :
 	debug_depth (0),
-	start (NULL), end (NULL),
+	start (nullptr), end (nullptr),
 	writable (false), edit_count (0),
-	blob (NULL) {}
+	blob (nullptr) {}
 
   inline const char *get_name (void) { return "SANITIZE"; }
   template <typename T, typename F>
@@ -214,7 +214,7 @@ struct hb_sanitize_context_t :
 
   inline void start_processing (void)
   {
-    this->start = hb_blob_get_data (this->blob, NULL);
+    this->start = hb_blob_get_data (this->blob, nullptr);
     this->end = this->start + hb_blob_get_length (this->blob);
     assert (this->start <= this->end); /* Must not overflow. */
     this->edit_count = 0;
@@ -233,8 +233,8 @@ struct hb_sanitize_context_t :
 		     this->start, this->end, this->edit_count);
 
     hb_blob_destroy (this->blob);
-    this->blob = NULL;
-    this->start = this->end = NULL;
+    this->blob = nullptr;
+    this->start = this->end = nullptr;
   }
 
   inline bool check_range (const void *base, unsigned int len) const
@@ -349,7 +349,7 @@ struct Sanitizer
     } else {
       unsigned int edit_count = c->edit_count;
       if (edit_count && !c->writable) {
-        c->start = hb_blob_get_data_writable (blob, NULL);
+        c->start = hb_blob_get_data_writable (blob, nullptr);
 	c->end = c->start + hb_blob_get_length (blob);
 
 	if (c->start) {
@@ -374,7 +374,7 @@ struct Sanitizer
 
   static const Type* lock_instance (hb_blob_t *blob) {
     hb_blob_make_immutable (blob);
-    const char *base = hb_blob_get_data (blob, NULL);
+    const char *base = hb_blob_get_data (blob, nullptr);
     return unlikely (!base) ? &Null(Type) : CastP<Type> (base);
   }
 };
@@ -445,7 +445,7 @@ struct hb_serialize_context_t
   {
     if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
       this->ran_out_of_room = true;
-      return NULL;
+      return nullptr;
     }
     memset (this->head, 0, size);
     char *ret = this->head;
@@ -471,7 +471,7 @@ struct hb_serialize_context_t
   {
     unsigned int size = obj.get_size ();
     Type *ret = this->allocate_size<Type> (size);
-    if (unlikely (!ret)) return NULL;
+    if (unlikely (!ret)) return nullptr;
     memcpy (ret, obj, size);
     return ret;
   }
@@ -481,7 +481,7 @@ struct hb_serialize_context_t
   {
     unsigned int size = obj.min_size;
     assert (this->start <= (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return NULL;
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (&obj);
   }
 
@@ -490,7 +490,7 @@ struct hb_serialize_context_t
   {
     unsigned int size = obj.get_size ();
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return NULL;
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (&obj);
   }
 
@@ -1073,7 +1073,7 @@ struct hb_lazy_loader_t
   inline void init (hb_face_t *face_)
   {
     face = face_;
-    instance = NULL;
+    instance = nullptr;
   }
 
   inline void fini (void)
@@ -1096,7 +1096,7 @@ struct hb_lazy_loader_t
         p = const_cast<T *> (&OT::Null(T));
       else
 	p->init (face);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p)))
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p)))
       {
 	if (p != &OT::Null(T))
 	  p->fini ();
@@ -1123,8 +1123,8 @@ struct hb_lazy_table_loader_t
   inline void init (hb_face_t *face_)
   {
     face = face_;
-    instance = NULL;
-    blob = NULL;
+    instance = nullptr;
+    blob = nullptr;
   }
 
   inline void fini (void)
@@ -1140,7 +1140,7 @@ struct hb_lazy_table_loader_t
     {
       hb_blob_t *blob_ = OT::Sanitizer<T>::sanitize (face->reference_table (T::tableTag));
       p = const_cast<T *>(OT::Sanitizer<T>::lock_instance (blob_));
-      if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p))
+      if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p))
       {
 	hb_blob_destroy (blob_);
 	goto retry;

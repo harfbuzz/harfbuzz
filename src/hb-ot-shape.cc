@@ -70,7 +70,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   hb_ot_map_builder_t *map = &planner->map;
 
   map->add_global_bool_feature (HB_TAG('r','v','r','n'));
-  map->add_gsub_pause (NULL);
+  map->add_gsub_pause (nullptr);
 
   switch (props->direction) {
     case HB_DIRECTION_LTR:
@@ -176,7 +176,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 {
   hb_ot_shape_plan_t *plan = (hb_ot_shape_plan_t *) calloc (1, sizeof (hb_ot_shape_plan_t));
   if (unlikely (!plan))
-    return NULL;
+    return nullptr;
 
   hb_ot_shape_planner_t planner (shape_plan);
 
@@ -190,7 +190,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   if (plan->shaper->data_create) {
     plan->data = plan->shaper->data_create (plan);
     if (unlikely (!plan->data))
-      return NULL;
+      return nullptr;
   }
 
   return plan;
@@ -928,7 +928,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 {
   hb_ot_shape_plan_t plan;
 
-  const char *shapers[] = {"ot", NULL};
+  const char *shapers[] = {"ot", nullptr};
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
 							     features, num_features, shapers);
 

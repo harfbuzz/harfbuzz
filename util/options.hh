@@ -90,7 +90,7 @@ struct option_parser_t
   }
   ~option_parser_t (void) {
     g_option_context_free (context);
-    g_ptr_array_foreach (to_free, (GFunc) g_free, NULL);
+    g_ptr_array_foreach (to_free, (GFunc) g_free, nullptr);
     g_ptr_array_free (to_free, TRUE);
   }
 
@@ -130,8 +130,8 @@ struct view_options_t : option_group_t
 {
   view_options_t (option_parser_t *parser) {
     annotate = false;
-    fore = NULL;
-    back = NULL;
+    fore = nullptr;
+    back = nullptr;
     line_space = 0;
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
 
@@ -159,11 +159,11 @@ struct shape_options_t : option_group_t
 {
   shape_options_t (option_parser_t *parser)
   {
-    direction = language = script = NULL;
+    direction = language = script = nullptr;
     bot = eot = preserve_default_ignorables = false;
-    features = NULL;
+    features = nullptr;
     num_features = 0;
-    shapers = NULL;
+    shapers = nullptr;
     utf8_clusters = false;
     cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
     normalize_glyphs = false;
@@ -222,7 +222,7 @@ struct shape_options_t : option_group_t
       /* Reset cluster values to refer to Unicode character index
        * instead of UTF-8 index. */
       unsigned int num_glyphs = hb_buffer_get_length (buffer);
-      hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+      hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
       for (unsigned int i = 0; i < num_glyphs; i++)
       {
 	info->cluster = i;
@@ -233,9 +233,9 @@ struct shape_options_t : option_group_t
     setup_buffer (buffer);
   }
 
-  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=NULL)
+  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=nullptr)
   {
-    hb_buffer_t *text_buffer = NULL;
+    hb_buffer_t *text_buffer = nullptr;
     if (verify)
     {
       text_buffer = hb_buffer_create ();
@@ -264,7 +264,7 @@ struct shape_options_t : option_group_t
   bool verify_buffer (hb_buffer_t  *buffer,
 		      hb_buffer_t  *text_buffer,
 		      hb_font_t    *font,
-		      const char  **error=NULL)
+		      const char  **error=nullptr)
   {
     if (!verify_buffer_monotone (buffer, error))
       return false;
@@ -273,7 +273,7 @@ struct shape_options_t : option_group_t
     return true;
   }
 
-  bool verify_buffer_monotone (hb_buffer_t *buffer, const char **error=NULL)
+  bool verify_buffer_monotone (hb_buffer_t *buffer, const char **error=nullptr)
   {
     /* Check that clusters are monotone. */
     if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES ||
@@ -300,7 +300,7 @@ struct shape_options_t : option_group_t
   bool verify_buffer_safe_to_break (hb_buffer_t  *buffer,
 				    hb_buffer_t  *text_buffer,
 				    hb_font_t    *font,
-				    const char  **error=NULL)
+				    const char  **error=nullptr)
   {
     if (cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES &&
 	cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
@@ -448,16 +448,16 @@ struct font_options_t : option_group_t
 		  int default_font_size_,
 		  unsigned int subpixel_bits_)
   {
-    variations = NULL;
+    variations = nullptr;
     num_variations = 0;
     default_font_size = default_font_size_;
     subpixel_bits = subpixel_bits_;
-    font_file = NULL;
+    font_file = nullptr;
     face_index = 0;
     font_size_x = font_size_y = default_font_size;
-    font_funcs = NULL;
+    font_funcs = nullptr;
 
-    font = NULL;
+    font = nullptr;
 
     add_options (parser);
   }
@@ -490,15 +490,15 @@ struct font_options_t : option_group_t
 struct text_options_t : option_group_t
 {
   text_options_t (option_parser_t *parser) {
-    text_before = NULL;
-    text_after = NULL;
+    text_before = nullptr;
+    text_after = nullptr;
 
-    text = NULL;
-    text_file = NULL;
+    text = nullptr;
+    text_file = nullptr;
 
-    fp = NULL;
-    gs = NULL;
-    line = NULL;
+    fp = nullptr;
+    gs = nullptr;
+    line = nullptr;
     line_len = (unsigned int) -1;
 
     add_options (parser);
@@ -541,13 +541,13 @@ struct text_options_t : option_group_t
 struct output_options_t : option_group_t
 {
   output_options_t (option_parser_t *parser,
-		    const char **supported_formats_ = NULL) {
-    output_file = NULL;
-    output_format = NULL;
+		    const char **supported_formats_ = nullptr) {
+    output_file = nullptr;
+    output_format = nullptr;
     supported_formats = supported_formats_;
     explicit_output_format = false;
 
-    fp = NULL;
+    fp = nullptr;
 
     add_options (parser);
   }
@@ -575,7 +575,7 @@ struct output_options_t : option_group_t
     }
 
     if (output_file && 0 == strcmp (output_file, "-"))
-      output_file = NULL; /* STDOUT */
+      output_file = nullptr; /* STDOUT */
   }
 
   FILE *get_file_handle (void);

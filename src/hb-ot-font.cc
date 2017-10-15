@@ -235,8 +235,8 @@ struct hb_ot_face_cbdt_accelerator_t
     cbdt_len = hb_blob_get_length (cbdt_blob);
 
     if (hb_blob_get_length (cblc_blob) == 0) {
-      cblc = NULL;
-      cbdt = NULL;
+      cblc = nullptr;
+      cbdt = nullptr;
       return;  /* Not a bitmap font. */
     }
     cblc = OT::Sanitizer<OT::CBLC>::lock_instance (cblc_blob);
@@ -349,8 +349,8 @@ struct hb_ot_face_cmap_accelerator_t
   {
     this->blob = OT::Sanitizer<OT::cmap>::sanitize (face->reference_table (HB_OT_TAG_cmap));
     const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (this->blob);
-    const OT::CmapSubtable *subtable = NULL;
-    const OT::CmapSubtableFormat14 *subtable_uvs = NULL;
+    const OT::CmapSubtable *subtable = nullptr;
+    const OT::CmapSubtableFormat14 *subtable_uvs = nullptr;
 
     bool symbol = false;
     /* 32-bit subtables. */
@@ -445,7 +445,7 @@ _hb_ot_font_create (hb_face_t *face)
   hb_ot_font_t *ot_font = (hb_ot_font_t *) calloc (1, sizeof (hb_ot_font_t));
 
   if (unlikely (!ot_font))
-    return NULL;
+    return nullptr;
 
   ot_font->cmap.init (face);
   ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_HVAR, HB_OT_TAG_os2);
@@ -563,7 +563,7 @@ hb_ot_get_font_v_extents (hb_font_t *font HB_UNUSED,
   return ot_font->v_metrics.has_font_extents;
 }
 
-static hb_font_funcs_t *static_ot_funcs = NULL;
+static hb_font_funcs_t *static_ot_funcs = nullptr;
 
 #ifdef HB_USE_ATEXIT
 static
@@ -583,24 +583,24 @@ retry:
   {
     funcs = hb_font_funcs_create ();
 
-    hb_font_funcs_set_font_h_extents_func (funcs, hb_ot_get_font_h_extents, NULL, NULL);
-    hb_font_funcs_set_font_v_extents_func (funcs, hb_ot_get_font_v_extents, NULL, NULL);
-    hb_font_funcs_set_nominal_glyph_func (funcs, hb_ot_get_nominal_glyph, NULL, NULL);
-    hb_font_funcs_set_variation_glyph_func (funcs, hb_ot_get_variation_glyph, NULL, NULL);
-    hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ot_get_glyph_h_advance, NULL, NULL);
-    hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ot_get_glyph_v_advance, NULL, NULL);
-    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, NULL, NULL);
-    //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, NULL, NULL);
-    //hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ot_get_glyph_h_kerning, NULL, NULL); TODO
-    //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ot_get_glyph_v_kerning, NULL, NULL);
-    hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, NULL, NULL);
-    //hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, NULL, NULL); TODO
-    //hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, NULL, NULL); TODO
-    //hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, NULL, NULL); TODO
+    hb_font_funcs_set_font_h_extents_func (funcs, hb_ot_get_font_h_extents, nullptr, nullptr);
+    hb_font_funcs_set_font_v_extents_func (funcs, hb_ot_get_font_v_extents, nullptr, nullptr);
+    hb_font_funcs_set_nominal_glyph_func (funcs, hb_ot_get_nominal_glyph, nullptr, nullptr);
+    hb_font_funcs_set_variation_glyph_func (funcs, hb_ot_get_variation_glyph, nullptr, nullptr);
+    hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ot_get_glyph_h_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ot_get_glyph_v_advance, nullptr, nullptr);
+    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, nullptr, nullptr);
+    //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, nullptr, nullptr);
+    //hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ot_get_glyph_h_kerning, nullptr, nullptr); TODO
+    //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ot_get_glyph_v_kerning, nullptr, nullptr);
+    hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);
+    //hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, nullptr, nullptr); TODO
+    //hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr); TODO
+    //hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, nullptr, nullptr); TODO
 
     hb_font_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, NULL, funcs)) {
+    if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, nullptr, funcs)) {
       hb_font_funcs_destroy (funcs);
       goto retry;
     }

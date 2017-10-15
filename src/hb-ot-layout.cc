@@ -44,7 +44,7 @@ _hb_ot_layout_create (hb_face_t *face)
 {
   hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
   if (unlikely (!layout))
-    return NULL;
+    return nullptr;
 
   layout->gdef_blob = OT::Sanitizer<OT::GDEF>::sanitize (face->reference_table (HB_OT_TAG_GDEF));
   layout->gdef = OT::Sanitizer<OT::GDEF>::lock_instance (layout->gdef_blob);
@@ -176,7 +176,7 @@ _hb_ot_layout_create (hb_face_t *face)
 		(layout->gpos_lookup_count && !layout->gpos_accels)))
   {
     _hb_ot_layout_destroy (layout);
-    return NULL;
+    return nullptr;
   }
 
   for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
@@ -474,7 +474,7 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 						     script_index,
 						     language_index,
 						     feature_index,
-						     NULL);
+						     nullptr);
 }
 
 /**
@@ -652,7 +652,7 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 						    script_index,
 						    language_index,
 						    &required_feature_index,
-						    NULL))
+						    nullptr))
       _hb_ot_layout_collect_lookups_lookups (face,
 					     table_tag,
 					     required_feature_index,
@@ -721,7 +721,7 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
     unsigned int count = hb_ot_layout_script_get_language_tags (face,
 								table_tag,
 								script_index,
-								0, NULL, NULL);
+								0, nullptr, nullptr);
     for (unsigned int language_index = 0; language_index < count; language_index++)
       _hb_ot_layout_collect_lookups_features (face,
 					      table_tag,
@@ -768,7 +768,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
     /* All scripts */
     unsigned int count = hb_ot_layout_table_get_script_tags (face,
 							     table_tag,
-							     0, NULL, NULL);
+							     0, nullptr, nullptr);
     for (unsigned int script_index = 0; script_index < count; script_index++)
       _hb_ot_layout_collect_lookups_languages (face,
 					       table_tag,
@@ -805,10 +805,10 @@ void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
-				    hb_set_t     *glyphs_before, /* OUT. May be NULL */
-				    hb_set_t     *glyphs_input,  /* OUT. May be NULL */
-				    hb_set_t     *glyphs_after,  /* OUT. May be NULL */
-				    hb_set_t     *glyphs_output  /* OUT. May be NULL */)
+				    hb_set_t     *glyphs_before, /* OUT. May be nullptr */
+				    hb_set_t     *glyphs_input,  /* OUT. May be nullptr */
+				    hb_set_t     *glyphs_after,  /* OUT. May be nullptr */
+				    hb_set_t     *glyphs_output  /* OUT. May be nullptr */)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
 
@@ -967,11 +967,11 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  **/
 hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
-			      unsigned int *design_size,       /* OUT.  May be NULL */
-			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
-			      unsigned int *range_start,       /* OUT.  May be NULL */
-			      unsigned int *range_end          /* OUT.  May be NULL */)
+			      unsigned int *design_size,       /* OUT.  May be nullptr */
+			      unsigned int *subfamily_id,      /* OUT.  May be nullptr */
+			      unsigned int *subfamily_name_id, /* OUT.  May be nullptr */
+			      unsigned int *range_start,       /* OUT.  May be nullptr */
+			      unsigned int *range_end          /* OUT.  May be nullptr */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
   const hb_tag_t tag = HB_TAG ('s','i','z','e');

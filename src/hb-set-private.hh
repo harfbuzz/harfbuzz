@@ -355,7 +355,7 @@ struct hb_frozen_set_t
   inline void init (const hb_set_t &set)
   {
     start = count = 0;
-    elts = NULL;
+    elts = nullptr;
 
     unsigned int max = set.get_max ();
     if (max == set.INVALID)

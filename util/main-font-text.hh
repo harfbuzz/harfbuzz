@@ -35,9 +35,9 @@ static char *
 locale_to_utf8 (char *s)
 {
   char *t;
-  GError *error = NULL;
+  GError *error = nullptr;
 
-  t = g_locale_to_utf8 (s, -1, NULL, NULL, &error);
+  t = g_locale_to_utf8 (s, -1, nullptr, nullptr, &error);
   if (!t)
   {
      fail (true, "Failed converting text to UTF-8");
