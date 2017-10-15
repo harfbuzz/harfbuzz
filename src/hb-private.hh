@@ -1116,7 +1116,7 @@ struct hb_vector_size_t
   }
 
   private:
-  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size);
+  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
   elt_t v[byte_size / sizeof (elt_t)];
 };
 
