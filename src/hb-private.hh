@@ -333,6 +333,18 @@ _hb_popcount32 (uint32_t mask)
   return (((y + (y >> 3)) & 030707070707) % 077);
 #endif
 }
+static inline HB_CONST_FUNC unsigned int
+_hb_popcount64 (uint64_t mask)
+{
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+  return __builtin_popcountl (mask);
+#else
+  return _hb_popcount32 (mask) + _hb_popcount32 (mask >> 32);
+#endif
+}
+template <typename T> static inline unsigned int _hb_popcount (T mask);
+template <> inline unsigned int _hb_popcount<uint32_t> (uint32_t mask) { return _hb_popcount32 (mask); }
+template <> inline unsigned int _hb_popcount<uint64_t> (uint64_t mask) { return _hb_popcount64 (mask); }
 
 /* Returns the number of bits needed to store number */
 static inline HB_CONST_FUNC unsigned int
