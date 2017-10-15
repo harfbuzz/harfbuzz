@@ -1058,6 +1058,73 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
+/* Vectorization */
+
+struct HbOpOr
+{
+  static const bool passthru_left = true;
+  static const bool passthru_right = true;
+  template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
+};
+struct HbOpAnd
+{
+  static const bool passthru_left = false;
+  static const bool passthru_right = false;
+  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
+};
+struct HbOpMinus
+{
+  static const bool passthru_left = true;
+  static const bool passthru_right = false;
+  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
+};
+struct HbOpXor
+{
+  static const bool passthru_left = true;
+  static const bool passthru_right = true;
+  template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
+};
+
+/* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))). */
+template <typename elt_t, unsigned int byte_size>
+struct hb_vector_size_t
+{
+  elt_t& operator [] (unsigned int i) { return v[i]; }
+  const elt_t& operator [] (unsigned int i) const { return v[i]; }
+
+  template <class Op>
+  inline hb_vector_size_t process (const hb_vector_size_t &o) const
+  {
+    hb_vector_size_t r;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      Op::process (r.v[i], v[i], o.v[i]);
+    return r;
+  }
+  inline hb_vector_size_t operator | (const hb_vector_size_t &o) const
+  { return process<HbOpOr> (o); }
+  inline hb_vector_size_t operator & (const hb_vector_size_t &o) const
+  { return process<HbOpAnd> (o); }
+  inline hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
+  { return process<HbOpXor> (o); }
+  inline hb_vector_size_t operator ~ () const
+  {
+    hb_vector_size_t r;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      r.v[i] = ~v[i];
+    return r;
+  }
+
+  private:
+  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size);
+  elt_t v[byte_size / sizeof (elt_t)];
+};
+
+/* The `vector_size' attribute was introduced in gcc 3.1. */
+#if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
+#define HAVE_VECTOR_SIZE 1
+#endif
+
+
 /* Global runtime options. */
 
 struct hb_options_t

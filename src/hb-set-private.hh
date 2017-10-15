@@ -35,64 +35,6 @@
  * hb_set_t
  */
 
-struct HbOpOr
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
-};
-struct HbOpAnd
-{
-  static const bool passthru_left = false;
-  static const bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
-};
-struct HbOpMinus
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
-};
-struct HbOpXor
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
-};
-
-template <typename elt_t, unsigned int byte_size>
-struct vector_like_t
-{
-  elt_t& operator [] (unsigned int i) { return v[i]; }
-  const elt_t& operator [] (unsigned int i) const { return v[i]; }
-
-  template <class Op>
-  inline vector_like_t process (const vector_like_t &o) const
-  {
-    vector_like_t r;
-    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
-      Op::process (r.v[i], v[i], o.v[i]);
-    return r;
-  }
-  inline vector_like_t operator | (const vector_like_t &o) const
-  { return process<HbOpOr> (o); }
-  inline vector_like_t operator & (const vector_like_t &o) const
-  { return process<HbOpAnd> (o); }
-  inline vector_like_t operator ^ (const vector_like_t &o) const
-  { return process<HbOpXor> (o); }
-  inline vector_like_t operator ~ () const
-  {
-    vector_like_t r;
-    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
-      r.v[i] = ~v[i];
-    return r;
-  }
-
-  private:
-  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size);
-  elt_t v[byte_size / sizeof (elt_t)];
-};
-
 struct hb_set_t
 {
   struct page_map_t
@@ -194,10 +136,10 @@ struct hb_set_t
 
     typedef uint64_t elt_t;
 
-#if 0
+#if HAVE_VECTOR_SIZE
     typedef elt_t vector_t __attribute__((vector_size (PAGE_BITS / 8)));
 #else
-    typedef vector_like_t<elt_t, PAGE_BITS / 8> vector_t;
+    typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 #endif
 
     vector_t v;
