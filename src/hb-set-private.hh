@@ -224,7 +224,6 @@ struct hb_set_t
   inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     if (unlikely (in_error)) return;
-    /* TODO Speedup */
     for (unsigned int i = a; i < b + 1; i++)
       del (i);
   }
@@ -396,7 +395,6 @@ struct hb_set_t
   {
     hb_codepoint_t i;
 
-    /* TODO speedup. */
     i = *last;
     if (!next (&i))
     {
