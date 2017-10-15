@@ -30,6 +30,7 @@ HB_BASE_sources = \
 	hb-ot-post-table.hh \
 	hb-ot-tag.cc \
 	hb-private.hh \
+	hb-set-digest-private.hh \
 	hb-set-private.hh \
 	hb-set.cc \
 	hb-shape.cc \

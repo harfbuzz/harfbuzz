@@ -33,7 +33,7 @@
 
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
-#include "hb-set-private.hh"
+#include "hb-set-digest-private.hh"
 #include "hb-open-type-private.hh"
 
 
