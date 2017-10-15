@@ -85,7 +85,7 @@ static inline Type& StructAfter(TObject &X)
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
   { \
-    ASSERT_STATIC (_assertion); \
+    static_assert ((_assertion), ""); \
     ASSERT_INSTANCE_POD (*this); /* Make sure it's POD. */ \
   }
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
@@ -136,7 +136,7 @@ static const void *_NullPool[(256+8) / sizeof (void *)];
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline const Type& Null (void) {
-  ASSERT_STATIC (sizeof (Type) <= sizeof (_NullPool));
+  static_assert ((sizeof (Type) <= sizeof (_NullPool)), "");
   return *CastP<Type> (_NullPool);
 }
 
@@ -147,7 +147,7 @@ template <> \
 /*static*/ inline const Type& Null<Type> (void) { \
   return *CastP<Type> (_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
-ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
+static_assert (Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
 
 /* Accessor macro. */
 #define Null(Type) Null<Type>()

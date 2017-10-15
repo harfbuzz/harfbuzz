@@ -100,7 +100,7 @@ private:
 #define _PASTE1(a,b) a##b
 #define _PASTE(a,b) _PASTE1(a,b)
 #define static_assert(e, msg) \
-	HB_UNUSED typedef char _PASTE(assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
+	HB_UNUSED typedef int _PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert
 
 #endif // __cplusplus < 201103L
@@ -267,10 +267,6 @@ static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
 
-#define _ASSERT_STATIC1(_line, _cond)	HB_UNUSED typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
-#define _ASSERT_STATIC0(_line, _cond)	_ASSERT_STATIC1 (_line, (_cond))
-#define ASSERT_STATIC(_cond)		_ASSERT_STATIC0 (__LINE__, (_cond))
-
 template <unsigned int cond> class hb_assert_constant_t;
 template <> class hb_assert_constant_t<1> {};
 
@@ -278,19 +274,19 @@ template <> class hb_assert_constant_t<1> {};
 
 /* Lets assert int types.  Saves trouble down the road. */
 
-ASSERT_STATIC (sizeof (int8_t) == 1);
-ASSERT_STATIC (sizeof (uint8_t) == 1);
-ASSERT_STATIC (sizeof (int16_t) == 2);
-ASSERT_STATIC (sizeof (uint16_t) == 2);
-ASSERT_STATIC (sizeof (int32_t) == 4);
-ASSERT_STATIC (sizeof (uint32_t) == 4);
-ASSERT_STATIC (sizeof (int64_t) == 8);
-ASSERT_STATIC (sizeof (uint64_t) == 8);
+static_assert ((sizeof (int8_t) == 1), "");
+static_assert ((sizeof (uint8_t) == 1), "");
+static_assert ((sizeof (int16_t) == 2), "");
+static_assert ((sizeof (uint16_t) == 2), "");
+static_assert ((sizeof (int32_t) == 4), "");
+static_assert ((sizeof (uint32_t) == 4), "");
+static_assert ((sizeof (int64_t) == 8), "");
+static_assert ((sizeof (uint64_t) == 8), "");
 
-ASSERT_STATIC (sizeof (hb_codepoint_t) == 4);
-ASSERT_STATIC (sizeof (hb_position_t) == 4);
-ASSERT_STATIC (sizeof (hb_mask_t) == 4);
-ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
+static_assert ((sizeof (hb_codepoint_t) == 4), "");
+static_assert ((sizeof (hb_position_t) == 4), "");
+static_assert ((sizeof (hb_mask_t) == 4), "");
+static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
 /* We like our types POD */
@@ -912,7 +908,7 @@ hb_in_range (T u, T lo, T hi)
    * one right now.  Declaring a variable won't work as HB_UNUSED
    * is unusable on some platforms and unused types are less likely
    * to generate a warning than unused variables. */
-  ASSERT_STATIC (sizeof (hb_assert_unsigned_t<T>) >= 0);
+  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0), "");
 
   /* The casts below are important as if T is smaller than int,
    * the subtract results will become a signed int! */
@@ -1027,7 +1023,7 @@ union hb_options_union_t {
   unsigned int i;
   hb_options_t opts;
 };
-ASSERT_STATIC (sizeof (int) == sizeof (hb_options_union_t));
+static_assert ((sizeof (int) == sizeof (hb_options_union_t)), "");
 
 HB_INTERNAL void
 _hb_options_init (void);

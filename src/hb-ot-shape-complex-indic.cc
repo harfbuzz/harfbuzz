@@ -198,7 +198,7 @@ set_indic_properties (hb_glyph_info_t &info)
 				      0x1CEEu, 0x1CF1u)))
   {
     cat = OT_Symbol;
-    ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
+    static_assert (((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol), "");
   }
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CDu, 0x17D1u) ||
 		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */

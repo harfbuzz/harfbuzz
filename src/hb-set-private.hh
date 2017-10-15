@@ -62,8 +62,8 @@ struct hb_set_digest_lowest_bits_t
 				     + (mask_bytes >= 16? 1 : 0)
 				     + 0;
 
-  ASSERT_STATIC (shift < sizeof (hb_codepoint_t) * 8);
-  ASSERT_STATIC (shift + num_bits <= sizeof (hb_codepoint_t) * 8);
+  static_assert ((shift < sizeof (hb_codepoint_t) * 8), "");
+  static_assert ((shift + num_bits <= sizeof (hb_codepoint_t) * 8), "");
 
   inline void init (void) {
     mask = 0;
@@ -341,8 +341,8 @@ struct hb_set_t
 
   elt_t elts[ELTS]; /* XXX 8kb */
 
-  ASSERT_STATIC (sizeof (elt_t) * 8 == BITS);
-  ASSERT_STATIC (sizeof (elt_t) * 8 * ELTS > MAX_G);
+  static_assert ((sizeof (elt_t) * 8 == BITS), "");
+  static_assert ((sizeof (elt_t) * 8 * ELTS > MAX_G), "");
 };
 
 struct hb_frozen_set_t
