@@ -59,34 +59,13 @@
 # define g_mapped_file_unref g_mapped_file_free
 #endif
 
-
-/* A few macros copied from hb-private.hh. */
-
-#if __GNUC__ >= 4
-#define HB_UNUSED	__attribute__((unused))
-#else
-#define HB_UNUSED
-#endif
-
-#undef MIN
-template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
-
-#undef MAX
-template <typename Type> static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
-
-#undef  ARRAY_LENGTH
-template <typename Type, unsigned int n>
-static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
-/* A const version, but does not detect erratically being called on pointers. */
-#define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
-
-#define _ASSERT_STATIC1(_line, _cond)	HB_UNUSED typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
-#define _ASSERT_STATIC0(_line, _cond)	_ASSERT_STATIC1 (_line, (_cond))
-#define ASSERT_STATIC(_cond)		_ASSERT_STATIC0 (__LINE__, (_cond))
-
+/* Normally I don't like including private headers, but hb-private.hh
+ * is generic utility stuff and in no way exposes the internals of
+ * libharfbuzz.
+ */
+#include "hb-private.hh"
 
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
-
 
 extern hb_bool_t debug;
 
