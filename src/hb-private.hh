@@ -404,7 +404,12 @@ struct hb_prealloced_array_t
   Type *array;
   Type static_array[StaticSize];
 
-  void init (void) { memset (this, 0, sizeof (*this)); }
+  void init (void)
+  {
+    len = 0;
+    allocated = ARRAY_LENGTH (static_array);
+    array = static_array;
+  }
 
   inline Type& operator [] (unsigned int i) { return array[i]; }
   inline const Type& operator [] (unsigned int i) const { return array[i]; }
@@ -419,11 +424,7 @@ struct hb_prealloced_array_t
 
   inline bool resize (unsigned int size)
   {
-    if (!array) {
-      array = static_array;
-      allocated = ARRAY_LENGTH (static_array);
-    }
-    if (size > allocated)
+    if (unlikely (size > allocated))
     {
       /* Need to reallocate */
 
