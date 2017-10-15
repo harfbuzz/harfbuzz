@@ -136,7 +136,9 @@ struct hb_set_t
 
     typedef uint64_t elt_t;
 
-#if HAVE_VECTOR_SIZE
+#if 0 && HAVE_VECTOR_SIZE
+    /* The vectorized version does not work with clang as non-const
+     * elt() errs /*non-const reference cannot bind to vector element". */
     typedef elt_t vector_t __attribute__((vector_size (PAGE_BITS / 8)));
 #else
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
