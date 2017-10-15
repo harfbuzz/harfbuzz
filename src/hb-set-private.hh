@@ -238,12 +238,8 @@ struct hb_set_t
   inline bool intersects (hb_codepoint_t first,
 			  hb_codepoint_t last) const
   {
-    /* TODO Speedup */
-    unsigned int end = last + 1;
-    for (hb_codepoint_t i = first; i < end; i++)
-      if (has (i))
-        return true;
-    return false;
+    hb_codepoint_t c = first - 1;
+    return next (&c) && c <= last;
   }
   inline void set (const hb_set_t *other)
   {
