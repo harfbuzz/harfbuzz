@@ -40,8 +40,6 @@
 
 struct hb_set_t
 {
-  friend struct hb_frozen_set_t;
-
   hb_object_header_t header;
   ASSERT_POD ();
   bool in_error;
@@ -230,59 +228,6 @@ struct hb_set_t
 
   static_assert ((sizeof (elt_t) * 8 == BITS), "");
   static_assert ((sizeof (elt_t) * 8 * ELTS > MAX_G), "");
-};
-
-struct hb_frozen_set_t
-{
-  static const unsigned int SHIFT = hb_set_t::SHIFT;
-  static const unsigned int BITS = hb_set_t::BITS;
-  static const unsigned int MASK = hb_set_t::MASK;
-  typedef hb_set_t::elt_t elt_t;
-
-  inline void init (const hb_set_t &set)
-  {
-    start = count = 0;
-    elts = nullptr;
-
-    unsigned int max = set.get_max ();
-    if (max == set.INVALID)
-      return;
-    unsigned int min = set.get_min ();
-    const elt_t &min_elt = set.elt (min);
-
-    start = min & ~MASK;
-    count = max - start + 1;
-    unsigned int num_elts = (count + BITS - 1) / BITS;
-    unsigned int elts_size = num_elts * sizeof (elt_t);
-    elts = (elt_t *) malloc (elts_size);
-    if (unlikely (!elts))
-    {
-      start = count = 0;
-      return;
-    }
-    memcpy (elts, &min_elt, elts_size);
-  }
-
-  inline void fini (void)
-  {
-    if (elts)
-      free (elts);
-  }
-
-  inline bool has (hb_codepoint_t g) const
-  {
-    /* hb_codepoint_t is unsigned. */
-    g -= start;
-    if (unlikely (g > count)) return false;
-    return !!(elt (g) & mask (g));
-  }
-
-  elt_t const &elt (hb_codepoint_t g) const { return elts[g >> SHIFT]; }
-  elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & MASK); }
-
-  private:
-  hb_codepoint_t start, count;
-  elt_t *elts;
 };
 
 
