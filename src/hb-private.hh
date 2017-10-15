@@ -74,6 +74,38 @@ extern "C" void  hb_free_impl(void *ptr);
 /* Compiler attributes */
 
 
+#if __cplusplus < 201103L
+
+// Null pointer literal
+// Source: SC22/WG21/N2431 = J16/07-0301
+// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2431.pdf
+
+const                        // this is a const object...
+class {
+public:
+    template<class T>          // convertible to any type
+    operator T*() const {    // of null non-member
+        return 0;    // pointer...
+    }
+    template<class C, class T> // or any type of null
+    operator T C::*() const { // member pointer...
+        return 0;
+    }
+private:
+    void operator&() const;    // whose address can't be taken
+} nullptr = {};                // and whose name is nullptr
+
+// Static assertions
+#ifndef static_assert
+#define _PASTE1(a,b) a##b
+#define _PASTE(a,b) _PASTE1(a,b)
+#define static_assert(e, msg) \
+	HB_UNUSED typedef char _PASTE(assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
+#endif // static_assert
+
+#endif // __cplusplus < 201103L
+
+
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
 #define unlikely(expr) (__builtin_expect (!!(expr), 0))
@@ -239,12 +271,10 @@ static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 #define _ASSERT_STATIC0(_line, _cond)	_ASSERT_STATIC1 (_line, (_cond))
 #define ASSERT_STATIC(_cond)		_ASSERT_STATIC0 (__LINE__, (_cond))
 
-template <unsigned int cond> class hb_assert_constant_t {};
+template <unsigned int cond> class hb_assert_constant_t;
+template <> class hb_assert_constant_t<1> {};
 
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
-
-#define _PASTE1(a,b) a##b
-#define PASTE(a,b) _PASTE1(a,b)
 
 /* Lets assert int types.  Saves trouble down the road. */
 
