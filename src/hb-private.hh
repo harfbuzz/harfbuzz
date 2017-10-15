@@ -411,34 +411,48 @@ struct hb_prealloced_array_t
 
   inline Type *push (void)
   {
+    if (unlikely (!resize (len + 1)))
+      return nullptr;
+
+    return &array[len - 1];
+  }
+
+  inline bool resize (unsigned int size)
+  {
     if (!array) {
       array = static_array;
       allocated = ARRAY_LENGTH (static_array);
     }
-    if (likely (len < allocated))
-      return &array[len++];
+    if (size > allocated)
+    {
+      /* Need to reallocate */
 
-    /* Need to reallocate */
-    unsigned int new_allocated = allocated + (allocated >> 1) + 8;
-    Type *new_array = nullptr;
+      unsigned int new_allocated = allocated;
+      while (size >= new_allocated)
+        new_allocated += (new_allocated >> 1) + 8;
 
-    if (array == static_array) {
-      new_array = (Type *) calloc (new_allocated, sizeof (Type));
-      if (new_array)
-        memcpy (new_array, array, len * sizeof (Type));
-    } else {
-      bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
-      if (likely (!overflows)) {
-	new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
+      Type *new_array = nullptr;
+
+      if (array == static_array) {
+	new_array = (Type *) calloc (new_allocated, sizeof (Type));
+	if (new_array)
+	  memcpy (new_array, array, len * sizeof (Type));
+      } else {
+	bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
+	if (likely (!overflows)) {
+	  new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
+	}
       }
+
+      if (unlikely (!new_array))
+	return false;
+
+      array = new_array;
+      allocated = new_allocated;
     }
 
-    if (unlikely (!new_array))
-      return nullptr;
-
-    array = new_array;
-    allocated = new_allocated;
-    return &array[len++];
+    len = size;
+    return true;
   }
 
   inline void pop (void)
@@ -517,7 +531,7 @@ struct hb_prealloced_array_t
 	return true;
       }
     }
-    if (max < 0 || max < (int) this->len && this->array[max].cmp (x) < 0)
+    if (max < 0 || (max < (int) this->len && this->array[max].cmp (x) > 0))
       max++;
     *i = max;
     return false;

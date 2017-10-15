@@ -76,12 +76,6 @@ test_set_basic (void)
   g_assert_cmpint (hb_set_get_min (s), ==, 10);
   g_assert_cmpint (hb_set_get_max (s), ==, 29);
 
-  hb_set_invert (s);
-  test_not_empty (s);
-  g_assert (!hb_set_has (s, 13));
-  g_assert_cmpint (hb_set_get_min (s), ==, 0);
-
-  hb_set_invert (s);
   test_not_empty (s);
   g_assert (hb_set_has (s, 13));
   g_assert_cmpint (hb_set_get_population (s), ==, 20);
