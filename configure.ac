@@ -80,6 +80,9 @@ if test "x$GCC" = "xyes"; then
 	# Make symbols link locally
 	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
 
+	# Choose C++ version
+	CXXFLAGS="$CXXFLAGS -std=c++11"
+
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
