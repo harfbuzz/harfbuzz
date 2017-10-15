@@ -33,8 +33,6 @@
 
 #include "hb-font-private.hh"
 
-#include "hb-cache-private.hh" // Maybe use in the future?
-
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_TRUETYPE_TABLES_H
