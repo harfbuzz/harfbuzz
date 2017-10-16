@@ -326,7 +326,7 @@ struct hb_set_t
 	a--;
 	b--;
       }
-      else if (page_map[a].major < other->page_map[b].major)
+      else if (page_map[a].major > other->page_map[b].major)
       {
         if (Op::passthru_left)
 	  page_at (--count).v = page_at (a).v;
