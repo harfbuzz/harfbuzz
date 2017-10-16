@@ -38,7 +38,7 @@
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
-//#include "hb-ot-post-table.hh"
+#include "hb-ot-post-table.hh"
 
 
 struct hb_ot_face_metrics_accelerator_t
@@ -301,6 +301,34 @@ struct hb_ot_face_cbdt_accelerator_t
   }
 };
 
+struct hb_ot_face_post_accelerator_t
+{
+  hb_blob_t *post_blob;
+  unsigned int post_len;
+  const OT::post *post;
+
+  inline void init (hb_face_t *face)
+  {
+    this->post_blob = OT::Sanitizer<OT::post>::sanitize (face->reference_table (HB_OT_TAG_post));
+    this->post = OT::Sanitizer<OT::post>::lock_instance (this->post_blob);
+    this->post_len = hb_blob_get_length (this->post_blob);
+  }
+
+  inline void fini (void)
+  {
+    hb_blob_destroy (this->post_blob);
+  }
+
+  inline bool get_glyph_name (hb_codepoint_t glyph,
+                              char *name, unsigned int size) const
+  {
+    if (unlikely (!name) || unlikely(!size))
+      return false;
+
+    return this->post->get_glyph_name (glyph, name, size, this->post_len);
+  }
+};
+
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					  hb_codepoint_t codepoint,
 					  hb_codepoint_t *glyph);
@@ -436,6 +464,7 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t v_metrics;
   OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
   OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
+  OT::hb_lazy_loader_t<hb_ot_face_post_accelerator_t> post;
 };
 
 
@@ -453,6 +482,7 @@ _hb_ot_font_create (hb_face_t *face)
 			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
   ot_font->cbdt.init (face);
+  ot_font->post.init (face);
 
   return ot_font;
 }
@@ -467,6 +497,7 @@ _hb_ot_font_destroy (void *data)
   ot_font->v_metrics.fini ();
   ot_font->glyf.fini ();
   ot_font->cbdt.fini ();
+  ot_font->post.fini ();
 
   free (ot_font);
 }
@@ -536,6 +567,17 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
+hb_ot_get_glyph_name (hb_font_t *font HB_UNUSED,
+                      void *font_data,
+                      hb_codepoint_t glyph,
+                      char *name, unsigned int size,
+                      void *user_data HB_UNUSED)
+{
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  return ot_font->post->get_glyph_name (glyph, name, size);
+}
+
+static hb_bool_t
 hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_font_extents_t *metrics,
@@ -595,7 +637,7 @@ retry:
     //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ot_get_glyph_v_kerning, nullptr, nullptr);
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);
     //hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, nullptr, nullptr); TODO
-    //hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr); TODO
+    hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr);
     //hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, nullptr, nullptr); TODO
 
     hb_font_funcs_make_immutable (funcs);
