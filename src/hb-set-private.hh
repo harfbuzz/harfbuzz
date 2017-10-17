@@ -148,7 +148,7 @@ struct hb_set_t
 
     static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
     static const unsigned int ELT_MASK = ELT_BITS - 1;
-    static const unsigned int BITS = sizeof (v) * 8;
+    static const unsigned int BITS = sizeof (vector_t) * 8;
     static const unsigned int MASK = BITS - 1;
     static_assert (PAGE_BITS == BITS, "");
 
