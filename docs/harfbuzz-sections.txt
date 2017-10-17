@@ -155,6 +155,7 @@ hb_font_get_glyph_func_t
 
 <SECTION>
 <FILE>hb-coretext</FILE>
+HB_CORETEXT_TAG_KERX
 HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
@@ -168,6 +169,7 @@ hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
 hb_face_get_empty
+hb_face_get_table_tags
 hb_face_get_glyph_count
 hb_face_get_index
 hb_face_get_upem
