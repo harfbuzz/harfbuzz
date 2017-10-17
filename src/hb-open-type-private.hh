@@ -1047,11 +1047,12 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   inline int bsearch (const SearchType &x) const
   {
     /* Hand-coded bsearch here since this is in the hot inner loop. */
+    const Type *array = this->array;
     int min = 0, max = (int) this->len - 1;
     while (min <= max)
     {
       int mid = (min + max) / 2;
-      int c = this->array[mid].cmp (x);
+      int c = array[mid].cmp (x);
       if (c < 0)
         max = mid - 1;
       else if (c > 0)
