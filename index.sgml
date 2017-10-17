@@ -202,6 +202,7 @@
 <ANCHOR id="hb-face-create-for-tables" href="harfbuzz/harfbuzz-hb-face.html#hb-face-create-for-tables">
 <ANCHOR id="hb-face-destroy" href="harfbuzz/harfbuzz-hb-face.html#hb-face-destroy">
 <ANCHOR id="hb-face-get-empty" href="harfbuzz/harfbuzz-hb-face.html#hb-face-get-empty">
+<ANCHOR id="hb-face-get-table-tags" href="harfbuzz/harfbuzz-hb-face.html#hb-face-get-table-tags">
 <ANCHOR id="hb-face-get-glyph-count" href="harfbuzz/harfbuzz-hb-face.html#hb-face-get-glyph-count">
 <ANCHOR id="hb-face-get-index" href="harfbuzz/harfbuzz-hb-face.html#hb-face-get-index">
 <ANCHOR id="hb-face-get-upem" href="harfbuzz/harfbuzz-hb-face.html#hb-face-get-upem">
@@ -583,6 +584,7 @@
 <ANCHOR id="hb-coretext-face-get-cg-font" href="harfbuzz/harfbuzz-hb-coretext.html#hb-coretext-face-get-cg-font">
 <ANCHOR id="hb-coretext-font-get-ct-font" href="harfbuzz/harfbuzz-hb-coretext.html#hb-coretext-font-get-ct-font">
 <ANCHOR id="harfbuzz-hb-coretext.other_details" href="harfbuzz/harfbuzz-hb-coretext.html#harfbuzz-hb-coretext.other_details">
+<ANCHOR id="HB-CORETEXT-TAG-KERX:CAPS" href="harfbuzz/harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-KERX:CAPS">
 <ANCHOR id="HB-CORETEXT-TAG-MORT:CAPS" href="harfbuzz/harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORT:CAPS">
 <ANCHOR id="HB-CORETEXT-TAG-MORX:CAPS" href="harfbuzz/harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORX:CAPS">
 <ANCHOR id="harfbuzz-hb-gobject" href="harfbuzz/harfbuzz-hb-gobject.html">

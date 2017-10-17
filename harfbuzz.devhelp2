@@ -254,6 +254,7 @@
     <keyword type="function" name="hb_face_create_for_tables ()" link="harfbuzz-hb-face.html#hb-face-create-for-tables" since="0.9.2"/>
     <keyword type="function" name="hb_face_destroy ()" link="harfbuzz-hb-face.html#hb-face-destroy" since="0.9.2"/>
     <keyword type="function" name="hb_face_get_empty ()" link="harfbuzz-hb-face.html#hb-face-get-empty" since="0.9.2"/>
+    <keyword type="function" name="hb_face_get_table_tags ()" link="harfbuzz-hb-face.html#hb-face-get-table-tags" since="1.6.0"/>
     <keyword type="function" name="hb_face_get_glyph_count ()" link="harfbuzz-hb-face.html#hb-face-get-glyph-count" since="0.9.7"/>
     <keyword type="function" name="hb_face_get_index ()" link="harfbuzz-hb-face.html#hb-face-get-index" since="0.9.2"/>
     <keyword type="function" name="hb_face_get_upem ()" link="harfbuzz-hb-face.html#hb-face-get-upem" since="0.9.2"/>
@@ -510,6 +511,7 @@
     <keyword type="function" name="hb_coretext_face_create ()" link="harfbuzz-hb-coretext.html#hb-coretext-face-create"/>
     <keyword type="function" name="hb_coretext_face_get_cg_font ()" link="harfbuzz-hb-coretext.html#hb-coretext-face-get-cg-font"/>
     <keyword type="function" name="hb_coretext_font_get_ct_font ()" link="harfbuzz-hb-coretext.html#hb-coretext-font-get-ct-font"/>
+    <keyword type="macro" name="HB_CORETEXT_TAG_KERX" link="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-KERX:CAPS"/>
     <keyword type="macro" name="HB_CORETEXT_TAG_MORT" link="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORT:CAPS"/>
     <keyword type="macro" name="HB_CORETEXT_TAG_MORX" link="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORX:CAPS"/>
     <keyword type="macro" name="HB_GOBJECT_TYPE_BLOB" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BLOB:CAPS"/>
