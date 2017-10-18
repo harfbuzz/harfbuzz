@@ -173,6 +173,64 @@ struct post
     return false;
   }
 
+  inline bool get_glyph_from_name (const char *name, int len,
+                                   hb_codepoint_t *glyph,
+                                   unsigned int blob_len) const
+  {
+    if (len < 0)
+      len = strlen (name);
+
+    if (version.to_int () == 0x00010000)
+    {
+      for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
+      {
+        if (strncmp (name, format1_names[i], len) == 0)
+        {
+          *glyph = i;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (version.to_int () == 0x00020000)
+    {
+      const postV2Tail &v2 = StructAfter<postV2Tail>(*this);
+      unsigned int offset = min_size + v2.min_size + 2 * v2.numberOfGlyphs;
+      char* data = (char*) this + offset;
+
+      for (hb_codepoint_t gid = 0; gid < v2.numberOfGlyphs; gid++)
+      {
+        unsigned int index = v2.glyphNameIndex[gid];
+        if (index >= NUM_FORMAT1_NAMES)
+        {
+          for (unsigned int i = 0; data < (char*) this + blob_len; i++)
+          {
+            unsigned int name_length = data[0];
+            unsigned int remaining = (char*) this + blob_len - data - 1;
+            name_length = MIN (name_length, remaining);
+            if (name_length == len && strncmp (name, data + 1, len) == 0)
+            {
+              *glyph = gid;
+              return true;
+            }
+            data += name_length + 1;
+          }
+          return false;
+        }
+        else if (strncmp (name, format1_names[index], len) == 0)
+        {
+          *glyph = gid;
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    return false;
+  }
+
   public:
   FixedVersion<>version;		/* 0x00010000 for version 1.0
 					 * 0x00020000 for version 2.0
