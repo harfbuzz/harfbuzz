@@ -49,6 +49,11 @@ if (HB_BUILD_UTILS)
   set(HB_HAVE_FREETYPE ON)
 endif ()
 
+option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
+if (HB_HAVE_GOBJECT)
+  set(HB_HAVE_GLIB ON)
+endif ()
+
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
@@ -301,6 +306,107 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
   list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
 
+if (HB_HAVE_GOBJECT)
+  include(FindPythonInterp)
+  include(FindPerl)
+  
+  # Use the hints from glib-2.0.pc to find glib-mkenums
+  find_package(PkgConfig)
+  pkg_check_modules(PC_GLIB QUIET glib-2.0)
+  find_program(GLIB_MKENUMS glib-mkenums
+    HINTS ${PC_glib_mkenums}
+    )
+  set(GLIB_MKENUMS_CMD)
+
+  if (WIN32 AND NOT MINGW)
+    # In Visual Studio builds, shebang lines are not supported
+    # in the standard cmd.exe shell that we use, so we need to
+    # first determine whether glib-mkenums is a Python or PERL
+    # script
+    execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${GLIB_MKENUMS}" --version
+      RESULT_VARIABLE GLIB_MKENUMS_PYTHON
+      OUTPUT_QUIET ERROR_QUIET
+      )
+    if (GLIB_MKENUMS_PYTHON EQUAL 0)
+      message("${GLIB_MKENUMS} is a Python script.")
+      set(GLIB_MKENUMS_CMD "${PYTHON_EXECUTABLE}" "${GLIB_MKENUMS}")
+    else ()
+      execute_process(COMMAND "${PERL_EXECUTABLE}" "${GLIB_MKENUMS}" --version
+        RESULT_VARIABLE GLIB_MKENUMS_PERL
+        OUTPUT_QUIET ERROR_QUIET
+        )
+      if (GLIB_MKENUMS_PERL EQUAL 0)
+        message("${GLIB_MKENUMS} is a PERL script.")
+        set(GLIB_MKENUMS_CMD "${PERL_EXECUTABLE}" "${GLIB_MKENUMS}")
+      endif ()
+      if (NOT GLIB_MKENUMS_PERL EQUAL 0 AND NOT GLIB_MKENUMS_PYTHON EQUAL 0)
+        message(FATAL_ERROR "Unable to determine type of glib-mkenums script")
+      endif ()
+	endif ()
+  else ()
+    set(GLIB_MKENUMS_CMD "${GLIB_MKENUMS}")
+  endif ()
+  if (NOT GLIB_MKENUMS_CMD)
+    message(FATAL_ERROR "HB_HAVE_GOBJECT was set, but we failed to find glib-mkenums, which is required")
+  endif()
+
+  pkg_check_modules(PC_GOBJECT QUIET gobject-2.0)
+
+  find_library(GOBJECT_LIBRARIES NAMES gobject-2.0 HINTS ${PC_GLIB_LIBDIR} ${PC_GLIB_LIBRARY_DIRS})
+  find_path(GOBJECT_INCLUDE_DIR NAMES glib-object.h HINTS ${PC_GLIB_INCLUDEDIR} ${PC_GLIB_INCLUDE_DIRS} PATH_SUFFIXES glib-2.0)
+
+  include_directories(${GOBJECTCONFIG_INCLUDE_DIR} ${GOBJECT_INCLUDE_DIR})
+  mark_as_advanced(GOBJECT_LIBRARIES GOBJECT_INCLUDE_DIR)
+
+  list(APPEND hb_gobject_sources ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.cc)
+  list(APPEND hb_gobject_gen_sources
+    ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc
+    )
+  list(APPEND hb_gobject_headers
+    ${PROJECT_SOURCE_DIR}/src/hb-gobject.h
+    ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.h
+    )
+  list(APPEND hb_gobject_gen_headers
+    ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
+    )
+
+  add_custom_command (
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
+    COMMAND ${GLIB_MKENUMS_CMD}
+      --template=${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.h.tmpl
+      --identifier-prefix hb_
+      --symbol-prefix hb_gobject
+      ${hb_gobject_header}
+      ${project_headers}
+      > ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h.tmp
+    COMMAND "${CMAKE_COMMAND}"
+      "-DENUM_INPUT_SRC=${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h.tmp"
+      "-DENUM_OUTPUT_SRC=${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h"
+      -P ${PROJECT_SOURCE_DIR}/replace-enum-strings.cmake
+    DEPENDS ${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.h.tmpl
+      ${hb_gobject_header}
+      ${project_headers}
+    )
+
+  add_custom_command (
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc
+    COMMAND ${GLIB_MKENUMS_CMD}
+      --template=${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.cc.tmpl
+      --identifier-prefix hb_
+      --symbol-prefix hb_gobject
+      ${hb_gobject_header}
+      ${project_headers}
+      > ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc.tmp
+    COMMAND "${CMAKE_COMMAND}"
+      "-DENUM_INPUT_SRC=${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc.tmp"
+      "-DENUM_OUTPUT_SRC=${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc"
+      -P ${PROJECT_SOURCE_DIR}/replace-enum-strings.cmake
+    DEPENDS ${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.cc.tmpl
+      ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
+      ${hb_gobject_header}
+      ${project_headers}
+    )
+endif ()
 
 ## Atomic ops availability detection
 file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
@@ -338,6 +444,18 @@ endif ()
 add_library(harfbuzz ${project_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
+## Define harfbuzz-gobject library
+if (HB_HAVE_GOBJECT)
+  add_library(harfbuzz-gobject
+    ${hb_gobject_sources}
+    ${hb_gobject_gen_sources}
+    ${hb_gobject_headers}
+    ${hb_gobject_gen_headers}
+    )
+  include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/src)
+  add_dependencies(harfbuzz-gobject harfbuzz)
+  target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
+endif ()
 
 ## Additional framework build configs
 if (BUILD_FRAMEWORK)
@@ -382,6 +500,9 @@ endif ()
 ## Install
 if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
   install(FILES ${project_headers} DESTINATION include/harfbuzz)
+  if (HB_HAVE_GOBJECT)
+    install(FILES ${hb_gobject_headers} ${hb_gobject_gen_headers} DESTINATION include/harfbuzz)
+  endif ()
 endif ()
 
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
@@ -404,6 +525,13 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     )
 
     install(TARGETS hb-ot-shape-closure
+      RUNTIME DESTINATION bin
+    )
+  endif ()
+  if (HB_HAVE_GOBJECT)
+    install(TARGETS harfbuzz-gobject
+      ARCHIVE DESTINATION lib
+      LIBRARY DESTINATION lib
       RUNTIME DESTINATION bin
     )
   endif ()
