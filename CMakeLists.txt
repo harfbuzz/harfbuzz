@@ -41,7 +41,7 @@ if (APPLE)
 endif ()
 if (WIN32)
   option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
-  option(HB_HAVE_DIRECWRITE "Enable DirectWrite shaper backend on Windows" OFF)
+  option(HB_HAVE_DIRECTWRITE "Enable DirectWrite shaper backend on Windows" OFF)
 endif ()
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
 if (HB_BUILD_UTILS)
@@ -55,6 +55,7 @@ include_directories(AFTER
   )
 
 add_definitions(-DHAVE_OT)
+add_definitions(-DHAVE_FALLBACK)
 
 if (BUILD_SHARED_LIBS)
   add_definitions(-DHAVE_ATEXIT)
@@ -101,6 +102,7 @@ file(READ ${PROJECT_SOURCE_DIR}/src/hb-ucdn/Makefile.sources UCDNSOURCES)
 
 extract_make_variable(HB_BASE_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_BASE_headers ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
+extract_make_variable(HB_FALLBACK_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_OT_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_OT_headers ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 
@@ -169,6 +171,7 @@ set(project_sources
   ${HB_BASE_sources}
   ${HB_BASE_RAGEL_GENERATED_sources}
 
+  ${HB_FALLBACK_sources}
   ${HB_OT_sources}
   ${HB_OT_RAGEL_GENERATED_sources}
   )
@@ -388,4 +391,20 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     RUNTIME DESTINATION bin
     FRAMEWORK DESTINATION Library/Frameworks
     )
+  if (HB_BUILD_UTILS)
+    install(TARGETS hb-view
+      RUNTIME DESTINATION bin
+    )
+    install(TARGETS hb-view
+      RUNTIME DESTINATION bin
+    )
+
+    install(TARGETS hb-shape
+      RUNTIME DESTINATION bin
+    )
+
+    install(TARGETS hb-ot-shape-closure
+      RUNTIME DESTINATION bin
+    )
+  endif ()
 endif ()
