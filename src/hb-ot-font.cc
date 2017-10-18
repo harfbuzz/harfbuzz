@@ -327,6 +327,15 @@ struct hb_ot_face_post_accelerator_t
 
     return this->post->get_glyph_name (glyph, name, size, this->post_len);
   }
+
+  inline bool get_glyph_from_name (const char *name, int len,
+                                   hb_codepoint_t *glyph) const
+  {
+    if (unlikely (!name) || unlikely(!len))
+      return false;
+
+    return this->post->get_glyph_from_name (name, len, glyph, this->post_len);
+  }
 };
 
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
@@ -578,6 +587,17 @@ hb_ot_get_glyph_name (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
+hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
+                           void *font_data,
+                           const char *name, int len,
+                           hb_codepoint_t *glyph,
+                           void *user_data HB_UNUSED)
+{
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  return ot_font->post->get_glyph_from_name (name, len, glyph);
+}
+
+static hb_bool_t
 hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_font_extents_t *metrics,
@@ -638,7 +658,7 @@ retry:
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);
     //hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, nullptr, nullptr); TODO
     hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, nullptr, nullptr); TODO
+    hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, nullptr, nullptr);
 
     hb_font_funcs_make_immutable (funcs);
 
