@@ -41,7 +41,7 @@
 /* See:
  * https://github.com/behdad/harfbuzz/commit/6e6f82b6f3dde0fc6c3c7d991d9ec6cfff57823d#commitcomment-14248516 */
 #define HB_ARABIC_GENERAL_CATEGORY_IS_WORD(gen_cat) \
-	(FLAG_SAFE (gen_cat) & \
+	(FLAG_UNSAFE (gen_cat) & \
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE) | \
 	  /*FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |*/ \
@@ -90,7 +90,7 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
   if (likely (j_type != JOINING_TYPE_X))
     return j_type;
 
-  return (FLAG_SAFE(gen_cat) &
+  return (FLAG_UNSAFE(gen_cat) &
 	  (FLAG(HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) |
 	   FLAG(HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
 	   FLAG(HB_UNICODE_GENERAL_CATEGORY_FORMAT))

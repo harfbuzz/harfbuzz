@@ -1001,11 +1001,10 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:
- * (FLAG_SAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
+ * (FLAG_UNSAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
  */
 #define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((x) < 32) + (1U << (x)))
-#define FLAG_SAFE(x) (1U << (x))
-#define FLAG_UNSAFE(x) ((x) < 32 ? FLAG_SAFE(x) : 0)
+#define FLAG_UNSAFE(x) ((x) < 32 ? (1U << (x)) : 0)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
 
 

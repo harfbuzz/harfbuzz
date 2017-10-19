@@ -424,7 +424,7 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 {
   syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   /* Only a few syllable types need reordering. */
-  if (unlikely (!(FLAG_SAFE (syllable_type) &
+  if (unlikely (!(FLAG_UNSAFE (syllable_type) &
 		  (FLAG (virama_terminated_cluster) |
 		   FLAG (standard_cluster) |
 		   FLAG (broken_cluster) |

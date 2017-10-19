@@ -142,7 +142,7 @@ is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 {
   /* If it ligated, all bets are off. */
   if (_hb_glyph_info_ligated (&info)) return false;
-  return !!(FLAG_SAFE (info.indic_category()) & flags);
+  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
 }
 
 static inline bool
@@ -233,7 +233,7 @@ set_indic_properties (hb_glyph_info_t &info)
    * Re-assign position.
    */
 
-  if ((FLAG_SAFE (cat) & CONSONANT_FLAGS))
+  if ((FLAG_UNSAFE (cat) & CONSONANT_FLAGS))
   {
     pos = POS_BASE_C;
     if (is_ra (u))
@@ -243,7 +243,7 @@ set_indic_properties (hb_glyph_info_t &info)
   {
     pos = matra_position (u, pos);
   }
-  else if ((FLAG_SAFE (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Symbol))))
+  else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Symbol))))
   {
     pos = POS_SMVD;
   }
@@ -968,7 +968,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     indic_position_t last_pos = POS_START;
     for (unsigned int i = start; i < end; i++)
     {
-      if ((FLAG_SAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | HALANT_OR_COENG_FLAGS)))
+      if ((FLAG_UNSAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | HALANT_OR_COENG_FLAGS)))
       {
 	info[i].indic_position() = last_pos;
 	if (unlikely (info[i].indic_category() == OT_H &&
@@ -1538,7 +1538,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     {
       new_reph_pos = base;
       while (new_reph_pos + 1 < end &&
-	     !( FLAG_SAFE (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_POST_C) | FLAG (POS_AFTER_POST) | FLAG (POS_SMVD))))
+	     !( FLAG_UNSAFE (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_POST_C) | FLAG (POS_AFTER_POST) | FLAG (POS_SMVD))))
 	new_reph_pos++;
       if (new_reph_pos < end)
         goto reph_move;
@@ -1688,7 +1688,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   /* Apply 'init' to the Left Matra if it's a word start. */
   if (info[start].indic_position () == POS_PRE_M &&
       (!start ||
-       !(FLAG_SAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
+       !(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
 	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK))))
     info[start].mask |= indic_plan->mask_array[INIT];
 
