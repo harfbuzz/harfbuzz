@@ -54,6 +54,12 @@ if (HB_HAVE_GOBJECT)
   set(HB_HAVE_GLIB ON)
 endif ()
 
+option(HB_HAVE_INTROSPECTION "Enable building introspection (.gir/.typelib) files" OFF)
+if (HB_HAVE_INTROSPECTION)
+  set(HB_HAVE_GOBJECT ON)
+  set(HB_HAVE_GLIB ON)
+endif ()
+
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
@@ -181,6 +187,8 @@ set(project_sources
   ${HB_OT_RAGEL_GENERATED_sources}
   )
 
+set(project_extra_sources)
+
 set(project_headers
   ${HB_VERSION_H}
 
@@ -226,10 +234,8 @@ if (HB_BUILTIN_UCDN)
   include_directories(src/hb-ucdn)
   add_definitions(-DHAVE_UCDN)
 
-  list(APPEND project_sources
-    ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc
-    ${LIBHB_UCDN_sources}
-    )
+  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc)
+  list(APPEND project_extra_sources ${LIBHB_UCDN_sources})
 endif ()
 
 if (HB_HAVE_GLIB)
@@ -362,9 +368,12 @@ if (HB_HAVE_GOBJECT)
   list(APPEND hb_gobject_gen_sources
     ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc
     )
+  list(APPEND hb_gobject_structs_headers
+    ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.h
+    )
   list(APPEND hb_gobject_headers
     ${PROJECT_SOURCE_DIR}/src/hb-gobject.h
-    ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.h
+    ${hb_gobject_structs_headers}
     )
   list(APPEND hb_gobject_gen_headers
     ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
@@ -376,7 +385,7 @@ if (HB_HAVE_GOBJECT)
       --template=${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.h.tmpl
       --identifier-prefix hb_
       --symbol-prefix hb_gobject
-      ${hb_gobject_header}
+      ${hb_gobject_structs_headers}
       ${project_headers}
       > ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h.tmp
     COMMAND "${CMAKE_COMMAND}"
@@ -441,7 +450,7 @@ endif ()
 
 
 ## Define harfbuzz library
-add_library(harfbuzz ${project_sources} ${project_headers})
+add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 ## Define harfbuzz-gobject library
@@ -455,6 +464,129 @@ if (HB_HAVE_GOBJECT)
   include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/src)
   add_dependencies(harfbuzz-gobject harfbuzz)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
+endif ()
+
+# On Windows, g-ir-scanner requires a DLL build in order for it to work
+if (WIN32)
+  if (NOT BUILD_SHARED_LIBS)
+    message("Building introspection files on Windows requires BUILD_SHARED_LIBS to be enabled.")
+    set(HB_HAVE_INTROSPECTION OFF)
+  endif ()
+endif ()
+
+if (HB_HAVE_INTROSPECTION)
+
+  find_package(PkgConfig)
+  pkg_check_modules(PC_GI QUIET gobject-introspection-1.0)
+
+  find_program(G_IR_SCANNER g-ir-scanner
+    HINTS ${PC_g_ir_scanner}
+    )
+
+  find_program(G_IR_COMPILER g-ir-compiler
+    HINTS ${PC_g_ir_compiler}
+    )
+
+  if (WIN32 AND NOT MINGW)
+    # Note that since we already enable HB_HAVE_GOBJECT
+    # we would already have PYTHON_EXECUTABLE handy
+    set(G_IR_SCANNER_CMD "${PYTHON_EXECUTABLE}" "${G_IR_SCANNER}")
+  else ()
+    set(G_IR_SCANNER_CMD "${G_IR_SCANNER}")
+  endif ()
+
+  # We need to account for the varying output directories
+  # when we build using Visual Studio projects
+  if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
+    set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
+  else ()
+    set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
+  endif ()
+
+  # Get the CFlags that we used to build HarfBuzz/HarfBuzz-GObject
+  set (hb_defines_cflags "")
+  foreach(hb_cflag ${hb_cflags})
+    list(APPEND hb_defines_cflags "-D${hb_cflag}")
+  endforeach(hb_cflag)
+
+  # Get the other dependent libraries we used to build HarfBuzz/HarfBuzz-GObject
+  set (extra_libs "")
+  foreach (extra_lib ${THIRD_PARTY_LIBS})
+    # We don't want the .lib extension here...
+    string(REPLACE ".lib" "" extra_lib_stripped "${extra_lib}")
+    list(APPEND extra_libs "--extra-library=${extra_lib_stripped}")
+  endforeach ()
+
+  set(introspected_sources)
+  foreach (f
+    ${project_headers}
+    ${project_sources}
+    ${hb_gobject_gen_sources}
+    ${hb_gobject_gen_headers}
+    ${hb_gobject_sources}
+    ${hb_gobject_headers}
+    )
+    if (WIN32)
+      # Nasty issue: We need to make drive letters lower case,
+      # otherwise g-ir-scanner won't like it and give us a bunch
+      # of invalid items and unresolved types...
+      STRING(SUBSTRING "${f}" 0 1 drive)
+      STRING(SUBSTRING "${f}" 1 -1 path)
+      if (drive MATCHES "[A-Z]")
+        STRING(TOLOWER ${drive} drive_lower)
+        list(APPEND introspected_sources "${drive_lower}${path}")
+      else ()
+        list(APPEND introspected_sources "${f}")
+      endif ()
+    else ()
+      list(APPEND introspected_sources "${f}")
+    endif ()
+  endforeach ()
+
+  # Finally, build the introspection files...
+  add_custom_command (
+    TARGET harfbuzz-gobject
+    POST_BUILD
+    COMMAND ${G_IR_SCANNER_CMD}
+      --warn-all --no-libtool --verbose
+      -n hb
+      --namespace=HarfBuzz
+      --nsversion=0.0
+      --identifier-prefix=hb_
+      --include GObject-2.0
+      --pkg-export=harfbuzz
+      --cflags-begin
+      -I${PROJECT_SOURCE_DIR}/src
+      -I${PROJECT_BINARY_DIR}/src
+      ${hb_includedir_cflags}
+      ${hb_defines_cflags}
+      -DHB_H
+      -DHB_H_IN
+      -DHB_OT_H
+      -DHB_OT_H_IN
+      -DHB_GOBJECT_H
+      -DHB_GOBJECT_H_IN
+      -DHB_EXTERN=
+      --cflags-end
+      --library=harfbuzz-gobject
+      --library=harfbuzz
+      -L${hb_libpath}
+      ${extra_libs}
+      ${introspected_sources}
+      -o ${hb_libpath}/HarfBuzz-0.0.gir
+    DEPENDS harfbuzz-gobject harfbuzz
+    )
+
+  add_custom_command (
+    TARGET harfbuzz-gobject
+    POST_BUILD
+    COMMAND "${G_IR_COMPILER}"
+      --verbose --debug
+      --includedir ${CMAKE_CURRENT_BINARY_DIR}
+      ${hb_libpath}/HarfBuzz-0.0.gir
+      -o ${hb_libpath}/HarfBuzz-0.0.typelib
+    DEPENDS ${hb_libpath}/HarfBuzz-0.0.gir harfbuzz-gobject
+    )
 endif ()
 
 ## Additional framework build configs
@@ -534,5 +666,20 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       LIBRARY DESTINATION lib
       RUNTIME DESTINATION bin
     )
+    if (HB_HAVE_INTROSPECTION)
+      if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
+        set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
+      else ()
+        set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
+      endif ()
+
+      install(FILES "${hb_libpath}/HarfBuzz-0.0.gir"
+        DESTINATION share/gir-1.0
+        )
+
+      install(FILES "${hb_libpath}/HarfBuzz-0.0.typelib"
+        DESTINATION lib/girepository-1.0
+        )
+    endif ()
   endif ()
 endif ()
