@@ -72,7 +72,9 @@ HB_NODIST_headers = \
 	hb-version.h \
 	$(NULL)
 
-HB_FALLBACK_sources = hb-fallback-shape.cc
+HB_FALLBACK_sources = \
+	hb-fallback-shape.cc	\
+	$(NULL)
 
 HB_OT_sources = \
 	hb-ot-font.cc \
