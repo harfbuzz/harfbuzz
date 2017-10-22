@@ -31,7 +31,7 @@ HarfBuzz release walk-through checklist:
 ```
 11. While doing that, quickly double-check the size of the .tar.bz2 and .zip files against their previous releases to make sure nothing bad happened.  They should be in the ballpark, perhaps slightly larger.  Sometimes they do shrink, that's not by itself a stopper.
 12. Push the commit and tag out: "git push --follow-tags".  Make sure it's pushed both to freedesktop repo and github.
-13. Upload artefacts and NEWS entry on the github release.
+13. Create a GitHub release [here](https://github.com/behdad/harfbuzz/releases), upload artefacts and NEWS entry on it also.
 
 
 ## MING32
