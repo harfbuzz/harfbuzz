@@ -361,6 +361,7 @@
 <ANCHOR id="harfbuzz-hb-deprecated.functions_details" href="harfbuzz/harfbuzz-hb-deprecated.html#harfbuzz-hb-deprecated.functions_details">
 <ANCHOR id="hb-font-funcs-set-glyph-func" href="harfbuzz/harfbuzz-hb-deprecated.html#hb-font-funcs-set-glyph-func">
 <ANCHOR id="hb-font-get-glyph-func-t" href="harfbuzz/harfbuzz-hb-deprecated.html#hb-font-get-glyph-func-t">
+<ANCHOR id="hb-set-invert" href="harfbuzz/harfbuzz-hb-deprecated.html#hb-set-invert">
 <ANCHOR id="harfbuzz-hb-deprecated.other_details" href="harfbuzz/harfbuzz-hb-deprecated.html#harfbuzz-hb-deprecated.other_details">
 <ANCHOR id="HB-BUFFER-FLAGS-DEFAULT:CAPS" href="harfbuzz/harfbuzz-hb-deprecated.html#HB-BUFFER-FLAGS-DEFAULT:CAPS">
 <ANCHOR id="HB-BUFFER-SERIALIZE-FLAGS-DEFAULT:CAPS" href="harfbuzz/harfbuzz-hb-deprecated.html#HB-BUFFER-SERIALIZE-FLAGS-DEFAULT:CAPS">
@@ -388,7 +389,6 @@
 <ANCHOR id="hb-set-get-user-data" href="harfbuzz/harfbuzz-hb-set.html#hb-set-get-user-data">
 <ANCHOR id="hb-set-has" href="harfbuzz/harfbuzz-hb-set.html#hb-set-has">
 <ANCHOR id="hb-set-intersect" href="harfbuzz/harfbuzz-hb-set.html#hb-set-intersect">
-<ANCHOR id="hb-set-invert" href="harfbuzz/harfbuzz-hb-set.html#hb-set-invert">
 <ANCHOR id="hb-set-is-empty" href="harfbuzz/harfbuzz-hb-set.html#hb-set-is-empty">
 <ANCHOR id="hb-set-is-equal" href="harfbuzz/harfbuzz-hb-set.html#hb-set-is-equal">
 <ANCHOR id="hb-set-next" href="harfbuzz/harfbuzz-hb-set.html#hb-set-next">
