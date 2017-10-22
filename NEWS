@@ -1,3 +1,16 @@
+Overview of changes leading to 1.6.1
+Sunday, October 22nd, 2017
+====================================
+
+- Don't skip over COMBINING GRAPHEME JOINER when ligating, etc.
+  To be refined: https://github.com/behdad/harfbuzz/issues/554
+- Faster hb_set_t implementation.
+- Don't use deprecated ICU API.
+- Fix undefined-behavior in Myanmar shaper, introduced in 1.6.0
+- Deprecated API:
+  hb_set_invert()
+
+
 Overview of changes leading to 1.6.0
 Friday, October the 13th, 2017
 ====================================
