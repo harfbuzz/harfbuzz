@@ -332,13 +332,13 @@ hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   /* Normalise the codepoint using NFKD mode. */
   icu_err = U_ZERO_ERROR;
   len = unorm2_normalize (unorm2_getNFKDInstance (&icu_err), utf16, len, normalized, ARRAY_LENGTH (normalized), &icu_err);
-  if (icu_err)
+  if (U_FAILURE (icu_err))
     return 0;
 
   /* Convert the decomposed form from UTF-16 to UTF-32. */
   icu_err = U_ZERO_ERROR;
   u_strToUTF32 ((UChar32*) decomposed, HB_UNICODE_MAX_DECOMPOSITION_LEN, &utf32_len, normalized, len, &icu_err);
-  if (icu_err)
+  if (U_FAILURE (icu_err))
     return 0;
 
   return utf32_len;
