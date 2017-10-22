@@ -337,10 +337,10 @@ static inline HB_CONST_FUNC unsigned int
 _hb_popcount64 (uint64_t mask)
 {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-  return __builtin_popcountl (mask);
-#else
-  return _hb_popcount32 (mask) + _hb_popcount32 (mask >> 32);
+  if (sizeof (long) >= sizeof (mask))
+    return __builtin_popcountl (mask);
 #endif
+  return _hb_popcount32 (mask) + _hb_popcount32 (mask >> 32);
 }
 template <typename T> static inline unsigned int _hb_popcount (T mask);
 template <> inline unsigned int _hb_popcount<uint32_t> (uint32_t mask) { return _hb_popcount32 (mask); }
