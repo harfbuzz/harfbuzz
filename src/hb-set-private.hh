@@ -175,15 +175,6 @@ struct hb_set_t
     return true;
   }
 
-  inline void init (void) {
-    hb_object_init (this);
-    page_map.init ();
-    pages.init ();
-  }
-  inline void fini (void) {
-    page_map.finish ();
-    pages.finish ();
-  }
   inline void clear (void) {
     if (unlikely (hb_object_is_inert (this)))
       return;

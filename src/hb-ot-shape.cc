@@ -939,18 +939,19 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
   for (unsigned int i = 0; i < count; i++)
     add_char (font, buffer->unicode, mirror, info[i].codepoint, glyphs);
 
-  hb_set_t lookups;
-  lookups.init ();
-  hb_ot_shape_plan_collect_lookups (shape_plan, HB_OT_TAG_GSUB, &lookups);
+  hb_set_t *lookups = hb_set_create ();
+  hb_ot_shape_plan_collect_lookups (shape_plan, HB_OT_TAG_GSUB, lookups);
 
   /* And find transitive closure. */
-  hb_set_t copy;
-  copy.init ();
+  hb_set_t *copy = hb_set_create ();
   do {
-    copy.set (glyphs);
-    for (hb_codepoint_t lookup_index = -1; hb_set_next (&lookups, &lookup_index);)
+    copy->set (glyphs);
+    for (hb_codepoint_t lookup_index = -1; hb_set_next (lookups, &lookup_index);)
       hb_ot_layout_lookup_substitute_closure (font->face, lookup_index, glyphs);
-  } while (!copy.is_equal (glyphs));
+  } while (!copy->is_equal (glyphs));
+  hb_set_destroy (copy);
+
+  hb_set_destroy (lookups);
 
   hb_shape_plan_destroy (shape_plan);
 }
