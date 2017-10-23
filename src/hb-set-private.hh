@@ -274,11 +274,11 @@ struct hb_set_t
   {
     if (unlikely (in_error)) return;
 
-    int na = pages.len;
-    int nb = other->pages.len;
+    unsigned int na = pages.len;
+    unsigned int nb = other->pages.len;
 
     unsigned int count = 0;
-    int a = 0, b = 0;
+    unsigned int a = 0, b = 0;
     for (; a < na && b < nb; )
     {
       if (page_map[a].major == other->page_map[b].major)
@@ -309,34 +309,35 @@ struct hb_set_t
       return;
 
     /* Process in-place backward. */
-    a = na - 1, b = nb - 1;
-    for (; a >= 0 && b >= 0; )
+    a = na;
+    b = nb;
+    for (; a && b; )
     {
       if (page_map[a].major == other->page_map[b].major)
       {
-        Op::process (page_at (--count).v, page_at (a).v, other->page_at (b).v);
 	a--;
 	b--;
+        Op::process (page_at (--count).v, page_at (a).v, other->page_at (b).v);
       }
       else if (page_map[a].major > other->page_map[b].major)
       {
+        a--;
         if (Op::passthru_left)
 	  page_at (--count).v = page_at (a).v;
-        a--;
       }
       else
       {
+        b--;
         if (Op::passthru_right)
 	  page_at (--count).v = other->page_at (b).v;
-        b--;
       }
     }
     if (Op::passthru_left)
-      while (a >= 0)
-	page_at (--count).v = page_at (a--).v;
+      while (a)
+	page_at (--count).v = page_at (--a).v;
     if (Op::passthru_right)
-      while (b >= 0)
-	page_at (--count).v = other->page_at (b--).v;
+      while (b)
+	page_at (--count).v = other->page_at (--b).v;
     assert (!count);
   }
 
