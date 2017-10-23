@@ -156,6 +156,7 @@ struct hb_set_t
     elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
     elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & ELT_MASK); }
   };
+  static_assert (page_t::PAGE_BITS == sizeof (page_t) * 8, "");
 
   hb_object_header_t header;
   ASSERT_POD ();
@@ -367,7 +368,7 @@ struct hb_set_t
     {
       if (pages[page_map[i].index].next (codepoint))
       {
-	*codepoint += page_map[i].major * PAGE_SIZE;
+	*codepoint += page_map[i].major * page_t::PAGE_BITS;
         return true;
       }
       i++;
@@ -377,7 +378,7 @@ struct hb_set_t
       hb_codepoint_t m = pages[page_map[i].index].get_min ();
       if (m != INVALID)
       {
-	*codepoint = page_map[i].major * PAGE_SIZE + m;
+	*codepoint = page_map[i].major * page_t::PAGE_BITS + m;
 	return true;
       }
     }
@@ -415,7 +416,7 @@ struct hb_set_t
     unsigned int count = pages.len;
     for (unsigned int i = 0; i < count; i++)
       if (!page_at (i).is_empty ())
-        return page_map[i].major * PAGE_SIZE + page_at (i).get_min ();
+        return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
     return INVALID;
   }
   inline hb_codepoint_t get_max (void) const
@@ -423,11 +424,10 @@ struct hb_set_t
     unsigned int count = pages.len;
     for (int i = count - 1; i >= 0; i++)
       if (!page_at (i).is_empty ())
-        return page_map[i].major * PAGE_SIZE + page_at (i).get_max ();
+        return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_max ();
     return INVALID;
   }
 
-  static const unsigned int PAGE_SIZE = sizeof (page_t) * 8;
   static  const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
   page_t *page_for_insert (hb_codepoint_t g)
@@ -463,7 +463,7 @@ struct hb_set_t
   }
   page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
   const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
-  unsigned int major (hb_codepoint_t g) const { return g / PAGE_SIZE; }
+  unsigned int major (hb_codepoint_t g) const { return g / page_t::PAGE_BITS; }
 };
 
 
