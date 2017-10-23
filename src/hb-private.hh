@@ -340,7 +340,7 @@ _hb_popcount64 (uint64_t mask)
   if (sizeof (long) >= sizeof (mask))
     return __builtin_popcountl (mask);
 #endif
-  return _hb_popcount32 (mask) + _hb_popcount32 (mask >> 32);
+  return _hb_popcount32 (mask & 0xFFFFFFFF) + _hb_popcount32 (mask >> 32);
 }
 template <typename T> static inline unsigned int _hb_popcount (T mask);
 template <> inline unsigned int _hb_popcount<uint32_t> (uint32_t mask) { return _hb_popcount32 (mask); }
