@@ -31,7 +31,7 @@ HarfBuzz release walk-through checklist:
 ```
 11. While doing that, quickly double-check the size of the .tar.bz2 and .zip files against their previous releases to make sure nothing bad happened.  They should be in the ballpark, perhaps slightly larger.  Sometimes they do shrink, that's not by itself a stopper.
 12. Push the commit and tag out: "git push --follow-tags".  Make sure it's pushed both to freedesktop repo and github.
-13. Create a GitHub release [here](https://github.com/behdad/harfbuzz/releases), upload artefacts and NEWS entry on it also.
+13. Go to GitHub release page [here](https://github.com/behdad/harfbuzz/releases), edit the tag, upload artefacts and NEWS entry and save.
 
 
 ## MING32
@@ -57,7 +57,7 @@ export LDFLAGS=-L$HOME/.local/$target/lib
 export PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig
 export PATH=$HOME/.local/$target/bin:$PATH
 
-../configure --build=`~/script/config.guess` --host=$target --prefix=/home/behdad/.local/$target "$@"
+../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target "$@"
 ```
 
 ## UPDATE.sh
