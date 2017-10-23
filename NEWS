@@ -1,3 +1,13 @@
+Overview of changes leading to 1.6.2
+Monday, October 23nd, 2017
+====================================
+
+- Yesterday's release had a bad crasher; don't use it.  That's what
+  happens when one works on Sunday...
+  https://github.com/behdad/harfbuzz/issues/578
+- Build fixes for FreeBSD and Chrome Android.
+
+
 Overview of changes leading to 1.6.1
 Sunday, October 22nd, 2017
 ====================================
