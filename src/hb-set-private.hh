@@ -331,10 +331,12 @@ struct hb_set_t
         b--;
       }
     }
-    while (a >= 0)
-      page_at (--count).v = page_at (--a).v;
-    while (b >= 0)
-      page_at (--count).v = other->page_at (--b).v;
+    if (Op::passthru_left)
+      while (a >= 0)
+	page_at (--count).v = page_at (a--).v;
+    if (Op::passthru_right)
+      while (b >= 0)
+	page_at (--count).v = other->page_at (b--).v;
     assert (!count);
   }
 
