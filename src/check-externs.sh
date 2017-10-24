@@ -14,7 +14,8 @@ echo 'Checking that all public symbols are exported with HB_EXTERN'
 
 for x in $HBHEADERS; do
 	test -f "$srcdir/$x" && x="$srcdir/$x"
-	$EGREP -B1 '^hb_' "$x" | $EGREP -E -v '^(--|hb_|HB_EXTERN )' -A1
+	$EGREP -B1 -n '^hb_' /dev/null "$x" |
+	$EGREP -v '(^--|:hb_|-HB_EXTERN )' -A1
 done |
 grep . >&2 && stat=1
 
