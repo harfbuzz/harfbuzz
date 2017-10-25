@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dir=`mktemp --directory`
+dir=`mktemp -d`
 
 hb_shape=$1
 shift
