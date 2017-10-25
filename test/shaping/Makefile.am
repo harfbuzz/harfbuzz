@@ -61,6 +61,7 @@ TESTS = \
 	tests/indic-joiners.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
+	tests/indic-script-extensions.tests \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
 	tests/language-tags.tests \
