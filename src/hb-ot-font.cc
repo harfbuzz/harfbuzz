@@ -320,18 +320,15 @@ struct hb_ot_face_post_accelerator_t
   }
 
   inline bool get_glyph_name (hb_codepoint_t glyph,
-                              char *name, unsigned int size) const
+			      char *name, unsigned int size) const
   {
-    if (unlikely (!name) || unlikely(!size))
-      return false;
-
     return this->post->get_glyph_name (glyph, name, size, this->post_len);
   }
 
   inline bool get_glyph_from_name (const char *name, int len,
-                                   hb_codepoint_t *glyph) const
+				   hb_codepoint_t *glyph) const
   {
-    if (unlikely (!name) || unlikely(!len))
+    if (unlikely (!len))
       return false;
 
     return this->post->get_glyph_from_name (name, len, glyph, this->post_len);
