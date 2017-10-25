@@ -90,6 +90,15 @@ test_set_basic (void)
 }
 
 static void
+print_set (hb_set_t *s)
+{
+  printf ("{");
+  for (hb_codepoint_t next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
+    printf ("%d, ", next);
+  printf ("}\n");
+}
+
+static void
 test_set_algebra (void)
 {
   hb_set_t *s = hb_set_create ();
@@ -149,7 +158,38 @@ test_set_algebra (void)
   g_assert (!hb_set_has (s, 13));
   g_assert (hb_set_has (s, 19));
 
+  /* https://github.com/behdad/harfbuzz/issues/579 */
+  hb_set_clear (s);
+  test_empty (s);
+  hb_set_add_range (s, 886, 895);
+  hb_set_add (s, 1024);
+  hb_set_add (s, 1152);
+  hb_set_clear (o);
+  test_empty (o);
+  hb_set_add (o, 889);
+  hb_set_add (o, 1024);
+  g_assert (!hb_set_is_equal (s, o));
+  hb_set_intersect (o, s);
+  test_not_empty (o);
+  g_assert (!hb_set_is_equal (s, o));
+  g_assert_cmpint (hb_set_get_population (o), ==, 2);
+  g_assert (hb_set_has (o, 889));
+  g_assert (hb_set_has (o, 1024));
+  hb_set_clear (o);
+  test_empty (o);
+  hb_set_add_range (o, 887, 889);
+  hb_set_add (o, 1121);
+  g_assert (!hb_set_is_equal (s, o));
+  hb_set_intersect (o, s);
+  test_not_empty (o);
+  g_assert (!hb_set_is_equal (s, o));
+  g_assert_cmpint (hb_set_get_population (o), ==, 3);
+  g_assert (hb_set_has (o, 887));
+  g_assert (hb_set_has (o, 888));
+  g_assert (hb_set_has (o, 889));
+
   hb_set_destroy (s);
+  hb_set_destroy (o);
 }
 
 static void
