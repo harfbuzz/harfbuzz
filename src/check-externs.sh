@@ -13,7 +13,7 @@ test "x$EGREP" = x && EGREP='grep -E'
 echo 'Checking that all public symbols are exported with HB_EXTERN'
 
 for x in $HBHEADERS; do
-	test -f "$srcdir/$x" && x="$srcdir/$x"
+	test -f "$srcdir/$x" -a ! -f "$x" && x="$srcdir/$x"
 	$EGREP -B1 -n '^hb_' /dev/null "$x" |
 	$EGREP -v '(^--|:hb_|-HB_EXTERN )' -A1
 done |
