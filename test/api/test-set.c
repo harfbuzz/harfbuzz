@@ -201,6 +201,8 @@ test_set_iter (void)
   hb_set_add (s, 13);
   hb_set_add_range (s, 6, 6);
   hb_set_add_range (s, 10, 15);
+  hb_set_add (s, 1100);
+  hb_set_add (s, 1200);
   hb_set_add (s, 20005);
 
   test_not_empty (s);
@@ -218,6 +220,10 @@ test_set_iter (void)
   g_assert (hb_set_next (s, &next));
   g_assert_cmpint (next, ==, 15);
   g_assert (hb_set_next (s, &next));
+  g_assert_cmpint (next, ==, 1100);
+  g_assert (hb_set_next (s, &next));
+  g_assert_cmpint (next, ==, 1200);
+  g_assert (hb_set_next (s, &next));
   g_assert_cmpint (next, ==, 20005);
   g_assert (!hb_set_next (s, &next));
   g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
@@ -229,6 +235,12 @@ test_set_iter (void)
   g_assert (hb_set_next_range (s, &first, &last));
   g_assert_cmpint (first, ==, 10);
   g_assert_cmpint (last,  ==, 15);
+  g_assert (hb_set_next_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 1100);
+  g_assert_cmpint (last,  ==, 1100);
+  g_assert (hb_set_next_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 1200);
+  g_assert_cmpint (last,  ==, 1200);
   g_assert (hb_set_next_range (s, &first, &last));
   g_assert_cmpint (first, ==, 20005);
   g_assert_cmpint (last,  ==, 20005);
