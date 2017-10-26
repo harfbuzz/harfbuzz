@@ -95,7 +95,7 @@ struct hb_set_t
 	  goto found;
       for (i++; i < len (); i++)
         if (v[i])
-	  for (unsigned int j = 0; j < ELT_BITS; j++)
+	  for (j = 0; j < ELT_BITS; j++)
 	    if (v[i] & (elt_t (1) << j))
 	      goto found;
 
