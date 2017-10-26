@@ -195,7 +195,7 @@ struct post
     {
       for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
       {
-	if (strncmp (name, format1_names[i], len) == 0 && format1_names[len] == '\0')
+	if (strncmp (name, format1_names[i], len) == 0 && format1_names[i][len] == '\0')
 	{
 	  *glyph = i;
 	  return true;
@@ -218,7 +218,7 @@ struct post
 	unsigned int index = v2.glyphNameIndex[gid];
 	if (index < NUM_FORMAT1_NAMES)
 	{
-	  if (strncmp (name, format1_names[index], len) == 0 && format1_names[len] == '\0')
+	  if (strncmp (name, format1_names[index], len) == 0 && format1_names[index][len] == '\0')
 	  {
 	    *glyph = gid;
 	    return true;
