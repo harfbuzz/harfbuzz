@@ -89,11 +89,12 @@ test_set_basic (void)
   hb_set_destroy (s);
 }
 
-static void
+static inline void
 print_set (hb_set_t *s)
 {
+  hb_codepoint_t next;
   printf ("{");
-  for (hb_codepoint_t next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
+  for (next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
     printf ("%d, ", next);
   printf ("}\n");
 }
