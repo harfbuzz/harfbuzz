@@ -23,6 +23,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX(11, noext, optional)
 AC_SYS_LARGEFILE
 PKG_PROG_PKG_CONFIG([0.20])
 AM_MISSING_PROG([RAGEL], [ragel])
@@ -79,9 +80,6 @@ if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
 	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
-
-	# Choose C++ version
-	CXXFLAGS="$CXXFLAGS -std=c++11"
 
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
