@@ -545,7 +545,7 @@ struct hb_auto_array_t : hb_prealloced_array_t <Type>
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
-  hb_prealloced_array_t <item_t, 2> items;
+  hb_prealloced_array_t <item_t, 1> items;
 
   inline void init (void) { items.init (); }
 
