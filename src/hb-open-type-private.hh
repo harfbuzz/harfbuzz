@@ -632,10 +632,11 @@ struct IntType
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   inline bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
-  inline int cmp (Type a) const
+  template <typename Type2>
+  inline int cmp (Type2 a) const
   {
     Type b = v;
-    if (sizeof (Type) < sizeof (int))
+    if (sizeof (Type) < sizeof (int) && sizeof (Type2) < sizeof (int))
       return (int) a - (int) b;
     else
       return a < b ? -1 : a == b ? 0 : +1;
