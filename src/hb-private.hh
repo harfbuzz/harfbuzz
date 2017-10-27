@@ -98,10 +98,10 @@ private:
 
 // Static assertions
 #ifndef static_assert
-#define _PASTE1(a,b) a##b
-#define _PASTE(a,b) _PASTE1(a,b)
+#define HB_PASTE1(a,b) a##b
+#define HB_PASTE(a,b) HB_PASTE1(a,b)
 #define static_assert(e, msg) \
-	HB_UNUSED typedef int _PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
+	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert
 
 #endif // __cplusplus < 201103L
