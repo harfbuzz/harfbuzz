@@ -24,12 +24,13 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#ifndef HELPER_CAIRO_HH
+#define HELPER_CAIRO_HH
+
+#include "hb-private.hh"
 #include "options.hh"
 
 #include <cairo.h>
-
-#ifndef HELPER_CAIRO_HH
-#define HELPER_CAIRO_HH
 
 
 cairo_scaled_font_t *

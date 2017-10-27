@@ -24,10 +24,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "options.hh"
-
 #ifndef HB_MAIN_FONT_TEXT_HH
 #define HB_MAIN_FONT_TEXT_HH
+
+#include "hb-private.hh"
+#include "options.hh"
 
 /* main() body for utilities taking font and processing text.*/
 

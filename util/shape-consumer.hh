@@ -24,10 +24,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "options.hh"
-
 #ifndef HB_SHAPE_CONSUMER_HH
 #define HB_SHAPE_CONSUMER_HH
+
+#include "hb-private.hh"
+#include "options.hh"
 
 
 template <typename output_t>

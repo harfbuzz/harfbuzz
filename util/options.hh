@@ -27,10 +27,7 @@
 #ifndef OPTIONS_HH
 #define OPTIONS_HH
 
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "hb-private.hh"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -58,12 +55,6 @@
 #if !GLIB_CHECK_VERSION (2, 22, 0)
 # define g_mapped_file_unref g_mapped_file_free
 #endif
-
-/* Normally I don't like including private headers, but hb-private.hh
- * is generic utility stuff and in no way exposes the internals of
- * libharfbuzz.
- */
-#include "hb-private.hh"
 
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
 

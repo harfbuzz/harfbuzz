@@ -24,11 +24,12 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "options.hh"
-#include "helper-cairo.hh"
-
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
+
+#include "hb-private.hh"
+#include "options.hh"
+#include "helper-cairo.hh"
 
 
 struct view_cairo_t
