@@ -689,7 +689,6 @@ reorder_marks_arabic (const hb_ot_shape_plan_t *plan,
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
 {
-  "arabic",
   collect_features_arabic,
   nullptr, /* override_features */
   data_create_arabic,
