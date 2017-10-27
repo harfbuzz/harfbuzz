@@ -130,14 +130,16 @@ static inline Type& StructAfter(TObject &X)
  */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
-/* TODO This really should be a extern HB_INTERNAL and defined somewhere... */
-static const void *_NullPool[(256+8) / sizeof (void *)];
+
+#define HB_NULL_POOL_SIZE 264
+static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
+extern HB_INTERNAL const void *_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline const Type& Null (void) {
-  static_assert ((sizeof (Type) <= sizeof (_NullPool)), "");
-  return *CastP<Type> (_NullPool);
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  return *CastP<Type> (_hb_NullPool);
 }
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */

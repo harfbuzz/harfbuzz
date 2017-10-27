@@ -39,6 +39,9 @@
 #include "hb-ot-map-private.hh"
 
 
+const void *OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)];
+
+
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {
