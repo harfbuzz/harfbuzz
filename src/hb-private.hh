@@ -54,6 +54,10 @@
 #include <stdarg.h>
 
 
+#define HB_PASTE1(a,b) a##b
+#define HB_PASTE(a,b) HB_PASTE1(a,b)
+
+
 /* Compile-time custom allocator support. */
 
 #if defined(hb_malloc_impl) \
@@ -98,8 +102,6 @@ private:
 
 // Static assertions
 #ifndef static_assert
-#define HB_PASTE1(a,b) a##b
-#define HB_PASTE(a,b) HB_PASTE1(a,b)
 #define static_assert(e, msg) \
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert

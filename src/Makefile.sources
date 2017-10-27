@@ -39,6 +39,7 @@ HB_BASE_sources = \
 	hb-shaper-impl-private.hh \
 	hb-shaper-private.hh \
 	hb-shaper.cc \
+	hb-string-array.hh \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
 	hb-utf-private.hh \
