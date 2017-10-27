@@ -370,6 +370,7 @@ static hb_unicode_funcs_t *static_glib_funcs = nullptr;
 static
 void free_static_glib_funcs (void)
 {
+  hb_object_undo_inert (static_glib_funcs);
   hb_unicode_funcs_destroy (static_glib_funcs);
 }
 #endif
@@ -390,8 +391,10 @@ retry:
 #undef HB_UNICODE_FUNC_IMPLEMENT
 
     hb_unicode_funcs_make_immutable (funcs);
+    hb_object_make_inert (funcs);
 
     if (!hb_atomic_ptr_cmpexch (&static_glib_funcs, nullptr, funcs)) {
+      hb_object_undo_inert (funcs);
       hb_unicode_funcs_destroy (funcs);
       goto retry;
     }
