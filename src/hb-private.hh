@@ -80,25 +80,9 @@ extern "C" void  hb_free_impl(void *ptr);
 
 #if __cplusplus < 201103L
 
-// Null pointer literal
-// Source: SC22/WG21/N2431 = J16/07-0301
-// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2431.pdf
-
-const                        // this is a const object...
-class {
-public:
-    template<class T>          // convertible to any type
-    operator T*() const {    // of null non-member
-        return 0;    // pointer...
-    }
-    template<class C, class T> // or any type of null
-    operator T C::*() const { // member pointer...
-        return 0;
-    }
-private:
-    void operator&() const;    // whose address can't be taken
-} _hb_nullptr = {};            // and whose name is nullptr
-#define nullptr _hb_nullptr
+#ifndef nullptr
+#define nullptr NULL
+#endif
 
 // Static assertions
 #ifndef static_assert
