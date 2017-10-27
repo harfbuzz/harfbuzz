@@ -29,48 +29,13 @@
 
 #include "hb-open-type-private.hh"
 
-#define NUM_FORMAT1_NAMES 258
+#define HB_STRING_ARRAY_NAME format1_names
+#define HB_STRING_ARRAY_LIST "hb-ot-post-macroman.hh"
+#include "hb-string-array.hh"
+#undef HB_STRING_ARRAY_LIST
+#undef HB_STRING_ARRAY_NAME
 
-static const char* const format1_names[NUM_FORMAT1_NAMES] =
-{
-  ".notdef", ".null", "nonmarkingreturn", "space", "exclam", "quotedbl",
-  "numbersign", "dollar", "percent", "ampersand", "quotesingle", "parenleft",
-  "parenright", "asterisk", "plus", "comma", "hyphen", "period", "slash",
-  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-  "nine", "colon", "semicolon", "less", "equal", "greater", "question", "at",
-  "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-  "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "bracketleft",
-  "backslash", "bracketright", "asciicircum", "underscore", "grave", "a", "b",
-  "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q",
-  "r", "s", "t", "u", "v", "w", "x", "y", "z", "braceleft", "bar",
-  "braceright", "asciitilde", "Adieresis", "Aring", "Ccedilla", "Eacute",
-  "Ntilde", "Odieresis", "Udieresis", "aacute", "agrave", "acircumflex",
-  "adieresis", "atilde", "aring", "ccedilla", "eacute", "egrave",
-  "ecircumflex", "edieresis", "iacute", "igrave", "icircumflex", "idieresis",
-  "ntilde", "oacute", "ograve", "ocircumflex", "odieresis", "otilde", "uacute",
-  "ugrave", "ucircumflex", "udieresis", "dagger", "degree", "cent", "sterling",
-  "section", "bullet", "paragraph", "germandbls", "registered", "copyright",
-  "trademark", "acute", "dieresis", "notequal", "AE", "Oslash", "infinity",
-  "plusminus", "lessequal", "greaterequal", "yen", "mu", "partialdiff",
-  "summation", "product", "pi", "integral", "ordfeminine", "ordmasculine",
-  "Omega", "ae", "oslash", "questiondown", "exclamdown", "logicalnot",
-  "radical", "florin", "approxequal", "Delta", "guillemotleft",
-  "guillemotright", "ellipsis", "nonbreakingspace", "Agrave", "Atilde",
-  "Otilde", "OE", "oe", "endash", "emdash", "quotedblleft", "quotedblright",
-  "quoteleft", "quoteright", "divide", "lozenge", "ydieresis", "Ydieresis",
-  "fraction", "currency", "guilsinglleft", "guilsinglright", "fi", "fl",
-  "daggerdbl", "periodcentered", "quotesinglbase", "quotedblbase",
-  "perthousand", "Acircumflex", "Ecircumflex", "Aacute", "Edieresis", "Egrave",
-  "Iacute", "Icircumflex", "Idieresis", "Igrave", "Oacute", "Ocircumflex",
-  "apple", "Ograve", "Uacute", "Ucircumflex", "Ugrave", "dotlessi",
-  "circumflex", "tilde", "macron", "breve", "dotaccent", "ring", "cedilla",
-  "hungarumlaut", "ogonek", "caron", "Lslash", "lslash", "Scaron", "scaron",
-  "Zcaron", "zcaron", "brokenbar", "Eth", "eth", "Yacute", "yacute", "Thorn",
-  "thorn", "minus", "multiply", "onesuperior", "twosuperior", "threesuperior",
-  "onehalf", "onequarter", "threequarters", "franc", "Gbreve", "gbreve",
-  "Idotaccent", "Scedilla", "scedilla", "Cacute", "cacute", "Ccaron", "ccaron",
-  "dcroat",
-};
+#define NUM_FORMAT1_NAMES 258
 
 namespace OT {
 
@@ -130,7 +95,7 @@ struct post
 
       if (!buffer_length)
 	return true;
-      strncpy (buffer, format1_names[glyph], buffer_length);
+      strncpy (buffer, format1_names (glyph), buffer_length);
       buffer[buffer_length - 1] = '\0';
       return true;
     }
@@ -150,7 +115,7 @@ struct post
       {
 	if (!buffer_length)
 	  return true;
-	strncpy (buffer, format1_names[index], buffer_length);
+	strncpy (buffer, format1_names (index), buffer_length);
 	buffer[buffer_length - 1] = '\0';
 	return true;
       }
@@ -195,7 +160,7 @@ struct post
     {
       for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
       {
-	if (strncmp (name, format1_names[i], len) == 0 && format1_names[i][len] == '\0')
+	if (strncmp (name, format1_names (i), len) == 0 && format1_names (i)[len] == '\0')
 	{
 	  *glyph = i;
 	  return true;
@@ -218,7 +183,7 @@ struct post
 	unsigned int index = v2.glyphNameIndex[gid];
 	if (index < NUM_FORMAT1_NAMES)
 	{
-	  if (strncmp (name, format1_names[index], len) == 0 && format1_names[index][len] == '\0')
+	  if (strncmp (name, format1_names (index), len) == 0 && format1_names (index)[len] == '\0')
 	  {
 	    *glyph = gid;
 	    return true;
