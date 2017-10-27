@@ -401,7 +401,7 @@ retry:
 #endif
   };
 
-  return funcs;
+  return hb_unicode_funcs_reference (funcs);
 }
 
 #if GLIB_CHECK_VERSION(2,31,10)

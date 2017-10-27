@@ -269,5 +269,5 @@ retry:
 #endif
   };
 
-  return funcs;
+  return hb_unicode_funcs_reference (funcs);
 }
