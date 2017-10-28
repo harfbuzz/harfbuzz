@@ -52,13 +52,10 @@ struct postV2Tail
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (numberOfGlyphs.sanitize (c) &&
-		  c->check_array (glyphNameIndex, sizeof (USHORT), numberOfGlyphs));
+    return_trace (glyphNameIndex.sanitize (c));
   }
 
-  USHORT	numberOfGlyphs;		/* Number of glyphs (this should be the
-					 * same as numGlyphs in 'maxp' table). */
-  USHORT	glyphNameIndex[VAR];	/* This is not an offset, but is the
+  ArrayOf<USHORT>glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
   BYTE		namesX[VAR];		/* Glyph names with length bytes [variable]
@@ -104,7 +101,7 @@ struct post
     {
       const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
 
-      if (glyph >= v2.numberOfGlyphs)
+      if (glyph >= v2.glyphNameIndex.len)
 	return false;
 
       if (!buffer_length)
@@ -121,9 +118,8 @@ struct post
       }
       index -= NUM_FORMAT1_NAMES;
 
-      unsigned int offset = min_size + v2.min_size + 2 * v2.numberOfGlyphs;
-      unsigned char *data = (unsigned char *) this + offset;
-      unsigned char *end = (unsigned char *) this + blob_len;
+      const uint8_t *data = &StructAfter<uint8_t> (v2.glyphNameIndex);
+      const uint8_t *end = (uint8_t *) this + blob_len;
       for (unsigned int i = 0; data < end; i++)
       {
 	unsigned int name_length = data[0];
@@ -172,13 +168,12 @@ struct post
     if (version.to_int () == 0x00020000)
     {
       const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
-      unsigned int offset = min_size + v2.min_size + 2 * v2.numberOfGlyphs;
-      char* data = (char*) this + offset;
+      const uint8_t *data = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
 
       /* XXX The following code is wrong. */
       return false;
-      for (hb_codepoint_t gid = 0; gid < v2.numberOfGlyphs; gid++)
+      for (hb_codepoint_t gid = 0; gid < v2.glyphNameIndex.len; gid++)
       {
 	unsigned int index = v2.glyphNameIndex[gid];
 	if (index < NUM_FORMAT1_NAMES)
@@ -192,12 +187,12 @@ struct post
 	}
 	index -= NUM_FORMAT1_NAMES;
 
-	for (unsigned int i = 0; data < (char*) this + blob_len; i++)
+	for (unsigned int i = 0; data < (uint8_t *) this + blob_len; i++)
 	{
 	  unsigned int name_length = data[0];
-	  unsigned int remaining = (char*) this + blob_len - data - 1;
+	  unsigned int remaining = CastP<uint8_t> (this) + blob_len - data - 1;
 	  name_length = MIN (name_length, remaining);
-	  if (name_length == (unsigned int) len && strncmp (name, data + 1, len) == 0)
+	  if (name_length == (unsigned int) len && strncmp (name, (const char *) data + 1, len) == 0)
 	  {
 	    *glyph = gid;
 	    return true;
