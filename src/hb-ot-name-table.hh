@@ -89,7 +89,7 @@ struct name
     key.encodingID.set (encoding_id);
     key.languageID.set (language_id);
     key.nameID.set (name_id);
-    NameRecord *match = (NameRecord *) bsearch (&key, nameRecord, count, sizeof (nameRecord[0]), (hb_compare_func_t) NameRecord::cmp);
+    NameRecord *match = (NameRecord *) bsearch (&key, nameRecord, count, sizeof (nameRecord[0]), NameRecord::cmp);
 
     if (!match)
       return 0;

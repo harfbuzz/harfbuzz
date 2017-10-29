@@ -372,11 +372,6 @@ _hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
 }
 
 
-/* Type of bsearch() / qsort() compare function */
-typedef int (*hb_compare_func_t) (const void *, const void *);
-
-
-
 
 /* arrays and maps */
 
@@ -480,12 +475,12 @@ struct hb_prealloced_array_t
 
   inline void qsort (void)
   {
-    ::qsort (array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    ::qsort (array, len, sizeof (Type), Type::cmp);
   }
 
   inline void qsort (unsigned int start, unsigned int end)
   {
-    ::qsort (array + start, end - start, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    ::qsort (array + start, end - start, sizeof (Type), Type::cmp);
   }
 
   template <typename T>
