@@ -4,6 +4,31 @@
 
 #include <hb-private.hh>
 
+
+static inline void *
+hb_bsearch_r(const void *key, const void *base,
+	     size_t nmemb, size_t size,
+	     int (*compar)(const void *_a, const void *_b, const void *_arg),
+	     void *arg)
+{
+  int min = 0, max = (int) nmemb - 1;
+  while (min <= max)
+  {
+    int mid = (min + max) / 2;
+    const void *p = (const void *) (((const char *) base) + (mid * size));
+    int c = compar (key, p, arg);
+    if (c < 0)
+      max = mid - 1;
+    else if (c > 0)
+      min = mid + 1;
+    else
+      return (void *) p;
+  }
+  return NULL;
+}
+
+
+
 /* From https://github.com/noporpoise/sort_r */
 /*
 

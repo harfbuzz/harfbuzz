@@ -28,6 +28,7 @@
 #define HB_OT_POST_TABLE_HH
 
 #include "hb-open-type-private.hh"
+#include "hb-sort-r.hh"
 
 #define HB_STRING_ARRAY_NAME format1_names
 #define HB_STRING_ARRAY_LIST "hb-ot-post-macroman.hh"
