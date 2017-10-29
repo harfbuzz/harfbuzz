@@ -130,9 +130,6 @@ struct post
       if (glyph >= glyphNameIndex->len)
 	return false;
 
-      if (!buf_len)
-	return true;
-
       unsigned int index = glyphNameIndex->array[glyph];
       if (index < NUM_FORMAT1_NAMES)
       {
@@ -146,8 +143,7 @@ struct post
 
       if (index >= index_to_offset.len)
         return false;
-      unsigned int offset = index_to_offset[index];
-
+      unsigned int offset = index_to_offset.array[index];
 
       const uint8_t *data = pool + offset;
       unsigned int name_length = *data;
