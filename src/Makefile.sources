@@ -40,6 +40,7 @@ HB_BASE_sources = \
 	hb-shaper-impl-private.hh \
 	hb-shaper-private.hh \
 	hb-shaper.cc \
+	hb-sort-r.hh \
 	hb-string-array.hh \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
