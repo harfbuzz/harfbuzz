@@ -96,7 +96,7 @@ struct post
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
       const uint8_t *end = (uint8_t *) table + post_len;
-      for (const uint8_t *data = pool; data < end && data + *data <= end; data += *data)
+      for (const uint8_t *data = pool; data < end && data + *data <= end; data += 1 + *data)
       {
 	uint32_t *offset = index_to_offset.push ();
 	if (unlikely (!offset))
