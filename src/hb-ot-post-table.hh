@@ -81,132 +81,116 @@ struct post
     return_trace (true);
   }
 
-  inline bool get_glyph_name (hb_codepoint_t glyph,
-			      char *buffer, unsigned int buffer_length,
-			      unsigned int blob_len) const
+  struct accelerator_t
   {
-    if (version.to_int () == 0x00010000)
+    inline void init (const post *table, unsigned int post_len)
     {
-      if (glyph >= NUM_FORMAT1_NAMES)
-	return false;
+      version = table->version.to_int ();
+      index_to_offset.init ();
+      if (version != 0x00020000)
+        return;
 
-      if (!buffer_length)
-	return true;
-      strncpy (buffer, format1_names (glyph), buffer_length);
-      buffer[buffer_length - 1] = '\0';
-      return true;
+      const postV2Tail &v2 = StructAfter<postV2Tail> (*table);
+
+      glyphNameIndex = &v2.glyphNameIndex;
+      pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
+
+      const uint8_t *end = (uint8_t *) table + post_len;
+      for (const uint8_t *data = pool; data < end && data + *data <= end; data += *data)
+      {
+	uint32_t *offset = index_to_offset.push ();
+	if (unlikely (!offset))
+	  break;
+	*offset = data - pool;
+      }
+    }
+    inline void fini (void)
+    {
+      index_to_offset.finish ();
     }
 
-    if (version.to_int () == 0x00020000)
+    inline bool get_glyph_name (hb_codepoint_t glyph,
+				char *buf, unsigned int buf_len) const
     {
-      const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
+      if (version == 0x00010000)
+      {
+	if (glyph >= NUM_FORMAT1_NAMES)
+	  return false;
 
-      if (glyph >= v2.glyphNameIndex.len)
+	if (!buf_len)
+	  return true;
+	strncpy (buf, format1_names (glyph), buf_len);
+	buf[buf_len - 1] = '\0';
+	return true;
+      }
+
+      if (version != 0x00020000)
+        return false;
+
+      if (glyph >= glyphNameIndex->len)
 	return false;
 
-      if (!buffer_length)
+      if (!buf_len)
 	return true;
 
-      unsigned int index = v2.glyphNameIndex[glyph];
+      unsigned int index = glyphNameIndex->array[glyph];
       if (index < NUM_FORMAT1_NAMES)
       {
-	if (!buffer_length)
+	if (!buf_len)
 	  return true;
-	strncpy (buffer, format1_names (index), buffer_length);
-	buffer[buffer_length - 1] = '\0';
+	strncpy (buf, format1_names (index), buf_len);
+	buf[buf_len - 1] = '\0';
 	return true;
       }
       index -= NUM_FORMAT1_NAMES;
 
-      const uint8_t *data = &StructAfter<uint8_t> (v2.glyphNameIndex);
-      const uint8_t *end = (uint8_t *) this + blob_len;
-      for (unsigned int i = 0; data < end; i++)
-      {
-	unsigned int name_length = data[0];
-	data++;
-	if (i == index)
-	{
-	  if (unlikely (!name_length))
-	    return false;
+      if (index >= index_to_offset.len)
+        return false;
+      unsigned int offset = index_to_offset[index];
 
-	  unsigned int remaining = end - data;
-	  name_length = MIN (name_length, buffer_length - 1);
-	  name_length = MIN (name_length, remaining);
-	  memcpy (buffer, data, name_length);
-	  buffer[name_length] = '\0';
-	  return true;
-	}
-	data += name_length;
-      }
 
-      return false;
+      const uint8_t *data = pool + offset;
+      unsigned int name_length = *data;
+      data++;
+
+      if (unlikely (!name_length || buf_len <= name_length))
+	return false;
+      memcpy (buf, data, name_length);
+      buf[name_length] = '\0';
+      return true;
     }
 
-    return false;
-  }
-
-  inline bool get_glyph_from_name (const char *name, int len,
-				   hb_codepoint_t *glyph,
-				   unsigned int blob_len) const
-  {
-    if (len < 0)
-      len = strlen (name);
-
-    if (version.to_int () == 0x00010000)
+    inline bool get_glyph_from_name (const char *name, int len,
+				     hb_codepoint_t *glyph) const
     {
-      for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
+      if (len < 0)
+	len = strlen (name);
+
+      if (unlikely (!len))
+        return false;
+
+      if (version == 0x00010000)
       {
-	if (strncmp (name, format1_names (i), len) == 0 && format1_names (i)[len] == '\0')
+	for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
 	{
-	  *glyph = i;
-	  return true;
-	}
-      }
-      return false;
-    }
-
-    if (version.to_int () == 0x00020000)
-    {
-      const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
-      const uint8_t *data = &StructAfter<uint8_t> (v2.glyphNameIndex);
-
-
-      /* XXX The following code is wrong. */
-      return false;
-      for (hb_codepoint_t gid = 0; gid < v2.glyphNameIndex.len; gid++)
-      {
-	unsigned int index = v2.glyphNameIndex[gid];
-	if (index < NUM_FORMAT1_NAMES)
-	{
-	  if (strncmp (name, format1_names (index), len) == 0 && format1_names (index)[len] == '\0')
+	  if (strncmp (name, format1_names (i), len) == 0 && format1_names (i)[len] == '\0')
 	  {
-	    *glyph = gid;
+	    *glyph = i;
 	    return true;
 	  }
-	  continue;
-	}
-	index -= NUM_FORMAT1_NAMES;
-
-	for (unsigned int i = 0; data < (uint8_t *) this + blob_len; i++)
-	{
-	  unsigned int name_length = data[0];
-	  unsigned int remaining = CastP<uint8_t> (this) + blob_len - data - 1;
-	  name_length = MIN (name_length, remaining);
-	  if (name_length == (unsigned int) len && strncmp (name, (const char *) data + 1, len) == 0)
-	  {
-	    *glyph = gid;
-	    return true;
-	  }
-	  data += name_length + 1;
 	}
 	return false;
       }
 
+      /* TODO format2 */
       return false;
     }
 
-    return false;
-  }
+    uint32_t version;
+    const ArrayOf<USHORT> *glyphNameIndex;
+    hb_prealloced_array_t<uint32_t, 1> index_to_offset;
+    const uint8_t *pool;
+  };
 
   public:
   FixedVersion<>version;		/* 0x00010000 for version 1.0

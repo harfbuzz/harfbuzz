@@ -304,25 +304,24 @@ struct hb_ot_face_cbdt_accelerator_t
 struct hb_ot_face_post_accelerator_t
 {
   hb_blob_t *post_blob;
-  unsigned int post_len;
-  const OT::post *post;
+  OT::post::accelerator_t accel;
 
   inline void init (hb_face_t *face)
   {
-    this->post_blob = OT::Sanitizer<OT::post>::sanitize (face->reference_table (HB_OT_TAG_post));
-    this->post = OT::Sanitizer<OT::post>::lock_instance (this->post_blob);
-    this->post_len = hb_blob_get_length (this->post_blob);
+    hb_blob_t *blob = this->post_blob = OT::Sanitizer<OT::post>::sanitize (face->reference_table (HB_OT_TAG_post));
+    accel.init (OT::Sanitizer<OT::post>::lock_instance (blob), hb_blob_get_length (blob));
   }
 
   inline void fini (void)
   {
+    accel.fini ();
     hb_blob_destroy (this->post_blob);
   }
 
   inline bool get_glyph_name (hb_codepoint_t glyph,
 			      char *name, unsigned int size) const
   {
-    return this->post->get_glyph_name (glyph, name, size, this->post_len);
+    return this->accel.get_glyph_name (glyph, name, size);
   }
 
   inline bool get_glyph_from_name (const char *name, int len,
@@ -331,7 +330,7 @@ struct hb_ot_face_post_accelerator_t
     if (unlikely (!len))
       return false;
 
-    return this->post->get_glyph_from_name (name, len, glyph, this->post_len);
+    return this->accel.get_glyph_from_name (name, len, glyph);
   }
 };
 
