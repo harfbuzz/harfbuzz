@@ -110,48 +110,39 @@ struct post
       index_to_offset.finish ();
     }
 
-    struct str_t
-    {
-      inline str_t (void) : bytes (nullptr), len (0) {}
-      inline str_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
-
-      const char *bytes;
-      unsigned int len;
-    };
-
-    inline str_t _find_glyph_name (hb_codepoint_t glyph) const
+    inline hb_string_t _find_glyph_name (hb_codepoint_t glyph) const
     {
       if (version == 0x00010000)
       {
 	if (glyph >= NUM_FORMAT1_NAMES)
-	  return str_t ();
+	  return hb_string_t ();
 
-	return str_t (format1_names (glyph), strlen (format1_names (glyph)));
+	return hb_string_t (format1_names (glyph), strlen (format1_names (glyph)));
       }
 
       if (version != 0x00020000 || glyph >= glyphNameIndex->len)
-	return str_t ();
+	return hb_string_t ();
 
       unsigned int index = glyphNameIndex->array[glyph];
       if (index < NUM_FORMAT1_NAMES)
-	return str_t (format1_names (index), strlen (format1_names (index)));
+	return hb_string_t (format1_names (index), strlen (format1_names (index)));
       index -= NUM_FORMAT1_NAMES;
 
       if (index >= index_to_offset.len)
-	return str_t ();
+	return hb_string_t ();
       unsigned int offset = index_to_offset.array[index];
 
       const uint8_t *data = pool + offset;
       unsigned int name_length = *data;
       data++;
 
-      return str_t ((const char *) data, name_length);
+      return hb_string_t ((const char *) data, name_length);
     }
 
     inline bool get_glyph_name (hb_codepoint_t glyph,
 				char *buf, unsigned int buf_len) const
     {
-      str_t s = _find_glyph_name (glyph);
+      hb_string_t s = _find_glyph_name (glyph);
       if (!s.len)
         return false;
       if (!buf_len)
