@@ -117,7 +117,7 @@ struct post
 	if (glyph >= NUM_FORMAT1_NAMES)
 	  return hb_string_t ();
 
-	return hb_string_t (format1_names (glyph), strlen (format1_names (glyph)));
+	return format1_names (glyph);
       }
 
       if (version != 0x00020000 || glyph >= glyphNameIndex->len)
@@ -125,7 +125,7 @@ struct post
 
       unsigned int index = glyphNameIndex->array[glyph];
       if (index < NUM_FORMAT1_NAMES)
-	return hb_string_t (format1_names (index), strlen (format1_names (index)));
+	return format1_names (index);
       index -= NUM_FORMAT1_NAMES;
 
       if (index >= index_to_offset.len)
@@ -162,19 +162,6 @@ struct post
 
       if (unlikely (!len))
         return false;
-
-      if (version == 0x00010000)
-      {
-	for (int i = 0; i < NUM_FORMAT1_NAMES; i++)
-	{
-	  if (strncmp (name, format1_names (i), len) == 0 && format1_names (i)[len] == '\0')
-	  {
-	    *glyph = i;
-	    return true;
-	  }
-	}
-	return false;
-      }
 
       /* TODO format2 */
       return false;

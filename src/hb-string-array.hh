@@ -40,6 +40,10 @@
 
 static const union HB_STRING_ARRAY_TYPE_NAME {
   struct {
+/* I like to avoid storing the nul-termination byte since we don't need it,
+ * but C++ does not allow that.
+ * https://stackoverflow.com/questions/28433862/why-initializer-string-for-array-of-chars-is-too-long-compiles-fine-in-c-not
+ */
 #define _S(s) char HB_PASTE (str, __LINE__)[sizeof (s)];
 #include HB_STRING_ARRAY_LIST
 #undef _S
@@ -59,12 +63,15 @@ static const unsigned int HB_STRING_ARRAY_OFFS_NAME[] =
 #define _S(s) offsetof (union HB_STRING_ARRAY_TYPE_NAME, st.HB_PASTE(str, __LINE__)),
 #include HB_STRING_ARRAY_LIST
 #undef _S
+  sizeof (HB_STRING_ARRAY_TYPE_NAME)
 };
 
-static inline const char *
+static inline hb_string_t
 HB_STRING_ARRAY_NAME (unsigned int i)
 {
-  return HB_STRING_ARRAY_POOL_NAME.str + HB_STRING_ARRAY_OFFS_NAME[i];
+  assert (i < ARRAY_LENGTH (HB_STRING_ARRAY_OFFS_NAME) - 1);
+  return hb_string_t (HB_STRING_ARRAY_POOL_NAME.str + HB_STRING_ARRAY_OFFS_NAME[i],
+		      HB_STRING_ARRAY_OFFS_NAME[i + 1] - HB_STRING_ARRAY_OFFS_NAME[i] - 1);
 }
 
 #undef HB_STRING_ARRAY_TYPE_NAME
