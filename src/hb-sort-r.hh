@@ -33,7 +33,7 @@
 static inline void *
 hb_bsearch_r(const void *key, const void *base,
 	     size_t nmemb, size_t size,
-	     int (*compar)(const void *_a, const void *_b, const void *_arg),
+	     int (*compar)(const void *_key, const void *_item, void *_arg),
 	     void *arg)
 {
   int min = 0, max = (int) nmemb - 1;

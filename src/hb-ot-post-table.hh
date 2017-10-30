@@ -108,9 +108,97 @@ struct post
     inline void fini (void)
     {
       index_to_offset.finish ();
+      free (gids_sorted_by_name);
     }
 
-    inline hb_string_t _find_glyph_name (hb_codepoint_t glyph) const
+    inline bool get_glyph_name (hb_codepoint_t glyph,
+				char *buf, unsigned int buf_len) const
+    {
+      hb_string_t s = find_glyph_name (glyph);
+      if (!s.len)
+        return false;
+      if (!buf_len)
+	return true;
+      if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
+        return false;
+      strncpy (buf, s.bytes, s.len);
+      buf[s.len] = '\0';
+      return true;
+    }
+
+    inline bool get_glyph_from_name (const char *name, int len,
+				     hb_codepoint_t *glyph) const
+    {
+      unsigned int count = get_glyph_count ();
+      if (unlikely (!count))
+        return false;
+
+      if (len < 0)
+	len = strlen (name);
+
+      if (unlikely (!len))
+	return false;
+
+    retry:
+      uint16_t *gids = (uint16_t *) hb_atomic_ptr_get (&gids_sorted_by_name);
+
+      if (unlikely (!gids))
+      {
+	gids = (uint16_t *) malloc (count * sizeof (gids[0]));
+	if (unlikely (!gids))
+	  return false; /* Anything better?! */
+
+	for (unsigned int i = 0; i < count; i++)
+	  gids[i] = i;
+	hb_sort_r (gids, count, sizeof (gids[0]), cmp_gids, (void *) this);
+
+	if (!hb_atomic_ptr_cmpexch (&gids_sorted_by_name, nullptr, gids)) {
+	  free (gids);
+	  goto retry;
+	}
+      }
+
+      hb_string_t st (name, len);
+      const uint16_t *gid = (const uint16_t *) hb_bsearch_r (&st, gids, count, sizeof (gids[0]), cmp_key, (void *) this);
+      if (gid)
+      {
+	*glyph = *gid;
+	return true;
+      }
+
+      return false;
+    }
+
+    protected:
+
+    inline unsigned int get_glyph_count (void) const
+    {
+      if (version == 0x00010000)
+        return NUM_FORMAT1_NAMES;
+
+      if (version == 0x00020000)
+        return glyphNameIndex->len;
+
+      return 0;
+    }
+
+    static inline int cmp_gids (const void *pa, const void *pb, void *arg)
+    {
+      const accelerator_t *thiz = (const accelerator_t *) arg;
+      uint16_t a = * (const uint16_t *) pa;
+      uint16_t b = * (const uint16_t *) pb;
+      return thiz->find_glyph_name (b).cmp (thiz->find_glyph_name (a));
+    }
+
+    static inline int cmp_key (const void *pk, const void *po, void *arg)
+    {
+      const accelerator_t *thiz = (const accelerator_t *) arg;
+      const hb_string_t *key = (const hb_string_t *) pk;
+      uint16_t o = * (const uint16_t *) po;
+      return thiz->find_glyph_name (o).cmp (*key);
+    }
+
+    inline hb_string_t find_glyph_name (hb_codepoint_t glyph) const
     {
       if (version == 0x00010000)
       {
@@ -139,38 +227,11 @@ struct post
       return hb_string_t ((const char *) data, name_length);
     }
 
-    inline bool get_glyph_name (hb_codepoint_t glyph,
-				char *buf, unsigned int buf_len) const
-    {
-      hb_string_t s = _find_glyph_name (glyph);
-      if (!s.len)
-        return false;
-      if (!buf_len)
-	return true;
-      if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
-        return false;
-      strncpy (buf, s.bytes, s.len);
-      buf[s.len] = '\0';
-      return true;
-    }
-
-    inline bool get_glyph_from_name (const char *name, int len,
-				     hb_codepoint_t *glyph) const
-    {
-      if (len < 0)
-	len = strlen (name);
-
-      if (unlikely (!len))
-        return false;
-
-      /* TODO format2 */
-      return false;
-    }
-
     uint32_t version;
     const ArrayOf<USHORT> *glyphNameIndex;
     hb_prealloced_array_t<uint32_t, 1> index_to_offset;
     const uint8_t *pool;
+    mutable uint16_t *gids_sorted_by_name;
   };
 
   public:

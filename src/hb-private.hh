@@ -1145,18 +1145,18 @@ struct hb_string_t
   inline hb_string_t (void) : bytes (nullptr), len (0) {}
   inline hb_string_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
 
-  inline int cmp (const hb_string_t *a) const
+  inline int cmp (const hb_string_t &a) const
   {
-    if (len != a->len)
-      return (int) a->len - (int) len;
+    if (len != a.len)
+      return (int) a.len - (int) len;
 
-    return memcmp (a->bytes, bytes, len);
+    return memcmp (a.bytes, bytes, len);
   }
   static inline int cmp (const void *pa, const void *pb)
   {
     hb_string_t *a = (hb_string_t *) pa;
     hb_string_t *b = (hb_string_t *) pb;
-    return b->cmp (a);
+    return b->cmp (*a);
   }
 
   const char *bytes;
