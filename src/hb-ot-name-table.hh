@@ -42,8 +42,10 @@ namespace OT {
 
 struct NameRecord
 {
-  static int cmp (const NameRecord *a, const NameRecord *b)
+  static int cmp (const void *pa, const void *pb)
   {
+    const NameRecord *a = (const NameRecord *) pa;
+    const NameRecord *b = (const NameRecord *) pb;
     int ret;
     ret = b->platformID.cmp (a->platformID);
     if (ret) return ret;
