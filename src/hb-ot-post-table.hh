@@ -110,50 +110,56 @@ struct post
       index_to_offset.finish ();
     }
 
-    inline bool get_glyph_name (hb_codepoint_t glyph,
-				char *buf, unsigned int buf_len) const
+    struct str_t
+    {
+      inline str_t (void) : bytes (nullptr), len (0) {}
+      inline str_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
+
+      const char *bytes;
+      unsigned int len;
+    };
+
+    inline str_t _find_glyph_name (hb_codepoint_t glyph) const
     {
       if (version == 0x00010000)
       {
 	if (glyph >= NUM_FORMAT1_NAMES)
-	  return false;
+	  return str_t ();
 
-	if (!buf_len)
-	  return true;
-	strncpy (buf, format1_names (glyph), buf_len);
-	buf[buf_len - 1] = '\0';
-	return true;
+	return str_t (format1_names (glyph), strlen (format1_names (glyph)));
       }
 
-      if (version != 0x00020000)
-        return false;
-
-      if (glyph >= glyphNameIndex->len)
-	return false;
+      if (version != 0x00020000 || glyph >= glyphNameIndex->len)
+	return str_t ();
 
       unsigned int index = glyphNameIndex->array[glyph];
       if (index < NUM_FORMAT1_NAMES)
-      {
-	if (!buf_len)
-	  return true;
-	strncpy (buf, format1_names (index), buf_len);
-	buf[buf_len - 1] = '\0';
-	return true;
-      }
+	return str_t (format1_names (index), strlen (format1_names (index)));
       index -= NUM_FORMAT1_NAMES;
 
       if (index >= index_to_offset.len)
-        return false;
+	return str_t ();
       unsigned int offset = index_to_offset.array[index];
 
       const uint8_t *data = pool + offset;
       unsigned int name_length = *data;
       data++;
 
-      if (unlikely (!name_length || buf_len <= name_length))
-	return false;
-      memcpy (buf, data, name_length);
-      buf[name_length] = '\0';
+      return str_t ((const char *) data, name_length);
+    }
+
+    inline bool get_glyph_name (hb_codepoint_t glyph,
+				char *buf, unsigned int buf_len) const
+    {
+      str_t s = _find_glyph_name (glyph);
+      if (!s.len)
+        return false;
+      if (!buf_len)
+	return true;
+      if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
+        return false;
+      strncpy (buf, s.bytes, s.len);
+      buf[s.len] = '\0';
       return true;
     }
 
