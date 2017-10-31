@@ -25,9 +25,9 @@ jobs:
       - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
 
-  android-arm64:
+  linux-arm64:
     docker:
-      - image: dockcross/android-arm64
+      - image: dockcross/linux-arm64
     steps:
       - checkout
       - run: apt update && apt install ragel
@@ -56,6 +56,6 @@ workflows:
       - base
       - android-arm
       - browser-asmjs
-      - android-arm64
+      - linux-arm64
       - linux-mips
       - windows-x64
