@@ -24,17 +24,17 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_SORT_R_HH
-#define HB_SORT_R_HH
+#ifndef HB_DSALGS_HH
+#define HB_DSALGS_HH
 
 #include "hb-private.hh"
 
 
 static inline void *
-hb_bsearch_r(const void *key, const void *base,
-	     size_t nmemb, size_t size,
-	     int (*compar)(const void *_key, const void *_item, void *_arg),
-	     void *arg)
+hb_bsearch_r (const void *key, const void *base,
+	      size_t nmemb, size_t size,
+	      int (*compar)(const void *_key, const void *_item, void *_arg),
+	      void *arg)
 {
   int min = 0, max = (int) nmemb - 1;
   while (min <= max)
@@ -158,4 +158,4 @@ static inline void hb_sort_r(void *base, size_t nel, size_t width,
     sort_r_simple(base, nel, width, compar, arg);
 }
 
-#endif /* HB_SORT_R_HH */
+#endif /* HB_DSALGS_HH */
