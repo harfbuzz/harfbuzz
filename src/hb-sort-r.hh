@@ -72,35 +72,15 @@ Parameters:
 void hb_sort_r(void *base, size_t nel, size_t width,
                int (*compar)(const void *_a, const void *_b, void *_arg),
                void *arg);
-
 */
 
-#define _SORT_R_INLINE inline
-
-#if (defined __APPLE__ || defined __MACH__ || defined __DARWIN__ || \
-     defined __FreeBSD__ || defined __DragonFly__)
-#  define _SORT_R_BSD
-#elif (defined _GNU_SOURCE || defined __gnu_hurd__ || defined __GNU__ || \
-       defined __linux__ || defined __MINGW32__ || defined __GLIBC__)
-#  define _SORT_R_LINUX
-#elif (defined _WIN32 || defined _WIN64 || defined __WINDOWS__)
-#  define _SORT_R_WINDOWS
-#  undef _SORT_R_INLINE
-#  define _SORT_R_INLINE __inline
-#else
-  /* Using our own recursive quicksort sort_r_simple() */
-#endif
-
-#if (defined NESTED_QSORT && NESTED_QSORT == 0)
-#  undef NESTED_QSORT
-#endif
 
 /* swap a, b iff a>b */
 /* __restrict is same as restrict but better support on old machines */
-static _SORT_R_INLINE int sort_r_cmpswap(char *__restrict a, char *__restrict b, size_t w,
-                                         int (*compar)(const void *_a, const void *_b,
-                                                       void *_arg),
-                                         void *arg)
+static int sort_r_cmpswap(char *__restrict a, char *__restrict b, size_t w,
+			  int (*compar)(const void *_a, const void *_b,
+					void *_arg),
+			  void *arg)
 {
   char tmp, *end = a+w;
   if(compar(a, b, arg) > 0) {
@@ -110,12 +90,11 @@ static _SORT_R_INLINE int sort_r_cmpswap(char *__restrict a, char *__restrict b,
   return 0;
 }
 
-/* Implement recursive quicksort ourselves */
 /* Note: quicksort is not stable, equivalent values may be swapped */
-static _SORT_R_INLINE void sort_r_simple(void *base, size_t nel, size_t w,
-                                         int (*compar)(const void *_a, const void *_b,
-                                                       void *_arg),
-                                         void *arg)
+static inline void sort_r_simple(void *base, size_t nel, size_t w,
+				 int (*compar)(const void *_a, const void *_b,
+					       void *_arg),
+				 void *arg)
 {
   char *b = (char *)base, *end = b + nel*w;
   if(nel < 7) {
@@ -172,109 +151,11 @@ static _SORT_R_INLINE void sort_r_simple(void *base, size_t nel, size_t w,
   }
 }
 
-
-#if defined NESTED_QSORT
-
-  static _SORT_R_INLINE void hb_sort_r(void *base, size_t nel, size_t width,
-                                       int (*compar)(const void *_a, const void *_b,
-                                                     void *aarg),
-                                       void *arg)
-  {
-    int nested_cmp(const void *a, const void *b)
-    {
-      return compar(a, b, arg);
-    }
-
-    qsort(base, nel, width, nested_cmp);
-  }
-
-#else /* !NESTED_QSORT */
-
-  /* Declare structs and functions */
-
-  #if defined _SORT_R_BSD
-
-    /* Ensure qsort_r is defined */
-    extern void qsort_r(void *base, size_t nel, size_t width, void *thunk,
-                        int (*compar)(void *_thunk, const void *_a, const void *_b));
-
-  #endif
-
-  #if defined _SORT_R_BSD || defined _SORT_R_WINDOWS
-
-    /* BSD (qsort_r), Windows (qsort_s) require argument swap */
-
-    struct sort_r_data
-    {
-      void *arg;
-      int (*compar)(const void *_a, const void *_b, void *_arg);
-    };
-
-    static _SORT_R_INLINE int sort_r_arg_swap(void *s, const void *a, const void *b)
-    {
-      struct sort_r_data *ss = (struct sort_r_data*)s;
-      return (ss->compar)(a, b, ss->arg);
-    }
-
-  #endif
-
-  #if defined _SORT_R_LINUX
-
-#if 0 /* BE: To avoid redeclaration warning. */
-    typedef int(* __compar_d_fn_t)(const void *, const void *, void *);
-    extern void qsort_r(void *base, size_t nel, size_t width,
-                        __compar_d_fn_t __compar, void *arg)
-      __attribute__((nonnull (1, 4)));
-#endif
-
-  #endif
-
-  /* implementation */
-
-  static _SORT_R_INLINE void hb_sort_r(void *base, size_t nel, size_t width,
-                                       int (*compar)(const void *_a, const void *_b, void *_arg),
-                                       void *arg)
-  {
-    #if defined _SORT_R_LINUX
-
-      #if defined __GLIBC__ && ((__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 8))
-
-        /* no qsort_r in glibc before 2.8, need to use nested qsort */
-        sort_r_simple(base, nel, width, compar, arg);
-
-      #else
-
-        qsort_r(base, nel, width, compar, arg);
-
-      #endif
-
-    #elif defined _SORT_R_BSD
-
-      struct sort_r_data tmp;
-      tmp.arg = arg;
-      tmp.compar = compar;
-      qsort_r(base, nel, width, &tmp, sort_r_arg_swap);
-
-    #elif defined _SORT_R_WINDOWS
-
-      struct sort_r_data tmp;
-      tmp.arg = arg;
-      tmp.compar = compar;
-      qsort_s(base, nel, width, sort_r_arg_swap, &tmp);
-
-    #else
-
-      /* Fall back to our own quicksort implementation */
-      sort_r_simple(base, nel, width, compar, arg);
-
-    #endif
-  }
-
-#endif /* !NESTED_QSORT */
-
-#undef _SORT_R_INLINE
-#undef _SORT_R_WINDOWS
-#undef _SORT_R_LINUX
-#undef _SORT_R_BSD
+static inline void hb_sort_r(void *base, size_t nel, size_t width,
+			     int (*compar)(const void *_a, const void *_b, void *_arg),
+			     void *arg)
+{
+    sort_r_simple(base, nel, width, compar, arg);
+}
 
 #endif /* HB_SORT_R_HH */
