@@ -92,6 +92,7 @@ extern "C" void  hb_free_impl(void *ptr);
 
 #endif // __cplusplus < 201103L
 
+#define _GNU_SOURCE 1
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
