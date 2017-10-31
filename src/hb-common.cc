@@ -85,7 +85,7 @@ hb_tag_from_string (const char *str, int len)
   for (; i < 4; i++)
     tag[i] = ' ';
 
-  return HB_TAG_CHAR4 (tag);
+  return HB_TAG (tag[0], tag[1], tag[2], tag[3]);
 }
 
 /**

@@ -925,7 +925,7 @@ hb_ot_tag_from_language (hb_language_t language)
     if (i) {
       for (; i < 4; i++)
 	tag[i] = ' ';
-      return HB_TAG_CHAR4 (tag);
+      return HB_TAG (tag[0], tag[1], tag[2], tag[3]);
     }
   }
 
