@@ -1,0 +1,61 @@
+version: 2
+jobs:
+
+  base:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  android-arm:
+    docker:
+      - image: dockcross/android-arm
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  browser-asmjs:
+    docker:
+      - image: dockcross/browser-asmjs
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  android-arm64:
+    docker:
+      - image: dockcross/android-arm64
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  linux-mips:
+    docker:
+      - image: dockcross/linux-mips
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  windows-x64:
+    docker:
+      - image: dockcross/windows-x64
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - base
+      - android-arm
+      - browser-asmjs
+      - android-arm64
+      - linux-mips
+      - windows-x64
