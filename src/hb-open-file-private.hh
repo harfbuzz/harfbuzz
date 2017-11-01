@@ -53,6 +53,9 @@ struct TTCHeader;
 
 typedef struct TableRecord
 {
+  int cmp (Tag t) const
+  { return t.cmp (tag); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -100,18 +103,12 @@ typedef struct OffsetTable
   {
     Tag t;
     t.set (tag);
-    unsigned int count = tables.len;
-    /* TODO bsearch() */
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (t == tables.array[i].tag)
-      {
-        if (table_index) *table_index = i;
-        return true;
-      }
-    }
-    if (table_index) *table_index = Index::NOT_FOUND_INDEX;
-    return false;
+    /* Linear-search for small tables to work around fonts with unsorted
+     * table list. */
+    int i = tables.len < 64 ? tables.lsearch (t) : tables.bsearch (t);
+    if (table_index)
+      *table_index = i == -1 ? Index::NOT_FOUND_INDEX : (unsigned int) i;
+    return i != -1;
   }
   inline const TableRecord& get_table_by_tag (hb_tag_t tag) const
   {
