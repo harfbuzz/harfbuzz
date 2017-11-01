@@ -1,0 +1,184 @@
+/*
+ * Copyright © 2017  Google, Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Behdad Esfahbod
+ */
+
+#ifndef HB_OT_KERN_TABLE_HH
+#define HB_OT_KERN_TABLE_HH
+
+#include "hb-open-type-private.hh"
+
+namespace OT {
+
+
+/*
+ * kern -- Kerning
+ */
+
+#define HB_OT_TAG_kern HB_TAG('k','e','r','n')
+
+
+
+template <typename T>
+struct KernSubTableWrapper
+{
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  inline const T* thiz (void) const { return static_cast<const T *> (this); }
+  inline T* thiz (void) { return static_cast<T *> (this); }
+
+  inline unsigned int get_size (void) const { return thiz()->length; }
+  inline const void *get_data (void) const { return thiz()->data; }
+  inline unsigned int get_format (void) const { return thiz()->format; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (thiz()) ||
+		  get_size () < thiz()->min_size ||
+		  !c->check_array (thiz(), 1, get_size ())))
+      return_trace (false);
+
+    /* XXX */
+
+    return_trace (true);
+  }
+};
+
+template <typename T>
+struct KernTable
+{
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  inline const T* thiz (void) const { return static_cast<const T *> (this); }
+  inline T* thiz (void) { return static_cast<T *> (this); }
+
+  inline unsigned int get_num_tables (void) const { return thiz()->nTables; }
+  inline const void *get_data (void) const { return thiz()->data; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (thiz()) ||
+		  thiz()->version != T::VERSION))
+      return_trace (false);
+
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (get_data ());
+    unsigned int count = get_num_tables ();
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (unlikely (!st->sanitize (c)))
+	return_trace (false);
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
+
+    return_trace (true);
+  }
+};
+
+struct KernOT : KernTable<KernOT>
+{
+  friend struct KernTable;
+
+  static const uint16_t VERSION = 0x0000u;
+
+  struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
+  {
+    friend struct KernSubTableWrapper;
+
+    protected:
+    USHORT	versionZ;	/* Unused. */
+    USHORT	length;		/* Length of the subtable (including this header). */
+    BYTE	format;		/* Subtable format. */
+    BYTE	coverage;	/* Coverage bits. */
+    BYTE	data[VAR];	/* Subtable data. */
+    public:
+    DEFINE_SIZE_ARRAY (6, data);
+  };
+
+  protected:
+  USHORT	version;	/* Version--0x0000u */
+  USHORT	nTables;	/* Number of subtables in the kerning table. */
+  BYTE		data[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (4, data);
+};
+
+struct KernAAT : KernTable<KernAAT>
+{
+  friend struct KernTable;
+
+  static const uint32_t VERSION = 0x00010000u;
+
+  struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
+  {
+    friend struct KernSubTableWrapper;
+
+    protected:
+    ULONG	length;		/* Length of the subtable (including this header). */
+    BYTE	coverage;	/* Coverage bits. */
+    BYTE	format;		/* Subtable format. */
+    USHORT	tupleIndex;	/* The tuple index (used for variations fonts).
+				 * This value specifies which tuple this subtable covers. */
+    BYTE	data[VAR];	/* Subtable data. */
+    public:
+    DEFINE_SIZE_ARRAY (8, data);
+  };
+
+  protected:
+  ULONG		version;	/* Version--0x00010000u */
+  ULONG		nTables;	/* Number of subtables in the kerning table. */
+  BYTE		data[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (8, data);
+};
+
+struct kern
+{
+  static const hb_tag_t tableTag = HB_OT_TAG_kern;
+
+  private:
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.major.sanitize (c)) return_trace (false);
+    switch (u.major) {
+    case 0: return_trace (u.ot.sanitize (c));
+    case 1: return_trace (u.aat.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  USHORT		major;
+  KernOT		ot;
+  KernAAT		aat;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (2, major);
+};
+
+} /* namespace OT */
+
+
+#endif /* HB_OT_KERN_TABLE_HH */

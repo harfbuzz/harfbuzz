@@ -36,6 +36,7 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
+#include "hb-ot-kern-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-var-hvar-table.hh"
