@@ -88,7 +88,3 @@ workflows:
       - linux-arm64
       - linux-mips
       - windows-x64
-
-branches:
-  ignore:
-    - gh-pages
