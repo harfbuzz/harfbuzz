@@ -1045,7 +1045,9 @@ struct HeadlessArrayOf
 };
 
 
-/* An array with sorted elements.  Supports binary searching. */
+/*
+ * An array with sorted elements.  Supports binary searching.
+ */
 template <typename Type, typename LenType=USHORT>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
@@ -1068,6 +1070,35 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     }
     return -1;
   }
+};
+
+/*
+ * Binary-search arrays
+ */
+
+struct BinSearchHeader
+{
+  inline operator uint32_t (void) const { return len; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  USHORT	len;
+  USHORT	searchRangeZ;
+  USHORT	entrySelectorZ;
+  USHORT	rangeShiftZ;
+
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+template <typename Type>
+struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader>
+{
 };
 
 

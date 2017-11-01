@@ -73,10 +73,9 @@ typedef struct OffsetTable
   friend struct OpenTypeFontFile;
 
   inline unsigned int get_table_count (void) const
-  { return numTables; }
+  { return tables.len; }
   inline const TableRecord& get_table (unsigned int i) const
   {
-    if (unlikely (i >= numTables)) return Null(TableRecord);
     return tables[i];
   }
   inline unsigned int get_table_tags (unsigned int start_offset,
@@ -85,26 +84,27 @@ typedef struct OffsetTable
   {
     if (table_count)
     {
-      if (start_offset >= numTables)
+      if (start_offset >= tables.len)
         *table_count = 0;
       else
-        *table_count = MIN (*table_count, numTables - start_offset);
+        *table_count = MIN (*table_count, tables.len - start_offset);
 
-      const TableRecord *sub_tables = tables + start_offset;
+      const TableRecord *sub_tables = tables.array + start_offset;
       unsigned int count = *table_count;
       for (unsigned int i = 0; i < count; i++)
 	table_tags[i] = sub_tables[i].tag;
     }
-    return numTables;
+    return tables.len;
   }
   inline bool find_table_index (hb_tag_t tag, unsigned int *table_index) const
   {
     Tag t;
     t.set (tag);
-    unsigned int count = numTables;
+    unsigned int count = tables.len;
+    /* TODO bsearch() */
     for (unsigned int i = 0; i < count; i++)
     {
-      if (t == tables[i].tag)
+      if (t == tables.array[i].tag)
       {
         if (table_index) *table_index = i;
         return true;
@@ -124,16 +124,13 @@ typedef struct OffsetTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && c->check_array (tables, TableRecord::static_size, numTables));
+    return_trace (c->check_struct (this) && tables.sanitize (c));
   }
 
   protected:
   Tag		sfnt_version;	/* '\0\001\0\00' if TrueType / 'OTTO' if CFF */
-  USHORT	numTables;	/* Number of tables. */
-  USHORT	searchRangeZ;	/* (Maximum power of 2 <= numTables) x 16 */
-  USHORT	entrySelectorZ;	/* Log2(maximum power of 2 <= numTables). */
-  USHORT	rangeShiftZ;	/* NumTables x 16-searchRange. */
-  TableRecord	tables[VAR];	/* TableRecord entries. numTables items */
+  BinSearchArrayOf<TableRecord>
+		tables;
   public:
   DEFINE_SIZE_ARRAY (12, tables);
 } OpenTypeFontFace;
