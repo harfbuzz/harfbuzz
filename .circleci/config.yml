@@ -2,6 +2,14 @@ version: 2
 
 jobs:
 
+  fedora:
+    docker:
+      - image: fedora
+    steps:
+      - checkout
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel || true
+      - run: ./autogen.sh && make && make check
+
   freebsd9:
     docker:
       - image: donbowman/freebsd-cross-build
@@ -71,6 +79,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - fedora
       - freebsd9
       - base
       - psvita
