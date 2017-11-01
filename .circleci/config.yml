@@ -69,6 +69,11 @@ jobs:
 
 workflows:
   version: 2
+
+  branches:
+    ignore:
+      - gh-pages
+
   build:
     jobs:
       - freebsd9
@@ -79,7 +84,3 @@ workflows:
       - linux-arm64
       - linux-mips
       - windows-x64
-
-branches:
-  ignore:
-    - gh-pages
