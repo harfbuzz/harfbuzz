@@ -2,6 +2,14 @@ version: 2
 
 jobs:
 
+  freebsd9:
+    docker:
+      - image: donbowman/freebsd-cross-build
+    steps:
+      - checkout
+      - run: apt update && apt install -y pkg-config ragel
+      - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9 && make
+
   base:
     docker:
       - image: dockcross/base
@@ -63,6 +71,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - freebsd9
       - base
       - psvita
       - android-arm
@@ -73,4 +82,4 @@ workflows:
 
 branches:
   ignore:
-      - gh-pages
+    - gh-pages
