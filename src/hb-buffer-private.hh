@@ -311,7 +311,7 @@ struct hb_buffer_t {
 				     unsigned int cluster) const
   {
     for (unsigned int i = start; i < end; i++)
-      cluster = MIN (cluster, info[i].cluster);
+      cluster = MIN<unsigned int> (cluster, info[i].cluster);
     return cluster;
   }
   void
