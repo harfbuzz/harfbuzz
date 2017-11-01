@@ -39,29 +39,89 @@ namespace OT {
 #define HB_OT_TAG_kern HB_TAG('k','e','r','n')
 
 
+struct KernSubTableFormat0
+{
+  inline unsigned int get_size (void) const
+  {
+    /* XXX */
+    return 0;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+
+    /* XXX */
+
+    return_trace (true);
+  }
+};
+
+struct KernSubTableFormat2
+{
+  inline unsigned int get_size (void) const
+  {
+    /* XXX */
+    return 0;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+
+    /* XXX */
+
+    return_trace (true);
+  }
+};
+
+struct KernSubTable
+{
+  inline unsigned int get_size (unsigned int format) const
+  {
+    switch (format) {
+    case 0: return u.format0.get_size ();
+    case 2: return u.format2.get_size ();
+    default:return 0;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int format) const
+  {
+    TRACE_SANITIZE (this);
+    switch (format) {
+    case 0: return_trace (u.format0.sanitize (c));
+    case 2: return_trace (u.format2.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  KernSubTableFormat0	format0;
+  KernSubTableFormat2	format2;
+  } u;
+  public:
+  DEFINE_SIZE_MIN (0);
+};
+
 
 template <typename T>
 struct KernSubTableWrapper
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
-  inline T* thiz (void) { return static_cast<T *> (this); }
 
   inline unsigned int get_size (void) const { return thiz()->length; }
-  inline const void *get_data (void) const { return thiz()->data; }
-  inline unsigned int get_format (void) const { return thiz()->format; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (thiz()) ||
-		  get_size () < thiz()->min_size ||
-		  !c->check_array (thiz(), 1, get_size ())))
-      return_trace (false);
-
-    /* XXX */
-
-    return_trace (true);
+    return_trace (c->check_struct (thiz()) &&
+		  thiz()->length >= thiz()->min_size &&
+		  c->check_array (thiz(), 1, thiz()->length) &&
+		  thiz()->subtable.sanitize (c, thiz()->format) &&
+		  thiz()->subtable.get_size (thiz()-> format) <= thiz()->length - thiz()->min_size);
   }
 };
 
@@ -70,10 +130,6 @@ struct KernTable
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
-  inline T* thiz (void) { return static_cast<T *> (this); }
-
-  inline unsigned int get_num_tables (void) const { return thiz()->nTables; }
-  inline const void *get_data (void) const { return thiz()->data; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -82,8 +138,8 @@ struct KernTable
 		  thiz()->version != T::VERSION))
       return_trace (false);
 
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (get_data ());
-    unsigned int count = get_num_tables ();
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
       if (unlikely (!st->sanitize (c)))
@@ -110,9 +166,9 @@ struct KernOT : KernTable<KernOT>
     USHORT	length;		/* Length of the subtable (including this header). */
     BYTE	format;		/* Subtable format. */
     BYTE	coverage;	/* Coverage bits. */
-    BYTE	data[VAR];	/* Subtable data. */
+    KernSubTable subtable;	/* Subtable data. */
     public:
-    DEFINE_SIZE_ARRAY (6, data);
+    DEFINE_SIZE_MIN (6);
   };
 
   protected:
@@ -139,9 +195,9 @@ struct KernAAT : KernTable<KernAAT>
     BYTE	format;		/* Subtable format. */
     USHORT	tupleIndex;	/* The tuple index (used for variations fonts).
 				 * This value specifies which tuple this subtable covers. */
-    BYTE	data[VAR];	/* Subtable data. */
+    KernSubTable subtable;	/* Subtable data. */
     public:
-    DEFINE_SIZE_ARRAY (8, data);
+    DEFINE_SIZE_MIN (8);
   };
 
   protected:
