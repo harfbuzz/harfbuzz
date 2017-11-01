@@ -1012,12 +1012,6 @@ struct HeadlessArrayOf
     return_trace (true);
   }
 
-  inline bool sanitize_shallow (hb_sanitize_context_t *c) const
-  {
-    return c->check_struct (this)
-	&& c->check_array (this, Type::static_size, len);
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1035,6 +1029,15 @@ struct HeadlessArrayOf
     return_trace (true);
   }
 
+  private:
+  inline bool sanitize_shallow (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  (!len || c->check_array (array, Type::static_size, len - 1)));
+  }
+
+  public:
   LenType len;
   Type array[VAR];
   public:
