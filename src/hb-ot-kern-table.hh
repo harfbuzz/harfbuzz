@@ -192,13 +192,13 @@ struct KernTable
 
 struct KernOT : KernTable<KernOT>
 {
-  friend struct KernTable;
+  friend struct KernTable<KernOT>;
 
   static const uint16_t VERSION = 0x0000u;
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
-    friend struct KernSubTableWrapper;
+    friend struct KernSubTableWrapper<SubTableWrapper>;
 
     protected:
     USHORT	versionZ;	/* Unused. */
@@ -220,13 +220,13 @@ struct KernOT : KernTable<KernOT>
 
 struct KernAAT : KernTable<KernAAT>
 {
-  friend struct KernTable;
+  friend struct KernTable<KernAAT>;
 
   static const uint32_t VERSION = 0x00010000u;
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
-    friend struct KernSubTableWrapper;
+    friend struct KernSubTableWrapper<SubTableWrapper>;
 
     protected:
     ULONG	length;		/* Length of the subtable (including this header). */
