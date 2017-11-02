@@ -499,7 +499,7 @@ populate_log_font (LOGFONTW  *lf,
 		   unsigned int font_size)
 {
   memset (lf, 0, sizeof (*lf));
-  lf->lfHeight = -font_size;
+  lf->lfHeight = - (int) font_size;
   lf->lfCharSet = DEFAULT_CHARSET;
 
   hb_face_t *face = font->face;
@@ -858,7 +858,7 @@ retry:
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
-  for (unsigned int i = 0; i < item_count; i++)
+  for (int i = 0; i < item_count; i++)
   {
     unsigned int chars_offset = items[i].iCharPos;
     unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
