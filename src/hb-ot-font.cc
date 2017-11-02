@@ -471,6 +471,7 @@ struct hb_ot_font_t
   OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
   OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
   OT::hb_lazy_loader_t<hb_ot_face_post_accelerator_t> post;
+  OT::hb_lazy_table_loader_t<OT::kern> kern;
 };
 
 
@@ -489,6 +490,7 @@ _hb_ot_font_create (hb_face_t *face)
   ot_font->glyf.init (face);
   ot_font->cbdt.init (face);
   ot_font->post.init (face);
+  ot_font->kern.init (face);
 
   return ot_font;
 }
@@ -504,6 +506,7 @@ _hb_ot_font_destroy (void *data)
   ot_font->glyf.fini ();
   ot_font->cbdt.fini ();
   ot_font->post.fini ();
+  ot_font->kern.fini ();
 
   free (ot_font);
 }
@@ -551,6 +554,17 @@ hb_ot_get_glyph_v_advance (hb_font_t *font,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   return font->em_scale_y (-(int) ot_font->v_metrics.get_advance (glyph, font));
+}
+
+static hb_position_t
+hb_ot_get_glyph_h_kerning (hb_font_t *font,
+			   void *font_data,
+			   hb_codepoint_t left_glyph,
+			   hb_codepoint_t right_glyph,
+			   void *user_data HB_UNUSED)
+{
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  return font->em_scale_x (ot_font->kern->get_h_kerning (left_glyph, right_glyph));
 }
 
 static hb_bool_t

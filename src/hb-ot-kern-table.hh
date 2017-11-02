@@ -98,6 +98,12 @@ struct KernSubTableFormat0
 
 struct KernSubTableFormat2
 {
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    /* XXX */
+    return 0;
+  }
+
   inline unsigned int get_size (void) const
   {
     /* XXX */
@@ -116,6 +122,15 @@ struct KernSubTableFormat2
 
 struct KernSubTable
 {
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int format) const
+  {
+    switch (format) {
+    case 0: return u.format0.get_kerning (left, right);
+    case 2: return u.format2.get_kerning (left, right);
+    default:return 0;
+    }
+  }
+
   inline unsigned int get_size (unsigned int format) const
   {
     switch (format) {
@@ -151,6 +166,18 @@ struct KernSubTableWrapper
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
+  inline bool is_horizontal (void) const
+  { return (thiz()->coverage & T::COVERAGE_CHECK_FLAGS) == T::COVERAGE_CHECK_HORIZONTAL; }
+
+  inline bool is_override (void) const
+  { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
+
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
+
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return is_horizontal () ? get_kerning (left, right) : 0; }
+
   inline unsigned int get_size (void) const { return thiz()->length; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -169,6 +196,21 @@ struct KernTable
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
+
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    int v = 0;
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    unsigned int count = thiz()->nTables;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->is_override ())
+        v = 0;
+      v += st->get_h_kerning (left, right);
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
+    return v;
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -200,6 +242,18 @@ struct KernOT : KernTable<KernOT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
+    enum coverage_flags_t {
+      COVERAGE_DIRECTION_FLAG	= 0x01u,
+      COVERAGE_MINIMUM_FLAG	= 0x02u,
+      COVERAGE_CROSSSTREAM_FLAG	= 0x04u,
+      COVERAGE_OVERRIDE_FLAG	= 0x08u,
+
+      COVERAGE_VARIATION_FLAG	= 0x00u, /* Not supported. */
+
+      COVERAGE_CHECK_FLAGS	= 0x07u,
+      COVERAGE_CHECK_HORIZONTAL	= 0x01u
+    };
+
     protected:
     USHORT	versionZ;	/* Unused. */
     USHORT	length;		/* Length of the subtable (including this header). */
@@ -228,6 +282,17 @@ struct KernAAT : KernTable<KernAAT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
+    enum coverage_flags_t {
+      COVERAGE_DIRECTION_FLAG	= 0x80u,
+      COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
+      COVERAGE_VARIATION_FLAG	= 0x20u,
+
+      COVERAGE_OVERRIDE_FLAG	= 0x00u, /* Not supported. */
+
+      COVERAGE_CHECK_FLAGS	= 0xE0u,
+      COVERAGE_CHECK_HORIZONTAL	= 0x00u
+    };
+
     protected:
     ULONG	length;		/* Length of the subtable (including this header). */
     BYTE	coverage;	/* Coverage bits. */
@@ -251,7 +316,15 @@ struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
-  private:
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    switch (u.major) {
+    case 0: return u.ot.get_h_kerning (left, right);
+    case 1: return u.aat.get_h_kerning (left, right);
+    default:return 0;
+    }
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
