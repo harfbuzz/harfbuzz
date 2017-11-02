@@ -7,8 +7,16 @@ jobs:
       - image: fedora
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel || true
-      - run: ./autogen.sh && make && make check
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
+
+  archlinux:
+    docker:
+      - image: base/devel
+    steps:
+      - checkout
+      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
 
   freebsd9:
     docker:
@@ -80,6 +88,7 @@ workflows:
   build:
     jobs:
       - fedora
+      - archlinux
       - freebsd9
       - base
       - psvita
