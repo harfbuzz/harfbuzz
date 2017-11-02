@@ -16,6 +16,7 @@ mkdir $DOCSDIR
 cd $DOCSDIR
 
 cp ../docs/html/* .
+cp ../docs/circle.yml .
 
 git init
 git config user.name "Travis CI"
