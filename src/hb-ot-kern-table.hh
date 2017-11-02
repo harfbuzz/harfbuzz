@@ -38,23 +38,62 @@ namespace OT {
 
 #define HB_OT_TAG_kern HB_TAG('k','e','r','n')
 
-
-struct KernSubTableFormat0
+struct hb_glyph_pair_t
 {
-  inline unsigned int get_size (void) const
+  hb_codepoint_t left;
+  hb_codepoint_t right;
+};
+
+struct KernPair
+{
+  inline int get_kerning (void) const
+  { return value; }
+
+  inline int cmp (const hb_glyph_pair_t &o) const
   {
-    /* XXX */
-    return 0;
+    int ret = left.cmp (o.left);
+    if (ret) return ret;
+    return right.cmp (o.right);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-
-    /* XXX */
-
-    return_trace (true);
+    return_trace (c->check_struct (this));
   }
+
+  protected:
+  GlyphID	left;
+  GlyphID	right;
+  FWORD		value;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct KernSubTableFormat0
+{
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    hb_glyph_pair_t pair = {left, right};
+    int i = pairs.bsearch (pair);
+    if (i == -1)
+      return 0;
+    return pairs[i].get_kerning ();
+  }
+
+  inline unsigned int get_size (void) const
+  { return pairs.get_size (); }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (pairs.sanitize (c));
+  }
+
+  protected:
+  BinSearchArrayOf<KernPair> pairs;	/* Array of kerning pairs. */
+  public:
+  DEFINE_SIZE_ARRAY (8, pairs);
 };
 
 struct KernSubTableFormat2
