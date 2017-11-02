@@ -179,10 +179,14 @@ struct hb_dispatch_context_t
 #endif
 
 
+#if HB_DEBUG_SANITIZE == 0
+#define TRACE_SANITIZE(this) hb_no_trace_t<bool> trace;
+#else
 #define TRACE_SANITIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
+#endif
 
 /* This limits sanitizing time on really broken fonts. */
 #ifndef HB_SANITIZE_MAX_EDITS
@@ -392,10 +396,15 @@ struct Sanitizer
 #endif
 
 
+#if HB_DEBUG_SERIALIZE == 0
+#define TRACE_SERIALIZE(this) hb_no_trace_t<bool> trace;
+#else
 #define TRACE_SERIALIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SERIALIZE, bool> trace \
 	(&c->debug_depth, "SERIALIZE", c, HB_FUNC, \
 	 "");
+#endif
+
 
 
 struct hb_serialize_context_t

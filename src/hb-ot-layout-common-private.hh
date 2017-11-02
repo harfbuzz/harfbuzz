@@ -44,11 +44,14 @@
 
 namespace OT {
 
-
+#if (HB_DEBUG_SANITIZE + HB_DEBUG_CLOSURE + HB_DEBUG_WOULD_APPLY + HB_DEBUG_COLLECT_GLYPHS + HB_DEBUG_APPLY) == 0
+#define TRACE_DISPATCH(this, format) hb_no_trace_t<typename context_t::return_t> trace;
+#else
 #define TRACE_DISPATCH(this, format) \
 	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "format %d", (int) format);
+#endif
 
 
 #define NOT_COVERED		((unsigned int) -1)

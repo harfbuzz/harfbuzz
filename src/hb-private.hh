@@ -903,15 +903,11 @@ struct hb_auto_trace_t {
   const void *obj;
   bool returned;
 };
-template <typename ret_t> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0, ret_t> {
-  explicit inline hb_auto_trace_t (unsigned int *plevel_ HB_UNUSED,
-				   const char *what HB_UNUSED,
-				   const void *obj HB_UNUSED,
-				   const char *func HB_UNUSED,
-				   const char *message HB_UNUSED,
-				   ...) {}
 
+/* When tracing is disabled it is best to use a simpler class to get rid of
+ * code bloat */
+template<typename ret_t>
+struct hb_no_trace_t {
   inline ret_t ret (ret_t v, unsigned int line HB_UNUSED = 0) { return v; }
 };
 
