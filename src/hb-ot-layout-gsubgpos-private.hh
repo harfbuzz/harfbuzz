@@ -41,10 +41,15 @@ namespace OT {
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
 
+#if HB_DEBUG_CLOSURE == 0
+#define TRACE_CLOSURE(this) hb_no_trace_t<hb_void_t> trace;
+#else
 #define TRACE_CLOSURE(this) \
 	hb_auto_trace_t<HB_DEBUG_CLOSURE, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
+#endif
+
 
 struct hb_closure_context_t :
        hb_dispatch_context_t<hb_closure_context_t, hb_void_t, HB_DEBUG_CLOSURE>
@@ -90,10 +95,14 @@ struct hb_closure_context_t :
 #define HB_DEBUG_WOULD_APPLY (HB_DEBUG+0)
 #endif
 
+#if HB_DEBUG_WOULD_APPLY == 0
+#define TRACE_WOULD_APPLY(this) hb_no_trace_t<bool> trace;
+#else
 #define TRACE_WOULD_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "%d glyphs", c->len);
+#endif
 
 struct hb_would_apply_context_t :
        hb_dispatch_context_t<hb_would_apply_context_t, bool, HB_DEBUG_WOULD_APPLY>
@@ -127,10 +136,14 @@ struct hb_would_apply_context_t :
 #define HB_DEBUG_COLLECT_GLYPHS (HB_DEBUG+0)
 #endif
 
+#if HB_DEBUG_COLLECT_GLYPHS == 0
+#define TRACE_COLLECT_GLYPHS(this) hb_no_trace_t<hb_void_t> trace;
+#else
 #define TRACE_COLLECT_GLYPHS(this) \
 	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
+#endif
 
 struct hb_collect_glyphs_context_t :
        hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_void_t, HB_DEBUG_COLLECT_GLYPHS>
@@ -254,11 +267,15 @@ struct hb_add_coverage_context_t :
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
 
+#if HB_DEBUG_APPLY == 0
+#define TRACE_APPLY(this) hb_no_trace_t<bool> trace;
+#else
 #define TRACE_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "idx %d gid %u lookup %d", \
 	 c->buffer->idx, c->buffer->cur().codepoint, (int) c->lookup_index);
+#endif
 
 struct hb_apply_context_t :
        hb_dispatch_context_t<hb_apply_context_t, bool, HB_DEBUG_APPLY>
