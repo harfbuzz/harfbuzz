@@ -266,15 +266,13 @@ struct hb_auto_trace_t {
   const void *obj;
   bool returned;
 };
-template <typename ret_t> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0, ret_t> {
-  explicit inline hb_auto_trace_t (unsigned int *plevel_ HB_UNUSED,
-				   const char *what HB_UNUSED,
-				   const void *obj HB_UNUSED,
-				   const char *func HB_UNUSED,
-				   const char *message HB_UNUSED,
-				   ...) {}
+template <typename ret_t> /* Make sure we don't use hb_auto_trace_t when not tracing. */
+struct hb_auto_trace_t<0, ret_t>;
 
+/* For disabled tracing; optimize out everything.
+ * https://github.com/behdad/harfbuzz/pull/605 */
+template <typename ret_t>
+struct hb_no_trace_t {
   inline ret_t ret (ret_t v, unsigned int line HB_UNUSED = 0) { return v; }
 };
 
@@ -328,56 +326,94 @@ struct hb_auto_trace_t<0, ret_t> {
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_APPLY
 #define TRACE_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "idx %d gid %u lookup %d", \
-	 c->buffer->idx, c->buffer->cur().codepoint, (int) c->lookup_index);
+	 c->buffer->idx, c->buffer->cur().codepoint, (int) c->lookup_index)
+#else
+#define TRACE_APPLY(this) hb_no_trace_t<bool> trace
+#endif
 
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_CLOSURE
 #define TRACE_CLOSURE(this) \
 	hb_auto_trace_t<HB_DEBUG_CLOSURE, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "");
+	 "")
+#else
+#define TRACE_CLOSURE(this) hb_no_trace_t<hb_void_t> trace HB_UNUSED
+#endif
 
 #ifndef HB_DEBUG_COLLECT_GLYPHS
 #define HB_DEBUG_COLLECT_GLYPHS (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_COLLECT_GLYPHS
 #define TRACE_COLLECT_GLYPHS(this) \
 	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "");
+	 "")
+#else
+#define TRACE_COLLECT_GLYPHS(this) hb_no_trace_t<hb_void_t> trace HB_UNUSED
+#endif
 
 #ifndef HB_DEBUG_SANITIZE
 #define HB_DEBUG_SANITIZE (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_SANITIZE
 #define TRACE_SANITIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
+#else
+#define TRACE_SANITIZE(this) hb_no_trace_t<bool> trace
+#endif
 
 #ifndef HB_DEBUG_SERIALIZE
 #define HB_DEBUG_SERIALIZE (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_SERIALIZE
 #define TRACE_SERIALIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SERIALIZE, bool> trace \
 	(&c->debug_depth, "SERIALIZE", c, HB_FUNC, \
 	 "");
+#else
+#define TRACE_SERIALIZE(this) hb_no_trace_t<bool> trace
+#endif
 
 #ifndef HB_DEBUG_WOULD_APPLY
 #define HB_DEBUG_WOULD_APPLY (HB_DEBUG+0)
 #endif
+#if HB_DEBUG_WOULD_APPLY
 #define TRACE_WOULD_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "%d glyphs", c->len);
+#else
+#define TRACE_WOULD_APPLY(this) hb_no_trace_t<bool> trace
+#endif
 
+#ifndef HB_DEBUG_DISPATCH
+#define HB_DEBUG_DISPATCH ( \
+	HB_DEBUG_APPLY + \
+	HB_DEBUG_CLOSURE + \
+	HB_DEBUG_COLLECT_GLYPHS + \
+	HB_DEBUG_SANITIZE + \
+	HB_DEBUG_SERIALIZE + \
+	HB_DEBUG_WOULD_APPLY + \
+	0)
+#endif
+#if HB_DEBUG_DISPATCH
 #define TRACE_DISPATCH(this, format) \
 	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "format %d", (int) format);
+#else
+#define TRACE_DISPATCH(this, format) hb_no_trace_t<typename context_t::return_t> trace
+#endif
 
 
 #endif /* HB_DEBUG_HH */

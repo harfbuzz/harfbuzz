@@ -1205,11 +1205,11 @@ struct Rule
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return inputCount.sanitize (c)
-	&& lookupCount.sanitize (c)
-	&& c->check_range (inputZ,
-			   inputZ[0].static_size * inputCount
-			   + lookupRecordX[0].static_size * lookupCount);
+    return_trace (inputCount.sanitize (c) &&
+		  lookupCount.sanitize (c) &&
+		  c->check_range (inputZ,
+				  inputZ[0].static_size * inputCount +
+				  lookupRecordX[0].static_size * lookupCount));
   }
 
   protected:
