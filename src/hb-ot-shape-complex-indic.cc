@@ -692,7 +692,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   hb_glyph_info_t *info = buffer->info;
 
   /* https://github.com/behdad/harfbuzz/issues/435#issuecomment-335560167
-   * // For compatibility with legacy useage in Kannada,
+   * // For compatibility with legacy usage in Kannada,
    * // Ra+h+ZWJ must behave like Ra+ZWJ+h...
    */
   if (buffer->props.script == HB_SCRIPT_KANNADA &&
