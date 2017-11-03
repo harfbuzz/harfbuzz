@@ -9,6 +9,7 @@ HB_BASE_sources = \
 	hb-buffer-serialize.cc \
 	hb-buffer.cc \
 	hb-common.cc \
+	hb-debug.hh \
 	hb-dsalgs.hh \
 	hb-face-private.hh \
 	hb-face.cc \

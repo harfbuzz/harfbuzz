@@ -24,13 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb-private.hh"
+#include "hb-debug.hh"
 #include "hb-ot-shape-complex-arabic-private.hh"
 #include "hb-ot-shape-private.hh"
-
-
-#ifndef HB_DEBUG_ARABIC
-#define HB_DEBUG_ARABIC (HB_DEBUG+0)
-#endif
 
 
 /* buffer var allocations */

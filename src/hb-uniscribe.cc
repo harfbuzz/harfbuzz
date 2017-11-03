@@ -24,6 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb-private.hh"
+#include "hb-debug.hh"
 #define HB_SHAPER uniscribe
 #include "hb-shaper-impl-private.hh"
 
@@ -36,11 +38,6 @@
 #include "hb-open-file-private.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-tag.h"
-
-
-#ifndef HB_DEBUG_UNISCRIBE
-#define HB_DEBUG_UNISCRIBE (HB_DEBUG+0)
-#endif
 
 
 static inline uint16_t hb_uint16_swap (const uint16_t v)
