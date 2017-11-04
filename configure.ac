@@ -165,7 +165,7 @@ dnl ===========================================================================
 
 AC_ARG_WITH(gobject,
 	[AS_HELP_STRING([--with-gobject=@<:@yes/no/auto@:>@],
-			[Use gobject @<:@default=auto@:>@])],,
+			[Use gobject @<:@default=no@:>@])],,
 	[with_gobject=no])
 have_gobject=false
 if test "x$with_gobject" = "xyes" -o "x$with_gobject" = "xauto"; then
