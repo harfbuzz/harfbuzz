@@ -81,9 +81,6 @@ struct KernSubTableFormat0
     return pairs[i].get_kerning ();
   }
 
-  inline unsigned int get_size (void) const
-  { return pairs.get_size (); }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -96,46 +93,63 @@ struct KernSubTableFormat0
   DEFINE_SIZE_ARRAY (8, pairs);
 };
 
-struct KernSubTableFormat2
+struct KernClassTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    /* XXX */
-    return 0;
+    TRACE_SANITIZE (this);
+    return_trace (firstGlyph.sanitize (c) && classes.sanitize (c));
   }
 
-  inline unsigned int get_size (void) const
+  protected:
+  USHORT		firstGlyph;	/* First glyph in class range. */
+  ArrayOf<USHORT>	classes;	/* Glyph classes. */
+  public:
+  DEFINE_SIZE_ARRAY (4, classes);
+};
+
+struct KernSubTableFormat2
+{
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int length) const
   {
-    /* XXX */
-    return 0;
+    unsigned int l = (this+leftClassTable).get_class (left);
+    unsigned int r = (this+leftClassTable).get_class (left);
+    return 0;//(&(this+array))[0/*XXX*/];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-
-    /* XXX */
-
-    return_trace (true);
+    return_trace (rowWidth.sanitize (c) &&
+		  leftClassTable.sanitize (c, this) &&
+		  rightClassTable.sanitize (c, this) &&
+		  array.sanitize (c, this));
   }
+
+  protected:
+  USHORT	rowWidth;	/* The width, in bytes, of a row in the table. */
+  OffsetTo<KernClassTable>
+		leftClassTable;	/* Offset from beginning of this subtable to
+				 * left-hand class table. */
+  OffsetTo<KernClassTable>
+		rightClassTable;/* Offset from beginning of this subtable to
+				 * right-hand class table. */
+  OffsetTo<FWORD>
+		array;		/* Offset from beginning of this subtable to
+				 * the start of the kerning array. */
+  public:
+  DEFINE_SIZE_MIN (8);
 };
 
 struct KernSubTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int format) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int length, unsigned int format) const
   {
     switch (format) {
     case 0: return u.format0.get_kerning (left, right);
-    case 2: return u.format2.get_kerning (left, right);
-    default:return 0;
-    }
-  }
-
-  inline unsigned int get_size (unsigned int format) const
-  {
-    switch (format) {
-    case 0: return u.format0.get_size ();
-    case 2: return u.format2.get_size ();
+    case 2: return u.format2.get_kerning (left, right, length);
     default:return 0;
     }
   }
@@ -173,7 +187,7 @@ struct KernSubTableWrapper
   { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
+  { return thiz()->subtable.get_kerning (left, right, thiz()->length - thiz()->min_size, thiz()->format); }
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   { return is_horizontal () ? get_kerning (left, right) : 0; }
@@ -186,8 +200,7 @@ struct KernSubTableWrapper
     return_trace (c->check_struct (thiz()) &&
 		  thiz()->length >= thiz()->min_size &&
 		  c->check_array (thiz(), 1, thiz()->length) &&
-		  thiz()->subtable.sanitize (c, thiz()->format) &&
-		  thiz()->subtable.get_size (thiz()-> format) <= thiz()->length - thiz()->min_size);
+		  thiz()->subtable.sanitize (c, thiz()->format));
   }
 };
 

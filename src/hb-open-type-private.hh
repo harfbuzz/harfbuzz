@@ -1078,9 +1078,7 @@ struct BinSearchHeader
 };
 
 template <typename Type>
-struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader>
-{
-};
+struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader> {};
 
 
 /* Lazy struct and blob loaders. */
