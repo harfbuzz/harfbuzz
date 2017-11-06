@@ -112,7 +112,7 @@ struct KernClassTable
 
 struct KernSubTableFormat2
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int length) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   {
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+leftClassTable).get_class (left);
@@ -145,11 +145,11 @@ struct KernSubTableFormat2
 
 struct KernSubTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int length, unsigned int format) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end, unsigned int format) const
   {
     switch (format) {
     case 0: return u.format0.get_kerning (left, right);
-    case 2: return u.format2.get_kerning (left, right, length);
+    case 2: return u.format2.get_kerning (left, right, end);
     default:return 0;
     }
   }
@@ -186,11 +186,11 @@ struct KernSubTableWrapper
   inline bool is_override (void) const
   { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
 
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return thiz()->subtable.get_kerning (left, right, thiz()->length - thiz()->min_size, thiz()->format); }
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return is_horizontal () ? get_kerning (left, right) : 0; }
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  { return is_horizontal () ? get_kerning (left, right, end) : 0; }
 
   inline unsigned int get_size (void) const { return thiz()->length; }
 
@@ -210,7 +210,7 @@ struct KernTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
   {
     int v = 0;
     const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
@@ -219,7 +219,7 @@ struct KernTable
     {
       if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right);
+      v += st->get_h_kerning (left, right, table_length + (const char *) this);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
@@ -329,11 +329,11 @@ struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
   {
     switch (u.major) {
-    case 0: return u.ot.get_h_kerning (left, right);
-    case 1: return u.aat.get_h_kerning (left, right);
+    case 0: return u.ot.get_h_kerning (left, right, table_length);
+    case 1: return u.aat.get_h_kerning (left, right, table_length);
     default:return 0;
     }
   }
@@ -348,6 +348,23 @@ struct kern
     default:return_trace (true);
     }
   }
+
+  struct accelerator_t
+  {
+    inline void init (const kern *table_, unsigned int table_length_)
+    {
+      table = table_;
+      table_length = table_length_;
+    }
+    inline void fini (void) {}
+
+    inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    { return table->get_h_kerning (left, right, table_length); }
+
+    private:
+    const kern *table;
+    unsigned int table_length;
+  };
 
   protected:
   union {
