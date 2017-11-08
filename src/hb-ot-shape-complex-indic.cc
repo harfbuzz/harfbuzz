@@ -1686,11 +1686,15 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 
   /* Apply 'init' to the Left Matra if it's a word start. */
-  if (info[start].indic_position () == POS_PRE_M &&
-      (!start ||
-       !(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
-	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK))))
-    info[start].mask |= indic_plan->mask_array[INIT];
+  if (info[start].indic_position () == POS_PRE_M)
+  {
+    if (!start ||
+	!(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
+	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+      info[start].mask |= indic_plan->mask_array[INIT];
+    else
+      buffer->unsafe_to_break (start - 1, start + 1);
+  }
 
 
   /*
