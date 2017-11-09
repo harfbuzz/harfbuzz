@@ -4,7 +4,8 @@ test "x$srcdir" = x && srcdir=.
 test "x$builddir" = x && builddir=.
 test "x$top_builddir" = x && top_builddir=../..
 
-hb_shape="$top_builddir/util/hb-shape$EXEEXT --verify"
+extra_options="--verify"
+hb_shape="$top_builddir/util/hb-shape$EXEEXT"
 #hb_shape="$top_builddir/util/hb-shape$EXEEXT"
 
 fails=0
@@ -26,14 +27,14 @@ for f in "$@"; do
 			$reference || echo "# hb-shape $fontfile --unicodes $unicodes"
 			continue
 		fi
-		$reference || echo "hb-shape $fontfile $options --unicodes $unicodes"
-		glyphs1=`$hb_shape --font-funcs=ft "$srcdir/$fontfile" $options --unicodes "$unicodes"`
+		$reference || echo "hb-shape $fontfile $extra_options $options --unicodes $unicodes"
+		glyphs1=`$hb_shape --font-funcs=ft "$srcdir/$fontfile" $extra_options $options --unicodes "$unicodes"`
 		if test $? != 0; then
 			echo "hb-shape --font-funcs=ft failed." >&2
 			fails=$((fails+1))
 			#continue
 		fi
-		glyphs2=`$hb_shape --font-funcs=ot "$srcdir/$fontfile" $options --unicodes "$unicodes"`
+		glyphs2=`$hb_shape --font-funcs=ot "$srcdir/$fontfile" $extra_options $options --unicodes "$unicodes"`
 		if test $? != 0; then
 			echo "hb-shape --font-funcs=ot failed." >&2
 			fails=$((fails+1))
