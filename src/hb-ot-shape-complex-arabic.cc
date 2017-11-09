@@ -560,7 +560,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
       }
       else
       {
-	buffer->unsafe_to_break (context, end + 1);
+	buffer->unsafe_to_break (context, end);
 	hb_position_t x_offset = 0;
 	for (unsigned int k = end; k > start; k--)
 	{
