@@ -117,10 +117,11 @@ struct KernSubTableFormat2
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+leftClassTable).get_class (left);
     unsigned int offset = l * rowWidth + r * sizeof (FWORD);
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
-    /* Untested code, as I have not been able to find ANY kern table format-2 yet. */
-    assert (&(this+array) <= v);
-    if (unlikely (v + 1 > (const FWORD *) end))
+    const FWORD *arr = &(this+array);
+    if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
+      return 0;
+    const FWORD *v = &StructAtOffset<FWORD> (arr, offset);
+    if (unlikely ((const void *) v < (const void *) arr || (const void *) (v + 1) > (const void *) end))
       return 0;
     return *v;
   }
