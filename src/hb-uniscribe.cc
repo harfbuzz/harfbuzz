@@ -1032,6 +1032,8 @@ retry:
   if (backward)
     hb_buffer_reverse (buffer);
 
+  buffer->unsafe_to_break_all ();
+
   /* Wow, done! */
   return true;
 }

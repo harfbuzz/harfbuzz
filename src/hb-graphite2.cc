@@ -416,5 +416,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   if (feats) gr_featureval_destroy (feats);
   gr_seg_destroy (seg);
 
+  buffer->unsafe_to_break_all ();
+
   return true;
 }

@@ -1262,6 +1262,8 @@ resize_and_retry:
     }
   }
 
+  buffer->unsafe_to_break_all ();
+
 #undef FAIL
 
 fail:

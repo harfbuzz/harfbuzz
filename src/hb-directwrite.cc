@@ -927,8 +927,7 @@ hb_directwrite_shape_experimental_width(hb_font_t          *font,
   hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
     features, num_features, width);
 
-  if (res)
-    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  buffer->unsafe_to_break_all ();
 
   return res;
 }
