@@ -1,3 +1,15 @@
+Overview of changes leading to 1.7.0
+Monday, November 13, 2017
+====================================
+
+- Minor Indic fixes.
+- Implement kerning and glyph names in hb-ot-font.
+- Various DSO optimization re .data and .bss sizes.
+- Make C++11 optional; build fixes.
+- Mark all other backends "unsafe-to-break".
+- Graphite fix.
+
+
 Overview of changes leading to 1.6.3
 Thursday, October 26th, 2017
 ====================================
