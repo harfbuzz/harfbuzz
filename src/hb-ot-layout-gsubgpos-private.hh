@@ -1002,7 +1002,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
     if (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index)
       continue;
 
-    buffer->move_to (match_positions[idx]);
+    if (unlikely (!buffer->move_to (match_positions[idx])))
+      break;
 
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
     if (!c->recurse (lookupRecord[i].lookupListIndex))
