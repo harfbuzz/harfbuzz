@@ -1,3 +1,11 @@
+Overview of changes leading to 1.7.1
+Tuesday, November 14, 2017
+====================================
+
+- Fix atexit object destruction regression.
+- Fix minor integer-overflow.
+
+
 Overview of changes leading to 1.7.0
 Monday, November 13, 2017
 ====================================
