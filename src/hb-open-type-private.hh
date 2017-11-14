@@ -635,9 +635,9 @@ struct IntType
   DEFINE_SIZE_STATIC (Size);
 };
 
-typedef	IntType<int8_t	, 1> CHAR;	/* 8-bit signed integer. */
-typedef	IntType<uint8_t	, 1> BYTE;	/* 8-bit unsigned integer. */
-typedef	IntType<int8_t	, 1> INT8;	/* 8-bit signed integer. */
+typedef IntType<int8_t,   1> CHAR;	/* 8-bit signed integer. */
+typedef IntType<uint8_t,  1> BYTE;	/* 8-bit unsigned integer. */
+typedef IntType<int8_t,   1> INT8;	/* 8-bit signed integer. */
 typedef IntType<uint16_t, 2> USHORT;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t,  2> SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t, 4> ULONG;	/* 32-bit unsigned integer. */
