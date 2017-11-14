@@ -423,7 +423,6 @@ static hb_font_funcs_t *static_ft_funcs = nullptr;
 static
 void free_static_ft_funcs (void)
 {
-  hb_object_undo_inert (static_ft_funcs);
   hb_font_funcs_destroy (static_ft_funcs);
 }
 #endif
@@ -454,10 +453,8 @@ retry:
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, nullptr, nullptr);
 
     hb_font_funcs_make_immutable (funcs);
-    hb_object_make_inert (funcs);
 
     if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, nullptr, funcs)) {
-      hb_object_undo_inert (funcs);
       hb_font_funcs_destroy (funcs);
       goto retry;
     }

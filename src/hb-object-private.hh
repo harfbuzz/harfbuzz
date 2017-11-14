@@ -41,10 +41,9 @@
 
 /* reference_count */
 
-#define HB_REFERENCE_COUNT_UNCHANGABLE_VALUE	-0x53043
-#define HB_REFERENCE_COUNT_UNREFFABLE_VALUE	-0x07734
-#define HB_REFERENCE_COUNT_UNTOUCHABLE_VALUE	-0xBEDAD
-#define HB_REFERENCE_COUNT_INIT {HB_ATOMIC_INT_INIT (HB_REFERENCE_COUNT_UNCHANGABLE_VALUE)}
+#define HB_REFERENCE_COUNT_INERT_VALUE -1
+#define HB_REFERENCE_COUNT_POISON_VALUE -0x0000DEAD
+#define HB_REFERENCE_COUNT_INIT {HB_ATOMIC_INT_INIT(HB_REFERENCE_COUNT_INERT_VALUE)}
 
 struct hb_reference_count_t
 {
@@ -54,23 +53,9 @@ struct hb_reference_count_t
   inline int get_unsafe (void) const { return ref_count.get_unsafe (); }
   inline int inc (void) { return ref_count.inc (); }
   inline int dec (void) { return ref_count.dec (); }
-  inline void finish (void) { ref_count.set_unsafe (HB_REFERENCE_COUNT_UNTOUCHABLE_VALUE); }
+  inline void finish (void) { ref_count.set_unsafe (HB_REFERENCE_COUNT_POISON_VALUE); }
 
-  inline void make_inert (void)
-  {
-    if (get_unsafe () == HB_REFERENCE_COUNT_UNCHANGABLE_VALUE)
-      return;
-    ref_count.set_unsafe (HB_REFERENCE_COUNT_UNREFFABLE_VALUE);
-  }
-  inline void undo_inert (void)
-  {
-    if (get_unsafe () == HB_REFERENCE_COUNT_UNCHANGABLE_VALUE)
-      return;
-    assert (get_unsafe () == HB_REFERENCE_COUNT_UNREFFABLE_VALUE);
-    ref_count.set_unsafe (1);
-  }
-
-  inline bool is_inert (void) const { return ref_count.get_unsafe () < 0; }
+  inline bool is_inert (void) const { return ref_count.get_unsafe () == HB_REFERENCE_COUNT_INERT_VALUE; }
   inline bool is_valid (void) const { return ref_count.get_unsafe () > 0; }
 };
 
@@ -159,16 +144,6 @@ template <typename Type>
 static inline bool hb_object_is_valid (const Type *obj)
 {
   return likely (obj->header.ref_count.is_valid ());
-}
-template <typename Type>
-static inline void hb_object_make_inert (Type *obj)
-{
-  obj->header.ref_count.make_inert ();
-}
-template <typename Type>
-static inline void hb_object_undo_inert (Type *obj)
-{
-  obj->header.ref_count.undo_inert ();
 }
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)
