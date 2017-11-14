@@ -697,10 +697,7 @@ struct Tag : ULONG
 DEFINE_NULL_DATA (Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-struct GlyphID : USHORT {
-  static inline int cmp (const GlyphID *a, const GlyphID *b) { return b->USHORT::cmp (*a); }
-  inline int cmp (hb_codepoint_t a) const { return (int) a - (int) *this; }
-};
+typedef USHORT GlyphID;
 
 /* Script/language-system/feature index */
 struct Index : USHORT {
