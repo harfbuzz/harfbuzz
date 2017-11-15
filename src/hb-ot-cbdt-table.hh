@@ -288,7 +288,7 @@ struct BitmapSizeTable
   BYTE bitDepth;
   CHAR flags;
 
-public:
+  public:
   DEFINE_SIZE_STATIC(48);
 };
 
@@ -315,6 +315,8 @@ struct GlyphBitmapDataFormat17
 
 struct CBLC
 {
+  friend struct CBDT;
+
   static const hb_tag_t tableTag = HB_OT_TAG_CBLC;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -325,7 +327,7 @@ struct CBLC
 		  sizeTables.sanitize (c, this));
   }
 
-  public:
+  protected:
   const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
 					 unsigned int *x_ppem, unsigned int *y_ppem) const
   {

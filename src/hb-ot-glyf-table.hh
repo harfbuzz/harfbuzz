@@ -43,6 +43,8 @@ namespace OT {
 
 struct loca
 {
+  friend struct glyf;
+
   static const hb_tag_t tableTag = HB_OT_TAG_loca;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -51,7 +53,7 @@ struct loca
     return_trace (true);
   }
 
-  public:
+  protected:
   union {
     USHORT	shortsZ[VAR];		/* Location offset divided by 2. */
     ULONG	longsZ[VAR];		/* Location offset. */
@@ -167,7 +169,7 @@ struct glyf
     unsigned int glyf_len;
   };
 
-  public:
+  protected:
   BYTE		dataX[VAR];		/* Glyphs data. */
 
   DEFINE_SIZE_ARRAY (0, dataX);
