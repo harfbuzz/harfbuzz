@@ -335,27 +335,6 @@ struct hb_ot_face_post_accelerator_t
   }
 };
 
-struct hb_ot_face_kern_accelerator_t
-{
-  hb_blob_t *kern_blob;
-  OT::kern::accelerator_t accel;
-
-  inline void init (hb_face_t *face)
-  {
-    hb_blob_t *blob = this->kern_blob = OT::Sanitizer<OT::kern>::sanitize (face->reference_table (HB_OT_TAG_kern));
-    accel.init (OT::Sanitizer<OT::kern>::lock_instance (blob), hb_blob_get_length (blob));
-  }
-
-  inline void fini (void)
-  {
-    accel.fini ();
-    hb_blob_destroy (this->kern_blob);
-  }
-
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return accel.get_h_kerning (left, right); }
-};
-
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					  hb_codepoint_t codepoint,
 					  hb_codepoint_t *glyph);
@@ -492,7 +471,7 @@ struct hb_ot_font_t
   OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
   OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
   OT::hb_lazy_loader_t<hb_ot_face_post_accelerator_t> post;
-  OT::hb_lazy_loader_t<hb_ot_face_kern_accelerator_t> kern;
+  OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
 };
 
 

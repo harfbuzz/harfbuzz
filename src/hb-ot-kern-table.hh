@@ -358,17 +358,22 @@ struct kern
 
   struct accelerator_t
   {
-    inline void init (const kern *table_, unsigned int table_length_)
+    inline void init (hb_face_t *face)
     {
-      table = table_;
-      table_length = table_length_;
+      blob = Sanitizer<kern>::sanitize (face->reference_table (HB_OT_TAG_kern));
+      table = Sanitizer<kern>::lock_instance (blob);
+      table_length = hb_blob_get_length (blob);
     }
-    inline void fini (void) {}
+    inline void fini (void)
+    {
+      hb_blob_destroy (blob);
+    }
 
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table->get_h_kerning (left, right, table_length); }
 
     private:
+    hb_blob_t *blob;
     const kern *table;
     unsigned int table_length;
   };
