@@ -144,79 +144,6 @@ struct hb_ot_face_metrics_accelerator_t
   }
 };
 
-struct hb_ot_face_glyf_accelerator_t
-{
-  bool short_offset;
-  unsigned int num_glyphs;
-  const OT::loca *loca;
-  const OT::glyf *glyf;
-  hb_blob_t *loca_blob;
-  hb_blob_t *glyf_blob;
-  unsigned int glyf_len;
-
-  inline void init (hb_face_t *face)
-  {
-    hb_blob_t *head_blob = OT::Sanitizer<OT::head>::sanitize (face->reference_table (HB_OT_TAG_head));
-    const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
-    if ((unsigned int) head->indexToLocFormat > 1 || head->glyphDataFormat != 0)
-    {
-      /* Unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
-      hb_blob_destroy (head_blob);
-      return;
-    }
-    this->short_offset = 0 == head->indexToLocFormat;
-    hb_blob_destroy (head_blob);
-
-    this->loca_blob = OT::Sanitizer<OT::loca>::sanitize (face->reference_table (HB_OT_TAG_loca));
-    this->loca = OT::Sanitizer<OT::loca>::lock_instance (this->loca_blob);
-    this->glyf_blob = OT::Sanitizer<OT::glyf>::sanitize (face->reference_table (HB_OT_TAG_glyf));
-    this->glyf = OT::Sanitizer<OT::glyf>::lock_instance (this->glyf_blob);
-
-    this->num_glyphs = MAX (1u, hb_blob_get_length (this->loca_blob) / (this->short_offset ? 2 : 4)) - 1;
-    this->glyf_len = hb_blob_get_length (this->glyf_blob);
-  }
-
-  inline void fini (void)
-  {
-    hb_blob_destroy (this->loca_blob);
-    hb_blob_destroy (this->glyf_blob);
-  }
-
-  inline bool get_extents (hb_codepoint_t glyph,
-			   hb_glyph_extents_t *extents) const
-  {
-    if (unlikely (glyph >= this->num_glyphs))
-      return false;
-
-    unsigned int start_offset, end_offset;
-    if (this->short_offset)
-    {
-      start_offset = 2 * this->loca->u.shortsZ[glyph];
-      end_offset   = 2 * this->loca->u.shortsZ[glyph + 1];
-    }
-    else
-    {
-      start_offset = this->loca->u.longsZ[glyph];
-      end_offset   = this->loca->u.longsZ[glyph + 1];
-    }
-
-    if (start_offset > end_offset || end_offset > this->glyf_len)
-      return false;
-
-    if (end_offset - start_offset < OT::glyfGlyphHeader::static_size)
-      return true; /* Empty glyph; zero extents. */
-
-    const OT::glyfGlyphHeader &glyph_header = OT::StructAtOffset<OT::glyfGlyphHeader> (this->glyf, start_offset);
-
-    extents->x_bearing = MIN (glyph_header.xMin, glyph_header.xMax);
-    extents->y_bearing = MAX (glyph_header.yMin, glyph_header.yMax);
-    extents->width     = MAX (glyph_header.xMin, glyph_header.xMax) - extents->x_bearing;
-    extents->height    = MIN (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
-
-    return true;
-  }
-};
-
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					  hb_codepoint_t codepoint,
 					  hb_codepoint_t *glyph);
@@ -350,7 +277,7 @@ struct hb_ot_font_t
   hb_ot_face_cmap_accelerator_t cmap;
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
-  OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
+  OT::hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
   OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
   OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
   OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
