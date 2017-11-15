@@ -302,39 +302,6 @@ struct hb_ot_face_cbdt_accelerator_t
   }
 };
 
-struct hb_ot_face_post_accelerator_t
-{
-  hb_blob_t *post_blob;
-  OT::post::accelerator_t accel;
-
-  inline void init (hb_face_t *face)
-  {
-    hb_blob_t *blob = this->post_blob = OT::Sanitizer<OT::post>::sanitize (face->reference_table (HB_OT_TAG_post));
-    accel.init (OT::Sanitizer<OT::post>::lock_instance (blob), hb_blob_get_length (blob));
-  }
-
-  inline void fini (void)
-  {
-    accel.fini ();
-    hb_blob_destroy (this->post_blob);
-  }
-
-  inline bool get_glyph_name (hb_codepoint_t glyph,
-			      char *name, unsigned int size) const
-  {
-    return this->accel.get_glyph_name (glyph, name, size);
-  }
-
-  inline bool get_glyph_from_name (const char *name, int len,
-				   hb_codepoint_t *glyph) const
-  {
-    if (unlikely (!len))
-      return false;
-
-    return this->accel.get_glyph_from_name (name, len, glyph);
-  }
-};
-
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					  hb_codepoint_t codepoint,
 					  hb_codepoint_t *glyph);
@@ -470,7 +437,7 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t v_metrics;
   OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
   OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
-  OT::hb_lazy_loader_t<hb_ot_face_post_accelerator_t> post;
+  OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
   OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
 };
 

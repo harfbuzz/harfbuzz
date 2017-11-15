@@ -84,8 +84,12 @@ struct post
 
   struct accelerator_t
   {
-    inline void init (const post *table, unsigned int post_len)
+    inline void init (hb_face_t *face)
     {
+      blob = Sanitizer<post>::sanitize (face->reference_table (HB_OT_TAG_post));
+      const post *table = Sanitizer<post>::lock_instance (blob);
+      unsigned int table_length = hb_blob_get_length (blob);
+
       version = table->version.to_int ();
       index_to_offset.init ();
       if (version != 0x00020000)
@@ -96,7 +100,7 @@ struct post
       glyphNameIndex = &v2.glyphNameIndex;
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
-      const uint8_t *end = (uint8_t *) table + post_len;
+      const uint8_t *end = (uint8_t *) table + table_length;
       for (const uint8_t *data = pool; data < end && data + *data <= end; data += 1 + *data)
       {
 	uint32_t *offset = index_to_offset.push ();
@@ -227,6 +231,7 @@ struct post
       return hb_string_t ((const char *) data, name_length);
     }
 
+    hb_blob_t *blob;
     uint32_t version;
     const ArrayOf<USHORT> *glyphNameIndex;
     hb_prealloced_array_t<uint32_t, 1> index_to_offset;
