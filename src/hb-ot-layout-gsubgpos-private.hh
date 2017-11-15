@@ -413,7 +413,7 @@ struct hb_apply_context_t :
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int lookup_index)
   {
-    if (unlikely (nesting_level_left == 0 || !recurse_func))
+    if (unlikely (nesting_level_left == 0 || !recurse_func || buffer->max_ops-- <= 0))
       return default_return_value ();
 
     nesting_level_left--;
@@ -1003,6 +1003,9 @@ static inline bool apply_lookup (hb_apply_context_t *c,
       continue;
 
     if (unlikely (!buffer->move_to (match_positions[idx])))
+      break;
+
+    if (unlikely (buffer->max_ops <= 0))
       break;
 
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();

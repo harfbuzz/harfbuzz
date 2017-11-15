@@ -35,14 +35,24 @@
 #include "hb-unicode-private.hh"
 
 
-#ifndef HB_BUFFER_MAX_EXPANSION_FACTOR
-#define HB_BUFFER_MAX_EXPANSION_FACTOR 32
+#ifndef HB_BUFFER_MAX_LEN_FACTOR
+#define HB_BUFFER_MAX_LEN_FACTOR 32
 #endif
 #ifndef HB_BUFFER_MAX_LEN_MIN
 #define HB_BUFFER_MAX_LEN_MIN 8192
 #endif
 #ifndef HB_BUFFER_MAX_LEN_DEFAULT
 #define HB_BUFFER_MAX_LEN_DEFAULT 0x3FFFFFFF /* Shaping more than a billion chars? Let us know! */
+#endif
+
+#ifndef HB_BUFFER_MAX_OPS_FACTOR
+#define HB_BUFFER_MAX_OPS_FACTOR 64
+#endif
+#ifndef HB_BUFFER_MAX_OPS_MIN
+#define HB_BUFFER_MAX_OPS_MIN 1024
+#endif
+#ifndef HB_BUFFER_MAX_OPS_DEFAULT
+#define HB_BUFFER_MAX_OPS_DEFAULT 0x1FFFFFFF /* Shaping more than a billion operations? Let us know! */
 #endif
 
 static_assert ((sizeof (hb_glyph_info_t) == 20), "");
@@ -84,6 +94,7 @@ struct hb_buffer_t {
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_buffer_scratch_flags_t scratch_flags; /* Have space-flallback, etc. */
   unsigned int max_len; /* Maximum allowed len. */
+  int max_ops; /* Maximum allowed operations. */
 
   /* Buffer contents */
   hb_buffer_content_type_t content_type;

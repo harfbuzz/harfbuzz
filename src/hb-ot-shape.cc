@@ -817,10 +817,15 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   c->buffer->deallocate_var_all ();
   c->buffer->scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
-  if (likely (!_hb_unsigned_int_mul_overflows (c->buffer->len, HB_BUFFER_MAX_EXPANSION_FACTOR)))
+  if (likely (!_hb_unsigned_int_mul_overflows (c->buffer->len, HB_BUFFER_MAX_LEN_FACTOR)))
   {
-    c->buffer->max_len = MAX (c->buffer->len * HB_BUFFER_MAX_EXPANSION_FACTOR,
+    c->buffer->max_len = MAX (c->buffer->len * HB_BUFFER_MAX_LEN_FACTOR,
 			      (unsigned) HB_BUFFER_MAX_LEN_MIN);
+  }
+  if (likely (!_hb_unsigned_int_mul_overflows (c->buffer->len, HB_BUFFER_MAX_OPS_FACTOR)))
+  {
+    c->buffer->max_ops = MAX (c->buffer->len * HB_BUFFER_MAX_OPS_FACTOR,
+			      (unsigned) HB_BUFFER_MAX_OPS_MIN);
   }
 
   bool disable_otl = c->plan->shaper->disable_otl && c->plan->shaper->disable_otl (c->plan);
@@ -861,6 +866,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   c->buffer->props.direction = c->target_direction;
 
   c->buffer->max_len = HB_BUFFER_MAX_LEN_DEFAULT;
+  c->buffer->max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
   c->buffer->deallocate_var_all ();
 }
 
