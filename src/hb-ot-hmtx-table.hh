@@ -67,20 +67,14 @@ struct hmtxvmtx
 
   struct accelerator_t
   {
-    const hmtxvmtx *table;
-    hb_blob_t *blob;
-
-    const HVARVVAR *var;
-    hb_blob_t *var_blob;
-
     inline void init (hb_face_t *face,
 		      hb_tag_t _hea_tag,
 		      hb_tag_t _mtx_tag,
 		      hb_tag_t _var_tag,
 		      hb_tag_t os2_tag,
-		      unsigned int default_advance = 0)
+		      unsigned int default_advance_ = 0)
     {
-      this->default_advance = default_advance ? default_advance : face->get_upem ();
+      default_advance = default_advance_ ? default_advance_ : face->get_upem ();
 
       bool got_font_extents = false;
       if (os2_tag)
@@ -90,72 +84,72 @@ struct hmtxvmtx
 #define USE_TYPO_METRICS (1u<<7)
 	if (0 != (os2_table->fsSelection & USE_TYPO_METRICS))
 	{
-	  this->ascender = os2_table->sTypoAscender;
-	  this->descender = os2_table->sTypoDescender;
-	  this->line_gap = os2_table->sTypoLineGap;
-	  got_font_extents = (this->ascender | this->descender) != 0;
+	  ascender = os2_table->sTypoAscender;
+	  descender = os2_table->sTypoDescender;
+	  line_gap = os2_table->sTypoLineGap;
+	  got_font_extents = (ascender | descender) != 0;
 	}
 	hb_blob_destroy (os2_blob);
       }
 
       hb_blob_t *_hea_blob = Sanitizer<_hea>::sanitize (face->reference_table (_hea_tag));
       const _hea *_hea_table = Sanitizer<_hea>::lock_instance (_hea_blob);
-      this->num_advances = _hea_table->numberOfLongMetrics;
+      num_advances = _hea_table->numberOfLongMetrics;
       if (!got_font_extents)
       {
-	this->ascender = _hea_table->ascender;
-	this->descender = _hea_table->descender;
-	this->line_gap = _hea_table->lineGap;
-	got_font_extents = (this->ascender | this->descender) != 0;
+	ascender = _hea_table->ascender;
+	descender = _hea_table->descender;
+	line_gap = _hea_table->lineGap;
+	got_font_extents = (ascender | descender) != 0;
       }
       hb_blob_destroy (_hea_blob);
 
-      this->has_font_extents = got_font_extents;
+      has_font_extents = got_font_extents;
 
-      this->blob = Sanitizer<hmtxvmtx>::sanitize (face->reference_table (_mtx_tag));
+      blob = Sanitizer<hmtxvmtx>::sanitize (face->reference_table (_mtx_tag));
 
       /* Cap num_metrics() and num_advances() based on table length. */
-      unsigned int len = hb_blob_get_length (this->blob);
-      if (unlikely (this->num_advances * 4 > len))
-	this->num_advances = len / 4;
-      this->num_metrics = this->num_advances + (len - 4 * this->num_advances) / 2;
+      unsigned int len = hb_blob_get_length (blob);
+      if (unlikely (num_advances * 4 > len))
+	num_advances = len / 4;
+      num_metrics = num_advances + (len - 4 * num_advances) / 2;
 
       /* We MUST set num_metrics to zero if num_advances is zero.
        * Our get_advance() depends on that. */
-      if (unlikely (!this->num_advances))
+      if (unlikely (!num_advances))
       {
-	this->num_metrics = this->num_advances = 0;
-	hb_blob_destroy (this->blob);
-	this->blob = hb_blob_get_empty ();
+	num_metrics = num_advances = 0;
+	hb_blob_destroy (blob);
+	blob = hb_blob_get_empty ();
       }
-      this->table = Sanitizer<hmtxvmtx>::lock_instance (this->blob);
+      table = Sanitizer<hmtxvmtx>::lock_instance (blob);
 
-      this->var_blob = Sanitizer<HVARVVAR>::sanitize (face->reference_table (_var_tag));
-      this->var = Sanitizer<HVARVVAR>::lock_instance (this->var_blob);
+      var_blob = Sanitizer<HVARVVAR>::sanitize (face->reference_table (_var_tag));
+      var_table = Sanitizer<HVARVVAR>::lock_instance (var_blob);
     }
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->blob);
-      hb_blob_destroy (this->var_blob);
+      hb_blob_destroy (blob);
+      hb_blob_destroy (var_blob);
     }
 
     inline unsigned int get_advance (hb_codepoint_t  glyph,
 				     hb_font_t      *font) const
     {
-      if (unlikely (glyph >= this->num_metrics))
+      if (unlikely (glyph >= num_metrics))
       {
-	/* If this->num_metrics is zero, it means we don't have the metrics table
+	/* If num_metrics is zero, it means we don't have the metrics table
 	 * for this direction: return default advance.  Otherwise, it means that the
 	 * glyph index is out of bound: return zero. */
-	if (this->num_metrics)
+	if (num_metrics)
 	  return 0;
 	else
-	  return this->default_advance;
+	  return default_advance;
       }
 
-      return this->table->longMetric[MIN (glyph, (uint32_t) this->num_advances - 1)].advance
-	   + this->var->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+      return table->longMetric[MIN (glyph, (uint32_t) num_advances - 1)].advance
+	   + var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
     }
 
     public:
@@ -163,10 +157,16 @@ struct hmtxvmtx
     unsigned short ascender;
     unsigned short descender;
     unsigned short line_gap;
+
     private:
     unsigned int num_metrics;
     unsigned int num_advances;
     unsigned int default_advance;
+
+    const hmtxvmtx *table;
+    hb_blob_t *blob;
+    const HVARVVAR *var_table;
+    hb_blob_t *var_blob;
   };
 
   protected:
