@@ -33,8 +33,6 @@
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-cbdt-table.hh"
 #include "hb-ot-glyf-table.hh"
-#include "hb-ot-head-table.hh"
-#include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-post-table.hh"
@@ -43,8 +41,8 @@
 struct hb_ot_font_t
 {
   OT::cmap::accelerator_t cmap;
-  OT::hmtxvmtx::accelerator_t h_metrics;
-  OT::hmtxvmtx::accelerator_t v_metrics;
+  OT::hmtx::accelerator_t h_metrics;
+  OT::vmtx::accelerator_t v_metrics;
   OT::hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
   OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
   OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
@@ -61,9 +59,8 @@ _hb_ot_font_create (hb_face_t *face)
     return nullptr;
 
   ot_font->cmap.init (face);
-  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_HVAR, HB_OT_TAG_os2);
-  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_OT_TAG_VVAR, HB_TAG_NONE,
-			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
+  ot_font->h_metrics.init (face);
+  ot_font->v_metrics.init (face, ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
   ot_font->cbdt.init (face);
   ot_font->post.init (face);

@@ -28,6 +28,7 @@
 #define HB_OT_HMTX_TABLE_HH
 
 #include "hb-open-type-private.hh"
+#include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
 
@@ -52,11 +53,9 @@ struct LongMetric
   DEFINE_SIZE_STATIC (4);
 };
 
+template <typename T>
 struct hmtxvmtx
 {
-  static const hb_tag_t hmtxTag	= HB_OT_TAG_hmtx;
-  static const hb_tag_t vmtxTag	= HB_OT_TAG_vmtx;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -68,18 +67,14 @@ struct hmtxvmtx
   struct accelerator_t
   {
     inline void init (hb_face_t *face,
-		      hb_tag_t _hea_tag,
-		      hb_tag_t _mtx_tag,
-		      hb_tag_t _var_tag,
-		      hb_tag_t os2_tag,
 		      unsigned int default_advance_ = 0)
     {
       default_advance = default_advance_ ? default_advance_ : face->get_upem ();
 
       bool got_font_extents = false;
-      if (os2_tag)
+      if (T::os2Tag)
       {
-	hb_blob_t *os2_blob = Sanitizer<os2>::sanitize (face->reference_table (os2_tag));
+	hb_blob_t *os2_blob = Sanitizer<os2>::sanitize (face->reference_table (T::os2Tag));
 	const os2 *os2_table = Sanitizer<os2>::lock_instance (os2_blob);
 #define USE_TYPO_METRICS (1u<<7)
 	if (0 != (os2_table->fsSelection & USE_TYPO_METRICS))
@@ -92,7 +87,7 @@ struct hmtxvmtx
 	hb_blob_destroy (os2_blob);
       }
 
-      hb_blob_t *_hea_blob = Sanitizer<_hea>::sanitize (face->reference_table (_hea_tag));
+      hb_blob_t *_hea_blob = Sanitizer<_hea>::sanitize (face->reference_table (T::headerTag));
       const _hea *_hea_table = Sanitizer<_hea>::lock_instance (_hea_blob);
       num_advances = _hea_table->numberOfLongMetrics;
       if (!got_font_extents)
@@ -106,7 +101,7 @@ struct hmtxvmtx
 
       has_font_extents = got_font_extents;
 
-      blob = Sanitizer<hmtxvmtx>::sanitize (face->reference_table (_mtx_tag));
+      blob = Sanitizer<hmtxvmtx>::sanitize (face->reference_table (T::tableTag));
 
       /* Cap num_metrics() and num_advances() based on table length. */
       unsigned int len = hb_blob_get_length (blob);
@@ -124,7 +119,7 @@ struct hmtxvmtx
       }
       table = Sanitizer<hmtxvmtx>::lock_instance (blob);
 
-      var_blob = Sanitizer<HVARVVAR>::sanitize (face->reference_table (_var_tag));
+      var_blob = Sanitizer<HVARVVAR>::sanitize (face->reference_table (T::variationsTag));
       var_table = Sanitizer<HVARVVAR>::lock_instance (var_blob);
     }
 
@@ -195,11 +190,17 @@ struct hmtxvmtx
   DEFINE_SIZE_ARRAY2 (0, longMetric, leadingBearingX);
 };
 
-struct hmtx : hmtxvmtx {
+struct hmtx : hmtxvmtx<hmtx> {
   static const hb_tag_t tableTag	= HB_OT_TAG_hmtx;
+  static const hb_tag_t headerTag	= HB_OT_TAG_hhea;
+  static const hb_tag_t variationsTag	= HB_OT_TAG_HVAR;
+  static const hb_tag_t os2Tag		= HB_OT_TAG_os2;
 };
-struct vmtx : hmtxvmtx {
+struct vmtx : hmtxvmtx<vmtx> {
   static const hb_tag_t tableTag	= HB_OT_TAG_vmtx;
+  static const hb_tag_t headerTag	= HB_OT_TAG_vhea;
+  static const hb_tag_t variationsTag	= HB_OT_TAG_VVAR;
+  static const hb_tag_t os2Tag		= HB_TAG_NONE;
 };
 
 } /* namespace OT */
