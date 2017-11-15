@@ -47,20 +47,20 @@ struct SmallGlyphMetrics
     extents->height = -height;
   }
 
-  BYTE height;
-  BYTE width;
-  CHAR bearingX;
-  CHAR bearingY;
-  BYTE advance;
+  UINT8 height;
+  UINT8 width;
+  INT8 bearingX;
+  INT8 bearingY;
+  UINT8 advance;
 
   DEFINE_SIZE_STATIC(5);
 };
 
 struct BigGlyphMetrics : SmallGlyphMetrics
 {
-  CHAR vertBearingX;
-  CHAR vertBearingY;
-  BYTE vertAdvance;
+  INT8 vertBearingX;
+  INT8 vertBearingY;
+  UINT8 vertAdvance;
 
   DEFINE_SIZE_STATIC(8);
 };
@@ -73,18 +73,18 @@ struct SBitLineMetrics
     return_trace (c->check_struct (this));
   }
 
-  CHAR ascender;
-  CHAR decender;
-  BYTE widthMax;
-  CHAR caretSlopeNumerator;
-  CHAR caretSlopeDenominator;
-  CHAR caretOffset;
-  CHAR minOriginSB;
-  CHAR minAdvanceSB;
-  CHAR maxBeforeBL;
-  CHAR minAfterBL;
-  CHAR padding1;
-  CHAR padding2;
+  INT8 ascender;
+  INT8 decender;
+  UINT8 widthMax;
+  INT8 caretSlopeNumerator;
+  INT8 caretSlopeDenominator;
+  INT8 caretOffset;
+  INT8 minOriginSB;
+  INT8 minAdvanceSB;
+  INT8 maxBeforeBL;
+  INT8 minAfterBL;
+  INT8 padding1;
+  INT8 padding2;
 
   DEFINE_SIZE_STATIC(12);
 };
@@ -102,9 +102,9 @@ struct IndexSubtableHeader
     return_trace (c->check_struct (this));
   }
 
-  USHORT indexFormat;
-  USHORT imageFormat;
-  ULONG imageDataOffset;
+  UINT16 indexFormat;
+  UINT16 imageFormat;
+  UINT32 imageDataOffset;
 
   DEFINE_SIZE_STATIC(8);
 };
@@ -137,8 +137,8 @@ struct IndexSubtableFormat1Or3
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);
 };
 
-struct IndexSubtableFormat1 : IndexSubtableFormat1Or3<ULONG> {};
-struct IndexSubtableFormat3 : IndexSubtableFormat1Or3<USHORT> {};
+struct IndexSubtableFormat1 : IndexSubtableFormat1Or3<UINT32> {};
+struct IndexSubtableFormat3 : IndexSubtableFormat1Or3<UINT16> {};
 
 struct IndexSubtable
 {
@@ -214,8 +214,8 @@ struct IndexSubtableRecord
 						   offset, length, format);
   }
 
-  USHORT firstGlyphIndex;
-  USHORT lastGlyphIndex;
+  UINT16 firstGlyphIndex;
+  UINT16 lastGlyphIndex;
   LOffsetTo<IndexSubtable> offsetToSubtable;
 
   DEFINE_SIZE_STATIC(8);
@@ -276,17 +276,17 @@ struct BitmapSizeTable
 
   protected:
   LOffsetTo<IndexSubtableArray> indexSubtableArrayOffset;
-  ULONG indexTablesSize;
-  ULONG numberOfIndexSubtables;
-  ULONG colorRef;
+  UINT32 indexTablesSize;
+  UINT32 numberOfIndexSubtables;
+  UINT32 colorRef;
   SBitLineMetrics horizontal;
   SBitLineMetrics vertical;
-  USHORT startGlyphIndex;
-  USHORT endGlyphIndex;
-  BYTE ppemX;
-  BYTE ppemY;
-  BYTE bitDepth;
-  CHAR flags;
+  UINT16 startGlyphIndex;
+  UINT16 endGlyphIndex;
+  UINT8 ppemX;
+  UINT8 ppemY;
+  UINT8 bitDepth;
+  INT8 flags;
 
   public:
   DEFINE_SIZE_STATIC(48);
@@ -300,8 +300,8 @@ struct BitmapSizeTable
 struct GlyphBitmapDataFormat17
 {
   SmallGlyphMetrics glyphMetrics;
-  ULONG dataLen;
-  BYTE dataZ[VAR];
+  UINT32 dataLen;
+  UINT8 dataZ[VAR];
 
   DEFINE_SIZE_ARRAY(9, dataZ);
 };
@@ -460,7 +460,7 @@ struct CBDT
 
   protected:
   FixedVersion<>version;
-  BYTE dataZ[VAR];
+  UINT8 dataZ[VAR];
 
   public:
   DEFINE_SIZE_ARRAY(4, dataZ);

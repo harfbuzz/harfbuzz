@@ -56,10 +56,10 @@ struct postV2Tail
     return_trace (glyphNameIndex.sanitize (c));
   }
 
-  ArrayOf<USHORT>glyphNameIndex;	/* This is not an offset, but is the
+  ArrayOf<UINT16>glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
-  BYTE		namesX[VAR];		/* Glyph names with length bytes [variable]
+  UINT8		namesX[VAR];		/* Glyph names with length bytes [variable]
 					 * (a Pascal string). */
 
   DEFINE_SIZE_ARRAY2 (2, glyphNameIndex, namesX);
@@ -234,7 +234,7 @@ struct post
     private:
     hb_blob_t *blob;
     uint32_t version;
-    const ArrayOf<USHORT> *glyphNameIndex;
+    const ArrayOf<UINT16> *glyphNameIndex;
     hb_prealloced_array_t<uint32_t, 1> index_to_offset;
     const uint8_t *pool;
     mutable uint16_t *gids_sorted_by_name;
@@ -261,16 +261,16 @@ struct post
 					 * from the value of this field. */
   FWORD		underlineThickness;	/* Suggested values for the underline
 					   thickness. */
-  ULONG		isFixedPitch;		/* Set to 0 if the font is proportionally
+  UINT32		isFixedPitch;		/* Set to 0 if the font is proportionally
 					 * spaced, non-zero if the font is not
 					 * proportionally spaced (i.e. monospaced). */
-  ULONG		minMemType42;		/* Minimum memory usage when an OpenType font
+  UINT32		minMemType42;		/* Minimum memory usage when an OpenType font
 					 * is downloaded. */
-  ULONG		maxMemType42;		/* Maximum memory usage when an OpenType font
+  UINT32		maxMemType42;		/* Maximum memory usage when an OpenType font
 					 * is downloaded. */
-  ULONG		minMemType1;		/* Minimum memory usage when an OpenType font
+  UINT32		minMemType1;		/* Minimum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
-  ULONG		maxMemType1;		/* Maximum memory usage when an OpenType font
+  UINT32		maxMemType1;		/* Maximum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
 /*postV2Tail	v2[VAR];*/
   DEFINE_SIZE_STATIC (32);
