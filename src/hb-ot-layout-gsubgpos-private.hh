@@ -2285,9 +2285,6 @@ struct Extension
 
 struct GSUBGPOS
 {
-  static const hb_tag_t GSUBTag	= HB_OT_TAG_GSUB;
-  static const hb_tag_t GPOSTag	= HB_OT_TAG_GPOS;
-
   inline unsigned int get_script_count (void) const
   { return (this+scriptList).len; }
   inline const Tag& get_script_tag (unsigned int i) const

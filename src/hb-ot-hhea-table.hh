@@ -44,11 +44,6 @@ namespace OT {
 
 struct _hea
 {
-  static const hb_tag_t tableTag = HB_TAG('_','h','e','a');
-
-  static const hb_tag_t hheaTag	= HB_OT_TAG_hhea;
-  static const hb_tag_t vheaTag	= HB_OT_TAG_vhea;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
