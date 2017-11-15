@@ -217,91 +217,6 @@ struct hb_ot_face_glyf_accelerator_t
   }
 };
 
-struct hb_ot_face_cbdt_accelerator_t
-{
-  hb_blob_t *cblc_blob;
-  hb_blob_t *cbdt_blob;
-  const OT::CBLC *cblc;
-  const OT::CBDT *cbdt;
-
-  unsigned int cbdt_len;
-  unsigned int upem;
-
-  inline void init (hb_face_t *face)
-  {
-    upem = face->get_upem();
-
-    cblc_blob = OT::Sanitizer<OT::CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
-    cbdt_blob = OT::Sanitizer<OT::CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
-    cbdt_len = hb_blob_get_length (cbdt_blob);
-
-    if (hb_blob_get_length (cblc_blob) == 0) {
-      cblc = nullptr;
-      cbdt = nullptr;
-      return;  /* Not a bitmap font. */
-    }
-    cblc = OT::Sanitizer<OT::CBLC>::lock_instance (cblc_blob);
-    cbdt = OT::Sanitizer<OT::CBDT>::lock_instance (cbdt_blob);
-
-  }
-
-  inline void fini (void)
-  {
-    hb_blob_destroy (this->cblc_blob);
-    hb_blob_destroy (this->cbdt_blob);
-  }
-
-  inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
-  {
-    unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
-
-    if (!cblc)
-      return false;  // Not a color bitmap font.
-
-    const OT::IndexSubtableRecord *subtable_record = this->cblc->find_table(glyph, &x_ppem, &y_ppem);
-    if (!subtable_record || !x_ppem || !y_ppem)
-      return false;
-
-    if (subtable_record->get_extents (extents))
-      return true;
-
-    unsigned int image_offset = 0, image_length = 0, image_format = 0;
-    if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
-      return false;
-
-    {
-      /* TODO Move the following into CBDT struct when adding more formats. */
-
-      if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
-	return false;
-
-      switch (image_format)
-      {
-	case 17: {
-	  if (unlikely (image_length < OT::GlyphBitmapDataFormat17::min_size))
-	    return false;
-
-	  const OT::GlyphBitmapDataFormat17& glyphFormat17 =
-	      OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-	  glyphFormat17.glyphMetrics.get_extents (extents);
-	}
-	break;
-	default:
-	  // TODO: Support other image formats.
-	  return false;
-      }
-    }
-
-    /* Convert to the font units. */
-    extents->x_bearing *= upem / (float) x_ppem;
-    extents->y_bearing *= upem / (float) y_ppem;
-    extents->width *= upem / (float) x_ppem;
-    extents->height *= upem / (float) y_ppem;
-
-    return true;
-  }
-};
-
 typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					  hb_codepoint_t codepoint,
 					  hb_codepoint_t *glyph);
@@ -436,7 +351,7 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
   OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
-  OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
+  OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
   OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
   OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
 };

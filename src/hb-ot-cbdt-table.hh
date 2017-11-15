@@ -371,6 +371,91 @@ struct CBDT
 		  likely (version.major == 2 || version.major == 3));
   }
 
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      upem = face->get_upem();
+
+      cblc_blob = Sanitizer<CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
+      cbdt_blob = Sanitizer<CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
+      cbdt_len = hb_blob_get_length (cbdt_blob);
+
+      if (hb_blob_get_length (cblc_blob) == 0) {
+	cblc = nullptr;
+	cbdt = nullptr;
+	return;  /* Not a bitmap font. */
+      }
+      cblc = Sanitizer<CBLC>::lock_instance (cblc_blob);
+      cbdt = Sanitizer<CBDT>::lock_instance (cbdt_blob);
+
+    }
+
+    inline void fini (void)
+    {
+      hb_blob_destroy (this->cblc_blob);
+      hb_blob_destroy (this->cbdt_blob);
+    }
+
+    inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    {
+      unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
+
+      if (!cblc)
+	return false;  // Not a color bitmap font.
+
+      const IndexSubtableRecord *subtable_record = this->cblc->find_table(glyph, &x_ppem, &y_ppem);
+      if (!subtable_record || !x_ppem || !y_ppem)
+	return false;
+
+      if (subtable_record->get_extents (extents))
+	return true;
+
+      unsigned int image_offset = 0, image_length = 0, image_format = 0;
+      if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
+	return false;
+
+      {
+	if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
+	  return false;
+
+	switch (image_format)
+	{
+	  case 17: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
+	      return false;
+
+	    const GlyphBitmapDataFormat17& glyphFormat17 =
+		StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	    glyphFormat17.glyphMetrics.get_extents (extents);
+	  }
+	  break;
+	  default:
+	    // TODO: Support other image formats.
+	    return false;
+	}
+      }
+
+      /* Convert to the font units. */
+      extents->x_bearing *= upem / (float) x_ppem;
+      extents->y_bearing *= upem / (float) y_ppem;
+      extents->width *= upem / (float) x_ppem;
+      extents->height *= upem / (float) y_ppem;
+
+      return true;
+    }
+
+    private:
+    hb_blob_t *cblc_blob;
+    hb_blob_t *cbdt_blob;
+    const CBLC *cblc;
+    const CBDT *cbdt;
+
+    unsigned int cbdt_len;
+    unsigned int upem;
+  };
+
+
   protected:
   FixedVersion<>version;
   BYTE dataZ[VAR];

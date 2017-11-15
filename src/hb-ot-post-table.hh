@@ -231,6 +231,7 @@ struct post
       return hb_string_t ((const char *) data, name_length);
     }
 
+    private:
     hb_blob_t *blob;
     uint32_t version;
     const ArrayOf<USHORT> *glyphNameIndex;
