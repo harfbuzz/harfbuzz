@@ -216,7 +216,7 @@ struct LangSys
     return_trace (c->check_struct (this) && featureIndex.sanitize (c));
   }
 
-  Offset<>	lookupOrderZ;	/* = Null (reserved for an offset to a
+  Offset16	lookupOrderZ;	/* = Null (reserved for an offset to a
 				 * reordering table) */
   UINT16	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features
@@ -662,7 +662,7 @@ struct Lookup
   private:
   UINT16	lookupType;		/* Different enumerations for GSUB and GPOS */
   UINT16	lookupFlag;		/* Lookup qualifiers */
-  ArrayOf<Offset<> >
+  ArrayOf<Offset16>
 		subTable;		/* Array of SubTables */
   UINT16	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit

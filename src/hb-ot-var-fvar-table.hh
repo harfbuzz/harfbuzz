@@ -186,7 +186,7 @@ struct fvar
   protected:
   FixedVersion<>version;	/* Version of the fvar table
 				 * initially set to 0x00010000u */
-  Offset<>	things;		/* Offset in bytes from the beginning of the table
+  Offset16	things;		/* Offset in bytes from the beginning of the table
 				 * to the start of the AxisRecord array. */
   UINT16	reserved;	/* This field is permanently reserved. Set to 2. */
   UINT16	axisCount;	/* The number of variation axes in the font (the

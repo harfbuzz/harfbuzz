@@ -125,7 +125,7 @@ struct name
   /* We only implement format 0 for now. */
   UINT16	format;			/* Format selector (=0/1). */
   UINT16	count;			/* Number of name records. */
-  Offset<>	stringOffset;		/* Offset to start of string storage (from start of table). */
+  Offset16	stringOffset;		/* Offset to start of string storage (from start of table). */
   NameRecord	nameRecord[VAR];	/* The name records where count is the number of records. */
   public:
   DEFINE_SIZE_ARRAY (6, nameRecord);

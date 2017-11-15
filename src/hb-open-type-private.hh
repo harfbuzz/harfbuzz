@@ -705,13 +705,16 @@ struct Index : UINT16 {
 DEFINE_NULL_DATA (Index, "\xff\xff");
 
 /* Offset, Null offset = 0 */
-template <typename Type=UINT16>
+template <typename Type>
 struct Offset : Type
 {
   inline bool is_null (void) const { return 0 == *this; }
   public:
   DEFINE_SIZE_STATIC (sizeof(Type));
 };
+
+typedef Offset<UINT16> Offset16;
+typedef Offset<UINT32> Offset32;
 
 
 /* CheckSum */
