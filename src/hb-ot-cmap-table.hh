@@ -496,6 +496,146 @@ struct cmap
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version == 0) &&
+		  encodingRecord.sanitize (c, this));
+  }
+
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      this->blob = OT::Sanitizer<OT::cmap>::sanitize (face->reference_table (HB_OT_TAG_cmap));
+      const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (this->blob);
+      const OT::CmapSubtable *subtable = nullptr;
+      const OT::CmapSubtableFormat14 *subtable_uvs = nullptr;
+
+      bool symbol = false;
+      /* 32-bit subtables. */
+      if (!subtable) subtable = cmap->find_subtable (3, 10);
+      if (!subtable) subtable = cmap->find_subtable (0, 6);
+      if (!subtable) subtable = cmap->find_subtable (0, 4);
+      /* 16-bit subtables. */
+      if (!subtable) subtable = cmap->find_subtable (3, 1);
+      if (!subtable) subtable = cmap->find_subtable (0, 3);
+      if (!subtable) subtable = cmap->find_subtable (0, 2);
+      if (!subtable) subtable = cmap->find_subtable (0, 1);
+      if (!subtable) subtable = cmap->find_subtable (0, 0);
+      if (!subtable)
+      {
+	subtable = cmap->find_subtable (3, 0);
+	if (subtable) symbol = true;
+      }
+      /* Meh. */
+      if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
+
+      /* UVS subtable. */
+      if (!subtable_uvs)
+      {
+	const OT::CmapSubtable *st = cmap->find_subtable (0, 5);
+	if (st && st->u.format == 14)
+	  subtable_uvs = &st->u.format14;
+      }
+      /* Meh. */
+      if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtableFormat14);
+
+      this->uvs_table = subtable_uvs;
+
+      this->get_glyph_data = subtable;
+      if (unlikely (symbol))
+	this->get_glyph_func = get_glyph_from_symbol<OT::CmapSubtable>;
+      else
+	switch (subtable->u.format) {
+	/* Accelerate format 4 and format 12. */
+	default: this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;		break;
+	case 12: this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;	break;
+	case  4:
+	  {
+	    this->format4_accel.init (&subtable->u.format4);
+	    this->get_glyph_data = &this->format4_accel;
+	    this->get_glyph_func = this->format4_accel.get_glyph_func;
+	  }
+	  break;
+	}
+    }
+
+    inline void fini (void)
+    {
+      hb_blob_destroy (this->blob);
+    }
+
+    inline bool get_nominal_glyph (hb_codepoint_t  unicode,
+				   hb_codepoint_t *glyph) const
+    {
+      return this->get_glyph_func (this->get_glyph_data, unicode, glyph);
+    }
+
+    inline bool get_variation_glyph (hb_codepoint_t  unicode,
+				     hb_codepoint_t  variation_selector,
+				     hb_codepoint_t *glyph) const
+    {
+      switch (this->uvs_table->get_glyph_variant (unicode,
+						  variation_selector,
+						  glyph))
+      {
+	case OT::GLYPH_VARIANT_NOT_FOUND:		return false;
+	case OT::GLYPH_VARIANT_FOUND:		return true;
+	case OT::GLYPH_VARIANT_USE_DEFAULT:	break;
+      }
+
+      return get_nominal_glyph (unicode, glyph);
+    }
+
+    protected:
+    typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
+					      hb_codepoint_t codepoint,
+					      hb_codepoint_t *glyph);
+
+    template <typename Type>
+    static inline bool get_glyph_from (const void *obj,
+				       hb_codepoint_t codepoint,
+				       hb_codepoint_t *glyph)
+    {
+      const Type *typed_obj = (const Type *) obj;
+      return typed_obj->get_glyph (codepoint, glyph);
+    }
+
+    template <typename Type>
+    static inline bool get_glyph_from_symbol (const void *obj,
+					      hb_codepoint_t codepoint,
+					      hb_codepoint_t *glyph)
+    {
+      const Type *typed_obj = (const Type *) obj;
+      if (likely (typed_obj->get_glyph (codepoint, glyph)))
+	return true;
+
+      if (codepoint <= 0x00FFu)
+      {
+	/* For symbol-encoded OpenType fonts, we duplicate the
+	 * U+F000..F0FF range at U+0000..U+00FF.  That's what
+	 * Windows seems to do, and that's hinted about at:
+	 * http://www.microsoft.com/typography/otspec/recom.htm
+	 * under "Non-Standard (Symbol) Fonts". */
+	return typed_obj->get_glyph (0xF000u + codepoint, glyph);
+      }
+
+      return false;
+    }
+
+    private:
+    hb_cmap_get_glyph_func_t get_glyph_func;
+    const void *get_glyph_data;
+    OT::CmapSubtableFormat4::accelerator_t format4_accel;
+
+    const OT::CmapSubtableFormat14 *uvs_table;
+    hb_blob_t *blob;
+  };
+
+  protected:
+
   inline const CmapSubtable *find_subtable (unsigned int platform_id,
 					    unsigned int encoding_id) const
   {
@@ -513,14 +653,7 @@ struct cmap
     return &(this+encodingRecord[result].subtable);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version == 0) &&
-		  encodingRecord.sanitize (c, this));
-  }
-
+  protected:
   USHORT		version;	/* Table version number (0). */
   SortedArrayOf<EncodingRecord>
 			encodingRecord;	/* Encoding tables. */
