@@ -54,11 +54,8 @@ struct loca
   }
 
   protected:
-  union {
-    USHORT	shortsZ[VAR];		/* Location offset divided by 2. */
-    ULONG	longsZ[VAR];		/* Location offset. */
-  } u;
-  DEFINE_SIZE_ARRAY (0, u.longsZ);
+  BYTE		dataX[VAR];		/* Location data. */
+  DEFINE_SIZE_ARRAY (0, dataX);
 };
 
 
@@ -134,13 +131,15 @@ struct glyf
       unsigned int start_offset, end_offset;
       if (short_offset)
       {
-	start_offset = 2 * loca_table->u.shortsZ[glyph];
-	end_offset   = 2 * loca_table->u.shortsZ[glyph + 1];
+        const USHORT *offsets = (const USHORT *) loca_table->dataX;
+	start_offset = 2 * offsets[glyph];
+	end_offset   = 2 * offsets[glyph + 1];
       }
       else
       {
-	start_offset = loca_table->u.longsZ[glyph];
-	end_offset   = loca_table->u.longsZ[glyph + 1];
+        const ULONG *offsets = (const ULONG *) loca_table->dataX;
+	start_offset = offsets[glyph];
+	end_offset   = offsets[glyph + 1];
       }
 
       if (start_offset > end_offset || end_offset > glyf_len)
