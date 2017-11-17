@@ -78,10 +78,15 @@ view_cairo_t::render (const font_options_t *font_opts)
   /* Setup coordinate system. */
   cairo_translate (cr, view_options.margin.l, view_options.margin.t);
   if (vertical)
+   {
+    // It seems calling hb_font_add_glyph_origin_for_direction()
+    // to offset x_offset and y_offset also have some negative effect
+    // here, try to compensate them based on empirical result.
     cairo_translate (cr,
 		     w /* We stack lines right to left */
-		     -font_height * .5 /* "ascent" for vertical */,
-		     y_sign < 0 ? h : 0);
+		     -font_height,
+		      font_height); 
+   }
   else
    {
     cairo_translate (cr,

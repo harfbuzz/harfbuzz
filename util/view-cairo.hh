@@ -38,7 +38,7 @@ struct view_cairo_t
 	       : output_options (parser, helper_cairo_supported_formats),
 		 view_options (parser),
 		 direction (HB_DIRECTION_INVALID),
-		 lines (0), scale_bits (0) {}
+		 lines (0), scale_bits (0), font (nullptr) {}
   ~view_cairo_t (void) {
     if (debug)
       cairo_debug_reset_static_data ();
@@ -48,6 +48,7 @@ struct view_cairo_t
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
     scale_bits = -font_opts->subpixel_bits;
+    font = hb_font_reference (font_opts->get_font ());
   }
   void new_line (void)
   {
@@ -69,7 +70,7 @@ struct view_cairo_t
   {
     direction = hb_buffer_get_direction (buffer);
     helper_cairo_line_t l;
-    helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale_bits, utf8_clusters);
+    helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale_bits, utf8_clusters, font);
     g_array_append_val (lines, l);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
@@ -85,6 +86,8 @@ struct view_cairo_t
 #else
     g_array_free (lines, TRUE);
 #endif
+    hb_font_destroy (font);
+    font = nullptr;
   }
 
   protected:
@@ -97,6 +100,7 @@ struct view_cairo_t
   hb_direction_t direction; // Remove this, make segment_properties accessible
   GArray *lines;
   int scale_bits;
+  hb_font_t *font;
 };
 
 #endif

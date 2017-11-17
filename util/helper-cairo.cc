@@ -466,7 +466,8 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       const char          *text,
 			       unsigned int         text_len,
 			       int                  scale_bits,
-			       hb_bool_t            utf8_clusters)
+			       hb_bool_t            utf8_clusters,
+			       hb_font_t           *font)
 {
   memset (l, 0, sizeof (*l));
 
@@ -497,6 +498,12 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
   int i;
   for (i = 0; i < (int) l->num_glyphs; i++)
   {
+    if ( HB_DIRECTION_IS_VERTICAL(hb_buffer_get_direction (buffer)) )
+    {
+        hb_font_add_glyph_origin_for_direction( font,
+                            hb_glyph[i].codepoint, HB_DIRECTION_TTB,
+                            &hb_position->x_offset, &hb_position->y_offset);
+    }
     l->glyphs[i].index = hb_glyph[i].codepoint;
     l->glyphs[i].x = scalbn ((double)  hb_position->x_offset + x, scale_bits);
     l->glyphs[i].y = scalbn ((double) -hb_position->y_offset + y, scale_bits);

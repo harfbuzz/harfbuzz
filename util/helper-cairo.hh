@@ -81,6 +81,7 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       const char          *text,
 			       unsigned int         text_len,
 			       int                  scale_bits,
-			       hb_bool_t            utf8_clusters);
+			       hb_bool_t            utf8_clusters,
+			       hb_font_t           *font);
 
 #endif
