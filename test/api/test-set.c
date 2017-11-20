@@ -159,7 +159,7 @@ test_set_algebra (void)
   g_assert (!hb_set_has (s, 13));
   g_assert (hb_set_has (s, 19));
 
-  /* https://github.com/behdad/harfbuzz/issues/579 */
+  /* https://github.com/harfbuzz/harfbuzz/issues/579 */
   hb_set_clear (s);
   test_empty (s);
   hb_set_add_range (s, 886, 895);

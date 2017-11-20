@@ -146,7 +146,7 @@ if (NOT IN_HB_DIST)
   if (RAGEL)
     message(STATUS "ragel found at: ${RAGEL}")
   else ()
-    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/ or, use harfbuzz releases https://github.com/behdad/harfbuzz/releases")
+    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/ or, use harfbuzz releases https://github.com/harfbuzz/harfbuzz/releases")
   endif ()
 
   foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})

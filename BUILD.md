@@ -9,7 +9,7 @@ on Windows, consider using [vcpkg](https://github.com/Microsoft/vcpkg),
 provided by Microsoft, for building HarfBuzz and other open-source libraries
 but if you need to build harfbuzz from source, put ragel binary on your
 PATH and follow appveyor CI's cmake
-[build steps](https://github.com/behdad/harfbuzz/blob/master/appveyor.yml).
+[build steps](https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml).
 
 on macOS, using MacPorts:
 * sudo port install freetype glib2 cairo

@@ -272,7 +272,7 @@ template <typename ret_t> /* Make sure we don't use hb_auto_trace_t when not tra
 struct hb_auto_trace_t<0, ret_t>;
 
 /* For disabled tracing; optimize out everything.
- * https://github.com/behdad/harfbuzz/pull/605 */
+ * https://github.com/harfbuzz/harfbuzz/pull/605 */
 template <typename ret_t>
 struct hb_no_trace_t {
   inline ret_t ret (ret_t v, unsigned int line HB_UNUSED = 0) { return v; }
