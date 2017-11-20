@@ -711,7 +711,7 @@ static inline bool match_input (hb_apply_context_t *c,
    *   o If two marks want to ligate and they belong to different components of the
    *     same ligature glyph, and said ligature glyph is to be ignored according to
    *     mark-filtering rules, then allow.
-   *     https://github.com/behdad/harfbuzz/issues/545
+   *     https://github.com/harfbuzz/harfbuzz/issues/545
    */
 
   bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->cur());

@@ -301,10 +301,10 @@ def map_to_use(data):
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
 
-		# TODO: https://github.com/behdad/harfbuzz/issues/525
+		# TODO: https://github.com/harfbuzz/harfbuzz/issues/525
 		if U == 0x1A7F: UISC = Consonant_Final; UIPC = Bottom
 
-		# TODO: https://github.com/behdad/harfbuzz/pull/609
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/609
 		if U == 0x20F0: UISC = Cantillation_Mark; UIPC = Top
 
 		values = [k for k,v in items if v(U,UISC,UGC)]
