@@ -5,3 +5,4 @@ fonts/sha1sum/87f85d17d26f1fe9ad28d7365101958edaefb967.ttf:--font-funcs=ot:U+098
 fonts/sha1sum/85fe0be440c64ac77699e21c2f1bd933a919167e.ttf::U+0A15,U+0A51,U+0A47:[kaguru=0+1273|udaatguru=0@75,0+0|eematraguru=0@-40,0+0]
 fonts/sha1sum/1735326da89f0818cd8c51a0600e9789812c0f94.ttf::U+0A51:[uni25CC=0+1044|udaatguru=0+0]
 fonts/sha1sum/1735326da89f0818cd8c51a0600e9789812c0f94.ttf::U+25CC,U+0A51:[uni25CC=0+1044|udaatguru=0+0]
+fonts/sha1sum/81c368a33816fb20e9f647e8f24e2180f4720263.ttf:--no-glyph-names:U+0C80,U+0C82:[1=0+502|2=0+502]
