@@ -60,7 +60,7 @@
     </partinfo>
     <title>Reference manual</title>
       <chapter>
-        <title>Harfbuzz API</title>
+        <title>HarfBuzz API</title>
         <xi:include href="xml/hb.xml"/>
         <xi:include href="xml/hb-common.xml"/>
         <xi:include href="xml/hb-unicode.xml"/>
