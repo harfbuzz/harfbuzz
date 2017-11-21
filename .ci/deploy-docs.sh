@@ -30,5 +30,5 @@ git reset upstream/master
 
 touch .
 git add -A .
-git commit -m "Rebuild docs for $REVISION"
+git commit -m "Rebuild docs for https://github.com/harfbuzz/harfbuzz/commit/$REVISION"
 git push -q upstream HEAD:master
