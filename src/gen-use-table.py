@@ -307,6 +307,9 @@ def map_to_use(data):
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/609
 		if U == 0x20F0: UISC = Cantillation_Mark; UIPC = Top
 
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/626
+		if U == 0xA8B4: UISC = Consonant_Medial
+
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
 		USE = values[0]
