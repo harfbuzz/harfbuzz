@@ -475,7 +475,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one to four space-separated numbers",
+		   "%s argument should be one or two space-separated numbers",
 		   name);
       return false;
   }
