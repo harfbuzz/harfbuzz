@@ -16,19 +16,19 @@ mkdir $DOCSDIR
 cd $DOCSDIR
 
 cp ../docs/html/* .
-cp ../docs/circle.yml .
+#cp ../docs/CNAME .
 
 git init
 git config user.name "Travis CI"
 git config user.email "travis@harfbuzz.org"
 set +x
-echo "git remote add upstream \"https://\$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git\""
-git remote add upstream "https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git"
+echo "git remote add upstream \"https://\$GH_TOKEN@github.com/harfbuzz/harfbuzz.github.io.git\""
+git remote add upstream "https://$GH_TOKEN@github.com/harfbuzz/harfbuzz.github.io.git"
 set -x
 git fetch upstream
-git reset upstream/gh-pages
+git reset upstream/master
 
 touch .
 git add -A .
 git commit -m "Rebuild docs for $REVISION"
-git push -q upstream HEAD:gh-pages
+git push -q upstream HEAD:master
