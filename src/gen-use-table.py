@@ -297,6 +297,9 @@ def map_to_use(data):
 		if U == 0x17DD: UISC = Vowel_Dependent
 		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
 
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/627
+		if 0x1BF2 <= U <= 0x1BF3: UISC = Nukta; UIPC = Bottom
+
 		# TODO: U+1CED should only be allowed after some of
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
