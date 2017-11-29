@@ -67,7 +67,8 @@ EXTRA_HFILES=$(top_builddir)/src/hb-version.h
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
 HTML_IMAGES=  \
-	HarfBuzz.png
+	HarfBuzz.png \
+	HarfBuzz.svg
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
