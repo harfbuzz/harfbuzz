@@ -67,9 +67,19 @@ struct hb_set_t
 
     inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
     {
-      /* TODO Speed up. */
-     for (unsigned int i = a; i < b + 1; i++)
-       add (i);
+     elt_t *la = &elt (a);
+     elt_t *lb = &elt (b);
+     if (la == lb)
+       *la |= (mask (b) << 1) - mask(a);
+     else
+     {
+       *la |= ~(mask (a) - 1);
+
+       memset (la, 0xff, (char *) lb - (char *) la);
+
+       *lb |= ((mask (b) << 1) - 1);
+
+     }
     }
 
     inline bool is_equal (const page_t *other) const
