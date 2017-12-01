@@ -47,9 +47,8 @@ struct hb_set_t
 
   struct page_t
   {
-    inline void init (void) {
-      memset (&v, 0, sizeof (v));
-    }
+    inline void init0 (void) { memset (&v, 0, sizeof (v)); }
+    inline void init1 (void) { memset (&v, 0xff, sizeof (v)); }
 
     inline unsigned int len (void) const
     { return ARRAY_LENGTH_CONST (v); }
@@ -65,6 +64,13 @@ struct hb_set_t
     inline void add (hb_codepoint_t g) { elt (g) |= mask (g); }
     inline void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
     inline bool has (hb_codepoint_t g) const { return !!(elt (g) & mask (g)); }
+
+    inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
+    {
+      /* TODO Speed up. */
+     for (unsigned int i = a; i < b + 1; i++)
+       add (i);
+    }
 
     inline bool is_equal (const page_t *other) const
     {
@@ -196,16 +202,35 @@ struct hb_set_t
     if (unlikely (in_error)) return;
     if (unlikely (g == INVALID)) return;
     page_t *page = page_for_insert (g);
-    if (!page)
-      return;
+    if (unlikely (!page)) return;
     page->add (g);
   }
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     if (unlikely (in_error)) return;
-    /* TODO Speedup */
-    for (unsigned int i = a; i < b + 1; i++)
-      add (i);
+    unsigned int ma = get_major (a);
+    unsigned int mb = get_major (b);
+    if (ma == mb)
+    {
+      page_t *page = page_for_insert (a);
+      if (unlikely (!page)) return;
+      page->add_range (a, b);
+    }
+    else
+    {
+      page_t *page = page_for_insert (a);
+      if (unlikely (!page)) return;
+      page->add_range (a, major_start (ma + 1) - 1);
+
+      for (unsigned int m = ma + 1; m < mb; m++)
+      {
+	page = page_for_insert (major_start (m));
+	if (unlikely (!page)) return;
+	page->init1 ();
+      }
+
+      page->add_range (major_start (mb), b);
+    }
   }
   inline void del (hb_codepoint_t g)
   {
@@ -433,7 +458,7 @@ struct hb_set_t
 
   static  const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
-  page_t *page_for_insert (hb_codepoint_t g)
+  inline page_t *page_for_insert (hb_codepoint_t g)
   {
     page_map_t map = {get_major (g), pages.len};
     unsigned int i;
@@ -442,13 +467,13 @@ struct hb_set_t
       if (!resize (pages.len + 1))
 	return nullptr;
 
-      pages[map.index].init ();
+      pages[map.index].init0 ();
       memmove (&page_map[i + 1], &page_map[i], (page_map.len - 1 - i) * sizeof (page_map[0]));
       page_map[i] = map;
     }
     return &pages[page_map[i].index];
   }
-  page_t *page_for (hb_codepoint_t g)
+  inline page_t *page_for (hb_codepoint_t g)
   {
     page_map_t key = {get_major (g)};
     const page_map_t *found = page_map.bsearch (&key);
@@ -456,7 +481,7 @@ struct hb_set_t
       return &pages[found->index];
     return nullptr;
   }
-  const page_t *page_for (hb_codepoint_t g) const
+  inline const page_t *page_for (hb_codepoint_t g) const
   {
     page_map_t key = {get_major (g)};
     const page_map_t *found = page_map.bsearch (&key);
@@ -464,9 +489,10 @@ struct hb_set_t
       return &pages[found->index];
     return nullptr;
   }
-  page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
-  const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
-  unsigned int get_major (hb_codepoint_t g) const { return g / page_t::PAGE_BITS; }
+  inline page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
+  inline const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
+  inline unsigned int get_major (hb_codepoint_t g) const { return g / page_t::PAGE_BITS; }
+  inline hb_codepoint_t major_start (unsigned int major) const { return major * page_t::PAGE_BITS; }
 };
 
 
