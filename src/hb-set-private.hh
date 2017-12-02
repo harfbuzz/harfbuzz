@@ -35,6 +35,9 @@
  * hb_set_t
  */
 
+/* TODO Keep a free-list so we can free pages that are completely zeroed.  At that
+ * point maybe also use a sentinel value for "all-1" pages? */
+
 struct hb_set_t
 {
   struct page_map_t
@@ -74,6 +77,7 @@ struct hb_set_t
      else
      {
        *la |= ~(mask (a) - 1);
+       la++;
 
        memset (la, 0xff, (char *) lb - (char *) la);
 
@@ -217,7 +221,7 @@ struct hb_set_t
   }
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    if (unlikely (in_error || a > b)) return;
+    if (unlikely (in_error || a > b || a == INVALID || b == INVALID)) return;
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
     if (ma == mb)
@@ -239,6 +243,8 @@ struct hb_set_t
 	page->init1 ();
       }
 
+      page = page_for_insert (b);
+      if (unlikely (!page)) return;
       page->add_range (major_start (mb), b);
     }
   }
@@ -252,6 +258,7 @@ struct hb_set_t
   }
   inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
+    /* TODO Optimize, like add_range(). */
     if (unlikely (in_error)) return;
     for (unsigned int i = a; i < b + 1; i++)
       del (i);
