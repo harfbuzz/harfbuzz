@@ -217,7 +217,7 @@ struct hb_set_t
   }
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (in_error || a > b)) return;
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
     if (ma == mb)
