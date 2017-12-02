@@ -86,6 +86,30 @@ test_set_basic (void)
   test_not_empty (s);
   g_assert (!hb_set_has (s, 13));
 
+  hb_set_add_range (s, 200, 800);
+  test_not_empty (s);
+  g_assert (!hb_set_has (s, 100));
+  g_assert (!hb_set_has (s, 199));
+  g_assert (hb_set_has (s, 200));
+  g_assert (hb_set_has (s, 201));
+  g_assert (hb_set_has (s, 243));
+  g_assert (hb_set_has (s, 254));
+  g_assert (hb_set_has (s, 255));
+  g_assert (hb_set_has (s, 256));
+  g_assert (hb_set_has (s, 257));
+  g_assert (hb_set_has (s, 511));
+  g_assert (hb_set_has (s, 512));
+  g_assert (hb_set_has (s, 600));
+  g_assert (hb_set_has (s, 767));
+  g_assert (hb_set_has (s, 768));
+  g_assert (hb_set_has (s, 769));
+  g_assert (hb_set_has (s, 782));
+  g_assert (hb_set_has (s, 798));
+  g_assert (hb_set_has (s, 799));
+  g_assert (hb_set_has (s, 800));
+  g_assert (!hb_set_has (s, 801));
+  g_assert (!hb_set_has (s, 802));
+
   hb_set_destroy (s);
 }
 
