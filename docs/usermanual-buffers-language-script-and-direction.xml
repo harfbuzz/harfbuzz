@@ -1,7 +1,7 @@
 <chapter id="buffers-language-script-and-direction">
   <title>Buffers, language, script and direction</title>
   <para>
-    The input to Harfbuzz is a series of Unicode characters, stored in a
+    The input to HarfBuzz is a series of Unicode characters, stored in a
     buffer. In this chapter, we'll look at how to set up a buffer with
     the text that we want and then customize the properties of the
     buffer.
@@ -15,7 +15,7 @@
       default values and ready to accept your Unicode strings.
     </para>
     <para>
-      Harfbuzz manages the memory of objects that it creates (such as
+      HarfBuzz manages the memory of objects that it creates (such as
       buffers), so you don't have to. When you have finished working on
       a buffer, you can call <literal>hb_buffer_destroy()</literal>:
     </para>
@@ -27,7 +27,7 @@
     <para>
       This will destroy the object and free its associated memory -
       unless some other part of the program holds a reference to this
-      buffer. If you acquire a Harfbuzz buffer from another subsystem
+      buffer. If you acquire a HarfBuzz buffer from another subsystem
       and want to ensure that it is not garbage collected by someone
       else destroying it, you should increase its reference count:
     </para>
@@ -53,8 +53,8 @@ void somefunc(hb_buffer_t *buffer) {
   <section id="adding-text-to-the-buffer">
     <title>Adding text to the buffer</title>
     <para>
-      Now we have a brand new Harfbuzz buffer. Let's start filling it
-      with text! From Harfbuzz's perspective, a buffer is just a stream
+      Now we have a brand new HarfBuzz buffer. Let's start filling it
+      with text! From HarfBuzz's perspective, a buffer is just a stream
       of Unicode codepoints, but your input string is probably in one of
       the standard Unicode character encodings (UTF-8, UTF-16, UTF-32)
     </para>

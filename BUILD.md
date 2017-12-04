@@ -5,7 +5,13 @@ Cairo, and GLib. For example, on Ubuntu / Debian, you would do:
 whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
 * sudo yum install gcc gcc-c++ freetype-devel glib2-devel cairo-devel
 
-on the Mac, using MacPorts:
+on Windows, consider using [vcpkg](https://github.com/Microsoft/vcpkg),
+provided by Microsoft, for building HarfBuzz and other open-source libraries
+but if you need to build harfbuzz from source, put ragel binary on your
+PATH and follow appveyor CI's cmake
+[build steps](https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml).
+
+on macOS, using MacPorts:
 * sudo port install freetype glib2 cairo
 
 or using Homebrew:
@@ -14,9 +20,7 @@ or using Homebrew:
 If you are using a tarball, you can now proceed to running configure and make
 as with any other standard package. That should leave you with a shared
 library in src/, and a few utility programs including hb-view and hb-shape
-under util/.  From the tarball, NMake Makefiles are also provided in win32/,
-which supports building HarfBuzz using Visual Studio, with a README.txt that
-gives instructions on building using NMake.
+under util/.
 If you are bootstraping from git, you need a few more tools before you can
 run autogen.sh for the first time. Namely, pkg-config and ragel. Again,
 on Ubuntu / Debian:

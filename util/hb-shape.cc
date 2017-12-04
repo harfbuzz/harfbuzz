@@ -33,16 +33,16 @@ struct output_buffer_t
   output_buffer_t (option_parser_t *parser)
 		  : options (parser, hb_buffer_serialize_list_formats ()),
 		    format (parser),
-		    gs (NULL),
+		    gs (nullptr),
 		    line_no (0),
-		    font (NULL),
+		    font (nullptr),
 		    output_format (HB_BUFFER_SERIALIZE_FORMAT_INVALID),
 		    format_flags (HB_BUFFER_SERIALIZE_FLAG_DEFAULT) {}
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     options.get_file_handle ();
-    gs = g_string_new (NULL);
+    gs = g_string_new (nullptr);
     line_no = 0;
     font = hb_font_reference (font_opts->get_font ());
 
@@ -79,7 +79,7 @@ struct output_buffer_t
     format_flags = (hb_buffer_serialize_flags_t) flags;
 
     if (format.trace)
-      hb_buffer_set_message_func (buffer, message_func, this, NULL);
+      hb_buffer_set_message_func (buffer, message_func, this, nullptr);
   }
   void new_line (void)
   {
@@ -112,11 +112,11 @@ struct output_buffer_t
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
-    hb_buffer_set_message_func (buffer, NULL, NULL, NULL);
+    hb_buffer_set_message_func (buffer, nullptr, nullptr, nullptr);
     hb_font_destroy (font);
     g_string_free (gs, true);
-    gs = NULL;
-    font = NULL;
+    gs = nullptr;
+    font = nullptr;
   }
 
   static hb_bool_t

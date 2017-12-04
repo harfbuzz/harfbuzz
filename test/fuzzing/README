@@ -18,4 +18,4 @@ The smaller the faster.
 For more details consult the following locations:
   - http://llvm.org/docs/LibFuzzer.html or
   - https://github.com/google/libfuzzer-bot/tree/master/harfbuzz
-  - https://github.com/behdad/harfbuzz/issues/139
+  - https://github.com/harfbuzz/harfbuzz/issues/139

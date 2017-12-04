@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dir=`mktemp --directory`
+dir=`mktemp -d`
 
 hb_shape=$1
 shift
@@ -41,6 +41,7 @@ if test $? != 0; then
 	echo "hb-shape failed." >&2
 	exit 2
 fi
+glyph_names=`echo "$text" | $hb_shape $options --no-clusters --no-positions "$fontfile" | sed 's/[][]//g; s/|/,/g'`
 
 cp "$fontfile" "$dir/font.ttf"
 fonttools subset \
@@ -48,6 +49,7 @@ fonttools subset \
 	--no-hinting \
 	--layout-features='*' \
 	"$dir/font.ttf" \
+	--glyphs="$glyph_names" \
 	--text="$text"
 if ! test -s "$dir/font.subset.ttf"; then
 	echo "Subsetter didn't produce nonempty subset font in $dir/font.subset.ttf" >&2

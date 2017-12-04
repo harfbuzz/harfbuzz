@@ -24,11 +24,12 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include <cairo.h>
-
 #ifndef HELPER_CAIRO_ANSI_HH
 #define HELPER_CAIRO_ANSI_HH
 
+#include "hb-private.hh"
+
+#include <cairo.h>
 
 cairo_status_t
 helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,

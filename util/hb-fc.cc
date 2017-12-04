@@ -82,7 +82,7 @@ _hb_fc_get_font_funcs (void)
   {
     hb_font_funcs_t *newfuncs = hb_font_funcs_create ();
 
-    hb_font_funcs_set_glyph_func (newfuncs, hb_fc_get_glyph, NULL, NULL);
+    hb_font_funcs_set_glyph_func (newfuncs, hb_fc_get_glyph, nullptr, nullptr);
 
     /* XXX MT-unsafe */
     if (fc_ffuncs)
@@ -121,7 +121,7 @@ hb_fc_font_create (FcPattern *fcfont)
 hb_bool_t
 hb_fc_can_render (hb_font_t *font, const char *text)
 {
-  static const char *ot[] = {"ot", NULL};
+  static const char *ot[] = {"ot", nullptr};
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
@@ -132,7 +132,7 @@ hb_fc_can_render (hb_font_t *font, const char *text)
    * Might be better to force generic shaper perhaps. */
   hb_buffer_guess_segment_properties (buffer);
 
-  if (!hb_shape_full (font, buffer, NULL, 0, ot))
+  if (!hb_shape_full (font, buffer, nullptr, 0, ot))
     abort (); /* hb-ot shaper not enabled? */
 
   unsigned int len;

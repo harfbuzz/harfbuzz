@@ -99,6 +99,9 @@ SUBDIRS += hb-ucdn
 HBCFLAGS += -I$(srcdir)/hb-ucdn
 HBLIBS   += hb-ucdn/libhb-ucdn.la
 HBSOURCES += $(HB_UCDN_sources)
+hb-ucdn/libhb-ucdn.la: ucdn
+ucdn:
+	@$(MAKE) $(AM_MAKEFLAGS) -C hb-ucdn
 endif
 DIST_SUBDIRS += hb-ucdn
 
@@ -122,7 +125,7 @@ endif
 
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
-libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) $(export_symbols) -no-undefined
+libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) $(export_symbols) -no-undefined
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
@@ -135,9 +138,12 @@ FUZZING_CPPFLAGS= \
 	-DHB_NDEBUG \
 	-DHB_MAX_NESTING_LEVEL=3 \
 	-DHB_SANITIZE_MAX_EDITS=3 \
-	-DHB_BUFFER_MAX_EXPANSION_FACTOR=3 \
+	-DHB_BUFFER_MAX_LEN_FACTOR=3 \
 	-DHB_BUFFER_MAX_LEN_MIN=8 \
 	-DHB_BUFFER_MAX_LEN_DEFAULT=128 \
+	-DHB_BUFFER_MAX_OPS_FACTOR=8 \
+	-DHB_BUFFER_MAX_OPS_MIN=64 \
+	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
 	$(NULL)
 EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
 libharfbuzz_fuzzing_la_LINK = $(libharfbuzz_la_LINK)

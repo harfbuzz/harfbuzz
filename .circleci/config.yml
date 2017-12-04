@@ -1,0 +1,110 @@
+version: 2
+
+jobs:
+
+  oracledeveloperstudio:
+    docker:
+      - image: fedora
+    steps:
+      - checkout
+      - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 || true
+      - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
+      - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
+      - run: make -Cbuild
+
+  fedora:
+    docker:
+      - image: fedora
+    steps:
+      - checkout
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
+
+  archlinux:
+    docker:
+      - image: base/devel
+    steps:
+      - checkout
+      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
+
+  freebsd9:
+    docker:
+      - image: donbowman/freebsd-cross-build
+    steps:
+      - checkout
+      - run: apt update && apt install -y pkg-config ragel
+      - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9 && make
+
+  base:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  psvita:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
+      - run: cmake -Bbuild -H. -GNinja -DCMAKE_TOOLCHAIN_FILE=/usr/local/vitasdk/share/vita.toolchain.cmake && ninja -Cbuild
+
+  android-arm:
+    docker:
+      - image: dockcross/android-arm
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  browser-asmjs:
+    docker:
+      - image: dockcross/browser-asmjs
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  linux-arm64:
+    docker:
+      - image: dockcross/linux-arm64
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  linux-mips:
+    docker:
+      - image: dockcross/linux-mips
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+  windows-x64:
+    docker:
+      - image: dockcross/windows-x64
+    steps:
+      - checkout
+      - run: apt update && apt install ragel
+      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - oracledeveloperstudio
+      - fedora
+      - archlinux
+      - freebsd9
+      - base
+      - psvita
+      - android-arm
+      - browser-asmjs
+      - linux-arm64
+      - linux-mips
+      - windows-x64

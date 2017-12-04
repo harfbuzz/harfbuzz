@@ -24,10 +24,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "options.hh"
-
 #ifndef HB_MAIN_FONT_TEXT_HH
 #define HB_MAIN_FONT_TEXT_HH
+
+#include "hb-private.hh"
+#include "options.hh"
 
 /* main() body for utilities taking font and processing text.*/
 
@@ -35,9 +36,9 @@ static char *
 locale_to_utf8 (char *s)
 {
   char *t;
-  GError *error = NULL;
+  GError *error = nullptr;
 
-  t = g_locale_to_utf8 (s, -1, NULL, NULL, &error);
+  t = g_locale_to_utf8 (s, -1, nullptr, nullptr, &error);
   if (!t)
   {
      fail (true, "Failed converting text to UTF-8");

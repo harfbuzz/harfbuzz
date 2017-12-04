@@ -1,5 +1,5 @@
 <chapter id="install-harfbuzz">
-  <title>Install Harfbuzz</title>
+  <title>Install HarfBuzz</title>
   <section id="download">
     <title id="download.title">Download</title>
     <para>
@@ -12,7 +12,7 @@
     <para>
       The canonical source tree is available
       <ulink url="http://cgit.freedesktop.org/harfbuzz/">here</ulink>.
-      Also available on <ulink url="https://github.com/behdad/harfbuzz">github</ulink>.
+      Also available on <ulink url="https://github.com/harfbuzz/harfbuzz">github</ulink>.
     </para>
     <para>
       The API that comes with <filename class='headerfile'>hb.h</filename> will

@@ -7,6 +7,9 @@ from itertools import *
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
 
+def codepoints(s):
+	return (ord (u) for u in s)
+
 try:
 	unichr = unichr
 
@@ -42,6 +45,28 @@ try:
 					return escape_str.decode("unicode-escape")
 				except UnicodeDecodeError:
 					raise ValueError('unichr() arg not in range(0x110000)')
+
+		def codepoints(s):
+			high_surrogate = None
+			for u in s:
+				cp = ord (u)
+				if 0xDC00 <= cp <= 0xDFFF:
+					if high_surrogate:
+						yield 0x10000 + (high_surrogate - 0xD800) * 0x400 + (cp - 0xDC00)
+						high_surrogate = None
+					else:
+						yield 0xFFFC
+				else:
+					if high_surrogate:
+						yield 0xFFFC
+						high_surrogate = None
+					if 0xD800 <= cp <= 0xDBFF:
+						high_surrogate = cp
+					else:
+						yield cp
+						high_surrogate = None
+			if high_surrogate:
+				yield 0xFFFC
 
 except NameError:
 	unichr = chr
@@ -456,7 +481,7 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return u','.join ("U+%04X" % ord (u) for u in tounicode (s, 'utf-8'))
+		return u','.join ("U+%04X" % cp for cp in codepoints (tounicode (s, 'utf-8')))
 
 	@staticmethod
 	def parse (s):

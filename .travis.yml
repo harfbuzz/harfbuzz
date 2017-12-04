@@ -18,6 +18,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user nose; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls; fi # for coveralls.io code coverage tracking
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH=$HOME/.local/bin:$PATH; fi # Make sure we can find the above Python packages
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"; fi; # https://github.com/harfbuzz/harfbuzz/issues/345
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi;
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew uninstall libtool && brew install libtool; fi # Workaround Travis/brew bug
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ragel freetype glib gobject-introspection cairo icu4c graphite2; fi
@@ -30,7 +31,7 @@ script:
   - ./configure $CONFIGURE_OPTS
   - make
   - make check || (cat */test-suite.log test/*/test-suite.log && false)
-  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SLUG" == "behdad/harfbuzz" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls -e docs; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SLUG" == "harfbuzz/harfbuzz" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls -e docs; fi
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SECURE_ENV_VARS" == "true" ]; then bash .ci/deploy-docs.sh; fi
 notifications:

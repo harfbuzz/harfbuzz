@@ -151,10 +151,12 @@ HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
 HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
+hb_set_invert
 </SECTION>
 
 <SECTION>
 <FILE>hb-coretext</FILE>
+HB_CORETEXT_TAG_KERX
 HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
@@ -168,6 +170,7 @@ hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
 hb_face_get_empty
+hb_face_get_table_tags
 hb_face_get_glyph_count
 hb_face_get_index
 hb_face_get_upem
@@ -291,6 +294,7 @@ hb_ft_face_create_cached
 hb_ft_face_create_referenced
 hb_ft_font_create
 hb_ft_font_create_referenced
+hb_ft_font_changed
 hb_ft_font_get_face
 hb_ft_font_set_load_flags
 hb_ft_font_get_load_flags
@@ -515,7 +519,6 @@ hb_set_get_population
 hb_set_get_user_data
 hb_set_has
 hb_set_intersect
-hb_set_invert
 hb_set_is_empty
 hb_set_is_equal
 hb_set_next

@@ -1,7 +1,7 @@
 <chapter id="what-is-harfbuzz">
-  <title>What is Harfbuzz?</title>
+  <title>What is HarfBuzz?</title>
   <para>
-    Harfbuzz is a <emphasis>text shaping engine</emphasis>. It solves
+    HarfBuzz is a <emphasis>text shaping engine</emphasis>. It solves
     the problem of selecting and positioning glyphs from a font given a
     Unicode string.
   </para>
@@ -9,17 +9,17 @@
     <title>Why do I need it?</title>
     <para>
       Text shaping is an integral part of preparing text for display. It
-      is a fairly low level operation; Harfbuzz is used directly by
+      is a fairly low level operation; HarfBuzz is used directly by
       graphic rendering libraries such as Pango, and the layout engines
       in Firefox, LibreOffice and Chromium. Unless you are
       <emphasis>writing</emphasis> one of these layout engines yourself,
-      you will probably not need to use Harfbuzz - normally higher level
+      you will probably not need to use HarfBuzz - normally higher level
       libraries will turn text into glyphs for you.
     </para>
     <para>
       However, if you <emphasis>are</emphasis> writing a layout engine
       or graphics library yourself, you will need to perform text
-      shaping, and this is where Harfbuzz can help you. Here are some
+      shaping, and this is where HarfBuzz can help you. Here are some
       reasons why you need it:
     </para>
     <itemizedlist>
@@ -95,20 +95,20 @@
     <para>
       If this is something that you need to do, then you need a text
       shaping engine: you could use Uniscribe if you are using Windows;
-      you could use CoreText on OS X; or you could use Harfbuzz. In the
+      you could use CoreText on OS X; or you could use HarfBuzz. In the
       rest of this manual, we are going to assume that you are the
       implementor of a text layout engine.
     </para>
   </section>
   <section id="why-is-it-called-harfbuzz">
-    <title>Why is it called Harfbuzz?</title>
+    <title>Why is it called HarfBuzz?</title>
     <para>
-      Harfbuzz began its life as text shaping code within the FreeType
+      HarfBuzz began its life as text shaping code within the FreeType
       project, (and you will see references to the FreeType authors
       within the source code copyright declarations) but was then
       abstracted out to its own project. This project is maintained by
-      Behdad Esfahbod, and named Harfbuzz. Originally, it was a shaping
-      engine for OpenType fonts - &quot;Harfbuzz&quot; is the Persian
+      Behdad Esfahbod, and named HarfBuzz. Originally, it was a shaping
+      engine for OpenType fonts - &quot;HarfBuzz&quot; is the Persian
       for &quot;open type&quot;.
     </para>
   </section>
