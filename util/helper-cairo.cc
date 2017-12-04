@@ -103,6 +103,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   }
   else
   {
+#ifdef HAVE_FT_SET_VAR_BLEND_COORDINATES
     unsigned int num_coords;
     const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
     if (num_coords)
@@ -116,6 +117,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 	free (ft_coords);
       }
     }
+#endif
 
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   }
