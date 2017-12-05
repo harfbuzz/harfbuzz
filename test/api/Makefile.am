@@ -31,11 +31,11 @@ TEST_PROGS = \
 	test-version \
 	$(NULL)
 
-test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
+test_unicode_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(NULL)
 test_unicode_LDADD = $(LDADD)
-if HAVE_GLIB
-test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
-endif
 if HAVE_ICU
 test_unicode_CPPFLAGS += $(ICU_CFLAGS)
 test_unicode_LDADD += $(top_builddir)/src/libharfbuzz-icu.la $(ICU_LIBS)
@@ -149,12 +149,12 @@ check-symbols: symbols-untested.txt
 
 
 
-else
+else # !HAVE_GLIB
 check-am: err-glib
 err-glib:
 	@echo "You need to have glib support enabled to run the tests"
 	@exit 77
-endif
+endif # HAVE_GLIB
 
 .PHONY: check-symbols check-tool check-valgrind
 
