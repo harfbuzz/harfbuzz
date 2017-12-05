@@ -41,8 +41,10 @@ jobs:
       - image: dockcross/base
     steps:
       - checkout
-      - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
+      - run: ninja -Cbuild test
 
   psvita:
     docker:
