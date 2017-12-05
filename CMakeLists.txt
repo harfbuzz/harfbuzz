@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
+enable_testing()
 
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
@@ -683,3 +684,7 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     endif ()
   endif ()
 endif ()
+
+# Needs to come last so that variables defined above are passed to
+# subdirectories.
+add_subdirectory(test)
