@@ -11,6 +11,8 @@ jobs:
       - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
       - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
       - run: make -Cbuild
+      - run: make -Cbuild test
+      - run: make -Cbuild install
 
   fedora:
     docker:
@@ -45,6 +47,7 @@ jobs:
       - run: cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja
       - run: ninja -Cbuild
       - run: ninja -Cbuild test
+      - run: ninja -Cbuild install
 
   psvita:
     docker:
