@@ -41,7 +41,7 @@ build_script:
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -G "%generator%" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake ../'
 
   - 'if "%compiler%"=="msvc" msbuild harfbuzz.sln /p:Configuration=%configuration% /p:Platform=%platform%'
-  - 'if "%compiler%"=="msvc" ctest'
+  - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" ctest'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config}"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make; make check || (cat */test-suite.log test/*/test-suite.log && false)"'
