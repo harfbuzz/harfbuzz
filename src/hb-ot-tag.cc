@@ -140,6 +140,53 @@ hb_ot_tags_from_script (hb_script_t  script,
   }
 }
 
+static const char *
+lang_find_private_use_subtag (const char *lang_str)
+{
+  const char *s = strstr (lang_str, "x-");
+  if (s == lang_str) {
+    s++;
+  } else {
+    s = strstr (lang_str, "-x-");
+    if (s)
+      s += 2;
+  }
+  return s;
+}
+
+void
+hb_ot_tags_from_language_and_script (hb_language_t language,
+				     hb_script_t   script,
+				     hb_tag_t     *script_tag_1,
+				     hb_tag_t     *script_tag_2)
+{
+  if (language != HB_LANGUAGE_INVALID) {
+    const char *lang_str, *s;
+
+    lang_str = hb_language_to_string (language);
+    s = lang_find_private_use_subtag (lang_str);
+    if (s) {
+      s = strstr (s, "-hbsc");
+      if (s) {
+	char tag[4];
+	int i;
+	s += 5;
+	for (i = 0; i < 4 && ISALNUM (s[i]); i++)
+	  tag[i] = TOLOWER (s[i]);
+	if (i) {
+	  for (; i < 4; i++)
+	    tag[i] = ' ';
+	  *script_tag_1 = HB_TAG (tag[0], tag[1], tag[2], tag[3]);
+	  *script_tag_2 = HB_OT_TAG_DEFAULT_SCRIPT;
+	  return;
+	}
+      }
+    }
+  }
+
+  hb_ot_tags_from_script (script, script_tag_1, script_tag_2);
+}
+
 hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag)
 {
@@ -914,18 +961,20 @@ hb_ot_tag_from_language (hb_language_t language)
     return HB_OT_TAG_DEFAULT_LANGUAGE;
 
   lang_str = hb_language_to_string (language);
-
-  s = strstr (lang_str, "x-hbot");
+  s = lang_find_private_use_subtag (lang_str);
   if (s) {
-    char tag[4];
-    int i;
-    s += 6;
-    for (i = 0; i < 4 && ISALNUM (s[i]); i++)
-      tag[i] = TOUPPER (s[i]);
-    if (i) {
-      for (; i < 4; i++)
-	tag[i] = ' ';
-      return HB_TAG (tag[0], tag[1], tag[2], tag[3]);
+    s = strstr (s, "-hbot");
+    if (s) {
+      char tag[4];
+      int i;
+      s += 5;
+      for (i = 0; i < 4 && ISALNUM (s[i]); i++)
+	tag[i] = TOUPPER (s[i]);
+      if (i) {
+	for (; i < 4; i++)
+	  tag[i] = ' ';
+	return HB_TAG (tag[0], tag[1], tag[2], tag[3]);
+      }
     }
   }
 

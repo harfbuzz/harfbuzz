@@ -53,7 +53,7 @@ hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
   hb_tag_t script_tags[3] = {HB_TAG_NONE, HB_TAG_NONE, HB_TAG_NONE};
   hb_tag_t language_tag;
 
-  hb_ot_tags_from_script (props.script, &script_tags[0], &script_tags[1]);
+  hb_ot_tags_from_language_and_script (props.language, props.script, &script_tags[0], &script_tags[1]);
   language_tag = hb_ot_tag_from_language (props.language);
 
   for (unsigned int table_index = 0; table_index < 2; table_index++) {
