@@ -48,7 +48,6 @@ build_script:
 
 cache:
   - c:\tools\vcpkg\installed\
-  - c:\msys64\
 
 # disable automatic tests
 test: off
