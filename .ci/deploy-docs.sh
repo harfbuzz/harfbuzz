@@ -3,6 +3,8 @@
 set -x
 set -o errexit -o nounset
 
+if test "x$TRAVIS_SECURE_ENV_VARS" != xtrue; then exit; fi
+
 BRANCH="$TRAVIS_BRANCH"
 if test "x$BRANCH" != xmaster; then exit; fi
 
