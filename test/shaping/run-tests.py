@@ -62,12 +62,12 @@ for f in args:
 		f = open (f)
 
 	for line in f:
-		if line.startswith ("#"):
-			continue
-
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
-		if not reference:
-			print ("# hb-shape %s --unicodes %s" % (fontfile, unicodes))
+
+		if line.startswith ("#"):
+			if not reference:
+				print ("# hb-shape %s --unicodes %s" % (fontfile, unicodes))
+			continue
 
 		if not reference:
 			print ("hb-shape %s %s %s --unicodes %s" %
