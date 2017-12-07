@@ -45,9 +45,6 @@ hb_fuzzer_DEPENDENCIES = \
 	$(NULL)
 
 check:
-	cat $(srcdir)/../shaping/tests/fuzzed.tests | \
-	cut -d: -f1 | while read x; do \
-		./hb-fuzzer $(srcdir)/../shaping/$$x; \
-	done
+	python run-fuzzer-tests.py
 
 -include $(top_srcdir)/git.mk
