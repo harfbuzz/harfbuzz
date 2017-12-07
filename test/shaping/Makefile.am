@@ -26,7 +26,7 @@ EXTRA_DIST += \
 	hb-unicode-encode \
 	hb-unicode-prettyname \
 	record-test.sh \
-	run-tests.sh \
+	run-tests.py \
 	texts/in-tree \
 	fonts/sha1sum \
 	$(TESTS) \
@@ -104,7 +104,7 @@ TESTS_ENVIRONMENT = \
 	$(NULL)
 endif
 
-TESTS_LOG_COMPILER = sh $(srcdir)/run-tests.sh
+TESTS_LOG_COMPILER = python $(srcdir)/run-tests.py
 
 .PHONY: manifests
 
