@@ -49,6 +49,15 @@ jobs:
       - run: ninja -Cbuild test
       - run: ninja -Cbuild install
 
+  distdir:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: ./autogen.sh && make distdir
+      - run: cd harfbuzz-* && ./configure && make && make check && make install
+
   psvita:
     docker:
       - image: dockcross/base
@@ -107,6 +116,7 @@ workflows:
       - archlinux
       - freebsd9
       - base
+      - distdir
       - psvita
       - android-arm
       - browser-asmjs
