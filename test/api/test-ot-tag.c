@@ -51,6 +51,25 @@ test_simple_tags (const char *s, hb_script_t script)
 }
 
 static void
+test_script_tags_from_language (const char *s, const char *lang_s, hb_script_t script)
+{
+  hb_script_t tag;
+  unsigned int count = 1;
+  hb_script_t t;
+
+  g_test_message ("Testing script %c%c%c%c: script tag %s, language tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s, lang_s);
+  tag = hb_tag_from_string (s, -1);
+
+  hb_ot_tags (script, hb_language_from_string (lang_s, -1), &count, &t, NULL, NULL);
+
+  if (count != 0)
+  {
+    g_assert_cmpuint (count, ==, 1);
+    g_assert_cmphex (t, ==, tag);
+  }
+}
+
+static void
 test_indic_tags (const char *s1, const char *s2, hb_script_t script)
 {
   hb_script_t tag1, tag2;
@@ -118,6 +137,26 @@ test_ot_tag_script_simple (void)
   test_simple_tags ("mtei", HB_SCRIPT_MEETEI_MAYEK);
   /* Unicode-6.0 additions */
   test_simple_tags ("mand", HB_SCRIPT_MANDAIC);
+}
+
+static void
+test_ot_tag_script_from_language (void)
+{
+  test_script_tags_from_language (NULL, NULL, HB_SCRIPT_INVALID);
+  test_script_tags_from_language (NULL, "en", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language (NULL, "x-hbsc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "x-hbsc", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language ("abc ", "x-hbscabc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("deva", "x-hbscdeva", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev2", "x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "x-hbotpap0-hbsccopt", HB_SCRIPT_INVALID);
+  test_script_tags_from_language (NULL, "en-x-hbsc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en-x-hbsc", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language ("abc ", "en-x-hbscabc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("deva", "en-x-hbscdeva", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev2", "en-x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en-x-hbotpap0-hbsccopt", HB_SCRIPT_INVALID);
 }
 
 static void
@@ -262,8 +301,24 @@ test_ot_tag_language (void)
   test_tag_from_language ("XYZ", "xyz"); /* Unknown ISO 639-3 */
   test_tag_from_language ("XYZ", "xyz-qw"); /* Unknown ISO 639-3 */
 
+  /*
+   * Invalid input. The precise answer does not matter, as long as it
+   * does not crash or get into an infinite loop.
+   */
+  test_tag_from_language ("dflt", "-fonipa");
+
+  /*
+   * Tags that contain "-fonipa" as a substring but which do not contain
+   * the subtag "fonipa".
+   */
+  test_tag_from_language ("ENG", "en-fonipax");
+  test_tag_from_language ("ENG", "en-x-fonipa");
+  test_tag_from_language ("ENG", "en-a-fonipa");
+  test_tag_from_language ("ENG", "en-a-qwe-b-fonipa");
+
   /* International Phonetic Alphabet */
   test_tag_from_language ("IPPH", "en-fonipa");
+  test_tag_from_language ("IPPH", "en-fonipax-fonipa");
   test_tag_from_language ("IPPH", "rm-CH-fonipa-sursilv-x-foobar");
   test_tag_from_language ("IPPH", "und-fonipa");
   test_tag_from_language ("IPPH", "zh-fonipa");
@@ -305,6 +360,55 @@ test_ot_tag_language (void)
   test_tag_from_language ("ABC", "xyz-xy-x-hbotabc-zxc");
 }
 
+static void
+test_tags (hb_script_t  script,
+	   const char  *lang_s,
+	   unsigned int script_count,
+	   unsigned int language_count,
+	   unsigned int expected_script_count,
+	   unsigned int expected_language_count,
+	   ...)
+{
+  va_list expected_tags;
+  unsigned int i;
+  hb_tag_t *script_tags = malloc (script_count * sizeof (hb_tag_t));
+  hb_tag_t *language_tags = malloc (language_count * sizeof (hb_tag_t));
+  g_assert_nonnull (script_tags);
+  g_assert_nonnull (language_tags);
+  hb_language_t lang = hb_language_from_string (lang_s, -1);
+  va_start (expected_tags, expected_language_count);
+
+  hb_ot_tags (script, lang, &script_count, script_tags, &language_count, language_tags);
+
+  g_assert_cmpuint (script_count, ==, expected_script_count);
+  g_assert_cmpuint (language_count, ==, expected_language_count);
+
+  for (i = 0; i < script_count + language_count; i++)
+  {
+    hb_tag_t expected_tag = hb_tag_from_string (va_arg (expected_tags, const char *), -1);
+    hb_tag_t actual_tag = i < script_count ? script_tags[i] : language_tags[i - script_count];
+    g_assert_cmphex (actual_tag, ==, expected_tag);
+  }
+
+  free (script_tags);
+  free (language_tags);
+  va_end (expected_tags);
+}
+
+static void
+test_ot_tag_full (void)
+{
+  test_tags (HB_SCRIPT_INVALID, "en", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "ENG");
+  test_tags (HB_SCRIPT_LATIN, "en", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "latn", "ENG");
+  test_tags (HB_SCRIPT_LATIN, "en", 0, 0, 0, 0);
+  test_tags (HB_SCRIPT_INVALID, "en-fonnapa", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "APPH");
+  test_tags (HB_SCRIPT_INVALID, "x-hbot1234-hbsc5678", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "5678", "1234");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 2, 1, "mlm2", "mlym", "MLR");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm2", "MLR");
+  test_tags (HB_SCRIPT_INVALID, "xyz", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "XYZ");
+  test_tags (HB_SCRIPT_INVALID, "xy", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 0);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -312,9 +416,12 @@ main (int argc, char **argv)
 
   hb_test_add (test_ot_tag_script_degenerate);
   hb_test_add (test_ot_tag_script_simple);
+  hb_test_add (test_ot_tag_script_from_language);
   hb_test_add (test_ot_tag_script_indic);
 
   hb_test_add (test_ot_tag_language);
+
+  hb_test_add (test_ot_tag_full);
 
   return hb_test_run();
 }

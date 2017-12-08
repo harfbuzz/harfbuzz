@@ -119,6 +119,14 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  unsigned int   *script_index,
 				  hb_tag_t       *chosen_script);
 
+HB_EXTERN hb_bool_t
+hb_ot_layout_table_select_script (hb_face_t      *face,
+				  hb_tag_t        table_tag,
+				  unsigned int    script_count,
+				  const hb_tag_t *script_tags,
+				  unsigned int   *script_index /* OUT */,
+				  hb_tag_t       *chosen_script /* OUT */);
+
 HB_EXTERN unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     hb_tag_t      table_tag,
@@ -140,6 +148,14 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 				   unsigned int  script_index,
 				   hb_tag_t      language_tag,
 				   unsigned int *language_index);
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_script_select_language (hb_face_t    *face,
+				     hb_tag_t      table_tag,
+				     unsigned int  script_index,
+				     unsigned int  language_count,
+				     hb_tag_t     *language_tags,
+				     unsigned int *language_index /* OUT */);
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
