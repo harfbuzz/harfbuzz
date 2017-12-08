@@ -368,17 +368,31 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  unsigned int   *script_index,
 				  hb_tag_t       *chosen_script)
 {
+  const hb_tag_t *t;
+  for (t = script_tags; *t; t++);
+  return hb_ot_layout_table_select_script (face, table_tag, t - script_tags, script_tags, script_index, chosen_script);
+}
+
+hb_bool_t
+hb_ot_layout_table_select_script (hb_face_t      *face,
+				  hb_tag_t        table_tag,
+				  unsigned int    script_count,
+				  const hb_tag_t *script_tags,
+				  unsigned int   *script_index /* OUT */,
+				  hb_tag_t       *chosen_script /* OUT */)
+{
   static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX), "");
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+  unsigned int i;
 
-  while (*script_tags)
+  for (i = 0; i < script_count; i++)
   {
-    if (g.find_script_index (*script_tags, script_index)) {
+    if (g.find_script_index (script_tags[i], script_index))
+    {
       if (chosen_script)
-        *chosen_script = *script_tags;
+        *chosen_script = script_tags[i];
       return true;
     }
-    script_tags++;
   }
 
   /* try finding 'DFLT' */
@@ -464,13 +478,28 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      language_tag,
 				   unsigned int *language_index)
 {
+  return hb_ot_layout_script_select_language (face, table_tag, script_index, 1, &language_tag, language_index);
+}
+
+hb_bool_t
+hb_ot_layout_script_select_language (hb_face_t    *face,
+				     hb_tag_t      table_tag,
+				     unsigned int  script_index,
+				     unsigned int  language_count,
+				     hb_tag_t     *language_tags,
+				     unsigned int *language_index /* OUT */)
+{
   static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX), "");
   const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
+  unsigned int i;
 
-  if (s.find_lang_sys_index (language_tag, language_index))
-    return true;
+  for (i = 0; i < language_count; i++)
+  {
+    if (s.find_lang_sys_index (language_tags[i], language_index))
+      return true;
+  }
 
-  /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
+  /* try finding 'dflt' */
   if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
     return false;
 
