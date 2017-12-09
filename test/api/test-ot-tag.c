@@ -269,26 +269,26 @@ test_ot_tag_language (void)
 
   test_language_two_way ("TUA", "tru"); /* Turoyo Aramaic */
 
-  test_language_two_way ("ZHH", "zh-hk"); /* Chinese (Hong Kong) */
-
   test_tag_from_language ("ZHS", "zh"); /* Chinese */
   test_tag_from_language ("ZHS", "zh-cn"); /* Chinese (China) */
   test_tag_from_language ("ZHS", "zh-sg"); /* Chinese (Singapore) */
   test_tag_from_language ("ZHH", "zh-mo"); /* Chinese (Macao) */
   test_tag_from_language ("ZHH", "zh-hant-mo"); /* Chinese (Macao) */
-  test_tag_from_language ("ZHH", "zh-hk"); /* Chinese (Hong Kong) */
+  test_language_two_way ("ZHH", "zh-HK"); /* Chinese (Hong Kong) */
   test_tag_from_language ("ZHH", "zH-HanT-hK"); /* Chinese (Hong Kong) */
   test_tag_from_language ("ZHT", "zh-tw"); /* Chinese (Taiwan) */
-  test_tag_from_language ("ZHS", "zh-Hans"); /* Chinese (Simplified) */
-  test_tag_from_language ("ZHT", "zh-Hant"); /* Chinese (Traditional) */
+  test_language_two_way ("ZHS", "zh-Hans"); /* Chinese (Simplified) */
+  test_language_two_way ("ZHT", "zh-Hant"); /* Chinese (Traditional) */
   test_tag_from_language ("ZHS", "zh-xx"); /* Chinese (Other) */
+
+  test_tag_from_language ("ZHS", "zh-Hans-TW");
+
+  test_tag_from_language ("ZHH", "yue");
+  test_tag_from_language ("ZHH", "yue-Hant");
+  test_tag_from_language ("ZHS", "yue-Hans");
 
   test_tag_from_language ("ZHS", "zh"); /* Chinese */
   test_tag_from_language ("ZHS", "zh-xx");
-
-  test_tag_to_language ("ZHS", "zh-Hans");
-  test_tag_to_language ("ZHT", "zh-Hant");
-  test_tag_to_language ("ZHP", "x-hbotzhp");
 
   test_language_two_way ("ABC", "x-hbotabc");
   test_tag_from_language ("ABC", "asdf-asdf-wer-x-hbotabc-zxc");
@@ -305,7 +305,7 @@ test_ot_tag_language (void)
    * Invalid input. The precise answer does not matter, as long as it
    * does not crash or get into an infinite loop.
    */
-  test_tag_from_language ("dflt", "-fonipa");
+  test_tag_from_language ("IPPH", "-fonipa");
 
   /*
    * Tags that contain "-fonipa" as a substring but which do not contain
@@ -320,36 +320,45 @@ test_ot_tag_language (void)
   test_tag_from_language ("IPPH", "en-fonipa");
   test_tag_from_language ("IPPH", "en-fonipax-fonipa");
   test_tag_from_language ("IPPH", "rm-CH-fonipa-sursilv-x-foobar");
-  test_tag_from_language ("IPPH", "und-fonipa");
+  test_language_two_way ("IPPH", "und-fonipa");
   test_tag_from_language ("IPPH", "zh-fonipa");
-  test_tag_to_language ("IPPH", "und-fonipa");
 
   /* North American Phonetic Alphabet (Americanist Phonetic Notation) */
   test_tag_from_language ("APPH", "en-fonnapa");
   test_tag_from_language ("APPH", "chr-fonnapa");
-  test_tag_from_language ("APPH", "und-fonnapa");
-  test_tag_to_language ("APPH", "und-fonnapa");
+  test_language_two_way ("APPH", "und-fonnapa");
+
+  /* Khutsuri Georgian */
+  test_tag_from_language ("KGE", "ka-Geok");
+  test_language_two_way ("KGE", "und-Geok");
+
+  /* Irish Traditional */
+  test_language_two_way ("IRT", "ga-Latg");
+
+  /* Moldavian */
+  test_language_two_way ("MOL", "ro-MD");
+
+  /* Polytonic Greek */
+  test_language_two_way ("PGR", "el-polyton");
+  test_tag_from_language ("PGR", "el-CY-polyton");
 
   /* Estrangela Syriac */
   test_tag_from_language ("SYRE", "aii-Syre");
   test_tag_from_language ("SYRE", "de-Syre");
   test_tag_from_language ("SYRE", "syr-Syre");
-  test_tag_from_language ("SYRE", "und-Syre");
-  test_tag_to_language ("SYRE", "und-Syre");
+  test_language_two_way ("SYRE", "und-Syre");
 
   /* Western Syriac */
   test_tag_from_language ("SYRJ", "aii-Syrj");
   test_tag_from_language ("SYRJ", "de-Syrj");
   test_tag_from_language ("SYRJ", "syr-Syrj");
-  test_tag_from_language ("SYRJ", "und-Syrj");
-  test_tag_to_language ("SYRJ", "und-Syrj");
+  test_language_two_way ("SYRJ", "und-Syrj");
 
   /* Eastern Syriac */
   test_tag_from_language ("SYRN", "aii-Syrn");
   test_tag_from_language ("SYRN", "de-Syrn");
   test_tag_from_language ("SYRN", "syr-Syrn");
-  test_tag_from_language ("SYRN", "und-Syrn");
-  test_tag_to_language ("SYRN", "und-Syrn");
+  test_language_two_way ("SYRN", "und-Syrn");
 
   /* Test that x-hbot overrides the base language */
   test_tag_from_language ("ABC", "fa-x-hbotabc-zxc");
@@ -358,6 +367,18 @@ test_ot_tag_language (void)
   test_tag_from_language ("ABC", "zh-cn-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "zh-xy-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "xyz-xy-x-hbotabc-zxc");
+
+  /* Unnormalized BCP 47 tags */
+  test_tag_from_language ("JBO", "art-lojban");
+  test_tag_from_language ("LTZ", "i-lux");
+  test_tag_from_language ("MNG", "drh");
+  test_tag_from_language ("NOR", "no-bok");
+  test_tag_from_language ("NYN", "no-nyn");
+  test_tag_from_language ("ZHS", "i-hak");
+  test_tag_from_language ("ZHS", "zh-guoyu");
+  test_tag_from_language ("ZHS", "zh-min");
+  test_tag_from_language ("ZHS", "zh-min-nan");
+  test_tag_from_language ("ZHS", "zh-xiang");
 }
 
 static void
@@ -401,10 +422,11 @@ test_ot_tag_full (void)
   test_tags (HB_SCRIPT_INVALID, "en", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "ENG");
   test_tags (HB_SCRIPT_LATIN, "en", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "latn", "ENG");
   test_tags (HB_SCRIPT_LATIN, "en", 0, 0, 0, 0);
+  test_tags (HB_SCRIPT_INVALID, "und-fonnapa", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "APPH");
   test_tags (HB_SCRIPT_INVALID, "en-fonnapa", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "APPH");
   test_tags (HB_SCRIPT_INVALID, "x-hbot1234-hbsc5678", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "5678", "1234");
-  test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 2, 1, "mlm2", "mlym", "MLR");
-  test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm2", "MLR");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 2, 2, "mlm2", "mlym", "MAL", "MLR");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm2", "MAL");
   test_tags (HB_SCRIPT_INVALID, "xyz", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "XYZ");
   test_tags (HB_SCRIPT_INVALID, "xy", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 0);
 }
