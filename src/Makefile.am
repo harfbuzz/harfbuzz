@@ -293,11 +293,12 @@ GENERATORS = \
 	gen-emoji-table.py \
 	gen-indic-table.py \
 	gen-os2-unicode-ranges.py \
+	gen-tag-table.py \
 	gen-use-table.py \
 	$(NULL)
 EXTRA_DIST += $(GENERATORS)
 
-unicode-tables: arabic-table indic-table use-table emoji-table
+unicode-tables: arabic-table indic-table tag-table use-table emoji-table
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-arabic-table.hh \
@@ -306,6 +307,10 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-indic-table.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-indic-table.cc; false)
+
+tag-table: gen-tag-table.py languagetags language-subtag-registry
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-tag-table.hh \
+	|| ($(RM) $(srcdir)/hb-ot-tag-table.hh; false)
 
 use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
@@ -317,7 +322,7 @@ emoji-table: gen-emoji-table.py emoji-data.txt
 
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table use-table emoji-table built-sources
+.PHONY: unicode-tables arabic-table indic-table tag-table use-table emoji-table built-sources
 
 RAGEL_GENERATED = \
 	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \
