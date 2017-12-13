@@ -248,6 +248,12 @@ struct hb_set_t
       page->add_range (major_start (mb), b);
     }
   }
+  template <typename T>
+  inline void add_array (const T *array, unsigned int count)
+  {
+    for (unsigned int i = 0; i < count; i++)
+      add (array[i]);
+  }
   inline void del (hb_codepoint_t g)
   {
     if (unlikely (in_error)) return;

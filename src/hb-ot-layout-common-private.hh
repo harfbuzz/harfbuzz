@@ -716,9 +716,7 @@ struct CoverageFormat1
 
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const {
-    unsigned int count = glyphArray.len;
-    for (unsigned int i = 0; i < count; i++)
-      glyphs->add (glyphArray[i]);
+    glyphs->add_array (glyphArray.array, glyphArray.len);
   }
 
   public:

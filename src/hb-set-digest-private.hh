@@ -80,6 +80,12 @@ struct hb_set_digest_lowest_bits_t
       mask |= mb + (mb - ma) - (mb < ma);
     }
   }
+  template <typename T>
+  inline void add_array (const T *array, unsigned int count)
+  {
+    for (unsigned int i = 0; i < count; i++)
+      add (array[i]);
+  }
 
   inline bool may_have (hb_codepoint_t g) const {
     return !!(mask & mask_for (g));
@@ -111,6 +117,12 @@ struct hb_set_digest_combiner_t
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
     head.add_range (a, b);
     tail.add_range (a, b);
+  }
+  template <typename T>
+  inline void add_array (const T *array, unsigned int count)
+  {
+    head.add_array (array, count);
+    tail.add_array (array, count);
   }
 
   inline bool may_have (hb_codepoint_t g) const {
