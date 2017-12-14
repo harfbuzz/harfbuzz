@@ -151,7 +151,7 @@ struct hb_set_t
       return 0;
     }
 
-    static const unsigned int PAGE_BITS = 512; /* Use to tune. */
+    static const unsigned int PAGE_BITS = 8192; /* Use to tune. */
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
     typedef uint64_t elt_t;
