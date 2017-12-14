@@ -184,6 +184,17 @@ struct hb_set_t
   hb_prealloced_array_t<page_map_t, 8> page_map;
   hb_prealloced_array_t<page_t, 8> pages;
 
+  inline void init (void)
+  {
+    page_map.init ();
+    pages.init ();
+  }
+  inline void finish (void)
+  {
+    page_map.finish ();
+    pages.finish ();
+  }
+
   inline bool resize (unsigned int count)
   {
     if (unlikely (in_error)) return false;
