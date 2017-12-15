@@ -155,8 +155,9 @@ struct RangeRecord
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const {
     glyphs->add_range (start, end);
+    return likely (start <= end);
   }
 
   GlyphID	start;		/* First GlyphID in the range */
@@ -715,8 +716,8 @@ struct CoverageFormat1
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
-    glyphs->add_array (glyphArray.array, glyphArray.len);
+  inline bool add_coverage (set_t *glyphs) const {
+    return glyphs->add_sorted_array (glyphArray.array, glyphArray.len);
   }
 
   public:
@@ -815,10 +816,12 @@ struct CoverageFormat2
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
-      rangeRecord[i].add_coverage (glyphs);
+      if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+        return false;
+    return true;
   }
 
   public:
@@ -925,12 +928,14 @@ struct Coverage
     }
   }
 
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const {
     switch (u.format) {
-    case 1: u.format1.add_coverage (glyphs); break;
-    case 2: u.format2.add_coverage (glyphs); break;
-    default:                                 break;
+    case 1: return u.format1.add_coverage (glyphs);
+    case 2: return u.format2.add_coverage (glyphs);
+    default:return false;
     }
   }
 
@@ -1016,11 +1021,15 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  inline void add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
-      if (classValue[i] == klass)
+    {
+      unsigned int klass = classValue[i];
+      if (min_klass <= klass && klass <= max_klass)
         glyphs->add (startGlyph + i);
+    }
+    return true;
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -1073,11 +1082,16 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline void add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
-      if (rangeRecord[i].value == klass)
-        rangeRecord[i].add_coverage (glyphs);
+    {
+      unsigned int klass = rangeRecord[i].value;
+      if (min_klass <= klass && klass <= max_klass)
+        if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	  return false;
+    }
+    return true;
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -1135,11 +1149,12 @@ struct ClassDef
     }
   }
 
-  inline void add_class (hb_set_t *glyphs, unsigned int klass) const {
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
     switch (u.format) {
-    case 1: u.format1.add_class (glyphs, klass); return;
-    case 2: u.format2.add_class (glyphs, klass); return;
-    default:return;
+    case 1: return u.format1.add_class (glyphs, min_klass, max_klass);
+    case 2: return u.format2.add_class (glyphs, min_klass, max_klass);
+    default:return false;
     }
   }
 

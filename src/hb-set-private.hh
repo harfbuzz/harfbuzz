@@ -259,12 +259,29 @@ struct hb_set_t
       page->add_range (major_start (mb), b);
     }
   }
+
   template <typename T>
-  inline void add_array (const T *array, unsigned int count)
+  inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
     for (unsigned int i = 0; i < count; i++)
-      add (array[i]);
+    {
+      add (*array);
+      array = (const T *) (stride + (const char *) array);
+    }
   }
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
+  template <typename T>
+  inline bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      add (*array);
+      array = (const T *) (stride + (const char *) array);
+    }
+    return true;
+  }
+
   inline void del (hb_codepoint_t g)
   {
     if (unlikely (in_error)) return;

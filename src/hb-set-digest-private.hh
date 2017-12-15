@@ -80,11 +80,25 @@ struct hb_set_digest_lowest_bits_t
       mask |= mb + (mb - ma) - (mb < ma);
     }
   }
+
   template <typename T>
-  inline void add_array (const T *array, unsigned int count)
+  inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
     for (unsigned int i = 0; i < count; i++)
-      add (array[i]);
+    {
+      add (*array);
+      array = (const T *) (stride + (const char *) array);
+    }
+  }
+  template <typename T>
+  inline bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      add (*array);
+      array = (const T *) (stride + (const char *) array);
+    }
+    return true;
   }
 
   inline bool may_have (hb_codepoint_t g) const {
@@ -119,10 +133,17 @@ struct hb_set_digest_combiner_t
     tail.add_range (a, b);
   }
   template <typename T>
-  inline void add_array (const T *array, unsigned int count)
+  inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    head.add_array (array, count);
-    tail.add_array (array, count);
+    head.add_array (array, count, stride);
+    tail.add_array (array, count, stride);
+  }
+  template <typename T>
+  inline bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  {
+    head.add_sorted_array (array, count, stride);
+    tail.add_sorted_array (array, count, stride);
+    return true;
   }
 
   inline bool may_have (hb_codepoint_t g) const {

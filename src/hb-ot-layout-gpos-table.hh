@@ -758,14 +758,12 @@ struct PairPosFormat2
     (this+coverage).add_coverage (c->input);
 
     unsigned int count1 = class1Count;
-    const ClassDef &klass1 = this+classDef1;
-    for (unsigned int i = 0; i < count1; i++)
-      klass1.add_class (c->input, i);
+    if (count1)
+      (this+classDef1).add_class (c->input, 0, count1 - 1);
 
     unsigned int count2 = class2Count;
-    const ClassDef &klass2 = this+classDef2;
-    for (unsigned int i = 0; i < count2; i++)
-      klass2.add_class (c->input, i);
+    if (count2)
+      (this+classDef2).add_class (c->input, 0, count2 - 1);
   }
 
   inline const Coverage &get_coverage (void) const
