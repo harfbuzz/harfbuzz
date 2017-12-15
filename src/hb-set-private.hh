@@ -182,7 +182,7 @@ struct hb_set_t
   ASSERT_POD ();
   bool in_error;
   hb_prealloced_array_t<page_map_t, 8> page_map;
-  hb_prealloced_array_t<page_t, 8> pages;
+  hb_prealloced_array_t<page_t, 1> pages;
 
   inline void init (void)
   {
