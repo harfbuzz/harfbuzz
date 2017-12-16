@@ -462,7 +462,7 @@ struct SinglePosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (c->input);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
   }
 
   inline const Coverage &get_coverage (void) const
@@ -510,7 +510,7 @@ struct SinglePosFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (c->input);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
   }
 
   inline const Coverage &get_coverage (void) const
@@ -751,10 +751,6 @@ struct PairPosFormat2
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-
-    unsigned int count1 = class1Count;
-    if (count1)
-      (this+classDef1).add_class (c->input, 0, count1 - 1);
 
     unsigned int count2 = class2Count;
     if (count2)
