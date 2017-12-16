@@ -819,7 +819,7 @@ struct CoverageFormat2
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
-        return true;//XXXXXXXXXXXXfalse;
+        return false;
     return true;
   }
 
@@ -934,7 +934,7 @@ struct Coverage
     switch (u.format) {
     case 1: return u.format1.add_coverage (glyphs);
     case 2: return u.format2.add_coverage (glyphs);
-    default:return true;//XXXXXXXXXXXfalse;
+    default:return false;
     }
   }
 
@@ -1030,13 +1030,13 @@ struct ClassDefFormat1
 
       if (start != i)
 	if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + i)))
-	  return true;//XXXXXXXXfalse
+	  return false;
 
       start = i + 1;
     }
     if (start != count)
       if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + count)))
-	return true;//XXXXXXXXfalse
+	return false;
 
     return true;
   }
@@ -1107,7 +1107,7 @@ struct ClassDefFormat2
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value)
 	if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
-	  return true;//XXXXXXXXXXXXfalse;
+	  return false;
     return true;
   }
 
@@ -1118,7 +1118,7 @@ struct ClassDefFormat2
     {
       if (rangeRecord[i].value == klass)
         if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
-	  return true;//XXXXXXXXXXXXfalse;
+	  return false;
     }
     return true;
   }
@@ -1185,7 +1185,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.add_coverage (glyphs);
     case 2: return u.format2.add_coverage (glyphs);
-    default:return true;//XXXXXXXXXXXfalse;
+    default:return false;
     }
   }
 
