@@ -156,8 +156,7 @@ struct RangeRecord
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
-    glyphs->add_range (start, end);
-    return likely (start <= end);
+    return glyphs->add_range (start, end);
   }
 
   GlyphID	start;		/* First GlyphID in the range */
@@ -820,7 +819,7 @@ struct CoverageFormat2
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
-        return false;
+        return true;//XXXXXXXXXXXXfalse;
     return true;
   }
 
@@ -935,7 +934,7 @@ struct Coverage
     switch (u.format) {
     case 1: return u.format1.add_coverage (glyphs);
     case 2: return u.format2.add_coverage (glyphs);
-    default:return false;
+    default:return true;//XXXXXXXXXXXfalse;
     }
   }
 

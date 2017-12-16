@@ -70,20 +70,19 @@ struct hb_set_t
 
     inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
     {
-     elt_t *la = &elt (a);
-     elt_t *lb = &elt (b);
-     if (la == lb)
-       *la |= (mask (b) << 1) - mask(a);
-     else
-     {
-       *la |= ~(mask (a) - 1);
-       la++;
+      elt_t *la = &elt (a);
+      elt_t *lb = &elt (b);
+      if (la == lb)
+        *la |= (mask (b) << 1) - mask(a);
+      else
+      {
+	*la |= ~(mask (a) - 1);
+	la++;
 
-       memset (la, 0xff, (char *) lb - (char *) la);
+	memset (la, 0xff, (char *) lb - (char *) la);
 
-       *lb |= ((mask (b) << 1) - 1);
-
-     }
+	*lb |= ((mask (b) << 1) - 1);
+      }
     }
 
     inline bool is_equal (const page_t *other) const
@@ -230,34 +229,35 @@ struct hb_set_t
     if (unlikely (!page)) return;
     page->add (g);
   }
-  inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
+  inline bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    if (unlikely (in_error || a > b || a == INVALID || b == INVALID)) return;
+    if (unlikely (in_error || a > b || a == INVALID || b == INVALID)) return true;//XXXXXXXfalse;
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
     if (ma == mb)
     {
       page_t *page = page_for_insert (a);
-      if (unlikely (!page)) return;
+      if (unlikely (!page)) return false;
       page->add_range (a, b);
     }
     else
     {
       page_t *page = page_for_insert (a);
-      if (unlikely (!page)) return;
+      if (unlikely (!page)) return false;
       page->add_range (a, major_start (ma + 1) - 1);
 
       for (unsigned int m = ma + 1; m < mb; m++)
       {
 	page = page_for_insert (major_start (m));
-	if (unlikely (!page)) return;
+	if (unlikely (!page)) return false;
 	page->init1 ();
       }
 
       page = page_for_insert (b);
-      if (unlikely (!page)) return;
+      if (unlikely (!page)) return false;
       page->add_range (major_start (mb), b);
     }
+    return true;
   }
 
   template <typename T>

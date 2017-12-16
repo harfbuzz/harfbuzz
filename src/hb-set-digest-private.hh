@@ -71,7 +71,7 @@ struct hb_set_digest_lowest_bits_t
     mask |= mask_for (g);
   }
 
-  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
+  inline bool add_range (hb_codepoint_t a, hb_codepoint_t b) {
     if ((b >> shift) - (a >> shift) >= mask_bits - 1)
       mask = (mask_t) -1;
     else {
@@ -79,6 +79,7 @@ struct hb_set_digest_lowest_bits_t
       mask_t mb = mask_for (b);
       mask |= mb + (mb - ma) - (mb < ma);
     }
+    return true;
   }
 
   template <typename T>
@@ -128,9 +129,10 @@ struct hb_set_digest_combiner_t
     tail.add (g);
   }
 
-  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
+  inline bool add_range (hb_codepoint_t a, hb_codepoint_t b) {
     head.add_range (a, b);
     tail.add_range (a, b);
+    return true;
   }
   template <typename T>
   inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
