@@ -225,8 +225,7 @@ struct hb_set_t
   {
     if (unlikely (in_error)) return;
     if (unlikely (g == INVALID)) return;
-    page_t *page = page_for_insert (g);
-    if (unlikely (!page)) return;
+    page_t *page = page_for_insert (g); if (unlikely (!page)) return;
     page->add (g);
   }
   inline bool add_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -236,25 +235,21 @@ struct hb_set_t
     unsigned int mb = get_major (b);
     if (ma == mb)
     {
-      page_t *page = page_for_insert (a);
-      if (unlikely (!page)) return false;
+      page_t *page = page_for_insert (a); if (unlikely (!page)) return false;
       page->add_range (a, b);
     }
     else
     {
-      page_t *page = page_for_insert (a);
-      if (unlikely (!page)) return false;
+      page_t *page = page_for_insert (a); if (unlikely (!page)) return false;
       page->add_range (a, major_start (ma + 1) - 1);
 
       for (unsigned int m = ma + 1; m < mb; m++)
       {
-	page = page_for_insert (major_start (m));
-	if (unlikely (!page)) return false;
+	page = page_for_insert (major_start (m)); if (unlikely (!page)) return false;
 	page->init1 ();
       }
 
-      page = page_for_insert (b);
-      if (unlikely (!page)) return false;
+      page = page_for_insert (b); if (unlikely (!page)) return false;
       page->add_range (major_start (mb), b);
     }
     return true;
@@ -263,21 +258,48 @@ struct hb_set_t
   template <typename T>
   inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    for (unsigned int i = 0; i < count; i++)
+    if (unlikely (in_error)) return;
+    if (!count) return;
+    hb_codepoint_t g = *array;
+    while (count)
     {
-      add (*array);
-      array = (const T *) (stride + (const char *) array);
+      unsigned int m = get_major (g);
+      page_t *page = page_for_insert (g); if (unlikely (!page)) return;
+      unsigned int start = major_start (m);
+      unsigned int end = major_start (m + 1);
+      do
+      {
+	page->add (g);
+
+	array++;
+	count--;
+      }
+      while (count && (g = *array, start <= g && g < end));
     }
   }
+
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename T>
   inline bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    for (unsigned int i = 0; i < count; i++)
+    if (unlikely (in_error)) return true;//XXXfalse
+    if (!count) return true;
+    hb_codepoint_t g = *array;
+    while (count)
     {
-      add (*array);
-      array = (const T *) (stride + (const char *) array);
+      unsigned int m = get_major (g);
+      page_t *page = page_for_insert (g); if (unlikely (!page)) return false;
+      unsigned int start = major_start (m);
+      unsigned int end = major_start (m + 1);
+      do
+      {
+	page->add (g);
+
+	array++;
+	count--;
+      }
+      while (count && (g = *array, start <= g && g < end));
     }
     return true;
   }
