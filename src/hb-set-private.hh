@@ -286,20 +286,24 @@ struct hb_set_t
     if (unlikely (in_error)) return false;
     if (!count) return true;
     hb_codepoint_t g = *array;
+    hb_codepoint_t last_g = g;
     while (count)
     {
       unsigned int m = get_major (g);
       page_t *page = page_for_insert (g); if (unlikely (!page)) return false;
-      unsigned int start = major_start (m);
       unsigned int end = major_start (m + 1);
       do
       {
+        /* If we try harder we can change the following comparison to <=;
+	 * Not sure if it's worth it. */
+        if (g < last_g) return false;
+	last_g = g;
 	page->add (g);
 
 	array++;
 	count--;
       }
-      while (count && (g = *array, start <= g && g < end));
+      while (count && (g = *array, g < end));
     }
     return true;
   }
