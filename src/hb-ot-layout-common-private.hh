@@ -1020,12 +1020,33 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
+  inline bool add_coverage (set_t *glyphs) const {
+    unsigned int start = 0;
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      unsigned int klass = classValue[i];
-      if (min_klass <= klass && klass <= max_klass)
+      if (classValue[i])
+        continue;
+
+      if (start != i)
+	if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + i)))
+	  return true;//XXXXXXXXfalse
+
+      start = i + 1;
+    }
+    if (start != count)
+      if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + count)))
+	return true;//XXXXXXXXfalse
+
+    return true;
+  }
+
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+    unsigned int count = classValue.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (classValue[i] == klass)
         glyphs->add (startGlyph + i);
     }
     return true;
@@ -1081,14 +1102,23 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
+  inline bool add_coverage (set_t *glyphs) const {
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].value)
+	if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	  return true;//XXXXXXXXXXXXfalse;
+    return true;
+  }
+
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      unsigned int klass = rangeRecord[i].value;
-      if (min_klass <= klass && klass <= max_klass)
+      if (rangeRecord[i].value == klass)
         if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
-	  return false;
+	  return true;//XXXXXXXXXXXXfalse;
     }
     return true;
   }
@@ -1148,11 +1178,24 @@ struct ClassDef
     }
   }
 
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int min_klass, unsigned int max_klass) const {
+  inline bool add_coverage (set_t *glyphs) const {
     switch (u.format) {
-    case 1: return u.format1.add_class (glyphs, min_klass, max_klass);
-    case 2: return u.format2.add_class (glyphs, min_klass, max_klass);
+    case 1: return u.format1.add_coverage (glyphs);
+    case 2: return u.format2.add_coverage (glyphs);
+    default:return true;//XXXXXXXXXXXfalse;
+    }
+  }
+
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+    switch (u.format) {
+    case 1: return u.format1.add_class (glyphs, klass);
+    case 2: return u.format2.add_class (glyphs, klass);
     default:return false;
     }
   }

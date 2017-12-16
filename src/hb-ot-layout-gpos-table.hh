@@ -751,10 +751,7 @@ struct PairPosFormat2
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-
-    unsigned int count2 = class2Count;
-    if (count2)
-      (this+classDef2).add_class (c->input, 0, count2 - 1);
+    if (unlikely (!(this+classDef2).add_coverage (c->input))) return;
   }
 
   inline const Coverage &get_coverage (void) const
