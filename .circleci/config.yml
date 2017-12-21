@@ -107,6 +107,14 @@ jobs:
       - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
 
+  dos:
+    docker:
+      - image: quay.io/ebraminio/djgpp
+    steps:
+      - checkout
+      - run: apt update && apt install -y ragel pkg-config libtool autoconf
+      - run: ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp && make
+
 workflows:
   version: 2
   build:
@@ -123,3 +131,4 @@ workflows:
       - linux-arm64
       - linux-mips
       - windows-x64
+      - dos
