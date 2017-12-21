@@ -429,7 +429,7 @@ if test "x$with_coretext" = "xyes" -o "x$with_coretext" = "xauto"; then
 
 		if $have_coretext; then
 			CORETEXT_CFLAGS=
-			CORETEXT_LIBS="-framework CoreText -framework CoreGraphics"
+			CORETEXT_LIBS="-framework CoreText -framework CoreGraphics -framework CoreFoundation"
 			AC_SUBST(CORETEXT_CFLAGS)
 			AC_SUBST(CORETEXT_LIBS)
 		fi
