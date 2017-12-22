@@ -351,7 +351,7 @@ data = map_to_use(data)
 
 # Remove the outliers
 singles = {}
-for u in [0x034F, 0x25CC, 0x1107F]:
+for u in [0x034F, 0x25CC]:
 	singles[u] = data[u]
 	del data[u]
 

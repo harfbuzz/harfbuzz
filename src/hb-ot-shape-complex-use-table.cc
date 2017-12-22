@@ -482,7 +482,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11050 */     O,     O,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,
   /* 11060 */     N,     N,     N,     N,     N,     N,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 11070 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11070 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,    HN,
 
   /* Kaithi */
 
@@ -727,7 +727,6 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x11A00u, 0x11A9Fu)) return use_table[u - 0x11A00u + use_offset_0x11a00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11C00u, 0x11CB7u)) return use_table[u - 0x11C00u + use_offset_0x11c00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11D00u, 0x11D5Fu)) return use_table[u - 0x11D00u + use_offset_0x11d00u];
-      if (unlikely (u == 0x1107Fu)) return HN;
       break;
 
     default:
