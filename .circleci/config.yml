@@ -20,7 +20,8 @@ jobs:
     steps:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: make && make check
 
   archlinux:
     docker:
@@ -28,7 +29,8 @@ jobs:
     steps:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make && make check
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: make && make check
 
   freebsd9:
     docker:
@@ -36,7 +38,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install -y pkg-config ragel
-      - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9 && make
+      - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9
+      - run: make
 
   base:
     docker:
@@ -65,7 +68,8 @@ jobs:
       - checkout
       - run: apt update && apt install ragel
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
-      - run: cmake -Bbuild -H. -GNinja -DCMAKE_TOOLCHAIN_FILE=/usr/local/vitasdk/share/vita.toolchain.cmake && ninja -Cbuild
+      - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
+      - run: make
 
   android-arm:
     docker:
@@ -73,7 +77,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: cmake -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
 
   browser-asmjs:
     docker:
@@ -81,7 +86,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: cmake -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
 
   linux-arm64:
     docker:
@@ -89,7 +95,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: cmake -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
 
   linux-mips:
     docker:
@@ -97,7 +104,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: cmake -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
 
   windows-x64:
     docker:
@@ -105,7 +113,17 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja && ninja -Cbuild
+      - run: cmake -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
+
+  alpine:
+    docker:
+      - image: alpine
+    steps:
+      - checkout
+      - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
+      - run: ./autogen.sh
+      - run: make && make check
 
   dos:
     docker:
@@ -113,7 +131,8 @@ jobs:
     steps:
       - checkout
       - run: apt update && apt install -y ragel pkg-config libtool autoconf
-      - run: ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp && make
+      - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
+      - run: make
 
 workflows:
   version: 2
@@ -131,4 +150,5 @@ workflows:
       - linux-arm64
       - linux-mips
       - windows-x64
+      - alpine
       - dos
