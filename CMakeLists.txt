@@ -10,9 +10,9 @@ if (BUILD_FRAMEWORK)
     message(FATAL_ERROR
       "You should use Xcode generator with BUILD_FRAMEWORK enabled")
   endif ()
-  set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
-  set(CMAKE_MACOSX_RPATH ON)
-  set(BUILD_SHARED_LIBS ON)
+  set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
+  set (CMAKE_MACOSX_RPATH ON)
+  set (BUILD_SHARED_LIBS ON)
 endif ()
 
 
@@ -46,19 +46,19 @@ if (WIN32)
 endif ()
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
 if (HB_BUILD_UTILS)
-  set(HB_HAVE_GLIB ON)
-  set(HB_HAVE_FREETYPE ON)
+  set (HB_HAVE_GLIB ON)
+  set (HB_HAVE_FREETYPE ON)
 endif ()
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
-  set(HB_HAVE_GLIB ON)
+  set (HB_HAVE_GLIB ON)
 endif ()
 
 option(HB_HAVE_INTROSPECTION "Enable building introspection (.gir/.typelib) files" OFF)
 if (HB_HAVE_INTROSPECTION)
-  set(HB_HAVE_GOBJECT ON)
-  set(HB_HAVE_GLIB ON)
+  set (HB_HAVE_GOBJECT ON)
+  set (HB_HAVE_GLIB ON)
 endif ()
 
 include_directories(AFTER
@@ -83,29 +83,29 @@ endif ()
 
 
 ## Detect if we are running inside a distribution or regular repository folder
-set(IN_HB_DIST FALSE)
+set (IN_HB_DIST FALSE)
 if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
   # perhaps we are on dist directory
-  set(IN_HB_DIST TRUE)
-  set(HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+  set (IN_HB_DIST TRUE)
+  set (HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
 endif ()
 
 
 ## Extract variables from Makefile files
 # http://stackoverflow.com/a/27630120/1414809
 function (prepend var prefix)
-  set(listVar "")
+  set (listVar "")
   foreach (f ${ARGN})
     list(APPEND listVar "${prefix}${f}")
   endforeach ()
-  set(${var} "${listVar}" PARENT_SCOPE)
+  set (${var} "${listVar}" PARENT_SCOPE)
 endfunction ()
 
 function (extract_make_variable variable file prefix)
   string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${file})
   string(REGEX MATCHALL "[^ \n\t\\]+" list ${CMAKE_MATCH_1})
   prepend(list ${prefix} ${list})
-  set(${variable} ${list} PARENT_SCOPE)
+  set (${variable} ${list} PARENT_SCOPE)
 endfunction ()
 
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
@@ -119,9 +119,9 @@ extract_make_variable(HB_OT_sources ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_OT_headers ${SRCSOURCES} "${PROJECT_SOURCE_DIR}/src/")
 
 if (IN_HB_DIST)
-  set(RAGEL_GENERATED_DIR "${PROJECT_SOURCE_DIR}/src/")
+  set (RAGEL_GENERATED_DIR "${PROJECT_SOURCE_DIR}/src/")
 else ()
-  set(RAGEL_GENERATED_DIR "${PROJECT_BINARY_DIR}/src/")
+  set (RAGEL_GENERATED_DIR "${PROJECT_BINARY_DIR}/src/")
 endif ()
 extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES} ${RAGEL_GENERATED_DIR})
 extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES} ${RAGEL_GENERATED_DIR})
@@ -134,10 +134,10 @@ extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES} "${PROJECT_SOURCE_DIR}/s
 
 file(READ configure.ac CONFIGUREAC)
 string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
-set(HB_VERSION ${CMAKE_MATCH_1})
-set(HB_VERSION_MAJOR ${CMAKE_MATCH_2})
-set(HB_VERSION_MINOR ${CMAKE_MATCH_3})
-set(HB_VERSION_MICRO ${CMAKE_MATCH_4})
+set (HB_VERSION ${CMAKE_MATCH_1})
+set (HB_VERSION_MAJOR ${CMAKE_MATCH_2})
+set (HB_VERSION_MINOR ${CMAKE_MATCH_3})
+set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 
 ## Define ragel tasks
@@ -152,11 +152,11 @@ if (NOT IN_HB_DIST)
 
   foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
     string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
-    set(target_name ${CMAKE_MATCH_1})
+    set (target_name ${CMAKE_MATCH_1})
     add_custom_command(OUTPUT ${ragel_output}
       COMMAND ${RAGEL} -G2 -o ${ragel_output} ${PROJECT_SOURCE_DIR}/src/${target_name}.rl -I ${PROJECT_SOURCE_DIR} ${ARGN}
       DEPENDS ${PROJECT_SOURCE_DIR}/src/${target_name}.rl
-      )
+    )
     add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
   endforeach ()
 
@@ -166,45 +166,44 @@ endif ()
 
 ## Generate hb-version.h
 if (NOT IN_HB_DIST)
-  set(HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-  set(HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
+  set (HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
+  set (HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
   set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
   configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
   execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
     "${HB_VERSION_H}.tmp"
     "${HB_VERSION_H}"
-    )
+  )
   file(REMOVE "${HB_VERSION_H}.tmp")
 endif ()
 
 
 ## Define sources and headers of the project
-set(project_sources
+set (project_sources
   ${HB_BASE_sources}
   ${HB_BASE_RAGEL_GENERATED_sources}
 
   ${HB_FALLBACK_sources}
   ${HB_OT_sources}
   ${HB_OT_RAGEL_GENERATED_sources}
-  )
+)
 
-set(project_extra_sources)
+set (project_extra_sources)
 
-set(project_headers
+set (project_headers
   ${HB_VERSION_H}
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
-  )
+)
 
 
 ## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE)
-
   include(FindFreetype)
   if (NOT FREETYPE_FOUND)
     message(FATAL_ERROR "HB_HAVE_FREETYPE was set, but we failed to find it. Maybe add a CMAKE_PREFIX_PATH= to your Freetype2 install prefix")
-  endif()
+  endif ()
 
   list(APPEND THIRD_PARTY_LIBS ${FREETYPE_LIBRARIES})
   include_directories(AFTER ${FREETYPE_INCLUDE_DIRS})
@@ -212,7 +211,6 @@ if (HB_HAVE_FREETYPE)
 
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
-
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
@@ -322,8 +320,8 @@ if (HB_HAVE_GOBJECT)
   pkg_check_modules(PC_GLIB QUIET glib-2.0)
   find_program(GLIB_MKENUMS glib-mkenums
     HINTS ${PC_glib_mkenums}
-    )
-  set(GLIB_MKENUMS_CMD)
+  )
+  set (GLIB_MKENUMS_CMD)
 
   if (WIN32 AND NOT MINGW)
     # In Visual Studio builds, shebang lines are not supported
@@ -333,29 +331,29 @@ if (HB_HAVE_GOBJECT)
     execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${GLIB_MKENUMS}" --version
       RESULT_VARIABLE GLIB_MKENUMS_PYTHON
       OUTPUT_QUIET ERROR_QUIET
-      )
+    )
     if (GLIB_MKENUMS_PYTHON EQUAL 0)
       message("${GLIB_MKENUMS} is a Python script.")
-      set(GLIB_MKENUMS_CMD "${PYTHON_EXECUTABLE}" "${GLIB_MKENUMS}")
+      set (GLIB_MKENUMS_CMD "${PYTHON_EXECUTABLE}" "${GLIB_MKENUMS}")
     else ()
       execute_process(COMMAND "${PERL_EXECUTABLE}" "${GLIB_MKENUMS}" --version
         RESULT_VARIABLE GLIB_MKENUMS_PERL
         OUTPUT_QUIET ERROR_QUIET
-        )
+      )
       if (GLIB_MKENUMS_PERL EQUAL 0)
         message("${GLIB_MKENUMS} is a PERL script.")
-        set(GLIB_MKENUMS_CMD "${PERL_EXECUTABLE}" "${GLIB_MKENUMS}")
+        set (GLIB_MKENUMS_CMD "${PERL_EXECUTABLE}" "${GLIB_MKENUMS}")
       endif ()
       if (NOT GLIB_MKENUMS_PERL EQUAL 0 AND NOT GLIB_MKENUMS_PYTHON EQUAL 0)
         message(FATAL_ERROR "Unable to determine type of glib-mkenums script")
       endif ()
-	endif ()
+    endif ()
   else ()
-    set(GLIB_MKENUMS_CMD "${GLIB_MKENUMS}")
+    set (GLIB_MKENUMS_CMD "${GLIB_MKENUMS}")
   endif ()
   if (NOT GLIB_MKENUMS_CMD)
     message(FATAL_ERROR "HB_HAVE_GOBJECT was set, but we failed to find glib-mkenums, which is required")
-  endif()
+  endif ()
 
   pkg_check_modules(PC_GOBJECT QUIET gobject-2.0)
 
@@ -368,19 +366,19 @@ if (HB_HAVE_GOBJECT)
   list(APPEND hb_gobject_sources ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.cc)
   list(APPEND hb_gobject_gen_sources
     ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc
-    )
+  )
   list(APPEND hb_gobject_structs_headers
     ${PROJECT_SOURCE_DIR}/src/hb-gobject-structs.h
-    )
+  )
   list(APPEND hb_gobject_headers
     ${PROJECT_SOURCE_DIR}/src/hb-gobject.h
     ${hb_gobject_structs_headers}
-    )
+  )
   list(APPEND hb_gobject_gen_headers
     ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
-    )
+  )
 
-  add_custom_command (
+  add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
     COMMAND ${GLIB_MKENUMS_CMD}
       --template=${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.h.tmpl
@@ -396,9 +394,9 @@ if (HB_HAVE_GOBJECT)
     DEPENDS ${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.h.tmpl
       ${hb_gobject_header}
       ${project_headers}
-    )
+  )
 
-  add_custom_command (
+  add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.cc
     COMMAND ${GLIB_MKENUMS_CMD}
       --template=${PROJECT_SOURCE_DIR}/src/hb-gobject-enums.cc.tmpl
@@ -415,7 +413,7 @@ if (HB_HAVE_GOBJECT)
       ${CMAKE_CURRENT_BINARY_DIR}/src/hb-gobject-enums.h
       ${hb_gobject_header}
       ${project_headers}
-    )
+  )
 endif ()
 
 ## Atomic ops availability detection
@@ -461,7 +459,7 @@ if (HB_HAVE_GOBJECT)
     ${hb_gobject_gen_sources}
     ${hb_gobject_headers}
     ${hb_gobject_gen_headers}
-    )
+  )
   include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/src)
   add_dependencies(harfbuzz-gobject harfbuzz)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
@@ -471,7 +469,7 @@ endif ()
 if (WIN32)
   if (NOT BUILD_SHARED_LIBS)
     message("Building introspection files on Windows requires BUILD_SHARED_LIBS to be enabled.")
-    set(HB_HAVE_INTROSPECTION OFF)
+    set (HB_HAVE_INTROSPECTION OFF)
   endif ()
 endif ()
 
@@ -482,23 +480,23 @@ if (HB_HAVE_INTROSPECTION)
 
   find_program(G_IR_SCANNER g-ir-scanner
     HINTS ${PC_g_ir_scanner}
-    )
+  )
 
   find_program(G_IR_COMPILER g-ir-compiler
     HINTS ${PC_g_ir_compiler}
-    )
+  )
 
   if (WIN32 AND NOT MINGW)
     # Note that since we already enable HB_HAVE_GOBJECT
     # we would already have PYTHON_EXECUTABLE handy
-    set(G_IR_SCANNER_CMD "${PYTHON_EXECUTABLE}" "${G_IR_SCANNER}")
+    set (G_IR_SCANNER_CMD "${PYTHON_EXECUTABLE}" "${G_IR_SCANNER}")
   else ()
-    set(G_IR_SCANNER_CMD "${G_IR_SCANNER}")
+    set (G_IR_SCANNER_CMD "${G_IR_SCANNER}")
   endif ()
 
   # We need to account for the varying output directories
   # when we build using Visual Studio projects
-  if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
+  if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
     set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
   else ()
     set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
@@ -506,9 +504,9 @@ if (HB_HAVE_INTROSPECTION)
 
   # Get the CFlags that we used to build HarfBuzz/HarfBuzz-GObject
   set (hb_defines_cflags "")
-  foreach(hb_cflag ${hb_cflags})
+  foreach (hb_cflag ${hb_cflags})
     list(APPEND hb_defines_cflags "-D${hb_cflag}")
-  endforeach(hb_cflag)
+  endforeach (hb_cflag)
 
   # Get the other dependent libraries we used to build HarfBuzz/HarfBuzz-GObject
   set (extra_libs "")
@@ -518,7 +516,7 @@ if (HB_HAVE_INTROSPECTION)
     list(APPEND extra_libs "--extra-library=${extra_lib_stripped}")
   endforeach ()
 
-  set(introspected_sources)
+  set (introspected_sources)
   foreach (f
     ${project_headers}
     ${project_sources}
@@ -545,7 +543,7 @@ if (HB_HAVE_INTROSPECTION)
   endforeach ()
 
   # Finally, build the introspection files...
-  add_custom_command (
+  add_custom_command(
     TARGET harfbuzz-gobject
     POST_BUILD
     COMMAND ${G_IR_SCANNER_CMD}
@@ -576,9 +574,9 @@ if (HB_HAVE_INTROSPECTION)
       ${introspected_sources}
       -o ${hb_libpath}/HarfBuzz-0.0.gir
     DEPENDS harfbuzz-gobject harfbuzz
-    )
+  )
 
-  add_custom_command (
+  add_custom_command(
     TARGET harfbuzz-gobject
     POST_BUILD
     COMMAND "${G_IR_COMPILER}"
@@ -587,20 +585,20 @@ if (HB_HAVE_INTROSPECTION)
       ${hb_libpath}/HarfBuzz-0.0.gir
       -o ${hb_libpath}/HarfBuzz-0.0.typelib
     DEPENDS ${hb_libpath}/HarfBuzz-0.0.gir harfbuzz-gobject
-    )
+  )
 endif ()
 
 ## Additional framework build configs
 if (BUILD_FRAMEWORK)
-  set(CMAKE_MACOSX_RPATH ON)
+  set (CMAKE_MACOSX_RPATH ON)
   set_target_properties(harfbuzz PROPERTIES
     FRAMEWORK TRUE
     PUBLIC_HEADER "${project_headers}"
     XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
   )
-  set(MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz")
-  set(MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}")
-  set(MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}")
+  set (MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz")
+  set (MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}")
+  set (MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}")
 endif ()
 
 
@@ -631,56 +629,58 @@ endif ()
 
 
 ## Install
+include(GNUInstallDirs)
+
 if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
-  install(FILES ${project_headers} DESTINATION include/harfbuzz)
+  install(FILES ${project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
   if (HB_HAVE_GOBJECT)
-    install(FILES ${hb_gobject_headers} ${hb_gobject_gen_headers} DESTINATION include/harfbuzz)
+    install(FILES ${hb_gobject_headers} ${hb_gobject_gen_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
   endif ()
 endif ()
 
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install(TARGETS harfbuzz
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     FRAMEWORK DESTINATION Library/Frameworks
-    )
+  )
   if (HB_BUILD_UTILS)
     install(TARGETS hb-view
-      RUNTIME DESTINATION bin
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
     install(TARGETS hb-view
-      RUNTIME DESTINATION bin
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
     install(TARGETS hb-shape
-      RUNTIME DESTINATION bin
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
     install(TARGETS hb-ot-shape-closure
-      RUNTIME DESTINATION bin
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
   endif ()
   if (HB_HAVE_GOBJECT)
     install(TARGETS harfbuzz-gobject
-      ARCHIVE DESTINATION lib
-      LIBRARY DESTINATION lib
-      RUNTIME DESTINATION bin
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
     if (HB_HAVE_INTROSPECTION)
-      if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
+      if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
         set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
       else ()
         set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
       endif ()
 
       install(FILES "${hb_libpath}/HarfBuzz-0.0.gir"
-        DESTINATION share/gir-1.0
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gir-1.0
         )
 
       install(FILES "${hb_libpath}/HarfBuzz-0.0.typelib"
-        DESTINATION lib/girepository-1.0
-        )
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/girepository-1.0
+      )
     endif ()
   endif ()
 endif ()
