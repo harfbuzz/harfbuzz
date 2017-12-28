@@ -325,14 +325,14 @@ retry:
 /**
  * hb_language_from_string:
  * @str: (array length=len) (element-type uint8_t): a string representing
- *       ISO 639 language code
+ *       a BCP 47 language tag
  * @len: length of the @str, or -1 if it is %NULL-terminated.
  *
- * Converts @str representing an ISO 639 language code to the corresponding
+ * Converts @str representing a BCP 47 language tag to the corresponding
  * #hb_language_t.
  *
  * Return value: (transfer none):
- * The #hb_language_t corresponding to the ISO 639 language code.
+ * The #hb_language_t corresponding to the BCP 47 language tag.
  *
  * Since: 0.9.2
  **/
