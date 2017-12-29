@@ -155,6 +155,10 @@ HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
 HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
+hb_ot_layout_table_choose_script
+hb_ot_layout_table_find_script
+hb_ot_tag_from_language
+hb_ot_tags_from_script
 hb_set_invert
 hb_unicode_eastasian_width_func_t
 hb_unicode_eastasian_width
@@ -495,9 +499,7 @@ hb_ot_layout_lookup_would_substitute
 hb_ot_layout_script_find_language
 hb_ot_layout_script_get_language_tags
 hb_ot_layout_script_select_language
-hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_feature_variations
-hb_ot_layout_table_find_script
 hb_ot_layout_table_get_feature_tags
 hb_ot_layout_table_get_script_tags
 hb_ot_layout_table_get_lookup_count
@@ -553,11 +555,9 @@ HB_OT_MAX_TAGS_PER_LANGUAGE
 HB_OT_MAX_TAGS_PER_SCRIPT
 HB_OT_TAG_DEFAULT_LANGUAGE
 HB_OT_TAG_DEFAULT_SCRIPT
-hb_ot_tag_from_language
 hb_ot_tag_to_language
 hb_ot_tag_to_script
 hb_ot_tags
-hb_ot_tags_from_script
 </SECTION>
 
 <SECTION>

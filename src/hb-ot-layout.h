@@ -111,14 +111,6 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      script_tag,
 				unsigned int *script_index);
 
-/* Like find_script, but takes zero-terminated array of scripts to test */
-HB_EXTERN hb_bool_t
-hb_ot_layout_table_choose_script (hb_face_t      *face,
-				  hb_tag_t        table_tag,
-				  const hb_tag_t *script_tags,
-				  unsigned int   *script_index,
-				  hb_tag_t       *chosen_script);
-
 HB_EXTERN hb_bool_t
 hb_ot_layout_table_select_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
@@ -141,13 +133,6 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 				       unsigned int  start_offset,
 				       unsigned int *language_count /* IN/OUT */,
 				       hb_tag_t     *language_tags /* OUT */);
-
-HB_EXTERN hb_bool_t
-hb_ot_layout_script_find_language (hb_face_t    *face,
-				   hb_tag_t      table_tag,
-				   unsigned int  script_index,
-				   hb_tag_t      language_tag,
-				   unsigned int *language_index);
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_script_select_language (hb_face_t    *face,

@@ -50,16 +50,8 @@ hb_ot_tags (hb_script_t   script,
 	    unsigned int *language_count /* IN/OUT */,
 	    hb_tag_t     *language_tags /* OUT */);
 
-HB_EXTERN void
-hb_ot_tags_from_script (hb_script_t  script,
-			hb_tag_t    *script_tag_1,
-			hb_tag_t    *script_tag_2);
-
 HB_EXTERN hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag);
-
-HB_EXTERN hb_tag_t
-hb_ot_tag_from_language (hb_language_t language);
 
 HB_EXTERN hb_language_t
 hb_ot_tag_to_language (hb_tag_t tag);
