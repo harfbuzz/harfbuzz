@@ -29,6 +29,7 @@ EXTRA_DIST += \
 	run-tests.py \
 	texts/in-tree \
 	fonts/sha1sum \
+	CMakeLists.txt \
 	$(TESTS) \
 	$(NULL)
 
@@ -104,7 +105,7 @@ TESTS_ENVIRONMENT = \
 	$(NULL)
 endif
 
-TESTS_LOG_COMPILER = python $(srcdir)/run-tests.py
+TESTS_LOG_COMPILER = $(srcdir)/run-tests.py
 
 .PHONY: manifests
 
