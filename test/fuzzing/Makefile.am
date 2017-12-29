@@ -14,6 +14,8 @@ $(top_builddir)/src/libharfbuzz-fuzzing.la: lib
 
 EXTRA_DIST += \
 	README \
+	run-fuzzer-tests.py \
+	CMakeLists.txt \
 	$(NULL)
 
 check_PROGRAMS = \
@@ -43,6 +45,22 @@ hb_fuzzer_CPPFLAGS = \
 hb_fuzzer_DEPENDENCIES = \
 	lib \
 	$(NULL)
+
+AM_TESTS_ENVIRONMENT = \
+	EXEEXT="$(EXEEXT)"; \
+	export EXEEXT; \
+	srcdir="$(srcdir)"; \
+	export srcdir; \
+	builddir="$(builddir)"; \
+	export builddir; \
+	$(NULL)
+
+if AUTOMAKE_OLDER_THAN_1_13
+TESTS_ENVIRONMENT = \
+	$(AM_TESTS_ENVIRONMENT) \
+	$(TESTS_LOG_COMPILER) \
+	$(NULL)
+endif
 
 check:
 	cat $(srcdir)/../shaping/tests/fuzzed.tests | \
