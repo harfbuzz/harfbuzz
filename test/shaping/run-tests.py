@@ -28,13 +28,21 @@ EXEEXT = os.environ.get ("EXEEXT", "")
 extra_options = "--verify"
 hb_shape = os.path.join (top_builddir, utildir, "hb-shape" + EXEEXT)
 
-fails = 0
 args = sys.argv[1:]
+
+if not os.path.exists (hb_shape):
+	hb_shape = args[0]
+	args = args[1:]
+
+fails = 0
 
 reference = False
 if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
+
+if not reference:
+	print ('hb_shape:', hb_shape)
 
 if not len (args):
 	args = [sys.stdin]

@@ -6,9 +6,15 @@ import sys, os, subprocess
 srcdir = os.environ.get ("srcdir", ".")
 EXEEXT = os.environ.get ("EXEEXT", "")
 top_builddir = os.environ.get ("top_builddir", ".")
-testdir = os.environ.get ("testdir", ".")
-fuzzingdir = os.environ.get ("fuzzingdir", ".")
-hb_fuzzer = os.path.join (top_builddir, testdir, fuzzingdir, "hb-fuzzer" + EXEEXT)
+hb_fuzzer = os.path.join (top_builddir, "hb-fuzzer" + EXEEXT)
+
+if hb_fuzzer == ".\\hb-fuzzer":
+	hb_fuzzer = "./hb-fuzzer.exe"
+
+if not os.path.exists (hb_fuzzer):
+	hb_fuzzer = sys.argv[1]
+
+print ('hb_fuzzer:', hb_fuzzer)
 fails = 0
 
 for line in open (os.path.join (srcdir, "..", "shaping", "tests", "fuzzed.tests")):

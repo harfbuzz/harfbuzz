@@ -1,9 +1,9 @@
 if (HB_HAVE_GLIB)
-  add_executable (hb-fuzzer hb-fuzzer.cc hb-fuzzer.hh main.cc)
+  file (READ "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.am" MAKEFILEAM)
+  extract_make_variable (hb_fuzzer_SOURCES ${MAKEFILEAM})
+  add_executable (hb-fuzzer ${hb_fuzzer_SOURCES})
   target_link_libraries (hb-fuzzer harfbuzz)
-  add_test (hb-fuzzer python run-fuzzer-tests.py)
-  set_tests_properties (hb-fuzzer PROPERTIES
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    ENVIRONMENT "top_builddir=${PROJECT_BINARY_DIR};testdir=test;fuzzingdir=fuzzing"
-  )
+  add_test (NAME hb-fuzzer
+    COMMAND python run-fuzzer-tests.py $<TARGET_FILE:hb-fuzzer>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
