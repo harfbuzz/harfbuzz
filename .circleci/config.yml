@@ -14,14 +14,14 @@ jobs:
       - run: make -Cbuild test
       - run: make -Cbuild install
 
-  fedora:
+  fedora-out-of-tree:
     docker:
       - image: fedora
     steps:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: make && make check
+      - run: NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: mkdir build && cd build && ../configure && make && make check
 
   archlinux:
     docker:
@@ -140,7 +140,7 @@ workflows:
   build:
     jobs:
       - oracledeveloperstudio
-      - fedora
+      - fedora-out-of-tree
       - archlinux
       - freebsd9
       - base

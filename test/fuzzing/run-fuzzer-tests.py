@@ -8,10 +8,12 @@ EXEEXT = os.environ.get ("EXEEXT", "")
 top_builddir = os.environ.get ("top_builddir", ".")
 hb_fuzzer = os.path.join (top_builddir, "hb-fuzzer" + EXEEXT)
 
-if hb_fuzzer == ".\\hb-fuzzer":
-	hb_fuzzer = "./hb-fuzzer.exe"
-
 if not os.path.exists (hb_fuzzer):
+	if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
+		print ("""Failed to find hb-fuzzer binary automatically,
+please provide it as the first argument to the tool""")
+		sys.exit (1)
+
 	hb_fuzzer = sys.argv[1]
 
 print ('hb_fuzzer:', hb_fuzzer)

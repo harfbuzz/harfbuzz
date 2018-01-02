@@ -31,6 +31,11 @@ hb_shape = os.path.join (top_builddir, utildir, "hb-shape" + EXEEXT)
 args = sys.argv[1:]
 
 if not os.path.exists (hb_shape):
+	if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
+		print ("""Failed to find hb-shape binary automatically,
+please provide it as the first argument to the tool""")
+		sys.exit (1)
+
 	hb_shape = args[0]
 	args = args[1:]
 
