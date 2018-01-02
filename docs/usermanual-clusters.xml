@@ -290,11 +290,11 @@
   0 ,3,2,4   
 </programlisting>
     <para>
-      There's no way to differentitate between these two scenarios based
+      There's no way to differentiate between these two scenarios based
       on the cluster numbers alone.
     </para>
     <para>
-      Another problem appens with ligatures under level 2 if the
+      Another problem happens with ligatures under level 2 if the
       direction of the text is forced to opposite of its natural
       direction (e.g. left-to-right Arabic). But that's too much of a
       corner case to worry about.
