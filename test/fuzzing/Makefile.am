@@ -46,23 +46,7 @@ hb_fuzzer_DEPENDENCIES = \
 	lib \
 	$(NULL)
 
-AM_TESTS_ENVIRONMENT = \
-	EXEEXT="$(EXEEXT)"; \
-	export EXEEXT; \
-	srcdir="$(srcdir)"; \
-	export srcdir; \
-	builddir="$(builddir)"; \
-	export builddir; \
-	$(NULL)
-
-if AUTOMAKE_OLDER_THAN_1_13
-TESTS_ENVIRONMENT = \
-	$(AM_TESTS_ENVIRONMENT) \
-	$(TESTS_LOG_COMPILER) \
-	$(NULL)
-endif
-
 check:
-	$(srcdir)/run-fuzzer-tests.py
+	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-fuzzer-tests.py
 
 -include $(top_srcdir)/git.mk
