@@ -719,6 +719,7 @@ hb_use_get_categories (hb_codepoint_t u)
       break;
 
     case 0x11u:
+      if (unlikely (u == 0x1107Fu)) return HN;
       if (hb_in_range<hb_codepoint_t> (u, 0x11000u, 0x110BFu)) return use_table[u - 0x11000u + use_offset_0x11000u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11100u, 0x1123Fu)) return use_table[u - 0x11100u + use_offset_0x11100u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
@@ -727,7 +728,6 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x11A00u, 0x11A9Fu)) return use_table[u - 0x11A00u + use_offset_0x11a00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11C00u, 0x11CB7u)) return use_table[u - 0x11C00u + use_offset_0x11c00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11D00u, 0x11D5Fu)) return use_table[u - 0x11D00u + use_offset_0x11d00u];
-      if (unlikely (u == 0x1107Fu)) return HN;
       break;
 
     default:
