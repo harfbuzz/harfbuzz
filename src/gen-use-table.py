@@ -462,13 +462,13 @@ print "  {"
 pages = set([u>>page_bits for u in starts+ends+singles.keys()])
 for p in sorted(pages):
 	print "    case 0x%0Xu:" % p
+	for u,d in singles.items ():
+		if p != u>>page_bits: continue
+		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>page_bits, end>>page_bits]: continue
 		offset = "use_offset_0x%04xu" % start
 		print "      if (hb_in_range<hb_codepoint_t> (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
-	for u,d in singles.items ():
-		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
 	print "      break;"
 	print ""
 print "    default:"

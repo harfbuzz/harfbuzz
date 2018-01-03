@@ -683,10 +683,10 @@ hb_use_get_categories (hb_codepoint_t u)
   switch (u >> 12)
   {
     case 0x0u:
+      if (unlikely (u == 0x034Fu)) return CGJ;
       if (hb_in_range<hb_codepoint_t> (u, 0x0028u, 0x003Fu)) return use_table[u - 0x0028u + use_offset_0x0028u];
       if (hb_in_range<hb_codepoint_t> (u, 0x00A0u, 0x00D7u)) return use_table[u - 0x00A0u + use_offset_0x00a0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x0900u, 0x0DF7u)) return use_table[u - 0x0900u + use_offset_0x0900u];
-      if (unlikely (u == 0x034Fu)) return CGJ;
       break;
 
     case 0x1u:
@@ -699,10 +699,10 @@ hb_use_get_categories (hb_codepoint_t u)
       break;
 
     case 0x2u:
+      if (unlikely (u == 0x25CCu)) return GB;
       if (hb_in_range<hb_codepoint_t> (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
       if (hb_in_range<hb_codepoint_t> (u, 0x2060u, 0x2087u)) return use_table[u - 0x2060u + use_offset_0x2060u];
       if (hb_in_range<hb_codepoint_t> (u, 0x20F0u, 0x20F7u)) return use_table[u - 0x20F0u + use_offset_0x20f0u];
-      if (unlikely (u == 0x25CCu)) return GB;
       break;
 
     case 0xAu:
@@ -719,6 +719,7 @@ hb_use_get_categories (hb_codepoint_t u)
       break;
 
     case 0x11u:
+      if (unlikely (u == 0x1107Fu)) return HN;
       if (hb_in_range<hb_codepoint_t> (u, 0x11000u, 0x110BFu)) return use_table[u - 0x11000u + use_offset_0x11000u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11100u, 0x1123Fu)) return use_table[u - 0x11100u + use_offset_0x11100u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
@@ -727,7 +728,6 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x11A00u, 0x11A9Fu)) return use_table[u - 0x11A00u + use_offset_0x11a00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11C00u, 0x11CB7u)) return use_table[u - 0x11C00u + use_offset_0x11c00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11D00u, 0x11D5Fu)) return use_table[u - 0x11D00u + use_offset_0x11d00u];
-      if (unlikely (u == 0x1107Fu)) return HN;
       break;
 
     default:
