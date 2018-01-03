@@ -516,6 +516,7 @@ font_options_t::add_options (option_parser_t *parser)
     {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",		"index"},
     {"font-size",	0, default_font_size ? 0 : G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,				"1/2 numbers or 'upem'"},
+    /* TODO Add font-ppem / font-ptem. */
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,					"impl"},
     {nullptr}
   };
