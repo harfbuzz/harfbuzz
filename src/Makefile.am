@@ -324,6 +324,7 @@ test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
 TESTS = $(dist_check_SCRIPTS) $(check_PROGRAMS)
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
+	libs=".libs" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
 	HBSOURCES="$(HBSOURCES)" \
 	HBHEADERS="$(HBHEADERS) $(HBNODISTHEADERS)" \
