@@ -699,6 +699,16 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   endif ()
 endif ()
 
+if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set (CMAKE_CXX_FLAGS "-fcolor-diagnostics ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_C_FLAGS "-fcolor-diagnostics ${CMAKE_C_FLAGS}")
+  endif ()
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set (CMAKE_CXX_FLAGS "-fdiagnostics-color ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_C_FLAGS "-fdiagnostics-color ${CMAKE_C_FLAGS}")
+  endif ()
+endif ()
 
 ## Tests
 if (UNIX)
