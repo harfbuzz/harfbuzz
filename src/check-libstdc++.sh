@@ -4,6 +4,7 @@ LC_ALL=C
 export LC_ALL
 
 test -z "$srcdir" && srcdir=.
+test -z "$libs" && libs=.
 stat=0
 
 
@@ -16,7 +17,7 @@ fi
 
 tested=false
 for suffix in so dylib; do
-	so=.libs/libharfbuzz.$suffix
+	so=$libs/libharfbuzz.$suffix
 	if ! test -f "$so"; then continue; fi
 
 	echo "Checking that we are not linking to libstdc++ or libc++"

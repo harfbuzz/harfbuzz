@@ -64,7 +64,7 @@ endif ()
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
-  )
+)
 
 add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_FALLBACK)
@@ -427,6 +427,7 @@ if (HB_HAVE_GOBJECT)
   )
 endif ()
 
+
 ## Atomic ops availability detection
 file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
 "		void memory_barrier (void) { __sync_synchronize (); }
@@ -462,6 +463,7 @@ endif ()
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
+
 
 ## Define harfbuzz-gobject library
 if (HB_HAVE_GOBJECT)
@@ -535,7 +537,7 @@ if (HB_HAVE_INTROSPECTION)
     ${hb_gobject_gen_headers}
     ${hb_gobject_sources}
     ${hb_gobject_headers}
-    )
+  )
     if (WIN32)
       # Nasty issue: We need to make drive letters lower case,
       # otherwise g-ir-scanner won't like it and give us a bunch
@@ -598,6 +600,7 @@ if (HB_HAVE_INTROSPECTION)
     DEPENDS ${hb_libpath}/HarfBuzz-0.0.gir harfbuzz-gobject
   )
 endif ()
+
 
 ## Additional framework build configs
 if (BUILD_FRAMEWORK)
@@ -687,13 +690,39 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
 
       install(FILES "${hb_libpath}/HarfBuzz-0.0.gir"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gir-1.0
-        )
+      )
 
       install(FILES "${hb_libpath}/HarfBuzz-0.0.typelib"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/girepository-1.0
       )
     endif ()
   endif ()
+endif ()
+
+
+## Tests
+if (UNIX)
+  if (BUILD_SHARED_LIBS)
+    add_test(NAME check-static-inits.sh
+      COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles/harfbuzz.dir/src # hack
+    )
+    # does some "make" stuff inside
+    # add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
+    add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
+    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+  else ()
+    message(WARN "You can enable BUILD_SHARED_LIBS for more tests.")
+  endif ()
+
+  # disabled as it doesn't work anyway
+  if (OFF AND IN_HB_DIST)
+    add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+    add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+  endif ()
+
+  add_test(NAME check-externs.sh COMMAND ./check-externs.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+  add_test(NAME check-includes.sh COMMAND ./check-includes.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 endif ()
 
 # Needs to come last so that variables defined above are passed to

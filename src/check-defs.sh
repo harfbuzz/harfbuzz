@@ -4,6 +4,7 @@ LC_ALL=C
 export LC_ALL
 
 test -z "$srcdir" && srcdir=.
+test -z "$libs" && libs=.
 test -z "$MAKE" && MAKE=make
 stat=0
 
@@ -19,7 +20,7 @@ $MAKE $defs > /dev/null
 tested=false
 for def in $defs; do
 	lib=`echo "$def" | sed 's/[.]def$//;s@.*/@@'`
-	so=.libs/lib${lib}.so
+	so=$libs/lib${lib}.so
 
 	EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v ' _fini\>\| _init\>\| _fdata\>\| _ftext\>\| _fbss\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>\| __gcov_flush\>\| llvm_' | cut -d' ' -f3`"
 

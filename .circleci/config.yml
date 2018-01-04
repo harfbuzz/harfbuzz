@@ -52,15 +52,14 @@ jobs:
       - run: ninja -Cbuild test
       - run: ninja -Cbuild install
 
-  distdir:
+  distcheck:
     docker:
       - image: dockcross/base
     steps:
       - checkout
       - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: ./autogen.sh && make distdir
-      - run: cd harfbuzz-* && ./configure && make && make check && make install && make clean
-      - run: cd harfbuzz-* && cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GLIB=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja && ninja -Cbuild && ninja -Cbuild test && ninja -Cbuild install
+      - run: ./autogen.sh && make distcheck
+      - run: make distdir && cd harfbuzz-* && cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GLIB=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
 
   psvita:
     docker:
@@ -144,7 +143,7 @@ workflows:
       - archlinux
       - freebsd9
       - base
-      - distdir
+      - distcheck
       - psvita
       - android-arm
       - browser-asmjs
