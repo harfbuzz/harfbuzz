@@ -372,7 +372,6 @@ struct khmer_shape_plan_t
 
   mutable hb_codepoint_t virama_glyph;
 
-  would_substitute_feature_t rphf;
   would_substitute_feature_t pref;
 
   hb_mask_t mask_array[INDIC_NUM_FEATURES];
@@ -387,7 +386,6 @@ data_create_khmer (const hb_ot_shape_plan_t *plan)
 
   khmer_plan->virama_glyph = (hb_codepoint_t) -1;
 
-  khmer_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), true);
   khmer_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), true);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (khmer_plan->mask_array); i++)
