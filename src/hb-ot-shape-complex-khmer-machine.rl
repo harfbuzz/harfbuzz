@@ -73,7 +73,7 @@ place_holder = PLACEHOLDER | DOTTEDCIRCLE;
 halant_group = (z?.Coeng.(ZWJ.N?)?);
 final_halant_group = halant_group | Coeng.ZWNJ;
 medial_group = CM?;
-halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V))?;
+halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V)?)?;
 
 
 consonant_syllable =	(Repha|CS)? (cn.halant_group){0,4} cn medial_group halant_or_matra_group syllable_tail;
