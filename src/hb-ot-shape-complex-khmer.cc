@@ -298,7 +298,6 @@ enum blwf_mode_t {
 };
 struct indic_config_t
 {
-  hb_script_t     script;
   base_position_t base_pos;
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
@@ -307,7 +306,7 @@ struct indic_config_t
 
 static const indic_config_t indic_configs[] =
 {
-  {HB_SCRIPT_KHMER,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
