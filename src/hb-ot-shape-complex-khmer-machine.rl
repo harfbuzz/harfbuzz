@@ -45,7 +45,6 @@ ZWNJ = 5;
 ZWJ  = 6;
 M    = 7;
 SM   = 8;
-A    = 10;
 PLACEHOLDER = 11;
 DOTTEDCIRCLE = 12;
 RS    = 13;
@@ -58,7 +57,7 @@ z = ZWJ|ZWNJ;			# is_joiner
 
 cn = c.n?;
 matra_group = z?.M.N?;
-syllable_tail = (SM.SM?)? A{0,3}?;
+syllable_tail = (SM.SM?)?;
 
 
 broken_cluster =	n? (Coeng.cn)* matra_group* (Coeng.cn)? syllable_tail;
