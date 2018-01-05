@@ -63,8 +63,8 @@ halant_group = Coeng;
 halant_or_matra_group = (matra_group*) (Coeng (cn|V))?;
 
 
-consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn)* halant_or_matra_group syllable_tail;
 broken_cluster =	n? (halant_group.cn)* halant_or_matra_group syllable_tail;
+consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
 other =			any;
 
 main := |*
