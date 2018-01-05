@@ -65,9 +65,8 @@ z = ZWJ|ZWNJ;			# is_joiner
 reph = (Ra H | Repha);		# possible reph
 
 cn = c.ZWJ?.n?;
-forced_rakar = ZWJ H ZWJ Ra;
 symbol = Symbol.N?;
-matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
+matra_group = z{0,3}.M.N?.H?;
 syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}? VD{0,2};
 place_holder = PLACEHOLDER | DOTTEDCIRCLE;
 halant_group = (z?.Coeng.(ZWJ.N?)?);

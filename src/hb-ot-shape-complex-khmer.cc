@@ -139,7 +139,7 @@ set_khmer_properties (hb_glyph_info_t &info)
 
 
 /*
- * Indic shaper.
+ * Khmer shaper.
  */
 
 struct feature_list_t {
