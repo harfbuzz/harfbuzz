@@ -42,7 +42,6 @@ X    = 0;
 C    = 1;
 V    = 2;
 N    = 3;
-H    = 4;
 ZWNJ = 5;
 ZWJ  = 6;
 M    = 7;
@@ -53,16 +52,13 @@ PLACEHOLDER = 11;
 DOTTEDCIRCLE = 12;
 RS    = 13;
 Coeng = 14;
-Repha = 15;
 Ra    = 16;
 CM    = 17;
 Symbol= 18;
-CS    = 19;
 
 c = (C | Ra);			# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
-reph = (Ra H | Repha);		# possible reph
 
 cn = c.ZWJ?.n?;
 symbol = Symbol.N?;
@@ -75,11 +71,11 @@ medial_group = CM?;
 halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V)?)?;
 
 
-consonant_syllable =	(Repha|CS)? (cn.halant_group){0,4} cn medial_group halant_or_matra_group syllable_tail;
-vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail);
-standalone_cluster =	((Repha|CS)? PLACEHOLDER | reph? DOTTEDCIRCLE).n? (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail;
+consonant_syllable =	(cn.halant_group){0,4} cn medial_group halant_or_matra_group syllable_tail;
+vowel_syllable =	V.n? (ZWJ | (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail);
+standalone_cluster =	(PLACEHOLDER | DOTTEDCIRCLE).n? (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail;
 symbol_cluster = 	symbol syllable_tail;
-broken_cluster =	reph? n? (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail;
+broken_cluster =	n? (halant_group.cn){0,4} medial_group halant_or_matra_group syllable_tail;
 other =			any;
 
 main := |*
