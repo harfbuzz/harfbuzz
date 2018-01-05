@@ -97,30 +97,7 @@ set_khmer_properties (hb_glyph_info_t &info)
    * Re-assign category
    */
 
-  /* The following act more like the Bindus. */
-  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0953u, 0x0954u)))
-    cat = OT_SM;
-  /* The following act like consonants. */
-  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0A72u, 0x0A73u,
-				      0x1CF5u, 0x1CF6u)))
-    cat = OT_C;
-  /* TODO: The following should only be allowed after a Visarga.
-   * For now, just treat them like regular tone marks. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CE2u, 0x1CE8u)))
-    cat = OT_A;
-  /* TODO: The following should only be allowed after some of
-   * the nasalization marks, maybe only for U+1CE9..U+1CF1.
-   * For now, just treat them like tone marks. */
-  else if (unlikely (u == 0x1CEDu))
-    cat = OT_A;
-  /* The following take marks in standalone clusters, similar to Avagraha. */
-  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0xA8F2u, 0xA8F7u,
-				      0x1CE9u, 0x1CECu,
-				      0x1CEEu, 0x1CF1u)))
-  {
-    cat = OT_Symbol;
-    static_assert (((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol), "");
-  }
+  if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CDu, 0x17D1u) ||
 		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */
   {
@@ -129,25 +106,7 @@ set_khmer_properties (hb_glyph_info_t &info)
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
-  else if (unlikely (u == 0x0A51u))
-  {
-    /* https://github.com/harfbuzz/harfbuzz/issues/524 */
-    cat = OT_M;
-    pos = POS_BELOW_C;
-  }
-
-  /* According to ScriptExtensions.txt, these Grantha marks may also be used in Tamil,
-   * so the Indic shaper needs to know their categories. */
-  else if (unlikely (u == 0x11301u || u == 0x11303u)) cat = OT_SM;
-  else if (unlikely (u == 0x1133cu)) cat = OT_N;
-
-  else if (unlikely (u == 0x0AFBu)) cat = OT_N; /* https://github.com/harfbuzz/harfbuzz/issues/552 */
-
-  else if (unlikely (u == 0x0980u)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/issues/538 */
-  else if (unlikely (u == 0x0C80u)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/pull/623 */
-  else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u)))
-				    cat = OT_PLACEHOLDER;
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u))) cat = OT_PLACEHOLDER;
   else if (unlikely (u == 0x25CCu)) cat = OT_DOTTEDCIRCLE;
 
 
@@ -169,10 +128,6 @@ set_khmer_properties (hb_glyph_info_t &info)
   {
     pos = POS_SMVD;
   }
-
-  if (unlikely (u == 0x0B01u)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
-
-
 
   info.khmer_category() = cat;
   info.khmer_position() = pos;
