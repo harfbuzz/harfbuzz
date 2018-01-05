@@ -107,6 +107,7 @@ HB_OT_sources = \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.cc \
+	hb-ot-shape-complex-khmer.cc \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-tibetan.cc \
@@ -128,11 +129,13 @@ HB_OT_sources = \
 
 HB_OT_RAGEL_GENERATED_sources = \
 	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-khmer-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-use-machine.hh \
 	$(NULL)
 HB_OT_RAGEL_sources = \
 	hb-ot-shape-complex-indic-machine.rl \
+	hb-ot-shape-complex-khmer-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-use-machine.rl \
 	$(NULL)
