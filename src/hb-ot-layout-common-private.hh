@@ -1275,10 +1275,11 @@ struct VarRegionList
     const VarRegionAxis *axes = axesZ + (region_index * axisCount);
 
     float v = 1.;
-    unsigned int count = MIN (coord_len, (unsigned int) axisCount);
+    unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      float factor = axes[i].evaluate (coords[i]);
+      int coord = i < coord_len ? coords[i] : 0;
+      float factor = axes[i].evaluate (coord);
       if (factor == 0.)
         return 0.;
       v *= factor;
