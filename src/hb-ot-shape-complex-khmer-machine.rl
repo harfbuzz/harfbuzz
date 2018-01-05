@@ -38,7 +38,6 @@
 %%{
 
 # Same order as enum khmer_category_t.  Not sure how to avoid duplication.
-X    = 0;
 C    = 1;
 V    = 2;
 N    = 3;
