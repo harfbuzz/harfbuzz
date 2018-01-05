@@ -40,74 +40,22 @@ typedef indic_category_t khmer_category_t;
 typedef indic_position_t khmer_position_t;
 
 
-#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7Fu) == (Base))
-
-#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900u))
-#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980u))
-#define IS_GURU(u) (IN_HALF_BLOCK (u, 0x0A00u))
-#define IS_GUJR(u) (IN_HALF_BLOCK (u, 0x0A80u))
-#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00u))
-#define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80u))
-#define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00u))
-#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0x0C80u))
-#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0x0D00u))
-#define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80u))
-#define IS_KHMR(u) (IN_HALF_BLOCK (u, 0x1780u))
-
-
-#define MATRA_POS_LEFT(u)	POS_PRE_M
-#define MATRA_POS_RIGHT(u)	( \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_BENG(u) ? POS_AFTER_POST : \
-				  IS_GURU(u) ? POS_AFTER_POST : \
-				  IS_GUJR(u) ? POS_AFTER_POST : \
-				  IS_ORYA(u) ? POS_AFTER_POST : \
-				  IS_TAML(u) ? POS_AFTER_POST : \
-				  IS_TELU(u) ? (u <= 0x0C42u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_KNDA(u) ? (u < 0x0CC3u || u > 0xCD6u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_MLYM(u) ? POS_AFTER_POST : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  IS_KHMR(u) ? POS_AFTER_POST : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-#define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_GURU(u) ? POS_AFTER_POST : /* Deviate from spec */ \
-				  IS_GUJR(u) ? POS_AFTER_SUB  : \
-				  IS_ORYA(u) ? POS_AFTER_MAIN : \
-				  IS_TAML(u) ? POS_AFTER_SUB  : \
-				  IS_TELU(u) ? POS_BEFORE_SUB : \
-				  IS_KNDA(u) ? POS_BEFORE_SUB : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  IS_KHMR(u) ? POS_AFTER_POST : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-#define MATRA_POS_BOTTOM(u)	( \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_BENG(u) ? POS_AFTER_SUB  : \
-				  IS_GURU(u) ? POS_AFTER_POST : \
-				  IS_GUJR(u) ? POS_AFTER_POST : \
-				  IS_ORYA(u) ? POS_AFTER_SUB  : \
-				  IS_TAML(u) ? POS_AFTER_POST : \
-				  IS_TELU(u) ? POS_BEFORE_SUB : \
-				  IS_KNDA(u) ? POS_BEFORE_SUB : \
-				  IS_MLYM(u) ? POS_AFTER_POST : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  IS_KHMR(u) ? POS_AFTER_POST : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-
 static inline khmer_position_t
-matra_position (hb_codepoint_t u, khmer_position_t side)
+matra_position (khmer_position_t side)
 {
   switch ((int) side)
   {
-    case POS_PRE_C:	return MATRA_POS_LEFT (u);
-    case POS_POST_C:	return MATRA_POS_RIGHT (u);
-    case POS_ABOVE_C:	return MATRA_POS_TOP (u);
-    case POS_BELOW_C:	return MATRA_POS_BOTTOM (u);
+    case POS_PRE_C:
+      return POS_PRE_M;
+
+    case POS_POST_C:
+    case POS_ABOVE_C:
+    case POS_BELOW_C:
+      return POS_AFTER_POST;
+
+    default:
+      return side;
   };
-  return side;
 }
 
 static inline bool
@@ -215,7 +163,7 @@ set_khmer_properties (hb_glyph_info_t &info)
   }
   else if (cat == OT_M)
   {
-    pos = matra_position (u, pos);
+    pos = matra_position (pos);
   }
   else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Symbol))))
   {
