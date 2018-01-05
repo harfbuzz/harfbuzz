@@ -442,12 +442,7 @@ override_features_khmer (hb_ot_shape_planner_t *plan)
   /* Uniscribe does not apply 'kern' in Khmer. */
   if (hb_options ().uniscribe_bug_compatible)
   {
-    switch ((hb_tag_t) plan->props.script)
-    {
-      case HB_SCRIPT_KHMER:
-	plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
-	break;
-    }
+    plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
   }
 
   plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
@@ -660,22 +655,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 {
   const khmer_shape_plan_t *khmer_plan = (const khmer_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
-
-  /* https://github.com/harfbuzz/harfbuzz/issues/435#issuecomment-335560167
-   * // For compatibility with legacy usage in Kannada,
-   * // Ra+h+ZWJ must behave like Ra+ZWJ+h...
-   */
-  if (buffer->props.script == HB_SCRIPT_KANNADA &&
-      start + 3 <= end &&
-      is_one_of (info[start  ], FLAG (OT_Ra)) &&
-      is_one_of (info[start+1], FLAG (OT_H)) &&
-      is_one_of (info[start+2], FLAG (OT_ZWJ)))
-  {
-    buffer->merge_clusters (start+1, start+3);
-    hb_glyph_info_t tmp = info[start+1];
-    info[start+1] = info[start+2];
-    info[start+2] = tmp;
-  }
 
   /* 1. Find base consonant:
    *
@@ -1238,25 +1217,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    break;
 	  }
       }
-      /* For Malayalam, skip over unformed below- (but NOT post-) forms. */
-      if (buffer->props.script == HB_SCRIPT_MALAYALAM)
-      {
-	for (unsigned int i = base + 1; i < end; i++)
-	{
-	  while (i < end && is_joiner (info[i]))
-	    i++;
-	  if (i == end || !is_coeng (info[i]))
-	    break;
-	  i++; /* Skip halant. */
-	  while (i < end && is_joiner (info[i]))
-	    i++;
-	  if (i < end && is_consonant (info[i]) && info[i].khmer_position() == POS_BELOW_C)
-	  {
-	    base = i;
-	    info[base].khmer_position() = POS_BASE_C;
-	  }
-	}
-      }
 
       if (start < base && info[base].khmer_position() > POS_BASE_C)
         base--;
@@ -1286,29 +1246,22 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     /* If we lost track of base, alas, position before last thingy. */
     unsigned int new_pos = base == end ? base - 2 : base - 1;
 
-    /* Malayalam / Tamil do not have "half" forms or explicit virama forms.
-     * The glyphs formed by 'half' are Chillus or ligated explicit viramas.
-     * We want to position matra after them.
-     */
-    if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
-    {
-      while (new_pos > start &&
-	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_Coeng)))))
-	new_pos--;
+    while (new_pos > start &&
+	   !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_Coeng)))))
+      new_pos--;
 
-      /* If we found no Halant we are done.
-       * Otherwise only proceed if the Halant does
-       * not belong to the Matra itself! */
-      if (is_coeng (info[new_pos]) &&
-	  info[new_pos].khmer_position() != POS_PRE_M)
-      {
-	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
-	if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
-	  new_pos++;
-      }
-      else
-        new_pos = start; /* No move. */
+    /* If we found no Halant we are done.
+     * Otherwise only proceed if the Halant does
+     * not belong to the Matra itself! */
+    if (is_coeng (info[new_pos]) &&
+	info[new_pos].khmer_position() != POS_PRE_M)
+    {
+      /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+      if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
+	new_pos++;
     }
+    else
+      new_pos = start; /* No move. */
 
     if (start < new_pos && info[new_pos].khmer_position () != POS_PRE_M)
     {
@@ -1522,28 +1475,21 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	   */
 
 	  unsigned int new_pos = base;
-	  /* Malayalam / Tamil do not have "half" forms or explicit virama forms.
-	   * The glyphs formed by 'half' are Chillus or ligated explicit viramas.
-	   * We want to position matra after them.
-	   */
-	  if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
-	  {
-	    while (new_pos > start &&
-		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | FLAG (OT_Coeng))))
-	      new_pos--;
+	  while (new_pos > start &&
+		 !(is_one_of (info[new_pos - 1], FLAG(OT_M) | FLAG (OT_Coeng))))
+	    new_pos--;
 
-	    /* In Khmer coeng model, a H,Ra can go *after* matras.  If it goes after a
-	     * split matra, it should be reordered to *before* the left part of such matra. */
-	    if (new_pos > start && info[new_pos - 1].khmer_category() == OT_M)
-	    {
-	      unsigned int old_pos = i;
-	      for (unsigned int j = base + 1; j < old_pos; j++)
-		if (info[j].khmer_category() == OT_M)
-		{
-		  new_pos--;
-		  break;
-		}
-	    }
+	  /* In Khmer coeng model, a H,Ra can go *after* matras.  If it goes after a
+	   * split matra, it should be reordered to *before* the left part of such matra. */
+	  if (new_pos > start && info[new_pos - 1].khmer_category() == OT_M)
+	  {
+	    unsigned int old_pos = i;
+	    for (unsigned int j = base + 1; j < old_pos; j++)
+	      if (info[j].khmer_category() == OT_M)
+	      {
+		new_pos--;
+		break;
+	      }
 	  }
 
 	  if (new_pos > start && is_coeng (info[new_pos - 1]))
@@ -1588,20 +1534,11 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    */
   if (hb_options ().uniscribe_bug_compatible)
   {
-    switch ((hb_tag_t) plan->props.script)
-    {
-      case HB_SCRIPT_TAMIL:
-      case HB_SCRIPT_SINHALA:
-        break;
-
-      default:
-	/* Uniscribe merges the entire syllable into a single cluster... Except for Tamil & Sinhala.
-	 * This means, half forms are submerged into the main consonant's cluster.
-	 * This is unnecessary, and makes cursor positioning harder, but that's what
-	 * Uniscribe does. */
-	buffer->merge_clusters (start, end);
-	break;
-    }
+    /* Uniscribe merges the entire syllable into a single cluster... Except for Tamil & Sinhala.
+     * This means, half forms are submerged into the main consonant's cluster.
+     * This is unnecessary, and makes cursor positioning harder, but that's what
+     * Uniscribe does. */
+    buffer->merge_clusters (start, end);
   }
 }
 
