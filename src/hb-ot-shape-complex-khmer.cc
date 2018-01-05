@@ -273,11 +273,6 @@ set_khmer_properties (hb_glyph_info_t &info)
  * instead of adding a new flag in these structs.
  */
 
-enum base_position_t {
-  BASE_POS_FIRST,
-  BASE_POS_LAST_SINHALA,
-  BASE_POS_LAST
-};
 enum reph_position_t {
   REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
   REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
@@ -298,7 +293,6 @@ enum blwf_mode_t {
 };
 struct indic_config_t
 {
-  base_position_t base_pos;
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
@@ -306,7 +300,7 @@ struct indic_config_t
 
 static const indic_config_t indic_configs[] =
 {
-  {BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -504,8 +498,6 @@ struct khmer_shape_plan_t
 
   would_substitute_feature_t rphf;
   would_substitute_feature_t pref;
-  would_substitute_feature_t blwf;
-  would_substitute_feature_t pstf;
 
   hb_mask_t mask_array[INDIC_NUM_FEATURES];
 };
@@ -523,8 +515,6 @@ data_create_khmer (const hb_ot_shape_plan_t *plan)
 
   khmer_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), true);
   khmer_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), true);
-  khmer_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'), true);
-  khmer_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'), true);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (khmer_plan->mask_array); i++)
     khmer_plan->mask_array[i] = (khmer_features[i].flags & F_GLOBAL) ?
@@ -537,35 +527,6 @@ static void
 data_destroy_khmer (void *data)
 {
   free (data);
-}
-
-static khmer_position_t
-consonant_position_from_face (const khmer_shape_plan_t *khmer_plan,
-			      const hb_codepoint_t consonant,
-			      const hb_codepoint_t virama,
-			      hb_face_t *face)
-{
-  /* For old-spec, the order of glyphs is Consonant,Virama,
-   * whereas for new-spec, it's Virama,Consonant.  However,
-   * some broken fonts (like Free Sans) simply copied lookups
-   * from old-spec to new-spec without modification.
-   * And oddly enough, Uniscribe seems to respect those lookups.
-   * Eg. in the sequence U+0924,U+094D,U+0930, Uniscribe finds
-   * base at 0.  The font however, only has lookups matching
-   * 930,94D in 'blwf', not the expected 94D,930 (with new-spec
-   * table).  As such, we simply match both sequences.  Seems
-   * to work. */
-  hb_codepoint_t glyphs[3] = {virama, consonant, virama};
-  if (khmer_plan->blwf.would_substitute (glyphs  , 2, face) ||
-      khmer_plan->blwf.would_substitute (glyphs+1, 2, face))
-    return POS_BELOW_C;
-  if (khmer_plan->pstf.would_substitute (glyphs  , 2, face) ||
-      khmer_plan->pstf.would_substitute (glyphs+1, 2, face))
-    return POS_POST_C;
-  if (khmer_plan->pref.would_substitute (glyphs  , 2, face) ||
-      khmer_plan->pref.would_substitute (glyphs+1, 2, face))
-    return POS_POST_C;
-  return POS_BASE_C;
 }
 
 
@@ -614,33 +575,6 @@ compare_khmer_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
   int b = pb->khmer_position();
 
   return a < b ? -1 : a == b ? 0 : +1;
-}
-
-
-
-static void
-update_consonant_positions (const hb_ot_shape_plan_t *plan,
-			    hb_font_t         *font,
-			    hb_buffer_t       *buffer)
-{
-  const khmer_shape_plan_t *khmer_plan = (const khmer_shape_plan_t *) plan->data;
-
-  if (khmer_plan->config->base_pos != BASE_POS_LAST)
-    return;
-
-  hb_codepoint_t virama;
-  if (khmer_plan->get_virama_glyph (font, &virama))
-  {
-    hb_face_t *face = font->face;
-    unsigned int count = buffer->len;
-    hb_glyph_info_t *info = buffer->info;
-    for (unsigned int i = 0; i < count; i++)
-      if (info[i].khmer_position() == POS_BASE_C)
-      {
-	hb_codepoint_t consonant = info[i].codepoint;
-	info[i].khmer_position() = consonant_position_from_face (khmer_plan, consonant, virama, face);
-      }
-  }
 }
 
 
@@ -710,101 +644,13 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	has_reph = true;
     }
 
-    switch (khmer_plan->config->base_pos)
-    {
-      case BASE_POS_LAST:
-      {
-	/* -> starting from the end of the syllable, move backwards */
-	unsigned int i = end;
-	bool seen_below = false;
-	do {
-	  i--;
-	  /* -> until a consonant is found */
-	  if (is_consonant (info[i]))
-	  {
-	    /* -> that does not have a below-base or post-base form
-	     * (post-base forms have to follow below-base forms), */
-	    if (info[i].khmer_position() != POS_BELOW_C &&
-		(info[i].khmer_position() != POS_POST_C || seen_below))
-	    {
-	      base = i;
-	      break;
-	    }
-	    if (info[i].khmer_position() == POS_BELOW_C)
-	      seen_below = true;
+    /* The first consonant is always the base. */
+    base = start;
 
-	    /* -> or that is not a pre-base-reordering Ra,
-	     *
-	     * IMPLEMENTATION NOTES:
-	     *
-	     * Our pre-base-reordering Ra's are marked POS_POST_C, so will be skipped
-	     * by the logic above already.
-	     */
-
-	    /* -> or arrive at the first consonant. The consonant stopped at will
-	     * be the base. */
-	    base = i;
-	  }
-	  else
-	  {
-	    /* A ZWJ after a Halant stops the base search, and requests an explicit
-	     * half form.
-	     * A ZWJ before a Halant, requests a subjoined form instead, and hence
-	     * search continues.  This is particularly important for Bengali
-	     * sequence Ra,H,Ya that should form Ya-Phalaa by subjoining Ya. */
-	    if (start < i &&
-		info[i].khmer_category() == OT_ZWJ &&
-		info[i - 1].khmer_category() == OT_H)
-	      break;
-	  }
-	} while (i > limit);
-      }
-      break;
-
-      case BASE_POS_LAST_SINHALA:
-      {
-        /* Sinhala base positioning is slightly different from main Indic, in that:
-	 * 1. Its ZWJ behavior is different,
-	 * 2. We don't need to look into the font for consonant positions.
-	 */
-
-	if (!has_reph)
-	  base = limit;
-
-	/* Find the last base consonant that is not blocked by ZWJ.  If there is
-	 * a ZWJ right before a base consonant, that would request a subjoined form. */
-	for (unsigned int i = limit; i < end; i++)
-	  if (is_consonant (info[i]))
-	  {
-	    if (limit < i && info[i - 1].khmer_category() == OT_ZWJ)
-	      break;
-	    else
-	      base = i;
-	  }
-
-	/* Mark all subsequent consonants as below. */
-	for (unsigned int i = base + 1; i < end; i++)
-	  if (is_consonant (info[i]))
-	    info[i].khmer_position() = POS_BELOW_C;
-      }
-      break;
-
-      case BASE_POS_FIRST:
-      {
-	/* The first consonant is always the base. */
-
-	assert (khmer_plan->config->reph_mode == REPH_MODE_VIS_REPHA);
-	assert (!has_reph);
-
-	base = start;
-
-	/* Mark all subsequent consonants as below. */
-	for (unsigned int i = base + 1; i < end; i++)
-	  if (is_consonant (info[i]))
-	    info[i].khmer_position() = POS_BELOW_C;
-      }
-      break;
-    }
+    /* Mark all subsequent consonants as below. */
+    for (unsigned int i = base + 1; i < end; i++)
+      if (is_consonant (info[i]))
+	info[i].khmer_position() = POS_BELOW_C;
 
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
      *    and has more than one consonant, Ra is excluded from candidates for
@@ -1146,7 +992,6 @@ initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer)
 {
-  update_consonant_positions (plan, font, buffer);
   insert_dotted_circles (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
@@ -1579,11 +1424,6 @@ decompose_khmer (const hb_ot_shape_normalize_context_t *c,
 {
   switch (ab)
   {
-    /* Don't decompose these. */
-    case 0x0931u  : return false; /* DEVANAGARI LETTER RRA */
-    case 0x0B94u  : return false; /* TAMIL LETTER AU */
-
-
     /*
      * Decompose split matras that don't have Unicode decompositions.
      */
@@ -1594,58 +1434,6 @@ decompose_khmer (const hb_ot_shape_normalize_context_t *c,
     case 0x17C0u  : *a = 0x17C1u; *b= 0x17C0u; return true;
     case 0x17C4u  : *a = 0x17C1u; *b= 0x17C4u; return true;
     case 0x17C5u  : *a = 0x17C1u; *b= 0x17C5u; return true;
-
-#if 0
-    /* Gujarati */
-    /* This one has no decomposition in Unicode, but needs no decomposition either. */
-    /* case 0x0AC9u  : return false; */
-
-    /* Oriya */
-    case 0x0B57u  : *a = no decomp, -> RIGHT; return true;
-#endif
-  }
-
-  if ((ab == 0x0DDAu || hb_in_range<hb_codepoint_t> (ab, 0x0DDCu, 0x0DDEu)))
-  {
-    /*
-     * Sinhala split matras...  Let the fun begin.
-     *
-     * These four characters have Unicode decompositions.  However, Uniscribe
-     * decomposes them "Khmer-style", that is, it uses the character itself to
-     * get the second half.  The first half of all four decompositions is always
-     * U+0DD9.
-     *
-     * Now, there are buggy fonts, namely, the widely used lklug.ttf, that are
-     * broken with Uniscribe.  But we need to support them.  As such, we only
-     * do the Uniscribe-style decomposition if the character is transformed into
-     * its "sec.half" form by the 'pstf' feature.  Otherwise, we fall back to
-     * Unicode decomposition.
-     *
-     * Note that we can't unconditionally use Unicode decomposition.  That would
-     * break some other fonts, that are designed to work with Uniscribe, and
-     * don't have positioning features for the Unicode-style decomposition.
-     *
-     * Argh...
-     *
-     * The Uniscribe behavior is now documented in the newly published Sinhala
-     * spec in 2012:
-     *
-     *   http://www.microsoft.com/typography/OpenTypeDev/sinhala/intro.htm#shaping
-     */
-
-    const khmer_shape_plan_t *khmer_plan = (const khmer_shape_plan_t *) c->plan->data;
-
-    hb_codepoint_t glyph;
-
-    if (hb_options ().uniscribe_bug_compatible ||
-	(c->font->get_nominal_glyph (ab, &glyph) &&
-	 khmer_plan->pstf.would_substitute (&glyph, 1, c->font->face)))
-    {
-      /* Ok, safe to use Uniscribe-style decomposition. */
-      *a = 0x0DD9u;
-      *b = ab;
-      return true;
-    }
   }
 
   return (bool) c->unicode->decompose (ab, a, b);
@@ -1660,9 +1448,6 @@ compose_khmer (const hb_ot_shape_normalize_context_t *c,
   /* Avoid recomposing split matras. */
   if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
     return false;
-
-  /* Composition-exclusion exceptions that we want to recompose. */
-  if (a == 0x09AFu && b == 0x09BCu) { *ab = 0x09DFu; return true; }
 
   return (bool) c->unicode->compose (a, b, ab);
 }
