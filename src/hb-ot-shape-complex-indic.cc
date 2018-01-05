@@ -152,9 +152,9 @@ is_consonant (const hb_glyph_info_t &info)
 }
 
 static inline bool
-is_halant_or_coeng (const hb_glyph_info_t &info)
+is_halant (const hb_glyph_info_t &info)
 {
-  return is_one_of (info, HALANT_OR_COENG_FLAGS);
+  return is_one_of (info, FLAG (OT_H));
 }
 
 static inline void
@@ -861,15 +861,15 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   if (base < end)
     info[base].indic_position() = POS_BASE_C;
 
-  /* Mark final consonants.  A final consonant is one appearing after a matra,
-   * like in Khmer. */
+  /* Mark final consonants.  A final consonant is one appearing after a matra.
+   * Happens in Sinhala. */
   for (unsigned int i = base + 1; i < end; i++)
     if (info[i].indic_category() == OT_M) {
       for (unsigned int j = i + 1; j < end; j++)
-        if (is_consonant (info[j])) {
-	  info[j].indic_position() = POS_FINAL_C;
-	  break;
-	}
+	if (is_consonant (info[j])) {
+	 info[j].indic_position() = POS_FINAL_C;
+	 break;
+       }
       break;
     }
 
@@ -920,7 +920,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     indic_position_t last_pos = POS_START;
     for (unsigned int i = start; i < end; i++)
     {
-      if ((FLAG_UNSAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | HALANT_OR_COENG_FLAGS)))
+      if ((FLAG_UNSAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | FLAG (OT_H))))
       {
 	info[i].indic_position() = last_pos;
 	if (unlikely (info[i].indic_category() == OT_H &&
@@ -1251,7 +1251,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  _hb_glyph_info_ligated (&info[i]) &&
 	  _hb_glyph_info_multiplied (&info[i]))
       {
-        /* This will make sure that this glyph passes is_halant_or_coeng() test. */
+        /* This will make sure that this glyph passes is_halant() test. */
 	info[i].indic_category() = OT_H;
 	_hb_glyph_info_clear_ligated_and_multiplied (&info[i]);
       }
@@ -1284,7 +1284,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	      /* Ok, this was a 'pref' candidate but didn't form any.
 	       * Base is around here... */
 	      base = i;
-	      while (base < end && is_halant_or_coeng (info[base]))
+	      while (base < end && is_halant (info[base]))
 		base++;
 	      info[base].indic_position() = POS_BASE_C;
 
@@ -1300,7 +1300,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	{
 	  while (i < end && is_joiner (info[i]))
 	    i++;
-	  if (i == end || !is_halant_or_coeng (info[i]))
+	  if (i == end || !is_halant (info[i]))
 	    break;
 	  i++; /* Skip halant. */
 	  while (i < end && is_joiner (info[i]))
@@ -1322,7 +1322,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     base--;
   if (base < end)
     while (start < base &&
-	   is_one_of (info[base], (FLAG (OT_N) | HALANT_OR_COENG_FLAGS)))
+	   is_one_of (info[base], (FLAG (OT_N) | FLAG (OT_H))))
       base--;
 
 
@@ -1348,13 +1348,13 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
     {
       while (new_pos > start &&
-	     !(is_one_of (info[new_pos], (FLAG (OT_M) | HALANT_OR_COENG_FLAGS))))
+	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H)))))
 	new_pos--;
 
       /* If we found no Halant we are done.
        * Otherwise only proceed if the Halant does
        * not belong to the Matra itself! */
-      if (is_halant_or_coeng (info[new_pos]) &&
+      if (is_halant (info[new_pos]) &&
 	  info[new_pos].indic_position() != POS_PRE_M)
       {
 	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
@@ -1442,10 +1442,10 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
      */
     {
       new_reph_pos = start + 1;
-      while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
+      while (new_reph_pos < base && !is_halant (info[new_reph_pos]))
 	new_reph_pos++;
 
-      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos]))
+      if (new_reph_pos < base && is_halant (info[new_reph_pos]))
       {
 	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
 	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
@@ -1494,10 +1494,10 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     {
       /* Copied from step 2. */
       new_reph_pos = start + 1;
-      while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
+      while (new_reph_pos < base && !is_halant (info[new_reph_pos]))
 	new_reph_pos++;
 
-      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos]))
+      if (new_reph_pos < base && is_halant (info[new_reph_pos]))
       {
 	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
 	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
@@ -1521,7 +1521,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
        * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
        */
       if (!hb_options ().uniscribe_bug_compatible &&
-	  unlikely (is_halant_or_coeng (info[new_reph_pos]))) {
+	  unlikely (is_halant (info[new_reph_pos]))) {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
 	  if (info[i].indic_category() == OT_M) {
 	    /* Ok, got it. */
@@ -1582,24 +1582,11 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
 	  {
 	    while (new_pos > start &&
-		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
+		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | FLAG (OT_H))))
 	      new_pos--;
-
-	    /* In Khmer coeng model, a H,Ra can go *after* matras.  If it goes after a
-	     * split matra, it should be reordered to *before* the left part of such matra. */
-	    if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
-	    {
-	      unsigned int old_pos = i;
-	      for (unsigned int j = base + 1; j < old_pos; j++)
-		if (info[j].indic_category() == OT_M)
-		{
-		  new_pos--;
-		  break;
-		}
-	    }
 	  }
 
-	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
+	  if (new_pos > start && is_halant (info[new_pos - 1]))
 	  {
 	    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
 	    if (new_pos < end && is_joiner (info[new_pos]))
