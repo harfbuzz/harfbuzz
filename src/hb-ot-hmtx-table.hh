@@ -144,7 +144,7 @@ struct hmtxvmtx
       }
 
       return table->longMetric[MIN (glyph, (uint32_t) num_advances - 1)].advance
-	   + var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+	   + (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
     }
 
     public:
