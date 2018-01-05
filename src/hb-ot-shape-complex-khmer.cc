@@ -124,7 +124,7 @@ set_khmer_properties (hb_glyph_info_t &info)
   {
     pos = matra_position (pos);
   }
-  else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Symbol))))
+  else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_A) | FLAG (OT_Symbol))))
   {
     pos = POS_SMVD;
   }
@@ -341,9 +341,6 @@ data_destroy_khmer (void *data)
 
 enum syllable_type_t {
   consonant_syllable,
-  vowel_syllable,
-  standalone_cluster,
-  symbol_cluster,
   broken_cluster,
   non_khmer_cluster,
 };
@@ -548,27 +545,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
-				       hb_face_t *face,
-				       hb_buffer_t *buffer,
-				       unsigned int start, unsigned int end)
-{
-  /* We treat placeholder/dotted-circle as if they are consonants, so we
-   * should just chain.  Only if not in compatibility mode that is... */
-
-  if (hb_options ().uniscribe_bug_compatible)
-  {
-    /* For dotted-circle, this is what Uniscribe does:
-     * If dotted-circle is the last glyph, it just does nothing.
-     * Ie. It doesn't form Reph. */
-    if (buffer->info[end - 1].khmer_category() == OT_DOTTEDCIRCLE)
-      return;
-  }
-
-  initial_reordering_consonant_syllable (plan, face, buffer, start, end);
-}
-
-static void
 initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 			     hb_face_t *face,
 			     hb_buffer_t *buffer,
@@ -577,17 +553,11 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
   syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type)
   {
-    case vowel_syllable: /* We made the vowels look like consonants.  So let's call the consonant logic! */
+    case broken_cluster: /* We already inserted dotted-circles, so just call the consonant_syllable. */
     case consonant_syllable:
      initial_reordering_consonant_syllable (plan, face, buffer, start, end);
      break;
 
-    case broken_cluster: /* We already inserted dotted-circles, so just call the standalone_cluster. */
-    case standalone_cluster:
-     initial_reordering_standalone_cluster (plan, face, buffer, start, end);
-     break;
-
-    case symbol_cluster:
     case non_khmer_cluster:
       break;
   }

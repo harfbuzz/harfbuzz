@@ -46,7 +46,6 @@ ZWNJ = 5;
 ZWJ  = 6;
 M    = 7;
 SM   = 8;
-VD   = 9;
 A    = 10;
 PLACEHOLDER = 11;
 DOTTEDCIRCLE = 12;
@@ -60,22 +59,18 @@ z = ZWJ|ZWNJ;			# is_joiner
 
 cn = c.ZWJ?.n?;
 matra_group = z{0,3}.M.N?.Coeng?;
-syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}? VD{0,2};
+syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}?;
 halant_group = (z?.Coeng.(ZWJ.N?)?);
 final_halant_group = halant_group | Coeng.ZWNJ;
 halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V))?;
 
 
-consonant_syllable =	(cn.halant_group){0,4} cn halant_or_matra_group syllable_tail;
-vowel_syllable =	V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group syllable_tail);
-standalone_cluster =	(PLACEHOLDER | DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
+consonant_syllable =	(c|V|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 broken_cluster =	n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
-	vowel_syllable		=> { found_syllable (vowel_syllable); };
-	standalone_cluster	=> { found_syllable (standalone_cluster); };
 	broken_cluster		=> { found_syllable (broken_cluster); };
 	other			=> { found_syllable (non_khmer_cluster); };
 *|;
