@@ -243,25 +243,18 @@ set_khmer_properties (hb_glyph_info_t &info)
  * instead of adding a new flag in these structs.
  */
 
-enum reph_mode_t {
-  REPH_MODE_IMPLICIT,  /* Reph formed out of initial Ra,H sequence. */
-  REPH_MODE_EXPLICIT,  /* Reph formed out of initial Ra,H,ZWJ sequence. */
-  REPH_MODE_VIS_REPHA, /* Encoded Repha character, no reordering needed. */
-  REPH_MODE_LOG_REPHA  /* Encoded Repha character, needs reordering. */
-};
 enum blwf_mode_t {
   BLWF_MODE_PRE_AND_POST, /* Below-forms feature applied to pre-base and post-base. */
   BLWF_MODE_POST_ONLY     /* Below-forms feature applied to post-base only. */
 };
 struct indic_config_t
 {
-  reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
 };
 
 static const indic_config_t indic_configs[] =
 {
-  {REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {BLWF_MODE_PRE_AND_POST},
 };
 
 
