@@ -280,7 +280,11 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
       else if (unlikely (hb_in_range (u, 0xE0020u, 0xE007Fu))) props |= UPROPS_MASK_HIDDEN;
       /* COMBINING GRAPHEME JOINER should not be skipped; at least some times.
        * https://github.com/harfbuzz/harfbuzz/issues/554 */
-      else if (unlikely (u == 0x034Fu)) props |= UPROPS_MASK_HIDDEN;
+      else if (unlikely (u == 0x034Fu))
+      {
+	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_CGJ;
+	props |= UPROPS_MASK_HIDDEN;
+      }
     }
     else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL (gen_cat)))
     {
@@ -387,6 +391,11 @@ _hb_glyph_info_is_default_ignorable_and_not_hidden (const hb_glyph_info_t *info)
   return ((info->unicode_props() & (UPROPS_MASK_IGNORABLE|UPROPS_MASK_HIDDEN))
 	  == UPROPS_MASK_IGNORABLE) &&
 	 !_hb_glyph_info_ligated (info);
+}
+static inline void
+_hb_glyph_info_unhide (hb_glyph_info_t *info)
+{
+  info->unicode_props() &= ~ UPROPS_MASK_HIDDEN;
 }
 
 static inline bool
