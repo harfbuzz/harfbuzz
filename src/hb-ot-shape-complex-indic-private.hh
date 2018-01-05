@@ -73,7 +73,6 @@ enum indic_category_t {
  * consonant syllable logic from the vowel syllable function and get it all right! */
 #define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CS) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
 #define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
-#define HALANT_OR_COENG_FLAGS (FLAG (OT_H) | FLAG (OT_Coeng))
 
 
 /* Visual positions in a syllable from left to right. */
