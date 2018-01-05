@@ -60,11 +60,11 @@ cn = c.ZWJ?.n?;
 matra_group = z{0,3}.M.N?.Coeng?;
 syllable_tail = (SM.SM?)? A{0,3}?;
 halant_group = Coeng;
-halant_or_matra_group = (matra_group{0,4}) (Coeng (cn|V))?;
+halant_or_matra_group = (matra_group*) (Coeng (cn|V))?;
 
 
-consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
-broken_cluster =	n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
+consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn)* halant_or_matra_group syllable_tail;
+broken_cluster =	n? (halant_group.cn)* halant_or_matra_group syllable_tail;
 other =			any;
 
 main := |*
