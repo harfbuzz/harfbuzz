@@ -236,30 +236,6 @@ set_khmer_properties (hb_glyph_info_t &info)
 
 
 /*
- * Indic configurations.  Note that we do not want to keep every single script-specific
- * behavior in these tables necessarily.  This should mainly be used for per-script
- * properties that are cheaper keeping here, than in the code.  Ie. if, say, one and
- * only one script has an exception, that one script can be if'ed directly in the code,
- * instead of adding a new flag in these structs.
- */
-
-enum blwf_mode_t {
-  BLWF_MODE_PRE_AND_POST, /* Below-forms feature applied to pre-base and post-base. */
-  BLWF_MODE_POST_ONLY     /* Below-forms feature applied to post-base only. */
-};
-struct indic_config_t
-{
-  blwf_mode_t     blwf_mode;
-};
-
-static const indic_config_t indic_configs[] =
-{
-  {BLWF_MODE_PRE_AND_POST},
-};
-
-
-
-/*
  * Indic shaper.
  */
 
@@ -446,8 +422,6 @@ struct khmer_shape_plan_t
     return glyph != 0;
   }
 
-  const indic_config_t *config;
-
   mutable hb_codepoint_t virama_glyph;
 
   would_substitute_feature_t rphf;
@@ -462,8 +436,6 @@ data_create_khmer (const hb_ot_shape_plan_t *plan)
   khmer_shape_plan_t *khmer_plan = (khmer_shape_plan_t *) calloc (1, sizeof (khmer_shape_plan_t));
   if (unlikely (!khmer_plan))
     return nullptr;
-
-  khmer_plan->config = &indic_configs[0];
 
   khmer_plan->virama_glyph = (hb_codepoint_t) -1;
 
