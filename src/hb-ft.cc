@@ -635,10 +635,18 @@ hb_ft_font_changed (hb_font_t *font)
     {
       if (!FT_Get_Var_Blend_Coordinates (ft_face, mm_var->num_axis, ft_coords))
       {
-	for (unsigned int i = 0; i < mm_var->num_axis; ++i)
-	  coords[i] = ft_coords[i] >>= 2;
+	bool nonzero = false;
 
-	hb_font_set_var_coords_normalized (font, coords, mm_var->num_axis);
+	for (unsigned int i = 0; i < mm_var->num_axis; ++i)
+	 {
+	  coords[i] = ft_coords[i] >>= 2;
+	  nonzero = nonzero || coords[i];
+	 }
+
+	if (nonzero)
+	  hb_font_set_var_coords_normalized (font, coords, mm_var->num_axis);
+	else
+	  hb_font_set_var_coords_normalized (font, nullptr, 0);
       }
     }
     free (coords);
