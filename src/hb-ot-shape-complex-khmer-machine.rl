@@ -56,7 +56,7 @@ c = (C | Ra | V);		# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
 
-cn = c.ZWJ?.n?;
+cn = c.n?;
 matra_group = z?.M.N?;
 syllable_tail = (SM.SM?)? A{0,3}?;
 
