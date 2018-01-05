@@ -110,36 +110,6 @@ matra_position (hb_codepoint_t u, khmer_position_t side)
   return side;
 }
 
-/* XXX
- * This is a hack for now.  We should move this data into the main Indic table.
- * Or completely remove it and just check in the tables.
- */
-static const hb_codepoint_t ra_chars[] = {
-  0x0930u, /* Devanagari */
-  0x09B0u, /* Bengali */
-  0x09F0u, /* Bengali */
-  0x0A30u, /* Gurmukhi */	/* No Reph */
-  0x0AB0u, /* Gujarati */
-  0x0B30u, /* Oriya */
-  0x0BB0u, /* Tamil */		/* No Reph */
-  0x0C30u, /* Telugu */		/* Reph formed only with ZWJ */
-  0x0CB0u, /* Kannada */
-  0x0D30u, /* Malayalam */	/* No Reph, Logical Repha */
-
-  0x0DBBu, /* Sinhala */		/* Reph formed only with ZWJ */
-
-  0x179Au, /* Khmer */		/* No Reph, Visual Repha */
-};
-
-static inline bool
-is_ra (hb_codepoint_t u)
-{
-  for (unsigned int i = 0; i < ARRAY_LENGTH (ra_chars); i++)
-    if (u == ra_chars[i])
-      return true;
-  return false;
-}
-
 static inline bool
 is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 {
@@ -240,7 +210,7 @@ set_khmer_properties (hb_glyph_info_t &info)
   if ((FLAG_UNSAFE (cat) & CONSONANT_FLAGS))
   {
     pos = POS_BASE_C;
-    if (is_ra (u))
+    if (u == 0x179Au)
       cat = OT_Ra;
   }
   else if (cat == OT_M)
@@ -273,14 +243,6 @@ set_khmer_properties (hb_glyph_info_t &info)
  * instead of adding a new flag in these structs.
  */
 
-enum reph_position_t {
-  REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
-  REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
-  REPH_POS_AFTER_SUB   = POS_AFTER_SUB,
-  REPH_POS_BEFORE_POST = POS_BEFORE_POST,
-  REPH_POS_AFTER_POST  = POS_AFTER_POST,
-  REPH_POS_DONT_CARE   = POS_RA_TO_BECOME_REPH
-};
 enum reph_mode_t {
   REPH_MODE_IMPLICIT,  /* Reph formed out of initial Ra,H sequence. */
   REPH_MODE_EXPLICIT,  /* Reph formed out of initial Ra,H,ZWJ sequence. */
@@ -293,14 +255,13 @@ enum blwf_mode_t {
 };
 struct indic_config_t
 {
-  reph_position_t reph_pos;
   reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
 };
 
 static const indic_config_t indic_configs[] =
 {
-  {REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -590,119 +551,16 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   const khmer_shape_plan_t *khmer_plan = (const khmer_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
 
-  /* 1. Find base consonant:
-   *
-   * The shaping engine finds the base consonant of the syllable, using the
-   * following algorithm: starting from the end of the syllable, move backwards
-   * until a consonant is found that does not have a below-base or post-base
-   * form (post-base forms have to follow below-base forms), or that is not a
-   * pre-base-reordering Ra, or arrive at the first consonant. The consonant
-   * stopped at will be the base.
-   *
-   *   o If the syllable starts with Ra + Halant (in a script that has Reph)
-   *     and has more than one consonant, Ra is excluded from candidates for
-   *     base consonants.
-   */
+  /* 1. Khmer shaping assumes that a syllable will begin with a Cons, IndV, or Number. */
 
-  unsigned int base = end;
-  bool has_reph = false;
+  /* The first consonant is always the base. */
+  unsigned int base = start;
+  info[base].khmer_position() = POS_BASE_C;
 
-  {
-    /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
-     *    and has more than one consonant, Ra is excluded from candidates for
-     *    base consonants. */
-    unsigned int limit = start;
-    if (khmer_plan->config->reph_pos != REPH_POS_DONT_CARE &&
-	khmer_plan->mask_array[RPHF] &&
-	start + 3 <= end &&
-	(
-	 (khmer_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
-	 (khmer_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].khmer_category() == OT_ZWJ)
-	))
-    {
-      /* See if it matches the 'rphf' feature. */
-      hb_codepoint_t glyphs[3] = {info[start].codepoint,
-				  info[start + 1].codepoint,
-				  khmer_plan->config->reph_mode == REPH_MODE_EXPLICIT ?
-				    info[start + 2].codepoint : 0};
-      if (khmer_plan->rphf.would_substitute (glyphs, 2, face) ||
-	  (khmer_plan->config->reph_mode == REPH_MODE_EXPLICIT &&
-	   khmer_plan->rphf.would_substitute (glyphs, 3, face)))
-      {
-	limit += 2;
-	while (limit < end && is_joiner (info[limit]))
-	  limit++;
-	base = start;
-	has_reph = true;
-      }
-    } else if (khmer_plan->config->reph_mode == REPH_MODE_LOG_REPHA && info[start].khmer_category() == OT_Repha)
-    {
-	limit += 1;
-	while (limit < end && is_joiner (info[limit]))
-	  limit++;
-	base = start;
-	has_reph = true;
-    }
-
-    /* The first consonant is always the base. */
-    base = start;
-
-    /* Mark all subsequent consonants as below. */
-    for (unsigned int i = base + 1; i < end; i++)
-      if (is_consonant (info[i]))
-	info[i].khmer_position() = POS_BELOW_C;
-
-    /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
-     *    and has more than one consonant, Ra is excluded from candidates for
-     *    base consonants.
-     *
-     *  Only do this for unforced Reph. (ie. not for Ra,H,ZWJ. */
-    if (has_reph && base == start && limit - base <= 2) {
-      /* Have no other consonant, so Reph is not formed and Ra becomes base. */
-      has_reph = false;
-    }
-  }
-
-
-  /* 2. Decompose and reorder Matras:
-   *
-   * Each matra and any syllable modifier sign in the syllable are moved to the
-   * appropriate position relative to the consonant(s) in the syllable. The
-   * shaping engine decomposes two- or three-part matras into their constituent
-   * parts before any repositioning. Matra characters are classified by which
-   * consonant in a conjunct they have affinity for and are reordered to the
-   * following positions:
-   *
-   *   o Before first half form in the syllable
-   *   o After subjoined consonants
-   *   o After post-form consonant
-   *   o After main consonant (for above marks)
-   *
-   * IMPLEMENTATION NOTES:
-   *
-   * The normalize() routine has already decomposed matras for us, so we don't
-   * need to worry about that.
-   */
-
-
-  /* 3.  Reorder marks to canonical order:
-   *
-   * Adjacent nukta and halant or nukta and vedic sign are always repositioned
-   * if necessary, so that the nukta is first.
-   *
-   * IMPLEMENTATION NOTES:
-   *
-   * We don't need to do this: the normalize() routine already did this for us.
-   */
-
-
-  /* Reorder characters */
-
-  for (unsigned int i = start; i < base; i++)
-    info[i].khmer_position() = MIN (POS_PRE_C, (khmer_position_t) info[i].khmer_position());
-
-  if (base < end)
-    info[base].khmer_position() = POS_BASE_C;
+  /* Mark all subsequent consonants as below. */
+  for (unsigned int i = base + 1; i < end; i++)
+    if (is_consonant (info[i]))
+      info[i].khmer_position() = POS_BELOW_C;
 
   /* Mark final consonants.  A final consonant is one appearing after a matra,
    * like in Khmer. */
@@ -715,10 +573,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	}
       break;
     }
-
-  /* Handle beginning Ra */
-  if (has_reph)
-    info[start].khmer_position() = POS_RA_TO_BECOME_REPH;
 
   /* Attach misc marks to previous char to move with them. */
   {
@@ -766,7 +620,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
         last = i;
   }
 
-
   {
     /* Use syllable() for sort accounting temporarily. */
     unsigned int syllable = info[start].syllable();
@@ -811,20 +664,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   {
     hb_mask_t mask;
 
-    /* Reph */
-    for (unsigned int i = start; i < end && info[i].khmer_position() == POS_RA_TO_BECOME_REPH; i++)
-      info[i].mask |= khmer_plan->mask_array[RPHF];
-
-    /* Pre-base */
-    mask = khmer_plan->mask_array[HALF];
-    if (khmer_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
-      mask |= khmer_plan->mask_array[BLWF];
-    for (unsigned int i = start; i < base; i++)
-      info[i].mask  |= mask;
-    /* Base */
-    mask = 0;
-    if (base < end)
-      info[base].mask |= mask;
     /* Post-base */
     mask = khmer_plan->mask_array[BLWF] | khmer_plan->mask_array[ABVF] | khmer_plan->mask_array[PSTF];
     for (unsigned int i = base + 1; i < end; i++)
@@ -1134,158 +973,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  buffer->merge_clusters (i, MIN (end, base + 1));
 	  break;
 	}
-    }
-  }
-
-
-  /*   o Reorder reph:
-   *
-   *     Reph’s original position is always at the beginning of the syllable,
-   *     (i.e. it is not reordered at the character reordering stage). However,
-   *     it will be reordered according to the basic-forms shaping results.
-   *     Possible positions for reph, depending on the script, are; after main,
-   *     before post-base consonant forms, and after post-base consonant forms.
-   */
-
-  /* Two cases:
-   *
-   * - If repha is encoded as a sequence of characters (Ra,H or Ra,H,ZWJ), then
-   *   we should only move it if the sequence ligated to the repha form.
-   *
-   * - If repha is encoded separately and in the logical position, we should only
-   *   move it if it did NOT ligate.  If it ligated, it's probably the font trying
-   *   to make it work without the reordering.
-   */
-  if (start + 1 < end &&
-      info[start].khmer_position() == POS_RA_TO_BECOME_REPH &&
-      ((info[start].khmer_category() == OT_Repha) ^
-       _hb_glyph_info_ligated_and_didnt_multiply (&info[start])))
-  {
-    unsigned int new_reph_pos;
-    reph_position_t reph_pos = khmer_plan->config->reph_pos;
-
-    assert (reph_pos != REPH_POS_DONT_CARE);
-
-    /*       1. If reph should be positioned after post-base consonant forms,
-     *          proceed to step 5.
-     */
-    if (reph_pos == REPH_POS_AFTER_POST)
-    {
-      goto reph_step_5;
-    }
-
-    /*       2. If the reph repositioning class is not after post-base: target
-     *          position is after the first explicit halant glyph between the
-     *          first post-reph consonant and last main consonant. If ZWJ or ZWNJ
-     *          are following this halant, position is moved after it. If such
-     *          position is found, this is the target position. Otherwise,
-     *          proceed to the next step.
-     *
-     *          Note: in old-implementation fonts, where classifications were
-     *          fixed in shaping engine, there was no case where reph position
-     *          will be found on this step.
-     */
-    {
-      new_reph_pos = start + 1;
-      while (new_reph_pos < base && !is_coeng (info[new_reph_pos]))
-	new_reph_pos++;
-
-      if (new_reph_pos < base && is_coeng (info[new_reph_pos]))
-      {
-	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
-	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
-	  new_reph_pos++;
-	goto reph_move;
-      }
-    }
-
-    /*       3. If reph should be repositioned after the main consonant: find the
-     *          first consonant not ligated with main, or find the first
-     *          consonant that is not a potential pre-base-reordering Ra.
-     */
-    if (reph_pos == REPH_POS_AFTER_MAIN)
-    {
-      new_reph_pos = base;
-      while (new_reph_pos + 1 < end && info[new_reph_pos + 1].khmer_position() <= POS_AFTER_MAIN)
-	new_reph_pos++;
-      if (new_reph_pos < end)
-        goto reph_move;
-    }
-
-    /*       4. If reph should be positioned before post-base consonant, find
-     *          first post-base classified consonant not ligated with main. If no
-     *          consonant is found, the target position should be before the
-     *          first matra, syllable modifier sign or vedic sign.
-     */
-    /* This is our take on what step 4 is trying to say (and failing, BADLY). */
-    if (reph_pos == REPH_POS_AFTER_SUB)
-    {
-      new_reph_pos = base;
-      while (new_reph_pos + 1 < end &&
-	     !( FLAG_UNSAFE (info[new_reph_pos + 1].khmer_position()) & (FLAG (POS_POST_C) | FLAG (POS_AFTER_POST) | FLAG (POS_SMVD))))
-	new_reph_pos++;
-      if (new_reph_pos < end)
-        goto reph_move;
-    }
-
-    /*       5. If no consonant is found in steps 3 or 4, move reph to a position
-     *          immediately before the first post-base matra, syllable modifier
-     *          sign or vedic sign that has a reordering class after the intended
-     *          reph position. For example, if the reordering position for reph
-     *          is post-main, it will skip above-base matras that also have a
-     *          post-main position.
-     */
-    reph_step_5:
-    {
-      /* Copied from step 2. */
-      new_reph_pos = start + 1;
-      while (new_reph_pos < base && !is_coeng (info[new_reph_pos]))
-	new_reph_pos++;
-
-      if (new_reph_pos < base && is_coeng (info[new_reph_pos]))
-      {
-	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
-	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
-	  new_reph_pos++;
-	goto reph_move;
-      }
-    }
-
-    /*       6. Otherwise, reorder reph to the end of the syllable.
-     */
-    {
-      new_reph_pos = end - 1;
-      while (new_reph_pos > start && info[new_reph_pos].khmer_position() == POS_SMVD)
-	new_reph_pos--;
-
-      /*
-       * If the Reph is to be ending up after a Matra,Halant sequence,
-       * position it before that Halant so it can interact with the Matra.
-       * However, if it's a plain Consonant,Halant we shouldn't do that.
-       * Uniscribe doesn't do this.
-       * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
-       */
-      if (!hb_options ().uniscribe_bug_compatible &&
-	  unlikely (is_coeng (info[new_reph_pos]))) {
-	for (unsigned int i = base + 1; i < new_reph_pos; i++)
-	  if (info[i].khmer_category() == OT_M) {
-	    /* Ok, got it. */
-	    new_reph_pos--;
-	  }
-      }
-      goto reph_move;
-    }
-
-    reph_move:
-    {
-      /* Move */
-      buffer->merge_clusters (start, new_reph_pos + 1);
-      hb_glyph_info_t reph = info[start];
-      memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
-      info[new_reph_pos] = reph;
-
-      if (start < base && base <= new_reph_pos)
-	base--;
     }
   }
 
