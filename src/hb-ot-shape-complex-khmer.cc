@@ -299,7 +299,6 @@ enum blwf_mode_t {
 struct indic_config_t
 {
   hb_script_t     script;
-  bool            has_old_spec;
   hb_codepoint_t  virama;
   base_position_t base_pos;
   reph_position_t reph_pos;
@@ -309,20 +308,7 @@ struct indic_config_t
 
 static const indic_config_t indic_configs[] =
 {
-  /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,      0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_BENGALI,	true, 0x09CDu,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_SINHALA,	false,0x0DCAu,BASE_POS_LAST_SINHALA,
-						     REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_KHMER,	false,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_KHMER,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -521,7 +507,6 @@ struct khmer_shape_plan_t
 
   const indic_config_t *config;
 
-  bool is_old_spec;
   mutable hb_codepoint_t virama_glyph;
 
   would_substitute_feature_t rphf;
@@ -540,29 +525,13 @@ data_create_khmer (const hb_ot_shape_plan_t *plan)
     return nullptr;
 
   khmer_plan->config = &indic_configs[0];
-  for (unsigned int i = 1; i < ARRAY_LENGTH (indic_configs); i++)
-    if (plan->props.script == indic_configs[i].script) {
-      khmer_plan->config = &indic_configs[i];
-      break;
-    }
 
-  khmer_plan->is_old_spec = khmer_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FFu) != '2');
   khmer_plan->virama_glyph = (hb_codepoint_t) -1;
 
-  /* Use zero-context would_substitute() matching for new-spec of the main
-   * Indic scripts, and scripts with one spec only, but not for old-specs.
-   * The new-spec for all dual-spec scripts says zero-context matching happens.
-   *
-   * However, testing with Malayalam shows that old and new spec both allow
-   * context.  Testing with Bengali new-spec however shows that it doesn't.
-   * So, the heuristic here is the way it is.  It should *only* be changed,
-   * as we discover more cases of what Windows does.  DON'T TOUCH OTHERWISE.
-   */
-  bool zero_context = !khmer_plan->is_old_spec && plan->props.script != HB_SCRIPT_MALAYALAM;
-  khmer_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), zero_context);
-  khmer_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), zero_context);
-  khmer_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'), zero_context);
-  khmer_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'), zero_context);
+  khmer_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), true);
+  khmer_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), true);
+  khmer_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'), true);
+  khmer_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'), true);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (khmer_plan->mask_array); i++)
     khmer_plan->mask_array[i] = (khmer_features[i].flags & F_GLOBAL) ?
@@ -928,44 +897,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   if (has_reph)
     info[start].khmer_position() = POS_RA_TO_BECOME_REPH;
 
-  /* For old-style Indic script tags, move the first post-base Halant after
-   * last consonant.
-   *
-   * Reports suggest that in some scripts Uniscribe does this only if there
-   * is *not* a Halant after last consonant already (eg. Kannada), while it
-   * does it unconditionally in other scripts (eg. Malayalam).  We don't
-   * currently know about other scripts, so we single out Malayalam for now.
-   *
-   * Kannada test case:
-   * U+0C9A,U+0CCD,U+0C9A,U+0CCD
-   * With some versions of Lohit Kannada.
-   * https://bugs.freedesktop.org/show_bug.cgi?id=59118
-   *
-   * Malayalam test case:
-   * U+0D38,U+0D4D,U+0D31,U+0D4D,U+0D31,U+0D4D
-   * With lohit-ttf-20121122/Lohit-Malayalam.ttf
-   */
-  if (khmer_plan->is_old_spec)
-  {
-    bool disallow_double_halants = buffer->props.script != HB_SCRIPT_MALAYALAM;
-    for (unsigned int i = base + 1; i < end; i++)
-      if (info[i].khmer_category() == OT_H)
-      {
-        unsigned int j;
-        for (j = end - 1; j > i; j--)
-	  if (is_consonant (info[j]) ||
-	      (disallow_double_halants && info[j].khmer_category() == OT_H))
-	    break;
-	if (info[j].khmer_category() != OT_H && j > i) {
-	  /* Move Halant to after last consonant. */
-	  hb_glyph_info_t t = info[i];
-	  memmove (&info[i], &info[i + 1], (j - i) * sizeof (info[0]));
-	  info[j] = t;
-	}
-        break;
-      }
-  }
-
   /* Attach misc marks to previous char to move with them. */
   {
     khmer_position_t last_pos = POS_START;
@@ -1029,36 +960,23 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	base = i;
 	break;
       }
-    /* Things are out-of-control for post base positions, they may shuffle
-     * around like crazy.  In old-spec mode, we move halants around, so in
-     * that case merge all clusters after base.  Otherwise, check the sort
-     * order and merge as needed.
-     * For pre-base stuff, we handle cluster issues in final reordering.
-     *
-     * We could use buffer->sort() for this, if there was no special
-     * reordering of pre-base stuff happening later...
-     */
-    if (khmer_plan->is_old_spec || end - base > 127)
-      buffer->merge_clusters (base, end);
-    else
-    {
-      /* Note!  syllable() is a one-byte field. */
-      for (unsigned int i = base; i < end; i++)
-        if (info[i].syllable() != 255)
+
+    /* Note!  syllable() is a one-byte field. */
+    for (unsigned int i = base; i < end; i++)
+      if (info[i].syllable() != 255)
+      {
+	unsigned int max = i;
+	unsigned int j = start + info[i].syllable();
+	while (j != i)
 	{
-	  unsigned int max = i;
-	  unsigned int j = start + info[i].syllable();
-	  while (j != i)
-	  {
-	    max = MAX (max, j);
-	    unsigned int next = start + info[j].syllable();
-	    info[j].syllable() = 255; /* So we don't process j later again. */
-	    j = next;
-	  }
-	  if (i != max)
-	    buffer->merge_clusters (i, max + 1);
+	  max = MAX (max, j);
+	  unsigned int next = start + info[j].syllable();
+	  info[j].syllable() = 255; /* So we don't process j later again. */
+	  j = next;
 	}
-    }
+	if (i != max)
+	  buffer->merge_clusters (i, max + 1);
+      }
 
     /* Put syllable back in. */
     for (unsigned int i = start; i < end; i++)
@@ -1076,8 +994,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     /* Pre-base */
     mask = khmer_plan->mask_array[HALF];
-    if (!khmer_plan->is_old_spec &&
-	khmer_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
+    if (khmer_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
       mask |= khmer_plan->mask_array[BLWF];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
@@ -1089,38 +1006,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     mask = khmer_plan->mask_array[BLWF] | khmer_plan->mask_array[ABVF] | khmer_plan->mask_array[PSTF];
     for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
-  }
-
-  if (khmer_plan->is_old_spec &&
-      buffer->props.script == HB_SCRIPT_DEVANAGARI)
-  {
-    /* Old-spec eye-lash Ra needs special handling.  From the
-     * spec:
-     *
-     * "The feature 'below-base form' is applied to consonants
-     * having below-base forms and following the base consonant.
-     * The exception is vattu, which may appear below half forms
-     * as well as below the base glyph. The feature 'below-base
-     * form' will be applied to all such occurrences of Ra as well."
-     *
-     * Test case: U+0924,U+094D,U+0930,U+094d,U+0915
-     * with Sanskrit 2003 font.
-     *
-     * However, note that Ra,Halant,ZWJ is the correct way to
-     * request eyelash form of Ra, so we wouldbn't inhibit it
-     * in that sequence.
-     *
-     * Test case: U+0924,U+094D,U+0930,U+094d,U+200D,U+0915
-     */
-    for (unsigned int i = start; i + 1 < base; i++)
-      if (info[i  ].khmer_category() == OT_Ra &&
-	  info[i+1].khmer_category() == OT_H  &&
-	  (i + 2 == base ||
-	   info[i+2].khmer_category() != OT_ZWJ))
-      {
-	info[i  ].mask |= khmer_plan->mask_array[BLWF];
-	info[i+1].mask |= khmer_plan->mask_array[BLWF];
-      }
   }
 
   unsigned int pref_len = 2;
