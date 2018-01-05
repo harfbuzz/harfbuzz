@@ -1394,7 +1394,7 @@ struct VariationStore
   protected:
   UINT16				format;
   LOffsetTo<VarRegionList>		regions;
-  OffsetArrayOf<VarData, UINT32>		dataSets;
+  OffsetArrayOf<VarData, UINT32>	dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
 };
