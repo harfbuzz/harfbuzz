@@ -59,11 +59,9 @@ z = ZWJ|ZWNJ;			# is_joiner
 cn = c.ZWJ?.n?;
 matra_group = z?.M.N?;
 syllable_tail = (SM.SM?)? A{0,3}?;
-halant_group = Coeng;
-halant_or_matra_group = (matra_group*) (Coeng (cn|V))?;
 
 
-broken_cluster =	n? (halant_group.cn)* halant_or_matra_group syllable_tail;
+broken_cluster =	n? (Coeng.cn)* matra_group* (Coeng.cn)? syllable_tail;
 consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
 other =			any;
 
