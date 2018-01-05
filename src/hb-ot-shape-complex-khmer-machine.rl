@@ -62,13 +62,13 @@ z = ZWJ|ZWNJ;			# is_joiner
 
 cn = c.ZWJ?.n?;
 symbol = Symbol.N?;
-matra_group = z{0,3}.M.N?.H?;
+matra_group = z{0,3}.M.N?.Coeng?;
 syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}? VD{0,2};
 place_holder = PLACEHOLDER | DOTTEDCIRCLE;
 halant_group = (z?.Coeng.(ZWJ.N?)?);
 final_halant_group = halant_group | Coeng.ZWNJ;
 medial_group = CM?;
-halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V)?)?;
+halant_or_matra_group = (final_halant_group | (Coeng.ZWJ)? matra_group{0,4}) (Coeng (cn|V))?;
 
 
 consonant_syllable =	(cn.halant_group){0,4} cn medial_group halant_or_matra_group syllable_tail;
