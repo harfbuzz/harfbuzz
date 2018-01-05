@@ -199,17 +199,10 @@ khmer_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), F_GLOBAL},
-  {HB_TAG('a','k','h','n'), F_GLOBAL},
-  {HB_TAG('r','p','h','f'), F_NONE},
-  {HB_TAG('r','k','r','f'), F_GLOBAL},
   {HB_TAG('p','r','e','f'), F_NONE},
   {HB_TAG('b','l','w','f'), F_NONE},
   {HB_TAG('a','b','v','f'), F_NONE},
-  {HB_TAG('h','a','l','f'), F_NONE},
   {HB_TAG('p','s','t','f'), F_NONE},
-  {HB_TAG('v','a','t','u'), F_GLOBAL},
-  {HB_TAG('c','j','c','t'), F_GLOBAL},
   {HB_TAG('c','f','a','r'), F_NONE},
   /*
    * Other features.
@@ -217,12 +210,10 @@ khmer_features[] =
    * Default Bengali font in Windows for example has intermixed
    * lookups for init,pres,abvs,blws features.
    */
-  {HB_TAG('i','n','i','t'), F_NONE},
   {HB_TAG('p','r','e','s'), F_GLOBAL},
   {HB_TAG('a','b','v','s'), F_GLOBAL},
   {HB_TAG('b','l','w','s'), F_GLOBAL},
   {HB_TAG('p','s','t','s'), F_GLOBAL},
-  {HB_TAG('h','a','l','n'), F_GLOBAL},
   /* Positioning features, though we don't care about the types. */
   {HB_TAG('d','i','s','t'), F_GLOBAL},
   {HB_TAG('a','b','v','m'), F_GLOBAL},
@@ -233,31 +224,22 @@ khmer_features[] =
  * Must be in the same order as the khmer_features array.
  */
 enum {
-  _NUKT,
-  _AKHN,
-  RPHF,
-  _RKRF,
   PREF,
   BLWF,
   ABVF,
-  HALF,
   PSTF,
-  _VATU,
-  _CJCT,
   CFAR,
 
-  INIT,
   _PRES,
   _ABVS,
   _BLWS,
   _PSTS,
-  _HALN,
   _DIST,
   _ABVM,
   _BLWM,
 
-  INDIC_NUM_FEATURES,
-  INDIC_BASIC_FEATURES = INIT /* Don't forget to update this! */
+  KHMER_NUM_FEATURES,
+  KHMER_BASIC_FEATURES = _PRES /* Don't forget to update this! */
 };
 
 static void
@@ -293,12 +275,12 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
 
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
-  for (; i < INDIC_BASIC_FEATURES; i++) {
+  for (; i < KHMER_BASIC_FEATURES; i++) {
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
     map->add_gsub_pause (nullptr);
   }
   map->add_gsub_pause (final_reordering);
-  for (; i < INDIC_NUM_FEATURES; i++) {
+  for (; i < KHMER_NUM_FEATURES; i++) {
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
   }
 
@@ -374,7 +356,7 @@ struct khmer_shape_plan_t
 
   would_substitute_feature_t pref;
 
-  hb_mask_t mask_array[INDIC_NUM_FEATURES];
+  hb_mask_t mask_array[KHMER_NUM_FEATURES];
 };
 
 static void *
@@ -608,26 +590,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
     }
   }
-
-  /* Apply ZWJ/ZWNJ effects */
-  for (unsigned int i = start + 1; i < end; i++)
-    if (is_joiner (info[i])) {
-      bool non_joiner = info[i].khmer_category() == OT_ZWNJ;
-      unsigned int j = i;
-
-      do {
-	j--;
-
-	/* ZWJ/ZWNJ should disable CJCT.  They do that by simply
-	 * being there, since we don't skip them for the CJCT
-	 * feature (ie. F_MANUAL_ZWJ) */
-
-	/* A ZWNJ disables HALF. */
-	if (non_joiner)
-	  info[j].mask &= ~khmer_plan->mask_array[HALF];
-
-      } while (j > start && !is_consonant (info[j]));
-    }
 }
 
 static void
@@ -957,18 +919,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
         break;
       }
-  }
-
-
-  /* Apply 'init' to the Left Matra if it's a word start. */
-  if (info[start].khmer_position () == POS_PRE_M)
-  {
-    if (!start ||
-	!(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
-	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
-      info[start].mask |= khmer_plan->mask_array[INIT];
-    else
-      buffer->unsafe_to_break (start - 1, start + 1);
   }
 
 
