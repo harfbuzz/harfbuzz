@@ -68,7 +68,6 @@ forced_rakar = ZWJ H ZWJ Ra;
 symbol = Symbol.N?;
 matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
 syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}? VD{0,2};
-place_holder = PLACEHOLDER | DOTTEDCIRCLE;
 halant_group = (z?.H.(ZWJ.N?)?);
 final_halant_group = halant_group | H.ZWNJ;
 medial_group = CM?;
