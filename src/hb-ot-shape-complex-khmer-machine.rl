@@ -58,7 +58,7 @@ z = ZWJ|ZWNJ;			# is_joiner
 
 cn = c.ZWJ?.n?;
 matra_group = z{0,3}.M.N?.Coeng?;
-syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}?;
+syllable_tail = (SM.SM?)? A{0,3}?;
 halant_group = Coeng;
 halant_or_matra_group = (matra_group{0,4}) (Coeng (cn|V))?;
 
