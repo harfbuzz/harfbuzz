@@ -51,7 +51,7 @@ enum indic_category_t {
   OT_ZWJ = 6,
   OT_M = 7,
   OT_SM = 8,
-  OT_VD = 9,
+  /* OT_VD = 9, UNUSED; we use OT_A instead. */
   OT_A = 10,
   OT_PLACEHOLDER = 11,
   OT_DOTTEDCIRCLE = 12,
