@@ -61,6 +61,25 @@ if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GLIB ON)
 endif ()
 
+option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and enable all options)")
+if (HB_CHECK)
+  set (BUILD_SHARED_LIBS ON)
+  set (HB_BUILD_UTILS ON)
+  set (HB_BUILTIN_UCDN ON)
+  set (HB_HAVE_ICU)
+  set (HB_HAVE_GLIB ON)
+  #set (HB_HAVE_GOBJECT ON)
+  #set (HB_HAVE_INTROSPECTION ON)
+  set (HB_HAVE_FREETYPE ON)
+  set (HB_HAVE_GRAPHITE2 ON)
+  if (WIN32)
+    set (HB_HAVE_UNISCRIBE ON)
+    set (HB_HAVE_DIRECTWRITE ON)
+  elseif (APPLE)
+    set (HB_HAVE_CORETEXT ON)
+  endif ()
+endif ()
+
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
@@ -71,6 +90,9 @@ add_definitions(-DHAVE_FALLBACK)
 
 if (BUILD_SHARED_LIBS)
   add_definitions(-DHAVE_ATEXIT)
+  if (APPLE)
+    set (CMAKE_MACOSX_RPATH ON)
+  endif ()
 endif ()
 
 if (MSVC)
@@ -710,23 +732,31 @@ if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
   endif ()
 endif ()
 
+
 ## Tests
 if (UNIX)
   if (BUILD_SHARED_LIBS)
-    add_test(NAME check-static-inits.sh
-      COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles/harfbuzz.dir/src # hack
-    )
     # does some "make" stuff inside
-    # add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-    add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+    #add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
+    #set_tests_properties(check-defs.sh PROPERTIES ENVIRONMENT "libs=.")
+
+    # broken on cmake builds right now :(
+    #add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+    #add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
+    #set_tests_properties(check-symbols.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.")
+
+    if (NOT APPLE)
+      add_test(NAME check-static-inits.sh
+        COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles/harfbuzz.dir/src # ugly hack
+      )
+      set_tests_properties(check-static-inits.sh PROPERTIES ENVIRONMENT "libs=.")
+    endif ()
   else ()
-    message(WARN "You can enable BUILD_SHARED_LIBS for more tests.")
+    message(WARN "Enable BUILD_SHARED_LIBS for more tests.")
   endif ()
 
-  # disabled as it doesn't work anyway
-  if (OFF AND IN_HB_DIST)
+  if (IN_HB_DIST)
     add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
     add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
   endif ()

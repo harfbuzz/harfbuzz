@@ -4,7 +4,7 @@ LC_ALL=C
 export LC_ALL
 
 test -z "$srcdir" && srcdir=.
-test -z "$libs" && libs=.
+test -z "$libs" && libs=.libs
 test -z "$MAKE" && MAKE=make
 stat=0
 
