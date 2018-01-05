@@ -299,7 +299,6 @@ enum blwf_mode_t {
 struct indic_config_t
 {
   hb_script_t     script;
-  hb_codepoint_t  virama;
   base_position_t base_pos;
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
@@ -308,7 +307,7 @@ struct indic_config_t
 
 static const indic_config_t indic_configs[] =
 {
-  {HB_SCRIPT_KHMER,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_KHMER,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -491,7 +490,7 @@ struct khmer_shape_plan_t
     hb_codepoint_t glyph = virama_glyph;
     if (unlikely (virama_glyph == (hb_codepoint_t) -1))
     {
-      if (!config->virama || !font->get_nominal_glyph (config->virama, &glyph))
+      if (!font->get_nominal_glyph (0x17D2u, &glyph))
 	glyph = 0;
       /* Technically speaking, the spec says we should apply 'locl' to virama too.
        * Maybe one day... */
