@@ -52,7 +52,7 @@ RS    = 13;
 Coeng = 14;
 Ra    = 16;
 
-c = (C | Ra);			# is_consonant
+c = (C | Ra | V);		# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
 
@@ -63,7 +63,7 @@ halant_group = Coeng;
 halant_or_matra_group = (matra_group{0,4}) (Coeng (cn|V))?;
 
 
-consonant_syllable =	(c|V|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
+consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 broken_cluster =	n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
