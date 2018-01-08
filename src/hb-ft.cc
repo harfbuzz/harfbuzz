@@ -651,7 +651,11 @@ hb_ft_font_changed (hb_font_t *font)
     }
     free (coords);
     free (ft_coords);
+#ifdef HAVE_FT_DONE_MM_VAR
+    FT_Done_MM_Var (ft_face->glyph->library, mm_var);
+#else
     free (mm_var);
+#endif
   }
 #endif
 }

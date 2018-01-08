@@ -355,6 +355,7 @@ if $have_freetype; then
 	LIBS="$LIBS $FREETYPE_LIBS"
 	AC_CHECK_FUNCS(FT_Get_Var_Blend_Coordinates)
 	AC_CHECK_FUNCS(FT_Set_Var_Blend_Coordinates)
+	AC_CHECK_FUNCS(FT_Done_MM_Var)
 	LIBS=$save_libs
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
