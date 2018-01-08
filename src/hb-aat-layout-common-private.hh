@@ -50,13 +50,13 @@ struct BinSearchHeader
   }
 
   protected:
-  USHORT	unitSize;	/* Size of a lookup unit for this search in bytes. */
-  USHORT	nUnits;		/* Number of units of the preceding size to be searched. */
-  USHORT	searchRange;	/* The value of unitSize times the largest power of 2
+  UINT16	unitSize;	/* Size of a lookup unit for this search in bytes. */
+  UINT16	nUnits;		/* Number of units of the preceding size to be searched. */
+  UINT16	searchRange;	/* The value of unitSize times the largest power of 2
 				 * that is less than or equal to the value of nUnits. */
-  USHORT	entrySelector;	/* The log base 2 of the largest power of 2 less than
+  UINT16	entrySelector;	/* The log base 2 of the largest power of 2 less than
 				 * or equal to the value of nUnits. */
-  USHORT	rangeShift;	/* The value of unitSize times the difference of the
+  UINT16	rangeShift;	/* The value of unitSize times the difference of the
 				 * value of nUnits minus the largest power of 2 less
 				 * than or equal to the value of nUnits. */
   public:
@@ -108,7 +108,7 @@ struct BinSearchArrayOf
   template <typename T>
   inline Type *bsearch (const T &key) const
   {
-    return ::bsearch (&key, bytes, header.nUnits, header.unitSize, (hb_compare_func_t) Type::cmp);
+    return ::bsearch (&key, bytes, header.nUnits, header.unitSize, Type::cmp);
   }
 
   private:
@@ -122,7 +122,7 @@ struct BinSearchArrayOf
 
   protected:
   BinSearchHeader	header;
-  BYTE bytes[VAR];
+  UINT8			bytes[VAR];
   public:
   DEFINE_SIZE_ARRAY (10, bytes);
 };

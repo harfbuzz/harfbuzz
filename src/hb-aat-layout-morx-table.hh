@@ -104,11 +104,11 @@ struct Feature
   }
 
   public:
-  USHORT	featureType;	/* The type of feature. */
-  USHORT	featureSetting;	/* The feature's setting (aka selector). */
-  ULONG		enableFlags;	/* Flags for the settings that this feature
+  UINT16	featureType;	/* The type of feature. */
+  UINT16	featureSetting;	/* The feature's setting (aka selector). */
+  UINT32	enableFlags;	/* Flags for the settings that this feature
 				 * and setting enables. */
-  ULONG		disableFlags;	/* Complement of flags for the settings that this
+  UINT32	disableFlags;	/* Complement of flags for the settings that this
 				 * feature and setting disable. */
 
   public:
@@ -160,9 +160,9 @@ struct ChainSubtable
   }
 
   protected:
-  UINT	length;		/* Total subtable length, including this header. */
-  UINT	coverage;	/* Coverage flags and subtable type. */
-  ULONG	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
+  UINT		length;		/* Total subtable length, including this header. */
+  UINT		coverage;	/* Coverage flags and subtable type. */
+  UINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
   RearrangementSubtable	rearrangement;
   ContextualSubtable	contextual;
@@ -204,10 +204,10 @@ struct Chain
   }
 
   protected:
-  ULONG	defaultFlags;		/* The default specification for subtables. */
-  ULONG	length;			/* Total byte count, including this header. */
-  UINT	featureCount;		/* Number of feature subtable entries. */
-  UINT	subtableCount;		/* The number of subtables in the chain. */
+  UINT32	defaultFlags;	/* The default specification for subtables. */
+  UINT32	length;		/* Total byte count, including this header. */
+  UINT		featureCount;	/* Number of feature subtable entries. */
+  UINT		subtableCount;	/* The number of subtables in the chain. */
 
   Feature		featureZ[VAR];	/* Features. */
   ChainSubtable<UINT>	subtableX[VAR];	/* Subtables. */
@@ -251,7 +251,7 @@ struct mortmorx
   protected:
   FixedVersion<>version;	/* Version number of the glyph metamorphosis table.
 				 * 1 for mort, 2 or 3 for morx. */
-  ULONG		chainCount;	/* Number of metamorphosis chains contained in this
+  UINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
   Chain<UINT>	chains[VAR];	/* Chains. */
 
@@ -259,12 +259,12 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
-struct mort : mortmorx<USHORT>
+struct mort : mortmorx<UINT16>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_MORT;
 };
 
-struct morx : mortmorx<ULONG>
+struct morx : mortmorx<UINT32>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_MORX;
 };
