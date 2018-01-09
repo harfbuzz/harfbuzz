@@ -10,9 +10,6 @@ MAINTAINERCLEANFILES =
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
 
-manifests:
-	@$(srcdir)/hb-manifest-update "$(srcdir)/texts" "$(srcdir)/fonts" "$(srcdir)/tests"
-
 EXTRA_DIST += \
 	README.md \
 	hb-diff \
@@ -20,8 +17,6 @@ EXTRA_DIST += \
 	hb-diff-filter-failures \
 	hb-diff-ngrams \
 	hb-diff-stat \
-	hb-manifest-read \
-	hb-manifest-update \
 	hb-unicode-decode \
 	hb-unicode-encode \
 	hb-unicode-prettyname \
@@ -106,7 +101,5 @@ TESTS_ENVIRONMENT = \
 endif
 
 TESTS_LOG_COMPILER = $(srcdir)/run-tests.py
-
-.PHONY: manifests
 
 -include $(top_srcdir)/git.mk
