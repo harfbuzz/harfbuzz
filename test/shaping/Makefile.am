@@ -79,22 +79,8 @@ TESTS = \
 	data/in-house/tests/zero-width-marks.tests \
 	$(NULL)
 
-TEST_EXTENSIONS = \
-	.tests \
-	$(NULL)
+TEST_EXTENSIONS = .tests
 
-AM_TESTS_ENVIRONMENT = \
-	EXEEXT="$(EXEEXT)"; \
-	export EXEEXT; \
-	$(NULL)
-
-if AUTOMAKE_OLDER_THAN_1_13
-TESTS_ENVIRONMENT = \
-	$(AM_TESTS_ENVIRONMENT) \
-	$(TESTS_LOG_COMPILER) \
-	$(NULL)
-endif
-
-TESTS_LOG_COMPILER = $(srcdir)/run-tests.py
+TESTS_LOG_COMPILER = $(srcdir)/run-tests.py $(top_builddir)/util/hb-shape$(EXEEXT)
 
 -include $(top_srcdir)/git.mk
