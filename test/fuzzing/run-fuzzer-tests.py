@@ -19,7 +19,7 @@ please provide it as the first argument to the tool""")
 print ('hb_fuzzer:', hb_fuzzer)
 fails = 0
 
-for line in open (os.path.join (srcdir, "..", "shaping", "tests", "misc", "fuzzed.tests")):
+for line in open (os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests", "fuzzed.tests")):
 	font = line.split (":")[0]
 
 	p = subprocess.Popen (

@@ -14,11 +14,10 @@ def cmd(command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	p.wait ()
-	print (p.stderr.read (), file=sys.stderr)
+	print (p.stderr.read (), file=sys.stderr, end='')
 	return p.stdout.read ().decode ("utf-8"), p.returncode
 
 
-srcdir = os.environ.get ("srcdir", ".")
 builddir = os.environ.get ("builddir", ".")
 top_builddir = os.environ.get ("top_builddir",
 	os.path.normpath (os.path.join (os.getcwd (), "..", "..")))
@@ -50,46 +49,37 @@ if not reference:
 	print ('hb_shape:', hb_shape)
 
 if not len (args):
-	args = [sys.stdin]
+	args = ['-']
 
-for f in args:
+for filename in args:
 	if not reference:
-		if f == sys.stdin:
+		if filename == '-':
 			print ("Running tests from standard input")
 		else:
-			print ("Running tests in " + f)
+			print ("Running tests in " + filename)
 
-	if f == sys.stdin:
-		def f():
-			while True:
-				try:
-					line = input ()
-				except EOFError:
-					break
-
-				if len (line):
-					yield line
-				else:
-					break
-		f = f()
+	if filename == '-':
+		f = sys.stdin
 	else:
-		f = open (f)
+		f = open (filename)
 
 	for line in f:
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
+		cwd = os.path.dirname(filename)
+		fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
 		if line.startswith ("#"):
 			if not reference:
-				print ("# hb-shape %s --unicodes %s" % (fontfile, unicodes))
+				print ("# %s %s --unicodes %s" % (hb_shape, fontfile, unicodes))
 			continue
 
 		if not reference:
-			print ("hb-shape %s %s %s --unicodes %s" %
-					 (fontfile, extra_options, options, unicodes))
+			print ("%s %s %s %s --unicodes %s" %
+					 (hb_shape, fontfile, extra_options, options, unicodes))
 
 		glyphs1, returncode = cmd ([hb_shape, "--font-funcs=ft",
-			os.path.join (srcdir, fontfile), extra_options, "--unicodes",
-			unicodes] + (options.split (' ') if len(options) else []))
+			fontfile, extra_options, "--unicodes",
+			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
 			print ("hb-shape --font-funcs=ft failed.", file=sys.stderr)
@@ -97,11 +87,11 @@ for f in args:
 			#continue
 
 		glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
-			os.path.join (srcdir, fontfile), extra_options, "--unicodes",
-			unicodes] + (options.split (' ') if len(options) else []))
+			fontfile, extra_options, "--unicodes",
+			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
-			print ("hb-shape --font-funcs=ot failed.", file=sys.stderr)
+			print ("ERROR: hb-shape --font-funcs=ot failed.", file=sys.stderr)
 			fails = fails + 1
 			#continue
 

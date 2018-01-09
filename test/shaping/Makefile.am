@@ -21,8 +21,8 @@ EXTRA_DIST += \
 	hb-unicode-prettyname \
 	record-test.sh \
 	run-tests.py \
-	texts/in-tree \
-	fonts/sha1sum \
+	texts/in-house \
+	data/in-house/fonts \
 	CMakeLists.txt \
 	$(TESTS) \
 	$(NULL)
@@ -36,47 +36,47 @@ CLEANFILES += \
 	$(NULL)
 
 TESTS = \
-	tests/misc/arabic-fallback-shaping.tests \
-	tests/misc/arabic-feature-order.tests \
-	tests/misc/arabic-like-joining.tests \
-	tests/misc/arabic-mark-order.tests \
-	tests/misc/arabic-stch.tests \
-	tests/misc/automatic-fractions.tests \
-	tests/misc/cluster.tests \
-	tests/misc/color-fonts.tests \
-	tests/misc/context-matching.tests \
-	tests/misc/cursive-positioning.tests \
-	tests/misc/default-ignorables.tests \
-	tests/misc/emoji-flag-tags.tests \
-	tests/misc/fallback-positioning.tests \
-	tests/misc/fuzzed.tests \
-	tests/misc/hangul-jamo.tests \
-	tests/misc/hyphens.tests \
-	tests/misc/indic-consonant-with-stacker.tests \
-	tests/misc/indic-init.tests \
-	tests/misc/indic-joiner-candrabindu.tests \
-	tests/misc/indic-joiners.tests \
-	tests/misc/indic-old-spec.tests \
-	tests/misc/indic-pref-blocking.tests \
-	tests/misc/indic-script-extensions.tests \
-	tests/misc/indic-special-cases.tests \
-	tests/misc/indic-syllable.tests \
-	tests/misc/language-tags.tests \
-	tests/misc/ligature-id.tests \
-	tests/misc/mark-attachment.tests \
-	tests/misc/mark-filtering-sets.tests \
-	tests/misc/mongolian-variation-selector.tests \
-	tests/misc/spaces.tests \
-	tests/misc/simple.tests \
-	tests/misc/tibetan-contractions-1.tests \
-	tests/misc/tibetan-contractions-2.tests \
-	tests/misc/tibetan-vowels.tests \
-	tests/misc/use.tests \
-	tests/misc/use-marchen.tests \
-	tests/misc/use-syllable.tests \
-	tests/misc/variations-rvrn.tests \
-	tests/misc/vertical.tests \
-	tests/misc/zero-width-marks.tests \
+	data/in-house/tests/arabic-fallback-shaping.tests \
+	data/in-house/tests/arabic-feature-order.tests \
+	data/in-house/tests/arabic-like-joining.tests \
+	data/in-house/tests/arabic-mark-order.tests \
+	data/in-house/tests/arabic-stch.tests \
+	data/in-house/tests/automatic-fractions.tests \
+	data/in-house/tests/cluster.tests \
+	data/in-house/tests/color-fonts.tests \
+	data/in-house/tests/context-matching.tests \
+	data/in-house/tests/cursive-positioning.tests \
+	data/in-house/tests/default-ignorables.tests \
+	data/in-house/tests/emoji-flag-tags.tests \
+	data/in-house/tests/fallback-positioning.tests \
+	data/in-house/tests/fuzzed.tests \
+	data/in-house/tests/hangul-jamo.tests \
+	data/in-house/tests/hyphens.tests \
+	data/in-house/tests/indic-consonant-with-stacker.tests \
+	data/in-house/tests/indic-init.tests \
+	data/in-house/tests/indic-joiner-candrabindu.tests \
+	data/in-house/tests/indic-joiners.tests \
+	data/in-house/tests/indic-old-spec.tests \
+	data/in-house/tests/indic-pref-blocking.tests \
+	data/in-house/tests/indic-script-extensions.tests \
+	data/in-house/tests/indic-special-cases.tests \
+	data/in-house/tests/indic-syllable.tests \
+	data/in-house/tests/language-tags.tests \
+	data/in-house/tests/ligature-id.tests \
+	data/in-house/tests/mark-attachment.tests \
+	data/in-house/tests/mark-filtering-sets.tests \
+	data/in-house/tests/mongolian-variation-selector.tests \
+	data/in-house/tests/spaces.tests \
+	data/in-house/tests/simple.tests \
+	data/in-house/tests/tibetan-contractions-1.tests \
+	data/in-house/tests/tibetan-contractions-2.tests \
+	data/in-house/tests/tibetan-vowels.tests \
+	data/in-house/tests/use.tests \
+	data/in-house/tests/use-marchen.tests \
+	data/in-house/tests/use-syllable.tests \
+	data/in-house/tests/variations-rvrn.tests \
+	data/in-house/tests/vertical.tests \
+	data/in-house/tests/zero-width-marks.tests \
 	$(NULL)
 
 TEST_EXTENSIONS = \
