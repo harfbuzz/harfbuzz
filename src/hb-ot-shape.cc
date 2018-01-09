@@ -40,6 +40,8 @@
 #include "hb-unicode-private.hh"
 #include "hb-set-private.hh"
 
+#include "hb-ot-layout-gsubgpos-private.hh"
+#include "hb-aat-layout-private.hh"
 
 static hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
@@ -613,6 +615,10 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
     hb_synthesize_glyph_classes (c);
 
   c->plan->substitute (c->font, buffer);
+
+  /* XXX Call morx instead. */
+  OT::hb_apply_context_t ac (0, c->font, c->buffer);
+  hb_aat_layout_substitute (&ac);
 }
 
 static inline void

@@ -27,8 +27,8 @@
 #ifndef HB_AAT_LAYOUT_MORX_TABLE_HH
 #define HB_AAT_LAYOUT_MORX_TABLE_HH
 
-#include <hb-open-type-private.hh>
-#include <hb-aat-layout-common-private.hh>
+#include "hb-open-type-private.hh"
+#include "hb-aat-layout-common-private.hh"
 
 #define HB_AAT_TAG_MORT HB_TAG('m','o','r','t')
 #define HB_AAT_TAG_MORX HB_TAG('m','o','r','x')
@@ -41,7 +41,13 @@ using namespace OT;
 
 struct RearrangementSubtable
 {
-  /* TODO */
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    /* TODO */
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -52,7 +58,13 @@ struct RearrangementSubtable
 
 struct ContextualSubtable
 {
-  /* TODO */
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    /* TODO */
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -63,7 +75,13 @@ struct ContextualSubtable
 
 struct LigatureSubtable
 {
-  /* TODO */
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    /* TODO */
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -74,6 +92,26 @@ struct LigatureSubtable
 
 struct NoncontextualSubtable
 {
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    hb_buffer_t *buffer = c->buffer;
+    hb_glyph_info_t *info = buffer->info;
+    unsigned int num_glyphs = c->face->get_num_glyphs ();
+    bool ret = false;
+    unsigned int count = buffer->len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const GlyphID *replacement = substitute.get_value (info[i].codepoint, num_glyphs);
+      if (replacement)
+      {
+	info[i].codepoint = *replacement;
+	ret = true;
+      }
+    }
+    return_trace (ret);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -88,7 +126,13 @@ struct NoncontextualSubtable
 
 struct InsertionSubtable
 {
-  /* TODO */
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    /* TODO */
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -136,6 +180,11 @@ struct ChainSubtable
     Insertion		= 5
   };
 
+  inline void apply (hb_apply_context_t *c) const
+  {
+    dispatch (c);
+  }
+
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
@@ -180,6 +229,16 @@ struct ChainSubtable
 template <typename UINT>
 struct Chain
 {
+  inline void apply (hb_apply_context_t *c) const
+  {
+    const ChainSubtable<UINT> *subtable = &StructAtOffset<ChainSubtable<UINT> > (featureZ, featureZ[0].static_size * featureCount);
+    unsigned int count = subtableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      subtable->apply (c);
+      subtable = &StructAfter<ChainSubtable<UINT> > (*subtable);
+    }
+  }
 
   inline unsigned int get_size (void) const { return length; }
 
@@ -230,6 +289,17 @@ struct mortmorx
 {
   static const hb_tag_t mortTag	= HB_AAT_TAG_MORT;
   static const hb_tag_t morxTag	= HB_AAT_TAG_MORX;
+
+  inline void apply (hb_apply_context_t *c) const
+  {
+    const Chain<UINT> *chain = chains;
+    unsigned int count = chainCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      chain->apply (c);
+      chain = &StructAfter<Chain<UINT> > (*chain);
+    }
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

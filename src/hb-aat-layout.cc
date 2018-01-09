@@ -25,7 +25,9 @@
  */
 
 #include "hb-open-type-private.hh"
+
 #include "hb-ot-layout-private.hh"
+#include "hb-ot-layout-gsubgpos-private.hh"
 
 #include "hb-aat-layout-private.hh"
 #include "hb-aat-layout-morx-table.hh"
@@ -39,10 +41,10 @@ _get_morx (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(AAT::morx);
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->morx.get ());
+  return *(layout->morx.get ()); /* XXX this doesn't call set_num_glyphs on sanitizer. */
 }
 
-void
+static inline void
 _hb_aat_layout_create (hb_face_t *face)
 {
   OT::Sanitizer<AAT::morx> sanitizer;
@@ -54,4 +56,11 @@ _hb_aat_layout_create (hb_face_t *face)
   {
     OT::Sanitizer<AAT::Lookup<OT::GlyphID> >::lock_instance (morx_blob)->get_value (1, face->get_num_glyphs ());
   }
+}
+
+void
+hb_aat_layout_substitute (OT::hb_apply_context_t *c)
+{
+  const AAT::morx& morx = _get_morx (c->face);
+  morx.apply (c);
 }

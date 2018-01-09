@@ -183,10 +183,10 @@ struct LookupFormat0
   friend struct Lookup<T>;
 
   private:
-  inline const T& get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+  inline const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    if (unlikely (glyph_id >= num_glyphs)) return Null(T);
-    return arrayZ[glyph_id];
+    if (unlikely (glyph_id >= num_glyphs)) return nullptr;
+    return &arrayZ[glyph_id];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -230,10 +230,10 @@ struct LookupFormat2
   friend struct Lookup<T>;
 
   private:
-  inline const T& get_value (hb_codepoint_t glyph_id) const
+  inline const T* get_value (hb_codepoint_t glyph_id) const
   {
     const LookupSegmentSingle<T> *v = segments.bsearch (glyph_id);
-    return v ? v->value : Null(T);
+    return v ? &v->value : nullptr;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -255,9 +255,9 @@ struct LookupFormat2
 template <typename T>
 struct LookupSegmentArray
 {
-  inline const T& get_value (hb_codepoint_t glyph_id, const void *base) const
+  inline const T* get_value (hb_codepoint_t glyph_id, const void *base) const
   {
-    return first <= glyph_id && glyph_id <= last ? (base+valuesZ)[glyph_id - first] : Null(T);
+    return first <= glyph_id && glyph_id <= last ? &(base+valuesZ)[glyph_id - first] : nullptr;
   }
 
   inline int cmp (hb_codepoint_t g) const {
@@ -287,10 +287,10 @@ struct LookupFormat4
   friend struct Lookup<T>;
 
   private:
-  inline const T& get_value (hb_codepoint_t glyph_id) const
+  inline const T* get_value (hb_codepoint_t glyph_id) const
   {
     const LookupSegmentArray<T> *v = segments.bsearch (glyph_id);
-    return v ? v->get_value (glyph_id, this) : Null(T);
+    return v ? v->get_value (glyph_id, this) : nullptr;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -332,10 +332,10 @@ struct LookupFormat6
   friend struct Lookup<T>;
 
   private:
-  inline const T& get_value (hb_codepoint_t glyph_id) const
+  inline const T* get_value (hb_codepoint_t glyph_id) const
   {
     const LookupSingle<T> *v = entries.bsearch (glyph_id);
-    return v ? v->value : Null(T);
+    return v ? &v->value : nullptr;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -358,9 +358,9 @@ struct LookupFormat8
   friend struct Lookup<T>;
 
   private:
-  inline const T& get_value (hb_codepoint_t glyph_id) const
+  inline const T* get_value (hb_codepoint_t glyph_id) const
   {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? valueArrayZ[glyph_id - firstGlyph] : Null(T);
+    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? &valueArrayZ[glyph_id - firstGlyph] : nullptr;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -384,7 +384,7 @@ struct LookupFormat8
 template <typename T>
 struct Lookup
 {
-  inline const T& get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+  inline const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     switch (u.format) {
     case 0: return u.format0.get_value (glyph_id, num_glyphs);
@@ -392,7 +392,7 @@ struct Lookup
     case 4: return u.format4.get_value (glyph_id);
     case 6: return u.format6.get_value (glyph_id);
     case 8: return u.format8.get_value (glyph_id);
-    default:return Null(T);
+    default:return nullptr;
     }
   }
 
@@ -422,10 +422,6 @@ struct Lookup
   public:
   DEFINE_SIZE_UNION (2, format);
 };
-
-// Instantiate, to catch compile errors.
-Lookup<GlyphID> g;
-Lookup<Tag> t;
 
 
 } /* namespace AAT */
