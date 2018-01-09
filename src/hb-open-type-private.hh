@@ -187,7 +187,8 @@ struct hb_sanitize_context_t :
 	debug_depth (0),
 	start (nullptr), end (nullptr),
 	writable (false), edit_count (0),
-	blob (nullptr) {}
+	blob (nullptr),
+	num_glyphs (0) {}
 
   inline const char *get_name (void) { return "SANITIZE"; }
   template <typename T, typename F>
@@ -298,6 +299,7 @@ struct hb_sanitize_context_t :
   bool writable;
   unsigned int edit_count;
   hb_blob_t *blob;
+  unsigned int num_glyphs;
 };
 
 
@@ -306,8 +308,9 @@ struct hb_sanitize_context_t :
 template <typename Type>
 struct Sanitizer
 {
-  static hb_blob_t *sanitize (hb_blob_t *blob) {
-    hb_sanitize_context_t c[1];
+  inline Sanitizer (void) {}
+
+  inline hb_blob_t *sanitize (hb_blob_t *blob) {
     bool sane;
 
     /* TODO is_sane() stuff */
@@ -370,6 +373,11 @@ struct Sanitizer
     const char *base = hb_blob_get_data (blob, nullptr);
     return unlikely (!base) ? &Null(Type) : CastP<Type> (base);
   }
+
+  inline void set_num_glyphs (unsigned int num_glyphs) { c->num_glyphs = num_glyphs; }
+
+  private:
+  hb_sanitize_context_t c[1];
 };
 
 
@@ -1154,7 +1162,7 @@ struct hb_lazy_table_loader_t
     T *p = (T *) hb_atomic_ptr_get (&instance);
     if (unlikely (!p))
     {
-      hb_blob_t *blob_ = OT::Sanitizer<T>::sanitize (face->reference_table (T::tableTag));
+      hb_blob_t *blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
       p = const_cast<T *>(OT::Sanitizer<T>::lock_instance (blob_));
       if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p))
       {

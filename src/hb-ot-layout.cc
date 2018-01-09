@@ -50,13 +50,13 @@ _hb_ot_layout_create (hb_face_t *face)
   if (unlikely (!layout))
     return nullptr;
 
-  layout->gdef_blob = OT::Sanitizer<OT::GDEF>::sanitize (face->reference_table (HB_OT_TAG_GDEF));
+  layout->gdef_blob = OT::Sanitizer<OT::GDEF>().sanitize (face->reference_table (HB_OT_TAG_GDEF));
   layout->gdef = OT::Sanitizer<OT::GDEF>::lock_instance (layout->gdef_blob);
 
-  layout->gsub_blob = OT::Sanitizer<OT::GSUB>::sanitize (face->reference_table (HB_OT_TAG_GSUB));
+  layout->gsub_blob = OT::Sanitizer<OT::GSUB>().sanitize (face->reference_table (HB_OT_TAG_GSUB));
   layout->gsub = OT::Sanitizer<OT::GSUB>::lock_instance (layout->gsub_blob);
 
-  layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
+  layout->gpos_blob = OT::Sanitizer<OT::GPOS>().sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
   layout->math.init (face);

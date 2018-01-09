@@ -379,8 +379,8 @@ struct CBDT
     {
       upem = face->get_upem();
 
-      cblc_blob = Sanitizer<CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
-      cbdt_blob = Sanitizer<CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
+      cblc_blob = Sanitizer<CBLC>().sanitize (face->reference_table (HB_OT_TAG_CBLC));
+      cbdt_blob = Sanitizer<CBDT>().sanitize (face->reference_table (HB_OT_TAG_CBDT));
       cbdt_len = hb_blob_get_length (cbdt_blob);
 
       if (hb_blob_get_length (cblc_blob) == 0) {

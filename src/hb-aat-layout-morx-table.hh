@@ -74,13 +74,16 @@ struct LigatureSubtable
 
 struct NoncontextualSubtable
 {
-  /* TODO */
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (false);
+    return_trace (substitute.sanitize (c));
   }
+
+  protected:
+  Lookup<GlyphID>	substitute;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 struct InsertionSubtable
