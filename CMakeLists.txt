@@ -89,15 +89,34 @@ include_directories(AFTER
 add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_FALLBACK)
 
-include(CheckFunctionExists)
-check_function_exists(atexit HAVE_ATEXIT)
-check_function_exists(mprotect HAVE_MPROTECT)
-check_function_exists(sysconf HAVE_SYSCONF)
-check_function_exists(getpagesize HAVE_GETPAGESIZE)
-check_function_exists(mmap HAVE_MMAP)
-check_function_exists(isatty HAVE_ISATTY)
-check_function_exists(newlocale HAVE_NEWLOCALE)
-check_function_exists(strtod_l HAVE_STRTOD_L)
+
+include (CheckFunctionExists)
+include (CheckIncludeFile)
+macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
+  foreach (func_name ${ARGN})
+    set (RESULT OFF)
+    check_function_exists(${func_name} RESULT)
+    if (${RESULT})
+      string(TOUPPER ${func_name} definiton_to_add)
+      add_definitions(-DHAVE_${definiton_to_add})
+    endif ()
+  endforeach ()
+endmacro ()
+check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+
+check_include_file(unistd.h HAVE_UNIST_H)
+if (${HAVE_UNIST_H})
+  add_definitions(-DHAVE_UNIST_H)
+endif ()
+#check_include_file(sys/mman.h HAVE_SYS_MMAN_H) enable this sometime
+#if (${HAVE_SYS_MMAN_H})
+#  add_definitions(-DHAVE_SYS_MMAN_H)
+#endif ()
+check_include_file(xlocale.h HAVE_XLOCALE_H)
+if (${HAVE_XLOCALE_H})
+  add_definitions(-DHAVE_XLOCALE_H)
+endif ()
+
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
@@ -237,7 +256,7 @@ set (project_headers
 
 ## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE)
-  include(FindFreetype)
+  include (FindFreetype)
   if (NOT FREETYPE_FOUND)
     message(FATAL_ERROR "HB_HAVE_FREETYPE was set, but we failed to find it. Maybe add a CMAKE_PREFIX_PATH= to your Freetype2 install prefix")
   endif ()
@@ -249,11 +268,9 @@ if (HB_HAVE_FREETYPE)
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 
-  set (CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
-  set (CMAKE_REQUIRED_LIBRARIES ${FREETYPE_LIBRARIES})
-  check_function_exists(FT_Get_Var_Blend_Coordinates HAVE_FT_GET_VAR_BLEND_COORDINATES)
-  check_function_exists(FT_Set_Var_Blend_Coordinates HAVE_FT_SET_VAR_BLEND_COORDINATES)
-  check_function_exists(FT_Done_MM_Var HAVE_FT_DONE_MM_VAR)
+  set (CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${FREETYPE_INCLUDE_DIRS})
+  set (CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${FREETYPE_LIBRARIES})
+  check_funcs(FT_Get_Var_Blend_Coordinates FT_Set_Var_Blend_Coordinates FT_Done_MM_Var)
 endif ()
 
 if (HB_HAVE_GRAPHITE2)
@@ -355,8 +372,8 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
 endif ()
 
 if (HB_HAVE_GOBJECT)
-  include(FindPythonInterp)
-  include(FindPerl)
+  include (FindPythonInterp)
+  include (FindPerl)
   
   # Use the hints from glib-2.0.pc to find glib-mkenums
   find_package(PkgConfig)
@@ -675,7 +692,7 @@ endif ()
 
 
 ## Install
-include(GNUInstallDirs)
+include (GNUInstallDirs)
 
 if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
   install(FILES ${project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
