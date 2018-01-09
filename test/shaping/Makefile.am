@@ -86,10 +86,6 @@ TEST_EXTENSIONS = \
 AM_TESTS_ENVIRONMENT = \
 	EXEEXT="$(EXEEXT)"; \
 	export EXEEXT; \
-	srcdir="$(srcdir)"; \
-	export srcdir; \
-	builddir="$(builddir)"; \
-	export builddir; \
 	$(NULL)
 
 if AUTOMAKE_OLDER_THAN_1_13

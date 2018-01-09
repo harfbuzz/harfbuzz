@@ -20,7 +20,7 @@ def cmd(command):
 
 builddir = os.environ.get ("builddir", ".")
 top_builddir = os.environ.get ("top_builddir",
-	os.path.normpath (os.path.join (os.getcwd (), "..", "..")))
+	os.path.normpath (os.path.join (builddir, "..", "..")))
 utildir = os.environ.get ("utildir", "util")
 EXEEXT = os.environ.get ("EXEEXT", "")
 
@@ -30,7 +30,7 @@ hb_shape = os.path.join (top_builddir, utildir, "hb-shape" + EXEEXT)
 args = sys.argv[1:]
 
 if not os.path.exists (hb_shape):
-	if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
+	if len (sys.argv) == 1 or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
 		print ("""Failed to find hb-shape binary automatically,
 please provide it as the first argument to the tool""")
 		sys.exit (1)
