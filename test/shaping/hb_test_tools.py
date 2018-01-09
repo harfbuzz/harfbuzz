@@ -293,32 +293,6 @@ class DiffSinks:
 		total = passed + failed
 		print ("%d out of %d tests passed.  %d failed (%g%%)" % (passed, total, failed, 100. * failed / total))
 
-	@staticmethod
-	def print_ngrams (f, ns=(1,2,3)):
-		gens = tuple (Ngram.generator (n) for n in ns)
-		allstats = Stats ()
-		allgrams = {}
-		for key, lines in DiffHelpers.separate_test_cases (f):
-			test = Test (lines)
-			allstats.add (test)
-
-			for gen in gens:
-				for ngram in gen (test.unicodes):
-					if ngram not in allgrams:
-						allgrams[ngram] = Stats ()
-					allgrams[ngram].add (test)
-
-		importantgrams = {}
-		for ngram, stats in allgrams.iteritems ():
-			if stats.failed.count >= 30: # for statistical reasons
-				importantgrams[ngram] = stats
-		allgrams = importantgrams
-		del importantgrams
-
-		for ngram, stats in allgrams.iteritems ():
-			print ("zscore: %9f failed: %6d passed: %6d ngram: <%s>" % (stats.zscore (allstats), stats.failed.count, stats.passed.count, ','.join ("U+%04X" % u for u in ngram)))
-
-
 
 class Test:
 

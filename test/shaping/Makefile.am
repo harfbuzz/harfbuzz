@@ -15,7 +15,6 @@ EXTRA_DIST += \
 	hb-diff \
 	hb-diff-colorize \
 	hb-diff-filter-failures \
-	hb-diff-ngrams \
 	hb-diff-stat \
 	hb-unicode-decode \
 	hb-unicode-encode \
