@@ -106,7 +106,9 @@ TESTS = \
 	data/text-rendering-tests/tests/HVAR-2.tests \
 	data/text-rendering-tests/tests/KERN-1.tests \
 	data/text-rendering-tests/tests/KERN-2.tests \
-	# Disabled tests\
+	$(NULL)
+
+DISABLED_TESTS = \
 	data/text-rendering-tests/tests/CMAP-3.tests # Non-Unicode cmap \
 	data/text-rendering-tests/tests/GPOS-5.tests # Rounding difference \
 	data/text-rendering-tests/tests/MORX-1.tests # Not implemented \
