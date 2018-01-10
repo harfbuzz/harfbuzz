@@ -84,7 +84,7 @@ TESTS = \
 	data/text-rendering-tests/tests/CFF-2.tests \
 	data/text-rendering-tests/tests/CMAP-1.tests \
 	data/text-rendering-tests/tests/CMAP-2.tests \
-	data/text-rendering-tests/tests/CMAP-3.tests \
+	#data/text-rendering-tests/tests/CMAP-3.tests \
 	data/text-rendering-tests/tests/CVAR-1.tests \
 	data/text-rendering-tests/tests/CVAR-2.tests \
 	data/text-rendering-tests/tests/GLYF-1.tests \
