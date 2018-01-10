@@ -2,7 +2,54 @@ version: 2
 
 jobs:
 
-  oracledeveloperstudio:
+  distcheck:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: ./autogen.sh && make distcheck
+      - run: make distdir && cd harfbuzz-* && cmake -DDHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
+
+  alpine:
+    docker:
+      - image: alpine
+    steps:
+      - checkout
+      - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
+      - run: ./autogen.sh
+      - run: make && make check
+
+  archlinux:
+    docker:
+      - image: base/devel
+    steps:
+      - checkout
+      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: make && make check
+
+  fedora-outoftreebuild:
+    docker:
+      - image: fedora
+    steps:
+      - checkout
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
+      - run: NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: mkdir build && cd build && ../configure && make && make check
+
+  cmake-gcc:
+    docker:
+      - image: dockcross/base
+    steps:
+      - checkout
+      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja
+      - run: ninja -Cbuild
+      - run: ninja -Cbuild test
+      - run: ninja -Cbuild install
+
+  cmake-oracledeveloperstudio:
     docker:
       - image: fedora
     steps:
@@ -14,25 +61,16 @@ jobs:
       - run: make -Cbuild test
       - run: make -Cbuild install
 
-  fedora-out-of-tree:
+  crosscompile-notest-djgpp:
     docker:
-      - image: fedora
+      - image: quay.io/ebraminio/djgpp
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
-      - run: NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: mkdir build && cd build && ../configure && make && make check
+      - run: apt update && apt install -y ragel pkg-config libtool autoconf
+      - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
+      - run: make
 
-  archlinux:
-    docker:
-      - image: base/devel
-    steps:
-      - checkout
-      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: make && make check
-
-  freebsd9:
+  crosscompile-notest-freebsd9:
     docker:
       - image: donbowman/freebsd-cross-build
     steps:
@@ -41,27 +79,7 @@ jobs:
       - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9
       - run: make
 
-  base:
-    docker:
-      - image: dockcross/base
-    steps:
-      - checkout
-      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: cmake -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_ICU=ON -DHB_BUILD_UTILS=ON -Bbuild -H. -GNinja
-      - run: ninja -Cbuild
-      - run: ninja -Cbuild test
-      - run: ninja -Cbuild install
-
-  distcheck:
-    docker:
-      - image: dockcross/base
-    steps:
-      - checkout
-      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: ./autogen.sh && make distcheck
-      - run: make distdir && cd harfbuzz-* && cmake -DDHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
-
-  psvita:
+  crosscompile-notest-psvita:
     docker:
       - image: dockcross/base
     steps:
@@ -71,7 +89,7 @@ jobs:
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
       - run: make
 
-  android-arm:
+  crosscompile-cmake-notest-android-arm:
     docker:
       - image: dockcross/android-arm
     steps:
@@ -80,7 +98,7 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  browser-asmjs:
+  crosscompile-cmake-notest-browser-asmjs:
     docker:
       - image: dockcross/browser-asmjs
     steps:
@@ -89,7 +107,7 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  linux-arm64:
+  crosscompile-cmake-notest-linux-arm64:
     docker:
       - image: dockcross/linux-arm64
     steps:
@@ -98,7 +116,7 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  linux-mips:
+  crosscompile-cmake-notest-linux-mips:
     docker:
       - image: dockcross/linux-mips
     steps:
@@ -107,7 +125,7 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  windows-x64:
+  crosscompile-cmake-notest-windows-x64:
     docker:
       - image: dockcross/windows-x64
     steps:
@@ -116,39 +134,32 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  alpine:
-    docker:
-      - image: alpine
-    steps:
-      - checkout
-      - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
-      - run: ./autogen.sh
-      - run: make && make check
-
-  dos:
-    docker:
-      - image: quay.io/ebraminio/djgpp
-    steps:
-      - checkout
-      - run: apt update && apt install -y ragel pkg-config libtool autoconf
-      - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
-      - run: make
-
 workflows:
   version: 2
   build:
     jobs:
-      #- oracledeveloperstudio
-      #- fedora-out-of-tree
-      - archlinux
-      - freebsd9
-      - base
+      # both autotools and cmake
       - distcheck
-      - psvita
-      - android-arm
-      - browser-asmjs
-      - linux-arm64
-      - linux-mips
-      - windows-x64
+
+      # autotools based builds
       - alpine
-      - dos
+      - archlinux
+      - fedora-outoftreebuild
+
+      # cmake based builds
+      - cmake-gcc
+      - cmake-oracledeveloperstudio
+
+      # crosscompiles
+      # they can't be test thus are without tests
+      ## autotools
+      - crosscompile-notest-djgpp
+      - crosscompile-notest-freebsd9
+      - crosscompile-notest-psvita
+
+      ## cmake
+      - crosscompile-cmake-notest-android-arm
+      - crosscompile-cmake-notest-browser-asmjs
+      - crosscompile-cmake-notest-linux-arm64
+      - crosscompile-cmake-notest-linux-mips
+      - crosscompile-cmake-notest-windows-x64
