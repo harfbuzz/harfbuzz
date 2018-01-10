@@ -107,6 +107,7 @@ TESTS = \
 	data/text-rendering-tests/tests/HVAR-2.tests \
 	data/text-rendering-tests/tests/KERN-1.tests \
 	data/text-rendering-tests/tests/KERN-2.tests \
+	data/text-rendering-tests/tests/SHKNDA-1.tests \
 	$(NULL)
 
 DISABLED_TESTS = \
@@ -120,7 +121,6 @@ DISABLED_TESTS = \
 	data/text-rendering-tests/tests/SHBALI-1.tests # Rounding difference \
 	data/text-rendering-tests/tests/SHBALI-2.tests # Rounding difference \
 	data/text-rendering-tests/tests/SHBALI-3.tests # Rounding difference \
-	data/text-rendering-tests/tests/SHKNDA-1.tests # Rounding difference \
 	data/text-rendering-tests/tests/SHKNDA-2.tests # Rounding difference \
 	data/text-rendering-tests/tests/SHKNDA-3.tests # Rounding difference \
 	$(NULL)
