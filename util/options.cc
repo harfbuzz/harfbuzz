@@ -780,6 +780,8 @@ text_options_t::get_line (unsigned int *len)
     gs = g_string_new (nullptr);
   }
 
+  setlinebuf (fp);
+
   g_string_set_size (gs, 0);
   char buf[BUFSIZ];
   while (fgets (buf, sizeof (buf), fp)) {
@@ -816,6 +818,8 @@ output_options_t::get_file_handle (void)
   if (!fp)
     fail (false, "Cannot open output file `%s': %s",
 	  g_filename_display_name (output_file), strerror (errno));
+
+  setlinebuf (fp);
 
   return fp;
 }
