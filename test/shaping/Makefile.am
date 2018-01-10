@@ -12,6 +12,7 @@ lib:
 
 EXTRA_DIST += \
 	README.md \
+	CMakeLists.txt \
 	hb-diff \
 	hb-diff-colorize \
 	hb-diff-filter-failures \
@@ -23,7 +24,7 @@ EXTRA_DIST += \
 	run-tests.py \
 	texts/in-house \
 	data/in-house/fonts \
-	CMakeLists.txt \
+	data/text-rendering-tests/fonts \
 	$(TESTS) \
 	$(NULL)
 
@@ -77,6 +78,47 @@ TESTS = \
 	data/in-house/tests/variations-rvrn.tests \
 	data/in-house/tests/vertical.tests \
 	data/in-house/tests/zero-width-marks.tests \
+	data/text-rendering-tests/tests/AVAR-1.tests \
+	data/text-rendering-tests/tests/CFF-1.tests \
+	data/text-rendering-tests/tests/CFF2-1.tests \
+	data/text-rendering-tests/tests/CFF-2.tests \
+	data/text-rendering-tests/tests/CMAP-1.tests \
+	data/text-rendering-tests/tests/CMAP-2.tests \
+	data/text-rendering-tests/tests/CMAP-3.tests \
+	data/text-rendering-tests/tests/CVAR-1.tests \
+	data/text-rendering-tests/tests/CVAR-2.tests \
+	data/text-rendering-tests/tests/GLYF-1.tests \
+	data/text-rendering-tests/tests/GPOS-1.tests \
+	data/text-rendering-tests/tests/GPOS-2.tests \
+	data/text-rendering-tests/tests/GPOS-3.tests \
+	data/text-rendering-tests/tests/GPOS-4.tests \
+	data/text-rendering-tests/tests/GPOS-5.tests \
+	data/text-rendering-tests/tests/GSUB-1.tests \
+	data/text-rendering-tests/tests/GSUB-2.tests \
+	data/text-rendering-tests/tests/GVAR-1.tests \
+	data/text-rendering-tests/tests/GVAR-2.tests \
+	data/text-rendering-tests/tests/GVAR-3.tests \
+	data/text-rendering-tests/tests/GVAR-4.tests \
+	data/text-rendering-tests/tests/GVAR-5.tests \
+	data/text-rendering-tests/tests/GVAR-6.tests \
+	data/text-rendering-tests/tests/GVAR-7.tests \
+	data/text-rendering-tests/tests/GVAR-8.tests \
+	data/text-rendering-tests/tests/GVAR-9.tests \
+	data/text-rendering-tests/tests/HVAR-1.tests \
+	data/text-rendering-tests/tests/HVAR-2.tests \
+	data/text-rendering-tests/tests/KERN-1.tests \
+	data/text-rendering-tests/tests/KERN-2.tests \
+	data/text-rendering-tests/tests/MORX-1.tests \
+	data/text-rendering-tests/tests/MORX-2.tests \
+	data/text-rendering-tests/tests/MORX-3.tests \
+	data/text-rendering-tests/tests/MORX-4.tests \
+	data/text-rendering-tests/tests/SHARAN-1.tests \
+	data/text-rendering-tests/tests/SHBALI-1.tests \
+	data/text-rendering-tests/tests/SHBALI-2.tests \
+	data/text-rendering-tests/tests/SHBALI-3.tests \
+	data/text-rendering-tests/tests/SHKNDA-1.tests \
+	data/text-rendering-tests/tests/SHKNDA-2.tests \
+	data/text-rendering-tests/tests/SHKNDA-3.tests \
 	$(NULL)
 
 TEST_EXTENSIONS = .tests
