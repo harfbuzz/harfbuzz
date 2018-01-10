@@ -37,6 +37,9 @@
 namespace AAT {
 
 using namespace OT;
+using OT::UINT8;
+using OT::UINT16;
+using OT::UINT32;
 
 
 struct RearrangementSubtable
