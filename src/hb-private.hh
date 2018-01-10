@@ -40,6 +40,7 @@
 #define HB_OT_H_IN
 #endif
 
+#include <math.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

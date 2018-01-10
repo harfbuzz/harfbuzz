@@ -333,7 +333,7 @@ struct Anchor
     case 1: u.format1.get_anchor (c, glyph_id, x, y); return;
     case 2: u.format2.get_anchor (c, glyph_id, x, y); return;
     case 3: u.format3.get_anchor (c, glyph_id, x, y); return;
-    default:						 return;
+    default:					      return;
     }
   }
 

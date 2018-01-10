@@ -541,7 +541,7 @@ struct hb_font_t {
   }
   inline hb_position_t em_scalef (float v, int scale)
   {
-    return (hb_position_t) (v * scale / face->get_upem ());
+    return (hb_position_t) round (v * scale / face->get_upem ());
   }
 };
 
