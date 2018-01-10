@@ -4,12 +4,6 @@ from __future__ import print_function
 import sys, os, subprocess
 
 
-try:
-	input = raw_input
-except NameError:
-	pass
-
-
 def cmd(command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -32,9 +26,6 @@ reference = False
 if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
-
-if not reference:
-	print ('hb_shape:', hb_shape)
 
 if not len (args):
 	args = ['-']
