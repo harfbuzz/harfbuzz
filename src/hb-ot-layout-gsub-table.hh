@@ -110,11 +110,11 @@ struct SingleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  INT16		deltaGlyphID;		/* Add to original GlyphID to get
+  HBINT16		deltaGlyphID;		/* Add to original GlyphID to get
 					 * substitute GlyphID */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -195,7 +195,7 @@ struct SingleSubstFormat2
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 2 */
+  HBUINT16	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -249,7 +249,7 @@ struct SingleSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   SingleSubstFormat1	format1;
   SingleSubstFormat2	format2;
   } u;
@@ -398,7 +398,7 @@ struct MultipleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -440,7 +440,7 @@ struct MultipleSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   MultipleSubstFormat1	format1;
   } u;
 };
@@ -548,7 +548,7 @@ struct AlternateSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -590,7 +590,7 @@ struct AlternateSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   AlternateSubstFormat1	format1;
   } u;
 };
@@ -862,7 +862,7 @@ struct LigatureSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -912,7 +912,7 @@ struct LigatureSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   LigatureSubstFormat1	format1;
   } u;
 };
@@ -1007,11 +1007,11 @@ struct ReverseChainSingleSubstFormat1
 
   unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
-			 backtrack.len, (UINT16 *) backtrack.array,
+			 backtrack.len, (HBUINT16 *) backtrack.array,
 			 match_coverage, this,
 			 &start_index) &&
         match_lookahead (c,
-			 lookahead.len, (UINT16 *) lookahead.array,
+			 lookahead.len, (HBUINT16 *) lookahead.array,
 			 match_coverage, this,
 			 1, &end_index))
     {
@@ -1039,7 +1039,7 @@ struct ReverseChainSingleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
@@ -1073,7 +1073,7 @@ struct ReverseChainSingleSubst
 
   protected:
   union {
-  UINT16				format;		/* Format identifier */
+  HBUINT16				format;		/* Format identifier */
   ReverseChainSingleSubstFormat1	format1;
   } u;
 };
@@ -1119,7 +1119,7 @@ struct SubstLookupSubTable
 
   protected:
   union {
-  UINT16			sub_format;
+  HBUINT16			sub_format;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;

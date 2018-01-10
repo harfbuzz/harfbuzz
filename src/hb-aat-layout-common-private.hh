@@ -33,9 +33,6 @@
 namespace AAT {
 
 using namespace OT;
-using OT::UINT8;
-using OT::UINT16;
-using OT::UINT32;
 
 
 /*
@@ -51,13 +48,13 @@ struct BinSearchHeader
     return_trace (c->check_struct (this));
   }
 
-  UINT16	unitSize;	/* Size of a lookup unit for this search in bytes. */
-  UINT16	nUnits;		/* Number of units of the preceding size to be searched. */
-  UINT16	searchRange;	/* The value of unitSize times the largest power of 2
+  HBUINT16	unitSize;	/* Size of a lookup unit for this search in bytes. */
+  HBUINT16	nUnits;		/* Number of units of the preceding size to be searched. */
+  HBUINT16	searchRange;	/* The value of unitSize times the largest power of 2
 				 * that is less than or equal to the value of nUnits. */
-  UINT16	entrySelector;	/* The log base 2 of the largest power of 2 less than
+  HBUINT16	entrySelector;	/* The log base 2 of the largest power of 2 less than
 				 * or equal to the value of nUnits. */
-  UINT16	rangeShift;	/* The value of unitSize times the difference of the
+  HBUINT16	rangeShift;	/* The value of unitSize times the difference of the
 				 * value of nUnits minus the largest power of 2 less
 				 * than or equal to the value of nUnits. */
   public:
@@ -137,7 +134,7 @@ struct BinSearchArrayOf
 
   protected:
   BinSearchHeader	header;
-  UINT8			bytes[VAR];
+  HBUINT8			bytes[VAR];
   public:
   DEFINE_SIZE_ARRAY (10, bytes);
 };
@@ -199,7 +196,7 @@ struct LookupFormat0
   }
 
   protected:
-  UINT16	format;		/* Format identifier--format = 0 */
+  HBUINT16	format;		/* Format identifier--format = 0 */
   UnsizedArrayOf<T>
 		arrayZ;		/* Array of lookup values, indexed by glyph index. */
   public:
@@ -246,7 +243,7 @@ struct LookupFormat2
   }
 
   protected:
-  UINT16	format;		/* Format identifier--format = 2 */
+  HBUINT16	format;		/* Format identifier--format = 2 */
   BinSearchArrayOf<LookupSegmentSingle<T> >
 		segments;	/* The actual segments. These must already be sorted,
 				 * according to the first word in each one (the last
@@ -303,7 +300,7 @@ struct LookupFormat4
   }
 
   protected:
-  UINT16	format;		/* Format identifier--format = 2 */
+  HBUINT16	format;		/* Format identifier--format = 2 */
   BinSearchArrayOf<LookupSegmentArray<T> >
 		segments;	/* The actual segments. These must already be sorted,
 				 * according to the first word in each one (the last
@@ -348,7 +345,7 @@ struct LookupFormat6
   }
 
   protected:
-  UINT16	format;		/* Format identifier--format = 6 */
+  HBUINT16	format;		/* Format identifier--format = 6 */
   BinSearchArrayOf<LookupSingle<T> >
 		entries;	/* The actual entries, sorted by glyph index. */
   public:
@@ -373,9 +370,9 @@ struct LookupFormat8
   }
 
   protected:
-  UINT16	format;		/* Format identifier--format = 6 */
+  HBUINT16	format;		/* Format identifier--format = 6 */
   GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
-  UINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
+  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
 				 * glyph minus the value of firstGlyph plus 1). */
   UnsizedArrayOf<T>
 		valueArrayZ;	/* The lookup values (indexed by the glyph index
@@ -415,7 +412,7 @@ struct Lookup
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   LookupFormat0<T>	format0;
   LookupFormat2<T>	format2;
   LookupFormat4<T>	format4;

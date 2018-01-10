@@ -37,9 +37,6 @@
 namespace AAT {
 
 using namespace OT;
-using OT::UINT8;
-using OT::UINT16;
-using OT::UINT32;
 
 
 struct RearrangementSubtable
@@ -154,11 +151,11 @@ struct Feature
   }
 
   public:
-  UINT16	featureType;	/* The type of feature. */
-  UINT16	featureSetting;	/* The feature's setting (aka selector). */
-  UINT32	enableFlags;	/* Flags for the settings that this feature
+  HBUINT16	featureType;	/* The type of feature. */
+  HBUINT16	featureSetting;	/* The feature's setting (aka selector). */
+  HBUINT32	enableFlags;	/* Flags for the settings that this feature
 				 * and setting enables. */
-  UINT32	disableFlags;	/* Complement of flags for the settings that this
+  HBUINT32	disableFlags;	/* Complement of flags for the settings that this
 				 * feature and setting disable. */
 
   public:
@@ -166,11 +163,11 @@ struct Feature
 };
 
 
-template <typename UINT>
+template <typename HBUINT>
 struct ChainSubtable
 {
   template <typename> struct Chain;
-  friend struct Chain<UINT>;
+  friend struct Chain<HBUINT>;
 
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & 0xFF; }
@@ -215,9 +212,9 @@ struct ChainSubtable
   }
 
   protected:
-  UINT		length;		/* Total subtable length, including this header. */
-  UINT		coverage;	/* Coverage flags and subtable type. */
-  UINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
+  HBUINT		length;		/* Total subtable length, including this header. */
+  HBUINT		coverage;	/* Coverage flags and subtable type. */
+  HBUINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
   RearrangementSubtable	rearrangement;
   ContextualSubtable	contextual;
@@ -226,20 +223,20 @@ struct ChainSubtable
   InsertionSubtable	insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (UINT) + 4);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
 };
 
-template <typename UINT>
+template <typename HBUINT>
 struct Chain
 {
   inline void apply (hb_apply_context_t *c) const
   {
-    const ChainSubtable<UINT> *subtable = &StructAtOffset<ChainSubtable<UINT> > (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<HBUINT> *subtable = &StructAtOffset<ChainSubtable<HBUINT> > (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       subtable->apply (c);
-      subtable = &StructAfter<ChainSubtable<UINT> > (*subtable);
+      subtable = &StructAfter<ChainSubtable<HBUINT> > (*subtable);
     }
   }
 
@@ -256,30 +253,30 @@ struct Chain
     if (!c->check_array (featureZ, featureZ[0].static_size, featureCount))
       return_trace (false);
 
-    const ChainSubtable<UINT> *subtable = &StructAtOffset<ChainSubtable<UINT> > (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<HBUINT> *subtable = &StructAtOffset<ChainSubtable<HBUINT> > (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!subtable->sanitize (c))
 	return_trace (false);
-      subtable = &StructAfter<ChainSubtable<UINT> > (*subtable);
+      subtable = &StructAfter<ChainSubtable<HBUINT> > (*subtable);
     }
 
     return_trace (true);
   }
 
   protected:
-  UINT32	defaultFlags;	/* The default specification for subtables. */
-  UINT32	length;		/* Total byte count, including this header. */
-  UINT		featureCount;	/* Number of feature subtable entries. */
-  UINT		subtableCount;	/* The number of subtables in the chain. */
+  HBUINT32	defaultFlags;	/* The default specification for subtables. */
+  HBUINT32	length;		/* Total byte count, including this header. */
+  HBUINT		featureCount;	/* Number of feature subtable entries. */
+  HBUINT		subtableCount;	/* The number of subtables in the chain. */
 
   Feature		featureZ[VAR];	/* Features. */
-  ChainSubtable<UINT>	subtableX[VAR];	/* Subtables. */
+  ChainSubtable<HBUINT>	subtableX[VAR];	/* Subtables. */
   // subtableGlyphCoverageArray if major == 3
 
   public:
-  DEFINE_SIZE_MIN (8 + 2 * sizeof (UINT));
+  DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT));
 };
 
 
@@ -287,7 +284,7 @@ struct Chain
  * The 'mort'/'morx' Tables
  */
 
-template <typename UINT>
+template <typename HBUINT>
 struct mortmorx
 {
   static const hb_tag_t mortTag	= HB_AAT_TAG_MORT;
@@ -295,12 +292,12 @@ struct mortmorx
 
   inline void apply (hb_apply_context_t *c) const
   {
-    const Chain<UINT> *chain = chains;
+    const Chain<HBUINT> *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       chain->apply (c);
-      chain = &StructAfter<Chain<UINT> > (*chain);
+      chain = &StructAfter<Chain<HBUINT> > (*chain);
     }
   }
 
@@ -308,17 +305,17 @@ struct mortmorx
   {
     TRACE_SANITIZE (this);
     if (!version.sanitize (c) ||
-	version.major >> (sizeof (UINT) == 4) != 1 ||
+	version.major >> (sizeof (HBUINT) == 4) != 1 ||
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain<UINT> *chain = chains;
+    const Chain<HBUINT> *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!chain->sanitize (c, version.major))
 	return_trace (false);
-      chain = &StructAfter<Chain<UINT> > (*chain);
+      chain = &StructAfter<Chain<HBUINT> > (*chain);
     }
 
     return_trace (true);
@@ -327,20 +324,20 @@ struct mortmorx
   protected:
   FixedVersion<>version;	/* Version number of the glyph metamorphosis table.
 				 * 1 for mort, 2 or 3 for morx. */
-  UINT32	chainCount;	/* Number of metamorphosis chains contained in this
+  HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain<UINT>	chains[VAR];	/* Chains. */
+  Chain<HBUINT>	chains[VAR];	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);
 };
 
-struct mort : mortmorx<UINT16>
+struct mort : mortmorx<HBUINT16>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_MORT;
 };
 
-struct morx : mortmorx<UINT32>
+struct morx : mortmorx<HBUINT32>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_MORX;
 };

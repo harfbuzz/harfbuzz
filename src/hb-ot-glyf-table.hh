@@ -54,7 +54,7 @@ struct loca
   }
 
   protected:
-  UINT8		dataX[VAR];		/* Location data. */
+  HBUINT8		dataX[VAR];		/* Location data. */
   DEFINE_SIZE_ARRAY (0, dataX);
 };
 
@@ -80,7 +80,7 @@ struct glyf
 
   struct GlyphHeader
   {
-    INT16		numberOfContours;	/* If the number of contours is
+    HBINT16		numberOfContours;	/* If the number of contours is
 					   * greater than or equal to zero,
 					   * this is a simple glyph; if negative,
 					   * this is a composite glyph. */
@@ -131,13 +131,13 @@ struct glyf
       unsigned int start_offset, end_offset;
       if (short_offset)
       {
-        const UINT16 *offsets = (const UINT16 *) loca_table->dataX;
+        const HBUINT16 *offsets = (const HBUINT16 *) loca_table->dataX;
 	start_offset = 2 * offsets[glyph];
 	end_offset   = 2 * offsets[glyph + 1];
       }
       else
       {
-        const UINT32 *offsets = (const UINT32 *) loca_table->dataX;
+        const HBUINT32 *offsets = (const HBUINT32 *) loca_table->dataX;
 	start_offset = offsets[glyph];
 	end_offset   = offsets[glyph + 1];
       }
@@ -169,7 +169,7 @@ struct glyf
   };
 
   protected:
-  UINT8		dataX[VAR];		/* Glyphs data. */
+  HBUINT8		dataX[VAR];		/* Glyphs data. */
 
   DEFINE_SIZE_ARRAY (0, dataX);
 };

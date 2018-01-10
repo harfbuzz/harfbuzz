@@ -51,11 +51,11 @@ enum attach_type_t {
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
-typedef UINT16 Value;
+typedef HBUINT16 Value;
 
 typedef Value ValueRecord[VAR];
 
-struct ValueFormat : UINT16
+struct ValueFormat : HBUINT16
 {
   enum Flags {
     xPlacement	= 0x0001u,	/* Includes horizontal adjustment for placement */
@@ -74,14 +74,14 @@ struct ValueFormat : UINT16
 
 /* All fields are options.  Only those available advance the value pointer. */
 #if 0
-  INT16		xPlacement;		/* Horizontal adjustment for
+  HBINT16		xPlacement;		/* Horizontal adjustment for
 					 * placement--in design units */
-  INT16		yPlacement;		/* Vertical adjustment for
+  HBINT16		yPlacement;		/* Vertical adjustment for
 					 * placement--in design units */
-  INT16		xAdvance;		/* Horizontal adjustment for
+  HBINT16		xAdvance;		/* Horizontal adjustment for
 					 * advance--in design units (only used
 					 * for horizontal writing) */
-  INT16		yAdvance;		/* Vertical adjustment for advance--in
+  HBINT16		yAdvance;		/* Vertical adjustment for advance--in
 					 * design units (only used for vertical
 					 * writing) */
   Offset	xPlaDevice;		/* Offset to Device table for
@@ -178,8 +178,8 @@ struct ValueFormat : UINT16
   static inline const OffsetTo<Device>& get_device (const Value* value)
   { return *CastP<OffsetTo<Device> > (value); }
 
-  static inline const INT16& get_short (const Value* value)
-  { return *CastP<INT16> (value); }
+  static inline const HBINT16& get_short (const Value* value)
+  { return *CastP<HBINT16> (value); }
 
   public:
 
@@ -247,9 +247,9 @@ struct AnchorFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
-  INT16		xCoordinate;		/* Horizontal value--in design units */
-  INT16		yCoordinate;		/* Vertical value--in design units */
+  HBUINT16	format;			/* Format identifier--format = 1 */
+  HBINT16		xCoordinate;		/* Horizontal value--in design units */
+  HBINT16		yCoordinate;		/* Vertical value--in design units */
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -278,10 +278,10 @@ struct AnchorFormat2
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 2 */
-  INT16		xCoordinate;		/* Horizontal value--in design units */
-  INT16		yCoordinate;		/* Vertical value--in design units */
-  UINT16	anchorPoint;		/* Index to glyph contour point */
+  HBUINT16	format;			/* Format identifier--format = 2 */
+  HBINT16		xCoordinate;		/* Horizontal value--in design units */
+  HBINT16		yCoordinate;		/* Vertical value--in design units */
+  HBUINT16	anchorPoint;		/* Index to glyph contour point */
   public:
   DEFINE_SIZE_STATIC (8);
 };
@@ -308,9 +308,9 @@ struct AnchorFormat3
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 3 */
-  INT16		xCoordinate;		/* Horizontal value--in design units */
-  INT16		yCoordinate;		/* Vertical value--in design units */
+  HBUINT16	format;			/* Format identifier--format = 3 */
+  HBINT16		xCoordinate;		/* Horizontal value--in design units */
+  HBINT16		yCoordinate;		/* Vertical value--in design units */
   OffsetTo<Device>
 		xDeviceTable;		/* Offset to Device table for X
 					 * coordinate-- from beginning of
@@ -351,7 +351,7 @@ struct Anchor
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   AnchorFormat1		format1;
   AnchorFormat2		format2;
   AnchorFormat3		format3;
@@ -382,7 +382,7 @@ struct AnchorMatrix
     return_trace (true);
   }
 
-  UINT16	rows;			/* Number of rows */
+  HBUINT16	rows;			/* Number of rows */
   protected:
   OffsetTo<Anchor>
 		matrixZ[VAR];		/* Matrix of offsets to Anchor tables--
@@ -403,7 +403,7 @@ struct MarkRecord
   }
 
   protected:
-  UINT16	klass;			/* Class defined for this mark */
+  HBUINT16	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
 		markAnchor;		/* Offset to Anchor table--from
 					 * beginning of MarkArray table */
@@ -492,7 +492,7 @@ struct SinglePosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
@@ -544,13 +544,13 @@ struct SinglePosFormat2
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 2 */
+  HBUINT16	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ValueFormat	valueFormat;		/* Defines the types of data in the
 					 * ValueRecord */
-  UINT16	valueCount;		/* Number of ValueRecords */
+  HBUINT16	valueCount;		/* Number of ValueRecords */
   ValueRecord	values;			/* Array of ValueRecords--positioning
 					 * values applied to glyphs */
   public:
@@ -573,7 +573,7 @@ struct SinglePos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   SinglePosFormat1	format1;
   SinglePosFormat2	format2;
   } u;
@@ -604,7 +604,7 @@ struct PairSet
     TRACE_COLLECT_GLYPHS (this);
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = UINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
     const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
     c->input->add_array (&record->secondGlyph, len, record_size);
@@ -618,7 +618,7 @@ struct PairSet
     hb_buffer_t *buffer = c->buffer;
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = UINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
     const PairValueRecord *record_array = CastP<PairValueRecord> (arrayZ);
     unsigned int count = len;
@@ -663,7 +663,7 @@ struct PairSet
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this)
-       && c->check_array (arrayZ, UINT16::static_size * closure->stride, len))) return_trace (false);
+       && c->check_array (arrayZ, HBUINT16::static_size * closure->stride, len))) return_trace (false);
 
     unsigned int count = len;
     const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
@@ -672,8 +672,8 @@ struct PairSet
   }
 
   protected:
-  UINT16	len;			/* Number of PairValueRecords */
-  UINT16	arrayZ[VAR];		/* Array of PairValueRecords--ordered
+  HBUINT16	len;			/* Number of PairValueRecords */
+  HBUINT16	arrayZ[VAR];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
   public:
   DEFINE_SIZE_ARRAY (2, arrayZ);
@@ -728,7 +728,7 @@ struct PairPosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
@@ -809,7 +809,7 @@ struct PairPosFormat2
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 2 */
+  HBUINT16	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
@@ -827,9 +827,9 @@ struct PairPosFormat2
 		classDef2;		/* Offset to ClassDef table--from
 					 * beginning of PairPos subtable--for
 					 * the second glyph of the pair */
-  UINT16	class1Count;		/* Number of classes in ClassDef1
+  HBUINT16	class1Count;		/* Number of classes in ClassDef1
 					 * table--includes Class0 */
-  UINT16	class2Count;		/* Number of classes in ClassDef2
+  HBUINT16	class2Count;		/* Number of classes in ClassDef2
 					 * table--includes Class0 */
   ValueRecord	values;			/* Matrix of value pairs:
 					 * class1-major, class2-minor,
@@ -854,7 +854,7 @@ struct PairPos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   PairPosFormat1	format1;
   PairPosFormat2	format2;
   } u;
@@ -1008,7 +1008,7 @@ struct CursivePosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
@@ -1034,7 +1034,7 @@ struct CursivePos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   CursivePosFormat1	format1;
   } u;
 };
@@ -1099,14 +1099,14 @@ struct MarkBasePosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		markCoverage;		/* Offset to MarkCoverage table--from
 					 * beginning of MarkBasePos subtable */
   OffsetTo<Coverage>
 		baseCoverage;		/* Offset to BaseCoverage table--from
 					 * beginning of MarkBasePos subtable */
-  UINT16	classCount;		/* Number of classes defined for marks */
+  HBUINT16	classCount;		/* Number of classes defined for marks */
   OffsetTo<MarkArray>
 		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkBasePos subtable */
@@ -1132,7 +1132,7 @@ struct MarkBasePos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   MarkBasePosFormat1	format1;
   } u;
 };
@@ -1216,7 +1216,7 @@ struct MarkLigPosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		markCoverage;		/* Offset to Mark Coverage table--from
 					 * beginning of MarkLigPos subtable */
@@ -1224,7 +1224,7 @@ struct MarkLigPosFormat1
 		ligatureCoverage;	/* Offset to Ligature Coverage
 					 * table--from beginning of MarkLigPos
 					 * subtable */
-  UINT16	classCount;		/* Number of defined mark classes */
+  HBUINT16	classCount;		/* Number of defined mark classes */
   OffsetTo<MarkArray>
 		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkLigPos subtable */
@@ -1250,7 +1250,7 @@ struct MarkLigPos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   MarkLigPosFormat1	format1;
   } u;
 };
@@ -1330,7 +1330,7 @@ struct MarkMarkPosFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		mark1Coverage;		/* Offset to Combining Mark1 Coverage
 					 * table--from beginning of MarkMarkPos
@@ -1339,7 +1339,7 @@ struct MarkMarkPosFormat1
 		mark2Coverage;		/* Offset to Combining Mark2 Coverage
 					 * table--from beginning of MarkMarkPos
 					 * subtable */
-  UINT16	classCount;		/* Number of defined mark classes */
+  HBUINT16	classCount;		/* Number of defined mark classes */
   OffsetTo<MarkArray>
 		mark1Array;		/* Offset to Mark1Array table--from
 					 * beginning of MarkMarkPos subtable */
@@ -1365,7 +1365,7 @@ struct MarkMarkPos
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   MarkMarkPosFormat1	format1;
   } u;
 };
@@ -1424,7 +1424,7 @@ struct PosLookupSubTable
 
   protected:
   union {
-  UINT16		sub_format;
+  HBUINT16		sub_format;
   SinglePos		single;
   PairPos		pair;
   CursivePos		cursive;
