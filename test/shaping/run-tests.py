@@ -1,16 +1,32 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import sys, os, subprocess
+import sys, os, subprocess, re
 
+p = None
+cm = None
 
-def cmd(command):
-	p = subprocess.Popen (
-		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	p.wait ()
-	print (p.stderr.read (), file=sys.stderr, end='')
-	return p.stdout.read ().decode ("utf-8").strip(), p.returncode
+def cmd(command, line):
+	global p, cm
+	if command != cm:
+		if p:
+			p.stdin.close()
+		p = subprocess.Popen (command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		cm = command
+	p.stdin.write(line+'\n')
+	p.stdin.flush()
+	p.poll()
+	return p.stdout.readline ().decode ("utf-8").strip(), 0# p.returncode
 
+def parse (s):
+	s = re.sub (r"0[xX]", " ", s)
+	s = re.sub (r"[<+>{},;&#\\xXuUnNiI\n\t]", " ", s)
+	return [int (x, 16) for x in s.split ()]
+
+def utf8 (s):
+	s = u''.join (unichr (x) for x in parse (s))
+	if sys.version_info[0] == 2: s = s.encode ('utf-8')
+	return s
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
@@ -57,27 +73,27 @@ for filename in args:
 					 (hb_shape, fontfile, extra_options, options, unicodes))
 
 		glyphs1, returncode = cmd ([hb_shape, "--font-funcs=ft",
-			fontfile, extra_options, "--unicodes",
-			unicodes] + (options.split (' ') if options else []))
+			fontfile, extra_options,
+			] + (options.split (' ') if options else []), utf8(unicodes))
 
 		if returncode:
 			print ("hb-shape --font-funcs=ft failed.", file=sys.stderr)
 			fails = fails + 1
 			#continue
 
-		glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
-			fontfile, extra_options, "--unicodes",
-			unicodes] + (options.split (' ') if options else []))
+		#glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
+		#	fontfile, extra_options, "--unicodes",
+		#	unicodes] + (options.split (' ') if options else []))
 
-		if returncode:
-			print ("ERROR: hb-shape --font-funcs=ot failed.", file=sys.stderr)
-			fails = fails + 1
-			#continue
+		#if returncode:
+		#	print ("ERROR: hb-shape --font-funcs=ot failed.", file=sys.stderr)
+		#	fails = fails + 1
+		#	#continue
 
-		if glyphs1 != glyphs2:
-			print ("FT funcs: " + glyphs1, file=sys.stderr)
-			print ("OT funcs: " + glyphs2, file=sys.stderr)
-			fails = fails + 1
+		#if glyphs1 != glyphs2:
+		#	print ("FT funcs: " + glyphs1, file=sys.stderr)
+		#	print ("OT funcs: " + glyphs2, file=sys.stderr)
+		#	fails = fails + 1
 
 		if reference:
 			print (":".join ([fontfile, options, unicodes, glyphs1]))
