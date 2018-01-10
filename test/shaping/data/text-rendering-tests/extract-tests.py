@@ -40,6 +40,6 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 		assert href[0] == '#'
 		glyphname = '.'.join(href[1:].split('/')[1].split('.')[1:])
 		glyphs.append((glyphname, x, y))
-	print("../fonts/%s:--font-size=1000 --no-clusters --no-advances:%s:%s" % (font, unistr(text), glyphstr(glyphs)))
+	print("../fonts/%s:--font-size=1000 --ned --font-funcs=ft:%s:%s" % (font, unistr(text), glyphstr(glyphs)))
 
 sys.exit(0 if found else 1)
