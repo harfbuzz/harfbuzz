@@ -92,6 +92,7 @@ TESTS = \
 	data/text-rendering-tests/tests/GPOS-2.tests \
 	data/text-rendering-tests/tests/GPOS-3.tests \
 	data/text-rendering-tests/tests/GPOS-4.tests \
+	data/text-rendering-tests/tests/GPOS-5.tests \
 	data/text-rendering-tests/tests/GSUB-1.tests \
 	data/text-rendering-tests/tests/GSUB-2.tests \
 	data/text-rendering-tests/tests/GVAR-1.tests \
@@ -112,7 +113,6 @@ TESTS = \
 
 DISABLED_TESTS = \
 	data/text-rendering-tests/tests/CMAP-3.tests # Non-Unicode cmap \
-	data/text-rendering-tests/tests/GPOS-5.tests # Rounding difference \
 	data/text-rendering-tests/tests/MORX-1.tests # Not implemented \
 	data/text-rendering-tests/tests/MORX-2.tests # Not implemented \
 	data/text-rendering-tests/tests/MORX-3.tests # Not implemented \
