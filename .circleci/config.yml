@@ -138,8 +138,8 @@ workflows:
   version: 2
   build:
     jobs:
-      - oracledeveloperstudio
-      - fedora-out-of-tree
+      #- oracledeveloperstudio
+      #- fedora-out-of-tree
       - archlinux
       - freebsd9
       - base
