@@ -251,9 +251,17 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  * @HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES:
  *                      flag indication that character with Default_Ignorable
  *                      Unicode property should use the corresponding glyph
- *                      from the font, instead of hiding them (currently done
- *                      by replacing them with the space glyph and zeroing the
- *                      advance width.)
+ *                      from the font, instead of hiding them (done by
+ *                      replacing them with the space glyph and zeroing the
+ *                      advance width.)  This flag takes precendence over
+ *                      @HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES.
+ * @HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES:
+ *                      flag indication that character with Default_Ignorable
+ *                      Unicode property should be removed from glyph string
+ *                      instead of hiding them (done by replacing them with the
+ *                      space glyph and zeroing the advance width.)
+ *                      @HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES takes
+ *                      precedence over this flag. Since: 1.8.0
  *
  * Since: 0.9.20
  */
@@ -261,7 +269,8 @@ typedef enum { /*< flags >*/
   HB_BUFFER_FLAG_DEFAULT			= 0x00000000u,
   HB_BUFFER_FLAG_BOT				= 0x00000001u, /* Beginning-of-text */
   HB_BUFFER_FLAG_EOT				= 0x00000002u, /* End-of-text */
-  HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES	= 0x00000004u
+  HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES	= 0x00000004u,
+  HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES	= 0x00000008u
 } hb_buffer_flags_t;
 
 HB_EXTERN void

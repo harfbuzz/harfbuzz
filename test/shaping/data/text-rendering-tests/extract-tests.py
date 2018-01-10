@@ -41,7 +41,7 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 		assert href[0] == '#'
 		glyphname = '.'.join(href[1:].split('/')[1].split('.')[1:])
 		glyphs.append((glyphname, x, y))
-	opts = '--font-size=1000 --ned --font-funcs=ft'
+	opts = '--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft'
 	if vars:
 		opts = opts + ' --variations=%s' % vars
 	print ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
