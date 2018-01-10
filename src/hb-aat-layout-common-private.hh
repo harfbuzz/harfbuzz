@@ -424,6 +424,30 @@ struct Lookup
 };
 
 
+struct Class
+{
+  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  {
+    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
+  }
+
+  protected:
+  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
+				 * glyph minus the value of firstGlyph plus 1). */
+  UnsizedArrayOf<HBUINT8>
+		classArrayZ;	/* The class codes (indexed by glyph index minus
+				 * firstGlyph). */
+  public:
+  DEFINE_SIZE_ARRAY (4, classArrayZ);
+};
+
 } /* namespace AAT */
 
 
