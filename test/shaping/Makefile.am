@@ -125,7 +125,6 @@ DISABLED_TESTS = \
 	$(NULL)
 
 TEST_EXTENSIONS = .tests
-
 TESTS_LOG_COMPILER = $(srcdir)/run-tests.py $(top_builddir)/util/hb-shape$(EXEEXT)
 
 -include $(top_srcdir)/git.mk
