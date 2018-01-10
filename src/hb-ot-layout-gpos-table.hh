@@ -233,11 +233,11 @@ struct ValueFormat : HBUINT16
 struct AnchorFormat1
 {
   inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id HB_UNUSED,
-			  hb_position_t *x, hb_position_t *y) const
+			  float *x, float *y) const
   {
     hb_font_t *font = c->font;
-    *x = font->em_scale_x (xCoordinate);
-    *y = font->em_scale_y (yCoordinate);
+    *x = font->em_fscale_x (xCoordinate);
+    *y = font->em_fscale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -257,7 +257,7 @@ struct AnchorFormat1
 struct AnchorFormat2
 {
   inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const
+			  float *x, float *y) const
   {
     hb_font_t *font = c->font;
     unsigned int x_ppem = font->x_ppem;
@@ -267,8 +267,8 @@ struct AnchorFormat2
 
     ret = (x_ppem || y_ppem) &&
 	   font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
-    *x = ret && x_ppem ? cx : font->em_scale_x (xCoordinate);
-    *y = ret && y_ppem ? cy : font->em_scale_y (yCoordinate);
+    *x = ret && x_ppem ? cx : font->em_fscale_x (xCoordinate);
+    *y = ret && y_ppem ? cy : font->em_fscale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -289,11 +289,11 @@ struct AnchorFormat2
 struct AnchorFormat3
 {
   inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id HB_UNUSED,
-			  hb_position_t *x, hb_position_t *y) const
+			  float *x, float *y) const
   {
     hb_font_t *font = c->font;
-    *x = font->em_scale_x (xCoordinate);
-    *y = font->em_scale_y (yCoordinate);
+    *x = font->em_fscale_x (xCoordinate);
+    *y = font->em_fscale_y (yCoordinate);
 
     if (font->x_ppem || font->num_coords)
       *x += (this+xDeviceTable).get_x_delta (font, c->var_store);
@@ -326,7 +326,7 @@ struct AnchorFormat3
 struct Anchor
 {
   inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const
+			  float *x, float *y) const
   {
     *x = *y = 0;
     switch (u.format) {
@@ -430,15 +430,15 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
      * return false such that the subsequent subtables have a chance at it. */
     if (unlikely (!found)) return_trace (false);
 
-    hb_position_t mark_x, mark_y, base_x, base_y;
+    float mark_x, mark_y, base_x, base_y;
 
     buffer->unsafe_to_break (glyph_pos, buffer->idx);
     mark_anchor.get_anchor (c, buffer->cur().codepoint, &mark_x, &mark_y);
     glyph_anchor.get_anchor (c, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = buffer->cur_pos();
-    o.x_offset = base_x - mark_x;
-    o.y_offset = base_y - mark_y;
+    o.x_offset = round (base_x - mark_x);
+    o.y_offset = round (base_y - mark_y);
     o.attach_type() = ATTACH_TYPE_MARK;
     o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
@@ -919,7 +919,7 @@ struct CursivePosFormat1
     unsigned int j = skippy_iter.idx;
 
     buffer->unsafe_to_break (i, j);
-    hb_position_t entry_x, entry_y, exit_x, exit_y;
+    float entry_x, entry_y, exit_x, exit_y;
     (this+this_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
     (this+next_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
 
@@ -929,32 +929,32 @@ struct CursivePosFormat1
     /* Main-direction adjustment */
     switch (c->direction) {
       case HB_DIRECTION_LTR:
-	pos[i].x_advance  =  exit_x + pos[i].x_offset;
+	pos[i].x_advance  = round (exit_x) + pos[i].x_offset;
 
-	d = entry_x + pos[j].x_offset;
+	d = round (entry_x) + pos[j].x_offset;
 	pos[j].x_advance -= d;
 	pos[j].x_offset  -= d;
 	break;
       case HB_DIRECTION_RTL:
-	d = exit_x + pos[i].x_offset;
+	d = round (exit_x) + pos[i].x_offset;
 	pos[i].x_advance -= d;
 	pos[i].x_offset  -= d;
 
-	pos[j].x_advance  =  entry_x + pos[j].x_offset;
+	pos[j].x_advance  = round (entry_x) + pos[j].x_offset;
 	break;
       case HB_DIRECTION_TTB:
-	pos[i].y_advance  =  exit_y + pos[i].y_offset;
+	pos[i].y_advance  = round (exit_y) + pos[i].y_offset;
 
-	d = entry_y + pos[j].y_offset;
+	d = round (entry_y) + pos[j].y_offset;
 	pos[j].y_advance -= d;
 	pos[j].y_offset  -= d;
 	break;
       case HB_DIRECTION_BTT:
-	d = exit_y + pos[i].y_offset;
+	d = round (exit_y) + pos[i].y_offset;
 	pos[i].y_advance -= d;
 	pos[i].y_offset  -= d;
 
-	pos[j].y_advance  =  entry_y;
+	pos[j].y_advance  = round (entry_y);
 	break;
       case HB_DIRECTION_INVALID:
       default:
