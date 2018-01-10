@@ -9,7 +9,7 @@ def cmd(command):
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	p.wait ()
 	print (p.stderr.read (), file=sys.stderr, end='')
-	return p.stdout.read ().decode ("utf-8"), p.returncode
+	return p.stdout.read ().decode ("utf-8").strip(), p.returncode
 
 
 args = sys.argv[1:]
