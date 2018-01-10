@@ -844,6 +844,8 @@ format_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Output glyph indices instead of names",				nullptr},
     {"no-positions",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_positions,		"Do not output glyph positions",					nullptr},
+    {"no-advances",	0, G_OPTION_FLAG_REVERSE,
+			      G_OPTION_ARG_NONE,	&this->show_advances,		"Do not output glyph advances",						nullptr},
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					nullptr},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							nullptr},

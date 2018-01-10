@@ -584,6 +584,7 @@ struct format_options_t : option_group_t
   format_options_t (option_parser_t *parser) {
     show_glyph_names = true;
     show_positions = true;
+    show_advances = true;
     show_clusters = true;
     show_text = false;
     show_unicode = false;
@@ -628,6 +629,7 @@ struct format_options_t : option_group_t
 
   hb_bool_t show_glyph_names;
   hb_bool_t show_positions;
+  hb_bool_t show_advances;
   hb_bool_t show_clusters;
   hb_bool_t show_text;
   hb_bool_t show_unicode;

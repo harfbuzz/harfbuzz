@@ -412,6 +412,8 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
  * @HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS: do not serialize glyph position information.
  * @HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES: do no serialize glyph name.
  * @HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS: serialize glyph extents.
+ * @HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS: serialize glyph flags. Since: 1.5.0
+ * @HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES: do not serialize glyph advances. Since: 1.8.0
  *
  * Flags that control what glyph information are serialized in hb_buffer_serialize_glyphs().
  *
@@ -423,7 +425,8 @@ typedef enum { /*< flags >*/
   HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS		= 0x00000002u,
   HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES	= 0x00000004u,
   HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS	= 0x00000008u,
-  HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS		= 0x00000010u
+  HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS		= 0x00000010u,
+  HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES		= 0x00000020u
 } hb_buffer_serialize_flags_t;
 
 /**
