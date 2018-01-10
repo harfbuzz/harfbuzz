@@ -24,6 +24,7 @@ EXTRA_DIST += \
 	run-tests.py \
 	texts/in-house \
 	data/in-house/fonts \
+	data/text-rendering-tests/extract-tests.py \
 	data/text-rendering-tests/fonts \
 	$(TESTS) \
 	$(NULL)
