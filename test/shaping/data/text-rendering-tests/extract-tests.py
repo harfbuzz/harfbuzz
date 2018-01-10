@@ -32,6 +32,7 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 	name = elt.get(ns('ft:id'))
 	text = elt.get(ns('ft:render'))
 	font = elt.get(ns('ft:font'))
+	vars = elt.get(ns('ft:var'), '').replace(':', '=').replace(';', ',')
 	glyphs = []
 	for use in elt.findall(".//use"):
 		x = int(use.get('x'))
@@ -40,6 +41,9 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 		assert href[0] == '#'
 		glyphname = '.'.join(href[1:].split('/')[1].split('.')[1:])
 		glyphs.append((glyphname, x, y))
-	print("../fonts/%s:--font-size=1000 --ned --font-funcs=ft:%s:%s" % (font, unistr(text), glyphstr(glyphs)))
+	opts = '--font-size=1000 --ned --font-funcs=ft'
+	if vars:
+		opts = opts + ' --variations=%s' % vars
+	print ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
 
 sys.exit(0 if found else 1)
