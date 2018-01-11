@@ -29,6 +29,8 @@
 #ifndef HB_PRIVATE_HH
 #define HB_PRIVATE_HH
 
+#define _GNU_SOURCE 1
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -86,8 +88,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #endif // static_assert
 
 #endif // __cplusplus < 201103L
-
-#define _GNU_SOURCE 1
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
