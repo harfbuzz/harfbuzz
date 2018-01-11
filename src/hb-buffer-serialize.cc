@@ -182,7 +182,7 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
     } else
       return i - start;
 
-    if (flags & HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES)
+    if (pos && (flags & HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES))
     {
       x += pos[i].x_advance;
       y += pos[i].y_advance;
@@ -268,7 +268,7 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
     } else
       return i - start;
 
-    if (flags & HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES)
+    if (pos && (flags & HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES))
     {
       x += pos[i].x_advance;
       y += pos[i].y_advance;
