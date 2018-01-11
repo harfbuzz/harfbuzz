@@ -155,7 +155,7 @@ struct RearrangementSubtable
 	}
       }
 
-      if (false/* TODO */ && flags & DontAdvance)
+      if (flags & DontAdvance)
         i--; /* TODO Detect infinite loop. */
 
       state = entry->newState;
@@ -259,7 +259,7 @@ struct ContextualSubtable
 	}
       }
 
-      if (false/* TODO */ && flags & DontAdvance)
+      if (flags & DontAdvance)
         i--; /* TODO Detect infinite loop. */
 
       state = entry->newState;
