@@ -477,33 +477,8 @@ struct Lookup
 };
 
 
-struct ClassTable
-{
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
-  {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
-  }
-
-  protected:
-  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
-  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
-				 * glyph minus the value of firstGlyph plus 1). */
-  UnsizedArrayOf<HBUINT8>
-		classArrayZ;	/* The class codes (indexed by glyph index minus
-				 * firstGlyph). */
-  public:
-  DEFINE_SIZE_ARRAY (4, classArrayZ);
-};
-
-
 /*
- * (Extended) State Table
+ * Extended State Table
  */
 
 template <typename T>
@@ -545,16 +520,14 @@ struct Entry<void>
   DEFINE_SIZE_STATIC (4);
 };
 
-template <typename Types, typename Extra>
+template <typename Extra>
 struct StateTable
 {
-  typedef typename Types::HBUINT HBUINT;
-  typedef typename Types::HBUSHORT HBUSHORT;
-  typedef typename Types::ClassType ClassType;
-
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
-  { return (this+classTable).get_class (glyph_id, num_glyphs); }
-
+  {
+    const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
+    return v ? *v : 1;
+  }
 
   inline const Entry<Extra> *get_entries () const
   {
@@ -565,7 +538,7 @@ struct StateTable
   {
     if (unlikely (klass >= nClasses)) return nullptr;
 
-    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
+    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int entry = states[state * nClasses + klass];
@@ -579,7 +552,7 @@ struct StateTable
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
 
-    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
+    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int num_states = 1;
@@ -594,8 +567,8 @@ struct StateTable
 				     nClasses * (num_states - state))))
 	return_trace (false);
       { /* Sweep new states. */
-	const HBUSHORT *stop = &states[num_states * nClasses];
-	for (const HBUSHORT *p = &states[state * nClasses]; p < stop; p++)
+	const HBUINT16 *stop = &states[num_states * nClasses];
+	for (const HBUINT16 *p = &states[state * nClasses]; p < stop; p++)
 	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
 	state = num_states;
       }
@@ -619,13 +592,13 @@ struct StateTable
   }
 
   protected:
-  HBUINT	nClasses;	/* Number of classes, which is the number of indices
+  HBUINT32	nClasses;	/* Number of classes, which is the number of indices
 				 * in a single line in the state array. */
-  OffsetTo<ClassType, HBUINT>
+  OffsetTo<Lookup<HBUINT16>, HBUINT32>
 		classTable;	/* Offset to the class table. */
-  OffsetTo<UnsizedArrayOf<HBUSHORT>, HBUINT>
+  OffsetTo<UnsizedArrayOf<HBUINT16>, HBUINT32>
 		stateArrayTable;/* Offset to the state array. */
-  OffsetTo<UnsizedArrayOf<Entry<Extra> >, HBUINT>
+  OffsetTo<UnsizedArrayOf<Entry<Extra> >, HBUINT32>
 		entryTable;	/* Offset to the entry array. */
 
   public:

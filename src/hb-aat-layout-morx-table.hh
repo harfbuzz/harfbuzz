@@ -30,7 +30,6 @@
 #include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
 
-#define HB_AAT_TAG_MORT HB_TAG('m','o','r','t')
 #define HB_AAT_TAG_MORX HB_TAG('m','o','r','x')
 
 
@@ -39,7 +38,6 @@ namespace AAT {
 using namespace OT;
 
 
-template <typename Types>
 struct RearrangementSubtable
 {
   enum Flags {
@@ -171,16 +169,13 @@ struct RearrangementSubtable
   }
 
   protected:
-  StateTable<Types, void>	machine;
+  StateTable<void>	machine;
   public:
   DEFINE_SIZE_MIN (2);
 };
 
-template <typename Types>
 struct ContextualSubtable
 {
-  typedef typename Types::HBUINT HBUINT;
-
   enum Flags {
     SetMark	= 0x8000,	/* If set, make the current glyph the marked glyph. */
     DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
@@ -206,7 +201,7 @@ struct ContextualSubtable
     bool ret = false;
     unsigned int num_glyphs = c->face->get_num_glyphs ();
 
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT> &subs = this+substitutionTables;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs = this+substitutionTables;
 
     unsigned int state = 0;
     unsigned int last_zero = 0;
@@ -290,14 +285,13 @@ struct ContextualSubtable
   }
 
   protected:
-  StateTable<Types, EntryData>	machine;
-  OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT>, HBUINT>
-				substitutionTables;
+  StateTable<EntryData>	machine;
+  OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, HBUINT32>
+			substitutionTables;
   public:
   DEFINE_SIZE_MIN (2);
 };
 
-template <typename Types>
 struct LigatureSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -315,7 +309,6 @@ struct LigatureSubtable
   }
 };
 
-template <typename Types>
 struct NoncontextualSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -352,7 +345,6 @@ struct NoncontextualSubtable
   DEFINE_SIZE_MIN (2);
 };
 
-template <typename Types>
 struct InsertionSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -392,13 +384,9 @@ struct Feature
 };
 
 
-template <typename Types>
 struct ChainSubtable
 {
-  template <typename> struct Chain;
-  friend struct Chain<Types>;
-
-  typedef typename Types::HBUINT HBUINT;
+  friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & 0xFF; }
@@ -443,33 +431,30 @@ struct ChainSubtable
   }
 
   protected:
-  HBUINT		length;		/* Total subtable length, including this header. */
-  HBUINT		coverage;	/* Coverage flags and subtable type. */
-  HBUINT32		subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
+  HBUINT32	length;		/* Total subtable length, including this header. */
+  HBUINT32	coverage;	/* Coverage flags and subtable type. */
+  HBUINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
-  RearrangementSubtable<Types>	rearrangement;
-  ContextualSubtable<Types>	contextual;
-  LigatureSubtable<Types>	ligature;
-  NoncontextualSubtable<Types>	noncontextual;
-  InsertionSubtable<Types>	insertion;
+  RearrangementSubtable		rearrangement;
+  ContextualSubtable		contextual;
+  LigatureSubtable		ligature;
+  NoncontextualSubtable		noncontextual;
+  InsertionSubtable		insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT32) + 4);
 };
 
-template <typename Types>
 struct Chain
 {
-  typedef typename Types::HBUINT HBUINT;
-
   inline void apply (hb_apply_context_t *c) const
   {
-    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       subtable->apply (c);
-      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
+      subtable = &StructAfter<ChainSubtable> (*subtable);
     }
   }
 
@@ -486,13 +471,13 @@ struct Chain
     if (!c->check_array (featureZ, featureZ[0].static_size, featureCount))
       return_trace (false);
 
-    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!subtable->sanitize (c))
 	return_trace (false);
-      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
+      subtable = &StructAfter<ChainSubtable> (*subtable);
     }
 
     return_trace (true);
@@ -501,15 +486,15 @@ struct Chain
   protected:
   HBUINT32	defaultFlags;	/* The default specification for subtables. */
   HBUINT32	length;		/* Total byte count, including this header. */
-  HBUINT		featureCount;	/* Number of feature subtable entries. */
-  HBUINT		subtableCount;	/* The number of subtables in the chain. */
+  HBUINT32	featureCount;	/* Number of feature subtable entries. */
+  HBUINT32	subtableCount;	/* The number of subtables in the chain. */
 
-  Feature		featureZ[VAR];	/* Features. */
-  ChainSubtable<Types>	subtableX[VAR];	/* Subtables. */
+  Feature	featureZ[VAR];	/* Features. */
+  ChainSubtable	subtableX[VAR];	/* Subtables. */
   // subtableGlyphCoverageArray if major == 3
 
   public:
-  DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT));
+  DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT32));
 };
 
 
@@ -517,22 +502,18 @@ struct Chain
  * The 'mort'/'morx' Tables
  */
 
-template <typename Types>
-struct mortmorx
+struct morx
 {
-  static const hb_tag_t mortTag	= HB_AAT_TAG_MORT;
-  static const hb_tag_t morxTag	= HB_AAT_TAG_MORX;
-
-  typedef typename Types::HBUINT HBUINT;
+  static const hb_tag_t tableTag = HB_AAT_TAG_MORX;
 
   inline void apply (hb_apply_context_t *c) const
   {
-    const Chain<Types> *chain = chains;
+    const Chain *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       chain->apply (c);
-      chain = &StructAfter<Chain<Types> > (*chain);
+      chain = &StructAfter<Chain> (*chain);
     }
   }
 
@@ -540,17 +521,17 @@ struct mortmorx
   {
     TRACE_SANITIZE (this);
     if (!version.sanitize (c) ||
-	(version.major >> (sizeof (HBUINT) == 4 ? 1 : 0)) != 1 ||
+	(version.major >> (sizeof (HBUINT32) == 4 ? 1 : 0)) != 1 ||
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain<Types> *chain = chains;
+    const Chain *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!chain->sanitize (c, version.major))
 	return_trace (false);
-      chain = &StructAfter<Chain<Types> > (*chain);
+      chain = &StructAfter<Chain> (*chain);
     }
 
     return_trace (true);
@@ -561,50 +542,11 @@ struct mortmorx
 				 * 1 for mort, 2 or 3 for morx. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain<Types>	chains[VAR];	/* Chains. */
+  Chain		chains[VAR];	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);
 };
-
-struct MortTypes
-{
-  static const bool extended = false;
-  typedef HBUINT16 HBUINT;
-  typedef HBUINT8 HBUSHORT;
-  struct ClassType : ClassTable
-  {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
-    {
-      return ClassTable::get_class (glyph_id);
-    }
-  };
-};
-struct MorxTypes
-{
-  static const bool extended = true;
-  typedef HBUINT32 HBUINT;
-  typedef HBUINT16 HBUSHORT;
-  struct ClassType : Lookup<HBUINT16>
-  {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
-    {
-      const HBUINT16 *v = get_value (glyph_id, num_glyphs);
-      return v ? *v : 1;
-    }
-  };
-};
-
-struct mort : mortmorx<MortTypes>
-{
-  static const hb_tag_t tableTag	= HB_AAT_TAG_MORT;
-};
-
-struct morx : mortmorx<MorxTypes>
-{
-  static const hb_tag_t tableTag	= HB_AAT_TAG_MORX;
-};
-
 
 } /* namespace AAT */
 
