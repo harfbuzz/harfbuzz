@@ -605,6 +605,57 @@ struct StateTable
   DEFINE_SIZE_UNION (2, format);
 };
 
+template <typename EntryData>
+struct StateTableDriver
+{
+  inline StateTableDriver (const StateTable<EntryData> &machine_,
+			   hb_buffer_t *buffer_,
+			   hb_face_t *face_) :
+	      machine (machine_),
+	      buffer (buffer_),
+	      num_glyphs (face_->get_num_glyphs ()),
+	      state (0),
+	      last_zero (0) {}
+
+  template <typename context_t>
+  inline void drive (context_t *c)
+  {
+    hb_glyph_info_t *info = buffer->info;
+    unsigned int count = buffer->len;
+
+    for (buffer->idx = 0; buffer->idx <= count; buffer->idx++)
+    {
+      if (!state)
+	last_zero = buffer->idx;
+
+      unsigned int klass = buffer->idx < count ?
+			   machine.get_class (info[buffer->idx].codepoint, num_glyphs) :
+			   0 /* End of text */;
+      const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
+      if (unlikely (!entry))
+	break;
+
+      c->transition (this, entry);
+
+      if (entry->flags & context_t::Flags::DontAdvance)
+	buffer->idx--; /* TODO Detect infinite loop. */
+
+      state = entry->newState;
+    }
+
+    /* XXX finish if not in-place */
+  }
+
+  public:
+  const StateTable<EntryData> &machine;
+  hb_buffer_t *buffer;
+
+  unsigned int num_glyphs;
+
+  unsigned int state;
+  unsigned int last_zero;
+};
+
 
 } /* namespace AAT */
 

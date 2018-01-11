@@ -176,14 +176,6 @@ struct RearrangementSubtable
 
 struct ContextualSubtable
 {
-  enum Flags {
-    SetMark	= 0x8000,	/* If set, make the current glyph the marked glyph. */
-    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-				 * going to the new state. */
-    Reserved	= 0x3FFF,	/* These bits are reserved and should be set to 0. */
-  };
-
-  /* XXX the following is different in mort: it's directly index to sublookups. */
   struct EntryData
   {
     HBUINT16	markIndex;	/* Index of the substitution table for the
@@ -194,50 +186,40 @@ struct ContextualSubtable
     DEFINE_SIZE_STATIC (4);
   };
 
-  inline bool apply (hb_apply_context_t *c) const
+  struct driver_context_t
   {
-    TRACE_APPLY (this);
+    enum Flags {
+      SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state. */
+      Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
+    };
 
-    bool ret = false;
-    unsigned int num_glyphs = c->face->get_num_glyphs ();
+    inline driver_context_t (const ContextualSubtable *table) :
+	ret (false),
+	mark (0),
+	last_zero_before_mark (0),
+	subs (table+table->substitutionTables) {}
 
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs = this+substitutionTables;
-
-    unsigned int state = 0;
-    unsigned int last_zero = 0;
-    unsigned int last_zero_before_mark = 0;
-    unsigned int mark = 0;
-
-    hb_glyph_info_t *info = c->buffer->info;
-    unsigned int count = c->buffer->len;
-
-    for (unsigned int i = 0; i <= count; i++)
+    inline void transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
     {
-      if (!state)
-	last_zero = i;
+      hb_buffer_t *buffer = driver->buffer;
 
-      unsigned int klass = i < count ?
-			   machine.get_class (info[i].codepoint, num_glyphs) :
-			   0 /* End of text */;
-      const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
-      if (unlikely (!entry))
-        break;
-
-      unsigned int flags = entry->flags;
-
-      if (flags & SetMark)
+      if (entry->flags & SetMark)
       {
-	mark = i;
-	last_zero_before_mark = last_zero;
+	mark = buffer->idx;
+	last_zero_before_mark = driver->last_zero;
       }
 
       if (entry->data.markIndex != 0xFFFF)
       {
 	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
-	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, num_glyphs);
+	hb_glyph_info_t *info = buffer->info;
+	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, driver->num_glyphs);
 	if (replacement)
 	{
-	  c->buffer->unsafe_to_break (last_zero_before_mark, MIN (i + 1, count));
+	  buffer->unsafe_to_break (last_zero_before_mark, MIN (buffer->idx + 1, buffer->len));
 	  info[mark].codepoint = *replacement;
 	  ret = true;
 	}
@@ -245,22 +227,35 @@ struct ContextualSubtable
       if (entry->data.currentIndex != 0xFFFF)
       {
 	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
-	const GlyphID *replacement = lookup.get_value (info[i].codepoint, num_glyphs);
+	hb_glyph_info_t *info = buffer->info;
+	const GlyphID *replacement = lookup.get_value (info[buffer->idx].codepoint, driver->num_glyphs);
 	if (replacement)
 	{
-	  c->buffer->unsafe_to_break (last_zero, MIN (i + 1, count));
-	  info[i].codepoint = *replacement;
+	  buffer->unsafe_to_break (driver->last_zero, MIN (buffer->idx + 1, buffer->len));
+	  info[buffer->idx].codepoint = *replacement;
 	  ret = true;
 	}
       }
-
-      if (flags & DontAdvance)
-        i--; /* TODO Detect infinite loop. */
-
-      state = entry->newState;
     }
 
-    return_trace (ret);
+    public:
+    bool ret;
+    private:
+    unsigned int mark;
+    unsigned int last_zero_before_mark;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
+  };
+
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    driver_context_t dc (this);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    driver.drive (&dc);
+
+    return_trace (dc.ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
