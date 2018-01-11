@@ -200,8 +200,70 @@ struct ContextualSubtable
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    /* TODO */
-    return_trace (false);
+
+    bool ret = false;
+    unsigned int num_glyphs = c->face->get_num_glyphs ();
+
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT> &subs = this+substitutionTables;
+
+    unsigned int state = 0;
+    unsigned int last_zero = 0;
+    unsigned int last_zero_before_mark = 0;
+    unsigned int mark = 0;
+
+    hb_glyph_info_t *info = c->buffer->info;
+    unsigned int count = c->buffer->len;
+
+    for (unsigned int i = 0; i <= count; i++)
+    {
+      if (!state)
+	last_zero = i;
+
+      unsigned int klass = i < count ?
+			   machine.get_class (info[i].codepoint, num_glyphs) :
+			   0 /* End of text */;
+      const Entry<EntryData> *entry = machine.get_entry (state, klass);
+      if (unlikely (!entry))
+        break;
+
+      unsigned int flags = entry->flags;
+
+      if (flags & SetMark)
+      {
+	mark = i;
+	last_zero_before_mark = last_zero;
+      }
+
+      if (entry->data.markIndex != 0xFFFF)
+      {
+	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex]; // XXX bounds
+	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, num_glyphs);
+	if (replacement)
+	{
+	  c->buffer->unsafe_to_break (last_zero_before_mark, MIN (i + 1, count));
+	  info[mark].codepoint = *replacement;
+	  ret = true;
+	}
+      }
+      if (entry->data.currentIndex != 0xFFFF)
+      {
+	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex]; // XXX bounds
+	const GlyphID *replacement = lookup.get_value (info[i].codepoint, num_glyphs);
+	if (replacement)
+	{
+	  c->buffer->unsafe_to_break (last_zero, MIN (i + 1, count));
+	  info[i].codepoint = *replacement;
+	  ret = true;
+	}
+      }
+
+      if (false/* XXX */ && flags & DontAdvance)
+        i--; /* XXX Detect infinite loop. */
+
+      state = entry->newState;
+    }
+
+    return_trace (ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -233,7 +295,7 @@ struct LigatureSubtable
   {
     TRACE_SANITIZE (this);
     /* TODO */
-    return_trace (false);
+    return_trace (true);
   }
 };
 
@@ -288,7 +350,7 @@ struct InsertionSubtable
   {
     TRACE_SANITIZE (this);
     /* TODO */
-    return_trace (false);
+    return_trace (true);
   }
 };
 
