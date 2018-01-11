@@ -63,6 +63,8 @@ struct RearrangementSubtable
     hb_glyph_info_t *info = c->buffer->info;
     unsigned int count = c->buffer->len;
 
+    c->buffer->unsafe_to_break (0, count); /* TODO Improve. */
+
     for (unsigned int i = 0; i < count; i++)
     {
       unsigned int klass = machine.get_class (info[i].codepoint, num_glyphs);
