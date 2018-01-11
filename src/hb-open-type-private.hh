@@ -527,8 +527,6 @@ struct Supplier
 };
 
 
-
-
 /*
  *
  * The OpenType Font File: Data Types

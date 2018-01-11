@@ -164,7 +164,7 @@ struct UnsizedArrayOf
     return_trace (c->check_array (arrayZ, arrayZ[0].static_size, count));
   }
 
-  protected:
+  public:
   Type	arrayZ[VAR];
   public:
   DEFINE_SIZE_ARRAY (0, arrayZ);
@@ -221,7 +221,7 @@ struct LookupSegmentSingle
   GlyphID	first;		/* First GlyphID in this segment */
   T		value;		/* The lookup value (only one) */
   public:
-  DEFINE_SIZE_STATIC (4 + sizeof (T));
+  DEFINE_SIZE_STATIC (4 + T::static_size);
 };
 
 template <typename T>
@@ -323,7 +323,7 @@ struct LookupSingle
   GlyphID	glyph;		/* Last GlyphID */
   T		value;		/* The lookup value (only one) */
   public:
-  DEFINE_SIZE_STATIC (4 + sizeof (T));
+  DEFINE_SIZE_STATIC (4 + T::static_size);
 };
 
 template <typename T>
@@ -424,7 +424,7 @@ struct Lookup
 };
 
 
-struct Class
+struct ClassTable
 {
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
@@ -447,6 +447,87 @@ struct Class
   public:
   DEFINE_SIZE_ARRAY (4, classArrayZ);
 };
+
+
+/*
+ * (Extended) State Table
+ */
+
+template <typename T>
+struct Entry
+{
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && data.sanitize (c));
+  }
+
+  public:
+  HBUINT16	newState;	/* Byte offset from beginning of state table to the new state. */
+  HBUINT16	flags;		/* Table specific. */
+  T		data;		/* Optional offsets to per-glyph tables. */
+  public:
+  DEFINE_SIZE_STATIC (4 + T::static_size);
+};
+
+template <>
+struct Entry<void>
+{
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT16	newState;	/* Byte offset from beginning of state table to the new state. */
+  HBUINT16	flags;		/* Table specific. */
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
+template <typename Types, typename Extra>
+struct StateTable
+{
+  typedef typename Types::HBUINT HBUINT;
+  typedef typename Types::HBUSHORT HBUSHORT;
+  typedef typename Types::ClassType ClassType;
+
+  inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+  { return (this+classTable).get_class (glyph_id, num_glyphs); }
+
+
+  inline const Entry<Extra> *get_entry (unsigned int state, unsigned int klass) const
+  {
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
+    const Entry<Extra> *entries = (this+entryTable).arrayZ;
+
+    unsigned int entry = states[state * nClasses + klass]; /* XXX bound check. */
+
+    return &entries[entry]; /* XXX bound check. */
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (true);
+    return_trace (c->check_struct (this)); /* XXX */
+  }
+
+  protected:
+  HBUINT	nClasses;	/* Number of classes, which is the number of indices
+				 * in a single line in the state array. */
+  OffsetTo<ClassType, HBUINT>
+		classTable;	/* Offset to the class table. */
+  OffsetTo<UnsizedArrayOf<HBUSHORT>, HBUINT>
+		stateArrayTable;/* Offset to the state array. */
+  OffsetTo<UnsizedArrayOf<Entry<Extra> >, HBUINT>
+		entryTable;	/* Offset to the entry array. */
+
+  public:
+  DEFINE_SIZE_UNION (2, format);
+};
+
 
 } /* namespace AAT */
 
