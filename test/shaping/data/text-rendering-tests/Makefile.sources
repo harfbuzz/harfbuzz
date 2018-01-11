@@ -28,7 +28,6 @@ TESTS = \
 	tests/HVAR-2.tests \
 	tests/KERN-1.tests \
 	tests/KERN-2.tests \
-	tests/MORX-12.tests \
 	tests/SHBALI-3.tests \
 	tests/SHKNDA-1.tests \
 	$(NULL)
