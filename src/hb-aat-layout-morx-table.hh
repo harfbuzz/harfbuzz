@@ -40,57 +40,40 @@ using namespace OT;
 
 struct RearrangementSubtable
 {
-  enum Flags {
-    MarkFirst	= 0x8000,	/* If set, make the current glyph the first
-				 * glyph to be rearranged. */
-    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
-				 * before going to the new state. This means
-				 * that the glyph index doesn't change, even
-				 * if the glyph at that index has changed. */
-    MarkLast	= 0x2000,	/* If set, make the current glyph the last
-				 * glyph to be rearranged. */
-    Reserved	= 0x1FF0,	/* These bits are reserved and should be set to 0. */
-    Verb	= 0x000F,	/* The type of rearrangement specified. */
-  };
-
-  inline bool apply (hb_apply_context_t *c) const
+  struct driver_context_t
   {
-    TRACE_APPLY (this);
+    enum Flags {
+      MarkFirst	= 0x8000,	/* If set, make the current glyph the first
+				   * glyph to be rearranged. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+				   * before going to the new state. This means
+				   * that the glyph index doesn't change, even
+				   * if the glyph at that index has changed. */
+      MarkLast	= 0x2000,	/* If set, make the current glyph the last
+				   * glyph to be rearranged. */
+      Reserved	= 0x1FF0,	/* These bits are reserved and should be set to 0. */
+      Verb	= 0x000F,	/* The type of rearrangement specified. */
+    };
 
-    bool ret = false;
-    unsigned int num_glyphs = c->face->get_num_glyphs ();
+    inline driver_context_t (const RearrangementSubtable *table) :
+	ret (false),
+	start (0), end (0),
+	last_zero_before_start (0) {}
 
-    unsigned int state = 0;
-    unsigned int last_zero = 0;
-    unsigned int last_zero_before_start = 0;
-    unsigned int start = 0;
-    unsigned int end = 0;
-
-    hb_glyph_info_t *info = c->buffer->info;
-    unsigned int count = c->buffer->len;
-
-    for (unsigned int i = 0; i <= count; i++)
+    inline void transition (StateTableDriver<void> *driver,
+			    const Entry<void> *entry)
     {
-      if (!state)
-	last_zero = i;
-
-      unsigned int klass = i < count ?
-			   machine.get_class (info[i].codepoint, num_glyphs) :
-			   0 /* End of text */;
-      const Entry<void> *entry = machine.get_entryZ (state, klass);
-      if (unlikely (!entry))
-        break;
-
+      hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
       if (flags & MarkFirst)
       {
-	start = i;
-	last_zero_before_start = last_zero;
+	start = buffer->idx;
+	last_zero_before_start = driver->last_zero;
       }
 
       if (flags & MarkLast)
-	end = MIN (i + 1, count);
+	end = MIN (buffer->idx + 1, buffer->len);
 
       if ((flags & Verb) && start < end)
       {
@@ -126,10 +109,12 @@ struct RearrangementSubtable
 
 	if (end - start >= l + r)
 	{
-	  c->buffer->unsafe_to_break (last_zero_before_start, MIN (i + 1, count));
-	  c->buffer->merge_clusters (start, end);
+	  buffer->unsafe_to_break (last_zero_before_start, MIN (buffer->idx + 1, buffer->len));
+	  buffer->merge_clusters (start, end);
 
+	  hb_glyph_info_t *info = buffer->info;
 	  hb_glyph_info_t buf[4];
+
 	  memcpy (buf, info + start, l * sizeof (buf[0]));
 	  memcpy (buf + 2, info + end - r, r * sizeof (buf[0]));
 
@@ -152,14 +137,26 @@ struct RearrangementSubtable
 	  }
 	}
       }
-
-      if (flags & DontAdvance)
-        i--; /* TODO Detect infinite loop. */
-
-      state = entry->newState;
     }
 
-    return_trace (ret);
+    public:
+    bool ret;
+    private:
+    unsigned int start = 0;
+    unsigned int end = 0;
+    unsigned int last_zero_before_start = 0;
+  };
+
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    driver_context_t dc (this);
+
+    StateTableDriver<void> driver (machine, c->buffer, c->face);
+    driver.drive (&dc);
+
+    return_trace (dc.ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
