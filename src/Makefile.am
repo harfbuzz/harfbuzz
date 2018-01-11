@@ -1,5 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
+NULL =
 SUBDIRS =
 DIST_SUBDIRS =
 BUILT_SOURCES =

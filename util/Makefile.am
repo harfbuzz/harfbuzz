@@ -1,5 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
+NULL =
 EXTRA_DIST =
 CLEANFILES =
 DISTCLEANFILES =

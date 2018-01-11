@@ -21,8 +21,6 @@ test -d tests && git rm -rf tests || true
 test -d tests && (echo "tests/ dir not empty; investigate."; false)
 mkdir tests
 
-echo "NULL =" > Makefile.sources
-echo > Makefile.sources
 echo "TESTS = \\" > Makefile.sources
 
 DISABLED="DISBALED_TESTS = \\"

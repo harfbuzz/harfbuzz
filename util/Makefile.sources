@@ -1,5 +1,3 @@
-NULL =
-
 HB_VIEW_sources = \
 	hb-view.cc \
 	options.cc \

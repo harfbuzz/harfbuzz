@@ -1,5 +1,3 @@
-NULL =
-
 # Base and default-included sources and headers
 
 HB_BASE_sources = \
