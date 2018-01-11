@@ -2,6 +2,10 @@
 
 NULL =
 
+# Convenience targets:
+lib:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+
 EXTRA_DIST = \
 	extract-tests.py \
 	fonts \
