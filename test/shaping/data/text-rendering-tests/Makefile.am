@@ -7,6 +7,8 @@ lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
 
 EXTRA_DIST = \
+	README \
+	COPYING \
 	extract-tests.py \
 	fonts \
 	$(TESTS) \
