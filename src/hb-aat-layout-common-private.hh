@@ -552,18 +552,55 @@ struct StateTable
 
   inline const Entry<Extra> *get_entry (unsigned int state, unsigned int klass) const
   {
+    if (unlikely (klass >= nClasses)) return nullptr;
+
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
-    unsigned int entry = states[state * nClasses + klass]; /* XXX bound check. */
+    unsigned int entry = states[state * nClasses + klass];
 
-    return &entries[entry]; /* XXX bound check. */
+    return &entries[entry];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this)); /* XXX */
+    if (unlikely (!c->check_struct (this))) return_trace (false);
+
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
+    const Entry<Extra> *entries = (this+entryTable).arrayZ;
+
+    unsigned int num_states = 1;
+    unsigned int num_entries = 0;
+
+    unsigned int state = 0;
+    unsigned int entry = 0;
+    while (state < num_states)
+    {
+      if (unlikely (!c->check_array (states + state * nClasses,
+				     states[0].static_size,
+				     nClasses * (num_states - state))))
+	return_trace (false);
+      { /* Sweep new states. */
+	const HBUSHORT *stop = &states[num_states * nClasses];
+	for (const HBUSHORT *p = &states[state * nClasses]; p < stop; p++)
+	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
+	state = num_states;
+      }
+
+      if (unlikely (!c->check_array (entries + entry,
+				     entries[0].static_size,
+				     num_entries - entry)))
+	return_trace (false);
+      { /* Sweep new entries. */
+	const Entry<Extra> *stop = &entries[num_entries];
+	for (const Entry<Extra> *p = &entries[entry]; p < stop; p++)
+	  num_states = MAX<unsigned int> (num_states, p->newState + 1);
+	entry = num_entries;
+      }
+    }
+
+    return_trace (true);
   }
 
   protected:
