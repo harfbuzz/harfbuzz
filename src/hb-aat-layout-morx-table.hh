@@ -196,7 +196,7 @@ struct ContextualSubtable
     HBUINT16	currentIndex;	/* Index of the substitution table for the
 				 * current glyph (use 0xFFFF for none). */
     public:
-    DEFINE_SIZE_MIN (4);
+    DEFINE_SIZE_STATIC (4);
   };
 
   inline bool apply (hb_apply_context_t *c) const
