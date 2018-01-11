@@ -121,7 +121,7 @@ struct RearrangementSubtable
 	  memcpy (buf + 2, info + end - r, r * sizeof (buf[0]));
 
 	  if (l != r)
-	    memmove (info + start + r - l, info + start + l, (end - start - l - r) * sizeof (buf[0]));
+	    memmove (info + start + r, info + start + l, (end - start - l - r) * sizeof (buf[0]));
 
 	  memcpy (info + start, buf + 2, r * sizeof (buf[0]));
 	  memcpy (info + end - l, buf, l * sizeof (buf[0]));
