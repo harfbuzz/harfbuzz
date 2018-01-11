@@ -91,8 +91,8 @@ struct RearrangementSubtable
 	last_zero_before_start = last_zero;
       }
 
-      if (flags & MarkLast && i < count)
-	end = i + 1;
+      if (flags & MarkLast)
+	end = MIN (i + 1, count);
 
       if ((flags & Verb) && start < end)
       {
