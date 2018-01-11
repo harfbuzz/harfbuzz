@@ -28,11 +28,7 @@ TESTS = \
 	tests/HVAR-2.tests \
 	tests/KERN-1.tests \
 	tests/KERN-2.tests \
-	tests/MORX-5.tests \
-	tests/MORX-6.tests \
-	tests/MORX-7.tests \
-	tests/MORX-8.tests \
-	tests/MORX-9.tests \
+	tests/MORX-10.tests \
 	tests/SHBALI-3.tests \
 	tests/SHKNDA-1.tests \
 	$(NULL)
@@ -43,6 +39,11 @@ DISBALED_TESTS = \
 	tests/MORX-2.tests \
 	tests/MORX-3.tests \
 	tests/MORX-4.tests \
+	tests/MORX-5.tests \
+	tests/MORX-6.tests \
+	tests/MORX-7.tests \
+	tests/MORX-8.tests \
+	tests/MORX-9.tests \
 	tests/SHARAN-1.tests \
 	tests/SHBALI-1.tests \
 	tests/SHBALI-2.tests \
