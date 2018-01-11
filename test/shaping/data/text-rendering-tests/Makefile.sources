@@ -28,13 +28,14 @@ TESTS = \
 	tests/HVAR-2.tests \
 	tests/KERN-1.tests \
 	tests/KERN-2.tests \
-	tests/MORX-10.tests \
+	tests/MORX-11.tests \
 	tests/SHBALI-3.tests \
 	tests/SHKNDA-1.tests \
 	$(NULL)
 
 DISBALED_TESTS = \
 	tests/CMAP-3.tests \
+	tests/MORX-10.tests \
 	tests/MORX-1.tests \
 	tests/MORX-2.tests \
 	tests/MORX-3.tests \

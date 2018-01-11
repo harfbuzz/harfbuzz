@@ -1,7 +1,7 @@
 # Non-Unicode cmap
 tests/CMAP-3.tests
 
-# Not implemented
+# Not hooked up
 tests/MORX-1.tests
 tests/MORX-2.tests
 tests/MORX-3.tests
@@ -12,6 +12,7 @@ tests/MORX-7.tests
 tests/MORX-8.tests
 tests/MORX-9.tests
 tests/MORX-10.tests
+tests/MORX-11.tests
 
 # Rounding differences
 tests/SHARAN-1.tests
