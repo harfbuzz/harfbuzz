@@ -8,8 +8,8 @@ def cmd(command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	p.wait ()
-	print (p.stderr.read (), file=sys.stderr, end='')
-	return p.stdout.read ().decode ("utf-8").strip(), p.returncode
+	print (p.stderr.read (), end="") # file=sys.stderr
+	return p.stdout.read ().decode ("utf-8").strip (), p.returncode
 
 
 args = sys.argv[1:]
@@ -61,7 +61,7 @@ for filename in args:
 			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
-			print ("hb-shape --font-funcs=ft failed.")
+			print ("hb-shape --font-funcs=ft failed.") # file=sys.stderr
 			fails = fails + 1
 			#continue
 
@@ -70,13 +70,13 @@ for filename in args:
 			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
-			print ("ERROR: hb-shape --font-funcs=ot failed.")
+			print ("ERROR: hb-shape --font-funcs=ot failed.") # file=sys.stderr
 			fails = fails + 1
 			#continue
 
 		if glyphs1 != glyphs2:
-			print ("FT funcs: " + glyphs1)
-			print ("OT funcs: " + glyphs2)
+			print ("FT funcs: " + glyphs1) # file=sys.stderr
+			print ("OT funcs: " + glyphs2) # file=sys.stderr
 			fails = fails + 1
 
 		if reference:
@@ -84,13 +84,13 @@ for filename in args:
 			continue
 
 		if glyphs1.strip() != glyphs_expected.strip():
-			print ("Actual:   " + glyphs1, file=sys.stderr)
-			print ("Expected: " + glyphs_expected, file=sys.stderr)
+			print ("Actual:   " + glyphs1) # file=sys.stderr
+			print ("Expected: " + glyphs_expected) # file=sys.stderr
 			fails = fails + 1
 
 if fails != 0:
 	if not reference:
-		print (str (fails) + " tests failed.")
+		print (str (fails) + " tests failed.") # file=sys.stderr
 	sys.exit (1)
 
 else:
