@@ -147,7 +147,7 @@ struct RearrangementSubtable
 	}
       }
 
-      if (false/* XXX*/ && flags & DontAdvance)
+      if (false/* XXX */ && flags & DontAdvance)
         i--; /* XXX Detect infinite loop. */
 
       state = entry->newState;
