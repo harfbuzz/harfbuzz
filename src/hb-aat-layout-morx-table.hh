@@ -65,12 +65,14 @@ struct RearrangementSubtable
     hb_glyph_info_t *info = c->buffer->info;
     unsigned int count = c->buffer->len;
 
-    for (unsigned int i = 0; i < count; i++)
+    for (unsigned int i = 0; i <= count; i++)
     {
       if (!state)
 	last_zero = i;
 
-      unsigned int klass = machine.get_class (info[i].codepoint, num_glyphs);
+      unsigned int klass = i < count ?
+			   machine.get_class (info[i].codepoint, num_glyphs) :
+			   0 /* End of text */;
       const Entry<void> *entry = machine.get_entry (state, klass);
       if (unlikely (!entry))
         break;
@@ -83,7 +85,7 @@ struct RearrangementSubtable
 	last_zero_before_start = last_zero;
       }
 
-      if (flags & MarkLast)
+      if (flags & MarkLast && i < count)
 	end = i + 1;
 
       if ((flags & Verb) && start < end)
@@ -120,7 +122,7 @@ struct RearrangementSubtable
 
 	if (end - start >= l + r)
 	{
-	  c->buffer->unsafe_to_break (last_zero_before_start, i + 1);
+	  c->buffer->unsafe_to_break (last_zero_before_start, MIN (i + 1, count));
 	  c->buffer->merge_clusters (start, end);
 
 	  hb_glyph_info_t buf[4];
