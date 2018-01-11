@@ -1,5 +1,5 @@
 if (HB_BUILD_UTILS)
-  file (READ "${CMAKE_CURRENT_SOURCE_DIR}/data/in-house/Makefile.am" INHOUSE)
+  file (READ "${CMAKE_CURRENT_SOURCE_DIR}/data/in-house/Makefile.sources" INHOUSE)
   extract_make_variable (TESTS ${INHOUSE})
   foreach (test IN ITEMS ${TESTS})
     add_test (NAME ${test}
@@ -7,7 +7,7 @@ if (HB_BUILD_UTILS)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   endforeach ()
 
-  file (READ "${CMAKE_CURRENT_SOURCE_DIR}/data/text-rendering-tests/Makefile.am" TEXTRENDERING)
+  file (READ "${CMAKE_CURRENT_SOURCE_DIR}/data/text-rendering-tests/Makefile.sources" TEXTRENDERING)
   extract_make_variable (TESTS ${TEXTRENDERING})
   foreach (test IN ITEMS ${TESTS})
     add_test (NAME ${test}
