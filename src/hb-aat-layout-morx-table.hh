@@ -42,11 +42,17 @@ using namespace OT;
 template <typename Types>
 struct RearrangementSubtable
 {
-  enum {
-    MarkFirst	= 0x8000,
-    DontAdvance	= 0x4000,
-    MarkLast	= 0x2000,
-    Verb	= 0x000F,
+  enum Flags {
+    MarkFirst	= 0x8000,	/* If set, make the current glyph the first
+				 * glyph to be rearranged. */
+    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+				 * before going to the new state. This means
+				 * that the glyph index doesn't change, even
+				 * if the glyph at that index has changed. */
+    MarkLast	= 0x2000,	/* If set, make the current glyph the last
+				 * glyph to be rearranged. */
+    Reserved	= 0x1FF0,	/* These bits are reserved and should be set to 0. */
+    Verb	= 0x000F,	/* The type of rearrangement specified. */
   };
 
   inline bool apply (hb_apply_context_t *c) const
@@ -161,7 +167,7 @@ struct RearrangementSubtable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (machine.sanitize (c, 0/*XXX*/));
+    return_trace (machine.sanitize (c));
   }
 
   protected:
@@ -170,8 +176,27 @@ struct RearrangementSubtable
   DEFINE_SIZE_MIN (2);
 };
 
+template <typename Types>
 struct ContextualSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
+  enum Flags {
+    SetMark	= 0x8000,	/* If set, make the current glyph the marked glyph. */
+    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+				 * going to the new state. */
+    Reserved	= 0x3FFF,	/* These bits are reserved and should be set to 0. */
+  };
+
+  /* XXX the following is different in mort: it's directly index to sublookups. */
+  struct EntryData
+  {
+    HBUINT16	markIndex;	/* Index of the substitution table for the
+				 * marked glyph (use 0xFFFF for none). */
+    HBUINT16	currentIndex;	/* Index of the substitution table for the
+				 * current glyph (use 0xFFFF for none). */
+  };
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -182,11 +207,19 @@ struct ContextualSubtable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (false);
+    return_trace (machine.sanitize (c) &&
+		  substitutionTables.sanitize (c, this, 0U/*XXX count*/));
   }
+
+  protected:
+  StateTable<Types, EntryData>	machine;
+  OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT>, HBUINT>
+				substitutionTables;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
+template <typename Types>
 struct LigatureSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -204,6 +237,7 @@ struct LigatureSubtable
   }
 };
 
+template <typename Types>
 struct NoncontextualSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -240,6 +274,7 @@ struct NoncontextualSubtable
   DEFINE_SIZE_MIN (2);
 };
 
+template <typename Types>
 struct InsertionSubtable
 {
   inline bool apply (hb_apply_context_t *c) const
@@ -334,12 +369,11 @@ struct ChainSubtable
   HBUINT		coverage;	/* Coverage flags and subtable type. */
   HBUINT32		subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
-  RearrangementSubtable<Types>
-			rearrangement;
-  ContextualSubtable	contextual;
-  LigatureSubtable	ligature;
-  NoncontextualSubtable	noncontextual;
-  InsertionSubtable	insertion;
+  RearrangementSubtable<Types>	rearrangement;
+  ContextualSubtable<Types>	contextual;
+  LigatureSubtable<Types>	ligature;
+  NoncontextualSubtable<Types>	noncontextual;
+  InsertionSubtable<Types>	insertion;
   } u;
   public:
   DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
@@ -455,8 +489,22 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
+struct MortTypes
+{
+  static const bool extended = false;
+  typedef HBUINT16 HBUINT;
+  typedef HBUINT8 HBUSHORT;
+  struct ClassType : ClassTable
+  {
+    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
+    {
+      return ClassTable::get_class (glyph_id);
+    }
+  };
+};
 struct MorxTypes
 {
+  static const bool extended = true;
   typedef HBUINT32 HBUINT;
   typedef HBUINT16 HBUSHORT;
   struct ClassType : Lookup<HBUINT16>
@@ -465,18 +513,6 @@ struct MorxTypes
     {
       const HBUINT16 *v = get_value (glyph_id, num_glyphs);
       return v ? *v : 1;
-    }
-  };
-};
-struct MortTypes
-{
-  typedef HBUINT16 HBUINT;
-  typedef HBUINT8 HBUSHORT;
-  struct ClassType : ClassTable
-  {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
-    {
-      return ClassTable::get_class (glyph_id);
     }
   };
 };
