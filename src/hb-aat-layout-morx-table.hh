@@ -79,7 +79,7 @@ struct RearrangementSubtable
       unsigned int klass = i < count ?
 			   machine.get_class (info[i].codepoint, num_glyphs) :
 			   0 /* End of text */;
-      const Entry<void> *entry = machine.get_entry (state, klass);
+      const Entry<void> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
         break;
 
@@ -155,8 +155,8 @@ struct RearrangementSubtable
 	}
       }
 
-      if (false/* XXX */ && flags & DontAdvance)
-        i--; /* XXX Detect infinite loop. */
+      if (false/* TODO */ && flags & DontAdvance)
+        i--; /* TODO Detect infinite loop. */
 
       state = entry->newState;
     }
@@ -224,7 +224,7 @@ struct ContextualSubtable
       unsigned int klass = i < count ?
 			   machine.get_class (info[i].codepoint, num_glyphs) :
 			   0 /* End of text */;
-      const Entry<EntryData> *entry = machine.get_entry (state, klass);
+      const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
         break;
 
@@ -238,7 +238,7 @@ struct ContextualSubtable
 
       if (entry->data.markIndex != 0xFFFF)
       {
-	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex]; // XXX bounds
+	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
 	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, num_glyphs);
 	if (replacement)
 	{
@@ -249,7 +249,7 @@ struct ContextualSubtable
       }
       if (entry->data.currentIndex != 0xFFFF)
       {
-	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex]; // XXX bounds
+	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
 	const GlyphID *replacement = lookup.get_value (info[i].codepoint, num_glyphs);
 	if (replacement)
 	{
@@ -259,8 +259,8 @@ struct ContextualSubtable
 	}
       }
 
-      if (false/* XXX */ && flags & DontAdvance)
-        i--; /* XXX Detect infinite loop. */
+      if (false/* TODO */ && flags & DontAdvance)
+        i--; /* TODO Detect infinite loop. */
 
       state = entry->newState;
     }
@@ -271,8 +271,22 @@ struct ContextualSubtable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (machine.sanitize (c) &&
-		  substitutionTables.sanitize (c, this, 0U/*XXX count*/));
+
+    unsigned int num_entries;
+    if (unlikely (!machine.sanitize (c, &num_entries))) return false;
+
+    unsigned int num_lookups = 0;
+
+    const Entry<EntryData> *entries = machine.get_entries ();
+    for (unsigned int i = 0; i < num_entries; i++)
+    {
+      const EntryData &data = entries[i].data;
+
+      num_lookups = MAX<unsigned int> (num_lookups, 1 + data.markIndex);
+      num_lookups = MAX<unsigned int> (num_lookups, 1 + data.currentIndex);
+    }
+
+    return_trace (substitutionTables.sanitize (c, this, num_lookups));
   }
 
   protected:

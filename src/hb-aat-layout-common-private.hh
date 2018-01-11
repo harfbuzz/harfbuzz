@@ -512,11 +512,17 @@ struct Entry
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && data.sanitize (c));
+    /* Note, we don't recurse-sanitize data because we don't access it.
+     * That said, in our DEFINE_SIZE_STATIC we access T::static_size,
+     * which ensures that data has a simple sanitize(). To be determined
+     * if I need to remove that as well. */
+    return_trace (c->check_struct (this));
   }
 
   public:
-  HBUINT16	newState;	/* Byte offset from beginning of state table to the new state. */
+  HBUINT16	newState;	/* Byte offset from beginning of state table
+				 * to the new state. Really?!?! Or just state
+				 * number?  The latter in morx for sure. */
   HBUINT16	flags;		/* Table specific. */
   T		data;		/* Optional offsets to per-glyph tables. */
   public:
@@ -550,7 +556,12 @@ struct StateTable
   { return (this+classTable).get_class (glyph_id, num_glyphs); }
 
 
-  inline const Entry<Extra> *get_entry (unsigned int state, unsigned int klass) const
+  inline const Entry<Extra> *get_entries () const
+  {
+    return (this+entryTable).arrayZ;
+  }
+
+  inline const Entry<Extra> *get_entryZ (unsigned int state, unsigned int klass) const
   {
     if (unlikely (klass >= nClasses)) return nullptr;
 
@@ -562,7 +573,8 @@ struct StateTable
     return &entries[entry];
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c,
+			unsigned int *num_entries_out = nullptr) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
@@ -599,6 +611,9 @@ struct StateTable
 	entry = num_entries;
       }
     }
+
+    if (num_entries_out)
+      *num_entries_out = num_entries;
 
     return_trace (true);
   }
