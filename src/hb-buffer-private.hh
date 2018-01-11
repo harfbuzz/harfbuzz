@@ -307,37 +307,37 @@ struct hb_buffer_t {
   HB_INTERNAL bool message_impl (hb_font_t *font, const char *fmt, va_list ap) HB_PRINTF_FUNC(3, 0);
 
   static inline void
-  set_cluster (hb_glyph_info_t &info, unsigned int cluster, unsigned int mask = 0)
+  set_cluster (hb_glyph_info_t &inf, unsigned int cluster, unsigned int mask = 0)
   {
-    if (info.cluster != cluster)
+    if (inf.cluster != cluster)
     {
       if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-	info.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	inf.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
       else
-	info.mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	inf.mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
     }
-    info.cluster = cluster;
+    inf.cluster = cluster;
   }
 
   inline int
-  _unsafe_to_break_find_min_cluster (const hb_glyph_info_t *info,
+  _unsafe_to_break_find_min_cluster (const hb_glyph_info_t *infos,
 				     unsigned int start, unsigned int end,
 				     unsigned int cluster) const
   {
     for (unsigned int i = start; i < end; i++)
-      cluster = MIN<unsigned int> (cluster, info[i].cluster);
+      cluster = MIN<unsigned int> (cluster, infos[i].cluster);
     return cluster;
   }
   inline void
-  _unsafe_to_break_set_mask (hb_glyph_info_t *info,
+  _unsafe_to_break_set_mask (hb_glyph_info_t *infos,
 			     unsigned int start, unsigned int end,
 			     unsigned int cluster)
   {
     for (unsigned int i = start; i < end; i++)
-      if (cluster != info[i].cluster)
+      if (cluster != infos[i].cluster)
       {
 	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK;
-	info[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	infos[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
       }
   }
 
