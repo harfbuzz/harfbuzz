@@ -81,7 +81,7 @@ struct RearrangementSubtable
 	 * and end-side. Values of 0,1,2 mean move that many
 	 * to the other side. Value of 3 means move 2 and
 	 * flip them. */
-	static const unsigned char map[16] =
+	const unsigned char map[16] =
 	{
 	  0x00,	/* 0	no change */
 	  0x10,	/* 1	Ax => xA */
