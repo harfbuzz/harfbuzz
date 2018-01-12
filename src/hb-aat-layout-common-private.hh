@@ -614,15 +614,23 @@ struct StateTableDriver
 	      machine (machine_),
 	      buffer (buffer_),
 	      num_glyphs (face_->get_num_glyphs ()),
-	      state (0),
-	      last_zero (0) {}
+	      last_zero (0)
+  {
+    dont_advance_set.init ();
+  }
+
+  inline ~StateTableDriver (void)
+  {
+    dont_advance_set.finish ();
+  }
 
   template <typename context_t>
   inline void drive (context_t *c)
   {
     hb_glyph_info_t *info = buffer->info;
     unsigned int count = buffer->len;
-
+    unsigned int state = 0;
+    bool last_was_dont_advance = false;
     for (buffer->idx = 0; buffer->idx <= count; buffer->idx++)
     {
       if (!state)
@@ -637,8 +645,22 @@ struct StateTableDriver
 
       c->transition (this, entry);
 
+
       if (entry->flags & context_t::DontAdvance)
-	buffer->idx--; /* TODO Detect infinite loop. */
+      {
+        if (!last_was_dont_advance)
+	  dont_advance_set.clear ();
+
+	unsigned int key = info[buffer->idx].codepoint | (state << 16);
+	if (likely (!dont_advance_set.has (key)))
+	{
+	  dont_advance_set.add (key);
+	  buffer->idx--;
+	  last_was_dont_advance = true;
+	}
+      }
+      else
+        last_was_dont_advance = false;
 
       state = entry->newState;
     }
@@ -649,11 +671,11 @@ struct StateTableDriver
   public:
   const StateTable<EntryData> &machine;
   hb_buffer_t *buffer;
-
   unsigned int num_glyphs;
-
-  unsigned int state;
   unsigned int last_zero;
+
+  private:
+  hb_set_t dont_advance_set; /* Infinite-loop detection */
 };
 
 
