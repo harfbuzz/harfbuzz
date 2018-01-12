@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
       - run: ./autogen.sh
-      - run: make && make check
+      - run: make && (make check || (cat `find -name '*.log'` && false))
 
   archlinux:
     docker:
@@ -27,7 +27,7 @@ jobs:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: make && make check
+      - run: make && (make check || (cat `find -name '*.log'` && false))
 
   fedora-outoftreebuild:
     docker:
@@ -36,7 +36,7 @@ jobs:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config || true
       - run: NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: mkdir build && cd build && ../configure && make && make check
+      - run: mkdir build && cd build && ../configure && make && (make check || (cat `find -name '*.log'` && false))
 
   cmake-gcc:
     docker:
