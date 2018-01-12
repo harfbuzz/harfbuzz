@@ -20,7 +20,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --enable-gtk-doc
         - make
-        - make check || (cat `find -name test-suite.log` && false)
+        - make check || (cat `find -name '*.log'` && false)
       after_success:
         - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
         - bash .ci/deploy-docs.sh
@@ -31,7 +31,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS
         - make
-        - make check || (cat `find -name test-suite.log` && false)
+        - make check || (cat `find -name '*.log'` && false)
 
     - os: osx
       compiler: clang
@@ -47,7 +47,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --with-coretext
         - make
-        - make check || (cat `find -name test-suite.log` && false)
+        - make check || (cat `find -name '*.log'` && false)
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
