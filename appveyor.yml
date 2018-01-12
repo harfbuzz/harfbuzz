@@ -2,45 +2,44 @@ platform: x64
 
 environment:
   matrix:
-    - compiler: msvc
-      generator: Visual Studio 14
-      platform: Win32
-      configuration: Debug
-      triplet: x86-windows
-    - compiler: msvc
-      generator: Visual Studio 14 Win64
-      platform: x64
-      configuration: Debug
-      triplet: x64-windows
+    # - compiler: msvc
+    #   generator: Visual Studio 15 2017
+    #   platform: Win32
+    #   configuration: Debug
+    #   triplet: x86-windows
+    # - compiler: msvc
+    #   generator: Visual Studio 15 2017 Win64
+    #   platform: x64
+    #   configuration: Debug
+    #   triplet: x64-windows
 
     - compiler: msvc
-      generator: Visual Studio 14 ARM
+      generator: Visual Studio 15 2017 ARM
       platform: ARM
       configuration: Debug
 
 
-    - compiler: msys2
-      MINGW_PREFIX: /c/msys2/mingw64/
-      MINGW_CHOST: x86_64-w64-mingw32
-      MSYS2_ARCH: x86_64
-    - compiler: msys2
-      MINGW_PREFIX: /c/msys2/mingw32/
-      MINGW_CHOST: i686-w64-mingw32
-      MSYS2_ARCH: i686
+    # - compiler: msys2
+    #   MINGW_PREFIX: /c/msys2/mingw64/
+    #   MINGW_CHOST: x86_64-w64-mingw32
+    #   MSYS2_ARCH: x86_64
+    # - compiler: msys2
+    #   MINGW_PREFIX: /c/msys2/mingw32/
+    #   MINGW_CHOST: i686-w64-mingw32
+    #   MSYS2_ARCH: i686
 
 install:
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
 
 build_script:
-  - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" vcpkg install glib:%triplet% freetype:%triplet% cairo:%triplet%'
-  - 'if "%compiler%"=="msvc" md build'
+  - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" vcpkg install glib freetype cairo icu --triplet %triplet%'
+  - 'if "%compiler%"=="msvc" set PATH=%PATH%;C:\Program Files (x86)\MSBuild\15.0\Bin;c:\msys64\mingw64\bin' # msys2 is added just for having "ragel" on PATH
+
+  - 'if "%compiler%"=="msvc" if "%platform%"=="ARM" cmake -Bbuild -H. -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -G "%generator%"'
+  - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" cmake -Bbuild -H. -DHB_CHECK=1 -G "%generator%" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake'
+
   - 'if "%compiler%"=="msvc" cd build'
-  - 'if "%compiler%"=="msvc" set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin;c:\msys64\mingw64\bin' # msys2 is added just for having "ragel" on PATH
-
-  - 'if "%compiler%"=="msvc" if "%platform%"=="ARM" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -G "%generator%" ../'
-  - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -DHB_BUILD_UTILS=ON -G "%generator%" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake ../'
-
-  - 'if "%compiler%"=="msvc" msbuild harfbuzz.sln /p:Configuration=%configuration% /p:Platform=%platform%'
+  - 'if "%compiler%"=="msvc" msbuild build/harfbuzz.sln /p:Configuration=%configuration% /p:Platform=%platform%'
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" ctest --output-on-failure -C %configuration%'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python2}"'
