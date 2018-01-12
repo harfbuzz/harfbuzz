@@ -658,6 +658,8 @@ struct StateTableDriver
 	  buffer->idx--;
 	  last_was_dont_advance = true;
 	}
+	else
+	  last_was_dont_advance = false;
       }
       else
         last_was_dont_advance = false;
