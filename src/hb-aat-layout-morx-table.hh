@@ -42,6 +42,7 @@ struct RearrangementSubtable
 {
   struct driver_context_t
   {
+    static const bool in_place = true;
     enum Flags {
       MarkFirst		= 0x8000,	/* If set, make the current glyph the first
 					 * glyph to be rearranged. */
@@ -185,6 +186,7 @@ struct ContextualSubtable
 
   struct driver_context_t
   {
+    static const bool in_place = true;
     enum Flags {
       SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before

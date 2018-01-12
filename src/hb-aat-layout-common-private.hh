@@ -631,7 +631,7 @@ struct StateTableDriver
     unsigned int count = buffer->len;
     unsigned int state = 0;
     bool last_was_dont_advance = false;
-    for (buffer->idx = 0; buffer->idx <= count; buffer->idx++)
+    for (buffer->idx = 0; buffer->idx <= count;)
     {
       if (!state)
 	last_zero = buffer->idx;
@@ -655,7 +655,6 @@ struct StateTableDriver
 	if (likely (!dont_advance_set.has (key)))
 	{
 	  dont_advance_set.add (key);
-	  buffer->idx--;
 	  last_was_dont_advance = true;
 	}
 	else
@@ -664,10 +663,17 @@ struct StateTableDriver
       else
         last_was_dont_advance = false;
 
+      if (!last_was_dont_advance)
+        buffer->next_glyph ();
+
       state = entry->newState;
     }
 
-    /* XXX finish if not in-place */
+    if (!c->in_place)
+    {
+      for (buffer->idx = 0; buffer->idx <= count;)
+        buffer->next_glyph ();
+    }
   }
 
   public:
