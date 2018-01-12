@@ -142,9 +142,9 @@ struct RearrangementSubtable
     public:
     bool ret;
     private:
-    unsigned int start = 0;
-    unsigned int end = 0;
-    unsigned int last_zero_before_start = 0;
+    unsigned int start;
+    unsigned int end;
+    unsigned int last_zero_before_start;
   };
 
   inline bool apply (hb_apply_context_t *c) const
