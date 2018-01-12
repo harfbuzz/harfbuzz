@@ -169,7 +169,7 @@ struct RearrangementSubtable
   protected:
   StateTable<void>	machine;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_STATIC (16);
 };
 
 struct ContextualSubtable
@@ -283,7 +283,7 @@ struct ContextualSubtable
   OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, HBUINT32>
 			substitutionTables;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_STATIC (20);
 };
 
 struct LigatureSubtable
@@ -436,7 +436,7 @@ struct ChainSubtable
   InsertionSubtable		insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT32) + 4);
+  DEFINE_SIZE_MIN (12);
 };
 
 struct Chain
@@ -488,7 +488,7 @@ struct Chain
   // subtableGlyphCoverageArray if major == 3
 
   public:
-  DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT32));
+  DEFINE_SIZE_MIN (16);
 };
 
 

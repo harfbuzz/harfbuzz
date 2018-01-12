@@ -602,7 +602,7 @@ struct StateTable
 		entryTable;	/* Offset to the entry array. */
 
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_STATIC (16);
 };
 
 template <typename EntryData>
