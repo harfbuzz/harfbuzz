@@ -637,7 +637,7 @@ struct StateTableDriver
 
       c->transition (this, entry);
 
-      if (entry->flags & context_t::Flags::DontAdvance)
+      if (entry->flags & context_t::DontAdvance)
 	buffer->idx--; /* TODO Detect infinite loop. */
 
       state = entry->newState;

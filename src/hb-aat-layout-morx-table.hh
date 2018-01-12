@@ -43,16 +43,16 @@ struct RearrangementSubtable
   struct driver_context_t
   {
     enum Flags {
-      MarkFirst	= 0x8000,	/* If set, make the current glyph the first
-				   * glyph to be rearranged. */
+      MarkFirst		= 0x8000,	/* If set, make the current glyph the first
+					 * glyph to be rearranged. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
-				   * before going to the new state. This means
-				   * that the glyph index doesn't change, even
-				   * if the glyph at that index has changed. */
-      MarkLast	= 0x2000,	/* If set, make the current glyph the last
-				   * glyph to be rearranged. */
-      Reserved	= 0x1FF0,	/* These bits are reserved and should be set to 0. */
-      Verb	= 0x000F,	/* The type of rearrangement specified. */
+					 * before going to the new state. This means
+					 * that the glyph index doesn't change, even
+					 * if the glyph at that index has changed. */
+      MarkLast		= 0x2000,	/* If set, make the current glyph the last
+					 * glyph to be rearranged. */
+      Reserved		= 0x1FF0,	/* These bits are reserved and should be set to 0. */
+      Verb		= 0x000F,	/* The type of rearrangement specified. */
     };
 
     inline driver_context_t (const RearrangementSubtable *table) :
