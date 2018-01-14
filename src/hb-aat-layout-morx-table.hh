@@ -288,19 +288,74 @@ struct ContextualSubtable
 
 struct LigatureSubtable
 {
+  struct EntryData
+  {
+    HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
+				 * for processing this group, if indicated
+				 * by the flags. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = false;
+    enum Flags {
+      SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
+					 * eventual processing. */
+      DontAdvance	= 0x4000,	/* Leave the glyph pointer at this glyph for the
+					   next iteration. */
+      PerformAction	= 0x2000,	/* Use the ligActionIndex to process a ligature
+					 * group. */
+      Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
+    };
+
+    inline driver_context_t (const LigatureSubtable *table) :
+	ret (false) {}
+
+    inline void transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+
+      /* TODO */
+    }
+
+    public:
+    bool ret;
+    private:
+  };
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    /* TODO */
-    return_trace (false);
+
+    driver_context_t dc (this);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    driver.drive (&dc);
+
+    return_trace (dc.ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
+    /* The main sanitization is done at run-time. */
+    return machine.sanitize (c);
     return_trace (true);
   }
+
+  protected:
+  StateTable<EntryData>	machine;
+  OffsetTo<UnsizedArrayOf<HBUINT32>, HBUINT32>
+		ligAction;	/* Offset to the ligature action table. */
+  OffsetTo<UnsizedArrayOf<HBUINT16>, HBUINT32>
+		component;	/* Offset to the component table. */
+  OffsetTo<UnsizedArrayOf<GlyphID>, HBUINT32>
+		ligature;	/* Offset to the actual ligature lists. */
+  public:
+  DEFINE_SIZE_STATIC (28);
 };
 
 struct NoncontextualSubtable
