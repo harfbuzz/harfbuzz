@@ -448,13 +448,13 @@ struct ChainSubtable
     Insertion		= 5
   };
 
-  inline void apply (hb_apply_context_t *c) const
+  inline void apply (hb_apply_context_t *c, const char *end) const
   {
-    dispatch (c);
+    dispatch (c, end);
   }
 
   template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c, const char *end) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
@@ -476,7 +476,7 @@ struct ChainSubtable
 	!c->check_range (this, length))
       return_trace (false);
 
-    return_trace (dispatch (c));
+    return_trace (dispatch (c, c->end));
   }
 
   protected:
@@ -496,13 +496,13 @@ struct ChainSubtable
 
 struct Chain
 {
-  inline void apply (hb_apply_context_t *c) const
+  inline void apply (hb_apply_context_t *c, const char *end) const
   {
     const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      subtable->apply (c);
+      subtable->apply (c, end);
       subtable = &StructAfter<ChainSubtable> (*subtable);
     }
   }
@@ -555,13 +555,14 @@ struct morx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_MORX;
 
-  inline void apply (hb_apply_context_t *c) const
+  inline void apply (hb_apply_context_t *c, unsigned int length) const
   {
+    const char *end = (const char *) this + length;
     const Chain *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      chain->apply (c);
+      chain->apply (c, end);
       chain = &StructAfter<Chain> (*chain);
     }
   }

@@ -1145,8 +1145,8 @@ struct hb_lazy_table_loader_t
   inline void init (hb_face_t *face_)
   {
     face = face_;
-    instance = nullptr;
     blob = nullptr;
+    instance = nullptr;
   }
 
   inline void fini (void)
@@ -1177,10 +1177,10 @@ struct hb_lazy_table_loader_t
     return get();
   }
 
-  private:
   hb_face_t *face;
-  T *instance;
   mutable hb_blob_t *blob;
+  private:
+  mutable T *instance;
 };
 
 
