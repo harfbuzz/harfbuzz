@@ -550,7 +550,8 @@ struct StateTable
 			unsigned int *num_entries_out = nullptr) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this))) return_trace (false);
+    if (unlikely (!(c->check_struct (this) &&
+		    classTable.sanitize (c, this)))) return_trace (false);
 
     const HBUINT16 *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
