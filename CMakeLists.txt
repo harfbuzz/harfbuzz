@@ -493,7 +493,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
 ")
 try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
   ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
-  SOURCES ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
+  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
 if (HB_HAVE_INTEL_ATOMIC_PRIMITIVES)
   add_definitions(-DHAVE_INTEL_ATOMIC_PRIMITIVES)
 endif ()
@@ -509,7 +509,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
 ")
 try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
   ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
-  SOURCES ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
+  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
 if (HB_HAVE_SOLARIS_ATOMIC_OPS)
   add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
 endif ()
