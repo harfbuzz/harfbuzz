@@ -127,7 +127,7 @@ if (BUILD_SHARED_LIBS)
     add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
   else ()
     set (CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
-    set (CMAKE_C_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_C_FLAGS "-fvisibility=hidden ${CMAKE_C_FLAGS}")
     add_definitions("-DHB_EXTERN=__attribute__((visibility(\"default\"))) extern")
   endif ()
 endif ()
@@ -524,11 +524,19 @@ if (UNIX OR MINGW)
   link_libraries(-Bsymbolic-functions)
 
   # Make sure we don't link to libstdc++
-  set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
-  if (NOT APPLE)
-    set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
-    set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
-    set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
+  if (BUILD_SHARED_LIBS AND (
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+  ))
+    set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
+  endif ()
+  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
+  set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
+  set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
+
+  # No threadsafe statics as we do it ourselves
+  if (BUILD_SHARED_LIBS)
+    set (CMAKE_CXX_FLAGS "-fno-threadsafe-statics ${CMAKE_CXX_FLAGS}")
   endif ()
 endif ()
 
@@ -782,22 +790,20 @@ endif ()
 ## Tests
 if (UNIX OR MINGW)
   if (BUILD_SHARED_LIBS)
-    # does some "make" stuff inside
-    #add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-    #set_tests_properties(check-defs.sh PROPERTIES ENVIRONMENT "libs=.")
+    string(REPLACE ";" " " space_separated_headers "${project_headers}")  
+    add_custom_command(TARGET harfbuzz POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E env "headers=${space_separated_headers}" python ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 
     add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-    set_tests_properties(check-symbols.sh PROPERTIES ENVIRONMENT "libs=.")
-
-    if (NOT APPLE)
-      add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-      add_test(NAME check-static-inits.sh
-        COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles/harfbuzz.dir/src # ugly hack
-      )
-      set_tests_properties(check-libstdc++.sh check-static-inits.sh
-        PROPERTIES ENVIRONMENT "libs=.")
-    endif ()
+    add_test(NAME check-static-inits.sh
+      COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
+    )
+    add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
+    add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
+    set_tests_properties(check-symbols.sh check-static-inits.sh check-libstdc++.sh check-defs.sh
+      PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
   endif ()
 
   add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
