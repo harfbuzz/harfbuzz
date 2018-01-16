@@ -2238,7 +2238,7 @@ struct ExtensionFormat1
   HBUINT16	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
 					 * extension subtable). */
-  HBUINT32		extensionOffset;	/* Offset to the extension subtable,
+  HBUINT32	extensionOffset;	/* Offset to the extension subtable,
 					 * of lookup type subtable. */
   public:
   DEFINE_SIZE_STATIC (8);
