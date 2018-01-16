@@ -14,6 +14,8 @@ tests/MORX-9.tests
 tests/MORX-10.tests
 tests/MORX-11.tests
 tests/MORX-12.tests
+tests/MORX-13.tests
+tests/MORX-14.tests
 
 # Rounding differences
 tests/SHARAN-1.tests
