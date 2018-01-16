@@ -519,6 +519,19 @@ endif ()
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
+if (UNIX OR MINGW)
+  # Make symbols link locally
+  link_libraries(-Bsymbolic-functions)
+
+  # Make sure we don't link to libstdc++
+  set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
+  if (NOT APPLE)
+    set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
+    set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
+    set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
+  endif ()
+endif ()
+
 
 ## Define harfbuzz-gobject library
 if (HB_HAVE_GOBJECT)
@@ -767,34 +780,33 @@ endif ()
 
 
 ## Tests
-if (UNIX)
+if (UNIX OR MINGW)
   if (BUILD_SHARED_LIBS)
     # does some "make" stuff inside
     #add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-    #add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    #set_tests_properties(check-defs.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.")
+    #set_tests_properties(check-defs.sh PROPERTIES ENVIRONMENT "libs=.")
 
     add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
     set_tests_properties(check-symbols.sh PROPERTIES ENVIRONMENT "libs=.")
 
     if (NOT APPLE)
+      add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
       add_test(NAME check-static-inits.sh
         COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles/harfbuzz.dir/src # ugly hack
       )
-      set_tests_properties(check-static-inits.sh PROPERTIES ENVIRONMENT "libs=.")
+      set_tests_properties(check-libstdc++.sh check-static-inits.sh
+        PROPERTIES ENVIRONMENT "libs=.")
     endif ()
-  else ()
-    message(WARN "Enable BUILD_SHARED_LIBS for more tests.")
   endif ()
 
-  if (IN_HB_DIST)
-    add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
-    add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
-  endif ()
-
-  add_test(NAME check-externs.sh COMMAND ./check-externs.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
-  add_test(NAME check-includes.sh COMMAND ./check-includes.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+  add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
+  add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh)
+  add_test(NAME check-externs.sh COMMAND ./check-externs.sh)
+  add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
+  set_tests_properties(
+    check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
+    PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 endif ()
 
 # Needs to come last so that variables defined above are passed to
