@@ -5,7 +5,8 @@ enable_testing()
 
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
-  # for a framework on macOS, use `cmake .. -DBUILD_FRAMEWORK:BOOL=true -G Xcode`
+  # for a framework build on macOS, use:
+  # cmake -DBUILD_FRAMEWORK=ON -Bbuild -H. -GXcode && cmake --build build
   if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
     message(FATAL_ERROR
       "You should use Xcode generator with BUILD_FRAMEWORK enabled")
@@ -121,8 +122,14 @@ if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 endif ()
 
-if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
-  add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+if (BUILD_SHARED_LIBS)
+  if (WIN32 AND NOT MINGW)
+    add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+  else ()
+    set (CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_C_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
+    add_definitions("-DHB_EXTERN=__attribute__((visibility(\"default\"))) extern")
+  endif ()
 endif ()
 
 
@@ -764,12 +771,11 @@ if (UNIX)
   if (BUILD_SHARED_LIBS)
     # does some "make" stuff inside
     #add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-    #set_tests_properties(check-defs.sh PROPERTIES ENVIRONMENT "libs=.")
-
-    # broken on cmake builds right now :(
-    #add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
     #add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    #set_tests_properties(check-symbols.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.")
+    #set_tests_properties(check-defs.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.")
+
+    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+    set_tests_properties(check-symbols.sh PROPERTIES ENVIRONMENT "libs=.")
 
     if (NOT APPLE)
       add_test(NAME check-static-inits.sh
