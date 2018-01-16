@@ -1272,10 +1272,9 @@ struct SubstLookup : Lookup
     {
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
-       * itself. This is specially important if one has a reverse type! */
+       * itself (but we already checked for that).
+       * This is specially important if one has a reverse type! */
       unsigned int type = get_subtable (0).u.extension.get_type ();
-      if (unlikely (type == SubstLookupSubTable::Extension))
-	return_trace (false);
       unsigned int count = get_subtable_count ();
       for (unsigned int i = 1; i < count; i++)
         if (get_subtable (i).u.extension.get_type () != type)

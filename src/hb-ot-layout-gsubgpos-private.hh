@@ -2230,7 +2230,9 @@ struct ExtensionFormat1
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && extensionOffset != 0);
+    return_trace (c->check_struct (this) &&
+		  extensionOffset != 0 &&
+		  extensionLookupType != T::LookupSubTable::Extension);
   }
 
   protected:
