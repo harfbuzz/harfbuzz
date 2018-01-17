@@ -261,16 +261,16 @@ struct post
 					 * from the value of this field. */
   FWORD		underlineThickness;	/* Suggested values for the underline
 					   thickness. */
-  HBUINT32		isFixedPitch;		/* Set to 0 if the font is proportionally
+  HBUINT32	isFixedPitch;		/* Set to 0 if the font is proportionally
 					 * spaced, non-zero if the font is not
 					 * proportionally spaced (i.e. monospaced). */
-  HBUINT32		minMemType42;		/* Minimum memory usage when an OpenType font
+  HBUINT32	minMemType42;		/* Minimum memory usage when an OpenType font
 					 * is downloaded. */
-  HBUINT32		maxMemType42;		/* Maximum memory usage when an OpenType font
+  HBUINT32	maxMemType42;		/* Maximum memory usage when an OpenType font
 					 * is downloaded. */
-  HBUINT32		minMemType1;		/* Minimum memory usage when an OpenType font
+  HBUINT32	minMemType1;		/* Minimum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
-  HBUINT32		maxMemType1;		/* Maximum memory usage when an OpenType font
+  HBUINT32	maxMemType1;		/* Maximum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
 /*postV2Tail	v2[VAR];*/
   DEFINE_SIZE_STATIC (32);

@@ -64,10 +64,10 @@ struct head
   FixedVersion<>version;		/* Version of the head table--currently
 					 * 0x00010000u for version 1.0. */
   FixedVersion<>fontRevision;		/* Set by font manufacturer. */
-  HBUINT32		checkSumAdjustment;	/* To compute: set it to 0, sum the
+  HBUINT32	checkSumAdjustment;	/* To compute: set it to 0, sum the
 					 * entire font as HBUINT32, then store
 					 * 0xB1B0AFBAu - sum. */
-  HBUINT32		magicNumber;		/* Set to 0x5F0F3CF5u. */
+  HBUINT32	magicNumber;		/* Set to 0x5F0F3CF5u. */
   HBUINT16	flags;			/* Bit 0: Baseline for font at y=0;
 					 * Bit 1: Left sidebearing point at x=0;
 					 * Bit 2: Instructions may depend on point size;
@@ -76,7 +76,6 @@ struct head
 					 *   ppem sizes if this bit is clear;
 					 * Bit 4: Instructions may alter advance width
 					 *   (the advance widths might not scale linearly);
-
 					 * Bits 5-10: These should be set according to
 					 *   Apple's specification. However, they are not
 					 *   implemented in OpenType.
@@ -96,7 +95,6 @@ struct head
 					 *   contains any strong right-to-left glyphs.
 					 * Bit 10: This bit should be set if the font
 					 *   contains Indic-style rearrangement effects.
-
 					 * Bit 11: Font data is 'lossless,' as a result
 					 *   of having been compressed and decompressed
 					 *   with the Agfa MicroType Express engine.
@@ -121,10 +119,10 @@ struct head
 					   January 1, 1904. 64-bit integer */
   LONGDATETIME	modified;		/* Number of seconds since 12:00 midnight,
 					   January 1, 1904. 64-bit integer */
-  HBINT16		xMin;			/* For all glyph bounding boxes. */
-  HBINT16		yMin;			/* For all glyph bounding boxes. */
-  HBINT16		xMax;			/* For all glyph bounding boxes. */
-  HBINT16		yMax;			/* For all glyph bounding boxes. */
+  HBINT16	xMin;			/* For all glyph bounding boxes. */
+  HBINT16	yMin;			/* For all glyph bounding boxes. */
+  HBINT16	xMax;			/* For all glyph bounding boxes. */
+  HBINT16	yMax;			/* For all glyph bounding boxes. */
   HBUINT16	macStyle;		/* Bit 0: Bold (if set to 1);
 					 * Bit 1: Italic (if set to 1)
 					 * Bit 2: Underline (if set to 1)
@@ -134,15 +132,15 @@ struct head
 					 * Bit 6: Extended (if set to 1)
 					 * Bits 7-15: Reserved (set to 0). */
   HBUINT16	lowestRecPPEM;		/* Smallest readable size in pixels. */
-  HBINT16		fontDirectionHint;	/* Deprecated (Set to 2).
+  HBINT16	fontDirectionHint;	/* Deprecated (Set to 2).
 					 * 0: Fully mixed directional glyphs;
 					 * 1: Only strongly left to right;
 					 * 2: Like 1 but also contains neutrals;
 					 * -1: Only strongly right to left;
 					 * -2: Like -1 but also contains neutrals. */
   public:
-  HBINT16		indexToLocFormat;	/* 0 for short offsets, 1 for long. */
-  HBINT16		glyphDataFormat;	/* 0 for current format. */
+  HBINT16	indexToLocFormat;	/* 0 for short offsets, 1 for long. */
+  HBINT16	glyphDataFormat;	/* 0 for current format. */
 
   DEFINE_SIZE_STATIC (54);
 };
