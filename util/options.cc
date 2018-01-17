@@ -546,7 +546,7 @@ font_options_t::add_options (option_parser_t *parser)
   };
   parser->add_group (entries2,
 		     "variations",
-		     "Varitions options:",
+		     "Variations options:",
 		     "Options for font variations used",
 		     this);
 }
