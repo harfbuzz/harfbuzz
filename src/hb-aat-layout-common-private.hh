@@ -615,14 +615,12 @@ struct StateTableDriver
 	      machine (machine_),
 	      buffer (buffer_),
 	      num_glyphs (face_->get_num_glyphs ()),
-	      last_zero (0)
-  {
-    dont_advance_set.init ();
-  }
+	      last_zero (0),
+	      dont_advance_set (nullptr) {}
 
   inline ~StateTableDriver (void)
   {
-    dont_advance_set.finish ();
+    hb_set_destroy (dont_advance_set);
   }
 
   template <typename context_t>
@@ -650,12 +648,17 @@ struct StateTableDriver
       if (entry->flags & context_t::DontAdvance)
       {
         if (!last_was_dont_advance)
-	  dont_advance_set.clear ();
+	{
+	  if (dont_advance_set)
+	    dont_advance_set->clear ();
+	  else
+	    dont_advance_set = hb_set_create ();
+	}
 
 	unsigned int key = info[buffer->idx].codepoint | (state << 16);
-	if (likely (!dont_advance_set.has (key)))
+	if (likely (!dont_advance_set->has (key)))
 	{
-	  dont_advance_set.add (key);
+	  dont_advance_set->add (key);
 	  last_was_dont_advance = true;
 	}
 	else
@@ -684,7 +687,7 @@ struct StateTableDriver
   unsigned int last_zero;
 
   private:
-  hb_set_t dont_advance_set; /* Infinite-loop detection */
+  hb_set_t *dont_advance_set; /* Infinite-loop detection */
 };
 
 
