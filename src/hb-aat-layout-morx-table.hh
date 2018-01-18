@@ -148,7 +148,7 @@ struct RearrangementSubtable
     unsigned int last_zero_before_start;
   };
 
-  inline bool apply (hb_ot_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -245,7 +245,7 @@ struct ContextualSubtable
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
   };
 
-  inline bool apply (hb_ot_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -326,7 +326,7 @@ struct LigatureSubtable
     private:
   };
 
-  inline bool apply (hb_ot_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -360,7 +360,7 @@ struct LigatureSubtable
 
 struct NoncontextualSubtable
 {
-  inline bool apply (hb_ot_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -396,7 +396,7 @@ struct NoncontextualSubtable
 
 struct InsertionSubtable
 {
-  inline bool apply (hb_ot_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     /* TODO */
@@ -448,13 +448,13 @@ struct ChainSubtable
     Insertion		= 5
   };
 
-  inline void apply (hb_ot_apply_context_t *c, const char *end) const
+  inline void apply (hb_aat_apply_context_t *c) const
   {
-    dispatch (c, end);
+    dispatch (c);
   }
 
   template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c, const char *end) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
@@ -476,7 +476,7 @@ struct ChainSubtable
 	!c->check_range (this, length))
       return_trace (false);
 
-    return_trace (dispatch (c, c->end));
+    return_trace (dispatch (c));
   }
 
   protected:
@@ -496,13 +496,13 @@ struct ChainSubtable
 
 struct Chain
 {
-  inline void apply (hb_ot_apply_context_t *c, const char *end) const
+  inline void apply (hb_aat_apply_context_t *c) const
   {
     const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      subtable->apply (c, end);
+      subtable->apply (c);
       subtable = &StructAfter<ChainSubtable> (*subtable);
     }
   }
@@ -555,14 +555,13 @@ struct morx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_MORX;
 
-  inline void apply (hb_ot_apply_context_t *c, unsigned int length) const
+  inline void apply (hb_aat_apply_context_t *c) const
   {
-    const char *end = (const char *) this + length;
     const Chain *chain = chains;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      chain->apply (c, end);
+      chain->apply (c);
       chain = &StructAfter<Chain> (*chain);
     }
   }

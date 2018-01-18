@@ -691,6 +691,29 @@ struct StateTableDriver
 };
 
 
+
+struct hb_aat_apply_context_t :
+       hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
+{
+  inline const char *get_name (void) { return "APPLY"; }
+  template <typename T>
+  inline return_t dispatch (const T &obj) { return obj.apply (this); }
+  static return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+
+  hb_font_t *font;
+  hb_face_t *face;
+  hb_buffer_t *buffer;
+  const char *end;
+
+  hb_aat_apply_context_t (hb_font_t *font_,
+			  hb_buffer_t *buffer_,
+			  const char *end_) :
+			font (font_), face (font->face), buffer (buffer_),
+			end (end_) {}
+};
+
+
 } /* namespace AAT */
 
 

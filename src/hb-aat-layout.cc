@@ -68,9 +68,11 @@ _hb_aat_layout_create (hb_face_t *face)
 }
 
 void
-hb_aat_layout_substitute (OT::hb_ot_apply_context_t *c)
+hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
 {
   unsigned int length;
-  const AAT::morx& morx = _get_morx (c->face, &length);
-  morx.apply (c, length);
+  const AAT::morx& morx = _get_morx (font->face, &length);
+
+  AAT::hb_aat_apply_context_t c (font, buffer, (const char *) &morx + length);
+  morx.apply (&c);
 }
