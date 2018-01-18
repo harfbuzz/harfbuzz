@@ -68,7 +68,7 @@ _hb_aat_layout_create (hb_face_t *face)
 }
 
 void
-hb_aat_layout_substitute (OT::hb_apply_context_t *c)
+hb_aat_layout_substitute (OT::hb_ot_apply_context_t *c)
 {
   unsigned int length;
   const AAT::morx& morx = _get_morx (c->face, &length);

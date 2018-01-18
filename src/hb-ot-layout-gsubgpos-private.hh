@@ -218,8 +218,8 @@ struct hb_add_coverage_context_t :
 };
 
 
-struct hb_apply_context_t :
-       hb_dispatch_context_t<hb_apply_context_t, bool, HB_DEBUG_APPLY>
+struct hb_ot_apply_context_t :
+       hb_dispatch_context_t<hb_ot_apply_context_t, bool, HB_DEBUG_APPLY>
 {
   struct matcher_t
   {
@@ -271,7 +271,7 @@ struct hb_apply_context_t :
     };
 
     inline may_skip_t
-    may_skip (const hb_apply_context_t *c,
+    may_skip (const hb_ot_apply_context_t *c,
 	      const hb_glyph_info_t    &info) const
     {
       if (!c->check_glyph_property (&info, lookup_props))
@@ -297,7 +297,7 @@ struct hb_apply_context_t :
 
   struct skipping_iterator_t
   {
-    inline void init (hb_apply_context_t *c_, bool context_match = false)
+    inline void init (hb_ot_apply_context_t *c_, bool context_match = false)
     {
       c = c_;
       match_glyph_data = nullptr;
@@ -333,7 +333,7 @@ struct hb_apply_context_t :
     inline void reject (void) { num_items++; match_glyph_data--; }
 
     inline matcher_t::may_skip_t
-    may_skip (const hb_apply_context_t *c,
+    may_skip (const hb_ot_apply_context_t *c,
 	      const hb_glyph_info_t    &info) const
     {
       return matcher.may_skip (c, info);
@@ -396,7 +396,7 @@ struct hb_apply_context_t :
 
     unsigned int idx;
     protected:
-    hb_apply_context_t *c;
+    hb_ot_apply_context_t *c;
     matcher_t matcher;
     const HBUINT16 *match_glyph_data;
 
@@ -406,7 +406,7 @@ struct hb_apply_context_t :
 
 
   inline const char *get_name (void) { return "APPLY"; }
-  typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
+  typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
@@ -444,7 +444,7 @@ struct hb_apply_context_t :
   bool has_glyph_classes;
 
 
-  hb_apply_context_t (unsigned int table_index_,
+  hb_ot_apply_context_t (unsigned int table_index_,
 		      hb_font_t *font_,
 		      hb_buffer_t *buffer_) :
 			iter_input (), iter_context (),
@@ -670,7 +670,7 @@ static inline bool would_match_input (hb_would_apply_context_t *c,
 
   return true;
 }
-static inline bool match_input (hb_apply_context_t *c,
+static inline bool match_input (hb_ot_apply_context_t *c,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const HBUINT16 input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
@@ -686,7 +686,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
 
@@ -763,7 +763,7 @@ static inline bool match_input (hb_apply_context_t *c,
 	    j--;
 	  }
 
-	  if (found && skippy_iter.may_skip (c, out[j]) == hb_apply_context_t::matcher_t::SKIP_YES)
+	  if (found && skippy_iter.may_skip (c, out[j]) == hb_ot_apply_context_t::matcher_t::SKIP_YES)
 	    ligbase = LIGBASE_MAY_SKIP;
 	  else
 	    ligbase = LIGBASE_MAY_NOT_SKIP;
@@ -796,7 +796,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   return_trace (true);
 }
-static inline bool ligate_input (hb_apply_context_t *c,
+static inline bool ligate_input (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int match_length,
@@ -894,7 +894,7 @@ static inline bool ligate_input (hb_apply_context_t *c,
   return_trace (true);
 }
 
-static inline bool match_backtrack (hb_apply_context_t *c,
+static inline bool match_backtrack (hb_ot_apply_context_t *c,
 				    unsigned int count,
 				    const HBUINT16 backtrack[],
 				    match_func_t match_func,
@@ -903,7 +903,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
+  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->backtrack_len (), count);
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
@@ -916,7 +916,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
   return_trace (true);
 }
 
-static inline bool match_lookahead (hb_apply_context_t *c,
+static inline bool match_lookahead (hb_ot_apply_context_t *c,
 				    unsigned int count,
 				    const HBUINT16 lookahead[],
 				    match_func_t match_func,
@@ -926,7 +926,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
+  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->idx + offset - 1, count);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
@@ -967,7 +967,7 @@ static inline void recurse_lookups (context_t *c,
     c->recurse (lookupRecord[i].lookupListIndex);
 }
 
-static inline bool apply_lookup (hb_apply_context_t *c,
+static inline bool apply_lookup (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int lookupCount,
@@ -1149,7 +1149,7 @@ static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 			    inputCount, input,
 			    lookup_context.funcs.match, lookup_context.match_data);
 }
-static inline bool context_apply_lookup (hb_apply_context_t *c,
+static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 					 unsigned int inputCount, /* Including the first glyph (not matched) */
 					 const HBUINT16 input[], /* Array of input values--start with second glyph */
 					 unsigned int lookupCount,
@@ -1198,7 +1198,7 @@ struct Rule
     return_trace (context_would_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
   }
 
-  inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
+  inline bool apply (hb_ot_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
@@ -1259,7 +1259,7 @@ struct RuleSet
     return_trace (false);
   }
 
-  inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
+  inline bool apply (hb_ot_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     unsigned int num_rules = rule.len;
@@ -1339,7 +1339,7 @@ struct ContextFormat1
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
@@ -1431,7 +1431,7 @@ struct ContextFormat2
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
@@ -1522,7 +1522,7 @@ struct ContextFormat3
     return this+coverageZ[0];
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverageZ[0]).get_coverage (c->buffer->cur().codepoint);
@@ -1673,7 +1673,7 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 			    lookup_context.funcs.match, lookup_context.match_data[1]);
 }
 
-static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
+static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					       unsigned int backtrackCount,
 					       const HBUINT16 backtrack[],
 					       unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -1748,7 +1748,7 @@ struct ChainRule
 						    lookup.array, lookup_context));
   }
 
-  inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  inline bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16> > (backtrack);
@@ -1820,7 +1820,7 @@ struct ChainRuleSet
     return_trace (false);
   }
 
-  inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  inline bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     unsigned int num_rules = rule.len;
@@ -1897,7 +1897,7 @@ struct ChainContextFormat1
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
@@ -2001,7 +2001,7 @@ struct ChainContextFormat2
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
@@ -2125,7 +2125,7 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);

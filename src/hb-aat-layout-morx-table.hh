@@ -148,7 +148,7 @@ struct RearrangementSubtable
     unsigned int last_zero_before_start;
   };
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -245,7 +245,7 @@ struct ContextualSubtable
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
   };
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -326,7 +326,7 @@ struct LigatureSubtable
     private:
   };
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -360,7 +360,7 @@ struct LigatureSubtable
 
 struct NoncontextualSubtable
 {
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -396,7 +396,7 @@ struct NoncontextualSubtable
 
 struct InsertionSubtable
 {
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     /* TODO */
@@ -448,7 +448,7 @@ struct ChainSubtable
     Insertion		= 5
   };
 
-  inline void apply (hb_apply_context_t *c, const char *end) const
+  inline void apply (hb_ot_apply_context_t *c, const char *end) const
   {
     dispatch (c, end);
   }
@@ -496,7 +496,7 @@ struct ChainSubtable
 
 struct Chain
 {
-  inline void apply (hb_apply_context_t *c, const char *end) const
+  inline void apply (hb_ot_apply_context_t *c, const char *end) const
   {
     const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
@@ -555,7 +555,7 @@ struct morx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_MORX;
 
-  inline void apply (hb_apply_context_t *c, unsigned int length) const
+  inline void apply (hb_ot_apply_context_t *c, unsigned int length) const
   {
     const char *end = (const char *) this + length;
     const Chain *chain = chains;

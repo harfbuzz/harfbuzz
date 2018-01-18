@@ -442,10 +442,10 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 {
   if (!plan->has_kern) return;
 
-  OT::hb_apply_context_t c (1, font, buffer);
+  OT::hb_ot_apply_context_t c (1, font, buffer);
   c.set_lookup_mask (plan->kern_mask);
   c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
-  OT::hb_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
+  OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
   skippy_iter.init (&c);
 
   unsigned int count = buffer->len;

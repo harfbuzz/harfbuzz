@@ -90,12 +90,12 @@ hb_ot_layout_substitute_start (hb_font_t    *font,
 struct hb_ot_layout_lookup_accelerator_t;
 
 namespace OT {
-  struct hb_apply_context_t;
+  struct hb_ot_apply_context_t;
   struct SubstLookup;
 }
 
 HB_INTERNAL void
-hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
+hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 				const OT::SubstLookup &lookup,
 				const hb_ot_layout_lookup_accelerator_t &accel);
 

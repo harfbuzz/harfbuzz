@@ -35,6 +35,6 @@
 
 
 HB_INTERNAL void
-hb_aat_layout_substitute (OT::hb_apply_context_t *c);
+hb_aat_layout_substitute (OT::hb_ot_apply_context_t *c);
 
 #endif /* HB_AAT_LAYOUT_PRIVATE_HH */
