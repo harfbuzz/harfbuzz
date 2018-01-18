@@ -23,18 +23,19 @@ what this does is:
   * If the outputs differ, perhaps it is because the font does not have
     glyph names; it then compares the output of `hb-view` for both fonts.
   * If the outputs differ, recording fails.  Otherwise, it will move the
-    subset font file into `fonts/sha1sum` and name it after its hash,
-    and prints out the test case input, which you can then redirect to
-    an existing or new test file in `tests`, eg.:
+    subset font file into `data/in-house/fonts` and name it after its
+    hash, and print out the test case input, which you can then redirect
+    to an existing or new test file in `data/in-house/tests` using `-o=`,
+    e.g.:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh ../../util/hb-shape font.ttf >> tests/test-name.test
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o=data/in-house/tests/test-name.test ../../util/hb-shape font.ttf
 ```
 
 If you created a new test file, add it to `Makefile.am` so it is run.
 Check that `make check` does indeed run it, and that the test passes.
 When everything looks good, `git add` the new font as well as new
 test file if you created any.  You can see what new files are there
-by running `git status tests fonts/sha1sum`.  And commit!
+by running `git status data/in-house`.  And commit!
 
 *Note!*  Please only add tests using Open Source fonts, preferably under
 OFL or similar license.

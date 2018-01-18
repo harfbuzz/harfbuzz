@@ -2,6 +2,11 @@
 
 dir=`mktemp -d`
 
+out=/dev/stdout
+if test "x${1:0:3}" == 'x-o='; then
+	out=${1:3}
+	shift
+fi
 hb_shape=$1
 shift
 fontfile=$1
@@ -67,8 +72,8 @@ if ! test "x$glyphs" = "x$glyphs_subset"; then
 	echo "$text" | $hb_view $options "$dir/font.subset.ttf" --output-format=png --output-file="$dir/subset.png"
 	if ! cmp "$dir/orig.png" "$dir/subset.png"; then
 		echo "Images differ.  Please inspect $dir/*.png." >&2
-		echo "$glyphs"
-		echo "$glyphs_subset"
+		echo "$glyphs" >> "$out"
+		echo "$glyphs_subset" >> "$out"
 		exit 2
 	fi
 	echo "Yep; all good." >&2
@@ -78,7 +83,7 @@ if ! test "x$glyphs" = "x$glyphs_subset"; then
 fi
 
 sha1sum=`sha1sum "$dir/font.subset.ttf" | cut -d' ' -f1`
-subset="fonts/sha1sum/$sha1sum.ttf"
+subset="data/in-house/fonts/$sha1sum.ttf"
 mv "$dir/font.subset.ttf" "$subset"
 
 # There ought to be an easier way to do this, but it escapes me...
@@ -89,8 +94,12 @@ echo "$glyphs" > "$glyphs_file"
 # Open the "file"s
 exec 3<"$unicodes_file"
 exec 4<"$glyphs_file"
+relative_subset="$subset"
+if test "$out" != "/dev/stdout"; then
+	relative_subset="$(/usr/bin/python -c 'import os, sys; print (os.path.relpath (sys.argv[1], sys.argv[2]))' "$subset" "$(dirname "$out")")"
+fi
 while read uline <&3 && read gline <&4; do
-	echo "$subset:$options:$uline:$gline"
+	echo "$relative_subset:$options:$uline:$gline" >> "$out"
 done
 
 
