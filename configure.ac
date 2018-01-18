@@ -83,6 +83,9 @@ if test "x$GCC" = "xyes"; then
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
+	# No threadsafe statics and C++ as we do it ourselves
+	CXXFLAGS="$CXXFLAGS -fno-threadsafe-statics"
+
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
 
