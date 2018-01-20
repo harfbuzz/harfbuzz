@@ -1279,6 +1279,13 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     *count = 1;
     return true;
   }
+  if (0 == strcmp (lang_str, "zh-min-nan"))
+  {
+    /* Minnan, Hokkien, Amoy, Taiwanese, Southern Min, Southern Fujian, Hoklo, Southern Fukien, Ho-lo */
+    tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
+    *count = 1;
+    return true;
+  }
   if (lang_matches (lang_str, "cdo-hans"))
   {
     /* Min Dong Chinese; Han (Simplified variant) */
@@ -1791,6 +1798,13 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     *count = 1;
     return true;
   }
+  if (0 == strcmp (lang_str, "no-bok"))
+  {
+    /* Norwegian Bokmal */
+    tags[0] = HB_TAG('N','O','R',' ');  /* Norwegian */
+    *count = 1;
+    return true;
+  }
   if (0 == strcmp (lang_str, "no-nyn"))
   {
     /* Norwegian Nynorsk */
@@ -1819,6 +1833,13 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   {
     /* Wu Chinese; Taiwan, Province of China */
     tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
+    *count = 1;
+    return true;
+  }
+  if (0 == strcmp (lang_str, "zh-min"))
+  {
+    /* Min, Fuzhou, Hokkien, Amoy, or Taiwanese */
+    tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
     *count = 1;
     return true;
   }
