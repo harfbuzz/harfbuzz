@@ -362,7 +362,7 @@ struct LigatureSubtable
 	  if (unlikely (!match_length))
 	    return false;
 
-	  buffer->move_to (match_positions[match_length - 1]);
+	  buffer->move_to (match_positions[--match_length]);
 
 	  const HBUINT32 &actionData = ligAction[action_idx];
 	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
@@ -384,6 +384,7 @@ struct LigatureSubtable
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
+	    match_positions[match_length++] = buffer->out_len;
 	    buffer->replace_glyph (lig);
 
 	    //ligature_idx = 0; // XXX Yes or no?
@@ -395,7 +396,6 @@ struct LigatureSubtable
 	  }
 	  /* TODO merge_clusters / unsafe_to_break */
 
-	  match_length--;
 	  action_idx++;
 	}
 	while (!(action & LigActionLast));
