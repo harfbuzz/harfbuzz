@@ -627,23 +627,26 @@ struct StateTableDriver
   inline void drive (context_t *c)
   {
     hb_glyph_info_t *info = buffer->info;
-    unsigned int count = buffer->len;
+
+    if (!c->in_place)
+      buffer->clear_output ();
+
     unsigned int state = 0;
     bool last_was_dont_advance = false;
-    for (buffer->idx = 0; buffer->idx <= count;)
+    for (buffer->idx = 0;;)
     {
       if (!state)
 	last_zero = buffer->idx;
 
-      unsigned int klass = buffer->idx < count ?
+      unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (info[buffer->idx].codepoint, num_glyphs) :
 			   0 /* End of text */;
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
 
-      c->transition (this, entry);
-
+      if (unlikely (!c->transition (this, entry)))
+        break;
 
       if (entry->flags & context_t::DontAdvance)
       {
@@ -655,7 +658,7 @@ struct StateTableDriver
 	    dont_advance_set = hb_set_create ();
 	}
 
-	unsigned int key = info[buffer->idx].codepoint | (state << 16);
+	unsigned int key = info[buffer->idx].codepoint ^ (state << 16);
 	if (likely (!dont_advance_set->has (key)))
 	{
 	  dont_advance_set->add (key);
@@ -667,16 +670,20 @@ struct StateTableDriver
       else
         last_was_dont_advance = false;
 
+      state = entry->newState;
+
+      if (buffer->idx == buffer->len)
+        break;
+
       if (!last_was_dont_advance)
         buffer->next_glyph ();
-
-      state = entry->newState;
     }
 
     if (!c->in_place)
     {
-      for (buffer->idx = 0; buffer->idx <= count;)
+      for (; buffer->idx < buffer->len;)
         buffer->next_glyph ();
+      buffer->swap_buffers ();
     }
   }
 

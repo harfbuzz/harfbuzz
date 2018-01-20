@@ -61,7 +61,7 @@ struct RearrangementSubtable
 	start (0), end (0),
 	last_zero_before_start (0) {}
 
-    inline void transition (StateTableDriver<void> *driver,
+    inline bool transition (StateTableDriver<void> *driver,
 			    const Entry<void> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -138,6 +138,8 @@ struct RearrangementSubtable
 	  }
 	}
       }
+
+      return true;
     }
 
     public:
@@ -200,7 +202,7 @@ struct ContextualSubtable
 	last_zero_before_mark (0),
 	subs (table+table->substitutionTables) {}
 
-    inline void transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -235,6 +237,8 @@ struct ContextualSubtable
 	  ret = true;
 	}
       }
+
+      return true;
     }
 
     public:
@@ -309,28 +313,113 @@ struct LigatureSubtable
 					 * group. */
       Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
     };
+    enum LigActionFlags {
+      LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
+					 * implies storage. */
+      LigActionStore	= 0x40000000,	/* Store the ligature at the current cumulated index
+					 * in the ligature table in place of the marked
+					 * (i.e. currently-popped) glyph. */
+      LigActionOffset	= 0x3FFFFFFF,	/* A 30-bit value which is sign-extended to 32-bits
+					 * and added to the glyph ID, resulting in an index
+					 * into the component table. */
+    };
 
-    inline driver_context_t (const LigatureSubtable *table) :
-	ret (false) {}
+    inline driver_context_t (const LigatureSubtable *table,
+			     hb_aat_apply_context_t *c_) :
+	ret (false),
+	c (c_),
+	ligAction (table+table->ligAction),
+	component (table+table->component),
+	ligature (table+table->ligature),
+	match_length (0) {}
 
-    inline void transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
 
-      /* TODO */
+      if (flags & SetComponent)
+      {
+        if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
+	  return false;
+
+	/* Never mark same index twice, in case DontAdvance was used... */
+	if (match_length && match_positions[match_length - 1] == buffer->out_len)
+	  match_length--;
+
+	match_positions[match_length++] = buffer->out_len;
+      }
+
+      if (flags & PerformAction)
+      {
+	unsigned int end = buffer->out_len;
+	unsigned int action_idx = entry->data.ligActionIndex;
+	unsigned int action;
+	unsigned int ligature_idx = 0;
+        do
+	{
+	  if (unlikely (!match_length))
+	    return false;
+
+	  buffer->move_to (match_positions[match_length - 1]);
+
+	  const HBUINT32 &actionData = ligAction[action_idx];
+	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
+	  action = actionData;
+
+	  uint32_t uoffset = action & LigActionOffset;
+	  if (uoffset & 0x20000000)
+	    uoffset += 0xC0000000;
+	  int32_t offset = (int32_t) uoffset;
+	  unsigned int component_idx = buffer->cur().codepoint + offset;
+
+	  const HBUINT16 &componentData = component[component_idx];
+	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
+	  ligature_idx += componentData;
+
+	  if (action & (LigActionStore | LigActionLast))
+	  {
+	    const GlyphID &ligatureData = ligature[ligature_idx];
+	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
+	    hb_codepoint_t lig = ligatureData;
+
+	    buffer->replace_glyph (lig);
+
+	    //ligature_idx = 0; // XXX Yes or no?
+	  }
+	  else
+	  {
+	    buffer->skip_glyph ();
+	    end--;
+	  }
+
+	  match_length--;
+	  action_idx++;
+	}
+	while (!(action & LigActionLast));
+	buffer->move_to (end);
+      }
+
+      return true;
     }
 
     public:
     bool ret;
     private:
+    hb_aat_apply_context_t *c;
+    const UnsizedArrayOf<HBUINT32> &ligAction;
+    const UnsizedArrayOf<HBUINT16> &component;
+    const UnsizedArrayOf<GlyphID> &ligature;
+    unsigned int match_length;
+    unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
-    driver_context_t dc (this);
+    driver_context_t dc (this, c);
 
     StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
@@ -341,8 +430,9 @@ struct LigatureSubtable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* The main sanitization is done at run-time. */
-    return machine.sanitize (c);
+    /* The rest of array sanitizations are done at run-time. */
+    return c->check_struct (this) && machine.sanitize (c) &&
+	   ligAction && component && ligature;
     return_trace (true);
   }
 
