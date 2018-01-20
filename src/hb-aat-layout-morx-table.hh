@@ -393,6 +393,7 @@ struct LigatureSubtable
 	    buffer->skip_glyph ();
 	    end--;
 	  }
+	  /* TODO merge_clusters / unsafe_to_break */
 
 	  match_length--;
 	  action_idx++;
