@@ -37,19 +37,19 @@
  */
 
 static inline const AAT::morx&
-_get_morx (hb_face_t *face, unsigned int *length = nullptr)
+_get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
   {
-    if (length)
-      *length = 0;
+    if (blob)
+      *blob = hb_blob_get_empty ();
     return OT::Null(AAT::morx);
   }
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
   /* XXX this doesn't call set_num_glyphs on sanitizer. */
   const AAT::morx& morx = *(layout->morx.get ());
-  if (length)
-    *length = hb_blob_get_length (layout->morx.blob);
+  if (blob)
+    *blob = layout->morx.blob;
   return morx;
 }
 
@@ -70,9 +70,9 @@ _hb_aat_layout_create (hb_face_t *face)
 void
 hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
 {
-  unsigned int length;
-  const AAT::morx& morx = _get_morx (font->face, &length);
+  hb_blob_t *blob;
+  const AAT::morx& morx = _get_morx (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (font, buffer, (const char *) &morx + length);
+  AAT::hb_aat_apply_context_t c (font, buffer, blob);
   morx.apply (&c);
 }

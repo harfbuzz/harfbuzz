@@ -704,13 +704,23 @@ struct hb_aat_apply_context_t :
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
-  const char *end;
+  hb_sanitize_context_t sanitizer;
 
-  hb_aat_apply_context_t (hb_font_t *font_,
-			  hb_buffer_t *buffer_,
-			  const char *end_) :
-			font (font_), face (font->face), buffer (buffer_),
-			end (end_) {}
+  inline hb_aat_apply_context_t (hb_font_t *font_,
+				 hb_buffer_t *buffer_,
+				 hb_blob_t *table) :
+		font (font_), face (font->face), buffer (buffer_),
+		sanitizer ()
+  {
+    sanitizer.init (table);
+    sanitizer.num_glyphs = face->get_num_glyphs ();
+    sanitizer.start_processing ();
+  }
+
+  inline ~hb_aat_apply_context_t (void)
+  {
+    sanitizer.end_processing ();
+  }
 };
 
 
