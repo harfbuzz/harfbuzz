@@ -249,8 +249,17 @@ hb_ot_tags_from_language (const char   *lang_str,
     return;
 
   /* Find a language matching in the first component. */
+  s = strchr (lang_str, '-');
   {
     const LangTag *lang_tag;
+    if (s && limit - lang_str >= 6)
+    {
+      const char *extlang_end = strchr (s + 1, '-');
+      /* If there is an extended language tag, use it. */
+      if (3 == (extlang_end ? extlang_end - s - 1 : strlen (s + 1)) &&
+	  ISALPHA (s[1]))
+	lang_str = s + 1;
+    }
     lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
 				    ARRAY_LENGTH (ot_languages), sizeof (LangTag),
 				    lang_compare_first_component);
@@ -264,7 +273,6 @@ hb_ot_tags_from_language (const char   *lang_str,
     }
   }
 
-  s = strchr (lang_str, '-');
   if (!s)
     s = lang_str + strlen (lang_str);
   if (s - lang_str == 3) {

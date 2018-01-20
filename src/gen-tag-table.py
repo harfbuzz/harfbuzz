@@ -884,7 +884,7 @@ def print_subtag_matches (subtag):
 
 for language, tags in sorted (ot.from_bcp_47.items (), key=lambda i: (-len (i[0]), i[0])):
 	lt = LanguageTag (language)
-	if len (lt.subtags) == 1 or lt.grandfathered and ot.from_bcp_47[lt.subtags[0]] == tags:
+	if len (lt.subtags) == 1 or lt.grandfathered and len (lt.subtags[1]) != 3 and ot.from_bcp_47[lt.subtags[0]] == tags:
 		continue
 	print ('  if (', end='')
 	if (lt.language == 'und' or
