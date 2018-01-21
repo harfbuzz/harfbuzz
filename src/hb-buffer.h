@@ -247,13 +247,13 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      of the text without the full context.
  * @HB_BUFFER_FLAG_EOT: flag indicating that special handling of the end of text
  *                      paragraph can be applied to this buffer, similar to
- *                      @HB_BUFFER_FLAG_EOT.
+ *                      @HB_BUFFER_FLAG_BOT.
  * @HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES:
  *                      flag indication that character with Default_Ignorable
  *                      Unicode property should use the corresponding glyph
  *                      from the font, instead of hiding them (done by
  *                      replacing them with the space glyph and zeroing the
- *                      advance width.)  This flag takes precendence over
+ *                      advance width.)  This flag takes precedence over
  *                      @HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES.
  * @HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES:
  *                      flag indication that character with Default_Ignorable
