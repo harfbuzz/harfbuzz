@@ -17,7 +17,7 @@ matrix:
     - os: linux
       compiler: gcc
       script:
-        - apt-cache policy libfreetype6-dev && echo @@@@ revert \#718 when this update @@@@ 1>&2
+        - apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
         - wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && cd ..
         - export LD_PRELOAD="$PWD/freetype-2.9/objs/.libs/libfreetype.so"
 
@@ -32,7 +32,7 @@ matrix:
     - os: linux
       compiler: clang
       script:
-        - apt-cache policy libfreetype6-dev && echo @@@@ revert \#718 when this update @@@@ 1>&2
+        - apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
         - wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && cd ..
         - export LD_PRELOAD="$PWD/freetype-2.9/objs/.libs/libfreetype.so"
 

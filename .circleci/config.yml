@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
 
-      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert \#718 when this update @@@@ 1>&2
+      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && sudo make install && cd ..
 
       - run: ./autogen.sh && LD_PRELOAD="$PWD/freetype-2.9/objs/.libs/libfreetype.so" make distcheck
@@ -49,7 +49,7 @@ jobs:
       - checkout
       - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
 
-      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert \#718 when this update @@@@ 1>&2
+      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && sudo make install && cd ..
 
       - run: cmake -DHB_CHECK=ON -Bbuild -H. -GNinja
