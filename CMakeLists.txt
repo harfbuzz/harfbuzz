@@ -795,15 +795,18 @@ if (UNIX OR MINGW)
       COMMAND ${CMAKE_COMMAND} -E env "headers=${space_separated_headers}" python ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 
-    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
     add_test(NAME check-static-inits.sh
       COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
     )
     add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-    set_tests_properties(check-symbols.sh check-static-inits.sh check-libstdc++.sh check-defs.sh
-      PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
+    set_tests_properties(check-static-inits.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
+
+    if (APPLE) # doesn't work on Linux it seems
+      add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+      add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
+      set_tests_properties(check-symbols.sh check-defs.sh PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
+    endif ()
   endif ()
 
   add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
