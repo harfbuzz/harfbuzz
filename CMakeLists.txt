@@ -269,7 +269,7 @@ if (HB_HAVE_FREETYPE)
 
   list(APPEND THIRD_PARTY_LIBS ${FREETYPE_LIBRARIES})
   include_directories(AFTER ${FREETYPE_INCLUDE_DIRS})
-  add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
+  add_definitions(-DHAVE_FREETYPE=1)
 
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
@@ -355,7 +355,7 @@ if (APPLE AND HB_HAVE_CORETEXT)
   if (APPLICATION_SERVICES_FRAMEWORK)
     list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
   endif (APPLICATION_SERVICES_FRAMEWORK)
-  
+
   mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
 endif ()
 
@@ -380,7 +380,7 @@ endif ()
 if (HB_HAVE_GOBJECT)
   include (FindPythonInterp)
   include (FindPerl)
-  
+
   # Use the hints from glib-2.0.pc to find glib-mkenums
   find_package(PkgConfig)
   pkg_check_modules(PC_GLIB QUIET glib-2.0)
@@ -530,7 +530,8 @@ if (UNIX OR MINGW)
   ))
     set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
   endif ()
-  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
+  add_definitions(-D__CORRECT_ISO_CPP11_MATH_H_PROTO_FP)
+  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "c;m") # libc and libm
   set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
   set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
 
@@ -790,7 +791,8 @@ endif ()
 ## Tests
 if (UNIX OR MINGW)
   if (BUILD_SHARED_LIBS)
-    string(REPLACE ";" " " space_separated_headers "${project_headers}")  
+    # generate harfbuzz.def after build completion
+    string(REPLACE ";" " " space_separated_headers "${project_headers}")
     add_custom_command(TARGET harfbuzz POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E env "headers=${space_separated_headers}" python ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
@@ -800,13 +802,11 @@ if (UNIX OR MINGW)
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
     )
     add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    set_tests_properties(check-static-inits.sh check-libstdc++.sh PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
+    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
+    add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
 
-    if (APPLE) # doesn't work on Linux it seems
-      add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-      add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
-      set_tests_properties(check-symbols.sh check-defs.sh PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
-    endif ()
+    set_tests_properties(check-static-inits.sh check-libstdc++.sh check-symbols.sh check-defs.sh
+      PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
   endif ()
 
   add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
