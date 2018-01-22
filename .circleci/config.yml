@@ -4,16 +4,12 @@ jobs:
 
   distcheck:
     docker:
-      - image: dockcross/base
+      - image: ubuntu:17.10
     steps:
       - checkout
-      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-
-      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
-      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && sudo make install && cd ..
-
-      - run: ./autogen.sh && LD_PRELOAD="$PWD/freetype-2.9/objs/.libs/libfreetype.so" make distcheck
-      - run: make distdir && cd harfbuzz-* && cmake -DDHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
+      - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: ./autogen.sh && make distcheck && rm -rf harfbuzz-*
+      - run: make distdir && cd harfbuzz-* && cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
 
   alpine:
     docker:
@@ -44,14 +40,10 @@ jobs:
 
   cmake-gcc:
     docker:
-      - image: dockcross/base
+      - image: ubuntu:17.10
     steps:
       - checkout
-      - run: apt update && apt install -y pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-
-      - run: apt-cache policy libfreetype6-dev && echo @@@@ revert https://github.com/harfbuzz/harfbuzz/pull/718 when this updated @@@@ 1>&2
-      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && sudo make install && cd ..
-
+      - run: apt update && apt install -y ninja-build binutils cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: cmake -DHB_CHECK=ON -Bbuild -H. -GNinja
       - run: ninja -Cbuild
       - run: CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
