@@ -61,6 +61,7 @@ struct hb_ot_map_t
     unsigned short index;
     unsigned short auto_zwnj : 1;
     unsigned short auto_zwj : 1;
+    unsigned short random : 1;
     hb_mask_t mask;
 
     static int cmp (const void *pa, const void *pb)
@@ -206,7 +207,8 @@ struct hb_ot_map_builder_t
 				unsigned int  variations_index,
 				hb_mask_t     mask,
 				bool          auto_zwnj = true,
-				bool          auto_zwj = true);
+				bool          auto_zwj = true,
+				bool          random = false);
 
   struct feature_info_t {
     hb_tag_t tag;

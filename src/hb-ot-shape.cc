@@ -49,6 +49,7 @@ static hb_tag_t common_features[] = {
   HB_TAG('m','a','r','k'),
   HB_TAG('m','k','m','k'),
   HB_TAG('r','l','i','g'),
+  HB_TAG('r','a','n','d'),
 };
 
 
