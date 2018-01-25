@@ -126,9 +126,7 @@ if (BUILD_SHARED_LIBS)
   if (WIN32 AND NOT MINGW)
     add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
   else ()
-    set (CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
-    set (CMAKE_C_FLAGS "-fvisibility=hidden ${CMAKE_C_FLAGS}")
-    add_definitions("-DHB_EXTERN=__attribute__((visibility(\"default\"))) extern")
+    set (CMAKE_CXX_FLAGS "-fvisibility-inlines-hidden ${CMAKE_CXX_FLAGS}")
   endif ()
 endif ()
 
@@ -530,8 +528,7 @@ if (UNIX OR MINGW)
   ))
     set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
   endif ()
-  add_definitions(-D__CORRECT_ISO_CPP11_MATH_H_PROTO_FP)
-  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "c;m") # libc and libm
+  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
   set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
   set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
 
