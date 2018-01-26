@@ -115,7 +115,7 @@ struct KernSubTableFormat2
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   {
     unsigned int l = (this+leftClassTable).get_class (left);
-    unsigned int r = (this+leftClassTable).get_class (left);
+    unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l * rowWidth + r * sizeof (FWORD);
     const FWORD *arr = &(this+array);
     if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
