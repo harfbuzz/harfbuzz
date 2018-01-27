@@ -333,8 +333,7 @@ struct hb_ot_apply_context_t :
     inline void reject (void) { num_items++; match_glyph_data--; }
 
     inline matcher_t::may_skip_t
-    may_skip (const hb_ot_apply_context_t *c,
-	      const hb_glyph_info_t    &info) const
+    may_skip (const hb_glyph_info_t    &info) const
     {
       return matcher.may_skip (c, info);
     }
@@ -411,13 +410,13 @@ struct hb_ot_apply_context_t :
   inline return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
-  return_t recurse (unsigned int lookup_index)
+  return_t recurse (unsigned int sub_lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func || buffer->max_ops-- <= 0))
       return default_return_value ();
 
     nesting_level_left--;
-    bool ret = recurse_func (this, lookup_index);
+    bool ret = recurse_func (this, sub_lookup_index);
     nesting_level_left++;
     return ret;
   }
@@ -763,7 +762,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 	    j--;
 	  }
 
-	  if (found && skippy_iter.may_skip (c, out[j]) == hb_ot_apply_context_t::matcher_t::SKIP_YES)
+	  if (found && skippy_iter.may_skip (out[j]) == hb_ot_apply_context_t::matcher_t::SKIP_YES)
 	    ligbase = LIGBASE_MAY_SKIP;
 	  else
 	    ligbase = LIGBASE_MAY_NOT_SKIP;
