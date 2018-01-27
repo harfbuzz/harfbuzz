@@ -254,6 +254,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
     map->stage[1] = info->stage[1];
     map->auto_zwnj = !(info->flags & F_MANUAL_ZWNJ);
     map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
+    map->random = !!(info->flags & F_RANDOM);
     if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = global_bit_shift;
@@ -304,7 +305,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 		       m.features[i].mask,
 		       m.features[i].auto_zwnj,
 		       m.features[i].auto_zwj,
-		       m.features[i].tag == HB_TAG ('r','a','n','d'));
+		       m.features[i].random);
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)

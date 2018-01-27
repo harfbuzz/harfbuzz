@@ -52,6 +52,7 @@ struct hb_ot_map_t
     unsigned int needs_fallback : 1;
     unsigned int auto_zwnj : 1;
     unsigned int auto_zwj : 1;
+    unsigned int random : 1;
 
     inline int cmp (const hb_tag_t *tag_) const
     { return *tag_ < tag ? -1 : *tag_ > tag ? 1 : 0; }
@@ -168,7 +169,8 @@ enum hb_ot_map_feature_flags_t {
   F_HAS_FALLBACK	= 0x0002u, /* Has fallback implementation, so include mask bit even if feature not found. */
   F_MANUAL_ZWNJ		= 0x0004u, /* Don't skip over ZWNJ when matching **context**. */
   F_MANUAL_ZWJ		= 0x0008u, /* Don't skip over ZWJ when matching **input**. */
-  F_GLOBAL_SEARCH	= 0x0010u  /* If feature not found in LangSys, look for it in global feature list and pick one. */
+  F_GLOBAL_SEARCH	= 0x0010u, /* If feature not found in LangSys, look for it in global feature list and pick one. */
+  F_RANDOM		= 0x0020u  /* Randomly select a glyph from an AlternateSubstFormat1 subtable. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
 /* Macro version for where const is desired. */
