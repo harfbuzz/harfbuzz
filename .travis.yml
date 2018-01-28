@@ -55,7 +55,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --with-coretext
         - make
-        - make check || (cat `find -name '*.log'` && false)
+        - make check || (cat `find . -name '*.log'` && false)
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
