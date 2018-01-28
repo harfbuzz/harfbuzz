@@ -27,10 +27,10 @@ for def in $defs; do
 		so=$libs/lib${lib}.$suffix
 		if ! test -f "$so"; then continue; fi
 
-		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v ' _fini\>\| _init\>\| _fdata\>\| _ftext\>\| _fbss\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>\| __gcov_flush\>\| llvm_' | cut -d' ' -f3`"
-
 		# On mac, C symbols are prefixed with _
 		if test $suffix = dylib; then prefix="_"; fi
+
+		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v " $prefix"'\(_fini\>\|_init\>\|_fdata\>\|_ftext\>\|_fbss\>\|__bss_start\>\|__bss_start__\>\|__bss_end__\>\|_edata\>\|_end\>\|_bss_end__\>\|__end__\>\|__gcov_flush\>\|llvm_\)' | cut -d' ' -f3`"
 
 		if test -f "$so"; then
 
