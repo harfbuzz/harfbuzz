@@ -32,6 +32,7 @@ TESTS = \
 	tests/mongolian-variation-selector.tests \
 	tests/myanmar-syllable.tests \
 	tests/none-directional.tests \
+	tests/rand.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
 	tests/sinhala.tests \
