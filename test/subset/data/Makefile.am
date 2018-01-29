@@ -2,14 +2,15 @@
 
 NULL =
 EXTRA_DIST =
-SUBDIRS = api shaping fuzzing subset
-
-EXTRA_DIST += \
-	CMakeLists.txt \
-	$(NULL)
+CLEANFILES =
+SUBDIRS =
 
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+
+TEST_EXTENSIONS = .tests
+TESTS_LOG_COMPILER = $(srcdir)/../run-tests.py $(top_builddir)/util/hb-subset$(EXEEXT)
+include Makefile.sources
 
 -include $(top_srcdir)/git.mk

@@ -2,14 +2,15 @@
 
 NULL =
 EXTRA_DIST =
-SUBDIRS = api shaping fuzzing subset
-
-EXTRA_DIST += \
-	CMakeLists.txt \
-	$(NULL)
+CLEANFILES =
+SUBDIRS = data
 
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+
+CLEANFILES += \
+	subset_test_suite.py[c0] \
+	$(NULL)
 
 -include $(top_srcdir)/git.mk
