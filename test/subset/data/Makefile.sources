@@ -1,10 +1,10 @@
 TESTS = \
 	tests/basics.tests \
-  $(NULL)
+	$(NULL)
 
 XFAIL_TESTS = \
 	tests/basics.tests \
-  $(NULL)
+	$(NULL)
 
 DISABLED_TESTS = \
 	$(NULL)
