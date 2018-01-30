@@ -3,7 +3,6 @@ TESTS = \
 	$(NULL)
 
 XFAIL_TESTS = \
-	tests/basics.tests \
 	$(NULL)
 
 DISABLED_TESTS = \
