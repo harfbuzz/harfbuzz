@@ -9,7 +9,7 @@ lib:
 EXTRA_DIST = \
 	COPYING \
 	fonts \
-	tests \
+	$(TESTS) \
 	$(NULL)
 
 TEST_EXTENSIONS = .tests

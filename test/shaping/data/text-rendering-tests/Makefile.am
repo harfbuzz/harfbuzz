@@ -15,7 +15,7 @@ EXTRA_DIST = \
 	update.sh \
 	extract-tests.py \
 	fonts \
-	tests \
+	$(TESTS) \
 	$(NULL)
 
 TEST_EXTENSIONS = .tests
