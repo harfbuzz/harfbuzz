@@ -126,7 +126,7 @@ if (BUILD_SHARED_LIBS)
   if (WIN32 AND NOT MINGW)
     add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
   else ()
-    set (CMAKE_CXX_FLAGS "-fvisibility-inlines-hidden ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
   endif ()
 endif ()
 
@@ -272,8 +272,10 @@ if (HB_HAVE_FREETYPE)
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 
+  # So check_funcs can find its headers
   set (CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${FREETYPE_INCLUDE_DIRS})
   set (CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${FREETYPE_LIBRARIES})
+
   check_funcs(FT_Get_Var_Blend_Coordinates FT_Set_Var_Blend_Coordinates FT_Done_MM_Var)
 endif ()
 
@@ -522,19 +524,16 @@ if (UNIX OR MINGW)
   link_libraries(-Bsymbolic-functions)
 
   # Make sure we don't link to libstdc++
-  if (BUILD_SHARED_LIBS AND (
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-  ))
-    set (CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions ${CMAKE_CXX_FLAGS}")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+    set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
+    set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
+    set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
   endif ()
-  set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
-  set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
-  set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
 
   # No threadsafe statics as we do it ourselves
   if (BUILD_SHARED_LIBS)
-    set (CMAKE_CXX_FLAGS "-fno-threadsafe-statics ${CMAKE_CXX_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
 endif ()
 
@@ -775,14 +774,27 @@ endif ()
 
 if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set (CMAKE_CXX_FLAGS "-fcolor-diagnostics ${CMAKE_CXX_FLAGS}")
-    set (CMAKE_C_FLAGS "-fcolor-diagnostics ${CMAKE_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
   endif ()
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set (CMAKE_CXX_FLAGS "-fdiagnostics-color ${CMAKE_CXX_FLAGS}")
-    set (CMAKE_C_FLAGS "-fdiagnostics-color ${CMAKE_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color")
   endif ()
 endif ()
+
+
+## src/ executables
+foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
+  set (prog_name ${prog})
+  if (${prog_name} STREQUAL "test")
+    # test can not be used as a valid executable name on cmake, lets special case it
+    set (prog_name test-test)
+  endif ()
+  add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
+  target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
+endforeach ()
+set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
 
 
 ## Tests
