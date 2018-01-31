@@ -195,10 +195,12 @@ _hb_ot_layout_create (hb_face_t *face)
 void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 {
-  for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
-    layout->gsub_accels[i].fini ();
-  for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
-    layout->gpos_accels[i].fini ();
+  if (layout->gsub_accels)
+    for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
+      layout->gsub_accels[i].fini ();
+  if (layout->gpos_accels)
+    for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
+      layout->gpos_accels[i].fini ();
 
   free (layout->gsub_accels);
   free (layout->gpos_accels);
