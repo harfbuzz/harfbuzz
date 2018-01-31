@@ -9,6 +9,7 @@ import io
 import os
 import subprocess
 import sys
+import tempfile
 
 from subset_test_suite import SubsetTestSuite
 
@@ -20,21 +21,39 @@ def cmd(command):
 	print (p.stderr.read (), end="") # file=sys.stderr
 	return p.stdout.read (), p.returncode
 
+def read_binary(file_path):
+	with open(file_path, 'rb') as f:
+		return f.read()
+
+def fail_test(test, cli_args, message):
+	print ('ERROR: %s' % message)
+	print ('Test State:')
+	print ('  test.font_path    %s' % os.path.abspath(test.font_path))
+	print ('  test.profile_path %s' % os.path.abspath(test.profile_path))
+	print ('  test.unicodes     %s' % test.unicodes())
+	expected_file = os.path.join(test_suite.get_output_directory(),
+			 										 		 test.get_font_name())
+	print ('  expected_file     %s' % os.path.abspath(expected_file))
+	return 1
 
 def run_test(test):
-	result, return_code = cmd([hb_subset,
-														 test.font_path,
-														 "--unicodes=%s" % test.unicodes()])
+	out_file = os.path.join(tempfile.mkdtemp(), test.get_font_name() + '-subset.ttf')	
+	cli_args = [hb_subset, test.font_path, out_file, "--unicodes=%s" % test.unicodes()]
+	_, return_code = cmd(cli_args)
 
 	if return_code:
-		print ("ERROR: hb-subset failed for %s, %s, %s" % (test.font_path, test.profile_path, test.unicodes()))
-		return 1
+		return fail_test(test, cli_args, "%s returned %d" % (' '.join(cli_args), return_code))
 
-	with open(os.path.join(test_suite.get_output_directory(),
-												 test.get_font_name())) as expected:
-		if not result == expected.read():
-			print ("ERROR: hb-subset %s, %s, %s does not match expected value." % (test.font_path, test.profile_path, test.unicodes()))
-			return 1
+	expected = read_binary(os.path.join(test_suite.get_output_directory(),
+												 							test.get_font_name()))
+	actual = read_binary(out_file)
+
+	if len(actual) != len(expected):
+		return fail_test(test, cli_args, "expected %d bytes, actual %d: %s" % (
+				len(expected), len(actual), ' '.join(cli_args)))
+
+	if not actual == expected:
+		return fail_test(test, cli_args, 'files are the same length but not the same bytes')
 
 	return 0
 
