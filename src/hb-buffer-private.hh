@@ -93,7 +93,7 @@ struct hb_buffer_t {
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
   hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
-  hb_buffer_scratch_flags_t scratch_flags; /* Have space-flallback, etc. */
+  hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
   unsigned int max_len; /* Maximum allowed len. */
   int max_ops; /* Maximum allowed operations. */
 

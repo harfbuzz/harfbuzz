@@ -299,7 +299,7 @@ struct FeatureParamsSize
      * better.
      *
      * Assume that the offset to the size feature is according to specification,
-     * and make the following value checks. If it fails, assume the the size
+     * and make the following value checks. If it fails, assume the size
      * feature is calculated as versions of MakeOTF before the AFDKO 2.0 built it.
      * If this fails, reject the 'size' feature. The older makeOTF's calculated the
      * offset from the beginning of the FeatureList table, rather than from the

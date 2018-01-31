@@ -1209,7 +1209,7 @@ resize_and_retry:
     }
 
     /* Mac OS 10.6 doesn't have kCTTypesetterOptionForcedEmbeddingLevel,
-     * or if it does, it doesn't resepct it.  So we get runs with wrong
+     * or if it does, it doesn't respect it.  So we get runs with wrong
      * directions.  As such, disable the assert...  It wouldn't crash, but
      * cursoring will be off...
      *
