@@ -150,6 +150,6 @@ hb_subset(hb_subset_profile_t *profile,
 {
   if (!profile || !input || !face) return false;
 
-  *result = hb_blob_get_empty();
+  *result = hb_face_reference_blob(face->face);
   return true;
 }
