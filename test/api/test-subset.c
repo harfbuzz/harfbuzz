@@ -28,7 +28,7 @@
 
 /* Unit tests for hb-subset.h */
 
-static const char test_data[] = "OTTO";
+static const char test_data[] = { 0, 0, 1, 0 };
 
 static void
 test_subset (void)
@@ -41,12 +41,12 @@ test_subset (void)
   hb_subset_input_t *input = hb_subset_input_create();
   hb_subset_face_t *subset_face = hb_subset_face_create(face);
 
-  char output_data[100];
-  hb_blob_t *output = hb_blob_create(output_data, sizeof(output_data),
-				     HB_MEMORY_MODE_WRITABLE, NULL, NULL);
+  hb_blob_t *output;
+  g_assert(hb_subset(profile, input, subset_face, &output));
 
-  g_assert(hb_subset(profile, input, subset_face, output));
-  g_assert_cmpmem(test_data, 4, output_data, sizeof(output));
+  unsigned int output_length;
+  const char *output_data = hb_blob_get_data(output, &output_length);
+  g_assert_cmpmem(test_data, 4, output_data, output_length);
 
   hb_blob_destroy(output);
   hb_subset_face_destroy(subset_face);

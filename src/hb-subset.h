@@ -38,7 +38,8 @@ HB_BEGIN_DECLS
 
 /*
  * hb_subset_profile_t
- * Things that change based on target environment, e.g. OS
+ * Things that change based on target environment, e.g. OS.
+ * Threadsafe for multiple concurrent subset operations.
  */
 
 typedef struct hb_subset_profile_t hb_subset_profile_t;
@@ -81,7 +82,7 @@ HB_EXTERN hb_bool_t
 hb_subset(hb_subset_profile_t *profile,
           hb_subset_input_t *input,
           hb_subset_face_t *face,
-          hb_blob_t *result /* OUT */);
+          hb_blob_t **result /* OUT */);
 
 HB_END_DECLS
 
