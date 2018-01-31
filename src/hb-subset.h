@@ -80,7 +80,7 @@ hb_subset_face_destroy(hb_subset_face_t *face);
 HB_EXTERN hb_bool_t
 hb_subset(hb_subset_profile_t *profile,
           hb_subset_input_t *input,
-          hb_subset_face_t *face
+          hb_subset_face_t *face,
           hb_blob_t *result /* OUT */);
 
 HB_END_DECLS
