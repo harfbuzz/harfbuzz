@@ -43,6 +43,8 @@ struct hb_subset_input_t {
 struct hb_subset_face_t {
   hb_object_header_t header;
   ASSERT_POD ();
+
+  hb_face_t *face;
 };
 
 
@@ -108,7 +110,13 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 hb_subset_face_t *
 hb_subset_face_create(hb_face_t *face)
 {
-  return hb_object_create<hb_subset_face_t>();
+  if (unlikely (!face))
+    face = hb_face_get_empty();
+
+  hb_subset_face_t *subset_face = hb_object_create<hb_subset_face_t> ();
+  subset_face->face = hb_face_reference (face);
+
+  return subset_face;
 }
 
 /**
@@ -117,11 +125,12 @@ hb_subset_face_create(hb_face_t *face)
  * Since: 1.7.5
  **/
 void
-hb_subset_face_destroy(hb_subset_face_t *face)
+hb_subset_face_destroy(hb_subset_face_t *subset_face)
 {
-  if (!hb_object_destroy (face)) return;
+  if (!hb_object_destroy (subset_face)) return;
 
-  free (face);
+  hb_face_destroy(subset_face->face);
+  free (subset_face);
 }
 
 /**
