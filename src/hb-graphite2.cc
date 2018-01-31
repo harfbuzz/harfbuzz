@@ -80,7 +80,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
     p->tag = tag;
 
     /* TODO Not thread-safe, but fairly harmless.
-     * We can do the double-chcked pointer cmpexch thing here. */
+     * We can do the double-checked pointer cmpexch thing here. */
     p->next = face_data->tlist;
     face_data->tlist = p;
   }

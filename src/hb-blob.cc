@@ -222,7 +222,7 @@ hb_blob_reference (hb_blob_t *blob)
  * hb_blob_destroy: (skip)
  * @blob: a blob.
  *
- * Descreases the reference count on @blob, and if it reaches zero, destroys
+ * Decreases the reference count on @blob, and if it reaches zero, destroys
  * @blob, freeing all memory, possibly calling the destroy-callback the blob
  * was created for if it has not been called already.
  *
