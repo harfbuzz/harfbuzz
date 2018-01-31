@@ -311,7 +311,7 @@ _hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *data)
 hb_font_t *
 hb_coretext_font_create (CTFontRef ct_font)
 {
-  CGFontRef cg_font = CTFontCopyGraphicsFont (ct_font, 0);
+  CGFontRef cg_font = CTFontCopyGraphicsFont (ct_font, nullptr);
   hb_face_t *face = hb_coretext_face_create (cg_font);
   CFRelease (cg_font);
   hb_font_t *font = hb_font_create (face);
@@ -1036,7 +1036,7 @@ resize_and_retry:
 	  }
 	if (!matched)
 	{
-	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
+	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, nullptr);
 	  if (run_cg_font)
 	  {
 	    matched = CFEqual (run_cg_font, cg_font);
