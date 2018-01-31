@@ -74,7 +74,10 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
   const char *data = reinterpret_cast<const char*> (CFDataGetBytePtr (cf_data));
   const size_t length = CFDataGetLength (cf_data);
   if (!data || !length)
+  {
+    CFRelease (cf_data);
     return nullptr;
+  }
 
   return hb_blob_create (data, length, HB_MEMORY_MODE_READONLY,
 			 reinterpret_cast<void *> (const_cast<__CFData *> (cf_data)),
@@ -877,7 +880,10 @@ resize_and_retry:
 							    kCFStringEncodingUTF8,
 							    kCFAllocatorNull);
 	if (unlikely (!lang))
+        {
+	  CFRelease (attr_string);
 	  FAIL ("CFStringCreateWithCStringNoCopy failed");
+        }
 	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 					kCTLanguageAttributeName, lang);
 	CFRelease (lang);
@@ -946,7 +952,10 @@ resize_and_retry:
 						    &kCFTypeDictionaryValueCallBacks);
       CFRelease (level_number);
       if (unlikely (!options))
+      {
+        CFRelease (attr_string);
         FAIL ("CFDictionaryCreate failed");
+      }
 
       CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedStringAndOptions (attr_string, options);
       CFRelease (options);
