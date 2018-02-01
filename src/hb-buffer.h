@@ -71,9 +71,15 @@ typedef struct hb_glyph_info_t {
   hb_var_int_t   var2;
 } hb_glyph_info_t;
 
+/**
+ * hb_glyph_flags_t:
+ * @HB_GLYPH_FLAG_UNSAFE_TO_BREAK: If this glyph is split from the previous logical glyph
+ *                                 then both sides should be re-shaped.
+ */
 typedef enum { /*< flags >*/
   HB_GLYPH_FLAG_UNSAFE_TO_BREAK		= 0x00000001,
 
+  /*< private >*/
   HB_GLYPH_FLAG_DEFINED			= 0x00000001 /* OR of all defined flags */
 } hb_glyph_flags_t;
 
