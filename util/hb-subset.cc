@@ -15,7 +15,7 @@ main (int argc, char **argv)
   int exit_code = 0;
 
   if (argc != 4) {
-    fprintf(stderr, "Must have 4 args\n"); 
+    fprintf(stderr, "Must have 4 args\n");
     exit(1);
   }
 
@@ -39,26 +39,26 @@ main (int argc, char **argv)
     perror("Unable to fstat");
   }
 
-  if (mapped_file != MAP_FAILED) {      
-      hb_blob_t *font_blob = hb_blob_create(static_cast<const char*>(mapped_file), 
-                                            stat.st_size, 
-                                            HB_MEMORY_MODE_READONLY, nullptr,
-                                            nullptr);
+  if (mapped_file != MAP_FAILED) {
+    hb_blob_t *font_blob = hb_blob_create(static_cast<const char*>(mapped_file),
+                                          stat.st_size,
+                                          HB_MEMORY_MODE_READONLY, nullptr,
+                                          nullptr);
 
-      fd_out = open(argv[2], O_CREAT | O_WRONLY, S_IRWXU);      
-      if (fd_out != -1) {
-        ssize_t bytes_written = write(fd_out, mapped_file, stat.st_size);  
-        if (bytes_written == -1) {          
-          perror("Unable to write output file");        
-          exit_code = 1;
-        } else if (bytes_written != stat.st_size) {          
-          fprintf(stderr, "Wrong number of bytes written");
-          exit_code = 1;
-        }      
-      } else {
-        perror("Unable to open output file");
+    fd_out = open(argv[2], O_CREAT | O_WRONLY, S_IRWXU);
+    if (fd_out != -1) {
+      ssize_t bytes_written = write(fd_out, mapped_file, stat.st_size);
+      if (bytes_written == -1) {
+        perror("Unable to write output file");
+        exit_code = 1;
+      } else if (bytes_written != stat.st_size) {
+        fprintf(stderr, "Wrong number of bytes written");
         exit_code = 1;
       }
+    } else {
+      perror("Unable to open output file");
+      exit_code = 1;
+    }
   }
 
   if (mapped_file != MAP_FAILED) {
