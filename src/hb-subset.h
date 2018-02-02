@@ -45,10 +45,10 @@ HB_BEGIN_DECLS
 typedef struct hb_subset_profile_t hb_subset_profile_t;
 
 HB_EXTERN hb_subset_profile_t *
-hb_subset_profile_create();
+hb_subset_profile_create ();
 
 HB_EXTERN void
-hb_subset_profile_destroy(hb_subset_profile_t *profile);
+hb_subset_profile_destroy (hb_subset_profile_t *profile);
 
 /*
  * hb_subset_input_t
@@ -58,10 +58,10 @@ hb_subset_profile_destroy(hb_subset_profile_t *profile);
 typedef struct hb_subset_input_t hb_subset_input_t;
 
 HB_EXTERN hb_subset_input_t *
-hb_subset_input_create();
+hb_subset_input_create ();
 
 HB_EXTERN void
-hb_subset_input_destroy(hb_subset_input_t *subset_input);
+hb_subset_input_destroy (hb_subset_input_t *subset_input);
 
 /*
  * hb_subset_face_t
@@ -72,17 +72,17 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input);
 typedef struct hb_subset_face_t hb_subset_face_t;
 
 HB_EXTERN hb_subset_face_t *
-hb_subset_face_create(hb_face_t *face);
+hb_subset_face_create (hb_face_t *face);
 
 HB_EXTERN void
-hb_subset_face_destroy(hb_subset_face_t *face);
+hb_subset_face_destroy (hb_subset_face_t *face);
 
 
 HB_EXTERN hb_bool_t
-hb_subset(hb_subset_profile_t *profile,
-          hb_subset_input_t *input,
-          hb_subset_face_t *face,
-          hb_blob_t **result /* OUT */);
+hb_subset (hb_subset_profile_t *profile,
+           hb_subset_input_t *input,
+           hb_subset_face_t *face,
+           hb_blob_t **result /* OUT */);
 
 HB_END_DECLS
 
