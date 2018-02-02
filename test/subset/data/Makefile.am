@@ -5,6 +5,13 @@ EXTRA_DIST =
 CLEANFILES =
 SUBDIRS =
 
+EXTRA_DIST = \
+	$(TESTS) \
+	expected/basics/*.ttf \
+	fonts/*.ttf \
+	profiles/*.txt \
+	$(NULL)
+
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
