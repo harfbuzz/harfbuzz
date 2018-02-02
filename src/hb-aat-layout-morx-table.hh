@@ -275,8 +275,10 @@ struct ContextualSubtable
     {
       const EntryData &data = entries[i].data;
 
-      num_lookups = MAX<unsigned int> (num_lookups, 1 + data.markIndex);
-      num_lookups = MAX<unsigned int> (num_lookups, 1 + data.currentIndex);
+      if (data.markIndex != 0xFFFF)
+	num_lookups = MAX<unsigned int> (num_lookups, 1 + data.markIndex);
+      if (data.currentIndex != 0xFFFF)
+	num_lookups = MAX<unsigned int> (num_lookups, 1 + data.currentIndex);
     }
 
     return_trace (substitutionTables.sanitize (c, this, num_lookups));
