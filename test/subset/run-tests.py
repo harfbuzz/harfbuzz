@@ -30,22 +30,25 @@ def fail_test(test, cli_args, message):
 	print ('Test State:')
 	print ('  test.font_path    %s' % os.path.abspath(test.font_path))
 	print ('  test.profile_path %s' % os.path.abspath(test.profile_path))
-	print ('  test.unicodes     %s' % test.unicodes())
+	print ('  test.unicodes	    %s' % test.unicodes())
 	expected_file = os.path.join(test_suite.get_output_directory(),
-			 										 		 test.get_font_name())
-	print ('  expected_file     %s' % os.path.abspath(expected_file))
+				     test.get_font_name())
+	print ('  expected_file	    %s' % os.path.abspath(expected_file))
 	return 1
 
 def run_test(test):
-	out_file = os.path.join(tempfile.mkdtemp(), test.get_font_name() + '-subset.ttf')	
-	cli_args = [hb_subset, test.font_path, out_file, "--unicodes=%s" % test.unicodes()]
+	out_file = os.path.join(tempfile.mkdtemp(), test.get_font_name() + '-subset.ttf')
+	cli_args = [hb_subset,
+		    "--font-file=" + test.font_path,
+		    "--output-file=" + out_file,
+		    "--unicodes=%s" % test.unicodes()]
 	_, return_code = cmd(cli_args)
 
 	if return_code:
 		return fail_test(test, cli_args, "%s returned %d" % (' '.join(cli_args), return_code))
 
 	expected = read_binary(os.path.join(test_suite.get_output_directory(),
-												 							test.get_font_name()))
+					    test.get_font_name()))
 	actual = read_binary(out_file)
 
 	if len(actual) != len(expected):
