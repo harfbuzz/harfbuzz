@@ -374,6 +374,11 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
       {
 	continue;
       }
+      if (info[i].myanmar_category() == OT_VS)
+      {
+	info[i].myanmar_position() = info[i - 1].myanmar_position();
+	continue;
+      }
 
       if (pos == POS_AFTER_MAIN && info[i].myanmar_category() == OT_VBlw)
       {

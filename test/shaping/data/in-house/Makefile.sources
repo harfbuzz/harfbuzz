@@ -29,6 +29,7 @@ TESTS = \
 	tests/mark-attachment.tests \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
+	tests/myanmar-syllable.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
 	tests/tibetan-contractions-1.tests \
