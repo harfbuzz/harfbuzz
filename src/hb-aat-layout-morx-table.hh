@@ -207,13 +207,7 @@ struct ContextualSubtable
     {
       hb_buffer_t *buffer = driver->buffer;
 
-      if (entry->flags & SetMark)
-      {
-	mark = buffer->idx;
-	last_zero_before_mark = driver->last_zero;
-      }
-
-      if (entry->data.markIndex != 0xFFFF)
+      if (entry->data.markIndex != 0xFFFF && mark < buffer->len)
       {
 	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
 	hb_glyph_info_t *info = buffer->info;
@@ -225,7 +219,7 @@ struct ContextualSubtable
 	  ret = true;
 	}
       }
-      if (entry->data.currentIndex != 0xFFFF)
+      if (entry->data.currentIndex != 0xFFFF && buffer->idx < buffer->len)
       {
 	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
 	hb_glyph_info_t *info = buffer->info;
@@ -236,6 +230,12 @@ struct ContextualSubtable
 	  info[buffer->idx].codepoint = *replacement;
 	  ret = true;
 	}
+      }
+
+      if (entry->flags & SetMark)
+      {
+	mark = buffer->idx;
+	last_zero_before_mark = driver->last_zero;
       }
 
       return true;
