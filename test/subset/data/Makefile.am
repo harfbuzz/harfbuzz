@@ -7,9 +7,9 @@ SUBDIRS =
 
 EXTRA_DIST = \
 	$(TESTS) \
-	expected/basics/*.ttf \
-	fonts/*.ttf \
-	profiles/*.txt \
+	expected/basics \
+	fonts \
+	profiles \
 	$(NULL)
 
 # Convenience targets:
