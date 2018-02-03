@@ -171,6 +171,12 @@ add_prefix_to_list(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_OT_headers ${SRCSOURCES})
 add_prefix_to_list(HB_OT_headers "${PROJECT_SOURCE_DIR}/src/")
 
+extract_make_variable(HB_SUBSET_sources ${SRCSOURCES})
+add_prefix_to_list(HB_SUBSET_sources "${PROJECT_SOURCE_DIR}/src/")
+
+extract_make_variable(HB_SUBSET_headers ${SRCSOURCES})
+add_prefix_to_list(HB_SUBSET_headers "${PROJECT_SOURCE_DIR}/src/")
+
 extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
 extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES})
 if (IN_HB_DIST)
@@ -185,6 +191,8 @@ extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
 add_prefix_to_list(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_SHAPE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SHAPE_sources "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
+add_prefix_to_list(HB_SUBSET_CLI_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/")
 
@@ -246,6 +254,8 @@ set (project_sources
   ${HB_FALLBACK_sources}
   ${HB_OT_sources}
   ${HB_OT_RAGEL_GENERATED_sources}
+
+  ${HB_SUBSET_sources}
 )
 
 set (project_extra_sources)
@@ -255,6 +265,7 @@ set (project_headers
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
+  ${HB_SUBSET_headers}
 )
 
 
@@ -707,6 +718,9 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-shape ${HB_SHAPE_sources})
   target_link_libraries(hb-shape harfbuzz)
+
+  add_executable(hb-subset ${HB_SUBSET_CLI_sources})
+  target_link_libraries(hb-subset harfbuzz)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)

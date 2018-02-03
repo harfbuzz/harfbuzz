@@ -29,7 +29,7 @@ HB_OT_SHAPE_CLOSURE_sources = \
 	main-font-text.hh \
 	$(NULL)
 
-HB_SUBSET_sources = \
+HB_SUBSET_CLI_sources = \
 	hb-subset.cc \
 	options.cc \
 	options.hh \
