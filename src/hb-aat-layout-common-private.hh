@@ -120,7 +120,7 @@ struct BinSearchArrayOf
       else
 	return p;
     }
-    return NULL;
+    return nullptr;
   }
 
   private:
