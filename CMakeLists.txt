@@ -91,6 +91,7 @@ add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_FALLBACK)
 
 
+## Functions and headers
 include (CheckFunctionExists)
 include (CheckIncludeFile)
 macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
@@ -102,16 +103,15 @@ macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
     endif ()
   endforeach ()
 endmacro ()
-check_funcs(atexit mprotect sysconf mmap strtod_l) #TODO: getpagesize newlocale isatty
-
-check_include_file(unistd.h HAVE_UNIST_H)
-if (${HAVE_UNIST_H})
-  add_definitions(-DHAVE_UNIST_H)
+check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+check_include_file(unistd.h HAVE_UNISTD_H)
+if (${HAVE_UNISTD_H})
+  add_definitions(-DHAVE_UNISTD_H)
 endif ()
-#check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
-#if (${HAVE_SYS_MMAN_H})
-#  add_definitions(-DHAVE_SYS_MMAN_H)
-#endif ()
+check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
+if (${HAVE_SYS_MMAN_H})
+  add_definitions(-DHAVE_SYS_MMAN_H)
+endif ()
 check_include_file(xlocale.h HAVE_XLOCALE_H)
 if (${HAVE_XLOCALE_H})
   add_definitions(-DHAVE_XLOCALE_H)
