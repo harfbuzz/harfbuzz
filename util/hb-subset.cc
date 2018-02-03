@@ -25,6 +25,8 @@
  * Google Author(s): Garret Rieger, Rod Sheeter
  */
 
+#include <unistd.h>
+
 #include "main-font-text.hh"
 
 /*
