@@ -221,6 +221,12 @@ static int errno = 0; /* Use something better? */
  * https://developer.android.com/tools/sdk/ndk/index.html
  */
 #    define HB_USE_ATEXIT 1
+#  elif defined(__APPLE__)
+/* For macOS and related platforms, the atexit man page indicates
+ * that it will be invoked when the library is unloaded, not only
+ * at application exit.
+ */
+#    define HB_USE_ATEXIT 1
 #  endif
 #endif
 
