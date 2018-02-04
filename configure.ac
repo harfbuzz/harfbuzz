@@ -531,7 +531,7 @@ Platform shapers (not normally needed):
 	DirectWrite:		${have_directwrite}
 
 Other features:
-	Documentation:		${have_gtk_doc}
+	Documentation:		${enable_gtk_doc}
 	GObject bindings:	${have_gobject}
 	Introspection:		${have_introspection}
 ])
