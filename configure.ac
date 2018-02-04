@@ -515,14 +515,14 @@ Unicode callbacks (you want at least one):
 	Glib:			${have_glib}
 	ICU:			${have_icu}
 
-Font callbacks (the more the better):
+Font callbacks (the more the merrier):
 	FreeType:		${have_freetype}
 
 Tools used for command-line utilities:
 	Cairo:			${have_cairo}
 	Fontconfig:		${have_fontconfig}
 
-Additional shapers (the more the better):
+Additional shapers (the more the merrier):
 	Graphite2:		${have_graphite2}
 
 Platform shapers (not normally needed):
