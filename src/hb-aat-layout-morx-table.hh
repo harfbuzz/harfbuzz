@@ -207,7 +207,7 @@ struct ContextualSubtable
     {
       hb_buffer_t *buffer = driver->buffer;
 
-      if (entry->data.markIndex != 0xFFFF && mark < buffer->len)
+      if (entry->data.markIndex != 0xFFFF)
       {
 	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
 	hb_glyph_info_t *info = buffer->info;
