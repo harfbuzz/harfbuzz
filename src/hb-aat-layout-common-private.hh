@@ -614,8 +614,7 @@ struct StateTableDriver
 			   hb_face_t *face_) :
 	      machine (machine_),
 	      buffer (buffer_),
-	      num_glyphs (face_->get_num_glyphs ()),
-	      last_zero (0) {}
+	      num_glyphs (face_->get_num_glyphs ()) {}
 
   template <typename context_t>
   inline void drive (context_t *c)
@@ -629,15 +628,36 @@ struct StateTableDriver
     bool last_was_dont_advance = false;
     for (buffer->idx = 0;;)
     {
-      if (!state)
-	last_zero = buffer->idx;
-
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (info[buffer->idx].codepoint, num_glyphs) :
 			   0 /* End of text */;
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
+
+      /* Unsafe-to-break before this if not in state 0, as things might
+       * go differently if we start from state 0 here. */
+      if (state && buffer->idx)
+      {
+	/* Special-case easy cases: if starting here at state 0 is not
+	 * actionable, and leads to the same next state, then it's safe.
+	 * Let's hope...  Maybe disable the conditional later, if proves
+	 * insufficient. */
+	const Entry<EntryData> *start_entry = machine.get_entryZ (0, klass);
+	if (start_entry->newState != entry->newState ||
+	    (start_entry->flags & context_t::DontAdvance) != (entry->flags & context_t::DontAdvance) ||
+	    c->is_actionable (this, entry) ||
+	    c->is_actionable (this, start_entry))
+	  buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
+      }
+
+      /* Unsafe-to-break if end-of-text would kick in here. */
+      if (buffer->idx + 2 <= buffer->len)
+      {
+	const Entry<EntryData> *end_entry = machine.get_entryZ (state, 0);
+	if (c->is_actionable (this, end_entry))
+	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2);
+      }
 
       if (unlikely (!c->transition (this, entry)))
         break;
@@ -665,7 +685,6 @@ struct StateTableDriver
   const StateTable<EntryData> &machine;
   hb_buffer_t *buffer;
   unsigned int num_glyphs;
-  unsigned int last_zero;
 };
 
 

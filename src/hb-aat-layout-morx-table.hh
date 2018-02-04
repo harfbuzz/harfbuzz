@@ -58,9 +58,13 @@ struct RearrangementSubtable
 
     inline driver_context_t (const RearrangementSubtable *table) :
 	ret (false),
-	start (0), end (0),
-	last_zero_before_start (0) {}
+	start (0), end (0) {}
 
+    inline bool is_actionable (StateTableDriver<void> *driver,
+			       const Entry<void> *entry)
+    {
+      return (entry->flags & Verb) && start < end;
+    }
     inline bool transition (StateTableDriver<void> *driver,
 			    const Entry<void> *entry)
     {
@@ -68,10 +72,7 @@ struct RearrangementSubtable
       unsigned int flags = entry->flags;
 
       if (flags & MarkFirst)
-      {
 	start = buffer->idx;
-	last_zero_before_start = driver->last_zero;
-      }
 
       if (flags & MarkLast)
 	end = MIN (buffer->idx + 1, buffer->len);
@@ -110,7 +111,7 @@ struct RearrangementSubtable
 
 	if (end - start >= l + r)
 	{
-	  buffer->unsafe_to_break (last_zero_before_start, MIN (buffer->idx + 1, buffer->len));
+	  buffer->merge_clusters (start, MIN (buffer->idx + 1, buffer->len));
 	  buffer->merge_clusters (start, end);
 
 	  hb_glyph_info_t *info = buffer->info;
@@ -147,7 +148,6 @@ struct RearrangementSubtable
     private:
     unsigned int start;
     unsigned int end;
-    unsigned int last_zero_before_start;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -200,9 +200,18 @@ struct ContextualSubtable
 	ret (false),
 	mark_set (false),
 	mark (0),
-	last_zero_before_mark (0),
 	subs (table+table->substitutionTables) {}
 
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+
+      if (buffer->idx == buffer->len && !mark_set)
+        return false;
+
+      return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
+    }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
@@ -220,7 +229,7 @@ struct ContextualSubtable
 	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, driver->num_glyphs);
 	if (replacement)
 	{
-	  buffer->unsafe_to_break (last_zero_before_mark, MIN (buffer->idx + 1, buffer->len));
+	  buffer->unsafe_to_break (mark, MIN (buffer->idx + 1, buffer->len));
 	  info[mark].codepoint = *replacement;
 	  ret = true;
 	}
@@ -233,7 +242,6 @@ struct ContextualSubtable
 	const GlyphID *replacement = lookup.get_value (info[idx].codepoint, driver->num_glyphs);
 	if (replacement)
 	{
-	  buffer->unsafe_to_break (driver->last_zero, idx + 1);
 	  info[idx].codepoint = *replacement;
 	  ret = true;
 	}
@@ -243,7 +251,6 @@ struct ContextualSubtable
       {
 	mark_set = true;
 	mark = buffer->idx;
-	last_zero_before_mark = driver->last_zero;
       }
 
       return true;
@@ -254,7 +261,6 @@ struct ContextualSubtable
     private:
     bool mark_set;
     unsigned int mark;
-    unsigned int last_zero_before_mark;
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
   };
 
@@ -344,6 +350,11 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return !!(entry->flags & PerformAction);
+    }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
