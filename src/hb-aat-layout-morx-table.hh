@@ -198,6 +198,7 @@ struct ContextualSubtable
 
     inline driver_context_t (const ContextualSubtable *table) :
 	ret (false),
+	mark_set (false),
 	mark (0),
 	last_zero_before_mark (0),
 	subs (table+table->substitutionTables) {}
@@ -206,6 +207,11 @@ struct ContextualSubtable
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
+
+      /* Looks like CoreText applies neither mark nor current substitution for
+       * end-of-text if mark was not explicitly set. */
+      if (buffer->idx == buffer->len && !mark_set)
+        return true;
 
       if (entry->data.markIndex != 0xFFFF)
       {
@@ -235,6 +241,7 @@ struct ContextualSubtable
 
       if (entry->flags & SetMark)
       {
+	mark_set = true;
 	mark = buffer->idx;
 	last_zero_before_mark = driver->last_zero;
       }
@@ -245,6 +252,7 @@ struct ContextualSubtable
     public:
     bool ret;
     private:
+    bool mark_set;
     unsigned int mark;
     unsigned int last_zero_before_mark;
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
