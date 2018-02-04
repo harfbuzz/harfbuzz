@@ -219,15 +219,16 @@ struct ContextualSubtable
 	  ret = true;
 	}
       }
-      if (entry->data.currentIndex != 0xFFFF && buffer->idx < buffer->len)
+      if (entry->data.currentIndex != 0xFFFF)
       {
+        unsigned int idx = MIN (buffer->idx, buffer->len - 1);
 	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
 	hb_glyph_info_t *info = buffer->info;
-	const GlyphID *replacement = lookup.get_value (info[buffer->idx].codepoint, driver->num_glyphs);
+	const GlyphID *replacement = lookup.get_value (info[idx].codepoint, driver->num_glyphs);
 	if (replacement)
 	{
-	  buffer->unsafe_to_break (driver->last_zero, MIN (buffer->idx + 1, buffer->len));
-	  info[buffer->idx].codepoint = *replacement;
+	  buffer->unsafe_to_break (driver->last_zero, idx + 1);
+	  info[idx].codepoint = *replacement;
 	  ret = true;
 	}
       }
