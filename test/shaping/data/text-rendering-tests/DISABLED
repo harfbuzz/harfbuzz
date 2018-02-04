@@ -23,6 +23,7 @@ tests/MORX-19.tests
 tests/MORX-20.tests
 tests/MORX-21.tests
 tests/MORX-22.tests
+tests/MORX-23.tests
 
 # Rounding differences
 tests/SHARAN-1.tests
