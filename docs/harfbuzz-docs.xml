@@ -2,7 +2,8 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
                "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
   <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
-  <!ENTITY version SYSTEM "version.xml">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
 ]>
 <book id="index">
   <bookinfo>
@@ -53,7 +54,7 @@
   <part>
     <partinfo>
       <releaseinfo>
-        This document is for HarfBuzz &version;.
+        This document is for HarfBuzz &package_version;.
         <!--The latest version of this documentation can be found on-line at
         <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
       </releaseinfo>
