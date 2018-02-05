@@ -25,7 +25,9 @@
  * Google Author(s): Garret Rieger, Rod Sheeter
  */
 
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #include "main-font-text.hh"
 #include "hb-subset.h"
