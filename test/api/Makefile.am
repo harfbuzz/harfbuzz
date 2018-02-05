@@ -14,7 +14,7 @@ EXTRA_DIST += CMakeLists.txt
 
 if HAVE_GLIB
 AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS)
-LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
+LDADD = $(top_builddir)/src/libharfbuzz.la $(top_builddir)/src/libharfbuzz-subset.la $(GLIB_LIBS)
 
 EXTRA_DIST += hb-test.h
 
