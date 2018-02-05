@@ -52,8 +52,8 @@ struct subset_consumer_t
   {
   }
 
-  hb_bool_t 
-  write_file (const char *output_file, hb_blob_t *blob) {    
+  hb_bool_t
+  write_file (const char *output_file, hb_blob_t *blob) {
     unsigned int data_length;
     const char* data = hb_blob_get_data (blob, &data_length);
 
@@ -68,10 +68,10 @@ struct subset_consumer_t
       return false;
     }
     if (bytes_written != data_length) {
-      fprintf(stderr, "Expected %u bytes written, got %ld\n", data_length, 
+      fprintf(stderr, "Expected %u bytes written, got %ld\n", data_length,
               bytes_written);
       return false;
-    } 
+    }
     return true;
   }
 
@@ -80,7 +80,7 @@ struct subset_consumer_t
     // TODO(Q1) check for errors from creates and such
     hb_subset_profile_t *subset_profile = hb_subset_profile_create();
     hb_subset_input_t *subset_input = hb_subset_input_create();
-    hb_face_t *face = hb_font_get_face (font);    
+    hb_face_t *face = hb_font_get_face (font);
     hb_subset_face_t *subset_face = hb_subset_face_create(face);
 
     hb_blob_t *result = nullptr;
