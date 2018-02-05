@@ -2,7 +2,7 @@
 
 NULL =
 EXTRA_DIST =
-SUBDIRS = api shaping fuzzing
+SUBDIRS = api shaping fuzzing subset
 
 EXTRA_DIST += \
 	CMakeLists.txt \

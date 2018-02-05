@@ -46,6 +46,9 @@ endif # HAVE_FREETYPE
 hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 
+hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
+bin_PROGRAMS += hb-subset
+
 if HAVE_OT
 hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)
 bin_PROGRAMS += hb-ot-shape-closure

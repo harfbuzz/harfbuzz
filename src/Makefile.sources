@@ -181,6 +181,15 @@ HB_UCDN_sources  = hb-ucdn.cc
 HB_ICU_sources = hb-icu.cc
 HB_ICU_headers = hb-icu.h
 
+# Sources for libharfbuzz-subset
+HB_SUBSET_sources = \
+	hb-subset.cc \
+	$(NULL)
+
+HB_SUBSET_headers = \
+	hb-subset.h \
+	$(NULL)
+
 HB_GOBJECT_sources = hb-gobject-structs.cc
 HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h
 HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers)

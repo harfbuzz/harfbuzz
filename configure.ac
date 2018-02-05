@@ -500,6 +500,8 @@ test/shaping/Makefile
 test/shaping/data/Makefile
 test/shaping/data/in-house/Makefile
 test/shaping/data/text-rendering-tests/Makefile
+test/subset/Makefile
+test/subset/data/Makefile
 docs/Makefile
 docs/version.xml
 ])

@@ -29,6 +29,7 @@ TEST_PROGS = \
 	test-object \
 	test-set \
 	test-shape \
+	test-subset \
 	test-unicode \
 	test-version \
 	$(NULL)

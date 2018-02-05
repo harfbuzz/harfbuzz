@@ -1,0 +1,9 @@
+TESTS = \
+	tests/basics.tests \
+	$(NULL)
+
+XFAIL_TESTS = \
+	$(NULL)
+
+DISABLED_TESTS = \
+	$(NULL)
