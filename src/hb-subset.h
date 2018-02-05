@@ -24,15 +24,10 @@
  * Google Author(s): Rod Sheeter
  */
 
-#ifndef HB_H_IN
-#error "Include <hb.h> instead."
-#endif
-
 #ifndef HB_SUBSET_H
 #define HB_SUBSET_H
 
-#include "hb-common.h"
-#include "hb-face.h"
+#include "hb.h"
 
 HB_BEGIN_DECLS
 
