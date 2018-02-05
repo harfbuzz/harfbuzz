@@ -25,9 +25,7 @@
  * Google Author(s): Garret Rieger, Rod Sheeter
  */
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <stdio.h>
 
 #include "main-font-text.hh"
 #include "hb-subset.h"
@@ -59,12 +57,13 @@ struct subset_consumer_t
     unsigned int data_length;
     const char* data = hb_blob_get_data (blob, &data_length);
 
-    int fd_out = open(output_file, O_CREAT | O_WRONLY, S_IRWXU);
-    if (fd_out == -1) {
-      fprintf(stderr, "Unable to open output file");
+    FILE *fp_out = fopen(output_file, "w");
+    if (fp_out == nullptr) {
+      fprintf(stderr, "Unable to open output file\n");
       return false;
     }
-    ssize_t bytes_written = write(fd_out, data, data_length);
+    ssize_t bytes_written = fwrite(data, 1, data_length, fp_out);
+
     if (bytes_written == -1) {
       fprintf(stderr, "Unable to write output file\n");
       return false;
