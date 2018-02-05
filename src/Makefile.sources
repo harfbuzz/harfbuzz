@@ -184,10 +184,12 @@ HB_ICU_headers = hb-icu.h
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
 	hb-subset.cc \
+	hb-subset-plan.cc \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
+	hb-subset-plan.h \
 	$(NULL)
 
 HB_GOBJECT_sources = hb-gobject-structs.cc
