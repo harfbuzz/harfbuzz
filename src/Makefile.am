@@ -27,9 +27,7 @@ HBNONPCLIBS =
 HBDEPS =
 HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
-HBSOURCES += $(HB_SUBSET_sources)
 HBHEADERS = $(HB_BASE_headers)
-HBHEADERS += $(HB_SUBSET_headers)
 HBNODISTHEADERS = $(HB_NODIST_headers)
 
 if HAVE_OT
@@ -137,6 +135,15 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST += harfbuzz.pc.in
 
+lib_LTLIBRARIES += libharfbuzz-subset.la
+libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
+libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
+libharfbuzz_subset_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_subset_la_LIBADD = libharfbuzz.la
+pkginclude_HEADERS += $(HB_SUBSET_headers)
+pkgconfig_DATA += harfbuzz-subset.pc
+EXTRA_DIST += harfbuzz-subset.pc.in
+
 FUZZING_CPPFLAGS = \
 	-DHB_NDEBUG \
 	-DHB_MAX_NESTING_LEVEL=3 \
@@ -166,8 +173,8 @@ HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-libharfbuzz_icu_la_CPPFLAGS = $(ICU_CFLAGS)
-libharfbuzz_icu_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
+libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
+libharfbuzz_icu_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 pkginclude_HEADERS += $(HB_ICU_headers)
 pkgconfig_DATA += harfbuzz-icu.pc
@@ -179,8 +186,8 @@ if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
-libharfbuzz_gobject_la_CPPFLAGS = $(GOBJECT_CFLAGS)
-libharfbuzz_gobject_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
+libharfbuzz_gobject_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(GOBJECT_CFLAGS)
+libharfbuzz_gobject_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 pkginclude_HEADERS += $(HB_GOBJECT_headers)
 nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
