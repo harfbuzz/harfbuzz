@@ -28,6 +28,7 @@
 #include "hb-object-private.hh"
 #include "hb-private.hh"
 #include "hb-subset-private.hh"
+#include "hb-subset-plan.hh"
 
 struct hb_subset_profile_t {
   hb_object_header_t header;
@@ -150,6 +151,17 @@ hb_subset (hb_subset_profile_t *profile,
 {
   if (!profile || !input || !face) return false;
 
+  hb_subset_plan_t *plan = hb_subset_plan_create (face->face, profile, input);
+
+  // TODO:
+  // - Create initial header + table directory
+  // - Loop through the set of tables to be kept:
+  //   - Perform table specific subsetting if defined.
+  //   - copy the table into the output.
+  // - Fix header + table directory.
+
   *result = hb_face_reference_blob(face->face);
+
+  hb_subset_plan_destroy (plan);
   return true;
 }
