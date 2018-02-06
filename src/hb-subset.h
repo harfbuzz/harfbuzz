@@ -53,7 +53,7 @@ hb_subset_profile_destroy (hb_subset_profile_t *profile);
 typedef struct hb_subset_input_t hb_subset_input_t;
 
 HB_EXTERN hb_subset_input_t *
-hb_subset_input_create ();
+hb_subset_input_create (hb_set_t *codepoints);
 
 HB_EXTERN void
 hb_subset_input_destroy (hb_subset_input_t *subset_input);

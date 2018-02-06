@@ -38,6 +38,8 @@ struct hb_subset_profile_t {
 struct hb_subset_input_t {
   hb_object_header_t header;
   ASSERT_POD ();
+
+  hb_set_t *codepoints;
 };
 
 struct hb_subset_face_t {
@@ -82,9 +84,14 @@ hb_subset_profile_destroy (hb_subset_profile_t *profile)
  * Since: 1.7.5
  **/
 hb_subset_input_t *
-hb_subset_input_create()
+hb_subset_input_create (hb_set_t *codepoints)
 {
-  return hb_object_create<hb_subset_input_t>();
+  if (unlikely (!codepoints))
+    codepoints = hb_set_get_empty();
+
+  hb_subset_input_t *input = hb_object_create<hb_subset_input_t>();
+  input->codepoints = hb_set_reference(codepoints);
+  return input;
 }
 
 /**
@@ -97,6 +104,7 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 {
   if (!hb_object_destroy (subset_input)) return;
 
+  hb_set_destroy (subset_input->codepoints);
   free (subset_input);
 }
 
@@ -108,7 +116,7 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
  * Since: 1.7.5
  **/
 hb_subset_face_t *
-hb_subset_face_create(hb_face_t *face)
+hb_subset_face_create (hb_face_t *face)
 {
   if (unlikely (!face))
     face = hb_face_get_empty();
@@ -125,7 +133,7 @@ hb_subset_face_create(hb_face_t *face)
  * Since: 1.7.5
  **/
 void
-hb_subset_face_destroy(hb_subset_face_t *subset_face)
+hb_subset_face_destroy (hb_subset_face_t *subset_face)
 {
   if (!hb_object_destroy (subset_face)) return;
 
@@ -143,10 +151,10 @@ hb_subset_face_destroy(hb_subset_face_t *subset_face)
  * Subsets a font according to provided profile and input.
  **/
 hb_bool_t
-hb_subset(hb_subset_profile_t *profile,
-          hb_subset_input_t *input,
-          hb_subset_face_t *face,
-          hb_blob_t **result /* OUT */)
+hb_subset (hb_subset_profile_t *profile,
+           hb_subset_input_t *input,
+           hb_subset_face_t *face,
+           hb_blob_t **result /* OUT */)
 {
   if (!profile || !input || !face) return false;
 

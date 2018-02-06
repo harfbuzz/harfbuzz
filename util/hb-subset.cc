@@ -80,7 +80,7 @@ struct subset_consumer_t
   {
     // TODO(Q1) check for errors from creates and such
     hb_subset_profile_t *subset_profile = hb_subset_profile_create();
-    hb_subset_input_t *subset_input = hb_subset_input_create();
+    hb_subset_input_t *subset_input = hb_subset_input_create (hb_set_get_empty ());
     hb_face_t *face = hb_font_get_face (font);
     hb_subset_face_t *subset_face = hb_subset_face_create(face);
 

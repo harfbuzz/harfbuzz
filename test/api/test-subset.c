@@ -42,7 +42,7 @@ test_subset (void)
   hb_face_t *face = hb_face_create(font_blob, 0);
 
   hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_subset_input_t *input = hb_subset_input_create();
+  hb_subset_input_t *input = hb_subset_input_create (hb_set_get_empty ());
   hb_subset_face_t *subset_face = hb_subset_face_create(face);
 
   hb_blob_t *output;
