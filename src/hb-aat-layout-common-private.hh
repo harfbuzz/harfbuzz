@@ -639,10 +639,10 @@ struct StateTableDriver
        * go differently if we start from state 0 here. */
       if (state && buffer->idx)
       {
-	/* If starting here at state 0 has the exact same entry, it's safe
-	 * to break as before as far as we are concerned. */
-	const Entry<EntryData> *start_entry = machine.get_entryZ (0, klass);
-	if (memcmp (start_entry, entry, sizeof (*entry)))
+	/* If there's no action and we're just epsilon-transitioning to state 0,
+	 * safe to break. */
+	if (c->is_actionable (this, entry) ||
+	    !(entry->newState == 0 && entry->flags == context_t::DontAdvance))
 	  buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
       }
 
