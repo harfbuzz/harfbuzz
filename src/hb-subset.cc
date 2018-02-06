@@ -25,21 +25,13 @@
  * Google Author(s): Garret Rieger, Rod Sheeter
  */
 
-#include "hb-private.hh"
-
 #include "hb-object-private.hh"
-
+#include "hb-private.hh"
+#include "hb-subset-private.hh"
 
 struct hb_subset_profile_t {
   hb_object_header_t header;
   ASSERT_POD ();
-};
-
-struct hb_subset_input_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  hb_set_t *codepoints;
 };
 
 struct hb_subset_face_t {

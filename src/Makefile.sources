@@ -190,6 +190,7 @@ HB_SUBSET_sources = \
 HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-plan.h \
+	hb-subset-private.hh \
 	$(NULL)
 
 HB_GOBJECT_sources = hb-gobject-structs.cc
