@@ -1,0 +1,9 @@
+EXPORTS
+hb_subset_profile_create
+hb_subset_profile_destroy
+hb_subset_input_create
+hb_subset_input_destroy
+hb_subset_face_create
+hb_subset_face_destroy
+hb_subset
+LIBRARY libharfbuzz-subset-0.dll
