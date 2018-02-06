@@ -57,7 +57,7 @@ struct subset_consumer_t
     unsigned int data_length;
     const char* data = hb_blob_get_data (blob, &data_length);
 
-    FILE *fp_out = fopen(output_file, "w");
+    FILE *fp_out = fopen(output_file, "wb");
     if (fp_out == nullptr) {
       fprintf(stderr, "Unable to open output file\n");
       return false;
