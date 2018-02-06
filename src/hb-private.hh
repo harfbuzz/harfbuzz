@@ -154,6 +154,9 @@ extern "C" void  hb_free_impl(void *ptr);
 #if defined(__clang__) && __cplusplus >= 201103L
    /* clang's fallthrough annotations are only available starting in C++11. */
 #  define HB_FALLTHROUGH [[clang::fallthrough]]
+#elif __GNUC__ >= 7
+   /* GNU fallthrough attribute is available from GCC7 */
+#  define HB_FALLTHROUGH __attribute__((fallthrough))
 #elif defined(_MSC_VER)
    /*
     * MSVC's __fallthrough annotations are checked by /analyze (Code Analysis):
