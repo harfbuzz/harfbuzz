@@ -24,15 +24,15 @@
  * Google Author(s): Garret Rieger
  */
 
-#include "hb-private.hh"
+#include "hb-subset-plan.hh"
+#include "hb-subset-private.hh"
 
-#include "hb-object-private.hh"
-
-
-struct hb_subset_plan_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-};
+hb_set_t *
+get_glyph_ids_from_cmap (hb_face_t *face,
+                         hb_set_t  *codepoints)
+{
+  return hb_set_get_empty ();
+}
 
 /**
  * hb_subset_plan_create:
@@ -49,13 +49,17 @@ hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {
-  return hb_object_create<hb_subset_plan_t>();
+  hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
+  plan->glyphs_to_retain = get_glyph_ids_from_cmap (face, input->codepoints);
+  return plan;
 }
 
 hb_subset_plan_t *
-hb_subset_plan_create_empty ()
+hb_subset_plan_get_empty ()
 {
-  return hb_object_create<hb_subset_plan_t>();
+  hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
+  plan->glyphs_to_retain = hb_set_get_empty();
+  return plan;
 }
 
 /**
@@ -68,5 +72,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 {
   if (!hb_object_destroy (plan)) return;
 
+  hb_set_destroy (plan->glyphs_to_retain);
   free (plan);
 }

@@ -24,26 +24,30 @@
  * Google Author(s): Garret Rieger
  */
 
-#ifndef HB_H_IN
-#error "Include <hb.h> instead."
-#endif
-
 #ifndef HB_SUBSET_PLAN_H
 #define HB_SUBSET_PLAN_H
 
-HB_BEGIN_DECLS
+#include "hb-private.hh"
+#include "hb-object-private.hh"
+
+struct hb_subset_plan_t {
+  hb_object_header_t header;
+  ASSERT_POD ();
+
+  hb_set_t *glyphs_to_retain;
+};
 
 typedef struct hb_subset_plan_t hb_subset_plan_t;
 
-HB_EXTERN hb_subset_plan_t *
+hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 
-HB_EXTERN hb_subset_plan_t *
-hb_subset_plan_create_empty ();
+hb_subset_plan_t *
+hb_subset_plan_get_empty ();
 
-HB_EXTERN void
+void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
 
 #endif /* HB_SUBSET_PLAN_PRIVATE_HH */

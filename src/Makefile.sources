@@ -189,7 +189,7 @@ HB_SUBSET_sources = \
 
 HB_SUBSET_headers = \
 	hb-subset.h \
-	hb-subset-plan.h \
+	hb-subset-plan.hh \
 	hb-subset-private.hh \
 	$(NULL)
 
