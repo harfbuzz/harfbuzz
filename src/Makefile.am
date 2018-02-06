@@ -114,6 +114,7 @@ HBLIBS += $(HBNONPCLIBS)
 if OS_WIN32
 export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
+harfbuzz_subset_def_dependency = harfbuzz-subset.def
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
 # Use a C linker for GCC, not C++; Don't link to libstdc++
@@ -140,6 +141,7 @@ libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
+EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
 pkginclude_HEADERS += $(HB_SUBSET_headers)
 pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
