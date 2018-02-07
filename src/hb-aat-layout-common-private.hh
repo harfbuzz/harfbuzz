@@ -698,11 +698,15 @@ struct hb_aat_apply_context_t :
   hb_buffer_t *buffer;
   hb_sanitize_context_t sanitizer;
 
+  /* Unused. For debug tracing only. */
+  unsigned int lookup_index;
+  unsigned int debug_depth;
+
   inline hb_aat_apply_context_t (hb_font_t *font_,
 				 hb_buffer_t *buffer_,
 				 hb_blob_t *table) :
 		font (font_), face (font->face), buffer (buffer_),
-		sanitizer ()
+		sanitizer (), lookup_index (0), debug_depth (0)
   {
     sanitizer.init (table);
     sanitizer.num_glyphs = face->get_num_glyphs ();

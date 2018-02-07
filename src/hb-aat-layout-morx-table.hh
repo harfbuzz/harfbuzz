@@ -280,7 +280,7 @@ struct ContextualSubtable
   {
     TRACE_SANITIZE (this);
 
-    unsigned int num_entries;
+    unsigned int num_entries = 0;
     if (unlikely (!machine.sanitize (c, &num_entries))) return false;
 
     unsigned int num_lookups = 0;
