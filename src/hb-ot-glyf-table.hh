@@ -122,28 +122,38 @@ struct glyf
       hb_blob_destroy (glyf_blob);
     }
 
-    inline bool get_extents (hb_codepoint_t glyph,
-			     hb_glyph_extents_t *extents) const
+    inline bool get_offsets (hb_codepoint_t  glyph,
+                             unsigned int   *start_offset /* OUT */,
+                             unsigned int   *end_offset   /* OUT */) const
     {
       if (unlikely (glyph >= num_glyphs))
 	return false;
 
-      unsigned int start_offset, end_offset;
       if (short_offset)
       {
         const HBUINT16 *offsets = (const HBUINT16 *) loca_table->dataX;
-	start_offset = 2 * offsets[glyph];
-	end_offset   = 2 * offsets[glyph + 1];
+	*start_offset = 2 * offsets[glyph];
+	*end_offset   = 2 * offsets[glyph + 1];
       }
       else
       {
         const HBUINT32 *offsets = (const HBUINT32 *) loca_table->dataX;
-	start_offset = offsets[glyph];
-	end_offset   = offsets[glyph + 1];
+	*start_offset = offsets[glyph];
+	*end_offset   = offsets[glyph + 1];
       }
 
-      if (start_offset > end_offset || end_offset > glyf_len)
+      if (*start_offset > *end_offset || *end_offset > glyf_len)
 	return false;
+
+      return true;
+    }
+
+    inline bool get_extents (hb_codepoint_t glyph,
+			     hb_glyph_extents_t *extents) const
+    {
+      unsigned int start_offset, end_offset;
+      if (!get_offsets (glyph, &start_offset, &end_offset))
+        return false;
 
       if (end_offset - start_offset < GlyphHeader::static_size)
 	return true; /* Empty glyph; zero extents. */
