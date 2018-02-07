@@ -21,17 +21,30 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger
+ * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
 #include "hb-subset-plan.hh"
 #include "hb-subset-private.hh"
 
+// TODO(Q1) map from old:new gid
 hb_set_t *
-get_glyph_ids_from_cmap (hb_face_t *face,
-                         hb_set_t  *codepoints)
+glyph_ids_to_retain (hb_subset_face_t *face,
+                     hb_set_t  *codepoints)
 {
-  return hb_set_get_empty ();
+  hb_codepoint_t cp = -1;
+  hb_set_t *gids = hb_set_create();
+  while (hb_set_next(codepoints, &cp)) {
+    hb_codepoint_t gid;
+    if (face->cmap.get_nominal_glyph(cp, &gid)) {
+      // TODO(Q1) a nice way to turn on/off logs
+      fprintf(stderr, "gid for U+%04X is %d\n", cp, gid);
+      hb_set_add(gids, cp);
+    } else {
+      fprintf(stderr, "Unable to resolve gid for U+%04X\n", cp);
+    }
+  }
+  return gids;
 }
 
 /**
@@ -45,12 +58,12 @@ get_glyph_ids_from_cmap (hb_face_t *face,
  * Since: 1.7.5
  **/
 hb_subset_plan_t *
-hb_subset_plan_create (hb_face_t           *face,
+hb_subset_plan_create (hb_subset_face_t    *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
-  plan->glyphs_to_retain = get_glyph_ids_from_cmap (face, input->codepoints);
+  plan->glyphs_to_retain = glyph_ids_to_retain (face, input->codepoints);
   return plan;
 }
 

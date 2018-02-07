@@ -27,6 +27,7 @@
 
 #include "hb-object-private.hh"
 #include "hb-private.hh"
+
 #include "hb-subset-glyf.hh"
 #include "hb-subset-private.hh"
 #include "hb-subset-plan.hh"
@@ -37,14 +38,6 @@ struct hb_subset_profile_t {
   hb_object_header_t header;
   ASSERT_POD ();
 };
-
-struct hb_subset_face_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  hb_face_t *face;
-};
-
 
 /**
  * hb_subset_profile_create:
@@ -119,6 +112,7 @@ hb_subset_face_create (hb_face_t *face)
 
   hb_subset_face_t *subset_face = hb_object_create<hb_subset_face_t> ();
   subset_face->face = hb_face_reference (face);
+  subset_face->cmap.init(face);
 
   return subset_face;
 }
@@ -133,6 +127,7 @@ hb_subset_face_destroy (hb_subset_face_t *subset_face)
 {
   if (!hb_object_destroy (subset_face)) return;
 
+  subset_face->cmap.fini();
   hb_face_destroy(subset_face->face);
   free (subset_face);
 }
@@ -154,7 +149,7 @@ hb_subset (hb_subset_profile_t *profile,
 {
   if (!profile || !input || !face) return false;
 
-  hb_subset_plan_t *plan = hb_subset_plan_create (face->face, profile, input);
+  hb_subset_plan_t *plan = hb_subset_plan_create (face, profile, input);
 
   // TODO:
   // - Create initial header + table directory

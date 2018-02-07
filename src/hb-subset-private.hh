@@ -21,20 +21,33 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger
+ * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
 #ifndef HB_SUBSET_PRIVATE_HH
 #define HB_SUBSET_PRIVATE_HH
 
-#include "hb-object-private.hh"
+
 #include "hb-private.hh"
+
+#include "hb-ot.h"
+
+#include "hb-font-private.hh"
+
+#include "hb-ot-cmap-table.hh"
 
 struct hb_subset_input_t {
   hb_object_header_t header;
   ASSERT_POD ();
 
   hb_set_t *codepoints;
+};
+
+struct hb_subset_face_t {
+  hb_object_header_t header;
+
+  hb_face_t *face;
+  OT::cmap::accelerator_t cmap;
 };
 
 #endif /* HB_SUBSET_PRIVATE_HH */
