@@ -492,6 +492,15 @@ struct hb_prealloced_array_t
   }
 
   template <typename T>
+  inline Type *lsearch (T *x)
+  {
+    for (unsigned int i = 0; i < len; i++)
+      if (0 == this->array[i].cmp (x))
+	return &array[i];
+    return nullptr;
+  }
+
+  template <typename T>
   inline Type *bsearch (T *x)
   {
     unsigned int i;

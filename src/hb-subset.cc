@@ -102,6 +102,94 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 }
 
 
+
+/*
+ * A face that has add_table().
+ */
+
+struct hb_subset_face_data_t
+{
+  struct table_entry_t
+  {
+    inline int cmp (const hb_tag_t *t) const
+    {
+      if (*t < tag) return -1;
+      if (*t > tag) return -1;
+      return 0;
+    }
+
+    hb_tag_t   tag;
+    hb_blob_t *blob;
+  };
+
+  hb_prealloced_array_t<table_entry_t, 32> tables;
+};
+
+static hb_subset_face_data_t *
+_hb_subset_face_data_create (void)
+{
+  hb_subset_face_data_t *data = (hb_subset_face_data_t *) calloc (1, sizeof (hb_subset_face_data_t));
+  if (unlikely (!data))
+    return nullptr;
+
+  return data;
+}
+
+static void
+_hb_subset_face_data_destroy (void *user_data)
+{
+  hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
+
+  free (data);
+}
+
+static hb_blob_t *
+_hb_subset_face_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+{
+  hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
+
+  if (!tag)
+  {
+    /* TODO Compile face blob... */
+    return nullptr;
+  }
+
+  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (&tag);
+  if (entry)
+    return hb_blob_reference (entry->blob);
+
+  return nullptr;
+}
+
+static hb_face_t *
+hb_subset_face_create (void)
+{
+  hb_subset_face_data_t *data = _hb_subset_face_data_create ();
+  if (unlikely (!data)) return hb_face_get_empty ();
+
+  return hb_face_create_for_tables (_hb_subset_face_reference_table,
+				    data,
+				    _hb_subset_face_data_destroy);
+}
+
+static bool
+hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
+{
+  if (unlikely (face->destroy != _hb_subset_face_data_destroy))
+    return false;
+
+  hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;
+
+  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (&tag);
+  if (unlikely (!entry))
+    return false;
+
+  entry->tag = tag;
+  entry->blob = hb_blob_reference (blob);
+
+  return true;
+}
+
 /**
  * hb_subset:
  * @profile: profile to use for the subsetting.
