@@ -64,9 +64,9 @@ typedef struct TableRecord
 
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
-  HBUINT32		offset;		/* Offset from beginning of TrueType font
+  HBUINT32	offset;		/* Offset from beginning of TrueType font
 				 * file. */
-  HBUINT32		length;		/* Length of this table. */
+  HBUINT32	length;		/* Length of this table. */
   public:
   DEFINE_SIZE_STATIC (16);
 } OpenTypeTable;
@@ -81,7 +81,7 @@ typedef struct OffsetTable
   {
     return tables[i];
   }
-  inline unsigned int get_table_tags (unsigned int start_offset,
+  inline unsigned int get_table_tags (unsigned int  start_offset,
 				      unsigned int *table_count, /* IN/OUT */
 				      hb_tag_t     *table_tags /* OUT */) const
   {
