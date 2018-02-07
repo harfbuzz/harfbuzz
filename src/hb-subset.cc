@@ -194,10 +194,9 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
 /**
  * hb_subset:
+ * @source: font face data to be subset.
  * @profile: profile to use for the subsetting.
  * @input: input to use for the subsetting.
- * @face: font face data to be subset.
- * @result: subsetting result.
  *
  * Subsets a font according to provided profile and input.
  **/
@@ -210,13 +209,32 @@ hb_subset (hb_face_t *source,
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
 
+  hb_face_t *face = hb_subset_face_create ();
+
+  /* Copy tables to new face. */
+  {
+    hb_tag_t table_tags[32];
+    unsigned int offset = 0, count;
+    do {
+      count == ARRAY_LENGTH (table_tags);
+      hb_face_get_table_tags (source, offset, &count, table_tags);
+      for (unsigned int i = 0; i < count; i++)
+      {
+	hb_tag_t tag = table_tags[i];
+	hb_blob_t *blob = hb_face_reference_table (source, tag);
+	hb_subset_face_add_table (face, tag, blob);
+	hb_blob_destroy (blob);
+      }
+    } while (count == ARRAY_LENGTH (table_tags));
+  }
+
   hb_codepoint_t old_gid = -1;
-  while (hb_set_next(plan->glyphs_to_retain, &old_gid)) {
+  while (hb_set_next (plan->glyphs_to_retain, &old_gid)) {
     hb_codepoint_t new_gid;
-    if (hb_subset_plan_new_gid_for_old_id(plan, old_gid, &new_gid)) {
-      DEBUG_MSG(SUBSET, nullptr, "Remap %d : %d", old_gid, new_gid);
+    if (hb_subset_plan_new_gid_for_old_id (plan, old_gid, &new_gid)) {
+      DEBUG_MSG (SUBSET, nullptr, "Remap %d : %d", old_gid, new_gid);
     } else {
-      DEBUG_MSG(SUBSET, nullptr, "Remap %d : DOOM! No new ID", old_gid);
+      DEBUG_MSG (SUBSET, nullptr, "Remap %d : DOOM! No new ID", old_gid);
     }
   }
   // TODO:
@@ -226,16 +244,13 @@ hb_subset (hb_face_t *source,
   //   - copy the table into the output.
   // - Fix header + table directory.
 
-  bool success = true;
-
   hb_blob_t *glyf_prime = nullptr;
   if (hb_subset_glyf (plan, source, &glyf_prime)) {
     // TODO: write new glyf to new face.
-  } else {
-    success = false;
   }
   hb_blob_destroy (glyf_prime);
 
   hb_subset_plan_destroy (plan);
-  return success ? hb_face_reference (source) : nullptr;
+
+  return face;
 }
