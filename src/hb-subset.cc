@@ -216,7 +216,7 @@ hb_subset (hb_face_t *source,
     hb_tag_t table_tags[32];
     unsigned int offset = 0, count;
     do {
-      count == ARRAY_LENGTH (table_tags);
+      count = ARRAY_LENGTH (table_tags);
       hb_face_get_table_tags (source, offset, &count, table_tags);
       for (unsigned int i = 0; i < count; i++)
       {
