@@ -34,6 +34,10 @@
 
 #include "hb-ot-glyf-table.hh"
 
+
+const void * const OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+
+
 struct hb_subset_profile_t {
   hb_object_header_t header;
   ASSERT_POD ();
