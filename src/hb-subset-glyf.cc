@@ -24,6 +24,7 @@
  * Google Author(s): Garret Rieger
  */
 
+#include "hb-ot-glyf-table.hh"
 #include "hb-subset-glyf.hh"
 
 /**
@@ -36,10 +37,16 @@
  **/
 bool
 hb_subset_glyf (hb_subset_plan_t *plan,
-                hb_blob_t *glyf,
-                hb_blob_t **glyf_prime /* OUT */)
+                hb_face_t        *face,
+                hb_blob_t       **glyf_prime /* OUT */)
 {
-  *glyf_prime = hb_blob_get_empty ();
+  OT::glyf::accelerator_t glyf_accelerator;
+  glyf_accelerator.init(face);
 
+  // TODO
+
+  glyf_accelerator.fini();
+
+  *glyf_prime = hb_blob_get_empty ();
   return true;
 }

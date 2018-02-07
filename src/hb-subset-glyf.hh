@@ -31,7 +31,7 @@
 
 bool
 hb_subset_glyf (hb_subset_plan_t *plan,
-                hb_blob_t        *glyf,
+                hb_face_t        *face,
                 hb_blob_t       **glyf_prime /* OUT */);
 
 #endif /* HB_SUBSET_GLYF_HH */

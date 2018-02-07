@@ -160,15 +160,13 @@ hb_subset (hb_subset_profile_t *profile,
 
   bool success = true;
 
-  hb_blob_t *glyf = hb_face_reference_table (face->face, HB_OT_TAG_glyf);
   hb_blob_t *glyf_prime = nullptr;
-  if (hb_subset_glyf (plan, glyf, &glyf_prime)) {
+  if (hb_subset_glyf (plan, face->face, &glyf_prime)) {
     // TODO: write new glyf to new face.
   } else {
     success = false;
   }
   hb_blob_destroy (glyf_prime);
-  hb_blob_destroy (glyf);
 
   *result = hb_face_reference_blob(face->face);
   hb_subset_plan_destroy (plan);
