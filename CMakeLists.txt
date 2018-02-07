@@ -92,29 +92,32 @@ add_definitions(-DHAVE_FALLBACK)
 
 
 ## Functions and headers
-include (CheckFunctionExists)
-include (CheckIncludeFile)
-macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
-  foreach (func_name ${ARGN})
-    string(TOUPPER ${func_name} definiton_to_add)
-    check_function_exists(${func_name} HAVE_${definiton_to_add})
-    if (${HAVE_${definiton_to_add}})
-      add_definitions(-DHAVE_${definiton_to_add})
-    endif ()
-  endforeach ()
-endmacro ()
-check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
-check_include_file(unistd.h HAVE_UNISTD_H)
-if (${HAVE_UNISTD_H})
-  add_definitions(-DHAVE_UNISTD_H)
-endif ()
-check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
-if (${HAVE_SYS_MMAN_H})
-  add_definitions(-DHAVE_SYS_MMAN_H)
-endif ()
-check_include_file(xlocale.h HAVE_XLOCALE_H)
-if (${HAVE_XLOCALE_H})
-  add_definitions(-DHAVE_XLOCALE_H)
+if (NOT EMSCRIPTEN) # time consuming and not needed for Emscripten builds
+  include (CheckFunctionExists)
+  include (CheckIncludeFile)
+  macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
+    foreach (func_name ${ARGN})
+      string(TOUPPER ${func_name} definiton_to_add)
+      CHECK_FUNCTION_EXISTS(${func_name} HAVE_${definiton_to_add})
+      if (${HAVE_${definiton_to_add}})
+        add_definitions(-DHAVE_${definiton_to_add})
+      endif ()
+    endforeach ()
+  endmacro ()
+
+  check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+  check_include_file(unistd.h HAVE_UNISTD_H)
+  if (${HAVE_UNISTD_H})
+    add_definitions(-DHAVE_UNISTD_H)
+  endif ()
+  check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
+  if (${HAVE_SYS_MMAN_H})
+    add_definitions(-DHAVE_SYS_MMAN_H)
+  endif ()
+  check_include_file(xlocale.h HAVE_XLOCALE_H)
+  if (${HAVE_XLOCALE_H})
+    add_definitions(-DHAVE_XLOCALE_H)
+  endif ()
 endif ()
 
 
@@ -495,42 +498,56 @@ endif ()
 
 
 ## Atomic ops availability detection
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
-"		void memory_barrier (void) { __sync_synchronize (); }
-		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
-		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
-		void mutex_unlock (int *m) { __sync_lock_release (m); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
-if (HB_HAVE_INTEL_ATOMIC_PRIMITIVES)
-  add_definitions(-DHAVE_INTEL_ATOMIC_PRIMITIVES)
-endif ()
+if (NOT EMSCRIPTEN)
+  file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
+  "		void memory_barrier (void) { __sync_synchronize (); }
+      int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
+      int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
+      void mutex_unlock (int *m) { __sync_lock_release (m); }
+      int main () { return 0; }
+  ")
+  try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
+    ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
+    ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
+  if (HB_HAVE_INTEL_ATOMIC_PRIMITIVES)
+    add_definitions(-DHAVE_INTEL_ATOMIC_PRIMITIVES)
+  endif ()
 
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
-"		#include <atomic.h>
-		/* This requires Solaris Studio 12.2 or newer: */
-		#include <mbarrier.h>
-		void memory_barrier (void) { __machine_rw_barrier (); }
-		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
-		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
-if (HB_HAVE_SOLARIS_ATOMIC_OPS)
-  add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
+  file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
+  "		#include <atomic.h>
+      /* This requires Solaris Studio 12.2 or newer: */
+      #include <mbarrier.h>
+      void memory_barrier (void) { __machine_rw_barrier (); }
+      int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
+      void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
+      int main () { return 0; }
+  ")
+  try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
+    ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
+    ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
+  if (HB_HAVE_SOLARIS_ATOMIC_OPS)
+    add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
+  endif ()
+else ()
+  # emscripten doesn't need multithreading support, so
+  add_definitions(-DHB_NO_MT)
 endif ()
 
 
 ## Define harfbuzz library
-add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
+if (NOT EMSCRIPTEN) # define emscripten as a executable on emscripten mode
+  add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
+else ()
+  add_executable(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
+  add_definitions("-DHB_EXTERN=__attribute__((used))")
+  add_definitions(-DHB_NO_MT)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MODULARIZE=1 \
+    -s 'EXTRA_EXPORTED_RUNTIME_METHODS=[\"ccall\", \"cwrap\"]' -s WASM=1 \
+    -fno-threadsafe-statics -fno-rtti -fno-exceptions -Oz")
+endif ()
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
-if (UNIX OR MINGW)
+if ((UNIX OR MINGW) AND NOT EMSCRIPTEN)
   # Make symbols link locally
   link_libraries(-Bsymbolic-functions)
 
@@ -799,20 +816,24 @@ endif ()
 
 
 ## src/ executables
-foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
-  set (prog_name ${prog})
-  if (${prog_name} STREQUAL "test")
-    # test can not be used as a valid executable name on cmake, lets special case it
-    set (prog_name test-test)
-  endif ()
-  add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-  target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-endforeach ()
-set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
+# as harfbuzz should be built with add_executable for Emscripten builds, it is not
+# possible to use it as a library for the executables
+if (NOT EMSCRIPTEN)
+  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
+    set (prog_name ${prog})
+    if (${prog_name} STREQUAL "test")
+      # test can not be used as a valid executable name on cmake, lets special case it
+      set (prog_name test-test)
+    endif ()
+    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
+    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
+  endforeach ()
+  set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
+endif ()
 
 
 ## Tests
-if (UNIX OR MINGW)
+if ((UNIX OR MINGW) AND NOT EMSCRIPTEN)
   if (BUILD_SHARED_LIBS)
     # generate harfbuzz.def after build completion
     string(REPLACE ";" " " space_separated_headers "${project_headers}")
@@ -843,4 +864,6 @@ endif ()
 
 # Needs to come last so that variables defined above are passed to
 # subdirectories.
-add_subdirectory(test)
+if (NOT EMSCRIPTEN)
+  add_subdirectory(test)
+endif ()
