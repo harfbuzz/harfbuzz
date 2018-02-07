@@ -124,6 +124,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
 # else
 #  define HB_INTERNAL
+#  define HB_NO_VISIBILITY 1
 # endif
 #endif
 

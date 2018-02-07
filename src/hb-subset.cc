@@ -35,7 +35,9 @@
 #include "hb-ot-glyf-table.hh"
 
 
+#ifndef HB_NO_VISIBILITY
 const void * const OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+#endif
 
 
 struct hb_subset_profile_t {
