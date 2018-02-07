@@ -55,7 +55,7 @@ glyph_ids_to_retain (hb_subset_face_t *face,
     hb_codepoint_t gid;
     if (face->cmap.get_nominal_glyph(cp, &gid)) {
       DEBUG_MSG(SUBSET, nullptr, "gid for U+%04X is %d", cp, gid);
-      hb_set_add(gids, cp);
+      hb_set_add(gids, gid);
     } else {
       DEBUG_MSG(SUBSET, nullptr, "Unable to resolve gid for U+%04X", cp);
     }
