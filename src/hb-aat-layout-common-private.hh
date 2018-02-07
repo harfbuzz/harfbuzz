@@ -713,6 +713,8 @@ struct hb_aat_apply_context_t :
     sanitizer.start_processing ();
   }
 
+  inline void set_lookup_index (unsigned int i) { lookup_index = i; }
+
   inline ~hb_aat_apply_context_t (void)
   {
     sanitizer.end_processing ();
