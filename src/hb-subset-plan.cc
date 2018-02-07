@@ -27,7 +27,24 @@
 #include "hb-subset-plan.hh"
 #include "hb-subset-private.hh"
 
-// TODO(Q1) map from old:new gid
+hb_bool_t
+hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
+                                  hb_codepoint_t old_gid,
+                                  hb_codepoint_t *new_gid) {
+  // TODO(Q1) lookup in map from old:new gid
+  // TEMPORARY: just loop over ids to retain and count up
+  hb_codepoint_t current = -1;
+  hb_codepoint_t count = 0;
+  while (hb_set_next(plan->glyphs_to_retain, &current)) {
+    if (old_gid == current) {
+      *new_gid = count;
+      return true;
+    }
+    count++;
+  }
+  return false;
+}
+
 hb_set_t *
 glyph_ids_to_retain (hb_subset_face_t *face,
                      hb_set_t  *codepoints)
@@ -37,13 +54,15 @@ glyph_ids_to_retain (hb_subset_face_t *face,
   while (hb_set_next(codepoints, &cp)) {
     hb_codepoint_t gid;
     if (face->cmap.get_nominal_glyph(cp, &gid)) {
-      // TODO(Q1) a nice way to turn on/off logs
-      fprintf(stderr, "gid for U+%04X is %d\n", cp, gid);
+      DEBUG_MSG(SUBSET, nullptr, "gid for U+%04X is %d\n", cp, gid);
       hb_set_add(gids, cp);
     } else {
-      fprintf(stderr, "Unable to resolve gid for U+%04X\n", cp);
+      DEBUG_MSG(SUBSET, nullptr, "Unable to resolve gid for U+%04X\n", cp);
     }
   }
+
+  // TODO(Q1) expand with glyphs that make up complex glyphs
+  // TODO expand with glyphs reached by G*
   return gids;
 }
 

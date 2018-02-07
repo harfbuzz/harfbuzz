@@ -44,6 +44,11 @@ hb_subset_plan_create (hb_subset_face_t    *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 
+hb_bool_t
+hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
+                                  hb_codepoint_t old_gid,
+                                  hb_codepoint_t *new_gid /* OUT */);
+
 hb_subset_plan_t *
 hb_subset_plan_get_empty ();
 

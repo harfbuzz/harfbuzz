@@ -151,6 +151,15 @@ hb_subset (hb_subset_profile_t *profile,
 
   hb_subset_plan_t *plan = hb_subset_plan_create (face, profile, input);
 
+  hb_codepoint_t old_gid = -1;
+  while (hb_set_next(plan->glyphs_to_retain, &old_gid)) {
+    hb_codepoint_t new_gid;
+    if (hb_subset_plan_new_gid_for_old_id(plan, old_gid, &new_gid)) {
+      DEBUG_MSG(SUBSET, nullptr, "Remap %d : %d\n", old_gid, new_gid);
+    } else {
+      DEBUG_MSG(SUBSET, nullptr, "Remap %d : DOOM! No new ID\n", old_gid);
+    }
+  }
   // TODO:
   // - Create initial header + table directory
   // - Loop through the set of tables to be kept:
