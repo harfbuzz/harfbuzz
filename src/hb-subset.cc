@@ -155,9 +155,9 @@ hb_subset (hb_subset_profile_t *profile,
   while (hb_set_next(plan->glyphs_to_retain, &old_gid)) {
     hb_codepoint_t new_gid;
     if (hb_subset_plan_new_gid_for_old_id(plan, old_gid, &new_gid)) {
-      DEBUG_MSG(SUBSET, nullptr, "Remap %d : %d\n", old_gid, new_gid);
+      DEBUG_MSG(SUBSET, nullptr, "Remap %d : %d", old_gid, new_gid);
     } else {
-      DEBUG_MSG(SUBSET, nullptr, "Remap %d : DOOM! No new ID\n", old_gid);
+      DEBUG_MSG(SUBSET, nullptr, "Remap %d : DOOM! No new ID", old_gid);
     }
   }
   // TODO:
