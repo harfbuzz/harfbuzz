@@ -184,11 +184,13 @@ HB_ICU_headers = hb-icu.h
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
 	hb-subset.cc \
+	hb-subset-glyf.cc \
 	hb-subset-plan.cc \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
+	hb-subset-glyf.hh \
 	hb-subset-plan.hh \
 	hb-subset-private.hh \
 	$(NULL)
