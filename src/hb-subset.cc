@@ -26,6 +26,8 @@
  */
 
 #include "hb-object-private.hh"
+#include "hb-open-type-private.hh"    
+
 #include "hb-private.hh"
 
 #include "hb-subset-glyf.hh"
@@ -33,6 +35,7 @@
 #include "hb-subset-plan.hh"
 
 #include "hb-open-file-private.hh"
+#include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 
 
@@ -104,6 +107,26 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
   free (subset_input);
 }
 
+template<typename TableType>
+hb_bool_t
+subset(hb_subset_plan_t *plan, hb_face_t *face, hb_blob_t **out)
+{
+    OT::Sanitizer<TableType> sanitizer;
+    hb_blob_t *table_blob = sanitizer.sanitize (face->reference_table (TableType::tableTag));
+    if (unlikely(!table_blob)) {
+      return false;
+    }
+    const TableType *table = OT::Sanitizer<TableType>::lock_instance (table_blob);
+
+    // TODO actually manage the context/output memory
+    size_t dest_sz = 64536; // as much as anyone would ever need
+    void *dest = malloc(dest_sz);
+    OT::hb_serialize_context_t context(dest, dest_sz);
+    hb_bool_t result = table->subset(plan, &context);
+    // TODO populate out
+    hb_blob_destroy (table_blob);
+    return result;
+}
 
 
 /*
@@ -288,6 +311,13 @@ hb_subset (hb_face_t *source,
     // TODO: write new glyf to new face.
   }
   hb_blob_destroy (glyf_prime);
+
+  hb_blob_t *cmap_prime = nullptr;
+  if (subset<const OT::cmap>(plan, source, &cmap_prime)) {
+    DEBUG_MSG(SUBSET, nullptr, "subset cmap success!");
+  } else {
+    DEBUG_MSG(SUBSET, nullptr, "subset cmap FAILED!");
+  }
 
   hb_subset_plan_destroy (plan);
 

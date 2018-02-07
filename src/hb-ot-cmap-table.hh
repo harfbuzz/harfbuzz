@@ -27,8 +27,8 @@
 #ifndef HB_OT_CMAP_TABLE_HH
 #define HB_OT_CMAP_TABLE_HH
 
-#include "hb-open-type-private.hh"
-
+#include "hb-open-type-private.hh"          
+#include "hb-subset-plan.hh"
 
 namespace OT {
 
@@ -502,6 +502,20 @@ struct cmap
     return_trace (c->check_struct (this) &&
 		  likely (version == 0) &&
 		  encodingRecord.sanitize (c, this));
+  }
+
+  inline bool subset(hb_subset_plan_t *plan, OT::hb_serialize_context_t *out) const
+  {
+    // Same version
+    OT::cmap new_cmap;
+    new_cmap.version = version;
+    new_cmap.encodingRecord.len.set(1); // one format 12 subtable    
+
+    // TODO we need to actually build the format 12 subtable
+
+    // TODO: this fails
+    // out->extend_min(new_cmap);
+    return true;
   }
 
   struct accelerator_t
