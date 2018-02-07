@@ -27,6 +27,8 @@
 #include "hb-subset-plan.hh"
 #include "hb-subset-private.hh"
 
+#include "hb-ot-cmap-table.hh"
+
 hb_bool_t
 hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
                                   hb_codepoint_t old_gid,
@@ -46,14 +48,16 @@ hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
 }
 
 hb_set_t *
-glyph_ids_to_retain (hb_subset_face_t *face,
+glyph_ids_to_retain (hb_face_t *face,
                      hb_set_t  *codepoints)
 {
+  OT::cmap::accelerator_t cmap;
+  cmap.init (face);
   hb_codepoint_t cp = -1;
   hb_set_t *gids = hb_set_create();
   while (hb_set_next(codepoints, &cp)) {
     hb_codepoint_t gid;
-    if (face->cmap.get_nominal_glyph(cp, &gid)) {
+    if (cmap.get_nominal_glyph(cp, &gid)) {
       DEBUG_MSG(SUBSET, nullptr, "gid for U+%04X is %d", cp, gid);
       hb_set_add(gids, gid);
     } else {
@@ -63,6 +67,8 @@ glyph_ids_to_retain (hb_subset_face_t *face,
 
   // TODO(Q1) expand with glyphs that make up complex glyphs
   // TODO expand with glyphs reached by G*
+  //
+  cmap.fini ();
   return gids;
 }
 
@@ -77,7 +83,7 @@ glyph_ids_to_retain (hb_subset_face_t *face,
  * Since: 1.7.5
  **/
 hb_subset_plan_t *
-hb_subset_plan_create (hb_subset_face_t    *face,
+hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {

@@ -40,7 +40,7 @@ struct hb_subset_plan_t {
 typedef struct hb_subset_plan_t hb_subset_plan_t;
 
 hb_subset_plan_t *
-hb_subset_plan_create (hb_subset_face_t    *face,
+hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 

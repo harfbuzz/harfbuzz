@@ -34,21 +34,11 @@
 
 #include "hb-font-private.hh"
 
-#include "hb-ot-cmap-table.hh"
-
 struct hb_subset_input_t {
   hb_object_header_t header;
   ASSERT_POD ();
 
   hb_set_t *codepoints;
-};
-
-struct hb_subset_face_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  hb_face_t *face;
-  OT::cmap::accelerator_t cmap;
 };
 
 #endif /* HB_SUBSET_PRIVATE_HH */

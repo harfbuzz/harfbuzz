@@ -40,7 +40,7 @@ HB_BEGIN_DECLS
 typedef struct hb_subset_profile_t hb_subset_profile_t;
 
 HB_EXTERN hb_subset_profile_t *
-hb_subset_profile_create ();
+hb_subset_profile_create (void);
 
 HB_EXTERN void
 hb_subset_profile_destroy (hb_subset_profile_t *profile);
@@ -58,26 +58,13 @@ hb_subset_input_create (hb_set_t *codepoints);
 HB_EXTERN void
 hb_subset_input_destroy (hb_subset_input_t *subset_input);
 
-/*
- * hb_subset_face_t
- * Reusable subset-ready plan for a given face. Threadsafe for multiple
- * concurrent subset operations.
- */
 
-typedef struct hb_subset_face_t hb_subset_face_t;
+/* hb_subset() */
 
-HB_EXTERN hb_subset_face_t *
-hb_subset_face_create (hb_face_t *face);
-
-HB_EXTERN void
-hb_subset_face_destroy (hb_subset_face_t *face);
-
-
-HB_EXTERN hb_bool_t
-hb_subset (hb_subset_profile_t *profile,
-           hb_subset_input_t *input,
-           hb_subset_face_t *face,
-           hb_blob_t **result /* OUT */);
+HB_EXTERN hb_face_t *
+hb_subset (hb_face_t *source,
+	   hb_subset_profile_t *profile,
+           hb_subset_input_t *input);
 
 HB_END_DECLS
 

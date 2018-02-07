@@ -43,19 +43,20 @@ test_subset (void)
 
   hb_subset_profile_t *profile = hb_subset_profile_create();
   hb_subset_input_t *input = hb_subset_input_create (hb_set_get_empty ());
-  hb_subset_face_t *subset_face = hb_subset_face_create(face);
 
-  hb_blob_t *output;
-  g_assert(hb_subset(profile, input, subset_face, &output));
+  hb_face_t *out_face = hb_subset(face, profile, input);
+  g_assert(out_face);
+  g_assert(out_face != hb_face_get_empty ());
+  hb_blob_t *output = hb_face_reference_blob (out_face);
 
   unsigned int output_length;
   const char *output_data = hb_blob_get_data(output, &output_length);
   g_assert_cmpmem(test_data, 4, output_data, output_length);
 
   hb_blob_destroy(output);
-  hb_subset_face_destroy(subset_face);
   hb_subset_input_destroy(input);
   hb_subset_profile_destroy(profile);
+  hb_face_destroy(out_face);
   hb_face_destroy(face);
   hb_blob_destroy(font_blob);
 }

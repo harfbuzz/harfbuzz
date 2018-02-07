@@ -101,40 +101,6 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
   free (subset_input);
 }
 
-/**
- * hb_subset_face_create:
- *
- * Return value: New subset face.
- *
- * Since: 1.7.5
- **/
-hb_subset_face_t *
-hb_subset_face_create (hb_face_t *face)
-{
-  if (unlikely (!face))
-    face = hb_face_get_empty();
-
-  hb_subset_face_t *subset_face = hb_object_create<hb_subset_face_t> ();
-  subset_face->face = hb_face_reference (face);
-  subset_face->cmap.init(face);
-
-  return subset_face;
-}
-
-/**
- * hb_subset_face_destroy:
- *
- * Since: 1.7.5
- **/
-void
-hb_subset_face_destroy (hb_subset_face_t *subset_face)
-{
-  if (!hb_object_destroy (subset_face)) return;
-
-  subset_face->cmap.fini();
-  hb_face_destroy(subset_face->face);
-  free (subset_face);
-}
 
 /**
  * hb_subset:
@@ -145,15 +111,14 @@ hb_subset_face_destroy (hb_subset_face_t *subset_face)
  *
  * Subsets a font according to provided profile and input.
  **/
-hb_bool_t
-hb_subset (hb_subset_profile_t *profile,
-           hb_subset_input_t *input,
-           hb_subset_face_t *face,
-           hb_blob_t **result /* OUT */)
+hb_face_t *
+hb_subset (hb_face_t *source,
+	   hb_subset_profile_t *profile,
+           hb_subset_input_t *input)
 {
-  if (!profile || !input || !face) return false;
+  if (unlikely (!profile || !input || !source)) return nullptr;
 
-  hb_subset_plan_t *plan = hb_subset_plan_create (face, profile, input);
+  hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
 
   hb_codepoint_t old_gid = -1;
   while (hb_set_next(plan->glyphs_to_retain, &old_gid)) {
@@ -174,14 +139,13 @@ hb_subset (hb_subset_profile_t *profile,
   bool success = true;
 
   hb_blob_t *glyf_prime = nullptr;
-  if (hb_subset_glyf (plan, face->face, &glyf_prime)) {
+  if (hb_subset_glyf (plan, source, &glyf_prime)) {
     // TODO: write new glyf to new face.
   } else {
     success = false;
   }
   hb_blob_destroy (glyf_prime);
 
-  *result = hb_face_reference_blob(face->face);
   hb_subset_plan_destroy (plan);
-  return success;
+  return success ? hb_face_reference (source) : nullptr;
 }

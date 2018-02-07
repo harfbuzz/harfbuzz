@@ -93,19 +93,21 @@ struct subset_consumer_t
     hb_subset_profile_t *subset_profile = hb_subset_profile_create();
     hb_subset_input_t *subset_input = hb_subset_input_create (codepoints);
     hb_face_t *face = hb_font_get_face (font);
-    hb_subset_face_t *subset_face = hb_subset_face_create(face);
 
 
 
-    hb_blob_t *result = nullptr;
-    failed = !(hb_subset(subset_profile, subset_input, subset_face, &result)
-               && write_file(options.output_file, result));
+    hb_face_t *new_face = hb_subset(face, subset_profile, subset_input);
+    hb_blob_t *result = hb_face_reference_blob (new_face);
+
+    failed = !hb_blob_get_length (result);
+    if (!failed)
+      write_file (options.output_file, result);
 
     hb_subset_profile_destroy (subset_profile);
     hb_subset_input_destroy (subset_input);
     hb_set_destroy (codepoints);
-    hb_subset_face_destroy (subset_face);
     hb_blob_destroy (result);
+    hb_face_destroy (new_face);
     hb_font_destroy (font);
   }
 
