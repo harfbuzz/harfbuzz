@@ -173,7 +173,7 @@ struct hmtxvmtx
 					 * be in the array, but that entry is
 					 * required. The last entry applies to
 					 * all subsequent glyphs. */
-  FWORD		leadingBearingX[VAR];	/* Here the advance is assumed
+/*FWORD		leadingBearingX[VAR];*/	/* Here the advance is assumed
 					 * to be the same as the advance
 					 * for the last entry above. The
 					 * number of entries in this array is
@@ -187,7 +187,7 @@ struct hmtxvmtx
 					 * font to vary the side bearing
 					 * values for each glyph. */
   public:
-  DEFINE_SIZE_ARRAY2 (0, longMetric, leadingBearingX);
+  DEFINE_SIZE_ARRAY (0, longMetric);
 };
 
 struct hmtx : hmtxvmtx<hmtx> {
