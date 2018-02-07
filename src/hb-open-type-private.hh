@@ -134,7 +134,9 @@ static inline Type& StructAfter(TObject &X)
 
 #define HB_NULL_POOL_SIZE 264
 static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
-extern HB_INTERNAL const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)];
+// TODO add back HB_INTERNAL once we figure out how to not have that break
+// subset compile
+extern const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
