@@ -74,6 +74,38 @@ write_glyf_prime (const OT::glyf::accelerator_t &glyf,
   return true;
 }
 
+bool
+_hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
+                 const char                     *glyf_data,
+                 hb_set_t                       *glyphs_to_retain,
+                 hb_blob_t                     **glyf_prime /* OUT */)
+{
+  // TODO(grieger): Sanity check writes to make sure they are in-bounds.
+  // TODO(grieger): Sanity check allocation size for the new table.
+  // TODO(grieger): Subset loca simultaneously.
+
+  unsigned int glyf_prime_size;
+  if (!calculate_glyf_prime_size (glyf,
+                                  glyphs_to_retain,
+                                  &glyf_prime_size)) {
+    return false;
+  }
+
+  char *glyf_prime_data = (char *) calloc (glyf_prime_size, 1);
+  if (!write_glyf_prime (glyf, glyf_data, glyphs_to_retain, glyf_prime_size,
+                         glyf_prime_data)) {
+    free (glyf_prime_data);
+    return false;
+  }
+
+  *glyf_prime = hb_blob_create (glyf_prime_data,
+                                glyf_prime_size,
+                                HB_MEMORY_MODE_READONLY,
+                                glyf_prime_data,
+                                free);
+  return true;
+}
+
 /**
  * hb_subset_glyf:
  * Subsets the glyph table according to a provided plan.
@@ -87,37 +119,13 @@ hb_subset_glyf (hb_subset_plan_t *plan,
                 hb_face_t        *face,
                 hb_blob_t       **glyf_prime /* OUT */)
 {
-  // TODO(grieger): Sanity check writes to make sure they are in-bounds.
-  // TODO(grieger): Sanity check allocation size for the new table.
-  // TODO(grieger): Subset loca simultaneously.
-
   hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
   const char *glyf_data = hb_blob_get_data(glyf_blob, nullptr);
 
   OT::glyf::accelerator_t glyf;
   glyf.init(face);
-
-  unsigned int glyf_prime_size;
-  if (!calculate_glyf_prime_size (glyf,
-                                  plan->glyphs_to_retain,
-                                  &glyf_prime_size)) {
-    glyf.fini();
-    return false;
-  }
-
-  char *glyf_prime_data = (char *) calloc (glyf_prime_size, 1);
-  if (!write_glyf_prime (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime_size,
-                         glyf_prime_data)) {
-    glyf.fini();
-    free (glyf_prime_data);
-    return false;
-  }
-
+  bool result = _hb_subset_glyf (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime);
   glyf.fini();
-  *glyf_prime = hb_blob_create (glyf_prime_data,
-                                glyf_prime_size,
-                                HB_MEMORY_MODE_READONLY,
-                                glyf_prime_data,
-                                free);
-  return true;
+
+  return result;
 }
