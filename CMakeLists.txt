@@ -253,8 +253,10 @@ set (project_sources
 
   ${HB_FALLBACK_sources}
   ${HB_OT_sources}
-  ${HB_OT_RAGEL_GENERATED_sources}
+  ${HB_OT_RAGEL_GENERATED_sources}  
+)
 
+set (subset_project_sources
   ${HB_SUBSET_sources}
 )
 
@@ -265,6 +267,10 @@ set (project_headers
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
+  ${HB_SUBSET_headers}
+)
+
+set (subset_project_headers
   ${HB_SUBSET_headers}
 )
 
@@ -530,6 +536,11 @@ endif ()
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
+## Define harfbuzz-subset library
+add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
+add_dependencies(harfbuzz-subset harfbuzz)
+target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
+
 if (UNIX OR MINGW)
   # Make symbols link locally
   link_libraries(-Bsymbolic-functions)
@@ -540,6 +551,7 @@ if (UNIX OR MINGW)
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
+    set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
   endif ()
 
   # No threadsafe statics as we do it ourselves
@@ -547,7 +559,6 @@ if (UNIX OR MINGW)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
 endif ()
-
 
 ## Define harfbuzz-gobject library
 if (HB_HAVE_GOBJECT)
@@ -720,7 +731,7 @@ if (HB_BUILD_UTILS)
   target_link_libraries(hb-shape harfbuzz)
 
   add_executable(hb-subset ${HB_SUBSET_CLI_sources})
-  target_link_libraries(hb-subset harfbuzz)
+  target_link_libraries(hb-subset harfbuzz harfbuzz-subset)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)

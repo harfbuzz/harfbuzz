@@ -20,7 +20,7 @@ if (HB_HAVE_GLIB)
     else ()
       message (FATAL_ERROR "No source file found for test ${test_name}")
     endif ()
-    target_link_libraries (${test_name} harfbuzz)
+    target_link_libraries (${test_name} harfbuzz harfbuzz-subset)
     add_test (${test_name} ${test_name})
   endforeach ()
   set_tests_properties (${TEST_PROGS} PROPERTIES ENVIRONMENT
