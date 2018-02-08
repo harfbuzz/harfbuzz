@@ -145,7 +145,7 @@ typedef struct OffsetTable
       rec.checkSum.set_for_data (hb_blob_get_data (blob, nullptr), rec.length);
       rec.offset.serialize (c, this);
       void *p = c->allocate_size<void> (rec.length);
-      if (unlikely (!p)) return false;
+      if (unlikely (!p)) {return false;}
       memcpy (p, hb_blob_get_data (blob, nullptr), rec.length);
       if (rec.length % 4)
 	p = c->allocate_size<void> (4 - rec.length % 4);

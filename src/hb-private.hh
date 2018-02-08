@@ -383,7 +383,7 @@ _hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
 static inline unsigned int
 _hb_ceil_to_4 (unsigned int v)
 {
-  return ((v - 1) & 3) + 1;
+  return ((v - 1) | 3) + 1;
 }
 
 
