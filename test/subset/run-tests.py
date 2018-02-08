@@ -47,13 +47,13 @@ def run_test(test):
 	if return_code:
 		return fail_test(test, cli_args, "%s returned %d" % (' '.join(cli_args), return_code))
 
-        expected_ttx, return_code = run_ttx(os.path.join(test_suite.get_output_directory(),
+	expected_ttx, return_code = run_ttx(os.path.join(test_suite.get_output_directory(),
 					    test.get_font_name()))
-        if return_code:
+	if return_code:
 		return fail_test(test, cli_args, "ttx (expected) returned %d" % (return_code))
 
-        actual_ttx, return_code = run_ttx(out_file)
-        if return_code:
+	actual_ttx, return_code = run_ttx(out_file)
+	if return_code:
 		return fail_test(test, cli_args, "ttx (actual) returned %d" % (return_code))
 
 	if not actual_ttx == expected_ttx:
@@ -62,10 +62,10 @@ def run_test(test):
 	return 0
 
 def run_ttx(file):
-        cli_args = ["ttx",
-                    "-o-",
-                    file]
-        return cmd(cli_args)
+	cli_args = ["ttx",
+		    "-o-",
+		    file]
+	return cmd(cli_args)
 
 
 args = sys.argv[1:]
