@@ -81,7 +81,7 @@ if not len(args):
 _, returncode = cmd(["which", "ttx"])
 if returncode:
   print("TTX is not present, skipping test.")
-  sys.exit (77)
+	sys.exit (77)
 
 fails = 0
 for path in args:
