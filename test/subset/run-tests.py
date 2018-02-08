@@ -78,6 +78,11 @@ if not len(args):
 	print ("No tests supplied.")
 	sys.exit (1)
 
+_, returncode = cmd(["which", "ttx"])
+if returncode:
+  print("TTX is not present, skipping test.")
+  sys.exit (77)
+
 fails = 0
 for path in args:
 	with io.open(path, mode="r", encoding="utf-8") as f:
