@@ -136,11 +136,12 @@ typedef struct OffsetTable
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     sfnt_version.set (sfnt_tag);
     if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
+
     for (unsigned int i = 0; i < table_count; i++)
     {
       TableRecord &rec = tables.array[i];
       hb_blob_t *blob = blobs[i];
-      rec.tag.set (tags[0]);
+      rec.tag.set (tags[i]);
       rec.length.set (hb_blob_get_length (blob));
       rec.checkSum.set_for_data (hb_blob_get_data (blob, nullptr), rec.length);
       rec.offset.serialize (c, this);
@@ -150,6 +151,9 @@ typedef struct OffsetTable
       if (rec.length % 4)
 	p = c->allocate_size<void> (4 - rec.length % 4);
     }
+    tags.advance (table_count);
+    blobs.advance (table_count);
+
     tables.qsort ();
     return_trace (true);
   }
