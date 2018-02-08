@@ -154,6 +154,8 @@ typedef struct OffsetTable
     tags.advance (table_count);
     blobs.advance (table_count);
 
+    /* TODO: update head table checkSumAdjustment. */
+
     tables.qsort ();
     return_trace (true);
   }
