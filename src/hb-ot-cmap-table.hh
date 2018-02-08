@@ -504,8 +504,13 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  inline bool subset(hb_subset_plan_t *plan, OT::hb_serialize_context_t *out) const
+  inline bool subset(hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest) const
   {
+    // TODO something useful re: memory, write to dest
+    size_t dest_sz = 64536; // as much as anyone would ever need
+    void *dest_buf = malloc(dest_sz);
+    OT::hb_serialize_context_t context(dest_buf, dest_sz);
+
     // Same version
     OT::cmap new_cmap;
     new_cmap.version = version;
