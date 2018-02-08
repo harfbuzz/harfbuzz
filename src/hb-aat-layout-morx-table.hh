@@ -281,7 +281,7 @@ struct ContextualSubtable
     TRACE_SANITIZE (this);
 
     unsigned int num_entries = 0;
-    if (unlikely (!machine.sanitize (c, &num_entries))) return false;
+    if (unlikely (!machine.sanitize (c, &num_entries))) return_trace (false);
 
     unsigned int num_lookups = 0;
 
@@ -454,9 +454,8 @@ struct LigatureSubtable
   {
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
-    return c->check_struct (this) && machine.sanitize (c) &&
-	   ligAction && component && ligature;
-    return_trace (true);
+    return_trace (c->check_struct (this) && machine.sanitize (c) &&
+		  ligAction && component && ligature);
   }
 
   protected:

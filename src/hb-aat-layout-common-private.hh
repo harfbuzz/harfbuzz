@@ -563,9 +563,9 @@ struct StateTable
     unsigned int entry = 0;
     while (state < num_states)
     {
-      if (unlikely (!c->check_array (states + state * nClasses,
-				     states[0].static_size,
-				     nClasses * (num_states - state))))
+      if (unlikely (!c->check_array (states,
+				     states[0].static_size * nClasses,
+				     num_states)))
 	return_trace (false);
       { /* Sweep new states. */
 	const HBUINT16 *stop = &states[num_states * nClasses];
@@ -574,9 +574,9 @@ struct StateTable
 	state = num_states;
       }
 
-      if (unlikely (!c->check_array (entries + entry,
+      if (unlikely (!c->check_array (entries,
 				     entries[0].static_size,
-				     num_entries - entry)))
+				     num_entries)))
 	return_trace (false);
       { /* Sweep new entries. */
 	const Entry<Extra> *stop = &entries[num_entries];
