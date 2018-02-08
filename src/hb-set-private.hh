@@ -273,7 +273,7 @@ struct hb_set_t
       {
 	page->add (g);
 
-	array++;
+	array = (const T *) ((const char *) array + stride);
 	count--;
       }
       while (count && (g = *array, start <= g && g < end));
@@ -302,7 +302,7 @@ struct hb_set_t
 	last_g = g;
 	page->add (g);
 
-	array++;
+	array = (const T *) ((const char *) array + stride);
 	count--;
       }
       while (count && (g = *array, g < end));
