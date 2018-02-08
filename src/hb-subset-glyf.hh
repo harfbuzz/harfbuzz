@@ -30,8 +30,9 @@
 #include "hb-subset-plan.hh"
 
 bool
-hb_subset_glyf (hb_subset_plan_t *plan,
-                hb_face_t        *face,
-                hb_blob_t       **glyf_prime /* OUT */);
+hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
+                         hb_face_t        *face,
+                         hb_blob_t       **glyf_prime /* OUT */,
+                         hb_blob_t       **loca_prime /* OUT */);
 
 #endif /* HB_SUBSET_GLYF_HH */

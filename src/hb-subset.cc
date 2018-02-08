@@ -310,8 +310,11 @@ hb_subset (hb_face_t *source,
   hb_face_t *dest = nullptr; // TODO allocate dest
 
   hb_blob_t *glyf_prime = nullptr;
-  if (hb_subset_glyf (plan, source, &glyf_prime)) {
-    // TODO: write new glyf to new face.
+  hb_blob_t *loca_prime = nullptr;
+  if (hb_subset_glyf_and_loca (plan, source, &glyf_prime, &loca_prime)) {
+    // TODO: write new glyf and loca to new face.
+  } else {
+    success = false;
   }
   hb_blob_destroy (glyf_prime);
 

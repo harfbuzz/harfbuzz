@@ -83,6 +83,7 @@ _hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
   // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
   // TODO(grieger): Subset loca simultaneously.
+  // TODO(grieger): Don't fail on bad offsets, just dump them.
 
   unsigned int glyf_prime_size;
   if (unlikely (!_calculate_glyf_prime_size (glyf,
@@ -115,9 +116,10 @@ _hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
  * Since: 1.7.5
  **/
 bool
-hb_subset_glyf (hb_subset_plan_t *plan,
-                hb_face_t        *face,
-                hb_blob_t       **glyf_prime /* OUT */)
+hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
+                         hb_face_t        *face,
+                         hb_blob_t       **glyf_prime /* OUT */,
+                         hb_blob_t       **loca_prime /* OUT */)
 {
   hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
   const char *glyf_data = hb_blob_get_data(glyf_blob, nullptr);
@@ -126,6 +128,8 @@ hb_subset_glyf (hb_subset_plan_t *plan,
   glyf.init(face);
   bool result = _hb_subset_glyf (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime);
   glyf.fini();
+
+  // TODO(grieger): Subset loca
 
   return result;
 }
