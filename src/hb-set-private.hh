@@ -470,7 +470,7 @@ struct hb_set_t
 
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
-    page_map.bfind (&map, &i);
+    page_map.bfind (map, &i);
     if (i < page_map.len)
     {
       if (pages[page_map[i].index].next (codepoint))
@@ -541,7 +541,7 @@ struct hb_set_t
   {
     page_map_t map = {get_major (g), pages.len};
     unsigned int i;
-    if (!page_map.bfind (&map, &i))
+    if (!page_map.bfind (map, &i))
     {
       if (!resize (pages.len + 1))
 	return nullptr;
@@ -555,7 +555,7 @@ struct hb_set_t
   inline page_t *page_for (hb_codepoint_t g)
   {
     page_map_t key = {get_major (g)};
-    const page_map_t *found = page_map.bsearch (&key);
+    const page_map_t *found = page_map.bsearch (key);
     if (found)
       return &pages[found->index];
     return nullptr;
@@ -563,7 +563,7 @@ struct hb_set_t
   inline const page_t *page_for (hb_codepoint_t g) const
   {
     page_map_t key = {get_major (g)};
-    const page_map_t *found = page_map.bsearch (&key);
+    const page_map_t *found = page_map.bsearch (key);
     if (found)
       return &pages[found->index];
     return nullptr;

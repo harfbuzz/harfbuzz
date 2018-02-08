@@ -56,6 +56,13 @@ typedef struct TableRecord
   int cmp (Tag t) const
   { return t.cmp (tag); }
 
+  static int cmp (const void *pa, const void *pb)
+  {
+    const TableRecord *a = (const TableRecord *) pa;
+    const TableRecord *b = (const TableRecord *) pb;
+    return b->cmp (a->tag);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -64,7 +71,7 @@ typedef struct TableRecord
 
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
-  HBUINT32	offset;		/* Offset from beginning of TrueType font
+  Offset32	offset;		/* Offset from beginning of TrueType font
 				 * file. */
   HBUINT32	length;		/* Length of this table. */
   public:
@@ -118,6 +125,35 @@ typedef struct OffsetTable
   }
 
   public:
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 hb_tag_t sfnt_tag,
+			 Supplier<hb_tag_t> &tags,
+			 Supplier<hb_blob_t *> &blobs,
+			 unsigned int table_count)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    sfnt_version.set (sfnt_tag);
+    if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
+    for (unsigned int i = 0; i < table_count; i++)
+    {
+      TableRecord &rec = tables.array[i];
+      hb_blob_t *blob = blobs[i];
+      rec.tag.set (tags[0]);
+      rec.length.set (hb_blob_get_length (blob));
+      rec.checkSum.set_for_data (hb_blob_get_data (blob, nullptr), rec.length);
+      rec.offset.serialize (c, this);
+      void *p = c->allocate_size<void> (rec.length);
+      if (unlikely (!p)) return false;
+      memcpy (p, hb_blob_get_data (blob, nullptr), rec.length);
+      if (rec.length % 4)
+	p = c->allocate_size<void> (4 - rec.length % 4);
+    }
+    tables.qsort ();
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -247,6 +283,18 @@ struct OpenTypeFontFile
     case TTCTag:	return u.ttcHeader.get_face (i);
     default:		return Null(OpenTypeFontFace);
     }
+  }
+
+  inline bool serialize_single (hb_serialize_context_t *c,
+				hb_tag_t sfnt_tag,
+			        Supplier<hb_tag_t> &tags,
+			        Supplier<hb_blob_t *> &blobs,
+			        unsigned int table_count)
+  {
+    TRACE_SERIALIZE (this);
+    assert (sfnt_tag != TTCTag);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    return_trace (u.fontFace.serialize (c, sfnt_tag, tags, blobs, table_count));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

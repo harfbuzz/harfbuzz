@@ -499,15 +499,16 @@ struct hb_serialize_context_t
 template <typename Type>
 struct Supplier
 {
-  inline Supplier (const Type *array, unsigned int len_)
+  inline Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof(Type))
   {
     head = array;
     len = len_;
+    stride = stride_;
   }
   inline const Type operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Type ();
-    return head[i];
+    return * (const Type *) ((const char *) head + stride * i);
   }
 
   inline void advance (unsigned int count)
@@ -515,7 +516,7 @@ struct Supplier
     if (unlikely (count > len))
       count = len;
     len -= count;
-    head += count;
+    head = (const Type *) ((const char *) head + stride * count);
   }
 
   private:
@@ -523,6 +524,7 @@ struct Supplier
   inline Supplier<Type>& operator= (const Supplier<Type> &); /* Disallow copy */
 
   unsigned int len;
+  unsigned int stride;
   const Type *head;
 };
 
@@ -717,6 +719,13 @@ struct Offset : Type
   inline bool is_null (void) const { return 0 == *this; }
   public:
   DEFINE_SIZE_STATIC (sizeof(Type));
+
+  inline void *serialize (hb_serialize_context_t *c, const void *base)
+  {
+    void *t = c->start_embed<void> ();
+    this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
+    return t;
+  }
 };
 
 typedef Offset<HBUINT16> Offset16;
@@ -786,9 +795,7 @@ struct OffsetTo : Offset<OffsetType>
 
   inline Type& serialize (hb_serialize_context_t *c, const void *base)
   {
-    Type *t = c->start_embed<Type> ();
-    this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
-    return *t;
+    return * (Type *) Offset<OffsetType>::serialize (c, base);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -926,6 +933,11 @@ struct ArrayOf
       if (!this->array[i].cmp (x))
         return i;
     return -1;
+  }
+
+  inline void qsort (void)
+  {
+    ::qsort (array, len, sizeof (Type), Type::cmp);
   }
 
   private:
@@ -1070,6 +1082,15 @@ struct BinSearchHeader
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  inline void set (unsigned int v)
+  {
+    len.set (v);
+    assert (len == v);
+    entrySelectorZ.set (MAX (1u, _hb_bit_storage (v)) - 1);
+    searchRangeZ.set (16 * (1u << entrySelectorZ));
+    rangeShiftZ.set (16 * MAX (0, (int) v - searchRangeZ));
   }
 
   protected:

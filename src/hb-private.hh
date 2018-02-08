@@ -380,6 +380,12 @@ _hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
   return (size > 0) && (count >= ((unsigned int) -1) / size);
 }
 
+static inline unsigned int
+_hb_ceil_to_4 (unsigned int v)
+{
+  return ((v - 1) & 3) + 1;
+}
+
 
 
 /* arrays and maps */
@@ -493,34 +499,34 @@ struct hb_prealloced_array_t
   }
 
   template <typename T>
-  inline Type *lsearch (T *x)
+  inline Type *lsearch (const T &x)
   {
     for (unsigned int i = 0; i < len; i++)
-      if (0 == this->array[i].cmp (x))
+      if (0 == this->array[i].cmp (&x))
 	return &array[i];
     return nullptr;
   }
 
   template <typename T>
-  inline Type *bsearch (T *x)
+  inline Type *bsearch (const T &x)
   {
     unsigned int i;
     return bfind (x, &i) ? &array[i] : nullptr;
   }
   template <typename T>
-  inline const Type *bsearch (T *x) const
+  inline const Type *bsearch (const T &x) const
   {
     unsigned int i;
     return bfind (x, &i) ? &array[i] : nullptr;
   }
   template <typename T>
-  inline bool bfind (T *x, unsigned int *i) const
+  inline bool bfind (const T &x, unsigned int *i) const
   {
     int min = 0, max = (int) this->len - 1;
     while (min <= max)
     {
       int mid = (min + max) / 2;
-      int c = this->array[mid].cmp (x);
+      int c = this->array[mid].cmp (&x);
       if (c < 0)
         max = mid - 1;
       else if (c > 0)
@@ -531,7 +537,7 @@ struct hb_prealloced_array_t
 	return true;
       }
     }
-    if (max < 0 || (max < (int) this->len && this->array[max].cmp (x) > 0))
+    if (max < 0 || (max < (int) this->len && this->array[max].cmp (&x) > 0))
       max++;
     *i = max;
     return false;

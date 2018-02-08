@@ -32,7 +32,12 @@
 
 /* Unit tests for hb-subset.h */
 
-static const char test_data[] = { 0, 0, 1, 0 };
+static const char test_data[] = { 0, 1, 0, 0,	/* sfntVersion */
+				  0, 0,		/* numTables */
+				  0, 0x10,	/* searchRange */
+				  0, 0,		/* entrySelector */
+				  0, 0,		/* rangeShift */
+				};
 
 static void
 test_subset (void)
@@ -51,7 +56,7 @@ test_subset (void)
 
   unsigned int output_length;
   const char *output_data = hb_blob_get_data(output, &output_length);
-  g_assert_cmpmem(test_data, 4, output_data, output_length);
+  g_assert_cmpmem (test_data, sizeof (test_data), output_data, output_length);
 
   hb_blob_destroy(output);
   hb_subset_input_destroy(input);

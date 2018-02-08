@@ -32,6 +32,7 @@
 #include "hb-subset-private.hh"
 #include "hb-subset-plan.hh"
 
+#include "hb-open-file-private.hh"
 #include "hb-ot-glyf-table.hh"
 
 
@@ -142,7 +143,48 @@ _hb_subset_face_data_destroy (void *user_data)
 {
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
 
+  data->tables.finish ();
+
   free (data);
+}
+
+static hb_blob_t *
+_hb_subset_face_data_reference_blob (hb_subset_face_data_t *data)
+{
+
+  unsigned int table_count = data->tables.len;
+  unsigned int face_length = table_count * 16 + 12;
+
+  for (unsigned int i = 0; i < table_count; i++)
+    face_length += _hb_ceil_to_4 (hb_blob_get_length (data->tables.array[i].blob));
+
+  char *buf = (char *) malloc (face_length);
+  if (unlikely (!buf))
+    return nullptr;
+
+  OT::hb_serialize_context_t c (buf, face_length);
+  OT::OpenTypeFontFile *f = c.start_serialize<OT::OpenTypeFontFile> ();
+
+  bool is_cff = data->tables.lsearch (HB_TAG ('C','F','F',' ')) || data->tables.lsearch (HB_TAG ('C','F','F','2'));
+  hb_tag_t sfnt_tag = is_cff ? OT::OpenTypeFontFile::CFFTag : OT::OpenTypeFontFile::TrueTypeTag;
+
+  OT::Supplier<hb_tag_t>    tags_supplier  (&data->tables[0].tag, table_count, sizeof (data->tables[0]));
+  OT::Supplier<hb_blob_t *> blobs_supplier (&data->tables[0].blob, table_count, sizeof (data->tables[0]));
+  bool ret = f->serialize_single (&c,
+				  sfnt_tag,
+				  tags_supplier,
+				  blobs_supplier,
+				  table_count);
+
+  c.end_serialize ();
+
+  if (unlikely (!ret))
+  {
+    free (buf);
+    return nullptr;
+  }
+
+  return hb_blob_create (buf, face_length, HB_MEMORY_MODE_WRITABLE, buf, free);
 }
 
 static hb_blob_t *
@@ -151,12 +193,9 @@ _hb_subset_face_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
 
   if (!tag)
-  {
-    /* TODO Compile face blob... */
-    return nullptr;
-  }
+    return _hb_subset_face_data_reference_blob (data);
 
-  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (&tag);
+  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (tag);
   if (entry)
     return hb_blob_reference (entry->blob);
 
@@ -182,7 +221,7 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;
 
-  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (&tag);
+  hb_subset_face_data_t::table_entry_t *entry = data->tables.lsearch (tag);
   if (unlikely (!entry))
     return false;
 
