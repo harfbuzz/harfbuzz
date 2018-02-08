@@ -527,7 +527,7 @@ _hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan,
 	  break;
 
 	case t::SPACE_4_EM_18:
-	  pos[i].x_advance = font->x_scale * 4 / 18;
+	  pos[i].x_advance = (int64_t) font->x_scale * 4 / 18;
 	  break;
 
 	case t::SPACE_FIGURE:
