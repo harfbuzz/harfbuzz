@@ -24,8 +24,10 @@
  * Google Author(s): Garret Rieger
  */
 
-#ifndef HB_SUBSET_GLYF_H
-#define HB_SUBSET_GLYF_H
+#ifndef HB_SUBSET_GLYF_HH
+#define HB_SUBSET_GLYF_HH
+
+#include "hb-private.hh"
 
 #include "hb-subset-plan.hh"
 

@@ -24,10 +24,11 @@
  * Google Author(s): Garret Rieger
  */
 
-#ifndef HB_SUBSET_PLAN_H
-#define HB_SUBSET_PLAN_H
+#ifndef HB_SUBSET_PLAN_HH
+#define HB_SUBSET_PLAN_HH
 
 #include "hb-private.hh"
+
 #include "hb-object-private.hh"
 
 struct hb_subset_plan_t {
