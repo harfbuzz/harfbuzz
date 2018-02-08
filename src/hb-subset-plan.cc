@@ -24,9 +24,9 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
-#include "hb-subset-plan.hh"
 #include "hb-subset-private.hh"
 
+#include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"
 
 hb_bool_t
