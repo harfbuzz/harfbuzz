@@ -30,36 +30,48 @@
 #include "hb-subset-glyf.hh"
 
 bool
-_calculate_glyf_prime_size (const OT::glyf::accelerator_t &glyf,
-                            hb_set_t *glyph_ids,
-                            unsigned int *size /* OUT */)
+_calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
+                                     hb_set_t *glyph_ids,
+                                     unsigned int *glyf_size /* OUT */,
+                                     unsigned int *loca_size /* OUT */)
 {
   unsigned int total = 0;
+  unsigned int count = 0;
   hb_codepoint_t next_glyph = -1;
   while (hb_set_next(glyph_ids, &next_glyph)) {
     unsigned int start_offset, end_offset;
     if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
-      *size = 0;
+      *glyf_size = 0;
+      *loca_size = sizeof(OT::HBUINT32);
       return false;
     }
 
     total += end_offset - start_offset;
+    count++;
   }
 
-  *size = total;
+  *glyf_size = total;
+  *loca_size = (count + 1) * sizeof(OT::HBUINT32);
   return true;
 }
 
 bool
-_write_glyf_prime (const OT::glyf::accelerator_t &glyf,
-                   const char                    *glyf_data,
-                   hb_set_t                      *glyph_ids,
-                   int                            glyf_prime_size,
-                   char                          *glyf_prime_data /* OUT */)
+_write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
+                            const char                    *glyf_data,
+                            const hb_set_t                *glyph_ids,
+                            int                            glyf_prime_size,
+                            char                          *glyf_prime_data /* OUT */,
+                            int                            loca_prime_size,
+                            char                          *loca_prime_data /* OUT */)
 {
+  // TODO(grieger): Handle the missing character glyf and outline.
+
   char *glyf_prime_data_next = glyf_prime_data;
+  OT::HBUINT32 *loca_prime = (OT::HBUINT32*) loca_prime_data;
 
   hb_codepoint_t next_glyph = -1;
+  hb_codepoint_t new_glyph_id = 0;
+
   while (hb_set_next(glyph_ids, &next_glyph)) {
     unsigned int start_offset, end_offset;
     if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
@@ -68,33 +80,42 @@ _write_glyf_prime (const OT::glyf::accelerator_t &glyf,
 
     int length = end_offset - start_offset;
     memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
+    loca_prime[new_glyph_id].set(start_offset);
+
     glyf_prime_data_next += length;
+    new_glyph_id++;
   }
 
   return true;
 }
 
 bool
-_hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
-                 const char                     *glyf_data,
-                 hb_set_t                       *glyphs_to_retain,
-                 hb_blob_t                     **glyf_prime /* OUT */)
+_hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
+                          const char                     *glyf_data,
+                          hb_set_t                       *glyphs_to_retain,
+                          hb_blob_t                     **glyf_prime /* OUT */,
+                          hb_blob_t                     **loca_prime /* OUT */)
 {
   // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
   // TODO(grieger): Subset loca simultaneously.
   // TODO(grieger): Don't fail on bad offsets, just dump them.
+  // TODO(grieger): Support short loca output.
 
   unsigned int glyf_prime_size;
-  if (unlikely (!_calculate_glyf_prime_size (glyf,
-                                             glyphs_to_retain,
-                                             &glyf_prime_size))) {
+  unsigned int loca_prime_size;
+  if (unlikely (!_calculate_glyf_and_loca_prime_size (glyf,
+                                                      glyphs_to_retain,
+                                                      &glyf_prime_size,
+                                                      &loca_prime_size))) {
     return false;
   }
 
   char *glyf_prime_data = (char *) calloc (glyf_prime_size, 1);
-  if (unlikely (!_write_glyf_prime (glyf, glyf_data, glyphs_to_retain, glyf_prime_size,
-                                    glyf_prime_data))) {
+  char *loca_prime_data = (char *) calloc (loca_prime_size, 1);
+  if (unlikely (!_write_glyf_and_loca_prime (glyf, glyf_data, glyphs_to_retain,
+                                             glyf_prime_size, glyf_prime_data,
+                                             loca_prime_size, loca_prime_data))) {
     free (glyf_prime_data);
     return false;
   }
@@ -103,6 +124,11 @@ _hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
                                 glyf_prime_size,
                                 HB_MEMORY_MODE_READONLY,
                                 glyf_prime_data,
+                                free);
+  *loca_prime = hb_blob_create (loca_prime_data,
+                                loca_prime_size,
+                                HB_MEMORY_MODE_READONLY,
+                                loca_prime_data,
                                 free);
   return true;
 }
@@ -126,7 +152,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
 
   OT::glyf::accelerator_t glyf;
   glyf.init(face);
-  bool result = _hb_subset_glyf (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime);
+  bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime, loca_prime);
   glyf.fini();
 
   // TODO(grieger): Subset loca
