@@ -30,15 +30,15 @@
 #include "hb-subset-glyf.hh"
 
 bool
-calculate_glyf_prime_size (const OT::glyf::accelerator_t &glyf,
-                           hb_set_t *glyph_ids,
-                           unsigned int *size /* OUT */)
+_calculate_glyf_prime_size (const OT::glyf::accelerator_t &glyf,
+                            hb_set_t *glyph_ids,
+                            unsigned int *size /* OUT */)
 {
   unsigned int total = 0;
   hb_codepoint_t next_glyph = -1;
   while (hb_set_next(glyph_ids, &next_glyph)) {
     unsigned int start_offset, end_offset;
-    if (!glyf.get_offsets (next_glyph, &start_offset, &end_offset)) {
+    if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
       *size = 0;
       return false;
     }
@@ -51,18 +51,18 @@ calculate_glyf_prime_size (const OT::glyf::accelerator_t &glyf,
 }
 
 bool
-write_glyf_prime (const OT::glyf::accelerator_t &glyf,
-                  const char                    *glyf_data,
-                  hb_set_t                      *glyph_ids,
-                  int                            glyf_prime_size,
-                  char                          *glyf_prime_data /* OUT */)
+_write_glyf_prime (const OT::glyf::accelerator_t &glyf,
+                   const char                    *glyf_data,
+                   hb_set_t                      *glyph_ids,
+                   int                            glyf_prime_size,
+                   char                          *glyf_prime_data /* OUT */)
 {
   char *glyf_prime_data_next = glyf_prime_data;
 
   hb_codepoint_t next_glyph = -1;
   while (hb_set_next(glyph_ids, &next_glyph)) {
     unsigned int start_offset, end_offset;
-    if (!glyf.get_offsets (next_glyph, &start_offset, &end_offset)) {
+    if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
       return false;
     }
 
@@ -85,15 +85,15 @@ _hb_subset_glyf (const OT::glyf::accelerator_t  &glyf,
   // TODO(grieger): Subset loca simultaneously.
 
   unsigned int glyf_prime_size;
-  if (!calculate_glyf_prime_size (glyf,
-                                  glyphs_to_retain,
-                                  &glyf_prime_size)) {
+  if (unlikely (!_calculate_glyf_prime_size (glyf,
+                                             glyphs_to_retain,
+                                             &glyf_prime_size))) {
     return false;
   }
 
   char *glyf_prime_data = (char *) calloc (glyf_prime_size, 1);
-  if (!write_glyf_prime (glyf, glyf_data, glyphs_to_retain, glyf_prime_size,
-                         glyf_prime_data)) {
+  if (unlikely (!_write_glyf_prime (glyf, glyf_data, glyphs_to_retain, glyf_prime_size,
+                                    glyf_prime_data))) {
     free (glyf_prime_data);
     return false;
   }
