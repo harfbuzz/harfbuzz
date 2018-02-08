@@ -267,7 +267,6 @@ set (project_headers
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
-  ${HB_SUBSET_headers}
 )
 
 set (subset_project_headers
