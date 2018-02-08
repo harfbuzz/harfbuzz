@@ -30,11 +30,13 @@ TEST_PROGS = \
 	test-set \
 	test-shape \
 	test-subset \
+	test-subset-glyf \
 	test-unicode \
 	test-version \
 	$(NULL)
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -60,6 +62,8 @@ TEST_PROGS += \
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 EXTRA_DIST += \
+	fonts/Roboto-Regular.abc.ttf \
+	fonts/Roboto-Regular.ac.ttf \
 	fonts/MathTestFontEmpty.otf \
 	fonts/MathTestFontFull.otf \
 	fonts/MathTestFontNone.otf \
