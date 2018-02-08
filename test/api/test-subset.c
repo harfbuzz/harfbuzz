@@ -26,10 +26,6 @@
 
 #include "hb-test.h"
 
-#ifndef g_assert_cmpmem
-#define g_assert_cmpmem(m1, l1, m2, l2) g_assert_true (l1 == l2 && memcmp (m1, m2, l1) == 0)
-#endif
-
 /* Unit tests for hb-subset.h */
 
 static const char test_data[] = { 0, 1, 0, 0,	/* sfntVersion */

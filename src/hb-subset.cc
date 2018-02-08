@@ -26,7 +26,7 @@
  */
 
 #include "hb-object-private.hh"
-#include "hb-open-type-private.hh"    
+#include "hb-open-type-private.hh"
 
 #include "hb-private.hh"
 
@@ -109,7 +109,7 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 
 template<typename TableType>
 hb_bool_t
-subset(hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
+subset (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
 {
     OT::Sanitizer<TableType> sanitizer;
     hb_blob_t *table_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
@@ -119,7 +119,7 @@ subset(hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
     }
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (table_blob);
     hb_bool_t result = table->subset(plan, source, dest);
-    
+
     hb_blob_destroy (table_blob);
 
     // TODO string not numeric tag

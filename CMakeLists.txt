@@ -253,7 +253,7 @@ set (project_sources
 
   ${HB_FALLBACK_sources}
   ${HB_OT_sources}
-  ${HB_OT_RAGEL_GENERATED_sources}  
+  ${HB_OT_RAGEL_GENERATED_sources}
 )
 
 set (subset_project_sources

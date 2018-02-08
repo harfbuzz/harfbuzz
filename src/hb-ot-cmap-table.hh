@@ -27,7 +27,7 @@
 #ifndef HB_OT_CMAP_TABLE_HH
 #define HB_OT_CMAP_TABLE_HH
 
-#include "hb-open-type-private.hh"          
+#include "hb-open-type-private.hh"
 #include "hb-subset-plan.hh"
 
 namespace OT {
@@ -504,7 +504,7 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  inline bool subset(hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest) const
+  inline bool subset (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest) const
   {
     // TODO something useful re: memory, write to dest
     size_t dest_sz = 64536; // as much as anyone would ever need
@@ -514,7 +514,7 @@ struct cmap
     // Same version
     OT::cmap new_cmap;
     new_cmap.version = version;
-    new_cmap.encodingRecord.len.set(1); // one format 12 subtable    
+    new_cmap.encodingRecord.len.set(1); // one format 12 subtable
 
     // TODO we need to actually build the format 12 subtable
 

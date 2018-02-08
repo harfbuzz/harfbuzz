@@ -161,6 +161,11 @@ typedef void (*hb_test_fixture_func_t) (void);
 #define g_test_fail() g_error("Test failed")
 #endif
 
+#ifndef g_assert_cmpmem
+#define g_assert_cmpmem(m1, l1, m2, l2) g_assert_true (l1 == l2 && memcmp (m1, m2, l1) == 0)
+#endif
+
+
 static inline void
 hb_test_add_func (const char *test_path,
 		  hb_test_func_t   test_func)
