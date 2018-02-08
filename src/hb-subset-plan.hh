@@ -55,4 +55,4 @@ hb_subset_plan_get_empty ();
 void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
 
-#endif /* HB_SUBSET_PLAN_PRIVATE_HH */
+#endif /* HB_SUBSET_PLAN_HH */
