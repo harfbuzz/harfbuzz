@@ -14,7 +14,7 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 #AM_CXXFLAGS =
 
 # Convenience targets:
-lib: $(BUILT_SOURCES) libharfbuzz.la
+lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
 fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la
 
 lib_LTLIBRARIES = libharfbuzz.la
