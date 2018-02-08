@@ -109,22 +109,21 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 
 template<typename TableType>
 hb_bool_t
-subset(hb_subset_plan_t *plan, hb_face_t *face, hb_blob_t **out)
+subset(hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
 {
     OT::Sanitizer<TableType> sanitizer;
-    hb_blob_t *table_blob = sanitizer.sanitize (face->reference_table (TableType::tableTag));
+    hb_blob_t *table_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
     if (unlikely(!table_blob)) {
+      DEBUG_MSG(SUBSET, nullptr, "Failed to reference table for tag %d", TableType::tableTag);
       return false;
     }
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (table_blob);
-
-    // TODO actually manage the context/output memory
-    size_t dest_sz = 64536; // as much as anyone would ever need
-    void *dest = malloc(dest_sz);
-    OT::hb_serialize_context_t context(dest, dest_sz);
-    hb_bool_t result = table->subset(plan, &context);
-    // TODO populate out
+    hb_bool_t result = table->subset(plan, source, dest);
+    
     hb_blob_destroy (table_blob);
+
+    // TODO string not numeric tag
+    DEBUG_MSG(SUBSET, nullptr, "Subset %d %s", TableType::tableTag, result ? "success" : "FAILED!");
     return result;
 }
 
@@ -306,18 +305,17 @@ hb_subset (hb_face_t *source,
   //   - copy the table into the output.
   // - Fix header + table directory.
 
+  bool success = true;
+
+  hb_face_t *dest = nullptr; // TODO allocate dest
+
   hb_blob_t *glyf_prime = nullptr;
   if (hb_subset_glyf (plan, source, &glyf_prime)) {
     // TODO: write new glyf to new face.
   }
   hb_blob_destroy (glyf_prime);
 
-  hb_blob_t *cmap_prime = nullptr;
-  if (subset<const OT::cmap>(plan, source, &cmap_prime)) {
-    DEBUG_MSG(SUBSET, nullptr, "subset cmap success!");
-  } else {
-    DEBUG_MSG(SUBSET, nullptr, "subset cmap FAILED!");
-  }
+  success = success && subset<const OT::cmap>(plan, source, dest);
 
   hb_subset_plan_destroy (plan);
 
