@@ -240,19 +240,25 @@ struct shape_options_t : option_group_t
     {
       if (error)
         *error = "all shapers failed.";
-      return false;
+      goto fail;
     }
 
     if (normalize_glyphs)
       hb_buffer_normalize_glyphs (buffer);
 
     if (verify && !verify_buffer (buffer, text_buffer, font, error))
-      return false;
+      goto fail;
 
     if (text_buffer)
       hb_buffer_destroy (text_buffer);
 
     return true;
+
+  fail:
+    if (text_buffer)
+      hb_buffer_destroy (text_buffer);
+
+    return false;
   }
 
   bool verify_buffer (hb_buffer_t  *buffer,
