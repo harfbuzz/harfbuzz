@@ -101,6 +101,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
   // TODO(grieger): Subset loca simultaneously.
   // TODO(grieger): Don't fail on bad offsets, just dump them.
   // TODO(grieger): Support short loca output.
+  // TODO(grieger): Add a extra loca entry at the end.
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
