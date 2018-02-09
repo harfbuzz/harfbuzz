@@ -258,8 +258,9 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
 {
   hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
   const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
+  bool has_head = (head != nullptr);
 
-  if (head) {
+  if (has_head) {
     OT::head *head_prime = (OT::head *) calloc (OT::head::static_size, 1);
     memcpy (head_prime, head, OT::head::static_size);
     head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
@@ -276,7 +277,7 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
 
   hb_blob_destroy (head_blob);
 
-  return !head;
+  return has_head;
 }
 
 bool
@@ -297,8 +298,6 @@ _subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
   }
   hb_blob_destroy (loca_prime);
   hb_blob_destroy (glyf_prime);
-
-  _add_head_and_set_loca_version (source, use_short_loca, dest);
 
   return success;
 }
@@ -345,7 +344,7 @@ hb_subset (hb_face_t *source,
 	   hb_subset_profile_t *profile,
            hb_subset_input_t *input)
 {
-  if (unlikely (!profile || !input || !source)) return nullptr;
+  if (unlikely (!profile || !input || !source)) return hb_face_get_empty();
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
 
@@ -368,5 +367,5 @@ hb_subset (hb_face_t *source,
   // TODO(grieger): Remove once basic subsetting is working + tests updated.
   hb_face_destroy (dest);
   hb_face_reference (source);
-  return success ? source : nullptr;
+  return success ? source : hb_face_get_empty();
 }
