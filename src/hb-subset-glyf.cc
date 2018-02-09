@@ -31,14 +31,14 @@
 
 bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
-                                     hb_set_t *glyph_ids,
+                                     hb_auto_array_t<unsigned int> &glyph_ids,
                                      unsigned int *glyf_size /* OUT */,
                                      unsigned int *loca_size /* OUT */)
 {
   unsigned int total = 0;
   unsigned int count = 0;
-  hb_codepoint_t next_glyph = -1;
-  while (hb_set_next(glyph_ids, &next_glyph)) {
+  for (unsigned int i = 0; i < glyph_ids.len; i++) {
+    hb_codepoint_t next_glyph = glyph_ids[i];
     unsigned int start_offset, end_offset;
     if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
       *glyf_size = 0;
@@ -58,7 +58,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 bool
 _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
-                            const hb_set_t                *glyph_ids,
+                            hb_auto_array_t<unsigned int> &glyph_ids,
                             int                            glyf_prime_size,
                             char                          *glyf_prime_data /* OUT */,
                             int                            loca_prime_size,
@@ -73,9 +73,9 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
   hb_codepoint_t new_glyph_id = 0;
 
   unsigned int end_offset;
-  while (hb_set_next(glyph_ids, &next_glyph)) {
+  for (unsigned int i = 0; i < glyph_ids.len; i++) {
     unsigned int start_offset;
-    if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
+    if (unlikely (!glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset))) {
       return false;
     }
 
@@ -97,7 +97,7 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
 bool
 _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           const char                     *glyf_data,
-                          hb_set_t                       *glyphs_to_retain,
+                          hb_auto_array_t<unsigned int>  &glyphs_to_retain,
                           hb_blob_t                     **glyf_prime /* OUT */,
                           hb_blob_t                     **loca_prime /* OUT */)
 {
@@ -158,7 +158,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
 
   OT::glyf::accelerator_t glyf;
   glyf.init(face);
-  bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->glyphs_to_retain, glyf_prime, loca_prime);
+  bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->gids_to_retain, glyf_prime, loca_prime);
   glyf.fini();
 
   // TODO(grieger): Subset loca
