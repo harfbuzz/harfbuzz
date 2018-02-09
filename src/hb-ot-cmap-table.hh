@@ -193,6 +193,7 @@ struct CmapSubtableLongGroup
 {
   friend struct CmapSubtableFormat12;
   friend struct CmapSubtableFormat13;
+  friend struct cmap;
 
   int cmp (hb_codepoint_t codepoint) const
   {
@@ -506,6 +507,30 @@ struct cmap
 
   inline bool subset (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest) const
   {
+    hb_auto_array_t<CmapSubtableLongGroup> groups;
+    CmapSubtableLongGroup *group = nullptr;
+    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
+      hb_codepoint_t cp = plan->codepoints[i];
+      if (!group)
+      {
+        group = groups.push();
+        group->startCharCode.set(cp);
+        group->endCharCode.set(cp);
+        group->glyphID.set(i);  // index in codepoints is new gid
+      } else if (cp -1 == group->endCharCode)
+      {
+        group->endCharCode.set(cp);
+      } else
+      {
+        group = nullptr;
+      }
+    }
+
+    DEBUG_MSG(SUBSET, nullptr, "cmap");
+    for (unsigned int i = 0; i < groups.len; i++) {
+      CmapSubtableLongGroup& group = groups[i];
+      DEBUG_MSG(SUBSET, nullptr, "  %d: U+%04X-U+%04X, first gid %d", i, (uint32_t) group.startCharCode, (uint32_t) group.endCharCode, (uint32_t) group.glyphID);
+    }
     return true;
   }
 
