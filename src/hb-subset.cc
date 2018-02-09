@@ -316,25 +316,6 @@ hb_subset (hb_face_t *source,
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
 
-  hb_face_t *face = hb_subset_face_create ();
-
-  /* Copy tables to new face. */
-  {
-    hb_tag_t table_tags[32];
-    unsigned int offset = 0, count;
-    do {
-      count = ARRAY_LENGTH (table_tags);
-      hb_face_get_table_tags (source, offset, &count, table_tags);
-      for (unsigned int i = 0; i < count; i++)
-      {
-      	hb_tag_t tag = table_tags[i];
-      	hb_blob_t *blob = hb_face_reference_table (source, tag);
-      	hb_subset_face_add_table (face, tag, blob);
-      	hb_blob_destroy (blob);
-      }
-    } while (count == ARRAY_LENGTH (table_tags));
-  }
-
   hb_face_t *dest = hb_subset_face_create ();
   hb_tag_t table_tags[32];
   unsigned int offset = 0, count;
