@@ -150,7 +150,7 @@ typedef struct OffsetTable
       rec.length.set (hb_blob_get_length (blob));
       rec.checkSum.set_for_data (hb_blob_get_data (blob, nullptr), rec.length);
       rec.offset.serialize (c, this);
-      // take room for the tablerec
+      // take room for the table
       void *p = c->allocate_size<void> (rec.length);
       if (unlikely (!p)) {return false;}
       // copy the actual table
