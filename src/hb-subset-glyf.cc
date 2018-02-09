@@ -72,8 +72,9 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
   hb_codepoint_t next_glyph = -1;
   hb_codepoint_t new_glyph_id = 0;
 
+  unsigned int end_offset;
   while (hb_set_next(glyph_ids, &next_glyph)) {
-    unsigned int start_offset, end_offset;
+    unsigned int start_offset;
     if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
       return false;
     }
@@ -85,6 +86,10 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
     glyf_prime_data_next += length;
     new_glyph_id++;
   }
+
+  // Add the last loca entry which doesn't correspond to a specific glyph
+  // but identifies the end of the last glyphs data.
+  loca_prime[new_glyph_id].set(end_offset);
 
   return true;
 }
