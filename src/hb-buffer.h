@@ -82,7 +82,7 @@ typedef struct hb_glyph_info_t {
  * 				   beginning of this cluster, and the two sides
  * 				   represent the exact same result one would get
  * 				   if breaking input text at the beginning of
- * 				   this cluster ans shaping the two sides
+ * 				   this cluster and shaping the two sides
  * 				   separately.  This can be used to optimize
  * 				   paragraph layout, by avoiding re-shaping
  * 				   of each line after line-breaking, or limiting
