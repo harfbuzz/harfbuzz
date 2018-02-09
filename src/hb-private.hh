@@ -120,7 +120,9 @@ extern "C" void  hb_free_impl(void *ptr);
 #endif
 
 #ifndef HB_INTERNAL
-# if !defined(__MINGW32__) && !defined(__CYGWIN__)
+# ifdef __SUNPRO_CC
+#  define HB_INTERNAL __hidden
+# elif !defined(__MINGW32__) && !defined(__CYGWIN__)
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
 # else
 #  define HB_INTERNAL
@@ -134,6 +136,11 @@ extern "C" void  hb_free_impl(void *ptr);
 #define HB_FUNC __FUNCSIG__
 #else
 #define HB_FUNC __func__
+#endif
+
+#ifdef __SUNPRO_CC
+/* https://github.com/harfbuzz/harfbuzz/issues/630 */
+#define __restrict
 #endif
 
 /*
