@@ -254,21 +254,51 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 }
 
 bool
+_add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
+{
+  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
+  const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
+
+  if (head) {
+    OT::head *head_prime = (OT::head *) calloc (OT::head::static_size, 1);
+    memcpy (head_prime, head, OT::head::static_size);
+    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
+
+    hb_blob_t *head_prime_blob = hb_blob_create ((const char*) head_prime,
+                                                 OT::head::static_size,
+                                                 HB_MEMORY_MODE_WRITABLE,
+                                                 head_prime,
+                                                 free);
+    hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+
+    hb_blob_destroy (head_prime_blob);
+  }
+
+  hb_blob_destroy (head_blob);
+
+  return !head;
+}
+
+bool
 _subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
 {
   hb_blob_t *glyf_prime = nullptr;
   hb_blob_t *loca_prime = nullptr;
 
   bool success = true;
+  bool use_short_loca = false;
   // TODO(grieger): Migrate to subset function on the table like cmap.
-  if (hb_subset_glyf_and_loca (plan, source, &glyf_prime, &loca_prime)) {
+  if (hb_subset_glyf_and_loca (plan, source, &use_short_loca, &glyf_prime, &loca_prime)) {
     hb_subset_face_add_table (dest, HB_OT_TAG_glyf, glyf_prime);
     hb_subset_face_add_table (dest, HB_OT_TAG_loca, loca_prime);
+    success = success && _add_head_and_set_loca_version (source, use_short_loca, dest);
   } else {
     success = false;
   }
   hb_blob_destroy (loca_prime);
   hb_blob_destroy (glyf_prime);
+
+  _add_head_and_set_loca_version (source, use_short_loca, dest);
 
   return success;
 }
@@ -284,8 +314,11 @@ _subset_table (hb_subset_plan_t *plan,
   switch (tag) {
     case HB_OT_TAG_glyf:
       return _subset_glyf (plan, source, dest);
+    case HB_OT_TAG_head:
+      // SKIP head, it's handled by glyf
+      return true;
     case HB_OT_TAG_loca:
-      // SKIP loca, it's handle by the glyf subsetter.
+      // SKIP loca, it's handle by glyf
       return true;
     case HB_OT_TAG_cmap:
       // TODO(rsheeter): remove hb_subset_face_add_table

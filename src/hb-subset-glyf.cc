@@ -103,10 +103,8 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
 {
   // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
-  // TODO(grieger): Subset loca simultaneously.
   // TODO(grieger): Don't fail on bad offsets, just dump them.
   // TODO(grieger): Support short loca output.
-  // TODO(grieger): Add a extra loca entry at the end.
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
@@ -150,7 +148,8 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
 bool
 hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                          hb_face_t        *face,
-                         hb_blob_t       **glyf_prime /* OUT */,
+                         bool             *use_short_loca, /* OUT */
+                         hb_blob_t       **glyf_prime, /* OUT */
                          hb_blob_t       **loca_prime /* OUT */)
 {
   hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
@@ -161,7 +160,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
   bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->gids_to_retain, glyf_prime, loca_prime);
   glyf.fini();
 
-  // TODO(grieger): Subset loca
+  *use_short_loca = false;
 
   return result;
 }
