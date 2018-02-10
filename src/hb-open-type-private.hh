@@ -508,7 +508,7 @@ struct Supplier
   inline const Type operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Type ();
-    return * (const Type *) ((const char *) head + stride * i);
+    return * (const Type *) (const void *) ((const char *) head + stride * i);
   }
 
   inline void advance (unsigned int count)
@@ -516,7 +516,7 @@ struct Supplier
     if (unlikely (count > len))
       count = len;
     len -= count;
-    head = (const Type *) ((const char *) head + stride * count);
+    head = (const Type *) (const void *) ((const char *) head + stride * count);
   }
 
   private:
