@@ -38,9 +38,9 @@ struct hb_subset_plan_t {
   // TODO(Q1) actual map, drop this crap
   // Look at me ma, I'm a poor mans map codepoint : new gid
   // codepoints is sorted and aligned with gids_to_retain.
-  hb_auto_array_t<hb_codepoint_t> codepoints;
-  hb_auto_array_t<hb_codepoint_t> gids_to_retain;
-  hb_auto_array_t<hb_codepoint_t> gids_to_retain_sorted;
+  hb_prealloced_array_t<hb_codepoint_t> codepoints;
+  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain;
+  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain_sorted;
 };
 
 typedef struct hb_subset_plan_t hb_subset_plan_t;
@@ -54,9 +54,6 @@ HB_INTERNAL hb_bool_t
 hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
                                   hb_codepoint_t old_gid,
                                   hb_codepoint_t *new_gid /* OUT */);
-
-HB_INTERNAL hb_subset_plan_t *
-hb_subset_plan_get_empty ();
 
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);

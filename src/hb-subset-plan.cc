@@ -51,7 +51,7 @@ hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
 
 HB_INTERNAL void
 _populate_codepoints (hb_set_t *input_codepoints,
-                      hb_auto_array_t<hb_codepoint_t>& plan_codepoints)
+                      hb_prealloced_array_t<hb_codepoint_t>& plan_codepoints)
 {
   plan_codepoints.alloc (hb_set_get_population (input_codepoints));
   hb_codepoint_t cp = -1;
@@ -64,14 +64,14 @@ _populate_codepoints (hb_set_t *input_codepoints,
 
 HB_INTERNAL void
 _populate_gids_to_retain (hb_face_t *face,
-                          hb_auto_array_t<hb_codepoint_t>& codepoints,
-                          hb_auto_array_t<hb_codepoint_t>& old_gids,
-                          hb_auto_array_t<hb_codepoint_t>& old_gids_sorted)
+                          hb_prealloced_array_t<hb_codepoint_t>& codepoints,
+                          hb_prealloced_array_t<hb_codepoint_t>& old_gids,
+                          hb_prealloced_array_t<hb_codepoint_t>& old_gids_sorted)
 {
   OT::cmap::accelerator_t cmap;
   cmap.init (face);
 
-  hb_auto_array_t<unsigned int> bad_indices;
+  hb_prealloced_array_t<unsigned int> bad_indices;
 
   old_gids.alloc (codepoints.len);
   bool has_zero = false;
@@ -131,18 +131,16 @@ hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_input_t   *input)
 {
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
+
+  plan->codepoints.init();
+  plan->gids_to_retain.init();
+  plan->gids_to_retain_sorted.init();
+
   _populate_codepoints (input->codepoints, plan->codepoints);
   _populate_gids_to_retain (face,
                             plan->codepoints,
                             plan->gids_to_retain,
                             plan->gids_to_retain_sorted);
-  return plan;
-}
-
-hb_subset_plan_t *
-hb_subset_plan_get_empty ()
-{
-  hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
   return plan;
 }
 
@@ -159,5 +157,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   plan->codepoints.finish ();
   plan->gids_to_retain.finish ();
   plan->gids_to_retain_sorted.finish ();
+
   free (plan);
 }

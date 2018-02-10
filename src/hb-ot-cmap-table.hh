@@ -521,8 +521,8 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  inline void populate_groups(hb_auto_array_t<hb_codepoint_t> &codepoints,
-                              hb_auto_array_t<CmapSubtableLongGroup> *groups) const
+  inline void populate_groups(hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+                              hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
     for (unsigned int i = 0; i < codepoints.len; i++) {
@@ -549,7 +549,7 @@ struct cmap
     }
   }
 
-  hb_bool_t _subset (hb_auto_array_t<CmapSubtableLongGroup> &groups,
+  hb_bool_t _subset (hb_prealloced_array_t<CmapSubtableLongGroup> &groups,
                      size_t dest_sz,
                      void *dest) const
   {
@@ -591,7 +591,7 @@ struct cmap
 
   hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
   {
-    hb_auto_array_t<CmapSubtableLongGroup> groups;
+    hb_prealloced_array_t<CmapSubtableLongGroup> groups;
 
     populate_groups(plan->codepoints, &groups);
 
