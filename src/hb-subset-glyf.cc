@@ -31,7 +31,7 @@
 
 static bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
-                                     hb_prealloced_array_t<unsigned int> &glyph_ids,
+                                     hb_prealloced_array_t<hb_codepoint_t> &glyph_ids,
                                      bool *use_short_loca, /* OUT */
                                      unsigned int *glyf_size, /* OUT */
                                      unsigned int *loca_size /* OUT */)
@@ -75,7 +75,7 @@ _write_loca_entry (unsigned int id, unsigned int offset, bool is_short, void *lo
 static bool
 _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
-                            hb_prealloced_array_t<unsigned int> &glyph_ids,
+                            hb_prealloced_array_t<hb_codepoint_t> &glyph_ids,
                             bool                           use_short_loca,
                             int                            glyf_prime_size,
                             char                          *glyf_prime_data /* OUT */,
