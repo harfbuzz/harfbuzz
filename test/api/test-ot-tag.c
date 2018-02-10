@@ -37,7 +37,7 @@ static void
 test_simple_tags (const char *s, hb_script_t script)
 {
   hb_script_t tag;
-  hb_script_t t1, t2;
+  hb_tag_t t1, t2;
 
   g_test_message ("Testing script %c%c%c%c: tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s);
   tag = hb_tag_from_string (s, -1);
