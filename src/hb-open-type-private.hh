@@ -511,12 +511,13 @@ struct Supplier
     return * (const Type *) (const void *) ((const char *) head + stride * i);
   }
 
-  inline void advance (unsigned int count)
+  inline Supplier<Type> & operator += (unsigned int count)
   {
     if (unlikely (count > len))
       count = len;
     len -= count;
     head = (const Type *) (const void *) ((const char *) head + stride * count);
+    return *this;
   }
 
   private:
@@ -883,7 +884,7 @@ struct ArrayOf
     if (unlikely (!serialize (c, items_len))) return_trace (false);
     for (unsigned int i = 0; i < items_len; i++)
       array[i] = items[i];
-    items.advance (items_len);
+    items += items_len;
     return_trace (true);
   }
 
@@ -1006,7 +1007,7 @@ struct HeadlessArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items_len - 1; i++)
       array[i] = items[i];
-    items.advance (items_len - 1);
+    items += items_len - 1;
     return_trace (true);
   }
 

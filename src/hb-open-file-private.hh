@@ -151,8 +151,8 @@ typedef struct OffsetTable
       if (rec.length % 4)
 	p = c->allocate_size<void> (4 - rec.length % 4);
     }
-    tags.advance (table_count);
-    blobs.advance (table_count);
+    tags += table_count;
+    blobs += table_count;
 
     /* TODO: update head table checkSumAdjustment. */
 
