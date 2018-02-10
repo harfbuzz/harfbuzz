@@ -37,7 +37,7 @@
 struct subset_consumer_t
 {
   subset_consumer_t (option_parser_t *parser)
-      : failed (false), options(parser) {}
+      : failed (false), options (parser), font (nullptr), codepoints (nullptr) {}
 
   void init (hb_buffer_t  *buffer_,
              const font_options_t *font_opts)
@@ -74,6 +74,8 @@ struct subset_consumer_t
     }
     int bytes_written = fwrite(data, 1, data_length, fp_out);
 
+    fclose (fp_out);
+
     if (bytes_written == -1) {
       fprintf(stderr, "Unable to write output file\n");
       return false;
@@ -92,8 +94,6 @@ struct subset_consumer_t
     hb_subset_profile_t *subset_profile = hb_subset_profile_create();
     hb_subset_input_t *subset_input = hb_subset_input_create (codepoints);
     hb_face_t *face = hb_font_get_face (font);
-
-
 
     hb_face_t *new_face = hb_subset(face, subset_profile, subset_input);
     hb_blob_t *result = hb_face_reference_blob (new_face);
