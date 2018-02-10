@@ -47,7 +47,7 @@ hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
   return false;
 }
 
-hb_set_t *
+HB_INTERNAL hb_set_t *
 glyph_ids_to_retain (hb_face_t *face,
                      hb_set_t  *codepoints)
 {

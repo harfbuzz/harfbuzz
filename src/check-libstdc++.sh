@@ -21,16 +21,18 @@ else
 fi
 
 tested=false
-for suffix in so dylib; do
-	so=$libs/libharfbuzz.$suffix
-	if ! test -f "$so"; then continue; fi
+for soname in harfbuzz harfbuzz-icu harfbuzz-subset; do
+	for suffix in so dylib; do
+		so=$libs/lib$soname.$suffix
+		if ! test -f "$so"; then continue; fi
 
-	echo "Checking that we are not linking to libstdc++ or libc++"
-	if $LDD $so | grep 'libstdc[+][+]\|libc[+][+]'; then
-		echo "Ouch, linked to libstdc++ or libc++"
-		stat=1
-	fi
-	tested=true
+		echo "Checking that we are not linking to libstdc++ or libc++"
+		if $LDD $so | grep 'libstdc[+][+]\|libc[+][+]'; then
+			echo "Ouch, linked to libstdc++ or libc++"
+			stat=1
+		fi
+		tested=true
+	done
 done
 if ! $tested; then
 	echo "check-libstdc++.sh: libharfbuzz shared library not found; skipping test"
