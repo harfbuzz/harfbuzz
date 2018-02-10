@@ -186,6 +186,7 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
+libharfbuzz_gobject_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(GOBJECT_CFLAGS)
