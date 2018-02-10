@@ -29,7 +29,7 @@
 #include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"
 
-int
+HB_INTERNAL int
 _hb_codepoint_t_cmp (const void *l, const void *r) {
   return *((hb_codepoint_t *) l) - *((hb_codepoint_t *) r);
 }
