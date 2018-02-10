@@ -448,7 +448,9 @@ struct hb_prealloced_array_t
       return false;
 
     array = new_array;
-    allocated = new_allocated;    
+    allocated = new_allocated;
+    
+    return true;
   }
 
   inline bool resize (unsigned int size)
