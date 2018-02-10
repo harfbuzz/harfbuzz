@@ -77,7 +77,6 @@ addons:
       - libgraphite2-dev # for extra shapers
       #- libgirepository1.0-dev # for gobject-introspection
 
-addons:
   coverity_scan:
     project:
       name: harfbuzz/harfbuzz
