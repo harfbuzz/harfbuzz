@@ -367,6 +367,5 @@ hb_subset (hb_face_t *source,
 
   // TODO(grieger): Remove once basic subsetting is working + tests updated.
   hb_face_destroy (dest);
-  hb_face_reference (source);
-  return success ? source : hb_face_get_empty();
+  return success ? hb_face_reference (source) : hb_face_get_empty ();
 }
