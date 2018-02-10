@@ -72,14 +72,14 @@ struct subset_consumer_t
       fprintf(stderr, "Unable to open output file\n");
       return false;
     }
-    ssize_t bytes_written = fwrite(data, 1, data_length, fp_out);
+    int bytes_written = fwrite(data, 1, data_length, fp_out);
 
     if (bytes_written == -1) {
       fprintf(stderr, "Unable to write output file\n");
       return false;
     }
-    if (bytes_written != data_length) {
-      fprintf(stderr, "Expected %u bytes written, got %ld\n", data_length,
+    if ((unsigned int) bytes_written != data_length) {
+      fprintf(stderr, "Expected %u bytes written, got %d\n", data_length,
               bytes_written);
       return false;
     }
