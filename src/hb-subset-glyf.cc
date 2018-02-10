@@ -84,10 +84,9 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
 {
   char *glyf_prime_data_next = glyf_prime_data;
 
-  hb_codepoint_t next_glyph = -1;
   hb_codepoint_t new_glyph_id = 0;
 
-  unsigned int end_offset;
+  unsigned int end_offset = 0;
   for (unsigned int i = 0; i < glyph_ids.len; i++) {
     unsigned int start_offset;
     if (unlikely (!glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset))) {
@@ -113,7 +112,7 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
 HB_INTERNAL bool
 _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           const char                     *glyf_data,
-                          hb_auto_array_t<unsigned int>  &glyphs_to_retain,
+                          hb_auto_array_t<hb_codepoint_t>&glyphs_to_retain,
                           bool                           *use_short_loca,
                           hb_blob_t                     **glyf_prime /* OUT */,
                           hb_blob_t                     **loca_prime /* OUT */)
