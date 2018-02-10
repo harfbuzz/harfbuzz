@@ -21,12 +21,13 @@ else
 fi
 
 tested=false
-for soname in harfbuzz harfbuzz-icu harfbuzz-subset; do
+# harfbuzz-icu links to libstdc++ because icu does.
+for soname in harfbuzz harfbuzz-subset harfbuzz-gobject; do
 	for suffix in so dylib; do
 		so=$libs/lib$soname.$suffix
 		if ! test -f "$so"; then continue; fi
 
-		echo "Checking that we are not linking to libstdc++ or libc++"
+		echo "Checking that we are not linking to libstdc++ or libc++ in $so"
 		if $LDD $so | grep 'libstdc[+][+]\|libc[+][+]'; then
 			echo "Ouch, linked to libstdc++ or libc++"
 			stat=1

@@ -17,7 +17,7 @@ fi
 
 echo "Checking that we are not exposing internal symbols"
 tested=false
-for soname in harfbuzz harfbuzz-icu harfbuzz-subset; do
+for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 	for suffix in so dylib; do
 		so=$libs/lib$soname.$suffix
 		if ! test -f "$so"; then continue; fi

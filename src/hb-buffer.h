@@ -92,7 +92,6 @@ typedef struct hb_glyph_info_t {
 typedef enum { /*< flags >*/
   HB_GLYPH_FLAG_UNSAFE_TO_BREAK		= 0x00000001,
 
-  /*< private >*/
   HB_GLYPH_FLAG_DEFINED			= 0x00000001 /* OR of all defined flags */
 } hb_glyph_flags_t;
 

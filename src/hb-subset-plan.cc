@@ -29,9 +29,13 @@
 #include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"
 
-HB_INTERNAL int
-_hb_codepoint_t_cmp (const void *l, const void *r) {
-  return *((hb_codepoint_t *) l) - *((hb_codepoint_t *) r);
+static int
+_hb_codepoint_t_cmp (const void *pa, const void *pb)
+{
+  hb_codepoint_t a = * (hb_codepoint_t *) pa;
+  hb_codepoint_t b = * (hb_codepoint_t *) pb;
+
+  return a < b ? -1 : a > b ? +1 : 0;
 }
 
 hb_bool_t
