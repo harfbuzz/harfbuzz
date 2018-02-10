@@ -270,7 +270,7 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
                                                  HB_MEMORY_MODE_WRITABLE,
                                                  head_prime,
                                                  free);
-    hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+    has_head = has_head && hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
 
     hb_blob_destroy (head_prime_blob);
   }
@@ -290,8 +290,8 @@ _subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
   bool use_short_loca = false;
   // TODO(grieger): Migrate to subset function on the table like cmap.
   if (hb_subset_glyf_and_loca (plan, source, &use_short_loca, &glyf_prime, &loca_prime)) {
-    hb_subset_face_add_table (dest, HB_OT_TAG_glyf, glyf_prime);
-    hb_subset_face_add_table (dest, HB_OT_TAG_loca, loca_prime);
+    success = success && hb_subset_face_add_table (dest, HB_OT_TAG_glyf, glyf_prime);
+    success = success && hb_subset_face_add_table (dest, HB_OT_TAG_loca, loca_prime);
     success = success && _add_head_and_set_loca_version (source, use_short_loca, dest);
   } else {
     success = false;
@@ -326,8 +326,7 @@ _subset_table (hb_subset_plan_t *plan,
       return subset<const OT::cmap> (plan, source, dest);
     default:
       // Default action, copy table as is.
-      hb_subset_face_add_table (dest, tag, table_blob);
-      return true;
+      return hb_subset_face_add_table (dest, tag, table_blob);
   }
 }
 
