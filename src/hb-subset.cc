@@ -251,7 +251,7 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   return true;
 }
 
-bool
+HB_INTERNAL bool
 _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
 {
   hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
@@ -278,7 +278,7 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
   return has_head;
 }
 
-bool
+HB_INTERNAL bool
 _subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
 {
   hb_blob_t *glyf_prime = nullptr;
@@ -300,7 +300,7 @@ _subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
   return success;
 }
 
-bool
+HB_INTERNAL bool
 _subset_table (hb_subset_plan_t *plan,
                hb_face_t        *source,
                hb_tag_t          tag,
