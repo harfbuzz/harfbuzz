@@ -136,6 +136,7 @@ pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
+libharfbuzz_subset_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
@@ -172,6 +173,7 @@ HBSOURCES += $(HB_ICU_sources)
 HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
+libharfbuzz_icu_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
 libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
@@ -184,6 +186,7 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
+libharfbuzz_gobject_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(GOBJECT_CFLAGS)

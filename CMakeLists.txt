@@ -544,17 +544,15 @@ if (UNIX OR MINGW)
   # Make symbols link locally
   link_libraries(-Bsymbolic-functions)
 
-  # Make sure we don't link to libstdc++
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Make sure we don't link to libstdc++
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
     set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
-  endif ()
 
-  # No threadsafe statics as we do it ourselves
-  if (BUILD_SHARED_LIBS)
+    # No threadsafe statics as we do it ourselves
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
 endif ()

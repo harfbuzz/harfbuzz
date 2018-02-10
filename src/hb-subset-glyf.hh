@@ -31,7 +31,7 @@
 
 #include "hb-subset-plan.hh"
 
-bool
+HB_INTERNAL bool
 hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                          hb_face_t        *face,
                          bool             *use_short_loca, /* OUT */

@@ -49,7 +49,7 @@ hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
   return false;
 }
 
-void
+HB_INTERNAL void
 _populate_codepoints (hb_set_t *input_codepoints,
                       hb_auto_array_t<hb_codepoint_t>& plan_codepoints)
 {
@@ -62,7 +62,7 @@ _populate_codepoints (hb_set_t *input_codepoints,
   plan_codepoints.qsort (_hb_codepoint_t_cmp);
 }
 
-void
+HB_INTERNAL void
 _populate_gids_to_retain (hb_face_t *face,
                           hb_auto_array_t<hb_codepoint_t>& codepoints,
                           hb_auto_array_t<hb_codepoint_t>& old_gids,

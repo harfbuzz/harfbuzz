@@ -29,7 +29,7 @@
 #include "hb-set.h"
 #include "hb-subset-glyf.hh"
 
-bool
+HB_INTERNAL bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
                                      hb_auto_array_t<unsigned int> &glyph_ids,
                                      bool *use_short_loca, /* OUT */
@@ -63,7 +63,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   return true;
 }
 
-void
+HB_INTERNAL void
 _write_loca_entry (unsigned int id, unsigned int offset, bool is_short, void *loca_prime) {
   if (is_short) {
     ((OT::HBUINT16*) loca_prime) [id].set (offset / 2);
@@ -72,7 +72,7 @@ _write_loca_entry (unsigned int id, unsigned int offset, bool is_short, void *lo
   }
 }
 
-bool
+HB_INTERNAL bool
 _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
                             hb_auto_array_t<unsigned int> &glyph_ids,
@@ -110,7 +110,7 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
   return true;
 }
 
-bool
+HB_INTERNAL bool
 _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           const char                     *glyf_data,
                           hb_auto_array_t<unsigned int>  &glyphs_to_retain,

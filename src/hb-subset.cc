@@ -108,7 +108,7 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 }
 
 template<typename TableType>
-hb_blob_t *
+HB_INTERNAL hb_blob_t *
 _subset (hb_subset_plan_t *plan, hb_face_t *source)
 {
     OT::Sanitizer<TableType> sanitizer;
