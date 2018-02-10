@@ -133,10 +133,15 @@ typedef struct OffsetTable
 			 unsigned int table_count)
   {
     TRACE_SERIALIZE (this);
+    // alloc 12 for the OTHeader
     if (unlikely (!c->extend_min (*this))) return_trace (false);
+    // write sfntVersion (bytes 0..3)
     sfnt_version.set (sfnt_tag);
+    // take space for numTables, searchRange, entrySelector, RangeShift
+    // and the TableRecords themselves
     if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
 
+    // write OffsetTables, alloc for and write actual table blobs
     for (unsigned int i = 0; i < table_count; i++)
     {
       TableRecord &rec = tables.array[i];
@@ -145,14 +150,17 @@ typedef struct OffsetTable
       rec.length.set (hb_blob_get_length (blob));
       rec.checkSum.set_for_data (hb_blob_get_data (blob, nullptr), rec.length);
       rec.offset.serialize (c, this);
+      // take room for the table
       void *p = c->allocate_size<void> (rec.length);
       if (unlikely (!p)) {return false;}
+      // copy the actual table
       memcpy (p, hb_blob_get_data (blob, nullptr), rec.length);
+      // 4-byte allignment
       if (rec.length % 4)
 	p = c->allocate_size<void> (4 - rec.length % 4);
     }
-    tags.advance (table_count);
-    blobs.advance (table_count);
+    tags += table_count;
+    blobs += table_count;
 
     /* TODO: update head table checkSumAdjustment. */
 

@@ -780,7 +780,11 @@ text_options_t::get_line (unsigned int *len)
     gs = g_string_new (nullptr);
   }
 
-  setvbuf(fp, NULL, _IOLBF, BUFSIZ); //setlinebuf (fp);
+#ifdef HAVE_SETLINEBUF
+  setlinebuf (fp);
+#else
+  setvbuf(fp, NULL, _IOLBF, BUFSIZ);
+#endif
 
   g_string_set_size (gs, 0);
   char buf[BUFSIZ];
@@ -819,7 +823,11 @@ output_options_t::get_file_handle (void)
     fail (false, "Cannot open output file `%s': %s",
 	  g_filename_display_name (output_file), strerror (errno));
 
-  setvbuf(fp, NULL, _IOLBF, BUFSIZ); //setlinebuf (fp);
+#ifdef HAVE_SETLINEBUF
+  setlinebuf (fp);
+#else
+  setvbuf(fp, NULL, _IOLBF, BUFSIZ);
+#endif
 
   return fp;
 }

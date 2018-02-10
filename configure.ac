@@ -69,7 +69,7 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 ])
 
 # Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l setlinebuf)
 AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h)
 
 # Compiler flags
@@ -355,9 +355,7 @@ if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
 	save_libs=$LIBS
 	LIBS="$LIBS $FREETYPE_LIBS"
-	AC_CHECK_FUNCS(FT_Get_Var_Blend_Coordinates)
-	AC_CHECK_FUNCS(FT_Set_Var_Blend_Coordinates)
-	AC_CHECK_FUNCS(FT_Done_MM_Var)
+	AC_CHECK_FUNCS(FT_Get_Var_Blend_Coordinates FT_Set_Var_Blend_Coordinates FT_Done_MM_Var)
 	LIBS=$save_libs
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)

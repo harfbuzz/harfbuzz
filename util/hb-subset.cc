@@ -59,7 +59,6 @@ struct subset_consumer_t
       gunichar cp = g_utf8_get_char(c);
       hb_codepoint_t hb_cp = cp; // TODO(Q1) is this safe?
       hb_set_add(codepoints, hb_cp);
-      g_print ("  U+%04X %" G_GINT32_FORMAT "\n", cp, cp);
     } while ((c = g_utf8_find_next_char(c, text + text_len)) != nullptr);
   }
 

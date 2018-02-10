@@ -700,7 +700,7 @@ struct CoverageFormat1
     if (unlikely (!c->extend (glyphArray))) return_trace (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
       glyphArray[i] = glyphs[i];
-    glyphs.advance (num_glyphs);
+    glyphs += num_glyphs;
     return_trace (true);
   }
 
@@ -789,7 +789,7 @@ struct CoverageFormat2
       } else {
         rangeRecord[range].end = glyphs[i];
       }
-    glyphs.advance (num_glyphs);
+    glyphs += num_glyphs;
     return_trace (true);
   }
 

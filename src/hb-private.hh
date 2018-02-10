@@ -425,35 +425,44 @@ struct hb_prealloced_array_t
     return &array[len - 1];
   }
 
+  /* Allocate for size but don't adjust len. */
+  inline bool alloc(unsigned int size)
+  {
+    if (likely (size <= allocated))
+      return true;
+
+    /* Reallocate */
+
+    unsigned int new_allocated = allocated;
+    while (size >= new_allocated)
+      new_allocated += (new_allocated >> 1) + 8;
+
+    Type *new_array = nullptr;
+
+    if (array == static_array) {
+      new_array = (Type *) calloc (new_allocated, sizeof (Type));
+      if (new_array)
+        memcpy (new_array, array, len * sizeof (Type));
+          } else {
+      bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
+      if (likely (!overflows)) {
+        new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
+      }
+    }
+
+    if (unlikely (!new_array))
+      return false;
+
+    array = new_array;
+    allocated = new_allocated;
+
+    return true;
+  }
+
   inline bool resize (unsigned int size)
   {
-    if (unlikely (size > allocated))
-    {
-      /* Need to reallocate */
-
-      unsigned int new_allocated = allocated;
-      while (size >= new_allocated)
-        new_allocated += (new_allocated >> 1) + 8;
-
-      Type *new_array = nullptr;
-
-      if (array == static_array) {
-	new_array = (Type *) calloc (new_allocated, sizeof (Type));
-	if (new_array)
-	  memcpy (new_array, array, len * sizeof (Type));
-      } else {
-	bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
-	if (likely (!overflows)) {
-	  new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
-	}
-      }
-
-      if (unlikely (!new_array))
-	return false;
-
-      array = new_array;
-      allocated = new_allocated;
-    }
+    if (!alloc (size))
+      return false;
 
     len = size;
     return true;
@@ -493,6 +502,11 @@ struct hb_prealloced_array_t
       if (array[i] == v)
 	return &array[i];
     return nullptr;
+  }
+
+  inline void qsort (int (*cmp)(const void*, const void*))
+  {
+    ::qsort (array, len, sizeof (Type), cmp);
   }
 
   inline void qsort (void)
