@@ -614,8 +614,16 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
+      {
+	c->set_lookup_index (c->lookup_index + 1);
+	continue;
+      }
+
       subtable->apply (c);
       subtable = &StructAfter<ChainSubtable> (*subtable);
+
+      (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
       c->set_lookup_index (c->lookup_index + 1);
     }
