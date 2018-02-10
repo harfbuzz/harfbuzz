@@ -108,22 +108,22 @@ hb_subset_input_destroy(hb_subset_input_t *subset_input)
 }
 
 template<typename TableType>
-hb_bool_t
-subset (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
+hb_blob_t *
+_subset (hb_subset_plan_t *plan, hb_face_t *source)
 {
     OT::Sanitizer<TableType> sanitizer;
-    hb_blob_t *table_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
-    if (unlikely(!table_blob)) {
+    hb_blob_t *source_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
+    if (unlikely(!source_blob)) {
       DEBUG_MSG(SUBSET, nullptr, "Failed to reference table for tag %d", TableType::tableTag);
-      return false;
+      return nullptr;
     }
-    const TableType *table = OT::Sanitizer<TableType>::lock_instance (table_blob);
-    hb_bool_t result = table->subset(plan, source, dest);
+    const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
+    hb_blob_t *result = table->subset(plan, source);
 
-    hb_blob_destroy (table_blob);
+    hb_blob_destroy (source_blob);
 
-    // TODO string not numeric tag
-    DEBUG_MSG(SUBSET, nullptr, "Subset %d %s", TableType::tableTag, result ? "success" : "FAILED!");
+    hb_tag_t tag = TableType::tableTag;
+    DEBUG_MSG(SUBSET, nullptr, "Subset %c%c%c%c %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
     return result;
 }
 
@@ -242,7 +242,6 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
     return false;
 
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;
-
   hb_subset_face_data_t::table_entry_t *entry = data->tables.push ();
   if (unlikely (!entry))
     return false;
@@ -250,6 +249,87 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   entry->tag = tag;
   entry->blob = hb_blob_reference (blob);
 
+  return true;
+}
+
+bool
+_add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
+{
+  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
+  const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
+  bool has_head = (head != nullptr);
+
+  if (has_head) {
+    OT::head *head_prime = (OT::head *) calloc (OT::head::static_size, 1);
+    memcpy (head_prime, head, OT::head::static_size);
+    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
+
+    hb_blob_t *head_prime_blob = hb_blob_create ((const char*) head_prime,
+                                                 OT::head::static_size,
+                                                 HB_MEMORY_MODE_WRITABLE,
+                                                 head_prime,
+                                                 free);
+    has_head = has_head && hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+
+    hb_blob_destroy (head_prime_blob);
+  }
+
+  hb_blob_destroy (head_blob);
+
+  return has_head;
+}
+
+bool
+_subset_glyf (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
+{
+  hb_blob_t *glyf_prime = nullptr;
+  hb_blob_t *loca_prime = nullptr;
+
+  bool success = true;
+  bool use_short_loca = false;
+  // TODO(grieger): Migrate to subset function on the table like cmap.
+  if (hb_subset_glyf_and_loca (plan, source, &use_short_loca, &glyf_prime, &loca_prime)) {
+    success = success && hb_subset_face_add_table (dest, HB_OT_TAG_glyf, glyf_prime);
+    success = success && hb_subset_face_add_table (dest, HB_OT_TAG_loca, loca_prime);
+    success = success && _add_head_and_set_loca_version (source, use_short_loca, dest);
+  } else {
+    success = false;
+  }
+  hb_blob_destroy (loca_prime);
+  hb_blob_destroy (glyf_prime);
+
+  return success;
+}
+
+bool
+_subset_table (hb_subset_plan_t *plan,
+               hb_face_t        *source,
+               hb_tag_t          tag,
+               hb_blob_t        *source_blob,
+               hb_face_t        *dest)
+{
+  // TODO (grieger): Handle updating the head table (loca format + num glyphs)
+  DEBUG_MSG(SUBSET, nullptr, "begin subset %c%c%c%c", HB_UNTAG(tag));
+  hb_blob_t *dest_blob;
+  switch (tag) {
+    case HB_OT_TAG_glyf:
+      return _subset_glyf (plan, source, dest);
+    case HB_OT_TAG_head:
+      // SKIP head, it's handled by glyf
+      return true;
+    case HB_OT_TAG_loca:
+      // SKIP loca, it's handle by glyf
+      return true;
+    case HB_OT_TAG_cmap:
+      dest_blob = _subset<const OT::cmap> (plan, source);
+      break;
+    default:
+      dest_blob = source_blob;
+      break;
+  } 
+  DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), dest_blob ? "ok" : "FAILED");
+  if (unlikely(!dest_blob)) return false;
+  if (unlikely(!hb_subset_face_add_table (dest, tag, dest_blob))) return false;
   return true;
 }
 
@@ -266,61 +346,28 @@ hb_subset (hb_face_t *source,
 	   hb_subset_profile_t *profile,
            hb_subset_input_t *input)
 {
-  if (unlikely (!profile || !input || !source)) return nullptr;
+  if (unlikely (!profile || !input || !source)) return hb_face_get_empty();
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
 
-  hb_face_t *face = hb_subset_face_create ();
-
-  /* Copy tables to new face. */
-  {
-    hb_tag_t table_tags[32];
-    unsigned int offset = 0, count;
-    do {
-      count = ARRAY_LENGTH (table_tags);
-      hb_face_get_table_tags (source, offset, &count, table_tags);
-      for (unsigned int i = 0; i < count; i++)
-      {
-	hb_tag_t tag = table_tags[i];
-	hb_blob_t *blob = hb_face_reference_table (source, tag);
-	hb_subset_face_add_table (face, tag, blob);
-	hb_blob_destroy (blob);
-      }
-    } while (count == ARRAY_LENGTH (table_tags));
-  }
-
-  hb_codepoint_t old_gid = -1;
-  while (hb_set_next (plan->glyphs_to_retain, &old_gid)) {
-    hb_codepoint_t new_gid;
-    if (hb_subset_plan_new_gid_for_old_id (plan, old_gid, &new_gid)) {
-      DEBUG_MSG (SUBSET, nullptr, "Remap %d : %d", old_gid, new_gid);
-    } else {
-      DEBUG_MSG (SUBSET, nullptr, "Remap %d : DOOM! No new ID", old_gid);
-    }
-  }
-  // TODO:
-  // - Create initial header + table directory
-  // - Loop through the set of tables to be kept:
-  //   - Perform table specific subsetting if defined.
-  //   - copy the table into the output.
-  // - Fix header + table directory.
-
+  hb_face_t *dest = hb_subset_face_create ();
+  hb_tag_t table_tags[32];
+  unsigned int offset = 0, count;
   bool success = true;
+  do {
+    count = ARRAY_LENGTH (table_tags);
+    hb_face_get_table_tags (source, offset, &count, table_tags);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      hb_tag_t tag = table_tags[i];
+      hb_blob_t *blob = hb_face_reference_table (source, tag);
+      success = success && _subset_table (plan, source, tag, blob, dest);
+      hb_blob_destroy (blob);
+    }
+  } while (count == ARRAY_LENGTH (table_tags));
 
-  hb_face_t *dest = nullptr; // TODO allocate dest
-
-  hb_blob_t *glyf_prime = nullptr;
-  hb_blob_t *loca_prime = nullptr;
-  if (hb_subset_glyf_and_loca (plan, source, &glyf_prime, &loca_prime)) {
-    // TODO: write new glyf and loca to new face.
-  } else {
-    success = false;
-  }
-  hb_blob_destroy (glyf_prime);
-
-  success = success && subset<const OT::cmap>(plan, source, dest);
-
-  hb_subset_plan_destroy (plan);
-
-  return face;
+  // TODO(grieger): Remove once basic subsetting is working + tests updated.
+  hb_face_destroy (dest);
+  hb_face_reference (source);
+  return success ? source : hb_face_get_empty();
 }
