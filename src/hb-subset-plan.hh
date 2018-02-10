@@ -40,6 +40,7 @@ struct hb_subset_plan_t {
   // codepoints is sorted and aligned with gids_to_retain.
   hb_auto_array_t<hb_codepoint_t> codepoints;
   hb_auto_array_t<hb_codepoint_t> gids_to_retain;
+  hb_auto_array_t<hb_codepoint_t> gids_to_retain_sorted;
 };
 
 typedef struct hb_subset_plan_t hb_subset_plan_t;

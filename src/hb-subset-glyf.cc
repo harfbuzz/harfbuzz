@@ -157,7 +157,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
 
   OT::glyf::accelerator_t glyf;
   glyf.init(face);
-  bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->gids_to_retain, glyf_prime, loca_prime);
+  bool result = _hb_subset_glyf_and_loca (glyf, glyf_data, plan->gids_to_retain_sorted, glyf_prime, loca_prime);
   glyf.fini();
 
   *use_short_loca = false;
