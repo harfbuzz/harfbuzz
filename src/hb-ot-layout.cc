@@ -1255,7 +1255,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
   apply (proxy, plan, font, buffer);
 }
 
-HB_INTERNAL void
+void
 hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 				const OT::SubstLookup &lookup,
 				const hb_ot_layout_lookup_accelerator_t &accel)
