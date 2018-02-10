@@ -425,14 +425,13 @@ struct hb_prealloced_array_t
     return &array[len - 1];
   }
 
-  // Alloc enouch for size if size < allocated. Don't adjust len.
+  /* Allocate for size but don't adjust len. */
   inline bool alloc(unsigned int size)
   {
-    if (likely (size <= allocated)) 
-    {
+    if (likely (size <= allocated))
       return true;
-    }
-    /* Need to reallocate */
+
+    /* Reallocate */
 
     unsigned int new_allocated = allocated;
     while (size >= new_allocated)
@@ -456,16 +455,14 @@ struct hb_prealloced_array_t
 
     array = new_array;
     allocated = new_allocated;
-    
+
     return true;
   }
 
   inline bool resize (unsigned int size)
   {
-    if (!alloc(size)) 
-    {
+    if (!alloc (size))
       return false;
-    }
 
     len = size;
     return true;
