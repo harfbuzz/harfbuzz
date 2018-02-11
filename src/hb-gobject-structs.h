@@ -112,10 +112,10 @@ HB_EXTERN GType hb_gobject_user_data_key_get_type (void);
 #define HB_GOBJECT_TYPE_USER_DATA_KEY (hb_gobject_user_data_key_get_type ())
 
 HB_EXTERN GType hb_gobject_ot_math_glyph_variant_get_type (void);
-#define HB_GOBJECT_TYPE_USER_DATA_KEY (hb_gobject_ot_math_glyph_variant_get_type ())
+#define HB_GOBJECT_TYPE_OT_MATH_GLYPH_VARIANT (hb_gobject_ot_math_glyph_variant_get_type ())
 
 HB_EXTERN GType hb_gobject_ot_math_glyph_part_get_type (void);
-#define HB_GOBJECT_TYPE_USER_DATA_KEY (hb_gobject_ot_math_glyph_part_get_type ())
+#define HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART (hb_gobject_ot_math_glyph_part_get_type ())
 
 
 HB_END_DECLS
