@@ -76,6 +76,7 @@ _populate_gids_to_retain (hb_face_t *face,
   cmap.init (face);
 
   hb_prealloced_array_t<unsigned int> bad_indices;
+  bad_indices.init ();
 
   old_gids.alloc (codepoints.len);
   bool has_zero = false;
