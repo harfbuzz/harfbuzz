@@ -122,6 +122,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #ifndef HB_INTERNAL
 # ifdef __SUNPRO_CC
 #  define HB_INTERNAL __hidden
+#  define HB_NO_VISIBILITY 1
 # elif !defined(__MINGW32__) && !defined(__CYGWIN__)
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
 # else
