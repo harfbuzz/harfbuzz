@@ -1072,9 +1072,14 @@ struct MarkBasePosFormat1
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     do {
       if (!skippy_iter.prev ()) return_trace (false);
-      /* We only want to attach to the first of a MultipleSubst sequence.  Reject others. */
+      /* We only want to attach to the first of a MultipleSubst sequence.
+       * https://github.com/harfbuzz/harfbuzz/issues/740
+       * Reject others. */
       if (!_hb_glyph_info_multiplied (&buffer->info[skippy_iter.idx]) ||
-	  0 == _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]))
+	  0 == _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]) ||
+	  (skippy_iter.idx == 0 ||
+	   _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx]) !=
+	   _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx - 1])))
 	break;
       skippy_iter.reject ();
     } while (1);
