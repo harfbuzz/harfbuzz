@@ -528,18 +528,15 @@ struct cmap
     CmapSubtableLongGroup *group = nullptr;
     for (unsigned int i = 0; i < codepoints.len; i++) {
       hb_codepoint_t cp = codepoints[i];
-      if (!group)
+      if (!group || cp - 1 != group->endCharCode)
       {
         group = groups->push();
         group->startCharCode.set(cp);
         group->endCharCode.set(cp);
         group->glyphID.set(i);  // index in codepoints is new gid
-      } else if (cp -1 == group->endCharCode)
-      {
-        group->endCharCode.set(cp);
       } else
       {
-        group = nullptr;
+        group->endCharCode.set(cp);
       }
     }
 
