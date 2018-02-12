@@ -836,8 +836,11 @@ if (UNIX OR MINGW)
     add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
     add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
 
-    set_tests_properties(check-static-inits.sh check-libstdc++.sh check-symbols.sh check-defs.sh
-      PROPERTIES ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src")
+    set_tests_properties(
+      check-static-inits.sh check-libstdc++.sh check-symbols.sh check-defs.sh
+      PROPERTIES
+        ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
+        SKIP_RETURN_CODE 77)
   endif ()
 
   add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
@@ -846,7 +849,9 @@ if (UNIX OR MINGW)
   add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
   set_tests_properties(
     check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
-    PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+    PROPERTIES
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
+      SKIP_RETURN_CODE 77)
 endif ()
 
 # Needs to come last so that variables defined above are passed to

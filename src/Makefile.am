@@ -122,6 +122,10 @@ HBLIBS += $(HBNONPCLIBS)
 if OS_WIN32
 export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
+export_symbols_icu = -export-symbols harfbuzz-icu.def
+harfbuzz_icu_def_dependency = harfbuzz-icu.def
+export_symbols_subset = -export-symbols harfbuzz-subset.def
+harfbuzz_subset_def_dependency = harfbuzz-subset.def
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
 if WITHSTDCPP
@@ -136,9 +140,10 @@ endif
 endif
 endif
 
+base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
-libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) $(export_symbols) -no-undefined
+libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
@@ -151,8 +156,9 @@ lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
-libharfbuzz_subset_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
+EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
 pkginclude_HEADERS += $(HB_SUBSET_headers)
 pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
@@ -188,8 +194,9 @@ lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
 libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
-libharfbuzz_icu_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
+EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
 pkginclude_HEADERS += $(HB_ICU_headers)
 pkgconfig_DATA += harfbuzz-icu.pc
 endif
@@ -245,8 +252,12 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-CLEANFILES += harfbuzz.def
+CLEANFILES += harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
+	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+harfbuzz-icu.def: $(HB_ICU_headers)
+	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+harfbuzz-subset.def: $(HB_SUBSET_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
 
 
@@ -319,7 +330,7 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
-check: harfbuzz.def # For check-defs.sh
+check: harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def # For check-defs.sh
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
