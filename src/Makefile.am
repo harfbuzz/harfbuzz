@@ -30,7 +30,7 @@ HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 HBNODISTHEADERS = $(HB_NODIST_headers)
 
-if !WITHSTDCPP
+if !WITH_LIBSTDCXX
 # Make sure we don't link to libstdc++
 HBCFLAGS += -fno-rtti -fno-exceptions
 
@@ -128,7 +128,7 @@ export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
 choosed_linker = $(CXXLINK)
 else
-if WITHSTDCPP
+if WITH_LIBSTDCXX
 choosed_linker = $(CXXLINK)
 else
 if HAVE_GCC
@@ -340,10 +340,15 @@ dist_check_SCRIPTS = \
 	check-externs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
-	check-libstdc++.sh \
 	check-static-inits.sh \
 	check-symbols.sh \
 	$(NULL)
+
+if !WITH_LIBSTDCXX
+dist_check_SCRIPTS += \
+	check-libstdc++.sh \
+	$(NULL)
+endif
 
 check_PROGRAMS = \
 	test-ot-tag \
