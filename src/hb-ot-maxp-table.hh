@@ -48,6 +48,11 @@ struct maxp
     return numGlyphs;
   }
 
+  inline void set_num_glyphs (uint16_t count)
+  {
+    numGlyphs.set (count);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

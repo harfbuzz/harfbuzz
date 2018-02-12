@@ -36,6 +36,8 @@
 #include "hb-open-file-private.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-head-table.hh"
+#include "hb-ot-maxp-table.hh"
 
 
 #ifndef HB_NO_VISIBILITY
@@ -265,17 +267,40 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
 
     hb_blob_t *head_prime_blob = hb_blob_create ((const char*) head_prime,
                                                  OT::head::static_size,
-                                                 HB_MEMORY_MODE_WRITABLE,
+                                                 HB_MEMORY_MODE_READONLY,
                                                  head_prime,
                                                  free);
-    has_head = has_head && hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
-
+    has_head = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
     hb_blob_destroy (head_prime_blob);
   }
 
   hb_blob_destroy (head_blob);
-
   return has_head;
+}
+
+static bool
+_add_maxp_and_set_glyph_count (hb_subset_plan_t *plan, hb_face_t *source, hb_face_t *dest)
+{
+  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (source, HB_OT_TAG_maxp));
+  const OT::maxp *maxp = OT::Sanitizer<OT::maxp>::lock_instance (maxp_blob);
+  bool has_maxp = (maxp != nullptr);
+  if (has_maxp) {
+    unsigned int length = hb_blob_get_length (maxp_blob);
+    OT::maxp *maxp_prime = (OT::maxp *) calloc (length, 1);
+    memcpy (maxp_prime, maxp, length);
+    maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
+
+    hb_blob_t *maxp_prime_blob = hb_blob_create ((const char*) maxp_prime,
+                                                 length,
+                                                 HB_MEMORY_MODE_READONLY,
+                                                 maxp_prime,
+                                                 free);
+    has_maxp = hb_subset_face_add_table (dest, HB_OT_TAG_maxp, maxp_prime_blob);
+    hb_blob_destroy (maxp_prime_blob);
+  }
+
+  hb_blob_destroy (maxp_blob);
+  return has_maxp;
 }
 
 static bool
@@ -316,6 +341,8 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_head:
       // SKIP head, it's handled by glyf
       return true;
+    case HB_OT_TAG_maxp:
+      return _add_maxp_and_set_glyph_count (plan, source, dest);
     case HB_OT_TAG_loca:
       // SKIP loca, it's handle by glyf
       return true;
@@ -325,7 +352,7 @@ _subset_table (hb_subset_plan_t *plan,
     default:
       dest_blob = source_blob;
       break;
-  } 
+  }
   DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), dest_blob ? "ok" : "FAILED");
   if (unlikely(!dest_blob)) return false;
   if (unlikely(!hb_subset_face_add_table (dest, tag, dest_blob))) return false;
