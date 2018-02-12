@@ -359,6 +359,20 @@ _subset_table (hb_subset_plan_t *plan,
   return true;
 }
 
+static bool
+_should_drop_table(hb_tag_t tag) 
+{
+    switch (tag) {
+      case HB_TAG('G', 'D', 'E', 'F'): /* temporary */
+      case HB_TAG('G', 'P', 'O', 'S'): /* temporary */
+      case HB_TAG('G', 'S', 'U', 'B'): /* temporary */
+      case HB_TAG('d', 's', 'i', 'g'):
+        return true;
+      default:
+        return false;
+  } 
+}
+
 /**
  * hb_subset:
  * @source: font face data to be subset.
@@ -386,6 +400,11 @@ hb_subset (hb_face_t *source,
     for (unsigned int i = 0; i < count; i++)
     {
       hb_tag_t tag = table_tags[i];
+      if (_should_drop_table(tag))
+      {
+        DEBUG_MSG(SUBSET, nullptr, "drop %c%c%c%c", HB_UNTAG(tag));
+        continue;
+      }
       hb_blob_t *blob = hb_face_reference_table (source, tag);
       success = success && _subset_table (plan, source, tag, blob, dest);
       hb_blob_destroy (blob);
