@@ -42,6 +42,7 @@ def run_test(test):
 		    "--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes()]
+	print (' '.join(cli_args))
 	_, return_code = cmd(cli_args)
 
 	if return_code:

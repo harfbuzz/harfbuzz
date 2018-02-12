@@ -590,7 +590,7 @@ struct cmap
 
   hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
   {
-    hb_prealloced_array_t<CmapSubtableLongGroup> groups;
+    hb_auto_array_t<CmapSubtableLongGroup> groups;
 
     populate_groups(plan->codepoints, &groups);
 
