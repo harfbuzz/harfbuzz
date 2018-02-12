@@ -73,6 +73,8 @@ test_subset_glyf_noop (void)
   hb_face_destroy (face_abc);
 }
 
+// TODO(grieger): test for long loca generation.
+
 int
 main (int argc, char **argv)
 {
