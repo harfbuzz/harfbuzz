@@ -61,7 +61,7 @@ struct CmapSubtableFormat0
   HBUINT16	format;		/* Format number is set to 0. */
   HBUINT16	lengthZ;	/* Byte length of this subtable. */
   HBUINT16	languageZ;	/* Ignore. */
-  HBUINT8		glyphIdArray[256];/* An array that maps character
+  HBUINT8	glyphIdArray[256];/* An array that maps character
 				 * code to glyph index values. */
   public:
   DEFINE_SIZE_STATIC (6 + 256);
@@ -278,7 +278,8 @@ struct CmapSubtableLongSegmented
     TRACE_SERIALIZE (this);
     if (unlikely(!context->extend_min (*this))) return_trace (false);
     if (unlikely(!groups.serialize(context, group_count))) return_trace (false);
-    for (unsigned int i = 0; i < group_count; i++) {
+    for (unsigned int i = 0; i < group_count; i++)
+    {
       const CmapSubtableLongGroup &group = group_supplier[i];
       memcpy(&groups[i], &group, sizeof(group));
     }
@@ -581,9 +582,7 @@ struct cmap
 
     OT::Supplier<CmapSubtableLongGroup> group_supplier  (&groups[0], groups.len, sizeof (CmapSubtableLongGroup));
     if (unlikely(!format12.serialize(&context, groups.len, group_supplier)))
-    {
       return false;
-    }
 
     context.end_serialize ();
     return true;
