@@ -140,7 +140,11 @@ static
 #else
 extern HB_INTERNAL
 #endif
-const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)];
+const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+#ifdef HB_NO_VISIBILITY
+= {}
+#endif
+;
 
 /* Generic nul-content Null objects. */
 template <typename Type>
