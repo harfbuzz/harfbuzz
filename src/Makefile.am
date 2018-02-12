@@ -126,19 +126,23 @@ export_symbols_icu = -export-symbols harfbuzz-icu.def
 harfbuzz_icu_def_dependency = harfbuzz-icu.def
 export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
-libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+choosed_linker = $(CXXLINK)
 else
 if WITHSTDCPP
-libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+choosed_linker = $(CXXLINK)
 else
 if HAVE_GCC
 # Use a C linker for GCC, not C++; Don't link to libstdc++
-libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
+choosed_linker = $(LINK)
 else
-libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+choosed_linker = $(CXXLINK)
 endif
 endif
 endif
+
+libharfbuzz_la_LINK = $(choosed_linker) $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_icu_la_LINK = $(choosed_linker) $(libharfbuzz_icu_la_LDFLAGS)
+libharfbuzz_subset_la_LINK = $(choosed_linker) $(libharfbuzz_subset_la_LDFLAGS)
 
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
@@ -153,7 +157,6 @@ pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
-libharfbuzz_subset_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
@@ -191,7 +194,6 @@ HBSOURCES += $(HB_ICU_sources)
 HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
-libharfbuzz_icu_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
 libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
