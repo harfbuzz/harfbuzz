@@ -29,7 +29,6 @@ TEST_PROGS = \
 	test-object \
 	test-set \
 	test-shape \
-	test-subset \
 	test-subset-glyf \
 	test-unicode \
 	test-version \
