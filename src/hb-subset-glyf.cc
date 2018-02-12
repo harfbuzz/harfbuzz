@@ -183,7 +183,5 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                                           loca_prime);
   glyf.fini();
 
-  *use_short_loca = false;
-
   return result;
 }
