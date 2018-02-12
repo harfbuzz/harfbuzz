@@ -30,6 +30,14 @@ HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 HBNODISTHEADERS = $(HB_NODIST_headers)
 
+if !WITHSTDCPP
+# Make sure we don't link to libstdc++
+HBCFLAGS += -fno-rtti -fno-exceptions
+
+# No threadsafe statics and C++ as we do it ourselves
+HBCFLAGS += -fno-threadsafe-statics
+endif
+
 if HAVE_OT
 HBSOURCES += $(HB_OT_sources)
 HBSOURCES += $(HB_OT_RAGEL_GENERATED_sources)
@@ -116,11 +124,15 @@ export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
-# Use a C linker for GCC, not C++; Don't link to libstdc++
+if WITHSTDCPP
+libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+else
 if HAVE_GCC
+# Use a C linker for GCC, not C++; Don't link to libstdc++
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
 else
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+endif
 endif
 endif
 

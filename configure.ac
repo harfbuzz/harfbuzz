@@ -57,6 +57,12 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
+AC_ARG_WITH([stdcpp],
+    [AS_HELP_STRING([--with-stdcpp],
+			[Do not try suppressing linkage to libstdcpp])],,
+	[with_stdcpp=no])
+AM_CONDITIONAL(WITHSTDCPP, [test "x$with_stdcpp" = "xyes"])
+
 # Documentation
 have_gtk_doc=false
 m4_ifdef([GTK_DOC_CHECK], [
@@ -79,12 +85,6 @@ if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
 	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
-
-	# Make sure we don't link to libstdc++
-	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
-
-	# No threadsafe statics and C++ as we do it ourselves
-	CXXFLAGS="$CXXFLAGS -fno-threadsafe-statics"
 
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
