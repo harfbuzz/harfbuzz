@@ -17,8 +17,7 @@ fi
 tested=false
 for def in harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def; do
 	if ! test -f "$def"; then
-		echo "check-defs.sh: '$def' not found; skipping test"
-		exit 77
+		echo "check-defs.sh: '$def' not found; skipping test it"
 	fi
 	lib=`echo "$def" | sed 's/[.]def$//;s@.*/@@'`
 	for suffix in so dylib; do
