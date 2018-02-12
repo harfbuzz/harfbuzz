@@ -4,17 +4,6 @@ noinst_LTLIBRARIES = libhb-ucdn.la
 
 include Makefile.sources
 
-if OS_WIN32
-libhb_ucdn_la_LINK = $(CXXLINK)
-else
-# Use a C linker for GCC, not C++; Don't link to libstdc++
-if HAVE_GCC
-libhb_ucdn_la_LINK = $(LINK)
-else
-libhb_ucdn_la_LINK = $(CXXLINK)
-endif
-endif
-
 libhb_ucdn_la_SOURCES = $(LIBHB_UCDN_sources)
 libhb_ucdn_la_CPPFLAGS = \
 	-I$(top_srcdir) \
