@@ -573,18 +573,29 @@ struct cmap
     rec.platformID.set (3); // Windows
     rec.encodingID.set (1); // Unicode BMP
 
-    CmapSubtable &subtable = rec.subtable.serialize(&context, &rec.subtable);
+    /* capture offset to subtable */
+    CmapSubtable &subtable = rec.subtable.serialize(&context, cmap);
+
     subtable.u.format.set(12);
 
     CmapSubtableFormat12 &format12 = subtable.u.format12;
+    if (unlikely(!context.extend_min(format12)))
+    {
+      return false;
+    }
+
     format12.format.set(12);
     format12.reservedZ.set(0);
+    format12.lengthZ.set(16 + 12 * groups.len);
 
     OT::Supplier<CmapSubtableLongGroup> group_supplier  (&groups[0], groups.len, sizeof (CmapSubtableLongGroup));
     if (unlikely(!format12.serialize(&context, groups.len, group_supplier)))
+    {
       return false;
+    }
 
     context.end_serialize ();
+
     return true;
   }
 
