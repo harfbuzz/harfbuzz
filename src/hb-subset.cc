@@ -365,7 +365,5 @@ hb_subset (hb_face_t *source,
     }
   } while (count == ARRAY_LENGTH (table_tags));
 
-  // TODO(grieger): Remove once basic subsetting is working + tests updated.
-  hb_face_destroy (dest);
-  return success ? hb_face_reference (source) : hb_face_get_empty ();
+  return success ? dest : hb_face_get_empty ();
 }
