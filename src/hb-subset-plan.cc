@@ -39,6 +39,24 @@ _hb_codepoint_t_cmp (const void *pa, const void *pb)
 }
 
 hb_bool_t
+hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
+                                      hb_codepoint_t codepoint,
+                                      hb_codepoint_t *new_gid)
+{
+  // TODO actual map, delete this garbage.
+  for (unsigned int i = 0; i < plan->codepoints.len; i++)
+  {
+    if (plan->codepoints[i] != codepoint) continue;
+    if (!hb_subset_plan_new_gid_for_old_id(plan, plan->gids_to_retain[i], new_gid))
+    {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+hb_bool_t
 hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
                                    hb_codepoint_t old_gid,
                                    hb_codepoint_t *new_gid)
@@ -46,7 +64,8 @@ hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
   // the index in old_gids is the new gid; only up to codepoints.len are valid
   for (unsigned int i = 0; i < plan->gids_to_retain_sorted.len; i++) {
     if (plan->gids_to_retain_sorted[i] == old_gid) {
-      *new_gid = i;
+      // +1: assign new gids from 1..N; 0 is special
+      *new_gid = i + 1;
       return true;
     }
   }
@@ -108,10 +127,6 @@ _populate_gids_to_retain (hb_face_t *face,
   if (!has_zero)
     *(old_gids_sorted.push ()) = 0;
   old_gids_sorted.qsort (_hb_codepoint_t_cmp);
-
-  for (unsigned int i = 0; i < codepoints.len; i++) {
-      DEBUG_MSG(SUBSET, nullptr, " U+%04X, old_gid %d, new_gid %d", codepoints[i], old_gids[i], i);
-  }
 
   // TODO(Q1) expand with glyphs that make up complex glyphs
   // TODO expand with glyphs reached by G*

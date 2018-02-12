@@ -124,7 +124,7 @@ _subset (hb_subset_plan_t *plan, hb_face_t *source)
     hb_blob_destroy (source_blob);
 
     hb_tag_t tag = TableType::tableTag;
-    DEBUG_MSG(SUBSET, nullptr, "Subset %c%c%c%c %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
+    DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
     return result;
 }
 

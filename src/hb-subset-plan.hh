@@ -55,6 +55,11 @@ hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
                                   hb_codepoint_t old_gid,
                                   hb_codepoint_t *new_gid /* OUT */);
 
+HB_INTERNAL hb_bool_t
+hb_subset_plan_new_gid_for_codepoint(hb_subset_plan_t *plan,
+                                     hb_codepoint_t codepont,
+                                     hb_codepoint_t *new_gid /* OUT */);
+
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
 

@@ -522,18 +522,25 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  inline void populate_groups(hb_prealloced_array_t<hb_codepoint_t> &codepoints,
-                              hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
+  inline hb_bool_t populate_groups(hb_subset_plan_t *plan,
+                                   hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
-    for (unsigned int i = 0; i < codepoints.len; i++) {
-      hb_codepoint_t cp = codepoints[i];
+    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
+
+      hb_codepoint_t cp = plan->codepoints[i];
       if (!group || cp - 1 != group->endCharCode)
       {
         group = groups->push();
         group->startCharCode.set(cp);
         group->endCharCode.set(cp);
-        group->glyphID.set(i);  // index in codepoints is new gid
+        hb_codepoint_t new_gid;
+        if (unlikely(!hb_subset_plan_new_gid_for_codepoint(plan, cp, &new_gid)))
+        {
+          DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
+          return false;
+        }
+        group->glyphID.set(new_gid);
       } else
       {
         group->endCharCode.set(cp);
@@ -545,6 +552,8 @@ struct cmap
       CmapSubtableLongGroup& group = (*groups)[i];
       DEBUG_MSG(SUBSET, nullptr, "  %d: U+%04X-U+%04X, gid %d-%d", i, (uint32_t) group.startCharCode, (uint32_t) group.endCharCode, (uint32_t) group.glyphID, (uint32_t) group.glyphID + ((uint32_t) group.endCharCode - (uint32_t) group.startCharCode));
     }
+
+    return true;
   }
 
   hb_bool_t _subset (hb_prealloced_array_t<CmapSubtableLongGroup> &groups,
@@ -600,7 +609,10 @@ struct cmap
   {
     hb_auto_array_t<CmapSubtableLongGroup> groups;
 
-    populate_groups(plan->codepoints, &groups);
+    if (unlikely(!populate_groups(plan, &groups)))
+    {
+      return nullptr;
+    }
 
     // We now know how big our blob needs to be
     // TODO use APIs from the structs to get size?
