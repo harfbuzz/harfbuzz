@@ -369,10 +369,10 @@ typedef struct {
 
 /* note: we skip the first and last byte when adding to buffer */
 static const utf8_conversion_test_t utf8_conversion_tests[] = {
-  {"a\303\207", {-1}},
+  {"a\303\207", {(hb_codepoint_t) -1}},
   {"a\303\207b", {0xC7}},
-  {"ab\303cd", {'b', -1, 'c'}},
-  {"ab\303\302\301cd", {'b', -1, -1, -1, 'c'}}
+  {"ab\303cd", {'b', (hb_codepoint_t) -1, 'c'}},
+  {"ab\303\302\301cd", {'b', (hb_codepoint_t) -1, (hb_codepoint_t) -1, (hb_codepoint_t) -1, 'c'}}
 };
 
 static void
@@ -715,10 +715,10 @@ typedef struct {
 static const utf16_conversion_test_t utf16_conversion_tests[] = {
   {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
   {{0x41, 0xD800, 0xDF02, 0x61}, {0x10302}},
-  {{0x41, 0xD800, 0xDF02}, {-1}},
-  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, -1}},
-  {{0x41, 0xD800, 0x61, 0xDF02}, {-1, 0x61}},
-  {{0x41, 0xDF00, 0x61}, {-1}},
+  {{0x41, 0xD800, 0xDF02}, {(hb_codepoint_t) -1}},
+  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, (hb_codepoint_t) -1}},
+  {{0x41, 0xD800, 0x61, 0xDF02}, {(hb_codepoint_t) -1, 0x61}},
+  {{0x41, 0xDF00, 0x61}, {(hb_codepoint_t) -1}},
   {{0x41, 0x61}, {0}}
 };
 
