@@ -94,9 +94,9 @@ test_subset_glyf (void)
   hb_face_t *face_abc_subset;
   hb_blob_t *glyf_expected_blob;
   hb_blob_t *glyf_actual_blob;
-  hb_set_t *codepoints = hb_set_create();
   hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_subset_input_t *input = hb_subset_input_create (codepoints);
+  hb_subset_input_t *input = hb_subset_input_create ();
+  hb_set_t *codepoints = hb_set_reference (hb_subset_input_unicode_set (input));
 
   g_assert (face_abc);
   g_assert (face_ac);

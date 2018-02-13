@@ -140,7 +140,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->gids_to_retain.init();
   plan->gids_to_retain_sorted.init();
 
-  _populate_codepoints (input->codepoints, plan->codepoints);
+  _populate_codepoints (input->unicodes, plan->codepoints);
   _populate_gids_to_retain (face,
                             plan->codepoints,
                             plan->gids_to_retain,

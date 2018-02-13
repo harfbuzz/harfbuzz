@@ -37,13 +37,13 @@
 struct subset_consumer_t
 {
   subset_consumer_t (option_parser_t *parser)
-      : failed (false), options (parser), font (nullptr), codepoints (nullptr) {}
+      : failed (false), options (parser), font (nullptr), input (nullptr) {}
 
   void init (hb_buffer_t  *buffer_,
              const font_options_t *font_opts)
   {
     font = hb_font_reference (font_opts->get_font ());
-    codepoints = hb_set_create();
+    input = hb_subset_input_create ();
   }
 
   void consume_line (const char   *text,
@@ -51,14 +51,13 @@ struct subset_consumer_t
                      const char   *text_before,
                      const char   *text_after)
   {
-    // text appears to be a g_string when set by --unicodes
-    // TODO(Q1) are gunichar and hbcodepoint_t interchangeable?
     // TODO(Q1) does this only get called with at least 1 codepoint?
+    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     gchar *c = (gchar *)text;
     do {
       gunichar cp = g_utf8_get_char(c);
-      hb_codepoint_t hb_cp = cp; // TODO(Q1) is this safe?
-      hb_set_add(codepoints, hb_cp);
+      hb_codepoint_t hb_cp = cp;
+      hb_set_add (codepoints, hb_cp);
     } while ((c = g_utf8_find_next_char(c, text + text_len)) != nullptr);
   }
 
@@ -90,12 +89,10 @@ struct subset_consumer_t
 
   void finish (const font_options_t *font_opts)
   {
-    // TODO(Q1) check for errors from creates and such
     hb_subset_profile_t *subset_profile = hb_subset_profile_create();
-    hb_subset_input_t *subset_input = hb_subset_input_create (codepoints);
     hb_face_t *face = hb_font_get_face (font);
 
-    hb_face_t *new_face = hb_subset(face, subset_profile, subset_input);
+    hb_face_t *new_face = hb_subset(face, subset_profile, input);
     hb_blob_t *result = hb_face_reference_blob (new_face);
 
     failed = !hb_blob_get_length (result);
@@ -103,8 +100,7 @@ struct subset_consumer_t
       write_file (options.output_file, result);
 
     hb_subset_profile_destroy (subset_profile);
-    hb_subset_input_destroy (subset_input);
-    hb_set_destroy (codepoints);
+    hb_subset_input_destroy (input);
     hb_blob_destroy (result);
     hb_face_destroy (new_face);
     hb_font_destroy (font);
@@ -116,7 +112,7 @@ struct subset_consumer_t
   private:
   output_options_t options;
   hb_font_t *font;
-  hb_set_t *codepoints;
+  hb_subset_input_t *input;
 };
 
 int

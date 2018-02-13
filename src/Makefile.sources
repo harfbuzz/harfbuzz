@@ -185,6 +185,7 @@ HB_ICU_headers = hb-icu.h
 HB_SUBSET_sources = \
 	hb-subset.cc \
 	hb-subset-glyf.cc \
+	hb-subset-input.cc \
 	hb-subset-plan.cc \
 	$(NULL)
 
