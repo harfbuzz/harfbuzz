@@ -38,6 +38,7 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-maxp-table.hh"
+#include "hb-ot-os2-table.hh"
 
 
 #ifndef HB_NO_VISIBILITY
@@ -349,6 +350,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_cmap:
       dest_blob = _subset<const OT::cmap> (plan, source);
       break;
+    case HB_OT_TAG_os2:
+      dest_blob = _subset<const OT::os2> (plan, source);
+      break;
     default:
       dest_blob = source_blob;
       break;
@@ -360,17 +364,17 @@ _subset_table (hb_subset_plan_t *plan,
 }
 
 static bool
-_should_drop_table(hb_tag_t tag) 
+_should_drop_table(hb_tag_t tag)
 {
     switch (tag) {
-      case HB_TAG('G', 'D', 'E', 'F'): /* temporary */
-      case HB_TAG('G', 'P', 'O', 'S'): /* temporary */
-      case HB_TAG('G', 'S', 'U', 'B'): /* temporary */
-      case HB_TAG('d', 's', 'i', 'g'):
+      case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
+      case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
+      case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
+      case HB_TAG ('d', 's', 'i', 'g'):
         return true;
       default:
         return false;
-  } 
+  }
 }
 
 /**
