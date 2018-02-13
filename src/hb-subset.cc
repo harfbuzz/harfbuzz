@@ -346,7 +346,7 @@ _should_drop_table(hb_tag_t tag)
       case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
       case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
       case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
-      case HB_TAG ('d', 's', 'i', 'g'):
+      case HB_TAG ('D', 'S', 'I', 'G'):
         return true;
       default:
         return false;
