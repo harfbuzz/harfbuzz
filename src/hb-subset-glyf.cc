@@ -132,8 +132,8 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
     return false;
   }
 
-  char *glyf_prime_data = (char *) calloc (glyf_prime_size, 1);
-  char *loca_prime_data = (char *) calloc (loca_prime_size, 1);
+  char *glyf_prime_data = (char *) malloc (glyf_prime_size);
+  char *loca_prime_data = (char *) malloc (loca_prime_size);
   if (unlikely (!_write_glyf_and_loca_prime (glyf, glyf_data, glyphs_to_retain,
                                              *use_short_loca,
                                              glyf_prime_size, glyf_prime_data,
