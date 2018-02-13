@@ -112,10 +112,6 @@ _subset (hb_subset_plan_t *plan, hb_face_t *source)
 {
     OT::Sanitizer<TableType> sanitizer;
     hb_blob_t *source_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
-    if (unlikely(!source_blob)) {
-      DEBUG_MSG(SUBSET, nullptr, "Failed to reference table for tag %d", TableType::tableTag);
-      return nullptr;
-    }
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
     hb_blob_t *result = table->subset(plan, source);
 
