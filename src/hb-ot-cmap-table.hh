@@ -577,7 +577,7 @@ struct cmap
 
     EncodingRecord &rec = cmap->encodingRecord[0];
     rec.platformID.set (3); // Windows
-    rec.encodingID.set (1); // Unicode BMP
+    rec.encodingID.set (10); // Unicode UCS-4
 
     /* capture offset to subtable */
     CmapSubtable &subtable = rec.subtable.serialize(&context, cmap);
