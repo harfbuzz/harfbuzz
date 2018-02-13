@@ -377,7 +377,7 @@ struct CBDT
   {
     inline void init (hb_face_t *face)
     {
-      upem = face->get_upem();
+      upem = hb_face_get_upem (face);
 
       cblc_blob = Sanitizer<CBLC>().sanitize (face->reference_table (HB_OT_TAG_CBLC));
       cbdt_blob = Sanitizer<CBDT>().sanitize (face->reference_table (HB_OT_TAG_CBDT));
