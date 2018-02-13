@@ -40,6 +40,8 @@ using namespace OT;
 
 struct RearrangementSubtable
 {
+  typedef void EntryData;
+
   struct driver_context_t
   {
     static const bool in_place = true;
@@ -60,13 +62,13 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<void> *driver,
-			       const Entry<void> *entry)
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
     }
-    inline bool transition (StateTableDriver<void> *driver,
-			    const Entry<void> *entry)
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
