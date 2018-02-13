@@ -35,7 +35,8 @@ HBNOLIBCXXCFLAGS =
 else
 # Make sure we don't link to libstdc++
 # No threadsafe statics in C++ as we do it ourselves
-HBNOLIBCXXFLAGS = -fno-rtti -fno-exceptions -fno-threadsafe-statics
+HBNOLIBCXXFLAGS = -fno-rtti -fno-exceptions
+HBCFLAGS += -fno-threadsafe-statics
 endif
 
 if HAVE_OT
