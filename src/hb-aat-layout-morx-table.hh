@@ -171,7 +171,7 @@ struct RearrangementSubtable
   }
 
   protected:
-  StateTable<void>	machine;
+  StateTable<EntryData>	machine;
   public:
   DEFINE_SIZE_STATIC (16);
 };
