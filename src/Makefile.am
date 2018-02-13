@@ -30,12 +30,12 @@ HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 HBNODISTHEADERS = $(HB_NODIST_headers)
 
-if !WITH_LIBSTDCXX
+if WITH_LIBSTDCXX
+HBNOLIBCXXCFLAGS =
+else
 # Make sure we don't link to libstdc++
-HBCFLAGS += -fno-rtti -fno-exceptions
-
-# No threadsafe statics and C++ as we do it ourselves
-HBCFLAGS += -fno-threadsafe-statics
+# No threadsafe statics in C++ as we do it ourselves
+HBNOLIBCXXFLAGS = -fno-rtti -fno-exceptions -fno-threadsafe-statics
 endif
 
 if HAVE_OT
@@ -143,7 +143,7 @@ endif
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
-libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
+libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
@@ -155,7 +155,7 @@ EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
-libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
+libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
 EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
@@ -177,7 +177,7 @@ FUZZING_CPPFLAGS = \
 EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
 libharfbuzz_fuzzing_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
-libharfbuzz_fuzzing_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(FUZZING_CPPFLAGS)
+libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
 libharfbuzz_fuzzing_la_LIBADD = $(libharfbuzz_la_LIBADD)
 EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_la_DEPENDENCIES)
@@ -192,7 +192,7 @@ HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
+libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
@@ -207,7 +207,7 @@ lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
-libharfbuzz_gobject_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(GOBJECT_CFLAGS)
+libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
 libharfbuzz_gobject_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 pkginclude_HEADERS += $(HB_GOBJECT_headers)
