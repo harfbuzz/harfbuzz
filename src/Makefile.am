@@ -36,7 +36,7 @@ else
 # Make sure we don't link to libstdc++
 # No threadsafe statics in C++ as we do it ourselves
 HBNOLIBCXXFLAGS = -fno-rtti -fno-exceptions
-HBCFLAGS += -fno-threadsafe-statics
+HBLIBCXXFLAGS = -fno-threadsafe-statics
 endif
 
 if HAVE_OT
@@ -178,7 +178,7 @@ FUZZING_CPPFLAGS = \
 EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
 libharfbuzz_fuzzing_la_LINK = $(libharfbuzz_la_LINK)
 libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
-libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
+libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(HBLIBCXXFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
 libharfbuzz_fuzzing_la_LIBADD = $(libharfbuzz_la_LIBADD)
 EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_la_DEPENDENCIES)
@@ -193,7 +193,7 @@ HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS)
+libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(HBLIBCXXFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
