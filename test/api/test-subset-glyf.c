@@ -34,8 +34,8 @@
 static void
 test_subset_glyf (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");  
-  hb_face_t *face_ac = hb_subset_test_open_font("fonts/Roboto-Regular.ac.ttf");
+  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 97);
@@ -45,6 +45,7 @@ test_subset_glyf (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('m','a','x', 'p'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
