@@ -556,9 +556,9 @@ struct cmap
     return true;
   }
 
-  hb_bool_t _subset (hb_prealloced_array_t<CmapSubtableLongGroup> &groups,
-                     size_t dest_sz,
-                     void *dest) const
+  inline hb_bool_t _subset (hb_prealloced_array_t<CmapSubtableLongGroup> &groups,
+                            size_t dest_sz,
+                            void *dest) const
   {
     hb_serialize_context_t context(dest, dest_sz);
 
@@ -605,7 +605,7 @@ struct cmap
     return true;
   }
 
-  hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
+  inline hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
   {
     hb_auto_array_t<CmapSubtableLongGroup> groups;
 
@@ -633,11 +633,11 @@ struct cmap
     }
 
     // all done, write the blob into dest
-    return hb_blob_create((const char *)dest, 
-                          dest_sz,
-                          HB_MEMORY_MODE_READONLY,
-                          /* userdata */ nullptr,
-                          free);
+    return hb_blob_create ((const char *)dest,
+                           dest_sz,
+                           HB_MEMORY_MODE_READONLY,
+                           /* userdata */ nullptr,
+                           free);
   }
 
   struct accelerator_t
