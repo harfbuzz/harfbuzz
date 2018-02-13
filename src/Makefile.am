@@ -154,7 +154,6 @@ pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
-libharfbuzz_subset_la_LINK = $(chosen_linker) $(libharfbuzz_subset_la_LDFLAGS)
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
@@ -192,7 +191,6 @@ HBSOURCES += $(HB_ICU_sources)
 HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
-libharfbuzz_icu_la_LINK = $(chosen_linker) $(libharfbuzz_icu_la_LDFLAGS)
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
 libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
