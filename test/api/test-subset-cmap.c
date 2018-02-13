@@ -21,7 +21,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger
+ * Google Author(s): Roderick Sheeter
  */
 
 #include <stdbool.h>
@@ -29,13 +29,13 @@
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
-/* Unit tests for hb-subset-glyf.h */
+/* Unit tests for cmap subsetting */
 
 static void
-test_subset_glyf (void)
+test_subset_cmap (void)
 {
   hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");  
-  hb_face_t *face_ac = hb_subset_test_open_font("fonts/Roboto-Regular.ac.ttf");
+  hb_face_t *face_ac = hb_subset_test_open_font("fonts/Roboto-Regular.ac.cmap-format12-only.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 97);
@@ -43,8 +43,7 @@ test_subset_glyf (void)
   hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('c','m','a','p'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -52,9 +51,9 @@ test_subset_glyf (void)
 }
 
 static void
-test_subset_glyf_noop (void)
+test_subset_cmap_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.cmap-format12-only.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 97);
@@ -63,22 +62,21 @@ test_subset_glyf_noop (void)
   hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('c','m','a','p'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
 }
 
-// TODO(grieger): test for long loca generation.
+// TODO(rsheeter) test cmap to no codepoints
 
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_subset_glyf);
-  hb_test_add (test_subset_glyf_noop);
+  hb_test_add (test_subset_cmap);
+  hb_test_add (test_subset_cmap_noop);
 
   return hb_test_run();
 }

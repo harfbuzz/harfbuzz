@@ -29,12 +29,14 @@ TEST_PROGS = \
 	test-object \
 	test-set \
 	test-shape \
+	test-subset-cmap \
 	test-subset-glyf \
 	test-unicode \
 	test-version \
 	$(NULL)
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
