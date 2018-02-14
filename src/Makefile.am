@@ -178,7 +178,7 @@ FUZZING_CPPFLAGS = \
 	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
 	$(NULL)
 EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
-libharfbuzz_fuzzing_la_LINK = $(libharfbuzz_la_LINK)
+libharfbuzz_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_fuzzing_la_LDFLAGS)
 libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
 libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(HBLIBCXXFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
@@ -207,11 +207,11 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
-libharfbuzz_gobject_la_LINK = $(libharfbuzz_la_LINK)
+libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
-libharfbuzz_gobject_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 pkginclude_HEADERS += $(HB_GOBJECT_headers)
 nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
