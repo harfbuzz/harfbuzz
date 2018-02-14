@@ -63,7 +63,7 @@ matrix:
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
-  email: harfbuzz@lists.freedesktop.org
+  email: harfbuzz-bots-chatter@googlegroups.com
 
 addons:
   apt:
@@ -83,7 +83,7 @@ addons:
       name: harfbuzz/harfbuzz
       version: 1.0
       description: HarfBuzz OpenType text shaping engine
-    notification_email: harfbuzz@lists.freedesktop.org
+    notification_email: harfbuzz-bots-chatter@googlegroups.com
     build_command_prepend: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
     build_command: make
     branch_pattern: coverity_scan

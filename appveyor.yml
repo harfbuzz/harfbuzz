@@ -49,5 +49,10 @@ build_script:
 cache:
   - c:\tools\vcpkg\installed\
 
+notifications:
+  - provider: Email
+    to:
+      - harfbuzz-bots-chatter@googlegroups.com
+
 # disable automatic tests
 test: off
