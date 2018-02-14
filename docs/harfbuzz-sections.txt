@@ -9,6 +9,7 @@ HB_EXTERN
 <FILE>hb-blob</FILE>
 hb_blob_create
 hb_blob_create_sub_blob
+hb_blob_copy_writable_or_fail
 hb_blob_destroy
 hb_blob_get_data
 hb_blob_get_data_writable
@@ -527,7 +528,9 @@ hb_set_intersect
 hb_set_is_empty
 hb_set_is_equal
 hb_set_next
+hb_set_previous
 hb_set_next_range
+hb_set_previous_range
 hb_set_reference
 hb_set_set
 hb_set_set_user_data

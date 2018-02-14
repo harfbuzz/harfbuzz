@@ -21,13 +21,11 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger, Rod Sheeter
+ * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
 #include "hb-object-private.hh"
 #include "hb-open-type-private.hh"
-
-#include "hb-private.hh"
 
 #include "hb-subset-glyf.hh"
 #include "hb-subset-private.hh"
@@ -56,7 +54,7 @@ struct hb_subset_profile_t {
  *
  * Return value: New profile with default settings.
  *
- * Since: 1.7.5
+ * Since: 1.8.0
  **/
 hb_subset_profile_t *
 hb_subset_profile_create ()
@@ -67,7 +65,7 @@ hb_subset_profile_create ()
 /**
  * hb_subset_profile_destroy:
  *
- * Since: 1.7.5
+ * Since: 1.8.0
  **/
 void
 hb_subset_profile_destroy (hb_subset_profile_t *profile)
@@ -77,48 +75,12 @@ hb_subset_profile_destroy (hb_subset_profile_t *profile)
   free (profile);
 }
 
-/**
- * hb_subset_input_create:
- *
- * Return value: New subset input.
- *
- * Since: 1.7.5
- **/
-hb_subset_input_t *
-hb_subset_input_create (hb_set_t *codepoints)
-{
-  if (unlikely (!codepoints))
-    codepoints = hb_set_get_empty();
-
-  hb_subset_input_t *input = hb_object_create<hb_subset_input_t>();
-  input->codepoints = hb_set_reference(codepoints);
-  return input;
-}
-
-/**
- * hb_subset_input_destroy:
- *
- * Since: 1.7.5
- **/
-void
-hb_subset_input_destroy(hb_subset_input_t *subset_input)
-{
-  if (!hb_object_destroy (subset_input)) return;
-
-  hb_set_destroy (subset_input->codepoints);
-  free (subset_input);
-}
-
 template<typename TableType>
 static hb_blob_t *
 _subset (hb_subset_plan_t *plan, hb_face_t *source)
 {
     OT::Sanitizer<TableType> sanitizer;
     hb_blob_t *source_blob = sanitizer.sanitize (source->reference_table (TableType::tableTag));
-    if (unlikely(!source_blob)) {
-      DEBUG_MSG(SUBSET, nullptr, "Failed to reference table for tag %d", TableType::tableTag);
-      return nullptr;
-    }
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
     hb_blob_t *result = table->subset(plan, source);
 

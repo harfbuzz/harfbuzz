@@ -57,11 +57,12 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
-AC_ARG_WITH([stdcpp],
-    [AS_HELP_STRING([--with-stdcpp],
-			[Do not try suppressing linkage to libstdcpp])],,
-	[with_stdcpp=no])
-AM_CONDITIONAL(WITHSTDCPP, [test "x$with_stdcpp" = "xyes"])
+AC_ARG_WITH([libstdc++],
+	[AS_HELP_STRING([--with-libstdc++=@<:@yes/no@:>@],
+			[Allow linking with libstdc++ @<:@default=no@:>@])],
+	[with_libstdcxx=$withval],
+	[with_libstdcxx=no])
+AM_CONDITIONAL(WITH_LIBSTDCXX, [test "x$with_libstdcxx" = "xyes"])
 
 # Documentation
 have_gtk_doc=false

@@ -21,33 +21,23 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger, Roderick Sheeter
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_SUBSET_PRIVATE_HH
-#define HB_SUBSET_PRIVATE_HH
+#include "hb-ot-shape-complex-indic-private.hh"
 
-
-#include "hb-private.hh"
-
-#include "hb-ot.h"
-
-#include "hb-font-private.hh"
-
-struct hb_subset_input_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  hb_set_t *unicodes;
-  hb_set_t *glyphs;
-
-  /* TODO
-   *
-   * features
-   * lookups
-   * nameIDs
-   * ...
-   */
-};
-
-#endif /* HB_SUBSET_PRIVATE_HH */
+int
+main (void)
+{
+  for (hb_codepoint_t u = 0; u <= 0x10FFFF; u++)
+  {
+    hb_glyph_info_t info;
+    info.codepoint = u;
+    set_indic_properties (info);
+    if (info.indic_category() != INDIC_SYLLABIC_CATEGORY_OTHER ||
+	info.indic_position() != INDIC_MATRA_CATEGORY_NOT_APPLICABLE)
+      printf("U+%04X	%u	%u\n", u,
+	     info.indic_category(),
+	     info.indic_position());
+  }
+}

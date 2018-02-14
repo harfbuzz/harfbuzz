@@ -171,6 +171,31 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 }
 
 /**
+ * hb_blob_copy_writable_or_fail:
+ * @blob: A blob.
+ *
+ * Makes a writable copy of @blob.
+ *
+ * Return value: New blob, or nullptr if allocation failed.
+ *
+ * Since: 1.8.0
+ **/
+hb_blob_t *
+hb_blob_copy_writable_or_fail (hb_blob_t *blob)
+{
+  blob = hb_blob_create (blob->data,
+			 blob->length,
+			 HB_MEMORY_MODE_DUPLICATE,
+			 nullptr,
+			 nullptr);
+
+  if (unlikely (blob == hb_blob_get_empty ()))
+    blob = nullptr;
+
+  return blob;
+}
+
+/**
  * hb_blob_get_empty:
  *
  * Returns the singleton empty blob.

@@ -9,6 +9,8 @@ CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
+TESTS =
+check_PROGRAMS =
 
 # The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
@@ -30,12 +32,13 @@ HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 HBNODISTHEADERS = $(HB_NODIST_headers)
 
-if !WITHSTDCPP
+if WITH_LIBSTDCXX
+HBNOLIBCXXCFLAGS =
+else
 # Make sure we don't link to libstdc++
-HBCFLAGS += -fno-rtti -fno-exceptions
-
-# No threadsafe statics and C++ as we do it ourselves
-HBCFLAGS += -fno-threadsafe-statics
+# No threadsafe statics in C++ as we do it ourselves
+HBNOLIBCXXFLAGS = -fno-threadsafe-statics -fno-rtti -fno-exceptions
+HBLIBCXXFLAGS = -fno-threadsafe-statics
 endif
 
 if HAVE_OT
@@ -126,27 +129,24 @@ export_symbols_icu = -export-symbols harfbuzz-icu.def
 harfbuzz_icu_def_dependency = harfbuzz-icu.def
 export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
-choosed_linker = $(CXXLINK)
+chosen_linker = $(CXXLINK)
 else
-if WITHSTDCPP
-choosed_linker = $(CXXLINK)
+if WITH_LIBSTDCXX
+chosen_linker = $(CXXLINK)
 else
 if HAVE_GCC
 # Use a C linker for GCC, not C++; Don't link to libstdc++
-choosed_linker = $(LINK)
+chosen_linker = $(LINK)
 else
-choosed_linker = $(CXXLINK)
+chosen_linker = $(CXXLINK)
 endif
 endif
 endif
-
-libharfbuzz_la_LINK = $(choosed_linker) $(libharfbuzz_la_LDFLAGS)
-libharfbuzz_icu_la_LINK = $(choosed_linker) $(libharfbuzz_icu_la_LDFLAGS)
-libharfbuzz_subset_la_LINK = $(choosed_linker) $(libharfbuzz_subset_la_LDFLAGS)
 
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
+libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
-libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
+libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
@@ -158,7 +158,7 @@ EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
-libharfbuzz_subset_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS)
+libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
 EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
@@ -178,9 +178,9 @@ FUZZING_CPPFLAGS = \
 	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
 	$(NULL)
 EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
-libharfbuzz_fuzzing_la_LINK = $(libharfbuzz_la_LINK)
+libharfbuzz_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_fuzzing_la_LDFLAGS)
 libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
-libharfbuzz_fuzzing_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(FUZZING_CPPFLAGS)
+libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(HBLIBCXXFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
 libharfbuzz_fuzzing_la_LIBADD = $(libharfbuzz_la_LIBADD)
 EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_la_DEPENDENCIES)
@@ -195,7 +195,7 @@ HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-libharfbuzz_icu_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(ICU_CFLAGS)
+libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(HBLIBCXXFLAGS) $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
@@ -207,11 +207,11 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
-libharfbuzz_gobject_la_LINK = $(libharfbuzz_la_LINK)
+libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
-libharfbuzz_gobject_la_CPPFLAGS = $(libharfbuzz_la_CPPFLAGS) $(GOBJECT_CFLAGS)
-libharfbuzz_gobject_la_LDFLAGS = $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
+libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 pkginclude_HEADERS += $(HB_GOBJECT_headers)
 nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
@@ -340,19 +340,42 @@ dist_check_SCRIPTS = \
 	check-externs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
-	check-libstdc++.sh \
 	check-static-inits.sh \
 	check-symbols.sh \
 	$(NULL)
+TESTS += $(dist_check_SCRIPTS)
 
-check_PROGRAMS = \
-	test-ot-tag \
+if !WITH_LIBSTDCXX
+dist_check_SCRIPTS += \
+	check-libstdc++.sh \
 	$(NULL)
+endif
+
+check_PROGRAMS += \
+	dump-indic-data \
+	dump-khmer-data \
+	dump-myanmar-data \
+	dump-use-data \
+	$(NULL)
+dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
+dump_indic_data_CPPFLAGS = $(HBCFLAGS)
+dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)
+dump_khmer_data_SOURCES = dump-khmer-data.cc hb-ot-shape-complex-indic-table.cc
+dump_khmer_data_CPPFLAGS = $(HBCFLAGS)
+dump_khmer_data_LDADD = libharfbuzz.la $(HBLIBS)
+dump_myanmar_data_SOURCES = dump-myanmar-data.cc hb-ot-shape-complex-indic-table.cc
+dump_myanmar_data_CPPFLAGS = $(HBCFLAGS)
+dump_myanmar_data_LDADD = libharfbuzz.la $(HBLIBS)
+dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
+dump_use_data_CPPFLAGS = $(HBCFLAGS)
+dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
+
+check_PROGRAMS += test-ot-tag
+TESTS += test-ot-tag
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
 
-TESTS = $(dist_check_SCRIPTS) $(check_PROGRAMS)
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \

@@ -69,7 +69,7 @@ struct hmtxvmtx
     inline void init (hb_face_t *face,
 		      unsigned int default_advance_ = 0)
     {
-      default_advance = default_advance_ ? default_advance_ : face->get_upem ();
+      default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
       bool got_font_extents = false;
       if (T::os2Tag)

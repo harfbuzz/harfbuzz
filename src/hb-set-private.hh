@@ -125,6 +125,33 @@ struct hb_set_t
       *codepoint = i * ELT_BITS + j;
       return true;
     }
+    inline bool previous (hb_codepoint_t *codepoint) const
+    {
+      unsigned int m = (*codepoint - 1) & MASK;
+      if (m == MASK)
+      {
+	*codepoint = INVALID;
+	return false;
+      }
+      unsigned int i = m / ELT_BITS;
+      unsigned int j = m & ELT_MASK;
+
+      for (; (int) j >= 0; j--)
+        if (v[i] & (elt_t (1) << j))
+	  goto found;
+      for (i--; (int) i >= 0; i--)
+        if (v[i])
+	  for (j = ELT_BITS - 1; (int) j >= 0; j--)
+	    if (v[i] & (elt_t (1) << j))
+	      goto found;
+
+      *codepoint = INVALID;
+      return false;
+
+    found:
+      *codepoint = i * ELT_BITS + j;
+      return true;
+    }
     inline hb_codepoint_t get_min (void) const
     {
       for (unsigned int i = 0; i < len (); i++)
@@ -471,18 +498,49 @@ struct hb_set_t
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
     page_map.bfind (map, &i);
-    if (i < page_map.len)
+    if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].next (codepoint))
       {
 	*codepoint += page_map[i].major * page_t::PAGE_BITS;
-        return true;
+	return true;
       }
       i++;
     }
     for (; i < page_map.len; i++)
     {
       hb_codepoint_t m = pages[page_map[i].index].get_min ();
+      if (m != INVALID)
+      {
+	*codepoint = page_map[i].major * page_t::PAGE_BITS + m;
+	return true;
+      }
+    }
+    *codepoint = INVALID;
+    return false;
+  }
+  inline bool previous (hb_codepoint_t *codepoint) const
+  {
+    if (unlikely (*codepoint == INVALID)) {
+      *codepoint = get_max ();
+      return *codepoint != INVALID;
+    }
+
+    page_map_t map = {get_major (*codepoint), 0};
+    unsigned int i;
+    page_map.bfind (map, &i);
+    if (i < page_map.len && page_map[i].major == map.major)
+    {
+      if (pages[page_map[i].index].previous (codepoint))
+      {
+	*codepoint += page_map[i].major * page_t::PAGE_BITS;
+	return true;
+      }
+    }
+    i--;
+    for (; (int) i >= 0; i--)
+    {
+      hb_codepoint_t m = pages[page_map[i].index].get_max ();
       if (m != INVALID)
       {
 	*codepoint = page_map[i].major * page_t::PAGE_BITS + m;
@@ -503,9 +561,28 @@ struct hb_set_t
       return false;
     }
 
+    /* TODO Speed up. */
     *last = *first = i;
     while (next (&i) && i == *last + 1)
       (*last)++;
+
+    return true;
+  }
+  inline bool previous_range (hb_codepoint_t *first, hb_codepoint_t *last) const
+  {
+    hb_codepoint_t i;
+
+    i = *first;
+    if (!previous (&i))
+    {
+      *last = *first = INVALID;
+      return false;
+    }
+
+    /* TODO Speed up. */
+    *last = *first = i;
+    while (previous (&i) && i == *first - 1)
+      (*first)--;
 
     return true;
   }

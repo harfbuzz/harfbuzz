@@ -47,16 +47,26 @@ hb_subset_profile_destroy (hb_subset_profile_t *profile);
 
 /*
  * hb_subset_input_t
+ *
  * Things that change based on the input. Characters to keep, etc.
  */
 
 typedef struct hb_subset_input_t hb_subset_input_t;
 
 HB_EXTERN hb_subset_input_t *
-hb_subset_input_create (hb_set_t *codepoints);
+hb_subset_input_create_or_fail (void);
+
+HB_EXTERN hb_subset_input_t *
+hb_subset_input_reference (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_destroy (hb_subset_input_t *subset_input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_unicode_set (hb_subset_input_t *subset_input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_glyph_set (hb_subset_input_t *subset_input);
 
 
 /* hb_subset() */
