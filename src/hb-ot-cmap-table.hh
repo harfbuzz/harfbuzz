@@ -276,8 +276,8 @@ struct CmapSubtableLongSegmented
   {
     TRACE_SERIALIZE (this);
     if (unlikely(!context->extend_min (*this))) return_trace (false);
-    if (unlikely(!groups.serialize(context, group_data.len))) return_trace (false);
-    memcpy(&groups[0], &group_data[0], group_data.len * sizeof(CmapSubtableLongGroup));
+    Supplier<CmapSubtableLongGroup> supplier(group_data.array, group_data.len);
+    if (unlikely(!groups.serialize(context, supplier, group_data.len))) return_trace (false);
     return true;
   }
 
@@ -565,10 +565,7 @@ struct cmap
 
     cmap->version.set(0);
 
-    if (unlikely(!cmap->encodingRecord.serialize(&context, /* numTables */ 1)))
-    {
-      return false;
-    }
+    if (unlikely(!cmap->encodingRecord.serialize(&context, /* numTables */ 1))) return false;
 
     EncodingRecord &rec = cmap->encodingRecord[0];
     rec.platformID.set (3); // Windows
@@ -580,19 +577,13 @@ struct cmap
     subtable.u.format.set(12);
 
     CmapSubtableFormat12 &format12 = subtable.u.format12;
-    if (unlikely(!context.extend_min(format12)))
-    {
-      return false;
-    }
+    if (unlikely(!context.extend_min(format12))) return false;
 
     format12.format.set(12);
     format12.reservedZ.set(0);
     format12.lengthZ.set(16 + 12 * groups.len);
 
-    if (unlikely(!format12.serialize(&context, groups)))
-    {
-      return false;
-    }
+    if (unlikely(!format12.serialize(&context, groups))) return false;
 
     context.end_serialize ();
 
@@ -603,10 +594,7 @@ struct cmap
   {
     hb_auto_array_t<CmapSubtableLongGroup> groups;
 
-    if (unlikely(!populate_groups(plan, &groups)))
-    {
-      return false;
-    }
+    if (unlikely(!populate_groups(plan, &groups))) return false;
 
     // We now know how big our blob needs to be
     // TODO use APIs from the structs to get size?
