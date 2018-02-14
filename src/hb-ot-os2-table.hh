@@ -49,16 +49,16 @@ struct os2
     return_trace (c->check_struct (this));
   }
 
-  inline hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
+  inline hb_bool_t subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (source, HB_OT_TAG_os2));
+    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_os2));
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     hb_blob_destroy (os2_blob);
 
     OT::os2 *os2_prime = (OT::os2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
     if (unlikely (!os2_prime)) {
       hb_blob_destroy (os2_prime_blob);
-      return nullptr;
+      return false;
     }
 
     uint16_t min_cp, max_cp;
@@ -66,7 +66,7 @@ struct os2
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
-    return os2_prime_blob;
+    return hb_subset_plan_add_table(plan, HB_OT_TAG_os2, os2_prime_blob);
   }
 
   static inline void find_min_and_max_codepoint (hb_subset_plan_t *plan,

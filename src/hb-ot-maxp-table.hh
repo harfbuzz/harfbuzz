@@ -61,21 +61,21 @@ struct maxp
 			  (version.major == 0 && version.minor == 0x5000u)));
   }
 
-  inline hb_blob_t * subset (hb_subset_plan_t *plan, hb_face_t *source) const
+  inline hb_bool_t subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (source, HB_OT_TAG_maxp));
+    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
     hb_blob_t *maxp_prime_blob = hb_blob_create_sub_blob (maxp_blob, 0, -1);
     hb_blob_destroy (maxp_blob);
 
     OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data_writable (maxp_prime_blob, nullptr);
     if (unlikely (!maxp_prime)) {
       hb_blob_destroy (maxp_prime_blob);
-      return nullptr;
+      return false;
     }
 
     maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
 
-    return maxp_prime_blob;
+    return hb_subset_plan_add_table(plan, HB_OT_TAG_maxp, maxp_prime_blob);
   }
 
   /* We only implement version 0.5 as none of the extra fields in version 1.0 are useful. */

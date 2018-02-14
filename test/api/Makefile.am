@@ -31,6 +31,7 @@ TEST_PROGS = \
 	test-shape \
 	test-subset-cmap \
 	test-subset-glyf \
+	test-subset-hmtx \
 	test-subset-os2 \
 	test-unicode \
 	test-version \
@@ -39,6 +40,7 @@ TEST_PROGS = \
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_hmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_os2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
@@ -65,6 +67,11 @@ TEST_PROGS += \
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 EXTRA_DIST += \
+	fonts/Inconsolata-Regular.ab.ttf \
+	fonts/Inconsolata-Regular.abc.ttf \
+	fonts/Inconsolata-Regular.abc.widerc.ttf \
+	fonts/Inconsolata-Regular.ac.ttf \
+	fonts/Inconsolata-Regular.ac.widerc.ttf \
 	fonts/Roboto-Regular.abc.ttf \
 	fonts/Roboto-Regular.ac.ttf \
 	fonts/MathTestFontEmpty.otf \

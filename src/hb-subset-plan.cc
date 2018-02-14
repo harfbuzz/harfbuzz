@@ -72,6 +72,14 @@ hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
   return false;
 }
 
+hb_bool_t
+hb_subset_plan_add_table (hb_subset_plan_t *plan,
+                          hb_tag_t tag,
+                          hb_blob_t *contents)
+{
+  return hb_subset_face_add_table(plan->dest, tag, contents);
+}
+
 static void
 _populate_codepoints (hb_set_t *input_codepoints,
                       hb_prealloced_array_t<hb_codepoint_t>& plan_codepoints)
@@ -110,6 +118,7 @@ _populate_gids_to_retain (hb_face_t *face,
     *(old_gids.push ()) = gid;
   }
 
+  /* Generally there shouldn't be any */
   while (bad_indices.len > 0) {
     unsigned int i = bad_indices[bad_indices.len - 1];
     bad_indices.pop ();
@@ -154,12 +163,15 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->codepoints.init();
   plan->gids_to_retain.init();
   plan->gids_to_retain_sorted.init();
+  plan->source = face;
+  plan->dest = hb_subset_face_create ();
 
   _populate_codepoints (input->unicodes, plan->codepoints);
   _populate_gids_to_retain (face,
                             plan->codepoints,
                             plan->gids_to_retain,
                             plan->gids_to_retain_sorted);
+
   return plan;
 }
 
