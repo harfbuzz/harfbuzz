@@ -77,29 +77,29 @@ enum indic_category_t {
 
 /* Visual positions in a syllable from left to right. */
 enum indic_position_t {
-  POS_START,
+  POS_START = 0,
 
-  POS_RA_TO_BECOME_REPH,
-  POS_PRE_M,
-  POS_PRE_C,
+  POS_RA_TO_BECOME_REPH = 1,
+  POS_PRE_M = 2,
+  POS_PRE_C = 3,
 
-  POS_BASE_C,
-  POS_AFTER_MAIN,
+  POS_BASE_C = 4,
+  POS_AFTER_MAIN = 5,
 
-  POS_ABOVE_C,
+  POS_ABOVE_C = 6,
 
-  POS_BEFORE_SUB,
-  POS_BELOW_C,
-  POS_AFTER_SUB,
+  POS_BEFORE_SUB = 7,
+  POS_BELOW_C = 8,
+  POS_AFTER_SUB = 9,
 
-  POS_BEFORE_POST,
-  POS_POST_C,
-  POS_AFTER_POST,
+  POS_BEFORE_POST = 10,
+  POS_POST_C = 11,
+  POS_AFTER_POST = 12,
 
-  POS_FINAL_C,
-  POS_SMVD,
+  POS_FINAL_C = 13,
+  POS_SMVD = 14,
 
-  POS_END
+  POS_END = 15
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD. */
