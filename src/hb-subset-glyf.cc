@@ -38,14 +38,12 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 {
   unsigned int total = 0;
   unsigned int count = 0;
-  for (unsigned int i = 0; i < glyph_ids.len; i++) {
+  for (unsigned int i = 0; i < glyph_ids.len; i++)
+  {
     hb_codepoint_t next_glyph = glyph_ids[i];
     unsigned int start_offset, end_offset;
-    if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset))) {
-      *glyf_size = 0;
-      *loca_size = sizeof(OT::HBUINT32);
-      return false;
-    }
+    if (unlikely (!glyf.get_offsets (next_glyph, &start_offset, &end_offset)))
+      end_offset = start_offset = 0;
 
     total += end_offset - start_offset;
     count++;
@@ -84,27 +82,21 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
 {
   char *glyf_prime_data_next = glyf_prime_data;
 
-  hb_codepoint_t new_glyph_id = 0;
-
-  unsigned int end_offset = 0;
-  for (unsigned int i = 0; i < glyph_ids.len; i++) {
-    unsigned int start_offset;
-    if (unlikely (!glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset))) {
-      return false;
-    }
+  for (unsigned int i = 0; i < glyph_ids.len; i++)
+  {
+    unsigned int start_offset, end_offset;
+    if (unlikely (!glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset)))
+      end_offset = start_offset = 0;
 
     int length = end_offset - start_offset;
     memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
 
-    _write_loca_entry (i, start_offset, use_short_loca, loca_prime_data);
+    _write_loca_entry (i, glyf_prime_data_next - glyf_prime_data, use_short_loca, loca_prime_data);
 
     glyf_prime_data_next += length;
-    new_glyph_id++;
   }
 
-  // Add the last loca entry which doesn't correspond to a specific glyph
-  // but identifies the end of the last glyphs data.
-  _write_loca_entry (new_glyph_id, end_offset, use_short_loca, loca_prime_data);
+  _write_loca_entry (glyph_ids.len, glyf_prime_data_next - glyf_prime_data, use_short_loca, loca_prime_data);
 
   return true;
 }
