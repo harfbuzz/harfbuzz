@@ -34,6 +34,11 @@
 #include "hb-ot-shape-private.hh" /* XXX Remove */
 
 
+/* buffer var allocations */
+#define indic_category() complex_var_u8_0() /* indic_category_t */
+#define indic_position() complex_var_u8_1() /* indic_position_t */
+
+
 #define INDIC_TABLE_ELEMENT_TYPE uint16_t
 
 /* Cateories used in the OpenType spec:
@@ -186,9 +191,6 @@ enum indic_matra_category_t {
 HB_INTERNAL INDIC_TABLE_ELEMENT_TYPE
 hb_indic_get_categories (hb_codepoint_t u);
 
-/* buffer var allocations */
-#define indic_category() complex_var_u8_0() /* indic_category_t */
-#define indic_position() complex_var_u8_1() /* indic_position_t */
 
 static inline bool
 is_one_of (const hb_glyph_info_t &info, unsigned int flags)
