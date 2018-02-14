@@ -352,11 +352,11 @@ dist_check_SCRIPTS += \
 endif
 
 check_PROGRAMS += \
-	print-indic-table \
+	dump-indic-data \
 	$(NULL)
-print_indic_table_SOURCES = print-indic-table.cc hb-ot-shape-complex-indic-table.cc
-print_indic_table_CPPFLAGS = $(HBCFLAGS) -DMAIN
-print_indic_table_LDADD = libharfbuzz.la $(HBLIBS)
+dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
+dump_indic_data_CPPFLAGS = $(HBCFLAGS)
+dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)
 
 check_PROGRAMS += test-ot-tag
 TESTS += test-ot-tag
