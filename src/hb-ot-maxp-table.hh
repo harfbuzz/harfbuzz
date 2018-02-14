@@ -48,7 +48,7 @@ struct maxp
     return numGlyphs;
   }
 
-  inline void set_num_glyphs (uint16_t count)
+  inline void set_num_glyphs (unsigned int count)
   {
     numGlyphs.set (count);
   }
@@ -64,6 +64,7 @@ struct maxp
   inline bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
+    // TODO hb_blob_copy_writable_or_fail
     hb_blob_t *maxp_prime_blob = hb_blob_create_sub_blob (maxp_blob, 0, -1);
     hb_blob_destroy (maxp_blob);
 
