@@ -79,6 +79,7 @@ struct hmtxvmtx
     hb_blob_t *src_blob = OT::Sanitizer<H>().sanitize (plan->source->reference_table (T::tableTag));
     if (unlikely(!src_blob))
     {
+      free(dest);
       return false;
     }
     unsigned int src_length;
