@@ -38,6 +38,7 @@ static const char test_data[] = { 0, 1, 0, 0,	/* sfntVersion */
 static void
 test_subset (void)
 {
+  unsigned int output_length;
   hb_blob_t *font_blob = hb_blob_create(test_data, sizeof(test_data),
 					HB_MEMORY_MODE_READONLY, NULL, NULL);
   hb_face_t *face = hb_face_create(font_blob, 0);
@@ -53,7 +54,6 @@ test_subset (void)
   g_assert(out_face != hb_face_get_empty ());
   output = hb_face_reference_blob (out_face);
 
-  unsigned int output_length;
   const char *output_data = hb_blob_get_data(output, &output_length);
   g_assert_cmpmem (test_data, sizeof (test_data), output_data, output_length);
 
