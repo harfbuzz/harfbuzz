@@ -29,19 +29,17 @@
 #include "hb-set-private.hh"
 
 /**
- * hb_subset_input_create:
+ * hb_subset_input_create_or_fail:
  *
  * Return value: New subset input.
  *
  * Since: 1.8.0
  **/
 hb_subset_input_t *
-hb_subset_input_create (void)
+hb_subset_input_create_or_fail (void)
 {
   hb_subset_input_t *input = hb_object_create<hb_subset_input_t>();
 
-  /* Unlike libharfbuzz, in this lib we return nullptr
-   * in case of allocation failure. */
   if (unlikely (!input))
     return nullptr;
 

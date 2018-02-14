@@ -43,12 +43,15 @@ test_subset (void)
   hb_face_t *face = hb_face_create(font_blob, 0);
 
   hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_subset_input_t *input = hb_subset_input_create ();
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
 
   hb_face_t *out_face = hb_subset(face, profile, input);
+  hb_blob_t *output;
+
+  g_assert (input);
   g_assert(out_face);
   g_assert(out_face != hb_face_get_empty ());
-  hb_blob_t *output = hb_face_reference_blob (out_face);
+  output = hb_face_reference_blob (out_face);
 
   unsigned int output_length;
   const char *output_data = hb_blob_get_data(output, &output_length);
