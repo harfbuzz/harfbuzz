@@ -471,7 +471,7 @@ struct hb_set_t
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
     page_map.bfind (map, &i);
-    if (i < page_map.len)
+    if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].next (codepoint))
       {
