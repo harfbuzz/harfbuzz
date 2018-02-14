@@ -93,7 +93,14 @@ hb_subset_test_create_subset (hb_face_t *source,
                               hb_set_t  *codepoints)
 {
   hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_subset_input_t *input = hb_subset_input_create (codepoints);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+  hb_set_t * input_codepoints = hb_subset_input_unicode_set (input);
+  hb_codepoint_t codepoint;
+  while (hb_set_next (codepoints, &codepoint)) {
+    hb_set_add (input_codepoints, codepoint);
+  }
+
   hb_face_t *subset = hb_subset (source, profile, input);
   g_assert (subset);
 
