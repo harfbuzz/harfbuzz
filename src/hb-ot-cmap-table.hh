@@ -272,17 +272,12 @@ struct CmapSubtableLongSegmented
   }
 
   inline bool serialize(hb_serialize_context_t *context,
-                        unsigned int group_count,
-                        Supplier<CmapSubtableLongGroup> &group_supplier)
+                        hb_prealloced_array_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
     if (unlikely(!context->extend_min (*this))) return_trace (false);
-    if (unlikely(!groups.serialize(context, group_count))) return_trace (false);
-    for (unsigned int i = 0; i < group_count; i++)
-    {
-      const CmapSubtableLongGroup &group = group_supplier[i];
-      memcpy(&groups[i], &group, sizeof(group));
-    }
+    if (unlikely(!groups.serialize(context, group_data.len))) return_trace (false);
+    memcpy(&groups[0], &group_data[0], group_data.len * sizeof(CmapSubtableLongGroup));
     return true;
   }
 
@@ -594,8 +589,7 @@ struct cmap
     format12.reservedZ.set(0);
     format12.lengthZ.set(16 + 12 * groups.len);
 
-    OT::Supplier<CmapSubtableLongGroup> group_supplier  (&groups[0], groups.len, sizeof (CmapSubtableLongGroup));
-    if (unlikely(!format12.serialize(&context, groups.len, group_supplier)))
+    if (unlikely(!format12.serialize(&context, groups)))
     {
       return false;
     }
