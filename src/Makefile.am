@@ -37,7 +37,7 @@ HBNOLIBCXXCFLAGS =
 else
 # Make sure we don't link to libstdc++
 # No threadsafe statics in C++ as we do it ourselves
-HBNOLIBCXXFLAGS = -fno-rtti -fno-exceptions
+HBNOLIBCXXFLAGS = -fno-threadsafe-statics -fno-rtti -fno-exceptions
 HBLIBCXXFLAGS = -fno-threadsafe-statics
 endif
 
@@ -158,7 +158,7 @@ EXTRA_DIST += harfbuzz.pc.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
-libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS)
+libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
 EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
