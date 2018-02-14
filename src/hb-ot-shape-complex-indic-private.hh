@@ -190,6 +190,31 @@ hb_indic_get_categories (hb_codepoint_t u);
 #define indic_category() complex_var_u8_0() /* indic_category_t */
 #define indic_position() complex_var_u8_1() /* indic_position_t */
 
+static inline bool
+is_one_of (const hb_glyph_info_t &info, unsigned int flags)
+{
+  /* If it ligated, all bets are off. */
+  if (_hb_glyph_info_ligated (&info)) return false;
+  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
+}
+
+static inline bool
+is_joiner (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, JOINER_FLAGS);
+}
+
+static inline bool
+is_consonant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, CONSONANT_FLAGS);
+}
+
+static inline bool
+is_halant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, FLAG (OT_H));
+}
 
 #define IN_HALF_BLOCK(u, Base) (((u) & ~0x7Fu) == (Base))
 
@@ -245,7 +270,7 @@ hb_indic_get_categories (hb_codepoint_t u);
 				)
 
 static inline indic_position_t
-matra_position (hb_codepoint_t u, indic_position_t side)
+matra_position_indic (hb_codepoint_t u, indic_position_t side)
 {
   switch ((int) side)
   {
@@ -355,7 +380,7 @@ set_indic_properties (hb_glyph_info_t &info)
   }
   else if (cat == OT_M)
   {
-    pos = matra_position (u, pos);
+    pos = matra_position_indic (u, pos);
   }
   else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) /* | FLAG (OT_VD) */ | FLAG (OT_A) | FLAG (OT_Symbol))))
   {

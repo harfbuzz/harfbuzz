@@ -33,33 +33,6 @@
  */
 
 
-static inline bool
-is_one_of (const hb_glyph_info_t &info, unsigned int flags)
-{
-  /* If it ligated, all bets are off. */
-  if (_hb_glyph_info_ligated (&info)) return false;
-  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
-}
-
-static inline bool
-is_joiner (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, JOINER_FLAGS);
-}
-
-static inline bool
-is_consonant (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, CONSONANT_FLAGS);
-}
-
-static inline bool
-is_halant (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, FLAG (OT_H));
-}
-
-
 /*
  * Indic configurations.  Note that we do not want to keep every single script-specific
  * behavior in these tables necessarily.  This should mainly be used for per-script

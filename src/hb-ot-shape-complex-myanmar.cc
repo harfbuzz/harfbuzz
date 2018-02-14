@@ -27,8 +27,8 @@
 #include "hb-ot-shape-complex-indic-private.hh"
 
 /* buffer var allocations */
-#define myanmar_category() complex_var_u8_0() /* myanmar_category_t */
-#define myanmar_position() complex_var_u8_1() /* myanmar_position_t */
+#define myanmar_category() indic_category() /* myanmar_category_t */
+#define myanmar_position() indic_position() /* myanmar_position_t */
 
 
 /*
@@ -147,21 +147,6 @@ enum myanmar_category_t {
   OT_P    = 31, /* Punctuation */
   OT_D    = 32, /* Digits except zero */
 };
-
-
-static inline bool
-is_one_of (const hb_glyph_info_t &info, unsigned int flags)
-{
-  /* If it ligated, all bets are off. */
-  if (_hb_glyph_info_ligated (&info)) return false;
-  return !!(FLAG_UNSAFE (info.myanmar_category()) & flags);
-}
-
-static inline bool
-is_consonant (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, CONSONANT_FLAGS);
-}
 
 
 static inline void

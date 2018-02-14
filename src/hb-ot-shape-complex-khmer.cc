@@ -28,8 +28,8 @@
 #include "hb-ot-layout-private.hh"
 
 /* buffer var allocations */
-#define khmer_category() complex_var_u8_0() /* khmer_category_t */
-#define khmer_position() complex_var_u8_1() /* khmer_position_t */
+#define khmer_category() indic_category() /* khmer_category_t */
+#define khmer_position() indic_position() /* khmer_position_t */
 
 
 /*
@@ -41,7 +41,7 @@ typedef indic_position_t khmer_position_t;
 
 
 static inline khmer_position_t
-matra_position (khmer_position_t side)
+matra_position_khmer (khmer_position_t side)
 {
   switch ((int) side)
   {
@@ -59,21 +59,7 @@ matra_position (khmer_position_t side)
 }
 
 static inline bool
-is_one_of (const hb_glyph_info_t &info, unsigned int flags)
-{
-  /* If it ligated, all bets are off. */
-  if (_hb_glyph_info_ligated (&info)) return false;
-  return !!(FLAG_UNSAFE (info.khmer_category()) & flags);
-}
-
-static inline bool
-is_joiner (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, JOINER_FLAGS);
-}
-
-static inline bool
-is_consonant (const hb_glyph_info_t &info)
+is_consonant_or_vowel (const hb_glyph_info_t &info)
 {
   return is_one_of (info, CONSONANT_FLAGS | FLAG (OT_V));
 }
@@ -122,7 +108,7 @@ set_khmer_properties (hb_glyph_info_t &info)
   }
   else if (cat == OT_M)
   {
-    pos = matra_position (pos);
+    pos = matra_position_khmer (pos);
   }
   else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_A) | FLAG (OT_Symbol))))
   {
@@ -404,7 +390,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
   /* Mark all subsequent consonants as below. */
   for (unsigned int i = base + 1; i < end; i++)
-    if (is_consonant (info[i]))
+    if (is_consonant_or_vowel (info[i]))
       info[i].khmer_position() = POS_BELOW_C;
 
   /* Mark final consonants.  A final consonant is one appearing after a matra,
@@ -412,7 +398,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   for (unsigned int i = base + 1; i < end; i++)
     if (info[i].khmer_category() == OT_M) {
       for (unsigned int j = i + 1; j < end; j++)
-        if (is_consonant (info[j])) {
+        if (is_consonant_or_vowel (info[j])) {
 	  info[j].khmer_position() = POS_FINAL_C;
 	  break;
 	}
@@ -455,7 +441,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   {
     unsigned int last = base;
     for (unsigned int i = base + 1; i < end; i++)
-      if (is_consonant (info[i]))
+      if (is_consonant_or_vowel (info[i]))
       {
 	for (unsigned int j = last + 1; j < i; j++)
 	  if (info[j].khmer_position() < POS_SMVD)
