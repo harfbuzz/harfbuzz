@@ -128,8 +128,8 @@ _hb_subset_face_data_create (void)
   return data;
 }
 
-void
-hb_subset_face_data_destroy (void *user_data)
+static void
+_hb_subset_face_data_destroy (void *user_data)
 {
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
 
@@ -200,13 +200,13 @@ hb_subset_face_create (void)
 
   return hb_face_create_for_tables (_hb_subset_face_reference_table,
 				    data,
-				    hb_subset_face_data_destroy);
+				    _hb_subset_face_data_destroy);
 }
 
 hb_bool_t
 hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 {
-  if (unlikely (face->destroy != hb_subset_face_data_destroy))
+  if (unlikely (face->destroy != _hb_subset_face_data_destroy))
     return false;
 
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;
@@ -228,7 +228,7 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
   hb_bool_t has_head = (head != nullptr);
 
   if (has_head) {
-    OT::head *head_prime = (OT::head *) calloc (OT::head::static_size, 1);
+    OT::head *head_prime = (OT::head *) malloc (OT::head::static_size);
     memcpy (head_prime, head, OT::head::static_size);
     head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
 
