@@ -109,6 +109,7 @@ HB_OT_sources = \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.cc \
+	hb-ot-shape-complex-khmer-private.hh \
 	hb-ot-shape-complex-khmer.cc \
 	hb-ot-shape-complex-myanmar-private.hh \
 	hb-ot-shape-complex-myanmar.cc \

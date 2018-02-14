@@ -353,11 +353,15 @@ endif
 
 check_PROGRAMS += \
 	dump-indic-data \
+	dump-khmer-data \
 	dump-myanmar-data \
 	$(NULL)
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
 dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)
+dump_khmer_data_SOURCES = dump-khmer-data.cc hb-ot-shape-complex-indic-table.cc
+dump_khmer_data_CPPFLAGS = $(HBCFLAGS)
+dump_khmer_data_LDADD = libharfbuzz.la $(HBLIBS)
 dump_myanmar_data_SOURCES = dump-myanmar-data.cc hb-ot-shape-complex-indic-table.cc
 dump_myanmar_data_CPPFLAGS = $(HBCFLAGS)
 dump_myanmar_data_LDADD = libharfbuzz.la $(HBLIBS)
