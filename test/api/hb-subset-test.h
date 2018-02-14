@@ -96,7 +96,7 @@ hb_subset_test_create_subset (hb_face_t *source,
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
 
   hb_set_t * input_codepoints = hb_subset_input_unicode_set (input);
-  hb_codepoint_t codepoint;
+  hb_codepoint_t codepoint = -1;
   while (hb_set_next (codepoints, &codepoint)) {
     hb_set_add (input_codepoints, codepoint);
   }
