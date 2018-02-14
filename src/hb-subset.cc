@@ -21,7 +21,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger, Rod Sheeter
+ * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
 #include "hb-object-private.hh"
