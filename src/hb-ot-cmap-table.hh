@@ -590,7 +590,7 @@ struct cmap
     return true;
   }
 
-  inline hb_bool_t subset (hb_subset_plan_t *plan) const
+  inline bool subset (hb_subset_plan_t *plan) const
   {
     hb_auto_array_t<CmapSubtableLongGroup> groups;
 

@@ -61,7 +61,7 @@ struct maxp
 			  (version.major == 0 && version.minor == 0x5000u)));
   }
 
-  inline hb_bool_t subset (hb_subset_plan_t *plan) const
+  inline bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
     hb_blob_t *maxp_prime_blob = hb_blob_create_sub_blob (maxp_blob, 0, -1);

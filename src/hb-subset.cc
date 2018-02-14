@@ -80,7 +80,7 @@ hb_subset_profile_destroy (hb_subset_profile_t *profile)
 }
 
 template<typename TableType>
-static hb_bool_t
+static bool
 _subset (hb_subset_plan_t *plan)
 {
     OT::Sanitizer<TableType> sanitizer;
