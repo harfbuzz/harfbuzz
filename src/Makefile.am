@@ -9,6 +9,8 @@ CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
+TESTS =
+check_PROGRAMS =
 
 # The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
@@ -341,6 +343,7 @@ dist_check_SCRIPTS = \
 	check-static-inits.sh \
 	check-symbols.sh \
 	$(NULL)
+TESTS += $(dist_check_SCRIPTS)
 
 if !WITH_LIBSTDCXX
 dist_check_SCRIPTS += \
@@ -348,14 +351,19 @@ dist_check_SCRIPTS += \
 	$(NULL)
 endif
 
-check_PROGRAMS = \
-	test-ot-tag \
+check_PROGRAMS += \
+	print-indic-table \
 	$(NULL)
+print_indic_table_SOURCES = print-indic-table.cc hb-ot-shape-complex-indic-table.cc
+print_indic_table_CPPFLAGS = $(HBCFLAGS) -DMAIN
+print_indic_table_LDADD = libharfbuzz.la $(HBLIBS)
+
+check_PROGRAMS += test-ot-tag
+TESTS += test-ot-tag
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
 
-TESTS = $(dist_check_SCRIPTS) $(check_PROGRAMS)
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
