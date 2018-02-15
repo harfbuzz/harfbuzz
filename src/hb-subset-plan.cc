@@ -163,7 +163,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->codepoints.init();
   plan->gids_to_retain.init();
   plan->gids_to_retain_sorted.init();
-  plan->source = face;
+  plan->source = hb_face_reference (face);
   plan->dest = hb_subset_face_create ();
 
   _populate_codepoints (input->unicodes, plan->codepoints);
@@ -188,6 +188,9 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   plan->codepoints.finish ();
   plan->gids_to_retain.finish ();
   plan->gids_to_retain_sorted.finish ();
+
+  hb_face_destroy (plan->source);
+  hb_face_destroy (plan->dest);
 
   free (plan);
 }
