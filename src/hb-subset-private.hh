@@ -58,7 +58,4 @@ hb_subset_face_create (void);
 HB_INTERNAL hb_bool_t
 hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob);
 
-HB_INTERNAL void
-hb_subset_face_data_destroy (void *user_data);
-
 #endif /* HB_SUBSET_PRIVATE_HH */
