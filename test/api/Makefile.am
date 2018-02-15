@@ -72,6 +72,9 @@ EXTRA_DIST += \
 	fonts/Inconsolata-Regular.abc.widerc.ttf \
 	fonts/Inconsolata-Regular.ac.ttf \
 	fonts/Inconsolata-Regular.ac.widerc.ttf \
+	fonts/Roboto-Regular.abc.cmap-format12-only.ttf \
+	fonts/Roboto-Regular.ac.cmap-format12-only.ttf \
+	fonts/Roboto-Regular.b.ttf \
 	fonts/Roboto-Regular.abc.ttf \
 	fonts/Roboto-Regular.ac.ttf \
 	fonts/MathTestFontEmpty.otf \
