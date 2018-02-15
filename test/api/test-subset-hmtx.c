@@ -42,7 +42,7 @@ static void check_num_hmetrics(hb_face_t *face, uint16_t expected_num_hmetrics)
   uint8_t *raw_hhea = (uint8_t *) hb_blob_get_data(hhea_blob, &hhea_len);
   uint16_t num_hmetrics = (raw_hhea[hhea_len - 2] << 8) + raw_hhea[hhea_len - 1];
   g_assert_cmpuint(expected_num_hmetrics, ==, num_hmetrics);
-  
+
   hb_blob_destroy (hhea_blob);
   hb_blob_destroy (hmtx_blob);
 }
@@ -78,15 +78,14 @@ test_subset_hmtx_monospace (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
-  hb_set_destroy (codepoints); 
+  hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 1); /* everything has same width */
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('h','m','t','x'));
-  // TODO hhea
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
-  hb_face_destroy (face_ac);  
+  hb_face_destroy (face_ac);
 }
 
 
