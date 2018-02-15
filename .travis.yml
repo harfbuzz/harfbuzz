@@ -27,7 +27,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --enable-gtk-doc
         - make
-        - make check || (./.collect_logs && false)
+        - make check || (.ci/collect-logs.sh && false)
       after_success:
         - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
         - bash .ci/deploy-docs.sh
@@ -43,7 +43,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS
         - make
-        - make check || (./.collect_logs && false)
+        - make check || (.ci/collect-logs.sh && false)
 
     - os: osx
       compiler: clang
@@ -59,7 +59,7 @@ matrix:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --with-coretext
         - make
-        - make check || (./.collect_logs && false)
+        - make check || (.ci/collect-logs.sh && false)
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
