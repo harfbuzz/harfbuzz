@@ -41,6 +41,10 @@ struct hb_subset_plan_t {
   hb_prealloced_array_t<hb_codepoint_t> codepoints;
   hb_prealloced_array_t<hb_codepoint_t> gids_to_retain;
   hb_prealloced_array_t<hb_codepoint_t> gids_to_retain_sorted;
+
+  // Plan is only good for a specific source/dest so keep them with it
+  hb_face_t *source;
+  hb_face_t *dest;
 };
 
 typedef struct hb_subset_plan_t hb_subset_plan_t;
@@ -54,6 +58,16 @@ HB_INTERNAL hb_bool_t
 hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
                                   hb_codepoint_t old_gid,
                                   hb_codepoint_t *new_gid /* OUT */);
+
+HB_INTERNAL hb_bool_t
+hb_subset_plan_new_gid_for_codepoint(hb_subset_plan_t *plan,
+                                     hb_codepoint_t codepont,
+                                     hb_codepoint_t *new_gid /* OUT */);
+
+HB_INTERNAL hb_bool_t
+hb_subset_plan_add_table(hb_subset_plan_t *plan,
+                         hb_tag_t tag,
+                         hb_blob_t *contents);
 
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
