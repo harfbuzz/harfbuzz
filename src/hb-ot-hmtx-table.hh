@@ -121,7 +121,7 @@ struct hmtxvmtx
     for (unsigned int i = 0; i < gids.len; i++)
     {
       /* the last metric or the one for gids[i] */
-      LongMetric *src_metric = old_metrics + MIN (_mtx.num_advances - 1, gids[i]);
+      LongMetric *src_metric = old_metrics + MIN ((hb_codepoint_t) _mtx.num_advances - 1, gids[i]);
       if (gids[i] < _mtx.num_advances)
       {
         /* src is a LongMetric */
