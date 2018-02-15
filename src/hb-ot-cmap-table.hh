@@ -271,13 +271,13 @@ struct CmapSubtableLongSegmented
     return_trace (c->check_struct (this) && groups.sanitize (c));
   }
 
-  inline bool serialize(hb_serialize_context_t *context,
-                        hb_prealloced_array_t<CmapSubtableLongGroup> &group_data)
+  inline bool serialize (hb_serialize_context_t *context,
+                         hb_prealloced_array_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely(!context->extend_min (*this))) return_trace (false);
-    Supplier<CmapSubtableLongGroup> supplier(group_data.array, group_data.len);
-    if (unlikely(!groups.serialize(context, supplier, group_data.len))) return_trace (false);
+    if (unlikely (!context->extend_min (*this))) return_trace (false);
+    Supplier<CmapSubtableLongGroup> supplier (group_data.array, group_data.len);
+    if (unlikely (!groups.serialize (context, supplier, group_data.len))) return_trace (false);
     return true;
   }
 
@@ -435,12 +435,12 @@ struct CmapSubtable
 			 hb_codepoint_t *glyph) const
   {
     switch (u.format) {
-    case  0: return u.format0 .get_glyph(codepoint, glyph);
-    case  4: return u.format4 .get_glyph(codepoint, glyph);
-    case  6: return u.format6 .get_glyph(codepoint, glyph);
-    case 10: return u.format10.get_glyph(codepoint, glyph);
-    case 12: return u.format12.get_glyph(codepoint, glyph);
-    case 13: return u.format13.get_glyph(codepoint, glyph);
+    case  0: return u.format0 .get_glyph (codepoint, glyph);
+    case  4: return u.format4 .get_glyph (codepoint, glyph);
+    case  6: return u.format6 .get_glyph (codepoint, glyph);
+    case 10: return u.format10.get_glyph (codepoint, glyph);
+    case 12: return u.format12.get_glyph (codepoint, glyph);
+    case 13: return u.format13.get_glyph (codepoint, glyph);
     case 14:
     default: return false;
     }
@@ -517,8 +517,8 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  inline bool populate_groups(hb_subset_plan_t *plan,
-			      hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
+  inline bool populate_groups (hb_subset_plan_t *plan,
+			       hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
     for (unsigned int i = 0; i < plan->codepoints.len; i++) {
@@ -526,19 +526,19 @@ struct cmap
       hb_codepoint_t cp = plan->codepoints[i];
       if (!group || cp - 1 != group->endCharCode)
       {
-        group = groups->push();
-        group->startCharCode.set(cp);
-        group->endCharCode.set(cp);
+        group = groups->push ();
+        group->startCharCode.set (cp);
+        group->endCharCode.set (cp);
         hb_codepoint_t new_gid;
-        if (unlikely(!hb_subset_plan_new_gid_for_codepoint(plan, cp, &new_gid)))
+        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
         {
           DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
           return false;
         }
-        group->glyphID.set(new_gid);
+        group->glyphID.set (new_gid);
       } else
       {
-        group->endCharCode.set(cp);
+        group->endCharCode.set (cp);
       }
     }
 
@@ -555,35 +555,35 @@ struct cmap
 		       size_t dest_sz,
 		       void *dest) const
   {
-    hb_serialize_context_t context(dest, dest_sz);
+    hb_serialize_context_t context (dest, dest_sz);
 
     OT::cmap *cmap = context.start_serialize<OT::cmap> ();
-    if (unlikely(!context.extend_min(*cmap)))
+    if (unlikely (!context.extend_min (*cmap)))
     {
       return false;
     }
 
-    cmap->version.set(0);
+    cmap->version.set (0);
 
-    if (unlikely(!cmap->encodingRecord.serialize(&context, /* numTables */ 1))) return false;
+    if (unlikely (!cmap->encodingRecord.serialize (&context, /* numTables */ 1))) return false;
 
     EncodingRecord &rec = cmap->encodingRecord[0];
     rec.platformID.set (3); // Windows
     rec.encodingID.set (10); // Unicode UCS-4
 
     /* capture offset to subtable */
-    CmapSubtable &subtable = rec.subtable.serialize(&context, cmap);
+    CmapSubtable &subtable = rec.subtable.serialize (&context, cmap);
 
-    subtable.u.format.set(12);
+    subtable.u.format.set (12);
 
     CmapSubtableFormat12 &format12 = subtable.u.format12;
-    if (unlikely(!context.extend_min(format12))) return false;
+    if (unlikely (!context.extend_min (format12))) return false;
 
-    format12.format.set(12);
-    format12.reservedZ.set(0);
-    format12.lengthZ.set(16 + 12 * groups.len);
+    format12.format.set (12);
+    format12.reservedZ.set (0);
+    format12.lengthZ.set (16 + 12 * groups.len);
 
-    if (unlikely(!format12.serialize(&context, groups))) return false;
+    if (unlikely (!format12.serialize (&context, groups))) return false;
 
     context.end_serialize ();
 
@@ -594,7 +594,7 @@ struct cmap
   {
     hb_auto_array_t<CmapSubtableLongGroup> groups;
 
-    if (unlikely(!populate_groups(plan, &groups))) return false;
+    if (unlikely (!populate_groups (plan, &groups))) return false;
 
     // We now know how big our blob needs to be
     // TODO use APIs from the structs to get size?
@@ -602,15 +602,15 @@ struct cmap
                    + 8 // 1 EncodingRecord
                    + 16 // Format 12 header
                    + 12 * groups.len; // SequentialMapGroup records
-    void *dest = calloc(dest_sz, 1);
-    if (unlikely(!dest)) {
+    void *dest = calloc (dest_sz, 1);
+    if (unlikely (!dest)) {
       DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %ld for cmap subset output", dest_sz);
       return false;
     }
 
-    if (unlikely(!_subset(groups, dest_sz, dest)))
+    if (unlikely (!_subset (groups, dest_sz, dest)))
     {
-      free(dest);
+      free (dest);
       return false;
     }
 
@@ -620,7 +620,7 @@ struct cmap
                                             HB_MEMORY_MODE_READONLY,
                                             /* userdata */ nullptr,
                                             free);
-    return hb_subset_plan_add_table(plan, HB_OT_TAG_cmap, cmap_prime);
+    return hb_subset_plan_add_table (plan, HB_OT_TAG_cmap, cmap_prime);
   }
 
   struct accelerator_t
