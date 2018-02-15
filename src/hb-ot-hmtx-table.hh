@@ -68,33 +68,18 @@ struct hmtxvmtx
   inline bool subset_update_header(hb_subset_plan_t *plan,
                                    unsigned int num_hmetrics) const
   {
-    /* alloc the new table */
-    size_t dest_sz = sizeof(H);
-    void *dest = (void *) calloc(dest_sz, 1);
-    if (unlikely(!dest))
-    {
-      return false;
-    }
-
     hb_blob_t *src_blob = OT::Sanitizer<H>().sanitize (plan->source->reference_table (H::tableTag));
-    unsigned int src_length;
-    const char *src_raw = hb_blob_get_data (src_blob, &src_length);
+    hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail(src_blob);
     hb_blob_destroy (src_blob);
 
-    if (src_length != sizeof (H)) {
-      free (dest);
+    if (unlikely(!dest_blob)) {
       return false;
     }
-    memcpy(dest, src_raw, src_length);
 
-    H *table = (H *) dest;
+    unsigned int length;
+    H *table = (H *) hb_blob_get_data(dest_blob, &length);
     table->numberOfLongMetrics.set (num_hmetrics);
 
-    hb_blob_t *dest_blob = hb_blob_create ((const char *) dest,
-                                           dest_sz,
-                                           HB_MEMORY_MODE_READONLY,
-                                           dest,
-                                           free);
     bool result = hb_subset_plan_add_table (plan, H::tableTag, dest_blob);
     hb_blob_destroy (dest_blob);
 
