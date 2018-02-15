@@ -94,6 +94,27 @@ _populate_codepoints (hb_set_t *input_codepoints,
 }
 
 static void
+_add_composite_gids (const OT::glyf::accelerator_t &glyf,
+                     hb_codepoint_t gid,
+                     hb_set_t *gids_to_retain)
+{
+  if (hb_set_has (gids_to_retain, gid))
+    // Already visited this gid, ignore.
+    return;
+
+  hb_set_add (gids_to_retain, gid);
+
+  const OT::glyf::CompositeGlyphHeader *composite;
+  if (glyf.get_composite (gid, &composite))
+  {
+    do
+    {
+      _add_composite_gids (glyf, (hb_codepoint_t) composite->glyphIndex, gids_to_retain);
+    } while (glyf.next_composite (&composite);
+  }
+}
+
+static void
 _populate_gids_to_retain (hb_face_t *face,
                           hb_prealloced_array_t<hb_codepoint_t>& codepoints,
                           hb_prealloced_array_t<hb_codepoint_t>& old_gids,
