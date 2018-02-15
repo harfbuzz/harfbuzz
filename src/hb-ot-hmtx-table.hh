@@ -76,26 +76,29 @@ struct hmtxvmtx
       return false;
     }
 
-    hb_blob_t *src_blob = OT::Sanitizer<H>().sanitize (plan->source->reference_table (T::tableTag));
-    if (unlikely(!src_blob))
-    {
-      free(dest);
+    hb_blob_t *src_blob = OT::Sanitizer<H>().sanitize (plan->source->reference_table (H::tableTag));
+    unsigned int src_length;
+    const char *src_raw = hb_blob_get_data (src_blob, &src_length);
+    hb_blob_destroy (src_blob);
+
+    if (src_length != sizeof (H)) {
+      free (dest);
       return false;
     }
-    unsigned int src_length;
-    const char *src_raw = hb_blob_get_data(src_blob, &src_length);
-
     memcpy(dest, src_raw, src_length);
 
     H *table = (H *) dest;
-    table->numberOfLongMetrics.set(num_hmetrics);
+    table->numberOfLongMetrics.set (num_hmetrics);
 
-    hb_blob_t *dest_blob = hb_blob_create ((const char *)dest,
+    hb_blob_t *dest_blob = hb_blob_create ((const char *) dest,
                                            dest_sz,
                                            HB_MEMORY_MODE_READONLY,
-                                           /* userdata */ nullptr,
+                                           dest,
                                            free);
-    return hb_subset_plan_add_table(plan, H::tableTag, dest_blob);
+    bool result = hb_subset_plan_add_table (plan, H::tableTag, dest_blob);
+    hb_blob_destroy (dest_blob);
+
+    return result;
   }
 
   inline bool subset (hb_subset_plan_t *plan) const
