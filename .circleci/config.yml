@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: ./autogen.sh && (make distcheck || (cd harfbuzz-* && ../.collect_logs && false)) && rm -rf harfbuzz-*
+      - run: ./autogen.sh && (make distcheck || (cd harfbuzz-* && ../.ci/collect-logs.sh && false)) && rm -rf harfbuzz-*
       - run: make distdir && cd harfbuzz-* && cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
 
   alpine:
@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
       - run: ./autogen.sh
-      - run: make && (make check || (./.collect_logs && false))
+      - run: make && (make check || (.ci/collect-logs.sh && false))
 
   archlinux:
     docker:
@@ -28,7 +28,7 @@ jobs:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: make && (make check || (./.collect_logs && false))
+      - run: make && (make check || (.ci/collect-logs.sh && false))
 
   fedora-outoftreebuild:
     docker:
@@ -37,7 +37,7 @@ jobs:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python || true
       - run: NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: mkdir build && cd build && ../configure && make && (make check || (./.collect_logs && false))
+      - run: mkdir build && cd build && ../configure && make && (make check || (.ci/collect-logs.sh && false))
 
   cmake-gcc:
     docker:
