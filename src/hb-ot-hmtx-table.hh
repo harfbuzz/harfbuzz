@@ -111,7 +111,7 @@ struct hmtxvmtx
       return false;
     }
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
-    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %d bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, dest_sz);
+    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %zu bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, dest_sz);
 
     const char *source_table = hb_blob_get_data (_mtx.blob, nullptr);
     // Copy everything over
