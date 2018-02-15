@@ -64,15 +64,14 @@ struct maxp
   inline bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
-    // TODO(grieger): hb_blob_copy_writable_or_fail
-    hb_blob_t *maxp_prime_blob = hb_blob_create_sub_blob (maxp_blob, 0, -1);
+    hb_blob_t *maxp_prime_blob = hb_blob_copy_writable_or_fail (maxp_blob);
     hb_blob_destroy (maxp_blob);
 
-    OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data_writable (maxp_prime_blob, nullptr);
-    if (unlikely (!maxp_prime)) {
-      hb_blob_destroy (maxp_prime_blob);
+    if (unlikely (!maxp_prime_blob)) {
       return false;
     }
+    unsigned int length;
+    OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, &length);
 
     maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
 
