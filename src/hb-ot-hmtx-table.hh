@@ -72,7 +72,7 @@ struct hmtxvmtx
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail(src_blob);
     hb_blob_destroy (src_blob);
 
-    if (unlikely(!dest_blob)) {
+    if (unlikely (!dest_blob)) {
       return false;
     }
 
@@ -106,11 +106,10 @@ struct hmtxvmtx
     size_t dest_sz = num_advances * 4
                   + (gids.len - num_advances) * 2;
     void *dest = (void *) calloc(dest_sz, 1);
-    if (unlikely(!dest))
+    if (unlikely (!dest))
     {
       return false;
     }
-
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %d bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, dest_sz);
 
