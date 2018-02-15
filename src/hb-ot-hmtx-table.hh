@@ -257,8 +257,12 @@ struct hmtxvmtx
     inline unsigned int get_advance (hb_codepoint_t  glyph,
                                      hb_font_t      *font) const
     {
-      return get_advance (glyph)
-	        + (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
+      unsigned int advance = get_advance (glyph);
+      if (likely(glyph < num_metrics))
+      {
+        advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
+      }
+      return advance;	        
     }
 
     public:
