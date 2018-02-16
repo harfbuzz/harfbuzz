@@ -114,7 +114,7 @@ hb_subset_test_check (hb_face_t *expected,
 {
   hb_blob_t *glyf_expected_blob = hb_face_reference_table (expected, table);
   hb_blob_t *glyf_actual_blob = hb_face_reference_table (actual, table);
-  int expected_length, actual_length;
+  unsigned int expected_length, actual_length;
   g_assert_cmpmem(hb_blob_get_data (glyf_expected_blob, &expected_length), expected_length,
                   hb_blob_get_data (glyf_actual_blob, &actual_length), actual_length);
   hb_blob_destroy (glyf_actual_blob);
