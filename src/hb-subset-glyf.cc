@@ -157,16 +157,15 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
  **/
 bool
 hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
-                         hb_face_t        *face,
                          bool             *use_short_loca, /* OUT */
                          hb_blob_t       **glyf_prime, /* OUT */
                          hb_blob_t       **loca_prime /* OUT */)
 {
-  hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
+  hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (plan->source->reference_table (HB_OT_TAG_glyf));
   const char *glyf_data = hb_blob_get_data(glyf_blob, nullptr);
 
   OT::glyf::accelerator_t glyf;
-  glyf.init(face);
+  glyf.init(plan->source);
   bool result = _hb_subset_glyf_and_loca (glyf,
                                           glyf_data,
                                           plan->gids_to_retain_sorted,
@@ -174,8 +173,6 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                                           glyf_prime,
                                           loca_prime);
   glyf.fini();
-
-  *use_short_loca = false;
 
   return result;
 }

@@ -133,15 +133,16 @@ typedef struct OffsetTable
 			 unsigned int table_count)
   {
     TRACE_SERIALIZE (this);
-    // alloc 12 for the OTHeader
+    /* alloc 12 for the OTHeader */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    // write sfntVersion (bytes 0..3)
+    /* write sfntVersion (bytes 0..3) */
     sfnt_version.set (sfnt_tag);
-    // take space for numTables, searchRange, entrySelector, RangeShift
-    // and the TableRecords themselves
+    /* take space for numTables, searchRange, entrySelector, RangeShift
+     * and the TableRecords themselves
+     */
     if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
 
-    // write OffsetTables, alloc for and write actual table blobs
+    /* write OffsetTables, alloc for and write actual table blobs */
     for (unsigned int i = 0; i < table_count; i++)
     {
       TableRecord &rec = tables.array[i];
@@ -153,9 +154,9 @@ typedef struct OffsetTable
       // take room for the table
       void *p = c->allocate_size<void> (rec.length);
       if (unlikely (!p)) {return false;}
-      // copy the actual table
+      /* copy the actual table */
       memcpy (p, hb_blob_get_data (blob, nullptr), rec.length);
-      // 4-byte allignment
+      /* 4-byte allignment */
       if (rec.length % 4)
 	p = c->allocate_size<void> (4 - rec.length % 4);
     }

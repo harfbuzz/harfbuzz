@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import io
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -57,6 +58,9 @@ def run_test(test):
 	if return_code:
 		return fail_test(test, cli_args, "ttx (actual) returned %d" % (return_code))
 
+	expected_ttx = strip_check_sum (expected_ttx)
+	actual_ttx = strip_check_sum (expected_ttx)
+
 	if not actual_ttx == expected_ttx:
 		return fail_test(test, cli_args, 'ttx for expected and actual does not match.')
 
@@ -68,6 +72,10 @@ def run_ttx(file):
 		    file]
 	return cmd(cli_args)
 
+def strip_check_sum (ttx_string):
+	return re.sub ('checksumAdjustment value=["]0x(\d+)["]',
+		       'checksumAdjustment value="0x00000000"',
+		       ttx_string, count=1)
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find('hb-subset') == -1 or not os.path.exists (sys.argv[1]):

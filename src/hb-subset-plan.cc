@@ -39,18 +39,45 @@ _hb_codepoint_t_cmp (const void *pa, const void *pb)
 }
 
 hb_bool_t
+hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
+                                      hb_codepoint_t codepoint,
+                                      hb_codepoint_t *new_gid)
+{
+  // TODO actual map, delete this garbage.
+  for (unsigned int i = 0; i < plan->codepoints.len; i++)
+  {
+    if (plan->codepoints[i] != codepoint) continue;
+    if (!hb_subset_plan_new_gid_for_old_id(plan, plan->gids_to_retain[i], new_gid))
+    {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+hb_bool_t
 hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
                                    hb_codepoint_t old_gid,
                                    hb_codepoint_t *new_gid)
 {
   // the index in old_gids is the new gid; only up to codepoints.len are valid
-  for (unsigned int i = 0; i < plan->gids_to_retain_sorted.len; i++) {
-    if (plan->gids_to_retain_sorted[i] == old_gid) {
-      *new_gid = i;
+  for (unsigned int i = 0; i < plan->gids_to_retain.len; i++) {
+    if (plan->gids_to_retain[i] == old_gid) {
+      // +1: assign new gids from 1..N; 0 is special
+      *new_gid = i + 1;
       return true;
     }
   }
   return false;
+}
+
+hb_bool_t
+hb_subset_plan_add_table (hb_subset_plan_t *plan,
+                          hb_tag_t tag,
+                          hb_blob_t *contents)
+{
+  return hb_subset_face_add_table(plan->dest, tag, contents);
 }
 
 static void
@@ -91,6 +118,7 @@ _populate_gids_to_retain (hb_face_t *face,
     *(old_gids.push ()) = gid;
   }
 
+  /* Generally there shouldn't be any */
   while (bad_indices.len > 0) {
     unsigned int i = bad_indices[bad_indices.len - 1];
     bad_indices.pop ();
@@ -108,10 +136,6 @@ _populate_gids_to_retain (hb_face_t *face,
   if (!has_zero)
     *(old_gids_sorted.push ()) = 0;
   old_gids_sorted.qsort (_hb_codepoint_t_cmp);
-
-  for (unsigned int i = 0; i < codepoints.len; i++) {
-      DEBUG_MSG(SUBSET, nullptr, " U+%04X, old_gid %d, new_gid %d", codepoints[i], old_gids[i], i);
-  }
 
   // TODO(Q1) expand with glyphs that make up complex glyphs
   // TODO expand with glyphs reached by G*
@@ -139,12 +163,15 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->codepoints.init();
   plan->gids_to_retain.init();
   plan->gids_to_retain_sorted.init();
+  plan->source = hb_face_reference (face);
+  plan->dest = hb_subset_face_create ();
 
   _populate_codepoints (input->unicodes, plan->codepoints);
   _populate_gids_to_retain (face,
                             plan->codepoints,
                             plan->gids_to_retain,
                             plan->gids_to_retain_sorted);
+
   return plan;
 }
 
@@ -161,6 +188,9 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   plan->codepoints.finish ();
   plan->gids_to_retain.finish ();
   plan->gids_to_retain_sorted.finish ();
+
+  hb_face_destroy (plan->source);
+  hb_face_destroy (plan->dest);
 
   free (plan);
 }
