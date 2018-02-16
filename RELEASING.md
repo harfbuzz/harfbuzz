@@ -35,7 +35,7 @@ HarfBuzz release walk-through checklist:
 
    a. Put contents of [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ) on your `~/.local/i686-w64-mingw32`,
 
-   b. Run `./MING32 --with-uniscribe` script (available below) to configure harfbuzz with mingw in a subdirector (eg. winbuild/),
+   b. Run `../mingw32.sh --with-uniscribe` script (available below) to configure harfbuzz with mingw in a subdirector (eg. winbuild/),
 
    c. make
 
@@ -62,32 +62,6 @@ HarfBuzz release walk-through checklist:
 13. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
     edit the tag, upload artefacts and NEWS entry and save.
 
-
-## MING32
-```bash
-#!/bin/bash
-
-target=i686-w64-mingw32
-
-unset CC
-unset CXX
-unset CPP
-unset LD
-unset LDFLAGS
-unset CFLAGS
-unset CXXFLAGS
-unset PKG_CONFIG_PATH
-
-# Removed -static from the following
-export CFLAGS="-static-libgcc"
-export CXXFLAGS="-static-libgcc -static-libstdc++"
-export CPPFLAGS=-I$HOME/.local/$target/include
-export LDFLAGS=-L$HOME/.local/$target/lib
-export PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig
-export PATH=$HOME/.local/$target/bin:$PATH
-
-../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target "$@"
-```
 
 ## UPDATE.sh
 ```bash

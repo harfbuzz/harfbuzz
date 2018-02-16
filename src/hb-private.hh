@@ -355,9 +355,9 @@ _hb_bit_storage (unsigned int number)
 {
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
   return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clz (number)) : 0;
-#elif defined(_MSC_VER) && defined(__OPTIMIZE__)
+#elif defined(_MSC_VER)
   unsigned long where;
-  if (_BitScanReverse(&where, number)) return 1 + where;
+  if (_BitScanReverse (&where, number)) return 1 + where;
   return 0;
 #else
   unsigned int n_bits = 0;
@@ -375,11 +375,10 @@ _hb_ctz (unsigned int number)
 {
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
   return likely (number) ? __builtin_ctz (number) : 0;
-#elif defined(_MSC_VER) && defined(__OPTIMIZE__)
+#elif defined(_MSC_VER)
   unsigned long where;
-  if (_BitScanForward(&where, n)) return where;
+  if (_BitScanForward (&where, number)) return where;
   return 0;
-}
 #else
   unsigned int n_bits = 0;
   if (unlikely (!number)) return 0;
