@@ -133,6 +133,58 @@ struct glyf
       return size;
     }
 
+    struct Iterator
+    {
+      const char *glyph_start;
+      const char *glyph_end;
+      const CompositeGlyphHeader *current;
+
+      inline bool move_to_next ()
+      {
+	if (current->flags & CompositeGlyphHeader::MORE_COMPONENTS)
+	{
+	  const CompositeGlyphHeader *possible =
+	    &StructAfter<CompositeGlyphHeader, CompositeGlyphHeader> (*current);
+	  if (!in_range (possible))
+	    return false;
+	  current = possible;
+	  return true;
+	}
+	return false;
+      }
+
+      inline bool in_range (const CompositeGlyphHeader *composite) const
+      {
+	return (const char *) composite >= glyph_start
+	  && ((const char *) composite + CompositeGlyphHeader::min_size) <= glyph_end
+	  && ((const char *) composite + composite->get_size()) <= glyph_end;
+      }
+    };
+
+    static inline bool get_iterator (const char * glyph_data,
+				     unsigned int length,
+				     CompositeGlyphHeader::Iterator *iterator /* OUT */)
+    {
+      if (length < GlyphHeader::static_size)
+	return false; /* Empty glyph; zero extents. */
+
+      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyph_data, 0);
+      if (glyph_header.numberOfContours < 0)
+      {
+        const CompositeGlyphHeader *possible =
+	  &StructAfter<CompositeGlyphHeader, GlyphHeader> (glyph_header);
+
+	iterator->glyph_start = glyph_data;
+	iterator->glyph_end = (const char *) glyph_data + length;
+	if (!iterator->in_range (possible))
+          return false;
+        iterator->current = possible;
+        return true;
+      }
+
+      return false;
+    }
+
     DEFINE_SIZE_MIN (4);
   };
 
@@ -166,69 +218,21 @@ struct glyf
       hb_blob_destroy (glyf_blob);
     }
 
-    inline bool in_table (const char *offset, unsigned int len) const
-    {
-      return (offset - (const char *) glyf_table + len) <= glyf_len;
-    }
-
-    inline bool in_table (const CompositeGlyphHeader *header) const
-    {
-      return in_table ((const char *) header, CompositeGlyphHeader::min_size)
-          && in_table ((const char *) header, header->get_size());
-    }
-
-    inline bool in_glyph (const CompositeGlyphHeader *header,
-                          unsigned int start_offset,
-                          unsigned int end_offset) const
-    {
-      do
-      {
-        unsigned int offset_in_glyf = (const char *) header - (const char*) glyf_table;
-        if (offset_in_glyf < start_offset
-            || offset_in_glyf + header->get_size() > end_offset)
-          return false;
-      } while (next_composite (&header));
-      return true;
-    }
-
     /*
      * Returns true if the referenced glyph is a valid glyph and a composite glyph.
      * If true is returned a pointer to the composite glyph will be written into
      * composite.
      */
-    inline bool get_composite (hb_codepoint_t glyph, const CompositeGlyphHeader ** composite /* OUT */) const
+    inline bool get_composite (hb_codepoint_t glyph,
+			       CompositeGlyphHeader::Iterator *composite /* OUT */) const
     {
       unsigned int start_offset, end_offset;
       if (!get_offsets (glyph, &start_offset, &end_offset))
         return false; /* glyph not found */
 
-      if (end_offset - start_offset < GlyphHeader::static_size)
-	return false; /* Empty glyph; zero extents. */
-
-      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
-      if (glyph_header.numberOfContours < 0) {
-        const CompositeGlyphHeader *possible = &StructAfter<CompositeGlyphHeader, GlyphHeader> (glyph_header);
-        if (!in_table (possible)
-            || !in_glyph (possible, start_offset, end_offset))
-          return false;
-        *composite = possible;
-        return true;
-      }
-
-      return false;
-    }
-
-    inline bool next_composite (const CompositeGlyphHeader ** next /* IN/OUT */) const
-    {
-      if ((*next)->flags & CompositeGlyphHeader::MORE_COMPONENTS)
-      {
-        const CompositeGlyphHeader *possible = &StructAfter<CompositeGlyphHeader, CompositeGlyphHeader> (**next);
-        if (!in_table (possible))
-          return false;
-        *next = possible;
-        return true;
-      }
-      return false;
+      return CompositeGlyphHeader::get_iterator ((const char*) this->glyf_table + start_offset,
+						 end_offset - start_offset,
+						 composite);
     }
 
     inline bool get_offsets (hb_codepoint_t  glyph,
