@@ -106,13 +106,13 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 
   hb_set_add (gids_to_retain, gid);
 
-  const OT::glyf::CompositeGlyphHeader *composite;
+  OT::glyf::CompositeGlyphHeader::Iterator composite;
   if (glyf.get_composite (gid, &composite))
   {
     do
     {
-      _add_gid_and_children (glyf, (hb_codepoint_t) composite->glyphIndex, gids_to_retain);
-    } while (glyf.next_composite (&composite));
+      _add_gid_and_children (glyf, (hb_codepoint_t) composite.current->glyphIndex, gids_to_retain);
+    } while (composite.move_to_next());
   }
 }
 
