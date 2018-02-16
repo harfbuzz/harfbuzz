@@ -20,6 +20,7 @@ LT_INIT([disable-static])
 # Check for programs
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CXX
 dnl AX_CXX_COMPILE_STDCXX(11, noext, optional)
