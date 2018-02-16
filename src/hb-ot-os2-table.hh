@@ -78,7 +78,7 @@ struct os2
   {
     hb_codepoint_t min = -1, max = 0;
 
-    for (int i = 0; i < codepoints.len; i++)
+    for (unsigned int i = 0; i < codepoints.len; i++)
     {
       hb_codepoint_t cp = codepoints[i];
       if (cp < min)
