@@ -179,7 +179,7 @@ struct glyf
 
     inline bool in_glyph (const CompositeGlyphHeader *header,
                           unsigned int start_offset,
-                          unsigned int end_offset)
+                          unsigned int end_offset) const
     {
       do
       {
@@ -196,7 +196,7 @@ struct glyf
      * If true is returned a pointer to the composite glyph will be written into
      * composite.
      */
-    inline bool get_composite (hb_codepoint_t glyph, const CompositeGlyphHeader ** composite /* OUT */)
+    inline bool get_composite (hb_codepoint_t glyph, const CompositeGlyphHeader ** composite /* OUT */) const
     {
       unsigned int start_offset, end_offset;
       if (!get_offsets (glyph, &start_offset, &end_offset))
