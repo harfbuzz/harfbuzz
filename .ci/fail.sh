@@ -1,7 +1,8 @@
 #!/bin/bash
 
 for f in $(find . -name '*.log' -not -name 'config.log'); do
-    if [[ $(tail -1 $f) = FAIL* ]]; then
+    last=$(tail -1 $f)
+    if [[ $last = FAIL* || $last = *failed* ]]; then
         echo '====' $f '===='
         cat $f
     fi
