@@ -28,6 +28,7 @@
 
 #include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"
+#include "hb-ot-glyf-table.hh"
 
 static int
 _hb_codepoint_t_cmp (const void *pa, const void *pb)
@@ -94,9 +95,9 @@ _populate_codepoints (hb_set_t *input_codepoints,
 }
 
 static void
-_add_composite_gids (const OT::glyf::accelerator_t &glyf,
-                     hb_codepoint_t gid,
-                     hb_set_t *gids_to_retain)
+_add_gid_and_children (const OT::glyf::accelerator_t &glyf,
+		       hb_codepoint_t gid,
+		       hb_set_t *gids_to_retain)
 {
   if (hb_set_has (gids_to_retain, gid))
     // Already visited this gid, ignore.
@@ -109,8 +110,8 @@ _add_composite_gids (const OT::glyf::accelerator_t &glyf,
   {
     do
     {
-      _add_composite_gids (glyf, (hb_codepoint_t) composite->glyphIndex, gids_to_retain);
-    } while (glyf.next_composite (&composite);
+      _add_gid_and_children (glyf, (hb_codepoint_t) composite->glyphIndex, gids_to_retain);
+    } while (glyf.next_composite (&composite));
   }
 }
 
@@ -121,20 +122,18 @@ _populate_gids_to_retain (hb_face_t *face,
                           hb_prealloced_array_t<hb_codepoint_t>& old_gids_sorted)
 {
   OT::cmap::accelerator_t cmap;
+  OT::glyf::accelerator_t glyf;
   cmap.init (face);
+  glyf.init (face);
 
   hb_auto_array_t<unsigned int> bad_indices;
 
   old_gids.alloc (codepoints.len);
-  bool has_zero = false;
   for (unsigned int i = 0; i < codepoints.len; i++) {
     hb_codepoint_t gid;
     if (!cmap.get_nominal_glyph (codepoints[i], &gid)) {
       gid = -1;
       *(bad_indices.push ()) = i;
-    }
-    if (gid == 0) {
-      has_zero = true;
     }
     *(old_gids.push ()) = gid;
   }
@@ -148,19 +147,25 @@ _populate_gids_to_retain (hb_face_t *face,
     old_gids.remove (i);
   }
 
-  // Populate a second glyph id array that is sorted by glyph id
-  // and is gauranteed to contain 0.
-  old_gids_sorted.alloc (old_gids.len + (has_zero ? 0 : 1));
-  for (unsigned int i = 0; i < old_gids.len; i++) {
-    *(old_gids_sorted.push ()) = old_gids[i];
+  // Populate a full set of glyphs to retain by adding all referenced
+  // composite glyphs.
+  // TODO expand with glyphs reached by G*
+  hb_set_t * all_gids_to_retain = hb_set_create ();
+  _add_gid_and_children (glyf, 0, all_gids_to_retain);
+  for (unsigned int i = 0; i < old_gids.len; i++)
+  {
+    _add_gid_and_children (glyf, old_gids[i], all_gids_to_retain);
   }
-  if (!has_zero)
-    *(old_gids_sorted.push ()) = 0;
+
+  // Transfer to a sorted list.
+  unsigned int gid = HB_SET_VALUE_INVALID;
+  while (hb_set_next (all_gids_to_retain, &gid))
+  {
+    *(old_gids_sorted.push ()) = gid;
+  }
   old_gids_sorted.qsort (_hb_codepoint_t_cmp);
 
-  // TODO(Q1) expand with glyphs that make up complex glyphs
-  // TODO expand with glyphs reached by G*
-  //
+  glyf.fini ();
   cmap.fini ();
 }
 
