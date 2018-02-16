@@ -63,10 +63,11 @@ hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
                                    hb_codepoint_t *new_gid)
 {
   // the index in old_gids is the new gid; only up to codepoints.len are valid
-  for (unsigned int i = 0; i < plan->gids_to_retain.len; i++) {
-    if (plan->gids_to_retain[i] == old_gid) {
-      // +1: assign new gids from 1..N; 0 is special
-      *new_gid = i + 1;
+  for (unsigned int i = 0; i < plan->gids_to_retain_sorted.len; i++)
+  {
+    if (plan->gids_to_retain_sorted[i] == old_gid)
+    {
+      *new_gid = i;
       return true;
     }
   }
@@ -158,6 +159,7 @@ _populate_gids_to_retain (hb_face_t *face,
   }
 
   // Transfer to a sorted list.
+  old_gids_sorted.alloc (hb_set_get_population (all_gids_to_retain));
   unsigned int gid = HB_SET_VALUE_INVALID;
   while (hb_set_next (all_gids_to_retain, &gid))
   {
