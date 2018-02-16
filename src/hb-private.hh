@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <intrin.h>
 #endif
 
@@ -372,41 +372,52 @@ _hb_popcount (T mask)
 static inline HB_CONST_FUNC unsigned int
 _hb_bit_storage (unsigned int number)
 {
+  if (unlikely (!number)) return 0;
+
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
-  return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clz (number)) : 0;
-#elif defined(_MSC_VER)
-  unsigned long where;
-  if (_BitScanReverse (&where, number)) return 1 + where;
-  return 0;
-#else
+  return sizeof (unsigned int) * 8 - __builtin_clz (number);
+#endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+  {
+    unsigned long where;
+    _BitScanReverse (&where, number);
+    return 1 + where;
+  }
+#endif
+
   unsigned int n_bits = 0;
   while (number) {
     n_bits++;
     number >>= 1;
   }
   return n_bits;
-#endif
 }
 
 /* Returns the number of zero bits in the least significant side of number */
 static inline HB_CONST_FUNC unsigned int
 _hb_ctz (unsigned int number)
 {
-#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
-  return likely (number) ? __builtin_ctz (number) : 0;
-#elif defined(_MSC_VER)
-  unsigned long where;
-  if (_BitScanForward (&where, number)) return where;
-  return 0;
-#else
-  unsigned int n_bits = 0;
   if (unlikely (!number)) return 0;
+
+#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
+  return __builtin_ctz (number);
+#endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+  {
+    unsigned long where;
+    _BitScanForward (&where, number);
+     return where;
+  }
+#endif
+
+  unsigned int n_bits = 0;
   while (!(number & 1)) {
     n_bits++;
     number >>= 1;
   }
   return n_bits;
-#endif
 }
 
 static inline bool
