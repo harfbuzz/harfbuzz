@@ -112,13 +112,11 @@ hb_subset_test_check (hb_face_t *expected,
                       hb_face_t *actual,
                       hb_tag_t   table)
 {
-  hb_blob_t *glyf_expected_blob = hb_face_reference_table (expected, table);
-  hb_blob_t *glyf_actual_blob = hb_face_reference_table (actual, table);
-  unsigned int expected_length, actual_length;
-  g_assert_cmpmem(hb_blob_get_data (glyf_expected_blob, &expected_length), expected_length,
-                  hb_blob_get_data (glyf_actual_blob, &actual_length), actual_length);
-  hb_blob_destroy (glyf_actual_blob);
-  hb_blob_destroy (glyf_expected_blob);
+  hb_blob_t *expected_blob = hb_face_reference_table (expected, table);
+  hb_blob_t *actual_blob = hb_face_reference_table (actual, table);
+  hb_test_assert_blob_eq(expected_blob, actual_blob);  
+  hb_blob_destroy (expected_blob);
+  hb_blob_destroy (actual_blob);
 }
 
 
