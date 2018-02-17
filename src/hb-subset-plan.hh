@@ -33,7 +33,6 @@
 
 struct hb_subset_plan_t {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   // TODO(Q1) actual map, drop this crap
   // Look at me ma, I'm a poor mans map codepoint : new gid
