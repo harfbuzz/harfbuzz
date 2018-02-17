@@ -177,9 +177,8 @@ struct hb_set_t
       return 0;
     }
 
-    typedef uint32_t elt_t;
-    static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
-    static const unsigned int PAGE_BITS = ELT_BITS * ELT_BITS; /* 1024. Use to tune. */
+    typedef unsigned long long elt_t;
+    static const unsigned int PAGE_BITS = 1024;
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
 #if 0 && HAVE_VECTOR_SIZE
@@ -192,6 +191,7 @@ struct hb_set_t
 
     vector_t v;
 
+    static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
     static const unsigned int ELT_MASK = ELT_BITS - 1;
     static const unsigned int BITS = sizeof (vector_t) * 8;
     static const unsigned int MASK = BITS - 1;
