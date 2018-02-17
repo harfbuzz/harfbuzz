@@ -402,7 +402,7 @@ _hb_bit_storage (T v)
     /* "bithacks" */
     const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
     const unsigned int S[] = {1, 2, 4, 8, 16};
-    unsigned int r = 0;
+    unsigned int r = 1;
     for (int i = 4; i >= 0; i--)
       if (v & b[i])
       {
@@ -416,7 +416,7 @@ _hb_bit_storage (T v)
     /* "bithacks" */
     const uint64_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000};
     const unsigned int S[] = {1, 2, 4, 8, 16, 32};
-    unsigned int r = 0;
+    unsigned int r = 1;
     for (int i = 5; i >= 0; i--)
       if (v & b[i])
       {
