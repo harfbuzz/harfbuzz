@@ -323,31 +323,50 @@ typedef const struct _hb_void_t *hb_void_t;
 #define HB_VOID ((const _hb_void_t *) nullptr)
 
 /* Return the number of 1 bits in mask. */
+template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_popcount32 (uint32_t mask)
+_hb_popcount (T mask)
 {
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-  return __builtin_popcount (mask);
-#else
-  /* "HACKMEM 169" */
-  uint32_t y;
-  y = (mask >> 1) &033333333333;
-  y = mask - y - ((y >>1) & 033333333333);
-  return (((y + (y >> 3)) & 030707070707) % 077);
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) && defined(__OPTIMIZE__)
+  if (sizeof (unsigned int) >= sizeof (mask))
+    return __builtin_popcount (mask);
+
+  if (sizeof (unsigned long) >= sizeof (mask))
+      return __builtin_popcountl (mask);
+
+  if (sizeof (unsigned long long) >= sizeof (mask))
+      return __builtin_popcountll (mask);
 #endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "HACKMEM 169" */
+    uint32_t y;
+    y = (mask >> 1) &033333333333;
+    y = mask - y - ((y >>1) & 033333333333);
+    return (((y + (y >> 3)) & 030707070707) % 077);
+  }
+
+  if (sizeof (T) == 8)
+  {
+    unsigned int shift = 32;
+    return _hb_popcount<uint32_t> ((uint32_t) mask) + _hb_popcount ((uint32_t) (mask >> shift));
+  }
+
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return _hb_popcount<uint64_t> ((uint64_t) mask) + _hb_popcount ((uint64_t) (mask >> shift));
+  }
+
+  unsigned int count = 0;
+  while (mask)
+  {
+    count += _hb_popcount<uint64_t> ((uint64_t) mask);
+    unsigned int shift = 64;
+    mask = (T) (mask >> shift);
+  }
 }
-static inline HB_CONST_FUNC unsigned int
-_hb_popcount64 (uint64_t mask)
-{
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-  if (sizeof (long) >= sizeof (mask))
-    return __builtin_popcountl (mask);
-#endif
-  return _hb_popcount32 (mask & 0xFFFFFFFF) + _hb_popcount32 (mask >> 32);
-}
-template <typename T> static inline unsigned int _hb_popcount (T mask);
-template <> inline unsigned int _hb_popcount<uint32_t> (uint32_t mask) { return _hb_popcount32 (mask); }
-template <> inline unsigned int _hb_popcount<uint64_t> (uint64_t mask) { return _hb_popcount64 (mask); }
 
 /* Returns the number of bits needed to store number */
 static inline HB_CONST_FUNC unsigned int

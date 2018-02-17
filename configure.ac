@@ -76,7 +76,8 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
 ])
 
-# Functions and headers
+# Types, functions, and headers
+AC_CHECK_TYPES(unsigned __int128)
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l setlinebuf)
 AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h)
 
