@@ -53,6 +53,26 @@ test_subset_glyf (void)
 }
 
 static void
+test_subset_glyf_with_components (void)
+{
+  hb_face_t *face_components = hb_subset_test_open_font ("fonts/Roboto-Regular.components.ttf");
+  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.subset.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_set_add (codepoints, 0x1fc);
+  hb_face_t *face_generated_subset = hb_subset_test_create_subset (face_components, codepoints);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('m','a','x', 'p'));
+
+  hb_face_destroy (face_generated_subset);
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face_components);
+}
+
+static void
 test_subset_glyf_noop (void)
 {
   hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
@@ -79,6 +99,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_glyf);
+  hb_test_add (test_subset_glyf_with_components);
   hb_test_add (test_subset_glyf_noop);
 
   return hb_test_run();
