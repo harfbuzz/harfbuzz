@@ -474,7 +474,7 @@ _hb_ctz (T v)
   {
     /* "bithacks" */
     unsigned int c = 32;
-    v &= -signed(v);
+    v &= - (int32_t) v;
     if (v) c--;
     if (v & 0x0000FFFF) c -= 16;
     if (v & 0x00FF00FF) c -= 8;
@@ -487,7 +487,7 @@ _hb_ctz (T v)
   {
     /* "bithacks" */
     unsigned int c = 64;
-    v &= -signed(v);
+    v &= - (int64_t) (v);
     if (v) c--;
     if (v & 0x00000000FFFFFFFF) c -= 32;
     if (v & 0x0000FFFF0000FFFF) c -= 16;
