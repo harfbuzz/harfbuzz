@@ -130,9 +130,11 @@ _populate_gids_to_retain (hb_face_t *face,
   hb_auto_array_t<unsigned int> bad_indices;
 
   old_gids.alloc (codepoints.len);
-  for (unsigned int i = 0; i < codepoints.len; i++) {
+  for (unsigned int i = 0; i < codepoints.len; i++)
+  {
     hb_codepoint_t gid;
-    if (!cmap.get_nominal_glyph (codepoints[i], &gid)) {
+    if (!cmap.get_nominal_glyph (codepoints[i], &gid))
+    {
       gid = -1;
       *(bad_indices.push ()) = i;
     }
@@ -140,7 +142,8 @@ _populate_gids_to_retain (hb_face_t *face,
   }
 
   /* Generally there shouldn't be any */
-  while (bad_indices.len > 0) {
+  while (bad_indices.len > 0)
+  {
     unsigned int i = bad_indices[bad_indices.len - 1];
     bad_indices.pop ();
     DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", codepoints[i]);
@@ -154,18 +157,13 @@ _populate_gids_to_retain (hb_face_t *face,
   hb_set_t * all_gids_to_retain = hb_set_create ();
   _add_gid_and_children (glyf, 0, all_gids_to_retain);
   for (unsigned int i = 0; i < old_gids.len; i++)
-  {
     _add_gid_and_children (glyf, old_gids[i], all_gids_to_retain);
-  }
 
   // Transfer to a sorted list.
   old_gids_sorted.alloc (hb_set_get_population (all_gids_to_retain));
-  unsigned int gid = HB_SET_VALUE_INVALID;
+  hb_codepoint_t gid = HB_SET_VALUE_INVALID;
   while (hb_set_next (all_gids_to_retain, &gid))
-  {
     *(old_gids_sorted.push ()) = gid;
-  }
-  old_gids_sorted.qsort (_hb_codepoint_t_cmp);
 
   glyf.fini ();
   cmap.fini ();
