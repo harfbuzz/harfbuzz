@@ -86,6 +86,7 @@ hb_subset_test_open_font (const char *font_path)
     return face;
   }
   g_assert (false);
+  return NULL;
 }
 
 static inline hb_face_t *
