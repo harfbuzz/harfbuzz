@@ -374,10 +374,10 @@ _hb_bit_storage (T v)
     return sizeof (unsigned int) * 8 - __builtin_clz (v);
 
   if (sizeof (T) <= sizeof (unsigned long))
-    return sizeof (unsigned int) * 8 - __builtin_clzl (v);
+    return sizeof (unsigned long) * 8 - __builtin_clzl (v);
 
   if (sizeof (T) <= sizeof (unsigned long long))
-    return sizeof (unsigned int) * 8 - __builtin_clzll (v);
+    return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
 #endif
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
