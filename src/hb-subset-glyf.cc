@@ -28,6 +28,7 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-set.h"
 #include "hb-subset-glyf.hh"
+#include "hb-subset-plan.hh"
 
 static bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
@@ -70,16 +71,41 @@ _write_loca_entry (unsigned int id, unsigned int offset, bool is_short, void *lo
   }
 }
 
+static void
+_update_components (hb_subset_plan_t * plan,
+		    char * glyph_start,
+		    unsigned int length)
+
+{
+  OT::glyf::CompositeGlyphHeader::Iterator iterator;
+  if (OT::glyf::CompositeGlyphHeader::get_iterator (glyph_start,
+						    length,
+						    &iterator))
+  {
+    do
+    {
+      hb_codepoint_t new_gid;
+      if (!hb_subset_plan_new_gid_for_old_id (plan,
+					      iterator.current->glyphIndex,
+					      &new_gid))
+	continue;
+
+      ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex.set (new_gid);
+    } while (iterator.move_to_next());
+  }
+}
+
 static bool
-_write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
+_write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
+			    const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
-                            hb_prealloced_array_t<hb_codepoint_t> &glyph_ids,
                             bool                           use_short_loca,
                             int                            glyf_prime_size,
                             char                          *glyf_prime_data /* OUT */,
                             int                            loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
+  hb_prealloced_array_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
   char *glyf_prime_data_next = glyf_prime_data;
 
   for (unsigned int i = 0; i < glyph_ids.len; i++)
@@ -92,6 +118,7 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
     memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
 
     _write_loca_entry (i, glyf_prime_data_next - glyf_prime_data, use_short_loca, loca_prime_data);
+    _update_components (plan, glyf_prime_data_next, end_offset - start_offset);
 
     glyf_prime_data_next += length;
   }
@@ -104,7 +131,7 @@ _write_glyf_and_loca_prime (const OT::glyf::accelerator_t &glyf,
 static bool
 _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           const char                     *glyf_data,
-                          hb_prealloced_array_t<hb_codepoint_t>&glyphs_to_retain,
+			  hb_subset_plan_t               *plan,
                           bool                           *use_short_loca,
                           hb_blob_t                     **glyf_prime /* OUT */,
                           hb_blob_t                     **loca_prime /* OUT */)
@@ -112,6 +139,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
   // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
   // TODO(grieger): Don't fail on bad offsets, just dump them.
+  hb_prealloced_array_t<hb_codepoint_t> &glyphs_to_retain = plan->gids_to_retain_sorted;
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
@@ -126,7 +154,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
 
   char *glyf_prime_data = (char *) malloc (glyf_prime_size);
   char *loca_prime_data = (char *) malloc (loca_prime_size);
-  if (unlikely (!_write_glyf_and_loca_prime (glyf, glyf_data, glyphs_to_retain,
+  if (unlikely (!_write_glyf_and_loca_prime (plan, glyf, glyf_data,
                                              *use_short_loca,
                                              glyf_prime_size, glyf_prime_data,
                                              loca_prime_size, loca_prime_data))) {
@@ -168,7 +196,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
   glyf.init(plan->source);
   bool result = _hb_subset_glyf_and_loca (glyf,
                                           glyf_data,
-                                          plan->gids_to_retain_sorted,
+                                          plan,
                                           use_short_loca,
                                           glyf_prime,
                                           loca_prime);

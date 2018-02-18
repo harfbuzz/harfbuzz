@@ -12,6 +12,8 @@ lib:
 
 EXTRA_DIST += CMakeLists.txt
 
+EXTRA_DIST += fonts
+
 if HAVE_GLIB
 AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
@@ -66,25 +68,6 @@ TEST_PROGS += \
 	$(NULL)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
-EXTRA_DIST += \
-	fonts/Inconsolata-Regular.ab.ttf \
-	fonts/Inconsolata-Regular.abc.ttf \
-	fonts/Inconsolata-Regular.abc.widerc.ttf \
-	fonts/Inconsolata-Regular.ac.ttf \
-	fonts/Inconsolata-Regular.ac.widerc.ttf \
-	fonts/Roboto-Regular.abc.cmap-format12-only.ttf \
-	fonts/Roboto-Regular.ac.cmap-format12-only.ttf \
-	fonts/Roboto-Regular.b.ttf \
-	fonts/Roboto-Regular.abc.ttf \
-	fonts/Roboto-Regular.ac.ttf \
-	fonts/MathTestFontEmpty.otf \
-	fonts/MathTestFontFull.otf \
-	fonts/MathTestFontNone.otf \
-	fonts/MathTestFontPartial1.otf \
-	fonts/MathTestFontPartial2.otf \
-	fonts/MathTestFontPartial3.otf \
-	fonts/MathTestFontPartial4.otf \
-	$(NULL)
 endif # HAVE_FREETYPE
 
 endif # HAVE_OT

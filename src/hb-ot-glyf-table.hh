@@ -81,15 +81,111 @@ struct glyf
   struct GlyphHeader
   {
     HBINT16		numberOfContours;	/* If the number of contours is
-					   * greater than or equal to zero,
-					   * this is a simple glyph; if negative,
-					   * this is a composite glyph. */
+                                                 * greater than or equal to zero,
+                                                 * this is a simple glyph; if negative,
+                                                 * this is a composite glyph. */
     FWORD		xMin;			/* Minimum x for coordinate data. */
     FWORD		yMin;			/* Minimum y for coordinate data. */
     FWORD		xMax;			/* Maximum x for coordinate data. */
     FWORD		yMax;			/* Maximum y for coordinate data. */
 
     DEFINE_SIZE_STATIC (10);
+  };
+
+  struct CompositeGlyphHeader
+  {
+    static const uint16_t ARG_1_AND_2_ARE_WORDS =      0x0001;
+    static const uint16_t ARGS_ARE_XY_VALUES =         0x0002;
+    static const uint16_t ROUND_XY_TO_GRID =           0x0004;
+    static const uint16_t WE_HAVE_A_SCALE =            0x0008;
+    static const uint16_t MORE_COMPONENTS =            0x0020;
+    static const uint16_t WE_HAVE_AN_X_AND_Y_SCALE =   0x0040;
+    static const uint16_t WE_HAVE_A_TWO_BY_TWO =       0x0080;
+    static const uint16_t WE_HAVE_INSTRUCTIONS =       0x0100;
+    static const uint16_t USE_MY_METRICS =             0x0200;
+    static const uint16_t OVERLAP_COMPOUND =           0x0400;
+    static const uint16_t SCALED_COMPONENT_OFFSET =    0x0800;
+    static const uint16_t UNSCALED_COMPONENT_OFFSET =  0x1000;
+
+    HBUINT16 flags;
+    HBUINT16 glyphIndex;
+
+    inline unsigned int get_size (void) const
+    {
+      unsigned int size = min_size;
+      if (flags & ARG_1_AND_2_ARE_WORDS) {
+        // arg1 and 2 are int16
+        size += 4;
+      } else {
+        // arg1 and 2 are int8
+        size += 2;
+      }
+      if (flags & WE_HAVE_A_SCALE) {
+        // One x 16 bit (scale)
+        size += 2;
+      } else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) {
+        // Two x 16 bit (xscale, yscale)
+        size += 4;
+      } else if (flags & WE_HAVE_A_TWO_BY_TWO) {
+        // Four x 16 bit (xscale, scale01, scale10, yscale)
+        size += 8;
+      }
+      return size;
+    }
+
+    struct Iterator
+    {
+      const char *glyph_start;
+      const char *glyph_end;
+      const CompositeGlyphHeader *current;
+
+      inline bool move_to_next ()
+      {
+	if (current->flags & CompositeGlyphHeader::MORE_COMPONENTS)
+	{
+	  const CompositeGlyphHeader *possible =
+	    &StructAfter<CompositeGlyphHeader, CompositeGlyphHeader> (*current);
+	  if (!in_range (possible))
+	    return false;
+	  current = possible;
+	  return true;
+	}
+	return false;
+      }
+
+      inline bool in_range (const CompositeGlyphHeader *composite) const
+      {
+	return (const char *) composite >= glyph_start
+	  && ((const char *) composite + CompositeGlyphHeader::min_size) <= glyph_end
+	  && ((const char *) composite + composite->get_size()) <= glyph_end;
+      }
+    };
+
+    static inline bool get_iterator (const char * glyph_data,
+				     unsigned int length,
+				     CompositeGlyphHeader::Iterator *iterator /* OUT */)
+    {
+      if (length < GlyphHeader::static_size)
+	return false; /* Empty glyph; zero extents. */
+
+      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyph_data, 0);
+      if (glyph_header.numberOfContours < 0)
+      {
+        const CompositeGlyphHeader *possible =
+	  &StructAfter<CompositeGlyphHeader, GlyphHeader> (glyph_header);
+
+	iterator->glyph_start = glyph_data;
+	iterator->glyph_end = (const char *) glyph_data + length;
+	if (!iterator->in_range (possible))
+          return false;
+        iterator->current = possible;
+        return true;
+      }
+
+      return false;
+    }
+
+    DEFINE_SIZE_MIN (4);
   };
 
   struct accelerator_t
@@ -120,6 +216,23 @@ struct glyf
     {
       hb_blob_destroy (loca_blob);
       hb_blob_destroy (glyf_blob);
+    }
+
+    /*
+     * Returns true if the referenced glyph is a valid glyph and a composite glyph.
+     * If true is returned a pointer to the composite glyph will be written into
+     * composite.
+     */
+    inline bool get_composite (hb_codepoint_t glyph,
+			       CompositeGlyphHeader::Iterator *composite /* OUT */) const
+    {
+      unsigned int start_offset, end_offset;
+      if (!get_offsets (glyph, &start_offset, &end_offset))
+        return false; /* glyph not found */
+
+      return CompositeGlyphHeader::get_iterator ((const char*) this->glyf_table + start_offset,
+						 end_offset - start_offset,
+						 composite);
     }
 
     inline bool get_offsets (hb_codepoint_t  glyph,

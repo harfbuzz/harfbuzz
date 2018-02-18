@@ -37,7 +37,6 @@ static void check_num_hmetrics(hb_face_t *face, uint16_t expected_num_hmetrics)
   hb_blob_t *hmtx_blob = hb_face_reference_table (face, HB_TAG ('h','m','t','x'));
 
   // TODO I sure wish I could just use the hmtx table struct!
-  unsigned int hmtx_len = hb_blob_get_length(hmtx_blob);
   unsigned int hhea_len;
   uint8_t *raw_hhea = (uint8_t *) hb_blob_get_data(hhea_blob, &hhea_len);
   uint16_t num_hmetrics = (raw_hhea[hhea_len - 2] << 8) + raw_hhea[hhea_len - 1];

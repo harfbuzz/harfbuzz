@@ -100,47 +100,47 @@ struct os2
   HBUINT16	version;
 
   /* Version 0 */
-  HBINT16		xAvgCharWidth;
+  HBINT16	xAvgCharWidth;
   HBUINT16	usWeightClass;
   HBUINT16	usWidthClass;
   HBUINT16	fsType;
-  HBINT16		ySubscriptXSize;
-  HBINT16		ySubscriptYSize;
-  HBINT16		ySubscriptXOffset;
-  HBINT16		ySubscriptYOffset;
-  HBINT16		ySuperscriptXSize;
-  HBINT16		ySuperscriptYSize;
-  HBINT16		ySuperscriptXOffset;
-  HBINT16		ySuperscriptYOffset;
-  HBINT16		yStrikeoutSize;
-  HBINT16		yStrikeoutPosition;
-  HBINT16		sFamilyClass;
-  HBUINT8		panose[10];
-  HBUINT32		ulUnicodeRange[4];
+  HBINT16	ySubscriptXSize;
+  HBINT16	ySubscriptYSize;
+  HBINT16	ySubscriptXOffset;
+  HBINT16	ySubscriptYOffset;
+  HBINT16	ySuperscriptXSize;
+  HBINT16	ySuperscriptYSize;
+  HBINT16	ySuperscriptXOffset;
+  HBINT16	ySuperscriptYOffset;
+  HBINT16	yStrikeoutSize;
+  HBINT16	yStrikeoutPosition;
+  HBINT16	sFamilyClass;
+  HBUINT8	panose[10];
+  HBUINT32	ulUnicodeRange[4];
   Tag		achVendID;
   HBUINT16	fsSelection;
   HBUINT16	usFirstCharIndex;
   HBUINT16	usLastCharIndex;
-  HBINT16		sTypoAscender;
-  HBINT16		sTypoDescender;
-  HBINT16		sTypoLineGap;
+  HBINT16	sTypoAscender;
+  HBINT16	sTypoDescender;
+  HBINT16	sTypoLineGap;
   HBUINT16	usWinAscent;
   HBUINT16	usWinDescent;
 
   /* Version 1 */
-  //HBUINT32 ulCodePageRange1;
-  //HBUINT32 ulCodePageRange2;
+  //HBUINT32	ulCodePageRange1;
+  //HBUINT32	ulCodePageRange2;
 
   /* Version 2 */
-  //HBINT16 sxHeight;
-  //HBINT16 sCapHeight;
-  //HBUINT16  usDefaultChar;
-  //HBUINT16  usBreakChar;
-  //HBUINT16  usMaxContext;
+  //HBINT16	sxHeight;
+  //HBINT16	sCapHeight;
+  //HBUINT16	usDefaultChar;
+  //HBUINT16	usBreakChar;
+  //HBUINT16	usMaxContext;
 
   /* Version 5 */
-  //HBUINT16  usLowerOpticalPointSize;
-  //HBUINT16  usUpperOpticalPointSize;
+  //HBUINT16	usLowerOpticalPointSize;
+  //HBUINT16	usUpperOpticalPointSize;
 
   public:
   DEFINE_SIZE_STATIC (78);
