@@ -51,6 +51,21 @@ test_simple_tags (const char *s, hb_script_t script)
 }
 
 static void
+test_script_tags_from_language (const char *s, const char *lang_s, hb_script_t script)
+{
+  hb_script_t tag;
+  hb_script_t t1, t2;
+
+  g_test_message ("Testing script %c%c%c%c: script tag %s, language tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s, lang_s);
+  tag = hb_tag_from_string (s, -1);
+
+  hb_ot_tags_from_language_and_script (hb_language_from_string (lang_s, -1), script, &t1, &t2);
+
+  g_assert_cmphex (t1, ==, tag);
+  g_assert_cmphex (t2, ==, HB_OT_TAG_DEFAULT_SCRIPT);
+}
+
+static void
 test_indic_tags (const char *s1, const char *s2, hb_script_t script)
 {
   hb_script_t tag1, tag2;
@@ -118,6 +133,26 @@ test_ot_tag_script_simple (void)
   test_simple_tags ("mtei", HB_SCRIPT_MEETEI_MAYEK);
   /* Unicode-6.0 additions */
   test_simple_tags ("mand", HB_SCRIPT_MANDAIC);
+}
+
+static void
+test_ot_tag_script_from_language (void)
+{
+  test_script_tags_from_language ("DFLT", NULL, HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("DFLT", "en", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language ("DFLT", "x-hbsc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "x-hbsc", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language ("abc ", "x-hbscabc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("deva", "x-hbscdeva", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev2", "x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "x-yz-hbsccopt", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("DFLT", "en-x-hbsc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en-x-hbsc", HB_SCRIPT_COPTIC);
+  test_script_tags_from_language ("abc ", "en-x-hbscabc", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("deva", "en-x-hbscdeva", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev2", "en-x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("copt", "en-x-yz-hbsccopt", HB_SCRIPT_INVALID);
 }
 
 static void
@@ -258,6 +293,10 @@ test_ot_tag_language (void)
 
   test_tag_from_language ("dflt", "asdf-asdf-wer-x-hbot-zxc");
 
+  test_tag_from_language ("VWX", "vwx-hbotabcd");
+  test_tag_from_language ("ABC0", "x-yz-hbotabc0");
+  test_tag_from_language ("ABC0", "asdf-x-yz-hbotabc0");
+
   test_tag_from_language ("dflt", "xy");
   test_tag_from_language ("XYZ", "xyz"); /* Unknown ISO 639-3 */
   test_tag_from_language ("XYZ", "xyz-qw"); /* Unknown ISO 639-3 */
@@ -312,6 +351,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_ot_tag_script_degenerate);
   hb_test_add (test_ot_tag_script_simple);
+  hb_test_add (test_ot_tag_script_from_language);
   hb_test_add (test_ot_tag_script_indic);
 
   hb_test_add (test_ot_tag_language);
