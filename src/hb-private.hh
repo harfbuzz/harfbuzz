@@ -458,14 +458,14 @@ _hb_ctz (T v)
   {
     unsigned long where;
     _BitScanForward (&where, v);
-    return 1 + where;
+    return where;
   }
 # if _WIN64
   if (sizeof (T) <= 8)
   {
     unsigned long where;
     _BitScanForward64 (&where, v);
-    return 1 + where;
+    return where;
   }
 # endif
 #endif
