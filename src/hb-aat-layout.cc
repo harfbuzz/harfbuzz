@@ -30,6 +30,7 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 #include "hb-aat-layout-private.hh"
+#include "hb-aat-layout-kerx-table.hh"
 #include "hb-aat-layout-morx-table.hh"
 
 /*
