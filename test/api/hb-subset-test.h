@@ -40,18 +40,23 @@ hb_subset_test_read_file (const char *path,
 {
   FILE *fp = fopen (path, "rb");
 
-  size_t file_length = 0;
+  long file_length = 0;
   char *buffer = NULL;
-  if (fp && fseek (fp, 0, SEEK_END) == 0) {
+  if (fp && fseek (fp, 0, SEEK_END) == 0)
+  {
     file_length = ftell(fp);
     rewind (fp);
   }
 
-  if (file_length > 0) {
-    buffer = (char *) calloc (file_length + 1, sizeof(char));
-    if (fread (buffer, 1, file_length, fp) == file_length) {
+  if (file_length > 0)
+  {
+    buffer = (char *) calloc (file_length + 1, sizeof (char));
+    if (buffer && fread (buffer, 1, file_length, fp) == (size_t) file_length)
+    {
       *length = file_length;
-    } else {
+    }
+    else
+    {
       free (buffer);
       buffer = NULL;
     }
