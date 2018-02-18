@@ -1079,7 +1079,10 @@ struct MarkBasePosFormat1
 	  0 == _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]) ||
 	  (skippy_iter.idx == 0 ||
 	   _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx]) !=
-	   _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx - 1])))
+	   _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx - 1]) ||
+	   _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]) !=
+	   _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx - 1]) + 1
+	   ))
 	break;
       skippy_iter.reject ();
     } while (1);
