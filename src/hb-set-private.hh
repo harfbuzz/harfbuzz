@@ -109,21 +109,16 @@ struct hb_set_t
       unsigned int i = m / ELT_BITS;
       unsigned int j = m & ELT_MASK;
 
-      for (; j < ELT_BITS; j++)
-        if (v[i] & (elt_t (1) << j))
-	  goto found;
-      for (i++; i < len (); i++)
-        if (v[i])
-	  for (j = 0; j < ELT_BITS; j++)
-	    if (v[i] & (elt_t (1) << j))
-	      goto found;
+      const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
+      for (const elt_t *p = &vv; i < len (); p = &v[++i])
+	if (*p)
+	{
+	  *codepoint = i * ELT_BITS + elt_get_min (*p);
+	  return true;
+	}
 
       *codepoint = INVALID;
       return false;
-
-    found:
-      *codepoint = i * ELT_BITS + j;
-      return true;
     }
     inline bool previous (hb_codepoint_t *codepoint) const
     {
@@ -136,51 +131,38 @@ struct hb_set_t
       unsigned int i = m / ELT_BITS;
       unsigned int j = m & ELT_MASK;
 
-      for (; (int) j >= 0; j--)
-        if (v[i] & (elt_t (1) << j))
-	  goto found;
-      for (i--; (int) i >= 0; i--)
-        if (v[i])
-	  for (j = ELT_BITS - 1; (int) j >= 0; j--)
-	    if (v[i] & (elt_t (1) << j))
-	      goto found;
+      const elt_t vv = v[i] & ((elt_t (1) << (j + 1)) - 1);
+      for (const elt_t *p = &vv; (int) i >= 0; p = &v[--i])
+	if (*p)
+	{
+	  *codepoint = i * ELT_BITS + elt_get_max (*p);
+	  return true;
+	}
 
       *codepoint = INVALID;
       return false;
-
-    found:
-      *codepoint = i * ELT_BITS + j;
-      return true;
     }
     inline hb_codepoint_t get_min (void) const
     {
       for (unsigned int i = 0; i < len (); i++)
         if (v[i])
-	{
-	  elt_t e = v[i];
-	  for (unsigned int j = 0; j < ELT_BITS; j++)
-	    if (e & (elt_t (1) << j))
-	      return i * ELT_BITS + j;
-	}
+	  return i * ELT_BITS + elt_get_min (v[i]);
       return INVALID;
     }
     inline hb_codepoint_t get_max (void) const
     {
       for (int i = len () - 1; i >= 0; i--)
         if (v[i])
-	{
-	  elt_t e = v[i];
-	  for (int j = ELT_BITS - 1; j >= 0; j--)
-	    if (e & (elt_t (1) << j))
-	      return i * ELT_BITS + j;
-	}
+	  return i * ELT_BITS + elt_get_max (v[i]);
       return 0;
     }
 
-    typedef uint32_t elt_t;
-    static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
-    static const unsigned int PAGE_BITS = ELT_BITS * ELT_BITS; /* 1024. Use to tune. */
+    typedef unsigned long long elt_t;
+    static const unsigned int PAGE_BITS = 1024;
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
+
+    static inline unsigned int elt_get_min (const elt_t &elt) { return _hb_ctz (elt); }
+    static inline unsigned int elt_get_max (const elt_t &elt) { return _hb_bit_storage (elt) - 1; }
 
 #if 0 && HAVE_VECTOR_SIZE
     /* The vectorized version does not work with clang as non-const
@@ -192,6 +174,7 @@ struct hb_set_t
 
     vector_t v;
 
+    static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
     static const unsigned int ELT_MASK = ELT_BITS - 1;
     static const unsigned int BITS = sizeof (vector_t) * 8;
     static const unsigned int MASK = BITS - 1;
