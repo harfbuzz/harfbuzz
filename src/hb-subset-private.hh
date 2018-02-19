@@ -30,7 +30,7 @@
 
 #include "hb-private.hh"
 
-#include "hb-ot.h"
+#include "hb-subset.h"
 
 #include "hb-font-private.hh"
 

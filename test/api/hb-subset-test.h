@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 #include "hb-test.h"
+#include "hb-subset.h"
 
 
 HB_BEGIN_DECLS
