@@ -25,13 +25,13 @@ jobs:
       - run: make
       - run: make check || .ci/fail.sh
 
-  archlinux:
+  archlinux-debug:
     docker:
       - image: base/devel
     steps:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-DHB_DEBUG" ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make
       - run: make check || .ci/fail.sh
 
@@ -150,7 +150,7 @@ workflows:
 
       # autotools based builds
       - alpine
-      - archlinux
+      - archlinux-debug
       - fedora-outoftreebuild
 
       # cmake based builds
