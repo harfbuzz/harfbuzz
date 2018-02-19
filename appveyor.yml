@@ -53,6 +53,9 @@ notifications:
   - provider: Email
     to:
       - harfbuzz-bots-chatter@googlegroups.com
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: true
 
 # disable automatic tests
 test: off
