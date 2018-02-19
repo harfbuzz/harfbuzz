@@ -76,7 +76,7 @@ struct KerxSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    hb_glyph_pair_t pair = {left, right};
+    //hb_glyph_pair_t pair = {left, right};
     //int i = pairs.bsearch (pair);
     //if (i == -1)
       return 0;
