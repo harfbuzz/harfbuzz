@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for cmd in cmake ninja fswatch; do
+for cmd in cmake ninja entr; do
     command -v $cmd >/dev/null 2>&1 || { echo >&2 "This script needs $cmd be installed"; exit 1; }
 done
 
