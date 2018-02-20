@@ -33,6 +33,6 @@ if [[ "$answer" = "y" ]]; then
 	if [[ $CMAKENINJA ]]; then
 		CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=5 ninja -Cbuild test
 	else
-		make -j5 check && .ci/fail.sh
+		make -Cbuild -j5 check && .ci/fail.sh
 	fi
 fi
