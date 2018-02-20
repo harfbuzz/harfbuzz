@@ -104,25 +104,18 @@ struct glyf
   _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
   {
     hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
-    const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
-    hb_bool_t has_head = (head != nullptr);
-
-    if (has_head) {
-      OT::head *head_prime = (OT::head *) malloc (OT::head::static_size);
-      memcpy (head_prime, head, OT::head::static_size);
-      head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
-
-      hb_blob_t *head_prime_blob = hb_blob_create ((const char*) head_prime,
-                                                   OT::head::static_size,
-                                                   HB_MEMORY_MODE_READONLY,
-                                                   head_prime,
-                                                   free);
-      has_head = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
-      hb_blob_destroy (head_prime_blob);
-    }
-
+    hb_blob_t *head_prime_blob = hb_blob_copy_writable_or_fail (head_blob);
     hb_blob_destroy (head_blob);
-    return has_head;
+
+    if (unlikely (!head_prime_blob))
+      return false;
+
+    OT::head *head_prime = (OT::head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
+    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
+    bool success = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+
+    hb_blob_destroy (head_prime_blob);
+    return success;
   }
 
   struct GlyphHeader
