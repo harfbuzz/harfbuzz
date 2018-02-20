@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <intrin.h>
 #endif
 
@@ -322,72 +322,189 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 typedef const struct _hb_void_t *hb_void_t;
 #define HB_VOID ((const _hb_void_t *) nullptr)
 
-/* Return the number of 1 bits in mask. */
+/* Return the number of 1 bits in v. */
+template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_popcount32 (uint32_t mask)
+_hb_popcount (T v)
 {
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-  return __builtin_popcount (mask);
-#else
-  /* "HACKMEM 169" */
-  uint32_t y;
-  y = (mask >> 1) &033333333333;
-  y = mask - y - ((y >>1) & 033333333333);
-  return (((y + (y >> 3)) & 030707070707) % 077);
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) && defined(__OPTIMIZE__)
+  if (sizeof (T) <= sizeof (unsigned int))
+    return __builtin_popcount (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return __builtin_popcountl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return __builtin_popcountll (v);
 #endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "HACKMEM 169" */
+    uint32_t y;
+    y = (v >> 1) &033333333333;
+    y = v - y - ((y >>1) & 033333333333);
+    return (((y + (y >> 3)) & 030707070707) % 077);
+  }
+
+  if (sizeof (T) == 8)
+  {
+    unsigned int shift = 32;
+    return _hb_popcount<uint32_t> ((uint32_t) v) + _hb_popcount ((uint32_t) (v >> shift));
+  }
+
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return _hb_popcount<uint64_t> ((uint64_t) v) + _hb_popcount ((uint64_t) (v >> shift));
+  }
+
+  assert (0);
 }
-static inline HB_CONST_FUNC unsigned int
-_hb_popcount64 (uint64_t mask)
-{
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-  if (sizeof (long) >= sizeof (mask))
-    return __builtin_popcountl (mask);
-#endif
-  return _hb_popcount32 (mask & 0xFFFFFFFF) + _hb_popcount32 (mask >> 32);
-}
-template <typename T> static inline unsigned int _hb_popcount (T mask);
-template <> inline unsigned int _hb_popcount<uint32_t> (uint32_t mask) { return _hb_popcount32 (mask); }
-template <> inline unsigned int _hb_popcount<uint64_t> (uint64_t mask) { return _hb_popcount64 (mask); }
 
 /* Returns the number of bits needed to store number */
+template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_bit_storage (unsigned int number)
+_hb_bit_storage (T v)
 {
+  if (unlikely (!v)) return 0;
+
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
-  return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clz (number)) : 0;
-#elif defined(_MSC_VER)
-  unsigned long where;
-  if (_BitScanReverse (&where, number)) return 1 + where;
-  return 0;
-#else
-  unsigned int n_bits = 0;
-  while (number) {
-    n_bits++;
-    number >>= 1;
-  }
-  return n_bits;
+  if (sizeof (T) <= sizeof (unsigned int))
+    return sizeof (unsigned int) * 8 - __builtin_clz (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return sizeof (unsigned long) * 8 - __builtin_clzl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
 #endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+  if (sizeof (T) <= sizeof (unsigned int))
+  {
+    unsigned long where;
+    _BitScanReverse (&where, v);
+    return 1 + where;
+  }
+# if _WIN64
+  if (sizeof (T) <= 8)
+  {
+    unsigned long where;
+    _BitScanReverse64 (&where, v);
+    return 1 + where;
+  }
+# endif
+#endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "bithacks" */
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    unsigned int r = 0;
+    for (int i = 4; i >= 0; i--)
+      if (v & b[i])
+      {
+	v >>= S[i];
+	r |= S[i];
+      }
+    return r + 1;
+  }
+  if (sizeof (T) <= 8)
+  {
+    /* "bithacks" */
+    const uint64_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000};
+    const unsigned int S[] = {1, 2, 4, 8, 16, 32};
+    unsigned int r = 0;
+    for (int i = 5; i >= 0; i--)
+      if (v & b[i])
+      {
+	v >>= S[i];
+	r |= S[i];
+      }
+    return r + 1;
+  }
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return (v >> shift) ? _hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift :
+			  _hb_bit_storage<uint64_t> ((uint64_t) v);
+  }
+
+  assert (0);
 }
 
-/* Returns the number of zero bits in the least significant side of number */
+/* Returns the number of zero bits in the least significant side of v */
+template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_ctz (unsigned int number)
+_hb_ctz (T v)
 {
+  if (unlikely (!v)) return 0;
+
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
-  return likely (number) ? __builtin_ctz (number) : 0;
-#elif defined(_MSC_VER)
-  unsigned long where;
-  if (_BitScanForward (&where, number)) return where;
-  return 0;
-#else
-  unsigned int n_bits = 0;
-  if (unlikely (!number)) return 0;
-  while (!(number & 1)) {
-    n_bits++;
-    number >>= 1;
-  }
-  return n_bits;
+  if (sizeof (T) <= sizeof (unsigned int))
+    return __builtin_ctz (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return __builtin_ctzl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return __builtin_ctzll (v);
 #endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+  if (sizeof (T) <= sizeof (unsigned int))
+  {
+    unsigned long where;
+    _BitScanForward (&where, v);
+    return where;
+  }
+# if _WIN64
+  if (sizeof (T) <= 8)
+  {
+    unsigned long where;
+    _BitScanForward64 (&where, v);
+    return where;
+  }
+# endif
+#endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "bithacks" */
+    unsigned int c = 32;
+    v &= - (int32_t) v;
+    if (v) c--;
+    if (v & 0x0000FFFF) c -= 16;
+    if (v & 0x00FF00FF) c -= 8;
+    if (v & 0x0F0F0F0F) c -= 4;
+    if (v & 0x33333333) c -= 2;
+    if (v & 0x55555555) c -= 1;
+    return c;
+  }
+  if (sizeof (T) <= 8)
+  {
+    /* "bithacks" */
+    unsigned int c = 64;
+    v &= - (int64_t) (v);
+    if (v) c--;
+    if (v & 0x00000000FFFFFFFF) c -= 32;
+    if (v & 0x0000FFFF0000FFFF) c -= 16;
+    if (v & 0x00FF00FF00FF00FF) c -= 8;
+    if (v & 0x0F0F0F0F0F0F0F0F) c -= 4;
+    if (v & 0x3333333333333333) c -= 2;
+    if (v & 0x5555555555555555) c -= 1;
+    return c;
+  }
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return (uint64_t) v ? _hb_bit_storage<uint64_t> ((uint64_t) v) :
+			  _hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift;
+  }
+
+  assert (0);
 }
 
 static inline bool

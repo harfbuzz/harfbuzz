@@ -31,6 +31,8 @@
 
 #include "hb-aat-layout-private.hh"
 #include "hb-aat-layout-morx-table.hh"
+#include "hb-aat-layout-kerx-table.hh"
+#include "hb-aat-layout-trak-table.hh"
 
 /*
  * mort/morx

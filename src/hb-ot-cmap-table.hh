@@ -271,13 +271,13 @@ struct CmapSubtableLongSegmented
     return_trace (c->check_struct (this) && groups.sanitize (c));
   }
 
-  inline bool serialize (hb_serialize_context_t *context,
+  inline bool serialize (hb_serialize_context_t *c,
                          hb_prealloced_array_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!context->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
     Supplier<CmapSubtableLongGroup> supplier (group_data.array, group_data.len);
-    if (unlikely (!groups.serialize (context, supplier, group_data.len))) return_trace (false);
+    if (unlikely (!groups.serialize (c, supplier, group_data.len))) return_trace (false);
     return true;
   }
 
@@ -555,37 +555,37 @@ struct cmap
 		       size_t dest_sz,
 		       void *dest) const
   {
-    hb_serialize_context_t context (dest, dest_sz);
+    hb_serialize_context_t c (dest, dest_sz);
 
-    OT::cmap *cmap = context.start_serialize<OT::cmap> ();
-    if (unlikely (!context.extend_min (*cmap)))
+    OT::cmap *cmap = c.start_serialize<OT::cmap> ();
+    if (unlikely (!c.extend_min (*cmap)))
     {
       return false;
     }
 
     cmap->version.set (0);
 
-    if (unlikely (!cmap->encodingRecord.serialize (&context, /* numTables */ 1))) return false;
+    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 1))) return false;
 
     EncodingRecord &rec = cmap->encodingRecord[0];
     rec.platformID.set (3); // Windows
     rec.encodingID.set (10); // Unicode UCS-4
 
     /* capture offset to subtable */
-    CmapSubtable &subtable = rec.subtable.serialize (&context, cmap);
+    CmapSubtable &subtable = rec.subtable.serialize (&c, cmap);
 
     subtable.u.format.set (12);
 
     CmapSubtableFormat12 &format12 = subtable.u.format12;
-    if (unlikely (!context.extend_min (format12))) return false;
+    if (unlikely (!c.extend_min (format12))) return false;
 
     format12.format.set (12);
     format12.reservedZ.set (0);
     format12.lengthZ.set (16 + 12 * groups.len);
 
-    if (unlikely (!format12.serialize (&context, groups))) return false;
+    if (unlikely (!format12.serialize (&c, groups))) return false;
 
-    context.end_serialize ();
+    c.end_serialize ();
 
     return true;
   }
@@ -604,7 +604,7 @@ struct cmap
                    + 12 * groups.len; // SequentialMapGroup records
     void *dest = calloc (dest_sz, 1);
     if (unlikely (!dest)) {
-      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %ld for cmap subset output", dest_sz);
+      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for cmap subset output", (unsigned long) dest_sz);
       return false;
     }
 

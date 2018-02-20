@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 #include "hb-test.h"
+#include "hb-subset.h"
 
 
 HB_BEGIN_DECLS
@@ -40,18 +41,23 @@ hb_subset_test_read_file (const char *path,
 {
   FILE *fp = fopen (path, "rb");
 
-  size_t file_length = 0;
+  long file_length = 0;
   char *buffer = NULL;
-  if (fp && fseek (fp, 0, SEEK_END) == 0) {
+  if (fp && fseek (fp, 0, SEEK_END) == 0)
+  {
     file_length = ftell(fp);
     rewind (fp);
   }
 
-  if (file_length > 0) {
-    buffer = (char *) calloc (file_length + 1, sizeof(char));
-    if (fread (buffer, 1, file_length, fp) == file_length) {
+  if (file_length > 0)
+  {
+    buffer = (char *) calloc (file_length + 1, sizeof (char));
+    if (buffer && fread (buffer, 1, file_length, fp) == (size_t) file_length)
+    {
       *length = file_length;
-    } else {
+    }
+    else
+    {
       free (buffer);
       buffer = NULL;
     }
@@ -86,7 +92,7 @@ hb_subset_test_open_font (const char *font_path)
     return face;
   }
   g_assert (false);
-  return NULL;
+  return NULL; /* Shut up, compiler! */
 }
 
 static inline hb_face_t *
@@ -115,7 +121,7 @@ hb_subset_test_check (hb_face_t *expected,
 {
   hb_blob_t *expected_blob = hb_face_reference_table (expected, table);
   hb_blob_t *actual_blob = hb_face_reference_table (actual, table);
-  hb_test_assert_blob_eq(expected_blob, actual_blob);  
+  hb_test_assert_blobs_equal (expected_blob, actual_blob);
   hb_blob_destroy (expected_blob);
   hb_blob_destroy (actual_blob);
 }

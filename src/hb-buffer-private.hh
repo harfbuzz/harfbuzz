@@ -344,8 +344,7 @@ struct hb_buffer_t {
   inline void
   unsafe_to_break_all (void)
   {
-    for (unsigned int i = 0; i < len; i++)
-      info[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+    unsafe_to_break_impl (0, len);
   }
   inline void
   safe_to_break_all (void)

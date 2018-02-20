@@ -15,23 +15,25 @@ jobs:
       - run: rm -rf harfbuzz-*
       - run: make distdir && cd harfbuzz-* && cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
 
-  alpine:
+  alpine-O3:
     docker:
       - image: alpine
     steps:
       - checkout
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
-      - run: ./autogen.sh
+      # C??FLAGS are not needed for a regular build
+      - run: CFLAGS="-O3" CXXFLAGS="-O3" ./autogen.sh
       - run: make
       - run: make check || .ci/fail.sh
 
-  archlinux:
+  archlinux-debug-O0:
     docker:
       - image: base/devel
     steps:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+      # C??FLAGS are not needed for a regular build
+      - run: CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make
       - run: make check || .ci/fail.sh
 
@@ -149,8 +151,8 @@ workflows:
       - distcheck
 
       # autotools based builds
-      - alpine
-      - archlinux
+      - alpine-O3
+      - archlinux-debug-O0
       - fedora-outoftreebuild
 
       # cmake based builds

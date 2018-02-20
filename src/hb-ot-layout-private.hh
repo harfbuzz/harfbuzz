@@ -132,6 +132,8 @@ namespace OT {
 
 namespace AAT {
   struct morx;
+  struct kerx;
+  struct trak;
 }
 
 struct hb_ot_layout_lookup_accelerator_t
@@ -170,6 +172,8 @@ struct hb_ot_layout_t
   OT::hb_lazy_table_loader_t<struct OT::fvar> fvar;
   OT::hb_lazy_table_loader_t<struct OT::avar> avar;
   OT::hb_lazy_table_loader_t<struct AAT::morx> morx;
+  OT::hb_lazy_table_loader_t<struct AAT::kerx> kerx;
+  OT::hb_lazy_table_loader_t<struct AAT::trak> trak;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

@@ -29,6 +29,8 @@
 
 #include "hb-private.hh"
 
+#include "hb-subset.h"
+
 #include "hb-object-private.hh"
 
 struct hb_subset_plan_t {

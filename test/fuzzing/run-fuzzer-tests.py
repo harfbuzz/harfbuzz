@@ -22,14 +22,10 @@ fails = 0
 for line in open (os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests", "fuzzed.tests")):
 	font = line.split (":")[0]
 
-	p = subprocess.Popen (
-		[hb_fuzzer, os.path.join (srcdir, "..", "shaping", font)],
-		stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	p = subprocess.Popen ([hb_fuzzer, os.path.join (srcdir, "..", "shaping", font)])
 
 	if p.wait () != 0:
 		fails = fails + 1
-
-	print ((p.stdout.read () + p.stderr.read ()).decode ("utf-8").strip ())
 
 if fails:
 	print ("%i fuzzer related tests failed." % fails)

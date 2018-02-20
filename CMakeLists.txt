@@ -63,6 +63,7 @@ if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GLIB ON)
 endif ()
 
+option(HB_DISABLE_TEST_PROGS OFF "Do not build some of the test programs, useful for continuous builds")
 option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and enable all options)")
 if (HB_CHECK)
   set (BUILD_SHARED_LIBS ON)
@@ -807,17 +808,18 @@ endif ()
 
 
 ## src/ executables
-foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
-  set (prog_name ${prog})
-  if (${prog_name} STREQUAL "test")
-    # test can not be used as a valid executable name on cmake, lets special case it
-    set (prog_name test-test)
-  endif ()
-  add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-  target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-endforeach ()
-set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
-
+if (NOT HB_DISABLE_TEST_PROGS)
+  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
+    set (prog_name ${prog})
+    if (${prog_name} STREQUAL "test")
+      # test can not be used as a valid executable name on cmake, lets special case it
+      set (prog_name test-test)
+    endif ()
+    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
+    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
+  endforeach ()
+  set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
+endif ()
 
 ## Tests
 if (UNIX OR MINGW)

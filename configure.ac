@@ -20,6 +20,7 @@ LT_INIT([disable-static])
 # Check for programs
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CXX
 dnl AX_CXX_COMPILE_STDCXX(11, noext, optional)
@@ -75,7 +76,7 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
 ])
 
-# Functions and headers
+# Functions, and headers
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l setlinebuf)
 AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h)
 

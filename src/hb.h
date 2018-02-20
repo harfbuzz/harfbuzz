@@ -41,7 +41,6 @@
 #include "hb-set.h"
 #include "hb-shape.h"
 #include "hb-shape-plan.h"
-#include "hb-subset.h"
 #include "hb-unicode.h"
 #include "hb-version.h"
 
