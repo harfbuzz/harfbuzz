@@ -300,7 +300,8 @@ EXTRA_DIST += \
 	$(HB_BASE_RAGEL_sources) \
 	$(HB_OT_RAGEL_sources) \
 	$(NULL)
-MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
+# We decided to add ragel-generated files to git...
+#MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
 $(srcdir)/%.hh: $(srcdir)/%.rl
 	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
