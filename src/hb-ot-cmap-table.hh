@@ -604,7 +604,7 @@ struct cmap
                    + 12 * groups.len; // SequentialMapGroup records
     void *dest = calloc (dest_sz, 1);
     if (unlikely (!dest)) {
-      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %zu for cmap subset output", dest_sz);
+      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for cmap subset output", (unsigned long) dest_sz);
       return false;
     }
 
