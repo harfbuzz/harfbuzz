@@ -986,3 +986,18 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
   serialize_glyphs (buffer, font, output_format, format_flags, gs);
   g_string_append_c (gs, '\n');
 }
+
+void
+subset_options_t::add_options (option_parser_t *parser)
+{
+  GOptionEntry entries[] =
+  {
+    {"hinting", 0, 0, G_OPTION_ARG_NONE,  &this->hinting,   "Whether to retain or drop hints",   nullptr},
+    {nullptr}
+  };
+  parser->add_group (entries,
+         "subset",
+         "Subset options:",
+         "Options subsetting",
+         this);
+}
