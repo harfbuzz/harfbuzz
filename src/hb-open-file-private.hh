@@ -54,7 +54,7 @@ struct TTCHeader;
 typedef struct TableRecord
 {
   int cmp (Tag t) const
-  { return t.cmp (tag); }
+  { return -t.cmp (tag); }
 
   static int cmp (const void *pa, const void *pb)
   {
