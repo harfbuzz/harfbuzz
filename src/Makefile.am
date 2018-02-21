@@ -258,7 +258,10 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-gobject.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def
+if HAVE_GOBJECT
+DEF_FILES += harfbuzz-gobject.def
+endif
 check: $(DEF_FILES) # For check-symbols.sh
 CLEANFILES += $(DEF_FILES)
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
