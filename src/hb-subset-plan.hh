@@ -37,6 +37,8 @@ struct hb_subset_plan_t {
   hb_object_header_t header;
   ASSERT_POD ();
 
+  hb_bool_t drop_hints;
+
   // TODO(Q1) actual map, drop this crap
   // Look at me ma, I'm a poor mans map codepoint : new gid
   // codepoints is sorted and aligned with gids_to_retain.

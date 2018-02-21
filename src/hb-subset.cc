@@ -268,9 +268,16 @@ _subset_table (hb_subset_plan_t *plan,
 }
 
 static bool
-_should_drop_table(hb_tag_t tag)
+_should_drop_table(hb_subset_plan_t *plan, hb_tag_t tag)
 {
     switch (tag) {
+      case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
+      case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
+      case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
+      case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
+      case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
+      case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
+        return plan->drop_hints;
       case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
       case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
       case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
@@ -307,7 +314,7 @@ hb_subset (hb_face_t *source,
     for (unsigned int i = 0; i < count; i++)
     {
       hb_tag_t tag = table_tags[i];
-      if (_should_drop_table(tag))
+      if (_should_drop_table(plan, tag))
       {
         DEBUG_MSG(SUBSET, nullptr, "drop %c%c%c%c", HB_UNTAG(tag));
         continue;

@@ -43,7 +43,7 @@ struct hb_subset_input_t {
   hb_set_t *unicodes;
   hb_set_t *glyphs;
 
-  hb_bool_t retain_hints;
+  hb_bool_t drop_hints;
   /* TODO
    *
    * features

@@ -653,14 +653,14 @@ struct subset_options_t : option_group_t
 {
   subset_options_t (option_parser_t *parser)
   {
-    hinting = true;
+    drop_hints = false;
 
     add_options (parser);
   }
 
   void add_options (option_parser_t *parser);
 
-  hb_bool_t hinting;
+  hb_bool_t drop_hints;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */

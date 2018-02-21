@@ -191,6 +191,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->gids_to_retain_sorted.init();
   plan->source = hb_face_reference (face);
   plan->dest = hb_subset_face_create ();
+  plan->drop_hints = input->drop_hints;
 
   _populate_codepoints (input->unicodes, plan->codepoints);
   _populate_gids_to_retain (face,
