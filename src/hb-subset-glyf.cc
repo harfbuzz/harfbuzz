@@ -103,9 +103,9 @@ _update_components (hb_subset_plan_t * plan,
     do
     {
       hb_codepoint_t new_gid;
-      if (!hb_subset_plan_new_gid_for_old_gid (plan,
-					      iterator.current->glyphIndex,
-					      &new_gid))
+      if (!hb_map_get (plan->dest_gid_by_source_gid,
+                       iterator.current->glyphIndex,
+                       &new_gid))
       {
         DEBUG_MSG(SUBSET, nullptr, "Missing new gid for %d", new_gid);
         continue;

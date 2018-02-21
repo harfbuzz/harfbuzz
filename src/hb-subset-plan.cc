@@ -61,28 +61,6 @@ _hb_codepoint_t_cmp (const void *pa, const void *pb)
 }
 
 hb_bool_t
-hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
-                                      hb_codepoint_t codepoint,
-                                      hb_codepoint_t *new_gid)
-{
-  auto it = plan->dest_gid_by_codepoint->find (codepoint);
-  if (it == plan->dest_gid_by_codepoint->end ()) return false;
-  *new_gid = it->second;
-  return true;
-}
-
-hb_bool_t
-hb_subset_plan_new_gid_for_old_gid (hb_subset_plan_t *plan,
-                                   hb_codepoint_t old_gid,
-                                   hb_codepoint_t *new_gid)
-{
-  auto it = plan->dest_gid_by_source_gid->find(old_gid);
-  if (it == plan->dest_gid_by_source_gid->end()) return false;
-  *new_gid = it->second;
-  return true;
-}
-
-hb_bool_t
 hb_subset_plan_add_table (hb_subset_plan_t *plan,
                           hb_tag_t tag,
                           hb_blob_t *contents)
@@ -159,7 +137,7 @@ static void _populate_dest_by_source (hb_subset_plan_t *plan)
   unsigned int i = 0;
   while (hb_set_next (plan->gids_to_retain, &source_gid))
   {
-    (*plan->dest_gid_by_source_gid)[source_gid] = i;
+    hb_map_put (plan->dest_gid_by_source_gid, source_gid, i);
     i++;
   }
 }
@@ -169,8 +147,9 @@ static void _populate_dest_by_codepoint (hb_subset_plan_t *plan,
 {
   for (auto it = source_gid_by_codepoint.begin(); it != source_gid_by_codepoint.end(); it++)
   {
-    hb_codepoint_t dest_gid = (*plan->dest_gid_by_source_gid)[it->second];
-    (*plan->dest_gid_by_codepoint)[it->first] = dest_gid;
+    hb_codepoint_t dest_gid;
+    hb_map_get (plan->dest_gid_by_source_gid, it->second, &dest_gid);
+    hb_map_put (plan->dest_gid_by_codepoint, it->first, dest_gid);
     DEBUG_MSG(SUBSET, nullptr, "U+%04x src_gid %d dest_gid %d", it->first, it->second, dest_gid);
   }
 }
@@ -190,12 +169,13 @@ hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {
+  // TODO check that the creates here succeed before populating things
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
   plan->codepoints = hb_set_create ();
   hb_set_set (plan->codepoints, input->unicodes);
   plan->gids_to_retain = hb_set_create();
-  plan->dest_gid_by_source_gid = new std::unordered_map<hb_codepoint_t, hb_codepoint_t>();
-  plan->dest_gid_by_codepoint = new std::unordered_map<hb_codepoint_t, hb_codepoint_t>();
+  plan->dest_gid_by_source_gid = hb_map_create_or_fail();
+  plan->dest_gid_by_codepoint = hb_map_create_or_fail();
   plan->source = hb_face_reference (face);
   plan->dest = hb_subset_face_create ();
 
@@ -219,8 +199,8 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
   hb_set_destroy (plan->codepoints);
   hb_set_destroy (plan->gids_to_retain);
-  delete plan->dest_gid_by_codepoint;
-  delete plan->dest_gid_by_source_gid;
+  hb_map_destroy (plan->dest_gid_by_codepoint);
+  hb_map_destroy (plan->dest_gid_by_source_gid);
 
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);

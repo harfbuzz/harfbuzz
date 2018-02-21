@@ -26,15 +26,12 @@
 
 #ifndef HB_SUBSET_PLAN_HH
 #define HB_SUBSET_PLAN_HH
-
-// TODO hide behind hb-map.h
 #include <unordered_map>
-
-
 #include "hb-private.hh"
 #include "hb-set.h"
 #include "hb-subset.h"
 
+#include "hb-subset-map.hh"
 #include "hb-object-private.hh"
 
 struct hb_subset_plan_t {
@@ -43,10 +40,10 @@ struct hb_subset_plan_t {
   hb_set_t *codepoints;
 
   /* codepoint => new gid based on cmap*/
-  std::unordered_map<hb_codepoint_t, hb_codepoint_t> *dest_gid_by_codepoint;
+  hb_map_t *dest_gid_by_codepoint;
 
   /* new gid by old gid lookup */
-  std::unordered_map<hb_codepoint_t, hb_codepoint_t> *dest_gid_by_source_gid;
+  hb_map_t *dest_gid_by_source_gid;
 
   /* Source gids to retain in the same order as the original font.
    * Re-ordering, such as to optimize for runs, makes subsetting G* harder, bad trade.
@@ -67,16 +64,6 @@ HB_INTERNAL hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
-
-HB_INTERNAL hb_bool_t
-hb_subset_plan_new_gid_for_old_gid (hb_subset_plan_t *plan,
-                                    hb_codepoint_t old_gid,
-                                    hb_codepoint_t *new_gid /* OUT */);
-
-HB_INTERNAL hb_bool_t
-hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
-                                      hb_codepoint_t codepont,
-                                      hb_codepoint_t *new_gid /* OUT */);
 
 HB_INTERNAL hb_bool_t
 hb_subset_plan_add_table (hb_subset_plan_t *plan,

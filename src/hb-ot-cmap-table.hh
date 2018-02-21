@@ -525,7 +525,7 @@ struct cmap
     while (hb_set_next (plan->codepoints, &cp))
     {
       hb_codepoint_t dest_gid;
-      if ( unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &dest_gid)))
+      if ( unlikely (!hb_map_get (plan->dest_gid_by_codepoint, cp, &dest_gid)))
       {
         DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
         return false;
