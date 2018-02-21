@@ -51,7 +51,7 @@ struct os2
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_os2));
+    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_subset_plan_ref_source_table (plan, HB_OT_TAG_os2));
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     // TODO(grieger): move to hb_blob_copy_writable_or_fail
     hb_blob_destroy (os2_blob);
@@ -63,7 +63,7 @@ struct os2
     }
 
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (plan->codepoints, &min_cp, &max_cp);
+    find_min_and_max_codepoint (hb_subset_plan_get_codepoints_sorted(plan), &min_cp, &max_cp);
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
@@ -77,14 +77,10 @@ struct os2
                                                  uint16_t *max_cp  /* OUT */)
   {
     hb_codepoint_t min = -1, max = 0;
-
-    for (unsigned int i = 0; i < codepoints.len; i++)
+    if (likely (codepoints.len > 0))
     {
-      hb_codepoint_t cp = codepoints[i];
-      if (cp < min)
-        min = cp;
-      if (cp > max)
-        max = cp;
+      min = codepoints[0];
+      max = codepoints[codepoints.len - 1];
     }
 
     if (min > 0xFFFF)

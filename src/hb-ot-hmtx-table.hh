@@ -68,7 +68,7 @@ struct hmtxvmtx
   inline bool subset_update_header (hb_subset_plan_t *plan,
                                     unsigned int num_hmetrics) const
   {
-    hb_blob_t *src_blob = OT::Sanitizer<H> ().sanitize (plan->source->reference_table (H::tableTag));
+    hb_blob_t *src_blob = OT::Sanitizer<H> ().sanitize (hb_subset_plan_ref_source_table(plan, H::tableTag));
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail(src_blob);
     hb_blob_destroy (src_blob);
 
@@ -89,11 +89,11 @@ struct hmtxvmtx
   inline bool subset (hb_subset_plan_t *plan) const
   {
     typename T::accelerator_t _mtx;
-    _mtx.init (plan->source);
+    _mtx.init (&hb_subset_plan_source_face (plan));
 
     /* All the trailing glyphs with the same advance can use one LongMetric
      * and just keep LSB */
-    hb_prealloced_array_t<hb_codepoint_t> &gids = plan->gids_to_retain_sorted;
+    hb_prealloced_array_t<hb_codepoint_t> &gids = hb_subset_plan_get_source_gids_in_dest_order (plan);
     unsigned int num_advances = gids.len;
     unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
     while (num_advances > 1

@@ -85,11 +85,13 @@ _update_components (hb_subset_plan_t * plan,
     do
     {
       hb_codepoint_t new_gid;
-      if (!hb_subset_plan_new_gid_for_old_id (plan,
+      if (!hb_subset_plan_new_gid_for_old_gid (plan,
 					      iterator.current->glyphIndex,
 					      &new_gid))
-	continue;
-
+      {
+        DEBUG_MSG(SUBSET, nullptr, "Missing new gid for %d", new_gid);
+        continue;
+      }
       ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex.set (new_gid);
     } while (iterator.move_to_next());
   }
@@ -105,7 +107,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
                             int                            loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
-  hb_prealloced_array_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
+  hb_prealloced_array_t<hb_codepoint_t> &glyph_ids = hb_subset_plan_get_source_gids_in_dest_order (plan);
   char *glyf_prime_data_next = glyf_prime_data;
 
   for (unsigned int i = 0; i < glyph_ids.len; i++)
@@ -131,7 +133,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
 static bool
 _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           const char                     *glyf_data,
-			  hb_subset_plan_t               *plan,
+                          hb_subset_plan_t               *plan,
                           bool                           *use_short_loca,
                           hb_blob_t                     **glyf_prime /* OUT */,
                           hb_blob_t                     **loca_prime /* OUT */)
@@ -139,7 +141,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
   // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
   // TODO(grieger): Don't fail on bad offsets, just dump them.
-  hb_prealloced_array_t<hb_codepoint_t> &glyphs_to_retain = plan->gids_to_retain_sorted;
+  hb_prealloced_array_t<hb_codepoint_t> &glyphs_to_retain = hb_subset_plan_get_source_gids_in_dest_order (plan);
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
@@ -189,11 +191,11 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                          hb_blob_t       **glyf_prime, /* OUT */
                          hb_blob_t       **loca_prime /* OUT */)
 {
-  hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (plan->source->reference_table (HB_OT_TAG_glyf));
+  hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (hb_subset_plan_ref_source_table (plan, HB_OT_TAG_glyf));
   const char *glyf_data = hb_blob_get_data(glyf_blob, nullptr);
 
   OT::glyf::accelerator_t glyf;
-  glyf.init(plan->source);
+  glyf.init (&hb_subset_plan_source_face (plan));
   bool result = _hb_subset_glyf_and_loca (glyf,
                                           glyf_data,
                                           plan,

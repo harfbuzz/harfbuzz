@@ -33,27 +33,6 @@
 
 #include "hb-object-private.hh"
 
-struct hb_subset_plan_t {
-  hb_object_header_t header;
-
-  // TODO(Q1) actual map, drop this crap
-  // Look at me ma, I'm a poor mans map codepoint : new gid
-  // codepoints is sorted and aligned with gids_to_retain.
-
-  // These first two lists provide a mapping from cp -> gid
-  // As a result it does not list the full set of glyphs to retain.
-  hb_prealloced_array_t<hb_codepoint_t> codepoints;
-  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain;
-
-  // This list contains the complete set of glyphs to retain and may contain
-  // more glyphs then the lists above.
-  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain_sorted;
-
-  // Plan is only good for a specific source/dest so keep them with it
-  hb_face_t *source;
-  hb_face_t *dest;
-};
-
 typedef struct hb_subset_plan_t hb_subset_plan_t;
 
 HB_INTERNAL hb_subset_plan_t *
@@ -61,20 +40,36 @@ hb_subset_plan_create (hb_face_t           *face,
                        hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 
-HB_INTERNAL hb_bool_t
-hb_subset_plan_new_gid_for_old_id(hb_subset_plan_t *plan,
-                                  hb_codepoint_t old_gid,
-                                  hb_codepoint_t *new_gid /* OUT */);
+HB_INTERNAL hb_face_t &hb_subset_plan_source_face (hb_subset_plan_t *plan);
+HB_INTERNAL hb_face_t &hb_subset_plan_dest_face (hb_subset_plan_t *plan);
 
 HB_INTERNAL hb_bool_t
-hb_subset_plan_new_gid_for_codepoint(hb_subset_plan_t *plan,
-                                     hb_codepoint_t codepont,
-                                     hb_codepoint_t *new_gid /* OUT */);
+hb_subset_plan_new_gid_for_old_gid (hb_subset_plan_t *plan,
+                                    hb_codepoint_t old_gid,
+                                    hb_codepoint_t *new_gid /* OUT */);
 
 HB_INTERNAL hb_bool_t
-hb_subset_plan_add_table(hb_subset_plan_t *plan,
-                         hb_tag_t tag,
-                         hb_blob_t *contents);
+hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
+                                      hb_codepoint_t codepont,
+                                      hb_codepoint_t *new_gid /* OUT */);
+
+HB_INTERNAL hb_bool_t
+hb_subset_plan_add_table (hb_subset_plan_t *plan,
+                          hb_tag_t tag,
+                          hb_blob_t *contents);
+
+HB_INTERNAL size_t
+hb_subset_plan_get_num_glyphs (hb_subset_plan_t *plan);
+
+HB_INTERNAL hb_prealloced_array_t<hb_codepoint_t> &
+hb_subset_plan_get_codepoints_sorted (hb_subset_plan_t *plan);
+
+/* Returns source gids in output order, e.g. source_gids[0] is the source gid for dest gid 0 */
+HB_INTERNAL hb_prealloced_array_t<hb_codepoint_t> &
+hb_subset_plan_get_source_gids_in_dest_order (hb_subset_plan_t *plan);
+
+HB_INTERNAL hb_blob_t *
+hb_subset_plan_ref_source_table (hb_subset_plan_t *plan, hb_tag_t tag);
 
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);

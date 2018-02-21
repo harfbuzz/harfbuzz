@@ -83,7 +83,7 @@ static bool
 _subset (hb_subset_plan_t *plan)
 {
     OT::Sanitizer<TableType> sanitizer;
-    hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
+    hb_blob_t *source_blob = sanitizer.sanitize (hb_subset_plan_ref_source_table (plan, TableType::tableTag));
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
     hb_bool_t result = table->subset(plan);
 
@@ -220,9 +220,9 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 }
 
 static bool
-_add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
+_add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
 {
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
+  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_subset_plan_ref_source_table (plan, HB_OT_TAG_head));
   const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
   hb_bool_t has_head = (head != nullptr);
 
@@ -236,7 +236,7 @@ _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_
                                                  HB_MEMORY_MODE_READONLY,
                                                  head_prime,
                                                  free);
-    has_head = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+    has_head = hb_subset_plan_add_table (plan, HB_OT_TAG_head, head_prime_blob);
     hb_blob_destroy (head_prime_blob);
   }
 
@@ -256,7 +256,7 @@ _subset_glyf (hb_subset_plan_t *plan)
   if (hb_subset_glyf_and_loca (plan, &use_short_loca, &glyf_prime, &loca_prime)) {
     success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_glyf, glyf_prime);
     success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_loca, loca_prime);
-    success = success && _add_head_and_set_loca_version (plan->source, use_short_loca, plan->dest);
+    success = success && _add_head_and_set_loca_version (plan, use_short_loca);
   } else {
     success = false;
   }
@@ -300,7 +300,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::os2> (plan);
       break;
     default:
-      hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);
+      hb_blob_t *source_table = hb_subset_plan_ref_source_table (plan, tag);
       if (likely(source_table))
       {
         result = hb_subset_plan_add_table(plan, tag, source_table);
@@ -312,7 +312,7 @@ _subset_table (hb_subset_plan_t *plan,
       break;
   }
   DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
-  return true;
+  return result;
 }
 
 static bool
@@ -364,7 +364,7 @@ hb_subset (hb_face_t *source,
     }
   } while (count == ARRAY_LENGTH (table_tags));
 
-  hb_face_t *result = success ? hb_face_reference(plan->dest) : hb_face_get_empty();
+  hb_face_t *result = success ? hb_face_reference (&hb_subset_plan_dest_face (plan)) : hb_face_get_empty();
   hb_subset_plan_destroy (plan);
   return result;
 }

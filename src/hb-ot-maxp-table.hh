@@ -63,7 +63,7 @@ struct maxp
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
+    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_subset_plan_ref_source_table (plan, HB_OT_TAG_maxp));
     hb_blob_t *maxp_prime_blob = hb_blob_copy_writable_or_fail (maxp_blob);
     hb_blob_destroy (maxp_blob);
 
@@ -73,7 +73,7 @@ struct maxp
     unsigned int length;
     OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, &length);
 
-    maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
+    maxp_prime->set_num_glyphs (hb_subset_plan_get_num_glyphs (plan));
 
     bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_maxp, maxp_prime_blob);
     hb_blob_destroy (maxp_prime_blob);

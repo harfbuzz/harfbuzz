@@ -521,9 +521,10 @@ struct cmap
 			       hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
-    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
+    hb_prealloced_array_t<hb_codepoint_t> &codepoints = hb_subset_plan_get_codepoints_sorted(plan);
+    for (unsigned int i = 0; i < codepoints.len; i++) {
 
-      hb_codepoint_t cp = plan->codepoints[i];
+      hb_codepoint_t cp = codepoints[i];
       if (!group || cp - 1 != group->endCharCode)
       {
         group = groups->push ();
