@@ -7,6 +7,8 @@ test -z "$srcdir" && srcdir=.
 test -z "$libs" && libs=.libs
 stat=0
 
+IGNORED_SYMBOLS='_fini\>\|_init\>\|_fdata\>\|_ftext\>\|_fbss\>\|__bss_start\>\|__bss_start__\>\|__bss_end__\>\|_edata\>\|_end\>\|_bss_end__\>\|__end__\>\|__gcov_flush\>\|llvm_'
+
 if which nm 2>/dev/null >/dev/null; then
 	:
 else
@@ -15,37 +17,35 @@ else
 fi
 
 tested=false
-for def in harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def; do
+for soname in harfbuzz harfbuzz-icu harfbuzz-subset; do
+	def=$soname.def
 	if ! test -f "$def"; then
 		echo "check-defs.sh: '$def' not found; skipping test it"
 		continue
 	fi
-	lib=`echo "$def" | sed 's/[.]def$//;s@.*/@@'`
 	for suffix in so dylib; do
-		so=$libs/lib${lib}.$suffix
+		so=$libs/lib$soname.$suffix
 		if ! test -f "$so"; then continue; fi
 
 		# On macOS, C symbols are prefixed with _
 		if test $suffix = dylib; then prefix="_"; fi
 
-		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v " $prefix"'\(_fini\>\|_init\>\|_fdata\>\|_ftext\>\|_fbss\>\|__bss_start\>\|__bss_start__\>\|__bss_end__\>\|_edata\>\|_end\>\|_bss_end__\>\|__end__\>\|__gcov_flush\>\|llvm_\)' | cut -d' ' -f3`"
+		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v " $prefix\\($IGNORED_SYMBOLS\\)" | cut -d' ' -f3`"
 
-		if test -f "$so"; then
+		echo
+		echo "Checking that $so has the same symbol list as $def"
+		{
+			echo EXPORTS
+			echo "$EXPORTED_SYMBOLS" | sed -e "s/^${prefix}hb/hb/g"
+			# cheat: copy the last line from the def file!
+			tail -n1 "$def"
+		} | c++filt | diff "$def" - >&2 || stat=1
 
-			echo "Checking that $so has the same symbol list as $def"
-			{
-				echo EXPORTS
-				echo "$EXPORTED_SYMBOLS" | sed -e "s/^${prefix}hb/hb/g"
-				# cheat: copy the last line from the def file!
-				tail -n1 "$def"
-			} | diff "$def" - >&2 || stat=1
-
-			tested=true
-		fi
+		tested=true
 	done
 done
 if ! $tested; then
-	echo "check-defs.sh: libharfbuzz shared library not found; skipping test"
+	echo "check-defs.sh: no shared libraries found; skipping test"
 	exit 77
 fi
 
