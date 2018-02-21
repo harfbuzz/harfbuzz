@@ -7,7 +7,7 @@ test -z "$srcdir" && srcdir=.
 test -z "$libs" && libs=.libs
 stat=0
 
-IGNORED_SYMBOLS='_fini\>\|_init\>\|_fdata\>\|_ftext\>\|_fbss\>\|__bss_start\>\|__bss_start__\>\|__bss_end__\>\|_edata\>\|_end\>\|_bss_end__\>\|__end__\>\|__gcov_flush\>\|llvm_'
+IGNORED_SYMBOLS='_fini\|_init\|_fdata\|_ftext\|_fbss\|__bss_start\|__bss_start__\|__bss_end__\|_edata\|_end\|_bss_end__\|__end__\|__gcov_flush\|llvm_.*'
 
 if which nm 2>/dev/null >/dev/null; then
 	:
@@ -23,12 +23,12 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 		if ! test -f "$so"; then continue; fi
 
 		# On macOS, C symbols are prefixed with _
-		if test $suffix = dylib; then prefix="_$prefix"; fi
+		symprefix=
+		if test $suffix = dylib; then symprefix=_; fi
 
-		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v " \\($IGNORED_SYMBOLS\\)" | cut -d' ' -f3 | c++filt`"
+		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] .' | grep -v " $symprefix\\($IGNORED_SYMBOLS\\>\\)" | cut -d' ' -f3 | c++filt`"
 
-		prefix=`basename "$so" | sed 's/libharfbuzz/hb/; s/-/_/g; s/[.].*//'`
-
+		prefix=$symprefix`basename "$so" | sed 's/libharfbuzz/hb/; s/-/_/g; s/[.].*//'`
 
 		echo
 		echo "Checking that $so does not expose internal symbols"
@@ -45,7 +45,7 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 			echo "Checking that $so has the same symbol list as $def"
 			{
 				echo EXPORTS
-				echo "$EXPORTED_SYMBOLS" | sed -e "s/^${prefix}hb/hb/g"
+				echo "$EXPORTED_SYMBOLS" | sed -e "s/^${symprefix}hb/hb/g"
 				# cheat: copy the last line from the def file!
 				tail -n1 "$def"
 			} | c++filt | diff "$def" - >&2 || stat=1
