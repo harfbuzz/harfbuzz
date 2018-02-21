@@ -89,7 +89,6 @@ _write_loca_entry (unsigned int  id,
   return false;
 }
 
-
 static void
 _update_components (hb_subset_plan_t * plan,
 		    char * glyph_start,
@@ -124,7 +123,6 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
                             unsigned int                   loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
-  // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   hb_prealloced_array_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
   char *glyf_prime_data_next = glyf_prime_data;
 
@@ -136,6 +134,15 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
       end_offset = start_offset = 0;
 
     int length = end_offset - start_offset;
+
+    if (glyf_prime_data_next + length > glyf_prime_data + glyf_prime_size)
+    {
+      DEBUG_MSG (SUBSET,
+                 nullptr,
+                 "WARNING: Attempted to write an out of bounds glyph entry for gid %d",
+                 i);
+      return false;
+    }
     memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
 
     success = success && _write_loca_entry (i,
