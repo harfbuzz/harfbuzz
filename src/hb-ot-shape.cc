@@ -957,7 +957,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
   hb_set_t *copy = hb_set_create ();
   do {
     copy->set (glyphs);
-    for (hb_codepoint_t lookup_index = -1; hb_set_next (lookups, &lookup_index);)
+    for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID; hb_set_next (lookups, &lookup_index);)
       hb_ot_layout_lookup_substitute_closure (font->face, lookup_index, glyphs);
   } while (!copy->is_equal (glyphs));
   hb_set_destroy (copy);

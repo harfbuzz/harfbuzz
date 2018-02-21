@@ -1057,7 +1057,7 @@ struct ClassDefFormat1
     if (klass == 0)
     {
       /* Match if there's any glyph that is not listed! */
-      hb_codepoint_t g = -1;
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
       if (!hb_set_next (glyphs, &g))
         return false;
       if (g < startGlyph)
@@ -1128,7 +1128,7 @@ struct ClassDefFormat2
     if (klass == 0)
     {
       /* Match if there's any glyph that is not listed! */
-      hb_codepoint_t g = (hb_codepoint_t) -1;
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
       for (unsigned int i = 0; i < count; i++)
       {
 	if (!hb_set_next (glyphs, &g))
@@ -1137,7 +1137,7 @@ struct ClassDefFormat2
 	  return true;
 	g = rangeRecord[i].end;
       }
-      if (g != (hb_codepoint_t) -1 && hb_set_next (glyphs, &g))
+      if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
         return true;
       /* Fall through. */
     }
