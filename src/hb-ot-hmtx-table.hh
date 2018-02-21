@@ -68,7 +68,7 @@ struct hmtxvmtx
   inline bool subset_update_header (hb_subset_plan_t *plan,
                                     unsigned int num_hmetrics) const
   {
-    hb_blob_t *src_blob = OT::Sanitizer<H> ().sanitize (hb_subset_plan_ref_source_table(plan, H::tableTag));
+    hb_blob_t *src_blob = OT::Sanitizer<H> ().sanitize (plan->source->reference_table (H::tableTag));
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail(src_blob);
     hb_blob_destroy (src_blob);
 

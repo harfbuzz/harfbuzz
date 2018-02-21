@@ -70,9 +70,6 @@ hb_subset_plan_add_table (hb_subset_plan_t *plan,
                           hb_tag_t tag,
                           hb_blob_t *contents);
 
-HB_INTERNAL hb_blob_t *
-hb_subset_plan_ref_source_table (hb_subset_plan_t *plan, hb_tag_t tag);
-
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
 

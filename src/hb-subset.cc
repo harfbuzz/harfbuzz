@@ -83,7 +83,7 @@ static bool
 _subset (hb_subset_plan_t *plan)
 {
     OT::Sanitizer<TableType> sanitizer;
-    hb_blob_t *source_blob = sanitizer.sanitize (hb_subset_plan_ref_source_table (plan, TableType::tableTag));
+    hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
     const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
     hb_bool_t result = table->subset(plan);
 
@@ -252,7 +252,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::os2> (plan);
       break;
     default:
-      hb_blob_t *source_table = hb_subset_plan_ref_source_table (plan, tag);
+      hb_blob_t *source_table = plan->source->reference_table (tag);
       if (likely(source_table))
       {
         result = hb_subset_plan_add_table(plan, tag, source_table);

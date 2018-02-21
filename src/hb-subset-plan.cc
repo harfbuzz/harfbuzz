@@ -45,12 +45,6 @@ hb_subset_plan_dest_face(hb_subset_plan_t *plan)
   return *(plan->dest);
 }
 
-HB_INTERNAL hb_blob_t *
-hb_subset_plan_ref_source_table(hb_subset_plan_t *plan, hb_tag_t tag)
-{
-  return plan->source->reference_table(tag);
-}
-
 static int
 _hb_codepoint_t_cmp (const void *pa, const void *pb)
 {
