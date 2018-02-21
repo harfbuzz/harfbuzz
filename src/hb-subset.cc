@@ -220,62 +220,14 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 }
 
 static bool
-_add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
-{
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
-  const OT::head *head = OT::Sanitizer<OT::head>::lock_instance (head_blob);
-  hb_bool_t has_head = (head != nullptr);
-
-  if (has_head) {
-    OT::head *head_prime = (OT::head *) malloc (OT::head::static_size);
-    memcpy (head_prime, head, OT::head::static_size);
-    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
-
-    hb_blob_t *head_prime_blob = hb_blob_create ((const char*) head_prime,
-                                                 OT::head::static_size,
-                                                 HB_MEMORY_MODE_READONLY,
-                                                 head_prime,
-                                                 free);
-    has_head = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
-    hb_blob_destroy (head_prime_blob);
-  }
-
-  hb_blob_destroy (head_blob);
-  return has_head;
-}
-
-static bool
-_subset_glyf (hb_subset_plan_t *plan)
-{
-  hb_blob_t *glyf_prime = nullptr;
-  hb_blob_t *loca_prime = nullptr;
-
-  bool success = true;
-  bool use_short_loca = false;
-  // TODO(grieger): Migrate to subset function on the table like cmap.
-  if (hb_subset_glyf_and_loca (plan, &use_short_loca, &glyf_prime, &loca_prime)) {
-    success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_glyf, glyf_prime);
-    success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_loca, loca_prime);
-    success = success && _add_head_and_set_loca_version (plan->source, use_short_loca, plan->dest);
-  } else {
-    success = false;
-  }
-  hb_blob_destroy (loca_prime);
-  hb_blob_destroy (glyf_prime);
-
-  return success;
-}
-
-static bool
 _subset_table (hb_subset_plan_t *plan,
                hb_tag_t          tag)
 {
-  // TODO (grieger): Handle updating the head table (loca format + num glyphs)
   DEBUG_MSG(SUBSET, nullptr, "begin subset %c%c%c%c", HB_UNTAG(tag));
   bool result = true;
   switch (tag) {
     case HB_OT_TAG_glyf:
-      result = _subset_glyf (plan);
+      result = _subset<const OT::glyf> (plan);
       break;
     case HB_OT_TAG_head:
       // SKIP head, it's handled by glyf
