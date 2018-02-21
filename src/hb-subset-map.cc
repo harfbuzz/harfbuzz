@@ -16,14 +16,12 @@ hb_map_t *
 hb_map_create_or_fail ()
 {
   hb_map_t *map = hb_object_create<hb_map_t> ();
-  if (map)
-  {
-    map->map = new (std::nothrow) std::unordered_map<hb_codepoint_t, hb_codepoint_t>();
-  }
+  if (!map) return nullptr;
+  map->map = new (std::nothrow) std::unordered_map<hb_codepoint_t, hb_codepoint_t>();
   if (!map->map)
   {
     hb_object_destroy (map);
-    map = nullptr;
+    return nullptr;
   }
   return map;
 }
