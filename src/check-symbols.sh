@@ -37,6 +37,20 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 			stat=1
 		fi
 
+		def=$soname.def
+		if ! test -f "$def"; then
+			echo "'$def' not found; skipping"
+		else
+			echo
+			echo "Checking that $so has the same symbol list as $def"
+			{
+				echo EXPORTS
+				echo "$EXPORTED_SYMBOLS" | sed -e "s/^${prefix}hb/hb/g"
+				# cheat: copy the last line from the def file!
+				tail -n1 "$def"
+			} | c++filt | diff "$def" - >&2 || stat=1
+		fi
+
 		tested=true
 	done
 done

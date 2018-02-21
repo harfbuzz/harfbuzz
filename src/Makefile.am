@@ -125,10 +125,12 @@ HBLIBS += $(HBNONPCLIBS)
 if OS_WIN32
 export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
-export_symbols_icu = -export-symbols harfbuzz-icu.def
-harfbuzz_icu_def_dependency = harfbuzz-icu.def
 export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
+export_symbols_icu = -export-symbols harfbuzz-icu.def
+harfbuzz_icu_def_dependency = harfbuzz-icu.def
+export_symbols_gobject = -export-symbols harfbuzz-gobject.def
+harfbuzz_gobject_def_dependency = harfbuzz-gobject.def
 chosen_linker = $(CXXLINK)
 else
 if WITH_LIBSTDCXX
@@ -211,10 +213,10 @@ if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
-nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
 libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
+EXTRA_libharfbuzz_gobject_la_DEPENDENCIES = $(harfbuzz_gobject_def_dependency)
 pkginclude_HEADERS += $(HB_GOBJECT_headers)
 nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
 pkgconfig_DATA += harfbuzz-gobject.pc
@@ -223,7 +225,7 @@ BUILT_SOURCES += \
 	$(HB_GOBJECT_ENUM_sources) \
 	$(HB_GOBJECT_ENUM_headers) \
 	$(NULL)
-DISTCLEANFILES += \
+MAINTAINERCLEANFILES += \
 	$(HB_GOBJECT_ENUM_sources) \
 	$(HB_GOBJECT_ENUM_headers) \
 	$(NULL)
@@ -256,12 +258,16 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-CLEANFILES += harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-gobject.def
+check: $(DEF_FILES) # For check-symbols.sh
+CLEANFILES += $(DEF_FILES)
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
+	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+harfbuzz-subset.def: $(HB_SUBSET_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
 harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
-harfbuzz-subset.def: $(HB_SUBSET_headers)
+harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
 
 
@@ -335,11 +341,8 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
-check: harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def # For check-defs.sh
-
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
-	check-defs.sh \
 	check-externs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
@@ -415,10 +418,8 @@ HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
 	$(HBNODISTHEADERS) \
 	$(HBSOURCES) \
-	$(HB_GOBJECT_ENUM_sources) \
-	$(HB_GOBJECT_ENUM_headers) \
 	$(HB_GOBJECT_sources) \
-	$(HB_GOBJECT_STRUCTS_headers) \
+	$(HB_GOBJECT_headers) \
 	$(NULL)
 
 girdir = $(datadir)/gir-1.0
