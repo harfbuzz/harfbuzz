@@ -36,13 +36,61 @@ namespace OT {
 
 struct DeviceRecord
 {
+  struct SubsetView
+  {
+    const DeviceRecord *source_device_record;
+    hb_subset_plan_t *subset_plan;
+
+    inline void init(const DeviceRecord *source_device_record,
+                     hb_subset_plan_t   *subset_plan)
+    {
+      this->source_device_record = source_device_record;
+      this->subset_plan = subset_plan;
+    }
+
+    inline unsigned int len () const
+    {
+      return this->subset_plan->gids_to_retain_sorted.len;
+    }
+
+    inline const HBUINT8& operator [] (unsigned int i) const
+    {
+      if (unlikely (i >= len())) return Null(HBUINT8);
+      hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
+      return this->source_device_record->widths[gid];
+    }
+  };
+
+  inline bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
+    this->pixel_size.set (subset_view.source_device_record->pixel_size);
+    this->max_width.set (subset_view.source_device_record->max_width);
+
+    for (unsigned int i = 0; i < subset_view.len(); i++)
+    {
+      HBUINT8 *width = c->extend (this->widths[i]);
+      if (unlikely (!width)) return_trace (false);
+      width->set (subset_view[i]);
+    }
+
+    return_trace (true);
+  }
+
   HBUINT8 pixel_size;
   HBUINT8 max_width;
   HBUINT8 widths[VAR];
+
+  DEFINE_SIZE_MIN (2);
 };
+
+
 
 struct hdmx
 {
+
   inline unsigned int get_size (void) const
   {
     return min_size + num_records * size_device_record;
@@ -52,6 +100,33 @@ struct hdmx
   {
     if (unlikely (i >= num_records)) return Null(DeviceRecord);
     return StructAtOffset<DeviceRecord> (this, min_size + i * size_device_record);
+  }
+
+  inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
+
+    this->version.set (source_hdmx->version);
+    this->num_records.set (source_hdmx->num_records);
+    this->size_device_record.set (source_hdmx->size_device_record);
+
+    for (unsigned int i = 0; i < source_hdmx->num_records; i++)
+    {
+      DeviceRecord::SubsetView subset_view;
+      subset_view.init (&(*source_hdmx)[i], plan);
+
+      c->start_embed<DeviceRecord> ()->serialize (c, subset_view);
+    }
+
+    return_trace (true);
+  }
+
+  inline bool subset (hb_subset_plan_t *plan) const
+  {
+    // TODO(grieger)
+    return false;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -65,10 +140,10 @@ struct hdmx
   HBINT16  num_records;
   HBINT32  size_device_record;
 
-  DeviceRecord records[VAR];
-
   DEFINE_SIZE_MIN (8);
 
+ private:
+  DeviceRecord records[VAR];
 };
 
 } /* namespace OT */
