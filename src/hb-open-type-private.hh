@@ -1113,7 +1113,9 @@ struct BinSearchHeader
     assert (len == v);
     entrySelectorZ.set (MAX (1u, _hb_bit_storage (v)) - 1);
     searchRangeZ.set (16 * (1u << entrySelectorZ));
-    rangeShiftZ.set (16 * MAX (0, (int) v - searchRangeZ));
+    rangeShiftZ.set (v * 16 > searchRangeZ
+                     ? 16 * v - searchRangeZ
+                     : 0);
   }
 
   protected:

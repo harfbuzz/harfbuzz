@@ -46,12 +46,14 @@ struct TrackTableEntry
   }
 
   protected:
-  Fixed	track;	/* Track value for this record. */
-  HBUINT16	nameIndex;	/* The 'name' table index for this track */
-  HBUINT16  offset;	/* Offset from start of tracking table to per-size tracking values for this track. */
+  Fixed			track;		/* Track value for this record. */
+  HBUINT16		trackNameID;	/* The 'name' table index for this track */
+  OffsetTo<UnsizedArrayOf<Fixed> >
+			values;		/* Offset from start of tracking table to
+					 * per-size tracking values for this track. */
 
   public:
-  DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_STATIC (8);
 };
 
 struct TrackData
@@ -63,13 +65,14 @@ struct TrackData
   }
 
   protected:
-  HBUINT16	nTracks;	/* Number of separate tracks included in this table. */
-  HBUINT16	nSizes;	/* Number of point sizes included in this table. */
-  OffsetTo<UnsizedArrayOf<Fixed>, HBUINT32> sizeTable;
-  TrackTableEntry	trackTable[VAR];	/* Array[nSizes] of size values. */
+  HBUINT16		nTracks;	/* Number of separate tracks included in this table. */
+  HBUINT16		nSizes;		/* Number of point sizes included in this table. */
+  LOffsetTo<UnsizedArrayOf<Fixed> >
+			sizeTable;
+  TrackTableEntry	trackTable[VAR];/* Array[nSizes] of size values. */
 
   public:
-  DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_ARRAY (8, trackTable);
 };
 
 struct trak
@@ -83,12 +86,12 @@ struct trak
   }
 
   protected:
-  FixedVersion<>version;		/* Version of the tracking table--currently
+  FixedVersion<>	version;	/* Version of the tracking table--currently
 					 * 0x00010000u for version 1.0. */
-  HBUINT16	format; /* Format of the tracking table */
-  OffsetTo<TrackData, HBUINT16>	horizOffset;	/* TrackData for horizontal text */
-  OffsetTo<TrackData, HBUINT16>	vertOffset;	/* TrackData for vertical text */
-  HBUINT16	reserved;	/* Reserved. Set to 0. */
+  HBUINT16		format; 	/* Format of the tracking table */
+  OffsetTo<TrackData>	horizOffset;	/* TrackData for horizontal text */
+  OffsetTo<TrackData>	vertOffset;	/* TrackData for vertical text */
+  HBUINT16		reserved;	/* Reserved. Set to 0. */
 
   public:
   DEFINE_SIZE_MIN (12);

@@ -70,8 +70,7 @@ struct maxp
     if (unlikely (!maxp_prime_blob)) {
       return false;
     }
-    unsigned int length;
-    OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, &length);
+    OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, nullptr);
 
     maxp_prime->set_num_glyphs (hb_set_get_population (plan->gids_to_retain));
 

@@ -62,13 +62,31 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   return true;
 }
 
-static void
-_write_loca_entry (unsigned int id, unsigned int offset, bool is_short, void *loca_prime) {
-  if (is_short) {
-    ((OT::HBUINT16*) loca_prime) [id].set (offset / 2);
-  } else {
-    ((OT::HBUINT32*) loca_prime) [id].set (offset);
+static bool
+_write_loca_entry (unsigned int  id,
+                   unsigned int  offset,
+                   bool          is_short,
+                   void         *loca_prime,
+                   unsigned int  loca_size)
+{
+  unsigned int entry_size = is_short ? sizeof (OT::HBUINT16) : sizeof (OT::HBUINT32);
+  if ((id + 1) * entry_size <= loca_size)
+  {
+    if (is_short) {
+      ((OT::HBUINT16*) loca_prime) [id].set (offset / 2);
+    } else {
+      ((OT::HBUINT32*) loca_prime) [id].set (offset);
+    }
+    return true;
   }
+
+  // Offset was not written because the write is out of bounds.
+  DEBUG_MSG (SUBSET,
+             nullptr,
+             "WARNING: Attempted to write an out of bounds loca entry at index %d. Loca size is %d.",
+             id,
+             loca_size);
+  return false;
 }
 
 static void
@@ -102,13 +120,14 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
 			    const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
                             bool                           use_short_loca,
-                            int                            glyf_prime_size,
+                            unsigned int                   glyf_prime_size,
                             char                          *glyf_prime_data /* OUT */,
-                            int                            loca_prime_size,
+                            unsigned int                   loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
   char *glyf_prime_data_next = glyf_prime_data;
 
+  bool success = true;
   hb_codepoint_t glyph_id = HB_SET_VALUE_INVALID;
   unsigned int i = 0;
   while (hb_set_next( plan->gids_to_retain, &glyph_id))
@@ -118,20 +137,34 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
       end_offset = start_offset = 0;
 
     int length = end_offset - start_offset;
+
+    if (glyf_prime_data_next + length > glyf_prime_data + glyf_prime_size)
+    {
+      DEBUG_MSG (SUBSET,
+                 nullptr,
+                 "WARNING: Attempted to write an out of bounds glyph entry for gid %d",
+                 i);
+      return false;
+    }
     memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
 
-    _write_loca_entry (i, glyf_prime_data_next - glyf_prime_data, use_short_loca, loca_prime_data);
+    success = success && _write_loca_entry (i,
+                                            glyf_prime_data_next - glyf_prime_data,
+                                            use_short_loca,
+                                            loca_prime_data,
+                                            loca_prime_size);
     _update_components (plan, glyf_prime_data_next, end_offset - start_offset);
 
     glyf_prime_data_next += length;
     i++;
   }
 
-  _write_loca_entry (hb_set_get_population (plan->gids_to_retain),
-                     glyf_prime_data_next - glyf_prime_data,
-                     use_short_loca, loca_prime_data);
-
-  return true;
+  success = success && _write_loca_entry (hb_set_get_population (plan->gids_to_retain),
+                                          glyf_prime_data_next - glyf_prime_data,
+                                          use_short_loca,
+                                          loca_prime_data,
+                                          loca_prime_size);
+  return success;
 }
 
 static bool
@@ -142,9 +175,8 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           hb_blob_t                     **glyf_prime /* OUT */,
                           hb_blob_t                     **loca_prime /* OUT */)
 {
-  // TODO(grieger): Sanity check writes to make sure they are in-bounds.
   // TODO(grieger): Sanity check allocation size for the new table.
-  // TODO(grieger): Don't fail on bad offsets, just dump them.
+
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
 
@@ -163,6 +195,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                                              glyf_prime_size, glyf_prime_data,
                                              loca_prime_size, loca_prime_data))) {
     free (glyf_prime_data);
+    free (loca_prime_data);
     return false;
   }
 
