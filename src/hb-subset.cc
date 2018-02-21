@@ -264,7 +264,7 @@ _subset_table (hb_subset_plan_t *plan,
       break;
   }
   DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
-  return true;
+  return result;
 }
 
 static bool
