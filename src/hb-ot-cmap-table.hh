@@ -521,22 +521,22 @@ struct cmap
 			       hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
-    hb_prealloced_array_t<hb_codepoint_t> &codepoints = hb_subset_plan_get_codepoints_sorted(plan);
-    for (unsigned int i = 0; i < codepoints.len; i++) {
-
-      hb_codepoint_t cp = codepoints[i];
-      if (!group || cp - 1 != group->endCharCode)
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (hb_set_next (plan->codepoints, &cp))
+    {
+      hb_codepoint_t dest_gid;
+      if ( unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &dest_gid)))
+      {
+        DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
+        return false;
+      }
+      if (!group || cp - 1 != group->endCharCode
+          || dest_gid - (uint32_t) group->glyphID != cp - (uint32_t) group->startCharCode)
       {
         group = groups->push ();
         group->startCharCode.set (cp);
         group->endCharCode.set (cp);
-        hb_codepoint_t new_gid;
-        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
-        {
-          DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
-          return false;
-        }
-        group->glyphID.set (new_gid);
+        group->glyphID.set (dest_gid);
       } else
       {
         group->endCharCode.set (cp);

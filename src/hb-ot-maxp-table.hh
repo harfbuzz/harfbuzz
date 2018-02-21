@@ -73,7 +73,7 @@ struct maxp
     unsigned int length;
     OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, &length);
 
-    maxp_prime->set_num_glyphs (hb_subset_plan_get_num_glyphs (plan));
+    maxp_prime->set_num_glyphs (hb_set_get_population (plan->gids_to_retain));
 
     bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_maxp, maxp_prime_blob);
     hb_blob_destroy (maxp_prime_blob);

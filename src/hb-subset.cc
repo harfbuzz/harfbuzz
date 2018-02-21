@@ -364,7 +364,7 @@ hb_subset (hb_face_t *source,
     }
   } while (count == ARRAY_LENGTH (table_tags));
 
-  hb_face_t *result = success ? hb_face_reference (&hb_subset_plan_dest_face (plan)) : hb_face_get_empty();
+  hb_face_t *result = success ? hb_face_reference (plan->dest) : hb_face_get_empty();
   hb_subset_plan_destroy (plan);
   return result;
 }

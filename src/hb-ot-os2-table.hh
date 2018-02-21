@@ -63,7 +63,7 @@ struct os2
     }
 
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (hb_subset_plan_get_codepoints_sorted(plan), &min_cp, &max_cp);
+    find_min_and_max_codepoint (plan->codepoints, &min_cp, &max_cp);
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
@@ -72,16 +72,14 @@ struct os2
     return result;
   }
 
-  static inline void find_min_and_max_codepoint (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+  static inline void find_min_and_max_codepoint (hb_set_t *codepoints,
                                                  uint16_t *min_cp, /* OUT */
                                                  uint16_t *max_cp  /* OUT */)
   {
-    hb_codepoint_t min = -1, max = 0;
-    if (likely (codepoints.len > 0))
-    {
-      min = codepoints[0];
-      max = codepoints[codepoints.len - 1];
-    }
+    hb_codepoint_t min = hb_set_get_min (codepoints);
+    hb_codepoint_t max = hb_set_get_max (codepoints);
+    if (unlikely (min == HB_SET_VALUE_INVALID)) min = -1;
+    if (unlikely (max == HB_SET_VALUE_INVALID)) max = 0;
 
     if (min > 0xFFFF)
       min = 0xFFFF;
