@@ -35,6 +35,7 @@
 #include "hb-open-file-private.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-hdmx-table.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
