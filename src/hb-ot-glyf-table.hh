@@ -301,6 +301,51 @@ struct glyf
       return true;
     }
 
+    inline bool get_instruction_offsets(unsigned int start_offset,
+                                        unsigned int end_offset,
+                                        unsigned int *instruction_start /* OUT */,
+                                        unsigned int *instruction_end /* OUT */) const
+    {
+      if (end_offset - start_offset < GlyphHeader::static_size)
+      {
+        *instruction_start = 0;
+        *instruction_end = 0;
+        return true; /* Empty glyph; no instructions. */
+      }
+      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
+      int16_t num_contours = (int16_t) glyph_header.numberOfContours;
+      if (num_contours < 0)
+      {
+        CompositeGlyphHeader::Iterator *composite_it;
+        if (unlikely (!CompositeGlyphHeader::get_iterator (
+            (const char*) this->glyf_table + start_offset,
+             end_offset - start_offset, composite_it))) return false;
+        const CompositeGlyphHeader *last;
+        do {
+          last = composite_it->current;
+        } while (composite_it->move_to_next());
+
+        if ( (uint16_t) last->flags & CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS)
+          *instruction_start = start_offset + ((char *) last - (char *) glyf_table->dataX) + last->get_size();
+        else
+          *instruction_start = end_offset;
+        *instruction_end = end_offset;
+        if (unlikely (*instruction_start > *instruction_end))
+        {
+          DEBUG_MSG(SUBSET, nullptr, "Invalid instruction offset, %d is outside [%d, %d]", *instruction_start, start_offset, end_offset);
+          return false;
+        }
+      }
+      else
+      {
+        unsigned int instruction_length_offset = start_offset + GlyphHeader::static_size + 2 * num_contours;
+        const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (glyf_table, instruction_length_offset);
+        *instruction_start = instruction_length_offset + 2;
+        *instruction_end = *instruction_start + (uint16_t) instruction_length;
+      }
+      return true;
+    }
+
     inline bool get_extents (hb_codepoint_t glyph,
 			     hb_glyph_extents_t *extents) const
     {

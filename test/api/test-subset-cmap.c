@@ -40,7 +40,7 @@ test_subset_cmap (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('c','m','a','p'));
@@ -59,7 +59,7 @@ test_subset_cmap_noop (void)
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 98);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('c','m','a','p'));

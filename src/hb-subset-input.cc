@@ -105,3 +105,9 @@ hb_subset_input_glyph_set (hb_subset_input_t *subset_input)
 {
   return subset_input->glyphs;
 }
+
+HB_EXTERN hb_bool_t *
+hb_subset_input_drop_hints(hb_subset_input_t *subset_input)
+{
+  return &subset_input->drop_hints;
+}
