@@ -128,15 +128,38 @@ struct hdmx
     return_trace (true);
   }
 
-  static inline unsigned int get_subsetted_size (hb_subset_plan_t *plan)
+  static inline size_t get_subsetted_size (hb_subset_plan_t *plan)
   {
     return min_size + DeviceRecord::get_size (plan->gids_to_retain_sorted.len);
   }
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    // TODO(grieger)
-    return false;
+    size_t dest_size = get_subsetted_size (plan);
+    hdmx *dest = (hdmx *) malloc (dest_size);
+    if (unlikely (!dest))
+    {
+      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for hdmx subset output.", (unsigned long) dest_size);
+      return false;
+    }
+
+    hb_serialize_context_t c (dest, dest_size);
+    hdmx *hdmx_prime = c.start_serialize<hdmx> ();
+    if (!hdmx_prime || !hdmx_prime->serialize (&c, this, plan)) {
+      free (dest);
+      return false;
+    }
+    c.end_serialize ();
+
+    hb_blob_t *hdmx_prime_blob = hb_blob_create ((const char *) dest,
+                                                 dest_size,
+                                                 HB_MEMORY_MODE_READONLY,
+                                                 dest,
+                                                 free);
+    bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_hdmx, hdmx_prime_blob);
+    hb_blob_destroy (hdmx_prime_blob);
+
+    return result;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
