@@ -6,6 +6,7 @@
 from __future__ import print_function
 
 import io
+from difflib import unified_diff
 import os
 import re
 import subprocess
@@ -59,9 +60,12 @@ def run_test(test):
 		return fail_test(test, cli_args, "ttx (actual) returned %d" % (return_code))
 
 	expected_ttx = strip_check_sum (expected_ttx)
-	actual_ttx = strip_check_sum (expected_ttx)
+	actual_ttx = strip_check_sum (actual_ttx)
 
 	if not actual_ttx == expected_ttx:
+		for line in unified_diff(expected_ttx.splitlines(1), actual_ttx.splitlines(1)):
+			sys.stdout.write(line)
+		sys.stdout.flush()
 		return fail_test(test, cli_args, 'ttx for expected and actual does not match.')
 
 	return 0
