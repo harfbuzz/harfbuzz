@@ -1,0 +1,9 @@
+add_library(harfbuzz::harfbuzz UNKNOWN IMPORTED)
+
+set(prefix "@prefix@")
+set(exec_prefix "@exec_prefix@")
+
+set_target_properties(harfbuzz::harfbuzz PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "@includedir@/harfbuzz"
+  IMPORTED_LOCATION "@libdir@/harfbuzz"
+  IMPORTED_LINK_INTERFACE_LIBRARIES "harfbuzz")

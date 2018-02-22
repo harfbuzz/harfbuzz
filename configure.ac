@@ -491,6 +491,7 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/hb-version.h
+src/harfbuzz-config.cmake
 src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
