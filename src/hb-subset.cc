@@ -230,6 +230,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_glyf:
       result = _subset<const OT::glyf> (plan);
       break;
+    case HB_OT_TAG_hdmx:
+      result = _subset<const OT::hdmx> (plan);
+      break;
     case HB_OT_TAG_head:
       // SKIP head, it's handled by glyf
       result = true;
