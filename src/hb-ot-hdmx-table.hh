@@ -37,7 +37,7 @@ namespace OT {
 
 struct hdmx
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_glyf;
+  static const hb_tag_t tableTag = HB_OT_TAG_hdmx;
 
   struct DeviceRecord
   {
