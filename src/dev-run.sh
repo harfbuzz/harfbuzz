@@ -48,7 +48,7 @@ d|D )
 	if [[ $CMAKENINJA ]]; then
 		echo "Not supported on cmake builds yet"
 	else
-		build/libtool --mode=execute $GDB hb-shape $@
+		build/libtool --mode=execute $GDB build/util/hb-shape $@
 	fi
 ;;
 r|R )
