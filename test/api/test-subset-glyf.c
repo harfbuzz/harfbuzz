@@ -105,8 +105,8 @@ test_subset_glyf_strip_hints (void)
   hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('m','a','x', 'p'));
 
   hb_face_destroy (face_abc_subset);
@@ -123,10 +123,10 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_subset_glyf);
-  hb_test_add (test_subset_glyf_with_components);
   hb_test_add (test_subset_glyf_noop);
+  hb_test_add (test_subset_glyf);
   hb_test_add (test_subset_glyf_strip_hints);
+  hb_test_add (test_subset_glyf_with_components);
 
   return hb_test_run();
 }

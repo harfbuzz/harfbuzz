@@ -230,11 +230,12 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::glyf> (plan);
       break;
     case HB_OT_TAG_head:
-      // SKIP head, it's handled by glyf
+      // TODO that won't work well if there is no glyf
+      DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
       result = true;
       break;
     case HB_OT_TAG_hhea:
-      // SKIP hhea, it's handled by hmtx
+      DEBUG_MSG(SUBSET, nullptr, "skip hhea handled by hmtx");
       return true;
     case HB_OT_TAG_hmtx:
       result = _subset<const OT::hmtx> (plan);
@@ -243,7 +244,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::maxp> (plan);
       break;
     case HB_OT_TAG_loca:
-      // SKIP loca, it's handle by glyf
+      DEBUG_MSG(SUBSET, nullptr, "skip loca handled by glyf");
       return true;
     case HB_OT_TAG_cmap:
       result = _subset<const OT::cmap> (plan);
@@ -254,16 +255,12 @@ _subset_table (hb_subset_plan_t *plan,
     default:
       hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);
       if (likely(source_table))
-      {
         result = hb_subset_plan_add_table(plan, tag, source_table);
-      }
       else
-      {
         result = false;
-      }
+      DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
       break;
   }
-  DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
   return result;
 }
 

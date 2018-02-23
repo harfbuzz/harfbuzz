@@ -43,12 +43,18 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   for (unsigned int i = 0; i < glyph_ids.len; i++)
   {
     hb_codepoint_t next_glyph = glyph_ids[i];
+    *(instruction_ranges->push()) = 0;
+    *(instruction_ranges->push()) = 0;
+
     unsigned int start_offset, end_offset;
-    if (unlikely (!glyf.get_offsets(next_glyph, &start_offset, &end_offset)))
+    if (unlikely (!glyf.get_offsets(next_glyph, /* trim */ true, &start_offset, &end_offset)))
     {
       DEBUG_MSG(SUBSET, nullptr, "Invalid gid %d", next_glyph);
       continue;
     }
+    if (end_offset - start_offset < OT::glyf::GlyphHeader::static_size)
+      continue; /* 0-length glyph */
+
     unsigned int instruction_start = 0, instruction_end = 0;
     if (drop_hints)
     {
@@ -58,12 +64,13 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
         DEBUG_MSG(SUBSET, nullptr, "Unable to get instruction offsets for %d", next_glyph);
         return false;
       }
+      instruction_ranges->array[i * 2] = instruction_start;
+      instruction_ranges->array[i * 2 + 1] = instruction_end;
     }
-    *(instruction_ranges->push()) = instruction_start;
-    *(instruction_ranges->push()) = instruction_end;
 
     total += end_offset - start_offset - (instruction_end - instruction_start);
-    fprintf(stderr, "  %d ends at %d (was %d to %d, remove %d)\n", next_glyph, total, start_offset, end_offset, instruction_end - instruction_start);
+    /* round2 so short loca will work */
+    total += total % 2;
   }
 
   *glyf_size = total;
@@ -147,12 +154,13 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
   for (unsigned int i = 0; i < glyph_ids.len; i++)
   {
     unsigned int start_offset, end_offset;
-    if (unlikely (!glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset)))
+    if (unlikely (!glyf.get_offsets (glyph_ids[i], /* trim */ true, &start_offset, &end_offset)))
       end_offset = start_offset = 0;
     unsigned int instruction_start = instruction_ranges[i * 2];
     unsigned int instruction_end = instruction_ranges[i * 2 + 1];
 
     int length = end_offset - start_offset - (instruction_end - instruction_start);
+    length += length % 2;
 
     if (glyf_prime_data_next + length > glyf_prime_data + glyf_prime_size)
     {
@@ -164,21 +172,17 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
     }
 
     if (instruction_start == instruction_end)
-    {
-      fprintf(stderr, "i=%d copy %d bytes from %d to %ld\n", i, length, start_offset, glyf_prime_data_next - glyf_prime_data);
       memcpy (glyf_prime_data_next, glyf_data + start_offset, length);
-    }
     else
     {
-      fprintf(stderr, "i=%d copy %d bytes from %d to %ld\n", i, instruction_start - start_offset, start_offset, glyf_prime_data_next - glyf_prime_data);
-      fprintf(stderr, "i=%d copy %d bytes from %d to %ld\n", i, end_offset - instruction_end, instruction_end, glyf_prime_data_next + instruction_start - start_offset - glyf_prime_data);
       memcpy (glyf_prime_data_next, glyf_data + start_offset, instruction_start - start_offset);
       memcpy (glyf_prime_data_next + instruction_start - start_offset, glyf_data + instruction_end, end_offset - instruction_end);
       /* if the instructions end at the end this was a composite glyph */
       if (instruction_end == end_offset)
         ; // TODO(rsheeter) remove WE_HAVE_INSTRUCTIONS from last flags
       else
-        ; // TODO(rsheeter) zero instructionLength
+        /* zero instruction length, which is just before instruction_start */
+        memset (glyf_prime_data_next + instruction_start - start_offset - 2, 0, 2);
     }
 
     success = success && _write_loca_entry (i,
