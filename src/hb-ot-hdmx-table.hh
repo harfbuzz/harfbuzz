@@ -31,80 +31,82 @@
 
 namespace OT {
 
+
 /*
  * hdmx - Horizontal Device Metric
  */
 
 #define HB_OT_TAG_hdmx HB_TAG('h','d','m','x')
 
+struct DeviceRecord
+{
+  struct SubsetView
+  {
+    const DeviceRecord *source_device_record;
+    hb_subset_plan_t *subset_plan;
+
+    inline void init(const DeviceRecord *source_device_record,
+		     hb_subset_plan_t   *subset_plan)
+    {
+      this->source_device_record = source_device_record;
+      this->subset_plan = subset_plan;
+    }
+
+    inline unsigned int len () const
+    {
+      return this->subset_plan->gids_to_retain_sorted.len;
+    }
+
+    inline const HBUINT8& operator [] (unsigned int i) const
+    {
+      if (unlikely (i >= len())) return Null(HBUINT8);
+      hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
+      return this->source_device_record->widths[gid];
+    }
+  };
+
+  static inline unsigned int get_size (unsigned int count)
+  {
+    unsigned int raw_size = min_size + count * HBUINT8::static_size;
+    if (raw_size % 4)
+      /* Align to 32 bits */
+      return raw_size + (4 - (raw_size % 4));
+    return raw_size;
+  }
+
+  inline bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->allocate_size<DeviceRecord> (get_size (subset_view.len()))))
+      return_trace (false);
+
+    this->pixel_size.set (subset_view.source_device_record->pixel_size);
+    this->max_width.set (subset_view.source_device_record->max_width);
+
+    for (unsigned int i = 0; i < subset_view.len(); i++)
+      widths[i].set (subset_view[i]);
+
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int size_device_record) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  c->check_range (this, size_device_record)));
+  }
+
+  HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
+  HBUINT8 max_width;    /* Maximum width. */
+  HBUINT8 widths[VAR];  /* Array of widths (numGlyphs is from the 'maxp' table). */
+  DEFINE_SIZE_MIN (2);
+};
+
+
 struct hdmx
 {
   static const hb_tag_t tableTag = HB_OT_TAG_hdmx;
-
-  struct DeviceRecord
-  {
-    struct SubsetView
-    {
-      const DeviceRecord *source_device_record;
-      hb_subset_plan_t *subset_plan;
-
-      inline void init(const DeviceRecord *source_device_record,
-                       hb_subset_plan_t   *subset_plan)
-      {
-        this->source_device_record = source_device_record;
-        this->subset_plan = subset_plan;
-      }
-
-      inline unsigned int len () const
-      {
-        return this->subset_plan->gids_to_retain_sorted.len;
-      }
-
-      inline const HBUINT8& operator [] (unsigned int i) const
-      {
-        if (unlikely (i >= len())) return Null(HBUINT8);
-        hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
-        return this->source_device_record->widths[gid];
-      }
-    };
-
-    static inline unsigned int get_size (unsigned int count)
-    {
-      unsigned int raw_size = min_size + count * HBUINT8::static_size;
-      if (raw_size % 4)
-        /* Align to 32 bits */
-        return raw_size + (4 - (raw_size % 4));
-      return raw_size;
-    }
-
-    inline bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
-    {
-      TRACE_SERIALIZE (this);
-
-      if (unlikely (!c->allocate_size<DeviceRecord> (get_size (subset_view.len()))))
-        return_trace (false);
-
-      this->pixel_size.set (subset_view.source_device_record->pixel_size);
-      this->max_width.set (subset_view.source_device_record->max_width);
-
-      for (unsigned int i = 0; i < subset_view.len(); i++)
-        widths[i].set (subset_view[i]);
-
-      return_trace (true);
-    }
-
-    inline bool sanitize (hb_sanitize_context_t *c, unsigned int size_device_record) const
-    {
-      TRACE_SANITIZE (this);
-      return_trace (likely (c->check_struct (this)
-                            && c->check_range (this, size_device_record)));
-    }
-
-    HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
-    HBUINT8 max_width;    /* Maximum width. */
-    HBUINT8 widths[VAR];  /* Array of widths (numGlyphs is from the 'maxp' table). */
-    DEFINE_SIZE_MIN (2);
-  };
 
   inline unsigned int get_size (void) const
   {
