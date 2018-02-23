@@ -30,7 +30,6 @@ HBDEPS =
 HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
-HBNODISTHEADERS = $(HB_NODIST_headers)
 
 if WITH_LIBSTDCXX
 HBNOLIBCXXCFLAGS =
@@ -147,13 +146,13 @@ endif
 
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
-libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
+libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
-nodist_pkginclude_HEADERS = $(HBNODISTHEADERS)
+nodist_pkginclude_HEADERS =
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST += harfbuzz.pc.in
@@ -390,7 +389,7 @@ TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
 	HBSOURCES="$(HBSOURCES)" \
-	HBHEADERS="$(HBHEADERS) $(HBNODISTHEADERS)" \
+	HBHEADERS="$(HBHEADERS)" \
 	$(NULL)
 
 if HAVE_INTROSPECTION
@@ -420,7 +419,6 @@ HarfBuzz_0_0_gir_LIBS = \
 	$(NULL)
 HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
-	$(HBNODISTHEADERS) \
 	$(HBSOURCES) \
 	$(HB_GOBJECT_sources) \
 	$(HB_GOBJECT_headers) \
