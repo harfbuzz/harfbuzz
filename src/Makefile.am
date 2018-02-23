@@ -226,7 +226,7 @@ BUILT_SOURCES += \
 	$(HB_GOBJECT_ENUM_sources) \
 	$(HB_GOBJECT_ENUM_headers) \
 	$(NULL)
-MAINTAINERCLEANFILES += \
+DISTCLEANFILES += \
 	$(HB_GOBJECT_ENUM_sources) \
 	$(HB_GOBJECT_ENUM_headers) \
 	$(NULL)
