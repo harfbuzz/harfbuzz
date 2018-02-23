@@ -762,7 +762,8 @@ struct CheckSum : HBUINT32
   static inline uint32_t CalcTableChecksum (const HBUINT32 *Table, uint32_t Length)
   {
     uint32_t Sum = 0L;
-    const HBUINT32 *EndPtr = Table+((Length+3) & ~3) / HBUINT32::static_size;
+    assert (0 == (Length & 3));
+    const HBUINT32 *EndPtr = Table + Length / HBUINT32::static_size;
 
     while (Table < EndPtr)
       Sum += *Table++;
