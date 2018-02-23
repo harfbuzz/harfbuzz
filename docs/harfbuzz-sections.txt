@@ -253,6 +253,7 @@ hb_font_get_parent
 hb_font_get_ppem
 hb_font_get_ptem
 hb_font_get_scale
+hb_font_get_tracking
 hb_font_get_user_data
 hb_font_get_variation_glyph
 hb_font_get_variation_glyph_func_t
@@ -269,6 +270,7 @@ hb_font_set_parent
 hb_font_set_ppem
 hb_font_set_ptem
 hb_font_set_scale
+hb_font_set_tracking
 hb_font_set_user_data
 hb_variation_t
 hb_variation_from_string

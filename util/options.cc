@@ -538,6 +538,7 @@ font_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
     {"font-ppem",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, 0, G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
+    {"font-tracking",	0, 0, G_OPTION_ARG_DOUBLE,	&this->tracking,		"Set font tracking-size (default: 0; disabled)","tracking-size"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
     {nullptr}
   };
@@ -713,6 +714,7 @@ font_options_t::get_font (void) const
 
   hb_font_set_ppem (font, x_ppem, y_ppem);
   hb_font_set_ptem (font, ptem);
+  hb_font_set_tracking (font, tracking);
 
   int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
   int scale_y = (int) scalbnf (font_size_y, subpixel_bits);
