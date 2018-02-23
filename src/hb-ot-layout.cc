@@ -1270,10 +1270,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
       if (lookups[table_index][i].random)
       {
-	uint64_t random_state = 1;
-	for (unsigned int j = 0; j < buffer->len; j++)
-	  random_state = 31 * random_state + buffer->info[j].codepoint;
-	c.set_random_state (random_state);
+	c.set_random (true);
 	buffer->unsafe_to_break_all ();
       }
       apply_string<Proxy> (&c,
