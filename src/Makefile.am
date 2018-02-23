@@ -212,13 +212,13 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
-libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
+libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_DIST_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
 libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_gobject_la_DEPENDENCIES = $(harfbuzz_gobject_def_dependency)
-pkginclude_HEADERS += $(HB_GOBJECT_headers)
-nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
+pkginclude_HEADERS += $(HB_GOBJECT_DIST_headers)
+nodist_pkginclude_HEADERS += $(HB_GOBJECT_NODIST_headers)
 pkgconfig_DATA += harfbuzz-gobject.pc
 
 BUILT_SOURCES += \
