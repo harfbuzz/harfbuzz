@@ -31,9 +31,11 @@
 
 namespace OT {
 
+/*
+ * hdmx - Horizontal Device Metric
+ */
+
 #define HB_OT_TAG_hdmx HB_TAG('h','d','m','x')
-
-
 
 struct hdmx
 {
@@ -91,10 +93,15 @@ struct hdmx
       return_trace (true);
     }
 
-    HBUINT8 pixel_size;
-    HBUINT8 max_width;
-    HBUINT8 widths[VAR];
+    inline bool sanitize (hb_sanitize_context_t *c) const
+    {
+      TRACE_SANITIZE (this);
+      return_trace (likely (c->check_struct (this)));
+    }
 
+    HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
+    HBUINT8 max_width;    /* Maximum width. */
+    HBUINT8 widths[VAR];  /* Array of widths (numGlyphs is from the 'maxp' table). */
     DEFINE_SIZE_MIN (2);
   };
 
@@ -171,14 +178,14 @@ struct hdmx
                           && version == 0));
   }
 
-  HBUINT16 version;
-  HBINT16  num_records;
-  HBINT32  size_device_record;
-
-  DEFINE_SIZE_MIN (8);
-
+ public:
+  HBUINT16 version;            /* Table version number (0) */
+  HBINT16  num_records;        /* Number of device records. */
+  HBINT32  size_device_record; /* Size of a device record, 32-bit aligned. */
  private:
-  DeviceRecord records[VAR];
+  DeviceRecord records[VAR];   /* Array of device records. */
+ public:
+  DEFINE_SIZE_MIN (8);
 };
 
 } /* namespace OT */
