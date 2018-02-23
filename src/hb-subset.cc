@@ -263,14 +263,11 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     default:
       hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);
-      if (likely(source_table))
-      {
+      if (likely (source_table))
         result = hb_subset_plan_add_table(plan, tag, source_table);
-      }
       else
-      {
         result = false;
-      }
+      hb_blob_destroy (source_table);
       break;
   }
   DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
