@@ -77,9 +77,6 @@ def run_ttx(file):
 	return cmd(cli_args)
 
 def strip_check_sum (ttx_string):
-#	return re.sub ('checkSumAdjustment value=["]0x(\d+)["]',
-#		       'checkSumAdjustment value="0x00000000"',
-#		       ttx_string, count=1)
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
                        'checkSumAdjustment value="0x00000000"',
 		       ttx_string, count=1)
