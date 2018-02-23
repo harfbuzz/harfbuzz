@@ -1158,6 +1158,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
   font->ptem = parent->ptem;
+  font->tracking = parent->tracking;
 
   font->num_coords = parent->num_coords;
   if (!font->num_coords)
@@ -1201,6 +1202,7 @@ hb_font_get_empty (void)
     0, /* x_ppem */
     0, /* y_ppem */
     0, /* ptem */
+    0, /* track */
 
     0, /* num_coords */
     nullptr, /* coords */
@@ -1607,6 +1609,40 @@ float
 hb_font_get_ptem (hb_font_t *font)
 {
   return font->ptem;
+}
+
+/**
+ * hb_font_set_tracking:
+ * @font: a font.
+ * @track:
+ *
+ *
+ *
+ * Since: 1.7.6
+ **/
+void
+hb_font_set_tracking (hb_font_t *font, float tracking)
+{
+  if (font->immutable)
+    return;
+
+  font->tracking = tracking;
+}
+
+/**
+ * hb_font_get_tracking:
+ * @font: a font.
+ *
+ *
+ *
+ * Return value:
+ *
+ * Since: 1.7.6
+ **/
+float
+hb_font_get_tracking (hb_font_t *font)
+{
+  return font->tracking;
 }
 
 /*

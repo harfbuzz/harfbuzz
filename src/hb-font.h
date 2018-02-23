@@ -618,6 +618,12 @@ HB_EXTERN float
 hb_font_get_ptem (hb_font_t *font);
 
 HB_EXTERN void
+hb_font_set_tracking (hb_font_t *font, float tracking);
+
+HB_EXTERN float
+hb_font_get_tracking (hb_font_t *font);
+
+HB_EXTERN void
 hb_font_set_variations (hb_font_t *font,
 			const hb_variation_t *variations,
 			unsigned int variations_length);
