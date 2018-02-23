@@ -602,7 +602,7 @@ struct cmap
                    + 8 // 1 EncodingRecord
                    + 16 // Format 12 header
                    + 12 * groups.len; // SequentialMapGroup records
-    void *dest = calloc (dest_sz, 1);
+    void *dest = malloc (dest_sz);
     if (unlikely (!dest)) {
       DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for cmap subset output", (unsigned long) dest_sz);
       return false;
@@ -618,9 +618,11 @@ struct cmap
     hb_blob_t *cmap_prime = hb_blob_create ((const char *)dest,
                                             dest_sz,
                                             HB_MEMORY_MODE_READONLY,
-                                            /* userdata */ nullptr,
+                                            dest,
                                             free);
-    return hb_subset_plan_add_table (plan, HB_OT_TAG_cmap, cmap_prime);
+    bool result =  hb_subset_plan_add_table (plan, HB_OT_TAG_cmap, cmap_prime);
+    hb_blob_destroy (cmap_prime);
+    return result;
   }
 
   struct accelerator_t
