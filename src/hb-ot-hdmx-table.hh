@@ -178,27 +178,18 @@ struct hdmx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this) || version != 0))
-      return_trace (false);
-    if (unlikely (!c->check_range (this, get_size())))
-      return_trace (false);
-
-    for (unsigned int i = 0; i < num_records; i++)
-    {
-      if (unlikely (!records[i].sanitize (c, size_device_record)))
-	return_trace (false);
-    }
-    return_trace (true);
+    return_trace (c->check_struct (this) && version == 0 &&
+		  !_hb_unsigned_int_mul_overflows (num_records, size_device_record) &&
+		  c->check_range (this, get_size()));
   }
 
- public:
+  protected:
   HBUINT16	version;		/* Table version number (0) */
   HBUINT16	num_records;		/* Number of device records. */
   HBUINT32	size_device_record;	/* Size of a device record, 32-bit aligned. */
- private:
-  DeviceRecord records[VAR];		/* Array of device records. */
- public:
-  DEFINE_SIZE_MIN (8);
+  HBUINT8	data[VAR];		/* Array of device records. */
+  public:
+  DEFINE_SIZE_ARRAY (8, data);
 };
 
 } /* namespace OT */
