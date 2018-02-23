@@ -93,10 +93,11 @@ struct hdmx
       return_trace (true);
     }
 
-    inline bool sanitize (hb_sanitize_context_t *c) const
+    inline bool sanitize (hb_sanitize_context_t *c, unsigned int size_device_record) const
     {
       TRACE_SANITIZE (this);
-      return_trace (likely (c->check_struct (this)));
+      return_trace (likely (c->check_struct (this)
+                            && c->check_range (this, size_device_record)));
     }
 
     HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
@@ -174,8 +175,17 @@ struct hdmx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)
-                          && version == 0));
+    if (unlikely (!c->check_struct (this) || version != 0))
+      return_trace (false);
+    if (unlikely (!c->check_range (this, get_size())))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < num_records; i++)
+    {
+      if (unlikely (!records[i].sanitize (c, size_device_record)))
+        return_trace (false);
+    }
+    return_trace (true);
   }
 
  public:
