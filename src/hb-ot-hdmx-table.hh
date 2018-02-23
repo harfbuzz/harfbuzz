@@ -100,7 +100,8 @@ struct DeviceRecord
   HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
   HBUINT8 max_width;    /* Maximum width. */
   HBUINT8 widths[VAR];  /* Array of widths (numGlyphs is from the 'maxp' table). */
-  DEFINE_SIZE_MIN (2);
+  public:
+  DEFINE_SIZE_ARRAY (2, widths);
 };
 
 
@@ -164,10 +165,10 @@ struct hdmx
     c.end_serialize ();
 
     hb_blob_t *hdmx_prime_blob = hb_blob_create ((const char *) dest,
-                                                 dest_size,
-                                                 HB_MEMORY_MODE_READONLY,
-                                                 dest,
-                                                 free);
+						 dest_size,
+						 HB_MEMORY_MODE_READONLY,
+						 dest,
+						 free);
     bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_hdmx, hdmx_prime_blob);
     hb_blob_destroy (hdmx_prime_blob);
 
@@ -185,17 +186,17 @@ struct hdmx
     for (unsigned int i = 0; i < num_records; i++)
     {
       if (unlikely (!records[i].sanitize (c, size_device_record)))
-        return_trace (false);
+	return_trace (false);
     }
     return_trace (true);
   }
 
  public:
-  HBUINT16 version;            /* Table version number (0) */
-  HBINT16  num_records;        /* Number of device records. */
-  HBINT32  size_device_record; /* Size of a device record, 32-bit aligned. */
+  HBUINT16	version;		/* Table version number (0) */
+  HBUINT16	num_records;		/* Number of device records. */
+  HBUINT32	size_device_record;	/* Size of a device record, 32-bit aligned. */
  private:
-  DeviceRecord records[VAR];   /* Array of device records. */
+  DeviceRecord records[VAR];		/* Array of device records. */
  public:
   DEFINE_SIZE_MIN (8);
 };
