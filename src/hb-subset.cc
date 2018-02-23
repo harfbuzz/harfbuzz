@@ -136,6 +136,9 @@ _hb_subset_face_data_destroy (void *user_data)
 {
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
 
+  for (int i = 0; i < data->tables.len; i++)
+    hb_blob_destroy (data->tables[i].blob);
+
   data->tables.finish ();
 
   free (data);
