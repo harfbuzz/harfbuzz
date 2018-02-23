@@ -503,16 +503,13 @@ struct hb_ot_apply_context_t :
 			auto_zwnj (true),
 			auto_zwj (true),
 			random (false),
-			random_state (0),
+			random_state (1),
 			has_glyph_classes (gdef.has_glyph_classes ()) {}
 
   inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
   inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
   inline void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; }
-  inline void set_random_state (uint64_t random_state_) {
-    random = true;
-    random_state = random_state_;
-  }
+  inline void set_random (bool random_) { random = random_; }
   inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   inline void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
   inline void set_lookup_props (unsigned int lookup_props_)
