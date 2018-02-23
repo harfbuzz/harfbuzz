@@ -212,7 +212,7 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
-libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_DIST_sources)
+libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
 libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
