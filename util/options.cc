@@ -481,6 +481,25 @@ parse_font_size (const char *name G_GNUC_UNUSED,
       return false;
   }
 }
+
+static gboolean
+parse_font_ppem (const char *name G_GNUC_UNUSED,
+		 const char *arg,
+		 gpointer    data,
+		 GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  switch (sscanf (arg, "%d%*[ ,]%d", &font_opts->x_ppem, &font_opts->y_ppem)) {
+    case 1: font_opts->y_ppem = font_opts->x_ppem;
+    case 2: return true;
+    default:
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "%s argument should be one or two space-separated numbers",
+		   name);
+      return false;
+  }
+}
+
 void
 font_options_t::add_options (option_parser_t *parser)
 {
@@ -513,12 +532,13 @@ font_options_t::add_options (option_parser_t *parser)
 
   GOptionEntry entries[] =
   {
-    {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",			"filename"},
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",		"index"},
+    {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",			"index"},
     {"font-size",	0, default_font_size ? 0 : G_OPTION_FLAG_HIDDEN,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,				"1/2 numbers or 'upem'"},
-    /* TODO Add font-ppem / font-ptem. */
-    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,					"impl"},
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
+    {"font-ppem",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
+    {"font-ptem",	0, 0, G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
+    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
     {nullptr}
   };
   parser->add_group (entries,
@@ -690,6 +710,9 @@ font_options_t::get_font (void) const
     font_size_x = hb_face_get_upem (face);
   if (font_size_y == FONT_SIZE_UPEM)
     font_size_y = hb_face_get_upem (face);
+
+  hb_font_set_ppem (font, x_ppem, y_ppem);
+  hb_font_set_ptem (font, ptem);
 
   int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
   int scale_y = (int) scalbnf (font_size_y, subpixel_bits);

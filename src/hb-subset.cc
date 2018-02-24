@@ -35,6 +35,7 @@
 #include "hb-open-file-private.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-hdmx-table.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
@@ -82,16 +83,19 @@ template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan)
 {
-    OT::Sanitizer<TableType> sanitizer;
-    hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
-    const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
-    hb_bool_t result = table->subset(plan);
+  OT::Sanitizer<TableType> sanitizer;
 
-    hb_blob_destroy (source_blob);
+  hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
+  const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
 
-    hb_tag_t tag = TableType::tableTag;
-    DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
-    return result;
+  hb_bool_t result = false;
+  if (table != &OT::Null(TableType))
+    result = table->subset(plan);
+
+  hb_blob_destroy (source_blob);
+  hb_tag_t tag = TableType::tableTag;
+  DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
+  return result;
 }
 
 
@@ -131,6 +135,9 @@ static void
 _hb_subset_face_data_destroy (void *user_data)
 {
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) user_data;
+
+  for (int i = 0; i < data->tables.len; i++)
+    hb_blob_destroy (data->tables[i].blob);
 
   data->tables.finish ();
 
@@ -191,6 +198,8 @@ _hb_subset_face_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
   return nullptr;
 }
 
+/* TODO: Move this to hb-face.h and rename to hb_face_builder_create()
+ * with hb_face_builder_add_table(). */
 hb_face_t *
 hb_subset_face_create (void)
 {
@@ -229,6 +238,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_glyf:
       result = _subset<const OT::glyf> (plan);
       break;
+    case HB_OT_TAG_hdmx:
+      result = _subset<const OT::hdmx> (plan);
+      break;
     case HB_OT_TAG_head:
       // TODO that won't work well if there is no glyf
       DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
@@ -254,13 +266,14 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     default:
       hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);
-      if (likely(source_table))
+      if (likely (source_table))
         result = hb_subset_plan_add_table(plan, tag, source_table);
       else
         result = false;
-      DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
+      hb_blob_destroy (source_table);
       break;
   }
+  DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG(tag), result ? "ok" : "FAILED");
   return result;
 }
 

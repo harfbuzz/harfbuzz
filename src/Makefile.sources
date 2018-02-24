@@ -20,6 +20,7 @@ HB_BASE_sources = \
 	hb-ot-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
+	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
 	hb-ot-hmtx-table.hh \
@@ -200,8 +201,11 @@ HB_SUBSET_headers = \
 	hb-subset-private.hh \
 	$(NULL)
 
-HB_GOBJECT_sources = hb-gobject-structs.cc
-HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h
-HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers)
+HB_GOBJECT_DIST_sources = hb-gobject-structs.cc
+HB_GOBJECT_DIST_headers = hb-gobject.h hb-gobject-structs.h
 HB_GOBJECT_ENUM_sources = hb-gobject-enums.cc
 HB_GOBJECT_ENUM_headers = hb-gobject-enums.h
+HB_GOBJECT_NODIST_sources = $(HB_GOBJECT_ENUM_sources)
+HB_GOBJECT_NODIST_headers = $(HB_GOBJECT_ENUM_headers)
+HB_GOBJECT_sources = $(HB_GOBJECT_DIST_sources) $(HB_GOBJECT_NODIST_sources)
+HB_GOBJECT_headers = $(HB_GOBJECT_DIST_headers) $(HB_GOBJECT_NODIST_headers)

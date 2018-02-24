@@ -168,6 +168,7 @@ _populate_gids_to_retain (hb_face_t *face,
   while (hb_set_next (all_gids_to_retain, &gid))
     *(old_gids_sorted.push ()) = gid;
 
+  hb_set_destroy (all_gids_to_retain);
   glyf.fini ();
   cmap.fini ();
 }

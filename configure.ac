@@ -184,6 +184,7 @@ if $have_gobject; then
 	AC_SUBST(GLIB_MKENUMS)
 fi
 AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
+AC_SUBST(have_gobject)
 
 dnl ===========================================================================
 
@@ -491,6 +492,7 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/hb-version.h
+src/harfbuzz-config.cmake
 src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile

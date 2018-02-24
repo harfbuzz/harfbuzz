@@ -836,10 +836,9 @@ if (UNIX OR MINGW)
     )
     add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
     add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-    add_test(NAME check-defs.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-defs.sh)
 
     set_tests_properties(
-      check-static-inits.sh check-libstdc++.sh check-symbols.sh check-defs.sh
+      check-static-inits.sh check-libstdc++.sh check-symbols.sh
       PROPERTIES
         ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
         SKIP_RETURN_CODE 77)

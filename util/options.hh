@@ -452,6 +452,9 @@ struct font_options_t : option_group_t
     variations = nullptr;
     num_variations = 0;
     default_font_size = default_font_size_;
+    x_ppem = 0;
+    y_ppem = 0;
+    ptem = .0;
     subpixel_bits = subpixel_bits_;
     font_file = nullptr;
     face_index = 0;
@@ -478,6 +481,9 @@ struct font_options_t : option_group_t
   hb_variation_t *variations;
   unsigned int num_variations;
   int default_font_size;
+  int x_ppem;
+  int y_ppem;
+  double ptem;
   unsigned int subpixel_bits;
   mutable double font_size_x;
   mutable double font_size_y;
