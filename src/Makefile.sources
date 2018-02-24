@@ -87,8 +87,10 @@ HB_OT_sources = \
 	hb-aat-layout-kerx-table.hh \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-layout-private.hh \
+	hb-ot-base.cc \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
+	hb-ot-layout-base-table.hh \
 	hb-ot-layout-common-private.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
@@ -152,6 +154,7 @@ HB_OT_headers = \
 	hb-ot-font.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
+	hb-ot-base.h \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
 	hb-ot-var.h \

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2017 Elie Roux<elie.roux@telecom-bretagne.eu>
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,26 +21,36 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
+#ifndef HB_OT_BASE_H
+#define HB_OT_BASE_H
 
 #include "hb.h"
 
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-base.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
-
 HB_BEGIN_DECLS
+
+#define HB_OT_TAG_BASE      HB_TAG('B','A','S','E')
+
+// https://www.microsoft.com/typography/otspec/baselinetags.htm
+
+#define HB_OT_TAG_BASE_HANG HB_TAG('h','a','n','g')
+#define HB_OT_TAG_BASE_ICFB HB_TAG('i','c','f','b')
+#define HB_OT_TAG_BASE_ICFT HB_TAG('i','c','f','t')
+#define HB_OT_TAG_BASE_IDEO HB_TAG('i','d','e','o')
+#define HB_OT_TAG_BASE_IDTB HB_TAG('i','d','t','b')
+#define HB_OT_TAG_BASE_MATH HB_TAG('m','a','t','h')
+#define HB_OT_TAG_BASE_ROMN HB_TAG('r','o','m','n')
+
+/* Methods */
+
+HB_EXTERN hb_bool_t
+hb_ot_base_has_data (hb_face_t *face);
 
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_OT_BASE_H */

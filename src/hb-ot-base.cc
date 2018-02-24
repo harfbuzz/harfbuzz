@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2017 Elie Roux<elie.roux@telecom-bretagne.eu>
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,26 +21,38 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb-open-type-private.hh"
 
-#include "hb.h"
+#include "hb-ot-layout-private.hh"
+#include "hb-ot-layout-base-table.hh"
 
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-base.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+static inline const OT::BASE&
+_get_base (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::BASE);
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  return *(layout->base.get ());
+}
 
-HB_BEGIN_DECLS
+/*
+ * OT::BASE
+ */
 
-HB_END_DECLS
-
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+/**
+ * hb_ot_base_has_data:
+ * @face: #hb_face_t to test
+ *
+ * This function allows to verify the presence of an OpenType BASE table on the
+ * face.
+ *
+ * Return value: true if face has a BASE table, false otherwise
+ *
+ * Since: XXX
+ **/
+hb_bool_t
+hb_ot_base_has_data (hb_face_t *face)
+{
+  return &_get_base (face) != &OT::Null(OT::BASE);
+}
