@@ -8,9 +8,7 @@ whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
     sudo yum install gcc gcc-c++ freetype-devel glib2-devel cairo-devel
 
 on Windows, consider using [vcpkg](https://github.com/Microsoft/vcpkg),
-provided by Microsoft, for building HarfBuzz and other open-source libraries
-but if you need to build harfbuzz from source, put ragel binary on your
-PATH and follow appveyor CI's cmake
+provided by Microsoft, for building HarfBuzz ollow appveyor CI's cmake
 [build steps](https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml).
 
 on macOS, using MacPorts:
@@ -27,23 +25,23 @@ library in `src/`, and a few utility programs including `hb-view` and `hb-shape`
 under `util/`.
 
 If you are bootstraping from git, you need a few more tools before you can
-run `autogen.sh` for the first time. Namely, `pkg-config` and `ragel`.
+run `autogen.sh` for the first time. Namely, `pkg-config`.
 
 Again, on Ubuntu / Debian:
 
-    sudo apt-get install autoconf automake libtool pkg-config ragel gtk-doc-tools
+    sudo apt-get install autoconf automake libtool pkg-config gtk-doc-tools
 
 and on Fedora, RHEL, CentOS:
 
-    sudo yum install autoconf automake libtool pkgconfig ragel gtk-doc
+    sudo yum install autoconf automake libtool pkgconfig gtk-doc
 
 on the Mac, using MacPorts:
 
-    sudo port install autoconf automake libtool pkgconfig ragel gtk-doc
+    sudo port install autoconf automake libtool pkgconfig gtk-doc
 
 or using Homebrew:
 
-    brew install autoconf automake libtool pkgconfig ragel gtk-doc
+    brew install autoconf automake libtool pkgconfig gtk-doc
 
 To build the Python bindings, you also need:
 

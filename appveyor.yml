@@ -28,14 +28,11 @@ environment:
       MINGW_CHOST: i686-w64-mingw32
       MSYS2_ARCH: i686
 
-install:
-  - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
-
 build_script:
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" vcpkg install glib:%triplet% freetype:%triplet% cairo:%triplet%'
   - 'if "%compiler%"=="msvc" md build'
   - 'if "%compiler%"=="msvc" cd build'
-  - 'if "%compiler%"=="msvc" set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin;c:\msys64\mingw64\bin' # msys2 is added just for having "ragel" on PATH
+  - 'if "%compiler%"=="msvc" set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin'
 
   - 'if "%compiler%"=="msvc" if "%platform%"=="ARM" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -G "%generator%" ../'
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" cmake -DHB_HAVE_UNISCRIBE=ON -DHB_HAVE_DIRECTWRITE=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -DHB_BUILD_UTILS=ON -G "%generator%" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake ../'
