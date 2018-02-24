@@ -198,6 +198,8 @@ _hb_subset_face_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
   return nullptr;
 }
 
+/* TODO: Move this to hb-face.h and rename to hb_face_builder_create()
+ * with hb_face_builder_add_table(). */
 hb_face_t *
 hb_subset_face_create (void)
 {
