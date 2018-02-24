@@ -105,7 +105,7 @@ struct hmtxvmtx
     /* alloc the new table */
     size_t dest_sz = num_advances * 4
                   + (gids.len - num_advances) * 2;
-    void *dest = (void *) calloc (dest_sz, 1);
+    void *dest = (void *) malloc (dest_sz);
     if (unlikely (!dest))
     {
       return false;
@@ -166,9 +166,11 @@ struct hmtxvmtx
     hb_blob_t *result = hb_blob_create ((const char *)dest,
                                         dest_sz,
                                         HB_MEMORY_MODE_READONLY,
-                                        /* userdata */ nullptr,
+                                        dest,
                                         free);
-    return hb_subset_plan_add_table (plan, T::tableTag, result);
+    bool success = hb_subset_plan_add_table (plan, T::tableTag, result);
+    hb_blob_destroy (result);
+    return success;
   }
 
   struct accelerator_t
