@@ -89,19 +89,19 @@ _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
   return trak;
 }
 
-static inline void
-_hb_aat_layout_create (hb_face_t *face)
-{
-  OT::Sanitizer<AAT::morx> sanitizer;
-  sanitizer.set_num_glyphs (face->get_num_glyphs ());
-  hb_blob_t *morx_blob = sanitizer.sanitize (face->reference_table (HB_AAT_TAG_MORX));
-  OT::Sanitizer<AAT::morx>::lock_instance (morx_blob);
+// static inline void
+// _hb_aat_layout_create (hb_face_t *face)
+// {
+//   OT::Sanitizer<AAT::morx> sanitizer;
+//   sanitizer.set_num_glyphs (face->get_num_glyphs ());
+//   hb_blob_t *morx_blob = sanitizer.sanitize (face->reference_table (HB_AAT_TAG_MORX));
+//   OT::Sanitizer<AAT::morx>::lock_instance (morx_blob);
 
-  if (0)
-  {
-    OT::Sanitizer<AAT::Lookup<OT::GlyphID> >::lock_instance (morx_blob)->get_value (1, face->get_num_glyphs ());
-  }
-}
+//   if (0)
+//   {
+//     OT::Sanitizer<AAT::Lookup<OT::GlyphID> >::lock_instance (morx_blob)->get_value (1, face->get_num_glyphs ());
+//   }
+// }
 
 void
 hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
