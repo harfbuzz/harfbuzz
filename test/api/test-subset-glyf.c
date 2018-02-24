@@ -31,6 +31,18 @@
 
 /* Unit tests for hb-subset-glyf.h */
 
+static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs)
+{
+  hb_blob_t *maxp_blob = hb_face_reference_table (face, HB_TAG ('m','a','x', 'p'));
+
+  unsigned int maxp_len;
+  uint8_t *raw_maxp = (uint8_t *) hb_blob_get_data(maxp_blob, &maxp_len);
+  uint16_t num_glyphs = (raw_maxp[4] << 8) + raw_maxp[5];
+  g_assert_cmpuint(expected_num_glyphs, ==, num_glyphs);
+
+  hb_blob_destroy (maxp_blob);
+}
+
 static void
 test_subset_glyf (void)
 {
@@ -45,7 +57,7 @@ test_subset_glyf (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('m','a','x', 'p'));
+  check_maxp_num_glyphs(face_abc_subset, 3);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -65,7 +77,7 @@ test_subset_glyf_with_components (void)
 
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
-  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('m','a','x', 'p'));
+  check_maxp_num_glyphs(face_generated_subset, 4);
 
   hb_face_destroy (face_generated_subset);
   hb_face_destroy (face_subset);
@@ -86,6 +98,7 @@ test_subset_glyf_noop (void)
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  check_maxp_num_glyphs(face_abc_subset, 4);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -107,7 +120,7 @@ test_subset_glyf_strip_hints (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('m','a','x', 'p'));
+  check_maxp_num_glyphs(face_abc_subset, 3);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);

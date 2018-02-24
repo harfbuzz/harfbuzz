@@ -286,7 +286,7 @@ struct glyf
       static const int FLAG_Y_SAME = 0x20;
 
       if (*end_offset - start_offset < GlyphHeader::static_size)
-        return false;
+        return true;
 
       const char *glyph = ((const char *) glyf_table) + start_offset;
       const char * const glyph_end = glyph + (*end_offset - start_offset);
@@ -313,7 +313,7 @@ struct glyf
         while (glyph < glyph_end)
         {
           uint8_t flag = (uint8_t) *glyph;
-          glyph++; i++;
+          glyph++;
 
           unsigned int repeat = 1;
           if (flag & FLAG_REPEAT)
@@ -324,7 +324,7 @@ struct glyf
               return false;
             }
             repeat = ((uint8_t) *glyph) + 1;
-            glyph++; i++;
+            glyph++;
           }
 
           unsigned int xBytes, yBytes;
