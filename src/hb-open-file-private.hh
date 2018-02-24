@@ -30,6 +30,7 @@
 #define HB_OPEN_FILE_PRIVATE_HH
 
 #include "hb-open-type-private.hh"
+#include "hb-ot-head-table.hh"
 
 
 namespace OT {
@@ -135,12 +136,14 @@ typedef struct OffsetTable
     TRACE_SERIALIZE (this);
     /* Alloc 12 for the OTHeader. */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    /* Write sfntVersion (bytes 0..3) */
+    /* Write sfntVersion (bytes 0..3). */
     sfnt_version.set (sfnt_tag);
     /* Take space for numTables, searchRange, entrySelector, RangeShift
-     * and the TableRecords themselves
-     */
+     * and the TableRecords themselves.  */
     if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
+
+    const char *dir_end = (const char *) c->head;
+    HBUINT32 *checksum_adjustment = nullptr;
 
     /* Write OffsetTables, alloc for and write actual table blobs. */
     for (unsigned int i = 0; i < table_count; i++)
@@ -150,24 +153,48 @@ typedef struct OffsetTable
       rec.tag.set (tags[i]);
       rec.length.set (hb_blob_get_length (blob));
       rec.offset.serialize (c, this);
-      /* Allocate room for the table. */
-      void *p = c->allocate_size<void> (rec.length);
-      const char *start = (const char *) p;
-      if (unlikely (!p)) {return false;}
-      /* copy the actual table. */
-      memcpy (p, hb_blob_get_data (blob, nullptr), rec.length);
+
+      /* Allocate room for the table and copy it. */
+      char *start = (char *) c->allocate_size<void> (rec.length);
+      if (unlikely (!start)) {return false;}
+
+      memcpy (start, hb_blob_get_data (blob, nullptr), rec.length);
+
       /* 4-byte allignment. */
       if (rec.length % 4)
-	p = c->allocate_size<void> (4 - rec.length % 4);
+	c->allocate_size<void> (4 - rec.length % 4);
       const char *end = (const char *) c->head;
+
+      if (tags[i] == HB_OT_TAG_head && end - start >= head::static_size)
+      {
+	head *h = (head *) start;
+	checksum_adjustment = &h->checkSumAdjustment;
+	checksum_adjustment->set (0);
+      }
+
       rec.checkSum.set_for_data (start, end - start);
     }
     tags += table_count;
     blobs += table_count;
 
-    /* TODO: update head table checkSumAdjustment. */
-
     tables.qsort ();
+
+    if (checksum_adjustment)
+    {
+      CheckSum checksum;
+
+      /* The following line is a slower version of the following block. */
+      //checksum.set_for_data (this, (const char *) c->head - (const char *) this);
+      checksum.set_for_data (this, dir_end - (const char *) this);
+      for (unsigned int i = 0; i < table_count; i++)
+      {
+	TableRecord &rec = tables.array[i];
+	checksum.set (checksum + rec.checkSum);
+      }
+
+      checksum_adjustment->set (0xB1B0AFBAu - checksum);
+    }
+
     return_trace (true);
   }
 
