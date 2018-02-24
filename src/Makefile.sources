@@ -70,9 +70,6 @@ HB_BASE_headers = \
 	hb-shape.h \
 	hb-shape-plan.h \
 	hb-unicode.h \
-	$(NULL)
-
-HB_NODIST_headers = \
 	hb-version.h \
 	$(NULL)
 
