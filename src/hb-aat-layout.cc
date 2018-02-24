@@ -55,6 +55,40 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
   return morx;
 }
 
+static inline const AAT::kerx&
+_get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return OT::Null(AAT::kerx);
+  }
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  /* XXX this doesn't call set_num_glyphs on sanitizer. */
+  const AAT::kerx& kerx = *(layout->kerx.get ());
+  if (blob)
+    *blob = layout->kerx.blob;
+  return kerx;
+}
+
+static inline const AAT::trak&
+_get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return OT::Null(AAT::trak);
+  }
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  /* XXX this doesn't call set_num_glyphs on sanitizer. */
+  const AAT::trak& trak = *(layout->trak.get ());
+  if (blob)
+    *blob = layout->trak.blob;
+  return trak;
+}
+
 static inline void
 _hb_aat_layout_create (hb_face_t *face)
 {
@@ -77,4 +111,16 @@ hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
 
   AAT::hb_aat_apply_context_t c (font, buffer, blob);
   morx.apply (&c);
+}
+
+void
+hb_aat_layout_position (hb_font_t *font, hb_buffer_t *buffer)
+{
+  hb_blob_t *blob;
+  const AAT::kerx& kerx = _get_kerx (font->face, &blob);
+  const AAT::trak& trak = _get_trak (font->face, &blob);
+
+  AAT::hb_aat_apply_context_t c (font, buffer, blob);
+  kerx.apply (&c);
+  trak.apply (&c);
 }

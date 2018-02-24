@@ -363,6 +363,28 @@ _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
   return _hb_glyph_info_is_unicode_mark (info) ? info->unicode_props()>>8 : 0;
 }
 
+
+/* Loop over grapheme. Based on foreach_cluster(). */
+#define foreach_grapheme(buffer, start, end) \
+  for (unsigned int \
+       _count = buffer->len, \
+       start = 0, end = _count ? _next_grapheme (buffer, 0) : 0; \
+       start < _count; \
+       start = end, end = _next_grapheme (buffer, start))
+
+static inline unsigned int
+_next_grapheme (hb_buffer_t *buffer, unsigned int start)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+
+  while (++start < count && _hb_glyph_info_is_unicode_mark (&info[start]))
+    ;
+
+  return start;
+}
+
+
 #define info_cc(info) (_hb_glyph_info_get_modified_combining_class (&(info)))
 
 static inline bool
