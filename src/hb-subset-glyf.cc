@@ -47,7 +47,8 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
     *(instruction_ranges->push()) = 0;
 
     unsigned int start_offset, end_offset;
-    if (unlikely (!glyf.get_offsets(next_glyph, /* trim */ true, &start_offset, &end_offset)))
+    if (unlikely (!(glyf.get_offsets(next_glyph, &start_offset, &end_offset)
+                    && glyf.trim(start_offset, &end_offset))))
     {
       DEBUG_MSG(SUBSET, nullptr, "Invalid gid %d", next_glyph);
       continue;
@@ -154,7 +155,8 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
   for (unsigned int i = 0; i < glyph_ids.len; i++)
   {
     unsigned int start_offset, end_offset;
-    if (unlikely (!glyf.get_offsets (glyph_ids[i], /* trim */ true, &start_offset, &end_offset)))
+    if (unlikely (!(glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset)
+                    && glyf.trim(start_offset, &end_offset))))
       end_offset = start_offset = 0;
     unsigned int instruction_start = instruction_ranges[i * 2];
     unsigned int instruction_end = instruction_ranges[i * 2 + 1];

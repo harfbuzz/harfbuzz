@@ -267,7 +267,7 @@ struct glyf
 			       CompositeGlyphHeader::Iterator *composite /* OUT */) const
     {
       unsigned int start_offset, end_offset;
-      if (!get_offsets (glyph, /* trim */ false, &start_offset, &end_offset))
+      if (!get_offsets (glyph, &start_offset, &end_offset))
         return false; /* glyph not found */
 
       return CompositeGlyphHeader::get_iterator ((const char*) this->glyf_table + start_offset,
@@ -276,8 +276,8 @@ struct glyf
     }
 
     /* based on FontTools _g_l_y_f.py::trim */
-    inline bool trim_glyph(unsigned int start_offset,
-                           unsigned int *end_offset) const
+    inline bool trim(unsigned int start_offset,
+                     unsigned int *end_offset) const
     {
       static const int FLAG_X_SHORT = 0x02;
       static const int FLAG_Y_SHORT = 0x04;
@@ -359,7 +359,6 @@ struct glyf
     }
 
     inline bool get_offsets (hb_codepoint_t  glyph,
-                             bool trim,
                              unsigned int   *start_offset /* OUT */,
                              unsigned int   *end_offset   /* OUT */) const
     {
@@ -382,9 +381,6 @@ struct glyf
 
       if (*start_offset > *end_offset || *end_offset > glyf_len)
 	return false;
-
-      if (trim)
-        return trim_glyph(*start_offset, end_offset);
 
       return true;
     }
@@ -438,7 +434,7 @@ struct glyf
 			     hb_glyph_extents_t *extents) const
     {
       unsigned int start_offset, end_offset;
-      if (!get_offsets (glyph, /* trim */ false, &start_offset, &end_offset))
+      if (!get_offsets (glyph, &start_offset, &end_offset))
         return false;
 
       if (end_offset - start_offset < GlyphHeader::static_size)
