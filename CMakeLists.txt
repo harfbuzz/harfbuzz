@@ -137,7 +137,7 @@ set (IN_HB_DIST FALSE)
 if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
   # perhaps we are on dist directory
   set (IN_HB_DIST TRUE)
-  set (HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+  #set (HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
 endif ()
 
 
@@ -180,13 +180,13 @@ add_prefix_to_list(HB_SUBSET_headers "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
 extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES})
-if (IN_HB_DIST)
+#if (IN_HB_DIST)
   add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
   add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
-else ()
-  add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
-  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
-endif ()
+#else ()
+#  add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
+#  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
+#endif ()
 
 extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
 add_prefix_to_list(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/")
@@ -234,17 +234,17 @@ endif ()
 
 
 ## Generate hb-version.h
-if (NOT IN_HB_DIST)
-  set (HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-  set (HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
-  set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
-  configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
-  execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-    "${HB_VERSION_H}.tmp"
-    "${HB_VERSION_H}"
-  )
-  file(REMOVE "${HB_VERSION_H}.tmp")
-endif ()
+#if (NOT IN_HB_DIST)
+#  set (HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
+#  set (HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
+#  set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
+#  configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
+#  execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+#    "${HB_VERSION_H}.tmp"
+#    "${HB_VERSION_H}"
+#  )
+#  file(REMOVE "${HB_VERSION_H}.tmp")
+#endif ()
 
 
 ## Define sources and headers of the project
@@ -264,7 +264,7 @@ set (subset_project_sources
 set (project_extra_sources)
 
 set (project_headers
-  ${HB_VERSION_H}
+  #${HB_VERSION_H}
 
   ${HB_BASE_headers}
   ${HB_OT_headers}
