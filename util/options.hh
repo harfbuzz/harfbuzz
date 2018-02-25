@@ -454,7 +454,7 @@ struct font_options_t : option_group_t
     default_font_size = default_font_size_;
     x_ppem = 0;
     y_ppem = 0;
-    ptem = .0;
+    ptem = 0.;
     subpixel_bits = subpixel_bits_;
     font_file = nullptr;
     face_index = 0;

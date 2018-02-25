@@ -36,7 +36,7 @@
 #include "hb-aat-layout-trak-table.hh"
 
 /*
- * mort/morx
+ * morx/kerx/trak
  */
 
 static inline const AAT::ankr&

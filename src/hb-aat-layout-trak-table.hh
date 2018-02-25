@@ -39,11 +39,15 @@ namespace AAT {
 
 struct TrackTableEntry
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, uint16_t size) const
   {
     TRACE_SANITIZE (this);
-    /* XXX Sanitize values */
-    return_trace (c->check_struct (this));
+    return_trace (c->check_struct (this) && ((base+values).sanitize (c, size)));
+  }
+
+  inline Fixed get_track_value () const
+  {
+    return track;
   }
 
   inline float get_value (const void *base, unsigned int index) const
@@ -64,11 +68,29 @@ struct TrackTableEntry
 
 struct TrackData
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (c->check_struct (this));
+    if (!(c->check_struct (this)))
+      return_trace (false);
+
+    uint16_t tracks = (uint16_t) nTracks;
+    uint16_t sizes = (uint16_t) nSizes;
+
+    // It should have at least one track
+    if (tracks < 1) return_trace (false);
+
+    // We can not do interpolation with less than two
+    if (sizes < 2) return_trace (false);
+
+    if (!((base+sizeTable).sanitize (c, sizes)))
+      return_trace (false);
+
+    for (uint16_t i = 0; i < tracks; ++i)
+      if (!(trackTable[i].sanitize (c, base, sizes)))
+        return_trace (false);
+
+    return_trace (true);
   }
 
   inline float get_tracking (const void *base, float ptem) const
@@ -84,26 +106,37 @@ struct TrackData
 
     /* TODO Clean this up. */
 
-    // TODO: Make indexing work and use only an entry with zero track
-    const TrackTableEntry &trackTableEntry = trackTable[0];
+    uint16_t tracks = (uint16_t) nTracks;
+    uint16_t sizes = (uint16_t) nSizes;
+
+    const TrackTableEntry *trackTableEntry = nullptr;
+    for (unsigned int i = 0; i < sizes; ++i)
+      // For now we only seek for track entries with zero tracking value
+      if (trackTable[i].get_track_value () == 0)
+        trackTableEntry = &trackTable[0];
+
+    // We couldn't match any, exit
+    if (!trackTableEntry) return 0.;
 
     /* TODO bfind() */
     unsigned int size_index;
-    for (size_index = 0; size_index < nSizes; ++size_index)
-      if ((base+sizeTable)[size_index] >= fixed_size)
+    UnsizedArrayOf<Fixed> size_table = base+sizeTable;
+    for (size_index = 0; size_index < sizes; ++size_index)
+      if (size_table[size_index] >= fixed_size)
         break;
 
-    // We don't attempt to extrapolate to larger or smaller values
-    if (size_index == nSizes)
-      return trackTableEntry.get_value (base, nSizes - 1);
-    if (size_index == 0 || (base+sizeTable)[size_index] == fixed_size)
-      return trackTableEntry.get_value (base, size_index);
+    // TODO(ebraminio): We don't attempt to extrapolate to larger or
+    // smaller values for now but we should do, per spec
+    if (size_index == sizes)
+      return trackTableEntry->get_value (base, sizes - 1);
+    if (size_index == 0 || size_table[size_index] == fixed_size)
+      return trackTableEntry->get_value (base, size_index);
 
-    float s0 = (base+sizeTable)[size_index - 1].to_float ();
-    float s1 = (base+sizeTable)[size_index].to_float ();
+    float s0 = size_table[size_index - 1].to_float ();
+    float s1 = size_table[size_index].to_float ();
     float t = (csspx - s0) / (s1 - s0);
-    return t * trackTableEntry.get_value (base, size_index) +
-      (1.0 - t) * trackTableEntry.get_value (base, size_index - 1);
+    return t * trackTableEntry->get_value (base, size_index) +
+      (1.0 - t) * trackTableEntry->get_value (base, size_index - 1);
   }
 
   protected:
@@ -124,8 +157,28 @@ struct trak
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (c->check_struct (this));
+
+    if (!(c->check_struct (this)))
+      return_trace (false);
+
+    if ((format != 0) || (reserved != 0))
+      return_trace (false);
+
+    if (horizData)
+    {
+      const TrackData &trackData = this+horizData;
+      if (!trackData.sanitize (c, this))
+        return_trace (false);
+    }
+
+    if (vertData)
+    {
+      const TrackData &trackData = this+horizData;
+      if (!trackData.sanitize (c, this))
+        return_trace (false);
+    }
+
+    return_trace (true);
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
