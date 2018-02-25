@@ -35,7 +35,7 @@ find src/ | entr printf '\0' | while read -d ""; do
 	fi
 done
 
-read -n 1 -p "[T]est, [D]ebug, [R]estart, [Q]uit?" answer
+read -n 1 -p "[T]est, [D]ebug, [R]estart, [Q]uit? " answer
 case "$answer" in
 t|T )
 	if [[ $CMAKENINJA ]]; then
@@ -48,7 +48,7 @@ d|D )
 	if [[ $CMAKENINJA ]]; then
 		echo "Not supported on cmake builds yet"
 	else
-		build/libtool --mode=execute $GDB build/util/hb-shape $@
+		build/libtool --mode=execute $GDB -- build/util/hb-shape $@
 	fi
 ;;
 r|R )
