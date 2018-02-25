@@ -263,7 +263,7 @@ struct kerx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
   {
     TRACE_APPLY (this);
     /* TODO */

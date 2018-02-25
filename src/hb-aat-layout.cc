@@ -30,29 +30,29 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 #include "hb-aat-layout-private.hh"
-#include "hb-aat-layout-morx-table.hh"
+#include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-kerx-table.hh"
+#include "hb-aat-layout-morx-table.hh"
 #include "hb-aat-layout-trak-table.hh"
 
 /*
  * mort/morx
  */
 
-static inline const AAT::morx&
-_get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
+static inline const AAT::ankr&
+_get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
   {
     if (blob)
       *blob = hb_blob_get_empty ();
-    return OT::Null(AAT::morx);
+    return OT::Null(AAT::ankr);
   }
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  /* XXX this doesn't call set_num_glyphs on sanitizer. */
-  const AAT::morx& morx = *(layout->morx.get ());
+  const AAT::ankr& ankr = *(layout->ankr.get ());
   if (blob)
-    *blob = layout->morx.blob;
-  return morx;
+    *blob = layout->ankr.blob;
+  return ankr;
 }
 
 static inline const AAT::kerx&
@@ -72,6 +72,23 @@ _get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
   return kerx;
 }
 
+static inline const AAT::morx&
+_get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return OT::Null(AAT::morx);
+  }
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  /* XXX this doesn't call set_num_glyphs on sanitizer. */
+  const AAT::morx& morx = *(layout->morx.get ());
+  if (blob)
+    *blob = layout->morx.blob;
+  return morx;
+}
+
 static inline const AAT::trak&
 _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
@@ -82,7 +99,6 @@ _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
     return OT::Null(AAT::trak);
   }
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  /* XXX this doesn't call set_num_glyphs on sanitizer. */
   const AAT::trak& trak = *(layout->trak.get ());
   if (blob)
     *blob = layout->trak.blob;
@@ -117,10 +133,11 @@ void
 hb_aat_layout_position (hb_font_t *font, hb_buffer_t *buffer)
 {
   hb_blob_t *blob;
+  const AAT::ankr& ankr = _get_ankr (font->face, &blob);
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
   const AAT::trak& trak = _get_trak (font->face, &blob);
 
   AAT::hb_aat_apply_context_t c (font, buffer, blob);
-  kerx.apply (&c);
+  kerx.apply (&c, &ankr);
   trak.apply (&c);
 }
