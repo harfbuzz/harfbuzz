@@ -42,15 +42,15 @@ struct TrackTableEntry
   inline bool sanitize (hb_sanitize_context_t *c, const void *base, unsigned int size) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && ((base+values).sanitize (c, size)));
+    return_trace (c->check_struct (this) && (values.sanitize (c, base, size)));
   }
 
-  inline Fixed get_track_value () const
+  inline float get_track_value () const
   {
-    return track;
+    return track.to_float ();
   }
 
-  inline float get_value (const void *base, unsigned int index) const
+  inline int get_value (const void *base, unsigned int index) const
   {
     return (base+values)[index];
   }
@@ -58,7 +58,7 @@ struct TrackTableEntry
   protected:
   Fixed			track;		/* Track value for this record. */
   HBUINT16		trackNameID;	/* The 'name' table index for this track */
-  OffsetTo<UnsizedArrayOf<HBINT16> >
+  OffsetTo<UnsizedArrayOf<FWORD> >
 			values;		/* Offset from start of tracking table to
 					 * per-size tracking values for this track. */
 
@@ -71,26 +71,9 @@ struct TrackData
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this)))
-      return_trace (false);
-
-    unsigned int tracks = nTracks;
-    unsigned int sizes = nSizes;
-
-    // It should have at least one track
-    if (tracks < 1) return_trace (false);
-
-    // We can not do interpolation with less than two
-    if (sizes < 2) return_trace (false);
-
-    if (!((base+sizeTable).sanitize (c, sizes)))
-      return_trace (false);
-
-    for (unsigned int i = 0; i < tracks; ++i)
-      if (!(trackTable[i].sanitize (c, base, sizes)))
-        return_trace (false);
-
-    return_trace (true);
+    return_trace (c->check_struct (this) &&
+		  sizeTable.sanitize (c, base, nSizes) &&
+		  trackTable.sanitize (c, nTracks, base, nSizes));
   }
 
   inline float get_tracking (const void *base, float ptem) const
@@ -104,15 +87,14 @@ struct TrackData
     Fixed fixed_size;
     fixed_size.set_float (csspx);
 
-    /* TODO Clean this up. */
+    /* XXX Clean this up. Make it work with nSizes==1 and 0. */
 
-    unsigned int tracks = nTracks;
     unsigned int sizes = nSizes;
 
     const TrackTableEntry *trackTableEntry = nullptr;
     for (unsigned int i = 0; i < sizes; ++i)
       // For now we only seek for track entries with zero tracking value
-      if (trackTable[i].get_track_value () == 0)
+      if (trackTable[i].get_track_value () == 0.)
         trackTableEntry = &trackTable[0];
 
     // We couldn't match any, exit
@@ -142,9 +124,10 @@ struct TrackData
   protected:
   HBUINT16		nTracks;	/* Number of separate tracks included in this table. */
   HBUINT16		nSizes;		/* Number of point sizes included in this table. */
-  LOffsetTo<UnsizedArrayOf<Fixed> >
+  LOffsetTo<UnsizedArrayOf<Fixed> >	/* Offset to array[nSizes] of size values. */
 			sizeTable;
-  UnsizedArrayOf<TrackTableEntry>	trackTable;/* Array[nSizes] of size values. */
+  UnsizedArrayOf<TrackTableEntry>
+			trackTable;	/* Array[nTracks] of TrackTableEntry records. */
 
   public:
   DEFINE_SIZE_ARRAY (8, trackTable);
@@ -158,27 +141,9 @@ struct trak
   {
     TRACE_SANITIZE (this);
 
-    if (!(c->check_struct (this)))
-      return_trace (false);
-
-    if ((format != 0) || (reserved != 0))
-      return_trace (false);
-
-    if (horizData)
-    {
-      const TrackData &trackData = this+horizData;
-      if (!trackData.sanitize (c, this))
-        return_trace (false);
-    }
-
-    if (vertData)
-    {
-      const TrackData &trackData = this+horizData;
-      if (!trackData.sanitize (c, this))
-        return_trace (false);
-    }
-
-    return_trace (true);
+    return_trace (c->check_struct (this) &&
+		  horizData.sanitize (c, this, this) &&
+		  vertData.sanitize (c, this, this));
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
