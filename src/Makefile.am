@@ -388,7 +388,7 @@ test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_unicode_ranges_SOURCES = hb-ot-os2-unicode-ranges.cc
+test_unicode_ranges_SOURCES = test-unicode-ranges.cc
 test_unicode_ranges_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_unicode_ranges_LDADD = libharfbuzz.la $(HBLIBS)
 
