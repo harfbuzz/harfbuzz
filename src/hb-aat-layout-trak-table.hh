@@ -39,7 +39,7 @@ namespace AAT {
 
 struct TrackTableEntry
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base, uint16_t size) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, unsigned int size) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && ((base+values).sanitize (c, size)));
@@ -74,8 +74,8 @@ struct TrackData
     if (!(c->check_struct (this)))
       return_trace (false);
 
-    uint16_t tracks = (uint16_t) nTracks;
-    uint16_t sizes = (uint16_t) nSizes;
+    unsigned int tracks = nTracks;
+    unsigned int sizes = nSizes;
 
     // It should have at least one track
     if (tracks < 1) return_trace (false);
@@ -86,7 +86,7 @@ struct TrackData
     if (!((base+sizeTable).sanitize (c, sizes)))
       return_trace (false);
 
-    for (uint16_t i = 0; i < tracks; ++i)
+    for (unsigned int i = 0; i < tracks; ++i)
       if (!(trackTable[i].sanitize (c, base, sizes)))
         return_trace (false);
 
@@ -106,8 +106,8 @@ struct TrackData
 
     /* TODO Clean this up. */
 
-    uint16_t tracks = (uint16_t) nTracks;
-    uint16_t sizes = (uint16_t) nSizes;
+    unsigned int tracks = nTracks;
+    unsigned int sizes = nSizes;
 
     const TrackTableEntry *trackTableEntry = nullptr;
     for (unsigned int i = 0; i < sizes; ++i)
