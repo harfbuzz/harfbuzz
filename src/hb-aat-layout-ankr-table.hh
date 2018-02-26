@@ -43,7 +43,7 @@ struct GlyphDataTable
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      (numPoints == 0) &&
+      (numPoints != 0) &&
       (anchorPoints.sanitize (c, numPoints)));
   }
 
