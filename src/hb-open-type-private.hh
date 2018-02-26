@@ -740,8 +740,6 @@ template <typename Type>
 struct Offset : Type
 {
   inline bool is_null (void) const { return 0 == *this; }
-  public:
-  DEFINE_SIZE_STATIC (sizeof(Type));
 
   inline void *serialize (hb_serialize_context_t *c, const void *base)
   {
@@ -749,6 +747,9 @@ struct Offset : Type
     this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
     return t;
   }
+
+  public:
+  DEFINE_SIZE_STATIC (sizeof(Type));
 };
 
 typedef Offset<HBUINT16> Offset16;
