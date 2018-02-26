@@ -57,7 +57,7 @@ struct ankr
 				anchors;	/* Offset to the glyph data table */
 
   public:
-  DEFINE_SIZE_MIN (12);
+  DEFINE_SIZE_STATIC (12);
 };
 
 } /* namespace AAT */
