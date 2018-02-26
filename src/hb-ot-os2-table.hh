@@ -51,7 +51,7 @@ struct os2
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_os2));
+    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (plan->source->reference_table (HB_OT_TAG_os2));
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     // TODO(grieger): move to hb_blob_copy_writable_or_fail
     hb_blob_destroy (os2_blob);
@@ -72,20 +72,14 @@ struct os2
     return result;
   }
 
-  static inline void find_min_and_max_codepoint (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+  static inline void find_min_and_max_codepoint (hb_set_t *codepoints,
                                                  uint16_t *min_cp, /* OUT */
                                                  uint16_t *max_cp  /* OUT */)
   {
-    hb_codepoint_t min = -1, max = 0;
-
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      if (cp < min)
-        min = cp;
-      if (cp > max)
-        max = cp;
-    }
+    hb_codepoint_t min = hb_set_get_min (codepoints);
+    hb_codepoint_t max = hb_set_get_max (codepoints);
+    if (unlikely (min == HB_SET_VALUE_INVALID)) min = -1;
+    if (unlikely (max == HB_SET_VALUE_INVALID)) max = 0;
 
     if (min > 0xFFFF)
       min = 0xFFFF;

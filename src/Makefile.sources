@@ -190,12 +190,14 @@ HB_SUBSET_sources = \
 	hb-subset-glyf.cc \
 	hb-subset-input.cc \
 	hb-subset-plan.cc \
+	hb-subset-map.cc \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-glyf.hh \
 	hb-subset-plan.hh \
+	hb-subset-map.hh \
 	hb-subset-private.hh \
 	$(NULL)
 

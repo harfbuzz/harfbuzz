@@ -119,6 +119,7 @@ hb_subset_test_check (hb_face_t *expected,
                       hb_face_t *actual,
                       hb_tag_t   table)
 {
+  fprintf(stderr, "diff %c%c%c%c\n", HB_UNTAG(table));
   hb_blob_t *expected_blob = hb_face_reference_table (expected, table);
   hb_blob_t *actual_blob = hb_face_reference_table (actual, table);
   hb_test_assert_blobs_equal (expected_blob, actual_blob);

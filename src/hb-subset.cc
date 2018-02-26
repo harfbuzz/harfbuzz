@@ -264,8 +264,8 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::os2> (plan);
       break;
     default:
-      hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);
-      if (likely (source_table))
+      hb_blob_t *source_table = plan->source->reference_table (tag);
+      if (likely(source_table))
         result = hb_subset_plan_add_table(plan, tag, source_table);
       else
         result = false;
@@ -325,7 +325,7 @@ hb_subset (hb_face_t *source,
     }
   } while (count == ARRAY_LENGTH (table_tags));
 
-  hb_face_t *result = success ? hb_face_reference(plan->dest) : hb_face_get_empty();
+  hb_face_t *result = success ? hb_face_reference (plan->dest) : hb_face_get_empty();
   hb_subset_plan_destroy (plan);
   return result;
 }

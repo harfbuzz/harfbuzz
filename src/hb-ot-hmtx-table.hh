@@ -86,43 +86,51 @@ struct hmtxvmtx
     return result;
   }
 
+
   inline bool subset (hb_subset_plan_t *plan) const
   {
     typename T::accelerator_t _mtx;
     _mtx.init (plan->source);
 
+    unsigned int num_gids = hb_set_get_population (plan->gids_to_retain);
+
     /* All the trailing glyphs with the same advance can use one LongMetric
      * and just keep LSB */
-    hb_prealloced_array_t<hb_codepoint_t> &gids = plan->gids_to_retain_sorted;
-    unsigned int num_advances = gids.len;
-    unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
-    while (num_advances > 1
-        && last_advance == _mtx.get_advance (gids[num_advances - 2]))
+    unsigned int num_advances = num_gids;
+    hb_codepoint_t source_gid = HB_SET_VALUE_INVALID;
+    if (!hb_set_previous (plan->gids_to_retain, &source_gid))
     {
-      num_advances--;
+      DEBUG_MSG(SUBSET, nullptr, "%d gids but our very first set previous failed?!", num_gids);
+      return false;
     }
+    unsigned int last_advance = _mtx.get_advance (source_gid);
+    while (hb_set_previous(plan->gids_to_retain, &source_gid)
+           && last_advance == _mtx.get_advance(source_gid))
+      num_advances--;
 
     /* alloc the new table */
-    size_t dest_sz = num_advances * 4
-                  + (gids.len - num_advances) * 2;
-    void *dest = (void *) malloc (dest_sz);
+    size_t dest_sz = num_advances * 4 + (num_gids - num_advances) * 2;
+    void *dest = (void *) calloc (dest_sz, 1);
     if (unlikely (!dest))
     {
       return false;
     }
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
-    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, (unsigned int) dest_sz);
+    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, num_gids - num_advances, (unsigned int) dest_sz);
 
     const char *source_table = hb_blob_get_data (_mtx.blob, nullptr);
     // Copy everything over
     LongMetric * old_metrics = (LongMetric *) source_table;
     FWORD *lsbs = (FWORD *) (old_metrics + _mtx.num_advances);
     char * dest_pos = (char *) dest;
-    for (unsigned int i = 0; i < gids.len; i++)
+
+    source_gid = HB_SET_VALUE_INVALID;
+    unsigned int i = 0;
+    while (hb_set_next(plan->gids_to_retain, &source_gid))
     {
       /* the last metric or the one for gids[i] */
-      LongMetric *src_metric = old_metrics + MIN ((hb_codepoint_t) _mtx.num_advances - 1, gids[i]);
-      if (gids[i] < _mtx.num_advances)
+      LongMetric *src_metric = old_metrics + MIN ((hb_codepoint_t) _mtx.num_advances - 1, source_gid);
+      if (source_gid < _mtx.num_advances)
       {
         /* src is a LongMetric */
         if (i < num_advances)
@@ -138,7 +146,7 @@ struct hmtxvmtx
       }
       else
       {
-        FWORD src_lsb = *(lsbs + gids[i] - _mtx.num_advances);
+        FWORD src_lsb = *(lsbs + source_gid - _mtx.num_advances);
         if (i < num_advances)
         {
           /* dest needs a full LongMetric */
@@ -153,6 +161,7 @@ struct hmtxvmtx
         }
       }
       dest_pos += (i < num_advances ? 4 : 2);
+      i++;
     }
     _mtx.fini ();
 
