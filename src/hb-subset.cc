@@ -266,7 +266,6 @@ _subset_table (hb_subset_plan_t *plan,
     default:
       hb_blob_t *source_table = plan->source->reference_table (tag);
       if (likely(source_table))
-      {
         result = hb_subset_plan_add_table(plan, tag, source_table);
       else
         result = false;

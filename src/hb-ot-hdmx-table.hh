@@ -44,23 +44,26 @@ struct DeviceRecord
   {
     const DeviceRecord *source_device_record;
     hb_subset_plan_t *subset_plan;
+    hb_prealloced_array_t<hb_codepoint_t> *gids_to_retain_sorted;
 
     inline void init(const DeviceRecord *source_device_record,
-		     hb_subset_plan_t   *subset_plan)
+		     hb_subset_plan_t   *subset_plan,
+         hb_prealloced_array_t<hb_codepoint_t> *gids_to_retain_sorted)
     {
       this->source_device_record = source_device_record;
       this->subset_plan = subset_plan;
+      this->gids_to_retain_sorted = gids_to_retain_sorted;
     }
 
     inline unsigned int len () const
     {
-      return this->subset_plan->gids_to_retain_sorted.len;
+      return gids_to_retain_sorted->len;
     }
 
     inline const HBUINT8& operator [] (unsigned int i) const
     {
       if (unlikely (i >= len())) return Null(HBUINT8);
-      hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
+      hb_codepoint_t gid = (*this->gids_to_retain_sorted) [i];
       return this->source_device_record->widths[gid];
     }
   };
@@ -126,14 +129,20 @@ struct hdmx
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
+    hb_prealloced_array_t<hb_codepoint_t> gids_to_retain_sorted;
+    gids_to_retain_sorted.init();
+    hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+    while (hb_set_next (plan->gids_to_retain, &gid))
+      *(gids_to_retain_sorted.push()) = gid;
+
     this->version.set (source_hdmx->version);
     this->num_records.set (source_hdmx->num_records);
-    this->size_device_record.set (DeviceRecord::get_size (plan->gids_to_retain_sorted.len));
+    this->size_device_record.set (DeviceRecord::get_size (gids_to_retain_sorted.len));
 
     for (unsigned int i = 0; i < source_hdmx->num_records; i++)
     {
       DeviceRecord::SubsetView subset_view;
-      subset_view.init (&(*source_hdmx)[i], plan);
+      subset_view.init (&(*source_hdmx)[i], plan, &gids_to_retain_sorted);
 
       c->start_embed<DeviceRecord> ()->serialize (c, subset_view);
     }
@@ -143,7 +152,7 @@ struct hdmx
 
   static inline size_t get_subsetted_size (hb_subset_plan_t *plan)
   {
-    return min_size + DeviceRecord::get_size (plan->gids_to_retain_sorted.len);
+    return min_size + DeviceRecord::get_size (hb_set_get_population (plan->gids_to_retain));
   }
 
   inline bool subset (hb_subset_plan_t *plan) const

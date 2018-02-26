@@ -122,7 +122,6 @@ _populate_gids_to_retain (hb_face_t *face, hb_subset_plan_t *plan,
 
   // TODO expand with glyphs reached by G*
 
-  hb_set_destroy (all_gids_to_retain);
   glyf.fini ();
 }
 
