@@ -37,6 +37,20 @@ namespace AAT {
  * ankr -- Anchor point
  */
 
+struct Anchor
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  FWORD		xCoordinate;
+  FWORD		yCoordinate;
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
 struct ankr
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_ankr;
@@ -53,7 +67,7 @@ struct ankr
   HBUINT16			version; 	/* Version number (set to zero) */
   HBUINT16			flags;		/* Flags (currently unused; set to zero) */
   LOffsetTo<Lookup<HBUINT16> >	lookupTable;	/* Offset to the table's lookup table */
-  LOffsetTo<ArrayOf<HBUINT32, HBUINT32> >
+  LOffsetTo<ArrayOf<Anchor, HBUINT32> >
 				anchors;	/* Offset to the glyph data table */
 
   public:
