@@ -28,7 +28,7 @@
 #define HB_OT_OS2_TABLE_HH
 
 #include "hb-open-type-private.hh"
-
+#include "hb-ot-os2-unicode-ranges.hh"
 
 namespace OT {
 
@@ -67,9 +67,30 @@ struct os2
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
+    _update_unicode_ranges (plan->codepoints, os2_prime->ulUnicodeRange);
     bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_os2, os2_prime_blob);
+
     hb_blob_destroy (os2_prime_blob);
     return result;
+  }
+
+  inline void _update_unicode_ranges (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+                                      HBUINT32 ulUnicodeRange[4]) const
+  {
+    for (unsigned int i = 0; i < 4; i++)
+      ulUnicodeRange[i].set (0);
+
+    for (unsigned int i = 0; i < codepoints.len; i++)
+    {
+      hb_codepoint_t cp = codepoints[i];
+      int bit = hb_get_unicode_range_bit (cp);
+      if (bit >= 0 && bit < 128) {
+        unsigned int block = bit / 32;
+        unsigned int bit_in_block = bit % 32;
+        unsigned int mask = 1 << bit_in_block;
+        ulUnicodeRange[block].set (ulUnicodeRange[block] | mask);
+      }
+    }
   }
 
   static inline void find_min_and_max_codepoint (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
