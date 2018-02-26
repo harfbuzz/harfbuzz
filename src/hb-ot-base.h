@@ -48,8 +48,8 @@ HB_BEGIN_DECLS
 
 /* Methods */
 
-HB_EXTERN hb_bool_t
-hb_ot_base_has_data (hb_face_t *face);
+// HB_EXTERN hb_bool_t
+// hb_ot_base_has_data (hb_face_t *face);
 
 HB_END_DECLS
 

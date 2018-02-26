@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef HB_OT_BASE_TABLE_HH
-#define HB_OT_BASE_TABLE_HH
+#ifndef HB_OT_LAYOUT_BASE_TABLE_HH
+#define HB_OT_LAYOUT_BASE_TABLE_HH
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
@@ -312,7 +312,7 @@ struct BaseScript {
       return (this+defaultMinMax).get_min_value(featureTableTagIndex);
     }
     if (unlikely(baseLangSysIndex >= baseLangSysCount)) return NO_COORD;
-    return baseLangSysRecords[baseLangSysIndex].get_max_value(featureTableTagIndex); 
+    return baseLangSysRecords[baseLangSysIndex].get_max_value(featureTableTagIndex);
   }
 
   inline HBINT16 get_max_value (unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
@@ -401,7 +401,7 @@ struct BaseScriptList {
   }
 
   inline unsigned int get_default_base_tag_index (unsigned int baseScriptIndex) const
-  { 
+  {
     if (unlikely(baseScriptIndex >= baseScriptCount)) return NOT_INDEXED;
     return baseScriptRecords[baseScriptIndex].get_default_base_tag_index();
   }
@@ -449,7 +449,7 @@ struct BaseScriptList {
 
   public:
   DEFINE_SIZE_ARRAY (4, baseScriptRecords);
-  
+
 };
 
 struct BaseTagList
@@ -487,7 +487,7 @@ struct Axis
   }
 
   inline unsigned int get_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  { 
+  {
     if (unlikely(baseScriptList == Null(OffsetTo<BaseScriptList>))) return NOT_INDEXED;
     return (this+baseScriptList).get_default_base_tag_index(baseScriptIndex);
   }
@@ -546,7 +546,7 @@ struct BASEFormat1_1
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
       horizAxis.sanitize (c, this) &&
-      vertAxis.sanitize (c, this) && 
+      vertAxis.sanitize (c, this) &&
       itemVarStore.sanitize (c, this));
   }
 
@@ -578,7 +578,7 @@ struct BASEFormat1_0
   }
 
   inline unsigned int get_horiz_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  { 
+  {
     if (unlikely(horizAxis == Null(OffsetTo<Axis>))) return NOT_INDEXED;
     return (this+horizAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
   }
@@ -598,7 +598,7 @@ struct BASEFormat1_0
   }
 
   inline unsigned int get_vert_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  { 
+  {
     if (unlikely(vertAxis == Null(OffsetTo<Axis>))) return NOT_INDEXED;
     return (this+vertAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
   }
@@ -796,4 +796,4 @@ struct BASE
 } /* namespace OT */
 
 
-#endif /* HB_OT_BASE_TABLE_HH */
+#endif /* HB_OT_LAYOUT_BASE_TABLE_HH */
