@@ -237,6 +237,8 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                                           use_short_loca,
                                           glyf_prime,
                                           loca_prime);
+
+  hb_blob_destroy (glyf_blob);
   glyf.fini();
 
   return result;

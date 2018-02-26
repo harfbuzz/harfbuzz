@@ -175,9 +175,11 @@ struct hmtxvmtx
     hb_blob_t *result = hb_blob_create ((const char *)dest,
                                         dest_sz,
                                         HB_MEMORY_MODE_READONLY,
-                                        /* userdata */ nullptr,
+                                        dest,
                                         free);
-    return hb_subset_plan_add_table (plan, T::tableTag, result);
+    bool success = hb_subset_plan_add_table (plan, T::tableTag, result);
+    hb_blob_destroy (result);
+    return success;
   }
 
   struct accelerator_t

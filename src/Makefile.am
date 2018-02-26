@@ -30,7 +30,6 @@ HBDEPS =
 HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
-HBNODISTHEADERS = $(HB_NODIST_headers)
 
 if WITH_LIBSTDCXX
 HBNOLIBCXXCFLAGS =
@@ -125,10 +124,12 @@ HBLIBS += $(HBNONPCLIBS)
 if OS_WIN32
 export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
-export_symbols_icu = -export-symbols harfbuzz-icu.def
-harfbuzz_icu_def_dependency = harfbuzz-icu.def
 export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
+export_symbols_icu = -export-symbols harfbuzz-icu.def
+harfbuzz_icu_def_dependency = harfbuzz-icu.def
+export_symbols_gobject = -export-symbols harfbuzz-gobject.def
+harfbuzz_gobject_def_dependency = harfbuzz-gobject.def
 chosen_linker = $(CXXLINK)
 else
 if WITH_LIBSTDCXX
@@ -145,16 +146,18 @@ endif
 
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
-libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
+libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
 libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
-nodist_pkginclude_HEADERS = $(HBNODISTHEADERS)
+nodist_pkginclude_HEADERS =
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
-EXTRA_DIST += harfbuzz.pc.in
+cmakedir = $(libdir)/cmake/harfbuzz
+cmake_DATA = harfbuzz-config.cmake
+EXTRA_DIST += harfbuzz.pc.in harfbuzz-config.cmake.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
@@ -210,13 +213,14 @@ EXTRA_DIST += harfbuzz-icu.pc.in
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
-libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_sources)
-nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_ENUM_sources)
+libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_DIST_sources)
+nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_NODIST_sources)
 libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
 libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
-pkginclude_HEADERS += $(HB_GOBJECT_headers)
-nodist_pkginclude_HEADERS += $(HB_GOBJECT_ENUM_headers)
+EXTRA_libharfbuzz_gobject_la_DEPENDENCIES = $(harfbuzz_gobject_def_dependency)
+pkginclude_HEADERS += $(HB_GOBJECT_DIST_headers)
+nodist_pkginclude_HEADERS += $(HB_GOBJECT_NODIST_headers)
 pkgconfig_DATA += harfbuzz-gobject.pc
 
 BUILT_SOURCES += \
@@ -256,12 +260,19 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-CLEANFILES += harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def
+if HAVE_GOBJECT
+DEF_FILES += harfbuzz-gobject.def
+endif
+check: $(DEF_FILES) # For check-symbols.sh
+CLEANFILES += $(DEF_FILES)
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
+	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+harfbuzz-subset.def: $(HB_SUBSET_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
 harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
-harfbuzz-subset.def: $(HB_SUBSET_headers)
+harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
 
 
@@ -335,11 +346,8 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
-check: harfbuzz.def harfbuzz-icu.def harfbuzz-subset.def # For check-defs.sh
-
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
-	check-defs.sh \
 	check-externs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
@@ -383,7 +391,7 @@ TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
 	HBSOURCES="$(HBSOURCES)" \
-	HBHEADERS="$(HBHEADERS) $(HBNODISTHEADERS)" \
+	HBHEADERS="$(HBHEADERS)" \
 	$(NULL)
 
 if HAVE_INTROSPECTION
@@ -413,12 +421,9 @@ HarfBuzz_0_0_gir_LIBS = \
 	$(NULL)
 HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
-	$(HBNODISTHEADERS) \
 	$(HBSOURCES) \
-	$(HB_GOBJECT_ENUM_sources) \
-	$(HB_GOBJECT_ENUM_headers) \
 	$(HB_GOBJECT_sources) \
-	$(HB_GOBJECT_STRUCTS_headers) \
+	$(HB_GOBJECT_headers) \
 	$(NULL)
 
 girdir = $(datadir)/gir-1.0

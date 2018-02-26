@@ -1,6 +1,5 @@
-/*** BEGIN file-header ***/
 /*
- * Copyright © 2013  Google, Inc.
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -25,32 +24,43 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_GOBJECT_H_IN
-#error "Include <hb-gobject.h> instead."
+#ifndef HB_H_IN
+#error "Include <hb.h> instead."
 #endif
 
-#ifndef HB_GOBJECT_ENUMS_H
-#define HB_GOBJECT_ENUMS_H
+#ifndef HB_VERSION_H
+#define HB_VERSION_H
 
-#include "hb.h"
-
-#include <glib-object.h>
+#include "hb-common.h"
 
 HB_BEGIN_DECLS
 
 
-/*** END file-header ***/
+#define HB_VERSION_MAJOR 1
+#define HB_VERSION_MINOR 7
+#define HB_VERSION_MICRO 5
 
-/*** BEGIN value-header ***/
-HB_EXTERN GType
-@enum_name@_get_type (void) G_GNUC_CONST;
-#define @ENUMPREFIX@_TYPE_@ENUMSHORT@ (@enum_name@_get_type ())
+#define HB_VERSION_STRING "1.7.5"
 
-/*** END value-header ***/
+#define HB_VERSION_ATLEAST(major,minor,micro) \
+	((major)*10000+(minor)*100+(micro) <= \
+	 HB_VERSION_MAJOR*10000+HB_VERSION_MINOR*100+HB_VERSION_MICRO)
 
-/*** BEGIN file-tail ***/
+
+HB_EXTERN void
+hb_version (unsigned int *major,
+	    unsigned int *minor,
+	    unsigned int *micro);
+
+HB_EXTERN const char *
+hb_version_string (void);
+
+HB_EXTERN hb_bool_t
+hb_version_atleast (unsigned int major,
+		    unsigned int minor,
+		    unsigned int micro);
+
 
 HB_END_DECLS
 
-#endif /* HB_GOBJECT_ENUMS_H */
-/*** END file-tail ***/
+#endif /* HB_VERSION_H */

@@ -33,6 +33,7 @@ TEST_PROGS = \
 	test-shape \
 	test-subset-cmap \
 	test-subset-glyf \
+	test-subset-hdmx \
 	test-subset-hmtx \
 	test-subset-os2 \
 	test-unicode \
@@ -42,6 +43,7 @@ TEST_PROGS = \
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_hdmx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_hmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_os2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 

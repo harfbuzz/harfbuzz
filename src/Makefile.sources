@@ -20,6 +20,7 @@ HB_BASE_sources = \
 	hb-ot-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
+	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
 	hb-ot-hmtx-table.hh \
@@ -69,9 +70,6 @@ HB_BASE_headers = \
 	hb-shape.h \
 	hb-shape-plan.h \
 	hb-unicode.h \
-	$(NULL)
-
-HB_NODIST_headers = \
 	hb-version.h \
 	$(NULL)
 
@@ -82,8 +80,9 @@ HB_FALLBACK_sources = \
 HB_OT_sources = \
 	hb-aat-layout.cc \
 	hb-aat-layout-common-private.hh \
-	hb-aat-layout-morx-table.hh \
+	hb-aat-layout-ankr-table.hh \
 	hb-aat-layout-kerx-table.hh \
+	hb-aat-layout-morx-table.hh \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-layout-private.hh \
 	hb-ot-font.cc \
@@ -202,8 +201,11 @@ HB_SUBSET_headers = \
 	hb-subset-private.hh \
 	$(NULL)
 
-HB_GOBJECT_sources = hb-gobject-structs.cc
-HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h
-HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers)
+HB_GOBJECT_DIST_sources = hb-gobject-structs.cc
+HB_GOBJECT_DIST_headers = hb-gobject.h hb-gobject-structs.h
 HB_GOBJECT_ENUM_sources = hb-gobject-enums.cc
 HB_GOBJECT_ENUM_headers = hb-gobject-enums.h
+HB_GOBJECT_NODIST_sources = $(HB_GOBJECT_ENUM_sources)
+HB_GOBJECT_NODIST_headers = $(HB_GOBJECT_ENUM_headers)
+HB_GOBJECT_sources = $(HB_GOBJECT_DIST_sources) $(HB_GOBJECT_NODIST_sources)
+HB_GOBJECT_headers = $(HB_GOBJECT_DIST_headers) $(HB_GOBJECT_NODIST_headers)

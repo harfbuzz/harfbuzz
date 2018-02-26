@@ -692,8 +692,8 @@ struct F2DOT14 : HBINT16
 /* 32-bit signed fixed-point number (16.16). */
 struct Fixed: HBINT32
 {
-  //inline float to_float (void) const { return ???; }
-  //inline void set_float (float f) { v.set (f * ???); }
+  inline float to_float (void) const { return ((int32_t) v) / 65536.0; }
+  inline void set_float (float f) { v.set (round (f * 65536.0)); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -762,7 +762,8 @@ struct CheckSum : HBUINT32
   static inline uint32_t CalcTableChecksum (const HBUINT32 *Table, uint32_t Length)
   {
     uint32_t Sum = 0L;
-    const HBUINT32 *EndPtr = Table+((Length+3) & ~3) / HBUINT32::static_size;
+    assert (0 == (Length & 3));
+    const HBUINT32 *EndPtr = Table + Length / HBUINT32::static_size;
 
     while (Table < EndPtr)
       Sum += *Table++;
