@@ -45,14 +45,14 @@ struct ankr
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && version == 0 &&
-		  /* XXX lookupTable */
+		  lookupTable.sanitize (c, this) &&
 		  anchors.sanitize (c, this));
   }
 
   protected:
   HBUINT16			version; 	/* Version number (set to zero) */
   HBUINT16			flags;		/* Flags (currently unused; set to zero) */
-  LOffsetTo<const void*>	lookupTable;	/* Offset to the table's lookup table */
+  LOffsetTo<Lookup<HBUINT16> >	lookupTable;	/* Offset to the table's lookup table */
   LOffsetTo<ArrayOf<HBUINT32, HBUINT32> >
 				anchors;	/* Offset to the glyph data table */
 
