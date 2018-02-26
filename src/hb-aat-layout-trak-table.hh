@@ -42,6 +42,7 @@ struct TrackTableEntry
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    /* XXX Sanitize values */
     return_trace (c->check_struct (this));
   }
 
@@ -81,9 +82,12 @@ struct TrackData
     Fixed fixed_size;
     fixed_size.set_float (csspx);
 
-    // TODO: Make indexing work and use only an entry with zero track
-    const TrackTableEntry trackTableEntry = trackTable[0];
+    /* TODO Clean this up. */
 
+    // TODO: Make indexing work and use only an entry with zero track
+    const TrackTableEntry &trackTableEntry = trackTable[0];
+
+    /* TODO bfind() */
     unsigned int size_index;
     for (size_index = 0; size_index < nSizes; ++size_index)
       if ((base+sizeTable)[size_index] >= fixed_size)
@@ -127,42 +131,46 @@ struct trak
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
     const float ptem = c->font->ptem;
-    if (ptem > 0.f)
+    if (ptem <= 0.f)
+      return_trace (false);
+
+    hb_buffer_t *buffer = c->buffer;
+    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
     {
-      hb_buffer_t *buffer = c->buffer;
-      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction))
+      const TrackData &trackData = this+horizData;
+      float tracking = trackData.get_tracking (this, ptem);
+      hb_position_t advance_to_add = c->font->em_scalef_x (tracking / 2);
+      foreach_grapheme (buffer, start, end)
       {
-        const TrackData trackData = this+horizOffset;
-        float tracking = trackData.get_tracking (this, ptem);
-        hb_position_t advance_to_add = c->font->em_scalef_x (tracking / 2);
-        foreach_grapheme (buffer, start, end)
-        {
-          buffer->pos[start].x_advance += advance_to_add;
-          buffer->pos[end].x_advance += advance_to_add;
-        }
-      }
-      else
-      {
-        const TrackData trackData = this+vertOffset;
-        float tracking = trackData.get_tracking (this, ptem);
-        hb_position_t advance_to_add = c->font->em_scalef_y (tracking / 2);
-        foreach_grapheme (buffer, start, end)
-        {
-          buffer->pos[start].y_advance += advance_to_add;
-          buffer->pos[end].y_advance += advance_to_add;
-        }
+	/* TODO This is wrong. */
+	buffer->pos[start].x_advance += advance_to_add;
+	buffer->pos[end].x_advance += advance_to_add;
       }
     }
-    return_trace (false);
+    else
+    {
+      const TrackData &trackData = this+vertData;
+      float tracking = trackData.get_tracking (this, ptem);
+      hb_position_t advance_to_add = c->font->em_scalef_y (tracking / 2);
+      foreach_grapheme (buffer, start, end)
+      {
+	/* TODO This is wrong. */
+	buffer->pos[start].y_advance += advance_to_add;
+	buffer->pos[end].y_advance += advance_to_add;
+      }
+    }
+
+    return_trace (true);
   }
 
   protected:
   FixedVersion<>	version;	/* Version of the tracking table--currently
 					 * 0x00010000u for version 1.0. */
   HBUINT16		format; 	/* Format of the tracking table */
-  OffsetTo<TrackData>	horizOffset;	/* TrackData for horizontal text */
-  OffsetTo<TrackData>	vertOffset;	/* TrackData for vertical text */
+  OffsetTo<TrackData>	horizData;	/* TrackData for horizontal text */
+  OffsetTo<TrackData>	vertData;	/* TrackData for vertical text */
   HBUINT16		reserved;	/* Reserved. Set to 0. */
 
   public:
