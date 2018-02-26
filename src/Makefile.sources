@@ -87,7 +87,6 @@ HB_OT_sources = \
 	hb-aat-layout-kerx-table.hh \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-layout-private.hh \
-	hb-ot-base.cc \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-base-table.hh \

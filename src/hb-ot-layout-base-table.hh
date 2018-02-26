@@ -221,40 +221,39 @@ struct MinMax {
 
 };
 
-struct BaseLangSysRecord {
-
+struct BaseLangSysRecord
+{
   inline Tag get_tag(void) const
   { return baseLangSysTag; }
 
   inline unsigned int get_feature_tag_index (Tag featureTableTag) const
-  { (this+minMax).get_feature_tag_index(featureTableTag); }
+  { return (this+minMax).get_feature_tag_index(featureTableTag); }
 
   inline HBINT16 get_min_value (unsigned int featureTableTagIndex) const
-  { (this+minMax).get_min_value(featureTableTagIndex); }
+  { return (this+minMax).get_min_value(featureTableTagIndex); }
 
   inline HBINT16 get_max_value (unsigned int featureTableTagIndex) const
-  { (this+minMax).get_max_value(featureTableTagIndex); }
+  { return (this+minMax).get_max_value(featureTableTagIndex); }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      minMax != Null(OffsetTo<MinMax>) &&
-      minMax.sanitize (c, base));
+		  minMax != Null(OffsetTo<MinMax>) &&
+		  minMax.sanitize (c, base));
   }
 
   protected:
-  Tag               baseLangSysTag;
-  OffsetTo<MinMax>  minMax; // not supposed to be NULL
-
+  Tag			baseLangSysTag;
+  OffsetTo<MinMax>	minMax;
   public:
-  DEFINE_SIZE_STATIC (6); 
+  DEFINE_SIZE_STATIC (6);
 
 };
 
-struct BaseValues {
-
-  inline const unsigned int get_default_base_tag_index (void) const
+struct BaseValues
+{
+  inline unsigned int get_default_base_tag_index (void) const
   { return defaultIndex; }
 
   inline HBINT16 get_base_coord (unsigned int baselineTagIndex) const
@@ -272,10 +271,9 @@ struct BaseValues {
   }
 
   protected:
-  Index                     defaultIndex;
-  HBUINT16                    baseCoordCount;
-  OffsetArrayOf<BaseCoord>  baseCoords;
-
+  Index				defaultIndex;
+  HBUINT16			baseCoordCount;
+  OffsetArrayOf<BaseCoord>	baseCoords;
   public:
   DEFINE_SIZE_ARRAY (6, baseCoords);
 
@@ -711,26 +709,66 @@ struct BASE
   inline unsigned int get_horiz_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
   { return u.format1_0.get_horiz_lang_tag_index(baseScriptIndex, baseLangSysTag); }
 
-  inline unsigned int get_horiz_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  { return u.format1_0.get_horiz_feature_tag_index(baseScriptIndex, baseLangSysIndex, featureTableTag); }
+  inline unsigned int get_horiz_feature_tag_index (unsigned int baseScriptIndex,
+						   unsigned int baseLangSysIndex,
+						   Tag featureTableTag) const
+  {
+    return u.format1_0.get_horiz_feature_tag_index (baseScriptIndex,
+						    baseLangSysIndex,
+						    featureTableTag);
+  }
 
-  inline HBINT16 get_horiz_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return u.format1_0.get_horiz_max_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+  inline HBINT16 get_horiz_max_value (unsigned int baseScriptIndex,
+				      unsigned int baseLangSysIndex,
+				      unsigned int featureTableTagIndex) const
+  {
+    return u.format1_0.get_horiz_max_value (baseScriptIndex,
+					    baseLangSysIndex,
+					    featureTableTagIndex);
+  }
 
-  inline HBINT16 get_horiz_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return u.format1_0.get_horiz_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+  inline HBINT16 get_horiz_min_value (unsigned int baseScriptIndex,
+				      unsigned int baseLangSysIndex,
+				      unsigned int featureTableTagIndex) const
+  {
+    return u.format1_0.get_horiz_min_value (baseScriptIndex,
+					    baseLangSysIndex,
+					    featureTableTagIndex);
+  }
 
-  inline unsigned int get_vert_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
-  { return u.format1_0.get_vert_lang_tag_index(baseScriptIndex, baseLangSysTag); }
+  inline unsigned int get_vert_lang_tag_index (unsigned int baseScriptIndex,
+					       Tag baseLangSysTag) const
+  {
+    return u.format1_0.get_vert_lang_tag_index (baseScriptIndex,
+						baseLangSysTag);
+  }
 
-  inline unsigned int get_vert_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  { return u.format1_0.get_vert_feature_tag_index(baseScriptIndex, baseLangSysIndex, featureTableTag); }
+  inline unsigned int get_vert_feature_tag_index (unsigned int baseScriptIndex,
+						  unsigned int baseLangSysIndex,
+						  Tag featureTableTag) const
+  {
+    return u.format1_0.get_vert_feature_tag_index (baseScriptIndex,
+						   baseLangSysIndex,
+						   featureTableTag);
+  }
 
-  inline HBINT16 get_vert_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return u.format1_0.get_vert_max_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+  inline HBINT16 get_vert_max_value (unsigned int baseScriptIndex,
+				     unsigned int baseLangSysIndex,
+				     unsigned int featureTableTagIndex) const
+  {
+    return u.format1_0.get_vert_max_value (baseScriptIndex,
+					   baseLangSysIndex,
+					   featureTableTagIndex);
+  }
 
-  inline HBINT16 get_vert_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return u.format1_0.get_vert_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex); }
+  inline HBINT16 get_vert_min_value (unsigned int baseScriptIndex,
+				     unsigned int baseLangSysIndex,
+				     unsigned int featureTableTagIndex) const
+  {
+    return u.format1_0.get_vert_min_value (baseScriptIndex,
+					   baseLangSysIndex,
+					   featureTableTagIndex);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -750,7 +788,6 @@ struct BASE
     BASEFormat1_0   format1_0;
     BASEFormat1_1   format1_1;
   } u;
-
   public:
   DEFINE_SIZE_UNION (4, version);
 };
