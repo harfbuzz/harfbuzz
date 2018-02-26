@@ -37,25 +37,6 @@ namespace AAT {
  * ankr -- Anchor point
  */
 
-struct GlyphDataTable
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      (numPoints != 0) &&
-      (anchorPoints.sanitize (c, numPoints)));
-  }
-
-  protected:
-  HBUINT32			numPoints;	/* Number of anchor points for this glyph */
-  UnsizedArrayOf<HBUINT32>	anchorPoints;	/* Individual anchor points. Each anchor point is a two-byte
-						 * signed x-coordinate followed by a two-byte signed y-coordinate */
-
-  public:
-  DEFINE_SIZE_ARRAY (4, anchorPoints);
-};
-
 struct ankr
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_ankr;
@@ -63,18 +44,17 @@ struct ankr
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      (version == 0) &&
-      (flags == 0) &&
-      (lookupTableOffset == 0x0000000C) &&
-      (glyphDataTableOffset.sanitize (c, this)));
+    return_trace (c->check_struct (this) && version == 0 &&
+		  /* XXX lookupTable */
+		  anchors.sanitize (c, this));
   }
 
   protected:
-  HBUINT16			version; 		/* Version number (set to zero) */
-  HBUINT16			flags;			/* Flags (currently unused; set to zero) */
-  LOffsetTo<const void*>	lookupTableOffset;	/* Offset to the table's lookup table */
-  LOffsetTo<GlyphDataTable>	glyphDataTableOffset;	/* Offset to the glyph data table */
+  HBUINT16			version; 	/* Version number (set to zero) */
+  HBUINT16			flags;		/* Flags (currently unused; set to zero) */
+  LOffsetTo<const void*>	lookupTable;	/* Offset to the table's lookup table */
+  LOffsetTo<ArrayOf<HBUINT32, HBUINT32> >
+				anchors;	/* Offset to the glyph data table */
 
   public:
   DEFINE_SIZE_MIN (12);
