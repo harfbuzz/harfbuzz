@@ -44,6 +44,7 @@ def run_test(test):
 		    "--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes()]
+	cli_args.extend (test.get_profile_flags())
 	print (' '.join(cli_args))
 	_, return_code = cmd(cli_args)
 
@@ -78,7 +79,7 @@ def run_ttx(file):
 
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
-                       'checkSumAdjustment value="0x00000000"',
+		       'checkSumAdjustment value="0x00000000"',
 		       ttx_string, count=1)
 
 args = sys.argv[1:]
