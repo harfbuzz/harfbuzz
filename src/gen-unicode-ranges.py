@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Generates the code for a sorted unicode range array as used in hb-ot-os2-unicode-ranges.hh
-# Input is a tab seperated list of unicode ranges from the otspec.
+# Input is a tab seperated list of unicode ranges from the otspec
+# (https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ulunicoderange1).
 
 import io
 import re
@@ -10,7 +11,8 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-print (u"""static Range os2UnicodeRangesSorted[] = {""")
+print (u"""static Range os2UnicodeRangesSorted[] =
+{""")
 
 args = sys.argv[1:]
 input_file = args[0]
