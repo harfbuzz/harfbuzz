@@ -33,8 +33,8 @@
 namespace OT {
 
 struct Range {
-  unsigned int start;
-  unsigned int end;
+  hb_codepoint_t start;
+  hb_codepoint_t end;
   unsigned int bit;
 };
 
