@@ -3,6 +3,7 @@ Roboto-Regular.abc.ttf
 
 PROFILES:
 default.txt
+drop-hints.txt
 
 SUBSETS:
 abc
