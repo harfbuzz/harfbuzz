@@ -31,6 +31,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
 
+#include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
@@ -62,6 +63,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
   layout->math.init (face);
+  layout->base.init (face);
   layout->fvar.init (face);
   layout->avar.init (face);
   layout->ankr.init (face);
@@ -215,6 +217,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gpos_blob);
 
   layout->math.fini ();
+  layout->base.fini ();
   layout->fvar.fini ();
   layout->avar.fini ();
   layout->ankr.fini ();
@@ -224,6 +227,14 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 
   free (layout);
 }
+
+// static inline const OT::BASE&
+// _get_base (hb_face_t *face)
+// {
+//   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::BASE);
+//   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+//   return *(layout->base.get ());
+// }
 
 static inline const OT::GDEF&
 _get_gdef (hb_face_t *face)
@@ -1270,3 +1281,27 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 {
   apply_string<GSUBProxy> (c, lookup, accel);
 }
+
+
+
+
+/*
+ * OT::BASE
+ */
+
+// /**
+//  * hb_ot_base_has_data:
+//  * @face: #hb_face_t to test
+//  *
+//  * This function allows to verify the presence of an OpenType BASE table on the
+//  * face.
+//  *
+//  * Return value: true if face has a BASE table, false otherwise
+//  *
+//  * Since: XXX
+//  **/
+// hb_bool_t
+// hb_ot_base_has_data (hb_face_t *face)
+// {
+//   return &_get_base (face) != &OT::Null(OT::BASE);
+// }
