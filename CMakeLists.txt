@@ -809,7 +809,7 @@ endif ()
 
 ## src/ executables
 if (NOT HB_DISABLE_TEST_PROGS)
-  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag)
+  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
     set (prog_name ${prog})
     if (${prog_name} STREQUAL "test")
       # test can not be used as a valid executable name on cmake, lets special case it
