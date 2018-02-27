@@ -95,17 +95,20 @@ hb_subset_test_open_font (const char *font_path)
   return NULL; /* Shut up, compiler! */
 }
 
+static inline hb_subset_input_t *
+hb_subset_test_create_input(const hb_set_t  *codepoints)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t * input_codepoints = hb_subset_input_unicode_set (input);
+  hb_set_union (input_codepoints, codepoints);
+  return input;
+}
+
 static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
-                              const hb_set_t  *codepoints)
+                              hb_subset_input_t *input)
 {
   hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-
-  hb_set_t * input_codepoints = hb_subset_input_unicode_set (input);
-
-  hb_set_union (input_codepoints, codepoints);
-
   hb_face_t *subset = hb_subset (source, profile, input);
   g_assert (subset);
 
@@ -119,6 +122,7 @@ hb_subset_test_check (hb_face_t *expected,
                       hb_face_t *actual,
                       hb_tag_t   table)
 {
+  fprintf(stderr, "compare %c%c%c%c\n", HB_UNTAG(table));
   hb_blob_t *expected_blob = hb_face_reference_table (expected, table);
   hb_blob_t *actual_blob = hb_face_reference_table (actual, table);
   hb_test_assert_blobs_equal (expected_blob, actual_blob);

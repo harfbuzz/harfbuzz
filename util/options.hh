@@ -655,6 +655,20 @@ struct format_options_t : option_group_t
   hb_bool_t trace;
 };
 
+struct subset_options_t : option_group_t
+{
+  subset_options_t (option_parser_t *parser)
+  {
+    drop_hints = false;
+
+    add_options (parser);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  hb_bool_t drop_hints;
+};
+
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
 #if defined (_MSC_VER) && (_MSC_VER < 1800)
 

@@ -53,9 +53,9 @@ hb_subset_input_create_or_fail (void)
  * hb_subset_input_reference: (skip)
  * @subset_input: a subset_input.
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 1.8.0
  **/
@@ -104,4 +104,16 @@ HB_EXTERN hb_set_t *
 hb_subset_input_glyph_set (hb_subset_input_t *subset_input)
 {
   return subset_input->glyphs;
+}
+
+/**
+ * hb_subset_input_drop_hints:
+ * @subset_input: a subset_input.
+ *
+ * Since: 1.8.0
+ **/
+HB_EXTERN hb_bool_t *
+hb_subset_input_drop_hints (hb_subset_input_t *subset_input)
+{
+  return &subset_input->drop_hints;
 }

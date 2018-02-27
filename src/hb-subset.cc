@@ -242,11 +242,12 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::hdmx> (plan);
       break;
     case HB_OT_TAG_head:
-      // SKIP head, it's handled by glyf
+      // TODO that won't work well if there is no glyf
+      DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
       result = true;
       break;
     case HB_OT_TAG_hhea:
-      // SKIP hhea, it's handled by hmtx
+      DEBUG_MSG(SUBSET, nullptr, "skip hhea handled by hmtx");
       return true;
     case HB_OT_TAG_hmtx:
       result = _subset<const OT::hmtx> (plan);
@@ -255,7 +256,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::maxp> (plan);
       break;
     case HB_OT_TAG_loca:
-      // SKIP loca, it's handle by glyf
+      DEBUG_MSG(SUBSET, nullptr, "skip loca handled by glyf");
       return true;
     case HB_OT_TAG_cmap:
       result = _subset<const OT::cmap> (plan);
@@ -277,9 +278,16 @@ _subset_table (hb_subset_plan_t *plan,
 }
 
 static bool
-_should_drop_table(hb_tag_t tag)
+_should_drop_table(hb_subset_plan_t *plan, hb_tag_t tag)
 {
     switch (tag) {
+      case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
+      case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
+      case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
+      case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
+      case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
+      case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
+        return plan->drop_hints;
       case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
       case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
       case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
@@ -316,7 +324,7 @@ hb_subset (hb_face_t *source,
     for (unsigned int i = 0; i < count; i++)
     {
       hb_tag_t tag = table_tags[i];
-      if (_should_drop_table(tag))
+      if (_should_drop_table(plan, tag))
       {
         DEBUG_MSG(SUBSET, nullptr, "drop %c%c%c%c", HB_UNTAG(tag));
         continue;

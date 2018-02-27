@@ -79,6 +79,9 @@ hb_subset_plan_add_table (hb_subset_plan_t *plan,
                           hb_tag_t tag,
                           hb_blob_t *contents)
 {
+  hb_blob_t *source_blob = plan->source->reference_table (tag);
+  DEBUG_MSG(SUBSET, nullptr, "add table %c%c%c%c, dest %d bytes, source %d bytes", HB_UNTAG(tag), hb_blob_get_length (contents), hb_blob_get_length (source_blob));
+  hb_blob_destroy (source_blob);
   return hb_subset_face_add_table(plan->dest, tag, contents);
 }
 
@@ -192,6 +195,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->gids_to_retain_sorted.init();
   plan->source = hb_face_reference (face);
   plan->dest = hb_subset_face_create ();
+  plan->drop_hints = input->drop_hints;
 
   _populate_codepoints (input->unicodes, plan->codepoints);
   _populate_gids_to_retain (face,

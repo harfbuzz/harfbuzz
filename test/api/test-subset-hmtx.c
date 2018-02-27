@@ -55,7 +55,7 @@ test_subset_hmtx_simple_subset (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 3); /* nothing has same width */
@@ -76,7 +76,7 @@ test_subset_hmtx_monospace (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 1); /* everything has same width */
@@ -97,7 +97,7 @@ test_subset_hmtx_keep_num_metrics (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 3); /* c is wider */
@@ -117,7 +117,7 @@ test_subset_hmtx_decrease_num_metrics (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 1); /* everything left has same width */
@@ -137,7 +137,7 @@ test_subset_hmtx_noop (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   check_num_hmetrics(face_abc_subset, 4); /* nothing has same width */

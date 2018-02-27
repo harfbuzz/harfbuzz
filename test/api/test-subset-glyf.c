@@ -31,6 +31,18 @@
 
 /* Unit tests for hb-subset-glyf.h */
 
+static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs)
+{
+  hb_blob_t *maxp_blob = hb_face_reference_table (face, HB_TAG ('m','a','x', 'p'));
+
+  unsigned int maxp_len;
+  uint8_t *raw_maxp = (uint8_t *) hb_blob_get_data(maxp_blob, &maxp_len);
+  uint16_t num_glyphs = (raw_maxp[4] << 8) + raw_maxp[5];
+  g_assert_cmpuint(expected_num_glyphs, ==, num_glyphs);
+
+  hb_blob_destroy (maxp_blob);
+}
+
 static void
 test_subset_glyf (void)
 {
@@ -40,12 +52,12 @@ test_subset_glyf (void)
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('m','a','x', 'p'));
+  check_maxp_num_glyphs(face_abc_subset, 3);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -60,12 +72,12 @@ test_subset_glyf_with_components (void)
 
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 0x1fc);
-  hb_face_t *face_generated_subset = hb_subset_test_create_subset (face_components, codepoints);
+  hb_face_t *face_generated_subset = hb_subset_test_create_subset (face_components, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
-  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('m','a','x', 'p'));
+  check_maxp_num_glyphs(face_generated_subset, 4);
 
   hb_face_destroy (face_generated_subset);
   hb_face_destroy (face_subset);
@@ -81,15 +93,41 @@ test_subset_glyf_noop (void)
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 98);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  check_maxp_num_glyphs(face_abc_subset, 4);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
 }
+
+static void
+test_subset_glyf_strip_hints (void)
+{
+  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.nohints.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'c');
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  *hb_subset_input_drop_hints(input) = true;
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
+  check_maxp_num_glyphs(face_abc_subset, 3);
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_ac);
+}
+
+// TODO(rsheeter): test strip hints from composite
 
 // TODO(grieger): test for long loca generation.
 
@@ -98,9 +136,10 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_subset_glyf);
-  hb_test_add (test_subset_glyf_with_components);
   hb_test_add (test_subset_glyf_noop);
+  hb_test_add (test_subset_glyf);
+  hb_test_add (test_subset_glyf_strip_hints);
+  hb_test_add (test_subset_glyf_with_components);
 
   return hb_test_run();
 }

@@ -41,7 +41,7 @@ test_subset_hdmx_simple_subset (void)
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('h','d','m','x'));
@@ -60,7 +60,7 @@ test_subset_hdmx_noop (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, codepoints);
+  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('h','d','m','x'));
