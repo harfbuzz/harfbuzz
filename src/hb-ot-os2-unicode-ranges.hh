@@ -214,12 +214,12 @@ static Range os2UnicodeRangesSorted[] = {
 static int
 _compare_range (const void *_key, const void *_item, void *_arg)
 {
-  hb_codepoint_t *cp = (hb_codepoint_t *) _key;
-  Range *range = (Range *) _item;
+  hb_codepoint_t cp = *((hb_codepoint_t *) _key);
+  const Range *range = (Range *) _item;
 
-  if (*cp < range->start)
+  if (cp < range->start)
     return -1;
-  else if (*cp <= range->end)
+  else if (cp <= range->end)
     return 0;
   else
     return 1;
