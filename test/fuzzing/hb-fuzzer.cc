@@ -1,10 +1,10 @@
-#include <stddef.h>
-#include <hb.h>
+#include "hb-fuzzer.hh"
+
 #include <hb-ot.h>
 #include <string.h>
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+{
   hb_blob_t *blob = hb_blob_create((const char *)data, size,
                                    HB_MEMORY_MODE_READONLY, NULL, NULL);
   hb_face_t *face = hb_face_create(blob, 0);
@@ -28,6 +28,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     hb_buffer_add_utf32(buffer, text32, sizeof(text32)/sizeof(text32[0]), 0, -1);
     hb_buffer_guess_segment_properties(buffer);
     hb_shape(font, buffer, NULL, 0);
+
+    unsigned int len = hb_buffer_get_length (buffer);
+    hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, NULL);
+    //hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, NULL);
+    for (unsigned int i = 0; i < len; i++)
+    {
+      hb_glyph_info_t info = infos[i];
+      //hb_glyph_position_t pos = positions[i];
+
+      hb_glyph_extents_t extents;
+      hb_font_get_glyph_extents (font, info.codepoint, &extents);
+    }
+
     hb_buffer_destroy(buffer);
   }
 
@@ -37,25 +50,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   hb_blob_destroy(blob);
   return 0;
 }
-
-#ifdef MAIN
-#include <iostream>
-#include <iterator>
-#include <fstream>
-#include <assert.h>
-
-std::string FileToString(const std::string &Path) {
-  /* TODO This silently passes if file does not exist.  Fix it! */
-  std::ifstream T(Path.c_str());
-  return std::string((std::istreambuf_iterator<char>(T)),
-                     std::istreambuf_iterator<char>());
-}
-
-int main(int argc, char **argv) {
-  for (int i = 1; i < argc; i++) {
-    std::string s = FileToString(argv[i]);
-    std::cout << argv[i] << std::endl;
-    LLVMFuzzerTestOneInput((const unsigned char*)s.data(), s.size());
-  }
-}
-#endif

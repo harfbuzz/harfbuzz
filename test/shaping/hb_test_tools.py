@@ -7,6 +7,9 @@ from itertools import *
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
 
+def codepoints(s):
+	return (ord (u) for u in s)
+
 try:
 	unichr = unichr
 
@@ -43,8 +46,41 @@ try:
 				except UnicodeDecodeError:
 					raise ValueError('unichr() arg not in range(0x110000)')
 
+		def codepoints(s):
+			high_surrogate = None
+			for u in s:
+				cp = ord (u)
+				if 0xDC00 <= cp <= 0xDFFF:
+					if high_surrogate:
+						yield 0x10000 + (high_surrogate - 0xD800) * 0x400 + (cp - 0xDC00)
+						high_surrogate = None
+					else:
+						yield 0xFFFC
+				else:
+					if high_surrogate:
+						yield 0xFFFC
+						high_surrogate = None
+					if 0xD800 <= cp <= 0xDBFF:
+						high_surrogate = cp
+					else:
+						yield cp
+						high_surrogate = None
+			if high_surrogate:
+				yield 0xFFFC
+
 except NameError:
 	unichr = chr
+
+try:
+	unicode = unicode
+except NameError:
+	unicode = str
+
+def tounicode(s, encoding='ascii', errors='strict'):
+	if not isinstance(s, unicode):
+		return s.decode(encoding, errors)
+	else:
+		return s
 
 class ColorFormatter:
 
@@ -257,32 +293,6 @@ class DiffSinks:
 		total = passed + failed
 		print ("%d out of %d tests passed.  %d failed (%g%%)" % (passed, total, failed, 100. * failed / total))
 
-	@staticmethod
-	def print_ngrams (f, ns=(1,2,3)):
-		gens = tuple (Ngram.generator (n) for n in ns)
-		allstats = Stats ()
-		allgrams = {}
-		for key, lines in DiffHelpers.separate_test_cases (f):
-			test = Test (lines)
-			allstats.add (test)
-
-			for gen in gens:
-				for ngram in gen (test.unicodes):
-					if ngram not in allgrams:
-						allgrams[ngram] = Stats ()
-					allgrams[ngram].add (test)
-
-		importantgrams = {}
-		for ngram, stats in allgrams.iteritems ():
-			if stats.failed.count >= 30: # for statistical reasons
-				importantgrams[ngram] = stats
-		allgrams = importantgrams
-		del importantgrams
-
-		for ngram, stats in allgrams.iteritems ():
-			print ("zscore: %9f failed: %6d passed: %6d ngram: <%s>" % (stats.zscore (allstats), stats.failed.count, stats.passed.count, ','.join ("U+%04X" % u for u in ngram)))
-
-
 
 class Test:
 
@@ -445,12 +455,12 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8')
+		return u','.join ("U+%04X" % cp for cp in codepoints (tounicode (s, 'utf-8')))
 
 	@staticmethod
 	def parse (s):
 		s = re.sub (r"0[xX]", " ", s)
-		s = re.sub (r"[<+>{},;&#\\xXuUnNiI\n	]", " ", s)
+		s = re.sub (r"[<+>{},;&#\\xXuUnNiI\n\t]", " ", s)
 		return [int (x, 16) for x in s.split ()]
 
 	@staticmethod

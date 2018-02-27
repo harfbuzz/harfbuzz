@@ -73,15 +73,17 @@ struct hb_ot_shape_planner_t
   hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
 			 face (master_plan->face_unsafe),
 			 props (master_plan->props),
-			 shaper (NULL),
+			 shaper (nullptr),
 			 map (face, &props) {}
   ~hb_ot_shape_planner_t (void) { map.finish (); }
 
-  inline void compile (hb_ot_shape_plan_t &plan)
+  inline void compile (hb_ot_shape_plan_t &plan,
+		       const int          *coords,
+		       unsigned int        num_coords)
   {
     plan.props = props;
     plan.shaper = shaper;
-    map.compile (plan.map);
+    map.compile (plan.map, coords, num_coords);
 
     plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
     plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
@@ -97,7 +99,9 @@ struct hb_ot_shape_planner_t
   }
 
   private:
-  NO_COPY (hb_ot_shape_planner_t);
+  /* No copy. */
+  hb_ot_shape_planner_t (const hb_ot_shape_planner_t &);
+  hb_ot_shape_planner_t &operator = (const hb_ot_shape_planner_t &);
 };
 
 

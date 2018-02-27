@@ -28,16 +28,10 @@
 
 #include "hb-private.hh"
 
-#include "hb-ot-layout-private.hh"
-
-#include "hb-font-private.hh"
+#include "hb-face-private.hh"
 #include "hb-open-file-private.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-maxp-table.hh"
-
-#include "hb-cache-private.hh"
-
-#include <string.h>
 
 
 /*
@@ -49,9 +43,9 @@ const hb_face_t _hb_face_nil = {
 
   true, /* immutable */
 
-  NULL, /* reference_table_func */
-  NULL, /* user_data */
-  NULL, /* destroy */
+  nullptr, /* reference_table_func */
+  nullptr, /* user_data */
+  nullptr, /* destroy */
 
   0,    /* index */
   1000, /* upem */
@@ -63,7 +57,7 @@ const hb_face_t _hb_face_nil = {
 #undef HB_SHAPER_IMPLEMENT
   },
 
-  NULL, /* shape_plans */
+  nullptr, /* shape_plans */
 };
 
 
@@ -115,7 +109,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 
   closure = (hb_face_for_data_closure_t *) calloc (1, sizeof (hb_face_for_data_closure_t));
   if (unlikely (!closure))
-    return NULL;
+    return nullptr;
 
   closure->blob = blob;
   closure->index = index;
@@ -124,8 +118,10 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 }
 
 static void
-_hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
+_hb_face_for_data_closure_destroy (void *data)
 {
+  hb_face_for_data_closure_t *closure = (hb_face_for_data_closure_t *) data;
+
   hb_blob_destroy (closure->blob);
   free (closure);
 }
@@ -168,16 +164,16 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!blob))
     blob = hb_blob_get_empty ();
 
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::Sanitizer<OT::OpenTypeFontFile>::sanitize (hb_blob_reference (blob)), index);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::Sanitizer<OT::OpenTypeFontFile>().sanitize (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
     return hb_face_get_empty ();
 
   face = hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
-				    (hb_destroy_func_t) _hb_face_for_data_closure_destroy);
+				    _hb_face_for_data_closure_destroy);
 
-  hb_face_set_index (face, index);
+  face->index = index;
 
   return face;
 }
@@ -428,7 +424,7 @@ hb_face_get_upem (hb_face_t *face)
 void
 hb_face_t::load_upem (void) const
 {
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>::sanitize (reference_table (HB_OT_TAG_head));
+  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (reference_table (HB_OT_TAG_head));
   const OT::head *head_table = OT::Sanitizer<OT::head>::lock_instance (head_blob);
   upem = head_table->get_upem ();
   hb_blob_destroy (head_blob);
@@ -472,10 +468,39 @@ hb_face_get_glyph_count (hb_face_t *face)
 void
 hb_face_t::load_num_glyphs (void) const
 {
-  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>::sanitize (reference_table (HB_OT_TAG_maxp));
+  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (reference_table (HB_OT_TAG_maxp));
   const OT::maxp *maxp_table = OT::Sanitizer<OT::maxp>::lock_instance (maxp_blob);
   num_glyphs = maxp_table->get_num_glyphs ();
   hb_blob_destroy (maxp_blob);
 }
 
+/**
+ * hb_face_get_table_tags:
+ * @face: a face.
+ *
+ * Retrieves table tags for a face, if possible.
+ *
+ * Return value: total number of tables, or 0 if not possible to list.
+ *
+ * Since: 1.6.0
+ **/
+unsigned int
+hb_face_get_table_tags (hb_face_t    *face,
+			unsigned int  start_offset,
+			unsigned int *table_count, /* IN/OUT */
+			hb_tag_t     *table_tags /* OUT */)
+{
+  if (face->destroy != _hb_face_for_data_closure_destroy)
+  {
+    if (table_count)
+      *table_count = 0;
+    return 0;
+  }
 
+  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) face->user_data;
+
+  const OT::OpenTypeFontFile &ot_file = *OT::Sanitizer<OT::OpenTypeFontFile>::lock_instance (data->blob);
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+
+  return ot_face.get_table_tags (start_offset, table_count, table_tags);
+}

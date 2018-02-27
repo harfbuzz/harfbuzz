@@ -28,7 +28,7 @@
 #define HB_OT_MAXP_TABLE_HH
 
 #include "hb-open-type-private.hh"
-
+#include "hb-subset-plan.hh"
 
 namespace OT {
 
@@ -48,6 +48,11 @@ struct maxp
     return numGlyphs;
   }
 
+  inline void set_num_glyphs (unsigned int count)
+  {
+    numGlyphs.set (count);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -56,11 +61,29 @@ struct maxp
 			  (version.major == 0 && version.minor == 0x5000u)));
   }
 
+  inline bool subset (hb_subset_plan_t *plan) const
+  {
+    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
+    hb_blob_t *maxp_prime_blob = hb_blob_copy_writable_or_fail (maxp_blob);
+    hb_blob_destroy (maxp_blob);
+
+    if (unlikely (!maxp_prime_blob)) {
+      return false;
+    }
+    OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, nullptr);
+
+    maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
+
+    bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_maxp, maxp_prime_blob);
+    hb_blob_destroy (maxp_prime_blob);
+    return result;
+  }
+
   /* We only implement version 0.5 as none of the extra fields in version 1.0 are useful. */
   protected:
   FixedVersion<>version;		/* Version of the maxp table (0.5 or 1.0),
 					 * 0x00005000u or 0x00010000u. */
-  USHORT	numGlyphs;		/* The number of glyphs in the font. */
+  HBUINT16	numGlyphs;		/* The number of glyphs in the font. */
   public:
   DEFINE_SIZE_STATIC (6);
 };

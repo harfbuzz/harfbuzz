@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 import sys
+import array
 from gi.repository import HarfBuzz as hb
 from gi.repository import GLib
 
@@ -20,7 +21,6 @@ def tounicode(s, encoding='utf-8'):
 
 fontdata = open (sys.argv[1], 'rb').read ()
 text = tounicode(sys.argv[2])
-codepoints = list(map(ord, text))
 # Need to create GLib.Bytes explicitly until this bug is fixed:
 # https://bugzilla.gnome.org/show_bug.cgi?id=729541
 blob = hb.glib_blob_create (GLib.Bytes.new (fontdata))
@@ -40,7 +40,26 @@ class Debugger(object):
 		return True
 debugger = Debugger()
 hb.buffer_set_message_func (buf, debugger.message, 1, 0)
-hb.buffer_add_utf32 (buf, codepoints, 0, len(codepoints))
+
+##
+## Add text to buffer
+##
+#
+# See https://github.com/harfbuzz/harfbuzz/pull/271
+#
+if False:
+	# If you do not care about cluster values reflecting Python
+	# string indices, then this is quickest way to add text to
+	# buffer:
+	hb.buffer_add_utf8 (buf, text.encode('utf-8'), 0, -1)
+	# Otherwise, then following handles both narrow and wide
+	# Python builds:
+elif sys.maxunicode == 0x10FFFF:
+	hb.buffer_add_utf32 (buf, array.array('I', text.encode('utf-32')), 0, -1)
+else:
+	hb.buffer_add_utf16 (buf, array.array('H', text.encode('utf-16')), 0, -1)
+
+
 hb.buffer_guess_segment_properties (buf)
 
 hb.shape (font, buf, [])

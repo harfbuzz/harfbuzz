@@ -33,14 +33,16 @@ struct output_buffer_t
   output_buffer_t (option_parser_t *parser)
 		  : options (parser, hb_buffer_serialize_list_formats ()),
 		    format (parser),
-		    gs (NULL),
+		    gs (nullptr),
 		    line_no (0),
-		    font (NULL) {}
+		    font (nullptr),
+		    output_format (HB_BUFFER_SERIALIZE_FORMAT_INVALID),
+		    format_flags (HB_BUFFER_SERIALIZE_FLAG_DEFAULT) {}
 
-  void init (const font_options_t *font_opts)
+  void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     options.get_file_handle ();
-    gs = g_string_new (NULL);
+    gs = g_string_new (nullptr);
     line_no = 0;
     font = hb_font_reference (font_opts->get_font ());
 
@@ -70,9 +72,16 @@ struct output_buffer_t
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS;
     if (!format.show_positions)
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
+    if (!format.show_advances)
+      flags |= HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES;
     if (format.show_extents)
       flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
+    if (format.show_flags)
+      flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS;
     format_flags = (hb_buffer_serialize_flags_t) flags;
+
+    if (format.trace)
+      hb_buffer_set_message_func (buffer, message_func, this, nullptr);
   }
   void new_line (void)
   {
@@ -87,13 +96,10 @@ struct output_buffer_t
     format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, gs);
     fprintf (options.fp, "%s", gs->str);
   }
-  void shape_failed (hb_buffer_t  *buffer,
-		     const char   *text,
-		     unsigned int  text_len,
-		     hb_bool_t     utf8_clusters)
+  void error (const char *message)
   {
     g_string_set_size (gs, 0);
-    format.serialize_message (line_no, "msg: all shapers failed", gs);
+    format.serialize_message (line_no, "error", message, gs);
     fprintf (options.fp, "%s", gs->str);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
@@ -106,13 +112,39 @@ struct output_buffer_t
 				       output_format, format_flags, gs);
     fprintf (options.fp, "%s", gs->str);
   }
-  void finish (const font_options_t *font_opts)
+  void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
+    hb_buffer_set_message_func (buffer, nullptr, nullptr, nullptr);
     hb_font_destroy (font);
     g_string_free (gs, true);
-    gs = NULL;
-    font = NULL;
+    gs = nullptr;
+    font = nullptr;
   }
+
+  static hb_bool_t
+  message_func (hb_buffer_t *buffer,
+		hb_font_t *font,
+		const char *message,
+		void *user_data)
+  {
+    output_buffer_t *that = (output_buffer_t *) user_data;
+    that->trace (buffer, font, message);
+    return true;
+  }
+
+  void
+  trace (hb_buffer_t *buffer,
+	 hb_font_t *font,
+	 const char *message)
+  {
+    g_string_set_size (gs, 0);
+    format.serialize_line_no (line_no, gs);
+    g_string_append_printf (gs, "trace: %s	buffer: ", message);
+    format.serialize_glyphs (buffer, font, output_format, format_flags, gs);
+    g_string_append_c (gs, '\n');
+    fprintf (options.fp, "%s", gs->str);
+  }
+
 
   protected:
   output_options_t options;

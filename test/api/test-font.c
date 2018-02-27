@@ -35,13 +35,23 @@ static const char test_data[] = "test\0data";
 static void
 test_face_empty (void)
 {
+  hb_face_t *created_from_empty;
+  hb_face_t *created_from_null;
+
   g_assert (hb_face_get_empty ());
-  g_assert (hb_face_get_empty () != hb_face_create (hb_blob_get_empty (), 0));
-  g_assert (hb_face_get_empty () != hb_face_create (NULL, 0));
+
+  created_from_empty = hb_face_create (hb_blob_get_empty (), 0);
+  g_assert (hb_face_get_empty () != created_from_empty);
+
+  created_from_null = hb_face_create (NULL, 0);
+  g_assert (hb_face_get_empty () != created_from_null);
 
   g_assert (hb_face_reference_table (hb_face_get_empty (), HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
 
   g_assert_cmpint (hb_face_get_upem (hb_face_get_empty ()), ==, 1000);
+
+  hb_face_destroy (created_from_null);
+  hb_face_destroy (created_from_empty);
 }
 
 static void
@@ -357,14 +367,29 @@ test_fontfuncs_subclassing (void)
 static void
 test_font_empty (void)
 {
+  hb_font_t *created_from_empty;
+  hb_font_t *created_from_null;
+  hb_font_t *created_sub_from_null;
+
   g_assert (hb_font_get_empty ());
-  g_assert (hb_font_get_empty () != hb_font_create (hb_face_get_empty ()));
-  g_assert (hb_font_get_empty () != hb_font_create (NULL));
-  g_assert (hb_font_get_empty () != hb_font_create_sub_font (NULL));
+
+  created_from_empty = hb_font_create (hb_face_get_empty ());
+  g_assert (hb_font_get_empty () != created_from_empty);
+
+  created_from_null = hb_font_create (NULL);
+  g_assert (hb_font_get_empty () != created_from_null);
+
+  created_sub_from_null = hb_font_create_sub_font (NULL);
+  g_assert (hb_font_get_empty () != created_sub_from_null);
+
   g_assert (hb_font_is_immutable (hb_font_get_empty ()));
 
   g_assert (hb_font_get_face (hb_font_get_empty ()) == hb_face_get_empty ());
   g_assert (hb_font_get_parent (hb_font_get_empty ()) == NULL);
+
+  hb_font_destroy (created_sub_from_null);
+  hb_font_destroy (created_from_null);
+  hb_font_destroy (created_from_empty);
 }
 
 static void

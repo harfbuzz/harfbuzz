@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [1.2.7],
-        [https://github.com/behdad/harfbuzz/issues/new],
+        [1.7.5],
+        [https://github.com/harfbuzz/harfbuzz/issues/new],
         [harfbuzz],
         [http://harfbuzz.org/])
 
@@ -9,8 +9,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([1.11.1 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
-AM_CONDITIONAL(AUTOMAKE_OLDER_THAN_1_13, test $am__api_version = 1.11 -o $am__api_version = 1.12)
+AM_INIT_AUTOMAKE([1.13.0 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
 
 # Initialize libtool
@@ -19,9 +18,13 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 # Check for programs
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CXX
+dnl AX_CXX_COMPILE_STDCXX(11, noext, optional)
+AC_SYS_LARGEFILE
 PKG_PROG_PKG_CONFIG([0.20])
 AM_MISSING_PROG([RAGEL], [ragel])
 AM_MISSING_PROG([GIT], [git])
@@ -55,6 +58,13 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
+AC_ARG_WITH([libstdc++],
+	[AS_HELP_STRING([--with-libstdc++=@<:@yes/no@:>@],
+			[Allow linking with libstdc++ @<:@default=no@:>@])],
+	[with_libstdcxx=$withval],
+	[with_libstdcxx=no])
+AM_CONDITIONAL(WITH_LIBSTDCXX, [test "x$with_libstdcxx" = "xyes"])
+
 # Documentation
 have_gtk_doc=false
 m4_ifdef([GTK_DOC_CHECK], [
@@ -66,9 +76,9 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
 ])
 
-# Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty)
-AC_CHECK_HEADERS(unistd.h sys/mman.h)
+# Functions, and headers
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l setlinebuf)
+AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h)
 
 # Compiler flags
 AC_CANONICAL_HOST
@@ -77,9 +87,6 @@ if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
 	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
-
-	# Make sure we don't link to libstdc++
-	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
@@ -145,7 +152,7 @@ AC_ARG_WITH(glib,
 			[Use glib @<:@default=auto@:>@])],,
 	[with_glib=auto])
 have_glib=false
-GLIB_DEPS="glib-2.0 >= 2.16"
+GLIB_DEPS="glib-2.0 >= 2.19.1"
 AC_SUBST(GLIB_DEPS)
 if test "x$with_glib" = "xyes" -o "x$with_glib" = "xauto"; then
 	PKG_CHECK_MODULES(GLIB, $GLIB_DEPS, have_glib=true, :)
@@ -162,7 +169,7 @@ dnl ===========================================================================
 
 AC_ARG_WITH(gobject,
 	[AS_HELP_STRING([--with-gobject=@<:@yes/no/auto@:>@],
-			[Use gobject @<:@default=auto@:>@])],,
+			[Use gobject @<:@default=no@:>@])],,
 	[with_gobject=no])
 have_gobject=false
 if test "x$with_gobject" = "xyes" -o "x$with_gobject" = "xauto"; then
@@ -177,6 +184,7 @@ if $have_gobject; then
 	AC_SUBST(GLIB_MKENUMS)
 fi
 AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
+AC_SUBST(have_gobject)
 
 dnl ===========================================================================
 
@@ -287,9 +295,13 @@ AM_CONDITIONAL(HAVE_ICU_BUILTIN, $have_icu && test "x$with_icu" = "xbuiltin")
 
 dnl ===========================================================================
 
-have_ucdn=true
-if $have_glib || $have_icu && test "x$with_icu" = "xbuiltin"; then
-	have_ucdn=false
+AC_ARG_WITH(ucdn,
+	[AS_HELP_STRING([--with-ucdn=@<:@yes/no@:>@],
+			[Use builtin UCDN library @<:@default=yes@:>@])],,
+	[with_ucdn=yes])
+have_ucdn=false
+if test "x$with_ucdn" = "xyes"; then
+	have_ucdn=true
 fi
 if $have_ucdn; then
 	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
@@ -307,6 +319,16 @@ GRAPHITE2_DEPS="graphite2"
 AC_SUBST(GRAPHITE2_DEPS)
 if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
 	PKG_CHECK_MODULES(GRAPHITE2, $GRAPHITE2_DEPS, have_graphite2=true, :)
+	if test "x$have_graphite2" != "xtrue"; then
+                # If pkg-config is not available, graphite2 can still be there
+		ac_save_CFLAGS="$CFLAGS"
+		ac_save_CPPFLAGS="$CPPFLAGS"
+		CFLAGS="$CFLAGS $GRAPHITE2_CFLAGS"
+		CPPFLAGS="$CPPFLAGS $GRAPHITE2_CFLAGS"
+		AC_CHECK_HEADER(graphite2/Segment.h, have_graphite2=true, :)
+		CPPFLAGS="$ac_save_CPPFLAGS"
+		CFLAGS="$ac_save_CFLAGS"
+	fi
 fi
 if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
 	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
@@ -334,6 +356,10 @@ if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
 fi
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
+	save_libs=$LIBS
+	LIBS="$LIBS $FREETYPE_LIBS"
+	AC_CHECK_FUNCS(FT_Get_Var_Blend_Coordinates FT_Set_Var_Blend_Coordinates FT_Done_MM_Var)
+	LIBS=$save_libs
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
@@ -401,12 +427,13 @@ if test "x$with_coretext" = "xyes" -o "x$with_coretext" = "xauto"; then
 	else
 		# On iOS CoreText and CoreGraphics are stand-alone frameworks
 		if test "x$have_coretext" != "xtrue"; then
-			AC_CHECK_TYPE(CTFontRef, have_coretext=true,, [#include <CoreText/CoreText.h>])
+			# Check for a different symbol to avoid getting cached result.
+			AC_CHECK_TYPE(CTRunRef, have_coretext=true,, [#include <CoreText/CoreText.h>])
 		fi
 
 		if $have_coretext; then
 			CORETEXT_CFLAGS=
-			CORETEXT_LIBS="-framework CoreText -framework CoreGraphics"
+			CORETEXT_LIBS="-framework CoreText -framework CoreGraphics -framework CoreFoundation"
 			AC_SUBST(CORETEXT_CFLAGS)
 			AC_SUBST(CORETEXT_LIBS)
 		fi
@@ -465,16 +492,20 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/hb-version.h
+src/harfbuzz-config.cmake
 src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
 test/fuzzing/Makefile
 test/shaping/Makefile
+test/shaping/data/Makefile
+test/shaping/data/in-house/Makefile
+test/shaping/data/text-rendering-tests/Makefile
+test/subset/Makefile
+test/subset/data/Makefile
 docs/Makefile
 docs/version.xml
-win32/Makefile
-win32/config.h.win32
 ])
 
 AC_OUTPUT
@@ -484,18 +515,18 @@ AC_MSG_NOTICE([
 Build configuration:
 
 Unicode callbacks (you want at least one):
+	Builtin (UCDN):		${have_ucdn}
 	Glib:			${have_glib}
 	ICU:			${have_icu}
-	UCDN:			${have_ucdn}
 
-Font callbacks (the more the better):
+Font callbacks (the more the merrier):
 	FreeType:		${have_freetype}
 
 Tools used for command-line utilities:
 	Cairo:			${have_cairo}
 	Fontconfig:		${have_fontconfig}
 
-Additional shapers (the more the better):
+Additional shapers (the more the merrier):
 	Graphite2:		${have_graphite2}
 
 Platform shapers (not normally needed):
@@ -504,7 +535,7 @@ Platform shapers (not normally needed):
 	DirectWrite:		${have_directwrite}
 
 Other features:
-	Documentation:		${have_gtk_doc}
+	Documentation:		${enable_gtk_doc}
 	GObject bindings:	${have_gobject}
 	Introspection:		${have_introspection}
 ])

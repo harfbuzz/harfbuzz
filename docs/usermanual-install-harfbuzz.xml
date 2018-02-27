@@ -1,5 +1,5 @@
 <chapter id="install-harfbuzz">
-  <title>Install Harfbuzz</title>
+  <title>Install HarfBuzz</title>
   <section id="download">
     <title id="download.title">Download</title>
     <para>
@@ -12,7 +12,7 @@
     <para>
       The canonical source tree is available
       <ulink url="http://cgit.freedesktop.org/harfbuzz/">here</ulink>.
-      Also available on <ulink url="https://github.com/behdad/harfbuzz">github</ulink>.
+      Also available on <ulink url="https://github.com/harfbuzz/harfbuzz">github</ulink>.
     </para>
     <para>
       The API that comes with <filename class='headerfile'>hb.h</filename> will
@@ -50,7 +50,7 @@
       and hb-shape under <filename>util/</filename>.
     </para>
     <para>
-      If you are bootstraping from git, you need a few more tools before you
+      If you are bootstrapping from git, you need a few more tools before you
       can run <filename>autogen.sh</filename> for the first time. Namely,
       pkg-config and <ulink url="http://www.complang.org/ragel/">ragel</ulink>.
       Again, on Ubuntu / Debian:

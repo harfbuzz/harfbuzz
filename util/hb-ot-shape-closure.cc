@@ -43,8 +43,8 @@ struct shape_closure_consumer_t : option_group_t
   {
     GOptionEntry entries[] =
     {
-      {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	NULL},
-      {NULL}
+      {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	nullptr},
+      {nullptr}
     };
     parser->add_group (entries,
 		       "format",
@@ -53,14 +53,15 @@ struct shape_closure_consumer_t : option_group_t
 		       this);
   }
 
-  void init (const font_options_t *font_opts)
+  void init (hb_buffer_t  *buffer_,
+	     const font_options_t *font_opts)
   {
     glyphs = hb_set_create ();
     font = hb_font_reference (font_opts->get_font ());
     failed = false;
+    buffer = hb_buffer_reference (buffer_);
   }
-  void consume_line (hb_buffer_t  *buffer,
-		     const char   *text,
+  void consume_line (const char   *text,
 		     unsigned int  text_len,
 		     const char   *text_before,
 		     const char   *text_after)
@@ -92,9 +93,11 @@ struct shape_closure_consumer_t : option_group_t
   {
     printf ("\n");
     hb_font_destroy (font);
-    font = NULL;
+    font = nullptr;
     hb_set_destroy (glyphs);
-    glyphs = NULL;
+    glyphs = nullptr;
+    hb_buffer_destroy (buffer);
+    buffer = nullptr;
   }
 
   bool failed;
@@ -105,6 +108,7 @@ struct shape_closure_consumer_t : option_group_t
 
   hb_set_t *glyphs;
   hb_font_t *font;
+  hb_buffer_t *buffer;
 };
 
 int

@@ -50,19 +50,25 @@ struct hb_ot_map_t
     hb_mask_t mask;
     hb_mask_t _1_mask; /* mask for value=1, for quick access */
     unsigned int needs_fallback : 1;
+    unsigned int auto_zwnj : 1;
     unsigned int auto_zwj : 1;
 
-    static int cmp (const feature_map_t *a, const feature_map_t *b)
-    { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
+    inline int cmp (const hb_tag_t *tag_) const
+    { return *tag_ < tag ? -1 : *tag_ > tag ? 1 : 0; }
   };
 
   struct lookup_map_t {
     unsigned short index;
+    unsigned short auto_zwnj : 1;
     unsigned short auto_zwj : 1;
     hb_mask_t mask;
 
-    static int cmp (const lookup_map_t *a, const lookup_map_t *b)
-    { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
+    static int cmp (const void *pa, const void *pb)
+    {
+      const lookup_map_t *a = (const lookup_map_t *) pa;
+      const lookup_map_t *b = (const lookup_map_t *) pb;
+      return a->index < b->index ? -1 : a->index > b->index ? 1 : 0;
+    }
   };
 
   typedef void (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
@@ -77,43 +83,43 @@ struct hb_ot_map_t
 
   inline hb_mask_t get_global_mask (void) const { return global_mask; }
 
-  inline hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = NULL) const {
-    const feature_map_t *map = features.bsearch (&feature_tag);
+  inline hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr) const {
+    const feature_map_t *map = features.bsearch (feature_tag);
     if (shift) *shift = map ? map->shift : 0;
     return map ? map->mask : 0;
   }
 
   inline bool needs_fallback (hb_tag_t feature_tag) const {
-    const feature_map_t *map = features.bsearch (&feature_tag);
+    const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->needs_fallback : false;
   }
 
   inline hb_mask_t get_1_mask (hb_tag_t feature_tag) const {
-    const feature_map_t *map = features.bsearch (&feature_tag);
+    const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->_1_mask : 0;
   }
 
   inline unsigned int get_feature_index (unsigned int table_index, hb_tag_t feature_tag) const {
-    const feature_map_t *map = features.bsearch (&feature_tag);
+    const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->index[table_index] : HB_OT_LAYOUT_NO_FEATURE_INDEX;
   }
 
   inline unsigned int get_feature_stage (unsigned int table_index, hb_tag_t feature_tag) const {
-    const feature_map_t *map = features.bsearch (&feature_tag);
+    const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->stage[table_index] : (unsigned int) -1;
   }
 
   inline void get_stage_lookups (unsigned int table_index, unsigned int stage,
 				 const struct lookup_map_t **plookups, unsigned int *lookup_count) const {
     if (unlikely (stage == (unsigned int) -1)) {
-      *plookups = NULL;
+      *plookups = nullptr;
       *lookup_count = 0;
       return;
     }
     assert (stage <= stages[table_index].len);
     unsigned int start = stage ? stages[table_index][stage - 1].last_lookup : 0;
     unsigned int end   = stage < stages[table_index].len ? stages[table_index][stage].last_lookup : lookups[table_index].len;
-    *plookups = &lookups[table_index][start];
+    *plookups = end == start ? nullptr : &lookups[table_index][start];
     *lookup_count = end - start;
   }
 
@@ -139,12 +145,6 @@ struct hb_ot_map_t
 
   private:
 
-  HB_INTERNAL void add_lookups (hb_face_t    *face,
-				unsigned int  table_index,
-				unsigned int  feature_index,
-				hb_mask_t     mask,
-				bool          auto_zwj);
-
   hb_mask_t global_mask;
 
   hb_prealloced_array_t<feature_map_t, 8> features;
@@ -156,8 +156,9 @@ enum hb_ot_map_feature_flags_t {
   F_NONE		= 0x0000u,
   F_GLOBAL		= 0x0001u, /* Feature applies to all characters; results in no mask allocated for it. */
   F_HAS_FALLBACK	= 0x0002u, /* Has fallback implementation, so include mask bit even if feature not found. */
-  F_MANUAL_ZWJ		= 0x0004u, /* Don't skip over ZWJ when matching. */
-  F_GLOBAL_SEARCH	= 0x0008u  /* If feature not found in LangSys, look for it in global feature list and pick one. */
+  F_MANUAL_ZWNJ		= 0x0004u, /* Don't skip over ZWNJ when matching **context**. */
+  F_MANUAL_ZWJ		= 0x0008u, /* Don't skip over ZWJ when matching **input**. */
+  F_GLOBAL_SEARCH	= 0x0010u  /* If feature not found in LangSys, look for it in global feature list and pick one. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
 /* Macro version for where const is desired. */
@@ -182,7 +183,9 @@ struct hb_ot_map_builder_t
   inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (1, pause_func); }
 
-  HB_INTERNAL void compile (struct hb_ot_map_t &m);
+  HB_INTERNAL void compile (hb_ot_map_t  &m,
+			    const int    *coords,
+			    unsigned int  num_coords);
 
   inline void finish (void) {
     feature_infos.finish ();
@@ -194,6 +197,14 @@ struct hb_ot_map_builder_t
 
   private:
 
+  HB_INTERNAL void add_lookups (hb_ot_map_t  &m,
+				unsigned int  table_index,
+				unsigned int  feature_index,
+				unsigned int  variations_index,
+				hb_mask_t     mask,
+				bool          auto_zwnj = true,
+				bool          auto_zwj = true);
+
   struct feature_info_t {
     hb_tag_t tag;
     unsigned int seq; /* sequence#, used for stable sorting only */
@@ -202,9 +213,13 @@ struct hb_ot_map_builder_t
     unsigned int default_value; /* for non-global features, what should the unset glyphs take */
     unsigned int stage[2]; /* GSUB/GPOS */
 
-    static int cmp (const feature_info_t *a, const feature_info_t *b)
-    { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) :
-	     (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0); }
+    static int cmp (const void *pa, const void *pb)
+    {
+      const feature_info_t *a = (const feature_info_t *) pa;
+      const feature_info_t *b = (const feature_info_t *) pb;
+      return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) :
+	     (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
+    }
   };
 
   struct stage_info_t {

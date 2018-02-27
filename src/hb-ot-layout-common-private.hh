@@ -29,6 +29,8 @@
 #ifndef HB_OT_LAYOUT_COMMON_PRIVATE_HH
 #define HB_OT_LAYOUT_COMMON_PRIVATE_HH
 
+#include "hb-private.hh"
+#include "hb-debug.hh"
 #include "hb-ot-layout-private.hh"
 #include "hb-open-type-private.hh"
 #include "hb-set-private.hh"
@@ -43,12 +45,6 @@
 
 
 namespace OT {
-
-
-#define TRACE_DISPATCH(this, format) \
-	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
-	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "format %d", (int) format);
 
 
 #define NOT_COVERED		((unsigned int) -1)
@@ -159,13 +155,13 @@ struct RangeRecord
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
-    glyphs->add_range (start, end);
+  inline bool add_coverage (set_t *glyphs) const {
+    return glyphs->add_range (start, end);
   }
 
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
-  USHORT	value;		/* Value */
+  HBUINT16	value;		/* Value */
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -179,7 +175,7 @@ struct IndexArray : ArrayOf<Index>
 				   unsigned int *_indexes /* OUT */) const
   {
     if (_count) {
-      const USHORT *arr = this->sub_array (start_offset, _count);
+      const HBUINT16 *arr = this->sub_array (start_offset, _count);
       unsigned int count = *_count;
       for (unsigned int i = 0; i < count; i++)
 	_indexes[i] = arr[i];
@@ -214,15 +210,15 @@ struct LangSys
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<LangSys>::sanitize_closure_t * = NULL) const
+			const Record<LangSys>::sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && featureIndex.sanitize (c));
   }
 
-  Offset<>	lookupOrderZ;	/* = Null (reserved for an offset to a
+  Offset16	lookupOrderZ;	/* = Null (reserved for an offset to a
 				 * reordering table) */
-  USHORT	reqFeatureIndex;/* Index of a feature required for this
+  HBUINT16	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features
 				 * = 0xFFFFu */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
@@ -254,7 +250,7 @@ struct Script
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Script>::sanitize_closure_t * = NULL) const
+			const Record<Script>::sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
@@ -303,7 +299,7 @@ struct FeatureParamsSize
      * better.
      *
      * Assume that the offset to the size feature is according to specification,
-     * and make the following value checks. If it fails, assume the the size
+     * and make the following value checks. If it fails, assume the size
      * feature is calculated as versions of MakeOTF before the AFDKO 2.0 built it.
      * If this fails, reject the 'size' feature. The older makeOTF's calculated the
      * offset from the beginning of the FeatureList table, rather than from the
@@ -347,12 +343,12 @@ struct FeatureParamsSize
       return_trace (true);
   }
 
-  USHORT	designSize;	/* Represents the design size in 720/inch
+  HBUINT16	designSize;	/* Represents the design size in 720/inch
 				 * units (decipoints).  The design size entry
 				 * must be non-zero.  When there is a design
 				 * size but no recommended size range, the
 				 * rest of the array will consist of zeros. */
-  USHORT	subfamilyID;	/* Has no independent meaning, but serves
+  HBUINT16	subfamilyID;	/* Has no independent meaning, but serves
 				 * as an identifier that associates fonts
 				 * in a subfamily. All fonts which share a
 				 * Preferred or Font Family name and which
@@ -362,7 +358,7 @@ struct FeatureParamsSize
 				 * same subfamily value. If this value is
 				 * zero, the remaining fields in the array
 				 * will be ignored. */
-  USHORT	subfamilyNameID;/* If the preceding value is non-zero, this
+  HBUINT16	subfamilyNameID;/* If the preceding value is non-zero, this
 				 * value must be set in the range 256 - 32767
 				 * (inclusive). It records the value of a
 				 * field in the name table, which must
@@ -376,10 +372,10 @@ struct FeatureParamsSize
 				 * subfamily in a menu.  Applications will
 				 * choose the appropriate version based on
 				 * their selection criteria. */
-  USHORT	rangeStart;	/* Large end of the recommended usage range
+  HBUINT16	rangeStart;	/* Large end of the recommended usage range
 				 * (inclusive), stored in 720/inch units
 				 * (decipoints). */
-  USHORT	rangeEnd;	/* Small end of the recommended usage range
+  HBUINT16	rangeEnd;	/* Small end of the recommended usage range
 				   (exclusive), stored in 720/inch units
 				 * (decipoints). */
   public:
@@ -397,12 +393,12 @@ struct FeatureParamsStylisticSet
     return_trace (c->check_struct (this));
   }
 
-  USHORT	version;	/* (set to 0): This corresponds to a “minor”
+  HBUINT16	version;	/* (set to 0): This corresponds to a “minor”
 				 * version number. Additional data may be
 				 * added to the end of this Feature Parameters
 				 * table in the future. */
 
-  USHORT	uiNameID;	/* The 'name' table name ID that specifies a
+  HBUINT16	uiNameID;	/* The 'name' table name ID that specifies a
 				 * string (or strings, for multiple languages)
 				 * for a user-interface label for this
 				 * feature.  The values of uiLabelNameId and
@@ -430,25 +426,25 @@ struct FeatureParamsCharacterVariants
 		  characters.sanitize (c));
   }
 
-  USHORT	format;			/* Format number is set to 0. */
-  USHORT	featUILableNameID;	/* The ‘name’ table name ID that
+  HBUINT16	format;			/* Format number is set to 0. */
+  HBUINT16	featUILableNameID;	/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) for a
 					 * user-interface label for this
-					 * feature. (May be NULL.) */
-  USHORT	featUITooltipTextNameID;/* The ‘name’ table name ID that
+					 * feature. (May be nullptr.) */
+  HBUINT16	featUITooltipTextNameID;/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) that an
 					 * application can use for tooltip
 					 * text for this feature. (May be
-					 * NULL.) */
-  USHORT	sampleTextNameID;	/* The ‘name’ table name ID that
+					 * nullptr.) */
+  HBUINT16	sampleTextNameID;	/* The ‘name’ table name ID that
 					 * specifies sample text that
 					 * illustrates the effect of this
-					 * feature. (May be NULL.) */
-  USHORT	numNamedParameters;	/* Number of named parameters. (May
+					 * feature. (May be nullptr.) */
+  HBUINT16	numNamedParameters;	/* Number of named parameters. (May
 					 * be zero.) */
-  USHORT	firstParamUILabelNameID;/* The first ‘name’ table name ID
+  HBUINT16	firstParamUILabelNameID;/* The first ‘name’ table name ID
 					 * used to specify strings for
 					 * user-interface labels for the
 					 * feature parameters. (Must be zero
@@ -507,7 +503,7 @@ struct Feature
   { return this+featureParams; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Feature>::sanitize_closure_t *closure) const
+			const Record<Feature>::sanitize_closure_t *closure = nullptr) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
@@ -566,7 +562,7 @@ struct Feature
 typedef RecordListOf<Feature> FeatureList;
 
 
-struct LookupFlag : USHORT
+struct LookupFlag : HBUINT16
 {
   enum Flags {
     RightToLeft		= 0x0001u,
@@ -612,7 +608,7 @@ struct Lookup
     unsigned int flag = lookupFlag;
     if (unlikely (flag & LookupFlag::UseMarkFilteringSet))
     {
-      const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
+      const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       flag += (markFilteringSet << 16);
     }
     return flag;
@@ -644,7 +640,7 @@ struct Lookup
     if (unlikely (!subTable.serialize (c, num_subtables))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
+      HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       markFilteringSet.set (lookup_props >> 16);
     }
     return_trace (true);
@@ -657,18 +653,18 @@ struct Lookup
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
+      const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
     return_trace (true);
   }
 
   private:
-  USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
-  USHORT	lookupFlag;		/* Lookup qualifiers */
-  ArrayOf<Offset<> >
+  HBUINT16	lookupType;		/* Different enumerations for GSUB and GPOS */
+  HBUINT16	lookupFlag;		/* Lookup qualifiers */
+  ArrayOf<Offset16>
 		subTable;		/* Array of SubTables */
-  USHORT	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
+  HBUINT16	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
   public:
@@ -690,7 +686,7 @@ struct CoverageFormat1
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     int i = glyphArray.bsearch (glyph_id);
-    ASSERT_STATIC (((unsigned int) -1) == NOT_COVERED);
+    static_assert ((((unsigned int) -1) == NOT_COVERED), "");
     return i;
   }
 
@@ -704,7 +700,7 @@ struct CoverageFormat1
     if (unlikely (!c->extend (glyphArray))) return_trace (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
       glyphArray[i] = glyphs[i];
-    glyphs.advance (num_glyphs);
+    glyphs += num_glyphs;
     return_trace (true);
   }
 
@@ -719,10 +715,8 @@ struct CoverageFormat1
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
-    unsigned int count = glyphArray.len;
-    for (unsigned int i = 0; i < count; i++)
-      glyphs->add (glyphArray[i]);
+  inline bool add_coverage (set_t *glyphs) const {
+    return glyphs->add_sorted_array (glyphArray.array, glyphArray.len);
   }
 
   public:
@@ -731,8 +725,8 @@ struct CoverageFormat1
     inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
     inline bool more (void) { return i < c->glyphArray.len; }
     inline void next (void) { i++; }
-    inline uint16_t get_glyph (void) { return c->glyphArray[i]; }
-    inline uint16_t get_coverage (void) { return i; }
+    inline hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
+    inline unsigned int get_coverage (void) { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -741,7 +735,7 @@ struct CoverageFormat1
   private:
 
   protected:
-  USHORT	coverageFormat;	/* Format identifier--format = 1 */
+  HBUINT16	coverageFormat;	/* Format identifier--format = 1 */
   SortedArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
@@ -795,7 +789,7 @@ struct CoverageFormat2
       } else {
         rangeRecord[range].end = glyphs[i];
       }
-    glyphs.advance (num_glyphs);
+    glyphs += num_glyphs;
     return_trace (true);
   }
 
@@ -821,34 +815,43 @@ struct CoverageFormat2
   }
 
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
-      rangeRecord[i].add_coverage (glyphs);
+      if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+        return false;
+    return true;
   }
 
   public:
   /* Older compilers need this to be public. */
-  struct Iter {
-    inline void init (const CoverageFormat2 &c_) {
+  struct Iter
+  {
+    inline void init (const CoverageFormat2 &c_)
+    {
       c = &c_;
       coverage = 0;
       i = 0;
       j = c->rangeRecord.len ? c_.rangeRecord[0].start : 0;
     }
     inline bool more (void) { return i < c->rangeRecord.len; }
-    inline void next (void) {
-      coverage++;
-      if (j == c->rangeRecord[i].end) {
+    inline void next (void)
+    {
+      if (j >= c->rangeRecord[i].end)
+      {
         i++;
 	if (more ())
+	{
 	  j = c->rangeRecord[i].start;
+	  coverage = c->rangeRecord[i].value;
+	}
 	return;
       }
+      coverage++;
       j++;
     }
-    inline uint16_t get_glyph (void) { return j; }
-    inline uint16_t get_coverage (void) { return coverage; }
+    inline hb_codepoint_t get_glyph (void) { return j; }
+    inline unsigned int get_coverage (void) { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -857,7 +860,7 @@ struct CoverageFormat2
   private:
 
   protected:
-  USHORT	coverageFormat;	/* Format identifier--format = 2 */
+  HBUINT16	coverageFormat;	/* Format identifier--format = 2 */
   SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
@@ -871,8 +874,8 @@ struct Coverage
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage(glyph_id);
-    case 2: return u.format2.get_coverage(glyph_id);
+    case 1: return u.format1.get_coverage (glyph_id);
+    case 2: return u.format2.get_coverage (glyph_id);
     default:return NOT_COVERED;
     }
   }
@@ -924,17 +927,19 @@ struct Coverage
     }
   }
 
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline void add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const {
     switch (u.format) {
-    case 1: u.format1.add_coverage (glyphs); break;
-    case 2: u.format2.add_coverage (glyphs); break;
-    default:                                 break;
+    case 1: return u.format1.add_coverage (glyphs);
+    case 2: return u.format2.add_coverage (glyphs);
+    default:return false;
     }
   }
 
   struct Iter {
-    Iter (void) : format (0) {};
+    Iter (void) : format (0), u () {};
     inline void init (const Coverage &c_) {
       format = c_.u.format;
       switch (format) {
@@ -957,14 +962,14 @@ struct Coverage
       default:                   break;
       }
     }
-    inline uint16_t get_glyph (void) {
+    inline hb_codepoint_t get_glyph (void) {
       switch (format) {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
       default:return 0;
       }
     }
-    inline uint16_t get_coverage (void) {
+    inline unsigned int get_coverage (void) {
       switch (format) {
       case 1: return u.format1.get_coverage ();
       case 2: return u.format2.get_coverage ();
@@ -975,14 +980,14 @@ struct Coverage
     private:
     unsigned int format;
     union {
+    CoverageFormat2::Iter	format2; /* Put this one first since it's larger; helps shut up compiler. */
     CoverageFormat1::Iter	format1;
-    CoverageFormat2::Iter	format2;
     } u;
   };
 
   protected:
   union {
-  USHORT		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   CoverageFormat1	format1;
   CoverageFormat2	format2;
   } u;
@@ -1015,11 +1020,36 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  inline void add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_coverage (set_t *glyphs) const {
+    unsigned int start = 0;
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      if (classValue[i])
+        continue;
+
+      if (start != i)
+	if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + i)))
+	  return false;
+
+      start = i + 1;
+    }
+    if (start != count)
+      if (unlikely (!glyphs->add_range (startGlyph + start, startGlyph + count)))
+	return false;
+
+    return true;
+  }
+
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+    unsigned int count = classValue.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
       if (classValue[i] == klass)
         glyphs->add (startGlyph + i);
+    }
+    return true;
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -1027,7 +1057,7 @@ struct ClassDefFormat1
     if (klass == 0)
     {
       /* Match if there's any glyph that is not listed! */
-      hb_codepoint_t g = -1;
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
       if (!hb_set_next (glyphs, &g))
         return false;
       if (g < startGlyph)
@@ -1044,9 +1074,9 @@ struct ClassDefFormat1
   }
 
   protected:
-  USHORT	classFormat;		/* Format identifier--format = 1 */
+  HBUINT16	classFormat;		/* Format identifier--format = 1 */
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
-  ArrayOf<USHORT>
+  ArrayOf<HBUINT16>
 		classValue;		/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (6, classValue);
@@ -1072,11 +1102,25 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline void add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_coverage (set_t *glyphs) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].value)
+	if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	  return false;
+    return true;
+  }
+
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
       if (rangeRecord[i].value == klass)
-        rangeRecord[i].add_coverage (glyphs);
+        if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	  return false;
+    }
+    return true;
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -1084,7 +1128,7 @@ struct ClassDefFormat2
     if (klass == 0)
     {
       /* Match if there's any glyph that is not listed! */
-      hb_codepoint_t g = (hb_codepoint_t) -1;
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
       for (unsigned int i = 0; i < count; i++)
       {
 	if (!hb_set_next (glyphs, &g))
@@ -1093,7 +1137,7 @@ struct ClassDefFormat2
 	  return true;
 	g = rangeRecord[i].end;
       }
-      if (g != (hb_codepoint_t) -1 && hb_set_next (glyphs, &g))
+      if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
         return true;
       /* Fall through. */
     }
@@ -1104,7 +1148,7 @@ struct ClassDefFormat2
   }
 
   protected:
-  USHORT	classFormat;	/* Format identifier--format = 2 */
+  HBUINT16	classFormat;	/* Format identifier--format = 2 */
   SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
@@ -1117,8 +1161,8 @@ struct ClassDef
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_class(glyph_id);
-    case 2: return u.format2.get_class(glyph_id);
+    case 1: return u.format1.get_class (glyph_id);
+    case 2: return u.format2.get_class (glyph_id);
     default:return 0;
     }
   }
@@ -1134,11 +1178,25 @@ struct ClassDef
     }
   }
 
-  inline void add_class (hb_set_t *glyphs, unsigned int klass) const {
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
+  template <typename set_t>
+  inline bool add_coverage (set_t *glyphs) const {
     switch (u.format) {
-    case 1: u.format1.add_class (glyphs, klass); return;
-    case 2: u.format2.add_class (glyphs, klass); return;
-    default:return;
+    case 1: return u.format1.add_coverage (glyphs);
+    case 2: return u.format2.add_coverage (glyphs);
+    default:return false;
+    }
+  }
+
+  /* Might return false if array looks unsorted.
+   * Used for faster rejection of corrupt data. */
+  template <typename set_t>
+  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+    switch (u.format) {
+    case 1: return u.format1.add_class (glyphs, klass);
+    case 2: return u.format2.add_class (glyphs, klass);
+    default:return false;
     }
   }
 
@@ -1152,7 +1210,7 @@ struct ClassDef
 
   protected:
   union {
-  USHORT		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   ClassDefFormat1	format1;
   ClassDefFormat2	format2;
   } u;
@@ -1162,11 +1220,389 @@ struct ClassDef
 
 
 /*
+ * Item Variation Store
+ */
+
+struct VarRegionAxis
+{
+  inline float evaluate (int coord) const
+  {
+    int start = startCoord, peak = peakCoord, end = endCoord;
+
+    /* TODO Move these to sanitize(). */
+    if (unlikely (start > peak || peak > end))
+      return 1.;
+    if (unlikely (start < 0 && end > 0 && peak != 0))
+      return 1.;
+
+    if (peak == 0 || coord == peak)
+      return 1.;
+
+    if (coord <= start || end <= coord)
+      return 0.;
+
+    /* Interpolate */
+    if (coord < peak)
+      return float (coord - start) / (peak - start);
+    else
+      return float (end - coord) / (end - peak);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+    /* TODO Handle invalid start/peak/end configs, so we don't
+     * have to do that at runtime. */
+  }
+
+  public:
+  F2DOT14	startCoord;
+  F2DOT14	peakCoord;
+  F2DOT14	endCoord;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct VarRegionList
+{
+  inline float evaluate (unsigned int region_index,
+			 int *coords, unsigned int coord_len) const
+  {
+    if (unlikely (region_index >= regionCount))
+      return 0.;
+
+    const VarRegionAxis *axes = axesZ + (region_index * axisCount);
+
+    float v = 1.;
+    unsigned int count = axisCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      int coord = i < coord_len ? coords[i] : 0;
+      float factor = axes[i].evaluate (coord);
+      if (factor == 0.)
+        return 0.;
+      v *= factor;
+    }
+    return v;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  c->check_array (axesZ, axesZ[0].static_size,
+				  (unsigned int) axisCount * (unsigned int) regionCount));
+  }
+
+  protected:
+  HBUINT16	axisCount;
+  HBUINT16	regionCount;
+  VarRegionAxis	axesZ[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (4, axesZ);
+};
+
+struct VarData
+{
+  inline unsigned int get_row_size (void) const
+  { return shortCount + regionIndices.len; }
+
+  inline unsigned int get_size (void) const
+  { return itemCount * get_row_size (); }
+
+  inline float get_delta (unsigned int inner,
+			  int *coords, unsigned int coord_count,
+			  const VarRegionList &regions) const
+  {
+    if (unlikely (inner >= itemCount))
+      return 0.;
+
+   unsigned int count = regionIndices.len;
+   unsigned int scount = shortCount;
+
+   const HBUINT8 *bytes = &StructAfter<HBUINT8> (regionIndices);
+   const HBUINT8 *row = bytes + inner * (scount + count);
+
+   float delta = 0.;
+   unsigned int i = 0;
+
+   const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (row);
+   for (; i < scount; i++)
+   {
+     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     delta += scalar * *scursor++;
+   }
+   const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
+   for (; i < count; i++)
+   {
+     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     delta += scalar * *bcursor++;
+   }
+
+   return delta;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  regionIndices.sanitize(c) &&
+		  shortCount <= regionIndices.len &&
+		  c->check_array (&StructAfter<HBUINT8> (regionIndices),
+				  get_row_size (), itemCount));
+  }
+
+  protected:
+  HBUINT16		itemCount;
+  HBUINT16		shortCount;
+  ArrayOf<HBUINT16>	regionIndices;
+  HBUINT8			bytesX[VAR];
+  public:
+  DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
+};
+
+struct VariationStore
+{
+  inline float get_delta (unsigned int outer, unsigned int inner,
+			  int *coords, unsigned int coord_count) const
+  {
+    if (unlikely (outer >= dataSets.len))
+      return 0.;
+
+    return (this+dataSets[outer]).get_delta (inner,
+					     coords, coord_count,
+					     this+regions);
+  }
+
+  inline float get_delta (unsigned int index,
+			  int *coords, unsigned int coord_count) const
+  {
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    return get_delta (outer, inner, coords, coord_count);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  format == 1 &&
+		  regions.sanitize (c, this) &&
+		  dataSets.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16				format;
+  LOffsetTo<VarRegionList>		regions;
+  OffsetArrayOf<VarData, HBUINT32>	dataSets;
+  public:
+  DEFINE_SIZE_ARRAY (8, dataSets);
+};
+
+/*
+ * Feature Variations
+ */
+
+struct ConditionFormat1
+{
+  friend struct Condition;
+
+  private:
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
+    return filterRangeMinValue <= coord && coord <= filterRangeMaxValue;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 1 */
+  HBUINT16	axisIndex;
+  F2DOT14	filterRangeMinValue;
+  F2DOT14	filterRangeMaxValue;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct Condition
+{
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.evaluate (coords, coord_len);
+    default:return false;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.format.sanitize (c)) return_trace (false);
+    switch (u.format) {
+    case 1: return_trace (u.format1.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  HBUINT16		format;		/* Format identifier */
+  ConditionFormat1	format1;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (2, format);
+};
+
+struct ConditionSet
+{
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+conditions.array[i]).evaluate (coords, coord_len))
+        return false;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  OffsetArrayOf<Condition, HBUINT32> conditions;
+  public:
+  DEFINE_SIZE_ARRAY (2, conditions);
+};
+
+struct FeatureTableSubstitutionRecord
+{
+  friend struct FeatureTableSubstitution;
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && feature.sanitize (c, base));
+  }
+
+  protected:
+  HBUINT16		featureIndex;
+  LOffsetTo<Feature>	feature;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct FeatureTableSubstitution
+{
+  inline const Feature *find_substitute (unsigned int feature_index) const
+  {
+    unsigned int count = substitutions.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const FeatureTableSubstitutionRecord &record = substitutions.array[i];
+      if (record.featureIndex == feature_index)
+	return &(this+record.feature);
+    }
+    return nullptr;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  substitutions.sanitize (c, this));
+  }
+
+  protected:
+  FixedVersion<>	version;	/* Version--0x00010000u */
+  ArrayOf<FeatureTableSubstitutionRecord>
+			substitutions;
+  public:
+  DEFINE_SIZE_ARRAY (6, substitutions);
+};
+
+struct FeatureVariationRecord
+{
+  friend struct FeatureVariations;
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, base) &&
+		  substitutions.sanitize (c, base));
+  }
+
+  protected:
+  LOffsetTo<ConditionSet>
+			conditions;
+  LOffsetTo<FeatureTableSubstitution>
+			substitutions;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct FeatureVariations
+{
+  static const unsigned int NOT_FOUND_INDEX = 0xFFFFFFFFu;
+
+  inline bool find_index (const int *coords, unsigned int coord_len,
+			  unsigned int *index) const
+  {
+    unsigned int count = varRecords.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const FeatureVariationRecord &record = varRecords.array[i];
+      if ((this+record.conditions).evaluate (coords, coord_len))
+      {
+	*index = i;
+	return true;
+      }
+    }
+    *index = NOT_FOUND_INDEX;
+    return false;
+  }
+
+  inline const Feature *find_substitute (unsigned int variations_index,
+					 unsigned int feature_index) const
+  {
+    const FeatureVariationRecord &record = varRecords[variations_index];
+    return (this+record.substitutions).find_substitute (feature_index);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  varRecords.sanitize (c, this));
+  }
+
+  protected:
+  FixedVersion<>	version;	/* Version--0x00010000u */
+  LArrayOf<FeatureVariationRecord>
+			varRecords;
+  public:
+  DEFINE_SIZE_ARRAY (8, varRecords);
+};
+
+
+/*
  * Device Tables
  */
 
-struct Device
+struct HintingDevice
 {
+  friend struct Device;
+
+  private:
 
   inline hb_position_t get_x_delta (hb_font_t *font) const
   { return get_delta (font->x_ppem, font->x_scale); }
@@ -1177,8 +1613,8 @@ struct Device
   inline unsigned int get_size (void) const
   {
     unsigned int f = deltaFormat;
-    if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::static_size;
-    return USHORT::static_size * (4 + ((endSize - startSize) >> (4 - f)));
+    if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * HBUINT16::static_size;
+    return HBUINT16::static_size * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1223,16 +1659,111 @@ struct Device
   }
 
   protected:
-  USHORT	startSize;		/* Smallest size to correct--in ppem */
-  USHORT	endSize;		/* Largest size to correct--in ppem */
-  USHORT	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3
+  HBUINT16	startSize;		/* Smallest size to correct--in ppem */
+  HBUINT16	endSize;		/* Largest size to correct--in ppem */
+  HBUINT16	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3
 					 * 1	Signed 2-bit value, 8 values per uint16
 					 * 2	Signed 4-bit value, 4 values per uint16
 					 * 3	Signed 8-bit value, 2 values per uint16
 					 */
-  USHORT	deltaValue[VAR];	/* Array of compressed data */
+  HBUINT16	deltaValue[VAR];	/* Array of compressed data */
   public:
   DEFINE_SIZE_ARRAY (6, deltaValue);
+};
+
+struct VariationDevice
+{
+  friend struct Device;
+
+  private:
+
+  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
+  { return font->em_scalef_x (get_delta (font, store)); }
+
+  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
+  { return font->em_scalef_y (get_delta (font, store)); }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  private:
+
+  inline float get_delta (hb_font_t *font, const VariationStore &store) const
+  {
+    return store.get_delta (outerIndex, innerIndex, font->coords, font->num_coords);
+  }
+
+  protected:
+  HBUINT16	outerIndex;
+  HBUINT16	innerIndex;
+  HBUINT16	deltaFormat;	/* Format identifier for this table: 0x0x8000 */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct DeviceHeader
+{
+  protected:
+  HBUINT16		reserved1;
+  HBUINT16		reserved2;
+  public:
+  HBUINT16		format;		/* Format identifier */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct Device
+{
+  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store=Null(VariationStore)) const
+  {
+    switch (u.b.format)
+    {
+    case 1: case 2: case 3:
+      return u.hinting.get_x_delta (font);
+    case 0x8000:
+      return u.variation.get_x_delta (font, store);
+    default:
+      return 0;
+    }
+  }
+  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store=Null(VariationStore)) const
+  {
+    switch (u.b.format)
+    {
+    case 1: case 2: case 3:
+      return u.hinting.get_y_delta (font);
+    case 0x8000:
+      return u.variation.get_y_delta (font, store);
+    default:
+      return 0;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.b.format.sanitize (c)) return_trace (false);
+    switch (u.b.format) {
+    case 1: case 2: case 3:
+      return_trace (u.hinting.sanitize (c));
+    case 0x8000:
+      return_trace (u.variation.sanitize (c));
+    default:
+      return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  DeviceHeader		b;
+  HintingDevice		hinting;
+  VariationDevice	variation;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (6, b);
 };
 
 
