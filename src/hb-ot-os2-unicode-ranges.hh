@@ -38,7 +38,7 @@ struct Range {
   unsigned int bit;
 };
 
-/* Note: The contents of this array was generated using util/generate-unicode-ranges.py. */
+/* Note: The contents of this array was generated using src/gen-unicode-ranges.py. */
 static Range os2UnicodeRangesSorted[] =
 {
   {     0x0,     0x7F,   0}, // Basic Latin
