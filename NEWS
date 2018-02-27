@@ -1,4 +1,3 @@
-=======
 Overview of changes leading to 1.7.5
 Tuesday, January 30, 2018
 ====================================
@@ -372,6 +371,7 @@ Thursday, July 21, 2016
 - Blacklist bad GDEF of more fonts (Tahoma & others).
 - Misc fixes.
 
+
 Overview of changes leading to 1.2.7
 Monday, May 2, 2016
 ====================================
@@ -382,6 +382,7 @@ Monday, May 2, 2016
 - Improved list of language tag mappings.
 - Unbreak build on Windows CE.
 - Make 'glyf' table loading lazy in hb-ot-font.
+
 
 Overview of changes leading to 1.2.6
 Friday, April 8, 2016

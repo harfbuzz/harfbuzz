@@ -368,7 +368,6 @@ check_PROGRAMS += \
 	dump-myanmar-data \
 	dump-use-data \
 	$(NULL)
-
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
 dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)

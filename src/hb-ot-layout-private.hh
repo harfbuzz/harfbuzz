@@ -165,16 +165,15 @@ struct hb_ot_layout_t
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
-  hb_blob_t *cpal_blob;
 
   const struct OT::GDEF *gdef;
   const struct OT::GSUB *gsub;
   const struct OT::GPOS *gpos;
-  const struct OT::CPAL *cpal;
 
   /* TODO Move the following out of this struct. */
   OT::hb_lazy_table_loader_t<struct OT::BASE> base;
   OT::hb_lazy_table_loader_t<struct OT::MATH> math;
+  OT::hb_lazy_table_loader_t<struct OT::CPAL> cpal;
   OT::hb_lazy_table_loader_t<struct OT::fvar> fvar;
   OT::hb_lazy_table_loader_t<struct OT::avar> avar;
   OT::hb_lazy_table_loader_t<struct AAT::ankr> ankr;

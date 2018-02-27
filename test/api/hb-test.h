@@ -88,6 +88,7 @@ hb_test_run (void)
 }
 
 
+#if 0
 /* Helpers for loading test fonts */
 static inline hb_face_t *
 hb_test_load_face (const char *path)
@@ -116,6 +117,7 @@ hb_test_load_face (const char *path)
   hb_blob_destroy (blob);
   return face;
 }
+#endif
 
 
 /* Bugzilla helpers */

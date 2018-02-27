@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
  * HB_OT_TAG_CPAL:
  * a four-letter tag for identifying the CPAL table with color palettes
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 #define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
 
@@ -55,7 +55,7 @@ HB_BEGIN_DECLS
  *
  * Structure for holding color values.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 typedef struct
 {
@@ -69,7 +69,7 @@ typedef struct
  * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
  * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 typedef enum { /*< flags >*/
   HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
@@ -77,22 +77,21 @@ typedef enum { /*< flags >*/
   HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
 } hb_ot_color_palette_flags_t;
 
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_count (hb_face_t *face);
 
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_count (hb_face_t *face);
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
 
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
+// HB_EXTERN hb_ot_color_palette_flags_t
+// hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
 
-HB_EXTERN hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
-
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_colors (hb_face_t       *face,
-				unsigned int     palette, /* default=0 */
-				unsigned int     start_offset,
-				unsigned int    *color_count /* IN/OUT */,
-				hb_ot_color_t   *colors /* OUT */);
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_colors (hb_face_t       *face,
+// 				unsigned int     palette, /* default=0 */
+// 				unsigned int     start_offset,
+// 				unsigned int    *color_count /* IN/OUT */,
+// 				hb_ot_color_t   *colors /* OUT */);
 
 HB_END_DECLS
 

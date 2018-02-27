@@ -1,5 +1,6 @@
 /*
  * Copyright © 2016  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -43,34 +44,54 @@ struct ColorRecord
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    // We do not enforce alpha != 0 because zero alpha is bogus but harmless.
     TRACE_SANITIZE (this);
     return_trace (true);
   }
 
+  HBUINT8 blue;
+  HBUINT8 green;
+  HBUINT8 red;
+  HBUINT8 alpha;
   public:
-  BYTE blue;
-  BYTE green;
-  BYTE red;
-  BYTE alpha;
   DEFINE_SIZE_STATIC (4);
 };
 
 struct CPALV1Tail
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  friend struct CPAL;
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int palettes) const
   {
     TRACE_SANITIZE (this);
-    return_trace (paletteFlags.sanitize (c, this) &&
-    		  paletteLabel.sanitize (c, this) &&
-    		  paletteEntryLabel.sanitize (c, this));
+    return_trace (
+      c->check_struct (this) &&
+      c->check_array ((const void*) &paletteFlags, sizeof (HBUINT32), palettes) &&
+      c->check_array ((const void*) &paletteLabel, sizeof (HBUINT16), palettes) &&
+      c->check_array ((const void*) &paletteEntryLabel, sizeof (HBUINT16), palettes));
   }
-  
+
+  private:
+  inline hb_ot_color_palette_flags_t
+  get_palette_flags (const void *base, unsigned int palette) const
+  {
+    const HBUINT32* flags = (const HBUINT32*) (const void*) &paletteFlags (base);
+    return (hb_ot_color_palette_flags_t) (uint32_t) flags[palette];
+  }
+
+  inline unsigned int
+  get_palette_name_id (const void *base, unsigned int palette) const
+  {
+    const HBUINT16* name_ids = (const HBUINT16*) (const void*) &paletteLabel (base);
+    return name_ids[palette];
+  }
+
+  protected:
+  LOffsetTo<HBUINT32> paletteFlags;
+  LOffsetTo<HBUINT16> paletteLabel;
+  LOffsetTo<HBUINT16> paletteEntryLabel;
+
   public:
-  OffsetTo<ULONG, ULONG> paletteFlags;
-  OffsetTo<USHORT, ULONG> paletteLabel;
-  OffsetTo<USHORT, ULONG> paletteEntryLabel;
-  DEFINE_SIZE_STATIC (12);  
+  DEFINE_SIZE_STATIC (12);
 };
 
 struct CPAL
@@ -80,36 +101,63 @@ struct CPAL
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this) &&
-		    offsetFirstColorRecord.sanitize (c, this)))) {
+    if (!(c->check_struct (this) &&
+		    colorRecords.sanitize (c)))
       return_trace (false);
+
+    unsigned int palettes = numPalettes;
+    if (!c->check_array (colorRecordIndices, sizeof (HBUINT16), palettes))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < palettes; ++i)
+      if (colorRecordIndices[i] + numPaletteEntries > colorRecords.get_size ())
+        return_trace (false);
+
+    if (version > 1)
+    {
+      const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
+      return_trace (v1.sanitize (c, palettes));
     }
-    for (unsigned int i = 0; i < numPalettes; ++i) {
-      if (unlikely (colorRecordIndices[i] + numPaletteEntries > numColorRecords)) {
-	return_trace (false);
-      }
-    }
-    if (version > 1) {
-      const CPALV1Tail &v1 = StructAfter<CPALV1Tail>(*this);
-      return_trace (v1.sanitize (c));
-    } else {
+    else
       return_trace (true);
-    }
   }
 
-  inline unsigned int get_size (void) const {
+  inline unsigned int get_size (void) const
+  {
     return min_size + numPalettes * 2;
   }
 
-  public:
-  USHORT	version;
+  inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
+  {
+    if (version == 0 || palette >= numPalettes)
+      return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
+
+    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
+    return cpal1.get_palette_flags (this, palette);
+  }
+
+  inline unsigned int get_palette_name_id (unsigned int palette) const
+  {
+    if (version == 0 || palette >= numPalettes)
+      return 0xFFFF;
+
+    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
+    return cpal1.get_palette_name_id (this, palette);
+  }
+
+  inline unsigned int get_palette_count () const
+  {
+    return numPalettes;
+  }
+
+  protected:
+  HBUINT16	version;
 
   /* Version 0 */
-  USHORT	numPaletteEntries;
-  USHORT	numPalettes;
-  USHORT	numColorRecords;
-  OffsetTo<ColorRecord, ULONG> offsetFirstColorRecord;
-  USHORT	colorRecordIndices[VAR];  // VAR=numPalettes
+  HBUINT16	numPaletteEntries;
+  HBUINT16	numPalettes;
+  ArrayOf<ColorRecord>	colorRecords;
+  HBUINT16	colorRecordIndices[VAR];  // VAR=numPalettes
 
   public:
   DEFINE_SIZE_ARRAY (12, colorRecordIndices);

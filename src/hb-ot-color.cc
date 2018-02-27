@@ -1,5 +1,6 @@
 /*
  * Copyright © 2016  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -34,23 +35,17 @@
 #include "hb-ot-layout-private.hh"
 #include "hb-shaper-private.hh"
 
+#if 0
 HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)
-HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
+//HB_SHAPER_DATA_ENSURE_DECLARE(ot, face) Hmm?
 
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-    return OT::Null(OT::CPAL);
-
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::CPAL);
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  if (!layout->cpal) {
-    layout->cpal_blob = OT::Sanitizer<OT::CPAL>::sanitize (face->reference_table (HB_OT_TAG_CPAL));
-    layout->cpal = OT::Sanitizer<OT::CPAL>::lock_instance (layout->cpal_blob);
-  }
-
-  return *layout->cpal;
+  return *(layout->cpal.get ());
 }
 
 
@@ -61,13 +56,13 @@ _get_cpal (hb_face_t *face)
  * Returns: the number of color palettes in @face, or zero if @face has
  * no colors.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 unsigned int
 hb_ot_color_get_palette_count (hb_face_t *face)
 {
-  const OT::CPAL& cpal = _get_cpal(face);
-  return &cpal != &OT::Null(OT::CPAL) ? cpal.numPalettes : 0;
+  const OT::CPAL& cpal = _get_cpal (face);
+  return cpal.get_palette_count ();
 }
 
 
@@ -85,28 +80,13 @@ hb_ot_color_get_palette_count (hb_face_t *face)
  * the result is 0xFFFF. The implementation does not check whether
  * the returned palette name id is actually in @face's `name` table.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 unsigned int
 hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
 {
-  const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (&cpal == &OT::Null(OT::CPAL) || cpal.version == 0 ||
-		palette >= cpal.numPalettes)) {
-    return 0xFFFF;
-  }
-
-  const OT::CPALV1Tail& cpal1 = OT::StructAfter<OT::CPALV1Tail>(cpal);
-  if (unlikely (&cpal1 == &OT::Null(OT::CPALV1Tail) ||
-		cpal1.paletteLabel.is_null())) {
-    return 0xFFFF;
-  }
-
-  const OT::USHORT* name_ids = &cpal1.paletteLabel (&cpal);
-  const OT::USHORT name_id = name_ids [palette];
-
-  // According to the OpenType CPAL specification, 0xFFFF means name-less.
-  return name_id;
+  const OT::CPAL& cpal = _get_cpal (face);
+  return cpal.get_palette_name_id (palette);
 }
 
 
@@ -119,26 +99,13 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
  * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
  * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 hb_ot_color_palette_flags_t
 hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
 {
   const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (&cpal == &OT::Null(OT::CPAL) || cpal.version == 0 ||
-		palette >= cpal.numPalettes)) {
-    return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
-  }
-
-  const OT::CPALV1Tail& cpal1 = OT::StructAfter<OT::CPALV1Tail>(cpal);
-  if (unlikely (&cpal1 == &OT::Null(OT::CPALV1Tail) ||
-		cpal1.paletteFlags.is_null())) {
-    return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
-  }
-
-  const OT::ULONG* flags = &cpal1.paletteFlags(&cpal);
-  const uint32_t flag = static_cast<uint32_t> (flags [palette]);
-  return static_cast<hb_ot_color_palette_flags_t> (flag);
+  return cpal.get_palette_flags (palette);
 }
 
 
@@ -167,7 +134,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  * @palette is not between 0 and hb_ot_color_get_palette_count(),
  * the result is zero.
  *
- * Since: 1.2.8
+ * Since: REPLACEME
  */
 unsigned int
 hb_ot_color_get_palette_colors (hb_face_t       *face,
@@ -177,19 +144,13 @@ hb_ot_color_get_palette_colors (hb_face_t       *face,
 				hb_ot_color_t   *colors /* OUT */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (&cpal == &OT::Null(OT::CPAL) ||
-		palette >= cpal.numPalettes))
+  if (unlikely (palette >= cpal.numPalettes))
   {
     if (color_count) *color_count = 0;
     return 0;
   }
 
   const OT::ColorRecord* crec = &cpal.offsetFirstColorRecord (&cpal);
-  if (unlikely (crec == &OT::Null(OT::ColorRecord)))
-  {
-    if (color_count) *color_count = 0;
-    return 0;
-  }
   crec += cpal.colorRecordIndices[palette];
 
   unsigned int num_results = 0;
@@ -210,3 +171,4 @@ hb_ot_color_get_palette_colors (hb_face_t       *face,
   if (likely (color_count)) *color_count = num_results;
   return cpal.numPaletteEntries;
 }
+#endif
