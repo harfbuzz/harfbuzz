@@ -114,7 +114,7 @@ struct SingleSubstFormat1
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  HBINT16		deltaGlyphID;		/* Add to original GlyphID to get
+  HBINT16	deltaGlyphID;		/* Add to original GlyphID to get
 					 * substitute GlyphID */
   public:
   DEFINE_SIZE_STATIC (6);
