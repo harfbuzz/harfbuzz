@@ -90,6 +90,13 @@ struct os2
         unsigned int mask = 1 << bit_in_block;
         ulUnicodeRange[block].set (ulUnicodeRange[block] | mask);
       }
+      if (cp >= 0x10000 && cp <= 0x110000)
+      {
+        /* the spec says that bit 57 ("Non Plane 0") implies that there's
+           at least one codepoint beyond the BMP; so I also include all
+           the non-BMP codepoints here */
+        ulUnicodeRange[2].set (ulUnicodeRange[2] | (1 << 25));
+      }
     }
   }
 

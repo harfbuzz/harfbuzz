@@ -31,9 +31,6 @@
 void
 test (hb_codepoint_t cp, int bit)
 {
-  // TODO:
-  //  Note: * Setting bit 57 implies that there is at least one codepoint beyond the Basic
-  //  Multilingual Plane that is supported by this font. (See fontTools impl.)
   if (OT::hb_get_unicode_range_bit (cp) != bit)
   {
     fprintf (stderr, "got incorrect bit (%d) for cp 0x%X. Should have been %d.",
