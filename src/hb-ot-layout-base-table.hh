@@ -530,30 +530,9 @@ struct Axis
   DEFINE_SIZE_STATIC (4);
 };
 
-struct BASEFormat1_1
+struct BASE
 {
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      horizAxis.sanitize (c, this) &&
-      vertAxis.sanitize (c, this) &&
-      itemVarStore.sanitize (c, this));
-  }
-
-  protected:
-  FixedVersion<>            version;
-  OffsetTo<Axis>            horizAxis;
-  OffsetTo<Axis>            vertAxis;
-  LOffsetTo<VariationStore> itemVarStore;
-
-  public:
-  DEFINE_SIZE_STATIC (12);
-};
-
-struct BASEFormat1_0
-{
+  static const hb_tag_t tableTag = HB_OT_TAG_BASE;
 
   inline bool has_vert_axis(void)
   { return vertAxis != Null(OffsetTo<Axis>); }
@@ -651,131 +630,23 @@ struct BASEFormat1_0
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      horizAxis.sanitize (c, this) &&
-      vertAxis.sanitize (c, this));
+		  likely (version.major == 1) &&
+		  horizAxis.sanitize (c, this) &&
+		  vertAxis.sanitize (c, this) &&
+		  (version.to_int () < 0x00010001u || varStore.sanitize (c, this)));
   }
 
   protected:
   FixedVersion<>  version;
   OffsetTo<Axis>  horizAxis;
   OffsetTo<Axis>  vertAxis;
-
+  LOffsetTo<VariationStore>
+		varStore;		/* Offset to the table of Item Variation
+					 * Store--from beginning of BASE
+					 * header (may be NULL).  Introduced
+					 * in version 0x00010001. */
   public:
-  DEFINE_SIZE_STATIC (8);
-};
-
-struct BASE
-{
-  static const hb_tag_t tableTag = HB_OT_TAG_BASE;
-
-  inline bool has_vert_axis(void)
-  { return u.format1_0.has_vert_axis(); }
-
-  inline bool has_horiz_axis(void)
-  { return u.format1_0.has_horiz_axis(); }
-
-  inline unsigned int get_horiz_base_tag_index(Tag baselineTag) const
-  { return u.format1_0.get_horiz_base_tag_index(baselineTag); }
-
-  inline unsigned int get_horiz_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  { return u.format1_0.get_horiz_default_base_tag_index_for_script_index(baseScriptIndex); }
-
-  inline int get_horiz_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
-  { return u.format1_0.get_horiz_base_coord(baseScriptIndex, baselineTagIndex); }
-
-  inline unsigned int get_vert_base_tag_index(Tag baselineTag) const
-  { return u.format1_0.get_vert_base_tag_index(baselineTag); }
-
-  inline unsigned int get_vert_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  { return u.format1_0.get_vert_default_base_tag_index_for_script_index(baseScriptIndex); }
-
-  inline int get_vert_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
-  { return u.format1_0.get_vert_base_coord(baseScriptIndex, baselineTagIndex); }
-
-  inline unsigned int get_horiz_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
-  { return u.format1_0.get_horiz_lang_tag_index(baseScriptIndex, baseLangSysTag); }
-
-  inline unsigned int get_horiz_feature_tag_index (unsigned int baseScriptIndex,
-						   unsigned int baseLangSysIndex,
-						   Tag featureTableTag) const
-  {
-    return u.format1_0.get_horiz_feature_tag_index (baseScriptIndex,
-						    baseLangSysIndex,
-						    featureTableTag);
-  }
-
-  inline int get_horiz_max_value (unsigned int baseScriptIndex,
-				      unsigned int baseLangSysIndex,
-				      unsigned int featureTableTagIndex) const
-  {
-    return u.format1_0.get_horiz_max_value (baseScriptIndex,
-					    baseLangSysIndex,
-					    featureTableTagIndex);
-  }
-
-  inline int get_horiz_min_value (unsigned int baseScriptIndex,
-				      unsigned int baseLangSysIndex,
-				      unsigned int featureTableTagIndex) const
-  {
-    return u.format1_0.get_horiz_min_value (baseScriptIndex,
-					    baseLangSysIndex,
-					    featureTableTagIndex);
-  }
-
-  inline unsigned int get_vert_lang_tag_index (unsigned int baseScriptIndex,
-					       Tag baseLangSysTag) const
-  {
-    return u.format1_0.get_vert_lang_tag_index (baseScriptIndex,
-						baseLangSysTag);
-  }
-
-  inline unsigned int get_vert_feature_tag_index (unsigned int baseScriptIndex,
-						  unsigned int baseLangSysIndex,
-						  Tag featureTableTag) const
-  {
-    return u.format1_0.get_vert_feature_tag_index (baseScriptIndex,
-						   baseLangSysIndex,
-						   featureTableTag);
-  }
-
-  inline int get_vert_max_value (unsigned int baseScriptIndex,
-				     unsigned int baseLangSysIndex,
-				     unsigned int featureTableTagIndex) const
-  {
-    return u.format1_0.get_vert_max_value (baseScriptIndex,
-					   baseLangSysIndex,
-					   featureTableTagIndex);
-  }
-
-  inline int get_vert_min_value (unsigned int baseScriptIndex,
-				     unsigned int baseLangSysIndex,
-				     unsigned int featureTableTagIndex) const
-  {
-    return u.format1_0.get_vert_min_value (baseScriptIndex,
-					   baseLangSysIndex,
-					   featureTableTagIndex);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.version.sanitize (c)) return_trace (false);
-    if (!likely(u.version.major == 1)) return_trace (false);
-    switch (u.version.minor) {
-    case 0: return_trace (u.format1_0.sanitize (c));
-    case 1: return_trace (u.format1_1.sanitize (c));
-    default:return_trace (false);
-    }
-  }
-
-  protected:
-  union {
-    FixedVersion<>  version;    /* Version of the BASE table: 1.0 or 1.1 */
-    BASEFormat1_0   format1_0;
-    BASEFormat1_1   format1_1;
-  } u;
-  public:
-  DEFINE_SIZE_UNION (4, version);
+  DEFINE_SIZE_MIN (8);
 };
 
 
