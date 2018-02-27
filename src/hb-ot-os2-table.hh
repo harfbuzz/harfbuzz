@@ -95,7 +95,7 @@ struct os2
         /* the spec says that bit 57 ("Non Plane 0") implies that there's
            at least one codepoint beyond the BMP; so I also include all
            the non-BMP codepoints here */
-        ulUnicodeRange[2].set (ulUnicodeRange[2] | (1 << 25));
+        ulUnicodeRange[1].set (ulUnicodeRange[1] | (1 << 25));
       }
     }
   }
