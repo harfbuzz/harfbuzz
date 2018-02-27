@@ -17,10 +17,14 @@ def usage():
 
 def generate_expected_output(input_file, unicodes, output_path):
 	check_call(["fonttools", "subset",
-							input_file,
-							"--drop-tables+=DSIG,GPOS,GSUB,GDEF",
-							"--unicodes=%s" % unicodes,
-							"--output-file=%s" % output_path])
+		    input_file,
+                    "--notdef-outline",
+                    "--name-IDs=*",
+                    "--name-languages=*",
+                    "--name-legacy",
+		    "--drop-tables+=DSIG,GPOS,GSUB,GDEF",
+		    "--unicodes=%s" % unicodes,
+		    "--output-file=%s" % output_path])
 
 
 args = sys.argv[1:]
