@@ -8,6 +8,7 @@ SUBDIRS =
 EXTRA_DIST = \
 	$(TESTS) \
 	expected/basics \
+	expected/full-font \
 	fonts \
 	profiles \
 	$(NULL)
