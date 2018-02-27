@@ -5,4 +5,8 @@ PROFILES:
 default.txt
 
 SUBSETS:
+abc
 b
+c
+ac
+a
