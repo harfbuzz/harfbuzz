@@ -230,7 +230,7 @@ _compare_range (const void *_key, const void *_item, void *_arg)
  * hb_get_unicode_range_bit:
  * Returns the bit to be set in os/2 ulUnicodeRange for a given codepoint.
  **/
-static int
+static unsigned int
 hb_get_unicode_range_bit (hb_codepoint_t cp)
 {
   Range *range = (Range*) hb_bsearch_r (&cp, os2UnicodeRangesSorted,

@@ -83,8 +83,9 @@ struct os2
     for (unsigned int i = 0; i < codepoints.len; i++)
     {
       hb_codepoint_t cp = codepoints[i];
-      int bit = hb_get_unicode_range_bit (cp);
-      if (bit >= 0 && bit < 128) {
+      unsigned int bit = hb_get_unicode_range_bit (cp);
+      if (bit < 128)
+      {
         unsigned int block = bit / 32;
         unsigned int bit_in_block = bit % 32;
         unsigned int mask = 1 << bit_in_block;
