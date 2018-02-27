@@ -52,19 +52,19 @@ struct maxpV1Tail
   HBUINT16 maxCompositePoints;	  /* Maximum points in a composite glyph. */
   HBUINT16 maxCompositeContours;  /* Maximum contours in a composite glyph. */
   HBUINT16 maxZones;		  /* 1 if instructions do not use the twilight zone (Z0),
-				     or 2 if instructions do use Z0; should be set to 2 in
-				     most cases. */
+				   * or 2 if instructions do use Z0; should be set to 2 in
+				   * most cases. */
   HBUINT16 maxTwilightPoints;	  /* Maximum points used in Z0. */
   HBUINT16 maxStorage;		  /* Number of Storage Area locations. */
   HBUINT16 maxFunctionDefs;	  /* Number of FDEFs, equal to the highest function number + 1. */
   HBUINT16 maxInstructionDefs;	  /* Number of IDEFs. */
   HBUINT16 maxStackElements;	  /* Maximum stack depth. (This includes Font and CVT
-				     Programs, as well as the instructions for each glyph.) */
+				   * Programs, as well as the instructions for each glyph.) */
   HBUINT16 maxSizeOfInstructions; /* Maximum byte count for glyph instructions. */
   HBUINT16 maxComponentElements;  /* Maximum number of components referenced at
-				     "top level" for any composite glyph. */
+				   * "top level" for any composite glyph. */
   HBUINT16 maxComponentDepth;	  /* Maximum levels of recursion; 1 for simple components. */
-
+ public:
   DEFINE_SIZE_STATIC (26);
 };
 
@@ -119,9 +119,9 @@ struct maxp
 
   static inline void drop_hint_fields (hb_subset_plan_t *plan, OT::maxp *maxp_prime)
   {
-    maxpV1Tail &v1 = StructAfter<maxpV1Tail> (*maxp_prime);
     if (maxp_prime->version.major == 1)
     {
+      maxpV1Tail &v1 = StructAfter<maxpV1Tail> (*maxp_prime);
       v1.maxZones.set (1);
       v1.maxTwilightPoints.set (0);
       v1.maxStorage.set (0);
@@ -136,8 +136,7 @@ struct maxp
   FixedVersion<>version;		/* Version of the maxp table (0.5 or 1.0),
 					 * 0x00005000u or 0x00010000u. */
   HBUINT16	numGlyphs;		/* The number of glyphs in the font. */
-/*maxpV1Tail v1Tail; */
-
+/*maxpV1Tail v1Tail[VAR]; */
   public:
   DEFINE_SIZE_STATIC (6);
 };
