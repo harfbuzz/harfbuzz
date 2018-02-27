@@ -276,8 +276,8 @@ struct glyf
     }
 
     /* based on FontTools _g_l_y_f.py::trim */
-    inline bool trim(unsigned int start_offset,
-                     unsigned int *end_offset) const
+    inline bool remove_padding(unsigned int start_offset,
+                               unsigned int *end_offset) const
     {
       static const int FLAG_X_SHORT = 0x02;
       static const int FLAG_Y_SHORT = 0x04;
@@ -294,7 +294,9 @@ struct glyf
       int16_t num_contours = (int16_t) glyph_header.numberOfContours;
 
       if (num_contours < 0)
-        return true; /* no trimming for composites just yet */
+        /* Trimming for composites not implemented.
+         * If removing hints it falls out of that. */
+        return true;
       else if (num_contours > 0)
       {
         unsigned int glyph_len = *end_offset - start_offset;

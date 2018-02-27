@@ -43,12 +43,14 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   for (unsigned int i = 0; i < glyph_ids.len; i++)
   {
     hb_codepoint_t next_glyph = glyph_ids[i];
-    *(instruction_ranges->push()) = 0;
-    *(instruction_ranges->push()) = 0;
+    unsigned int *instruction_start = instruction_ranges->push();
+    unsigned int *instruction_end = instruction_ranges->push();
+    *instruction_start = 0;
+    *instruction_end = 0;
 
     unsigned int start_offset, end_offset;
     if (unlikely (!(glyf.get_offsets(next_glyph, &start_offset, &end_offset)
-                    && glyf.trim(start_offset, &end_offset))))
+                    && glyf.remove_padding(start_offset, &end_offset))))
     {
       DEBUG_MSG(SUBSET, nullptr, "Invalid gid %d", next_glyph);
       continue;
@@ -56,20 +58,17 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
     if (end_offset - start_offset < OT::glyf::GlyphHeader::static_size)
       continue; /* 0-length glyph */
 
-    unsigned int instruction_start = 0, instruction_end = 0;
     if (drop_hints)
     {
       if (unlikely (!glyf.get_instruction_offsets(start_offset, end_offset,
-                                                  &instruction_start, &instruction_end)))
+                                                  instruction_start, instruction_end)))
       {
         DEBUG_MSG(SUBSET, nullptr, "Unable to get instruction offsets for %d", next_glyph);
         return false;
       }
-      instruction_ranges->array[i * 2] = instruction_start;
-      instruction_ranges->array[i * 2 + 1] = instruction_end;
     }
 
-    total += end_offset - start_offset - (instruction_end - instruction_start);
+    total += end_offset - start_offset - (*instruction_end - *instruction_start);
     /* round2 so short loca will work */
     total += total % 2;
   }
@@ -156,7 +155,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
   {
     unsigned int start_offset, end_offset;
     if (unlikely (!(glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset)
-                    && glyf.trim(start_offset, &end_offset))))
+                    && glyf.remove_padding(start_offset, &end_offset))))
       end_offset = start_offset = 0;
     unsigned int instruction_start = instruction_ranges[i * 2];
     unsigned int instruction_end = instruction_ranges[i * 2 + 1];
