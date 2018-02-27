@@ -57,7 +57,7 @@ struct maxp
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  likely (version.major == 1 ||
+		  likely ((version.major == 1 && c->check_range (this, sizeof (maxp))) ||
 			  (version.major == 0 && version.minor == 0x5000u)));
   }
 
@@ -73,19 +73,56 @@ struct maxp
     OT::maxp *maxp_prime = (OT::maxp *) hb_blob_get_data (maxp_prime_blob, nullptr);
 
     maxp_prime->set_num_glyphs (plan->gids_to_retain_sorted.len);
+    if (plan->drop_hints)
+      drop_hint_fields (plan, maxp_prime);
 
     bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_maxp, maxp_prime_blob);
     hb_blob_destroy (maxp_prime_blob);
     return result;
   }
 
-  /* We only implement version 0.5 as none of the extra fields in version 1.0 are useful. */
+  static inline void drop_hint_fields (hb_subset_plan_t *plan, OT::maxp *maxp_prime)
+  {
+    if (maxp_prime->version.major == 1)
+    {
+      maxp_prime->version_1_data.maxZones.set (1);
+      maxp_prime->version_1_data.maxTwilightPoints.set (0);
+      maxp_prime->version_1_data.maxStorage.set (0);
+      maxp_prime->version_1_data.maxFunctionDefs.set (0);
+      maxp_prime->version_1_data.maxInstructionDefs.set (0);
+      maxp_prime->version_1_data.maxStackElements.set (0);
+      maxp_prime->version_1_data.maxSizeOfInstructions.set (0);
+    }
+  }
+
   protected:
   FixedVersion<>version;		/* Version of the maxp table (0.5 or 1.0),
 					 * 0x00005000u or 0x00010000u. */
   HBUINT16	numGlyphs;		/* The number of glyphs in the font. */
+
+  struct
+  {
+    HBUINT16 maxPoints;             /* Maximum points in a non-composite glyph. */
+    HBUINT16 maxContours;           /* Maximum contours in a non-composite glyph. */
+    HBUINT16 maxCompositePoints;    /* Maximum points in a composite glyph. */
+    HBUINT16 maxCompositeContours;  /* Maximum contours in a composite glyph. */
+    HBUINT16 maxZones;              /* 1 if instructions do not use the twilight zone (Z0),
+                                       or 2 if instructions do use Z0; should be set to 2 in
+                                       most cases. */
+    HBUINT16 maxTwilightPoints;     /* Maximum points used in Z0. */
+    HBUINT16 maxStorage;            /* Number of Storage Area locations. */
+    HBUINT16 maxFunctionDefs;       /* Number of FDEFs, equal to the highest function number + 1. */
+    HBUINT16 maxInstructionDefs;    /* Number of IDEFs. */
+    HBUINT16 maxStackElements;      /* Maximum stack depth. (This includes Font and CVT
+                                       Programs, as well as the instructions for each glyph.) */
+    HBUINT16 maxSizeOfInstructions; /* Maximum byte count for glyph instructions. */
+    HBUINT16 maxComponentElements;  /* Maximum number of components referenced at
+                                       "top level" for any composite glyph. */
+    HBUINT16 maxComponentDepth;     /* Maximum levels of recursion; 1 for simple components. */
+  } version_1_data;
+
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_MIN (6);
 };
 
 
