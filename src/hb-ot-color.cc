@@ -26,6 +26,7 @@
  */
 
 #include "hb-open-type-private.hh"
+#include "hb-ot-colr-table.hh"
 #include "hb-ot-cpal-table.hh"
 #include "hb-ot.h"
 
@@ -39,6 +40,14 @@
 HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)
 //HB_SHAPER_DATA_ENSURE_DECLARE(ot, face) Hmm?
 
+
+static inline const OT::COLR&
+_get_colr (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::COLR);
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+  return *(layout->colr.get ());
+}
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)

@@ -97,6 +97,7 @@ HB_OT_sources = \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-color.cc \
+	hb-ot-colr-table.hh \
 	hb-ot-cpal-table.hh \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \
