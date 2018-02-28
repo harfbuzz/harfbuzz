@@ -63,7 +63,6 @@ if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GLIB ON)
 endif ()
 
-option(HB_DISABLE_TEST_PROGS OFF "Do not build some of the test programs, useful for continuous builds")
 option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and enable all options)")
 if (HB_CHECK)
   set (BUILD_SHARED_LIBS ON)
@@ -133,12 +132,11 @@ endif ()
 
 
 ## Detect if we are running inside a distribution or regular repository folder
-set (IN_HB_DIST FALSE)
-if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
-  # perhaps we are on dist directory
-  set (IN_HB_DIST TRUE)
-  #set (HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
-endif ()
+# if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
+#   # perhaps we are on dist directory
+#   set (IN_HB_DIST TRUE)
+#   #set (HB_VERSION_H "${PROJECT_SOURCE_DIR}/src/hb-version.h")
+# endif ()
 
 
 ## Extract variables from Makefile files
@@ -210,31 +208,23 @@ set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 
 ## Define ragel tasks
-if (NOT IN_HB_DIST)
-  find_program(RAGEL "ragel" CMAKE_FIND_ROOT_PATH_BOTH)
+# if (NOT IN_HB_DIST)
+#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
+#    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
+#    set (target_name ${CMAKE_MATCH_1})
+#    add_custom_command(OUTPUT ${ragel_output}
+#      COMMAND ${RAGEL} -G2 -o ${ragel_output} ${PROJECT_SOURCE_DIR}/src/${target_name}.rl -I ${PROJECT_SOURCE_DIR} ${ARGN}
+#      DEPENDS ${PROJECT_SOURCE_DIR}/src/${target_name}.rl
+#    )
+#    add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
+#  endforeach ()
 
-  if (RAGEL)
-    message(STATUS "ragel found at: ${RAGEL}")
-  else ()
-    message(FATAL_ERROR "ragel not found, get it here -- http://www.complang.org/ragel/ or, use harfbuzz releases https://github.com/harfbuzz/harfbuzz/releases")
-  endif ()
-
-  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
-    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
-    set (target_name ${CMAKE_MATCH_1})
-    add_custom_command(OUTPUT ${ragel_output}
-      COMMAND ${RAGEL} -G2 -o ${ragel_output} ${PROJECT_SOURCE_DIR}/src/${target_name}.rl -I ${PROJECT_SOURCE_DIR} ${ARGN}
-      DEPENDS ${PROJECT_SOURCE_DIR}/src/${target_name}.rl
-    )
-    add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
-  endforeach ()
-
-  mark_as_advanced(RAGEL)
-endif ()
+#  mark_as_advanced(RAGEL)
+# endif ()
 
 
 ## Generate hb-version.h
-#if (NOT IN_HB_DIST)
+# if (NOT IN_HB_DIST)
 #  set (HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
 #  set (HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
 #  set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
@@ -244,7 +234,7 @@ endif ()
 #    "${HB_VERSION_H}"
 #  )
 #  file(REMOVE "${HB_VERSION_H}.tmp")
-#endif ()
+# endif ()
 
 
 ## Define sources and headers of the project
@@ -808,18 +798,16 @@ endif ()
 
 
 ## src/ executables
-if (NOT HB_DISABLE_TEST_PROGS)
-  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
-    set (prog_name ${prog})
-    if (${prog_name} STREQUAL "test")
-      # test can not be used as a valid executable name on cmake, lets special case it
-      set (prog_name test-test)
-    endif ()
-    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-  endforeach ()
-  set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
-endif ()
+foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
+  set (prog_name ${prog})
+  if (${prog_name} STREQUAL "test")
+    # test can not be used as a valid executable name on cmake, lets special case it
+    set (prog_name test-test)
+  endif ()
+  add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
+  target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
+endforeach ()
+set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
 
 ## Tests
 if (UNIX OR MINGW)
