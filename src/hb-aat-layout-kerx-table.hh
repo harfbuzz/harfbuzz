@@ -1,6 +1,6 @@
 /*
- * Copyright © 2018  Google, Inc.
  * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2018  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -28,35 +28,19 @@
 #ifndef HB_AAT_LAYOUT_KERX_TABLE_HH
 #define HB_AAT_LAYOUT_KERX_TABLE_HH
 
+#include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
+
+#define HB_AAT_TAG_KERX HB_TAG('k','e','r','x')
+
 
 namespace AAT {
 
+using namespace OT;
 
-/*
- * kerx -- Kerning
- */
 
-#define HB_AAT_TAG_kerx HB_TAG('k','e','r','x')
-
-struct hb_glyph_pair_t
+struct KerxFormat0Records
 {
-  hb_codepoint_t left;
-  hb_codepoint_t right;
-};
-
-struct KerxPair
-{
-  inline int get_kerning (void) const
-  { return value; }
-
-  inline int cmp (const hb_glyph_pair_t &o) const
-  {
-    int ret = left.cmp (o.left);
-    if (ret) return ret;
-    return right.cmp (o.right);
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -67,59 +51,60 @@ struct KerxPair
   GlyphID	left;
   GlyphID	right;
   FWORD		value;
-  HBUINT16 pad;
   public:
-  DEFINE_SIZE_STATIC (8);
+  DEFINE_SIZE_STATIC (6);
 };
 
 struct KerxSubTableFormat0
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  {
-    //hb_glyph_pair_t pair = {left, right};
-    //int i = pairs.bsearch (pair);
-    //if (i == -1)
-      return 0;
-    //return pairs[i].get_kerning ();
-  }
+  // TODO(ebraminio) Enable when we got suitable BinSearchArrayOf
+  // inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  // {
+  //   hb_glyph_pair_t pair = {left, right};
+  //   int i = pairs.bsearch (pair);
+  //   if (i == -1)
+  //     return 0;
+  //   return pairs[i].get_kerning ();
+  // }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (pairs.sanitize (c));
+    return_trace (c->check_struct (this) &&
+      c->check_array (records, records[0].static_size, nPairs));
   }
 
   protected:
-  BinSearchArrayOf<KerxPair> pairs;	/* Array of kerning pairs. */
-  //FIXME: BinSearchArrayOf and its BinSearchHeader should be
-  //modified in a way to accept uint32s
+  // TODO(ebraminio): A custom version of "BinSearchArrayOf<KerxPair> pairs;" is
+  // needed here to use HBUINT32 instead
+  HBUINT32 nPairs;	/* The number of kerning pairs in this subtable */
+  HBUINT32 searchRange; /* The largest power of two less than or equal to the value of nPairs,
+                         * multiplied by the size in bytes of an entry in the subtable. */
+  HBUINT32 entrySelector; /* This is calculated as log2 of the largest power of two less
+                           * than or equal to the value of nPairs. */
+  HBUINT32 rangeShift;	/* The value of nPairs minus the largest power of two less than or equal to nPairs. */
+  KerxFormat0Records records[VAR]; /* VAR=nPairs */
   public:
-  //DEFINE_SIZE_ARRAY (16, pairs);
-};
-
-struct KerxAction
-{
-  HBUINT16 index;
+  DEFINE_SIZE_ARRAY (16, records);
 };
 
 struct KerxSubTableFormat1
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    //TRACE_SANITIZE (this);
-    //return_trace (stateHeader.sanitize (c));
-    return false;
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      stateHeader.sanitize (c));
   }
 
   protected:
-  StateTable<KerxAction> stateHeader;
-  OffsetTo<ArrayOf<HBUINT16>, HBUINT32> valueTable;
-
+  StateTable<HBUINT16>		stateHeader;
+  LOffsetTo<ArrayOf<HBUINT16> >	valueTable;
   public:
-  //DEFINE_SIZE_MIN (4);
+  DEFINE_SIZE_STATIC (20);
 };
 
-//FIXME: Maybe this can be replaced with Lookup<HBUINT16>?
+// TODO(ebraminio): Maybe this can be replaced with Lookup<HBUINT16>?
 struct KerxClassTable
 {
   inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
@@ -156,7 +141,8 @@ struct KerxSubTableFormat2
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (rowWidth.sanitize (c) &&
+    return_trace (c->check_struct (this) &&
+      rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
@@ -174,7 +160,7 @@ struct KerxSubTableFormat2
 		array;		/* Offset from beginning of this subtable to
 				 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_MIN (16);
+  DEFINE_SIZE_STATIC (16);
 };
 
 struct KerxSubTableFormat4
@@ -182,7 +168,8 @@ struct KerxSubTableFormat4
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (rowWidth.sanitize (c) &&
+    return_trace (c->check_struct (this) &&
+      rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
@@ -200,69 +187,39 @@ struct KerxSubTableFormat4
 		array;		/* Offset from beginning of this subtable to
 				 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_MIN (16);
+  DEFINE_SIZE_STATIC (16);
 };
 
 struct KerxSubTableFormat6
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    //TRACE_SANITIZE (this);
-    //return_trace ;
-    return false;
-  }
-
-  protected:
-  HBUINT32 flags;
-  HBUINT16 rowCount;
-  HBUINT16 columnCount;
-  HBUINT32 rowIndexTableOffset;
-  HBUINT32 columnIndexTableOffset;
-  HBUINT32 kerningArrayOffset;
-  HBUINT32 kerningVectorOffset;
-
-  public:
-  DEFINE_SIZE_MIN (24);
-};
-
-struct KerxSubTable
-{
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end, unsigned int format) const
-  {
-    switch (format) {
-    case 0: return u.format0.get_kerning (left, right);
-    case 2: return u.format2.get_kerning (left, right, end);
-    default:return 0;
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int format) const
-  {
     TRACE_SANITIZE (this);
-    switch (format) {
-    case 0: return_trace (u.format0.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
-    default:return_trace (true);
-    }
+    return_trace (c->check_struct (this));
   }
 
   protected:
-  union {
-  KerxSubTableFormat0	format0;
-  KerxSubTableFormat2	format2;
-  KerxSubTableFormat4	format4;
-  KerxSubTableFormat6	format6;
-  } u;
+  HBUINT32	flags;
+  HBUINT16	rowCount;
+  HBUINT16	columnCount;
+  HBUINT32	rowIndexTableOffset;
+  HBUINT32	columnIndexTableOffset;
+  HBUINT32	kerningArrayOffset;
+  HBUINT32	kerningVectorOffset;
   public:
-  DEFINE_SIZE_MIN (0);
+  DEFINE_SIZE_STATIC (24);
 };
 
-
-
-struct kerx
+enum coverage_flags_t
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
+  COVERAGE_VERTICAL_FLAG	= 0x80u,
+  COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
+  COVERAGE_VARIATION_FLAG	= 0x20u,
+  COVERAGE_PROCESS_DIRECTION	= 0x10u,
+};
 
+struct KerxTable
+{
   inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
   {
     TRACE_APPLY (this);
@@ -270,112 +227,105 @@ struct kerx
     return_trace (false);
   }
 
-  struct SubTableWrapper
+  inline unsigned int get_size (void) const { return length; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    enum coverage_flags_t {
-      COVERAGE_VERTICAL_FLAG	= 0x8000u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x4000u,
-      COVERAGE_VARIATION_FLAG	= 0x2000u,
+    TRACE_SANITIZE (this);
+    if (!c->check_struct (this))
+      return_trace (false);
 
-      COVERAGE_OVERRIDE_FLAG	= 0x0000u, /* Not supported. */
-
-      COVERAGE_CHECK_FLAGS	= 0x0700u, //FIXME: Where these two come from?
-      COVERAGE_CHECK_HORIZONTAL	= 0x0100u
-    };
-
-    protected:
-    HBUINT32	length;		/* Length of the subtable (including this header). */
-    HBUINT16	coverage;	/* Coverage bits. */
-    HBUINT16	format;		/* Subtable format. */
-    HBUINT32	tupleIndex;	/* The tuple index (used for variations fonts).
-				 * This value specifies which tuple this subtable covers. */
-    KerxSubTable subtable;	/* Subtable data. */
-    public:
-    inline bool is_horizontal (void) const
-    { return (coverage & COVERAGE_CHECK_FLAGS) == COVERAGE_CHECK_HORIZONTAL; }
-
-    inline bool is_override (void) const
-    { return bool (coverage & COVERAGE_OVERRIDE_FLAG); }
-
-    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-    { return subtable.get_kerning (left, right, end, format); }
-
-    inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-    { return is_horizontal () ? get_kerning (left, right, end) : 0; }
-
-    inline unsigned int get_size (void) const { return length; }
-
-    inline bool sanitize (hb_sanitize_context_t *c) const
-    {
-      TRACE_SANITIZE (this);
-      return_trace (c->check_struct (this) &&
-        length >= min_size &&
-        c->check_array (this, 1, length) &&
-        subtable.sanitize (c, format));
+    switch (format) {
+    case 0: return u.format0.sanitize (c);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
+    case 4: return u.format4.sanitize (c);
+    case 6: return u.format6.sanitize (c);
+    default:return_trace (false);
     }
-    DEFINE_SIZE_MIN (12);
-  };
+  }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+protected:
+  HBUINT32	length;
+  HBUINT8	coverage;
+  HBUINT16	unused;
+  HBUINT8	format;
+  HBUINT32	tupleIndex;
+  union {
+  KerxSubTableFormat0	format0;
+  KerxSubTableFormat1	format1;
+  KerxSubTableFormat2	format2;
+  KerxSubTableFormat4	format4;
+  KerxSubTableFormat6	format6;
+  } u;
+public:
+  DEFINE_SIZE_MIN (12);
+};
+
+struct SubtableGlyphCoverageArray
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
-    int v = 0;
-    const SubTableWrapper *st = (SubTableWrapper *) data;
-    unsigned int count = nTables;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (st->is_override ())
-        v = 0;
-      v += st->get_h_kerning (left, right, table_length + (const char *) this);
-      st = (SubTableWrapper *) st;
-    }
-    return v;
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  HBUINT32	length;
+  HBUINT32	coverage;
+  HBUINT32	tupleCount;
+  public:
+  DEFINE_SIZE_STATIC (12);
+};
+
+struct kerx
+{
+  static const hb_tag_t tableTag = HB_AAT_TAG_KERX;
+
+  inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
+  {
+    TRACE_APPLY (this);
+    const KerxTable &table = StructAfter<KerxTable> (*this);
+    return_trace (table.apply (c, ankr));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    const SubTableWrapper *st = (SubTableWrapper *) data;
-    unsigned int count = nTables;
-    for (unsigned int i = 0; i < count; i++)
+    if (!(c->check_struct (this)))
+     return_trace (false);
+
+    const KerxTable *table = &StructAfter<KerxTable> (*this);
+    if (!(table->sanitize (c)))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < nTables - 1; ++i)
     {
-      if (unlikely (!st->sanitize (c)))
-	return_trace (false);
-      st = (SubTableWrapper *) st;
+      table = &StructAfter<KerxTable> (*table);
+      if (!(table->sanitize (c)))
+        return_trace (false);
     }
+
+    // If version is less than 3, we are done here; otherwise better to check footer also
+    if (version < 3)
+      return_trace (true);
+
+    // TODO: Investigate why this just work on some fonts no matter of version
+    // const SubtableGlyphCoverageArray &footer =
+    //   StructAfter<SubtableGlyphCoverageArray> (*table);
+    // return_trace (footer.sanitize (c));
 
     return_trace (true);
   }
 
-  struct accelerator_t
-  {
-    inline void init (hb_face_t *face)
-    {
-      blob = Sanitizer<kerx>().sanitize (face->reference_table (HB_AAT_TAG_kerx));
-      table = Sanitizer<kerx>::lock_instance (blob);
-      table_length = hb_blob_get_length (blob);
-    }
-    inline void fini (void)
-    {
-      hb_blob_destroy (blob);
-    }
-
-    inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table->get_h_kerning (left, right, table_length); }
-
-    private:
-    hb_blob_t *blob;
-    const kerx *table;
-    unsigned int table_length;
-  };
-
   protected:
   HBUINT16		version;
   HBUINT16		padding;
-  HBUINT32		nTables;	/* Number of subtables in the kerning table. */
-  HBUINT8		data[VAR];
-  //ArrayOf<GlyphCoverageArray> subtableGlyphCoverageArray;
+  HBUINT32		nTables;
+/*KerxTable tables[VAR];*/
+/*SubtableGlyphCoverageArray coverage_array;*/
   public:
-  DEFINE_SIZE_ARRAY (8, data);
+  DEFINE_SIZE_STATIC (8);
 };
 
 } /* namespace AAT */
