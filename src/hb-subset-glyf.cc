@@ -192,7 +192,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
     {
       memcpy (glyf_prime_data_next, glyf_data + start_offset, instruction_start - start_offset);
       memcpy (glyf_prime_data_next + instruction_start - start_offset, glyf_data + instruction_end, end_offset - instruction_end);
-      /* if the instructions end at the end this was a composite glyph */
+      /* if the instructions end at the end this was a composite glyph, else simple */
       if (instruction_end == end_offset)
       {
         if (unlikely (!_remove_composite_instruction_flag (glyf_prime_data_next, length))) return false;
