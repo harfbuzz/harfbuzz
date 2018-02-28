@@ -38,7 +38,7 @@ def fail_test(test, cli_args, message):
 	print ('  expected_file	    %s' % os.path.abspath(expected_file))
 	return 1
 
-def run_test(test):
+def run_test(test, should_check_ots):
 	out_file = os.path.join(tempfile.mkdtemp(), test.get_font_name() + '-subset.ttf')
 	cli_args = [hb_subset,
 		    "--font-file=" + test.font_path,
@@ -69,6 +69,11 @@ def run_test(test):
 		sys.stdout.flush()
 		return fail_test(test, cli_args, 'ttx for expected and actual does not match.')
 
+	if should_check_ots:
+		print ("Checking output with ots-sanitize.")
+		if not check_ots(out_file):
+			return fail_test(test, cli_args, 'ots for subsetted file fails.')
+
 	return 0
 
 def run_ttx(file):
@@ -81,6 +86,20 @@ def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
 		       'checkSumAdjustment value="0x00000000"',
 		       ttx_string, count=1)
+
+def has_ots():
+	_, returncode = cmd(["which", "ots-sanitize"])
+	if returncode:
+		print("OTS is not present, skipping all ots checks.")
+		return False
+	return True
+
+def check_ots (path):
+	ots_report, returncode = cmd(["ots-sanitize", path])
+	if returncode:
+		print("OTS Failure: %s" % ots_report);
+		return False
+	return True
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find('hb-subset') == -1 or not os.path.exists (sys.argv[1]):
@@ -97,13 +116,15 @@ if returncode:
 	print("TTX is not present, skipping test.")
 	sys.exit (77)
 
+has_ots = has_ots()
+
 fails = 0
 for path in args:
 	with io.open(path, mode="r", encoding="utf-8") as f:
 		print ("Running tests in " + path)
 		test_suite = SubsetTestSuite(path, f.read())
 		for test in test_suite.tests():
-			fails += run_test(test)
+			fails += run_test(test, has_ots)
 
 if fails != 0:
 	print (str (fails) + " test(s) failed.")
