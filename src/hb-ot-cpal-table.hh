@@ -89,7 +89,6 @@ struct CPALV1Tail
   LOffsetTo<HBUINT32> paletteFlags;
   LOffsetTo<HBUINT16> paletteLabel;
   LOffsetTo<HBUINT16> paletteEntryLabel;
-
   public:
   DEFINE_SIZE_STATIC (12);
 };
@@ -113,13 +112,12 @@ struct CPAL
       if (colorRecordIndices[i] + numPaletteEntries > colorRecords.get_size ())
         return_trace (false);
 
-    if (version > 1)
-    {
-      const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-      return_trace (v1.sanitize (c, palettes));
-    }
-    else
+    // If version is zero, we are done here; otherwise we need to check tail also
+    if (version == 0)
       return_trace (true);
+
+    const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
+    return_trace (v1.sanitize (c, palettes));
   }
 
   inline unsigned int get_size (void) const
@@ -158,7 +156,7 @@ struct CPAL
   HBUINT16	numPalettes;
   ArrayOf<ColorRecord>	colorRecords;
   HBUINT16	colorRecordIndices[VAR];  // VAR=numPalettes
-
+/*CPALV1Tail	v1[VAR];*/
   public:
   DEFINE_SIZE_ARRAY (12, colorRecordIndices);
 };
