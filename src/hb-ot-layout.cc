@@ -37,6 +37,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-name-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-cpal-table.hh"
 
 #include "hb-ot-map-private.hh"
 
@@ -63,6 +64,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
   layout->math.init (face);
+  layout->cpal.init (face);
   layout->base.init (face);
   layout->fvar.init (face);
   layout->avar.init (face);
@@ -217,6 +219,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gpos_blob);
 
   layout->math.fini ();
+  layout->cpal.fini ();
   layout->base.fini ();
   layout->fvar.fini ();
   layout->avar.fini ();

@@ -126,6 +126,7 @@ namespace OT {
   struct GDEF;
   struct GSUB;
   struct GPOS;
+  struct CPAL;
   struct MATH;
   struct fvar;
   struct avar;
@@ -172,6 +173,7 @@ struct hb_ot_layout_t
   /* TODO Move the following out of this struct. */
   OT::hb_lazy_table_loader_t<struct OT::BASE> base;
   OT::hb_lazy_table_loader_t<struct OT::MATH> math;
+  OT::hb_lazy_table_loader_t<struct OT::CPAL> cpal;
   OT::hb_lazy_table_loader_t<struct OT::fvar> fvar;
   OT::hb_lazy_table_loader_t<struct OT::avar> avar;
   OT::hb_lazy_table_loader_t<struct AAT::ankr> ankr;

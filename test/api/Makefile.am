@@ -61,6 +61,7 @@ endif
 if HAVE_OT
 
 TEST_PROGS += \
+	test-ot-color \
 	test-ot-tag \
 	$(NULL)
 
