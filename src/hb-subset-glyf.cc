@@ -136,6 +136,20 @@ _update_components (hb_subset_plan_t * plan,
   }
 }
 
+static bool _remove_composite_instruction_flag(char *glyf_prime, unsigned int length)
+{
+  /* remove WE_HAVE_INSTRUCTIONS from flags in dest */
+  OT::glyf::CompositeGlyphHeader::Iterator composite_it;
+  if (unlikely (!OT::glyf::CompositeGlyphHeader::get_iterator (glyf_prime, length, &composite_it))) return false;
+  const OT::glyf::CompositeGlyphHeader *glyph;
+  do {
+    glyph = composite_it.current;
+    OT::HBUINT16 *flags = const_cast<OT::HBUINT16 *> (&glyph->flags);
+    flags->set ( (uint16_t) *flags & ~OT::glyf::CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS);
+  } while (composite_it.move_to_next());
+  return true;
+}
+
 static bool
 _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
 			    const OT::glyf::accelerator_t &glyf,
@@ -178,9 +192,11 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
     {
       memcpy (glyf_prime_data_next, glyf_data + start_offset, instruction_start - start_offset);
       memcpy (glyf_prime_data_next + instruction_start - start_offset, glyf_data + instruction_end, end_offset - instruction_end);
-      /* if the instructions end at the end this was a composite glyph */
+      /* if the instructions end at the end this was a composite glyph, else simple */
       if (instruction_end == end_offset)
-        ; // TODO(rsheeter) remove WE_HAVE_INSTRUCTIONS from last flags
+      {
+        if (unlikely (!_remove_composite_instruction_flag (glyf_prime_data_next, length))) return false;
+      }
       else
         /* zero instruction length, which is just before instruction_start */
         memset (glyf_prime_data_next + instruction_start - start_offset - 2, 0, 2);

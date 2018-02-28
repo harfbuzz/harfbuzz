@@ -1,5 +1,6 @@
 TESTS = \
 	tests/basics.tests \
+	tests/full-font.tests \
 	$(NULL)
 
 XFAIL_TESTS = \

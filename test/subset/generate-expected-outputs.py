@@ -15,12 +15,17 @@ def usage():
 	print "Usage: generate-expected-outputs.py <test suite file> ..."
 
 
-def generate_expected_output(input_file, unicodes, output_path):
-	check_call(["fonttools", "subset",
-							input_file,
-							"--drop-tables+=DSIG,GPOS,GSUB,GDEF",
-							"--unicodes=%s" % unicodes,
-							"--output-file=%s" % output_path])
+def generate_expected_output(input_file, unicodes, profile_flags, output_path):
+	args = ["fonttools", "subset", input_file]
+	args.extend(profile_flags)
+	args.extend(["--notdef-outline",
+		     "--name-IDs=*",
+		     "--name-languages=*",
+		     "--name-legacy",
+		     "--drop-tables+=DSIG,GPOS,GSUB,GDEF",
+		     "--unicodes=%s" % unicodes,
+		     "--output-file=%s" % output_path])
+	check_call(args)
 
 
 args = sys.argv[1:]
@@ -37,6 +42,6 @@ for path in args:
 			unicodes = test.unicodes()
 			font_name = test.get_font_name()
 			print "Creating subset %s/%s" % (output_directory, font_name)
-			generate_expected_output(test.font_path, unicodes,
-															 os.path.join(output_directory,
-																						font_name))
+			generate_expected_output(test.font_path, unicodes, test.get_profile_flags(),
+						 os.path.join(output_directory,
+							      font_name))

@@ -1,5 +1,5 @@
 FONTS:
-Roboto-Regular.abc.ttf
+Roboto-Regular.ttf
 
 PROFILES:
 default.txt
@@ -7,7 +7,5 @@ drop-hints.txt
 
 SUBSETS:
 abc
-b
-c
-ac
-a
+Ǽ!A bc
+
