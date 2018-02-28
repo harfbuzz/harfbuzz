@@ -143,12 +143,11 @@ test_subset_glyf_strip_hints_simple (void)
   hb_face_destroy (face_ac);
 }
 
-// TODO(rsheeter): test strip hints from composite
 static void
 test_subset_glyf_strip_hints_composite (void)
 {
   hb_face_t *face_components = hb_subset_test_open_font ("fonts/Roboto-Regular.components.ttf");
-  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.subset.ttf");
+  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.1fc.nohints.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_set_add (codepoints, 0x1fc);
@@ -160,7 +159,7 @@ test_subset_glyf_strip_hints_composite (void)
 
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
-  check_maxp_num_glyphs(face_generated_subset, 4);
+  check_maxp_num_glyphs(face_generated_subset, 4, false);
 
   hb_face_destroy (face_generated_subset);
   hb_face_destroy (face_subset);

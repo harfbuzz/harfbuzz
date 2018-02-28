@@ -412,7 +412,7 @@ struct glyf
         } while (composite_it.move_to_next());
 
         if ( (uint16_t) last->flags & CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS)
-          *instruction_start = start_offset + ((char *) last - (char *) glyf_table->dataX) + last->get_size();
+          *instruction_start = ((char *) last - (char *) glyf_table->dataX) + last->get_size();
         else
           *instruction_start = end_offset;
         *instruction_end = end_offset;
