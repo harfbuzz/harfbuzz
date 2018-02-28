@@ -12,7 +12,7 @@ env:
     - CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
     - NOCONFIGURE=1
     # COVERITY_SCAN_TOKEN
-    - secure: "Vw1UUHsAr4t3xuvOqqBsFAORptmNcQRrcGJnzSX7jDODBIRNfnU2LIBTagrPNKfSUhyQgCHqt1gX9iWNWvVfy3sDOXr2MXZeoqmF6Y1mS35J0rA/EPJgRHsdkxygkmFnXVeQkEuI55BINkaSoOpAeunmXKJNw1p9JVw368Fm/tU="
+    - secure: "MRJtVu/fQoWNwMAamvIJBCX/1SMvEuEUk/ljAif/y2/3syyWgxFGp17UGnDILdoZYyCqTM+jQciY2P0nVqbjjOAUlML4QOAalqw8kPp8iTsnHUe+KOMVrOVP6p6qAQxk1im1O41cCMkmVKvk+NXe/on5euz6LGF2laHZaOAMoes="
 
 matrix:
   include:
@@ -79,7 +79,7 @@ addons:
 
   coverity_scan:
     project:
-      name: HarfBuzz
+      name: behdad/harfbuzz
       version: 1.0
       description: HarfBuzz OpenType text shaping engine
     notification_email: harfbuzz-bots-chatter@googlegroups.com
