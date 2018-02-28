@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,26 +21,46 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_H_IN
+#error "Include <hb.h> instead."
+#endif
 
-#include "hb.h"
+#ifndef HB_VERSION_H
+#define HB_VERSION_H
 
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-base.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+#include "hb-common.h"
 
 HB_BEGIN_DECLS
 
+
+#define HB_VERSION_MAJOR 1
+#define HB_VERSION_MINOR 7
+#define HB_VERSION_MICRO 5
+
+#define HB_VERSION_STRING "1.7.5"
+
+#define HB_VERSION_ATLEAST(major,minor,micro) \
+	((major)*10000+(minor)*100+(micro) <= \
+	 HB_VERSION_MAJOR*10000+HB_VERSION_MINOR*100+HB_VERSION_MICRO)
+
+
+HB_EXTERN void
+hb_version (unsigned int *major,
+	    unsigned int *minor,
+	    unsigned int *micro);
+
+HB_EXTERN const char *
+hb_version_string (void);
+
+HB_EXTERN hb_bool_t
+hb_version_atleast (unsigned int major,
+		    unsigned int minor,
+		    unsigned int micro);
+
+
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_VERSION_H */

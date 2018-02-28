@@ -31,14 +31,30 @@
 
 /* Unit tests for hb-subset-glyf.h */
 
-static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs)
+static void check_maxp_field (uint8_t *raw_maxp, unsigned int offset, uint16_t expected_value)
+{
+  uint16_t actual_value = (raw_maxp[offset] << 8) + raw_maxp[offset + 1];
+  g_assert_cmpuint(expected_value, ==, actual_value);
+}
+
+static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs, bool hints)
 {
   hb_blob_t *maxp_blob = hb_face_reference_table (face, HB_TAG ('m','a','x', 'p'));
 
   unsigned int maxp_len;
   uint8_t *raw_maxp = (uint8_t *) hb_blob_get_data(maxp_blob, &maxp_len);
-  uint16_t num_glyphs = (raw_maxp[4] << 8) + raw_maxp[5];
-  g_assert_cmpuint(expected_num_glyphs, ==, num_glyphs);
+
+  check_maxp_field (raw_maxp, 4, expected_num_glyphs); // numGlyphs
+  if (!hints)
+  {
+    check_maxp_field (raw_maxp, 14, 1); // maxZones
+    check_maxp_field (raw_maxp, 16, 0); // maxTwilightPoints
+    check_maxp_field (raw_maxp, 18, 0); // maxStorage
+    check_maxp_field (raw_maxp, 20, 0); // maxFunctionDefs
+    check_maxp_field (raw_maxp, 22, 0); // maxInstructionDefs
+    check_maxp_field (raw_maxp, 24, 0); // maxStackElements
+    check_maxp_field (raw_maxp, 26, 0); // maxSizeOfInstructions
+  }
 
   hb_blob_destroy (maxp_blob);
 }
@@ -57,7 +73,7 @@ test_subset_glyf (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
-  check_maxp_num_glyphs(face_abc_subset, 3);
+  check_maxp_num_glyphs(face_abc_subset, 3, true);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -77,7 +93,7 @@ test_subset_glyf_with_components (void)
 
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
-  check_maxp_num_glyphs(face_generated_subset, 4);
+  check_maxp_num_glyphs(face_generated_subset, 4, true);
 
   hb_face_destroy (face_generated_subset);
   hb_face_destroy (face_subset);
@@ -98,7 +114,7 @@ test_subset_glyf_noop (void)
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
-  check_maxp_num_glyphs(face_abc_subset, 4);
+  check_maxp_num_glyphs(face_abc_subset, 4, true);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -120,7 +136,7 @@ test_subset_glyf_strip_hints_simple (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  check_maxp_num_glyphs(face_abc_subset, 3);
+  check_maxp_num_glyphs(face_abc_subset, 3, false);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);

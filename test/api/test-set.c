@@ -121,15 +121,16 @@ test_set_basic (void)
   hb_set_destroy (s);
 }
 
-static inline void
-print_set (hb_set_t *s)
-{
-  hb_codepoint_t next;
-  printf ("{");
-  for (next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
-    printf ("%d, ", next);
-  printf ("}\n");
-}
+
+// static inline void
+// print_set (hb_set_t *s)
+// {
+//   hb_codepoint_t next;
+//   printf ("{");
+//   for (next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
+//     printf ("%d, ", next);
+//   printf ("}\n");
+// }
 
 static void
 test_set_algebra (void)

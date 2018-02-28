@@ -6,8 +6,8 @@ language: cpp
 env:
   global:
     - CPPFLAGS=""
-    - CFLAGS="-Werror --coverage"
-    - CXXFLAGS="-Werror -Wno-deprecated-register --coverage" # glib uses register and clang raises a warning
+    - CFLAGS="-Werror -Werror=unused-function --coverage"
+    - CXXFLAGS="-Werror -Werror=unused-function -Wno-deprecated-register --coverage" # glib uses register and clang raises a warning
     - LDFLAGS="--coverage"
     - CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
     - NOCONFIGURE=1

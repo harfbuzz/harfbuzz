@@ -692,8 +692,8 @@ struct F2DOT14 : HBINT16
 /* 32-bit signed fixed-point number (16.16). */
 struct Fixed: HBINT32
 {
-  //inline float to_float (void) const { return ???; }
-  //inline void set_float (float f) { v.set (f * ???); }
+  inline float to_float (void) const { return ((int32_t) v) / 65536.0; }
+  inline void set_float (float f) { v.set (round (f * 65536.0)); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -740,8 +740,6 @@ template <typename Type>
 struct Offset : Type
 {
   inline bool is_null (void) const { return 0 == *this; }
-  public:
-  DEFINE_SIZE_STATIC (sizeof(Type));
 
   inline void *serialize (hb_serialize_context_t *c, const void *base)
   {
@@ -749,6 +747,9 @@ struct Offset : Type
     this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
     return t;
   }
+
+  public:
+  DEFINE_SIZE_STATIC (sizeof(Type));
 };
 
 typedef Offset<HBUINT16> Offset16;

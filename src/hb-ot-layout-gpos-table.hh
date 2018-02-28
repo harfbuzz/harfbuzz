@@ -248,8 +248,8 @@ struct AnchorFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  HBINT16		xCoordinate;		/* Horizontal value--in design units */
-  HBINT16		yCoordinate;		/* Vertical value--in design units */
+  FWORD		xCoordinate;		/* Horizontal value--in design units */
+  FWORD		yCoordinate;		/* Vertical value--in design units */
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -279,8 +279,8 @@ struct AnchorFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  HBINT16		xCoordinate;		/* Horizontal value--in design units */
-  HBINT16		yCoordinate;		/* Vertical value--in design units */
+  FWORD		xCoordinate;		/* Horizontal value--in design units */
+  FWORD		yCoordinate;		/* Vertical value--in design units */
   HBUINT16	anchorPoint;		/* Index to glyph contour point */
   public:
   DEFINE_SIZE_STATIC (8);
@@ -309,8 +309,8 @@ struct AnchorFormat3
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 3 */
-  HBINT16		xCoordinate;		/* Horizontal value--in design units */
-  HBINT16		yCoordinate;		/* Vertical value--in design units */
+  FWORD		xCoordinate;		/* Horizontal value--in design units */
+  FWORD		yCoordinate;		/* Vertical value--in design units */
   OffsetTo<Device>
 		xDeviceTable;		/* Offset to Device table for X
 					 * coordinate-- from beginning of

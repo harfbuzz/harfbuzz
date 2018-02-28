@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,26 +21,47 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Garret Rieger
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb-private.hh"
 
-#include "hb.h"
+#include "hb-ot-os2-unicode-ranges.hh"
 
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-base.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+void
+test (hb_codepoint_t cp, int bit)
+{
+  if (OT::hb_get_unicode_range_bit (cp) != bit)
+  {
+    fprintf (stderr, "got incorrect bit (%d) for cp 0x%X. Should have been %d.",
+             OT::hb_get_unicode_range_bit (cp),
+             cp,
+             bit);
+    abort();
+  }
+}
 
-HB_BEGIN_DECLS
+void
+test_get_unicode_range_bit (void)
+{
+  test (0x0000, 0);
+  test (0x0042, 0);
+  test (0x007F, 0);
+  test (0x0080, 1);
 
-HB_END_DECLS
+  test (0x30A0, 50);
+  test (0x30B1, 50);
+  test (0x30FF, 50);
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+  test (0x10FFFD, 90);
+
+  test (0x30000, -1);
+  test (0x110000, -1);
+}
+
+int
+main (void)
+{
+  test_get_unicode_range_bit ();
+  return 0;
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import io
 import os
 
 # A single test in a subset test suite. Identifies a font
@@ -13,15 +14,19 @@ class Test:
 	def unicodes(self):
 		return ",".join("%X" % ord(c) for (i, c) in enumerate(self.subset))
 
+	def get_profile_flags(self):
+		with io.open(self.profile_path, mode="r", encoding="utf-8") as f:
+		    return f.read().splitlines();
+
 	def get_font_name(self):
 		font_base_name = os.path.basename(self.font_path)
 		font_base_name_parts = os.path.splitext(font_base_name)
 		profile_name = os.path.splitext(os.path.basename(self.profile_path))[0]
 
 		return "%s.%s.%s%s" % (font_base_name_parts[0],
-													 profile_name,
-													 self.unicodes(),
-													 font_base_name_parts[1])
+				       profile_name,
+				       self.unicodes(),
+				       font_base_name_parts[1])
 
 # A group of tests to perform on the subsetter. Each test
 # Identifies a font a subsetting profile, and a subset to be cut.
