@@ -38,15 +38,6 @@
 HB_BEGIN_DECLS
 
 /**
- * HB_OT_TAG_CPAL:
- * a four-letter tag for identifying the CPAL table with color palettes
- *
- * Since: REPLACEME
- */
-#define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
-
-
-/**
  * hb_ot_color_t:
  * @red: the intensity of the red channel
  * @green: the intensity of the green channel

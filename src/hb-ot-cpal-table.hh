@@ -30,15 +30,15 @@
 
 #include "hb-open-type-private.hh"
 
-
-namespace OT {
-
 /*
  * Color Palette
  * http://www.microsoft.com/typography/otspec/cpal.htm
  */
 
 #define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
+
+namespace OT {
+
 
 struct ColorRecord
 {
