@@ -402,14 +402,14 @@ struct glyf
       int16_t num_contours = (int16_t) glyph_header.numberOfContours;
       if (num_contours < 0)
       {
-        CompositeGlyphHeader::Iterator *composite_it;
+        CompositeGlyphHeader::Iterator composite_it;
         if (unlikely (!CompositeGlyphHeader::get_iterator (
             (const char*) this->glyf_table + start_offset,
-             end_offset - start_offset, composite_it))) return false;
+             end_offset - start_offset, &composite_it))) return false;
         const CompositeGlyphHeader *last;
         do {
-          last = composite_it->current;
-        } while (composite_it->move_to_next());
+          last = composite_it.current;
+        } while (composite_it.move_to_next());
 
         if ( (uint16_t) last->flags & CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS)
           *instruction_start = start_offset + ((char *) last - (char *) glyf_table->dataX) + last->get_size();

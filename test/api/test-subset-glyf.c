@@ -105,7 +105,7 @@ test_subset_glyf_noop (void)
 }
 
 static void
-test_subset_glyf_strip_hints (void)
+test_subset_glyf_strip_hints_simple (void)
 {
   hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
   hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.nohints.ttf");
@@ -128,6 +128,28 @@ test_subset_glyf_strip_hints (void)
 }
 
 // TODO(rsheeter): test strip hints from composite
+static void
+test_subset_glyf_strip_hints_composite (void)
+{
+  hb_face_t *face_components = hb_subset_test_open_font ("fonts/Roboto-Regular.components.ttf");
+  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.subset.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_set_add (codepoints, 0x1fc);
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  *hb_subset_input_drop_hints(input) = true;
+
+  hb_face_t *face_generated_subset = hb_subset_test_create_subset (face_components, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
+  check_maxp_num_glyphs(face_generated_subset, 4);
+
+  hb_face_destroy (face_generated_subset);
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face_components);
+}
 
 // TODO(grieger): test for long loca generation.
 
@@ -138,7 +160,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_glyf_noop);
   hb_test_add (test_subset_glyf);
-  hb_test_add (test_subset_glyf_strip_hints);
+  hb_test_add (test_subset_glyf_strip_hints_simple);
+  hb_test_add (test_subset_glyf_strip_hints_composite);
   hb_test_add (test_subset_glyf_with_components);
 
   return hb_test_run();
