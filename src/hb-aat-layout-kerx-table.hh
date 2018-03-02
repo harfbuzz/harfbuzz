@@ -195,17 +195,21 @@ struct KerxSubTableFormat6
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (c->check_struct (this) &&
+      rowIndexTable.sanitize (c, this) &&
+      columnIndexTable.sanitize (c, this) &&
+      kerningArray.sanitize (c, this) &&
+      kerningVector.sanitize (c, this));
   }
 
   protected:
   HBUINT32	flags;
   HBUINT16	rowCount;
   HBUINT16	columnCount;
-  HBUINT32	rowIndexTableOffset;
-  HBUINT32	columnIndexTableOffset;
-  HBUINT32	kerningArrayOffset;
-  HBUINT32	kerningVectorOffset;
+  LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
+  LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
+  LOffsetTo<Lookup<HBUINT16> >	kerningArray;
+  LOffsetTo<Lookup<HBUINT16> >	kerningVector;
   public:
   DEFINE_SIZE_STATIC (24);
 };
