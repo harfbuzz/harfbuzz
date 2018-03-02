@@ -505,7 +505,6 @@ test/shaping/data/text-rendering-tests/Makefile
 test/subset/Makefile
 test/subset/data/Makefile
 docs/Makefile
-docs/version.xml
 ])
 
 AC_OUTPUT

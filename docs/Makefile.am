@@ -80,8 +80,7 @@ content_files=	\
 	usermanual-hello-harfbuzz.xml \
 	usermanual-install-harfbuzz.xml \
 	usermanual-opentype-features.xml \
-	usermanual-what-is-harfbuzz.xml \
-	version.xml
+	usermanual-what-is-harfbuzz.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
 # These files must be listed here *and* in content_files
@@ -101,10 +100,6 @@ endif
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/gtk-doc.make
-
-# Other files to distribute
-# e.g. EXTRA_DIST += version.xml.in
-EXTRA_DIST += version.xml.in
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types
