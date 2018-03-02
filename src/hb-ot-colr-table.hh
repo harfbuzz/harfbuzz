@@ -53,17 +53,14 @@ struct LayerRecord
 
 struct BaseGlyphRecord
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      firstLayerIndex.sanitize (c, base) &&
-      c->check_array ((const void*) &firstLayerIndex, sizeof (LayerRecord), numLayers));
+    return_trace (c->check_struct (this));
   }
 
   GlyphID gID;			/* Glyph ID of reference glyph */
-  OffsetTo<LayerRecord>
-  	firstLayerIndex;	/* Index to the layer record */
+  HBUINT16 firstLayerIndex;	/* Index to the layer record */
   HBUINT16 numLayers;		/* Number of color layers associated with this glyph */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -76,17 +73,9 @@ struct COLR
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this) &&
-      c->check_array ((const void*) &baseGlyphRecords, sizeof (BaseGlyphRecord), numBaseGlyphRecords) &&
-      c->check_array ((const void*) &layerRecordsOffset, sizeof (LayerRecord), numLayerRecords)))
-      return_trace (false);
-
-    const BaseGlyphRecord *base_glyph_records = &baseGlyphRecords (this);
-    for (unsigned int i = 0; i < numBaseGlyphRecords; ++i)
-      if (!(base_glyph_records[i].sanitize (c, this)))
-        return_trace (false);
-
-    return_trace (true);
+    return_trace (c->check_struct (this) &&
+      c->check_array ((const void*) &layerRecordsOffset, sizeof (LayerRecord), numLayerRecords) &&
+      c->check_array ((const void*) &baseGlyphRecords, sizeof (BaseGlyphRecord), numBaseGlyphRecords));
   }
 
   protected:
