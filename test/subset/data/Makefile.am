@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	$(TESTS) \
 	expected/basics \
 	expected/full-font \
+	expected/japanese \
 	fonts \
 	profiles \
 	$(NULL)
