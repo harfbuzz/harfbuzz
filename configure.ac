@@ -11,6 +11,7 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.13.0 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
+AX_CODE_COVERAGE
 
 # Initialize libtool
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
