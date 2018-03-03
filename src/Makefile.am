@@ -144,10 +144,12 @@ endif
 endif
 endif
 
+@CODE_COVERAGE_RULES@
+
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
-libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
+libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS)
+libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(CODE_COVERAGE_CFLAGS)
 libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
