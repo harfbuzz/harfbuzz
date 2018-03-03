@@ -39,12 +39,15 @@ namespace OT {
 
 struct LayerRecord
 {
+  friend struct COLR;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
+  protected:
   GlyphID gID;			/* Glyph ID of layer glyph */
   HBUINT16 paletteIndex;	/* Index value to use with a selected color palette */
   public:
@@ -53,12 +56,15 @@ struct LayerRecord
 
 struct BaseGlyphRecord
 {
+  friend struct COLR;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
+  protected:
   GlyphID gID;			/* Glyph ID of reference glyph */
   HBUINT16 firstLayerIndex;	/* Index to the layer record */
   HBUINT16 numLayers;		/* Number of color layers associated with this glyph */
@@ -73,9 +79,44 @@ struct COLR
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      c->check_array ((const void*) &layerRecordsOffset, sizeof (LayerRecord), numLayerRecords) &&
-      c->check_array ((const void*) &baseGlyphRecords, sizeof (BaseGlyphRecord), numBaseGlyphRecords));
+    if (!(c->check_struct (this) &&
+        c->check_array ((const void*) &layerRecordsOffset, sizeof (LayerRecord), numLayerRecords) &&
+        c->check_array ((const void*) &baseGlyphRecords, sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
+      return_trace (false);
+
+    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecords (this);
+    for (unsigned int i = 0; i < numBaseGlyphRecords; ++i)
+      if (base_glyph_records[i].firstLayerIndex +
+          base_glyph_records[i].numLayers > numLayerRecords)
+        return_trace (false);
+
+    /* XXX values of LayerRecord structs should be sanitized */
+
+    return_trace (true);
+  }
+
+  inline const bool get_base_glyph_record (
+    hb_codepoint_t glyph_id, unsigned int &first_layer, unsigned int &num_layers) const
+  {
+    /* TODO replace with bsearch */
+    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecords (this);
+    unsigned int records = numBaseGlyphRecords;
+    for (unsigned int i = 0; i < records; ++i)
+      if (base_glyph_records[i].gID == glyph_id)
+      {
+        first_layer = base_glyph_records[i].firstLayerIndex;
+        num_layers = base_glyph_records[i].numLayers;
+        return true;
+      }
+    return false;
+  }
+
+  inline void get_layer_record (int layer,
+    hb_codepoint_t &glyph_id, unsigned int &palette_index) const
+  {
+    const LayerRecord* records = &layerRecordsOffset (this);
+    glyph_id = records[layer].gID;
+    palette_index = records[layer].paletteIndex;
   }
 
   protected:

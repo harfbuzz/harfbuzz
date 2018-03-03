@@ -42,12 +42,15 @@ namespace OT {
 
 struct ColorRecord
 {
+  friend struct CPAL;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (true);
   }
 
+  protected:
   HBUINT8 blue;
   HBUINT8 green;
   HBUINT8 red;
@@ -74,14 +77,14 @@ struct CPALV1Tail
   inline hb_ot_color_palette_flags_t
   get_palette_flags (const void *base, unsigned int palette) const
   {
-    const HBUINT32* flags = (const HBUINT32*) (const void*) &paletteFlags (base);
+    const HBUINT32* flags = &paletteFlags (base);
     return (hb_ot_color_palette_flags_t) (uint32_t) flags[palette];
   }
 
   inline unsigned int
   get_palette_name_id (const void *base, unsigned int palette) const
   {
-    const HBUINT16* name_ids = (const HBUINT16*) (const void*) &paletteLabel (base);
+    const HBUINT16* name_ids = &paletteLabel (base);
     return name_ids[palette];
   }
 
@@ -148,9 +151,18 @@ struct CPAL
     return numPalettes;
   }
 
+  inline void get_color_record (int palette_index, uint8_t &r, uint8_t &g,
+                                              uint8_t &b, uint8_t &a) const
+  {
+    // We should check if palette_index is in range as it is not done on COLR sanitization
+    r = colorRecords[palette_index].red;
+    g = colorRecords[palette_index].green;
+    b = colorRecords[palette_index].blue;
+    a = colorRecords[palette_index].alpha;
+  }
+
   protected:
   HBUINT16	version;
-
   /* Version 0 */
   HBUINT16	numPaletteEntries;
   HBUINT16	numPalettes;
