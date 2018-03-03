@@ -252,6 +252,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_hmtx:
       result = _subset<const OT::hmtx> (plan);
       break;
+    case HB_OT_TAG_vmtx:
+      result = _subset<const OT::vmtx> (plan);
+      break;
     case HB_OT_TAG_maxp:
       result = _subset<const OT::maxp> (plan);
       break;
