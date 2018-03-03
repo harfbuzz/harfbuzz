@@ -24,7 +24,7 @@ matrix:
         - export LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs"
 
         - ./autogen.sh
-        - ./configure $CONFIGURE_OPTS --enable-gtk-doc
+        - ./configure $CONFIGURE_OPTS --enable-gtk-doc --enable-code-coverage
         - make
         - make check || .ci/fail.sh
       after_success:
