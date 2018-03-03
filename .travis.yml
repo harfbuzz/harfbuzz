@@ -69,6 +69,7 @@ addons:
     packages:
       - pkg-config # for autogen.sh
       - ragel
+      - lcov
       - gtk-doc-tools
       - libfreetype6-dev # for font function
       - libglib2.0-dev # for font functions / tests / utils
