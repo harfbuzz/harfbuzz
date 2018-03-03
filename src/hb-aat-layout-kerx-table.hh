@@ -299,6 +299,7 @@ struct kerx
     if (!(c->check_struct (this)))
      return_trace (false);
 
+    /* TODO: Something like `morx`s ChainSubtable should be done here instead */
     const KerxTable *table = &StructAfter<KerxTable> (*this);
     if (!(table->sanitize (c)))
       return_trace (false);
