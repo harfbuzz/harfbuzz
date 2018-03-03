@@ -22,8 +22,8 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_OT_COLR_TABLE_HH
-#define HB_OT_COLR_TABLE_HH
+#ifndef HB_OT_COLOR_COLR_TABLE_HH
+#define HB_OT_COLOR_COLR_TABLE_HH
 
 #include "hb-open-type-private.hh"
 
@@ -134,4 +134,4 @@ struct COLR
 } /* namespace OT */
 
 
-#endif /* HB_OT_COLR_TABLE_HH */
+#endif /* HB_OT_COLOR_COLR_TABLE_HH */

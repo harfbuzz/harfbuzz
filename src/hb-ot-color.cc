@@ -26,8 +26,8 @@
  */
 
 #include "hb-open-type-private.hh"
-#include "hb-ot-colr-table.hh"
-#include "hb-ot-cpal-table.hh"
+#include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-cpal-table.hh"
 #include "hb-ot.h"
 
 #include <stdlib.h>

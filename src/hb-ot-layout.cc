@@ -37,8 +37,8 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-name-table.hh" // Just so we compile it; unused otherwise.
-#include "hb-ot-colr-table.hh"
-#include "hb-ot-cpal-table.hh"
+#include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-cpal-table.hh"
 
 #include "hb-ot-map-private.hh"
 
