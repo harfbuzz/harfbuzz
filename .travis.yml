@@ -27,6 +27,7 @@ matrix:
         - ./configure $CONFIGURE_OPTS --enable-gtk-doc --enable-code-coverage
         - make
         - make check || .ci/fail.sh
+        - rm -rf freetype-2.9
       after_success:
         - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
         - bash .ci/deploy-docs.sh
