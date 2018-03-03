@@ -17,7 +17,7 @@ HB_BASE_sources = \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
-	hb-ot-cbdt-table.hh \
+	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-hdmx-table.hh \
