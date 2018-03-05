@@ -9,7 +9,10 @@
 #  $ cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild
 #  $ src/dev-run.sh [FONT-FILE] [TEXT]
 #
-# If you are using iTerm2, issue the script like this:
+# If you want to open the result rendering using a GUI app,
+#  $ src/dev-run.sh open [FONT-FILE] [TEXT]
+#
+# And if you are using iTerm2, you can use the script like this,
 #  $ src/dev-run.sh img [FONT-FILE] [TEXT]
 #
 
@@ -22,6 +25,11 @@ GDB=gdb
 command -v $GDB >/dev/null 2>&1 || export GDB="lldb"
 
 
+[ $1 = "open" ] && openimg=1 && shift
+OPEN=xdg-open
+[ "$(uname)" == "Darwin" ] && OPEN=open
+
+
 [ $1 = "img" ] && img=1 && shift
 # http://iterm2.com/documentation-images.html
 osc="\033]"
@@ -30,7 +38,7 @@ st="\a"
 if [[ $TERM == screen* ]]; then st="\a"; fi
 
 
-tmp=$(mktemp)
+tmp=tmp.png
 [ -f 'build/build.ninja' ] && CMAKENINJA=TRUE
 # or "fswatch -0 . -e build/ -e .git"
 find src/ | entr printf '\0' | while read -d ""; do
@@ -39,7 +47,10 @@ find src/ | entr printf '\0' | while read -d ""; do
 	if [[ $CMAKENINJA ]]; then
 		ninja -Cbuild hb-shape hb-view && {
 			build/hb-shape $@
-			if [ $img ]; then
+			if [ $openimg ]; then
+				build/hb-view $@ -O png -o $tmp
+				$OPEN $tmp
+			elif [ $img ]; then
 				build/hb-view $@ -O png -o $tmp
 				printf "\n${osc}1337;File=;inline=1:`cat $tmp | base64`${st}\n"
 			else
@@ -49,7 +60,10 @@ find src/ | entr printf '\0' | while read -d ""; do
 	else
 		make -Cbuild/src -j5 -s lib && {
 			build/util/hb-shape $@
-			if [ $img ]; then
+			if [ $openimg ]; then
+				build/util/hb-view $@ -O png -o $tmp
+				$OPEN $tmp
+			elif [ $img ]; then
 				build/util/hb-view $@ -O png -o $tmp
 				printf "\n${osc}1337;File=;inline=1:`cat $tmp | base64`${st}\n"
 			else
