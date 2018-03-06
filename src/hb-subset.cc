@@ -252,6 +252,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_hmtx:
       result = _subset<const OT::hmtx> (plan);
       break;
+    case HB_OT_TAG_vhea:
+      DEBUG_MSG(SUBSET, nullptr, "skip vhea handled by hmtx");
+      return true;
     case HB_OT_TAG_vmtx:
       result = _subset<const OT::vmtx> (plan);
       break;
