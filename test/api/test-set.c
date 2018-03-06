@@ -137,9 +137,12 @@ test_set_algebra (void)
 {
   hb_set_t *s = hb_set_create ();
   hb_set_t *o = hb_set_create ();
+  hb_set_t *o2 = hb_set_create ();
 
   hb_set_add (o, 13);
   hb_set_add (o, 19);
+
+  hb_set_add (o2, 0x660E);
 
   test_empty (s);
   g_assert (!hb_set_is_equal (s, o));
@@ -156,6 +159,13 @@ test_set_algebra (void)
   g_assert_cmpint (hb_set_get_population (s), ==, 3);
   g_assert (hb_set_has (s, 10));
   g_assert (hb_set_has (s, 13));
+
+  hb_set_clear (s);
+  test_empty (s);
+  g_assert_cmpint (hb_set_get_population (s), ==, 0);
+  hb_set_union (s, o2);
+  g_assert_cmpint (hb_set_get_population (s), ==, 1);
+  g_assert (hb_set_has (s, 0x660E));
 
   hb_set_clear (s);
   test_empty (s);
