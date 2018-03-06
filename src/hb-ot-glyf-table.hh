@@ -133,9 +133,19 @@ struct glyf
     DEFINE_SIZE_STATIC (10);
   };
 
+  struct SimpleGlyph
+  {
+    //endPtsOfContours
+    //ArrayOf<HBUINT16> instructions;
+      // const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyph_data, 0);
+      // if (glyph_header.numberOfContours < 0)
+    //DEFINE_SIZE_ARRAY (4);
+  };
+
   struct CompositeGlyphHeader
   {
-    enum composite_glyph_flag_t {
+    enum composite_glyph_flag_t
+    {
       ARG_1_AND_2_ARE_WORDS =      0x0001,
       ARGS_ARE_XY_VALUES =         0x0002,
       ROUND_XY_TO_GRID =           0x0004,
@@ -151,7 +161,7 @@ struct glyf
     };
 
     HBUINT16 flags;
-    GlyphID  glyphIndex;
+    GlyphID glyphIndex;
 
     unsigned int get_size () const
     {
@@ -169,6 +179,40 @@ struct glyf
       else if (flags & WE_HAVE_A_TWO_BY_TWO) size += 8;
 
       return size;
+    }
+
+    inline void get_component_properties (int &dx, int &dy,
+					  float &scaleX, float &scale01,
+					  float &scale10, float &scaleY) const
+    {
+      const char * cursor = (const char *) this + min_size;
+      if (flags & ARG_1_AND_2_ARE_WORDS) {
+        HBINT16* args = (HBINT16*) cursor;
+        dx = args[0]; dy = args[1];
+        cursor += 4;
+      } else {
+        HBINT8* args = (HBINT8*) cursor;
+        dx = args[0]; dy = args[1];
+        cursor += 2;
+      }
+
+      scaleX = 1;
+      scaleY = 1;
+      scale01 = 0;
+      scale10 = 0;
+
+      F2DOT14* scales = (F2DOT14*) cursor;
+      if (flags & WE_HAVE_A_SCALE) {
+        scaleX = scaleY = scales[0].to_float ();
+      } else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) {
+        scaleX = scales[0].to_float ();
+        scaleY = scales[1].to_float ();
+      } else if (flags & WE_HAVE_A_TWO_BY_TWO) {
+        scaleX = scales[0].to_float ();
+        scale01 = scales[1].to_float ();
+        scale10 = scales[2].to_float ();
+        scaleY = scales[3].to_float ();
+      }
     }
 
     struct Iterator
@@ -200,8 +244,8 @@ struct glyf
     };
 
     static bool get_iterator (const char * glyph_data,
-				     unsigned int length,
-				     CompositeGlyphHeader::Iterator *iterator /* OUT */)
+			      unsigned int length,
+			      CompositeGlyphHeader::Iterator *iterator /* OUT */)
     {
       if (length < GlyphHeader::static_size)
 	return false; /* Empty glyph; zero extents. */
@@ -354,9 +398,182 @@ struct glyf
       return true;
     }
 
+    struct glyph_coordinate_t
+    {
+
+    };
+
+    bool glyph_coordinates (hb_codepoint_t gid) const
+    {
+      unsigned int start_offset;
+      unsigned int end_offset;
+      get_offsets (gid, &start_offset, &end_offset);
+      // //(const char*) this->glyf_table + start_offset
+      // const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
+
+      if (end_offset - start_offset < GlyphHeader::static_size)
+        return true;
+
+      const char *cursor = ((const char *) glyf_table) + start_offset;
+      const char * const glyph_end = cursor + (end_offset - start_offset);
+      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (cursor, 0);
+      int16_t num_contours = (int16_t) glyph_header.numberOfContours;
+
+      if (num_contours < 0)
+      {
+        HBUINT16 flags;
+        flags.set (CompositeGlyphHeader::MORE_COMPONENTS);
+        printf ("%x", (int) flags);
+
+        CompositeGlyphHeader::Iterator composite_it;
+        if (unlikely (!CompositeGlyphHeader::get_iterator (cursor,
+            end_offset - start_offset, &composite_it))) return false;
+        do {
+          int dx, dy;
+          float scaleX, scale01, scale10, scaleY;
+          const CompositeGlyphHeader *current = composite_it.current;
+          current->get_component_properties (dx, dy,
+            scaleX, scale01, scale10, scaleY);
+
+          // XXX: See maxp.{maxComponentDepth, maxComponentElements}
+          // The recursion should be limited
+          glyph_coordinates (composite_it.current->glyphIndex);
+        } while (composite_it.move_to_next());
+      }
+      else if (num_contours > 0)
+      {
+        unsigned int glyph_len = end_offset - start_offset;
+        cursor += GlyphHeader::static_size;
+        const HBUINT16 *contours = (HBUINT16*) cursor;
+        printf ("Contours ends (%d): ", num_contours);
+        for (unsigned int i = 0; i < num_contours; ++i)
+        {
+          printf ("%d ", (int) contours[i]);
+        }
+        printf ("\n");
+        cursor += 2 * num_contours;
+
+        if (unlikely (cursor + 2 >= glyph_end)) return false;
+        uint16_t nCoordinates = (uint16_t) StructAtOffset<HBUINT16>(cursor - 2, 0) + 1;
+        uint16_t nInstructions = (uint16_t) StructAtOffset<HBUINT16>(cursor, 0);
+
+        cursor += 2 + nInstructions;
+        if (unlikely (cursor + 2 >= glyph_end)) return false;
+
+
+        unsigned int coordFlagBytes = 0;
+        unsigned int coordXBytes = 0;
+        unsigned int coordYBytes = 0;
+        unsigned int coordsWithFlags = 0;
+        const char *flags = cursor;
+        while (cursor < glyph_end)
+        {
+          uint8_t flag = (uint8_t) *cursor;
+          cursor++;
+
+          unsigned int repeat = 1;
+          if (flag & FLAG_REPEAT)
+          {
+            if (cursor >= glyph_end)
+            {
+              DEBUG_MSG(SUBSET, nullptr, "Bad flag");
+              return false;
+            }
+            repeat = ((uint8_t) *cursor) + 1;
+            coordFlagBytes++;
+            cursor++;
+          }
+
+          unsigned int xBytes, yBytes;
+          xBytes = yBytes = 0;
+          if (flag & FLAG_X_SHORT)
+            xBytes = 1;
+          else if ((flag & FLAG_X_SAME) == 0)
+            xBytes = 2;
+
+          if (flag & FLAG_Y_SHORT)
+            yBytes = 1;
+          else if ((flag & FLAG_Y_SAME) == 0)
+            yBytes = 2;
+
+          coordXBytes += (xBytes) * repeat;
+          coordYBytes += (yBytes) * repeat;
+          coordFlagBytes++;
+          coordsWithFlags += repeat;
+          if (coordsWithFlags >= nCoordinates)
+            break;
+        }
+
+        const char *x_coord_cursor = flags + coordFlagBytes;
+        const char *y_coord_cursor = x_coord_cursor + coordXBytes;
+        coordsWithFlags = 0;
+        int b = 0;
+        int x = 0;
+        int y = 0;
+        while (flags < glyph_end)
+        {
+          uint8_t flag = (uint8_t) *flags;
+          flags++;
+
+          unsigned int repeat = 1;
+          if (flag & FLAG_REPEAT)
+          {
+            repeat = ((uint8_t) *flags) + 1;
+            flags++;
+          }
+
+          for (unsigned int i = 0; i < repeat; ++i)
+          {
+            if (flag & FLAG_X_SHORT)
+            {
+              if (flag & FLAG_X_SAME)
+                x += *((HBUINT8 *) x_coord_cursor);
+              else
+                x -= *((HBUINT8 *) x_coord_cursor);
+              x_coord_cursor++;
+            }
+            else if ((flag & FLAG_X_SAME) == 0)
+            {
+              x += *((HBINT16 *) x_coord_cursor);
+              x_coord_cursor += 2;
+            }
+
+            if (flag & FLAG_Y_SHORT)
+            {
+              if (flag & FLAG_Y_SAME)
+                y += *((HBUINT8 *) y_coord_cursor);
+              else
+                y -= *((HBUINT8 *) y_coord_cursor);
+              y_coord_cursor++;
+            }
+            else if ((flag & FLAG_Y_SAME) == 0)
+            {
+              y += *((HBINT16 *) y_coord_cursor);
+              y_coord_cursor += 2;
+            }
+            printf ("%d %d On: %d\n", x, y, flag & FLAG_ON_CURVE);
+          }
+          coordsWithFlags += repeat;
+          if (coordsWithFlags >= nCoordinates)
+            break;
+        }
+
+        if (coordsWithFlags != nCoordinates)
+        {
+          DEBUG_MSG(SUBSET, nullptr, "Expect %d coords to have flags, got flags for %d", nCoordinates, coordsWithFlags);
+          return false;
+        }
+        cursor += coordXBytes + coordXBytes;
+
+        if (cursor < glyph_end)
+          end_offset -= glyph_end - cursor;
+      }
+      return true;
+    }
+
     bool get_offsets (hb_codepoint_t  glyph,
-			     unsigned int   *start_offset /* OUT */,
-			     unsigned int   *end_offset   /* OUT */) const
+		      unsigned int   *start_offset /* OUT */,
+		      unsigned int   *end_offset   /* OUT */) const
     {
       if (unlikely (glyph >= num_glyphs))
 	return false;

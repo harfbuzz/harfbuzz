@@ -370,6 +370,7 @@ check_PROGRAMS += \
 	dump-khmer-data \
 	dump-myanmar-data \
 	dump-use-data \
+	dump-glyphs \
 	$(NULL)
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
@@ -383,6 +384,9 @@ dump_myanmar_data_LDADD = libharfbuzz.la $(HBLIBS)
 dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
+dump_glyphs_SOURCES = dump-glyphs.cc
+dump_glyphs_CPPFLAGS = $(HBCFLAGS)
+dump_glyphs_LDADD = libharfbuzz.la $(HBLIBS)
 
 check_PROGRAMS += test-ot-tag test-unicode-ranges
 TESTS += test-ot-tag test-unicode-ranges
