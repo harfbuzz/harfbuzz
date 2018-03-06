@@ -80,17 +80,15 @@ struct COLR
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) &&
-        c->check_array ((const void*) &layerRecordsOffset, sizeof (LayerRecord), numLayerRecords) &&
-        c->check_array ((const void*) &baseGlyphRecords, sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
+        c->check_array ((const void*) &layerRecordsOffsetZ, sizeof (LayerRecord), numLayerRecords) &&
+        c->check_array ((const void*) &baseGlyphRecordsZ, sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
       return_trace (false);
 
-    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecords (this);
+    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
     for (unsigned int i = 0; i < numBaseGlyphRecords; ++i)
       if (base_glyph_records[i].firstLayerIndex +
           base_glyph_records[i].numLayers > numLayerRecords)
         return_trace (false);
-
-    /* XXX values of LayerRecord structs should be sanitized */
 
     return_trace (true);
   }
@@ -98,23 +96,30 @@ struct COLR
   inline const bool get_base_glyph_record (
     hb_codepoint_t glyph_id, unsigned int &first_layer, unsigned int &num_layers) const
   {
-    /* TODO replace with bsearch */
-    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecords (this);
-    unsigned int records = numBaseGlyphRecords;
-    for (unsigned int i = 0; i < records; ++i)
-      if (base_glyph_records[i].gID == glyph_id)
+    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
+    unsigned int min = 0, max = numBaseGlyphRecords - 1;
+    while (min <= max)
+    {
+      unsigned int mid = (min + max) / 2;
+      hb_codepoint_t gID = base_glyph_records[mid].gID;
+      if (gID > glyph_id)
+        max = mid - 1;
+      else if (gID < glyph_id)
+        min = mid + 1;
+      else
       {
-        first_layer = base_glyph_records[i].firstLayerIndex;
-        num_layers = base_glyph_records[i].numLayers;
+        first_layer = base_glyph_records[mid].firstLayerIndex;
+        num_layers = base_glyph_records[mid].numLayers;
         return true;
       }
+    }
     return false;
   }
 
   inline void get_layer_record (int layer,
     hb_codepoint_t &glyph_id, unsigned int &palette_index) const
   {
-    const LayerRecord* records = &layerRecordsOffset (this);
+    const LayerRecord* records = &layerRecordsOffsetZ (this);
     glyph_id = records[layer].gID;
     palette_index = records[layer].paletteIndex;
   }
@@ -123,9 +128,9 @@ struct COLR
   HBUINT16	version;		/* Table version number */
   HBUINT16	numBaseGlyphRecords;	/* Number of Base Glyph Records */
   LOffsetTo<BaseGlyphRecord>
-		baseGlyphRecords;	/* Offset to Base Glyph records. */
+		baseGlyphRecordsZ;	/* Offset to Base Glyph records. */
   LOffsetTo<LayerRecord>
-		layerRecordsOffset;	/* Offset to Layer Records */
+		layerRecordsOffsetZ;	/* Offset to Layer Records */
   HBUINT16	numLayerRecords;	/* Number of Layer Records */
   public:
   DEFINE_SIZE_STATIC (14);

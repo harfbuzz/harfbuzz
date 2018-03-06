@@ -40,25 +40,6 @@
 namespace OT {
 
 
-struct ColorRecord
-{
-  friend struct CPAL;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (true);
-  }
-
-  protected:
-  HBUINT8 blue;
-  HBUINT8 green;
-  HBUINT8 red;
-  HBUINT8 alpha;
-  public:
-  DEFINE_SIZE_STATIC (4);
-};
-
 struct CPALV1Tail
 {
   friend struct CPAL;
@@ -96,6 +77,8 @@ struct CPALV1Tail
   DEFINE_SIZE_STATIC (12);
 };
 
+typedef HBUINT32 BGRAColor;
+
 struct CPAL
 {
   static const hb_tag_t tableTag = HB_OT_TAG_CPAL;
@@ -103,16 +86,13 @@ struct CPAL
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this) &&
-		    colorRecords.sanitize (c)))
+    if (!(c->check_struct (this) && // This checks colorRecordIndicesX sanity also, see #get_size
+        c->check_array ((const void*) &colorRecordsZ, sizeof (BGRAColor), numColorRecords)))
       return_trace (false);
 
-    unsigned int palettes = numPalettes;
-    if (!c->check_array (colorRecordIndices, sizeof (HBUINT16), palettes))
-      return_trace (false);
-
-    for (unsigned int i = 0; i < palettes; ++i)
-      if (colorRecordIndices[i] + numPaletteEntries > colorRecords.get_size ())
+    // Check for indices sanity so no need for doing it runtime
+    for (unsigned int i = 0; i < numPalettes; ++i)
+      if (colorRecordIndicesX[i] + numPaletteEntries > numColorRecords)
         return_trace (false);
 
     // If version is zero, we are done here; otherwise we need to check tail also
@@ -120,12 +100,12 @@ struct CPAL
       return_trace (true);
 
     const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-    return_trace (v1.sanitize (c, palettes));
+    return_trace (v1.sanitize (c, numPalettes));
   }
 
   inline unsigned int get_size (void) const
   {
-    return min_size + numPalettes * 2;
+    return min_size + numPalettes * sizeof (HBUINT16);
   }
 
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
@@ -151,14 +131,14 @@ struct CPAL
     return numPalettes;
   }
 
-  inline void get_color_record (int palette_index, uint8_t &r, uint8_t &g,
-                                              uint8_t &b, uint8_t &a) const
+  inline hb_ot_color_t get_color_record_argb (unsigned int color_index, unsigned int palette) const
   {
-    // We should check if palette_index is in range as it is not done on COLR sanitization
-    r = colorRecords[palette_index].red;
-    g = colorRecords[palette_index].green;
-    b = colorRecords[palette_index].blue;
-    a = colorRecords[palette_index].alpha;
+    if (color_index >= numPaletteEntries || palette >= numPalettes)
+      return 0;
+
+    const BGRAColor* records = &colorRecordsZ(this);
+    // No need for more range check as it is already done on #sanitize
+    return records[colorRecordIndicesX[palette] + color_index];
   }
 
   protected:
@@ -166,11 +146,12 @@ struct CPAL
   /* Version 0 */
   HBUINT16	numPaletteEntries;
   HBUINT16	numPalettes;
-  ArrayOf<ColorRecord>	colorRecords;
-  HBUINT16	colorRecordIndices[VAR];  // VAR=numPalettes
+  HBUINT16	numColorRecords;
+  LOffsetTo<HBUINT32>	colorRecordsZ;
+  HBUINT16	colorRecordIndicesX[VAR];  // VAR=numPalettes
 /*CPALV1Tail	v1[VAR];*/
   public:
-  DEFINE_SIZE_ARRAY (12, colorRecordIndices);
+  DEFINE_SIZE_ARRAY (12, colorRecordIndicesX);
 };
 
 } /* namespace OT */

@@ -39,19 +39,11 @@ HB_BEGIN_DECLS
 
 /**
  * hb_ot_color_t:
- * @red: the intensity of the red channel
- * @green: the intensity of the green channel
- * @blue: the intensity of the blue channel
- * @alpha: the transparency
- *
- * Structure for holding color values.
+ * ARGB data type for holding color values.
  *
  * Since: REPLACEME
  */
-typedef struct
-{
-  uint8_t red, green, blue, alpha;
-} hb_ot_color_t;
+typedef uint32_t hb_ot_color_t;
 
 
 /**
