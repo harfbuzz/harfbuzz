@@ -299,7 +299,6 @@ struct glyf
         return true;
       else if (num_contours > 0)
       {
-        unsigned int glyph_len = *end_offset - start_offset;
         /* simple glyph w/contours, possibly trimmable */
         glyph += GlyphHeader::static_size + 2 * num_contours;
 
