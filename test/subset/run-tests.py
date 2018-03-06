@@ -60,6 +60,7 @@ def run_test(test, should_check_ots):
 	if return_code:
 		return fail_test(test, cli_args, "ttx (actual) returned %d" % (return_code))
 
+	print ("stripping checksums.")
 	expected_ttx = strip_check_sum (expected_ttx)
 	actual_ttx = strip_check_sum (actual_ttx)
 
@@ -77,6 +78,7 @@ def run_test(test, should_check_ots):
 	return 0
 
 def run_ttx(file):
+	print ("ttx %s" % file)
 	cli_args = ["ttx",
 		    "-o-",
 		    file]
