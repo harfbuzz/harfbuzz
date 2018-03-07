@@ -30,6 +30,54 @@
 
 #include "hb-open-type-private.hh"
 
+
+/*
+ * Following parts to be moved to a public header.
+ */
+
+/**
+ * hb_ot_color_t:
+ * ARGB data type for holding color values.
+ *
+ * Since: REPLACEME
+ */
+typedef uint32_t hb_ot_color_t;
+
+
+/**
+ * hb_ot_color_palette_flags_t:
+ * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
+} hb_ot_color_palette_flags_t;
+
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_count (hb_face_t *face);
+
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
+
+// HB_EXTERN hb_ot_color_palette_flags_t
+// hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+
+// HB_EXTERN unsigned int
+// hb_ot_color_get_palette_colors (hb_face_t       *face,
+// 				unsigned int     palette, /* default=0 */
+// 				unsigned int     start_offset,
+// 				unsigned int    *color_count /* IN/OUT */,
+// 				hb_ot_color_t   *colors /* OUT */);
+
+
+
+
+
 /*
  * Color Palette
  * http://www.microsoft.com/typography/otspec/cpal.htm
