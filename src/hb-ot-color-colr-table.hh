@@ -93,7 +93,7 @@ struct COLR
     return_trace (true);
   }
 
-  inline const bool get_base_glyph_record (
+  inline bool get_base_glyph_record (
     hb_codepoint_t glyph_id, unsigned int &first_layer, unsigned int &num_layers) const
   {
     const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
