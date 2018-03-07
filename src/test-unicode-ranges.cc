@@ -29,7 +29,7 @@
 #include "hb-ot-os2-unicode-ranges.hh"
 
 void
-test (hb_codepoint_t cp, int bit)
+test (hb_codepoint_t cp, unsigned int bit)
 {
   if (OT::hb_get_unicode_range_bit (cp) != bit)
   {
