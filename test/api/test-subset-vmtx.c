@@ -38,8 +38,8 @@ static void check_num_vmetrics(hb_face_t *face, uint16_t expected_num_vmetrics)
 
   unsigned int vhea_len;
   uint8_t *raw_vhea = (uint8_t *) hb_blob_get_data(vhea_blob, &vhea_len);
-  uint16_t num_hmetrics = (raw_vhea[vhea_len - 2] << 8) + raw_vhea[vhea_len - 1];
-  g_assert_cmpuint(expected_num_hmetrics, ==, num_hmetrics);
+  uint16_t num_vmetrics = (raw_vhea[vhea_len - 2] << 8) + raw_vhea[vhea_len - 1];
+  g_assert_cmpuint(expected_num_vmetrics, ==, num_vmetrics);
 
   hb_blob_destroy (vhea_blob);
   hb_blob_destroy (vmtx_blob);
