@@ -31,12 +31,11 @@
 
 /* Unit tests for hmtx subsetting */
 
-static void check_num_vmetrics(hb_face_t *face, uint16_t expected_num_hmetrics)
+static void check_num_vmetrics(hb_face_t *face, uint16_t expected_num_vmetrics)
 {
   hb_blob_t *vhea_blob = hb_face_reference_table (face, HB_TAG ('v','h','e','a'));
   hb_blob_t *vmtx_blob = hb_face_reference_table (face, HB_TAG ('v','m','t','x'));
 
-  // TODO I sure wish I could just use the hmtx table struct!
   unsigned int vhea_len;
   uint8_t *raw_vhea = (uint8_t *) hb_blob_get_data(vhea_blob, &vhea_len);
   uint16_t num_hmetrics = (raw_vhea[vhea_len - 2] << 8) + raw_vhea[vhea_len - 1];
