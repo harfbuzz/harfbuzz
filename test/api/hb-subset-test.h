@@ -75,7 +75,7 @@ hb_subset_test_open_font (const char *font_path)
 #if GLIB_CHECK_VERSION(2,37,2)
   gchar* path = g_test_build_filename(G_TEST_DIST, font_path, NULL);
 #else
-  gchar* path = g_strdup(fontFile);
+  gchar* path = g_strdup(font_path);
 #endif
 
   size_t length;
