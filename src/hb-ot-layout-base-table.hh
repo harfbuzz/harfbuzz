@@ -30,7 +30,6 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
-#include "hb-ot-base.h"
 
 namespace OT {
 
