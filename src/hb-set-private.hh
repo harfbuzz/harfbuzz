@@ -430,19 +430,26 @@ struct hb_set_t
       {
 	a--;
 	b--;
-        Op::process (page_at (--count).v, page_at (a).v, other->page_at (b).v);
+	count--;
+	Op::process (page_at (count).v, page_at (a).v, other->page_at (b).v);
       }
       else if (page_map[a - 1].major > other->page_map[b - 1].major)
       {
-        a--;
-        if (Op::passthru_left)
-	  page_at (--count).v = page_at (a).v;
+	a--;
+	if (Op::passthru_left)
+	{
+	  count--;
+	  page_at (count).v = page_at (a).v;
+	}
       }
       else
       {
-        b--;
-        if (Op::passthru_right)
-	  page_at (--count).v = other->page_at (b).v;
+	b--;
+	if (Op::passthru_right)
+	{
+	  count--;
+	  page_at (count).v = other->page_at (b).v;
+	}
       }
     }
     if (Op::passthru_left)
