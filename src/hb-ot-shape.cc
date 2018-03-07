@@ -41,7 +41,7 @@
 #include "hb-set-private.hh"
 
 #include "hb-ot-layout-gsubgpos-private.hh"
-#include "hb-aat-layout-private.hh"
+//#include "hb-aat-layout-private.hh"
 
 static hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
