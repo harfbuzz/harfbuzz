@@ -264,7 +264,7 @@ struct hmtxvmtx
       {
         advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
       }
-      return advance;	        
+      return advance;
     }
 
     public:
