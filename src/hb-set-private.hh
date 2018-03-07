@@ -389,6 +389,7 @@ struct hb_set_t
 
     unsigned int na = pages.len;
     unsigned int nb = other->pages.len;
+    unsigned int next_page = na;
 
     unsigned int count = 0;
     unsigned int a = 0, b = 0;
@@ -431,6 +432,7 @@ struct hb_set_t
 	a--;
 	b--;
 	count--;
+	page_map[count] = page_map[a];
 	Op::process (page_at (count).v, page_at (a).v, other->page_at (b).v);
       }
       else if (page_map[a - 1].major > other->page_map[b - 1].major)
@@ -439,7 +441,7 @@ struct hb_set_t
 	if (Op::passthru_left)
 	{
 	  count--;
-	  page_at (count).v = page_at (a).v;
+	  page_map[count] = page_map[a];
 	}
       }
       else
@@ -448,16 +450,28 @@ struct hb_set_t
 	if (Op::passthru_right)
 	{
 	  count--;
+	  page_map[count].major = other->page_map[b].major;
+	  page_map[count].index = next_page++;
 	  page_at (count).v = other->page_at (b).v;
 	}
       }
     }
     if (Op::passthru_left)
       while (a)
-	page_at (--count).v = page_at (--a).v;
+      {
+	a--;
+	count--;
+	page_map[count] = page_map [a];
+      }
     if (Op::passthru_right)
       while (b)
-	page_at (--count).v = other->page_at (--b).v;
+      {
+	b--;
+	count--;
+	page_map[count].major = other->page_map[b].major;
+	page_map[count].index = next_page++;
+	page_at (count).v = other->page_at (b).v;
+      }
     assert (!count);
   }
 
