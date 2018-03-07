@@ -82,6 +82,34 @@ struct post
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_plan_t *plan) const
+  {
+    hb_blob_t *post_blob = OT::Sanitizer<post>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_post));
+    post *post_table = (post *) hb_blob_get_data (post_blob, nullptr);
+
+    post *post_prime = (post *) malloc (post::static_size);
+    if (unlikely (!post_prime))
+    {
+      hb_blob_destroy (post_blob);
+      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for post subset output.", (unsigned long) post::static_size);
+      return false;
+    }
+
+    memcpy (post_prime, post_table, post::static_size);
+    hb_blob_destroy (post_blob);
+
+    post_prime->version.major.set (3); // Version 3 does not have any glyph names.
+    hb_blob_t *post_prime_blob = hb_blob_create ((const char *) post_prime,
+						 post::static_size,
+						 HB_MEMORY_MODE_READONLY,
+						 post_prime,
+						 free);
+    bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_post, post_prime_blob);
+    hb_blob_destroy (post_prime_blob);
+
+    return result;
+  }
+
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
