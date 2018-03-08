@@ -41,6 +41,7 @@
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-os2-table.hh"
+#include "hb-ot-post-table.hh"
 
 
 #ifndef HB_NO_VISIBILITY
@@ -269,6 +270,9 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     case HB_OT_TAG_os2:
       result = _subset<const OT::os2> (plan);
+      break;
+    case HB_OT_TAG_post:
+      result = _subset<const OT::post> (plan);
       break;
     default:
       hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);

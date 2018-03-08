@@ -82,6 +82,28 @@ struct post
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_plan_t *plan) const
+  {
+    unsigned int post_prime_length;
+    hb_blob_t *post_blob = OT::Sanitizer<post>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_post));
+    hb_blob_t *post_prime_blob = hb_blob_create_sub_blob (post_blob, 0, post::static_size);
+    post *post_prime = (post *) hb_blob_get_data_writable (post_prime_blob, &post_prime_length);
+    hb_blob_destroy (post_blob);
+
+    if (unlikely (!post_prime || post_prime_length != post::static_size))
+    {
+      hb_blob_destroy (post_prime_blob);
+      DEBUG_MSG(SUBSET, nullptr, "Invalid source post table with length %d.", post_prime_length);
+      return false;
+    }
+
+    post_prime->version.major.set (3); // Version 3 does not have any glyph names.
+    bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_post, post_prime_blob);
+    hb_blob_destroy (post_prime_blob);
+
+    return result;
+  }
+
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
