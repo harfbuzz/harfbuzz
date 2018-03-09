@@ -87,9 +87,9 @@ def run_ttx(file):
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
 		       'checkSumAdjustment value="0x00000000"',
-		       ttx_string, count=1)
+		       ttx_string.decode (), count=1)
 
-def has_ots():
+def has_ots ():
 	_, returncode = cmd(["which", "ots-sanitize"])
 	if returncode:
 		print("OTS is not present, skipping all ots checks.")
