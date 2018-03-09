@@ -290,21 +290,40 @@ _subset_table (hb_subset_plan_t *plan,
 static bool
 _should_drop_table(hb_subset_plan_t *plan, hb_tag_t tag)
 {
-    switch (tag) {
-      case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
-      case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
-      case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
-      case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
-      case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
-      case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
-        return plan->drop_hints;
-      case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
-      case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
-      case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
-      case HB_TAG ('D', 'S', 'I', 'G'):
-        return true;
-      default:
-        return false;
+  switch (tag) {
+    case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
+    case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
+    case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
+    case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
+    case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
+    case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
+      return plan->drop_hints;
+    // Drop Layout Tables until subsetting is supported.
+    case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
+    case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
+    case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
+    // Drop these tables below by default, list pulled
+    // from fontTools:
+    case HB_TAG ('B', 'A', 'S', 'E'):
+    case HB_TAG ('J', 'S', 'T', 'F'):
+    case HB_TAG ('D', 'S', 'I', 'G'):
+    case HB_TAG ('E', 'B', 'D', 'T'):
+    case HB_TAG ('E', 'B', 'L', 'C'):
+    case HB_TAG ('E', 'B', 'S', 'C'):
+    case HB_TAG ('S', 'V', 'G', ' '):
+    case HB_TAG ('P', 'C', 'L', 'T'):
+    case HB_TAG ('L', 'T', 'S', 'H'):
+    // Graphite tables:
+    case HB_TAG ('F', 'e', 'a', 't'):
+    case HB_TAG ('G', 'l', 'a', 't'):
+    case HB_TAG ('G', 'l', 'o', 'c'):
+    case HB_TAG ('S', 'i', 'l', 'f'):
+    case HB_TAG ('S', 'i', 'l', 'l'):
+    // Colour
+    case HB_TAG ('s', 'b', 'i', 'x'):
+      return true;
+    default:
+      return false;
   }
 }
 
