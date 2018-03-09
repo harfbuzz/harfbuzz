@@ -40,6 +40,7 @@
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
 #include "hb-ot-color-sbix-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-color-svg-table.hh" // Just so we compile it; unused otherwise.
 
 #include "hb-ot-map-private.hh"
 
