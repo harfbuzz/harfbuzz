@@ -26,12 +26,13 @@ jobs:
       - run: make
       - run: make check || .ci/fail.sh
 
-  archlinux-debug-O0:
+  archlinux-debug-O0-py3:
     docker:
       - image: base/devel
     steps:
       - checkout
-      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python
+      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip
+      - run: pip install fonttools
       # C??FLAGS are not needed for a regular build
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make
@@ -167,7 +168,7 @@ workflows:
 
       # autotools based builds
       - alpine-O3
-      - archlinux-debug-O0
+      - archlinux-debug-O0-py3
       - clang-O3-O0
       - fedora-outoftreebuild
 
