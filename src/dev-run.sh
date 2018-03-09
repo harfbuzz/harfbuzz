@@ -43,7 +43,7 @@ tmp=tmp.png
 # or "fswatch -0 . -e build/ -e .git"
 find src/ | entr printf '\0' | while read -d ""; do
 	clear
-	echo '===================================================='
+	yes = | head -n`tput cols` | tr -d '\n'
 	if [[ $CMAKENINJA ]]; then
 		ninja -Cbuild hb-shape hb-view && {
 			build/hb-shape $@
