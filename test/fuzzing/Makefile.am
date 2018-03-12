@@ -20,6 +20,7 @@ EXTRA_DIST += \
 
 check_PROGRAMS = \
 	hb-fuzzer \
+	hb-subset-fuzzer \
 	$(NULL)
 
 AM_CPPFLAGS = \
@@ -43,6 +44,20 @@ hb_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(NULL)
 hb_fuzzer_DEPENDENCIES = \
+	lib \
+	$(NULL)
+
+hb_subset_fuzzer_SOURCES = \
+	hb-subset.hh \
+	hb-subset-fuzzer.cc \
+	$(NULL)
+hb_subset_fuzzer_LDADD = \
+	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la \
+	$(NULL)
+hb_subset_fuzzer_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	$(NULL)
+hb_subset_fuzzer_DEPENDENCIES = \
 	lib \
 	$(NULL)
 
