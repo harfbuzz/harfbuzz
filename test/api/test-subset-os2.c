@@ -24,7 +24,6 @@
  * Google Author(s): Garret Rieger
  */
 
-#include <stdbool.h>
 
 #include "hb-test.h"
 #include "hb-subset-test.h"
@@ -36,8 +35,9 @@ test_subset_os2 (void)
   hb_face_t *face_b = hb_subset_test_open_font("fonts/Roboto-Regular.b.ttf");
 
   hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abc_subset;
   hb_set_add (codepoints, 98);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_b, face_abc_subset, HB_TAG ('O','S','/','2'));

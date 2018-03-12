@@ -32,6 +32,18 @@
 #include "hb-test.h"
 #include "hb-subset.h"
 
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#else
+typedef short bool;
+# ifndef true
+#  define true 1
+# endif
+# ifndef false
+#  define false 0
+# endif
+#endif
+
 
 HB_BEGIN_DECLS
 
@@ -122,9 +134,10 @@ hb_subset_test_check (hb_face_t *expected,
                       hb_face_t *actual,
                       hb_tag_t   table)
 {
+  hb_blob_t *expected_blob, *actual_blob;
   fprintf(stderr, "compare %c%c%c%c\n", HB_UNTAG(table));
-  hb_blob_t *expected_blob = hb_face_reference_table (expected, table);
-  hb_blob_t *actual_blob = hb_face_reference_table (actual, table);
+  expected_blob = hb_face_reference_table (expected, table);
+  actual_blob = hb_face_reference_table (actual, table);
   hb_test_assert_blobs_equal (expected_blob, actual_blob);
   hb_blob_destroy (expected_blob);
   hb_blob_destroy (actual_blob);
