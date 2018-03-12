@@ -27,6 +27,12 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * sbix -- Standard Bitmap Graphics Table
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/sbix
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6sbix.html
+ */
+
 #define HB_OT_TAG_SBIX HB_TAG('s','b','i','x')
 
 namespace OT {
@@ -58,10 +64,17 @@ struct SBIXStrike
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
+    if (!(c->check_struct (this) &&
 		  c->check_array (imageOffsetsZ,
 				  sizeof (HBUINT32),
-				  1 + c->num_glyphs));
+				  1 + c->num_glyphs)))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < 1 + c->num_glyphs; ++i)
+      if (!c->check_range (this, imageOffsetsZ[i]))
+        return_trace (false);
+
+    return_trace (true);
   }
 
   HBUINT16		ppem;		/* The PPEM size for which this strike was designed. */
@@ -75,9 +88,6 @@ struct SBIXStrike
   DEFINE_SIZE_STATIC (8);
 };
 
-/*
- * sbix -- Standard Bitmap Graphics Table
- */
 // It should be called with something like this so it can have
 // access to num_glyph while sanitizing.
 //
