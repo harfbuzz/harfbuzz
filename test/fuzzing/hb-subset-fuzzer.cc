@@ -28,6 +28,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
   hb_face_t *result = hb_subset (face, profile, input);
 
+  hb_face_destroy (result);
   hb_subset_input_destroy (input);
   hb_subset_profile_destroy (profile);
   hb_face_destroy (face);
