@@ -90,6 +90,8 @@ include_directories(AFTER
 add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_FALLBACK)
 
+# We need PYTHON_EXECUTABLE to be set for running the tests...
+include (FindPythonInterp)
 
 ## Functions and headers
 include (CheckFunctionExists)
@@ -103,7 +105,10 @@ macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
     endif ()
   endforeach ()
 endmacro ()
-check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+if (UNIX)
+  list(APPEND CMAKE_REQUIRED_LIBRARIES m)
+endif ()
+check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l round)
 check_include_file(unistd.h HAVE_UNISTD_H)
 if (${HAVE_UNISTD_H})
   add_definitions(-DHAVE_UNISTD_H)
@@ -115,6 +120,10 @@ endif ()
 check_include_file(xlocale.h HAVE_XLOCALE_H)
 if (${HAVE_XLOCALE_H})
   add_definitions(-DHAVE_XLOCALE_H)
+endif ()
+check_include_file(stdbool.h HAVE_STDBOOL_H)
+if (${HAVE_STDBOOL_H})
+  add_definitions(-DHAVE_STDBOOL_H)
 endif ()
 
 
@@ -385,7 +394,6 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
 endif ()
 
 if (HB_HAVE_GOBJECT)
-  include (FindPythonInterp)
   include (FindPerl)
 
   # Use the hints from glib-2.0.pc to find glib-mkenums
