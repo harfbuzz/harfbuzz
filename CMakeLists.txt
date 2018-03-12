@@ -646,6 +646,11 @@ if (HB_HAVE_INTROSPECTION)
     endif ()
   endforeach ()
 
+  file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/src/hb_gir_list)
+  foreach (s ${introspected_sources})
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/src/hb_gir_list "${s}\n")
+  endforeach ()
+
   # Finally, build the introspection files...
   add_custom_command(
     TARGET harfbuzz-gobject
@@ -675,9 +680,9 @@ if (HB_HAVE_INTROSPECTION)
       --library=harfbuzz
       -L${hb_libpath}
       ${extra_libs}
-      ${introspected_sources}
+      --filelist ${CMAKE_CURRENT_BINARY_DIR}/src/hb_gir_list
       -o ${hb_libpath}/HarfBuzz-0.0.gir
-    DEPENDS harfbuzz-gobject harfbuzz
+    DEPENDS harfbuzz-gobject harfbuzz ${CMAKE_CURRENT_BINARY_DIR}/src/hb_gir_list
   )
 
   add_custom_command(
