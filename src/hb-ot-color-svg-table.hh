@@ -49,10 +49,15 @@ struct SVGDocumentIndexEntry
   }
 
   protected:
-  HBUINT16 startGlyphID;
-  HBUINT16 endGlyphID;
-  LOffsetTo<const uint8_t *> svgDoc;
-  HBUINT32 svgDocLength;
+  HBUINT16 startGlyphID;	/* The first glyph ID in the range described by
+                                 * this index entry. */
+  HBUINT16 endGlyphID;		/* The last glyph ID in the range described by
+                                 * this index entry. Must be >= startGlyphID. */
+  LOffsetTo<const uint8_t *>
+        svgDoc;			/* Offset from the beginning of the SVG Document Index
+                                 * to an SVG document. Must be non-zero. */
+  HBUINT32 svgDocLength;	/* Length of the SVG document.
+                                 * Must be non-zero. */
   public:
   DEFINE_SIZE_STATIC (12);
 };
@@ -81,7 +86,8 @@ struct SVGDocumentIndex
   // }
 
   protected:
-  ArrayOf<SVGDocumentIndexEntry> entries;
+  ArrayOf<SVGDocumentIndexEntry>
+    entries;			/* Array of SVG Document Index Entries. */
   public:
   DEFINE_SIZE_ARRAY (2, entries);
 };
@@ -98,9 +104,11 @@ struct SVG
   }
 
   protected:
-  HBUINT16	version;
-  LOffsetTo<SVGDocumentIndex>	svgDocIndex;
-  HBUINT32	reserved;
+  HBUINT16	version;	/* Table version (starting at 0). */
+  LOffsetTo<SVGDocumentIndex>
+    svgDocIndex;		/* Offset (relative to the start of the SVG table) to the
+				 * SVG Documents Index. Must be non-zero. */
+  HBUINT32	reserved;	/* Set to 0. */
   public:
   DEFINE_SIZE_STATIC (10);
 };
