@@ -24,8 +24,6 @@
  * Google Author(s): Roderick Sheeter
  */
 
-#include <stdbool.h>
-
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
@@ -38,9 +36,10 @@ test_subset_cmap (void)
   hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.cmap-format12-only.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_abc_subset;
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('c','m','a','p'));
@@ -56,10 +55,11 @@ test_subset_cmap_noop (void)
   hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.cmap-format12-only.ttf");
 
   hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abc_subset;
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 98);
   hb_set_add (codepoints, 99);
-  hb_face_t *face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('c','m','a','p'));

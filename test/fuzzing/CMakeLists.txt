@@ -13,6 +13,6 @@ if (HB_CHECK)
 
   target_compile_definitions(hb-fuzzer PUBLIC ${FUZZING_CPPFLAGS})
   add_test (NAME hb-fuzzer
-    COMMAND python run-fuzzer-tests.py $<TARGET_FILE:hb-fuzzer>
+    COMMAND "${PYTHON_EXECUTABLE}" run-fuzzer-tests.py $<TARGET_FILE:hb-fuzzer>
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()

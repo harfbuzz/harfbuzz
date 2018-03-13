@@ -21,7 +21,12 @@ if (HB_HAVE_GLIB)
       message (FATAL_ERROR "No source file found for test ${test_name}")
     endif ()
     target_link_libraries (${test_name} harfbuzz harfbuzz-subset)
-    add_test (${test_name} ${test_name})
+    if (WIN32)
+      set_property (TARGET ${test_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+      add_test (NAME ${test_name} COMMAND ${test_name})
+    else (WIN32)
+      add_test (${test_name} ${test_name})
+    endif (WIN32)
   endforeach ()
   set_tests_properties (${TEST_PROGS} PROPERTIES ENVIRONMENT
     "G_TEST_SRCDIR=${CMAKE_CURRENT_SOURCE_DIR};G_TEST_BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}"
