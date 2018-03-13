@@ -184,7 +184,8 @@ FUZZING_CPPFLAGS = \
 	-DHB_BUFFER_MAX_OPS_MIN=64 \
 	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
 	$(NULL)
-EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
+EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la libharfbuzz-subset-fuzzing.la
+
 libharfbuzz_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_fuzzing_la_LDFLAGS)
 libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
 libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
@@ -193,23 +194,9 @@ libharfbuzz_fuzzing_la_LIBADD = $(libharfbuzz_la_LIBADD)
 EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_la_DEPENDENCIES)
 CLEANFILES += libharfbuzz-fuzzing.la
 
-SUBSET_FUZZING_CPPFLAGS = \
-	-DHB_NDEBUG \
-	-DHB_MAX_NESTING_LEVEL=3 \
-	-DHB_SANITIZE_MAX_EDITS=3 \
-	-DHB_SANITIZE_MAX_OPS_FACTOR=3 \
-	-DHB_SANITIZE_MAX_OPS_MIN=128 \
-	-DHB_BUFFER_MAX_LEN_FACTOR=3 \
-	-DHB_BUFFER_MAX_LEN_MIN=8 \
-	-DHB_BUFFER_MAX_LEN_DEFAULT=128 \
-	-DHB_BUFFER_MAX_OPS_FACTOR=8 \
-	-DHB_BUFFER_MAX_OPS_MIN=64 \
-	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
-	$(NULL)
-EXTRA_LTLIBRARIES = libharfbuzz-subset-fuzzing.la
 libharfbuzz_subset_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_subset_fuzzing_la_LDFLAGS)
 libharfbuzz_subset_fuzzing_la_SOURCES = $(libharfbuzz_subset_la_SOURCES)
-libharfbuzz_subset_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(SUBSET_FUZZING_CPPFLAGS)
+libharfbuzz_subset_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_subset_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
 libharfbuzz_subset_fuzzing_la_LIBADD = $(libharfbuzz_subset_la_LIBADD)
 EXTRA_libharfbuzz_subset_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_subset_la_DEPENDENCIES)

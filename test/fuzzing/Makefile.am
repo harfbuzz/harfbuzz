@@ -50,6 +50,7 @@ hb_fuzzer_DEPENDENCIES = \
 hb_subset_fuzzer_SOURCES = \
 	hb-subset.hh \
 	hb-subset-fuzzer.cc \
+	main.cc \
 	$(NULL)
 hb_subset_fuzzer_LDADD = \
 	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la \
