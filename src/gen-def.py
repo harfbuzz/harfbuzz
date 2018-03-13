@@ -7,7 +7,7 @@ import io, os, re, sys
 headers_content = []
 for h in os.environ["headers"].split (' '):
 	if h.endswith (".h"):
-		with io.open(h, encoding='utf8') as f: headers_content.append (f.read ())
+		with io.open (h, encoding='ISO-8859-1') as f: headers_content.append (f.read ())
 
 result = """EXPORTS
 %s
