@@ -80,8 +80,8 @@ struct COLR
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) &&
-        c->check_array ((const void*) &layerRecordsOffsetZ, sizeof (LayerRecord), numLayerRecords) &&
-        c->check_array ((const void*) &baseGlyphRecordsZ, sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
+        c->check_array (&(this+layerRecordsOffsetZ), sizeof (LayerRecord), numLayerRecords) &&
+        c->check_array (&(this+baseGlyphRecordsZ), sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
       return_trace (false);
 
     const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
