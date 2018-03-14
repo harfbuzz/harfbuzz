@@ -131,14 +131,6 @@ if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 endif ()
 
-if (BUILD_SHARED_LIBS)
-  if (WIN32 AND NOT MINGW)
-    add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
-  else ()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-  endif ()
-endif ()
-
 
 ## Detect if we are running inside a distribution or regular repository folder
 # if (EXISTS "${PROJECT_SOURCE_DIR}/ChangeLog")
@@ -533,6 +525,18 @@ endif ()
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
+
+if (BUILD_SHARED_LIBS)
+  if (WIN32 AND NOT MINGW)
+    add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+  else ()
+    add_definitions("-DHB_EXTERN=__attribute__(( visibility( \"default\" ) )) extern")
+    set_target_properties(harfbuzz PROPERTIES
+      C_VISIBILITY_PRESET hidden
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
+endif ()
 
 ## Define harfbuzz-subset library
 add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
