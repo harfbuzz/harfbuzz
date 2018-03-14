@@ -48,8 +48,8 @@ struct LayerRecord
   }
 
   protected:
-  GlyphID gID;			/* Glyph ID of layer glyph */
-  HBUINT16 paletteIndex;	/* Index value to use with a selected color palette */
+  GlyphID	glyphid;	/* Glyph ID of layer glyph */
+  HBUINT16	colorIdx;	/* Index value to use with a selected color palette */
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -65,9 +65,9 @@ struct BaseGlyphRecord
   }
 
   protected:
-  GlyphID gID;			/* Glyph ID of reference glyph */
-  HBUINT16 firstLayerIndex;	/* Index to the layer record */
-  HBUINT16 numLayers;		/* Number of color layers associated with this glyph */
+  GlyphID	glyphid;	/* Glyph ID of reference glyph */
+  HBUINT16	firstLayerIdx;	/* Index to the layer record */
+  HBUINT16	numLayers;	/* Number of color layers associated with this glyph */
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -86,29 +86,30 @@ struct COLR
 
     const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
     for (unsigned int i = 0; i < numBaseGlyphRecords; ++i)
-      if (base_glyph_records[i].firstLayerIndex +
+      if (base_glyph_records[i].firstLayerIdx +
           base_glyph_records[i].numLayers > numLayerRecords)
         return_trace (false);
 
     return_trace (true);
   }
 
-  inline bool get_base_glyph_record (
-    hb_codepoint_t glyph_id, unsigned int &first_layer, unsigned int &num_layers) const
+  inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
+				     unsigned int &first_layer,
+				     unsigned int &num_layers) const
   {
     const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
     unsigned int min = 0, max = numBaseGlyphRecords - 1;
     while (min <= max)
     {
       unsigned int mid = (min + max) / 2;
-      hb_codepoint_t gID = base_glyph_records[mid].gID;
-      if (gID > glyph_id)
+      hb_codepoint_t glyphid = base_glyph_records[mid].glyphid;
+      if (glyphid > glyph_id)
         max = mid - 1;
-      else if (gID < glyph_id)
+      else if (glyphid < glyph_id)
         min = mid + 1;
       else
       {
-        first_layer = base_glyph_records[mid].firstLayerIndex;
+        first_layer = base_glyph_records[mid].firstLayerIdx;
         num_layers = base_glyph_records[mid].numLayers;
         return true;
       }
@@ -117,11 +118,12 @@ struct COLR
   }
 
   inline void get_layer_record (int layer,
-    hb_codepoint_t &glyph_id, unsigned int &palette_index) const
+				hb_codepoint_t &glyph_id,
+				unsigned int &palette_index) const
   {
     const LayerRecord* records = &layerRecordsOffsetZ (this);
-    glyph_id = records[layer].gID;
-    palette_index = records[layer].paletteIndex;
+    glyph_id = records[layer].glyphid;
+    palette_index = records[layer].colorIdx;
   }
 
   protected:
