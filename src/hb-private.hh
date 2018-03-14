@@ -1070,17 +1070,4 @@ struct hb_string_t
 };
 
 
-/* fallback for round() */
-#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
-static inline double
-round (double x)
-{
-  if (x >= 0)
-    return floor (x + 0.5);
-  else
-    return ceil (x - 0.5);
-}
-#endif
-
-
 #endif /* HB_PRIVATE_HH */
