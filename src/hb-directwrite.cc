@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2016  Ebrahim Byagowi
+ * Copyright © 2015-2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -48,7 +48,8 @@ class DWriteFontFileLoader : public IDWriteFontFileLoader
 private:
   IDWriteFontFileStream *mFontFileStream;
 public:
-  DWriteFontFileLoader (IDWriteFontFileStream *fontFileStream) {
+  void init (IDWriteFontFileStream *fontFileStream)
+  {
     mFontFileStream = fontFileStream;
   }
 
@@ -73,7 +74,7 @@ private:
   uint8_t *mData;
   uint32_t mSize;
 public:
-  DWriteFontFileStream(uint8_t *aData, uint32_t aSize)
+  void init (uint8_t *aData, uint32_t aSize)
   {
     mData = aData;
     mSize = aSize;
@@ -150,10 +151,14 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 
   HRESULT hr;
   hb_blob_t *blob = hb_face_reference_blob (face);
-  IDWriteFontFileStream *fontFileStream = new DWriteFontFileStream (
-    (uint8_t*) hb_blob_get_data (blob, nullptr), hb_blob_get_length (blob));
+  DWriteFontFileStream *fontFileStream = (DWriteFontFileStream*)
+    malloc (sizeof (DWriteFontFileStream));
+  fontFileStream->init ((uint8_t*) hb_blob_get_data (blob, nullptr),
+    hb_blob_get_length (blob));
 
-  IDWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
+  DWriteFontFileLoader *fontFileLoader = (DWriteFontFileLoader*)
+    malloc (sizeof (DWriteFontFileLoader));
+  fontFileLoader->init (fontFileStream);
   dwriteFactory->RegisterFontFileLoader (fontFileLoader);
 
   IDWriteFontFile *fontFile;
@@ -164,12 +169,12 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-    return false; \
+    return nullptr; \
   } HB_STMT_END;
 
   if (FAILED (hr)) {
     FAIL ("Failed to load font file from data!");
-    return false;
+    return nullptr;
   }
 
   BOOL isSupported;
@@ -179,7 +184,7 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
   hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
   if (FAILED (hr) || !isSupported) {
     FAIL ("Font file is not supported.");
-    return false;
+    return nullptr;
   }
 
 #undef FAIL
@@ -211,9 +216,9 @@ _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data
     data->dwriteFactory->Release ();
   }
   if (data->fontFileLoader)
-    delete data->fontFileLoader;
+    free (data->fontFileLoader);
   if (data->fontFileStream)
-    delete data->fontFileStream;
+    free (data->fontFileStream);
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
   if (data)
@@ -280,14 +285,14 @@ public:
   IFACEMETHOD_(ULONG, AddRef)() { return 1; }
   IFACEMETHOD_(ULONG, Release)() { return 1; }
 
-  // A single contiguous run of characters containing the same analysis 
+  // A single contiguous run of characters containing the same analysis
   // results.
   struct Run
   {
     uint32_t mTextStart;   // starting text position of this run
     uint32_t mTextLength;  // number of contiguous code units covered
     uint32_t mGlyphStart;  // starting glyph in the glyphs array
-    uint32_t mGlyphCount;  // number of glyphs associated with this run of 
+    uint32_t mGlyphCount;  // number of glyphs associated with this run
     // text
     DWRITE_SCRIPT_ANALYSIS mScript;
     uint8_t mBidiLevel;
@@ -604,7 +609,7 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
 
   // TODO: Handle TEST_DISABLE_OPTIONAL_LIGATURES
 
-  DWRITE_READING_DIRECTION readingDirection = buffer->props.direction ? 
+  DWRITE_READING_DIRECTION readingDirection = buffer->props.direction ?
     DWRITE_READING_DIRECTION_RIGHT_TO_LEFT :
     DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
 
@@ -919,7 +924,7 @@ hb_directwrite_shape_experimental_width(hb_font_t          *font,
   unsigned int        num_features,
   float               width)
 {
-  static char *shapers = "directwrite";
+  static char *shapers = (char *) "directwrite";
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face,
     &buffer->props, features, num_features, &shapers);
   hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
