@@ -862,6 +862,90 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) 
  * Array Types
  */
 
+
+/* TODO Use it in ArrayOf, HeadlessArrayOf, and other places around the code base?? */
+template <typename Type>
+struct UnsizedArrayOf
+{
+  inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
+  inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
+
+    /* Note: for structs that do not reference other structs,
+     * we do not need to call their sanitize() as we already did
+     * a bound check on the aggregate array size.  We just include
+     * a small unreachable expression to make sure the structs
+     * pointed to do have a simple sanitize(), ie. they do not
+     * reference other structs via offsets.
+     */
+    (void) (false && arrayZ[0].sanitize (c));
+
+    return_trace (true);
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!arrayZ[i].sanitize (c, base)))
+        return_trace (false);
+    return_trace (true);
+  }
+  template <typename T>
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base, T user_data) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
+        return_trace (false);
+    return_trace (true);
+  }
+
+  private:
+  inline bool sanitize_shallow (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_array (arrayZ, arrayZ[0].static_size, count));
+  }
+
+  public:
+  Type	arrayZ[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (0, arrayZ);
+};
+
+/* Unsized array of offset's */
+template <typename Type, typename OffsetType>
+struct UnsizedOffsetArrayOf : UnsizedArrayOf<OffsetTo<Type, OffsetType> > {};
+
+/* Unsized array of offsets relative to the beginning of the array itself. */
+template <typename Type, typename OffsetType>
+struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType>
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
+    return this+this->arrayZ[i];
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType>::sanitize (c, count, this)));
+  }
+  template <typename T>
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count, T user_data) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType>::sanitize (c, count, this, user_data)));
+  }
+};
+
+
 /* An array with a number of elements. */
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf

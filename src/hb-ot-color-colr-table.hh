@@ -80,14 +80,14 @@ struct COLR
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) &&
-        c->check_array (&(this+layerRecordsOffsetZ), sizeof (LayerRecord), numLayerRecords) &&
-        c->check_array (&(this+baseGlyphRecordsZ), sizeof (BaseGlyphRecord), numBaseGlyphRecords)))
+        c->check_array (&(this+layers), sizeof (LayerRecord), numLayers) &&
+        c->check_array (&(this+baseGlyphs), sizeof (BaseGlyphRecord), numBaseGlyphs)))
       return_trace (false);
 
-    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
-    for (unsigned int i = 0; i < numBaseGlyphRecords; ++i)
+    const BaseGlyphRecord* base_glyph_records = (this+baseGlyphs).arrayZ;
+    for (unsigned int i = 0; i < numBaseGlyphs; ++i)
       if (base_glyph_records[i].firstLayerIdx +
-          base_glyph_records[i].numLayers > numLayerRecords)
+          base_glyph_records[i].numLayers > numLayers)
         return_trace (false);
 
     return_trace (true);
@@ -97,8 +97,8 @@ struct COLR
 				     unsigned int &first_layer,
 				     unsigned int &num_layers) const
   {
-    const BaseGlyphRecord* base_glyph_records = &baseGlyphRecordsZ (this);
-    unsigned int min = 0, max = numBaseGlyphRecords - 1;
+    const BaseGlyphRecord* base_glyph_records = (this+baseGlyphs).arrayZ;
+    unsigned int min = 0, max = numBaseGlyphs - 1;
     while (min <= max)
     {
       unsigned int mid = (min + max) / 2;
@@ -121,19 +121,19 @@ struct COLR
 				hb_codepoint_t &glyph_id,
 				unsigned int &palette_index) const
   {
-    const LayerRecord* records = &layerRecordsOffsetZ (this);
+    const LayerRecord* records = (this+layers).arrayZ;
     glyph_id = records[layer].glyphid;
     palette_index = records[layer].colorIdx;
   }
 
   protected:
-  HBUINT16	version;		/* Table version number */
-  HBUINT16	numBaseGlyphRecords;	/* Number of Base Glyph Records */
-  LOffsetTo<BaseGlyphRecord>
-		baseGlyphRecordsZ;	/* Offset to Base Glyph records. */
-  LOffsetTo<LayerRecord>
-		layerRecordsOffsetZ;	/* Offset to Layer Records */
-  HBUINT16	numLayerRecords;	/* Number of Layer Records */
+  HBUINT16	version;	/* Table version number */
+  HBUINT16	numBaseGlyphs;	/* Number of Base Glyph Records */
+  LOffsetTo<UnsizedArrayOf<BaseGlyphRecord> >
+		baseGlyphs;	/* Offset to Base Glyph records. */
+  LOffsetTo<UnsizedArrayOf<LayerRecord> >
+		layers;		/* Offset to Layer Records */
+  HBUINT16	numLayers;	/* Number of Layer Records */
   public:
   DEFINE_SIZE_STATIC (14);
 };
