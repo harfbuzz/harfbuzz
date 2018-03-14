@@ -729,6 +729,9 @@ DEFINE_NULL_DATA (Tag, "    ");
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef HBUINT16 GlyphID;
 
+/* Name-table index, same as uint16 (length = 16 bits) */
+typedef HBUINT16 NameID;
+
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
   static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;

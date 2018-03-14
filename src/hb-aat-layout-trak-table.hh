@@ -56,11 +56,11 @@ struct TrackTableEntry
   }
 
   protected:
-  Fixed			track;		/* Track value for this record. */
-  HBUINT16		trackNameID;	/* The 'name' table index for this track */
+  Fixed		track;		/* Track value for this record. */
+  NameID	trackNameID;	/* The 'name' table index for this track */
   OffsetTo<UnsizedArrayOf<FWORD> >
-			values;		/* Offset from start of tracking table to
-					 * per-size tracking values for this track. */
+		values;		/* Offset from start of tracking table to
+				 * per-size tracking values for this track. */
 
   public:
   DEFINE_SIZE_STATIC (8);

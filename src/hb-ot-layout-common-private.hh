@@ -398,7 +398,7 @@ struct FeatureParamsStylisticSet
 				 * added to the end of this Feature Parameters
 				 * table in the future. */
 
-  HBUINT16	uiNameID;	/* The 'name' table name ID that specifies a
+  NameID	uiNameID;	/* The 'name' table name ID that specifies a
 				 * string (or strings, for multiple languages)
 				 * for a user-interface label for this
 				 * feature.  The values of uiLabelNameId and
@@ -427,24 +427,24 @@ struct FeatureParamsCharacterVariants
   }
 
   HBUINT16	format;			/* Format number is set to 0. */
-  HBUINT16	featUILableNameID;	/* The ‘name’ table name ID that
+  NameID	featUILableNameID;	/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) for a
 					 * user-interface label for this
 					 * feature. (May be nullptr.) */
-  HBUINT16	featUITooltipTextNameID;/* The ‘name’ table name ID that
+  NameID	featUITooltipTextNameID;/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) that an
 					 * application can use for tooltip
 					 * text for this feature. (May be
 					 * nullptr.) */
-  HBUINT16	sampleTextNameID;	/* The ‘name’ table name ID that
+  NameID	sampleTextNameID;	/* The ‘name’ table name ID that
 					 * specifies sample text that
 					 * illustrates the effect of this
 					 * feature. (May be nullptr.) */
   HBUINT16	numNamedParameters;	/* Number of named parameters. (May
 					 * be zero.) */
-  HBUINT16	firstParamUILabelNameID;/* The first ‘name’ table name ID
+  NameID	firstParamUILabelNameID;/* The first ‘name’ table name ID
 					 * used to specify strings for
 					 * user-interface labels for the
 					 * feature parameters. (Must be zero
