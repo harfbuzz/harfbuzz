@@ -79,51 +79,9 @@ struct COLR
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this) &&
-        c->check_array (&(this+layers), sizeof (LayerRecord), numLayers) &&
-        c->check_array (&(this+baseGlyphs), sizeof (BaseGlyphRecord), numBaseGlyphs)))
-      return_trace (false);
-
-    const BaseGlyphRecord* base_glyph_records = (this+baseGlyphs).arrayZ;
-    for (unsigned int i = 0; i < numBaseGlyphs; ++i)
-      if (base_glyph_records[i].firstLayerIdx +
-          base_glyph_records[i].numLayers > numLayers)
-        return_trace (false);
-
-    return_trace (true);
-  }
-
-  inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
-				     unsigned int &first_layer,
-				     unsigned int &num_layers) const
-  {
-    const BaseGlyphRecord* base_glyph_records = (this+baseGlyphs).arrayZ;
-    unsigned int min = 0, max = numBaseGlyphs - 1;
-    while (min <= max)
-    {
-      unsigned int mid = (min + max) / 2;
-      hb_codepoint_t glyphid = base_glyph_records[mid].glyphid;
-      if (glyphid > glyph_id)
-        max = mid - 1;
-      else if (glyphid < glyph_id)
-        min = mid + 1;
-      else
-      {
-        first_layer = base_glyph_records[mid].firstLayerIdx;
-        num_layers = base_glyph_records[mid].numLayers;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  inline void get_layer_record (int layer,
-				hb_codepoint_t &glyph_id,
-				unsigned int &palette_index) const
-  {
-    const LayerRecord* records = (this+layers).arrayZ;
-    glyph_id = records[layer].glyphid;
-    palette_index = records[layer].colorIdx;
+    return_trace (c->check_struct (this) &&
+		  (this+baseGlyphs).sanitize (c, numBaseGlyphs) &&
+		  (this+layers).sanitize (c, numLayers));
   }
 
   protected:
