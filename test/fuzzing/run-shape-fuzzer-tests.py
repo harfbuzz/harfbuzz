@@ -19,10 +19,12 @@ please provide it as the first argument to the tool""")
 print ('hb_shape_fuzzer:', hb_shape_fuzzer)
 fails = 0
 
-for line in open (os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests", "fuzzed.tests")):
+parent_path = os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests")
+for line in open (os.path.join (parent_path, "fuzzed.tests")):
 	font = line.split (":")[0]
+	font_path = os.path.join (parent_path, font)
 
-	p = subprocess.Popen ([hb_shape_fuzzer, os.path.join (srcdir, "..", "shaping", font)])
+	p = subprocess.Popen ([hb_shape_fuzzer, font_path])
 
 	if p.wait () != 0:
 		fails = fails + 1
