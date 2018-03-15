@@ -28,5 +28,5 @@ for line in open (os.path.join (srcdir, "..", "shaping", "data", "in-house", "te
 		fails = fails + 1
 
 if fails:
-	print ("%i fuzzer related tests failed." % fails)
+	print ("%i shape fuzzer related tests failed." % fails)
 	sys.exit (1)
