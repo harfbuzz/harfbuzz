@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8.0)
+# Allow symbol hiding for both static and shared libs.
+cmake_policy(SET CMP0063 NEW)
+
 project(harfbuzz)
 
 enable_testing()
@@ -129,14 +132,6 @@ endif ()
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
-endif ()
-
-if (BUILD_SHARED_LIBS)
-  if (WIN32 AND NOT MINGW)
-    add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
-  else ()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-  endif ()
 endif ()
 
 
@@ -532,11 +527,19 @@ endif ()
 
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
+set_target_properties(harfbuzz PROPERTIES
+  C_VISIBILITY_PRESET hidden
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN TRUE)
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 ## Define harfbuzz-subset library
 add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
 add_dependencies(harfbuzz-subset harfbuzz)
+set_target_properties(harfbuzz-subset PROPERTIES
+  C_VISIBILITY_PRESET hidden
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN TRUE)
 target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
 if (UNIX OR MINGW)
@@ -564,9 +567,21 @@ if (HB_HAVE_GOBJECT)
     ${hb_gobject_headers}
     ${hb_gobject_gen_headers}
   )
+  set_target_properties(harfbuzz-gobject PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN TRUE)
   include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/src)
   add_dependencies(harfbuzz-gobject harfbuzz)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
+endif ()
+
+if (BUILD_SHARED_LIBS)
+  if (WIN32 AND NOT MINGW)
+    add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+  else ()
+    add_definitions("-DHB_EXTERN=__attribute__(( visibility( \"default\" ) )) extern")
+  endif ()
 endif ()
 
 # On Windows, g-ir-scanner requires a DLL build in order for it to work
