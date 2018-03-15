@@ -24,8 +24,6 @@
  * Google Author(s): Garret Rieger
  */
 
-#include <stdbool.h>
-
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
