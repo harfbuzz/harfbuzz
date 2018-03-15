@@ -15,6 +15,7 @@ $(top_builddir)/src/libharfbuzz-fuzzing.la: lib
 EXTRA_DIST += \
 	README \
 	run-fuzzer-tests.py \
+	run-subset-fuzzer-tests.py \
 	CMakeLists.txt \
 	$(NULL)
 
