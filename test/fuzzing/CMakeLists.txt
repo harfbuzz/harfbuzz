@@ -1,6 +1,7 @@
 if (HB_CHECK)
   file (READ "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.am" MAKEFILEAM)
   extract_make_variable (hb_fuzzer_SOURCES ${MAKEFILEAM})
+  extract_make_variable (hb_subset_fuzzer_SOURCES ${MAKEFILEAM})
 
   # TODO: enable these two
   #extract_make_variable (FUZZING_CPPFLAGS ${MAKEFILEAM}) # extracting regex fail
@@ -11,8 +12,16 @@ if (HB_CHECK)
   add_executable (hb-fuzzer ${hb_fuzzer_SOURCES})
   target_link_libraries (hb-fuzzer harfbuzz)
 
+  add_executable (hb-subset-fuzzer ${hb_subset_fuzzer_SOURCES})
+  target_link_libraries (hb-subset-fuzzer harfbuzz-subset)
+
   target_compile_definitions(hb-fuzzer PUBLIC ${FUZZING_CPPFLAGS})
+  target_compile_definitions(hb-subset-fuzzer PUBLIC ${FUZZING_CPPFLAGS})
+
   add_test (NAME hb-fuzzer
     COMMAND "${PYTHON_EXECUTABLE}" run-fuzzer-tests.py $<TARGET_FILE:hb-fuzzer>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  add_test (NAME hb-subset-fuzzer
+    COMMAND "${PYTHON_EXECUTABLE}" run-subset-fuzzer-tests.py $<TARGET_FILE:hb-subset-fuzzer>
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()

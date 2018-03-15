@@ -48,7 +48,7 @@ hb_fuzzer_DEPENDENCIES = \
 	$(NULL)
 
 hb_subset_fuzzer_SOURCES = \
-	hb-subset.hh \
+	hb-fuzzer.hh \
 	hb-subset-fuzzer.cc \
 	main.cc \
 	$(NULL)
@@ -64,5 +64,6 @@ hb_subset_fuzzer_DEPENDENCIES = \
 
 check:
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-fuzzer-tests.py
+	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-subset-fuzzer-tests.py
 
 -include $(top_srcdir)/git.mk
