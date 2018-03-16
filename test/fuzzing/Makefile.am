@@ -55,7 +55,7 @@ hb_subset_fuzzer_SOURCES = \
 	main.cc \
 	$(NULL)
 hb_subset_fuzzer_LDADD = \
-	$(top_builddir)/src/libharfbuzz-fuzzing.la \
+	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la \
 	$(NULL)
 hb_subset_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
