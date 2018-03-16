@@ -234,7 +234,7 @@ DISTCLEANFILES += \
 	$(HB_GOBJECT_ENUM_headers) \
 	$(NULL)
 hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
-	$(AM_V_GEN) $(GLIB_MKENUMS) \
+	$(AM_V_GEN) PYTHONIOENCODING=UTF-8 $(GLIB_MKENUMS) \
 		--identifier-prefix hb_ --symbol-prefix hb_gobject \
 		--template $^ | \
 	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
