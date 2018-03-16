@@ -6,7 +6,7 @@ import sys, os, subprocess
 srcdir = os.environ.get ("srcdir", ".")
 EXEEXT = os.environ.get ("EXEEXT", "")
 top_builddir = os.environ.get ("top_builddir", ".")
-hb_subset_fuzzer = os.path.join (top_builddir, "hb-subset-fuzzer" + EXEEXT)
+hb_subset_fuzzer = os.path.join (top_builddir, "hb-shape-fuzzer" + EXEEXT)
 
 if not os.path.exists (hb_subset_fuzzer):
         if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
