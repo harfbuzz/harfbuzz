@@ -11,6 +11,7 @@ lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src fuzzing
 
 $(top_builddir)/src/libharfbuzz-fuzzing.la: lib
+$(top_builddir)/src/libharfbuzz-subset-fuzzing.la: lib
 
 EXTRA_DIST += \
 	README \
