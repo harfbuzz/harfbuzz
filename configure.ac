@@ -94,7 +94,7 @@ AC_CHECK_ALIGNOF([struct{char;}])
 if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
-	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
+	AX_CHECK_LINK_FLAG([[-Bsymbolic-functions]], [LDFLAGS="$LDFLAGS -Bsymbolic-functions"])
 
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
