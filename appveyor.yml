@@ -20,11 +20,11 @@ environment:
 
 
     - compiler: msys2
-      MINGW_PREFIX: /c/msys2/mingw64/
+      MINGW_PREFIX: /mingw64
       MINGW_CHOST: x86_64-w64-mingw32
       MSYS2_ARCH: x86_64
     - compiler: msys2
-      MINGW_PREFIX: /c/msys2/mingw32/
+      MINGW_PREFIX: /mingw32
       MINGW_CHOST: i686-w64-mingw32
       MSYS2_ARCH: i686
 
@@ -44,7 +44,8 @@ build_script:
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" ctest --output-on-failure -C %configuration%'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python2}"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make; make check || .ci/fail.sh"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "curl https://sourceforge.net/p/mingw-w64/mingw-w64/ci/master/tree/mingw-w64-headers/include/dwrite_1.h?format=raw > %MINGW_PREFIX%/%MINGW_CHOST%/include/dwrite_1.h"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --with-directwrite --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make; make check || .ci/fail.sh"'
 
 cache:
   - c:\tools\vcpkg\installed\

@@ -48,7 +48,7 @@ class DWriteFontFileLoader : public IDWriteFontFileLoader
 private:
   IDWriteFontFileStream *mFontFileStream;
 public:
-  void init (IDWriteFontFileStream *fontFileStream)
+  DWriteFontFileLoader (IDWriteFontFileStream *fontFileStream)
   {
     mFontFileStream = fontFileStream;
   }
@@ -74,7 +74,7 @@ private:
   uint8_t *mData;
   uint32_t mSize;
 public:
-  void init (uint8_t *aData, uint32_t aSize)
+  DWriteFontFileStream (uint8_t *aData, uint32_t aSize)
   {
     mData = aData;
     mSize = aSize;
@@ -151,14 +151,11 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 
   HRESULT hr;
   hb_blob_t *blob = hb_face_reference_blob (face);
-  DWriteFontFileStream *fontFileStream = (DWriteFontFileStream*)
-    malloc (sizeof (DWriteFontFileStream));
-  fontFileStream->init ((uint8_t*) hb_blob_get_data (blob, nullptr),
+  DWriteFontFileStream *fontFileStream = new DWriteFontFileStream (
+    (uint8_t *) hb_blob_get_data (blob, nullptr),
     hb_blob_get_length (blob));
 
-  DWriteFontFileLoader *fontFileLoader = (DWriteFontFileLoader*)
-    malloc (sizeof (DWriteFontFileLoader));
-  fontFileLoader->init (fontFileStream);
+  DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
   dwriteFactory->RegisterFontFileLoader (fontFileLoader);
 
   IDWriteFontFile *fontFile;
@@ -216,9 +213,9 @@ _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data
     data->dwriteFactory->Release ();
   }
   if (data->fontFileLoader)
-    free (data->fontFileLoader);
+    delete data->fontFileLoader;
   if (data->fontFileStream)
-    free (data->fontFileStream);
+    delete data->fontFileStream;
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
   if (data)
@@ -924,7 +921,7 @@ hb_directwrite_shape_experimental_width(hb_font_t          *font,
   unsigned int        num_features,
   float               width)
 {
-  static char *shapers = (char *) "directwrite";
+  static const char *shapers = "directwrite";
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face,
     &buffer->props, features, num_features, &shapers);
   hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
