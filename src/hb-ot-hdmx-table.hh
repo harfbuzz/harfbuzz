@@ -43,12 +43,15 @@ struct DeviceRecord
   struct SubsetView
   {
     const DeviceRecord *source_device_record;
+    unsigned int size_device_record;
     hb_subset_plan_t *subset_plan;
 
     inline void init(const DeviceRecord *source_device_record,
+		     unsigned int size_device_record,
 		     hb_subset_plan_t   *subset_plan)
     {
       this->source_device_record = source_device_record;
+      this->size_device_record = size_device_record;
       this->subset_plan = subset_plan;
     }
 
@@ -57,11 +60,17 @@ struct DeviceRecord
       return this->subset_plan->gids_to_retain_sorted.len;
     }
 
-    inline const HBUINT8& operator [] (unsigned int i) const
+    inline const HBUINT8* operator [] (unsigned int i) const
     {
-      if (unlikely (i >= len())) return Null(HBUINT8);
+      if (unlikely (i >= len())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
-      return this->source_device_record->widths[gid];
+
+      const HBUINT8* width = &(this->source_device_record->widths[gid]);
+
+      if (width < ((const HBUINT8 *) this->source_device_record) + size_device_record)
+	return width;
+      else
+	return nullptr;
     }
   };
 
@@ -85,7 +94,15 @@ struct DeviceRecord
     this->max_width.set (subset_view.source_device_record->max_width);
 
     for (unsigned int i = 0; i < subset_view.len(); i++)
-      widths[i].set (subset_view[i]);
+    {
+      const HBUINT8 *width = subset_view[i];
+      if (!width)
+      {
+	DEBUG_MSG(SUBSET, nullptr, "HDMX width for new gid %d is missing.", i);
+	return_trace (false);
+      }
+      widths[i].set (*width);
+    }
 
     return_trace (true);
   }
@@ -133,9 +150,10 @@ struct hdmx
     for (unsigned int i = 0; i < source_hdmx->num_records; i++)
     {
       DeviceRecord::SubsetView subset_view;
-      subset_view.init (&(*source_hdmx)[i], plan);
+      subset_view.init (&(*source_hdmx)[i], source_hdmx->size_device_record, plan);
 
-      c->start_embed<DeviceRecord> ()->serialize (c, subset_view);
+      if (!c->start_embed<DeviceRecord> ()->serialize (c, subset_view))
+	return_trace (false);
     }
 
     return_trace (true);
