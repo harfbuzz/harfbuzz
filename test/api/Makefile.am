@@ -31,6 +31,7 @@ TEST_PROGS = \
 	test-object \
 	test-set \
 	test-shape \
+	test-subset \
 	test-subset-cmap \
 	test-subset-glyf \
 	test-subset-hdmx \

@@ -359,6 +359,7 @@ hb_subset (hb_face_t *source,
         continue;
       }
       success = success && _subset_table (plan, tag);
+      offset += count;
     }
   } while (count == ARRAY_LENGTH (table_tags));
 
