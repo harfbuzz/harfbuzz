@@ -150,6 +150,27 @@ test_subset_hmtx_noop (void)
   hb_face_destroy (face_abc);
 }
 
+static void
+test_subset_invalid_hmtx (void)
+{
+  hb_face_t *face = hb_subset_test_open_font("fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'b');
+  hb_set_add (codepoints, 'c');
+
+  hb_subset_profile_t *profile = hb_subset_profile_create();
+  hb_face_t *subset = hb_subset (face, profile, input);
+  g_assert (!subset);
+
+  hb_subset_input_destroy (input);
+  hb_subset_profile_destroy (profile);
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -160,6 +181,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_hmtx_keep_num_metrics);
   hb_test_add (test_subset_hmtx_decrease_num_metrics);
   hb_test_add (test_subset_hmtx_noop);
+  hb_test_add (test_subset_invalid_hmtx);
 
   return hb_test_run();
 }
