@@ -43,9 +43,14 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   for (unsigned int i = 0; i < glyph_ids.len; i++)
   {
     hb_codepoint_t next_glyph = glyph_ids[i];
-    unsigned int *instruction_start = instruction_ranges->push();
-    unsigned int *instruction_end = instruction_ranges->push();
+    if (!instruction_ranges->resize (instruction_ranges->len + 2))
+    {
+      DEBUG_MSG(SUBSET, nullptr, "Failed to resize instruction_ranges.", next_glyph);
+      return false;
+    }
+    unsigned int *instruction_start = &(*instruction_ranges)[instruction_ranges->len - 2];
     *instruction_start = 0;
+    unsigned int *instruction_end = &(*instruction_ranges)[instruction_ranges->len - 1];
     *instruction_end = 0;
 
     unsigned int start_offset, end_offset;
