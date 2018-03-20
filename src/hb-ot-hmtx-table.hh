@@ -118,6 +118,8 @@ struct hmtxvmtx
     LongMetric * old_metrics = (LongMetric *) source_table;
     FWORD *lsbs = (FWORD *) (old_metrics + _mtx.num_advances);
     char * dest_pos = (char *) dest;
+
+    bool failed = false;
     for (unsigned int i = 0; i < gids.len; i++)
     {
       /* the last metric or the one for gids[i] */
@@ -138,7 +140,14 @@ struct hmtxvmtx
       }
       else
       {
-        FWORD src_lsb = *(lsbs + gids[i] - _mtx.num_advances);
+	if (gids[i] >= _mtx.num_metrics)
+	{
+	  DEBUG_MSG(SUBSET, nullptr, "gid %d is >= number of source metrics %d",
+		    gids[i], _mtx.num_metrics);
+	  failed = true;
+	  break;
+	}
+	FWORD src_lsb = *(lsbs + gids[i] - _mtx.num_advances);
         if (i < num_advances)
         {
           /* dest needs a full LongMetric */
@@ -157,7 +166,7 @@ struct hmtxvmtx
     _mtx.fini ();
 
     // Amend header num hmetrics
-    if (unlikely (!subset_update_header (plan, num_advances)))
+    if (failed || unlikely (!subset_update_header (plan, num_advances)))
     {
       free (dest);
       return false;
