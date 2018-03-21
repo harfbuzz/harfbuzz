@@ -236,9 +236,9 @@ struct glyf
 
       hb_blob_t *head_blob = Sanitizer<head>().sanitize (face->reference_table (HB_OT_TAG_head));
       const head *head_table = Sanitizer<head>::lock_instance (head_blob);
-      if (!head_table || (unsigned int) head_table->indexToLocFormat > 1 || head_table->glyphDataFormat != 0)
+      if (head_table == &Null(head) || (unsigned int) head_table->indexToLocFormat > 1 || head_table->glyphDataFormat != 0)
       {
-	/* Unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
+	/* head table is not present, or in an unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
 	hb_blob_destroy (head_blob);
 	return;
       }
@@ -268,7 +268,7 @@ struct glyf
     inline bool get_composite (hb_codepoint_t glyph,
 			       CompositeGlyphHeader::Iterator *composite /* OUT */) const
     {
-      if (!this->glyf_table || !num_glyphs)
+      if (this->glyf_table == &Null(glyf) || !num_glyphs)
 	return false;
 
       unsigned int start_offset, end_offset;
