@@ -45,7 +45,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
     hb_codepoint_t next_glyph = glyph_ids[i];
     if (!instruction_ranges->resize (instruction_ranges->len + 2))
     {
-      DEBUG_MSG(SUBSET, nullptr, "Failed to resize instruction_ranges.", next_glyph);
+      DEBUG_MSG(SUBSET, nullptr, "Failed to resize instruction_ranges.");
       return false;
     }
     unsigned int *instruction_start = &(*instruction_ranges)[instruction_ranges->len - 2];
