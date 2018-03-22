@@ -134,18 +134,20 @@ struct glyf
 
   struct CompositeGlyphHeader
   {
-    static const uint16_t ARG_1_AND_2_ARE_WORDS =      0x0001;
-    static const uint16_t ARGS_ARE_XY_VALUES =         0x0002;
-    static const uint16_t ROUND_XY_TO_GRID =           0x0004;
-    static const uint16_t WE_HAVE_A_SCALE =            0x0008;
-    static const uint16_t MORE_COMPONENTS =            0x0020;
-    static const uint16_t WE_HAVE_AN_X_AND_Y_SCALE =   0x0040;
-    static const uint16_t WE_HAVE_A_TWO_BY_TWO =       0x0080;
-    static const uint16_t WE_HAVE_INSTRUCTIONS =       0x0100;
-    static const uint16_t USE_MY_METRICS =             0x0200;
-    static const uint16_t OVERLAP_COMPOUND =           0x0400;
-    static const uint16_t SCALED_COMPONENT_OFFSET =    0x0800;
-    static const uint16_t UNSCALED_COMPONENT_OFFSET =  0x1000;
+    enum composite_glyph_flag_t {
+      ARG_1_AND_2_ARE_WORDS =      0x0001,
+      ARGS_ARE_XY_VALUES =         0x0002,
+      ROUND_XY_TO_GRID =           0x0004,
+      WE_HAVE_A_SCALE =            0x0008,
+      MORE_COMPONENTS =            0x0020,
+      WE_HAVE_AN_X_AND_Y_SCALE =   0x0040,
+      WE_HAVE_A_TWO_BY_TWO =       0x0080,
+      WE_HAVE_INSTRUCTIONS =       0x0100,
+      USE_MY_METRICS =             0x0200,
+      OVERLAP_COMPOUND =           0x0400,
+      SCALED_COMPONENT_OFFSET =    0x0800,
+      UNSCALED_COMPONENT_OFFSET =  0x1000
+    };
 
     HBUINT16 flags;
     HBUINT16 glyphIndex;
@@ -280,16 +282,18 @@ struct glyf
 						 composite);
     }
 
+    enum simple_glyph_flag_t {
+      FLAG_X_SHORT = 0x02,
+      FLAG_Y_SHORT = 0x04,
+      FLAG_REPEAT = 0x08,
+      FLAG_X_SAME = 0x10,
+      FLAG_Y_SAME = 0x20
+    };
+
     /* based on FontTools _g_l_y_f.py::trim */
     inline bool remove_padding(unsigned int start_offset,
                                unsigned int *end_offset) const
     {
-      static const int FLAG_X_SHORT = 0x02;
-      static const int FLAG_Y_SHORT = 0x04;
-      static const int FLAG_REPEAT = 0x08;
-      static const int FLAG_X_SAME = 0x10;
-      static const int FLAG_Y_SAME = 0x20;
-
       if (*end_offset - start_offset < GlyphHeader::static_size)
         return true;
 
