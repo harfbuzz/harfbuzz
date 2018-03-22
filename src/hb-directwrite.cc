@@ -32,8 +32,19 @@
 #include "hb-directwrite.h"
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(directwrite, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(directwrite, font)
+HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, face)
+HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, font)
+
+
+/*
+ * hb-directwrite uses new/delete syntatically but as we let users
+ * to override malloc/free, we will redefine new/delete so users
+ * won't need to do that by their own.
+ */
+void* operator new (size_t size) { return malloc (size); }
+void* operator new [] (size_t size) { return malloc (size); }
+void operator delete (void* pointer) { free (pointer); }
+void operator delete [] (void* pointer) { free (pointer); }
 
 
 /*
@@ -54,12 +65,12 @@ public:
   }
 
   // IUnknown interface
-  IFACEMETHOD(QueryInterface)(IID const& iid, OUT void** ppObject) { return S_OK; }
-  IFACEMETHOD_(ULONG, AddRef)() { return 1; }
-  IFACEMETHOD_(ULONG, Release)() { return 1; }
+  IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject) { return S_OK; }
+  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // IDWriteFontFileLoader methods
-  virtual HRESULT STDMETHODCALLTYPE CreateStreamFromKey(void const* fontFileReferenceKey,
+  virtual HRESULT STDMETHODCALLTYPE CreateStreamFromKey (void const* fontFileReferenceKey,
     UINT32 fontFileReferenceKeySize,
     OUT IDWriteFontFileStream** fontFileStream)
   {
@@ -81,12 +92,12 @@ public:
   }
 
   // IUnknown interface
-  IFACEMETHOD(QueryInterface)(IID const& iid, OUT void** ppObject) { return S_OK; }
-  IFACEMETHOD_(ULONG, AddRef)() { return 1; }
-  IFACEMETHOD_(ULONG, Release)() { return 1; }
+  IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject) { return S_OK; }
+  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // IDWriteFontFileStream methods
-  virtual HRESULT STDMETHODCALLTYPE ReadFileFragment(void const** fragmentStart,
+  virtual HRESULT STDMETHODCALLTYPE ReadFileFragment (void const** fragmentStart,
     UINT64 fileOffset,
     UINT64 fragmentSize,
     OUT void** fragmentContext)
@@ -105,15 +116,15 @@ public:
     return S_OK;
   }
 
-  virtual void STDMETHODCALLTYPE ReleaseFileFragment(void* fragmentContext) { }
+  virtual void STDMETHODCALLTYPE ReleaseFileFragment (void* fragmentContext) { }
 
-  virtual HRESULT STDMETHODCALLTYPE GetFileSize(OUT UINT64* fileSize)
+  virtual HRESULT STDMETHODCALLTYPE GetFileSize (OUT UINT64* fileSize)
   {
     *fileSize = mSize;
     return S_OK;
   }
 
-  virtual HRESULT STDMETHODCALLTYPE GetLastWriteTime(OUT UINT64* lastWriteTime)
+  virtual HRESULT STDMETHODCALLTYPE GetLastWriteTime (OUT UINT64* lastWriteTime)
   {
     return E_NOTIMPL;
   }
@@ -134,10 +145,9 @@ struct hb_directwrite_shaper_face_data_t {
 };
 
 hb_directwrite_shaper_face_data_t *
-_hb_directwrite_shaper_face_data_create(hb_face_t *face)
+_hb_directwrite_shaper_face_data_create (hb_face_t *face)
 {
-  hb_directwrite_shaper_face_data_t *data =
-    (hb_directwrite_shaper_face_data_t *) malloc (sizeof (hb_directwrite_shaper_face_data_t));
+  hb_directwrite_shaper_face_data_t *data = new hb_directwrite_shaper_face_data_t;
   if (unlikely (!data))
     return nullptr;
 
@@ -201,7 +211,7 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 }
 
 void
-_hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data)
+_hb_directwrite_shaper_face_data_destroy (hb_directwrite_shaper_face_data_t *data)
 {
   if (data->fontFace)
     data->fontFace->Release ();
@@ -219,7 +229,7 @@ _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
   if (data)
-    free (data);
+    delete data;
 }
 
 
@@ -235,8 +245,7 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 {
   if (unlikely (!hb_directwrite_shaper_face_data_ensure (font->face))) return nullptr;
 
-  hb_directwrite_shaper_font_data_t *data =
-    (hb_directwrite_shaper_font_data_t *) malloc (sizeof (hb_directwrite_shaper_font_data_t));
+  hb_directwrite_shaper_font_data_t *data = new hb_directwrite_shaper_font_data_t;
   if (unlikely (!data))
     return nullptr;
 
@@ -246,7 +255,7 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 void
 _hb_directwrite_shaper_font_data_destroy (hb_directwrite_shaper_font_data_t *data)
 {
-  free (data);
+  delete data;
 }
 
 
@@ -278,9 +287,9 @@ class TextAnalysis
 {
 public:
 
-  IFACEMETHOD(QueryInterface)(IID const& iid, OUT void** ppObject) { return S_OK; }
-  IFACEMETHOD_(ULONG, AddRef)() { return 1; }
-  IFACEMETHOD_(ULONG, Release)() { return 1; }
+  IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject) { return S_OK; }
+  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // A single contiguous run of characters containing the same analysis
   // results.
@@ -295,7 +304,7 @@ public:
     uint8_t mBidiLevel;
     bool mIsSideways;
 
-    inline bool ContainsTextPosition(uint32_t aTextPosition) const
+    inline bool ContainsTextPosition (uint32_t aTextPosition) const
     {
       return aTextPosition >= mTextStart
         && aTextPosition <  mTextStart + mTextLength;
@@ -305,26 +314,26 @@ public:
   };
 
 public:
-  TextAnalysis(const wchar_t* text,
+  TextAnalysis (const wchar_t* text,
     uint32_t textLength,
     const wchar_t* localeName,
     DWRITE_READING_DIRECTION readingDirection)
-    : mText(text)
-    , mTextLength(textLength)
-    , mLocaleName(localeName)
-    , mReadingDirection(readingDirection)
-    , mCurrentRun(nullptr) { };
+    : mText (text)
+    , mTextLength (textLength)
+    , mLocaleName (localeName)
+    , mReadingDirection (readingDirection)
+    , mCurrentRun (nullptr) { };
 
-  ~TextAnalysis() {
+  ~TextAnalysis () {
     // delete runs, except mRunHead which is part of the TextAnalysis object
     for (Run *run = mRunHead.nextRun; run;) {
       Run *origRun = run;
       run = run->nextRun;
-      free (origRun);
+      delete origRun;
     }
   }
 
-  STDMETHODIMP GenerateResults(IDWriteTextAnalyzer* textAnalyzer,
+  STDMETHODIMP GenerateResults (IDWriteTextAnalyzer* textAnalyzer,
     Run **runHead) {
     // Analyzes the text using the script analyzer and returns
     // the result as a series of runs.
@@ -350,7 +359,7 @@ public:
 
   // IDWriteTextAnalysisSource implementation
 
-  IFACEMETHODIMP GetTextAtPosition(uint32_t textPosition,
+  IFACEMETHODIMP GetTextAtPosition (uint32_t textPosition,
     OUT wchar_t const** textString,
     OUT uint32_t* textLength)
   {
@@ -366,7 +375,7 @@ public:
     return S_OK;
   }
 
-  IFACEMETHODIMP GetTextBeforePosition(uint32_t textPosition,
+  IFACEMETHODIMP GetTextBeforePosition (uint32_t textPosition,
     OUT wchar_t const** textString,
     OUT uint32_t* textLength)
   {
@@ -383,10 +392,10 @@ public:
     return S_OK;
   }
 
-  IFACEMETHODIMP_(DWRITE_READING_DIRECTION)
-    GetParagraphReadingDirection() { return mReadingDirection; }
+  IFACEMETHODIMP_ (DWRITE_READING_DIRECTION)
+    GetParagraphReadingDirection () { return mReadingDirection; }
 
-  IFACEMETHODIMP GetLocaleName(uint32_t textPosition,
+  IFACEMETHODIMP GetLocaleName (uint32_t textPosition,
     uint32_t* textLength,
     wchar_t const** localeName)
   {
@@ -394,7 +403,7 @@ public:
   }
 
   IFACEMETHODIMP
-    GetNumberSubstitution(uint32_t textPosition,
+    GetNumberSubstitution (uint32_t textPosition,
     OUT uint32_t* textLength,
     OUT IDWriteNumberSubstitution** numberSubstitution)
   {
@@ -408,15 +417,15 @@ public:
   // IDWriteTextAnalysisSink implementation
 
   IFACEMETHODIMP
-    SetScriptAnalysis(uint32_t textPosition,
+    SetScriptAnalysis (uint32_t textPosition,
     uint32_t textLength,
     DWRITE_SCRIPT_ANALYSIS const* scriptAnalysis)
   {
-    SetCurrentRun(textPosition);
-    SplitCurrentRun(textPosition);
+    SetCurrentRun (textPosition);
+    SplitCurrentRun (textPosition);
     while (textLength > 0)
     {
-      Run *run = FetchNextRun(&textLength);
+      Run *run = FetchNextRun (&textLength);
       run->mScript = *scriptAnalysis;
     }
 
@@ -424,22 +433,22 @@ public:
   }
 
   IFACEMETHODIMP
-    SetLineBreakpoints(uint32_t textPosition,
+    SetLineBreakpoints (uint32_t textPosition,
     uint32_t textLength,
     const DWRITE_LINE_BREAKPOINT* lineBreakpoints) { return S_OK; }
 
-  IFACEMETHODIMP SetBidiLevel(uint32_t textPosition,
+  IFACEMETHODIMP SetBidiLevel (uint32_t textPosition,
     uint32_t textLength,
     uint8_t explicitLevel,
     uint8_t resolvedLevel) { return S_OK; }
 
   IFACEMETHODIMP
-    SetNumberSubstitution(uint32_t textPosition,
+    SetNumberSubstitution (uint32_t textPosition,
     uint32_t textLength,
     IDWriteNumberSubstitution* numberSubstitution) { return S_OK; }
 
 protected:
-  Run *FetchNextRun(IN OUT uint32_t* textLength)
+  Run *FetchNextRun (IN OUT uint32_t* textLength)
   {
     // Used by the sink setters, this returns a reference to the next run.
     // Position and length are adjusted to now point after the current run
@@ -463,7 +472,7 @@ protected:
     return origRun;
   }
 
-  void SetCurrentRun(uint32_t textPosition)
+  void SetCurrentRun (uint32_t textPosition)
   {
     // Move the current run to the given position.
     // Since the analyzers generally return results in a forward manner,
@@ -482,15 +491,15 @@ protected:
         return;
       }
     }
-    //NS_NOTREACHED("We should always be able to find the text position in one \
+    //NS_NOTREACHED ("We should always be able to find the text position in one \
             //                of our runs");
   }
 
-  void SplitCurrentRun(uint32_t splitPosition)
+  void SplitCurrentRun (uint32_t splitPosition)
   {
     if (!mCurrentRun)
     {
-      //NS_ASSERTION(false, "SplitCurrentRun called without current run.");
+      //NS_ASSERTION (false, "SplitCurrentRun called without current run.");
       // Shouldn't be calling this when no current run is set!
       return;
     }
@@ -501,7 +510,7 @@ protected:
       // or before it. Usually the first.
       return;
     }
-    Run *newRun = (Run*) malloc (sizeof (Run));
+    Run *newRun = new Run;
 
     *newRun = *mCurrentRun;
 
@@ -536,14 +545,14 @@ protected:
 static inline uint16_t hb_uint16_swap (const uint16_t v)
 { return (v >> 8) | (v << 8); }
 static inline uint32_t hb_uint32_swap (const uint32_t v)
-{ return (hb_uint16_swap(v) << 16) | hb_uint16_swap(v >> 16); }
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
  * shaper
  */
 
 static hb_bool_t
-_hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
+_hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   hb_font_t          *font,
   hb_buffer_t        *buffer,
   const hb_feature_t *features,
@@ -557,7 +566,7 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
   IDWriteFontFace *fontFace = face_data->fontFace;
 
   IDWriteTextAnalyzer* analyzer;
-  dwriteFactory->CreateTextAnalyzer(&analyzer);
+  dwriteFactory->CreateTextAnalyzer (&analyzer);
 
   unsigned int scratch_size;
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
@@ -572,16 +581,16 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
 
 #define utf16_index() var1.u32
 
-  ALLOCATE_ARRAY(wchar_t, textString, buffer->len * 2);
+  ALLOCATE_ARRAY (wchar_t, textString, buffer->len * 2);
 
   unsigned int chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++)
   {
     hb_codepoint_t c = buffer->info[i].codepoint;
-    buffer->info[i].utf16_index() = chars_len;
-    if (likely(c <= 0xFFFFu))
+    buffer->info[i].utf16_index () = chars_len;
+    if (likely (c <= 0xFFFFu))
       textString[chars_len++] = c;
-    else if (unlikely(c > 0x10FFFFu))
+    else if (unlikely (c > 0x10FFFFu))
       textString[chars_len++] = 0xFFFDu;
     else {
       textString[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
@@ -589,7 +598,7 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
     }
   }
 
-  ALLOCATE_ARRAY(WORD, log_clusters, chars_len);
+  ALLOCATE_ARRAY (WORD, log_clusters, chars_len);
   // if (num_features)
   {
     /* Need log_clusters to assign features. */
@@ -599,7 +608,7 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
       hb_codepoint_t c = buffer->info[i].codepoint;
       unsigned int cluster = buffer->info[i].cluster;
       log_clusters[chars_len++] = cluster;
-      if (hb_in_range(c, 0x10000u, 0x10FFFFu))
+      if (hb_in_range (c, 0x10000u, 0x10FFFFu))
         log_clusters[chars_len++] = cluster; /* Surrogates. */
     }
   }
@@ -617,10 +626,10 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
   */
   uint32_t textLength = buffer->len;
 
-  TextAnalysis analysis(textString, textLength, nullptr, readingDirection);
+  TextAnalysis analysis (textString, textLength, nullptr, readingDirection);
   TextAnalysis::Run *runHead;
   HRESULT hr;
-  hr = analysis.GenerateResults(analyzer, &runHead);
+  hr = analysis.GenerateResults (analyzer, &runHead);
 
 #define FAIL(...) \
   HB_STMT_START { \
@@ -649,27 +658,25 @@ _hb_directwrite_shape_full(hb_shape_plan_t    *shape_plan,
   singleFeatures.featureCount = num_features;
   if (num_features)
   {
-    DWRITE_FONT_FEATURE* dwfeatureArray = (DWRITE_FONT_FEATURE*)
-      malloc (sizeof (DWRITE_FONT_FEATURE) * num_features);
+    singleFeatures.features = new DWRITE_FONT_FEATURE[num_features];
     for (unsigned int i = 0; i < num_features; ++i)
     {
-      dwfeatureArray[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
+      singleFeatures.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
         hb_uint32_swap (features[i].tag);
-      dwfeatureArray[i].parameter = features[i].value;
+      singleFeatures.features[i].parameter = features[i].value;
     }
-    singleFeatures.features = dwfeatureArray;
   }
   const DWRITE_TYPOGRAPHIC_FEATURES* dwFeatures =
     (const DWRITE_TYPOGRAPHIC_FEATURES*) &singleFeatures;
   const uint32_t featureRangeLengths[] = { textLength };
 
-  uint16_t* clusterMap = (uint16_t*) malloc (textLength * sizeof (uint16_t));
-  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
-    malloc (textLength * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
+  uint16_t* clusterMap = new uint16_t[textLength];
+  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties =
+    new DWRITE_SHAPING_TEXT_PROPERTIES[textLength];
 retry_getglyphs:
-  uint16_t* glyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
-  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
-    malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
+  uint16_t* glyphIndices = new uint16_t[maxGlyphCount];
+  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties =
+    new DWRITE_SHAPING_GLYPH_PROPERTIES[maxGlyphCount];
 
   hr = analyzer->GetGlyphs (textString, textLength, fontFace, false,
     isRightToLeft, &runHead->mScript, localeName, nullptr, &dwFeatures,
@@ -678,8 +685,8 @@ retry_getglyphs:
 
   if (unlikely (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER)))
   {
-    free (glyphIndices);
-    free (glyphProperties);
+    delete [] glyphIndices;
+    delete [] glyphProperties;
 
     maxGlyphCount *= 2;
 
@@ -691,23 +698,22 @@ retry_getglyphs:
     return false;
   }
 
-  float* glyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
-  DWRITE_GLYPH_OFFSET* glyphOffsets = (DWRITE_GLYPH_OFFSET*)
-    malloc(maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+  float* glyphAdvances = new float[maxGlyphCount];
+  DWRITE_GLYPH_OFFSET* glyphOffsets = new DWRITE_GLYPH_OFFSET[maxGlyphCount];
 
   /* The -2 in the following is to compensate for possible
-   * alignment needed after the WORD array.  sizeof(WORD) == 2. */
-  unsigned int glyphs_size = (scratch_size * sizeof(int) - 2)
-         / (sizeof(WORD) +
-            sizeof(DWRITE_SHAPING_GLYPH_PROPERTIES) +
-            sizeof(int) +
-            sizeof(DWRITE_GLYPH_OFFSET) +
-            sizeof(uint32_t));
+   * alignment needed after the WORD array.  sizeof (WORD) == 2. */
+  unsigned int glyphs_size = (scratch_size * sizeof (int) - 2)
+         / (sizeof (WORD) +
+            sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES) +
+            sizeof (int) +
+            sizeof (DWRITE_GLYPH_OFFSET) +
+            sizeof (uint32_t));
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
 #undef ALLOCATE_ARRAY
 
-  int fontEmSize = font->face->get_upem();
+  int fontEmSize = font->face->get_upem ();
   if (fontEmSize < 0)
     fontEmSize = -fontEmSize;
 
@@ -736,8 +742,7 @@ retry_getglyphs:
   {
 
     DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
-      (DWRITE_JUSTIFICATION_OPPORTUNITY*)
-      malloc (maxGlyphCount * sizeof (DWRITE_JUSTIFICATION_OPPORTUNITY));
+      new DWRITE_JUSTIFICATION_OPPORTUNITY[maxGlyphCount];
     hr = analyzer1->GetJustificationOpportunities (fontFace, fontEmSize,
       runHead->mScript, textLength, glyphCount, textString, clusterMap,
       glyphProperties, justificationOpportunities);
@@ -748,16 +753,14 @@ retry_getglyphs:
       return false;
     }
 
-    float* justifiedGlyphAdvances =
-      (float*) malloc (maxGlyphCount * sizeof (float));
-    DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
-      malloc (glyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+    float* justifiedGlyphAdvances = new float[maxGlyphCount];
+    DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[glyphCount];
     hr = analyzer1->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
       glyphAdvances, glyphOffsets, justifiedGlyphAdvances, justifiedGlyphOffsets);
 
     if (FAILED (hr))
     {
-      FAIL("Analyzer failed to get justified glyph advances.");
+      FAIL ("Analyzer failed to get justified glyph advances.");
       return false;
     }
 
@@ -765,7 +768,7 @@ retry_getglyphs:
     hr = analyzer1->GetScriptProperties (runHead->mScript, &scriptProperties);
     if (FAILED (hr))
     {
-      FAIL("Analyzer failed to get script properties.");
+      FAIL ("Analyzer failed to get script properties.");
       return false;
     }
     uint32_t justificationCharacter = scriptProperties.justificationCharacter;
@@ -773,12 +776,12 @@ retry_getglyphs:
     // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
     if (justificationCharacter != 32)
     {
-      uint16_t* modifiedClusterMap = (uint16_t*) malloc (textLength * sizeof (uint16_t));
+      uint16_t* modifiedClusterMap = new uint16_t[textLength];
     retry_getjustifiedglyphs:
-      uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
-      float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
-      DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
-        malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+      uint16_t* modifiedGlyphIndices = new uint16_t[maxGlyphCount];
+      float* modifiedGlyphAdvances = new float[maxGlyphCount];
+      DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets =
+        new DWRITE_GLYPH_OFFSET[maxGlyphCount];
       uint32_t actualGlyphsCount;
       hr = analyzer1->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
         textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
@@ -789,9 +792,9 @@ retry_getglyphs:
       if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
       {
         maxGlyphCount = actualGlyphsCount;
-        free (modifiedGlyphIndices);
-        free (modifiedGlyphAdvances);
-        free (modifiedGlyphOffsets);
+        delete [] modifiedGlyphIndices;
+        delete [] modifiedGlyphAdvances;
+        delete [] modifiedGlyphOffsets;
 
         maxGlyphCount = actualGlyphsCount;
 
@@ -803,10 +806,10 @@ retry_getglyphs:
         return false;
       }
 
-      free (clusterMap);
-      free (glyphIndices);
-      free (glyphAdvances);
-      free (glyphOffsets);
+      delete [] clusterMap;
+      delete [] glyphIndices;
+      delete [] glyphAdvances;
+      delete [] glyphOffsets;
 
       glyphCount = actualGlyphsCount;
       clusterMap = modifiedClusterMap;
@@ -814,19 +817,19 @@ retry_getglyphs:
       glyphAdvances = modifiedGlyphAdvances;
       glyphOffsets = modifiedGlyphOffsets;
 
-      free (justifiedGlyphAdvances);
-      free (justifiedGlyphOffsets);
+      delete [] justifiedGlyphAdvances;
+      delete [] justifiedGlyphOffsets;
     }
     else
     {
-      free (glyphAdvances);
-      free (glyphOffsets);
+      delete [] glyphAdvances;
+      delete [] glyphOffsets;
 
       glyphAdvances = justifiedGlyphAdvances;
       glyphOffsets = justifiedGlyphOffsets;
     }
 
-    free (justificationOpportunities);
+    delete [] justificationOpportunities;
 
   }
 
@@ -839,7 +842,7 @@ retry_getglyphs:
   for (unsigned int i = 0; i < buffer->len; i++)
   {
     uint32_t *p =
-      &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
+      &vis_clusters[log_clusters[buffer->info[i].utf16_index ()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphCount; i++)
@@ -885,28 +888,28 @@ retry_getglyphs:
   if (isRightToLeft)
     hb_buffer_reverse (buffer);
 
-  free (clusterMap);
-  free (glyphIndices);
-  free (textProperties);
-  free (glyphProperties);
-  free (glyphAdvances);
-  free (glyphOffsets);
+  delete [] clusterMap;
+  delete [] glyphIndices;
+  delete [] textProperties;
+  delete [] glyphProperties;
+  delete [] glyphAdvances;
+  delete [] glyphOffsets;
 
   if (num_features)
-    free (singleFeatures.features);
+    delete [] singleFeatures.features;
 
   /* Wow, done! */
   return true;
 }
 
 hb_bool_t
-_hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
+_hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
   hb_font_t          *font,
   hb_buffer_t        *buffer,
   const hb_feature_t *features,
   unsigned int        num_features)
 {
-  return _hb_directwrite_shape_full(shape_plan, font, buffer,
+  return _hb_directwrite_shape_full (shape_plan, font, buffer,
     features, num_features, 0);
 }
 
@@ -915,7 +918,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
  */
 
 hb_bool_t
-hb_directwrite_shape_experimental_width(hb_font_t          *font,
+hb_directwrite_shape_experimental_width (hb_font_t          *font,
   hb_buffer_t        *buffer,
   const hb_feature_t *features,
   unsigned int        num_features,
