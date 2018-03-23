@@ -205,7 +205,7 @@ struct KernSubTableWrapper
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (thiz()) &&
-		  thiz()->length >= thiz()->min_size &&
+		  thiz()->length >= T::min_size &&
 		  c->check_array (thiz(), 1, thiz()->length) &&
 		  thiz()->subtable.sanitize (c, thiz()->format));
   }
