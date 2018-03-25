@@ -489,12 +489,12 @@ _hb_ctz (T v)
     unsigned int c = 64;
     v &= - (int64_t) (v);
     if (v) c--;
-    if (v & 0x00000000FFFFFFFF) c -= 32;
-    if (v & 0x0000FFFF0000FFFF) c -= 16;
-    if (v & 0x00FF00FF00FF00FF) c -= 8;
-    if (v & 0x0F0F0F0F0F0F0F0F) c -= 4;
-    if (v & 0x3333333333333333) c -= 2;
-    if (v & 0x5555555555555555) c -= 1;
+    if (v & 0x00000000FFFFFFFFULL) c -= 32;
+    if (v & 0x0000FFFF0000FFFFULL) c -= 16;
+    if (v & 0x00FF00FF00FF00FFULL) c -= 8;
+    if (v & 0x0F0F0F0F0F0F0F0FULL) c -= 4;
+    if (v & 0x3333333333333333ULL) c -= 2;
+    if (v & 0x5555555555555555ULL) c -= 1;
     return c;
   }
   if (sizeof (T) == 16)
