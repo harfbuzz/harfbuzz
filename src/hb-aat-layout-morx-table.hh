@@ -30,7 +30,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
 
-#define HB_AAT_TAG_MORX HB_TAG('m','o','r','x')
+#define HB_AAT_TAG_morx HB_TAG('m','o','r','x')
 
 
 namespace AAT {
@@ -677,7 +677,7 @@ struct Chain
 
 struct morx
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_MORX;
+  static const hb_tag_t tableTag = HB_AAT_TAG_morx;
 
   inline void apply (hb_aat_apply_context_t *c) const
   {
