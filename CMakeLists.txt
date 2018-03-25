@@ -543,7 +543,7 @@ if (UNIX OR MINGW)
   check_cxx_compiler_flag(-Bsymbolic-functions CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
   if(CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
     link_libraries(-Bsymbolic-functions)
-  endif()  
+  endif()
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Make sure we don't link to libstdc++
