@@ -1,8 +1,9 @@
 #!/bin/bash
 # Suggested setup to use the script:
 #  (on the root of the project)
-#  $ NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
-#  $ mkdir build && cd build && ../configure && make -j5 && cd ..
+#  $ NOCONFIGURE=1 ./autogen.sh && mkdir build && cd build
+#  $ ../configure --with-freetype --with-glib --with-gobject --with-cairo
+#  $ make -j5 && cd ..
 #  $ src/dev-run.sh [FONT-FILE] [TEXT]
 #
 # Or, using cmake:

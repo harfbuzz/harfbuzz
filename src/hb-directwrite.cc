@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2015-2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
@@ -71,7 +71,7 @@ public:
 
   // IDWriteFontFileLoader methods
   virtual HRESULT STDMETHODCALLTYPE CreateStreamFromKey (void const* fontFileReferenceKey,
-    UINT32 fontFileReferenceKeySize,
+    uint32_t fontFileReferenceKeySize,
     OUT IDWriteFontFileStream** fontFileStream)
   {
     *fontFileStream = mFontFileStream;
@@ -103,9 +103,8 @@ public:
     OUT void** fragmentContext)
   {
     // We are required to do bounds checking.
-    if (fileOffset + fragmentSize > mSize) {
+    if (fileOffset + fragmentSize > mSize)
       return E_FAIL;
-    }
 
     // truncate the 64 bit fileOffset to size_t sized index into mData
     size_t index = static_cast<size_t> (fileOffset);
@@ -135,7 +134,8 @@ public:
 * shaper face data
 */
 
-struct hb_directwrite_shaper_face_data_t {
+struct hb_directwrite_shaper_face_data_t
+{
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
   IDWriteFontFileStream *fontFileStream;
@@ -179,20 +179,16 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
     return nullptr; \
   } HB_STMT_END;
 
-  if (FAILED (hr)) {
+  if (FAILED (hr))
     FAIL ("Failed to load font file from data!");
-    return nullptr;
-  }
 
   BOOL isSupported;
   DWRITE_FONT_FILE_TYPE fileType;
   DWRITE_FONT_FACE_TYPE faceType;
-  UINT32 numberOfFaces;
+  uint32_t numberOfFaces;
   hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
-  if (FAILED (hr) || !isSupported) {
+  if (FAILED (hr) || !isSupported)
     FAIL ("Font file is not supported.");
-    return nullptr;
-  }
 
 #undef FAIL
 
@@ -217,7 +213,8 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_shaper_face_data_t *dat
     data->fontFace->Release ();
   if (data->fontFile)
     data->fontFile->Release ();
-  if (data->dwriteFactory) {
+  if (data->dwriteFactory)
+  {
     if (data->fontFileLoader)
       data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
     data->dwriteFactory->Release ();
@@ -237,7 +234,8 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_shaper_face_data_t *dat
  * shaper font data
  */
 
-struct hb_directwrite_shaper_font_data_t {
+struct hb_directwrite_shaper_font_data_t
+{
 };
 
 hb_directwrite_shaper_font_data_t *
@@ -324,9 +322,11 @@ public:
     , mReadingDirection (readingDirection)
     , mCurrentRun (nullptr) { };
 
-  ~TextAnalysis () {
+  ~TextAnalysis ()
+  {
     // delete runs, except mRunHead which is part of the TextAnalysis object
-    for (Run *run = mRunHead.nextRun; run;) {
+    for (Run *run = mRunHead.nextRun; run;)
+    {
       Run *origRun = run;
       run = run->nextRun;
       delete origRun;
@@ -334,7 +334,8 @@ public:
   }
 
   STDMETHODIMP GenerateResults (IDWriteTextAnalyzer* textAnalyzer,
-    Run **runHead) {
+    Run **runHead)
+  {
     // Analyzes the text using the script analyzer and returns
     // the result as a series of runs.
 
@@ -350,9 +351,8 @@ public:
     mCurrentRun = &mRunHead;
 
     // Call each of the analyzers in sequence, recording their results.
-    if (SUCCEEDED (hr = textAnalyzer->AnalyzeScript (this, 0, mTextLength, this))) {
+    if (SUCCEEDED (hr = textAnalyzer->AnalyzeScript (this, 0, mTextLength, this)))
       *runHead = &mRunHead;
-    }
 
     return hr;
   }
@@ -363,12 +363,14 @@ public:
     OUT wchar_t const** textString,
     OUT uint32_t* textLength)
   {
-    if (textPosition >= mTextLength) {
+    if (textPosition >= mTextLength)
+    {
       // No text at this position, valid query though.
       *textString = nullptr;
       *textLength = 0;
     }
-    else {
+    else
+    {
       *textString = mText + textPosition;
       *textLength = mTextLength - textPosition;
     }
@@ -379,13 +381,15 @@ public:
     OUT wchar_t const** textString,
     OUT uint32_t* textLength)
   {
-    if (textPosition == 0 || textPosition > mTextLength) {
+    if (textPosition == 0 || textPosition > mTextLength)
+    {
       // Either there is no text before here (== 0), or this
       // is an invalid position. The query is considered valid though.
       *textString = nullptr;
       *textLength = 0;
     }
-    else {
+    else
+    {
       *textString = mText;
       *textLength = textPosition;
     }
@@ -458,14 +462,10 @@ protected:
     // Split the tail if needed (the length remaining is less than the
     // current run's size).
     if (*textLength < mCurrentRun->mTextLength)
-    {
       SplitCurrentRun (mCurrentRun->mTextStart + *textLength);
-    }
     else
-    {
       // Just advance the current run.
       mCurrentRun = mCurrentRun->nextRun;
-    }
     *textLength -= origRun->mTextLength;
 
     // Return a reference to the run that was just current.
@@ -480,17 +480,14 @@ protected:
     // corresponding run for the text position.
 
     if (mCurrentRun && mCurrentRun->ContainsTextPosition (textPosition))
-    {
       return;
-    }
 
-    for (Run *run = &mRunHead; run; run = run->nextRun) {
+    for (Run *run = &mRunHead; run; run = run->nextRun)
       if (run->ContainsTextPosition (textPosition))
       {
         mCurrentRun = run;
         return;
       }
-    }
     //NS_NOTREACHED ("We should always be able to find the text position in one \
             //                of our runs");
   }
@@ -592,25 +589,23 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
       textString[chars_len++] = c;
     else if (unlikely (c > 0x10FFFFu))
       textString[chars_len++] = 0xFFFDu;
-    else {
+    else
+    {
       textString[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
       textString[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1u << 10) - 1));
     }
   }
 
   ALLOCATE_ARRAY (WORD, log_clusters, chars_len);
-  // if (num_features)
+  /* Need log_clusters to assign features. */
+  chars_len = 0;
+  for (unsigned int i = 0; i < buffer->len; i++)
   {
-    /* Need log_clusters to assign features. */
-    chars_len = 0;
-    for (unsigned int i = 0; i < buffer->len; i++)
-    {
-      hb_codepoint_t c = buffer->info[i].codepoint;
-      unsigned int cluster = buffer->info[i].cluster;
-      log_clusters[chars_len++] = cluster;
-      if (hb_in_range (c, 0x10000u, 0x10FFFFu))
-        log_clusters[chars_len++] = cluster; /* Surrogates. */
-    }
+    hb_codepoint_t c = buffer->info[i].codepoint;
+    unsigned int cluster = buffer->info[i].cluster;
+    log_clusters[chars_len++] = cluster;
+    if (hb_in_range (c, 0x10000u, 0x10FFFFu))
+      log_clusters[chars_len++] = cluster; /* Surrogates. */
   }
 
   // TODO: Handle TEST_DISABLE_OPTIONAL_LIGATURES
@@ -638,10 +633,7 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   } HB_STMT_END;
 
   if (FAILED (hr))
-  {
     FAIL ("Analyzer failed to generate results.");
-    return false;
-  }
 
   uint32_t maxGlyphCount = 3 * textLength / 2 + 16;
   uint32_t glyphCount;
@@ -654,21 +646,23 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
       hb_language_to_string (buffer->props.language), 20);
   }
 
-  DWRITE_TYPOGRAPHIC_FEATURES singleFeatures;
-  singleFeatures.featureCount = num_features;
+  // TODO: it does work but doesn't care about ranges
+  DWRITE_TYPOGRAPHIC_FEATURES typographic_features;
+  typographic_features.featureCount = num_features;
   if (num_features)
   {
-    singleFeatures.features = new DWRITE_FONT_FEATURE[num_features];
+    typographic_features.features = new DWRITE_FONT_FEATURE[num_features];
     for (unsigned int i = 0; i < num_features; ++i)
     {
-      singleFeatures.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
+      typographic_features.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
         hb_uint32_swap (features[i].tag);
-      singleFeatures.features[i].parameter = features[i].value;
+      typographic_features.features[i].parameter = features[i].value;
     }
   }
   const DWRITE_TYPOGRAPHIC_FEATURES* dwFeatures =
-    (const DWRITE_TYPOGRAPHIC_FEATURES*) &singleFeatures;
+    (const DWRITE_TYPOGRAPHIC_FEATURES*) &typographic_features;
   const uint32_t featureRangeLengths[] = { textLength };
+  //
 
   uint16_t* clusterMap = new uint16_t[textLength];
   DWRITE_SHAPING_TEXT_PROPERTIES* textProperties =
@@ -693,10 +687,7 @@ retry_getglyphs:
     goto retry_getglyphs;
   }
   if (FAILED (hr))
-  {
     FAIL ("Analyzer failed to get glyphs.");
-    return false;
-  }
 
   float* glyphAdvances = new float[maxGlyphCount];
   DWRITE_GLYPH_OFFSET* glyphOffsets = new DWRITE_GLYPH_OFFSET[maxGlyphCount];
@@ -730,10 +721,7 @@ retry_getglyphs:
     glyphAdvances, glyphOffsets);
 
   if (FAILED (hr))
-  {
     FAIL ("Analyzer failed to get glyph placements.");
-    return false;
-  }
 
   IDWriteTextAnalyzer1* analyzer1;
   analyzer->QueryInterface (&analyzer1);
@@ -748,10 +736,7 @@ retry_getglyphs:
       glyphProperties, justificationOpportunities);
 
     if (FAILED (hr))
-    {
       FAIL ("Analyzer failed to get justification opportunities.");
-      return false;
-    }
 
     float* justifiedGlyphAdvances = new float[maxGlyphCount];
     DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[glyphCount];
@@ -759,18 +744,12 @@ retry_getglyphs:
       glyphAdvances, glyphOffsets, justifiedGlyphAdvances, justifiedGlyphOffsets);
 
     if (FAILED (hr))
-    {
       FAIL ("Analyzer failed to get justified glyph advances.");
-      return false;
-    }
 
     DWRITE_SCRIPT_PROPERTIES scriptProperties;
     hr = analyzer1->GetScriptProperties (runHead->mScript, &scriptProperties);
     if (FAILED (hr))
-    {
       FAIL ("Analyzer failed to get script properties.");
-      return false;
-    }
     uint32_t justificationCharacter = scriptProperties.justificationCharacter;
 
     // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
@@ -801,10 +780,7 @@ retry_getglyphs:
         goto retry_getjustifiedglyphs;
       }
       if (FAILED (hr))
-      {
         FAIL ("Analyzer failed to get justified glyphs.");
-        return false;
-      }
 
       delete [] clusterMap;
       delete [] glyphIndices;
@@ -896,7 +872,7 @@ retry_getglyphs:
   delete [] glyphOffsets;
 
   if (num_features)
-    delete [] singleFeatures.features;
+    delete [] typographic_features.features;
 
   /* Wow, done! */
   return true;
