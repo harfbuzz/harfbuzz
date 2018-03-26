@@ -37,14 +37,13 @@ struct FTStringRange
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      tag (base).sanitize (c, length));
+    return_trace (c->check_struct (this) && tag (base).sanitize (c, length));
   }
 
   protected:
   OffsetTo<UnsizedArrayOf<HBUINT8> >
 		tag;	/* Offset from the start of the table to
-			   the beginning of the string */
+			 * the beginning of the string */
   HBUINT16	length;	/* String length (in bytes) */
   public:
   DEFINE_SIZE_STATIC (4);
@@ -61,15 +60,14 @@ struct ltag
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-      tagRanges.sanitize (c, this));
+    return_trace (c->check_struct (this) && tagRanges.sanitize (c, this));
   }
 
   protected:
-  HBUINT32	version;/* Table version; currently 1 */
-  HBUINT32	flags;	/* Table flags; currently none defined */
+  HBUINT32	version;	/* Table version; currently 1 */
+  HBUINT32	flags;		/* Table flags; currently none defined */
   ArrayOf<FTStringRange, HBUINT32>
-  	tagRanges;	/* Range for each tag's string */
+		tagRanges;	/* Range for each tag's string */
   public:
   DEFINE_SIZE_ARRAY (12, tagRanges);
 };
