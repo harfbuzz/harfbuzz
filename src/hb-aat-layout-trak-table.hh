@@ -31,7 +31,7 @@
 #include "hb-aat-layout-common-private.hh"
 #include "hb-open-type-private.hh"
 
-#define HB_AAT_TAG_TRAK HB_TAG('t','r','a','k')
+#define HB_AAT_TAG_trak HB_TAG('t','r','a','k')
 
 
 namespace AAT {
@@ -135,7 +135,7 @@ struct TrackData
 
 struct trak
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_TRAK;
+  static const hb_tag_t tableTag = HB_AAT_TAG_trak;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

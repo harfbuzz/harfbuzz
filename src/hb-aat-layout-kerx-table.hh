@@ -31,7 +31,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
 
-#define HB_AAT_TAG_KERX HB_TAG('k','e','r','x')
+#define HB_AAT_TAG_kerx HB_TAG('k','e','r','x')
 
 
 namespace AAT {
@@ -284,7 +284,7 @@ struct SubtableGlyphCoverageArray
 
 struct kerx
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_KERX;
+  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
 
   inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
   {

@@ -22,46 +22,59 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_AAT_LAYOUT_FMTX_TABLE_HH
-#define HB_AAT_LAYOUT_FMTX_TABLE_HH
+#ifndef HB_AAT_LAYOUT_LTAG_TABLE_HH
+#define HB_AAT_LAYOUT_LTAG_TABLE_HH
 
 #include "hb-aat-layout-common-private.hh"
 
-#define HB_AAT_TAG_fmtx HB_TAG('f','m','t','x')
+#define HB_AAT_TAG_ltag HB_TAG('l','t','a','g')
 
 
 namespace AAT {
 
+struct FTStringRange
+{
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+      tag (base).sanitize (c, length));
+  }
+
+  protected:
+  OffsetTo<UnsizedArrayOf<HBUINT8> >
+		tag;	/* Offset from the start of the table to
+			   the beginning of the string */
+  HBUINT16	length;	/* String length (in bytes) */
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
 
 /*
- * fmtx -- Font metrics
+ * ltag -- Language tags
  */
 
-struct fmtx
+struct ltag
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_fmtx;
+  static const hb_tag_t tableTag = HB_AAT_TAG_ltag;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (c->check_struct (this) &&
+      tagRanges.sanitize (c, this));
   }
 
-  FixedVersion<>version;		/* Version (set to 0x00020000). */
-  HBUINT32	glyphIndex;		/* The glyph whose points represent the metrics. */
-  HBUINT8	horizontalBefore;	/* Point number for the horizontal ascent. */
-  HBUINT8	horizontalAfter;	/* Point number for the horizontal descent. */
-  HBUINT8	horizontalCaretHead;	/* Point number for the horizontal caret head. */
-  HBUINT8	horizontalCaretBase;	/* Point number for the horizontal caret base. */
-  HBUINT8	verticalBefore;		/* Point number for the vertical ascent. */
-  HBUINT8	verticalAfter;		/* Point number for the vertical descent. */
-  HBUINT8	verticalCaretHead;	/* Point number for the vertical caret head. */
-  HBUINT8	verticalCaretBase;	/* Point number for the vertical caret base. */
+  protected:
+  HBUINT32	version;/* Table version; currently 1 */
+  HBUINT32	flags;	/* Table flags; currently none defined */
+  ArrayOf<FTStringRange, HBUINT32>
+  	tagRanges;	/* Range for each tag's string */
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_ARRAY (12, tagRanges);
 };
 
 } /* namespace AAT */
 
 
-#endif /* HB_AAT_LAYOUT_FMTX_TABLE_HH */
+#endif /* HB_AAT_LAYOUT_LTAG_TABLE_HH */
