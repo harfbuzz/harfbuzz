@@ -33,7 +33,6 @@ HBHEADERS = $(HB_BASE_headers)
 # We don't use these features, so it's safe to disable them
 # even in the cases where we DO link to libstdc++.
 AM_CXXFLAGS = -fno-exceptions -fno-threadsafe-statics -fno-rtti
-endif
 
 if HAVE_OT
 HBSOURCES += $(HB_OT_sources)
