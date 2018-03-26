@@ -241,6 +241,9 @@ static int errno = 0; /* Use something better? */
 #    define HB_USE_ATEXIT 1
 #  endif
 #endif
+#ifdef HB_NO_ATEXIT
+#  undef HB_USE_ATEXIT
+#endif
 
 /* Basics */
 
