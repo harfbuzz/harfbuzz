@@ -44,7 +44,7 @@
 #include "hb-ot-post-table.hh"
 
 
-#ifndef HB_NO_VISIBILITY
+#if !defined(HB_NO_VISIBILITY) && !defined(HB_SUBSET_BUILTIN)
 const void * const OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
 #endif
 
