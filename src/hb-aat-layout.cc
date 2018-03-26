@@ -31,11 +31,11 @@
 
 #include "hb-aat-layout-private.hh"
 #include "hb-aat-layout-ankr-table.hh"
-#include "hb-aat-layout-fmtx-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-kerx-table.hh"
-#include "hb-aat-layout-ltag-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-morx-table.hh"
 #include "hb-aat-layout-trak-table.hh"
+#include "hb-aat-fmtx-table.hh" // Just so we compile it; unused otherwise
+#include "hb-aat-ltag-table.hh" // Just so we compile it; unused otherwise.
 
 /*
  * morx/kerx/trak
