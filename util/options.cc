@@ -340,8 +340,10 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
   while (s && *s)
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t", *s))
+    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
       s++;
+    if (!*s)
+      break;
 
     errno = 0;
     hb_codepoint_t u = strtoul (s, &p, 16);
