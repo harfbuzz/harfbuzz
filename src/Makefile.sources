@@ -82,11 +82,11 @@ HB_OT_sources = \
 	hb-aat-layout.cc \
 	hb-aat-layout-common-private.hh \
 	hb-aat-layout-ankr-table.hh \
-	hb-aat-layout-fmtx-table.hh \
 	hb-aat-layout-kerx-table.hh \
-	hb-aat-layout-ltag-table.hh \
 	hb-aat-layout-morx-table.hh \
 	hb-aat-layout-trak-table.hh \
+	hb-aat-fmtx-table.hh \
+	hb-aat-ltag-table.hh \
 	hb-aat-layout-private.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
