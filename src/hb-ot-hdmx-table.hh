@@ -134,7 +134,7 @@ struct hdmx
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
     if (unlikely (i >= num_records)) return Null(DeviceRecord);
-    return StructAtOffset<DeviceRecord> (this, min_size + i * size_device_record);
+    return StructAtOffset<DeviceRecord> (this->data, i * size_device_record);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
