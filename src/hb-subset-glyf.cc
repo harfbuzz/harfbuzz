@@ -213,6 +213,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
                                             loca_prime_size);
     _update_components (plan, glyf_prime_data_next, length);
 
+    // TODO: don't align to two bytes if using long loca.
     glyf_prime_data_next += length + (length % 2); // Align to 2 bytes for short loca.
   }
 
