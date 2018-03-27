@@ -141,10 +141,10 @@ endif
 @CODE_COVERAGE_RULES@
 
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
-libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS) $(CODE_COVERAGE_LDFLAGS)
+libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
-libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
+libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
@@ -158,7 +158,7 @@ EXTRA_DIST += harfbuzz.pc.in harfbuzz-config.cmake.in
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
-libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
+libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
 EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
 pkginclude_HEADERS += $(HB_SUBSET_headers)
@@ -205,8 +205,8 @@ HBHEADERS += $(HB_ICU_headers)
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS)  $(CODE_COVERAGE_CFLAGS)
-libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
+libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
 pkginclude_HEADERS += $(HB_ICU_headers)
@@ -220,8 +220,8 @@ lib_LTLIBRARIES += libharfbuzz-gobject.la
 libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
 libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_DIST_sources)
 nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_NODIST_sources)
-libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(GOBJECT_CFLAGS) $(CODE_COVERAGE_LDFLAGS)
-libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
+libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(GOBJECT_CFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_gobject_la_DEPENDENCIES = $(harfbuzz_gobject_def_dependency)
 pkginclude_HEADERS += $(HB_GOBJECT_DIST_headers)
