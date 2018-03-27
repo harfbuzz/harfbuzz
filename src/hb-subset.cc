@@ -363,8 +363,8 @@ hb_subset (hb_face_t *source,
         continue;
       }
       success = success && _subset_table (plan, tag);
-      offset += count;
     }
+    offset += count;
   } while (count == ARRAY_LENGTH (table_tags));
 
   hb_face_t *result = success ? hb_face_reference(plan->dest) : hb_face_get_empty();
