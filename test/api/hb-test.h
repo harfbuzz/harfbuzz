@@ -87,39 +87,6 @@ hb_test_run (void)
   return g_test_run ();
 }
 
-
-#if 0
-/* Helpers for loading test fonts */
-static inline hb_face_t *
-hb_test_load_face (const char *path)
-{
-  const char *font_data = NULL;
-  unsigned int len = 0;
-  hb_blob_t *blob = NULL;
-  hb_face_t *face = NULL;
-
-  FILE *f = fopen (path, "rb");
-  if (!f) {
-    perror (path);
-    exit (1);
-  }
-
-  fseek (f, 0, SEEK_END);
-  len = ftell (f);
-  fseek (f, 0, SEEK_SET);
-  font_data = (const char *) malloc (len);
-  if (!font_data) len = 0;
-  len = fread ((char *) font_data, 1, len, f);
-  fclose (f);
-
-  blob = hb_blob_create (font_data, len, HB_MEMORY_MODE_READONLY, 0, free);
-  face = hb_face_create (blob, 0 /* first face */);
-  hb_blob_destroy (blob);
-  return face;
-}
-#endif
-
-
 /* Bugzilla helpers */
 
 static inline void

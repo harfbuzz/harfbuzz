@@ -8,6 +8,7 @@ HB_EXTERN
 <SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
+hb_blob_create_from_file
 hb_blob_create_sub_blob
 hb_blob_copy_writable_or_fail
 hb_blob_destroy

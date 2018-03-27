@@ -17,8 +17,6 @@ API additions
 
 - Language to/from script.
 
-- blob_from_file?
-
 - Add hb-cairo glue
 
 - Add sanitize API (and a cached version, that saves result on blob user-data)
