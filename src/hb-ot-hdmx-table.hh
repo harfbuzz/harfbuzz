@@ -196,18 +196,10 @@ struct hdmx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!c->check_struct (this) || version != 0 ||
-	_hb_unsigned_int_mul_overflows (num_records, size_device_record) ||
-	!c->check_range (this, get_size()))
-    {
-      return_trace (false);
-    }
-    for (unsigned int i = 0; i < this->num_records; i++)
-    {
-      if (!(*this)[i].sanitize (c, size_device_record))
-	return_trace (false);
-    }
-    return_trace (true);
+    return_trace (c->check_struct (this) && version == 0 &&
+		  !_hb_unsigned_int_mul_overflows (num_records, size_device_record) &&
+		  c->check_range (this, get_size()) &&
+		  size_device_record >= DeviceRecord::min_size);
   }
 
   protected:
