@@ -52,6 +52,28 @@ test_subset_32_tables (void)
 }
 
 static void
+test_subset_no_inf_loop (void)
+{
+  hb_face_t *face = hb_subset_test_open_font("fonts/clusterfuzz-testcase-minimized-hb-subset-fuzzer-5521982557782016");
+
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'b');
+  hb_set_add (codepoints, 'c');
+
+  hb_subset_profile_t *profile = hb_subset_profile_create();
+  hb_face_t *subset = hb_subset (face, profile, input);
+  g_assert (subset);
+  g_assert (subset == hb_face_get_empty ());
+
+  hb_subset_input_destroy (input);
+  hb_subset_profile_destroy (profile);
+  hb_face_destroy (subset);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_crash (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/crash-4b60576767ee4d9fe1cc10959d89baf73d4e8249");
@@ -79,6 +101,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_32_tables);
+  hb_test_add (test_subset_no_inf_loop);
   hb_test_add (test_subset_crash);
 
   return hb_test_run();
