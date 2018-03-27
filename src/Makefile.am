@@ -368,11 +368,15 @@ dist_check_SCRIPTS += \
 endif
 
 check_PROGRAMS += \
+	dump-emoji \
 	dump-indic-data \
 	dump-khmer-data \
 	dump-myanmar-data \
 	dump-use-data \
 	$(NULL)
+dump_emoji_SOURCES = dump-emoji.cc
+dump_emoji_CPPFLAGS = $(HBCFLAGS)
+dump_emoji_LDADD = libharfbuzz.la $(HBLIBS)
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
 dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)

@@ -39,7 +39,7 @@ namespace OT {
 
 struct SVGDocumentIndexEntry
 {
-  // friend struct SVGDocumentIndex;
+  friend struct SVG;
 
   inline bool sanitize (hb_sanitize_context_t *c, const void* base) const
   {
@@ -64,26 +64,14 @@ struct SVGDocumentIndexEntry
 
 struct SVGDocumentIndex
 {
+  friend struct SVG;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    // dump ();
     return_trace (c->check_struct (this) &&
       entries.sanitize (c, this));
   }
-
-  // inline void dump () const
-  // {
-  //   for (unsigned int i = 0; i < entries.len; ++i)
-  //   {
-  //     char outName[255];
-  //     sprintf (outName, "out/%d.svg", i);
-  //     const SVGDocumentIndexEntry &entry = entries[i];
-  //     FILE *f = fopen (outName, "wb");
-  //     fwrite (&entry.svgDoc (this), 1, entry.svgDocLength, f);
-  //     fclose (f);
-  //   }
-  // }
 
   protected:
   ArrayOf<SVGDocumentIndexEntry>
@@ -100,8 +88,44 @@ struct SVG
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      svgDocIndex(this).sanitize (c));
+      svgDocIndex (this).sanitize (c));
   }
+
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      OT::Sanitizer<OT::SVG> sanitizer;
+      svg_blob = sanitizer.sanitize (face->reference_table (HB_OT_TAG_SVG));
+      svg_len = hb_blob_get_length (svg_blob);
+      svg = OT::Sanitizer<OT::SVG>::lock_instance (svg_blob);
+
+    }
+
+    inline void fini (void)
+    {
+      hb_blob_destroy (svg_blob);
+    }
+
+    inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
+        unsigned int start_glyph, unsigned int end_glyph)) const
+    {
+      const SVGDocumentIndex &index = svg->svgDocIndex (svg);
+      const ArrayOf<SVGDocumentIndexEntry> &entries = index.entries;
+      for (unsigned int i = 0; i < entries.len; ++i)
+      {
+        const SVGDocumentIndexEntry &entry = entries[i];
+        callback ((const uint8_t*) &entry.svgDoc (&index), entry.svgDocLength,
+          entry.startGlyphID, entry.endGlyphID);
+      }
+    }
+
+    private:
+    hb_blob_t *svg_blob;
+    const SVG *svg;
+
+    unsigned int svg_len;
+  };
 
   protected:
   HBUINT16	version;	/* Table version (starting at 0). */
