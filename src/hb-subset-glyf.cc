@@ -121,7 +121,6 @@ static void
 _update_components (hb_subset_plan_t * plan,
 		    char * glyph_start,
 		    unsigned int length)
-
 {
   OT::glyf::CompositeGlyphHeader::Iterator iterator;
   if (OT::glyf::CompositeGlyphHeader::get_iterator (glyph_start,
@@ -176,11 +175,11 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
     if (unlikely (!(glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset)
                     && glyf.remove_padding(start_offset, &end_offset))))
       end_offset = start_offset = 0;
+
     unsigned int instruction_start = instruction_ranges[i * 2];
     unsigned int instruction_end = instruction_ranges[i * 2 + 1];
 
     int length = end_offset - start_offset - (instruction_end - instruction_start);
-    length += length % 2;
 
     if (glyf_prime_data_next + length > glyf_prime_data + glyf_prime_size)
     {
@@ -214,7 +213,8 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
                                             loca_prime_size);
     _update_components (plan, glyf_prime_data_next, length);
 
-    glyf_prime_data_next += length;
+    // TODO: don't align to two bytes if using long loca.
+    glyf_prime_data_next += length + (length % 2); // Align to 2 bytes for short loca.
   }
 
   success = success && _write_loca_entry (glyph_ids.len,
