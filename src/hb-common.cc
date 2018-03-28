@@ -252,11 +252,16 @@ static hb_language_item_t *langs;
 static void
 free_langs (void)
 {
-  while (langs) {
-    hb_language_item_t *next = langs->next;
-    langs->finish ();
-    free (langs);
-    langs = next;
+retry:
+  hb_language_item_t *first_lang = (hb_language_item_t *) hb_atomic_ptr_get (&langs);
+  if (!hb_atomic_ptr_cmpexch (&langs, first_lang, nullptr))
+    goto retry;
+
+  while (first_lang) {
+    hb_language_item_t *next = first_lang->next;
+    first_lang->finish ();
+    free (first_lang);
+    first_lang = next;
   }
 }
 #endif
