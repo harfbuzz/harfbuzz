@@ -2,11 +2,15 @@ To enable HarfBuzz bindings for Python among other languages, make sure
 you have latest version of gobject-introspection available.  On Ubuntu,
 you can install that this way:
 
-  sudo apt-get install libgirepository1.0-dev
+```bash
+sudo apt-get install libgirepository1.0-dev
+```
 
 And then run autogen.sh (if building from git), and then:
 
-  ./configure --with-gobject --enable-introspection
+```bash
+./configure --with-gobject --enable-introspection
+```
 
 Make sure that gobject-introspection is enabled then in the final report.
 
@@ -21,7 +25,9 @@ $prefix/lib/girepository-* directory.
 Make sure you have pygobject installed.  Then check that the following
 import works in your Python interpretter:
 
-  from gi.repository import HarfBuzz
+```python
+from gi.repository import HarfBuzz
+```
 
 If it does, you are ready to call HarfBuzz from Python!  Congratulations.
 See src/sample.py.
