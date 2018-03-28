@@ -410,7 +410,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     if (face.find_table_index (HB_OT_TAG_name, &index))
     {
       OT::TableRecord &record = const_cast<OT::TableRecord &> (face.get_table (index));
-      record.checkSum.set_for_data (&name, name_table_length);
+      record.checkSum.set_for_data (&name, new_length);
       record.offset.set (name_table_offset);
       record.length.set (name_table_length);
     }
