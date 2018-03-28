@@ -237,7 +237,12 @@ static hb_unicode_funcs_t *static_ucdn_funcs = nullptr;
 static
 void free_static_ucdn_funcs (void)
 {
-  hb_unicode_funcs_destroy (static_ucdn_funcs);
+retry:
+  hb_unicode_funcs_t *ucdn_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_ucdn_funcs);
+  if (!hb_atomic_ptr_cmpexch (&static_ucdn_funcs, ucdn_funcs, nullptr))
+    goto retry;
+
+  hb_unicode_funcs_destroy (ucdn_funcs);
 }
 #endif
 

@@ -109,7 +109,7 @@ _hb_ft_font_destroy (void *data)
  * @font:
  * @load_flags:
  *
- * 
+ *
  *
  * Since: 1.0.5
  **/
@@ -131,7 +131,7 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
  * hb_ft_font_get_load_flags:
  * @font:
  *
- * 
+ *
  *
  * Return value:
  * Since: 1.0.5
@@ -423,7 +423,12 @@ static hb_font_funcs_t *static_ft_funcs = nullptr;
 static
 void free_static_ft_funcs (void)
 {
-  hb_font_funcs_destroy (static_ft_funcs);
+retry:
+  hb_font_funcs_t *ft_funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ft_funcs);
+  if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, ft_funcs, nullptr))
+    goto retry;
+
+  hb_font_funcs_destroy (ft_funcs);
 }
 #endif
 
@@ -502,12 +507,12 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 
 /**
  * hb_ft_face_create:
- * @ft_face: (destroy destroy) (scope notified): 
+ * @ft_face: (destroy destroy) (scope notified):
  * @destroy:
  *
- * 
  *
- * Return value: (transfer full): 
+ *
+ * Return value: (transfer full):
  * Since: 0.9.2
  **/
 hb_face_t *
@@ -539,9 +544,9 @@ hb_ft_face_create (FT_Face           ft_face,
  * hb_ft_face_create_referenced:
  * @ft_face:
  *
- * 
  *
- * Return value: (transfer full): 
+ *
+ * Return value: (transfer full):
  * Since: 0.9.38
  **/
 hb_face_t *
@@ -559,11 +564,11 @@ hb_ft_face_finalize (FT_Face ft_face)
 
 /**
  * hb_ft_face_create_cached:
- * @ft_face: 
+ * @ft_face:
  *
- * 
  *
- * Return value: (transfer full): 
+ *
+ * Return value: (transfer full):
  * Since: 0.9.2
  **/
 hb_face_t *
@@ -584,12 +589,12 @@ hb_ft_face_create_cached (FT_Face ft_face)
 
 /**
  * hb_ft_font_create:
- * @ft_face: (destroy destroy) (scope notified): 
+ * @ft_face: (destroy destroy) (scope notified):
  * @destroy:
  *
- * 
  *
- * Return value: (transfer full): 
+ *
+ * Return value: (transfer full):
  * Since: 0.9.2
  **/
 hb_font_t *
@@ -664,9 +669,9 @@ hb_ft_font_changed (hb_font_t *font)
  * hb_ft_font_create_referenced:
  * @ft_face:
  *
- * 
  *
- * Return value: (transfer full): 
+ *
+ * Return value: (transfer full):
  * Since: 0.9.38
  **/
 hb_font_t *
@@ -685,7 +690,12 @@ static FT_Library ft_library;
 static
 void free_ft_library (void)
 {
-  FT_Done_FreeType (ft_library);
+retry:
+  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
+  if (!hb_atomic_ptr_cmpexch (&ft_library, library, nullptr))
+    goto retry;
+
+  FT_Done_FreeType (library);
 }
 #endif
 
