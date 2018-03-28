@@ -295,7 +295,7 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh \
 	|| ($(RM) hb-ot-shape-complex-arabic-table.hh; false)
 
-indic-table: gen-indic-table.py IndicSyllabicCategory-7.0.0.txt IndicMatraCategory-7.0.0.txt Blocks.txt
+indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
 	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
 

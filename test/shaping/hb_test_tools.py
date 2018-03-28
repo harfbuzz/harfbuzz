@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
+
 import sys, os, re, difflib, unicodedata, errno, cgi
 from itertools import *
 
