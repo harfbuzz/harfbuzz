@@ -194,7 +194,24 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 0DE0 */     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0DF0 */     O,     O,  VPst,  VPst,     O,     O,     O,     O,
 
-#define use_offset_0x1000u 1360
+#define use_offset_0x0f18u 1360
+
+
+  /* Tibetan */
+                                                                     VMBlw, VMBlw,     O,     O,     O,     O,     O,     O,
+  /* 0F20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0F30 */     B,     B,     B,     B,     O,    FM,     O,    FM,     O, CMAbv,     O,     O,     O,     O, VMPst, VMPre,
+  /* 0F40 */     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,
+  /* 0F50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0F60 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,
+  /* 0F70 */     O,  VBlw,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMPst,
+  /* 0F80 */  VAbv,  VAbv, VMAbv, VMAbv,  VBlw,   IND, VMAbv, VMAbv,     B,     B,     B,     B,     B,   SUB,   SUB,   SUB,
+  /* 0F90 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
+  /* 0FA0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
+  /* 0FB0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,     O,     O,
+  /* 0FC0 */     O,     O,     O,     O,     O,     O,    FM,     O,
+
+#define use_offset_0x1000u 1536
 
 
   /* Myanmar */
@@ -210,7 +227,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1080 */     B,     B,  MBlw,  VPst,  VPre,  VAbv,  VAbv, VMPst, VMPst, VMPst, VMPst, VMPst, VMPst, VMBlw,     B, VMPst,
   /* 1090 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMPst, VMPst,  VPst,  VAbv,     O,     O,
 
-#define use_offset_0x1700u 1520
+#define use_offset_0x1700u 1696
 
 
   /* Tagalog */
@@ -243,7 +260,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 17D0 */    FM,  VAbv,     H,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     B,  VAbv,     O,     O,
   /* 17E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x1900u 1760
+#define use_offset_0x1900u 1936
 
 
   /* Limbu */
@@ -287,7 +304,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1A80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
   /* 1A90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x1b00u 2176
+#define use_offset_0x1b00u 2352
 
 
   /* Balinese */
@@ -323,7 +340,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1C30 */  FAbv,  FAbv,  FAbv,  FAbv, VMPre, VMPre,    FM, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 1C40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,     B,
 
-#define use_offset_0x1cd0u 2512
+#define use_offset_0x1cd0u 2688
 
 
   /* Vedic Extensions */
@@ -332,20 +349,20 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1CE0 */ VMAbv, VMPst, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw,     O,     O,     O,     O, VMBlw,     O,     O,
   /* 1CF0 */     O,     O, VMPst, VMPst, VMAbv,     O,     O, VMPst, VMAbv, VMAbv,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x1df8u 2560
+#define use_offset_0x1df8u 2736
 
 
   /* Combining Diacritical Marks Supplement */
                                                                          O,     O,     O,    FM,     O,     O,     O,     O,
 
-#define use_offset_0x2008u 2568
+#define use_offset_0x2008u 2744
 
 
   /* General Punctuation */
                                                                          O,     O,     O,     O,  ZWNJ,   ZWJ,     O,     O,
   /* 2010 */    GB,    GB,    GB,    GB,    GB,     O,     O,     O,
 
-#define use_offset_0x2060u 2584
+#define use_offset_0x2060u 2760
 
   /* 2060 */    WJ,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
@@ -354,20 +371,20 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 2070 */     O,     O,     O,     O,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 2080 */     O,     O,    FM,    FM,    FM,     O,     O,     O,
 
-#define use_offset_0x20f0u 2624
+#define use_offset_0x20f0u 2800
 
 
   /* Combining Diacritical Marks for Symbols */
 
   /* 20F0 */ VMAbv,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x25c8u 2632
+#define use_offset_0x25c8u 2808
 
 
   /* Geometric Shapes */
                                                                          O,     O,     O,     O,    GB,     O,     O,     O,
 
-#define use_offset_0xa800u 2640
+#define use_offset_0xa800u 2816
 
 
   /* Syloti Nagri */
@@ -454,7 +471,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* AAE0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPre,  VBlw,  VAbv,  VPre,  VPst,
   /* AAF0 */     O,     O,     O,     O,     O, VMPst,     H,     O,
 
-#define use_offset_0xabc0u 3400
+#define use_offset_0xabc0u 3576
 
 
   /* Meetei Mayek */
@@ -464,14 +481,14 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* ABE0 */     B,     B,     B,  VPst,  VPst,  VAbv,  VPst,  VPst,  VBlw,  VPst,  VPst,     O, VMPst,  VBlw,     O,     O,
   /* ABF0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0xfe00u 3464
+#define use_offset_0xfe00u 3640
 
 
   /* Variation Selectors */
 
   /* FE00 */    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,    VS,
 
-#define use_offset_0x10a00u 3480
+#define use_offset_0x10a00u 3656
 
 
   /* Kharoshthi */
@@ -482,7 +499,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 10A30 */     B,     B,     B,     B,     O,     O,     O,     O, CMAbv, CMBlw, CMBlw,     O,     O,     O,     O,     H,
   /* 10A40 */     B,     B,     B,     B,     B,     B,     B,     B,
 
-#define use_offset_0x11000u 3552
+#define use_offset_0x11000u 3728
 
 
   /* Brahmi */
@@ -503,7 +520,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 110A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 110B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst,     H, CMBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11100u 3744
+#define use_offset_0x11100u 3920
 
 
   /* Chakma */
@@ -541,7 +558,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VPst,  VBlw,
   /* 11230 */  VAbv,  VAbv,  VAbv,  VAbv, VMAbv,     H, CMAbv, CMAbv,     O,     O,     O,     O,     O,     O, VMAbv,     O,
 
-#define use_offset_0x11280u 4064
+#define use_offset_0x11280u 4240
 
 
   /* Multani */
@@ -569,7 +586,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11360 */     B,     B,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
   /* 11370 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
 
-#define use_offset_0x11400u 4312
+#define use_offset_0x11400u 4488
 
 
   /* Newa */
@@ -592,7 +609,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 114C0 */ VMAbv, VMPst,     H, CMBlw,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 114D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11580u 4536
+#define use_offset_0x11580u 4712
 
 
   /* Siddham */
@@ -635,7 +652,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11720 */  VPst,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VAbv,  VBlw,  VAbv,  VAbv,  VAbv,     O,     O,     O,     O,
   /* 11730 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
 
-#define use_offset_0x11a00u 4984
+#define use_offset_0x11a00u 5160
 
 
   /* Zanabazar Square */
@@ -654,7 +671,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11A80 */     B,     B,     B,     B,     O,     O,     R,     R,     R,     R,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,
   /* 11A90 */  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw, VMAbv, VMPst, CMAbv,     H,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11c00u 5144
+#define use_offset_0x11c00u 5320
 
 
   /* Bhaiksuki */
@@ -675,7 +692,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11CA0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
   /* 11CB0 */  VBlw,  VPre,  VBlw,  VAbv,  VPst, VMAbv, VMAbv,     O,
 
-#define use_offset_0x11d00u 5328
+#define use_offset_0x11d00u 5504
 
 
   /* Masaram Gondi */
@@ -687,7 +704,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11D40 */ VMAbv, VMAbv, CMBlw,  VAbv,  VBlw,     H,     R,  MBlw,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11D50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-}; /* Table items: 5424; occupancy: 73% */
+}; /* Table items: 5600; occupancy: 73% */
 
 USE_TABLE_ELEMENT_TYPE
 hb_use_get_category (hb_codepoint_t u)
@@ -699,6 +716,7 @@ hb_use_get_category (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x00A0u, 0x00D7u)) return use_table[u - 0x00A0u + use_offset_0x00a0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x0348u, 0x034Fu)) return use_table[u - 0x0348u + use_offset_0x0348u];
       if (hb_in_range<hb_codepoint_t> (u, 0x0900u, 0x0DF7u)) return use_table[u - 0x0900u + use_offset_0x0900u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x0F18u, 0x0FC7u)) return use_table[u - 0x0F18u + use_offset_0x0f18u];
       break;
 
     case 0x1u:

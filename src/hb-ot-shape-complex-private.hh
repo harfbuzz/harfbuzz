@@ -59,7 +59,6 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_old) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (tibetan) \
   HB_COMPLEX_SHAPER_IMPLEMENT (use) \
   /* ^--- Add new shapers here */
 
@@ -231,10 +230,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
 
     /* Unicode-2.0 additions */
-    case HB_SCRIPT_TIBETAN:
-
-      return &_hb_ot_complex_shaper_tibetan;
-
+    //case HB_SCRIPT_TIBETAN:
 
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HEBREW:

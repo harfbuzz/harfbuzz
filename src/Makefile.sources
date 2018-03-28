@@ -124,7 +124,6 @@ HB_OT_sources = \
 	hb-ot-shape-complex-myanmar-private.hh \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-thai.cc \
-	hb-ot-shape-complex-tibetan.cc \
 	hb-ot-shape-complex-use.cc \
 	hb-ot-shape-complex-use-private.hh \
 	hb-ot-shape-complex-use-table.cc \
