@@ -363,9 +363,10 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   unsigned int name_table_length = OT::name::min_size +
                                    ARRAY_LENGTH (name_IDs) * OT::NameRecord::static_size +
                                    name_str_len * 2; /* for name data in UTF16BE form */
+  unsigned int padded_name_table_length = ((name_table_length + 3) & ~3);
   unsigned int name_table_offset = (length + 3) & ~3;
 
-  new_length = name_table_offset + ((name_table_length + 3) & ~3);
+  new_length = name_table_offset + padded_name_table_length;
   void *new_sfnt_data = calloc (1, new_length);
   if (!new_sfnt_data)
   {
@@ -410,7 +411,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     if (face.find_table_index (HB_OT_TAG_name, &index))
     {
       OT::TableRecord &record = const_cast<OT::TableRecord &> (face.get_table (index));
-      record.checkSum.set_for_data (&name, new_length);
+      record.checkSum.set_for_data (&name, padded_name_table_length);
       record.offset.set (name_table_offset);
       record.length.set (name_table_length);
     }
