@@ -430,7 +430,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 }
 
 #undef _
-
 #undef ISC_A
 #undef ISC_Bi
 #undef ISC_BJN
@@ -466,7 +465,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_Vo
 #undef ISC_M
 #undef ISC_VI
-
 #undef IMC_B
 #undef IMC_BL
 #undef IMC_BR
