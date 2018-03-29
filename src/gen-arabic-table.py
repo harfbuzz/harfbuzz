@@ -2,14 +2,13 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys
-import os.path
+import io, os.path, sys
 
 if len (sys.argv) != 4:
 	print ("usage: ./gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
 	sys.exit (1)
 
-files = [open (x) for x in sys.argv[1:]]
+files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[files[0].readline (), files[0].readline ()], [files[2].readline (), files[2].readline ()]]
 headers.append (["UnicodeData.txt does not have a header."])
