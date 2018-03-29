@@ -2,7 +2,7 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys
+import io, sys
 
 if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
@@ -10,7 +10,7 @@ if len (sys.argv) != 5:
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
 
-files = [open (x) for x in sys.argv[1:]]
+files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for j,f in enumerate(files) if j != 2]
 headers.append (["UnicodeData.txt does not have a header."])

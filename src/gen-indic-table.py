@@ -2,7 +2,7 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys
+import io, sys
 
 if len (sys.argv) != 4:
 	print ("usage: ./gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt", file=sys.stderr)
@@ -32,7 +32,7 @@ ALLOWED_BLOCKS = [
 	'Myanmar Extended-A',
 ]
 
-files = [open (x) for x in sys.argv[1:]]
+files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 
