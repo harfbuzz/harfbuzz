@@ -514,7 +514,7 @@ class FileHelpers:
 	def open_file_or_stdin (f):
 		if f == '-':
 			return sys.stdin
-		return file (f)
+		return open (f)
 
 
 class Manifest:
@@ -533,7 +533,7 @@ class Manifest:
 		if os.path.isdir (s):
 
 			try:
-				m = file (os.path.join (s, "MANIFEST"))
+				m = open (os.path.join (s, "MANIFEST"))
 				items = [x.strip () for x in m.readlines ()]
 				for f in items:
 					for p in Manifest.read (os.path.join (s, f)):

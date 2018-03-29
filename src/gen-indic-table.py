@@ -32,7 +32,7 @@ ALLOWED_BLOCKS = [
 	'Myanmar Extended-A',
 ]
 
-files = [file (x) for x in sys.argv[1:]]
+files = [open (x) for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 
@@ -133,8 +133,7 @@ what = ["INDIC_SYLLABIC_CATEGORY", "INDIC_MATRA_CATEGORY"]
 what_short = ["ISC", "IMC"]
 for i in range (2):
 	print ()
-	vv = values[i].keys ()
-	vv.sort ()
+	vv = sorted (values[i].keys ())
 	for v in vv:
 		v_no_and = v.replace ('_And_', '_')
 		if v in short[i]:
@@ -180,8 +179,7 @@ def print_block (block, start, end, data):
 	if block:
 		last_block = block
 
-uu = data.keys ()
-uu.sort ()
+uu = sorted (data.keys ())
 
 last = -100000
 num = 0
@@ -228,7 +226,7 @@ print ("hb_indic_get_categories (hb_codepoint_t u)")
 print ("{")
 print ("  switch (u >> %d)" % page_bits)
 print ("  {")
-pages = set([u>>page_bits for u in starts+ends+singles.keys()])
+pages = set ([u>>page_bits for u in starts+ends+list (singles.keys ())])
 for p in sorted(pages):
 	print ("    case 0x%0Xu:" % p)
 	for u,d in singles.items ():
@@ -249,8 +247,7 @@ print ()
 print ("#undef _")
 for i in range (2):
 	print
-	vv = values[i].keys ()
-	vv.sort ()
+	vv = sorted (values[i].keys ())
 	for v in vv:
 		print ("#undef %s_%s" %
 			(what_short[i], short[i][v]))
