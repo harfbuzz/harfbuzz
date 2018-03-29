@@ -10,7 +10,7 @@ if len (sys.argv) != 5:
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
 
-files = [file (x) for x in sys.argv[1:]]
+files = [open (x) for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for j,f in enumerate(files) if j != 2]
 headers.append (["UnicodeData.txt does not have a header."])
@@ -126,6 +126,11 @@ property_names = [
 	'Overstruck',
 ]
 
+try:
+	basestring
+except NameError:
+	basestring = str
+
 class PropertyValue(object):
 	def __init__(self, name_):
 		self.name = name_
@@ -135,6 +140,8 @@ class PropertyValue(object):
 		return self.name == (other if isinstance(other, basestring) else other.name)
 	def __ne__(self, other):
 		return not (self == other)
+	def __hash__(self):
+		return hash(str(self))
 
 property_values = {}
 
@@ -398,8 +405,7 @@ def print_block (block, start, end, data):
 	if block:
 		last_block = block
 
-uu = data.keys ()
-uu.sort ()
+uu = sorted (data.keys ())
 
 last = -100000
 num = 0
