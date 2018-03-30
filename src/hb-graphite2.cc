@@ -79,10 +79,12 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
     p->blob = blob;
     p->tag = tag;
 
-    /* TODO Not thread-safe, but fairly harmless.
-     * We can do the double-checked pointer cmpexch thing here. */
-    p->next = face_data->tlist;
-    face_data->tlist = p;
+retry:
+    hb_graphite2_tablelist_t *tlist = (hb_graphite2_tablelist_t *) hb_atomic_ptr_get (&face_data->tlist);
+    p->next = tlist;
+
+    if (!hb_atomic_ptr_cmpexch (&face_data->tlist, tlist, p))
+      goto retry;
   }
 
   unsigned int tlen;
