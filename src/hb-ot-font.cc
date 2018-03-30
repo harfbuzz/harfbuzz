@@ -217,7 +217,12 @@ static hb_font_funcs_t *static_ot_funcs = nullptr;
 static
 void free_static_ot_funcs (void)
 {
-  hb_font_funcs_destroy (static_ot_funcs);
+retry:
+  hb_font_funcs_t *ot_funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ot_funcs);
+  if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, ot_funcs, nullptr))
+    goto retry;
+
+  hb_font_funcs_destroy (ot_funcs);
 }
 #endif
 

@@ -223,11 +223,19 @@ struct hb_uniscribe_shaper_funcs_t {
 };
 static hb_uniscribe_shaper_funcs_t *uniscribe_funcs;
 
+#ifdef HB_USE_ATEXIT
 static inline void
 free_uniscribe_funcs (void)
 {
+retry:
+  hb_uniscribe_shaper_funcs_t *local_uniscribe_funcs =
+    (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
+  if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, local_uniscribe_funcs, nullptr))
+    goto retry;
+
   free (uniscribe_funcs);
 }
+#endif
 
 static hb_uniscribe_shaper_funcs_t *
 hb_uniscribe_shaper_get_funcs (void)
