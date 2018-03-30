@@ -539,11 +539,11 @@ target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
 if (UNIX OR MINGW)
   # Make symbols link locally
-  include(CheckCXXCompilerFlag)
+  include (CheckCXXCompilerFlag)
   check_cxx_compiler_flag(-Bsymbolic-functions CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
-  if(CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
+  if (CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
     link_libraries(-Bsymbolic-functions)
-  endif()
+  endif ()
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Make sure we don't link to libstdc++

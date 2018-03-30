@@ -539,8 +539,8 @@ Additional shapers (the more the merrier):
 
 Platform shapers (not normally needed):
 	CoreText:		${have_coretext}
-	Uniscribe:		${have_uniscribe}
 	DirectWrite:		${have_directwrite}
+	Uniscribe:		${have_uniscribe}
 
 Other features:
 	Documentation:		${enable_gtk_doc}
