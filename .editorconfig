@@ -14,5 +14,8 @@ tab_width = 8
 [*.{py,sh}]
 indent_style = tab
 
+[{Makefile.am,Makefile.sources,configure.ac}]
+tab_width = 8
+
 [{CMakeLists.txt,*.cmake}]
 indent_size = 2
