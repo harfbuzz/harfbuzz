@@ -37,7 +37,9 @@
 #include "hb-aat-layout-trak-table.hh"
 #include "hb-aat-fmtx-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-gcid-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-aat-lcar-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-ltag-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-aat-zapf-table.hh" // Just so we compile it; unused otherwise.
 
 /*
  * morx/kerx/trak

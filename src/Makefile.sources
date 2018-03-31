@@ -88,7 +88,9 @@ HB_OT_sources = \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-fmtx-table.hh \
 	hb-aat-gcid-table.hh \
+	hb-aat-lcar-table.hh \
 	hb-aat-ltag-table.hh \
+	hb-aat-zapf-table.hh \
 	hb-aat-layout-private.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
