@@ -151,8 +151,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
    *   - <V>: U+1160..11A7, U+D7B0..D7C7
    *   - <T>: U+11A8..11FF, U+D7CB..D7FB
    *
-   *   - Only the <L,V> sequences for the 11xx ranges combine.
-   *   - Only <LV,T> sequences for T in U+11A8..11C3 combine.
+   *   - Only the <L,V> sequences for some of the U+11xx ranges combine.
+   *   - Only <LV,T> sequences for some of the Ts in U+11xx range combine.
    *
    * Here is what we want to accomplish in this shaper:
    *
