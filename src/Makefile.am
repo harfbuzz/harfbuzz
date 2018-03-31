@@ -28,12 +28,6 @@ HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 
-# Make sure we don't link to libstdc++
-# No threadsafe statics in C++ as we do it ourselves
-# We don't use these features, so it's safe to disable them
-# even in the cases where we DO link to libstdc++.
-AM_CXXFLAGS = -fno-exceptions -fno-threadsafe-statics -fno-rtti
-
 if HAVE_OT
 HBSOURCES += $(HB_OT_sources)
 HBSOURCES += $(HB_OT_RAGEL_GENERATED_sources)

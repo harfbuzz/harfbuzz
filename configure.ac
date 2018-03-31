@@ -77,8 +77,7 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
 ])
 
-# Functions, and headers
-
+# Functions and headers
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
 
 save_libs="$LIBS"
@@ -95,6 +94,14 @@ if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
 	AX_CHECK_LINK_FLAG([[-Bsymbolic-functions]], [LDFLAGS="$LDFLAGS -Bsymbolic-functions"])
+
+	# Make it possible to not link to libstdc++
+	# No threadsafe statics in C++ as we do it ourselves.
+	# We don't use these features, so it's safe to disable them
+	# even in the cases where we DO link to libstdc++.
+	# Put -fno-rtti before $CXXFLAGS such that users can re-enable it
+	# by overriding CXXFLAGS.
+	CXXFLAGS="-fno-rtti $CXXFLAGS -fno-exceptions -fno-threadsafe-statics"
 
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
