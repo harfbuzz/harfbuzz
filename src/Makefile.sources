@@ -36,6 +36,7 @@ HB_BASE_sources = \
 	hb-set-digest-private.hh \
 	hb-set-private.hh \
 	hb-set.cc \
+	hb-sanitize.cc \
 	hb-shape.cc \
 	hb-shape-plan-private.hh \
 	hb-shape-plan.cc \
@@ -68,6 +69,7 @@ HB_BASE_headers = \
 	hb-face.h \
 	hb-font.h \
 	hb-set.h \
+	hb-sanitize.h \
 	hb-shape.h \
 	hb-shape-plan.h \
 	hb-unicode.h \

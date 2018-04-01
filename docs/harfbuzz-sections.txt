@@ -542,6 +542,11 @@ hb_set_union
 </SECTION>
 
 <SECTION>
+<FILE>hb-sanitize</FILE>
+hb_sanitize
+</SECTION>
+
+<SECTION>
 <FILE>hb-shape</FILE>
 hb_feature_t
 hb_feature_from_string

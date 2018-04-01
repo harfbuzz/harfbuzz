@@ -50,6 +50,9 @@ hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
 hb_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 bin_PROGRAMS += hb-subset
 
+hb_sanitize_SOURCES = $(HB_SANITIZE_sources)
+bin_PROGRAMS += hb-sanitize
+
 if HAVE_OT
 hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)
 bin_PROGRAMS += hb-ot-shape-closure

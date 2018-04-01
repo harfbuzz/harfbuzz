@@ -19,8 +19,6 @@ API additions
 
 - Add hb-cairo glue
 
-- Add sanitize API (and a cached version, that saves result on blob user-data)
-
 - BCP 47 language handling / API (language_matches?)
 
 - Add hb_font_create_unscaled()?

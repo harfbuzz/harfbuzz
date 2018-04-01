@@ -197,6 +197,8 @@ extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SUBSET_CLI_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_SANITIZE_sources ${UTILSOURCES})
+add_prefix_to_list(HB_SANITIZE_sources "${PROJECT_SOURCE_DIR}/util/")
 
 extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES})
 add_prefix_to_list(LIBHB_UCDN_sources "${PROJECT_SOURCE_DIR}/src/hb-ucdn/")
@@ -744,6 +746,9 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
+
+  add_executable(hb-sanitize ${HB_SANITIZE_sources})
+  target_link_libraries(hb-sanitize harfbuzz)
 
   mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
 endif ()

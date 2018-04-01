@@ -35,3 +35,7 @@ HB_SUBSET_CLI_sources = \
 	options.hh \
 	main-font-text.hh \
 	$(NULL)
+
+HB_SANITIZE_sources = \
+	hb-sanitize.cc \
+	$(NULL)

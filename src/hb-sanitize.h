@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,33 +20,26 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_H
-#define HB_H
-#define HB_H_IN
-
-#ifndef HB_EXTERN
-#define HB_EXTERN extern
+#ifndef HB_H_IN
+#error "Include <hb.h> instead."
 #endif
 
-#include "hb-blob.h"
-#include "hb-buffer.h"
+#ifndef HB_SANITIZE_H
+#define HB_SANITIZE_H
+
 #include "hb-common.h"
-#include "hb-deprecated.h"
 #include "hb-face.h"
-#include "hb-font.h"
-#include "hb-set.h"
-#include "hb-sanitize.h"
-#include "hb-shape.h"
-#include "hb-shape-plan.h"
-#include "hb-unicode.h"
-#include "hb-version.h"
+#include "hb-blob.h"
 
 HB_BEGIN_DECLS
+
+
+HB_EXTERN hb_blob_t *
+hb_sanitize (hb_face_t *face, hb_tag_t tag);
+
+
 HB_END_DECLS
 
-#undef HB_H_IN
-#endif /* HB_H */
+#endif /* HB_SANITIZE_H */
