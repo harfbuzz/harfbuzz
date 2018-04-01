@@ -22,8 +22,8 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_AAT_FEAT_TABLE_HH
-#define HB_AAT_FEAT_TABLE_HH
+#ifndef HB_AAT_LAYOUT_FEAT_TABLE_HH
+#define HB_AAT_LAYOUT_FEAT_TABLE_HH
 
 #include "hb-aat-layout-common-private.hh"
 
@@ -32,13 +32,28 @@
 
 namespace AAT {
 
-struct FeatureName {
+struct SettingName
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
 
+  protected:
+  HBUINT16	setting;	/* The setting. */
+  NameID	nameIndex;	/* The name table index for the setting's name. */
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
+struct FeatureName
+{
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      (base+settingTable).sanitize (c, nSettings, base));
+		  (base+settingTable).sanitize (c, nSettings));
   }
 
   enum {
@@ -55,28 +70,11 @@ struct FeatureName {
 				 * as the default. */
   };
 
-  struct SettingName
-  {
-    inline bool sanitize (hb_sanitize_context_t *c, const void *base HB_UNUSED) const
-    {
-      TRACE_SANITIZE (this);
-      return_trace (c->check_struct (this) &&
-	nameIndex > 255 && nameIndex < 32768);
-    }
-
-    protected:
-    HBUINT16	setting;	/* The setting. */
-    NameID	nameIndex;	/* The name table index for the setting's name.
-				 * The nameIndex must be greater than 255 and less than 32768. */
-    public:
-    DEFINE_SIZE_STATIC (4);
-  };
-
   protected:
   HBUINT16	feature;	/* Feature type. */
   HBUINT16	nSettings;	/* The number of records in the setting name array. */
   LOffsetTo<UnsizedArrayOf<SettingName> >
-	settingTable;		/* Offset in bytes from the beginning of this table to
+		settingTable;	/* Offset in bytes from the beginning of this table to
 				 * this feature's setting name array. The actual type of
 				 * record this offset refers to will depend on the
 				 * exclusivity value, as described below. */
@@ -90,7 +88,7 @@ struct FeatureName {
 
 /*
  * feat -- Feature name
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6fmtx.html
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6feat.html
  */
 
 struct feat
@@ -101,7 +99,7 @@ struct feat
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      names.sanitize (c, featureNameCount, this));
+		  names.sanitize (c, featureNameCount, this));
   }
 
   protected:
@@ -119,4 +117,4 @@ struct feat
 
 } /* namespace AAT */
 
-#endif /* HB_AAT_FEAT_TABLE_HH */
+#endif /* HB_AAT_LAYOUT_FEAT_TABLE_HH */
