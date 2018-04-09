@@ -170,6 +170,7 @@ void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsi
 void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem, unsigned int num_glyphs)
 {
   // Dump every glyph available on the font
+  return; // disabled for now
   for (int i = 0; i < num_glyphs; ++i)
   {
     cairo_text_extents_t extents;
