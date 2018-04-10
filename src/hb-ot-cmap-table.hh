@@ -127,6 +127,13 @@ struct CmapSubtableFormat4
       return true;
     }
 
+    static inline void get_all_codepoints_func (const void *obj, hb_set_t *out)
+    {
+      const accelerator_t *thiz = (const accelerator_t *) obj;
+      for (unsigned int i = 0; i < thiz->segCount - 1; i++) // Skip the last segment (0xFFFF)
+	hb_set_add_range (out, thiz->startCount[i], thiz->endCount[i]);
+    }
+
     const HBUINT16 *endCount;
     const HBUINT16 *startCount;
     const HBUINT16 *idDelta;
@@ -667,20 +674,30 @@ struct cmap
 
       this->get_glyph_data = subtable;
       if (unlikely (symbol))
+      {
 	this->get_glyph_func = get_glyph_from_symbol<OT::CmapSubtable>;
-      else
+	this->get_all_codepoints_func = null_get_all_codepoints_func;
+      } else {
 	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
-	default: this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;		break;
-	case 12: this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;	break;
+	default:
+	  this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;
+	  this->get_all_codepoints_func = null_get_all_codepoints_func;
+	  break;
+	case 12:
+	  this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;
+	  this->get_all_codepoints_func = null_get_all_codepoints_func;
+	  break;
 	case  4:
 	  {
 	    this->format4_accel.init (&subtable->u.format4);
 	    this->get_glyph_data = &this->format4_accel;
 	    this->get_glyph_func = this->format4_accel.get_glyph_func;
+	    this->get_all_codepoints_func = this->format4_accel.get_all_codepoints_func;
 	  }
 	  break;
 	}
+      }
     }
 
     inline void fini (void)
@@ -710,10 +727,22 @@ struct cmap
       return get_nominal_glyph (unicode, glyph);
     }
 
+    inline void get_all_codepoints (hb_set_t *out) const
+    {
+      this->get_all_codepoints_func (get_glyph_data, out);
+    }
+
     protected:
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					      hb_codepoint_t codepoint,
 					      hb_codepoint_t *glyph);
+    typedef void (*hb_cmap_get_all_codepoints_func_t) (const void *obj,
+						       hb_set_t *out);
+
+    static inline void null_get_all_codepoints_func (const void *obj, hb_set_t *out)
+    {
+      // NOOP
+    }
 
     template <typename Type>
     static inline bool get_glyph_from (const void *obj,
@@ -749,6 +778,8 @@ struct cmap
     private:
     hb_cmap_get_glyph_func_t get_glyph_func;
     const void *get_glyph_data;
+    hb_cmap_get_all_codepoints_func_t get_all_codepoints_func;
+
     OT::CmapSubtableFormat4::accelerator_t format4_accel;
 
     const OT::CmapSubtableFormat14 *uvs_table;
