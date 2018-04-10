@@ -72,11 +72,14 @@ HB_EXTERN hb_bool_t *
 hb_subset_input_drop_hints (hb_subset_input_t *subset_input);
 
 /* hb_subset() */
-
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source,
 	   hb_subset_profile_t *profile,
            hb_subset_input_t *input);
+
+/* hb_subset_get_all_codepoints */
+HB_EXTERN void
+hb_subset_get_all_codepoints (hb_face_t *source, hb_set_t *out);
 
 HB_END_DECLS
 

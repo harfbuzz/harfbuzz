@@ -371,3 +371,17 @@ hb_subset (hb_face_t *source,
   hb_subset_plan_destroy (plan);
   return result;
 }
+
+/**
+ * hb_subset_get_all_codepoints:
+ * @source: font face data to load.
+ * @out: set to add the all codepoints covered by font face, source.
+ */
+void
+hb_subset_get_all_codepoints (hb_face_t *source, hb_set_t *out)
+{
+  OT::cmap::accelerator_t cmap;
+  cmap.init (source);
+  cmap.get_all_codepoints (out);
+  cmap.fini();
+}
