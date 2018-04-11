@@ -64,11 +64,12 @@ struct ankr
   }
 
   protected:
-  HBUINT16			version; 	/* Version number (set to zero) */
-  HBUINT16			flags;		/* Flags (currently unused; set to zero) */
-  LOffsetTo<Lookup<HBUINT16> >	lookupTable;	/* Offset to the table's lookup table */
-  LOffsetTo<ArrayOf<Anchor, HBUINT32> >
-				anchors;	/* Offset to the glyph data table */
+  HBUINT16	version; 	/* Version number (set to zero) */
+  HBUINT16	flags;		/* Flags (currently unused; set to zero) */
+  LOffsetTo<Lookup<HBUINT16> >
+		lookupTable;	/* Offset to the table's lookup table */
+  LOffsetTo<LArrayOf<Anchor> >
+		anchors;	/* Offset to the glyph data table */
 
   public:
   DEFINE_SIZE_STATIC (12);

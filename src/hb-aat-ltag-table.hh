@@ -37,14 +37,14 @@ struct FTStringRange
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && tag (base).sanitize (c, length));
+    return_trace (c->check_struct (this) && (base+tag).sanitize (c, length));
   }
 
   protected:
   OffsetTo<UnsizedArrayOf<HBUINT8> >
-		tag;	/* Offset from the start of the table to
-			 * the beginning of the string */
-  HBUINT16	length;	/* String length (in bytes) */
+		tag;		/* Offset from the start of the table to
+				 * the beginning of the string */
+  HBUINT16	length;		/* String length (in bytes) */
   public:
   DEFINE_SIZE_STATIC (4);
 };

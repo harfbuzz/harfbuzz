@@ -122,12 +122,12 @@ struct TrackData
   }
 
   protected:
-  HBUINT16		nTracks;	/* Number of separate tracks included in this table. */
-  HBUINT16		nSizes;		/* Number of point sizes included in this table. */
-  LOffsetTo<UnsizedArrayOf<Fixed> >	/* Offset to array[nSizes] of size values. */
-			sizeTable;
+  HBUINT16	nTracks;	/* Number of separate tracks included in this table. */
+  HBUINT16	nSizes;		/* Number of point sizes included in this table. */
+  LOffsetTo<UnsizedArrayOf<Fixed> >
+		sizeTable;	/* Offset to array[nSizes] of size values. */
   UnsizedArrayOf<TrackTableEntry>
-			trackTable;	/* Array[nTracks] of TrackTableEntry records. */
+		trackTable;	/* Array[nTracks] of TrackTableEntry records. */
 
   public:
   DEFINE_SIZE_ARRAY (8, trackTable);

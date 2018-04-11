@@ -462,11 +462,11 @@ struct LigatureSubtable
 
   protected:
   StateTable<EntryData>	machine;
-  OffsetTo<UnsizedArrayOf<HBUINT32>, HBUINT32>
+  LOffsetTo<UnsizedArrayOf<HBUINT32> >
 		ligAction;	/* Offset to the ligature action table. */
-  OffsetTo<UnsizedArrayOf<HBUINT16>, HBUINT32>
+  LOffsetTo<UnsizedArrayOf<HBUINT16> >
 		component;	/* Offset to the component table. */
-  OffsetTo<UnsizedArrayOf<GlyphID>, HBUINT32>
+  LOffsetTo<UnsizedArrayOf<GlyphID> >
 		ligature;	/* Offset to the actual ligature lists. */
   public:
   DEFINE_SIZE_STATIC (28);
