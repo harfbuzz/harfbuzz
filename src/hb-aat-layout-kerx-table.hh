@@ -71,21 +71,22 @@ struct KerxSubTableFormat0
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      c->check_array (records, records[0].static_size, nPairs));
+		  recordsZ.sanitize (c, nPairs));
   }
 
   protected:
   // TODO(ebraminio): A custom version of "BinSearchArrayOf<KerxPair> pairs;" is
   // needed here to use HBUINT32 instead
-  HBUINT32 nPairs;	/* The number of kerning pairs in this subtable */
-  HBUINT32 searchRange; /* The largest power of two less than or equal to the value of nPairs,
-                         * multiplied by the size in bytes of an entry in the subtable. */
-  HBUINT32 entrySelector; /* This is calculated as log2 of the largest power of two less
-                           * than or equal to the value of nPairs. */
-  HBUINT32 rangeShift;	/* The value of nPairs minus the largest power of two less than or equal to nPairs. */
-  KerxFormat0Records records[VAR]; /* VAR=nPairs */
+  HBUINT32	nPairs;		/* The number of kerning pairs in this subtable */
+  HBUINT32	searchRange;	/* The largest power of two less than or equal to the value of nPairs,
+				 * multiplied by the size in bytes of an entry in the subtable. */
+  HBUINT32	entrySelector;	/* This is calculated as log2 of the largest power of two less
+				 * than or equal to the value of nPairs. */
+  HBUINT32	rangeShift;	/* The value of nPairs minus the largest power of two less than or equal to nPairs. */
+  UnsizedArrayOf<KerxFormat0Records>
+		recordsZ;	/* VAR=nPairs */
   public:
-  DEFINE_SIZE_ARRAY (16, records);
+  DEFINE_SIZE_ARRAY (16, recordsZ);
 };
 
 struct KerxSubTableFormat1
@@ -94,7 +95,7 @@ struct KerxSubTableFormat1
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      stateHeader.sanitize (c));
+		  stateHeader.sanitize (c));
   }
 
   protected:
@@ -196,10 +197,10 @@ struct KerxSubTableFormat6
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      rowIndexTable.sanitize (c, this) &&
-      columnIndexTable.sanitize (c, this) &&
-      kerningArray.sanitize (c, this) &&
-      kerningVector.sanitize (c, this));
+		  rowIndexTable.sanitize (c, this) &&
+		  columnIndexTable.sanitize (c, this) &&
+		  kerningArray.sanitize (c, this) &&
+		  kerningVector.sanitize (c, this));
   }
 
   protected:

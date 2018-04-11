@@ -511,11 +511,11 @@ struct StateTable
   protected:
   HBUINT32	nClasses;	/* Number of classes, which is the number of indices
 				 * in a single line in the state array. */
-  OffsetTo<Lookup<HBUINT16>, HBUINT32>
+  LOffsetTo<Lookup<HBUINT16> >
 		classTable;	/* Offset to the class table. */
-  OffsetTo<UnsizedArrayOf<HBUINT16>, HBUINT32>
+  LOffsetTo<UnsizedArrayOf<HBUINT16> >
 		stateArrayTable;/* Offset to the state array. */
-  OffsetTo<UnsizedArrayOf<Entry<Extra> >, HBUINT32>
+  LOffsetTo<UnsizedArrayOf<Entry<Extra> > >
 		entryTable;	/* Offset to the entry array. */
 
   public:

@@ -52,10 +52,10 @@ struct gcid
   HBUINT16	format;		/* Data format (set to 0) */
   HBUINT32	size;		/* Size of the table, including header */
   HBUINT16	registry;	/* The registry ID */
-  uint8_t	registryName[64];
+  HBUINT8	registryName[64];
 				/* The registry name in ASCII */
   HBUINT16	order;		/* The order ID */
-  uint8_t	orderName[64];	/* The order name in ASCII */
+  HBUINT8	orderName[64];	/* The order name in ASCII */
   HBUINT16	supplementVersion;
 				/* The supplement version */
   ArrayOf<HBUINT16>
