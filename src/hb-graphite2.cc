@@ -383,11 +383,11 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
       pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
       if (info->cluster != currclus) {
-        pPos->x_advance = info->var1.i32 * xscale;
-        curradvx += pPos->x_advance;
-        currclus = info->cluster;
+	pPos->x_advance = info->var1.i32 * xscale;
+	curradvx += pPos->x_advance;
+	currclus = info->cluster;
       } else
-        pPos->x_advance = 0.;
+	pPos->x_advance = 0.;
 
       pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
       curradvy += pPos->y_advance;
@@ -400,11 +400,11 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     {
       if (info->cluster != currclus)
       {
-        pPos->x_advance = info->var1.i32 * xscale;
-        curradvx -= pPos->x_advance;
-        currclus = info->cluster;
+	pPos->x_advance = info->var1.i32 * xscale;
+	curradvx -= pPos->x_advance;
+	currclus = info->cluster;
       } else
-        pPos->x_advance = 0.;
+	pPos->x_advance = 0.;
 
       pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
       curradvy -= pPos->y_advance;
