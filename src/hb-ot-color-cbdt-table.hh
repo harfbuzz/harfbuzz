@@ -301,23 +301,23 @@ struct BitmapSizeTable
 
 struct GlyphBitmapDataFormat17
 {
-  SmallGlyphMetrics		glyphMetrics;
-  ArrayOf<HBUINT8, HBUINT32>	data;
+  SmallGlyphMetrics	glyphMetrics;
+  LArrayOf<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY(9, data);
 };
 
 struct GlyphBitmapDataFormat18
 {
-  BigGlyphMetrics		glyphMetrics;
-  ArrayOf<HBUINT8, HBUINT32>	data;
+  BigGlyphMetrics	glyphMetrics;
+  LArrayOf<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY(12, data);
 };
 
 struct GlyphBitmapDataFormat19
 {
-  ArrayOf<HBUINT8, HBUINT32>	data;
+  LArrayOf<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY(4, data);
 };
