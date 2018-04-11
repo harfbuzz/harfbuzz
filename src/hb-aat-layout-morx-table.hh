@@ -302,9 +302,10 @@ struct ContextualSubtable
   }
 
   protected:
-  StateTable<EntryData>	machine;
-  OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, HBUINT32>
-			substitutionTables;
+  StateTable<EntryData>
+		machine;
+  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> >
+		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
 };
@@ -461,7 +462,8 @@ struct LigatureSubtable
   }
 
   protected:
-  StateTable<EntryData>	machine;
+  StateTable<EntryData>
+		machine;
   LOffsetTo<UnsizedArrayOf<HBUINT32> >
 		ligAction;	/* Offset to the ligature action table. */
   LOffsetTo<UnsizedArrayOf<HBUINT16> >

@@ -234,7 +234,7 @@ struct TTCHeaderVersion1
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
   FixedVersion<>version;	/* Version of the TTC Header (1.0),
 				 * 0x00010000u */
-  ArrayOf<LOffsetTo<OffsetTable>, HBUINT32>
+  LArrayOf<LOffsetTo<OffsetTable> >
 		table;		/* Array of offsets to the OffsetTable for each font
 				 * from the beginning of the file */
   public:

@@ -284,8 +284,8 @@ struct CmapSubtableLongSegmented
   protected:
   HBUINT16	format;		/* Subtable format; set to 12. */
   HBUINT16	reservedZ;	/* Reserved; set to 0. */
-  HBUINT32		lengthZ;	/* Byte length of this subtable. */
-  HBUINT32		languageZ;	/* Ignore. */
+  HBUINT32	lengthZ;	/* Byte length of this subtable. */
+  HBUINT32	languageZ;	/* Ignore. */
   SortedArrayOf<CmapSubtableLongGroup, HBUINT32>
 		groups;		/* Groupings. */
   public:

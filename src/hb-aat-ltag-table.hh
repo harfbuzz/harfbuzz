@@ -67,7 +67,7 @@ struct ltag
   protected:
   HBUINT32	version;	/* Table version; currently 1 */
   HBUINT32	flags;		/* Table flags; currently none defined */
-  ArrayOf<FTStringRange, HBUINT32>
+  LArrayOf<FTStringRange>
 		tagRanges;	/* Range for each tag's string */
   public:
   DEFINE_SIZE_ARRAY (12, tagRanges);
