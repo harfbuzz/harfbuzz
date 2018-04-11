@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright © 2015-2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
@@ -304,8 +304,8 @@ public:
 
     inline bool ContainsTextPosition (uint32_t aTextPosition) const
     {
-      return aTextPosition >= mTextStart
-        && aTextPosition <  mTextStart + mTextLength;
+      return aTextPosition >= mTextStart &&
+	     aTextPosition <  mTextStart + mTextLength;
     }
 
     Run *nextRun;
@@ -485,11 +485,10 @@ protected:
     for (Run *run = &mRunHead; run; run = run->nextRun)
       if (run->ContainsTextPosition (textPosition))
       {
-        mCurrentRun = run;
-        return;
+	mCurrentRun = run;
+	return;
       }
-    //NS_NOTREACHED ("We should always be able to find the text position in one \
-            //                of our runs");
+    // NS_NOTREACHED ("We should always be able to find the text position in one of our runs");
   }
 
   void SplitCurrentRun (uint32_t splitPosition)
@@ -655,7 +654,7 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < num_features; ++i)
     {
       typographic_features.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
-        hb_uint32_swap (features[i].tag);
+	hb_uint32_swap (features[i].tag);
       typographic_features.features[i].parameter = features[i].value;
     }
   }
@@ -760,27 +759,27 @@ retry_getglyphs:
       uint16_t* modifiedGlyphIndices = new uint16_t[maxGlyphCount];
       float* modifiedGlyphAdvances = new float[maxGlyphCount];
       DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets =
-        new DWRITE_GLYPH_OFFSET[maxGlyphCount];
+	new DWRITE_GLYPH_OFFSET[maxGlyphCount];
       uint32_t actualGlyphsCount;
       hr = analyzer1->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
-        textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
-        glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
-        glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
-        modifiedGlyphAdvances, modifiedGlyphOffsets);
+	textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
+	glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
+	glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
+	modifiedGlyphAdvances, modifiedGlyphOffsets);
 
       if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
       {
-        maxGlyphCount = actualGlyphsCount;
-        delete [] modifiedGlyphIndices;
-        delete [] modifiedGlyphAdvances;
-        delete [] modifiedGlyphOffsets;
+	maxGlyphCount = actualGlyphsCount;
+	delete [] modifiedGlyphIndices;
+	delete [] modifiedGlyphAdvances;
+	delete [] modifiedGlyphOffsets;
 
-        maxGlyphCount = actualGlyphsCount;
+	maxGlyphCount = actualGlyphsCount;
 
-        goto retry_getjustifiedglyphs;
+	goto retry_getjustifiedglyphs;
       }
       if (FAILED (hr))
-        FAIL ("Analyzer failed to get justified glyphs.");
+	FAIL ("Analyzer failed to get justified glyphs.");
 
       delete [] clusterMap;
       delete [] glyphIndices;
