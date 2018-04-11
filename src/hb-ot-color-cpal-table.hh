@@ -144,13 +144,13 @@ struct CPAL
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) && // it checks colorRecordIndices also, see #get_size
-          (this+colorRecordsZ).sanitize (c, numColorRecords)))
+	  (this+colorRecordsZ).sanitize (c, numColorRecords)))
       return_trace (false);
 
     // Check for indices sanity so no need for doing it runtime
     for (unsigned int i = 0; i < numPalettes; ++i)
       if (colorRecordIndicesZ[i] + numPaletteEntries > numColorRecords)
-        return_trace (false);
+	return_trace (false);
 
     // If version is zero, we are done here; otherwise we need to check tail also
     if (version == 0)

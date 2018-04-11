@@ -909,7 +909,6 @@ struct UnsizedArrayOf
     return_trace (true);
   }
 
-  private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
