@@ -226,11 +226,9 @@ static int errno = 0; /* Use something better? */
  * mingw32 headers say atexit is safe to use in shared libraries.
  */
 #    define HB_USE_ATEXIT 1
-#  elif defined(__ANDROID__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-/* This was fixed in Android NKD r8 or r8b:
- * https://code.google.com/p/android/issues/detail?id=6455
- * which introduced GCC 4.6:
- * https://developer.android.com/tools/sdk/ndk/index.html
+#  elif defined(__ANDROID__)
+/* This is available since Android NKD r8 or r8b:
+ * https://issuetracker.google.com/code/p/android/issues/detail?id=6455
  */
 #    define HB_USE_ATEXIT 1
 #  elif defined(__APPLE__)
