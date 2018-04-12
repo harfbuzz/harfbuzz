@@ -1016,6 +1016,24 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
   OT::GPOS::position_finish_offsets (font, buffer);
 }
 
+static const OT::FeatureParams&
+_get_gsubgpos_matched_feature_params (hb_face_t *face, hb_tag_t feature)
+{
+  const OT::GSUB &gsub = _get_gsub (face);
+  unsigned int gsub_num_features = gsub.get_feature_count ();
+  for (unsigned int i = 0; i < gsub_num_features; i++)
+    if (feature == gsub.get_feature_tag (i))
+      return gsub.get_feature (i).get_feature_params ();
+
+  const OT::GPOS &gpos = _get_gpos (face);
+  unsigned int gpos_num_features = gpos.get_feature_count ();
+  for (unsigned int i = 0; i < gpos_num_features; i++)
+    if (feature == gpos.get_feature_tag (i))
+      return gpos.get_feature (i).get_feature_params ();
+
+  return Null (OT::FeatureParams);
+}
+
 /**
  * hb_ot_layout_get_size_params:
  *
@@ -1064,6 +1082,120 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 #undef PARAM
 
   return false;
+}
+
+/**
+ * hb_ot_layout_get_feature_name_ids:
+ * @face: #hb_face_t to work upon
+ * @feature: ssXX and cvXX tag
+ * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *            for a user-interface label for this feature. (May be NULL.)
+ * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *              that an application can use for tooltip text for this
+ *              feature. (May be NULL.)
+ * @sample_id: (out) (allow-none): The ‘name’ table name ID that specifies sample text
+ *             that illustrates the effect of this feature. (May be NULL.)
+ * @num_named_parameters: (out) (allow-none):  Number of named parameters. (May be zero.)
+ * @first_param_id: (out) (allow-none): The first ‘name’ table name ID used to specify
+ *                  strings for user-interface labels for the feature
+ *                  parameters. (Must be zero if numParameters is zero.)
+ *
+ * Return value: true if could find any feature with the tag, false otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_ot_layout_get_feature_name_ids (hb_face_t      *face, /* IN */
+				   hb_tag_t        feature, /* IN */
+				   unsigned int   *label_id, /* OUT */
+				   unsigned int   *tooltip_id, /* OUT */
+				   unsigned int   *sample_id, /* OUT */
+				   unsigned int   *num_named_parameters, /* OUT */
+				   unsigned int   *first_param_id /* OUT */)
+{
+  const OT::FeatureParams &feature_params =
+    _get_gsubgpos_matched_feature_params (face, feature);
+  if (&feature_params != &Null (OT::FeatureParams))
+  {
+    const OT::FeatureParamsStylisticSet& ss_params =
+      feature_params.get_stylistic_set_params (feature);
+    if (&ss_params != &Null (OT::FeatureParamsStylisticSet)) /* ssXX */
+    {
+#define PARAM(a, A) if (a) *a = A
+      PARAM(label_id, ss_params.uiNameID);
+      // ssXX features don't have the rest
+      PARAM(tooltip_id, HB_NO_NAME_ID);
+      PARAM(sample_id, HB_NO_NAME_ID);
+      PARAM(num_named_parameters, 0);
+      PARAM(first_param_id, HB_NO_NAME_ID);
+      return true;
+    }
+    const OT::FeatureParamsCharacterVariants& cv_params =
+      feature_params.get_character_variants_params (feature);
+    if (&cv_params != &Null (OT::FeatureParamsCharacterVariants)) /* cvXX */
+    {
+      PARAM(label_id, cv_params.featUILableNameID);
+      PARAM(tooltip_id, cv_params.featUITooltipTextNameID);
+      PARAM(sample_id, cv_params.sampleTextNameID);
+      PARAM(num_named_parameters, cv_params.numNamedParameters);
+      PARAM(first_param_id, cv_params.firstParamUILabelNameID);
+      return true;
+    }
+  }
+
+  PARAM(label_id, HB_NO_NAME_ID);
+  PARAM(tooltip_id, HB_NO_NAME_ID);
+  PARAM(sample_id, HB_NO_NAME_ID);
+  PARAM(num_named_parameters, 0);
+  PARAM(first_param_id, HB_NO_NAME_ID);
+#undef PARAM
+  return false;
+}
+
+/**
+ * hb_ot_layout_get_feature_characters:
+ * @feature: cvXX tag
+ * @start_offset: In case the resulting char_count was equal to its input value, there
+ *                is a chance there were more characters on the tag so this API can be
+ *                called with an offset till resulting char_count gets to a number
+ *                lower than input buffer (or consider using just a bigger buffer for
+ *                one shot copying).
+ * @char_count: (in/out) (allow-none): The count of characters for which this feature
+ *              provides glyph variants. (May be zero.)
+ * @characters: (out) (allow-none): A buffer pointer. The Unicode Scalar Value
+ *              of the characters for which this feature provides glyph variants.
+ *
+ * Return value: Number of total sample characters in the cvXX feature.
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_ot_layout_get_feature_characters (hb_face_t      *face, /* IN */
+				     hb_tag_t        feature, /* IN */
+				     unsigned int    start_offset, /* IN */
+				     unsigned int   *char_count, /* IN/OUT */
+				     hb_codepoint_t *characters /* OUT */)
+{
+  const OT::FeatureParamsCharacterVariants& cv_params =
+    _get_gsubgpos_matched_feature_params (face, feature)
+      .get_character_variants_params (feature);
+  if (&cv_params != &Null (OT::FeatureParamsCharacterVariants))
+  {
+    unsigned int len = 0;
+    if (char_count && characters && start_offset < cv_params.characters.len)
+    {
+      len = MIN (cv_params.characters.len - start_offset, *char_count);
+      for (unsigned int i = 0; i < len; ++i)
+        characters[i] = cv_params.characters[start_offset + i];
+    }
+#define PARAM(a, A) if (a) *a = A
+    PARAM(char_count, len);
+    return cv_params.characters.len;
+  }
+  PARAM(char_count, 0);
+  PARAM(characters, 0);
+#undef PARAM
+  return 0;
 }
 
 
