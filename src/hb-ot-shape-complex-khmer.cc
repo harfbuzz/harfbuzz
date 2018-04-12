@@ -275,7 +275,7 @@ compare_khmer_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
 
 /* Rules from:
- * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
+ * https://docs.microsoft.com/en-us/typography/script-development/devanagari */
 
 static void
 initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,

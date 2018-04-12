@@ -260,7 +260,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 {
   /* This function implements the shaping logic documented here:
    *
-   *   http://linux.thai.net/~thep/th-otf/shaping.html
+   *   https://linux.thai.net/~thep/th-otf/shaping.html
    *
    * The first shaping rule listed there is needed even if the font has Thai
    * OpenType tables.  The rest do fallback positioning based on PUA codepoints.

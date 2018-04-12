@@ -1005,7 +1005,7 @@ resize_and_retry:
     /* For right-to-left runs, CoreText returns the glyphs positioned such that
      * any trailing whitespace is to the left of (0,0).  Adjust coordinate system
      * to fix for that.  Test with any RTL string with trailing spaces.
-     * https://code.google.com/p/chromium/issues/detail?id=469028
+     * https://crbug.com/469028
      */
     if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
     {
@@ -1058,7 +1058,7 @@ resize_and_retry:
 	 * However, even that wouldn't work if we were passed in the CGFont to
 	 * construct a hb_face to begin with.
 	 *
-	 * See: http://github.com/harfbuzz/harfbuzz/pull/36
+	 * See: https://github.com/harfbuzz/harfbuzz/pull/36
 	 *
 	 * Also see: https://bugs.chromium.org/p/chromium/issues/detail?id=597098
 	 */
@@ -1248,7 +1248,7 @@ resize_and_retry:
      * directions.  As such, disable the assert...  It wouldn't crash, but
      * cursoring will be off...
      *
-     * http://crbug.com/419769
+     * https://crbug.com/419769
      */
     if (0)
     {

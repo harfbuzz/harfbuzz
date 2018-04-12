@@ -221,8 +221,8 @@ static int errno = 0; /* Use something better? */
 #    endif
 #  elif defined(_MSC_VER) || defined(__MINGW32__)
 /* For MSVC:
- * http://msdn.microsoft.com/en-ca/library/tze57ck3.aspx
- * http://msdn.microsoft.com/en-ca/library/zk17ww08.aspx
+ * https://msdn.microsoft.com/en-us/library/tze57ck3.aspx
+ * https://msdn.microsoft.com/en-us/library/zk17ww08.aspx
  * mingw32 headers say atexit is safe to use in shared libraries.
  */
 #    define HB_USE_ATEXIT 1

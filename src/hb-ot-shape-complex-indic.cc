@@ -435,7 +435,7 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
 
 
 /* Rules from:
- * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
+ * https://docs.microsqoft.com/en-us/typography/script-development/devanagari */
 
 static void
 initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
@@ -1512,7 +1512,7 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
      * The Uniscribe behavior is now documented in the newly published Sinhala
      * spec in 2012:
      *
-     *   http://www.microsoft.com/typography/OpenTypeDev/sinhala/intro.htm#shaping
+     *   https://docs.microsoft.com/en-us/typography/script-development/sinhala#shaping
      */
 
     const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;

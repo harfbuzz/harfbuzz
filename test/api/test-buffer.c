@@ -445,7 +445,7 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
   { "\xe2\x89\xa0\xe2\x89\xa0",  5, 3, FALSE },
   { "\xe2\x89\xa0\xe2\x89\xa0",  6, 6, TRUE },
 
-  /* examples from http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt */
+  /* examples from https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt */
   /* greek 'kosme' */
   { "\xce\xba\xe1\xbd\xb9\xcf\x83\xce\xbc\xce\xb5", -1, 11, TRUE },
   /* first sequence of each length */

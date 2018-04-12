@@ -177,7 +177,7 @@ hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
       /* For symbol-encoded OpenType fonts, we duplicate the
        * U+F000..F0FF range at U+0000..U+00FF.  That's what
        * Windows seems to do, and that's hinted about at:
-       * http://www.microsoft.com/typography/otspec/recom.htm
+       * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
        * under "Non-Standard (Symbol) Fonts". */
       g = FT_Get_Char_Index (ft_font->ft_face, 0xF000u + unicode);
       if (!g)

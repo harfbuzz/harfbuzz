@@ -412,7 +412,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
     case HB_TAG('Q','a','a','i'): return HB_SCRIPT_INHERITED;
     case HB_TAG('Q','a','a','c'): return HB_SCRIPT_COPTIC;
 
-    /* Script variants from http://unicode.org/iso15924/ */
+    /* Script variants from https://unicode.org/iso15924/ */
     case HB_TAG('C','y','r','s'): return HB_SCRIPT_CYRILLIC;
     case HB_TAG('L','a','t','f'): return HB_SCRIPT_LATIN;
     case HB_TAG('L','a','t','g'): return HB_SCRIPT_LATIN;
@@ -480,7 +480,7 @@ hb_script_to_iso15924_tag (hb_script_t script)
 hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script)
 {
-  /* http://goo.gl/x9ilM */
+  /* https://docs.google.com/spreadsheets/d/1Y90M0Ie3MUJ6UVCRDOypOtijlMDLNNyyLk36T6iMu0o */
   switch ((hb_tag_t) script)
   {
     /* Unicode-1.1 additions */
