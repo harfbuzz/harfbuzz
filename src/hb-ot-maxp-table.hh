@@ -34,7 +34,8 @@ namespace OT {
 
 
 /*
- * maxp -- The Maximum Profile Table
+ * maxp -- Maximum Profile
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/maxp
  */
 
 #define HB_OT_TAG_maxp HB_TAG('m','a','x','p')

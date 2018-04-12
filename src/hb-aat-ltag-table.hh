@@ -27,10 +27,15 @@
 
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * ltag -- Language Tag
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6ltag.html
+ */
 #define HB_AAT_TAG_ltag HB_TAG('l','t','a','g')
 
 
 namespace AAT {
+
 
 struct FTStringRange
 {
@@ -48,11 +53,6 @@ struct FTStringRange
   public:
   DEFINE_SIZE_STATIC (4);
 };
-
-/*
- * ltag -- Language tags
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6ltag.html
- */
 
 struct ltag
 {

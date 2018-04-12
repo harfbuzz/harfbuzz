@@ -79,11 +79,11 @@ typedef enum { /*< flags >*/
 
 
 /*
- * Color Palette
- * http://www.microsoft.com/typography/otspec/cpal.htm
+ * CPAL -- Color Palette
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/cpal
  */
-
 #define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
+
 
 namespace OT {
 

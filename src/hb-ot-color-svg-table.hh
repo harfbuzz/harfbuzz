@@ -28,11 +28,12 @@
 #include "hb-open-type-private.hh"
 
 /*
- * The SVG (Scalable Vector Graphics) table
+ * SVG -- SVG (Scalable Vector Graphics)
  * https://docs.microsoft.com/en-us/typography/opentype/spec/svg
  */
 
 #define HB_OT_TAG_SVG HB_TAG('S','V','G',' ')
+
 
 namespace OT {
 

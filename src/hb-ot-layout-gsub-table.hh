@@ -1287,7 +1287,8 @@ struct SubstLookup : Lookup
 typedef OffsetListOf<SubstLookup> SubstLookupList;
 
 /*
- * GSUB -- The Glyph Substitution Table
+ * GSUB -- Glyph Substitution
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
  */
 
 struct GSUB : GSUBGPOS

@@ -27,15 +27,15 @@
 
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * ankr -- Anchor Point
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6ankr.html
+ */
 #define HB_AAT_TAG_ankr HB_TAG('a','n','k','r')
 
 
 namespace AAT {
 
-
-/*
- * ankr -- Anchor point
- */
 
 struct Anchor
 {

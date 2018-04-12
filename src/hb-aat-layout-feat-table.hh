@@ -27,10 +27,15 @@
 
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * feat -- Feature Name
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6feat.html
+ */
 #define HB_AAT_TAG_feat HB_TAG('f','e','a','t')
 
 
 namespace AAT {
+
 
 struct SettingName
 {
@@ -85,11 +90,6 @@ struct FeatureName
   public:
   DEFINE_SIZE_STATIC (12);
 };
-
-/*
- * feat -- Feature name
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6feat.html
- */
 
 struct feat
 {

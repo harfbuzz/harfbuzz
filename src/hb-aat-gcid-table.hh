@@ -27,15 +27,15 @@
 
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * gcid -- Glyphs CIDs
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6gcid.html
+ */
 #define HB_AAT_TAG_gcid HB_TAG('g','c','i','d')
 
 
 namespace AAT {
 
-/*
- * gcid -- Glyphs CIDs
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6gcid.html
- */
 
 struct gcid
 {

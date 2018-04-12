@@ -28,11 +28,11 @@
 #include "hb-open-type-private.hh"
 
 /*
- * Color Palette
- * http://www.microsoft.com/typography/otspec/colr.htm
+ * COLR -- Color
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/colr
  */
-
 #define HB_OT_TAG_COLR HB_TAG('C','O','L','R')
+
 
 namespace OT {
 

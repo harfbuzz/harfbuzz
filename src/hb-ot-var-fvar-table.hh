@@ -29,6 +29,14 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * fvar -- Font Variations
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/fvar
+ */
+
+#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
+
+
 namespace OT {
 
 
@@ -74,13 +82,6 @@ struct AxisRecord
   public:
   DEFINE_SIZE_STATIC (20);
 };
-
-
-/*
- * fvar — Font Variations Table
- */
-
-#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
 
 struct fvar
 {
