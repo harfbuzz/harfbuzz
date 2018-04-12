@@ -35,7 +35,7 @@
 
 /*
  * Universal Shaping Engine.
- * https://www.microsoft.com/typography/OpenTypeDev/USE/intro.htm
+ * https://docs.microsoft.com/en-us/typography/script-development/use
  */
 
 static const hb_tag_t

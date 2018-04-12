@@ -31,7 +31,7 @@
 /* Unit tests for hb-ot-tag.h */
 
 
-/* https://www.microsoft.com/typography/otspec/scripttags.htm */
+/* https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags */
 
 static void
 test_simple_tags (const char *s, hb_script_t script)
@@ -112,7 +112,7 @@ test_ot_tag_script_simple (void)
   /* Unicode-5.1 additions */
   test_simple_tags ("vai ", HB_SCRIPT_VAI);
 
-  /* https://www.microsoft.com/typography/otspec160/scripttagsProposed.htm */
+  /* https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags */
 
   /* Unicode-5.2 additions */
   test_simple_tags ("mtei", HB_SCRIPT_MEETEI_MAYEK);
@@ -137,7 +137,7 @@ test_ot_tag_script_indic (void)
 
 
 
-/* https://www.microsoft.com/typography/otspec/languagetags.htm */
+/* https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags */
 
 static void
 test_language_two_way (const char *tag_s, const char *lang_s)

@@ -309,7 +309,7 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
        * processing on. */
 
       /* Only Mn and Mc can have non-zero ccc:
-       * http://www.unicode.org/policies/stability_policy.html#Property_Value
+       * https://unicode.org/policies/stability_policy.html#Property_Value
        * """
        * Canonical_Combining_Class, General_Category
        * All characters other than those with General_Category property values

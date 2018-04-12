@@ -30,14 +30,14 @@
 #include "hb-open-type-private.hh"
 #include "hb-subset-plan.hh"
 
-namespace OT {
-
-
 /*
- * cmap -- Character To Glyph Index Mapping Table
+ * cmap -- Character to Glyph Index Mapping
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/cmap
  */
-
 #define HB_OT_TAG_cmap HB_TAG('c','m','a','p')
+
+
+namespace OT {
 
 
 struct CmapSubtableFormat0
@@ -738,7 +738,7 @@ struct cmap
 	/* For symbol-encoded OpenType fonts, we duplicate the
 	 * U+F000..F0FF range at U+0000..U+00FF.  That's what
 	 * Windows seems to do, and that's hinted about at:
-	 * http://www.microsoft.com/typography/otspec/recom.htm
+	 * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
 	 * under "Non-Standard (Symbol) Fonts". */
 	return typed_obj->get_glyph (0xF000u + codepoint, glyph);
       }

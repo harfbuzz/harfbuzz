@@ -142,8 +142,8 @@ hb_language_get_default (void);
 
 /* hb_script_t */
 
-/* http://unicode.org/iso15924/ */
-/* http://goo.gl/x9ilM */
+/* https://unicode.org/iso15924/ */
+/* https://docs.google.com/spreadsheets/d/1Y90M0Ie3MUJ6UVCRDOypOtijlMDLNNyyLk36T6iMu0o */
 /* Unicode Character Database property: Script (sc) */
 typedef enum
 {
@@ -323,7 +323,7 @@ typedef enum
    * since technically enums are int, and indeed, hb_script_t ends up being signed.
    * See this thread for technicalities:
    *
-   *   http://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
+   *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
   _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/

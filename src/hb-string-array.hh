@@ -42,7 +42,7 @@ static const union HB_STRING_ARRAY_TYPE_NAME {
   struct {
 /* I like to avoid storing the nul-termination byte since we don't need it,
  * but C++ does not allow that.
- * https://stackoverflow.com/questions/28433862/why-initializer-string-for-array-of-chars-is-too-long-compiles-fine-in-c-not
+ * https://stackoverflow.com/q/28433862
  */
 #define _S(s) char HB_PASTE (str, __LINE__)[sizeof (s)];
 #include HB_STRING_ARRAY_LIST
