@@ -27,7 +27,13 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * sbix -- Standard Bitmap Graphics
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/sbix
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6sbix.html
+ */
 #define HB_OT_TAG_sbix HB_TAG('s','b','i','x')
+
 
 namespace OT {
 
@@ -75,11 +81,6 @@ struct SBIXStrike
   public:
   DEFINE_SIZE_STATIC (8);
 };
-
-/*
- * sbix -- Standard Bitmap Graphics Table
- * https://docs.microsoft.com/en-us/typography/opentype/spec/sbix
- */
 
 struct sbix
 {

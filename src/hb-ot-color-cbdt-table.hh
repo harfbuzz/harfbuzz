@@ -29,6 +29,18 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * CBLC -- Color Bitmap Location
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/cblc
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/eblc
+ * CBDT -- Color Bitmap Data
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/cbdt
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/ebdt
+ */
+#define HB_OT_TAG_CBLC HB_TAG('C','B','L','C')
+#define HB_OT_TAG_CBDT HB_TAG('C','B','D','T')
+
+
 namespace OT {
 
 struct SmallGlyphMetrics
@@ -322,13 +334,6 @@ struct GlyphBitmapDataFormat19
   DEFINE_SIZE_ARRAY(4, data);
 };
 
-
-/*
- * CBLC -- Color Bitmap Location Table
- */
-
-#define HB_OT_TAG_CBLC HB_TAG('C','B','L','C')
-
 struct CBLC
 {
   friend struct CBDT;
@@ -371,11 +376,6 @@ struct CBLC
   public:
   DEFINE_SIZE_ARRAY(8, sizeTables);
 };
-
-/*
- * CBDT -- Color Bitmap Data Table
- */
-#define HB_OT_TAG_CBDT HB_TAG('C','B','D','T')
 
 struct CBDT
 {

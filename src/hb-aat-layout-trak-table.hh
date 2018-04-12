@@ -31,6 +31,10 @@
 #include "hb-aat-layout-common-private.hh"
 #include "hb-open-type-private.hh"
 
+/*
+ * trak -- Tracking
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6trak.html
+ */
 #define HB_AAT_TAG_trak HB_TAG('t','r','a','k')
 
 

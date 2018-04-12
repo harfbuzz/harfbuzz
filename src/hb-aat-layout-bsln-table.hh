@@ -27,10 +27,15 @@
 
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * bsln -- Baseline
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6bsln.html
+ */
 #define HB_AAT_TAG_bsln HB_TAG('b','s','l','n')
 
 
 namespace AAT {
+
 
 struct BaselineTableFormat0Part
 {
@@ -107,11 +112,6 @@ struct BaselineTableFormat3Part
   public:
   DEFINE_SIZE_MIN (68);
 };
-
-/*
- * bsln -- Baseline table
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6bsln.html
- */
 
 struct bsln
 {

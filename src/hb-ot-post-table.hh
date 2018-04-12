@@ -38,14 +38,14 @@
 
 #define NUM_FORMAT1_NAMES 258
 
-namespace OT {
-
-
 /*
  * post -- PostScript
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/post
  */
-
 #define HB_OT_TAG_post HB_TAG('p','o','s','t')
+
+
+namespace OT {
 
 
 struct postV2Tail

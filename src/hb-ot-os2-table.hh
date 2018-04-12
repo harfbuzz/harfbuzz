@@ -34,9 +34,8 @@ namespace OT {
 
 /*
  * OS/2 and Windows Metrics
- * http://www.microsoft.com/typography/otspec/os2.htm
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/os2
  */
-
 #define HB_OT_TAG_os2 HB_TAG('O','S','/','2')
 
 struct os2

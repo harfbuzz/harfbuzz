@@ -29,6 +29,14 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * avar -- Axis Variations
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/avar
+ */
+
+#define HB_OT_TAG_avar HB_TAG('a','v','a','r')
+
+
 namespace OT {
 
 
@@ -87,12 +95,6 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
 
   DEFINE_SIZE_ARRAY (2, array);
 };
-
-/*
- * avar — Axis Variations Table
- */
-
-#define HB_OT_TAG_avar HB_TAG('a','v','a','r')
 
 struct avar
 {

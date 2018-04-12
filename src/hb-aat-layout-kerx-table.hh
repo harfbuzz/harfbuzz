@@ -31,6 +31,10 @@
 #include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
 
+/*
+ * kerx -- Extended Kerning
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kerx.html
+ */
 #define HB_AAT_TAG_kerx HB_TAG('k','e','r','x')
 
 

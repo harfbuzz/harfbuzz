@@ -1497,7 +1497,8 @@ struct PosLookup : Lookup
 typedef OffsetListOf<PosLookup> PosLookupList;
 
 /*
- * GPOS -- The Glyph Positioning Table
+ * GPOS -- Glyph Positioning
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/gpos
  */
 
 struct GPOS : GSUBGPOS

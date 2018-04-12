@@ -29,14 +29,16 @@
 
 #include "hb-open-type-private.hh"
 
-namespace OT {
-
-
 /*
  * kern -- Kerning
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/kern
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
  */
-
 #define HB_OT_TAG_kern HB_TAG('k','e','r','n')
+
+
+namespace OT {
+
 
 struct hb_glyph_pair_t
 {
