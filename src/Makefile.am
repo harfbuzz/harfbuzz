@@ -389,6 +389,17 @@ dump_emoji_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAI
 endif # HAVE_CAIRO_FT
 endif # HAVE_FREETYPE
 
+if HAVE_FREETYPE
+if HAVE_CAIRO_FT
+if HAVE_ICU
+check_PROGRAMS += dump-text
+dump_text_SOURCES = dump-text.cc
+dump_text_CPPFLAGS =
+dump_text_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS) $(ICU_LIBS)
+endif
+endif
+endif
+
 check_PROGRAMS += test-ot-tag test-unicode-ranges
 TESTS += test-ot-tag test-unicode-ranges
 
