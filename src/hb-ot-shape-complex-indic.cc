@@ -1470,6 +1470,9 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
   {
     /* Don't decompose these. */
     case 0x0931u  : return false; /* DEVANAGARI LETTER RRA */
+    // https://github.com/harfbuzz/harfbuzz/issues/779
+    case 0x09DCu  : return false; /* BENGALI LETTER RRA */
+    case 0x09DDu  : return false; /* BENGALI LETTER RHA */
     case 0x0B94u  : return false; /* TAMIL LETTER AU */
 
 
