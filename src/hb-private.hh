@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
 #include <intrin.h>
 #endif
 
@@ -381,7 +381,7 @@ _hb_bit_storage (T v)
     return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
 #endif
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
   if (sizeof (T) <= sizeof (unsigned int))
   {
     unsigned long where;
@@ -454,7 +454,7 @@ _hb_ctz (T v)
     return __builtin_ctzll (v);
 #endif
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
   if (sizeof (T) <= sizeof (unsigned int))
   {
     unsigned long where;
