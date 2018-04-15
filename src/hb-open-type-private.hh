@@ -683,15 +683,17 @@ typedef HBUINT16 UFWORD;
 /* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
 struct F2DOT14 : HBINT16
 {
-  //inline float to_float (void) const { return ???; }
-  //inline void set_float (float f) { v.set (f * ???); }
+  // 16384 means 1<<14
+  inline float to_float (void) const { return ((int32_t) v) / 16384.0; }
+  inline void set_float (float f) { v.set (f * 16384.0); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
 
 /* 32-bit signed fixed-point number (16.16). */
-struct Fixed: HBINT32
+struct Fixed : HBINT32
 {
+  // 65536 means 1<<16
   inline float to_float (void) const { return ((int32_t) v) / 65536.0; }
   inline void set_float (float f) { v.set (round (f * 65536.0)); }
   public:
