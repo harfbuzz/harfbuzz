@@ -672,7 +672,7 @@ typedef IntType<uint16_t, 2> HBUINT16;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t,  2> HBINT16;	/* 16-bit signed integer. */
 typedef IntType<uint32_t, 4> HBUINT32;	/* 32-bit unsigned integer. */
 typedef IntType<int32_t,  4> HBINT32;	/* 32-bit signed integer. */
-typedef IntType<uint32_t, 3> UINT24;	/* 24-bit unsigned integer. */
+typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
 
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;

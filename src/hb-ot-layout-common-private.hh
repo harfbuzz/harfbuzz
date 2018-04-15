@@ -449,7 +449,7 @@ struct FeatureParamsCharacterVariants
 					 * user-interface labels for the
 					 * feature parameters. (Must be zero
 					 * if numParameters is zero.) */
-  ArrayOf<UINT24>
+  ArrayOf<HBUINT24>
 		characters;		/* Array of the Unicode Scalar Value
 					 * of the characters for which this
 					 * feature provides glyph variants.

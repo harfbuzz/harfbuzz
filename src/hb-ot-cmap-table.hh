@@ -328,7 +328,7 @@ struct UnicodeValueRange
     return_trace (c->check_struct (this));
   }
 
-  UINT24	startUnicodeValue;	/* First value in this range. */
+  HBUINT24	startUnicodeValue;	/* First value in this range. */
   HBUINT8		additionalCount;	/* Number of additional values in this
 					 * range. */
   public:
@@ -350,7 +350,7 @@ struct UVSMapping
     return_trace (c->check_struct (this));
   }
 
-  UINT24	unicodeValue;	/* Base Unicode value of the UVS */
+  HBUINT24	unicodeValue;	/* Base Unicode value of the UVS */
   GlyphID	glyphID;	/* Glyph ID of the UVS */
   public:
   DEFINE_SIZE_STATIC (5);
@@ -392,7 +392,7 @@ struct VariationSelectorRecord
 		  nonDefaultUVS.sanitize (c, base));
   }
 
-  UINT24	varSelector;	/* Variation selector. */
+  HBUINT24	varSelector;	/* Variation selector. */
   LOffsetTo<DefaultUVS>
 		defaultUVS;	/* Offset to Default UVS Table. May be 0. */
   LOffsetTo<NonDefaultUVS>
