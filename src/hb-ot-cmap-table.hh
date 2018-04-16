@@ -130,8 +130,12 @@ struct CmapSubtableFormat4
     static inline void get_all_codepoints_func (const void *obj, hb_set_t *out)
     {
       const accelerator_t *thiz = (const accelerator_t *) obj;
-      for (unsigned int i = 0; i < thiz->segCount - 1; i++) // Skip the last segment (0xFFFF)
-	hb_set_add_range (out, thiz->startCount[i], thiz->endCount[i]);
+      for (unsigned int i = 0; i < thiz->segCount; i++)
+      {
+	if (thiz->startCount[i] != 0xFFFFu
+	    || thiz->endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
+	  hb_set_add_range (out, thiz->startCount[i], thiz->endCount[i]);
+      }
     }
 
     const HBUINT16 *endCount;
