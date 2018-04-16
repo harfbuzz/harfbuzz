@@ -128,15 +128,10 @@ typedef LEIntType<uint32_t, 3> LEUINT24;	/* 24-bit unsigned integer. */
 
 struct LE_FONTINFO16
 {
-  inline bool sanitize (OT::hb_sanitize_context_t *c) const
+  inline bool sanitize (OT::hb_sanitize_context_t *c, unsigned int length) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  inline unsigned int get_charset () const
-  {
-    return dfCharSet;
+    return_trace (likely (c->check_struct (this) && c->check_range (this, length)));
   }
 
   // https://msdn.microsoft.com/en-us/library/cc194829.aspx
@@ -161,6 +156,102 @@ struct LE_FONTINFO16
     OEM		= 0xFF	//
   };
 
+  inline const char* get_charset() const
+  {
+    switch (dfCharSet) {
+    case ANSI: return "ISO8859";
+    case DEFAULT: return "WinDefault";
+    case SYMBOL: return "Symbol";
+    case SHIFTJIS: return "JISX0208.1983";
+    case HANGUL: return "MSHangul";
+    case GB2312: return "GB2312.1980";
+    case CHINESEBIG5: return "Big5";
+    case GREEK: return "CP1253";
+    case TURKISH: return "CP1254";
+    case HEBREW: return "CP1255";
+    case ARABIC: return "CP1256";
+    case BALTIC: return "CP1257";
+    case RUSSIAN: return "CP1251";
+    case THAI: return "CP874";
+    case EE: return "CP1250";
+    case OEM: return "OEM";
+    default: return "Unknown";
+    }
+  }
+
+  inline unsigned int get_version () const
+  {
+    return dfVersion;
+  }
+
+  inline unsigned int get_weight () const
+  {
+    return dfWeight;
+  }
+
+  enum weight_t {
+    DONTCARE	= 0,
+    THIN	= 100,
+    EXTRALIGHT	= 200,
+    ULTRALIGHT	= 200,
+    LIGHT	= 300,
+    NORMAL	= 400,
+    REGULAR	= 400,
+    MEDIUM	= 500,
+    SEMIBOLD	= 600,
+    DEMIBOLD	= 600,
+    BOLD	= 700,
+    EXTRABOLD	= 800,
+    ULTRABOLD	= 800,
+    HEAVY	= 900,
+    BLACK	= 900
+  };
+
+  inline void dump () const
+  {
+    // With https://github.com/juanitogan/mkwinfont/blob/master/python/dewinfont.py help
+    // Should be implemented differently eventually, but for now
+    unsigned int ctstart;
+    unsigned int ctsize;
+    if (dfVersion == 0x200)
+    {
+      ctstart = 0x76;
+      ctsize = 4;
+    }
+    else
+    {
+      return; // must of ".fon"s are version 2 and even dewinfont V1 implmentation doesn't seem correct
+      ctstart = 0x94;
+      ctsize = 6;
+    }
+    // unsigned int maxwidth = 0;
+    for (unsigned int i = dfFirstChar; i < dfLastChar; ++i)
+    {
+      unsigned int entry = ctstart + ctsize * (i-dfFirstChar);
+      unsigned int w = (uint16_t) OT::StructAtOffset<LEUINT16> (this, entry);
+
+      unsigned int off;
+      if (ctsize == 4)
+        off = (uint16_t) OT::StructAtOffset<LEUINT16> (this, entry+2);
+      else
+        off = (uint32_t) OT::StructAtOffset<LEUINT32> (this, entry+2);
+
+      unsigned int widthbytes = (w + 7) / 8;
+      for (unsigned int j = 0; j < dfPixHeight; ++j)
+      {
+        for (unsigned int k = 0; k < widthbytes; ++k)
+	{
+	  unsigned int bytepos = off + k * dfPixHeight + j;
+	  const uint8_t b = (uint8_t) OT::StructAtOffset<LEINT8> (this, bytepos);
+	  for (unsigned int a = 128; a > 0; a >>= 1)
+	    printf (b & a ? "x" : ".");
+	}
+	printf ("\n");
+      }
+      printf ("\n\n");
+    }
+  }
+
   protected:
   LEUINT16	dfVersion;
   LEUINT32	dfSize;
@@ -175,7 +266,7 @@ struct LE_FONTINFO16
   LEUINT8	dfItalic;
   LEUINT8	dfUnderline;
   LEUINT8	dfStrikeOut;
-  LEUINT16	dfWeight;
+  LEUINT16	dfWeight; // see weight_t
   LEUINT8	dfCharSet;  // see charset_t
   LEUINT16	dfPixWidth;
   LEUINT16	dfPixHeight;
@@ -192,14 +283,16 @@ struct LE_FONTINFO16
   LEUINT32	dfBitsPointer;
   LEUINT32	dfBitsOffset;
   LEUINT8	dfReserved;
-  LEUINT32	dfFlags;
-  LEUINT16	dfAspace;
-  LEUINT16	dfBspace;
-  LEUINT16	dfCspace;
-  LEUINT32	dfColorPointer;
-  LEUINT32	dfReserved1[4];
+//   LEUINT32	dfFlags;
+//   LEUINT16	dfAspace;
+//   LEUINT16	dfBspace;
+//   LEUINT16	dfCspace;
+//   LEUINT32	dfColorPointer;
+//   LEUINT32	dfReserved1[4];
+  OT::UnsizedArrayOf<LEUINT8>
+		dataZ;
   public:
-  DEFINE_SIZE_STATIC (148);
+  DEFINE_SIZE_ARRAY (118, dataZ);
 };
 
 struct NE_NAMEINFO
@@ -210,14 +303,12 @@ struct NE_NAMEINFO
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
-			  c->check_range ((const char*)base + (offset << shift),
-					  length << shift) &&
-			  get_font (base, shift)->sanitize (c)));
+			  get_font (base, shift).sanitize (c, length << shift)));
   }
 
-  inline const LE_FONTINFO16* get_font (const void *base, int shift) const
+  inline const LE_FONTINFO16& get_font (const void *base, int shift) const
   {
-    return (const LE_FONTINFO16 *) ((const char *) base + (offset << shift));
+    return OT::StructAtOffset<LE_FONTINFO16> (base, offset << shift);
   }
 
   enum resource_type_flag_t {
@@ -257,11 +348,11 @@ struct NE_TYPEINFO
     return next;
   }
 
-  inline const LE_FONTINFO16* get_font (unsigned int idx, const void *base, int shift) const
+  inline const LE_FONTINFO16& get_font (unsigned int idx, const void *base, int shift) const
   {
     if (idx < count)
       return resources[idx].get_font (base, shift);
-    return &OT::Null (LE_FONTINFO16);
+    return OT::Null (LE_FONTINFO16);
   }
 
   inline unsigned int get_count () const
@@ -324,22 +415,22 @@ struct NE_RESOURCE_TABLE
     return alignmentShiftCount;
   }
 
-  inline const NE_TYPEINFO* get_fonts_entry () const
+  inline const NE_TYPEINFO& get_fonts_entry () const
   {
     const NE_TYPEINFO* n = &chain;
     while (n != &OT::Null (NE_TYPEINFO) && n->get_type_id () != 0)
     {
       if (n->get_type_id () == NE_TYPEINFO::FONT)
-	return n;
+	return *n;
       n = &n->next();
     }
-    return &OT::Null (NE_TYPEINFO);
+    return OT::Null (NE_TYPEINFO);
   }
 
   protected:
   LEUINT16	alignmentShiftCount;
   NE_TYPEINFO	chain;
-  // It follows by an array of OT::ArrayOf<LEUINT8, LEUINT8> chars;
+  // It is followed by an array of OT::ArrayOf<LEUINT8, LEUINT8> chars;
   public:
   DEFINE_SIZE_MIN (2);
 };
@@ -465,11 +556,13 @@ int main (int argc, char** argv) {
 
   const NE_RESOURCE_TABLE &rtable = dos_header->get_os2_header ().get_resource_table ();
   int shift = rtable.get_shift_value ();
-  const NE_TYPEINFO* entry = rtable.get_fonts_entry ();
-  for (int i = 0; i < entry->get_count (); ++i)
+  const NE_TYPEINFO& entry = rtable.get_fonts_entry ();
+  for (unsigned int i = 0; i < entry.get_count (); ++i)
   {
-    const LE_FONTINFO16* font = entry->get_font (i, dos_header, shift);
-    printf ("charset: %d\n", font->get_charset ());
+    const LE_FONTINFO16& font = entry.get_font (i, dos_header, shift);
+    printf ("version: %x, weight: %d, charset: %s\n", font.get_version (),
+	    font.get_weight (), font.get_charset ());
+    // font.dump ();
   }
   return 0;
 }
