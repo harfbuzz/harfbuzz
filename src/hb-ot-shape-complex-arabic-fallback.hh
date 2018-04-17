@@ -29,8 +29,10 @@
 
 #include "hb-private.hh"
 
+#include "hb-ot-shape-complex-arabic-win1256.hh"
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-os2-table.hh"
 
 
 /* Features ordered the same as the entries in shaping_table rows,
@@ -207,14 +209,6 @@ struct arabic_fallback_plan_t
 
 static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
 
-#if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_WIN1256)
-#define HB_WITH_WIN1256
-#endif
-
-#ifdef HB_WITH_WIN1256
-#include "hb-ot-shape-complex-arabic-win1256.hh"
-#endif
-
 struct ManifestLookup {
   OT::Tag tag;
   OT::OffsetTo<OT::SubstLookup> lookupOffset;
@@ -226,14 +220,12 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan,
 				   const hb_ot_shape_plan_t *plan,
 				   hb_font_t *font)
 {
-#ifdef HB_WITH_WIN1256
   /* Does this font look like it's Windows-1256-encoded? */
-  hb_codepoint_t g;
-  if (!(hb_font_get_glyph (font, 0x0627u, 0, &g) && g == 199 /* ALEF */ &&
-	hb_font_get_glyph (font, 0x0644u, 0, &g) && g == 225 /* LAM */ &&
-	hb_font_get_glyph (font, 0x0649u, 0, &g) && g == 236 /* ALEF MAKSURA */ &&
-	hb_font_get_glyph (font, 0x064Au, 0, &g) && g == 237 /* YEH */ &&
-	hb_font_get_glyph (font, 0x0652u, 0, &g) && g == 250 /* SUKUN */))
+  hb_blob_t *os2_blob = OT::Sanitizer<OT::os2> ().sanitize (font->face->reference_table (OT::os2::tableTag));
+	const OT::os2 *os2_table = OT::Sanitizer<OT::os2>::lock_instance (os2_blob);
+  OT::os2::font_page_t font_page = os2_table->get_font_page ();
+  hb_blob_destroy (os2_blob);
+  if (likely (font_page != OT::os2::TRAD_ARABIC_FONT_PAGE))
     return false;
 
   const Manifest &manifest = reinterpret_cast<const Manifest&> (arabic_win1256_gsub_lookups.manifest);
@@ -261,9 +253,6 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan,
   fallback_plan->free_lookups = false;
 
   return j > 0;
-#else
-  return false;
-#endif
 }
 
 static bool
