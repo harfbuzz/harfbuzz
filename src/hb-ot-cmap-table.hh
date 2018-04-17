@@ -204,6 +204,8 @@ struct CmapSubtableLongGroup
 {
   friend struct CmapSubtableFormat12;
   friend struct CmapSubtableFormat13;
+  template<typename U>
+  friend struct CmapSubtableLongSegmented;
   friend struct cmap;
 
   int cmp (hb_codepoint_t codepoint) const
@@ -274,6 +276,15 @@ struct CmapSubtableLongSegmented
       return false;
     *glyph = T::group_get_glyph (groups[i], codepoint);
     return true;
+  }
+
+  inline void get_all_codepoints (hb_set_t *out) const
+  {
+    for (unsigned int i = 0; i < this->groups.len; i++) {
+      hb_set_add_range (out,
+			this->groups[i].startCharCode,
+			this->groups[i].endCharCode);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -690,7 +701,7 @@ struct cmap
 	  break;
 	case 12:
 	  this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;
-	  this->get_all_codepoints_func = null_get_all_codepoints_func;
+	  this->get_all_codepoints_func = get_all_codepoints_from<OT::CmapSubtableFormat12>;
 	  break;
 	case  4:
 	  {
@@ -755,6 +766,14 @@ struct cmap
     {
       const Type *typed_obj = (const Type *) obj;
       return typed_obj->get_glyph (codepoint, glyph);
+    }
+
+    template <typename Type>
+    static inline void get_all_codepoints_from (const void *obj,
+						hb_set_t *out)
+    {
+      const Type *typed_obj = (const Type *) obj;
+      typed_obj->get_all_codepoints (out);
     }
 
     template <typename Type>

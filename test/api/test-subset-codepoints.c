@@ -48,12 +48,56 @@ test_get_all_codepoints_format4 (void)
   hb_face_destroy (face);
 }
 
+static void
+test_get_all_codepoints_format12 (void)
+{
+  hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.format12.ttf");
+  hb_set_t *codepoints = hb_set_create();
+
+  hb_subset_get_all_codepoints (face, codepoints);
+
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x61, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x62, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x63, ==, cp);
+  g_assert (!hb_set_next (codepoints, &cp));
+
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
+test_get_all_codepoints (void)
+{
+  hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
+  hb_set_t *codepoints = hb_set_create();
+
+  hb_subset_get_all_codepoints (face, codepoints);
+
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x61, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x62, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x63, ==, cp);
+  g_assert (!hb_set_next (codepoints, &cp));
+
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+  hb_test_add (test_get_all_codepoints);
   hb_test_add (test_get_all_codepoints_format4);
+  hb_test_add (test_get_all_codepoints_format12);
 
   return hb_test_run();
 }
