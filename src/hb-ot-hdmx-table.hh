@@ -28,6 +28,7 @@
 #define HB_OT_HDMX_TABLE_HH
 
 #include "hb-open-type-private.hh"
+#include "hb-subset-plan.hh"
 
 /*
  * hdmx -- Horizontal Device Metrics

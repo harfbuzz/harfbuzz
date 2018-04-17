@@ -29,6 +29,7 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-aat-layout-common-private.hh"
+#include "hb-ot-layout-common-private.hh"
 
 /*
  * morx -- Extended Glyph Metamorphosis
