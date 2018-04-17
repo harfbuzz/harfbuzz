@@ -29,6 +29,7 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
+#include "hb-subset-plan.hh"
 
 namespace OT {
 
