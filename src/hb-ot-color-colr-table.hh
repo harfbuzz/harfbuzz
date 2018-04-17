@@ -110,13 +110,20 @@ struct COLR
     return true;
   }
 
-  inline void get_layer_record (unsigned int record,
+  inline bool get_layer_record (unsigned int record,
 				hb_codepoint_t *glyph_id /* OUT */,
 				unsigned int *palette_index /* OUT */) const
   {
+    if (unlikely (record >= numLayers))
+    {
+      *glyph_id = 0;
+      *palette_index = 0xFFFF;
+      return false;
+    }
     const LayerRecord &layer = (this+layersZ)[record];
     *glyph_id = layer.glyphid;
     *palette_index = layer.colorIdx;
+    return true;
   }
 
   protected:
