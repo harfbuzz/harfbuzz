@@ -685,7 +685,7 @@ struct F2DOT14 : HBINT16
 {
   // 16384 means 1<<14
   inline float to_float (void) const { return ((int32_t) v) / 16384.0; }
-  inline void set_float (float f) { v.set (f * 16384.0); }
+  inline void set_float (float f) { v.set (round (f * 16384.0)); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
