@@ -44,12 +44,17 @@ namespace AAT {
 
 struct TrackTableEntry
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base, unsigned int size) const
+  friend struct TrackData;
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base,
+			unsigned int size) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && (values.sanitize (c, base, size)));
+    return_trace (likely (c->check_struct (this) &&
+			  (valuesZ.sanitize (c, base, size))));
   }
 
+  private:
   inline float get_track_value () const
   {
     return track.to_float ();
@@ -57,14 +62,14 @@ struct TrackTableEntry
 
   inline int get_value (const void *base, unsigned int index) const
   {
-    return (base+values)[index];
+    return (base+valuesZ)[index];
   }
 
   protected:
   Fixed		track;		/* Track value for this record. */
   NameID	trackNameID;	/* The 'name' table index for this track */
   OffsetTo<UnsizedArrayOf<FWORD> >
-		values;		/* Offset from start of tracking table to
+		valuesZ;	/* Offset from start of tracking table to
 				 * per-size tracking values for this track. */
 
   public:
@@ -146,9 +151,9 @@ struct trak
   {
     TRACE_SANITIZE (this);
 
-    return_trace (c->check_struct (this) &&
-		  horizData.sanitize (c, this, this) &&
-		  vertData.sanitize (c, this, this));
+    return_trace (unlikely (c->check_struct (this) &&
+			    horizData.sanitize (c, this, this) &&
+			    vertData.sanitize (c, this, this)));
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -156,7 +161,7 @@ struct trak
     TRACE_APPLY (this);
 
     const float ptem = c->font->ptem;
-    if (ptem <= 0.f)
+    if (unlikely (ptem <= 0.f))
       return_trace (false);
 
     hb_buffer_t *buffer = c->buffer;

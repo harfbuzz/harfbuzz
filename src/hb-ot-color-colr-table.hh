@@ -61,7 +61,7 @@ struct BaseGlyphRecord
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (likely (c->check_struct (this)));
   }
 
   inline int cmp (hb_codepoint_t g) const {
@@ -90,9 +90,9 @@ struct COLR
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
-		  (this+layersZ).sanitize (c, numLayers));
+    return_trace (likely (c->check_struct (this) &&
+			  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
+			  (this+layersZ).sanitize (c, numLayers)));
   }
 
   inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
@@ -102,7 +102,7 @@ struct COLR
     const BaseGlyphRecord* record;
     record = (BaseGlyphRecord *) bsearch (&glyph_id, &(this+baseGlyphsZ), numBaseGlyphs,
 					  sizeof (BaseGlyphRecord), compare_bgr);
-    if (!record)
+    if (unlikely (!record))
       return false;
 
     *first_layer = record->firstLayerIdx;
