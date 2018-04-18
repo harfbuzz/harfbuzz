@@ -71,7 +71,7 @@ struct SVGDocumentIndex
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      entries.sanitize (c, this));
+		  entries.sanitize (c, this));
   }
 
   protected:
@@ -88,8 +88,8 @@ struct SVG
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  (this+svgDocIndex).sanitize (c));
+    return_trace (likely (c->check_struct (this) &&
+			  (this+svgDocIndex).sanitize (c)));
   }
 
   struct accelerator_t

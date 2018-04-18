@@ -147,7 +147,7 @@ struct KerxSubTableFormat2
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      rowWidth.sanitize (c) &&
+		  rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
@@ -174,7 +174,7 @@ struct KerxSubTableFormat4
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-      rowWidth.sanitize (c) &&
+		  rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
@@ -241,7 +241,7 @@ struct KerxTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!c->check_struct (this))
+    if (unlikely (!c->check_struct (this)))
       return_trace (false);
 
     switch (format) {
@@ -301,18 +301,18 @@ struct kerx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this)))
+    if (unlikely (!(c->check_struct (this))))
      return_trace (false);
 
     /* TODO: Something like `morx`s ChainSubtable should be done here instead */
     const KerxTable *table = &StructAfter<KerxTable> (*this);
-    if (!(table->sanitize (c)))
+    if (unlikely (!(table->sanitize (c))))
       return_trace (false);
 
     for (unsigned int i = 0; i < nTables - 1; ++i)
     {
       table = &StructAfter<KerxTable> (*table);
-      if (!(table->sanitize (c)))
+      if (unlikely (!(table->sanitize (c))))
         return_trace (false);
     }
 

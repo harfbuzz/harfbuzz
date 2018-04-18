@@ -42,7 +42,7 @@ struct BaselineTableFormat0Part
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (likely (c->check_struct (this)));
   }
 
   protected:
@@ -60,7 +60,8 @@ struct BaselineTableFormat1Part
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && lookupTable.sanitize (c));
+    return_trace (likely (c->check_struct (this) &&
+			  lookupTable.sanitize (c)));
   }
 
   protected:
@@ -77,7 +78,7 @@ struct BaselineTableFormat2Part
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (likely (c->check_struct (this)));
   }
 
   protected:
@@ -120,7 +121,7 @@ struct bsln
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this) && defaultBaseline < 32))
+    if (unlikely (!(c->check_struct (this) && defaultBaseline < 32)))
       return_trace (false);
 
     switch (format) {

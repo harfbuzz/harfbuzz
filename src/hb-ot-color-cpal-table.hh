@@ -143,13 +143,14 @@ struct CPAL
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this) && // it checks colorRecordIndices also, see #get_size
-	  (this+colorRecordsZ).sanitize (c, numColorRecords)))
+    if (unlikely (!(c->check_struct (this) &&	// it checks colorRecordIndices also
+						// see #get_size
+		    (this+colorRecordsZ).sanitize (c, numColorRecords))))
       return_trace (false);
 
     // Check for indices sanity so no need for doing it runtime
     for (unsigned int i = 0; i < numPalettes; ++i)
-      if (colorRecordIndicesZ[i] + numPaletteEntries > numColorRecords)
+      if (unlikely (colorRecordIndicesZ[i] + numPaletteEntries > numColorRecords))
 	return_trace (false);
 
     // If version is zero, we are done here; otherwise we need to check tail also
@@ -157,7 +158,7 @@ struct CPAL
       return_trace (true);
 
     const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-    return_trace (v1.sanitize (c, this, numPalettes));
+    return_trace (likely (v1.sanitize (c, this, numPalettes)));
   }
 
   inline unsigned int get_size (void) const
@@ -167,7 +168,7 @@ struct CPAL
 
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
   {
-    if (version == 0 || palette >= numPalettes)
+    if (unlikely (version == 0 || palette >= numPalettes))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
@@ -176,7 +177,7 @@ struct CPAL
 
   inline unsigned int get_palette_name_id (unsigned int palette) const
   {
-    if (version == 0 || palette >= numPalettes)
+    if (unlikely (version == 0 || palette >= numPalettes))
       return 0xFFFF;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
@@ -191,11 +192,12 @@ struct CPAL
   inline hb_ot_color_t
   get_color_record_argb (unsigned int color_index, unsigned int palette) const
   {
-    if (color_index >= numPaletteEntries || palette >= numPalettes)
+    if (unlikely (color_index >= numPaletteEntries || palette >= numPalettes))
       return 0;
 
     // No need for more range check as it is already done on #sanitize
-    return (this+colorRecordsZ)[colorRecordIndicesZ[palette] + color_index];
+    const UnsizedArrayOf<BGRAColor>& color_records = this+colorRecordsZ;
+    return color_records[colorRecordIndicesZ[palette] + color_index];
   }
 
   protected:

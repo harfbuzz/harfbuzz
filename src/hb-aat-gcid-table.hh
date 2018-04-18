@@ -44,7 +44,7 @@ struct gcid
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && CIDs.sanitize (c));
+    return_trace (likely (c->check_struct (this) && CIDs.sanitize (c)));
   }
 
   protected:

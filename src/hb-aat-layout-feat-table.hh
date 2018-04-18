@@ -42,7 +42,7 @@ struct SettingName
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (likely (c->check_struct (this)));
   }
 
   protected:
@@ -57,8 +57,8 @@ struct FeatureName
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  (base+settingTable).sanitize (c, nSettings));
+    return_trace (likely (c->check_struct (this) &&
+			  (base+settingTable).sanitize (c, nSettings)));
   }
 
   enum {
@@ -98,8 +98,8 @@ struct feat
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  names.sanitize (c, featureNameCount, this));
+    return_trace (likely (c->check_struct (this) &&
+			  names.sanitize (c, featureNameCount, this)));
   }
 
   protected:
