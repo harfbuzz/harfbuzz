@@ -8,7 +8,6 @@
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-  printf ("hb-subset-get-codepoints-fuzzer: input size = %zu\n", size);
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
                                     HB_MEMORY_MODE_READONLY, NULL, NULL);
   hb_face_t *face = hb_face_create (blob, 0);
