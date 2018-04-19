@@ -539,6 +539,14 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
+  static inline bool _is_gid_consecutive (CmapSubtableLongGroup *group,
+					  hb_codepoint_t cp,
+					  hb_codepoint_t new_gid)
+  {
+    return (cp - 1 == group->endCharCode) &&
+	new_gid == group->glyphID + (cp - group->startCharCode);
+  }
+
   inline bool populate_groups (hb_subset_plan_t *plan,
 			       hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
   {
@@ -546,17 +554,18 @@ struct cmap
     for (unsigned int i = 0; i < plan->codepoints.len; i++) {
 
       hb_codepoint_t cp = plan->codepoints[i];
-      if (!group || cp - 1 != group->endCharCode)
+      hb_codepoint_t new_gid;
+      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+      {
+	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
+	return false;
+      }
+
+      if (!group || !_is_gid_consecutive (group, cp, new_gid))
       {
         group = groups->push ();
         group->startCharCode.set (cp);
         group->endCharCode.set (cp);
-        hb_codepoint_t new_gid;
-        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
-        {
-          DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
-          return false;
-        }
         group->glyphID.set (new_gid);
       } else
       {
