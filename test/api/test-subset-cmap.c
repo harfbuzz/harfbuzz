@@ -50,6 +50,28 @@ test_subset_cmap (void)
 }
 
 static void
+test_subset_cmap_non_consecutive_glyphs (void)
+{
+  hb_face_t *face = hb_subset_test_open_font ("fonts/Roboto-Regular.D7,D8,D9,DA,DE.ttf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_subset;
+  hb_set_add (codepoints, 0xD7);
+  hb_set_add (codepoints, 0xD8);
+  hb_set_add (codepoints, 0xD9);
+  hb_set_add (codepoints, 0xDA);
+  hb_set_add (codepoints, 0xDE);
+
+  face_subset = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face, face_subset, HB_TAG ('c','m','a','p'));
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_cmap_noop (void)
 {
   hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.cmap-format12-only.ttf");
@@ -77,6 +99,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_cmap);
   hb_test_add (test_subset_cmap_noop);
+  hb_test_add (test_subset_cmap_non_consecutive_glyphs);
 
   return hb_test_run();
 }
