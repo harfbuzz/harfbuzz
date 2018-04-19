@@ -433,9 +433,23 @@ struct glyf
       else
       {
         unsigned int instruction_length_offset = start_offset + GlyphHeader::static_size + 2 * num_contours;
+	if (unlikely (instruction_length_offset + 2 > end_offset))
+	{
+	  DEBUG_MSG(SUBSET, nullptr, "Glyph size is too short, missing field instructionLength.");
+	  return false;
+	}
+
         const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (glyf_table, instruction_length_offset);
-        *instruction_start = instruction_length_offset + 2;
-        *instruction_end = *instruction_start + (uint16_t) instruction_length;
+	unsigned int start = instruction_length_offset + 2;
+	unsigned int end = start + (uint16_t) instruction_length;
+	if (unlikely (end > end_offset)) // Out of bounds of the current glyph
+	{
+	  DEBUG_MSG(SUBSET, nullptr, "The instructions array overruns the glyph's boundaries.");
+	  return false;
+	}
+
+	*instruction_start = start;
+        *instruction_end = end;
       }
       return true;
     }
