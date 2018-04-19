@@ -192,11 +192,29 @@ static gboolean
 parse_shapers (const char *name G_GNUC_UNUSED,
 	       const char *arg,
 	       gpointer    data,
-	       GError    **error G_GNUC_UNUSED)
+	       GError    **error)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
+  char **shapers = g_strsplit (arg, ",", 0);
+
+  for (char **shaper = shapers; *shaper; shaper++) {
+    bool found = false;
+    for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
+      if (strcmp (*shaper, *hb_shaper) == 0) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Unknown or unsupported shaper: %s", *shaper);
+      g_strfreev (shapers);
+      return false;
+    }
+  }
+
   g_strfreev (shape_opts->shapers);
-  shape_opts->shapers = g_strsplit (arg, ",", 0);
+  shape_opts->shapers = shapers;
   return true;
 }
 
