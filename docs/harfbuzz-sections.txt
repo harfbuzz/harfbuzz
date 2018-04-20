@@ -169,6 +169,7 @@ hb_coretext_font_get_ct_font
 
 <SECTION>
 <FILE>hb-face</FILE>
+hb_face_count
 hb_face_create
 hb_face_create_for_tables
 hb_face_destroy

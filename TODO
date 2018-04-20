@@ -27,8 +27,6 @@ API additions
 
 - Add query / enumeration API for aalt-like features?
 
-- SFNT api? get_num_faces?
-
 - Add segmentation API
 
 - Add hb-fribidi glue?
