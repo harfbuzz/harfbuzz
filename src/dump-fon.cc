@@ -538,21 +538,12 @@ struct LE_IMAGE_DOS_HEADER {
 };
 
 int main (int argc, char** argv) {
-  FILE *f = fopen (argv[1], "rb");
-  fseek (f, 0, SEEK_END);
-  unsigned int len = ftell (f);
-  rewind (f);
-  const char *font_data = (const char *) malloc (len);
-  len = fread ((char *) font_data, 1, len, f);
-
+  hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
 
   OT::Sanitizer<LE_IMAGE_DOS_HEADER> sanitizer;
-  hb_blob_t *blob = hb_blob_create (font_data, len, HB_MEMORY_MODE_WRITABLE,
-				    (void *) font_data, free);
   hb_blob_t *font_blob = sanitizer.sanitize (blob);
   const LE_IMAGE_DOS_HEADER* dos_header =
     OT::Sanitizer<LE_IMAGE_DOS_HEADER>::lock_instance (font_blob);
-
 
   const NE_RESOURCE_TABLE &rtable = dos_header->get_os2_header ().get_resource_table ();
   int shift = rtable.get_shift_value ();

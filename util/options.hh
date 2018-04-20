@@ -52,13 +52,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#if !GLIB_CHECK_VERSION (2, 22, 0)
-# define g_mapped_file_unref g_mapped_file_free
-#endif
-
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
-
-extern hb_bool_t debug;
 
 struct option_group_t
 {

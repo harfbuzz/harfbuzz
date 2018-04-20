@@ -43,6 +43,10 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 struct hb_blob_t {
@@ -273,7 +277,7 @@ hb_blob_destroy (hb_blob_t *blob)
  * @destroy: callback to call when @data is not needed anymore.
  * @replace: whether to replace an existing data with the same key.
  *
- * Return value: 
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -292,9 +296,9 @@ hb_blob_set_user_data (hb_blob_t          *blob,
  * @blob: a blob.
  * @key: key for data to get.
  *
- * 
  *
- * Return value: (transfer none): 
+ *
+ * Return value: (transfer none):
  *
  * Since: 0.9.2
  **/
@@ -310,7 +314,7 @@ hb_blob_get_user_data (hb_blob_t          *blob,
  * hb_blob_make_immutable:
  * @blob: a blob.
  *
- * 
+ *
  *
  * Since: 0.9.2
  **/
@@ -327,7 +331,7 @@ hb_blob_make_immutable (hb_blob_t *blob)
  * hb_blob_is_immutable:
  * @blob: a blob.
  *
- * 
+ *
  *
  * Return value: TODO
  *
@@ -344,7 +348,7 @@ hb_blob_is_immutable (hb_blob_t *blob)
  * hb_blob_get_length:
  * @blob: a blob.
  *
- * 
+ *
  *
  * Return value: the length of blob data in bytes.
  *
@@ -361,9 +365,9 @@ hb_blob_get_length (hb_blob_t *blob)
  * @blob: a blob.
  * @length: (out):
  *
- * 
  *
- * Returns: (transfer none) (array length=length): 
+ *
+ * Returns: (transfer none) (array length=length):
  *
  * Since: 0.9.2
  **/
@@ -501,4 +505,115 @@ _try_writable (hb_blob_t *blob)
   blob->destroy = free;
 
   return true;
+}
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+#include <windows.h>
+#include <io.h>
+
+#undef fstat
+#define fstat(a,b) _fstati64(a,b)
+#undef stat
+#define stat _stati64
+
+#ifndef S_ISREG
+# define S_ISREG(m) (((m) & _S_IFMT) == _S_IFREG)
+#endif
+#endif // defined(_WIN32) || defined(__CYGWIN__)
+
+#ifndef _O_BINARY
+# define _O_BINARY 0
+#endif
+
+#ifndef MAP_FAILED
+# define MAP_FAILED ((void *) -1)
+#endif
+
+struct hb_mapped_file_t
+{
+  char *contents;
+  unsigned long length;
+#if defined(_WIN32) || defined(__CYGWIN__)
+  HANDLE mapping;
+#endif
+};
+
+static void
+_hb_mapped_file_destroy (hb_mapped_file_t *file)
+{
+#ifdef HAVE_MMAP
+  munmap (file->contents, file->length);
+#elif defined(_WIN32) || defined(__CYGWIN__)
+  UnmapViewOfFile (file->contents);
+  CloseHandle (file->mapping);
+#else
+  free (file->contents);
+#endif
+
+  free (file);
+}
+
+/**
+ * hb_blob_create_from_file:
+ * @file_name: font filename.
+ *
+ * Returns: A hb_blob_t pointer with the content of the file
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_blob_create_from_file (const char *file_name)
+{
+  // Adopted from glib's gmappedfile.c with Matthias Clasen and
+  // Allison Lortie permission but changed to suit our need.
+  bool writable = false;
+  hb_memory_mode_t mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
+
+  int fd = open (file_name, (writable ? O_RDWR : O_RDONLY) | _O_BINARY, 0);
+  if (unlikely (fd == -1)) return hb_blob_get_empty ();
+
+  hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (sizeof (hb_mapped_file_t), 1);
+
+  struct stat st;
+  if (unlikely (fstat (fd, &st) == -1)) goto fail;
+
+  // If the file size is 0 and isn't regular, give up
+  if (unlikely (st.st_size == 0 && S_ISREG (st.st_mode))) goto fail;
+
+  file->length = (unsigned long) st.st_size;
+
+#ifdef HAVE_MMAP
+  file->contents = (char *) mmap (nullptr, file->length,
+				  writable ? PROT_READ|PROT_WRITE : PROT_READ,
+				  MAP_PRIVATE, fd, 0);
+  if (unlikely (file->contents == MAP_FAILED)) goto fail;
+#elif defined(_WIN32) || defined(__CYGWIN__)
+  file->mapping = CreateFileMapping ((HANDLE) _get_osfhandle (fd), nullptr,
+				     writable ? PAGE_WRITECOPY : PAGE_READONLY,
+				     0, 0, nullptr);
+  if (unlikely (file->mapping == nullptr)) goto fail;
+
+  file->contents = (char *) MapViewOfFile (file->mapping,
+					   writable ? FILE_MAP_COPY : FILE_MAP_READ,
+					   0, 0, 0);
+  if (unlikely (file->contents == nullptr))
+  {
+    CloseHandle (file->mapping);
+    goto fail;
+  }
+#else
+  file->contents = (char *) malloc (file->length);
+  if (unlikely (!file->contents)) goto fail;
+  read (fd, file->contents, file->length);
+  mm = HB_MEMORY_MODE_WRITABLE;
+#endif
+
+  close (fd);
+  return hb_blob_create (file->contents, file->length, mm, (void *) file,
+			 (hb_destroy_func_t) _hb_mapped_file_destroy);
+
+fail:
+  close (fd);
+  free (file);
+  return hb_blob_get_empty ();
 }
