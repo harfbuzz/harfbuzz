@@ -572,7 +572,7 @@ hb_blob_create_from_file (const char *file_name)
   int fd = open (file_name, (writable ? O_RDWR : O_RDONLY) | _O_BINARY, 0);
   if (unlikely (fd == -1)) return hb_blob_get_empty ();
 
-  hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (sizeof (hb_mapped_file_t), 1);
+  hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
 
   struct stat st;
   if (unlikely (fstat (fd, &st) == -1)) goto fail;
