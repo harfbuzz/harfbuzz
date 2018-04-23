@@ -143,7 +143,7 @@ hb_ot_get_glyph_h_kerning (hb_font_t *font,
 }
 
 static hb_bool_t
-hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
+hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *font_data,
 			 hb_codepoint_t glyph,
 			 hb_glyph_extents_t *extents,
@@ -184,7 +184,7 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
+hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *font_data,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)
@@ -198,7 +198,7 @@ hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ot_get_font_v_extents (hb_font_t *font HB_UNUSED,
+hb_ot_get_font_v_extents (hb_font_t *font,
 			  void *font_data,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)

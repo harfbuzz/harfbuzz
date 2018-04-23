@@ -288,7 +288,7 @@ struct hb_sanitize_context_t :
     return likely (this->check_range (obj, obj->min_size));
   }
 
-  inline bool may_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
+  inline bool may_edit (const void *base, unsigned int len)
   {
     if (this->edit_count >= HB_SANITIZE_MAX_EDITS)
       return false;
