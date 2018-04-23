@@ -119,7 +119,7 @@ skip_char (hb_buffer_t *buffer)
 static inline unsigned int
 decompose (const hb_ot_shape_normalize_context_t *c, bool shortest, hb_codepoint_t ab)
 {
-  hb_codepoint_t a, b, a_glyph, b_glyph;
+  hb_codepoint_t a = 0, b = 0, a_glyph = 0, b_glyph = 0;
   hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
 
@@ -164,7 +164,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
 {
   hb_buffer_t * const buffer = c->buffer;
   hb_codepoint_t u = buffer->cur().codepoint;
-  hb_codepoint_t glyph;
+  hb_codepoint_t glyph = 0;
 
   if (shortest && c->font->get_nominal_glyph (u, &glyph))
   {
