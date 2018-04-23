@@ -1280,7 +1280,7 @@ struct VarRegionList
     {
       int coord = i < coord_len ? coords[i] : 0;
       float factor = axes[i].evaluate (coord);
-      if (factor == 0.)
+      if (factor == 0.f)
         return 0.;
       v *= factor;
     }

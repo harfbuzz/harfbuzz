@@ -104,7 +104,7 @@ struct TrackData
     const TrackTableEntry *trackTableEntry = nullptr;
     for (unsigned int i = 0; i < sizes; ++i)
       // For now we only seek for track entries with zero tracking value
-      if (trackTable[i].get_track_value () == 0.)
+      if (trackTable[i].get_track_value () == 0.f)
         trackTableEntry = &trackTable[0];
 
     // We couldn't match any, exit
@@ -127,8 +127,8 @@ struct TrackData
     float s0 = size_table[size_index - 1].to_float ();
     float s1 = size_table[size_index].to_float ();
     float t = (csspx - s0) / (s1 - s0);
-    return t * trackTableEntry->get_value (base, size_index) +
-      (1.0 - t) * trackTableEntry->get_value (base, size_index - 1);
+    return (float) t * trackTableEntry->get_value (base, size_index) +
+	   ((float) 1.0 - t) * trackTableEntry->get_value (base, size_index - 1);
   }
 
   protected:

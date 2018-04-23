@@ -684,8 +684,8 @@ typedef HBUINT16 UFWORD;
 struct F2DOT14 : HBINT16
 {
   // 16384 means 1<<14
-  inline float to_float (void) const { return ((int32_t) v) / 16384.0; }
-  inline void set_float (float f) { v.set (round (f * 16384.0)); }
+  inline float to_float (void) const { return ((int32_t) v) / 16384.f; }
+  inline void set_float (float f) { v.set (round (f * 16384.f)); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
@@ -694,8 +694,8 @@ struct F2DOT14 : HBINT16
 struct Fixed : HBINT32
 {
   // 65536 means 1<<16
-  inline float to_float (void) const { return ((int32_t) v) / 65536.0; }
-  inline void set_float (float f) { v.set (round (f * 65536.0)); }
+  inline float to_float (void) const { return ((int32_t) v) / 65536.f; }
+  inline void set_float (float f) { v.set (round (f * 65536.f)); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
