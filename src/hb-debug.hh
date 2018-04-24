@@ -357,7 +357,7 @@ struct hb_no_trace_t {
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 " ")
 #else
-#define TRACE_CLOSURE(this) hb_no_trace_t<hb_void_t> trace
+#define TRACE_CLOSURE(this) hb_no_trace_t<hb_void_t> trace HB_UNUSED
 #endif
 
 #ifndef HB_DEBUG_COLLECT_GLYPHS
@@ -369,7 +369,7 @@ struct hb_no_trace_t {
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 " ")
 #else
-#define TRACE_COLLECT_GLYPHS(this) hb_no_trace_t<hb_void_t> trace
+#define TRACE_COLLECT_GLYPHS(this) hb_no_trace_t<hb_void_t> trace HB_UNUSED
 #endif
 
 #ifndef HB_DEBUG_SANITIZE
