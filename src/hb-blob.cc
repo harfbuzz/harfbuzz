@@ -577,7 +577,8 @@ hb_blob_create_from_file (const char *file_name)
   struct stat st;
   if (unlikely (fstat (fd, &st) == -1)) goto fail;
 
-  // If the file size is 0 and isn't regular, give up
+  // If the file size is 0 and is a regular file, give up
+  // See https://github.com/GNOME/glib/blob/f9faac7/glib/gmappedfile.c#L139-L142
   if (unlikely (st.st_size == 0 && S_ISREG (st.st_mode))) goto fail;
 
   file->length = (unsigned long) st.st_size;
