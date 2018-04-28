@@ -488,14 +488,14 @@ protected:
 	mCurrentRun = run;
 	return;
       }
-    // NS_NOTREACHED ("We should always be able to find the text position in one of our runs");
+    assert (0); // We should always be able to find the text position in one of our runs
   }
 
   void SplitCurrentRun (uint32_t splitPosition)
   {
     if (!mCurrentRun)
     {
-      //NS_ASSERTION (false, "SplitCurrentRun called without current run.");
+      assert (0); // SplitCurrentRun called without current run
       // Shouldn't be calling this when no current run is set!
       return;
     }
