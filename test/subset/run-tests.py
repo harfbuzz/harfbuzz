@@ -80,6 +80,7 @@ def run_test(test, should_check_ots):
 def run_ttx(file):
 	print ("ttx %s" % file)
 	cli_args = ["ttx",
+		    "-q",
 		    "-o-",
 		    file]
 	return cmd(cli_args)
