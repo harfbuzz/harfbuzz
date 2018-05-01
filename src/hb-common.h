@@ -115,7 +115,8 @@ typedef enum {
   HB_DIRECTION_LTR = 4,
   HB_DIRECTION_RTL,
   HB_DIRECTION_TTB,
-  HB_DIRECTION_BTT
+  HB_DIRECTION_BTT,
+  HB_DIRECTION_NONE
 } hb_direction_t;
 
 /* len=-1 means str is NUL-terminated */
