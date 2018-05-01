@@ -105,24 +105,24 @@ struct COLR
     if (unlikely (!record))
       return false;
 
-    *first_layer = record->firstLayerIdx;
-    *num_layers = record->numLayers;
+    if (first_layer) *first_layer = record->firstLayerIdx;
+    if (num_layers) *num_layers = record->numLayers;
     return true;
   }
 
   inline bool get_layer_record (unsigned int record,
 				hb_codepoint_t *glyph_id /* OUT */,
-				unsigned int *palette_index /* OUT */) const
+				unsigned int *color_index /* OUT */) const
   {
     if (unlikely (record >= numLayers))
     {
       *glyph_id = 0;
-      *palette_index = 0xFFFF;
+      *color_index = 0xFFFF;
       return false;
     }
     const LayerRecord &layer = (this+layersZ)[record];
-    *glyph_id = layer.glyphid;
-    *palette_index = layer.colorIdx;
+    if (glyph_id) *glyph_id = layer.glyphid;
+    if (color_index) *color_index = layer.colorIdx;
     return true;
   }
 

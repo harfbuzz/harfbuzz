@@ -88,13 +88,22 @@ void svg_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsigned int num_glyphs,
-			  const OT::COLR *colr, const OT::CPAL *cpal)
+void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 {
-  for (unsigned int i = 0; i < num_glyphs; ++i)
+  unsigned int upem = hb_face_get_upem (face);
+
+  for (hb_codepoint_t gid = 0; gid < hb_face_get_glyph_count (face); ++gid)
   {
-    unsigned int first_layer_index, num_layers;
-    if (colr->get_base_glyph_record (i, &first_layer_index, &num_layers))
+    unsigned int num_layers = hb_ot_color_get_color_layers (face, gid, 0, nullptr, nullptr, nullptr);
+    if (!num_layers)
+      continue;
+
+    hb_codepoint_t *layer_gids = (hb_codepoint_t*) calloc (num_layers, sizeof (hb_codepoint_t));
+    unsigned int *color_indices = (unsigned int*) calloc (num_layers, sizeof (unsigned int));
+
+    num_layers = 0;
+    hb_ot_color_get_color_layers (face, gid, 0, &num_layers, layer_gids, color_indices);
+    if (num_layers)
     {
       // Measure
       cairo_text_extents_t extents;
@@ -106,12 +115,7 @@ void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsi
 
 	cairo_glyph_t *glyphs = (cairo_glyph_t *) calloc (num_layers, sizeof (cairo_glyph_t));
 	for (unsigned int j = 0; j < num_layers; ++j)
-	{
-	  hb_codepoint_t glyph_id;
-	  unsigned int color_index;
-	  colr->get_layer_record (first_layer_index + j, &glyph_id, &color_index);
-	  glyphs[j].index = glyph_id;
-	}
+	  glyphs[j].index = layer_gids[j];
 	cairo_glyph_extents (cr, glyphs, num_layers, &extents);
 	free (glyphs);
 	cairo_surface_destroy (surface);
@@ -125,45 +129,56 @@ void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsi
       extents.y_bearing -= extents.height / 20;
 
       // Render
-      unsigned int pallet_count = cpal->get_palette_count ();
+      unsigned int pallet_count = hb_ot_color_get_palette_count (face);
       for (unsigned int pallet = 0; pallet < pallet_count; ++pallet) {
 	char output_path[255];
 
-	// If we have more than one pallet, use a better namin
-	if (pallet_count == 1)
-	  sprintf (output_path, "out/colr-%d.svg", i);
-	else
-	  sprintf (output_path, "out/colr-%d-%d.svg", i, pallet);
+        unsigned int num_colors = hb_ot_color_get_palette_colors (face, pallet, 0, nullptr, nullptr);
+        if (!num_colors)
+          continue;
 
-	cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
-	cairo_t *cr = cairo_create (surface);
-	cairo_set_font_face (cr, cairo_face);
-	cairo_set_font_size (cr, upem);
+        hb_ot_color_t *colors = (hb_ot_color_t*) calloc (num_colors, sizeof (hb_ot_color_t));
+        hb_ot_color_get_palette_colors (face, pallet, 0, &num_colors, colors);
+        if (num_colors)
+        {
+	  // If we have more than one pallet, use a better namin
+	  if (pallet_count == 1)
+	    sprintf (output_path, "out/colr-%d.svg", gid);
+	  else
+	    sprintf (output_path, "out/colr-%d-%d.svg", gid, pallet);
 
-	for (unsigned int j = 0; j < num_layers; ++j)
-	{
-	  hb_codepoint_t glyph_id;
-	  unsigned int color_index;
-	  colr->get_layer_record (first_layer_index + j, &glyph_id, &color_index);
+	  cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
+	  cairo_t *cr = cairo_create (surface);
+	  cairo_set_font_face (cr, cairo_face);
+	  cairo_set_font_size (cr, upem);
 
-	  uint32_t color = cpal->get_color_record_argb (color_index, pallet);
-	  int alpha = color & 0xFF;
-	  int r = (color >> 8) & 0xFF;
-	  int g = (color >> 16) & 0xFF;
-	  int b = (color >> 24) & 0xFF;
-	  cairo_set_source_rgba (cr, r / 255.f, g / 255.f, b / 255.f, alpha);
+	  for (unsigned int layer = 0; layer < num_layers; ++layer)
+	  {
+	    uint32_t color = 0xFF;
+            if (color_indices[layer] != 0xFFFF)
+	      color = colors[color_indices[layer]];
+	    int alpha = color & 0xFF;
+	    int r = (color >> 8) & 0xFF;
+	    int g = (color >> 16) & 0xFF;
+	    int b = (color >> 24) & 0xFF;
+	    cairo_set_source_rgba (cr, r / 255.f, g / 255.f, b / 255.f, alpha);
 
-	  cairo_glyph_t glyph;
-	  glyph.index = glyph_id;
-	  glyph.x = -extents.x_bearing;
-	  glyph.y = -extents.y_bearing;
-	  cairo_show_glyphs (cr, &glyph, 1);
-	}
+	    cairo_glyph_t glyph;
+	    glyph.index = layer_gids[layer];
+	    glyph.x = -extents.x_bearing;
+	    glyph.y = -extents.y_bearing;
+	    cairo_show_glyphs (cr, &glyph, 1);
+	  }
 
-	cairo_surface_destroy (surface);
-	cairo_destroy (cr);
+	  cairo_surface_destroy (surface);
+	  cairo_destroy (cr);
+        }
+        free (colors);
       }
     }
+
+    free (layer_gids);
+    free (color_indices);
   }
 }
 
@@ -238,14 +253,6 @@ int main (int argc, char **argv)
   svg.dump (svg_callback);
   svg.fini ();
 
-  OT::Sanitizer<OT::COLR> sanitizerCOLR;
-  hb_blob_t* colr_blob = sanitizerCOLR.sanitize (face->reference_table (HB_OT_TAG_COLR));
-  const OT::COLR *colr = colr_blob->as<OT::COLR> ();
-
-  OT::Sanitizer<OT::CPAL> sanitizerCPAL;
-  hb_blob_t* cpal_blob = sanitizerCPAL.sanitize (face->reference_table (HB_OT_TAG_CPAL));
-  const OT::CPAL *cpal = cpal_blob->as<OT::CPAL> ();
-
   cairo_font_face_t *cairo_face;
   {
     FT_Library library;
@@ -256,7 +263,7 @@ int main (int argc, char **argv)
   }
   unsigned int num_glyphs = hb_face_get_glyph_count (face);
   unsigned int upem = hb_face_get_upem (face);
-  colr_cpal_rendering (cairo_face, upem, num_glyphs, colr, cpal);
+  colr_cpal_rendering (face, cairo_face);
   dump_glyphs (cairo_face, upem, num_glyphs);
 
 
