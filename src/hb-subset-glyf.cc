@@ -32,12 +32,12 @@
 
 static bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
-                                     hb_prealloced_array_t<hb_codepoint_t> &glyph_ids,
+                                     hb_vector_t<hb_codepoint_t> &glyph_ids,
                                      hb_bool_t drop_hints,
                                      bool *use_short_loca /* OUT */,
                                      unsigned int *glyf_size /* OUT */,
                                      unsigned int *loca_size /* OUT */,
-                                     hb_prealloced_array_t<unsigned int> *instruction_ranges /* OUT */)
+                                     hb_vector_t<unsigned int> *instruction_ranges /* OUT */)
 {
   unsigned int total = 0;
   for (unsigned int i = 0; i < glyph_ids.len; i++)
@@ -159,13 +159,13 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
 			    const OT::glyf::accelerator_t &glyf,
                             const char                    *glyf_data,
                             bool                           use_short_loca,
-                            hb_prealloced_array_t<unsigned int> &instruction_ranges,
+                            hb_vector_t<unsigned int> &instruction_ranges,
                             unsigned int                   glyf_prime_size,
                             char                          *glyf_prime_data /* OUT */,
                             unsigned int                   loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
-  hb_prealloced_array_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
+  hb_vector_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
   char *glyf_prime_data_next = glyf_prime_data;
 
   bool success = true;
@@ -234,11 +234,11 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           hb_blob_t                     **loca_prime /* OUT */)
 {
   // TODO(grieger): Sanity check allocation size for the new table.
-  hb_prealloced_array_t<hb_codepoint_t> &glyphs_to_retain = plan->gids_to_retain_sorted;
+  hb_vector_t<hb_codepoint_t> &glyphs_to_retain = plan->gids_to_retain_sorted;
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;
-  hb_prealloced_array_t<unsigned int> instruction_ranges;
+  hb_vector_t<unsigned int> instruction_ranges;
   instruction_ranges.init();
 
   if (unlikely (!_calculate_glyf_and_loca_prime_size (glyf,

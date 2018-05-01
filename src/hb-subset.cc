@@ -123,7 +123,7 @@ struct hb_subset_face_data_t
     hb_blob_t *blob;
   };
 
-  hb_prealloced_array_t<table_entry_t, 32> tables;
+  hb_vector_t<table_entry_t, 32> tables;
 };
 
 static hb_subset_face_data_t *

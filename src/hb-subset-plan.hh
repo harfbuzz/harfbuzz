@@ -45,12 +45,12 @@ struct hb_subset_plan_t {
 
   // These first two lists provide a mapping from cp -> gid
   // As a result it does not list the full set of glyphs to retain.
-  hb_prealloced_array_t<hb_codepoint_t> codepoints;
-  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain;
+  hb_vector_t<hb_codepoint_t> codepoints;
+  hb_vector_t<hb_codepoint_t> gids_to_retain;
 
   // This list contains the complete set of glyphs to retain and may contain
   // more glyphs then the lists above.
-  hb_prealloced_array_t<hb_codepoint_t> gids_to_retain_sorted;
+  hb_vector_t<hb_codepoint_t> gids_to_retain_sorted;
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;

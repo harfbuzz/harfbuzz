@@ -74,7 +74,7 @@ struct os2
     return result;
   }
 
-  inline void _update_unicode_ranges (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+  inline void _update_unicode_ranges (const hb_vector_t<hb_codepoint_t> &codepoints,
                                       HBUINT32 ulUnicodeRange[4]) const
   {
     for (unsigned int i = 0; i < 4; i++)
@@ -101,7 +101,7 @@ struct os2
     }
   }
 
-  static inline void find_min_and_max_codepoint (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
+  static inline void find_min_and_max_codepoint (const hb_vector_t<hb_codepoint_t> &codepoints,
                                                  uint16_t *min_cp, /* OUT */
                                                  uint16_t *max_cp  /* OUT */)
   {

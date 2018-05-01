@@ -190,8 +190,8 @@ struct hb_set_t
   ASSERT_POD ();
   bool in_error;
   mutable unsigned int population;
-  hb_prealloced_array_t<page_map_t, 8> page_map;
-  hb_prealloced_array_t<page_t, 1> pages;
+  hb_vector_t<page_map_t, 8> page_map;
+  hb_vector_t<page_t, 1> pages;
 
   inline void init (void)
   {

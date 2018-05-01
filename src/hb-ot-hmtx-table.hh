@@ -94,7 +94,7 @@ struct hmtxvmtx
 
     /* All the trailing glyphs with the same advance can use one LongMetric
      * and just keep LSB */
-    hb_prealloced_array_t<hb_codepoint_t> &gids = plan->gids_to_retain_sorted;
+    hb_vector_t<hb_codepoint_t> &gids = plan->gids_to_retain_sorted;
     unsigned int num_advances = gids.len;
     unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
     while (num_advances > 1

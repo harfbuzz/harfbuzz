@@ -294,7 +294,7 @@ struct CmapSubtableLongSegmented
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-                         hb_prealloced_array_t<CmapSubtableLongGroup> &group_data)
+                         hb_vector_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -548,7 +548,7 @@ struct cmap
   }
 
   inline bool populate_groups (hb_subset_plan_t *plan,
-			       hb_prealloced_array_t<CmapSubtableLongGroup> *groups) const
+			       hb_vector_t<CmapSubtableLongGroup> *groups) const
   {
     CmapSubtableLongGroup *group = nullptr;
     for (unsigned int i = 0; i < plan->codepoints.len; i++) {
@@ -582,7 +582,7 @@ struct cmap
     return true;
   }
 
-  inline bool _subset (hb_prealloced_array_t<CmapSubtableLongGroup> &groups,
+  inline bool _subset (hb_vector_t<CmapSubtableLongGroup> &groups,
 		       size_t dest_sz,
 		       void *dest) const
   {

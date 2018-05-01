@@ -87,7 +87,7 @@ hb_subset_plan_add_table (hb_subset_plan_t *plan,
 
 static void
 _populate_codepoints (hb_set_t *input_codepoints,
-                      hb_prealloced_array_t<hb_codepoint_t>& plan_codepoints)
+                      hb_vector_t<hb_codepoint_t>& plan_codepoints)
 {
   plan_codepoints.alloc (hb_set_get_population (input_codepoints));
   hb_codepoint_t cp = -1;
@@ -121,9 +121,9 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 
 static void
 _populate_gids_to_retain (hb_face_t *face,
-                          hb_prealloced_array_t<hb_codepoint_t>& codepoints,
-                          hb_prealloced_array_t<hb_codepoint_t>& old_gids,
-                          hb_prealloced_array_t<hb_codepoint_t>& old_gids_sorted)
+                          hb_vector_t<hb_codepoint_t>& codepoints,
+                          hb_vector_t<hb_codepoint_t>& old_gids,
+                          hb_vector_t<hb_codepoint_t>& old_gids_sorted)
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;

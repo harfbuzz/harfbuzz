@@ -527,7 +527,7 @@ _hb_ceil_to_4 (unsigned int v)
 
 #define HB_PREALLOCED_ARRAY_INIT {0, 0, nullptr}
 template <typename Type, unsigned int StaticSize=16>
-struct hb_prealloced_array_t
+struct hb_vector_t
 {
   unsigned int len;
   unsigned int allocated;
@@ -710,14 +710,14 @@ struct hb_auto_t : Type
   void fini (void) {}
 };
 template <typename Type>
-struct hb_auto_array_t : hb_auto_t <hb_prealloced_array_t <Type> > {};
+struct hb_auto_array_t : hb_auto_t <hb_vector_t <Type> > {};
 
 
 #define HB_LOCKABLE_SET_INIT {HB_PREALLOCED_ARRAY_INIT}
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
-  hb_prealloced_array_t <item_t, 1> items;
+  hb_vector_t <item_t, 1> items;
 
   inline void init (void) { items.init (); }
 

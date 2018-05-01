@@ -258,7 +258,7 @@ struct post
     hb_blob_t *blob;
     uint32_t version;
     const ArrayOf<HBUINT16> *glyphNameIndex;
-    hb_prealloced_array_t<uint32_t, 1> index_to_offset;
+    hb_vector_t<uint32_t, 1> index_to_offset;
     const uint8_t *pool;
     mutable uint16_t *gids_sorted_by_name;
   };
