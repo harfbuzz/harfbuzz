@@ -623,7 +623,7 @@ struct cmap
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_auto_array_t<CmapSubtableLongGroup> groups;
+    hb_auto_t<hb_vector_t<CmapSubtableLongGroup> > groups;
 
     if (unlikely (!populate_groups (plan, &groups))) return false;
 

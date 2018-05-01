@@ -1109,7 +1109,7 @@ struct hb_get_subtables_context_t :
     hb_apply_func_t apply_func;
   };
 
-  typedef hb_auto_array_t<hb_applicable_t> array_t;
+  typedef hb_auto_t<hb_vector_t<hb_applicable_t> > array_t;
 
   /* Dispatch interface. */
   inline const char *get_name (void) { return "GET_SUBTABLES"; }

@@ -130,7 +130,7 @@ _populate_gids_to_retain (hb_face_t *face,
   cmap.init (face);
   glyf.init (face);
 
-  hb_auto_array_t<unsigned int> bad_indices;
+  hb_auto_t<hb_vector_t<unsigned int> > bad_indices;
 
   old_gids.alloc (codepoints.len);
   for (unsigned int i = 0; i < codepoints.len; i++)

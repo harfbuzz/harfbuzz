@@ -630,12 +630,12 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   /*
    * Set up features.
    */
-  hb_auto_array_t<OPENTYPE_FEATURE_RECORD> feature_records;
-  hb_auto_array_t<range_record_t> range_records;
+  hb_auto_t<hb_vector_t<OPENTYPE_FEATURE_RECORD> > feature_records;
+  hb_auto_t<hb_vector_t<range_record_t> > range_records;
   if (num_features)
   {
     /* Sort features by start/end events. */
-    hb_auto_array_t<feature_event_t> feature_events;
+    hb_auto_t<hb_vector_t<feature_event_t> > feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
       active_feature_t feature;
@@ -676,7 +676,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
     }
 
     /* Scan events and save features for each range. */
-    hb_auto_array_t<active_feature_t> active_features;
+    hb_auto_t<hb_vector_t<active_feature_t> > active_features;
     unsigned int last_index = 0;
     for (unsigned int i = 0; i < feature_events.len; i++)
     {
@@ -858,8 +858,8 @@ retry:
 #undef MAX_ITEMS
 
   OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
-  hb_auto_array_t<TEXTRANGE_PROPERTIES*> range_properties;
-  hb_auto_array_t<int> range_char_counts;
+  hb_auto_t<hb_vector_t<TEXTRANGE_PROPERTIES*> > range_properties;
+  hb_auto_t<hb_vector_t<int> > range_char_counts;
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
