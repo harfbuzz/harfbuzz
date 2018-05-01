@@ -165,9 +165,14 @@ static inline bool hb_object_destroy (Type *obj)
   if (obj->header.ref_count.dec () != 1)
     return false;
 
+  hb_object_fini (obj);
+  return true;
+}
+template <typename Type>
+static inline void hb_object_fini (Type *obj)
+{
   obj->header.ref_count.finish (); /* Do this before user_data */
   obj->header.user_data.finish ();
-  return true;
 }
 template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,
