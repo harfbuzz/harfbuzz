@@ -216,9 +216,9 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 {
   if (!hb_object_destroy (plan)) return;
 
-  plan->codepoints.finish ();
-  plan->gids_to_retain.finish ();
-  plan->gids_to_retain_sorted.finish ();
+  plan->codepoints.fini ();
+  plan->gids_to_retain.fini ();
+  plan->gids_to_retain_sorted.fini ();
 
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);

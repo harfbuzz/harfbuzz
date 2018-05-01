@@ -204,7 +204,7 @@ _hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *plan)
   if (plan->shaper->data_destroy)
     plan->shaper->data_destroy (const_cast<void *> (plan->data));
 
-  plan->finish ();
+  plan->fini ();
 
   free (plan);
 }

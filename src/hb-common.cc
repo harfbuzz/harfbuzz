@@ -225,7 +225,7 @@ struct hb_language_item_t {
 
   inline hb_language_item_t & operator = (const char *s) {
     /* If a custom allocated is used calling strdup() pairs
-    badly with a call to the custom free() in finish() below.
+    badly with a call to the custom free() in fini() below.
     Therefore don't call strdup(), implement its behavior.
     */
     size_t len = strlen(s) + 1;
@@ -240,7 +240,7 @@ struct hb_language_item_t {
     return *this;
   }
 
-  void finish (void) { free ((void *) lang); }
+  void fini (void) { free ((void *) lang); }
 };
 
 
@@ -259,7 +259,7 @@ retry:
 
   while (first_lang) {
     hb_language_item_t *next = first_lang->next;
-    first_lang->finish ();
+    first_lang->fini ();
     free (first_lang);
     first_lang = next;
   }
@@ -289,7 +289,7 @@ retry:
   }
 
   if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
-    lang->finish ();
+    lang->fini ();
     free (lang);
     goto retry;
   }

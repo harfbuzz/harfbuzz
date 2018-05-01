@@ -200,10 +200,10 @@ struct hb_set_t
     page_map.init ();
     pages.init ();
   }
-  inline void finish (void)
+  inline void fini (void)
   {
-    page_map.finish ();
-    pages.finish ();
+    page_map.fini ();
+    pages.fini ();
   }
 
   inline bool resize (unsigned int count)

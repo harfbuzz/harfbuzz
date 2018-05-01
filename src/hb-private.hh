@@ -691,7 +691,7 @@ struct hb_prealloced_array_t
     return false;
   }
 
-  inline void finish (void)
+  inline void fini (void)
   {
     if (array != static_array)
       free (array);
@@ -704,7 +704,7 @@ template <typename Type>
 struct hb_auto_array_t : hb_prealloced_array_t <Type>
 {
   hb_auto_array_t (void) { hb_prealloced_array_t<Type>::init (); }
-  ~hb_auto_array_t (void) { hb_prealloced_array_t<Type>::finish (); }
+  ~hb_auto_array_t (void) { hb_prealloced_array_t<Type>::fini (); }
 };
 
 
@@ -726,7 +726,7 @@ struct hb_lockable_set_t
 	item_t old = *item;
 	*item = v;
 	l.unlock ();
-	old.finish ();
+	old.fini ();
       }
       else {
         item = nullptr;
@@ -751,7 +751,7 @@ struct hb_lockable_set_t
       *item = items[items.len - 1];
       items.pop ();
       l.unlock ();
-      old.finish ();
+      old.fini ();
     } else {
       l.unlock ();
     }
@@ -782,11 +782,11 @@ struct hb_lockable_set_t
     return item;
   }
 
-  inline void finish (lock_t &l)
+  inline void fini (lock_t &l)
   {
     if (!items.len) {
       /* No need for locking. */
-      items.finish ();
+      items.fini ();
       return;
     }
     l.lock ();
@@ -794,10 +794,10 @@ struct hb_lockable_set_t
       item_t old = items[items.len - 1];
 	items.pop ();
 	l.unlock ();
-	old.finish ();
+	old.fini ();
 	l.lock ();
     }
-    items.finish ();
+    items.fini ();
     l.unlock ();
   }
 

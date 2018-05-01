@@ -248,7 +248,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                                                       &glyf_prime_size,
                                                       &loca_prime_size,
                                                       &instruction_ranges))) {
-    instruction_ranges.finish();
+    instruction_ranges.fini();
     return false;
   }
 
@@ -261,10 +261,10 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                                              loca_prime_size, loca_prime_data))) {
     free (glyf_prime_data);
     free (loca_prime_data);
-    instruction_ranges.finish();
+    instruction_ranges.fini();
     return false;
   }
-  instruction_ranges.finish();
+  instruction_ranges.fini();
 
   *glyf_prime = hb_blob_create (glyf_prime_data,
                                 glyf_prime_size,

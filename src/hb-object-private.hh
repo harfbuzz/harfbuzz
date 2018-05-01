@@ -53,7 +53,7 @@ struct hb_reference_count_t
   inline int get_unsafe (void) const { return ref_count.get_unsafe (); }
   inline int inc (void) { return ref_count.inc (); }
   inline int dec (void) { return ref_count.dec (); }
-  inline void finish (void) { ref_count.set_unsafe (HB_REFERENCE_COUNT_POISON_VALUE); }
+  inline void fini (void) { ref_count.set_unsafe (HB_REFERENCE_COUNT_POISON_VALUE); }
 
   inline bool is_inert (void) const { return ref_count.get_unsafe () == HB_REFERENCE_COUNT_INERT_VALUE; }
   inline bool is_valid (void) const { return ref_count.get_unsafe () > 0; }
@@ -73,7 +73,7 @@ struct hb_user_data_array_t
     inline bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
     inline bool operator == (hb_user_data_item_t &other) const { return key == other.key; }
 
-    void finish (void) { if (destroy) destroy (data); }
+    void fini (void) { if (destroy) destroy (data); }
   };
 
   hb_mutex_t lock;
@@ -88,7 +88,7 @@ struct hb_user_data_array_t
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
-  inline void finish (void) { items.finish (lock); lock.finish (); }
+  inline void fini (void) { items.fini (lock); lock.fini (); }
 };
 
 
@@ -171,8 +171,8 @@ static inline bool hb_object_destroy (Type *obj)
 template <typename Type>
 static inline void hb_object_fini (Type *obj)
 {
-  obj->header.ref_count.finish (); /* Do this before user_data */
-  obj->header.user_data.finish ();
+  obj->header.ref_count.fini (); /* Do this before user_data */
+  obj->header.user_data.fini ();
 }
 template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,

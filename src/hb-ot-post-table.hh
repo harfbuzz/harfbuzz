@@ -134,7 +134,7 @@ struct post
     }
     inline void fini (void)
     {
-      index_to_offset.finish ();
+      index_to_offset.fini ();
       free (gids_sorted_by_name);
     }
 
