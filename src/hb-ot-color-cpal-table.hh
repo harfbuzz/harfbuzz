@@ -29,20 +29,12 @@
 #define HB_OT_COLOR_CPAL_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-color.h"
 
 
 /*
  * Following parts to be moved to a public header.
  */
-
-/**
- * hb_ot_color_t:
- * ARGB data type for holding color values.
- *
- * Since: REPLACEME
- */
-typedef uint32_t hb_ot_color_t;
-
 
 /**
  * hb_ot_color_palette_flags_t:
@@ -57,32 +49,6 @@ typedef enum { /*< flags >*/
   HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
   HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
 } hb_ot_color_palette_flags_t;
-
-// HB_EXTERN unsigned int
-// hb_ot_color_get_palette_count (hb_face_t *face);
-
-// HB_EXTERN unsigned int
-// hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
-
-// HB_EXTERN hb_ot_color_palette_flags_t
-// hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
-
-// HB_EXTERN unsigned int
-// hb_ot_color_get_palette_colors (hb_face_t       *face,
-// 				unsigned int     palette, /* default=0 */
-// 				unsigned int     start_offset,
-// 				unsigned int    *color_count /* IN/OUT */,
-// 				hb_ot_color_t   *colors /* OUT */);
-
-
-
-
-
-/*
- * CPAL -- Color Palette
- * https://docs.microsoft.com/en-us/typography/opentype/spec/cpal
- */
-#define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
 
 
 namespace OT {
@@ -189,15 +155,22 @@ struct CPAL
     return numPalettes;
   }
 
-  inline hb_ot_color_t
-  get_color_record_argb (unsigned int color_index, unsigned int palette) const
+  inline unsigned int get_palette_entries_count () const
+  {
+    return numPaletteEntries;
+  }
+
+  bool
+  get_color_record_argb (unsigned int color_index, unsigned int palette, hb_ot_color_t* color) const
   {
     if (unlikely (color_index >= numPaletteEntries || palette >= numPalettes))
-      return 0;
+      return false;
 
     // No need for more range check as it is already done on #sanitize
     const UnsizedArrayOf<BGRAColor>& color_records = this+colorRecordsZ;
-    return color_records[colorRecordIndicesZ[palette] + color_index];
+    if (color)
+      *color = color_records[colorRecordIndicesZ[palette] + color_index];
+    return true;
   }
 
   protected:

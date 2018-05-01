@@ -28,33 +28,45 @@
 #include "hb-open-type.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "hb-ot-layout.hh"
-#include "hb-shaper.hh"
 
 #if 0
 HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)
 //HB_SHAPER_DATA_ENSURE_DECLARE(ot, face) Hmm?
+#endif
 
 
 static inline const OT::COLR&
 _get_colr (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::COLR);
-  return *(hb_ot_face_data (face)->colr.get ());
+  return *(hb_ot_face_data (face)->COLR.get ());
 }
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
-  return *(hb_ot_face_data (face)->cpal.get ());
+  return *(hb_ot_face_data (face)->CPAL.get ());
 }
 
+HB_EXTERN hb_bool_t
+hb_ot_color_has_cpal_data (hb_face_t *face)
+{
+  return &_get_cpal (face) != &OT::Null(OT::CPAL);
+}
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_colr_data (hb_face_t *face)
+{
+  return &_get_colr (face) != &OT::Null(OT::COLR);
+}
 
 /**
  * hb_ot_color_get_palette_count:
@@ -72,7 +84,7 @@ hb_ot_color_get_palette_count (hb_face_t *face)
   return cpal.get_palette_count ();
 }
 
-
+#if 0
 /**
  * hb_ot_color_get_palette_name_id:
  * @face: a font face.
@@ -114,6 +126,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
   const OT::CPAL& cpal = _get_cpal(face);
   return cpal.get_palette_flags (palette);
 }
+#endif
 
 
 /**
@@ -125,7 +138,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  * @color_count:  (inout) (optional): on input, how many colors
  *                can be maximally stored into the @colors array;
  *                on output, how many colors were actually stored.
- * @colors: (array length=color_count) (optional):
+ * @colors: (array length=color_count) (out) (optional):
  *                an array of #hb_ot_color_t records. After calling
  *                this function, @colors will be filled with
  *                the palette colors. If @colors is NULL, the function
@@ -144,38 +157,60 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  * Since: REPLACEME
  */
 unsigned int
-hb_ot_color_get_palette_colors (hb_face_t       *face,
-				unsigned int     palette, /* default=0 */
-				unsigned int     start_offset,
-				unsigned int    *color_count /* IN/OUT */,
-				hb_ot_color_t   *colors /* OUT */)
+hb_ot_color_get_palette_colors (hb_face_t      *face,
+				unsigned int    palette, /* default=0 */
+				unsigned int    start_offset,
+				unsigned int   *count /* IN/OUT */,
+				hb_ot_color_t  *colors /* OUT */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (palette >= cpal.numPalettes))
+  if (unlikely (palette >= cpal.get_palette_count ()))
   {
-    if (color_count) *color_count = 0;
+    if (count) *count = 0;
     return 0;
   }
 
-  const OT::ColorRecord* crec = &cpal.offsetFirstColorRecord (&cpal);
-  crec += cpal.colorRecordIndices[palette];
-
   unsigned int num_results = 0;
-  if (likely (color_count && colors))
+  if (count)
   {
-    for (unsigned int i = start_offset;
-	 i < cpal.numPaletteEntries && num_results < *color_count; ++i)
+    unsigned int platte_count = MIN<unsigned int>(*count, cpal.get_palette_entries_count () - start_offset);
+    for (unsigned int i = 0; i < platte_count; i++)
     {
-      hb_ot_color_t* result = &colors[num_results];
-      result->red = crec[i].red;
-      result->green = crec[i].green;
-      result->blue = crec[i].blue;
-      result->alpha = crec[i].alpha;
-      ++num_results;
+      if (cpal.get_color_record_argb(start_offset + i, palette, &colors[num_results]))
+        ++num_results;
     }
   }
 
-  if (likely (color_count)) *color_count = num_results;
-  return cpal.numPaletteEntries;
+  if (likely (count)) *count = num_results;
+  return cpal.get_palette_entries_count ();
 }
-#endif
+
+unsigned int
+hb_ot_color_get_color_layers (hb_face_t        *face,
+			      hb_codepoint_t    gid,
+			      unsigned int      start_offset,
+			      unsigned int     *count,        /* IN/OUT.  May be NULL. */
+			      hb_codepoint_t   *gids,         /* OUT.     May be NULL. */
+			      unsigned int     *color_indices /* OUT.     May be NULL. */)
+{
+  const OT::COLR& colr = _get_colr (face);
+  unsigned int num_results = 0;
+  unsigned int start_layer_index, num_layers = 0;
+  if (colr.get_base_glyph_record (gid, &start_layer_index, &num_layers))
+  {
+    if (count)
+    {
+      unsigned int layer_count = MIN<unsigned int>(*count, num_layers - start_offset);
+      printf ("%d ", *count);
+      for (unsigned int i = 0; i < layer_count; i++)
+      {
+	if (colr.get_layer_record (start_layer_index + start_offset + i,
+				   &gids[num_results], &color_indices[num_results]))
+	  ++num_results;
+      }
+    }
+  }
+
+  if (likely (count)) *count = num_results;
+  return num_layers;
+}
