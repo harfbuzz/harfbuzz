@@ -701,11 +701,16 @@ struct hb_prealloced_array_t
 };
 
 template <typename Type>
-struct hb_auto_array_t : hb_prealloced_array_t <Type>
+struct hb_auto_t : Type
 {
-  hb_auto_array_t (void) { hb_prealloced_array_t<Type>::init (); }
-  ~hb_auto_array_t (void) { hb_prealloced_array_t<Type>::fini (); }
+  hb_auto_t (void) { Type::init (); }
+  ~hb_auto_t (void) { Type::fini (); }
+  private: /* Hide */
+  void init (void) {}
+  void fini (void) {}
 };
+template <typename Type>
+struct hb_auto_array_t : hb_auto_t <hb_prealloced_array_t <Type> > {};
 
 
 #define HB_LOCKABLE_SET_INIT {HB_PREALLOCED_ARRAY_INIT}
