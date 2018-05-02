@@ -69,6 +69,48 @@ struct CmapSubtableFormat0
 
 struct CmapSubtableFormat4
 {
+  struct segment_plan
+  {
+    HBUINT16 start_code;
+    HBUINT16 end_code;
+    bool use_delta;
+  };
+
+  bool serialize (hb_serialize_context_t *c,
+                  const hb_subset_plan_t *plan,
+                  const hb_vector_t<segment_plan> &segments)
+  {
+    // TODO
+  }
+
+  static inline size_t get_sub_table_size (const hb_vector_t<segment_plan> &segments)
+  {
+    size_t segment_size = 0;
+    for (unsigned int i = 0; i < segments.len; i++)
+    {
+      // Parallel array entries
+      segment_size +=
+            2  // end count
+          + 2  // start count
+          + 2  // delta
+          + 2; // range offset
+
+      if (!segments[i].use_delta)
+        // Add bytes for the glyph index array entries for this segment.
+        segment_size += (segments[i].end_code - segments[i].start_code + 1) * 2;
+    }
+
+    return min_size
+        + 2 // Padding
+        + segment_size;
+  }
+
+  static inline bool create_sub_table_plan (const hb_subset_plan_t *plan,
+                                            hb_vector_t<segment_plan> *segments)
+  {
+    // TODO
+  }
+
   struct accelerator_t
   {
     inline void init (const CmapSubtableFormat4 *subtable)
@@ -174,6 +216,8 @@ struct CmapSubtableFormat4
 
     return_trace (16 + 4 * (unsigned int) segCountX2 <= length);
   }
+
+
 
   protected:
   HBUINT16	format;		/* Format number is set to 4. */
@@ -597,24 +641,29 @@ struct cmap
   struct subset_plan {
     subset_plan(void)
     {
-      groups.init();
+      format4_segments.init();
+      format12_groups.init();
     }
 
     ~subset_plan(void)
     {
-      groups.fini();
+      format4_segments.fini();
+      format12_groups.fini();
     }
 
     inline size_t final_size() const
     {
       return
           4 // header
-          + 8 // 1 EncodingRecord
-          + CmapSubtableFormat12::get_sub_table_size (this->groups);
+          + 8 * 2 // 2 EncodingRecord
+          + CmapSubtableFormat4::get_sub_table_size (this->format4_segments);
+          + CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
+    // Format 4
+    hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
     // Format 12
-    hb_vector_t<CmapSubtableLongGroup> groups;
+    hb_vector_t<CmapSubtableLongGroup> format12_groups;
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -628,10 +677,14 @@ struct cmap
   inline bool _create_plan (const hb_subset_plan_t *plan,
                             subset_plan *cmap_plan) const
   {
-    return CmapSubtableFormat12::create_sub_table_plan (plan, &cmap_plan->groups);
+    if (unlikely( !CmapSubtableFormat4::create_sub_table_plan (plan, &cmap_plan->format4_segments)))
+      return false;
+
+    return CmapSubtableFormat12::create_sub_table_plan (plan, &cmap_plan->format12_groups);
   }
 
-  inline bool _subset (const subset_plan &cmap_subset_plan,
+  inline bool _subset (const hb_subset_plan_t *plan,
+                       const subset_plan &cmap_subset_plan,
 		       size_t dest_sz,
 		       void *dest) const
   {
@@ -645,18 +698,37 @@ struct cmap
 
     cmap->version.set (0);
 
-    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 1))) return false;
+    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 2))) return false;
 
-    EncodingRecord &rec = cmap->encodingRecord[0];
-    rec.platformID.set (3); // Windows
-    rec.encodingID.set (10); // Unicode UCS-4
+    // TODO(grieger): Convert the below to a for loop
+
+    // Format 4 Encoding Record
+    EncodingRecord &format4_rec = cmap->encodingRecord[0];
+    format4_rec.platformID.set (3); // Windows
+    format4_rec.encodingID.set (1); // Unicode BMP
+
+    // Format 12 Encoding Record
+    EncodingRecord &format12_rec = cmap->encodingRecord[1];
+    format12_rec.platformID.set (3); // Windows
+    format12_rec.encodingID.set (10); // Unicode UCS-4
+
+    // Write out format 4 sub table.
+    {
+      CmapSubtable &subtable = format4_rec.subtable.serialize (&c, cmap);
+      subtable.u.format.set (4);
+
+      CmapSubtableFormat4 &format4 = subtable.u.format4;
+      if (unlikely (!format4.serialize (&c, plan, cmap_subset_plan.format4_segments))) return false;
+    }
 
     // Write out format 12 sub table.
-    CmapSubtable &subtable = rec.subtable.serialize (&c, cmap);
-    subtable.u.format.set (12);
+    {
+      CmapSubtable &subtable = format12_rec.subtable.serialize (&c, cmap);
+      subtable.u.format.set (12);
 
-    CmapSubtableFormat12 &format12 = subtable.u.format12;
-    if (unlikely (!format12.serialize (&c, cmap_subset_plan.groups))) return false;
+      CmapSubtableFormat12 &format12 = subtable.u.format12;
+      if (unlikely (!format12.serialize (&c, cmap_subset_plan.format12_groups))) return false;
+    }
 
     c.end_serialize ();
 
@@ -681,7 +753,7 @@ struct cmap
       return false;
     }
 
-    if (unlikely (!_subset (cmap_subset_plan, dest_sz, dest)))
+    if (unlikely (!_subset (plan, cmap_subset_plan, dest_sz, dest)))
     {
       DEBUG_MSG(SUBSET, nullptr, "Failed to perform subsetting of cmap.");
       free (dest);
