@@ -1201,18 +1201,18 @@ struct BinSearchHeader
   {
     len.set (v);
     assert (len == v);
-    entrySelectorZ.set (MAX (1u, _hb_bit_storage (v)) - 1);
-    searchRangeZ.set (16 * (1u << entrySelectorZ));
-    rangeShiftZ.set (v * 16 > searchRangeZ
-                     ? 16 * v - searchRangeZ
-                     : 0);
+    entrySelector.set (MAX (1u, _hb_bit_storage (v)) - 1);
+    searchRange.set (16 * (1u << entrySelector));
+    rangeShift.set (v * 16 > searchRange
+		    ? 16 * v - searchRange
+		    : 0);
   }
 
   protected:
   HBUINT16	len;
-  HBUINT16	searchRangeZ;
-  HBUINT16	entrySelectorZ;
-  HBUINT16	rangeShiftZ;
+  HBUINT16	searchRange;
+  HBUINT16	entrySelector;
+  HBUINT16	rangeShift;
 
   public:
   DEFINE_SIZE_STATIC (8);

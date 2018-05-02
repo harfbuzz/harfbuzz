@@ -108,7 +108,7 @@ struct avar
 		    c->check_struct (this))))
       return_trace (false);
 
-    const SegmentMaps *map = &axisSegmentMapsZ;
+    const SegmentMaps *map = axisSegmentMapsZ;
     unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -124,7 +124,7 @@ struct avar
   {
     unsigned int count = MIN<unsigned int> (coords_length, axisCount);
 
-    const SegmentMaps *map = &axisSegmentMapsZ;
+    const SegmentMaps *map = axisSegmentMapsZ;
     for (unsigned int i = 0; i < count; i++)
     {
       coords[i] = map->map (coords[i]);
@@ -139,7 +139,7 @@ struct avar
   HBUINT16	axisCount;	/* The number of variation axes in the font. This
 				 * must be the same number as axisCount in the
 				 * 'fvar' table. */
-  SegmentMaps	axisSegmentMapsZ;
+  SegmentMaps	axisSegmentMapsZ[VAR];
 
   public:
   DEFINE_SIZE_MIN (8);

@@ -670,8 +670,8 @@ struct Chain
   HBUINT32	subtableCount;	/* The number of subtables in the chain. */
 
   Feature	featureZ[VAR];	/* Features. */
-  ChainSubtable	subtableX[VAR];	/* Subtables. */
-  // subtableGlyphCoverageArray if major == 3
+/*ChainSubtable	subtableX[VAR];*//* Subtables. */
+/*subtableGlyphCoverageArray*/	/* Only if major == 3. */
 
   public:
   DEFINE_SIZE_MIN (16);

@@ -59,8 +59,8 @@ struct CmapSubtableFormat0
 
   protected:
   HBUINT16	format;		/* Format number is set to 0. */
-  HBUINT16	lengthZ;	/* Byte length of this subtable. */
-  HBUINT16	languageZ;	/* Ignore. */
+  HBUINT16	length;		/* Byte length of this subtable. */
+  HBUINT16	language;	/* Ignore. */
   HBUINT8	glyphIdArray[256];/* An array that maps character
 				 * code to glyph index values. */
   public:
@@ -179,11 +179,11 @@ struct CmapSubtableFormat4
   HBUINT16	format;		/* Format number is set to 4. */
   HBUINT16	length;		/* This is the length in bytes of the
 				 * subtable. */
-  HBUINT16	languageZ;	/* Ignore. */
+  HBUINT16	language;	/* Ignore. */
   HBUINT16	segCountX2;	/* 2 x segCount. */
-  HBUINT16	searchRangeZ;	/* 2 * (2**floor(log2(segCount))) */
-  HBUINT16	entrySelectorZ;	/* log2(searchRange/2) */
-  HBUINT16	rangeShiftZ;	/* 2 x segCount - searchRange */
+  HBUINT16	searchRange;	/* 2 * (2**floor(log2(segCount))) */
+  HBUINT16	entrySelector;	/* log2(searchRange/2) */
+  HBUINT16	rangeShift;	/* 2 x segCount - searchRange */
 
   HBUINT16	values[VAR];
 #if 0
@@ -251,8 +251,8 @@ struct CmapSubtableTrimmed
 
   protected:
   UINT		formatReserved;	/* Subtable format and (maybe) padding. */
-  UINT		lengthZ;	/* Byte length of this subtable. */
-  UINT		languageZ;	/* Ignore. */
+  UINT		length;		/* Byte length of this subtable. */
+  UINT		language;	/* Ignore. */
   UINT		startCharCode;	/* First character code covered. */
   ArrayOf<GlyphID, UINT>
 		glyphIdArray;	/* Array of glyph index values for character
@@ -305,9 +305,9 @@ struct CmapSubtableLongSegmented
 
   protected:
   HBUINT16	format;		/* Subtable format; set to 12. */
-  HBUINT16	reservedZ;	/* Reserved; set to 0. */
-  HBUINT32	lengthZ;	/* Byte length of this subtable. */
-  HBUINT32	languageZ;	/* Ignore. */
+  HBUINT16	reserved;	/* Reserved; set to 0. */
+  HBUINT32	length;		/* Byte length of this subtable. */
+  HBUINT32	language;	/* Ignore. */
   SortedArrayOf<CmapSubtableLongGroup, HBUINT32>
 		groups;		/* Groupings. */
   public:
@@ -441,7 +441,7 @@ struct CmapSubtableFormat14
 
   protected:
   HBUINT16	format;		/* Format number is set to 14. */
-  HBUINT32		lengthZ;	/* Byte length of this subtable. */
+  HBUINT32	length;		/* Byte length of this subtable. */
   SortedArrayOf<VariationSelectorRecord, HBUINT32>
 		record;		/* Variation selector records; sorted
 				 * in increasing order of `varSelector'. */
@@ -611,8 +611,8 @@ struct cmap
     if (unlikely (!c.extend_min (format12))) return false;
 
     format12.format.set (12);
-    format12.reservedZ.set (0);
-    format12.lengthZ.set (16 + 12 * groups.len);
+    format12.reserved.set (0);
+    format12.length.set (16 + 12 * groups.len);
 
     if (unlikely (!format12.serialize (&c, groups))) return false;
 
