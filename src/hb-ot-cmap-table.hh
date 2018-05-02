@@ -108,7 +108,48 @@ struct CmapSubtableFormat4
   static inline bool create_sub_table_plan (const hb_subset_plan_t *plan,
                                             hb_vector_t<segment_plan> *segments)
   {
-    // TODO
+    segment_plan *segment = nullptr;
+    hb_codepoint_t last_gid = 0;
+    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
+      hb_codepoint_t cp = plan->codepoints[i];
+      hb_codepoint_t new_gid;
+      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+      {
+	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
+	return false;
+      }
+
+      if (cp > 0xFFFF) {
+        // We are now outside of unicode BMP, stop adding to this cmap.
+        break;
+      }
+
+      if (!segment
+          || cp != segment->end_code + 1)
+      {
+        segment = segments->push ();
+        segment->start_code.set (cp);
+        segment->end_code.set (cp);
+        segment->use_delta = true;
+      } else {
+        segment->end_code.set (cp);
+        if (last_gid + 1 != new_gid)
+          // gid's are not consecutive in this segment so delta
+          // cannot be used.
+          segment->use_delta = false;
+      }
+
+      // There must be a final entry with end_code == 0xFFFF. Check if we need to add one.
+      if (segment == nullptr || segment->end_code != 0xFFFF) {
+        segment = segments->push ();
+        segment->start_code.set (0xFFFF);
+        segment->end_code.set (0xFFFF);
+        segment->use_delta = true;
+      }
+
+      last_gid = new_gid;
+    }
+    return true;
   }
 
   struct accelerator_t
