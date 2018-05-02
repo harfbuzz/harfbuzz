@@ -294,7 +294,7 @@ struct CmapSubtableLongSegmented
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-                         hb_vector_t<CmapSubtableLongGroup> &group_data)
+                         const hb_vector_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -319,6 +319,69 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   static inline hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 						hb_codepoint_t u)
   { return group.glyphID + (u - group.startCharCode); }
+
+
+  bool serialize (hb_serialize_context_t *c,
+                  const hb_vector_t<CmapSubtableLongGroup> &groups)
+  {
+    if (unlikely (!c->extend_min (*this))) return false;
+
+    this->format.set (12);
+    this->reservedZ.set (0);
+    this->lengthZ.set (get_sub_table_size (groups));
+
+    return CmapSubtableLongSegmented::serialize (c, groups);
+  }
+
+  static inline size_t get_sub_table_size (const hb_vector_t<CmapSubtableLongGroup> &groups)
+  {
+    return 16 + 12 * groups.len;
+  }
+
+  static inline bool create_sub_table_plan (const hb_subset_plan_t *plan,
+                                            hb_vector_t<CmapSubtableLongGroup> *groups)
+  {
+    CmapSubtableLongGroup *group = nullptr;
+    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
+
+      hb_codepoint_t cp = plan->codepoints[i];
+      hb_codepoint_t new_gid;
+      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+      {
+	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
+	return false;
+      }
+
+      if (!group || !_is_gid_consecutive (group, cp, new_gid))
+      {
+        group = groups->push ();
+        group->startCharCode.set (cp);
+        group->endCharCode.set (cp);
+        group->glyphID.set (new_gid);
+      } else
+      {
+        group->endCharCode.set (cp);
+      }
+    }
+
+    DEBUG_MSG(SUBSET, nullptr, "cmap");
+    for (unsigned int i = 0; i < groups->len; i++) {
+      CmapSubtableLongGroup& group = (*groups)[i];
+      DEBUG_MSG(SUBSET, nullptr, "  %d: U+%04X-U+%04X, gid %d-%d", i, (uint32_t) group.startCharCode, (uint32_t) group.endCharCode, (uint32_t) group.glyphID, (uint32_t) group.glyphID + ((uint32_t) group.endCharCode - (uint32_t) group.startCharCode));
+    }
+
+    return true;
+  }
+
+ private:
+  static inline bool _is_gid_consecutive (CmapSubtableLongGroup *group,
+					  hb_codepoint_t cp,
+					  hb_codepoint_t new_gid)
+  {
+    return (cp - 1 == group->endCharCode) &&
+	new_gid == group->glyphID + (cp - group->startCharCode);
+  }
+
 };
 
 struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
@@ -531,6 +594,29 @@ struct cmap
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
 
+  struct subset_plan {
+    subset_plan(void)
+    {
+      groups.init();
+    }
+
+    ~subset_plan(void)
+    {
+      groups.fini();
+    }
+
+    inline size_t final_size() const
+    {
+      return
+          4 // header
+          + 8 // 1 EncodingRecord
+          + CmapSubtableFormat12::get_sub_table_size (this->groups);
+    }
+
+    // Format 12
+    hb_vector_t<CmapSubtableLongGroup> groups;
+  };
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -539,50 +625,13 @@ struct cmap
 		  encodingRecord.sanitize (c, this));
   }
 
-  static inline bool _is_gid_consecutive (CmapSubtableLongGroup *group,
-					  hb_codepoint_t cp,
-					  hb_codepoint_t new_gid)
+  inline bool _create_plan (const hb_subset_plan_t *plan,
+                            subset_plan *cmap_plan) const
   {
-    return (cp - 1 == group->endCharCode) &&
-	new_gid == group->glyphID + (cp - group->startCharCode);
+    return CmapSubtableFormat12::create_sub_table_plan (plan, &cmap_plan->groups);
   }
 
-  inline bool populate_groups (hb_subset_plan_t *plan,
-			       hb_vector_t<CmapSubtableLongGroup> *groups) const
-  {
-    CmapSubtableLongGroup *group = nullptr;
-    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
-
-      hb_codepoint_t cp = plan->codepoints[i];
-      hb_codepoint_t new_gid;
-      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
-      {
-	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
-	return false;
-      }
-
-      if (!group || !_is_gid_consecutive (group, cp, new_gid))
-      {
-        group = groups->push ();
-        group->startCharCode.set (cp);
-        group->endCharCode.set (cp);
-        group->glyphID.set (new_gid);
-      } else
-      {
-        group->endCharCode.set (cp);
-      }
-    }
-
-    DEBUG_MSG(SUBSET, nullptr, "cmap");
-    for (unsigned int i = 0; i < groups->len; i++) {
-      CmapSubtableLongGroup& group = (*groups)[i];
-      DEBUG_MSG(SUBSET, nullptr, "  %d: U+%04X-U+%04X, gid %d-%d", i, (uint32_t) group.startCharCode, (uint32_t) group.endCharCode, (uint32_t) group.glyphID, (uint32_t) group.glyphID + ((uint32_t) group.endCharCode - (uint32_t) group.startCharCode));
-    }
-
-    return true;
-  }
-
-  inline bool _subset (hb_vector_t<CmapSubtableLongGroup> &groups,
+  inline bool _subset (const subset_plan &cmap_subset_plan,
 		       size_t dest_sz,
 		       void *dest) const
   {
@@ -602,19 +651,12 @@ struct cmap
     rec.platformID.set (3); // Windows
     rec.encodingID.set (10); // Unicode UCS-4
 
-    /* capture offset to subtable */
+    // Write out format 12 sub table.
     CmapSubtable &subtable = rec.subtable.serialize (&c, cmap);
-
     subtable.u.format.set (12);
 
     CmapSubtableFormat12 &format12 = subtable.u.format12;
-    if (unlikely (!c.extend_min (format12))) return false;
-
-    format12.format.set (12);
-    format12.reserved.set (0);
-    format12.length.set (16 + 12 * groups.len);
-
-    if (unlikely (!format12.serialize (&c, groups))) return false;
+    if (unlikely (!format12.serialize (&c, cmap_subset_plan.groups))) return false;
 
     c.end_serialize ();
 
@@ -623,24 +665,25 @@ struct cmap
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_auto_t<hb_vector_t<CmapSubtableLongGroup> > groups;
+    subset_plan cmap_subset_plan;
 
-    if (unlikely (!populate_groups (plan, &groups))) return false;
+    if (unlikely (!_create_plan (plan, &cmap_subset_plan)))
+    {
+      DEBUG_MSG(SUBSET, nullptr, "Failed to generate a cmap subsetting plan.");
+      return false;
+    }
 
     // We now know how big our blob needs to be
-    // TODO use APIs from the structs to get size?
-    size_t dest_sz = 4 // header
-                   + 8 // 1 EncodingRecord
-                   + 16 // Format 12 header
-                   + 12 * groups.len; // SequentialMapGroup records
+    size_t dest_sz = cmap_subset_plan.final_size();
     void *dest = malloc (dest_sz);
     if (unlikely (!dest)) {
       DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for cmap subset output", (unsigned long) dest_sz);
       return false;
     }
 
-    if (unlikely (!_subset (groups, dest_sz, dest)))
+    if (unlikely (!_subset (cmap_subset_plan, dest_sz, dest)))
     {
+      DEBUG_MSG(SUBSET, nullptr, "Failed to perform subsetting of cmap.");
       free (dest);
       return false;
     }
