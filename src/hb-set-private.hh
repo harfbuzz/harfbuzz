@@ -193,17 +193,27 @@ struct hb_set_t
   hb_vector_t<page_map_t, 8> page_map;
   hb_vector_t<page_t, 1> pages;
 
-  inline void init (void)
+  inline void init_shallow (void)
   {
     in_error = false;
     population = 0;
     page_map.init ();
     pages.init ();
   }
-  inline void fini (void)
+  inline void init (void)
+  {
+    hb_object_init (this);
+    init_shallow ();
+  }
+  inline void fini_shallow (void)
   {
     page_map.fini ();
     pages.fini ();
+  }
+  inline void fini (void)
+  {
+    hb_object_fini (this);
+    fini_shallow ();
   }
 
   inline bool resize (unsigned int count)

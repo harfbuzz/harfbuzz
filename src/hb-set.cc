@@ -45,7 +45,7 @@ hb_set_create (void)
   if (!(set = hb_object_create<hb_set_t> ()))
     return hb_set_get_empty ();
 
-  set->init ();
+  set->init_shallow ();
 
   return set;
 }
@@ -96,7 +96,7 @@ hb_set_destroy (hb_set_t *set)
 {
   if (!hb_object_destroy (set)) return;
 
-  set->fini ();
+  set->fini_shallow ();
 
   free (set);
 }
