@@ -80,7 +80,44 @@ struct CmapSubtableFormat4
                   const hb_subset_plan_t *plan,
                   const hb_vector_t<segment_plan> &segments)
   {
-    // TODO
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    this->format.set (4);
+    this->length.set (get_sub_table_size (segments));
+
+    // 2 * segCount
+    this->segCountX2.set (segments.len * 2);
+    // 2 * (2**floor(log2(segCount)))
+    this->searchRangeZ.set (2 * (1 << (int) (log (segments.len) / log (2.0))));
+    // log2(searchRange/2)
+    this->entrySelectorZ.set (log ((double) this->searchRangeZ) / log (2.0));
+    // 2 x segCount - searchRange
+    this->rangeShiftZ.set (2 * segments.len - this->searchRangeZ);
+
+    HBUINT16 *end_count = c->allocate_size<HBUINT16> (HBUINT16::static_size * segments.len);
+    c->allocate_size<HBUINT16> (HBUINT16::static_size); // 2 bytes of padding.
+    HBUINT16 *start_count = c->allocate_size<HBUINT16> (HBUINT16::static_size * segments.len);
+    HBINT16 *id_delta = c->allocate_size<HBINT16> (HBUINT16::static_size * segments.len);
+    HBUINT16 *id_range_offset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segments.len);
+
+    for (unsigned int i = 0; i < segments.len; i++)
+    {
+      end_count[i].set (segments[i].end_code);
+      start_count[i].set (segments[i].start_code);
+      if (segments[i].use_delta)
+      {
+        hb_codepoint_t start_gid;
+        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, segments[i].start_code, &start_gid)))
+          return false;
+        id_delta[i].set (start_gid - segments[i].start_code);
+      } else {
+        // TODO: fill out glyphIdArray and id_range_offset.
+      }
+    }
+
+    // TODO: glyphdIdArray
   }
 
   static inline size_t get_sub_table_size (const hb_vector_t<segment_plan> &segments)
