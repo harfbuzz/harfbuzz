@@ -764,7 +764,7 @@ struct cmap
     inline size_t final_size() const
     {
       return 4 // header
-          +  8 * 2 // 2 EncodingRecord
+          +  8 * 3 // 3 EncodingRecord
           +  CmapSubtableFormat4::get_sub_table_size (this->format4_segments)
           +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
@@ -807,24 +807,30 @@ struct cmap
 
     cmap->version.set (0);
 
-    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 2)))
+    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 3)))
       return false;
 
     // TODO(grieger): Convert the below to a for loop
 
-    // Format 4 Encoding Record
-    EncodingRecord &format4_rec = cmap->encodingRecord[0];
-    format4_rec.platformID.set (3); // Windows
-    format4_rec.encodingID.set (1); // Unicode BMP
+    // Format 4, Plat 0 Encoding Record
+    EncodingRecord &format4_plat0_rec = cmap->encodingRecord[0];
+    format4_plat0_rec.platformID.set (0); // Unicode
+    format4_plat0_rec.encodingID.set (3);
+
+    // Format 4, Plat 3 Encoding Record
+    EncodingRecord &format4_plat3_rec = cmap->encodingRecord[1];
+    format4_plat3_rec.platformID.set (3); // Windows
+    format4_plat3_rec.encodingID.set (1); // Unicode BMP
 
     // Format 12 Encoding Record
-    EncodingRecord &format12_rec = cmap->encodingRecord[1];
+    EncodingRecord &format12_rec = cmap->encodingRecord[2];
     format12_rec.platformID.set (3); // Windows
     format12_rec.encodingID.set (10); // Unicode UCS-4
 
-    // Write out format 4 sub table.
+    // Write out format 4 sub table
     {
-      CmapSubtable &subtable = format4_rec.subtable.serialize (&c, cmap);
+      CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, cmap);
+      format4_plat3_rec.subtable.set (format4_plat0_rec.subtable);
       subtable.u.format.set (4);
 
       CmapSubtableFormat4 &format4 = subtable.u.format4;

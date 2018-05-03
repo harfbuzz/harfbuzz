@@ -33,7 +33,7 @@ static void
 test_subset_cmap (void)
 {
   hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.cmap-format12-only.ttf");
+  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
