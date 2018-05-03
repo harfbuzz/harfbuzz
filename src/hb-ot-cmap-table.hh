@@ -92,7 +92,7 @@ struct CmapSubtableFormat4
     // 2 * (2**floor(log2(segCount)))
     this->searchRangeZ.set (2 * (1 << (int) (log (segments.len) / log (2.0))));
     // log2(searchRange/2)
-    this->entrySelectorZ.set (log ((double) this->searchRangeZ) / log (2.0));
+    this->entrySelectorZ.set (log ((double) this->searchRangeZ / 2.0) / log (2.0));
     // 2 x segCount - searchRange
     this->rangeShiftZ.set (2 * segments.len - this->searchRangeZ);
 
@@ -102,20 +102,26 @@ struct CmapSubtableFormat4
     HBINT16 *id_delta = c->allocate_size<HBINT16> (HBUINT16::static_size * segments.len);
     HBUINT16 *id_range_offset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segments.len);
 
+    if (id_range_offset == nullptr)
+      return_trace (false);
+
     for (unsigned int i = 0; i < segments.len; i++)
     {
       end_count[i].set (segments[i].end_code);
       start_count[i].set (segments[i].start_code);
       if (segments[i].use_delta)
       {
-        hb_codepoint_t start_gid;
-        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, segments[i].start_code, &start_gid)))
-          return false;
+        hb_codepoint_t cp = segments[i].start_code;
+        hb_codepoint_t start_gid = 0;
+        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &start_gid) && cp != 0xFFFF))
+          return_trace (false);
         id_delta[i].set (start_gid - segments[i].start_code);
       } else {
         id_delta[i].set (0);
         unsigned int num_codepoints = segments[i].end_code - segments[i].start_code + 1;
         HBUINT16 *glyph_id_array = c->allocate_size<HBUINT16> (HBUINT16::static_size * num_codepoints);
+        if (glyph_id_array == nullptr)
+          return_trace (false);
         // From the cmap spec:
         //
         // id_range_offset[i]/2
@@ -134,15 +140,15 @@ struct CmapSubtableFormat4
         for (unsigned int j = 0; j < num_codepoints; j++)
         {
           hb_codepoint_t cp = segments[i].start_code + j;
-          hb_codepoint_t new_gid = 0; // Default to not def for 0xFFFF
-          if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid) && cp != 0xFFFF))
-            return false;
+          hb_codepoint_t new_gid;
+          if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+            return_trace (false);
           glyph_id_array[j].set (new_gid);
         }
       }
     }
 
-    return true;
+    return_trace (true);
   }
 
   static inline size_t get_sub_table_size (const hb_vector_t<segment_plan> &segments)
@@ -201,16 +207,17 @@ struct CmapSubtableFormat4
           segment->use_delta = false;
       }
 
-      // There must be a final entry with end_code == 0xFFFF. Check if we need to add one.
-      if (segment == nullptr || segment->end_code != 0xFFFF) {
-        segment = segments->push ();
-        segment->start_code.set (0xFFFF);
-        segment->end_code.set (0xFFFF);
-        segment->use_delta = false;
-      }
-
       last_gid = new_gid;
     }
+
+    // There must be a final entry with end_code == 0xFFFF. Check if we need to add one.
+    if (segment == nullptr || segment->end_code != 0xFFFF) {
+      segment = segments->push ();
+      segment->start_code.set (0xFFFF);
+      segment->end_code.set (0xFFFF);
+      segment->use_delta = true;
+    }
+
     return true;
   }
 
@@ -756,11 +763,10 @@ struct cmap
 
     inline size_t final_size() const
     {
-      return
-          4 // header
-          + 8 * 2 // 2 EncodingRecord
-          + CmapSubtableFormat4::get_sub_table_size (this->format4_segments);
-          + CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
+      return 4 // header
+          +  8 * 2 // 2 EncodingRecord
+          +  CmapSubtableFormat4::get_sub_table_size (this->format4_segments)
+          +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
     // Format 4
@@ -801,7 +807,8 @@ struct cmap
 
     cmap->version.set (0);
 
-    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 2))) return false;
+    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 2)))
+      return false;
 
     // TODO(grieger): Convert the below to a for loop
 
@@ -821,7 +828,8 @@ struct cmap
       subtable.u.format.set (4);
 
       CmapSubtableFormat4 &format4 = subtable.u.format4;
-      if (unlikely (!format4.serialize (&c, plan, cmap_subset_plan.format4_segments))) return false;
+      if (unlikely (!format4.serialize (&c, plan, cmap_subset_plan.format4_segments)))
+        return false;
     }
 
     // Write out format 12 sub table.
@@ -830,7 +838,8 @@ struct cmap
       subtable.u.format.set (12);
 
       CmapSubtableFormat12 &format12 = subtable.u.format12;
-      if (unlikely (!format12.serialize (&c, cmap_subset_plan.format12_groups))) return false;
+      if (unlikely (!format12.serialize (&c, cmap_subset_plan.format12_groups)))
+        return false;
     }
 
     c.end_serialize ();
