@@ -74,7 +74,7 @@ test_subset_cmap_non_consecutive_glyphs (void)
 static void
 test_subset_cmap_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.cmap-format12-only.ttf");
+  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;
