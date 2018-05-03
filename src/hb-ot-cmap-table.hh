@@ -113,11 +113,36 @@ struct CmapSubtableFormat4
           return false;
         id_delta[i].set (start_gid - segments[i].start_code);
       } else {
-        // TODO: fill out glyphIdArray and id_range_offset.
+        id_delta[i].set (0);
+        unsigned int num_codepoints = segments[i].end_code - segments[i].start_code + 1;
+        HBUINT16 *glyph_id_array = c->allocate_size<HBUINT16> (HBUINT16::static_size * num_codepoints);
+        // From the cmap spec:
+        //
+        // id_range_offset[i]/2
+        // + (cp - segments[i].start_code)
+        // + (id_range_offset + i)
+        // =
+        // glyph_id_array + (cp - segments[i].start_code)
+        //
+        // So, solve for id_range_offset[i]:
+        //
+        // id_range_offset[i]
+        // =
+        // 2 * (glyph_id_array - id_range_offset - i)
+        id_range_offset[i].set (2 * (
+            glyph_id_array - id_range_offset - i));
+        for (unsigned int j = 0; j < num_codepoints; j++)
+        {
+          hb_codepoint_t cp = segments[i].start_code + j;
+          hb_codepoint_t new_gid = 0; // Default to not def for 0xFFFF
+          if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid) && cp != 0xFFFF))
+            return false;
+          glyph_id_array[j].set (new_gid);
+        }
       }
     }
 
-    // TODO: glyphdIdArray
+    return true;
   }
 
   static inline size_t get_sub_table_size (const hb_vector_t<segment_plan> &segments)
@@ -181,7 +206,7 @@ struct CmapSubtableFormat4
         segment = segments->push ();
         segment->start_code.set (0xFFFF);
         segment->end_code.set (0xFFFF);
-        segment->use_delta = true;
+        segment->use_delta = false;
       }
 
       last_gid = new_gid;
