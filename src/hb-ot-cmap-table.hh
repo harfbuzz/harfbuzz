@@ -482,7 +482,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     this->reservedZ.set (0);
     this->lengthZ.set (get_sub_table_size (groups));
 
-    return CmapSubtableLongSegmented::serialize (c, groups);
+    return CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups);
   }
 
   static inline size_t get_sub_table_size (const hb_vector_t<CmapSubtableLongGroup> &groups)
