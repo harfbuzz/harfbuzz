@@ -31,8 +31,7 @@
 
 #include "hb-private.hh"
 #include "hb-debug.hh"
-
-#include "hb-object-private.hh"
+#include "hb-blob-private.hh"
 
 #ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
@@ -48,20 +47,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
-struct hb_blob_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  bool immutable;
-
-  const char *data;
-  unsigned int length;
-  hb_memory_mode_t mode;
-
-  void *user_data;
-  hb_destroy_func_t destroy;
-};
 
 
 static bool _try_writable (hb_blob_t *blob);
@@ -506,6 +491,10 @@ _try_writable (hb_blob_t *blob)
 
   return true;
 }
+
+/*
+ * Mmap
+ */
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <windows.h>

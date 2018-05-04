@@ -2,6 +2,7 @@
 
 HB_BASE_sources = \
 	hb-atomic-private.hh \
+	hb-blob-private.hh \
 	hb-blob.cc \
 	hb-buffer-private.hh \
 	hb-buffer-serialize.cc \
