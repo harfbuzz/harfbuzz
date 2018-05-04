@@ -88,11 +88,11 @@ struct CmapSubtableFormat4
     this->length.set (get_sub_table_size (segments));
 
     this->segCountX2.set (segments.len * 2);
-    this->entrySelectorZ.set (MAX (1u, _hb_bit_storage (segments.len)) - 1);
-    this->searchRangeZ.set (2 * (1u << this->entrySelectorZ));
-    this->rangeShiftZ.set (segments.len * 2 > this->searchRangeZ
-                           ? 2 * segments.len - this->searchRangeZ
-                           : 0);
+    this->entrySelector.set (MAX (1u, _hb_bit_storage (segments.len)) - 1);
+    this->searchRange.set (2 * (1u << this->entrySelector));
+    this->rangeShift.set (segments.len * 2 > this->searchRange
+                          ? 2 * segments.len - this->searchRange
+                          : 0);
 
     HBUINT16 *end_count = c->allocate_size<HBUINT16> (HBUINT16::static_size * segments.len);
     c->allocate_size<HBUINT16> (HBUINT16::static_size); // 2 bytes of padding.
@@ -479,8 +479,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     if (unlikely (!c->extend_min (*this))) return false;
 
     this->format.set (12);
-    this->reservedZ.set (0);
-    this->lengthZ.set (get_sub_table_size (groups));
+    this->reserved.set (0);
+    this->length.set (get_sub_table_size (groups));
 
     return CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups);
   }
