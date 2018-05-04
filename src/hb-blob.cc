@@ -49,18 +49,6 @@
 
 
 
-static bool _try_writable (hb_blob_t *blob);
-
-static void
-_hb_blob_destroy_user_data (hb_blob_t *blob)
-{
-  if (blob->destroy) {
-    blob->destroy (blob->user_data);
-    blob->user_data = nullptr;
-    blob->destroy = nullptr;
-  }
-}
-
 /**
  * hb_blob_create: (skip)
  * @data: Pointer to blob data.
@@ -103,7 +91,7 @@ hb_blob_create (const char        *data,
 
   if (blob->mode == HB_MEMORY_MODE_DUPLICATE) {
     blob->mode = HB_MEMORY_MODE_READONLY;
-    if (!_try_writable (blob)) {
+    if (!blob->try_make_writable ()) {
       hb_blob_destroy (blob);
       return hb_blob_get_empty ();
     }
@@ -249,7 +237,7 @@ hb_blob_destroy (hb_blob_t *blob)
 {
   if (!hb_object_destroy (blob)) return;
 
-  _hb_blob_destroy_user_data (blob);
+  blob->fini_shallow ();
 
   free (blob);
 }
@@ -384,7 +372,7 @@ hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
 char *
 hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
 {
-  if (!_try_writable (blob)) {
+  if (!blob->try_make_writable ()) {
     if (length)
       *length = 0;
 
@@ -398,8 +386,8 @@ hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
 }
 
 
-static hb_bool_t
-_try_make_writable_inplace_unix (hb_blob_t *blob)
+bool
+hb_blob_t::try_make_writable_inplace_unix (void)
 {
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT)
   uintptr_t pagesize = -1, mask, length;
@@ -414,25 +402,25 @@ _try_make_writable_inplace_unix (hb_blob_t *blob)
 #endif
 
   if ((uintptr_t) -1L == pagesize) {
-    DEBUG_MSG_FUNC (BLOB, blob, "failed to get pagesize: %s", strerror (errno));
+    DEBUG_MSG_FUNC (BLOB, this, "failed to get pagesize: %s", strerror (errno));
     return false;
   }
-  DEBUG_MSG_FUNC (BLOB, blob, "pagesize is %lu", (unsigned long) pagesize);
+  DEBUG_MSG_FUNC (BLOB, this, "pagesize is %lu", (unsigned long) pagesize);
 
   mask = ~(pagesize-1);
-  addr = (const char *) (((uintptr_t) blob->data) & mask);
-  length = (const char *) (((uintptr_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
-  DEBUG_MSG_FUNC (BLOB, blob,
+  addr = (const char *) (((uintptr_t) this->data) & mask);
+  length = (const char *) (((uintptr_t) this->data + this->length + pagesize-1) & mask)  - addr;
+  DEBUG_MSG_FUNC (BLOB, this,
 		  "calling mprotect on [%p..%p] (%lu bytes)",
 		  addr, addr+length, (unsigned long) length);
   if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
-    DEBUG_MSG_FUNC (BLOB, blob, "mprotect failed: %s", strerror (errno));
+    DEBUG_MSG_FUNC (BLOB, this, "mprotect failed: %s", strerror (errno));
     return false;
   }
 
-  blob->mode = HB_MEMORY_MODE_WRITABLE;
+  this->mode = HB_MEMORY_MODE_WRITABLE;
 
-  DEBUG_MSG_FUNC (BLOB, blob,
+  DEBUG_MSG_FUNC (BLOB, this,
 		  "successfully made [%p..%p] (%lu bytes) writable\n",
 		  addr, addr+length, (unsigned long) length);
   return true;
@@ -441,53 +429,53 @@ _try_make_writable_inplace_unix (hb_blob_t *blob)
 #endif
 }
 
-static bool
-_try_writable_inplace (hb_blob_t *blob)
+bool
+hb_blob_t::try_make_writable_inplace (void)
 {
-  DEBUG_MSG_FUNC (BLOB, blob, "making writable inplace\n");
+  DEBUG_MSG_FUNC (BLOB, this, "making writable inplace\n");
 
-  if (_try_make_writable_inplace_unix (blob))
+  if (this->try_make_writable_inplace_unix ())
     return true;
 
-  DEBUG_MSG_FUNC (BLOB, blob, "making writable -> FAILED\n");
+  DEBUG_MSG_FUNC (BLOB, this, "making writable -> FAILED\n");
 
   /* Failed to make writable inplace, mark that */
-  blob->mode = HB_MEMORY_MODE_READONLY;
+  this->mode = HB_MEMORY_MODE_READONLY;
   return false;
 }
 
-static bool
-_try_writable (hb_blob_t *blob)
+bool
+hb_blob_t::try_make_writable (void)
 {
-  if (blob->immutable)
+  if (this->immutable)
     return false;
 
-  if (blob->mode == HB_MEMORY_MODE_WRITABLE)
+  if (this->mode == HB_MEMORY_MODE_WRITABLE)
     return true;
 
-  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE && _try_writable_inplace (blob))
+  if (this->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE && this->try_make_writable_inplace ())
     return true;
 
-  if (blob->mode == HB_MEMORY_MODE_WRITABLE)
+  if (this->mode == HB_MEMORY_MODE_WRITABLE)
     return true;
 
 
-  DEBUG_MSG_FUNC (BLOB, blob, "current data is -> %p\n", blob->data);
+  DEBUG_MSG_FUNC (BLOB, this, "current data is -> %p\n", this->data);
 
   char *new_data;
 
-  new_data = (char *) malloc (blob->length);
+  new_data = (char *) malloc (this->length);
   if (unlikely (!new_data))
     return false;
 
-  DEBUG_MSG_FUNC (BLOB, blob, "dupped successfully -> %p\n", blob->data);
+  DEBUG_MSG_FUNC (BLOB, this, "dupped successfully -> %p\n", this->data);
 
-  memcpy (new_data, blob->data, blob->length);
-  _hb_blob_destroy_user_data (blob);
-  blob->mode = HB_MEMORY_MODE_WRITABLE;
-  blob->data = new_data;
-  blob->user_data = new_data;
-  blob->destroy = free;
+  memcpy (new_data, this->data, this->length);
+  this->destroy_user_data ();
+  this->mode = HB_MEMORY_MODE_WRITABLE;
+  this->data = new_data;
+  this->user_data = new_data;
+  this->destroy = free;
 
   return true;
 }
