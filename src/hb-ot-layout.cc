@@ -30,19 +30,20 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
+#include "hb-ot-map-private.hh"
 
-#include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-#include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
-#include "hb-ot-name-table.hh" // Just so we compile it; unused otherwise.
+
+// Just so we compile them; unused otherwise:
+#include "hb-ot-layout-base-table.hh"
+#include "hb-ot-layout-jstf-table.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
-#include "hb-ot-color-sbix-table.hh" // Just so we compile it; unused otherwise.
-#include "hb-ot-color-svg-table.hh" // Just so we compile it; unused otherwise.
-
-#include "hb-ot-map-private.hh"
+#include "hb-ot-color-sbix-table.hh"
+#include "hb-ot-color-svg-table.hh"
+#include "hb-ot-name-table.hh"
 
 
 #ifndef HB_NO_VISIBILITY
@@ -66,16 +67,9 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>().sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
-  layout->base.init (face);
-  layout->colr.init (face);
-  layout->cpal.init (face);
   layout->math.init (face);
   layout->fvar.init (face);
   layout->avar.init (face);
-  layout->ankr.init (face);
-  layout->kerx.init (face);
-  layout->morx.init (face);
-  layout->trak.init (face);
 
   {
     /*
@@ -222,16 +216,9 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
-  layout->base.fini ();
-  layout->colr.fini ();
-  layout->cpal.fini ();
   layout->math.fini ();
   layout->fvar.fini ();
   layout->avar.fini ();
-  layout->ankr.fini ();
-  layout->kerx.fini ();
-  layout->morx.fini ();
-  layout->trak.fini ();
 
   free (layout);
 }

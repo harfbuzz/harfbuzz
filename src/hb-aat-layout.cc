@@ -44,6 +44,7 @@
  * morx/kerx/trak
  */
 
+#if 0
 static inline const AAT::ankr&
 _get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
@@ -109,6 +110,7 @@ _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
     *blob = layout->trak.blob;
   return trak;
 }
+#endif
 
 // static inline void
 // _hb_aat_layout_create (hb_face_t *face)
@@ -127,16 +129,19 @@ _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
 void
 hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
 {
+#if 0
   hb_blob_t *blob;
   const AAT::morx& morx = _get_morx (font->face, &blob);
 
   AAT::hb_aat_apply_context_t c (font, buffer, blob);
   morx.apply (&c);
+#endif
 }
 
 void
 hb_aat_layout_position (hb_font_t *font, hb_buffer_t *buffer)
 {
+#if 0
   hb_blob_t *blob;
   const AAT::ankr& ankr = _get_ankr (font->face, &blob);
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
@@ -145,4 +150,5 @@ hb_aat_layout_position (hb_font_t *font, hb_buffer_t *buffer)
   AAT::hb_aat_apply_context_t c (font, buffer, blob);
   kerx.apply (&c, &ankr);
   trak.apply (&c);
+#endif
 }

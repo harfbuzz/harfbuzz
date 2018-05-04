@@ -134,7 +134,7 @@ struct BinSearchArrayOf
 
   protected:
   BinSearchHeader	header;
-  HBUINT8			bytes[VAR];
+  HBUINT8		bytes[VAR];
   public:
   DEFINE_SIZE_ARRAY (10, bytes);
 };
