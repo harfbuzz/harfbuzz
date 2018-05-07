@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 2.8.0)
-cmake_policy(SET CMP0063 NEW)
-
 project(harfbuzz)
 
 enable_testing()
@@ -526,16 +524,16 @@ endif ()
 
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
-set_target_properties(harfbuzz PROPERTIES
-  VISIBILITY_INLINES_HIDDEN TRUE)
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 ## Define harfbuzz-subset library
 add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
 add_dependencies(harfbuzz-subset harfbuzz)
-set_target_properties(harfbuzz-subset PROPERTIES
-  VISIBILITY_INLINES_HIDDEN TRUE)
 target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
+
+if (BUILD_SHARED_LIBS)
+  set_target_properties(harfbuzz harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+endif ()
 
 if (UNIX OR MINGW)
   # Make symbols link locally
@@ -566,11 +564,13 @@ if (HB_HAVE_GOBJECT)
     ${hb_gobject_headers}
     ${hb_gobject_gen_headers}
   )
-  set_target_properties(harfbuzz-gobject PROPERTIES
-    VISIBILITY_INLINES_HIDDEN TRUE)
   include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/src)
   add_dependencies(harfbuzz-gobject harfbuzz)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
+
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
 endif ()
 
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
