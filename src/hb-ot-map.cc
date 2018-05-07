@@ -164,9 +164,6 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 						&required_feature_tag[table_index]);
   }
 
-  if (!feature_infos.len)
-    return;
-
   /* Sort features and merge duplicates */
   {
     feature_infos.qsort ();
