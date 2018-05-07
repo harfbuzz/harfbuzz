@@ -687,6 +687,8 @@ hb_buffer_t::guess_segment_properties (void)
   /* If direction is set to INVALID, guess from script */
   if (props.direction == HB_DIRECTION_INVALID) {
     props.direction = hb_script_get_horizontal_direction (props.script);
+    if (props.direction == HB_DIRECTION_INVALID)
+      props.direction = HB_DIRECTION_LTR;
   }
 
   /* If language is not set, use default language from locale */
@@ -1489,6 +1491,8 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
  * Next, if buffer direction is not set (ie. is %HB_DIRECTION_INVALID),
  * it will be set to the natural horizontal direction of the
  * buffer script as returned by hb_script_get_horizontal_direction().
+ * If hb_script_get_horizontal_direction() returns %HB_DIRECTION_INVALID,
+ * then %HB_DIRECTION_LTR is used.
  *
  * Finally, if buffer language is not set (ie. is %HB_LANGUAGE_INVALID),
  * it will be set to the process's default language as returned by

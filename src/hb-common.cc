@@ -536,6 +536,12 @@ hb_script_get_horizontal_direction (hb_script_t script)
     case HB_SCRIPT_ADLAM:
 
       return HB_DIRECTION_RTL;
+
+
+    /* https://github.com/harfbuzz/harfbuzz/issues/1000 */
+    case HB_SCRIPT_OLD_ITALIC:
+
+      return HB_DIRECTION_INVALID;
   }
 
   return HB_DIRECTION_LTR;
