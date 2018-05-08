@@ -542,7 +542,7 @@ int main (int argc, char** argv) {
 
   OT::Sanitizer<LE_IMAGE_DOS_HEADER> sanitizer;
   hb_blob_t *font_blob = sanitizer.sanitize (blob);
-  const LE_IMAGE_DOS_HEADER* dos_header = font_blob->lock_as<LE_IMAGE_DOS_HEADER> ();
+  const LE_IMAGE_DOS_HEADER* dos_header = font_blob->as<LE_IMAGE_DOS_HEADER> ();
 
   const NE_RESOURCE_TABLE &rtable = dos_header->get_os2_header ().get_resource_table ();
   int shift = rtable.get_shift_value ();

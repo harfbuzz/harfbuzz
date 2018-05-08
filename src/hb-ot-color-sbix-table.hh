@@ -102,7 +102,7 @@ struct sbix
       sanitizer.set_num_glyphs (num_glyphs);
       sbix_blob = sanitizer.sanitize (face->reference_table (HB_OT_TAG_sbix));
       sbix_len = hb_blob_get_length (sbix_blob);
-      sbix_table = sbix_blob->lock_as<OT::sbix> ();
+      sbix_table = sbix_blob->as<OT::sbix> ();
 
     }
 

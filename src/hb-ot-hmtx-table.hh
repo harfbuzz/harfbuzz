@@ -196,7 +196,7 @@ struct hmtxvmtx
       if (T::os2Tag)
       {
 	hb_blob_t *os2_blob = Sanitizer<os2> ().sanitize (face->reference_table (T::os2Tag));
-	const os2 *os2_table = os2_blob->lock_as<os2> ();
+	const os2 *os2_table = os2_blob->as<os2> ();
 #define USE_TYPO_METRICS (1u<<7)
 	if (0 != (os2_table->fsSelection & USE_TYPO_METRICS))
 	{
@@ -209,7 +209,7 @@ struct hmtxvmtx
       }
 
       hb_blob_t *_hea_blob = Sanitizer<H> ().sanitize (face->reference_table (H::tableTag));
-      const H *_hea_table = _hea_blob->lock_as<H> ();
+      const H *_hea_table = _hea_blob->as<H> ();
       num_advances = _hea_table->numberOfLongMetrics;
       if (!got_font_extents)
       {
@@ -238,10 +238,10 @@ struct hmtxvmtx
 	hb_blob_destroy (blob);
 	blob = hb_blob_get_empty ();
       }
-      table = blob->lock_as<hmtxvmtx> ();
+      table = blob->as<hmtxvmtx> ();
 
       var_blob = Sanitizer<HVARVVAR> ().sanitize (face->reference_table (T::variationsTag));
-      var_table = var_blob->lock_as<HVARVVAR> ();
+      var_table = var_blob->as<HVARVVAR> ();
     }
 
     inline void fini (void)

@@ -118,11 +118,11 @@ _get_trak (hb_face_t *face, hb_blob_t **blob = nullptr)
 //   OT::Sanitizer<AAT::morx> sanitizer;
 //   sanitizer.set_num_glyphs (face->get_num_glyphs ());
 //   hb_blob_t *morx_blob = sanitizer.sanitize (face->reference_table (HB_AAT_TAG_morx));
-//   morx_blob->lock_as<AAT::morx> ();
+//   morx_blob->as<AAT::morx> ();
 
 //   if (0)
 //   {
-//     morx_blob->lock_as<AAT::Lookup<OT::GlyphID> > ()->get_value (1, face->get_num_glyphs ());
+//     morx_blob->as<AAT::Lookup<OT::GlyphID> > ()->get_value (1, face->get_num_glyphs ());
 //   }
 // }
 

@@ -403,8 +403,8 @@ struct CBDT
 	cbdt = nullptr;
 	return;  /* Not a bitmap font. */
       }
-      cblc = cblc_blob->lock_as<CBLC> ();
-      cbdt = cbdt_blob->lock_as<CBDT> ();
+      cblc = cblc_blob->as<CBLC> ();
+      cbdt = cbdt_blob->as<CBDT> ();
 
     }
 

@@ -59,13 +59,13 @@ _hb_ot_layout_create (hb_face_t *face)
     return nullptr;
 
   layout->gdef_blob = OT::Sanitizer<OT::GDEF>().sanitize (face->reference_table (HB_OT_TAG_GDEF));
-  layout->gdef = layout->gdef_blob->lock_as<OT::GDEF> ();
+  layout->gdef = layout->gdef_blob->as<OT::GDEF> ();
 
   layout->gsub_blob = OT::Sanitizer<OT::GSUB>().sanitize (face->reference_table (HB_OT_TAG_GSUB));
-  layout->gsub = layout->gsub_blob->lock_as<OT::GSUB> ();
+  layout->gsub = layout->gsub_blob->as<OT::GSUB> ();
 
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>().sanitize (face->reference_table (HB_OT_TAG_GPOS));
-  layout->gpos = layout->gpos_blob->lock_as<OT::GPOS> ();
+  layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
   layout->math.init (face);
   layout->fvar.init (face);

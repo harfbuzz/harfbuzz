@@ -344,8 +344,12 @@ struct Sanitizer
 
     DEBUG_MSG_FUNC (SANITIZE, c->start, sane ? "PASSED" : "FAILED");
     if (sane)
+    {
+      blob->lock ();
       return blob;
-    else {
+    }
+    else
+    {
       hb_blob_destroy (blob);
       return hb_blob_get_empty ();
     }
@@ -1250,7 +1254,7 @@ struct hb_lazy_table_loader_t
     if (unlikely (!p))
     {
       hb_blob_t *blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
-      p = const_cast<T *>(blob_->lock_as<T> ());
+      p = const_cast<T *>(blob_->as<T> ());
       if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p))
       {
 	hb_blob_destroy (blob_);

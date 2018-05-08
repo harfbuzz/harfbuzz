@@ -69,12 +69,6 @@ struct hb_blob_t
   {
     return unlikely (!data) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
-  template <typename Type>
-  inline const Type* lock_as (void)
-  {
-    lock ();
-    return unlikely (!data) ? &Null(Type) : reinterpret_cast<const Type *> (data);
-  }
 
   public:
   hb_object_header_t header;

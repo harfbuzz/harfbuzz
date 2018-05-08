@@ -56,7 +56,7 @@ main (int argc, char **argv)
 
   Sanitizer<OpenTypeFontFile> sanitizer;
   hb_blob_t *font_blob = sanitizer.sanitize (blob);
-  const OpenTypeFontFile* sanitized = font_blob->lock_as<OpenTypeFontFile> ();
+  const OpenTypeFontFile* sanitized = font_blob->as<OpenTypeFontFile> ();
   if (sanitized == &Null (OpenTypeFontFile))
   {
     printf ("Sanitization of the file wasn't successful. Exit");
