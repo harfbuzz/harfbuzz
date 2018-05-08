@@ -829,7 +829,7 @@ static inline unsigned char TOLOWER (unsigned char c)
  * light-weight) to be enabled, then HB_DEBUG can be defined to disable
  * the costlier checks. */
 #ifdef NDEBUG
-#define HB_NDEBUG
+#define HB_NDEBUG 1
 #endif
 
 
