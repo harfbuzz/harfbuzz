@@ -165,7 +165,6 @@ struct RangeRecord
   public:
   DEFINE_SIZE_STATIC (6);
 };
-DEFINE_NULL_DATA (RangeRecord, "\000\001");
 
 
 struct IndexArray : ArrayOf<Index>
@@ -225,7 +224,6 @@ struct LangSys
   public:
   DEFINE_SIZE_ARRAY (6, featureIndex);
 };
-DEFINE_NULL_DATA (LangSys, "\0\0\xFF\xFF");
 
 
 struct Script
@@ -247,7 +245,16 @@ struct Script
   { return langSys.find_index (tag, index); }
 
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
-  inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
+  inline const LangSys& get_default_lang_sys (void) const
+  {
+    if (!defaultLangSys)
+    {
+      /* This is the ONLY place where our null data is not all zeros.
+       * So, return special data instead of using the null pool. */
+      return *reinterpret_cast<const LangSys *> ("\0\0\xFF\xFF");
+    }
+    return this+defaultLangSys;
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Script>::sanitize_closure_t * = nullptr) const

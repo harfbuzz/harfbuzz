@@ -1089,4 +1089,33 @@ round (double x)
 #endif
 
 
+/*
+ * Null objects
+ */
+
+/* Global nul-content Null pool.  Enlarge as necessary. */
+
+#define HB_NULL_POOL_SIZE 264
+static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
+
+#ifdef HB_NO_VISIBILITY
+static
+#else
+extern HB_INTERNAL
+#endif
+const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+#ifdef HB_NO_VISIBILITY
+= {}
+#endif
+;
+
+/* Generic nul-content Null objects. */
+template <typename Type>
+static inline const Type& Null (void) {
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  return *reinterpret_cast<const Type *> (_hb_NullPool);
+}
+#define Null(Type) Null<Type>()
+
+
 #endif /* HB_PRIVATE_HH */

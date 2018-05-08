@@ -47,7 +47,7 @@
 
 
 #ifndef HB_NO_VISIBILITY
-const void * const OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
 #endif
 
 
@@ -102,7 +102,7 @@ _hb_ot_layout_create (hb_face_t *face)
        * https://lists.freedesktop.org/archives/harfbuzz/2016-February/005489.html
        */
      if (3 == layout->gdef->get_glyph_class (5))
-       layout->gdef = &OT::Null(OT::GDEF);
+       layout->gdef = &Null(OT::GDEF);
     }
     else if (0
       /* sha1sum:96eda93f7d33e79962451c6c39a6b51ee893ce8c  tahoma.ttf from Windows 8 */
@@ -174,7 +174,7 @@ _hb_ot_layout_create (hb_face_t *face)
        *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279693
        *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279875
        */
-      layout->gdef = &OT::Null(OT::GDEF);
+      layout->gdef = &Null(OT::GDEF);
     }
   }
 
@@ -226,7 +226,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 // static inline const OT::BASE&
 // _get_base (hb_face_t *face)
 // {
-//   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::BASE);
+//   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
 //   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
 //   return *(layout->base.get ());
 // }
@@ -234,19 +234,19 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 static inline const OT::GDEF&
 _get_gdef (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::GDEF);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
   return *hb_ot_layout_from_face (face)->gdef;
 }
 static inline const OT::GSUB&
 _get_gsub (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::GSUB);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
   return *hb_ot_layout_from_face (face)->gsub;
 }
 static inline const OT::GPOS&
 _get_gpos (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::GPOS);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GPOS);
   return *hb_ot_layout_from_face (face)->gpos;
 }
 
@@ -318,7 +318,7 @@ get_gsubgpos_table (hb_face_t *face,
   switch (table_tag) {
     case HB_OT_TAG_GSUB: return _get_gsub (face);
     case HB_OT_TAG_GPOS: return _get_gpos (face);
-    default:             return OT::Null(OT::GSUBGPOS);
+    default:             return Null(OT::GSUBGPOS);
   }
 }
 
@@ -898,7 +898,7 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face)
 {
-  return &_get_gsub (face) != &OT::Null(OT::GSUB);
+  return &_get_gsub (face) != &Null(OT::GSUB);
 }
 
 /**
@@ -962,7 +962,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face)
 {
-  return &_get_gpos (face) != &OT::Null(OT::GPOS);
+  return &_get_gpos (face) != &Null(OT::GPOS);
 }
 
 void
@@ -1298,5 +1298,5 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 // hb_bool_t
 // hb_ot_base_has_data (hb_face_t *face)
 // {
-//   return &_get_base (face) != &OT::Null(OT::BASE);
+//   return &_get_base (face) != &Null(OT::BASE);
 // }

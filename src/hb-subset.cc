@@ -45,7 +45,7 @@
 
 
 #if !defined(HB_NO_VISIBILITY) && !defined(HB_SUBSET_BUILTIN)
-const void * const OT::_hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
 #endif
 
 
@@ -91,7 +91,7 @@ _subset (hb_subset_plan_t *plan)
 
   hb_tag_t tag = TableType::tableTag;
   hb_bool_t result = false;
-  if (table != &OT::Null(TableType))
+  if (table != &Null(TableType))
   {
     result = table->subset(plan);
   } else {

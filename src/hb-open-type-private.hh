@@ -127,46 +127,6 @@ static inline Type& StructAfter(TObject &X)
 
 
 /*
- * Null objects
- */
-
-/* Global nul-content Null pool.  Enlarge as necessary. */
-
-#define HB_NULL_POOL_SIZE 264
-static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
-
-#ifdef HB_NO_VISIBILITY
-static
-#else
-extern HB_INTERNAL
-#endif
-const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
-#ifdef HB_NO_VISIBILITY
-= {}
-#endif
-;
-
-/* Generic nul-content Null objects. */
-template <typename Type>
-static inline const Type& Null (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
-  return *CastP<Type> (_hb_NullPool);
-}
-
-/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Type, data) \
-static const char _Null##Type[sizeof (Type) + 1] = data; /* +1 is for nul-termination in data */ \
-template <> \
-/*static*/ inline const Type& Null<Type> (void) { \
-  return *CastP<Type> (_Null##Type); \
-} /* The following line really exists such that we end in a place needing semicolon */ \
-static_assert (Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
-
-/* Accessor macro. */
-#define Null(Type) Null<Type>()
-
-
-/*
  * Dispatch
  */
 
@@ -726,7 +686,6 @@ struct Tag : HBUINT32
   public:
   DEFINE_SIZE_STATIC (4);
 };
-DEFINE_NULL_DATA (Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef HBUINT16 GlyphID;
@@ -738,7 +697,6 @@ typedef HBUINT16 NameID;
 struct Index : HBUINT16 {
   static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;
 };
-DEFINE_NULL_DATA (Index, "\xff\xff");
 
 /* Offset, Null offset = 0 */
 template <typename Type>
@@ -1236,7 +1194,7 @@ struct hb_lazy_loader_t
 
   inline void fini (void)
   {
-    if (instance && instance != &OT::Null(T))
+    if (instance && instance != &Null(T))
     {
       instance->fini();
       free (instance);
@@ -1251,12 +1209,12 @@ struct hb_lazy_loader_t
     {
       p = (T *) calloc (1, sizeof (T));
       if (unlikely (!p))
-        p = const_cast<T *> (&OT::Null(T));
+        p = const_cast<T *> (&Null(T));
       else
 	p->init (face);
       if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p)))
       {
-	if (p != &OT::Null(T))
+	if (p != &Null(T))
 	  p->fini ();
 	goto retry;
       }

@@ -682,7 +682,7 @@ struct cmap
 	if (subtable) symbol = true;
       }
       /* Meh. */
-      if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
+      if (!subtable) subtable = &Null(OT::CmapSubtable);
 
       /* UVS subtable. */
       if (!subtable_uvs)
@@ -692,7 +692,7 @@ struct cmap
 	  subtable_uvs = &st->u.format14;
       }
       /* Meh. */
-      if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtableFormat14);
+      if (!subtable_uvs) subtable_uvs = &Null(OT::CmapSubtableFormat14);
 
       this->uvs_table = subtable_uvs;
 
