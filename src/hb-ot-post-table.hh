@@ -111,7 +111,7 @@ struct post
     {
       blob = Sanitizer<post>().sanitize (face->reference_table (HB_OT_TAG_post));
       const post *table = blob->as<post> ();
-      unsigned int table_length = hb_blob_get_length (blob);
+      unsigned int table_length = blob->length;
 
       version = table->version.to_int ();
       index_to_offset.init ();

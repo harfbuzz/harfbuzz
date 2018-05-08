@@ -186,7 +186,7 @@ struct hb_sanitize_context_t :
   inline void start_processing (void)
   {
     this->start = hb_blob_get_data (this->blob, nullptr);
-    this->end = this->start + hb_blob_get_length (this->blob);
+    this->end = this->start + this->blob->length;
     assert (this->start <= this->end); /* Must not overflow. */
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
@@ -329,7 +329,7 @@ struct Sanitizer
       unsigned int edit_count = c->edit_count;
       if (edit_count && !c->writable) {
         c->start = hb_blob_get_data_writable (blob, nullptr);
-	c->end = c->start + hb_blob_get_length (blob);
+	c->end = c->start + blob->length;
 
 	if (c->start) {
 	  c->writable = true;

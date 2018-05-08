@@ -77,9 +77,9 @@ _hb_ot_layout_create (hb_face_t *face)
      * See this thread for why we finally had to bend in and do this:
      * https://lists.freedesktop.org/archives/harfbuzz/2016-February/005489.html
      */
-    unsigned int gdef_len = hb_blob_get_length (layout->gdef_blob);
-    unsigned int gsub_len = hb_blob_get_length (layout->gsub_blob);
-    unsigned int gpos_len = hb_blob_get_length (layout->gpos_blob);
+    unsigned int gdef_len = layout->gdef_blob->length;
+    unsigned int gsub_len = layout->gsub_blob->length;
+    unsigned int gpos_len = layout->gpos_blob->length;
     if (0
       /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
       || (442 == gdef_len && 42038 == gpos_len && 2874 == gsub_len)

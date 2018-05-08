@@ -364,7 +364,7 @@ struct kern
     {
       blob = Sanitizer<kern>().sanitize (face->reference_table (HB_OT_TAG_kern));
       table = blob->as<kern> ();
-      table_length = hb_blob_get_length (blob);
+      table_length = blob->length;
     }
     inline void fini (void)
     {
