@@ -100,7 +100,7 @@ typedef struct OffsetTable
       else
         *table_count = MIN<unsigned int> (*table_count, tables.len - start_offset);
 
-      const TableRecord *sub_tables = tables.array + start_offset;
+      const TableRecord *sub_tables = tables.arrayZ + start_offset;
       unsigned int count = *table_count;
       for (unsigned int i = 0; i < count; i++)
 	table_tags[i] = sub_tables[i].tag;
@@ -148,7 +148,7 @@ typedef struct OffsetTable
     /* Write OffsetTables, alloc for and write actual table blobs. */
     for (unsigned int i = 0; i < table_count; i++)
     {
-      TableRecord &rec = tables.array[i];
+      TableRecord &rec = tables.arrayZ[i];
       hb_blob_t *blob = blobs[i];
       rec.tag.set (tags[i]);
       rec.length.set (hb_blob_get_length (blob));
@@ -188,7 +188,7 @@ typedef struct OffsetTable
       checksum.set_for_data (this, dir_end - (const char *) this);
       for (unsigned int i = 0; i < table_count; i++)
       {
-	TableRecord &rec = tables.array[i];
+	TableRecord &rec = tables.arrayZ[i];
 	checksum.set (checksum + rec.checkSum);
       }
 

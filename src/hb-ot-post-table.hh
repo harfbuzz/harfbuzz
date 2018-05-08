@@ -238,14 +238,14 @@ struct post
       if (version != 0x00020000 || glyph >= glyphNameIndex->len)
 	return hb_bytes_t ();
 
-      unsigned int index = glyphNameIndex->array[glyph];
+      unsigned int index = glyphNameIndex->arrayZ[glyph];
       if (index < NUM_FORMAT1_NAMES)
 	return format1_names (index);
       index -= NUM_FORMAT1_NAMES;
 
       if (index >= index_to_offset.len)
 	return hb_bytes_t ();
-      unsigned int offset = index_to_offset.array[index];
+      unsigned int offset = index_to_offset.arrayZ[index];
 
       const uint8_t *data = pool + offset;
       unsigned int name_length = *data;

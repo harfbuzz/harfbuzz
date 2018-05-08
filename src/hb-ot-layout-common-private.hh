@@ -723,7 +723,7 @@ struct CoverageFormat1
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
-    return glyphs->add_sorted_array (glyphArray.array, glyphArray.len);
+    return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len);
   }
 
   public:
@@ -1337,13 +1337,13 @@ struct VarData
    const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (row);
    for (; i < scount; i++)
    {
-     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
      delta += scalar * *scursor++;
    }
    const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
    for (; i < count; i++)
    {
-     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
      delta += scalar * *bcursor++;
    }
 
@@ -1472,7 +1472,7 @@ struct ConditionSet
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
-      if (!(this+conditions.array[i]).evaluate (coords, coord_len))
+      if (!(this+conditions.arrayZ[i]).evaluate (coords, coord_len))
         return false;
     return true;
   }
@@ -1513,7 +1513,7 @@ struct FeatureTableSubstitution
     unsigned int count = substitutions.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      const FeatureTableSubstitutionRecord &record = substitutions.array[i];
+      const FeatureTableSubstitutionRecord &record = substitutions.arrayZ[i];
       if (record.featureIndex == feature_index)
 	return &(this+record.feature);
     }
@@ -1566,7 +1566,7 @@ struct FeatureVariations
     unsigned int count = varRecords.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      const FeatureVariationRecord &record = varRecords.array[i];
+      const FeatureVariationRecord &record = varRecords.arrayZ[i];
       if ((this+record.conditions).evaluate (coords, coord_len))
       {
 	*index = i;

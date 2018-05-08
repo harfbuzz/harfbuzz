@@ -920,17 +920,17 @@ struct ArrayOf
       count -= start_offset;
     count = MIN (count, *pcount);
     *pcount = count;
-    return array + start_offset;
+    return arrayZ + start_offset;
   }
 
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Null(Type);
-    return array[i];
+    return arrayZ[i];
   }
   inline Type& operator [] (unsigned int i)
   {
-    return array[i];
+    return arrayZ[i];
   }
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
@@ -952,7 +952,7 @@ struct ArrayOf
     TRACE_SERIALIZE (this);
     if (unlikely (!serialize (c, items_len))) return_trace (false);
     for (unsigned int i = 0; i < items_len; i++)
-      array[i] = items[i];
+      arrayZ[i] = items[i];
     items += items_len;
     return_trace (true);
   }
@@ -969,7 +969,7 @@ struct ArrayOf
      * pointed to do have a simple sanitize(), ie. they do not
      * reference other structs via offsets.
      */
-    (void) (false && array[0].sanitize (c));
+    (void) (false && arrayZ[0].sanitize (c));
 
     return_trace (true);
   }
@@ -979,7 +979,7 @@ struct ArrayOf
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (c, base)))
+      if (unlikely (!arrayZ[i].sanitize (c, base)))
         return_trace (false);
     return_trace (true);
   }
@@ -990,7 +990,7 @@ struct ArrayOf
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (c, base, user_data)))
+      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
         return_trace (false);
     return_trace (true);
   }
@@ -1000,28 +1000,28 @@ struct ArrayOf
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!this->array[i].cmp (x))
+      if (!this->arrayZ[i].cmp (x))
         return i;
     return -1;
   }
 
   inline void qsort (void)
   {
-    ::qsort (array, len, sizeof (Type), Type::cmp);
+    ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
   }
 
   private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (len.sanitize (c) && c->check_array (array, Type::static_size, len));
+    return_trace (len.sanitize (c) && c->check_array (arrayZ, Type::static_size, len));
   }
 
   public:
   LenType len;
-  Type array[VAR];
+  Type arrayZ[VAR];
   public:
-  DEFINE_SIZE_ARRAY (sizeof (LenType), array);
+  DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
 template <typename Type> struct LArrayOf : ArrayOf<Type, HBUINT32> {};
 
@@ -1036,7 +1036,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= this->len)) return Null(Type);
-    return this+this->array[i];
+    return this+this->arrayZ[i];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1060,7 +1060,7 @@ struct HeadlessArrayOf
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len || !i)) return Null(Type);
-    return array[i-1];
+    return arrayZ[i-1];
   }
   inline unsigned int get_size (void) const
   { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
@@ -1075,7 +1075,7 @@ struct HeadlessArrayOf
     if (unlikely (!items_len)) return_trace (true);
     if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items_len - 1; i++)
-      array[i] = items[i];
+      arrayZ[i] = items[i];
     items += items_len - 1;
     return_trace (true);
   }
@@ -1092,7 +1092,7 @@ struct HeadlessArrayOf
      * pointed to do have a simple sanitize(), ie. they do not
      * reference other structs via offsets.
      */
-    (void) (false && array[0].sanitize (c));
+    (void) (false && arrayZ[0].sanitize (c));
 
     return_trace (true);
   }
@@ -1102,14 +1102,14 @@ struct HeadlessArrayOf
   {
     TRACE_SANITIZE (this);
     return_trace (len.sanitize (c) &&
-		  (!len || c->check_array (array, Type::static_size, len - 1)));
+		  (!len || c->check_array (arrayZ, Type::static_size, len - 1)));
   }
 
   public:
   LenType len;
-  Type array[VAR];
+  Type arrayZ[VAR];
   public:
-  DEFINE_SIZE_ARRAY (sizeof (LenType), array);
+  DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
 
 
@@ -1123,7 +1123,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   inline int bsearch (const SearchType &x) const
   {
     /* Hand-coded bsearch here since this is in the hot inner loop. */
-    const Type *arr = this->array;
+    const Type *arr = this->arrayZ;
     int min = 0, max = (int) this->len - 1;
     while (min <= max)
     {

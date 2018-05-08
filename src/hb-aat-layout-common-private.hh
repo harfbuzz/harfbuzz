@@ -67,11 +67,11 @@ struct BinSearchArrayOf
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= header.nUnits)) return Null(Type);
-    return StructAtOffset<Type> (bytes, i * header.unitSize);
+    return StructAtOffset<Type> (bytesZ, i * header.unitSize);
   }
   inline Type& operator [] (unsigned int i)
   {
-    return StructAtOffset<Type> (bytes, i * header.unitSize);
+    return StructAtOffset<Type> (bytesZ, i * header.unitSize);
   }
   inline unsigned int get_size (void) const
   { return header.static_size + header.nUnits * header.unitSize; }
@@ -88,7 +88,7 @@ struct BinSearchArrayOf
      * pointed to do have a simple sanitize(), ie. they do not
      * reference other structs via offsets.
      */
-    (void) (false && StructAtOffset<Type> (bytes, 0).sanitize (c));
+    (void) (false && StructAtOffset<Type> (bytesZ, 0).sanitize (c));
 
     return_trace (true);
   }
@@ -111,7 +111,7 @@ struct BinSearchArrayOf
     while (min <= max)
     {
       int mid = (min + max) / 2;
-      const Type *p = (const Type *) (((const char *) bytes) + (mid * size));
+      const Type *p = (const Type *) (((const char *) bytesZ) + (mid * size));
       int c = p->cmp (key);
       if (c < 0)
 	max = mid - 1;
@@ -129,14 +129,14 @@ struct BinSearchArrayOf
     TRACE_SANITIZE (this);
     return_trace (header.sanitize (c) &&
 		  Type::static_size >= header.unitSize &&
-		  c->check_array (bytes, header.unitSize, header.nUnits));
+		  c->check_array (bytesZ, header.unitSize, header.nUnits));
   }
 
   protected:
   BinSearchHeader	header;
-  HBUINT8		bytes[VAR];
+  HBUINT8		bytesZ[VAR];
   public:
-  DEFINE_SIZE_ARRAY (10, bytes);
+  DEFINE_SIZE_ARRAY (10, bytesZ);
 };
 
 

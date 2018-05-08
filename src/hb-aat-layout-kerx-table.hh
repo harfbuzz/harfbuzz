@@ -334,7 +334,7 @@ struct kerx
   HBUINT16		version;
   HBUINT16		padding;
   HBUINT32		nTables;
-/*KerxTable tables[VAR];*/
+/*KerxTable tablesZ[VAR]; XXX ArrayOf??? */
 /*SubtableGlyphCoverageArray coverage_array;*/
   public:
   DEFINE_SIZE_STATIC (8);

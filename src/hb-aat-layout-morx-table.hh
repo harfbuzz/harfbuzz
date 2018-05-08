@@ -689,7 +689,7 @@ struct morx
   inline void apply (hb_aat_apply_context_t *c) const
   {
     c->set_lookup_index (0);
-    const Chain *chain = chains;
+    const Chain *chain = chainsZ;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -706,7 +706,7 @@ struct morx
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain *chain = chains;
+    const Chain *chain = chainsZ;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -723,7 +723,7 @@ struct morx
 				 * 1 for mort, 2 or 3 for morx. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain		chains[VAR];	/* Chains. */
+  Chain		chainsZ[VAR];	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);

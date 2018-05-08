@@ -531,25 +531,25 @@ struct hb_vector_t
 {
   unsigned int len;
   unsigned int allocated;
-  Type *array;
+  Type *arrayZ;
   Type static_array[StaticSize];
 
   void init (void)
   {
     len = 0;
     allocated = ARRAY_LENGTH (static_array);
-    array = static_array;
+    arrayZ = static_array;
   }
 
-  inline Type& operator [] (unsigned int i) { return array[i]; }
-  inline const Type& operator [] (unsigned int i) const { return array[i]; }
+  inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
+  inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
 
   inline Type *push (void)
   {
     if (unlikely (!resize (len + 1)))
       return nullptr;
 
-    return &array[len - 1];
+    return &arrayZ[len - 1];
   }
 
   /* Allocate for size but don't adjust len. */
@@ -566,21 +566,21 @@ struct hb_vector_t
 
     Type *new_array = nullptr;
 
-    if (array == static_array) {
+    if (arrayZ == static_array) {
       new_array = (Type *) calloc (new_allocated, sizeof (Type));
       if (new_array)
-        memcpy (new_array, array, len * sizeof (Type));
+        memcpy (new_array, arrayZ, len * sizeof (Type));
           } else {
       bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
       if (likely (!overflows)) {
-        new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
+        new_array = (Type *) realloc (arrayZ, new_allocated * sizeof (Type));
       }
     }
 
     if (unlikely (!new_array))
       return false;
 
-    array = new_array;
+    arrayZ = new_array;
     allocated = new_allocated;
 
     return true;
@@ -604,8 +604,8 @@ struct hb_vector_t
   {
      if (unlikely (i >= len))
        return;
-     memmove (static_cast<void *> (&array[i]),
-	      static_cast<void *> (&array[i + 1]),
+     memmove (static_cast<void *> (&arrayZ[i]),
+	      static_cast<void *> (&arrayZ[i + 1]),
 	      (len - i - 1) * sizeof (Type));
      len--;
   }
@@ -619,39 +619,39 @@ struct hb_vector_t
   template <typename T>
   inline Type *find (T v) {
     for (unsigned int i = 0; i < len; i++)
-      if (array[i] == v)
-	return &array[i];
+      if (arrayZ[i] == v)
+	return &arrayZ[i];
     return nullptr;
   }
   template <typename T>
   inline const Type *find (T v) const {
     for (unsigned int i = 0; i < len; i++)
-      if (array[i] == v)
-	return &array[i];
+      if (arrayZ[i] == v)
+	return &arrayZ[i];
     return nullptr;
   }
 
   inline void qsort (int (*cmp)(const void*, const void*))
   {
-    ::qsort (array, len, sizeof (Type), cmp);
+    ::qsort (arrayZ, len, sizeof (Type), cmp);
   }
 
   inline void qsort (void)
   {
-    ::qsort (array, len, sizeof (Type), Type::cmp);
+    ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
   }
 
   inline void qsort (unsigned int start, unsigned int end)
   {
-    ::qsort (array + start, end - start, sizeof (Type), Type::cmp);
+    ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
   }
 
   template <typename T>
   inline Type *lsearch (const T &x)
   {
     for (unsigned int i = 0; i < len; i++)
-      if (0 == this->array[i].cmp (&x))
-	return &array[i];
+      if (0 == this->arrayZ[i].cmp (&x))
+	return &arrayZ[i];
     return nullptr;
   }
 
@@ -659,13 +659,13 @@ struct hb_vector_t
   inline Type *bsearch (const T &x)
   {
     unsigned int i;
-    return bfind (x, &i) ? &array[i] : nullptr;
+    return bfind (x, &i) ? &arrayZ[i] : nullptr;
   }
   template <typename T>
   inline const Type *bsearch (const T &x) const
   {
     unsigned int i;
-    return bfind (x, &i) ? &array[i] : nullptr;
+    return bfind (x, &i) ? &arrayZ[i] : nullptr;
   }
   template <typename T>
   inline bool bfind (const T &x, unsigned int *i) const
@@ -674,7 +674,7 @@ struct hb_vector_t
     while (min <= max)
     {
       int mid = (min + max) / 2;
-      int c = this->array[mid].cmp (&x);
+      int c = this->arrayZ[mid].cmp (&x);
       if (c < 0)
         max = mid - 1;
       else if (c > 0)
@@ -685,7 +685,7 @@ struct hb_vector_t
 	return true;
       }
     }
-    if (max < 0 || (max < (int) this->len && this->array[max].cmp (&x) > 0))
+    if (max < 0 || (max < (int) this->len && this->arrayZ[max].cmp (&x) > 0))
       max++;
     *i = max;
     return false;
@@ -693,9 +693,9 @@ struct hb_vector_t
 
   inline void fini (void)
   {
-    if (array != static_array)
-      free (array);
-    array = nullptr;
+    if (arrayZ != static_array)
+      free (arrayZ);
+    arrayZ = nullptr;
     allocated = len = 0;
   }
 };

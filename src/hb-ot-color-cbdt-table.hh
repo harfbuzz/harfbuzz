@@ -357,8 +357,8 @@ struct CBLC
     unsigned int count = sizeTables.len;
     for (uint32_t i = 0; i < count; ++i)
     {
-      unsigned int startGlyphIndex = sizeTables.array[i].startGlyphIndex;
-      unsigned int endGlyphIndex = sizeTables.array[i].endGlyphIndex;
+      unsigned int startGlyphIndex = sizeTables.arrayZ[i].startGlyphIndex;
+      unsigned int endGlyphIndex = sizeTables.arrayZ[i].endGlyphIndex;
       if (startGlyphIndex <= glyph && glyph <= endGlyphIndex)
       {
 	*x_ppem = sizeTables[i].ppemX;
@@ -489,21 +489,21 @@ struct CBDT
             case 17: {
               const GlyphBitmapDataFormat17& glyphFormat17 =
                 StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat17.data.array,
+              callback ((const uint8_t *) &glyphFormat17.data.arrayZ,
                 glyphFormat17.data.len, i, gid);
             }
             break;
             case 18: {
               const GlyphBitmapDataFormat18& glyphFormat18 =
                 StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat18.data.array,
+              callback ((const uint8_t *) &glyphFormat18.data.arrayZ,
                 glyphFormat18.data.len, i, gid);
             }
             break;
             case 19: {
               const GlyphBitmapDataFormat19& glyphFormat19 =
                 StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat19.data.array,
+              callback ((const uint8_t *) &glyphFormat19.data.arrayZ,
                 glyphFormat19.data.len, i, gid);
             }
             break;

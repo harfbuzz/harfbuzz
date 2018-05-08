@@ -70,30 +70,30 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
       if (!len)
 	return value;
       else /* len == 1*/
-	return value - array[0].fromCoord + array[0].toCoord;
+	return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
     }
 
-    if (value <= array[0].fromCoord)
-      return value - array[0].fromCoord + array[0].toCoord;
+    if (value <= arrayZ[0].fromCoord)
+      return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
 
     unsigned int i;
     unsigned int count = len;
-    for (i = 1; i < count && value > array[i].fromCoord; i++)
+    for (i = 1; i < count && value > arrayZ[i].fromCoord; i++)
       ;
 
-    if (value >= array[i].fromCoord)
-      return value - array[i].fromCoord + array[i].toCoord;
+    if (value >= arrayZ[i].fromCoord)
+      return value - arrayZ[i].fromCoord + arrayZ[i].toCoord;
 
-    if (unlikely (array[i-1].fromCoord == array[i].fromCoord))
-      return array[i-1].toCoord;
+    if (unlikely (arrayZ[i-1].fromCoord == arrayZ[i].fromCoord))
+      return arrayZ[i-1].toCoord;
 
-    int denom = array[i].fromCoord - array[i-1].fromCoord;
-    return array[i-1].toCoord +
-	   ((array[i].toCoord - array[i-1].toCoord) *
-	    (value - array[i-1].fromCoord) + denom/2) / denom;
+    int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
+    return arrayZ[i-1].toCoord +
+	   ((arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
+	    (value - arrayZ[i-1].fromCoord) + denom/2) / denom;
   }
 
-  DEFINE_SIZE_ARRAY (2, array);
+  DEFINE_SIZE_ARRAY (2, arrayZ);
 };
 
 struct avar

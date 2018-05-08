@@ -450,7 +450,7 @@ struct CmapSubtableLongSegmented
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    Supplier<CmapSubtableLongGroup> supplier (group_data.array, group_data.len);
+    Supplier<CmapSubtableLongGroup> supplier (group_data.arrayZ, group_data.len);
     if (unlikely (!groups.serialize (c, supplier, group_data.len))) return_trace (false);
     return true;
   }
