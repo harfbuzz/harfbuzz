@@ -1181,7 +1181,7 @@ struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader> {};
 
 /* Lazy struct and blob loaders. */
 
-/* Logic is shared between hb_lazy_loader_t and hb_lazy_table_loader_t */
+/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
 template <typename T>
 struct hb_lazy_loader_t
 {
@@ -1231,9 +1231,9 @@ struct hb_lazy_loader_t
   T *instance;
 };
 
-/* Logic is shared between hb_lazy_loader_t and hb_lazy_table_loader_t */
+/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
 template <typename T>
-struct hb_lazy_table_loader_t
+struct hb_table_lazy_loader_t
 {
   inline void init (hb_face_t *face_)
   {
