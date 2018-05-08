@@ -40,7 +40,7 @@ _hb_codepoint_t_cmp (const void *pa, const void *pb)
 }
 
 hb_bool_t
-hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
+hb_subset_plan_new_gid_for_codepoint (const hb_subset_plan_t *plan,
                                       hb_codepoint_t codepoint,
                                       hb_codepoint_t *new_gid)
 {
@@ -58,7 +58,7 @@ hb_subset_plan_new_gid_for_codepoint (hb_subset_plan_t *plan,
 }
 
 hb_bool_t
-hb_subset_plan_new_gid_for_old_id (hb_subset_plan_t *plan,
+hb_subset_plan_new_gid_for_old_id (const hb_subset_plan_t *plan,
                                    hb_codepoint_t old_gid,
                                    hb_codepoint_t *new_gid)
 {
