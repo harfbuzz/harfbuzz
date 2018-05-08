@@ -1279,7 +1279,7 @@ struct VarRegionList
     if (unlikely (region_index >= regionCount))
       return 0.;
 
-    const VarRegionAxis *axes = axesZ + (region_index * axisCount);
+    const VarRegionAxis *axes = axesZ.arrayZ + (region_index * axisCount);
 
     float v = 1.;
     unsigned int count = axisCount;
@@ -1298,14 +1298,14 @@ struct VarRegionList
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (axesZ, axesZ[0].static_size,
-				  (unsigned int) axisCount * (unsigned int) regionCount));
+		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
   }
 
   protected:
   HBUINT16	axisCount;
   HBUINT16	regionCount;
-  VarRegionAxis	axesZ[VAR];
+  UnsizedArrayOf<VarRegionAxis>
+		axesZ;
   public:
   DEFINE_SIZE_ARRAY (4, axesZ);
 };
@@ -1364,7 +1364,7 @@ struct VarData
   HBUINT16		itemCount;
   HBUINT16		shortCount;
   ArrayOf<HBUINT16>	regionIndices;
-  HBUINT8			bytesX[VAR];
+  HBUINT8		bytesX[VAR];
   public:
   DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
 };
