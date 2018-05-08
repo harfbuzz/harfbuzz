@@ -240,11 +240,11 @@ int main (int argc, char **argv)
 
   OT::Sanitizer<OT::COLR> sanitizerCOLR;
   hb_blob_t* colr_blob = sanitizerCOLR.sanitize (face->reference_table (HB_OT_TAG_COLR));
-  const OT::COLR *colr = OT::Sanitizer<OT::COLR>::lock_instance (colr_blob);
+  const OT::COLR *colr = colr_blob->lock_as<OT::COLR> ();
 
   OT::Sanitizer<OT::CPAL> sanitizerCPAL;
   hb_blob_t* cpal_blob = sanitizerCPAL.sanitize (face->reference_table (HB_OT_TAG_CPAL));
-  const OT::CPAL *cpal = OT::Sanitizer<OT::CPAL>::lock_instance (cpal_blob);
+  const OT::CPAL *cpal = cpal_blob->lock_as<OT::CPAL> ();
 
   cairo_font_face_t *cairo_face;
   {

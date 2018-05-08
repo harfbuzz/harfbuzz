@@ -99,7 +99,7 @@ struct SVG
       OT::Sanitizer<OT::SVG> sanitizer;
       svg_blob = sanitizer.sanitize (face->reference_table (HB_OT_TAG_SVG));
       svg_len = hb_blob_get_length (svg_blob);
-      svg = OT::Sanitizer<OT::SVG>::lock_instance (svg_blob);
+      svg = svg_blob->lock_as<OT::SVG> ();
 
     }
 

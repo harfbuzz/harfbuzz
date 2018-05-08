@@ -87,7 +87,7 @@ _subset (hb_subset_plan_t *plan)
   OT::Sanitizer<TableType> sanitizer;
 
   hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
-  const TableType *table = OT::Sanitizer<TableType>::lock_instance (source_blob);
+  const TableType *table = source_blob->lock_as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;
   hb_bool_t result = false;

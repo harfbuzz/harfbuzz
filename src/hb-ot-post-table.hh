@@ -110,7 +110,7 @@ struct post
     inline void init (hb_face_t *face)
     {
       blob = Sanitizer<post>().sanitize (face->reference_table (HB_OT_TAG_post));
-      const post *table = Sanitizer<post>::lock_instance (blob);
+      const post *table = blob->lock_as<post> ();
       unsigned int table_length = hb_blob_get_length (blob);
 
       version = table->version.to_int ();

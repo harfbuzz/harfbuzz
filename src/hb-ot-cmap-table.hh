@@ -661,7 +661,7 @@ struct cmap
     inline void init (hb_face_t *face)
     {
       this->blob = OT::Sanitizer<OT::cmap>().sanitize (face->reference_table (HB_OT_TAG_cmap));
-      const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (this->blob);
+      const OT::cmap *cmap = this->blob->lock_as<OT::cmap> ();
       const OT::CmapSubtable *subtable = nullptr;
       const OT::CmapSubtableFormat14 *subtable_uvs = nullptr;
 

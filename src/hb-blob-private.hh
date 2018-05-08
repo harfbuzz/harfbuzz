@@ -59,6 +59,23 @@ struct hb_blob_t
   HB_INTERNAL bool try_make_writable_inplace (void);
   HB_INTERNAL bool try_make_writable_inplace_unix (void);
 
+  inline void lock (void)
+  {
+    hb_blob_make_immutable (this);
+  }
+
+  template <typename Type>
+  inline const Type* as (void) const
+  {
+    return unlikely (!data) ? &Null(Type) : reinterpret_cast<const Type *> (data);
+  }
+  template <typename Type>
+  inline const Type* lock_as (void)
+  {
+    lock ();
+    return unlikely (!data) ? &Null(Type) : reinterpret_cast<const Type *> (data);
+  }
+
   public:
   hb_object_header_t header;
   ASSERT_POD ();

@@ -403,8 +403,8 @@ struct CBDT
 	cbdt = nullptr;
 	return;  /* Not a bitmap font. */
       }
-      cblc = Sanitizer<CBLC>::lock_instance (cblc_blob);
-      cbdt = Sanitizer<CBDT>::lock_instance (cbdt_blob);
+      cblc = cblc_blob->lock_as<CBLC> ();
+      cbdt = cbdt_blob->lock_as<CBDT> ();
 
     }
 

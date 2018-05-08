@@ -237,7 +237,7 @@ struct glyf
       memset (this, 0, sizeof (accelerator_t));
 
       hb_blob_t *head_blob = Sanitizer<head>().sanitize (face->reference_table (HB_OT_TAG_head));
-      const head *head_table = Sanitizer<head>::lock_instance (head_blob);
+      const head *head_table = head_blob->lock_as<head> ();
       if (head_table == &Null(head) || (unsigned int) head_table->indexToLocFormat > 1 || head_table->glyphDataFormat != 0)
       {
 	/* head table is not present, or in an unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
@@ -248,9 +248,9 @@ struct glyf
       hb_blob_destroy (head_blob);
 
       loca_blob = Sanitizer<loca>().sanitize (face->reference_table (HB_OT_TAG_loca));
-      loca_table = Sanitizer<loca>::lock_instance (loca_blob);
+      loca_table = loca_blob->lock_as<loca> ();
       glyf_blob = Sanitizer<glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
-      glyf_table = Sanitizer<glyf>::lock_instance (glyf_blob);
+      glyf_table = glyf_blob->lock_as<glyf> ();
 
       num_glyphs = MAX (1u, hb_blob_get_length (loca_blob) / (short_offset ? 2 : 4)) - 1;
       glyf_len = hb_blob_get_length (glyf_blob);

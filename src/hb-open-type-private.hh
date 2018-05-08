@@ -31,6 +31,7 @@
 
 #include "hb-private.hh"
 #include "hb-debug.hh"
+#include "hb-blob-private.hh"
 #include "hb-face-private.hh"
 
 
@@ -348,12 +349,6 @@ struct Sanitizer
       hb_blob_destroy (blob);
       return hb_blob_get_empty ();
     }
-  }
-
-  static const Type* lock_instance (hb_blob_t *blob) {
-    hb_blob_make_immutable (blob);
-    const char *base = hb_blob_get_data (blob, nullptr);
-    return unlikely (!base) ? &Null(Type) : CastP<Type> (base);
   }
 
   inline void set_num_glyphs (unsigned int num_glyphs) { c->num_glyphs = num_glyphs; }
@@ -1255,7 +1250,7 @@ struct hb_lazy_table_loader_t
     if (unlikely (!p))
     {
       hb_blob_t *blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
-      p = const_cast<T *>(OT::Sanitizer<T>::lock_instance (blob_));
+      p = const_cast<T *>(blob_->lock_as<T> ());
       if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p))
       {
 	hb_blob_destroy (blob_);
