@@ -66,12 +66,12 @@ static const unsigned int HB_STRING_ARRAY_OFFS_NAME[] =
   sizeof (HB_STRING_ARRAY_TYPE_NAME)
 };
 
-static inline hb_string_t
+static inline hb_bytes_t
 HB_STRING_ARRAY_NAME (unsigned int i)
 {
   assert (i < ARRAY_LENGTH (HB_STRING_ARRAY_OFFS_NAME) - 1);
-  return hb_string_t (HB_STRING_ARRAY_POOL_NAME.str + HB_STRING_ARRAY_OFFS_NAME[i],
-		      HB_STRING_ARRAY_OFFS_NAME[i + 1] - HB_STRING_ARRAY_OFFS_NAME[i] - 1);
+  return hb_bytes_t (HB_STRING_ARRAY_POOL_NAME.str + HB_STRING_ARRAY_OFFS_NAME[i],
+		     HB_STRING_ARRAY_OFFS_NAME[i + 1] - HB_STRING_ARRAY_OFFS_NAME[i] - 1);
 }
 
 #undef HB_STRING_ARRAY_TYPE_NAME
