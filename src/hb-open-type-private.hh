@@ -1239,7 +1239,6 @@ struct hb_table_lazy_loader_t
   {
     face = face_;
     blob = nullptr;
-    instance = nullptr;
   }
 
   inline void fini (void)
@@ -1250,19 +1249,18 @@ struct hb_table_lazy_loader_t
   inline const T* get (void) const
   {
   retry:
-    T *p = (T *) hb_atomic_ptr_get (&instance);
-    if (unlikely (!p))
+    hb_blob_t *blob_ = (hb_blob_t *) hb_atomic_ptr_get (&blob);
+    if (unlikely (!blob_))
     {
-      hb_blob_t *blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
-      p = const_cast<T *>(blob_->as<T> ());
-      if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p))
+      blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
+      if (!hb_atomic_ptr_cmpexch (&blob, nullptr, blob_))
       {
 	hb_blob_destroy (blob_);
 	goto retry;
       }
       blob = blob_;
     }
-    return p;
+    return blob_->as<T> ();
   }
 
   inline const T* operator-> (void) const
@@ -1270,10 +1268,9 @@ struct hb_table_lazy_loader_t
     return get();
   }
 
+  private:
   hb_face_t *face;
   mutable hb_blob_t *blob;
-  private:
-  mutable T *instance;
 };
 
 
