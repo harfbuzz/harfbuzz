@@ -726,7 +726,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.array);
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
 
@@ -737,7 +737,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < range_records.len; i++)
     {
       range_record_t *range = &range_records[i];
-      range->props.potfRecords = feature_records.array + reinterpret_cast<uintptr_t> (range->props.potfRecords);
+      range->props.potfRecords = feature_records.arrayZ + reinterpret_cast<uintptr_t> (range->props.potfRecords);
     }
   }
   else
@@ -916,8 +916,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.array,
-				     range_properties.array,
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.len,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -957,8 +957,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.array,
-				     range_properties.array,
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.len,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,
