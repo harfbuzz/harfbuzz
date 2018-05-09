@@ -191,7 +191,7 @@ struct CmapSubtableFormat4
       }
 
       if (!segment
-          || cp != segment->end_code + 1)
+          || cp != segment->end_code + 1u)
       {
         segment = segments->push ();
         segment->start_code.set (cp);
@@ -199,7 +199,7 @@ struct CmapSubtableFormat4
         segment->use_delta = true;
       } else {
         segment->end_code.set (cp);
-        if (last_gid + 1 != new_gid)
+        if (last_gid + 1u != new_gid)
           // gid's are not consecutive in this segment so delta
           // cannot be used.
           segment->use_delta = false;
