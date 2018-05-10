@@ -1,5 +1,6 @@
 /*
  * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -43,10 +44,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 
 
 /**
@@ -484,6 +481,12 @@ hb_blob_t::try_make_writable (void)
  * Mmap
  */
 
+#ifdef HAVE_MMAP
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <windows.h>
 #include <io.h>
@@ -542,31 +545,40 @@ hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
 {
   // Adopted from glib's gmappedfile.c with Matthias Clasen and
-  // Allison Lortie permission but changed to suit our need.
+  // Allison Lortie permission but changed a lot to suit our need.
   bool writable = false;
   hb_memory_mode_t mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
-
-  int fd = open (file_name, (writable ? O_RDWR : O_RDONLY) | _O_BINARY, 0);
-  if (unlikely (fd == -1)) return hb_blob_get_empty ();
-
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
+  if (unlikely (!file)) return hb_blob_get_empty ();
+
+#ifdef HAVE_MMAP
+  int fd = open (file_name, (writable ? O_RDWR : O_RDONLY) | _O_BINARY, 0);
+# define CLOSE close
+  if (unlikely (fd == -1)) goto fail_without_close;
 
   struct stat st;
   if (unlikely (fstat (fd, &st) == -1)) goto fail;
 
-  // If the file size is 0 and is a regular file, give up
   // See https://github.com/GNOME/glib/blob/f9faac7/glib/gmappedfile.c#L139-L142
   if (unlikely (st.st_size == 0 && S_ISREG (st.st_mode))) goto fail;
 
   file->length = (unsigned long) st.st_size;
-
-#ifdef HAVE_MMAP
   file->contents = (char *) mmap (nullptr, file->length,
 				  writable ? PROT_READ|PROT_WRITE : PROT_READ,
 				  MAP_PRIVATE, fd, 0);
+
   if (unlikely (file->contents == MAP_FAILED)) goto fail;
+
 #elif defined(_WIN32) || defined(__CYGWIN__)
-  file->mapping = CreateFileMapping ((HANDLE) _get_osfhandle (fd), nullptr,
+  HANDLE fd = CreateFile (file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
+			  OPEN_EXISTING,
+			  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, nullptr);
+# define CLOSE CloseHandle
+
+  if (unlikely (fd == INVALID_HANDLE_VALUE)) goto fail_without_close;
+
+  file->length = (unsigned long) GetFileSize (fd, nullptr);
+  file->mapping = CreateFileMapping (fd, nullptr,
 				     writable ? PAGE_WRITECOPY : PAGE_READONLY,
 				     0, 0, nullptr);
   if (unlikely (file->mapping == nullptr)) goto fail;
@@ -574,24 +586,34 @@ hb_blob_create_from_file (const char *file_name)
   file->contents = (char *) MapViewOfFile (file->mapping,
 					   writable ? FILE_MAP_COPY : FILE_MAP_READ,
 					   0, 0, 0);
-  if (unlikely (file->contents == nullptr))
-  {
-    CloseHandle (file->mapping);
-    goto fail;
-  }
+  if (unlikely (file->contents == nullptr)) goto fail;
+
 #else
+  mm = HB_MEMORY_MODE_WRITABLE;
+
+  FILE *fd = fopen (file_name, "rb");
+# define CLOSE fclose
+  if (unlikely (!fd)) goto fail_without_close;
+
+  fseek (fd, 0, SEEK_END);
+  file->length = ftell (fd);
+  rewind (fd);
   file->contents = (char *) malloc (file->length);
   if (unlikely (!file->contents)) goto fail;
-  read (fd, file->contents, file->length);
-  mm = HB_MEMORY_MODE_WRITABLE;
+
+  if (unlikely (fread (file->contents, 1, file->length, fd) != file->length))
+    goto fail;
+
 #endif
 
-  close (fd);
+  CLOSE (fd);
   return hb_blob_create (file->contents, file->length, mm, (void *) file,
 			 (hb_destroy_func_t) _hb_mapped_file_destroy);
 
 fail:
-  close (fd);
+  CLOSE (fd);
+#undef CLOSE
+fail_without_close:
   free (file);
   return hb_blob_get_empty ();
 }
