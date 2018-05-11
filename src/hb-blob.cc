@@ -556,8 +556,9 @@ hb_blob_create_from_file (const char *file_name)
   if (unlikely (file->contents == MAP_FAILED)) goto fail;
 
 #elif defined(_WIN32) || defined(__CYGWIN__)
-  HANDLE fd = CreateFile (file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
-			  OPEN_EXISTING,
+  HANDLE fd = CreateFile (file_name,
+			  writable ? GENERIC_READ|GENERIC_WRITE : GENERIC_READ,
+			  FILE_SHARE_READ, nullptr, OPEN_EXISTING,
 			  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, nullptr);
 # define CLOSE CloseHandle
 
