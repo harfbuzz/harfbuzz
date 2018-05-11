@@ -482,31 +482,17 @@ hb_blob_t::try_make_writable (void)
  */
 
 #ifdef HAVE_MMAP
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#include <windows.h>
-#include <io.h>
-
-#undef fstat
-#define fstat(a,b) _fstati64(a,b)
-#undef stat
-#define stat _stati64
-
-#ifndef S_ISREG
-# define S_ISREG(m) (((m) & _S_IFMT) == _S_IFREG)
+# include <windows.h>
 #endif
-#endif // defined(_WIN32) || defined(__CYGWIN__)
 
 #ifndef _O_BINARY
 # define _O_BINARY 0
-#endif
-
-#ifndef MAP_FAILED
-# define MAP_FAILED ((void *) -1)
 #endif
 
 struct hb_mapped_file_t
