@@ -87,10 +87,10 @@ foreach test_data : in_house_tests
   test(test_name, python3,
     args: [
       files('run-tests.py')[0],
-      hb_shape.full_path(),
+      hb_shape,
       join_paths(meson.current_source_dir(), 'data/in-house/tests', fname),
     ],
-    workdir: meson.current_source_dir(),
+    workdir: join_paths(meson.current_build_dir(), '..', '..'),
   )
 endforeach
 
@@ -102,9 +102,9 @@ foreach test_data : text_rendering_tests
   test(test_name, python3,
     args: [
       files('run-tests.py')[0],
-      hb_shape.full_path(),
+      hb_shape,
       join_paths(meson.current_source_dir(), 'data/text-rendering-tests/tests', fname),
     ],
-    workdir: meson.current_source_dir(),
+    workdir: join_paths(meson.current_build_dir(), '..', '..'),
   )
 endforeach

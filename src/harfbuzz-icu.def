@@ -1,0 +1,5 @@
+EXPORTS
+hb_icu_get_unicode_funcs
+hb_icu_script_from_script
+hb_icu_script_to_script
+LIBRARY libharfbuzz-icu-0.dll
