@@ -1,0 +1,5 @@
+[wrap-git]
+directory=fontconfig
+url=https://github.com/centricular/fontconfig.git
+push-url=git@github.com:centricular/fontconfig.git
+revision=meson
