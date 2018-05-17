@@ -184,12 +184,17 @@ libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: [incbase, incucdn],
   dependencies: deps,
   cpp_args: cpp_args,
-)
+  vs_module_defs: 'harfbuzz.def',
+  soversion: '0',
+  name_prefix: 'lib')
 
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incbase,
   link_with: [libharfbuzz],
-  cpp_args: cpp_args)
+  cpp_args: cpp_args,
+  vs_module_defs: 'harfbuzz-subset.def',
+  soversion: '0',
+  name_prefix: 'lib')
 
 if conf.get('HAVE_GOBJECT', 0) == 1
   gnome = import('gnome')
@@ -233,5 +238,8 @@ if conf.get('HAVE_GOBJECT', 0) == 1
     include_directories: incbase,
     dependencies: deps,
     link_with: [libharfbuzz],
-    cpp_args: cpp_args)
+    cpp_args: cpp_args,
+    vs_module_defs: 'harfbuzz-gobject.def',
+    soversion: '0',
+    name_prefix: 'lib')
 endif
