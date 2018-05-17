@@ -22,30 +22,35 @@ hb_subset_cli_sources = [
   'options.cc',
 ]
 
-hb_view = executable('hb-view', hb_view_sources,
-  cpp_args: cpp_args,
-  include_directories: [incbase, incsrc],
-  dependencies: deps,
-  link_with: [libharfbuzz]
-)
+if conf.get('HAVE_GLIB', 0) == 1
+  if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_CAIRO_FT', 0) == 1
 
-hb_shape = executable('hb-shape', hb_shape_sources,
-  cpp_args: cpp_args,
-  include_directories: [incbase, incsrc],
-  dependencies: deps,
-  link_with: [libharfbuzz]
-)
+    hb_view = executable('hb-view', hb_view_sources,
+      cpp_args: cpp_args,
+      include_directories: [incbase, incsrc],
+      dependencies: deps,
+      link_with: [libharfbuzz]
+    )
+  endif
 
-hb_subset = executable('hb-subset', hb_subset_cli_sources,
-  cpp_args: cpp_args,
-  include_directories: [incbase, incsrc],
-  dependencies: deps,
-  link_with: [libharfbuzz, libharfbuzz_subset]
-)
+  hb_shape = executable('hb-shape', hb_shape_sources,
+    cpp_args: cpp_args,
+    include_directories: [incbase, incsrc],
+    dependencies: deps,
+    link_with: [libharfbuzz]
+  )
 
-hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
-  cpp_args: cpp_args,
-  include_directories: [incbase, incsrc],
-  dependencies: deps,
-  link_with: [libharfbuzz]
-)
+  hb_subset = executable('hb-subset', hb_subset_cli_sources,
+    cpp_args: cpp_args,
+    include_directories: [incbase, incsrc],
+    dependencies: deps,
+    link_with: [libharfbuzz, libharfbuzz_subset]
+  )
+
+  hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
+    cpp_args: cpp_args,
+    include_directories: [incbase, incsrc],
+    dependencies: deps,
+    link_with: [libharfbuzz]
+  )
+endif
