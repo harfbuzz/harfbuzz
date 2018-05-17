@@ -1,0 +1,5 @@
+[wrap-git]
+directory=glib
+url=git://git.gnome.org/glib
+push-url=ssh://git.gnome.org/git/glib
+revision=master

@@ -30,21 +30,17 @@ check_freetype_funcs = [
   ['FT_Done_MM_Var'],
 ]
 
-check_alignofs = [
-  ['struct{char;}', {'conf-name': 'ALIGNOF_STRUCT_CHAR__'}]
-]
-
-freetype_dep = dependency('freetype2', required: false)
-glib_dep = dependency('glib-2.0', required: false)
-gobject_dep = dependency('gobject-2.0', required: false)
+freetype_dep = dependency('freetype2', required: false, fallback: ['freetype2', 'freetype_dep'])
+glib_dep = dependency('glib-2.0', required: false, fallback: ['glib', 'libglib_dep'])
+gobject_dep = dependency('gobject-2.0', required: false, fallback: ['glib', 'libgobject_dep'])
 cairo_dep = dependency('cairo', required: false)
 cairo_ft_dep = dependency('cairo-ft', required: false)
-fontconfig_dep = dependency('fontconfig', required: false)
+fontconfig_dep = dependency('fontconfig', required: false, fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: false)
 icu_dep = dependency('icu-uc', required: false)
-m_dep = cpp.find_library('m')
+m_dep = cpp.find_library('m', required: false)
 
-deps = [m_dep]
+deps = []
 
 conf = configuration_data()
 incbase = include_directories('.')
@@ -55,6 +51,10 @@ warn_cflags = [
 ]
 
 cpp_args += cpp.get_supported_arguments(warn_cflags)
+
+if m_dep.found()
+  deps += [m_dep]
+endif
 
 if glib_dep.found()
   conf.set('HAVE_GLIB', 1)
@@ -163,15 +163,6 @@ foreach check : check_funcs
     deps += extra_deps
     conf.set('HAVE_@0@'.format(name.to_upper()), 1)
   endif
-endforeach
-
-foreach check : check_alignofs
-  type = check[0]
-  opts = check.length() > 1 ? check[1] : {}
-
-  conf_name = opts.get('conf-name', 'ALIGNOF_@0@'.format(type.to_upper()))
-
-  conf.set(conf_name, cpp.alignment(type))
 endforeach
 
 if cpp.links(files('meson-cc-tests/intel-atomic-primitives-test.c'), name: 'Intel atomics')
