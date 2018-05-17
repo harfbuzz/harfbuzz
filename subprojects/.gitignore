@@ -3,4 +3,6 @@
 /glib
 /fontconfig
 /libffi
+/proxy-libintl
+/zlib
 /packagecache

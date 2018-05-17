@@ -20,11 +20,13 @@ endforeach
 env = environment()
 env.set('srcdir', meson.current_source_dir())
 
-test('shape_fuzzer', python3,
+run_shape_fuzzer_tests = find_program('run-shape-fuzzer-tests.py')
+
+test('shape_fuzzer', run_shape_fuzzer_tests,
   args: [
-    files('run-shape-fuzzer-tests.py')[0],
     hb_shape_fuzzer_exe,
   ],
+  depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
   workdir: join_paths(meson.current_build_dir(), '..', '..'),
   env: env)
 
