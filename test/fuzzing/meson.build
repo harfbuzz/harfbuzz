@@ -14,19 +14,25 @@ foreach test_data : tests
     dependencies: deps,
     link_with: [libharfbuzz, libharfbuzz_subset],
   )
+  set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
+
+env = environment()
+env.set('srcdir', meson.current_source_dir())
 
 test('shape_fuzzer', python3,
   args: [
     files('run-shape-fuzzer-tests.py')[0],
-    join_paths(meson.current_build_dir(), 'hb_shape_fuzzer')
+    hb_shape_fuzzer_exe,
   ],
-  workdir: meson.current_source_dir())
+  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  env: env)
 
 test('subset_fuzzer', python3,
   args: [
     files('run-subset-fuzzer-tests.py')[0],
-    join_paths(meson.current_build_dir(), 'hb_subset_fuzzer'),
-    join_paths(meson.current_build_dir(), 'hb_subset_get_codepoints_fuzzer'),
+    hb_subset_fuzzer_exe,
+    hb_subset_get_codepoints_fuzzer_exe,
   ],
-  workdir: meson.current_source_dir())
+  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  env: env)
