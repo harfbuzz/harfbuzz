@@ -999,7 +999,7 @@ struct hb_vector_size_t
   inline hb_vector_size_t process (const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
-#if HB_VECTOR_SIZE && 0
+#if HB_VECTOR_SIZE
     if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
       for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
 	Op::process (r.u.vec[i], u.vec[i], o.u.vec[i]);
