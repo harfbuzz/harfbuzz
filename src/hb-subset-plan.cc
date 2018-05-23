@@ -91,10 +91,8 @@ _populate_codepoints (hb_set_t *input_codepoints,
 {
   plan_codepoints.alloc (hb_set_get_population (input_codepoints));
   hb_codepoint_t cp = -1;
-  while (hb_set_next (input_codepoints, &cp)) {
-    hb_codepoint_t *wr = plan_codepoints.push();
-    *wr = cp;
-  }
+  while (hb_set_next (input_codepoints, &cp))
+    plan_codepoints.push(cp);
   plan_codepoints.qsort (_hb_codepoint_t_cmp);
 }
 
@@ -139,9 +137,9 @@ _populate_gids_to_retain (hb_face_t *face,
     if (!cmap.get_nominal_glyph (codepoints[i], &gid))
     {
       gid = -1;
-      *(bad_indices.push ()) = i;
+      bad_indices.push (i);
     }
-    *(old_gids.push ()) = gid;
+    old_gids.push (gid);
   }
 
   /* Generally there shouldn't be any */
@@ -166,7 +164,7 @@ _populate_gids_to_retain (hb_face_t *face,
   old_gids_sorted.alloc (hb_set_get_population (all_gids_to_retain));
   hb_codepoint_t gid = HB_SET_VALUE_INVALID;
   while (hb_set_next (all_gids_to_retain, &gid))
-    *(old_gids_sorted.push ()) = gid;
+    old_gids_sorted.push (gid);
 
   hb_set_destroy (all_gids_to_retain);
   glyf.fini ();

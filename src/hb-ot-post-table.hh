@@ -126,10 +126,9 @@ struct post
       const uint8_t *end = (uint8_t *) table + table_length;
       for (const uint8_t *data = pool; data < end && data + *data <= end; data += 1 + *data)
       {
-	uint32_t *offset = index_to_offset.push ();
+	uint32_t *offset = index_to_offset.push (data - pool);
 	if (unlikely (!offset))
 	  break;
-	*offset = data - pool;
       }
     }
     inline void fini (void)

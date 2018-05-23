@@ -696,10 +696,8 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 	{
 	  if (!j || active_features[j].rec.tagFeature != feature_records[feature_records.len - 1].tagFeature)
 	  {
-	    OPENTYPE_FEATURE_RECORD *feature = feature_records.push ();
-	    if (unlikely (!feature))
+	    if (unlikely (!feature_records.push (active_features[j].rec)))
 	      goto fail_features;
-	    *feature = active_features[j].rec;
 	  }
 	  else
 	  {
@@ -719,10 +717,8 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       }
 
       if (event->start) {
-        active_feature_t *feature = active_features.push ();
-	if (unlikely (!feature))
+	if (unlikely (!active_features.push (event->feature)))
 	  goto fail_features;
-	*feature = event->feature;
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)

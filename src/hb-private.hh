@@ -551,9 +551,17 @@ struct hb_vector_t
 
     return &arrayZ[len - 1];
   }
+  inline Type *push (const Type& v)
+  {
+    if (unlikely (!resize (len + 1)))
+      return nullptr;
+
+    arrayZ[len - 1] = v;
+    return &arrayZ[len - 1];
+  }
 
   /* Allocate for size but don't adjust len. */
-  inline bool alloc(unsigned int size)
+  inline bool alloc (unsigned int size)
   {
     if (likely (size <= allocated))
       return true;
@@ -738,9 +746,7 @@ struct hb_lockable_set_t
 	l.unlock ();
       }
     } else {
-      item = items.push ();
-      if (likely (item))
-	*item = v;
+      item = items.push (v);
       l.unlock ();
     }
     return item;
@@ -779,9 +785,7 @@ struct hb_lockable_set_t
     l.lock ();
     item_t *item = items.find (v);
     if (!item) {
-      item = items.push ();
-      if (likely (item))
-        *item = v;
+      item = items.push (v);
     }
     l.unlock ();
     return item;

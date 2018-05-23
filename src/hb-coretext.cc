@@ -770,10 +770,9 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       }
 
       if (event->start) {
-        active_feature_t *feature = active_features.push ();
+        active_feature_t *feature = active_features.push (event->feature);
 	if (unlikely (!feature))
 	  goto fail_features;
-	*feature = event->feature;
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
