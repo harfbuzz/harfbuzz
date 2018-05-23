@@ -50,6 +50,8 @@ DISBALED_TESTS = \
 	tests/MORX-23.tests \
 	tests/MORX-25.tests \
 	tests/MORX-26.tests \
+	tests/MORX-27.tests \
+	tests/MORX-28.tests \
 	tests/MORX-2.tests \
 	tests/MORX-3.tests \
 	tests/MORX-4.tests \
