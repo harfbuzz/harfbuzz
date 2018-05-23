@@ -164,14 +164,7 @@ struct hb_set_t
     static inline unsigned int elt_get_min (const elt_t &elt) { return _hb_ctz (elt); }
     static inline unsigned int elt_get_max (const elt_t &elt) { return _hb_bit_storage (elt) - 1; }
 
-#if 0 && HAVE_VECTOR_SIZE
-    /* The vectorized version does not work with clang as non-const
-     * elt() errs "non-const reference cannot bind to vector element". */
-    typedef elt_t vector_t __attribute__((vector_size (PAGE_BITS / 8)));
-#else
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
-#endif
-
     vector_t v;
 
     static const unsigned int ELT_BITS = sizeof (elt_t) * 8;

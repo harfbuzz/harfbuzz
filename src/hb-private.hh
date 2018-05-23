@@ -978,6 +978,14 @@ struct HbOpXor
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
 };
 
+
+/* Compiler-assisted vectorization. */
+
+/* The `vector_size' attribute was introduced in gcc 3.1. */
+#if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
+#define HAVE_VECTOR_SIZE 1
+#endif
+
 /* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))). */
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
@@ -989,8 +997,11 @@ struct hb_vector_size_t
   inline hb_vector_size_t process (const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
-    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
-      Op::process (r.v[i], v[i], o.v[i]);
+    if (HAVE_VECTOR_SIZE+0)
+      Op::process (r.vec, vec, o.vec);
+    else
+      for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+	Op::process (r.v[i], v[i], o.v[i]);
     return r;
   }
   inline hb_vector_size_t operator | (const hb_vector_size_t &o) const
@@ -1009,13 +1020,11 @@ struct hb_vector_size_t
 
   private:
   static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
-  elt_t v[byte_size / sizeof (elt_t)];
+  union {
+    elt_t v[byte_size / sizeof (elt_t)];
+    elt_t vec __attribute__((vector_size (byte_size))); /* Only usable if HAVE_VECTOR_SIZE */
+  };
 };
-
-/* The `vector_size' attribute was introduced in gcc 3.1. */
-#if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#define HAVE_VECTOR_SIZE 1
-#endif
 
 
 /* Global runtime options. */
