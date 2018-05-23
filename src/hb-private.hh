@@ -983,25 +983,30 @@ struct HbOpXor
 
 /* The `vector_size' attribute was introduced in gcc 3.1. */
 #if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#define HAVE_VECTOR_SIZE 1
+#define HB_VECTOR_SIZE 128
+#elif !defined(HB_VECTOR_SIZE)
+#define HB_VECTOR_SIZE 0
 #endif
 
 /* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))). */
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
 {
-  elt_t& operator [] (unsigned int i) { return v[i]; }
-  const elt_t& operator [] (unsigned int i) const { return v[i]; }
+  elt_t& operator [] (unsigned int i) { return u.v[i]; }
+  const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
 
   template <class Op>
   inline hb_vector_size_t process (const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
-    if (HAVE_VECTOR_SIZE+0)
-      Op::process (r.vec, vec, o.vec);
+#if HB_VECTOR_SIZE && 0
+    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
+      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
+	Op::process (r.u.vec[i], u.vec[i], o.u.vec[i]);
     else
-      for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
-	Op::process (r.v[i], v[i], o.v[i]);
+#endif
+      for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
+	Op::process (r.u.v[i], u.v[i], o.u.v[i]);
     return r;
   }
   inline hb_vector_size_t operator | (const hb_vector_size_t &o) const
@@ -1013,8 +1018,14 @@ struct hb_vector_size_t
   inline hb_vector_size_t operator ~ () const
   {
     hb_vector_size_t r;
-    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
-      r.v[i] = ~v[i];
+#if HB_VECTOR_SIZE && 0
+    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
+      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
+	r.u.vec[i] = ~u.vec[i];
+    else
+#endif
+    for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
+      r.u.v[i] = ~u.v[i];
     return r;
   }
 
@@ -1022,8 +1033,11 @@ struct hb_vector_size_t
   static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
   union {
     elt_t v[byte_size / sizeof (elt_t)];
-    elt_t vec __attribute__((vector_size (byte_size))); /* Only usable if HAVE_VECTOR_SIZE */
-  };
+#if HB_VECTOR_SIZE
+    typedef unsigned long vec_t __attribute__((vector_size (HB_VECTOR_SIZE)));
+    vec_t vec[byte_size / sizeof (vec_t)];
+#endif
+  } u;
 };
 
 
