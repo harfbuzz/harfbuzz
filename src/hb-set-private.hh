@@ -380,9 +380,7 @@ struct hb_set_t
 
   inline bool is_equal (const hb_set_t *other) const
   {
-    if (population != (unsigned int) -1 &&
-	other->population != (unsigned int) -1 &&
-	population != other->population)
+    if (get_population () != other->get_population ())
       return false;
 
     unsigned int na = pages.len;
