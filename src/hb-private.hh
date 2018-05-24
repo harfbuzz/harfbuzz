@@ -529,7 +529,7 @@ _hb_ceil_to_4 (unsigned int v)
  */
 
 /*
- * Null objects
+ * Static pools
  */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
@@ -547,7 +547,6 @@ const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
 = {}
 #endif
 ;
-
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline const Type& Null (void) {
@@ -569,6 +568,28 @@ namespace Namespace { \
 static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
 
 
+/* Global writable pool.  Enlarge as necessary. */
+
+#ifdef HB_NO_VISIBILITY
+static
+#else
+extern HB_INTERNAL
+#endif
+void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+#ifdef HB_NO_VISIBILITY
+= {}
+#endif
+;
+/* CRAP pool: Common Region for Access Protection. */
+template <typename Type>
+static inline Type& Crap (void) {
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
+  *obj = Null(Type);
+  return *obj;
+}
+#define Crap(Type) Crap<Type>()
+
 
 /* arrays and maps */
 
@@ -589,8 +610,18 @@ struct hb_vector_t
     arrayZ = static_array;
   }
 
-  inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
-  inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
+  inline Type& operator [] (unsigned int i)
+  {
+    if (unlikely (i >= len))
+      return Crap (Type);
+    return arrayZ[i];
+  }
+  inline const Type& operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= len))
+      return Null (Type);
+    return arrayZ[i];
+  }
 
   inline Type *push (void)
   {
