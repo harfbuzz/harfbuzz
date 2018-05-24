@@ -315,7 +315,7 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
 
-/* Misc */
+/* Tiny functions */
 
 /*
  * Void!
@@ -519,6 +519,54 @@ _hb_ceil_to_4 (unsigned int v)
 {
   return ((v - 1) | 3) + 1;
 }
+
+
+
+/*
+ *
+ * Utility types
+ *
+ */
+
+/*
+ * Null objects
+ */
+
+/* Global nul-content Null pool.  Enlarge as necessary. */
+
+#define HB_NULL_POOL_SIZE 264
+static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
+
+#ifdef HB_NO_VISIBILITY
+static
+#else
+extern HB_INTERNAL
+#endif
+const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+#ifdef HB_NO_VISIBILITY
+= {}
+#endif
+;
+
+/* Generic nul-content Null objects. */
+template <typename Type>
+static inline const Type& Null (void) {
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  return *reinterpret_cast<const Type *> (_hb_NullPool);
+}
+#define Null(Type) Null<Type>()
+
+/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
+#define DEFINE_NULL_DATA(Namespace, Type, data) \
+} /* Close namespace. */ \
+static const char _Null##Type[sizeof (Namespace::Type) + 1] = data; /* +1 is for nul-termination in data */ \
+template <> \
+/*static*/ inline const Namespace::Type& Null<Namespace::Type> (void) { \
+  return *reinterpret_cast<const Namespace::Type *> (_Null##Type); \
+} \
+namespace Namespace { \
+/* The following line really exists such that we end in a place needing semicolon */ \
+static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
 
 
 
@@ -1114,47 +1162,6 @@ round (double x)
     return ceil (x - 0.5);
 }
 #endif
-
-
-/*
- * Null objects
- */
-
-/* Global nul-content Null pool.  Enlarge as necessary. */
-
-#define HB_NULL_POOL_SIZE 264
-static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
-
-#ifdef HB_NO_VISIBILITY
-static
-#else
-extern HB_INTERNAL
-#endif
-const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
-#ifdef HB_NO_VISIBILITY
-= {}
-#endif
-;
-
-/* Generic nul-content Null objects. */
-template <typename Type>
-static inline const Type& Null (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
-  return *reinterpret_cast<const Type *> (_hb_NullPool);
-}
-#define Null(Type) Null<Type>()
-
-/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Namespace, Type, data) \
-} /* Close namespace. */ \
-static const char _Null##Type[sizeof (Namespace::Type) + 1] = data; /* +1 is for nul-termination in data */ \
-template <> \
-/*static*/ inline const Namespace::Type& Null<Namespace::Type> (void) { \
-  return *reinterpret_cast<const Namespace::Type *> (_Null##Type); \
-} \
-namespace Namespace { \
-/* The following line really exists such that we end in a place needing semicolon */ \
-static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
 
 
 
