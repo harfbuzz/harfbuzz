@@ -90,6 +90,14 @@ extern "C" void  hb_free_impl(void *ptr);
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert
 
+#ifdef __GNUC__
+#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8))
+#define thread_local __thread
+#endif
+#else
+#define thread_local
+#endif
+
 #endif // __cplusplus < 201103L
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
@@ -570,12 +578,16 @@ static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool
 
 /* Global writable pool.  Enlarge as necessary. */
 
+/* To be fully correct, CrapPool must be thread_local. However, we do not rely on CrapPool
+ * for correct operation. It only exist to catch and divert program logic bugs instead of
+ * causing bad memory access. So, races there are not actually introducing incorrectness
+ * in the code. So maybe disable? Has ~12kb binary size overhead to have it. */
 #ifdef HB_NO_VISIBILITY
 static
 #else
 extern HB_INTERNAL
 #endif
-void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+thread_local void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
 #ifdef HB_NO_VISIBILITY
 = {}
 #endif
