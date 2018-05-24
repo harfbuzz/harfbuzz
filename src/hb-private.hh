@@ -685,8 +685,9 @@ struct hb_vector_t
     return true;
   }
 
-  inline bool resize (unsigned int size)
+  inline bool resize (int size_)
   {
+    unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
     if (!alloc (size))
       return false;
 
@@ -696,6 +697,7 @@ struct hb_vector_t
 
   inline void pop (void)
   {
+    if (!len) return;
     len--;
   }
 
@@ -709,10 +711,11 @@ struct hb_vector_t
      len--;
   }
 
-  inline void shrink (unsigned int l)
+  inline void shrink (int size_)
   {
-     if (l < len)
-       len = l;
+    unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
+     if (size < len)
+       len = size;
   }
 
   template <typename T>
