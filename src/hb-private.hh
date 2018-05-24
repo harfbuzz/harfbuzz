@@ -550,16 +550,16 @@ static
 #else
 extern HB_INTERNAL
 #endif
-const void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
 #ifdef HB_NO_VISIBILITY
 = {}
 #endif
 ;
 /* Generic nul-content Null objects. */
 template <typename Type>
-static inline const Type& Null (void) {
+static inline Type const & Null (void) {
   static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
-  return *reinterpret_cast<const Type *> (_hb_NullPool);
+  return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
 #define Null(Type) Null<Type>()
 
