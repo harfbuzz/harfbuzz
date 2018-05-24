@@ -44,9 +44,8 @@
 #include "hb-ot-post-table.hh"
 
 
-#if !defined(HB_NO_VISIBILITY) && !defined(HB_SUBSET_BUILTIN)
-void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-thread_local void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+#if !defined(HB_SUBSET_BUILTIN)
+#include "hb-static.cc"
 #endif
 
 

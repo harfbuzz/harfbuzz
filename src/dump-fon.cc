@@ -22,14 +22,10 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#include "hb-static.cc"
 #include <stdio.h>
 #include <stdlib.h>
 #include "hb-open-type-private.hh"
-
-#ifndef HB_NO_VISIBILITY
-void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-thread_local void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-#endif
 
 template <typename Type, int Bytes> struct LEInt;
 

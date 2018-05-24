@@ -22,8 +22,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.h"
-#include "hb-private.hh"
+#include "hb-static.cc"
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
@@ -45,11 +44,6 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifndef HB_NO_VISIBILITY
-void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-thread_local void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-#endif
 
 void cbdt_callback (const uint8_t* data, unsigned int length,
                     unsigned int group, unsigned int gid)
