@@ -99,9 +99,7 @@ struct hb_ot_shape_planner_t
   }
 
   private:
-  /* No copy. */
-  hb_ot_shape_planner_t (const hb_ot_shape_planner_t &);
-  hb_ot_shape_planner_t &operator = (const hb_ot_shape_planner_t &);
+  HB_DISALLOW_COPY_AND_ASSIGN (hb_ot_shape_planner_t);
 };
 
 

@@ -942,8 +942,6 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 			    unsigned int        num_features,
 			    hb_set_t           *glyphs)
 {
-  hb_ot_shape_plan_t plan;
-
   const char *shapers[] = {"ot", nullptr};
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
 							     features, num_features, shapers);

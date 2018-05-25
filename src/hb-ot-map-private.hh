@@ -78,7 +78,6 @@ struct hb_ot_map_t
     pause_func_t pause_func;
   };
 
-
   hb_ot_map_t (void) { memset (this, 0, sizeof (*this)); }
 
   inline hb_mask_t get_global_mask (void) const { return global_mask; }

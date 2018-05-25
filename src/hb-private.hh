@@ -536,6 +536,13 @@ _hb_ceil_to_4 (unsigned int v)
  *
  */
 
+#define HB_DISALLOW_ASSIGN(TypeName) \
+  void operator=(const TypeName&) = delete
+
+#define HB_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete; \
+  void operator=(const TypeName&) = delete
+
 /*
  * Static pools
  */
@@ -800,6 +807,9 @@ struct hb_vector_t
     arrayZ = nullptr;
     allocated = len = 0;
   }
+
+  private:
+  HB_DISALLOW_ASSIGN (hb_vector_t);
 };
 
 template <typename Type>

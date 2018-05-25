@@ -675,6 +675,9 @@ struct hb_set_t
   inline const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
   inline unsigned int get_major (hb_codepoint_t g) const { return g / page_t::PAGE_BITS; }
   inline hb_codepoint_t major_start (unsigned int major) const { return major * page_t::PAGE_BITS; }
+
+  private:
+  HB_DISALLOW_COPY_AND_ASSIGN (hb_set_t);
 };
 
 
