@@ -495,6 +495,10 @@ hb_blob_t::try_make_writable (void)
 # define _O_BINARY 0
 #endif
 
+#ifndef MAP_NORESERVE
+# define MAP_NORESERVE 0
+#endif
+
 struct hb_mapped_file_t
 {
   char *contents;
@@ -551,7 +555,7 @@ hb_blob_create_from_file (const char *file_name)
   file->length = (unsigned long) st.st_size;
   file->contents = (char *) mmap (nullptr, file->length,
 				  writable ? PROT_READ|PROT_WRITE : PROT_READ,
-				  MAP_PRIVATE, fd, 0);
+				  MAP_PRIVATE | MAP_NORESERVE, fd, 0);
 
   if (unlikely (file->contents == MAP_FAILED)) goto fail;
 
