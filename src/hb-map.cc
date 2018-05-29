@@ -170,12 +170,12 @@ hb_map_allocation_successful (const hb_map_t  *map)
  *
  * Since: REPLACEME
  **/
-hb_bool_t
+void
 hb_map_set (hb_map_t       *map,
 	    hb_codepoint_t  key,
 	    hb_codepoint_t  value)
 {
-  return map->set (key, value);
+  map->set (key, value);
 }
 
 /**

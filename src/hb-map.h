@@ -80,14 +80,14 @@ hb_map_allocation_successful (const hb_map_t *map);
  hb_map_is_empty (const hb_map_t *map);
 
  HB_EXTERN unsigned int
- hb_map_get_population (const hb_map_t *map);
+ hb_set_get_population (const hb_set_t *set);
 
  HB_EXTERN hb_bool_t
  hb_map_is_equal (const hb_map_t *map,
 		 const hb_map_t *other);
 */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN void
 hb_map_set (hb_map_t       *map,
 	    hb_codepoint_t  key,
 	    hb_codepoint_t  value);
