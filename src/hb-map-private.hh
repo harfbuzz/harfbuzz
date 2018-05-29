@@ -151,6 +151,9 @@ struct hb_map_t
     return get (key) != INVALID;
   }
 
+  inline hb_codepoint_t operator [] (unsigned int key) const
+  { return get (key); }
+
   static const hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
 
   protected:
