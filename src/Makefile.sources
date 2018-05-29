@@ -14,6 +14,8 @@ HB_BASE_sources = \
 	hb-face.cc \
 	hb-font-private.hh \
 	hb-font.cc \
+	hb-map-private.hh \
+	hb-map.cc \
 	hb-mutex-private.hh \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
@@ -69,6 +71,7 @@ HB_BASE_headers = \
 	hb-deprecated.h \
 	hb-face.h \
 	hb-font.h \
+	hb-map.h \
 	hb-set.h \
 	hb-shape.h \
 	hb-shape-plan.h \
