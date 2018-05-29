@@ -118,10 +118,10 @@ struct hb_map_t
     return true;
   }
 
-  inline void set (hb_codepoint_t key, hb_codepoint_t value)
+  inline bool set (hb_codepoint_t key, hb_codepoint_t value)
   {
-    if (unlikely (in_error)) return;
-    if ((occupancy + occupancy / 2) > mask && !resize ()) return;
+    if (unlikely (in_error)) return false;
+    if ((occupancy + occupancy / 2) > mask && !resize ()) return false;
     unsigned int i = bucket_for (key);
     if (items[i].key != key)
     {
@@ -130,6 +130,7 @@ struct hb_map_t
       items[i].key = key;
     }
     items[i].value = value;
+    return true;
   }
   inline hb_codepoint_t get (hb_codepoint_t key) const
   {
