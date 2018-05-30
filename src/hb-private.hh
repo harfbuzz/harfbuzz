@@ -588,13 +588,13 @@ static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool
 /* To be fully correct, CrapPool must be thread_local. However, we do not rely on CrapPool
  * for correct operation. It only exist to catch and divert program logic bugs instead of
  * causing bad memory access. So, races there are not actually introducing incorrectness
- * in the code. So maybe disable? Has ~12kb binary size overhead to have it. */
+ * in the code. Has ~12kb binary size overhead to have it, also clang build fails with it. */
 #ifdef HB_NO_VISIBILITY
 static
 #else
 extern HB_INTERNAL
 #endif
-thread_local void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+/*thread_local*/ void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
 #ifdef HB_NO_VISIBILITY
 = {}
 #endif
