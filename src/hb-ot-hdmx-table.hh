@@ -59,13 +59,13 @@ struct DeviceRecord
 
     inline unsigned int len () const
     {
-      return this->subset_plan->gids_to_retain_sorted.len;
+      return this->subset_plan->glyphs.len;
     }
 
     inline const HBUINT8* operator [] (unsigned int i) const
     {
       if (unlikely (i >= len())) return nullptr;
-      hb_codepoint_t gid = this->subset_plan->gids_to_retain_sorted [i];
+      hb_codepoint_t gid = this->subset_plan->glyphs [i];
 
       const HBUINT8* width = &(this->source_device_record->widths[gid]);
 
@@ -147,7 +147,7 @@ struct hdmx
 
     this->version.set (source_hdmx->version);
     this->num_records.set (source_hdmx->num_records);
-    this->size_device_record.set (DeviceRecord::get_size (plan->gids_to_retain_sorted.len));
+    this->size_device_record.set (DeviceRecord::get_size (plan->glyphs.len));
 
     for (unsigned int i = 0; i < source_hdmx->num_records; i++)
     {
@@ -163,7 +163,7 @@ struct hdmx
 
   static inline size_t get_subsetted_size (hb_subset_plan_t *plan)
   {
-    return min_size + DeviceRecord::get_size (plan->gids_to_retain_sorted.len);
+    return min_size + DeviceRecord::get_size (plan->glyphs.len);
   }
 
   inline bool subset (hb_subset_plan_t *plan) const
@@ -189,7 +189,7 @@ struct hdmx
 						 HB_MEMORY_MODE_READONLY,
 						 dest,
 						 free);
-    bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_hdmx, hdmx_prime_blob);
+    bool result = plan->add_table (HB_OT_TAG_hdmx, hdmx_prime_blob);
     hb_blob_destroy (hdmx_prime_blob);
 
     return result;

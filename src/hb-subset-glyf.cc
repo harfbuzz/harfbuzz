@@ -130,9 +130,8 @@ _update_components (hb_subset_plan_t * plan,
     do
     {
       hb_codepoint_t new_gid;
-      if (!hb_subset_plan_new_gid_for_old_id (plan,
-					      iterator.current->glyphIndex,
-					      &new_gid))
+      if (!plan->new_gid_for_old_gid (iterator.current->glyphIndex,
+                                      &new_gid))
 	continue;
 
       ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex.set (new_gid);
@@ -165,7 +164,7 @@ _write_glyf_and_loca_prime (hb_subset_plan_t              *plan,
                             unsigned int                   loca_prime_size,
                             char                          *loca_prime_data /* OUT */)
 {
-  hb_vector_t<hb_codepoint_t> &glyph_ids = plan->gids_to_retain_sorted;
+  hb_vector_t<hb_codepoint_t> &glyph_ids = plan->glyphs;
   char *glyf_prime_data_next = glyf_prime_data;
 
   bool success = true;
@@ -234,7 +233,7 @@ _hb_subset_glyf_and_loca (const OT::glyf::accelerator_t  &glyf,
                           hb_blob_t                     **loca_prime /* OUT */)
 {
   // TODO(grieger): Sanity check allocation size for the new table.
-  hb_vector_t<hb_codepoint_t> &glyphs_to_retain = plan->gids_to_retain_sorted;
+  hb_vector_t<hb_codepoint_t> &glyphs_to_retain = plan->glyphs;
 
   unsigned int glyf_prime_size;
   unsigned int loca_prime_size;

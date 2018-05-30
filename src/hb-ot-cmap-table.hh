@@ -28,6 +28,7 @@
 #define HB_OT_CMAP_TABLE_HH
 
 #include "hb-open-type-private.hh"
+#include "hb-set-private.hh"
 #include "hb-subset-plan.hh"
 
 /*
@@ -111,7 +112,7 @@ struct CmapSubtableFormat4
       {
         hb_codepoint_t cp = segments[i].start_code;
         hb_codepoint_t start_gid = 0;
-        if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &start_gid) && cp != 0xFFFF))
+        if (unlikely (!plan->new_gid_for_codepoint (cp, &start_gid) && cp != 0xFFFF))
           return_trace (false);
         id_delta[i].set (start_gid - segments[i].start_code);
       } else {
@@ -139,7 +140,7 @@ struct CmapSubtableFormat4
         {
           hb_codepoint_t cp = segments[i].start_code + j;
           hb_codepoint_t new_gid;
-          if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+          if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
             return_trace (false);
           glyph_id_array[j].set (new_gid);
         }
@@ -176,10 +177,11 @@ struct CmapSubtableFormat4
   {
     segment_plan *segment = nullptr;
     hb_codepoint_t last_gid = 0;
-    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
-      hb_codepoint_t cp = plan->codepoints[i];
+
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (plan->unicodes->next (&cp)) {
       hb_codepoint_t new_gid;
-      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+      if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
 	return false;
@@ -494,11 +496,11 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
                                             hb_vector_t<CmapSubtableLongGroup> *groups)
   {
     CmapSubtableLongGroup *group = nullptr;
-    for (unsigned int i = 0; i < plan->codepoints.len; i++) {
 
-      hb_codepoint_t cp = plan->codepoints[i];
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (plan->unicodes->next (&cp)) {
       hb_codepoint_t new_gid;
-      if (unlikely (!hb_subset_plan_new_gid_for_codepoint (plan, cp, &new_gid)))
+      if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
 	return false;
@@ -882,7 +884,7 @@ struct cmap
                                             HB_MEMORY_MODE_READONLY,
                                             dest,
                                             free);
-    bool result =  hb_subset_plan_add_table (plan, HB_OT_TAG_cmap, cmap_prime);
+    bool result =  plan->add_table (HB_OT_TAG_cmap, cmap_prime);
     hb_blob_destroy (cmap_prime);
     return result;
   }

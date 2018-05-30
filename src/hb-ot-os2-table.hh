@@ -63,26 +63,25 @@ struct os2
     }
 
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (plan->codepoints, &min_cp, &max_cp);
+    find_min_and_max_codepoint (plan->unicodes, &min_cp, &max_cp);
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
-    _update_unicode_ranges (plan->codepoints, os2_prime->ulUnicodeRange);
-    bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_os2, os2_prime_blob);
+    _update_unicode_ranges (plan->unicodes, os2_prime->ulUnicodeRange);
+    bool result = plan->add_table (HB_OT_TAG_os2, os2_prime_blob);
 
     hb_blob_destroy (os2_prime_blob);
     return result;
   }
 
-  inline void _update_unicode_ranges (const hb_vector_t<hb_codepoint_t> &codepoints,
+  inline void _update_unicode_ranges (const hb_set_t *codepoints,
                                       HBUINT32 ulUnicodeRange[4]) const
   {
     for (unsigned int i = 0; i < 4; i++)
       ulUnicodeRange[i].set (0);
 
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (codepoints->next (&cp)) {
       unsigned int bit = hb_get_unicode_range_bit (cp);
       if (bit < 128)
       {
@@ -101,28 +100,12 @@ struct os2
     }
   }
 
-  static inline void find_min_and_max_codepoint (const hb_vector_t<hb_codepoint_t> &codepoints,
+  static inline void find_min_and_max_codepoint (const hb_set_t *codepoints,
                                                  uint16_t *min_cp, /* OUT */
                                                  uint16_t *max_cp  /* OUT */)
   {
-    hb_codepoint_t min = -1, max = 0;
-
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      if (cp < min)
-        min = cp;
-      if (cp > max)
-        max = cp;
-    }
-
-    if (min > 0xFFFF)
-      min = 0xFFFF;
-    if (max > 0xFFFF)
-      max = 0xFFFF;
-
-    *min_cp = min;
-    *max_cp = max;
+    *min_cp = codepoints->get_min ();
+    *max_cp = codepoints->get_max ();
   }
 
   enum font_page_t {
