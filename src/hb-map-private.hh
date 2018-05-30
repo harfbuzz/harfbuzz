@@ -123,7 +123,7 @@ struct hb_map_t
   {
     if (unlikely (in_error)) return;
     if (unlikely (key == INVALID)) return;
-    if ((occupancy + occupancy / 2) > mask && !resize ()) return;
+    if ((occupancy + occupancy / 2) >= mask && !resize ()) return;
     unsigned int i = bucket_for (key);
 
     if (value == INVALID && items[i].key != key)
