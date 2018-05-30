@@ -220,7 +220,7 @@ hb_map_del (hb_map_t       *map,
  *
  * Since: REPLACEME
  **/
-bool
+hb_bool_t
 hb_map_has (const hb_map_t *map,
 	    hb_codepoint_t  key)
 {

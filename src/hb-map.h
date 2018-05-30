@@ -101,7 +101,7 @@ HB_EXTERN void
 hb_map_del (hb_map_t       *map,
 	    hb_codepoint_t  key);
 
-HB_EXTERN bool
+HB_EXTERN hb_bool_t
 hb_map_has (const hb_map_t *map,
 	    hb_codepoint_t  key);
 
