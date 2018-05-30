@@ -228,6 +228,49 @@ hb_map_has (const hb_map_t *map,
 }
 
 
+/**
+ * hb_map_clear:
+ * @map: a map.
+ *
+ *
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_map_clear (hb_map_t *map)
+{
+  return map->clear ();
+}
+
+/**
+ * hb_map_is_empty:
+ * @map: a map.
+ *
+ *
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_map_is_empty (const hb_map_t *map)
+{
+  return map->is_empty ();
+}
+
+/**
+ * hb_map_get_population:
+ * @map: a map.
+ *
+ *
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_map_get_population (const hb_map_t *map)
+{
+  return map->get_population ();
+}
+
+
 /* Following comment and table copied from glib. */
 /* Each table size has an associated prime modulo (the first prime
  * lower than the table size) used to find the initial bucket. Probing

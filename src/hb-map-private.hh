@@ -66,8 +66,7 @@ struct hb_map_t
   inline void init_shallow (void)
   {
     in_error = false;
-    population = 0;
-    occupancy = 0;
+    population = occupancy = 0;
     mask = 0;
     prime = 0;
     items = nullptr;
@@ -105,8 +104,7 @@ struct hb_map_t
     item_t *old_items = items;
 
     /* Switch to new, empty, array. */
-    population = 0;
-    occupancy = 0;
+    population = occupancy = 0;
     mask = new_size - 1;
     prime = prime_for (power);
     items = new_items;
@@ -166,6 +164,22 @@ struct hb_map_t
   { return get (key); }
 
   static const hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
+
+  inline void clear (void)
+  {
+    memset (items, 0xFF, ((size_t) mask + 1) * sizeof (item_t));
+    population = occupancy = 0;
+  }
+
+  inline bool is_empty (void) const
+  {
+    return population != 0;
+  }
+
+  inline unsigned int get_population () const
+  {
+    return population;
+  }
 
   protected:
   static HB_INTERNAL unsigned int prime_for (unsigned int shift);
