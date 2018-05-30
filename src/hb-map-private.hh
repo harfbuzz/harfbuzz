@@ -147,7 +147,6 @@ struct hb_map_t
   }
   inline hb_codepoint_t get (hb_codepoint_t key) const
   {
-    if (unlikely (in_error)) return INVALID;
     if (unlikely (!items)) return INVALID;
     unsigned int i = bucket_for (key);
     return items[i].key == key ? items[i].value : INVALID;
