@@ -132,12 +132,11 @@ struct hb_map_t
       return; /* Trying to delete non-existent key. */
 
     /* Accounting. */
-    if (items[i].is_tombstone ())
-      occupancy--;
-    else if (!items[i].is_unused ())
+    if (!items[i].is_unused ())
     {
-      population--;
       occupancy--;
+      if (items[i].value != INVALID)
+	population--;
     }
     occupancy++;
     if (value != INVALID)
