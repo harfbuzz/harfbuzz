@@ -72,13 +72,6 @@ hb_map_get_user_data (hb_map_t           *map,
 HB_EXTERN hb_bool_t
 hb_map_allocation_successful (const hb_map_t *map);
 
-/*
-
- HB_EXTERN hb_bool_t
- hb_map_is_equal (const hb_map_t *map,
-		 const hb_map_t *other);
-*/
-
 HB_EXTERN void
 hb_map_clear (hb_map_t *map);
 
