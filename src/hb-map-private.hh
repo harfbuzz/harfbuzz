@@ -57,6 +57,7 @@ struct hb_map_t
   hb_object_header_t header;
   ASSERT_POD ();
   bool in_error;
+  unsigned int population; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
   unsigned int prime;
@@ -65,6 +66,7 @@ struct hb_map_t
   inline void init_shallow (void)
   {
     in_error = false;
+    population = 0;
     occupancy = 0;
     mask = 0;
     prime = 0;
@@ -89,7 +91,7 @@ struct hb_map_t
   {
     if (unlikely (in_error)) return false;
 
-    unsigned int power = _hb_bit_storage (occupancy * 2 + 8) - 1;
+    unsigned int power = _hb_bit_storage (population * 2 + 8) - 1;
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))
@@ -103,6 +105,7 @@ struct hb_map_t
     item_t *old_items = items;
 
     /* Switch to new, empty, array. */
+    population = 0;
     occupancy = 0;
     mask = new_size - 1;
     prime = prime_for (power);
@@ -121,14 +124,26 @@ struct hb_map_t
   inline void set (hb_codepoint_t key, hb_codepoint_t value)
   {
     if (unlikely (in_error)) return;
+    if (unlikely (key == INVALID)) return;
     if ((occupancy + occupancy / 2) > mask && !resize ()) return;
     unsigned int i = bucket_for (key);
-    if (items[i].key != key)
+
+    if (value == INVALID && items[i].key != key)
+      return; /* Trying to delete non-existent key. */
+
+    /* Accounting. */
+    if (items[i].is_tombstone ())
+      occupancy--;
+    else if (!items[i].is_unused ())
     {
-      if (items[i].key == INVALID && key != INVALID)
-	occupancy++;
-      items[i].key = key;
+      population--;
+      occupancy--;
     }
+    occupancy++;
+    if (value != INVALID)
+      population++;
+
+    items[i].key = key;
     items[i].value = value;
   }
   inline hb_codepoint_t get (hb_codepoint_t key) const
@@ -141,10 +156,7 @@ struct hb_map_t
 
   inline void del (hb_codepoint_t key)
   {
-    if (unlikely (in_error)) return;
-    if (unlikely (!items)) return;
-    unsigned int i = bucket_for (key);
-    items[i].value = INVALID;
+    set (key, INVALID);
   }
   inline bool has (hb_codepoint_t key) const
   {

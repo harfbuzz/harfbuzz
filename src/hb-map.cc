@@ -53,6 +53,7 @@ hb_map_create (void)
 static const hb_map_t _hb_map_nil = {
   HB_OBJECT_HEADER_STATIC,
   true, /* in_error */
+  0, /* population */
   0, /* occupancy */
   0, /* mask */
   0, /* prime */
