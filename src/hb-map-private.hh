@@ -133,15 +133,17 @@ struct hb_map_t
     if (!items[i].is_unused ())
     {
       occupancy--;
-      if (items[i].value != INVALID)
+      if (items[i].is_tombstone ())
 	population--;
     }
-    occupancy++;
-    if (value != INVALID)
-      population++;
 
     items[i].key = key;
     items[i].value = value;
+
+    occupancy++;
+    if (!items[i].is_tombstone ())
+      population++;
+
   }
   inline hb_codepoint_t get (hb_codepoint_t key) const
   {
