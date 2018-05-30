@@ -605,6 +605,17 @@ static inline Type& Crap (void) {
 }
 #define Crap(Type) Crap<Type>()
 
+template <typename Type>
+struct CrapOrNull {
+  static inline Type & get (void) { return Crap(Type); }
+};
+template <typename Type>
+struct CrapOrNull<const Type> {
+  static inline Type const & get (void) { return Null(Type); }
+};
+#define CrapOrNull(Type) CrapOrNull<Type>::get ()
+
+
 
 /* arrays and maps */
 
