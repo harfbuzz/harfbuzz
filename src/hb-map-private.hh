@@ -110,9 +110,10 @@ struct hb_map_t
     items = new_items;
 
     /* Insert back old items. */
-    for (unsigned int i = 0; i < old_size; i++)
-      if (old_items[i].key != INVALID && old_items[i].value != INVALID)
-        set (old_items[i].key, old_items[i].value);
+    if (old_items)
+      for (unsigned int i = 0; i < old_size; i++)
+	if (old_items[i].key != INVALID && old_items[i].value != INVALID)
+	  set (old_items[i].key, old_items[i].value);
 
     free (old_items);
 
