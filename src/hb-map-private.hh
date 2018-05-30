@@ -129,7 +129,6 @@ struct hb_map_t
     if (value == INVALID && items[i].key != key)
       return; /* Trying to delete non-existent key. */
 
-    /* Accounting. */
     if (!items[i].is_unused ())
     {
       occupancy--;
