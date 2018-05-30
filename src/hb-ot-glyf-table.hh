@@ -88,9 +88,9 @@ struct glyf
     bool success = true;
     bool use_short_loca = false;
     if (hb_subset_glyf_and_loca (plan, &use_short_loca, &glyf_prime, &loca_prime)) {
-      success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_glyf, glyf_prime);
-      success = success && hb_subset_plan_add_table (plan, HB_OT_TAG_loca, loca_prime);
-      success = success && _add_head_and_set_loca_version (plan->source, use_short_loca, plan->dest);
+      success = success && plan->add_table (HB_OT_TAG_glyf, glyf_prime);
+      success = success && plan->add_table (HB_OT_TAG_loca, loca_prime);
+      success = success && _add_head_and_set_loca_version (plan, use_short_loca);
     } else {
       success = false;
     }
@@ -101,9 +101,9 @@ struct glyf
   }
 
   static bool
-  _add_head_and_set_loca_version (hb_face_t *source, bool use_short_loca, hb_face_t *dest)
+  _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
   {
-    hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (source, HB_OT_TAG_head));
+    hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_head));
     hb_blob_t *head_prime_blob = hb_blob_copy_writable_or_fail (head_blob);
     hb_blob_destroy (head_blob);
 
@@ -112,7 +112,7 @@ struct glyf
 
     OT::head *head_prime = (OT::head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
     head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
-    bool success = hb_subset_face_add_table (dest, HB_OT_TAG_head, head_prime_blob);
+    bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 
     hb_blob_destroy (head_prime_blob);
     return success;

@@ -81,7 +81,7 @@ struct hmtxvmtx
     H *table = (H *) hb_blob_get_data (dest_blob, &length);
     table->numberOfLongMetrics.set (num_hmetrics);
 
-    bool result = hb_subset_plan_add_table (plan, H::tableTag, dest_blob);
+    bool result = plan->add_table (H::tableTag, dest_blob);
     hb_blob_destroy (dest_blob);
 
     return result;
@@ -94,7 +94,7 @@ struct hmtxvmtx
 
     /* All the trailing glyphs with the same advance can use one LongMetric
      * and just keep LSB */
-    hb_vector_t<hb_codepoint_t> &gids = plan->gids_to_retain_sorted;
+    hb_vector_t<hb_codepoint_t> &gids = plan->glyphs;
     unsigned int num_advances = gids.len;
     unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
     while (num_advances > 1
@@ -178,7 +178,7 @@ struct hmtxvmtx
                                         HB_MEMORY_MODE_READONLY,
                                         dest,
                                         free);
-    bool success = hb_subset_plan_add_table (plan, T::tableTag, result);
+    bool success = plan->add_table (T::tableTag, result);
     hb_blob_destroy (result);
     return success;
   }

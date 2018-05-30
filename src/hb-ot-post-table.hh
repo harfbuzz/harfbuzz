@@ -99,7 +99,7 @@ struct post
     }
 
     post_prime->version.major.set (3); // Version 3 does not have any glyph names.
-    bool result = hb_subset_plan_add_table (plan, HB_OT_TAG_post, post_prime_blob);
+    bool result = plan->add_table (HB_OT_TAG_post, post_prime_blob);
     hb_blob_destroy (post_prime_blob);
 
     return result;
