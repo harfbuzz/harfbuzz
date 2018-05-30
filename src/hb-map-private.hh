@@ -184,7 +184,7 @@ struct hb_map_t
 
   protected:
 
-  static inline unsigned int prime_for (unsigned int shift)
+  static HB_INTERNAL inline unsigned int prime_for (unsigned int shift)
   {
     /* Following comment and table copied from glib. */
     /* Each table size has an associated prime modulo (the first prime
