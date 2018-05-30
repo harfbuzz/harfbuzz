@@ -677,7 +677,7 @@ struct hb_set_t
   inline hb_codepoint_t major_start (unsigned int major) const { return major * page_t::PAGE_BITS; }
 
   private:
-  HB_DISALLOW_COPY_AND_ASSIGN (hb_set_t);
+  HB_DISALLOW_ASSIGN (hb_set_t);
 };
 
 

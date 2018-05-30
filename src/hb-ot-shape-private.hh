@@ -99,7 +99,7 @@ struct hb_ot_shape_planner_t
   }
 
   private:
-  HB_DISALLOW_COPY_AND_ASSIGN (hb_ot_shape_planner_t);
+  HB_DISALLOW_ASSIGN (hb_ot_shape_planner_t);
 };
 
 

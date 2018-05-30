@@ -251,7 +251,7 @@ struct hb_map_t
   }
 
   private:
-  HB_DISALLOW_COPY_AND_ASSIGN (hb_map_t);
+  HB_DISALLOW_ASSIGN (hb_map_t);
 };
 
 
