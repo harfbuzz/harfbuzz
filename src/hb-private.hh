@@ -545,7 +545,7 @@ _hb_ceil_to_4 (unsigned int v)
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
-#define HB_NULL_POOL_SIZE 264
+#define HB_NULL_POOL_SIZE 384
 static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
 
 #ifdef HB_NO_VISIBILITY

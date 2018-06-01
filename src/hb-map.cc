@@ -50,16 +50,6 @@ hb_map_create (void)
   return map;
 }
 
-static const hb_map_t _hb_map_nil = {
-  HB_OBJECT_HEADER_STATIC,
-  false, /* successful */
-  0, /* population */
-  0, /* occupancy */
-  0, /* mask */
-  0, /* prime */
-  nullptr /* items */
-};
-
 /**
  * hb_map_get_empty:
  *
@@ -70,7 +60,7 @@ static const hb_map_t _hb_map_nil = {
 hb_map_t *
 hb_map_get_empty (void)
 {
-  return const_cast<hb_map_t *> (&_hb_map_nil);
+  return const_cast<hb_map_t *> (&Null(hb_map_t));
 }
 
 /**

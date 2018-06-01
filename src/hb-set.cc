@@ -50,12 +50,6 @@ hb_set_create (void)
   return set;
 }
 
-static const hb_set_t _hb_set_nil = {
-  HB_OBJECT_HEADER_STATIC,
-  false, /* successful */
-  0, /* population */
-};
-
 /**
  * hb_set_get_empty:
  *
@@ -66,7 +60,7 @@ static const hb_set_t _hb_set_nil = {
 hb_set_t *
 hb_set_get_empty (void)
 {
-  return const_cast<hb_set_t *> (&_hb_set_nil);
+  return const_cast<hb_set_t *> (&Null(hb_set_t));
 }
 
 /**
