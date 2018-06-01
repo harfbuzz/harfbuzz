@@ -855,7 +855,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 
   for (unsigned int i = 1; i < count; i++)
   {
-    while (buffer->idx < match_positions[i] && !buffer->in_error)
+    while (buffer->idx < match_positions[i] && buffer->successful)
     {
       if (!is_mark_ligature) {
         unsigned int this_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
@@ -990,7 +990,7 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
       match_positions[j] += delta;
   }
 
-  for (unsigned int i = 0; i < lookupCount && !buffer->in_error; i++)
+  for (unsigned int i = 0; i < lookupCount && buffer->successful; i++)
   {
     unsigned int idx = lookupRecord[i].sequenceIndex;
     if (idx >= count)

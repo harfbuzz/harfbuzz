@@ -99,7 +99,7 @@ struct hb_map_t
 
   hb_object_header_t header;
   ASSERT_POD ();
-  bool in_error;
+  bool successful; /* Allocations successful */
   unsigned int population; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
@@ -108,7 +108,7 @@ struct hb_map_t
 
   inline void init_shallow (void)
   {
-    in_error = false;
+    successful = true;
     population = occupancy = 0;
     mask = 0;
     prime = 0;
@@ -131,14 +131,14 @@ struct hb_map_t
 
   inline bool resize (void)
   {
-    if (unlikely (in_error)) return false;
+    if (unlikely (!successful)) return false;
 
     unsigned int power = _hb_bit_storage (population * 2 + 8);
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))
     {
-      in_error = true;
+      successful = false;
       return false;
     }
     memset (new_items, 0xFF, (size_t) new_size * sizeof (item_t));
@@ -165,7 +165,7 @@ struct hb_map_t
 
   inline void set (hb_codepoint_t key, hb_codepoint_t value)
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
     if (unlikely (key == INVALID)) return;
     if ((occupancy + occupancy / 2) >= mask && !resize ()) return;
     unsigned int i = bucket_for (key);

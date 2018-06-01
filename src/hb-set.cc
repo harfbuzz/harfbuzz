@@ -52,7 +52,7 @@ hb_set_create (void)
 
 static const hb_set_t _hb_set_nil = {
   HB_OBJECT_HEADER_STATIC,
-  true, /* in_error */
+  false, /* successful */
   0, /* population */
 
   {0} /* elts */
@@ -153,7 +153,7 @@ hb_set_get_user_data (hb_set_t           *set,
 hb_bool_t
 hb_set_allocation_successful (const hb_set_t  *set)
 {
-  return !set->in_error;
+  return set->successful;
 }
 
 /**

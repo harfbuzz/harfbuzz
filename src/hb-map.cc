@@ -52,7 +52,7 @@ hb_map_create (void)
 
 static const hb_map_t _hb_map_nil = {
   HB_OBJECT_HEADER_STATIC,
-  true, /* in_error */
+  false, /* successful */
   0, /* population */
   0, /* occupancy */
   0, /* mask */
@@ -155,7 +155,7 @@ hb_map_get_user_data (hb_map_t           *map,
 hb_bool_t
 hb_map_allocation_successful (const hb_map_t  *map)
 {
-  return !map->in_error;
+  return map->successful;
 }
 
 

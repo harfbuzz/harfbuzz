@@ -1121,7 +1121,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
-  while (buffer->idx < buffer->len && !buffer->in_error)
+  while (buffer->idx < buffer->len && buffer->successful)
   {
     bool applied = false;
     if (accel.may_have (buffer->cur().codepoint) &&

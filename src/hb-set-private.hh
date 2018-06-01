@@ -181,14 +181,14 @@ struct hb_set_t
 
   hb_object_header_t header;
   ASSERT_POD ();
-  bool in_error;
+  bool successful; /* Allocations successful */
   mutable unsigned int population;
   hb_vector_t<page_map_t, 8> page_map;
   hb_vector_t<page_t, 1> pages;
 
   inline void init_shallow (void)
   {
-    in_error = false;
+    successful = true;
     population = 0;
     page_map.init ();
     pages.init ();
@@ -211,11 +211,11 @@ struct hb_set_t
 
   inline bool resize (unsigned int count)
   {
-    if (unlikely (in_error)) return false;
+    if (unlikely (!successful)) return false;
     if (!pages.resize (count) || !page_map.resize (count))
     {
       pages.resize (page_map.len);
-      in_error = true;
+      successful = false;
       return false;
     }
     return true;
@@ -224,7 +224,7 @@ struct hb_set_t
   inline void clear (void) {
     if (unlikely (hb_object_is_inert (this)))
       return;
-    in_error = false;
+    successful = true;
     population = 0;
     page_map.resize (0);
     pages.resize (0);
@@ -241,7 +241,7 @@ struct hb_set_t
 
   inline void add (hb_codepoint_t g)
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
     if (unlikely (g == INVALID)) return;
     dirty ();
     page_t *page = page_for_insert (g); if (unlikely (!page)) return;
@@ -249,7 +249,7 @@ struct hb_set_t
   }
   inline bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    if (unlikely (in_error)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */
+    if (unlikely (!successful)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */
     if (unlikely (a > b || a == INVALID || b == INVALID)) return false;
     dirty ();
     unsigned int ma = get_major (a);
@@ -279,7 +279,7 @@ struct hb_set_t
   template <typename T>
   inline void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
     if (!count) return;
     dirty ();
     hb_codepoint_t g = *array;
@@ -305,7 +305,7 @@ struct hb_set_t
   template <typename T>
   inline bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    if (unlikely (in_error)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */
+    if (unlikely (!successful)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */
     if (!count) return true;
     dirty ();
     hb_codepoint_t g = *array;
@@ -333,7 +333,8 @@ struct hb_set_t
 
   inline void del (hb_codepoint_t g)
   {
-    if (unlikely (in_error)) return;
+    /* TODO perform op even if !successful. */
+    if (unlikely (!successful)) return;
     page_t *p = page_for (g);
     if (!p)
       return;
@@ -342,8 +343,9 @@ struct hb_set_t
   }
   inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
+    /* TODO perform op even if !successful. */
     /* TODO Optimize, like add_range(). */
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
     for (unsigned int i = a; i < b + 1; i++)
       del (i);
   }
@@ -362,7 +364,7 @@ struct hb_set_t
   }
   inline void set (const hb_set_t *other)
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
     unsigned int count = other->pages.len;
     if (!resize (count))
       return;
@@ -401,7 +403,7 @@ struct hb_set_t
   template <class Op>
   inline void process (const hb_set_t *other)
   {
-    if (unlikely (in_error)) return;
+    if (unlikely (!successful)) return;
 
     dirty ();
 

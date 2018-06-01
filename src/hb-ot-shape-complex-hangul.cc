@@ -188,7 +188,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 				    */
   unsigned int count = buffer->len;
 
-  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
+  for (buffer->idx = 0; buffer->idx < count && buffer->successful;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
 
@@ -269,7 +269,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	  if (font->has_glyph (s))
 	  {
 	    buffer->replace_glyphs (t ? 3 : 2, 1, &s);
-	    if (unlikely (buffer->in_error))
+	    if (unlikely (!buffer->successful))
 	      return;
 	    end = start + 1;
 	    continue;
@@ -319,7 +319,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	if (font->has_glyph (new_s))
 	{
 	  buffer->replace_glyphs (2, 1, &new_s);
-	  if (unlikely (buffer->in_error))
+	  if (unlikely (!buffer->successful))
 	    return;
 	  end = start + 1;
 	  continue;
@@ -345,7 +345,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	{
 	  unsigned int s_len = tindex ? 3 : 2;
 	  buffer->replace_glyphs (1, s_len, decomposed);
-	  if (unlikely (buffer->in_error))
+	  if (unlikely (!buffer->successful))
 	    return;
 
 	  /* We decomposed S: apply jamo features to the individual glyphs

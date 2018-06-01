@@ -312,7 +312,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
   buffer->idx = 0;
   unsigned int last_syllable = 0;
-  while (buffer->idx < buffer->len && !buffer->in_error)
+  while (buffer->idx < buffer->len && buffer->successful)
   {
     unsigned int syllable = buffer->cur().syllable();
     syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
