@@ -645,7 +645,7 @@ struct hb_vector_t
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len))
-      return Null (Type);
+      return Null(Type);
     return arrayZ[i];
   }
 

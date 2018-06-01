@@ -341,7 +341,7 @@ struct NE_TYPEINFO
   {
     const NE_TYPEINFO& next = OT::StructAfter<NE_TYPEINFO> (*this);
     if (type_id == 0)
-      return Null (NE_TYPEINFO);
+      return Null(NE_TYPEINFO);
     return next;
   }
 
@@ -349,7 +349,7 @@ struct NE_TYPEINFO
   {
     if (idx < count)
       return resources[idx].get_font (base, shift);
-    return Null (LE_FONTINFO16);
+    return Null(LE_FONTINFO16);
   }
 
   inline unsigned int get_count () const
@@ -398,7 +398,7 @@ struct NE_RESOURCE_TABLE
       return_trace (false);
 
     const NE_TYPEINFO* n = &chain;
-    while (n != &Null (NE_TYPEINFO) && c->check_struct (n) && n->get_type_id () != 0)
+    while (n != &Null(NE_TYPEINFO) && c->check_struct (n) && n->get_type_id () != 0)
     {
       if (n->get_type_id () == NE_TYPEINFO::FONT)
 	return_trace (n->sanitize (c, base, alignmentShiftCount));
@@ -415,13 +415,13 @@ struct NE_RESOURCE_TABLE
   inline const NE_TYPEINFO& get_fonts_entry () const
   {
     const NE_TYPEINFO* n = &chain;
-    while (n != &Null (NE_TYPEINFO) && n->get_type_id () != 0)
+    while (n != &Null(NE_TYPEINFO) && n->get_type_id () != 0)
     {
       if (n->get_type_id () == NE_TYPEINFO::FONT)
 	return *n;
       n = &n->next();
     }
-    return Null (NE_TYPEINFO);
+    return Null(NE_TYPEINFO);
   }
 
   protected:
@@ -444,7 +444,7 @@ struct LE_IMAGE_OS2_HEADER
   inline const NE_RESOURCE_TABLE& get_resource_table () const
   {
     if (magic != 0x454E) // Only NE containers are support for now, NE == 0x454E
-      return Null (NE_RESOURCE_TABLE);
+      return Null(NE_RESOURCE_TABLE);
     return this+rsrctab;
   }
 
