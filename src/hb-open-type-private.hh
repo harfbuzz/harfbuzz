@@ -779,6 +779,12 @@ struct OffsetTo : Offset<OffsetType>
   {
     unsigned int offset = *this;
     if (unlikely (!offset)) return Null(Type);
+    return StructAtOffset<const Type> (base, offset);
+  }
+  inline Type& operator () (void *base) const
+  {
+    unsigned int offset = *this;
+    if (unlikely (!offset)) return Crap(Type);
     return StructAtOffset<Type> (base, offset);
   }
 
