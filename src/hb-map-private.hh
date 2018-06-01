@@ -98,7 +98,6 @@ struct hb_map_t
   };
 
   hb_object_header_t header;
-  ASSERT_POD ();
   bool successful; /* Allocations successful */
   unsigned int population; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
@@ -252,7 +251,7 @@ struct hb_map_t
   }
 
   private:
-  HB_DISALLOW_ASSIGN (hb_map_t);
+  HB_DISALLOW_COPY_AND_ASSIGN (hb_map_t);
 };
 
 

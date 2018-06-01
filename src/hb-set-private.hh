@@ -180,7 +180,6 @@ struct hb_set_t
   static_assert (page_t::PAGE_BITS == sizeof (page_t) * 8, "");
 
   hb_object_header_t header;
-  ASSERT_POD ();
   bool successful; /* Allocations successful */
   mutable unsigned int population;
   hb_vector_t<page_map_t, 8> page_map;
@@ -679,7 +678,7 @@ struct hb_set_t
   inline hb_codepoint_t major_start (unsigned int major) const { return major * page_t::PAGE_BITS; }
 
   private:
-  HB_DISALLOW_ASSIGN (hb_set_t);
+  HB_DISALLOW_COPY_AND_ASSIGN (hb_set_t);
 };
 
 
