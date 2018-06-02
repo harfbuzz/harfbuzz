@@ -658,17 +658,14 @@ struct hb_vector_t
   inline Type *push (void)
   {
     if (unlikely (!resize (len + 1)))
-      return nullptr;
-
+      return &Crap(Type);
     return &arrayZ[len - 1];
   }
   inline Type *push (const Type& v)
   {
-    if (unlikely (!resize (len + 1)))
-      return nullptr;
-
-    arrayZ[len - 1] = v;
-    return &arrayZ[len - 1];
+    Type *p = push ();
+    *p = v;
+    return p;
   }
 
   /* Allocate for size but don't adjust len. */

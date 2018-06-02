@@ -224,8 +224,6 @@ hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;
   hb_subset_face_data_t::table_entry_t *entry = data->tables.push ();
-  if (unlikely (!entry))
-    return false;
 
   entry->tag = tag;
   entry->blob = hb_blob_reference (blob);

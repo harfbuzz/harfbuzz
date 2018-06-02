@@ -211,7 +211,8 @@ struct CmapSubtableFormat4
     }
 
     // There must be a final entry with end_code == 0xFFFF. Check if we need to add one.
-    if (segment == nullptr || segment->end_code != 0xFFFF) {
+    if (segment == nullptr || segment->end_code != 0xFFFF)
+    {
       segment = segments->push ();
       segment->start_code.set (0xFFFF);
       segment->end_code.set (0xFFFF);

@@ -670,15 +670,11 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       feature_event_t *event;
 
       event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = features[i].start;
       event->start = true;
       event->feature = feature;
 
       event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = features[i].end;
       event->start = false;
       event->feature = feature;
@@ -692,8 +688,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       feature.order = num_features + 1;
 
       feature_event_t *event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = 0; /* This value does magic. */
       event->start = false;
       event->feature = feature;
@@ -710,8 +704,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       {
         /* Save a snapshot of active features and the range. */
 	range_record_t *range = range_records.push ();
-	if (unlikely (!range))
-	  goto fail_features;
 
 	if (active_features.len)
 	{
@@ -769,21 +761,15 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	last_index = event->index;
       }
 
-      if (event->start) {
-        active_feature_t *feature = active_features.push (event->feature);
-	if (unlikely (!feature))
-	  goto fail_features;
+      if (event->start)
+      {
+        active_features.push (event->feature);
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
 	  active_features.remove (feature - active_features.arrayZ);
       }
     }
-  }
-  else
-  {
-  fail_features:
-    num_features = 0;
   }
 
   unsigned int scratch_size;

@@ -1099,8 +1099,7 @@ struct hb_get_subtables_context_t :
   inline return_t dispatch (const T &obj)
   {
     hb_applicable_t *entry = array.push();
-    if (likely (entry))
-      entry->init (&obj, apply_to<T>);
+    entry->init (&obj, apply_to<T>);
     return HB_VOID;
   }
   static return_t default_return_value (void) { return HB_VOID; }

@@ -97,9 +97,7 @@ _populate_gids_to_retain (hb_face_t *face,
   glyphs->alloc (all_gids_to_retain->get_population ());
   gid = HB_SET_VALUE_INVALID;
   while (all_gids_to_retain->next (&gid))
-  {
     glyphs->push (gid);
-  }
 
   hb_set_destroy (all_gids_to_retain);
   glyf.fini ();
