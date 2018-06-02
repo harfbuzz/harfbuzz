@@ -549,7 +549,7 @@ _hb_ceil_to_4 (unsigned int v)
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
-#define HB_NULL_POOL_SIZE 384
+#define HB_NULL_POOL_SIZE 264
 static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
 
 #ifdef HB_NO_VISIBILITY
@@ -1153,7 +1153,7 @@ struct hb_vector_size_t
   union {
     elt_t v[byte_size / sizeof (elt_t)];
 #if HB_VECTOR_SIZE
-    typedef unsigned long vec_t __attribute__((vector_size (HB_VECTOR_SIZE)));
+    typedef unsigned long vec_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
     vec_t vec[byte_size / sizeof (vec_t)];
 #endif
   } u;

@@ -165,7 +165,6 @@ struct hb_set_t
     static inline unsigned int elt_get_max (const elt_t &elt) { return _hb_bit_storage (elt) - 1; }
 
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
-    vector_t v;
 
     static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
     static const unsigned int ELT_MASK = ELT_BITS - 1;
@@ -176,6 +175,8 @@ struct hb_set_t
     elt_t &elt (hb_codepoint_t g) { return v[(g & MASK) / ELT_BITS]; }
     elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
     elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & ELT_MASK); }
+
+    vector_t v;
   };
   static_assert (page_t::PAGE_BITS == sizeof (page_t) * 8, "");
 
