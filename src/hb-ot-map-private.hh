@@ -78,7 +78,26 @@ struct hb_ot_map_t
     pause_func_t pause_func;
   };
 
-  hb_ot_map_t (void) { memset (this, 0, sizeof (*this)); }
+  inline void init (void)
+  {
+    memset (this, 0, sizeof (*this));
+
+    features.init ();
+    for (unsigned int table_index = 0; table_index < 2; table_index++)
+    {
+      lookups[table_index].init ();
+      stages[table_index].init ();
+    }
+  }
+  inline void fini (void)
+  {
+    features.fini ();
+    for (unsigned int table_index = 0; table_index < 2; table_index++)
+    {
+      lookups[table_index].fini ();
+      stages[table_index].fini ();
+    }
+  }
 
   inline hb_mask_t get_global_mask (void) const { return global_mask; }
 
@@ -129,15 +148,6 @@ struct hb_ot_map_t
   HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
 
-  inline void fini (void) {
-    features.fini ();
-    for (unsigned int table_index = 0; table_index < 2; table_index++)
-    {
-      lookups[table_index].fini ();
-      stages[table_index].fini ();
-    }
-  }
-
   public:
   hb_tag_t chosen_script[2];
   bool found_script[2];
@@ -171,6 +181,8 @@ struct hb_ot_map_builder_t
   HB_INTERNAL hb_ot_map_builder_t (hb_face_t *face_,
 				   const hb_segment_properties_t *props_);
 
+  HB_INTERNAL ~hb_ot_map_builder_t (void);
+
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value,
 				hb_ot_map_feature_flags_t flags);
 
@@ -185,14 +197,6 @@ struct hb_ot_map_builder_t
   HB_INTERNAL void compile (hb_ot_map_t  &m,
 			    const int    *coords,
 			    unsigned int  num_coords);
-
-  inline void fini (void) {
-    feature_infos.fini ();
-    for (unsigned int table_index = 0; table_index < 2; table_index++)
-    {
-      stages[table_index].fini ();
-    }
-  }
 
   private:
 

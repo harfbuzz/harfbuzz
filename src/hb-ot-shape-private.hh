@@ -59,7 +59,14 @@ struct hb_ot_shape_plan_t
   inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 
-  void fini (void) { map.fini (); }
+  void init (void)
+  {
+    memset (this, 0, sizeof (*this));
+    map.init ();
+  }
+  void fini (void) {
+    map.fini ();
+  }
 };
 
 struct hb_ot_shape_planner_t
@@ -75,7 +82,6 @@ struct hb_ot_shape_planner_t
 			 props (master_plan->props),
 			 shaper (nullptr),
 			 map (face, &props) {}
-  ~hb_ot_shape_planner_t (void) { map.fini (); }
 
   inline void compile (hb_ot_shape_plan_t &plan,
 		       const int          *coords,

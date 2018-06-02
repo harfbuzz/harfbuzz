@@ -133,6 +133,8 @@ _hb_subset_face_data_create (void)
   if (unlikely (!data))
     return nullptr;
 
+  data->tables.init ();
+
   return data;
 }
 

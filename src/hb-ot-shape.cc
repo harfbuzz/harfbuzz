@@ -180,6 +180,8 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   if (unlikely (!plan))
     return nullptr;
 
+  plan->init ();
+
   hb_ot_shape_planner_t planner (shape_plan);
 
   planner.shaper = hb_ot_shape_complex_categorize (&planner);

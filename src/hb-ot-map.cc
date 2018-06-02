@@ -43,6 +43,10 @@ hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
 {
   memset (this, 0, sizeof (*this));
 
+  feature_infos.init ();
+  for (unsigned int table_index = 0; table_index < 2; table_index++)
+    stages[table_index].init ();
+
   face = face_;
   props = *props_;
 
@@ -61,6 +65,13 @@ hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
     found_script[table_index] = (bool) hb_ot_layout_table_choose_script (face, table_tag, script_tags, &script_index[table_index], &chosen_script[table_index]);
     hb_ot_layout_script_find_language (face, table_tag, script_index[table_index], language_tag, &language_index[table_index]);
   }
+}
+
+hb_ot_map_builder_t::~hb_ot_map_builder_t (void)
+{
+  feature_infos.fini ();
+  for (unsigned int table_index = 0; table_index < 2; table_index++)
+    stages[table_index].fini ();
 }
 
 void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,

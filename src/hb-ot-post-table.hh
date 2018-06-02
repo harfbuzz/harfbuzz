@@ -109,12 +109,13 @@ struct post
   {
     inline void init (hb_face_t *face)
     {
+      index_to_offset.init ();
+
       blob = Sanitizer<post>().sanitize (face->reference_table (HB_OT_TAG_post));
       const post *table = blob->as<post> ();
       unsigned int table_length = blob->length;
 
       version = table->version.to_int ();
-      index_to_offset.init ();
       if (version != 0x00020000)
         return;
 
