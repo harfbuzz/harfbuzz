@@ -537,11 +537,11 @@ _hb_ceil_to_4 (unsigned int v)
  */
 
 #define HB_DISALLOW_ASSIGN(TypeName) \
-  void operator=(const TypeName&) = delete
+  void operator=(const TypeName&)
 
 #define HB_DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&) = delete; \
-  void operator=(const TypeName&) = delete
+  TypeName(const TypeName&); \
+  void operator=(const TypeName&)
 
 /*
  * Static pools
