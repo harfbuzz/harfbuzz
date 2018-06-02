@@ -625,11 +625,12 @@ struct CrapOrNull<const Type> {
 
 
 #define HB_PREALLOCED_ARRAY_INIT {0, 0, nullptr}
-template <typename Type, unsigned int StaticSize=16>
+template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
   unsigned int len;
   unsigned int allocated;
+  bool successful;
   Type *arrayZ;
   Type static_array[StaticSize];
 
@@ -637,6 +638,7 @@ struct hb_vector_t
   {
     len = 0;
     allocated = ARRAY_LENGTH (static_array);
+    successful = true;
     arrayZ = static_array;
   }
 
@@ -672,6 +674,9 @@ struct hb_vector_t
   /* Allocate for size but don't adjust len. */
   inline bool alloc (unsigned int size)
   {
+    if (unlikely (!successful))
+      return false;
+
     if (likely (size <= allocated))
       return true;
 
@@ -697,7 +702,10 @@ struct hb_vector_t
     }
 
     if (unlikely (!new_array))
+    {
+      successful = false;
       return false;
+    }
 
     arrayZ = new_array;
     allocated = new_allocated;
