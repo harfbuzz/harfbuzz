@@ -683,15 +683,17 @@ struct hb_vector_t
 
     Type *new_array = nullptr;
 
-    if (arrayZ == static_array) {
+    if (arrayZ == static_array)
+    {
       new_array = (Type *) calloc (new_allocated, sizeof (Type));
       if (new_array)
         memcpy (new_array, arrayZ, len * sizeof (Type));
-          } else {
+    }
+    else
+    {
       bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
-      if (likely (!overflows)) {
+      if (likely (!overflows))
         new_array = (Type *) realloc (arrayZ, new_allocated * sizeof (Type));
-      }
     }
 
     if (unlikely (!new_array))
