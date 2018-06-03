@@ -198,9 +198,6 @@ struct hb_map_t
     }
     return tombstone == INVALID ? i : tombstone;
   }
-
-  private:
-  HB_DISALLOW_COPY_AND_ASSIGN (hb_map_t);
 };
 
 

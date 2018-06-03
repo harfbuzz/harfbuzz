@@ -35,7 +35,8 @@
 #include "hb-object-private.hh"
 #include "hb-map-private.hh"
 
-struct hb_subset_plan_t {
+struct hb_subset_plan_t
+{
   hb_object_header_t header;
   ASSERT_POD ();
 
