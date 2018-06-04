@@ -34,6 +34,7 @@ TESTS = \
 	tests/none-directional.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
+	tests/sinhala.tests \
 	tests/tibetan-contractions-1.tests \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
