@@ -317,7 +317,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       if ((FLAG_UNSAFE (info[i].khmer_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | FLAG (OT_Coeng))))
       {
 	info[i].khmer_position() = last_pos;
-	if (unlikely (info[i].khmer_category() == OT_H &&
+	if (unlikely (info[i].khmer_category() == OT_Coeng &&
 		      info[i].khmer_position() == POS_PRE_M))
 	{
 	  /*
@@ -538,7 +538,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    * and possibly multiple substitutions happened prior to this
    * phase, and that might have messed up our properties.  Recover
    * from a particular case of that where we're fairly sure that a
-   * class of OT_H is desired but has been lost. */
+   * class of OT_Coeng is desired but has been lost. */
   if (khmer_plan->virama_glyph)
   {
     unsigned int virama_glyph = khmer_plan->virama_glyph;
@@ -548,7 +548,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  _hb_glyph_info_multiplied (&info[i]))
       {
         /* This will make sure that this glyph passes is_coeng() test. */
-	info[i].khmer_category() = OT_H;
+	info[i].khmer_category() = OT_Coeng;
 	_hb_glyph_info_clear_ligated_and_multiplied (&info[i]);
       }
   }
