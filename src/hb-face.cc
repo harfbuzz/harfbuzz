@@ -44,7 +44,7 @@
  *
  * Return value: Number of faces on the blob
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 unsigned int
 hb_face_count (hb_blob_t *blob)

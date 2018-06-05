@@ -529,7 +529,7 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
  *
  * Returns: A hb_blob_t pointer with the content of the file
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)

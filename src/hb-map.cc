@@ -35,7 +35,7 @@
  *
  * Return value: (transfer full):
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_map_t *
 hb_map_create (void)
@@ -55,7 +55,7 @@ hb_map_create (void)
  *
  * Return value: (transfer full):
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_map_t *
 hb_map_get_empty (void)
@@ -69,7 +69,7 @@ hb_map_get_empty (void)
  *
  * Return value: (transfer full):
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_map_t *
 hb_map_reference (hb_map_t *map)
@@ -81,7 +81,7 @@ hb_map_reference (hb_map_t *map)
  * hb_map_destroy: (skip)
  * @map: a map.
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 void
 hb_map_destroy (hb_map_t *map)
@@ -103,7 +103,7 @@ hb_map_destroy (hb_map_t *map)
  *
  * Return value:
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_bool_t
 hb_map_set_user_data (hb_map_t           *map,
@@ -122,7 +122,7 @@ hb_map_set_user_data (hb_map_t           *map,
  *
  * Return value: (transfer none):
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 void *
 hb_map_get_user_data (hb_map_t           *map,
@@ -140,7 +140,7 @@ hb_map_get_user_data (hb_map_t           *map,
  *
  * Return value:
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_bool_t
 hb_map_allocation_successful (const hb_map_t  *map)
@@ -159,7 +159,7 @@ hb_map_allocation_successful (const hb_map_t  *map)
  *
  * Return value:
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 void
 hb_map_set (hb_map_t       *map,
@@ -176,7 +176,7 @@ hb_map_set (hb_map_t       *map,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_codepoint_t
 hb_map_get (const hb_map_t *map,
@@ -192,7 +192,7 @@ hb_map_get (const hb_map_t *map,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 void
 hb_map_del (hb_map_t       *map,
@@ -208,7 +208,7 @@ hb_map_del (hb_map_t       *map,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_bool_t
 hb_map_has (const hb_map_t *map,
@@ -224,7 +224,7 @@ hb_map_has (const hb_map_t *map,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 void
 hb_map_clear (hb_map_t *map)
@@ -238,7 +238,7 @@ hb_map_clear (hb_map_t *map)
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_bool_t
 hb_map_is_empty (const hb_map_t *map)
@@ -252,7 +252,7 @@ hb_map_is_empty (const hb_map_t *map)
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 unsigned int
 hb_map_get_population (const hb_map_t *map)
