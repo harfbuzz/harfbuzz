@@ -53,7 +53,7 @@ hb_face_count (hb_blob_t *blob)
     return 0;
 
   hb_blob_t *sanitized = OT::Sanitizer<OT::OpenTypeFontFile> ().sanitize (blob);
-  const OT::OpenTypeFontFile& ot = *OT::Sanitizer<OT::OpenTypeFontFile>::lock_instance (sanitized);
+  const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
 
   return ot.get_face_count ();
 }
