@@ -204,11 +204,13 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
 
 pkgmod.generate(libharfbuzz,
   description: 'HarfBuzz text shaping library',
+  subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
 
 pkgmod.generate(libharfbuzz_subset,
   description: 'HarfBuzz font subsetter',
+  subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
 
@@ -264,6 +266,7 @@ if conf.get('HAVE_GOBJECT', 0) == 1
 
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
+    subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
 endif
