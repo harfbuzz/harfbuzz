@@ -8,7 +8,7 @@ if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
 	sys.exit (1)
 
-BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
+BLACKLISTED_BLOCKS = ["Thai", "Lao"]
 
 files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
@@ -300,6 +300,10 @@ def map_to_use(data):
 	for U,(UISC,UIPC,UGC,UBlock) in data.items():
 
 		# Resolve Indic_Syllabic_Category
+
+		# TODO: There are Tibetan signs that don't have UISC
+		# XXX: The syllable category below is in question
+		if U in [0x0F18, 0x0F19, 0x0F3E, 0x0F3F, 0x0F86, 0x0F87]: UISC = Cantillation_Mark
 
 		# TODO: These don't have UISC assigned in Unicode 8.0, but
 		# have UIPC
