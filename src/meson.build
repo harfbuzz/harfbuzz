@@ -158,7 +158,7 @@ incucdn = include_directories('hb-ucdn')
 incsrc = include_directories('.')
 
 hb_sources = hb_base_sources + hb_fallback_sources + hb_ot_sources + hb_ucdn_sources
-hb_headers = hb_base_headers + hb_ot_headers + hb_ucdn_sources
+hb_headers = hb_base_headers + hb_ot_headers
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
@@ -180,12 +180,16 @@ if conf.get('HAVE_ICU', 0) == 1
   hb_headers += hb_icu_headers
 endif
 
+version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
+
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: [incbase, incucdn],
   dependencies: deps,
   cpp_args: cpp_args,
   vs_module_defs: 'harfbuzz.def',
   soversion: '0',
+  version: version,
+  install: true,
   name_prefix: 'lib')
 
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
@@ -194,7 +198,19 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   cpp_args: cpp_args,
   vs_module_defs: 'harfbuzz-subset.def',
   soversion: '0',
+  version: version,
+  install: true,
   name_prefix: 'lib')
+
+pkgmod.generate(libharfbuzz,
+  description: 'HarfBuzz text shaping library',
+  version: meson.project_version(),
+)
+
+pkgmod.generate(libharfbuzz_subset,
+  description: 'HarfBuzz font subsetter',
+  version: meson.project_version(),
+)
 
 if conf.get('HAVE_GOBJECT', 0) == 1
   gnome = import('gnome')
@@ -228,11 +244,12 @@ if conf.get('HAVE_GOBJECT', 0) == 1
   enum_h = custom_target('hb-gobject-enums.h',
     input: enums[1],
     output: 'hb-gobject-enums.h',
-    command: [python3, files('fix_get_types.py')[0], '@INPUT@', '@OUTPUT@']
+    command: [python3, files('fix_get_types.py')[0], '@INPUT@', '@OUTPUT@'],
+    install: true,
+    install_dir: join_paths(get_option('prefix'), get_option('includedir'), meson.project_name()),
   )
 
   hb_gobject_sources += [enum_c]
-  hb_gobject_headers += [enum_h]
 
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
     include_directories: incbase,
@@ -241,5 +258,14 @@ if conf.get('HAVE_GOBJECT', 0) == 1
     cpp_args: cpp_args,
     vs_module_defs: 'harfbuzz-gobject.def',
     soversion: '0',
+    version: version,
+    install: true,
     name_prefix: 'lib')
+
+  pkgmod.generate(libharfbuzz_gobject,
+    description: 'HarfBuzz text shaping library GObject integration',
+    version: meson.project_version(),
+  )
 endif
+
+install_headers(hb_headers + hb_gobject_headers + hb_subset_headers, subdir: meson.project_name())

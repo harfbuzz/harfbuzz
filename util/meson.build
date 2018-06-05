@@ -29,7 +29,8 @@ if conf.get('HAVE_GLIB', 0) == 1
       cpp_args: cpp_args,
       include_directories: [incbase, incsrc],
       dependencies: deps,
-      link_with: [libharfbuzz]
+      link_with: [libharfbuzz],
+      install: true,
     )
   endif
 
@@ -37,20 +38,23 @@ if conf.get('HAVE_GLIB', 0) == 1
     cpp_args: cpp_args,
     include_directories: [incbase, incsrc],
     dependencies: deps,
-    link_with: [libharfbuzz]
+    link_with: [libharfbuzz],
+    install: true,
   )
 
   hb_subset = executable('hb-subset', hb_subset_cli_sources,
     cpp_args: cpp_args,
     include_directories: [incbase, incsrc],
     dependencies: deps,
-    link_with: [libharfbuzz, libharfbuzz_subset]
+    link_with: [libharfbuzz, libharfbuzz_subset],
+    install: true,
   )
 
   hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
     cpp_args: cpp_args,
     include_directories: [incbase, incsrc],
     dependencies: deps,
-    link_with: [libharfbuzz]
+    link_with: [libharfbuzz],
+    install: true,
   )
 endif

@@ -1,6 +1,7 @@
 project('harfbuzz', 'c', 'cpp',
   version: '1.7.6')
 
+pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 
 python3 = import('python').find_installation('python3')
