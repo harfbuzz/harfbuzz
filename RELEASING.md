@@ -39,11 +39,13 @@ HarfBuzz release walk-through checklist:
 
    a. Put contents of [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ) on your `~/.local/i686-w64-mingw32`,
 
-   b. Run `../mingw32.sh --with-uniscribe` script (available below) to configure harfbuzz with mingw in a subdirector (eg. winbuild/),
+   b. Run `../mingw32.sh --with-uniscribe` script to configure harfbuzz with mingw
+   in a subdirector (eg. winbuild/),
 
    c. make
 
-   d. Back in the parent directory, run `./UPDATE.sh` (available below) to build win32 bundle.
+   d. Back in the parent directory, run `./UPDATE.sh`(available below) to build win32
+      bundle.
 
 11. Copy all artefacts to users.freedesktop.org and move them into
     `/srv/www.freedesktop.org/www/software/harfbuzz/release` There should be four
