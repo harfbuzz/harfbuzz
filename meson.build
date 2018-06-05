@@ -25,12 +25,6 @@ check_funcs = [
   ['round'],
 ]
 
-check_freetype_funcs = [
-  ['FT_Get_Var_Blend_Coordinates'],
-  ['FT_Set_Var_Blend_Coordinates'],
-  ['FT_Done_MM_Var'],
-]
-
 freetype_dep = dependency('freetype2', required: false, fallback: ['freetype2', 'freetype_dep'])
 glib_dep = dependency('glib-2.0', required: false, fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: false, fallback: ['glib', 'libgobject_dep'])
@@ -91,6 +85,11 @@ endif
 if freetype_dep.found()
   conf.set('HAVE_FREETYPE', 1)
   deps += [freetype_dep]
+  check_freetype_funcs = [
+    ['FT_Get_Var_Blend_Coordinates', {'deps': freetype_dep}],
+    ['FT_Set_Var_Blend_Coordinates', {'deps': freetype_dep}],
+    ['FT_Done_MM_Var', {'deps': freetype_dep}],
+  ]
 
   if freetype_dep.type_name() == 'internal'
     foreach func: check_freetype_funcs
@@ -119,8 +118,8 @@ if host_machine.system() != 'windows'
   endif
 endif
 
-conf.set('HAVE_OT', true)
-conf.set('HAVE_FALLBACK', true)
+conf.set('HAVE_OT', 1)
+conf.set('HAVE_FALLBACK', 1)
 conf.set_quoted('PACKAGE_NAME', 'HarfBuzz')
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 
@@ -134,14 +133,15 @@ endforeach
 
 foreach check : check_funcs
   name = check[0]
-  opts = check.length() > 1 ? check[1] : {}
+  opts = check.get(1, {})
   link_withs = opts.get('link_with', [])
+  check_deps = opts.get('deps', [])
   extra_deps = []
   found = true
 
   # First try without linking
 
-  found = cpp.has_function(name)
+  found = cpp.has_function(name, dependencies: check_deps)
 
   if not found and link_withs.length() > 0
     found = true
@@ -156,9 +156,11 @@ foreach check : check_funcs
     endforeach
 
     if found
-      found = cpp.has_function(name, dependencies: extra_deps)
+      found = cpp.has_function(name, dependencies: check_deps + extra_deps)
     endif
   endif
+
+  message('func: @0@, found: @1@'.format(name, found))
 
   if found
     deps += extra_deps
