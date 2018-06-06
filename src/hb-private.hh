@@ -369,6 +369,7 @@ _hb_popcount (T v)
   }
 
   assert (0);
+  return 0; /* Shut up stupid compiler. */
 }
 
 /* Returns the number of bits needed to store number */
@@ -442,6 +443,7 @@ _hb_bit_storage (T v)
   }
 
   assert (0);
+  return 0; /* Shut up stupid compiler. */
 }
 
 /* Returns the number of zero bits in the least significant side of v */
@@ -514,6 +516,7 @@ _hb_ctz (T v)
   }
 
   assert (0);
+  return 0; /* Shut up stupid compiler. */
 }
 
 static inline bool
