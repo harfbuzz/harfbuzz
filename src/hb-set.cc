@@ -267,11 +267,11 @@ hb_set_del_range (hb_set_t       *set,
 /**
  * hb_set_is_equal:
  * @set: a set.
- * @other: 
+ * @other: other set.
  *
  * 
  *
- * Return value: 
+ * Return value: %TRUE if the two sets are equal, %FALSE otherwise.
  *
  * Since: 0.9.7
  **/
@@ -280,6 +280,24 @@ hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other)
 {
   return set->is_equal (other);
+}
+
+/**
+ * hb_set_is_subset:
+ * @set: a set.
+ * @larger_set: other set.
+ *
+ *
+ *
+ * Return value: %TRUE if the @set is a subset of (or equal to) @larger_set, %FALSE otherwise.
+ *
+ * Since: 1.8.1
+ **/
+hb_bool_t
+hb_set_is_subset (const hb_set_t *set,
+		  const hb_set_t *larger_set)
+{
+  return set->is_subset (larger_set);
 }
 
 /**

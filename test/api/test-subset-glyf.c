@@ -178,12 +178,11 @@ test_subset_glyf_strip_hints_invalid (void)
 
   hb_set_t *codepoints = hb_set_create();
   const hb_codepoint_t text[] =
-      {
-        'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',
-        '3', '@', '_', '%', '&', ')', '*', '$', '!'
-      };
-  int i;
-  for (i = 0; i < sizeof (text) / sizeof (hb_codepoint_t); i++)
+  {
+    'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',
+    '3', '@', '_', '%', '&', ')', '*', '$', '!'
+  };
+  for (unsigned int i = 0; i < sizeof (text) / sizeof (hb_codepoint_t); i++)
   {
     hb_set_add (codepoints, text[i]);
     // hb_set_add (codepoints_drop_hints, text[i]);

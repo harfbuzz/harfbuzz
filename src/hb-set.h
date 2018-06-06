@@ -104,6 +104,10 @@ HB_EXTERN hb_bool_t
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other);
 
+HB_EXTERN hb_bool_t
+hb_set_is_subset (const hb_set_t *set,
+		  const hb_set_t *larger_set);
+
 HB_EXTERN void
 hb_set_set (hb_set_t       *set,
 	    const hb_set_t *other);

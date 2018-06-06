@@ -400,6 +400,19 @@ struct hb_set_t
     return true;
   }
 
+  inline bool is_subset (const hb_set_t *larger_set) const
+  {
+    if (get_population () > larger_set->get_population ())
+      return false;
+
+    hb_codepoint_t c = INVALID;
+    while (next (&c))
+      if (!larger_set->has (c))
+        return false;
+
+    return true;
+  }
+
   template <class Op>
   inline void process (const hb_set_t *other)
   {

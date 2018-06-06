@@ -146,8 +146,12 @@ test_set_algebra (void)
 
   test_empty (s);
   g_assert (!hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (!hb_set_is_subset (o, s));
   hb_set_set (s, o);
   g_assert (hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (hb_set_is_subset (o, s));
   test_not_empty (s);
   g_assert_cmpint (hb_set_get_population (s), ==, 2);
 
