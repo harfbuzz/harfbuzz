@@ -164,6 +164,13 @@ static const hb_script_t ucdn_script_translate[] =
     HB_SCRIPT_NUSHU,
     HB_SCRIPT_SOYOMBO,
     HB_SCRIPT_ZANABAZAR_SQUARE,
+    HB_SCRIPT_DOGRA,
+    HB_SCRIPT_GUNJALA_GONDI,
+    HB_SCRIPT_HANIFI_ROHINGYA,
+    HB_SCRIPT_MAKASAR,
+    HB_SCRIPT_MEDEFAIDRIN,
+    HB_SCRIPT_OLD_SOGDIAN,
+    HB_SCRIPT_SOGDIAN,
 };
 
 static hb_unicode_combining_class_t
