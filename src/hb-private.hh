@@ -438,7 +438,7 @@ _hb_bit_storage (T v)
   if (sizeof (T) == 16)
   {
     unsigned int shift = 64;
-    return (v >> shift) ? _hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift :
+    return (v >> shift) ? _hb_bit_storage<uint64_t> ((uint64_t) (v >> shift)) + shift :
 			  _hb_bit_storage<uint64_t> ((uint64_t) v);
   }
 
