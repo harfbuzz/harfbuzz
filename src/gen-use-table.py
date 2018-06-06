@@ -155,8 +155,7 @@ globals().update(property_values)
 
 
 def is_BASE(U, UISC, UGC):
-	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
-	return (UISC in [Number, Consonant, Consonant_Initial_Postfixed, Consonant_Head_Letter,
+	return (UISC in [Number, Consonant, Consonant_Head_Letter,
 			#SPEC-DRAFT Consonant_Placeholder,
 			Tone_Letter,
 			Vowel_Independent #SPEC-DRAFT
@@ -178,7 +177,9 @@ def is_BASE_OTHER(U, UISC, UGC):
 def is_CGJ(U, UISC, UGC):
 	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
+	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
 	return ((UISC == Consonant_Final and UGC != Lo) or
+		UISC == Consonant_Initial_Postfixed or
 		UISC == Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
 	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
