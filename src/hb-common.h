@@ -325,6 +325,17 @@ typedef enum
   /*10.0*/HB_SCRIPT_SOYOMBO			= HB_TAG ('S','o','y','o'),
   /*10.0*/HB_SCRIPT_ZANABAZAR_SQUARE		= HB_TAG ('Z','a','n','b'),
 
+  /*
+   * Since 1.8.0
+   */
+  /*11.0*/HB_SCRIPT_DOGRA			= HB_TAG ('D','o','g','r'),
+  /*11.0*/HB_SCRIPT_GUNJALA_GONDI		= HB_TAG ('G','o','n','g'),
+  /*11.0*/HB_SCRIPT_HANIFI_ROHINGYA		= HB_TAG ('R','o','h','g'),
+  /*11.0*/HB_SCRIPT_MAKASAR			= HB_TAG ('M','a','k','a'),
+  /*11.0*/HB_SCRIPT_MEDEFAIDRIN			= HB_TAG ('M','e','d','f'),
+  /*11.0*/HB_SCRIPT_OLD_SOGDIAN			= HB_TAG ('S','o','g','o'),
+  /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 

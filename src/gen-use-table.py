@@ -95,6 +95,7 @@ property_names = [
 	'Consonant_Medial',
 	'Consonant_Final',
 	'Consonant_Head_Letter',
+	'Consonant_Initial_Postfixed',
 	'Modifying_Letter',
 	'Tone_Letter',
 	'Tone_Mark',
@@ -154,7 +155,8 @@ globals().update(property_values)
 
 
 def is_BASE(U, UISC, UGC):
-	return (UISC in [Number, Consonant, Consonant_Head_Letter,
+	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
+	return (UISC in [Number, Consonant, Consonant_Initial_Postfixed, Consonant_Head_Letter,
 			#SPEC-DRAFT Consonant_Placeholder,
 			Tone_Letter,
 			Vowel_Independent #SPEC-DRAFT
@@ -164,7 +166,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104E, 0x2022, 0x11A3F, 0x11A45]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -334,17 +336,18 @@ def map_to_use(data):
 		# TODO: These should die, but have UIPC in Unicode 8.0
 		if U in [0x953, 0x954]: UIPC = Not_Applicable
 
-		# TODO: In USE's override list but not in Unicode 8.0
+		# TODO: In USE's override list but not in Unicode 11.0
 		if U == 0x103C: UIPC = Left
 
-		# TODO: These are not in USE's override list that we have, nor are they in Unicode 8.0
+		# TODO: These are not in USE's override list that we have, nor are they in Unicode 11.0
 		if 0xA926 <= U <= 0xA92A: UIPC = Top
 		if U == 0x111CA: UIPC = Bottom
 		if U == 0x11300: UIPC = Top
-		if U == 0x1133C: UIPC = Bottom
 		if U == 0x1171E: UIPC = Left # Correct?!
 		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
+		# https://github.com/roozbehp/unicode-data/issues/8
+		if U == 0x0A51: UIPC = Bottom
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
