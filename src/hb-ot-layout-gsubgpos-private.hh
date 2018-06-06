@@ -32,6 +32,7 @@
 #include "hb-private.hh"
 #include "hb-debug.hh"
 #include "hb-buffer-private.hh"
+#include "hb-map-private.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-set-private.hh"
 
@@ -59,6 +60,20 @@ struct hb_closure_context_t :
     return HB_VOID;
   }
 
+  bool start_lookup (unsigned int lookup_index)
+  {
+    if (is_lookup_done (lookup_index))
+      return false;
+    done_lookups->set (lookup_index, glyphs->get_population ());
+    return true;
+  }
+
+  bool is_lookup_done (unsigned int lookup_index)
+  {
+    // Have we visited this lookup with the current set of glyphs?
+    return done_lookups->get (lookup_index) == glyphs->get_population ();
+  }
+
   hb_face_t *face;
   hb_set_t *glyphs;
   recurse_func_t recurse_func;
@@ -67,14 +82,19 @@ struct hb_closure_context_t :
 
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
+                        hb_map_t *done_lookups_,
 		        unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
+                          done_lookups (done_lookups_),
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0) {}
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+
+  private:
+  hb_map_t *done_lookups;
 };
 
 
