@@ -1232,7 +1232,4 @@ round (double x)
 #endif
 
 
-HB_INTERNAL unsigned int _hb_prime_for (unsigned int shift);
-
-
 #endif /* HB_PRIVATE_HH */
