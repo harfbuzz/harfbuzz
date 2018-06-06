@@ -277,6 +277,12 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        hb_set_t     *glyphs
 					/*TODO , hb_bool_t  inclusive */);
 
+HB_EXTERN void
+hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
+                                         const hb_set_t *lookups,
+                                         hb_set_t       *glyphs);
+
+
 #ifdef HB_NOT_IMPLEMENTED
 /* Note: You better have GDEF when using this API, or marks won't do much. */
 HB_EXTERN hb_bool_t
