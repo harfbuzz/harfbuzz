@@ -232,10 +232,10 @@ test_subset_glyf_strip_hints_invalid (void)
     'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',
     '3', '@', '_', '%', '&', ')', '*', '$', '!'
   };
-  for (unsigned int i = 0; i < sizeof (text) / sizeof (hb_codepoint_t); i++)
+  unsigned int i;
+  for (i = 0; i < sizeof (text) / sizeof (hb_codepoint_t); i++)
   {
     hb_set_add (codepoints, text[i]);
-    // hb_set_add (codepoints_drop_hints, text[i]);
   }
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
