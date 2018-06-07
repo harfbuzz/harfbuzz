@@ -54,8 +54,21 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 }
 
 static void
+_gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
+{
+  // TODO(grieger): This uses all lookups, instead collect
+  //                the set of lookups that are relevant.
+  //                See fontTools implementation.
+  hb_ot_layout_lookups_substitute_closure (face,
+                                           nullptr,
+                                           gids_to_retain);
+}
+
+
+static void
 _populate_gids_to_retain (hb_face_t *face,
                           const hb_set_t *unicodes,
+                          bool close_over_gsub,
                           hb_set_t *unicodes_to_retain,
                           hb_map_t *codepoint_to_glyph,
                           hb_vector_t<hb_codepoint_t> *glyphs)
@@ -82,10 +95,12 @@ _populate_gids_to_retain (hb_face_t *face,
     initial_gids_to_retain->add (gid);
   }
 
+  if (close_over_gsub)
+    // Add all glyphs needed for GSUB substitutions.
+    _gsub_closure (face, initial_gids_to_retain);
+
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
-  // TODO expand with glyphs reached by G*
-
   hb_codepoint_t gid = HB_SET_VALUE_INVALID;
   hb_set_t *all_gids_to_retain = hb_set_create ();
   while (initial_gids_to_retain->next (&gid))
@@ -141,6 +156,7 @@ hb_subset_plan_create (hb_face_t           *face,
 
   _populate_gids_to_retain (face,
                             input->unicodes,
+                            !plan->drop_ot_layout,
                             plan->unicodes,
                             plan->codepoint_to_glyph,
                             &plan->glyphs);
