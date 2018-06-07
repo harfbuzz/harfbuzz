@@ -973,8 +973,14 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
   do
   {
     glyphs_length = glyphs->get_population ();
-    for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID; hb_set_next (lookups, &lookup_index);)
-      gsub.get_lookup (lookup_index).closure (&c, lookup_index);
+    if (lookups != nullptr)
+    {
+      for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID; hb_set_next (lookups, &lookup_index);)
+        gsub.get_lookup (lookup_index).closure (&c, lookup_index);
+    } else {
+      for (unsigned int i = 0; i < gsub.get_lookup_count (); i++)
+        gsub.get_lookup (i).closure (&c, i);
+    }
   } while (glyphs_length != glyphs->get_population ());
 }
 
