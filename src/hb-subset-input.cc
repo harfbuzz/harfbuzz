@@ -127,7 +127,7 @@ hb_subset_input_drop_hints (hb_subset_input_t *subset_input)
  * the subsetting operation. Currently this defaults to
  * true.
  *
- * Since: 1.8.0
+ * Since: REPLACEME
  **/
 HB_EXTERN hb_bool_t *
 hb_subset_input_drop_ot_layout (hb_subset_input_t *subset_input)
