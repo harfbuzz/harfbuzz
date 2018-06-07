@@ -41,6 +41,7 @@ struct hb_subset_plan_t
   ASSERT_POD ();
 
   hb_bool_t drop_hints;
+  hb_bool_t drop_ot_layout;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

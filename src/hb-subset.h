@@ -71,6 +71,9 @@ hb_subset_input_glyph_set (hb_subset_input_t *subset_input);
 HB_EXTERN hb_bool_t *
 hb_subset_input_drop_hints (hb_subset_input_t *subset_input);
 
+HB_EXTERN hb_bool_t *
+hb_subset_input_drop_ot_layout (hb_subset_input_t *subset_input);
+
 /* hb_subset() */
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source,
