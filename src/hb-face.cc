@@ -514,7 +514,7 @@ hb_face_get_table_tags (hb_face_t    *face,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
 {
-  if (face->destroy != _hb_face_for_data_closure_destroy)
+  if (face->destroy != (hb_destroy_func_t) _hb_face_for_data_closure_destroy)
   {
     if (table_count)
       *table_count = 0;
