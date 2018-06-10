@@ -221,7 +221,7 @@ hb_subset_face_create (void)
 hb_bool_t
 hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 {
-  if (unlikely (face->destroy != _hb_subset_face_data_destroy))
+  if (unlikely (face->destroy != (hb_destroy_func_t) _hb_subset_face_data_destroy))
     return false;
 
   hb_subset_face_data_t *data = (hb_subset_face_data_t *) face->user_data;

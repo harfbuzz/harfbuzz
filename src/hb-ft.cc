@@ -119,7 +119,7 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
   if (font->immutable)
     return;
 
-  if (font->destroy != _hb_ft_font_destroy)
+  if (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy)
     return;
 
   hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
@@ -139,7 +139,7 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
 int
 hb_ft_font_get_load_flags (hb_font_t *font)
 {
-  if (font->destroy != _hb_ft_font_destroy)
+  if (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy)
     return 0;
 
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font->user_data;
@@ -150,7 +150,7 @@ hb_ft_font_get_load_flags (hb_font_t *font)
 FT_Face
 hb_ft_font_get_face (hb_font_t *font)
 {
-  if (font->destroy != _hb_ft_font_destroy)
+  if (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy)
     return nullptr;
 
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font->user_data;
@@ -615,7 +615,7 @@ hb_ft_font_create (FT_Face           ft_face,
 void
 hb_ft_font_changed (hb_font_t *font)
 {
-  if (font->destroy != _hb_ft_font_destroy)
+  if (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy)
     return;
 
   hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
