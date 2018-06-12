@@ -1261,8 +1261,7 @@ struct SubstLookup : Lookup
   template <typename context_t>
   static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
 
-  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func
-  (hb_closure_context_t *c, unsigned int lookup_index)
+  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
   {
     if (!c->start_lookup (lookup_index))
       return HB_VOID;
