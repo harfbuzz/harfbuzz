@@ -44,11 +44,6 @@
 #include "hb-ot-post-table.hh"
 
 
-#if !defined(HB_SUBSET_BUILTIN)
-#include "hb-static.cc"
-#endif
-
-
 struct hb_subset_profile_t {
   hb_object_header_t header;
   ASSERT_POD ();

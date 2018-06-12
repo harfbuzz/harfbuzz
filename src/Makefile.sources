@@ -203,6 +203,7 @@ HB_ICU_headers = hb-icu.h
 
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
+	hb-static.cc \
 	hb-subset.cc \
 	hb-subset-glyf.cc \
 	hb-subset-input.cc \
