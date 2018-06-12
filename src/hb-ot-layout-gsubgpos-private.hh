@@ -60,7 +60,7 @@ struct hb_closure_context_t :
     return HB_VOID;
   }
 
-  bool start_lookup (unsigned int lookup_index)
+  bool should_visit_lookup (unsigned int lookup_index)
   {
     if (is_lookup_done (lookup_index))
       return false;
