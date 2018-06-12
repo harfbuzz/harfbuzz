@@ -254,6 +254,12 @@ test_set_algebra (void)
   g_assert_cmpint (hb_set_get_population (o), ==, 1);
   g_assert (hb_set_has (o, 889));
 
+  hb_set_add (o, 511);
+  g_assert_cmpint (hb_set_get_population (o), ==, 2);
+  hb_set_intersect (o, s);
+  g_assert_cmpint (hb_set_get_population (o), ==, 1);
+  g_assert (hb_set_has (o, 889));
+
   hb_set_destroy (s);
   hb_set_destroy (o);
 }
