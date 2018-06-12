@@ -1,7 +1,15 @@
+Overview of changes leading to 1.8.1
+Tuesday, June 12, 2018
+====================================
+- Fix hb-version.h file generation; last two releases went out with wrong ones.
+- Add correctness bug in hb_set_t operations, introduced in 1.7.7.
+- Remove HB_SUBSET_BUILTIN build option.  Not necessary.
+
 Overview of changes leading to 1.8.0
 Tuesday, June 5, 2018
 ====================================
 - Update to Unicode 11.0.0.
+
 
 Overview of changes leading to 1.7.7
 Tuesday, June 5, 2018
