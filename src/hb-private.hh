@@ -716,6 +716,9 @@ struct hb_vector_t
     if (!alloc (size))
       return false;
 
+    if (size > len)
+      memset (arrayZ + len, 0, (size - len) * sizeof (*arrayZ));
+
     len = size;
     return true;
   }
