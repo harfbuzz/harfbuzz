@@ -86,10 +86,10 @@ struct hb_closure_context_t :
 		        unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
-                          done_lookups (done_lookups_),
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
-			  debug_depth (0) {}
+			  debug_depth (0),
+                          done_lookups (done_lookups_) {}
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 
