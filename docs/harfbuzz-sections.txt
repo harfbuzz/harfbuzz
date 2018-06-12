@@ -401,6 +401,26 @@ hb_icu_script_to_script
 </SECTION>
 
 <SECTION>
+<FILE>hb-map</FILE>
+HB_MAP_VALUE_INVALID
+hb_map_allocation_successful
+hb_map_clear
+hb_map_create
+hb_map_del
+hb_map_destroy
+hb_map_get
+hb_map_get_empty
+hb_map_get_population
+hb_map_get_user_data
+hb_map_has
+hb_map_is_empty
+hb_map_reference
+hb_map_set
+hb_map_set_user_data
+hb_map_t
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot</FILE>
 <SUBSECTION Private>
 HB_OT_H_IN
@@ -445,6 +465,7 @@ hb_ot_layout_language_get_feature_tags
 hb_ot_layout_language_get_required_feature
 hb_ot_layout_lookup_collect_glyphs
 hb_ot_layout_lookup_substitute_closure
+hb_ot_layout_lookups_substitute_closure
 hb_ot_layout_lookup_would_substitute
 hb_ot_layout_script_find_language
 hb_ot_layout_script_get_language_tags
@@ -529,9 +550,10 @@ hb_set_has
 hb_set_intersect
 hb_set_is_empty
 hb_set_is_equal
+hb_set_is_subset
 hb_set_next
-hb_set_previous
 hb_set_next_range
+hb_set_previous
 hb_set_previous_range
 hb_set_reference
 hb_set_set

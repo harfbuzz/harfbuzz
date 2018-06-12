@@ -7,7 +7,8 @@ HarfBuzz release walk-through checklist:
 
      Document them in NEWS.  All API and API semantic changes should be clearly
      marked as API additions, API changes, or API deletions.  Document
-     deprecations.
+     deprecations.  Ensure all new API / deprecations are in listed correctly in
+     docs/harfbuzz-sections.txt
 
      If there's a backward-incompatible API change (including deletions for API
      used anywhere), that's a release blocker.  Do NOT release.
