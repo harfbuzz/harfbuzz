@@ -499,6 +499,36 @@ hb_blob_t::try_make_writable (void)
 # define MAP_NORESERVE 0
 #endif
 
+static hb_blob_t *
+_fread_to_end (FILE *file)
+{
+  int allocated = BUFSIZ * 16;
+  char *blob = (char *) malloc (allocated);
+  if (blob == nullptr) return hb_blob_get_empty ();
+
+  int len = 0;
+  while (!feof (file))
+  {
+    if (allocated - len < BUFSIZ)
+    {
+      allocated *= 2;
+      char *new_blob = (char *) realloc (blob, allocated);
+      if (unlikely (!new_blob)) goto fail;
+      blob = new_blob;
+    }
+
+    len += fread (blob + len, 1, allocated - len, file);
+    if (ferror (file)) goto fail;
+  }
+
+  return hb_blob_create (blob, len, HB_MEMORY_MODE_WRITABLE, blob,
+			 (hb_destroy_func_t) free);
+
+fail:
+  free (blob);
+  return hb_blob_get_empty ();
+}
+
 struct hb_mapped_file_t
 {
   char *contents;
@@ -557,7 +587,19 @@ hb_blob_create_from_file (const char *file_name)
 				  writable ? PROT_READ|PROT_WRITE : PROT_READ,
 				  MAP_PRIVATE | MAP_NORESERVE, fd, 0);
 
-  if (unlikely (file->contents == MAP_FAILED)) goto fail;
+  if (unlikely (file->contents == MAP_FAILED))
+  {
+    free (file);
+    FILE *f = fdopen (fd, "rb");
+    if (unlikely (f == nullptr))
+    {
+      CLOSE (fd);
+      return hb_blob_get_empty ();
+    }
+    hb_blob_t *blob = _fread_to_end (f);
+    fclose (f);
+    return blob;
+  }
 
 #elif defined(_WIN32) || defined(__CYGWIN__)
   HANDLE fd = CreateFile (file_name,
