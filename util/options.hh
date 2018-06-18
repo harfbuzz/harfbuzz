@@ -485,7 +485,7 @@ struct font_options_t : option_group_t
   mutable double font_size_y;
   char *font_funcs;
 
-private:
+  private:
   mutable hb_font_t *font;
 };
 
