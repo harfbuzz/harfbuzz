@@ -670,16 +670,8 @@ font_options_t::get_font (void) const
     blob = hb_blob_create_from_file (font_file);
   }
 
-  if (hb_blob_get_length (blob) == 0)
-    fail (false, "No such file or directory, or is empty");
-
-  unsigned int face_count = hb_face_count (blob);
-
-  if (face_count == 0)
-    fail (false, "Not a font file"); // most likely
-
-  if (face_index > face_count)
-    fail (false, "The requested font index wasn't available in the file");
+  if (blob == hb_blob_get_empty ())
+    fail (false, "No such file or directory");
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, face_index);
