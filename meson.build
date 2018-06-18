@@ -1,4 +1,5 @@
 project('harfbuzz', 'c', 'cpp',
+  meson_version: '>= 0.47.0',
   version: '1.7.6')
 
 pkgmod = import('pkgconfig')
