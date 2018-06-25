@@ -7,7 +7,8 @@ HarfBuzz release walk-through checklist:
 
      Document them in NEWS.  All API and API semantic changes should be clearly
      marked as API additions, API changes, or API deletions.  Document
-     deprecations.
+     deprecations.  Ensure all new API / deprecations are in listed correctly in
+     docs/harfbuzz-sections.txt
 
      If there's a backward-incompatible API change (including deletions for API
      used anywhere), that's a release blocker.  Do NOT release.
@@ -15,33 +16,39 @@ HarfBuzz release walk-through checklist:
 2. Based on severity of changes, decide whether it's a minor or micro release
    number bump,
 
-3. Make sure you have correct date and new version at the top of NEWS file,
+3. Search for REPLACEME on the repository and replace it with the chosen version
+   for the release.
 
-4. Bump version in configure.ac line 3,
+4. Make sure you have correct date and new version at the top of NEWS file,
 
-5. Do "make distcheck", if it passes, you get a tarball.
+5. Bump version in configure.ac line 3,
+
+6. Do "make distcheck", if it passes, you get a tarball.
    Otherwise, fix things and commit them separately before making release,
 
-6. "make release-files".  Enter your GPG password.  This creates a sha256 hash
+7. "make release-files".  Enter your GPG password.  This creates a sha256 hash
    and signs it.
 
-7. Now that you have release files built, commit NEWS and configure.ac changes.
-   The commit message is simply the release number.  Eg. "1.4.7"
+8. Now that you have release files built, commit NEWS and configure.ac changes,
+   as well as any REPLACEME changes you made.  The commit message is simply the
+   release number.  Eg. "1.4.7"
 
-8. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
+9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
    GPG password again.
 
-9. Build win32 bundle.
+10. Build win32 bundle.
 
    a. Put contents of [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ) on your `~/.local/i686-w64-mingw32`,
 
-   b. Run `./MING32 --with-uniscribe` script (available below) to configure harfbuzz with mingw in a subdirector (eg. winbuild/),
+   b. Run `../mingw32.sh --with-uniscribe` script to configure harfbuzz with mingw
+   in a subdirector (eg. winbuild/),
 
    c. make
 
-   d. Back in the parent directory, run `./UPDATE.sh` (available below) to build win32 bundle.
+   d. Back in the parent directory, run `./UPDATE.sh`(available below) to build win32
+      bundle.
 
-10. Copy all artefacts to users.freedesktop.org and move them into
+11. Copy all artefacts to users.freedesktop.org and move them into
     `/srv/www.freedesktop.org/www/software/harfbuzz/release` There should be four
     files.  Eg.:
  ```
@@ -51,43 +58,17 @@ HarfBuzz release walk-through checklist:
 -rw-r--r--  1 behdad eng 2895619 Jul 18 11:34 harfbuzz-1.4.7-win32.zip
 ```
 
-11. While doing that, quickly double-check the size of the .tar.bz2 and .zip
+12. While doing that, quickly double-check the size of the .tar.bz2 and .zip
     files against their previous releases to make sure nothing bad happened.
     They should be in the ballpark, perhaps slightly larger.  Sometimes they
     do shrink, that's not by itself a stopper.
 
-12. Push the commit and tag out: "git push --follow-tags".  Make sure it's
+13. Push the commit and tag out: "git push --follow-tags".  Make sure it's
     pushed both to freedesktop repo and github.
 
-13. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
+14. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
     edit the tag, upload artefacts and NEWS entry and save.
 
-
-## MING32
-```bash
-#!/bin/bash
-
-target=i686-w64-mingw32
-
-unset CC
-unset CXX
-unset CPP
-unset LD
-unset LDFLAGS
-unset CFLAGS
-unset CXXFLAGS
-unset PKG_CONFIG_PATH
-
-# Removed -static from the following
-export CFLAGS="-static-libgcc"
-export CXXFLAGS="-static-libgcc -static-libstdc++"
-export CPPFLAGS=-I$HOME/.local/$target/include
-export LDFLAGS=-L$HOME/.local/$target/lib
-export PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig
-export PATH=$HOME/.local/$target/bin:$PATH
-
-../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target "$@"
-```
 
 ## UPDATE.sh
 ```bash

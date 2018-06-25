@@ -1,9 +1,8 @@
-NULL =
-
 # Base and default-included sources and headers
 
 HB_BASE_sources = \
 	hb-atomic-private.hh \
+	hb-blob-private.hh \
 	hb-blob.cc \
 	hb-buffer-private.hh \
 	hb-buffer-serialize.cc \
@@ -15,13 +14,16 @@ HB_BASE_sources = \
 	hb-face.cc \
 	hb-font-private.hh \
 	hb-font.cc \
+	hb-map-private.hh \
+	hb-map.cc \
 	hb-mutex-private.hh \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
-	hb-ot-cbdt-table.hh \
+	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
+	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
 	hb-ot-hmtx-table.hh \
@@ -29,6 +31,7 @@ HB_BASE_sources = \
 	hb-ot-maxp-table.hh \
 	hb-ot-name-table.hh \
 	hb-ot-os2-table.hh \
+	hb-ot-os2-unicode-ranges.hh \
 	hb-ot-post-macroman.hh \
 	hb-ot-post-table.hh \
 	hb-ot-tag.cc \
@@ -43,6 +46,7 @@ HB_BASE_sources = \
 	hb-shaper-impl-private.hh \
 	hb-shaper-private.hh \
 	hb-shaper.cc \
+	hb-static.cc \
 	hb-string-array.hh \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
@@ -67,13 +71,11 @@ HB_BASE_headers = \
 	hb-deprecated.h \
 	hb-face.h \
 	hb-font.h \
+	hb-map.h \
 	hb-set.h \
 	hb-shape.h \
 	hb-shape-plan.h \
 	hb-unicode.h \
-	$(NULL)
-
-HB_NODIST_headers = \
 	hb-version.h \
 	$(NULL)
 
@@ -82,8 +84,21 @@ HB_FALLBACK_sources = \
 	$(NULL)
 
 HB_OT_sources = \
+	hb-aat-layout.cc \
+	hb-aat-layout-common-private.hh \
+	hb-aat-layout-ankr-table.hh \
+	hb-aat-layout-bsln-table.hh \
+	hb-aat-layout-feat-table.hh \
+	hb-aat-layout-kerx-table.hh \
+	hb-aat-layout-morx-table.hh \
+	hb-aat-layout-trak-table.hh \
+	hb-aat-layout-private.hh \
+	hb-aat-fmtx-table.hh \
+	hb-aat-gcid-table.hh \
+	hb-aat-ltag-table.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
+	hb-ot-layout-base-table.hh \
 	hb-ot-layout-common-private.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
@@ -91,6 +106,11 @@ HB_OT_sources = \
 	hb-ot-layout-gsub-table.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout-private.hh \
+	hb-ot-color.cc \
+	hb-ot-color-colr-table.hh \
+	hb-ot-color-cpal-table.hh \
+	hb-ot-color-sbix-table.hh \
+	hb-ot-color-svg-table.hh \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \
 	hb-ot-math.cc \
@@ -107,6 +127,9 @@ HB_OT_sources = \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.cc \
+	hb-ot-shape-complex-khmer-private.hh \
+	hb-ot-shape-complex-khmer.cc \
+	hb-ot-shape-complex-myanmar-private.hh \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-tibetan.cc \
@@ -128,11 +151,13 @@ HB_OT_sources = \
 
 HB_OT_RAGEL_GENERATED_sources = \
 	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-khmer-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-use-machine.hh \
 	$(NULL)
 HB_OT_RAGEL_sources = \
 	hb-ot-shape-complex-indic-machine.rl \
+	hb-ot-shape-complex-khmer-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-use-machine.rl \
 	$(NULL)
@@ -176,8 +201,27 @@ HB_UCDN_sources  = hb-ucdn.cc
 HB_ICU_sources = hb-icu.cc
 HB_ICU_headers = hb-icu.h
 
-HB_GOBJECT_sources = hb-gobject-structs.cc
-HB_GOBJECT_STRUCTS_headers = hb-gobject-structs.h
-HB_GOBJECT_headers = hb-gobject.h $(HB_GOBJECT_STRUCTS_headers)
+# Sources for libharfbuzz-subset
+HB_SUBSET_sources = \
+	hb-static.cc \
+	hb-subset.cc \
+	hb-subset-glyf.cc \
+	hb-subset-input.cc \
+	hb-subset-plan.cc \
+	$(NULL)
+
+HB_SUBSET_headers = \
+	hb-subset.h \
+	hb-subset-glyf.hh \
+	hb-subset-plan.hh \
+	hb-subset-private.hh \
+	$(NULL)
+
+HB_GOBJECT_DIST_sources = hb-gobject-structs.cc
+HB_GOBJECT_DIST_headers = hb-gobject.h hb-gobject-structs.h
 HB_GOBJECT_ENUM_sources = hb-gobject-enums.cc
 HB_GOBJECT_ENUM_headers = hb-gobject-enums.h
+HB_GOBJECT_NODIST_sources = $(HB_GOBJECT_ENUM_sources)
+HB_GOBJECT_NODIST_headers = $(HB_GOBJECT_ENUM_headers)
+HB_GOBJECT_sources = $(HB_GOBJECT_DIST_sources) $(HB_GOBJECT_NODIST_sources)
+HB_GOBJECT_headers = $(HB_GOBJECT_DIST_headers) $(HB_GOBJECT_NODIST_headers)

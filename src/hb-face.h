@@ -37,6 +37,10 @@
 HB_BEGIN_DECLS
 
 
+HB_EXTERN unsigned int
+hb_face_count (hb_blob_t *blob);
+
+
 /*
  * hb_face_t
  */
@@ -70,7 +74,6 @@ hb_face_set_user_data (hb_face_t          *face,
 		       void *              data,
 		       hb_destroy_func_t   destroy,
 		       hb_bool_t           replace);
-
 
 HB_EXTERN void *
 hb_face_get_user_data (hb_face_t          *face,

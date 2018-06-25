@@ -8,7 +8,9 @@ HB_EXTERN
 <SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
+hb_blob_create_from_file
 hb_blob_create_sub_blob
+hb_blob_copy_writable_or_fail
 hb_blob_destroy
 hb_blob_get_data
 hb_blob_get_data_writable
@@ -160,12 +162,14 @@ HB_CORETEXT_TAG_KERX
 HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
+hb_coretext_font_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
 </SECTION>
 
 <SECTION>
 <FILE>hb-face</FILE>
+hb_face_count
 hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
@@ -326,7 +330,9 @@ HB_GOBJECT_TYPE_GLYPH_FLAGS
 HB_GOBJECT_TYPE_MEMORY_MODE
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
 HB_GOBJECT_TYPE_OT_MATH_CONSTANT
+HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART
 HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS
+HB_GOBJECT_TYPE_OT_MATH_GLYPH_VARIANT
 HB_GOBJECT_TYPE_OT_MATH_KERN
 HB_GOBJECT_TYPE_SCRIPT
 HB_GOBJECT_TYPE_SHAPE_PLAN
@@ -355,7 +361,9 @@ hb_gobject_glyph_flags_get_type
 hb_gobject_memory_mode_get_type
 hb_gobject_ot_layout_glyph_class_get_type
 hb_gobject_ot_math_constant_get_type
+hb_gobject_ot_math_glyph_part_get_type
 hb_gobject_ot_math_glyph_part_flags_get_type
+hb_gobject_ot_math_glyph_variant_get_type
 hb_gobject_ot_math_kern_get_type
 hb_gobject_script_get_type
 hb_gobject_shape_plan_get_type
@@ -390,6 +398,26 @@ hb_graphite2_font_get_gr_font
 hb_icu_get_unicode_funcs
 hb_icu_script_from_script
 hb_icu_script_to_script
+</SECTION>
+
+<SECTION>
+<FILE>hb-map</FILE>
+HB_MAP_VALUE_INVALID
+hb_map_allocation_successful
+hb_map_clear
+hb_map_create
+hb_map_del
+hb_map_destroy
+hb_map_get
+hb_map_get_empty
+hb_map_get_population
+hb_map_get_user_data
+hb_map_has
+hb_map_is_empty
+hb_map_reference
+hb_map_set
+hb_map_set_user_data
+hb_map_t
 </SECTION>
 
 <SECTION>
@@ -437,6 +465,7 @@ hb_ot_layout_language_get_feature_tags
 hb_ot_layout_language_get_required_feature
 hb_ot_layout_lookup_collect_glyphs
 hb_ot_layout_lookup_substitute_closure
+hb_ot_layout_lookups_substitute_closure
 hb_ot_layout_lookup_would_substitute
 hb_ot_layout_script_find_language
 hb_ot_layout_script_get_language_tags
@@ -521,8 +550,11 @@ hb_set_has
 hb_set_intersect
 hb_set_is_empty
 hb_set_is_equal
+hb_set_is_subset
 hb_set_next
 hb_set_next_range
+hb_set_previous
+hb_set_previous_range
 hb_set_reference
 hb_set_set
 hb_set_set_user_data

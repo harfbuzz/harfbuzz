@@ -42,7 +42,7 @@ action clear_item {
 
 action add_item {
 	buffer->add_info (info);
-	if (buffer->in_error)
+	if (unlikely (!buffer->successful))
 	  return false;
 	buffer->pos[buffer->len - 1] = pos;
 	*end_ptr = p;
@@ -100,7 +100,7 @@ _hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
   const char *p = buf, *pe = buf + buf_len;
 
   /* Ensure we have positions. */
-  (void) hb_buffer_get_glyph_positions (buffer, NULL);
+  (void) hb_buffer_get_glyph_positions (buffer, nullptr);
 
   while (p < pe && ISSPACE (*p))
     p++;
@@ -109,7 +109,7 @@ _hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
     *end_ptr = ++p;
   }
 
-  const char *eof = pe, *tok = NULL;
+  const char *eof = pe, *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
   hb_glyph_position_t pos = {0};

@@ -72,6 +72,8 @@ struct output_buffer_t
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS;
     if (!format.show_positions)
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
+    if (!format.show_advances)
+      flags |= HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES;
     if (format.show_extents)
       flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
     if (format.show_flags)

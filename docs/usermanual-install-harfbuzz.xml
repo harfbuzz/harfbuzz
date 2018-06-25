@@ -50,7 +50,7 @@
       and hb-shape under <filename>util/</filename>.
     </para>
     <para>
-      If you are bootstraping from git, you need a few more tools before you
+      If you are bootstrapping from git, you need a few more tools before you
       can run <filename>autogen.sh</filename> for the first time. Namely,
       pkg-config and <ulink url="http://www.complang.org/ragel/">ragel</ulink>.
       Again, on Ubuntu / Debian:

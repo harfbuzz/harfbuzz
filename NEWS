@@ -1,3 +1,94 @@
+Overview of changes leading to 1.8.1
+Tuesday, June 12, 2018
+====================================
+- Fix hb-version.h file generation; last two releases went out with wrong ones.
+- Add correctness bug in hb_set_t operations, introduced in 1.7.7.
+- Remove HB_SUBSET_BUILTIN build option.  Not necessary.
+
+Overview of changes leading to 1.8.0
+Tuesday, June 5, 2018
+====================================
+- Update to Unicode 11.0.0.
+
+
+Overview of changes leading to 1.7.7
+Tuesday, June 5, 2018
+====================================
+- Lots of internal changes, but not yet exposed externally.
+- All HarfBuzz objects are significantly smaller in size now.
+- Sinhala: Position repha on top of post-consonant, not base.
+  This better matches Windows 10 behavior, which was changed
+  from previous Windows versions.
+- New build options:
+  o New cpp macro HB_NO_ATEXIT
+  o New cpp macro HB_SUBSET_BUILTIN
+- Significant libharfbuzz-subset changes. API subject to change.
+- New API in libharfbuzz:
+
++hb_blob_create_from_file()
++hb_face_count()
+
+A hashmap implementation:
++hb-map.h
++HB_MAP_VALUE_INVALID
++hb_map_t
++hb_map_create()
++hb_map_get_empty()
++hb_map_reference()
++hb_map_destroy()
++hb_map_set_user_data()
++hb_map_get_user_data()
++hb_map_allocation_successful()
++hb_map_clear()
++hb_map_is_empty()
++hb_map_get_population()
++hb_map_set()
++hb_map_get()
++hb_map_del()
++hb_map_has()
+
+
+Overview of changes leading to 1.7.6
+Wednesday, March 7, 2018
+====================================
+
+- Fix to hb_set_t binary operations. Ouch.
+- New experimental harfbuzz-subset library. All of hb-subset.h
+  is experimental right now and API WILL change.
+
+- New API:
+hb_blob_copy_writable_or_fail()
+HB_OT_TAG_BASE
+hb_set_previous()
+hb_set_previous_range()
+
+
+Overview of changes leading to 1.7.5
+Tuesday, January 30, 2018
+====================================
+
+- Separate Khmer shaper from Indic.
+- First stab at AAT morx. Not hooked up.
+- Misc bug fixes.
+
+
+Overview of changes leading to 1.7.4
+Wednesday, December 20, 2017
+====================================
+
+- Fix collect_glyphs() regression caused by hb_set_t changes.
+
+
+Overview of changes leading to 1.7.3
+Monday, December 18, 2017
+====================================
+
+- hb_set_t performance tuning and optimizations.
+- Speed up collect_glyphs() and reject garbage data.
+- In hb_coretext_font_create() set font point-size (ptem).
+- Misc fixes.
+
+
 Overview of changes leading to 1.7.2
 Monday, December 4, 2017
 ====================================

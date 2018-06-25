@@ -54,13 +54,13 @@ struct SingleSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
       hb_codepoint_t glyph_id = iter.get_glyph ();
-      c->input->add (glyph_id);
       c->output->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
     }
   }
@@ -76,7 +76,7 @@ struct SingleSubstFormat1
     return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
@@ -110,11 +110,11 @@ struct SingleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  INT16		deltaGlyphID;		/* Add to original GlyphID to get
+  HBINT16	deltaGlyphID;		/* Add to original GlyphID to get
 					 * substitute GlyphID */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -139,13 +139,13 @@ struct SingleSubstFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     Coverage::Iter iter;
     unsigned int count = substitute.len;
     for (iter.init (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      c->input->add (iter.get_glyph ());
       c->output->add (substitute[iter.get_coverage ()]);
     }
   }
@@ -161,7 +161,7 @@ struct SingleSubstFormat2
     return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
@@ -195,7 +195,7 @@ struct SingleSubstFormat2
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 2 */
+  HBUINT16	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -249,7 +249,7 @@ struct SingleSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   SingleSubstFormat1	format1;
   SingleSubstFormat2	format2;
   } u;
@@ -269,12 +269,10 @@ struct Sequence
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    unsigned int count = substitute.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (substitute[i]);
+    c->output->add_array (substitute.arrayZ, substitute.len);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int count = substitute.len;
@@ -283,7 +281,7 @@ struct Sequence
      * as a "multiplied" substitution. */
     if (unlikely (count == 1))
     {
-      c->replace_glyph (substitute.array[0]);
+      c->replace_glyph (substitute.arrayZ[0]);
       return_trace (true);
     }
     /* Spec disallows this, but Uniscribe allows it.
@@ -299,7 +297,7 @@ struct Sequence
 
     for (unsigned int i = 0; i < count; i++) {
       _hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
-      c->output_glyph_for_component (substitute.array[i], klass);
+      c->output_glyph_for_component (substitute.arrayZ[i], klass);
     }
     c->buffer->skip_glyph ();
 
@@ -348,7 +346,7 @@ struct MultipleSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (c->input);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     unsigned int count = sequence.len;
     for (unsigned int i = 0; i < count; i++)
 	(this+sequence[i]).collect_glyphs (c);
@@ -365,7 +363,7 @@ struct MultipleSubstFormat1
     return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -388,7 +386,7 @@ struct MultipleSubstFormat1
       if (unlikely (!sequence[i].serialize (c, this).serialize (c,
 								substitute_glyphs_list,
 								substitute_len_list[i]))) return_trace (false);
-    substitute_len_list.advance (num_glyphs);
+    substitute_len_list += num_glyphs;
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return_trace (false);
     return_trace (true);
   }
@@ -400,7 +398,7 @@ struct MultipleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -442,7 +440,7 @@ struct MultipleSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   MultipleSubstFormat1	format1;
   } u;
 };
@@ -474,17 +472,15 @@ struct AlternateSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     Coverage::Iter iter;
     unsigned int count = alternateSet.len;
     for (iter.init (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      c->input->add (iter.get_glyph ());
       const AlternateSet &alt_set = this+alternateSet[iter.get_coverage ()];
-      unsigned int count = alt_set.len;
-      for (unsigned int i = 0; i < count; i++)
-	c->output->add (alt_set[i]);
+      c->output->add_array (alt_set.arrayZ, alt_set.len);
     }
   }
 
@@ -499,7 +495,7 @@ struct AlternateSubstFormat1
     return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
@@ -540,7 +536,7 @@ struct AlternateSubstFormat1
       if (unlikely (!alternateSet[i].serialize (c, this).serialize (c,
 								    alternate_glyphs_list,
 								    alternate_len_list[i]))) return_trace (false);
-    alternate_len_list.advance (num_glyphs);
+    alternate_len_list += num_glyphs;
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return_trace (false);
     return_trace (true);
   }
@@ -552,7 +548,7 @@ struct AlternateSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -594,7 +590,7 @@ struct AlternateSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   AlternateSubstFormat1	format1;
   } u;
 };
@@ -615,9 +611,7 @@ struct Ligature
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    unsigned int count = component.len;
-    for (unsigned int i = 1; i < count; i++)
-      c->input->add (component[i]);
+    c->input->add_array (component.arrayZ, component.len ? component.len - 1 : 0);
     c->output->add (ligGlyph);
   }
 
@@ -634,7 +628,7 @@ struct Ligature
     return_trace (true);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int count = component.len;
@@ -736,7 +730,7 @@ struct LigatureSet
     return_trace (false);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     unsigned int num_ligs = ligature.len;
@@ -763,8 +757,8 @@ struct LigatureSet
 								ligatures[i],
 								component_list,
 								component_count_list[i]))) return_trace (false);
-    ligatures.advance (num_ligatures);
-    component_count_list.advance (num_ligatures);
+    ligatures += num_ligatures;
+    component_count_list += num_ligatures;
     return_trace (true);
   }
 
@@ -801,13 +795,13 @@ struct LigatureSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     Coverage::Iter iter;
     unsigned int count = ligatureSet.len;
     for (iter.init (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      c->input->add (iter.get_glyph ());
       (this+ligatureSet[iter.get_coverage ()]).collect_glyphs (c);
     }
   }
@@ -827,7 +821,7 @@ struct LigatureSubstFormat1
     return_trace (lig_set.would_apply (c));
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
@@ -856,7 +850,7 @@ struct LigatureSubstFormat1
 								   component_count_list,
 								   ligature_per_first_glyph_count_list[i],
 								   component_list))) return_trace (false);
-    ligature_per_first_glyph_count_list.advance (num_first_glyphs);
+    ligature_per_first_glyph_count_list += num_first_glyphs;
     if (unlikely (!coverage.serialize (c, this).serialize (c, first_glyphs, num_first_glyphs))) return_trace (false);
     return_trace (true);
   }
@@ -868,7 +862,7 @@ struct LigatureSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -918,7 +912,7 @@ struct LigatureSubst
 
   protected:
   union {
-  UINT16		format;		/* Format identifier */
+  HBUINT16		format;		/* Format identifier */
   LigatureSubstFormat1	format1;
   } u;
 };
@@ -970,25 +964,22 @@ struct ReverseChainSingleSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
 
     unsigned int count;
 
-    (this+coverage).add_coverage (c->input);
-
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
-      (this+backtrack[i]).add_coverage (c->before);
+      if (unlikely (!(this+backtrack[i]).add_coverage (c->before))) return;
 
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
-      (this+lookahead[i]).add_coverage (c->after);
+      if (unlikely (!(this+lookahead[i]).add_coverage (c->after))) return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     count = substitute.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (substitute[i]);
+    c->output->add_array (substitute.arrayZ, substitute.len);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1002,7 +993,7 @@ struct ReverseChainSingleSubstFormat1
     return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     if (unlikely (c->nesting_level_left != HB_MAX_NESTING_LEVEL))
@@ -1016,11 +1007,11 @@ struct ReverseChainSingleSubstFormat1
 
   unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
-			 backtrack.len, (UINT16 *) backtrack.array,
+			 backtrack.len, (HBUINT16 *) backtrack.arrayZ,
 			 match_coverage, this,
 			 &start_index) &&
         match_lookahead (c,
-			 lookahead.len, (UINT16 *) lookahead.array,
+			 lookahead.len, (HBUINT16 *) lookahead.arrayZ,
 			 match_coverage, this,
 			 1, &end_index))
     {
@@ -1048,7 +1039,7 @@ struct ReverseChainSingleSubstFormat1
   }
 
   protected:
-  UINT16	format;			/* Format identifier--format = 1 */
+  HBUINT16	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
@@ -1082,7 +1073,7 @@ struct ReverseChainSingleSubst
 
   protected:
   union {
-  UINT16				format;		/* Format identifier */
+  HBUINT16				format;		/* Format identifier */
   ReverseChainSingleSubstFormat1	format1;
   } u;
 };
@@ -1128,7 +1119,7 @@ struct SubstLookupSubTable
 
   protected:
   union {
-  UINT16			sub_format;
+  HBUINT16			sub_format;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;
@@ -1159,16 +1150,19 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
-  inline bool apply (hb_apply_context_t *c) const
+  inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     return_trace (dispatch (c));
   }
 
-  inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
+  inline hb_closure_context_t::return_t closure (hb_closure_context_t *c, unsigned int this_index) const
   {
     TRACE_CLOSURE (this);
-    c->set_recurse_func (dispatch_recurse_func<hb_closure_context_t>);
+    if (!c->should_visit_lookup (this_index))
+      return_trace (HB_VOID);
+
+    c->set_recurse_func (dispatch_closure_recurse_func);
     return_trace (dispatch (c));
   }
 
@@ -1195,7 +1189,7 @@ struct SubstLookup : Lookup
       return_trace (dispatch (c));
   }
 
-  static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
+  static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   inline SubstLookupSubTable& serialize_subtable (hb_serialize_context_t *c,
 						  unsigned int i)
@@ -1267,6 +1261,13 @@ struct SubstLookup : Lookup
   template <typename context_t>
   static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
 
+  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+  {
+    if (!c->should_visit_lookup (lookup_index))
+      return HB_VOID;
+    return dispatch_recurse_func (c, lookup_index);
+  }
+
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   { return Lookup::dispatch<SubstLookupSubTable> (c); }
@@ -1281,10 +1282,9 @@ struct SubstLookup : Lookup
     {
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
-       * itself. This is specially important if one has a reverse type! */
+       * itself (but we already checked for that).
+       * This is specially important if one has a reverse type! */
       unsigned int type = get_subtable (0).u.extension.get_type ();
-      if (unlikely (type == SubstLookupSubTable::Extension))
-	return_trace (false);
       unsigned int count = get_subtable_count ();
       for (unsigned int i = 1; i < count; i++)
         if (get_subtable (i).u.extension.get_type () != type)
@@ -1297,7 +1297,8 @@ struct SubstLookup : Lookup
 typedef OffsetListOf<SubstLookup> SubstLookupList;
 
 /*
- * GSUB -- The Glyph Substitution Table
+ * GSUB -- Glyph Substitution
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
  */
 
 struct GSUB : GSUBGPOS
@@ -1353,7 +1354,7 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-/*static*/ inline bool SubstLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)
+/*static*/ inline bool SubstLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
   const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);

@@ -38,6 +38,7 @@
 HB_BEGIN_DECLS
 
 
+#define HB_OT_TAG_BASE HB_TAG('B','A','S','E')
 #define HB_OT_TAG_GDEF HB_TAG('G','D','E','F')
 #define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
 #define HB_OT_TAG_GPOS HB_TAG('G','P','O','S')
@@ -276,6 +277,12 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        hb_set_t     *glyphs
 					/*TODO , hb_bool_t  inclusive */);
 
+HB_EXTERN void
+hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
+                                         const hb_set_t *lookups,
+                                         hb_set_t       *glyphs);
+
+
 #ifdef HB_NOT_IMPLEMENTED
 /* Note: You better have GDEF when using this API, or marks won't do much. */
 HB_EXTERN hb_bool_t
@@ -306,7 +313,7 @@ Xhb_ot_layout_lookup_position (hb_font_t            *font,
 #endif
 
 /* Optical 'size' feature info.  Returns true if found.
- * http://www.microsoft.com/typography/otspec/features_pt.htm#size */
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */
 HB_EXTERN hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *design_size,       /* OUT.  May be NULL */
@@ -314,6 +321,22 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
+
+
+/*
+ * BASE
+ */
+#if 0
+
+#define HB_OT_TAG_BASE_HANG HB_TAG('h','a','n','g')
+#define HB_OT_TAG_BASE_ICFB HB_TAG('i','c','f','b')
+#define HB_OT_TAG_BASE_ICFT HB_TAG('i','c','f','t')
+#define HB_OT_TAG_BASE_IDEO HB_TAG('i','d','e','o')
+#define HB_OT_TAG_BASE_IDTB HB_TAG('i','d','t','b')
+#define HB_OT_TAG_BASE_MATH HB_TAG('m','a','t','h')
+#define HB_OT_TAG_BASE_ROMN HB_TAG('r','o','m','n')
+
+#endif
 
 
 HB_END_DECLS

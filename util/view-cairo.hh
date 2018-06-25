@@ -40,8 +40,7 @@ struct view_cairo_t
 		 direction (HB_DIRECTION_INVALID),
 		 lines (0), scale_bits (0) {}
   ~view_cairo_t (void) {
-    if (debug)
-      cairo_debug_reset_static_data ();
+    cairo_debug_reset_static_data ();
   }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)

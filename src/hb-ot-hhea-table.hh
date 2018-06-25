@@ -29,19 +29,20 @@
 
 #include "hb-open-type-private.hh"
 
-
-namespace OT {
-
-
 /*
- * hhea -- The Horizontal Header Table
- * vhea -- The Vertical Header Table
+ * hhea -- Horizontal Header
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/hhea
+ * vhea -- Vertical Header
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/vhea
  */
-
 #define HB_OT_TAG_hhea HB_TAG('h','h','e','a')
 #define HB_OT_TAG_vhea HB_TAG('v','h','e','a')
 
 
+namespace OT {
+
+
+template <typename T>
 struct _hea
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -64,30 +65,30 @@ struct _hea
 					 * (xMax - xMin)) for horizontal. */
   FWORD		maxExtent;		/* horizontal: Max(lsb + (xMax - xMin)),
 					 * vertical: minLeadingBearing+(yMax-yMin). */
-  INT16		caretSlopeRise;		/* Used to calculate the slope of the
+  HBINT16		caretSlopeRise;		/* Used to calculate the slope of the
 					 * cursor (rise/run); 1 for vertical caret,
 					 * 0 for horizontal.*/
-  INT16		caretSlopeRun;		/* 0 for vertical caret, 1 for horizontal. */
-  INT16		caretOffset;		/* The amount by which a slanted
+  HBINT16		caretSlopeRun;		/* 0 for vertical caret, 1 for horizontal. */
+  HBINT16		caretOffset;		/* The amount by which a slanted
 					 * highlight on a glyph needs
 					 * to be shifted to produce the
 					 * best appearance. Set to 0 for
 					 * non-slanted fonts. */
-  INT16		reserved1;		/* Set to 0. */
-  INT16		reserved2;		/* Set to 0. */
-  INT16		reserved3;		/* Set to 0. */
-  INT16		reserved4;		/* Set to 0. */
-  INT16		metricDataFormat;	/* 0 for current format. */
-  UINT16	numberOfLongMetrics;	/* Number of LongMetric entries in metric
+  HBINT16		reserved1;		/* Set to 0. */
+  HBINT16		reserved2;		/* Set to 0. */
+  HBINT16		reserved3;		/* Set to 0. */
+  HBINT16		reserved4;		/* Set to 0. */
+  HBINT16		metricDataFormat;	/* 0 for current format. */
+  HBUINT16	numberOfLongMetrics;	/* Number of LongMetric entries in metric
 					 * table. */
   public:
   DEFINE_SIZE_STATIC (36);
 };
 
-struct hhea : _hea {
+struct hhea : _hea<hhea> {
   static const hb_tag_t tableTag	= HB_OT_TAG_hhea;
 };
-struct vhea : _hea {
+struct vhea : _hea<vhea> {
   static const hb_tag_t tableTag	= HB_OT_TAG_vhea;
 };
 

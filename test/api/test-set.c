@@ -32,12 +32,16 @@
 static void
 test_empty (hb_set_t *s)
 {
-  hb_codepoint_t next = HB_SET_VALUE_INVALID;
+  hb_codepoint_t next;
   g_assert_cmpint (hb_set_get_population (s), ==, 0);
   g_assert_cmpint (hb_set_get_min (s), ==, HB_SET_VALUE_INVALID);
   g_assert_cmpint (hb_set_get_max (s), ==, HB_SET_VALUE_INVALID);
   g_assert (!hb_set_has (s, 13));
+  next = 53043;
   g_assert (!hb_set_next (s, &next));
+  g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
+  next = 07734;
+  g_assert (!hb_set_previous (s, &next));
   g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
   g_assert (hb_set_is_empty (s));
 }
@@ -45,11 +49,15 @@ test_empty (hb_set_t *s)
 static void
 test_not_empty (hb_set_t *s)
 {
-  hb_codepoint_t next = HB_SET_VALUE_INVALID;
+  hb_codepoint_t next;
   g_assert_cmpint (hb_set_get_population (s), !=, 0);
   g_assert_cmpint (hb_set_get_min (s), !=, HB_SET_VALUE_INVALID);
   g_assert_cmpint (hb_set_get_max (s), !=, HB_SET_VALUE_INVALID);
+  next = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (s, &next));
+  g_assert_cmpint (next, !=, HB_SET_VALUE_INVALID);
+  next = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_previous (s, &next));
   g_assert_cmpint (next, !=, HB_SET_VALUE_INVALID);
 }
 
@@ -113,29 +121,37 @@ test_set_basic (void)
   hb_set_destroy (s);
 }
 
-static inline void
-print_set (hb_set_t *s)
-{
-  hb_codepoint_t next;
-  printf ("{");
-  for (next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
-    printf ("%d, ", next);
-  printf ("}\n");
-}
+
+// static inline void
+// print_set (hb_set_t *s)
+// {
+//   hb_codepoint_t next;
+//   printf ("{");
+//   for (next = HB_SET_VALUE_INVALID; hb_set_next (s, &next); )
+//     printf ("%d, ", next);
+//   printf ("}\n");
+// }
 
 static void
 test_set_algebra (void)
 {
   hb_set_t *s = hb_set_create ();
   hb_set_t *o = hb_set_create ();
+  hb_set_t *o2 = hb_set_create ();
 
   hb_set_add (o, 13);
   hb_set_add (o, 19);
 
+  hb_set_add (o2, 0x660E);
+
   test_empty (s);
   g_assert (!hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (!hb_set_is_subset (o, s));
   hb_set_set (s, o);
   g_assert (hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (hb_set_is_subset (o, s));
   test_not_empty (s);
   g_assert_cmpint (hb_set_get_population (s), ==, 2);
 
@@ -147,6 +163,13 @@ test_set_algebra (void)
   g_assert_cmpint (hb_set_get_population (s), ==, 3);
   g_assert (hb_set_has (s, 10));
   g_assert (hb_set_has (s, 13));
+
+  hb_set_clear (s);
+  test_empty (s);
+  g_assert_cmpint (hb_set_get_population (s), ==, 0);
+  hb_set_union (s, o2);
+  g_assert_cmpint (hb_set_get_population (s), ==, 1);
+  g_assert (hb_set_has (s, 0x660E));
 
   hb_set_clear (s);
   test_empty (s);
@@ -231,6 +254,12 @@ test_set_algebra (void)
   g_assert_cmpint (hb_set_get_population (o), ==, 1);
   g_assert (hb_set_has (o, 889));
 
+  hb_set_add (o, 511);
+  g_assert_cmpint (hb_set_get_population (o), ==, 2);
+  hb_set_intersect (o, s);
+  g_assert_cmpint (hb_set_get_population (o), ==, 1);
+  g_assert (hb_set_has (o, 889));
+
   hb_set_destroy (s);
   hb_set_destroy (o);
 }
@@ -271,6 +300,27 @@ test_set_iter (void)
   g_assert (!hb_set_next (s, &next));
   g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
 
+  next = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 20005);
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 1200);
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 1100);
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 15);
+  g_assert (hb_set_previous (s, &next));
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 13);
+  g_assert (hb_set_previous (s, &next));
+  g_assert (hb_set_previous (s, &next));
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 10);
+  g_assert (hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, 6);
+  g_assert (!hb_set_previous (s, &next));
+  g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
+
   first = last = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next_range (s, &first, &last));
   g_assert_cmpint (first, ==, 6);
@@ -288,6 +338,26 @@ test_set_iter (void)
   g_assert_cmpint (first, ==, 20005);
   g_assert_cmpint (last,  ==, 20005);
   g_assert (!hb_set_next_range (s, &first, &last));
+  g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (last,  ==, HB_SET_VALUE_INVALID);
+
+  first = last = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 20005);
+  g_assert_cmpint (last,  ==, 20005);
+  g_assert (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 1200);
+  g_assert_cmpint (last,  ==, 1200);
+  g_assert (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 1100);
+  g_assert_cmpint (last,  ==, 1100);
+  g_assert (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 10);
+  g_assert_cmpint (last,  ==, 15);
+  g_assert (hb_set_previous_range (s, &first, &last));
+  g_assert_cmpint (first, ==, 6);
+  g_assert_cmpint (last,  ==, 6);
+  g_assert (!hb_set_previous_range (s, &first, &last));
   g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
   g_assert_cmpint (last,  ==, HB_SET_VALUE_INVALID);
 

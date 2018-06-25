@@ -54,9 +54,10 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (hangul) \
   HB_COMPLEX_SHAPER_IMPLEMENT (hebrew) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_old) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (khmer) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_old) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   HB_COMPLEX_SHAPER_IMPLEMENT (tibetan) \
   HB_COMPLEX_SHAPER_IMPLEMENT (use) \
@@ -204,6 +205,10 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* Unicode-9.0 additions */
     case HB_SCRIPT_ADLAM:
 
+    /* Unicode-11.0 additions */
+    case HB_SCRIPT_HANIFI_ROHINGYA:
+    case HB_SCRIPT_SOGDIAN:
+
       /* For Arabic script, use the Arabic shaper even if no OT script tag was found.
        * This is because we do fallback shaping for Arabic script (and not others).
        * But note that Arabic shaping is applicable only to horizontal layout; for
@@ -285,7 +290,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 					      planner->map.language_index[0],
 					      HB_TAG ('p','r','e','f'),
 					      nullptr))
-	return &_hb_ot_complex_shaper_indic;
+	return &_hb_ot_complex_shaper_khmer;
       else
 	return &_hb_ot_complex_shaper_default;
 
@@ -378,6 +383,11 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_MASARAM_GONDI:
     case HB_SCRIPT_SOYOMBO:
     case HB_SCRIPT_ZANABAZAR_SQUARE:
+
+    /* Unicode-11.0 additions */
+    case HB_SCRIPT_DOGRA:
+    case HB_SCRIPT_GUNJALA_GONDI:
+    case HB_SCRIPT_MAKASAR:
 
       /* If the designer designed the font for the 'DFLT' script,
        * (or we ended up arbitrarily pick 'latn'), use the default shaper.

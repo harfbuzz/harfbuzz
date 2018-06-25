@@ -82,8 +82,6 @@ HB_EXTERN hb_bool_t
 hb_set_has (const hb_set_t *set,
 	    hb_codepoint_t  codepoint);
 
-/* Right now limited to 16-bit integers.  Eventually will do full codepoint range, sans -1
- * which we will use as a sentinel. */
 HB_EXTERN void
 hb_set_add (hb_set_t       *set,
 	    hb_codepoint_t  codepoint);
@@ -105,6 +103,10 @@ hb_set_del_range (hb_set_t       *set,
 HB_EXTERN hb_bool_t
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other);
+
+HB_EXTERN hb_bool_t
+hb_set_is_subset (const hb_set_t *set,
+		  const hb_set_t *larger_set);
 
 HB_EXTERN void
 hb_set_set (hb_set_t       *set,
@@ -129,24 +131,35 @@ hb_set_symmetric_difference (hb_set_t       *set,
 HB_EXTERN unsigned int
 hb_set_get_population (const hb_set_t *set);
 
-/* Returns -1 if set empty. */
+/* Returns HB_SET_VALUE_INVALID if set empty. */
 HB_EXTERN hb_codepoint_t
 hb_set_get_min (const hb_set_t *set);
 
-/* Returns -1 if set empty. */
+/* Returns HB_SET_VALUE_INVALID if set empty. */
 HB_EXTERN hb_codepoint_t
 hb_set_get_max (const hb_set_t *set);
 
-/* Pass -1 in to get started. */
+/* Pass HB_SET_VALUE_INVALID in to get started. */
 HB_EXTERN hb_bool_t
 hb_set_next (const hb_set_t *set,
 	     hb_codepoint_t *codepoint);
 
-/* Pass -1 for first and last to get started. */
+/* Pass HB_SET_VALUE_INVALID in to get started. */
+HB_EXTERN hb_bool_t
+hb_set_previous (const hb_set_t *set,
+		 hb_codepoint_t *codepoint);
+
+/* Pass HB_SET_VALUE_INVALID for first and last to get started. */
 HB_EXTERN hb_bool_t
 hb_set_next_range (const hb_set_t *set,
 		   hb_codepoint_t *first,
 		   hb_codepoint_t *last);
+
+/* Pass HB_SET_VALUE_INVALID for first and last to get started. */
+HB_EXTERN hb_bool_t
+hb_set_previous_range (const hb_set_t *set,
+		       hb_codepoint_t *first,
+		       hb_codepoint_t *last);
 
 
 HB_END_DECLS

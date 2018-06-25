@@ -52,13 +52,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#if !GLIB_CHECK_VERSION (2, 22, 0)
-# define g_mapped_file_unref g_mapped_file_free
-#endif
-
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
-
-extern hb_bool_t debug;
 
 struct option_group_t
 {
@@ -151,7 +145,7 @@ struct shape_options_t : option_group_t
   shape_options_t (option_parser_t *parser)
   {
     direction = language = script = nullptr;
-    bot = eot = preserve_default_ignorables = false;
+    bot = eot = preserve_default_ignorables = remove_default_ignorables = false;
     features = nullptr;
     num_features = 0;
     shapers = nullptr;
@@ -179,10 +173,13 @@ struct shape_options_t : option_group_t
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
     hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
-    hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAG_DEFAULT |
-			 (bot ? HB_BUFFER_FLAG_BOT : 0) |
-			 (eot ? HB_BUFFER_FLAG_EOT : 0) |
-			 (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0)));
+    hb_buffer_set_flags (buffer, (hb_buffer_flags_t)
+				 (HB_BUFFER_FLAG_DEFAULT |
+				  (bot ? HB_BUFFER_FLAG_BOT : 0) |
+				  (eot ? HB_BUFFER_FLAG_EOT : 0) |
+				  (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0) |
+				  (remove_default_ignorables ? HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES : 0) |
+				  0));
     hb_buffer_set_cluster_level (buffer, cluster_level);
     hb_buffer_guess_segment_properties (buffer);
   }
@@ -237,19 +234,25 @@ struct shape_options_t : option_group_t
     {
       if (error)
         *error = "all shapers failed.";
-      return false;
+      goto fail;
     }
 
     if (normalize_glyphs)
       hb_buffer_normalize_glyphs (buffer);
 
     if (verify && !verify_buffer (buffer, text_buffer, font, error))
-      return false;
+      goto fail;
 
     if (text_buffer)
       hb_buffer_destroy (text_buffer);
 
     return true;
+
+  fail:
+    if (text_buffer)
+      hb_buffer_destroy (text_buffer);
+
+    return false;
   }
 
   bool verify_buffer (hb_buffer_t  *buffer,
@@ -421,6 +424,7 @@ struct shape_options_t : option_group_t
   hb_bool_t bot;
   hb_bool_t eot;
   hb_bool_t preserve_default_ignorables;
+  hb_bool_t remove_default_ignorables;
 
   hb_feature_t *features;
   unsigned int num_features;
@@ -442,12 +446,16 @@ struct font_options_t : option_group_t
     variations = nullptr;
     num_variations = 0;
     default_font_size = default_font_size_;
+    x_ppem = 0;
+    y_ppem = 0;
+    ptem = 0.;
     subpixel_bits = subpixel_bits_;
     font_file = nullptr;
     face_index = 0;
     font_size_x = font_size_y = default_font_size;
     font_funcs = nullptr;
 
+    blob = nullptr;
     font = nullptr;
 
     add_options (parser);
@@ -464,10 +472,14 @@ struct font_options_t : option_group_t
   hb_font_t *get_font (void) const;
 
   char *font_file;
+  mutable hb_blob_t *blob;
   int face_index;
   hb_variation_t *variations;
   unsigned int num_variations;
   int default_font_size;
+  int x_ppem;
+  int y_ppem;
+  double ptem;
   unsigned int subpixel_bits;
   mutable double font_size_x;
   mutable double font_size_y;
@@ -584,6 +596,7 @@ struct format_options_t : option_group_t
   format_options_t (option_parser_t *parser) {
     show_glyph_names = true;
     show_positions = true;
+    show_advances = true;
     show_clusters = true;
     show_text = false;
     show_unicode = false;
@@ -628,6 +641,7 @@ struct format_options_t : option_group_t
 
   hb_bool_t show_glyph_names;
   hb_bool_t show_positions;
+  hb_bool_t show_advances;
   hb_bool_t show_clusters;
   hb_bool_t show_text;
   hb_bool_t show_unicode;
@@ -635,6 +649,20 @@ struct format_options_t : option_group_t
   hb_bool_t show_extents;
   hb_bool_t show_flags;
   hb_bool_t trace;
+};
+
+struct subset_options_t : option_group_t
+{
+  subset_options_t (option_parser_t *parser)
+  {
+    drop_hints = false;
+
+    add_options (parser);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  hb_bool_t drop_hints;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
