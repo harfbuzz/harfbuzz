@@ -597,7 +597,7 @@ fail_without_close:
   int len = 0;
   int allocated = BUFSIZ * 16;
   char *blob = (char *) malloc (allocated);
-  if (blob == nullptr) return hb_blob_get_empty ();
+  if (unlikely (blob == nullptr)) return hb_blob_get_empty ();
 
   FILE *fp = fopen (file_name, "rb");
   if (unlikely (fp == nullptr)) goto fread_fail_without_close;
@@ -611,7 +611,7 @@ fail_without_close:
       // can cover files like that but lets limit our fallback reader
       if (unlikely (allocated > 200000000)) goto fread_fail;
       char *new_blob = (char *) realloc (blob, allocated);
-      if (unlikely (!new_blob)) goto fread_fail;
+      if (unlikely (new_blob == nullptr)) goto fread_fail;
       blob = new_blob;
     }
 
