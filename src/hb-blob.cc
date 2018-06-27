@@ -489,10 +489,10 @@ hb_blob_t::try_make_writable (void)
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 # include <windows.h>
-#endif
-
-#ifndef _O_BINARY
-# define _O_BINARY 0
+#else
+# ifndef _O_BINARY
+#  define _O_BINARY 0
+# endif
 #endif
 
 #ifndef MAP_NORESERVE
@@ -594,8 +594,7 @@ fail_without_close:
 
   // The following tries to read a file without knowing its size beforehand
   // It's used for systems without mmap concept or to read from pipes
-  int len = 0;
-  int allocated = BUFSIZ * 16;
+  unsigned long len = 0, allocated = BUFSIZ * 16;
   char *blob = (char *) malloc (allocated);
   if (unlikely (blob == nullptr)) return hb_blob_get_empty ();
 
@@ -607,16 +606,21 @@ fail_without_close:
     if (allocated - len < BUFSIZ)
     {
       allocated *= 2;
-      // Don't allocate more than 200MB, our mmap reader still
+      // Don't allocate and go more than ~536MB, our mmap reader still
       // can cover files like that but lets limit our fallback reader
-      if (unlikely (allocated > 200000000)) goto fread_fail;
+      if (unlikely (allocated > (2 << 28))) goto fread_fail;
       char *new_blob = (char *) realloc (blob, allocated);
       if (unlikely (new_blob == nullptr)) goto fread_fail;
       blob = new_blob;
     }
 
-    len += fread (blob + len, 1, allocated - len, fp);
+    unsigned long addition = fread (blob + len, 1, allocated - len, fp);
+
+    int err = ferror (fp);
+    if (unlikely (err == EINTR)) continue;
     if (unlikely (ferror (fp))) goto fread_fail;
+
+    len += addition;
   }
 
   return hb_blob_create (blob, len, HB_MEMORY_MODE_WRITABLE, blob,
