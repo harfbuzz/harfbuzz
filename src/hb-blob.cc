@@ -593,10 +593,10 @@ fail_without_close:
 #endif
 
   // The following tries to read a file without knowing its size beforehand
-  // It's used for systems without mmap concept or to read from pipes
+  // It's used as a fallback for systems without mmap or to read from pipes
   unsigned long len = 0, allocated = BUFSIZ * 16;
-  char *blob = (char *) malloc (allocated);
-  if (unlikely (blob == nullptr)) return hb_blob_get_empty ();
+  char *data = (char *) malloc (allocated);
+  if (unlikely (data == nullptr)) return hb_blob_get_empty ();
 
   FILE *fp = fopen (file_name, "rb");
   if (unlikely (fp == nullptr)) goto fread_fail_without_close;
@@ -609,12 +609,12 @@ fail_without_close:
       // Don't allocate and go more than ~536MB, our mmap reader still
       // can cover files like that but lets limit our fallback reader
       if (unlikely (allocated > (2 << 28))) goto fread_fail;
-      char *new_blob = (char *) realloc (blob, allocated);
-      if (unlikely (new_blob == nullptr)) goto fread_fail;
-      blob = new_blob;
+      char *new_data = (char *) realloc (data, allocated);
+      if (unlikely (new_data == nullptr)) goto fread_fail;
+      data = new_data;
     }
 
-    unsigned long addition = fread (blob + len, 1, allocated - len, fp);
+    unsigned long addition = fread (data + len, 1, allocated - len, fp);
 
     int err = ferror (fp);
     if (unlikely (err == EINTR)) continue;
@@ -623,12 +623,12 @@ fail_without_close:
     len += addition;
   }
 
-  return hb_blob_create (blob, len, HB_MEMORY_MODE_WRITABLE, blob,
+  return hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, data,
                          (hb_destroy_func_t) free);
 
 fread_fail:
   fclose (fp);
 fread_fail_without_close:
-  free (blob);
+  free (data);
   return hb_blob_get_empty ();
 }
