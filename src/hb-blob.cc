@@ -617,7 +617,9 @@ fail_without_close:
     unsigned long addition = fread (data + len, 1, allocated - len, fp);
 
     int err = ferror (fp);
+#ifdef EINTR // armcc doesn't have it
     if (unlikely (err == EINTR)) continue;
+#endif
     if (unlikely (err)) goto fread_fail;
 
     len += addition;
