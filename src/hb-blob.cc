@@ -618,7 +618,7 @@ fail_without_close:
 
     int err = ferror (fp);
     if (unlikely (err == EINTR)) continue;
-    if (unlikely (ferror (fp))) goto fread_fail;
+    if (unlikely (err)) goto fread_fail;
 
     len += addition;
   }
