@@ -534,9 +534,9 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
 {
-  // Adopted from glib's gmappedfile.c with Matthias Clasen and
-  // Allison Lortie permission but changed a lot to suit our need.
-#if defined(HAVE_MMAP) && !defined(NOMMAPFILEREADER)
+  /* Adopted from glib's gmappedfile.c with Matthias Clasen and
+     Allison Lortie permission but changed a lot to suit our need. */
+#if defined(HAVE_MMAP) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
@@ -563,7 +563,7 @@ fail:
 fail_without_close:
   free (file);
 
-#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(NOMMAPFILEREADER)
+#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
@@ -592,8 +592,8 @@ fail_without_close:
 
 #endif
 
-  // The following tries to read a file without knowing its size beforehand
-  // It's used as a fallback for systems without mmap or to read from pipes
+  /* The following tries to read a file without knowing its size beforehand
+     It's used as a fallback for systems without mmap or to read from pipes */
   unsigned long len = 0, allocated = BUFSIZ * 16;
   char *data = (char *) malloc (allocated);
   if (unlikely (data == nullptr)) return hb_blob_get_empty ();
@@ -606,8 +606,8 @@ fail_without_close:
     if (allocated - len < BUFSIZ)
     {
       allocated *= 2;
-      // Don't allocate and go more than ~536MB, our mmap reader still
-      // can cover files like that but lets limit our fallback reader
+      /* Don't allocate and go more than ~536MB, our mmap reader still
+	 can cover files like that but lets limit our fallback reader */
       if (unlikely (allocated > (2 << 28))) goto fread_fail;
       char *new_data = (char *) realloc (data, allocated);
       if (unlikely (new_data == nullptr)) goto fread_fail;

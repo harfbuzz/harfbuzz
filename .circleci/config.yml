@@ -47,7 +47,7 @@ jobs:
       - checkout
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
       # C??FLAGS are not needed for a regular build
-      - run: CFLAGS="-O3" CXXFLAGS="-O3 -DNOMMAPFILEREADER" ./autogen.sh
+      - run: CFLAGS="-O3" CXXFLAGS="-O3 -DHB_NO_MMAP" ./autogen.sh
       - run: make
       - run: make check || .ci/fail.sh
 
