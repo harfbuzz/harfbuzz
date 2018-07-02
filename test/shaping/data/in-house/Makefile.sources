@@ -6,6 +6,7 @@ TESTS = \
 	tests/arabic-stch.tests \
 	tests/automatic-fractions.tests \
 	tests/cluster.tests \
+	tests/collections.tests \
 	tests/color-fonts.tests \
 	tests/context-matching.tests \
 	tests/cursive-positioning.tests \
