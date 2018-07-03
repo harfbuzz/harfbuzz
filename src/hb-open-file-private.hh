@@ -505,7 +505,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return 1;
     case TTCTag:	return u.ttcHeader.get_face_count ();
-    case DFontTag:	return u.rfHeader.get_face_count ();
+//    case DFontTag:	return u.rfHeader.get_face_count ();
     default:		return 0;
     }
   }
@@ -520,7 +520,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return u.fontFace;
     case TTCTag:	return u.ttcHeader.get_face (i);
-    case DFontTag:	return u.rfHeader.get_face (i);
+//    case DFontTag:	return u.rfHeader.get_face (i);
     default:		return Null(OpenTypeFontFace);
     }
   }
@@ -547,7 +547,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return_trace (u.fontFace.sanitize (c));
     case TTCTag:	return_trace (u.ttcHeader.sanitize (c));
-    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
+//    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
     default:		return_trace (true);
     }
   }
