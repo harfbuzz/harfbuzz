@@ -508,6 +508,7 @@ struct hb_mapped_file_t
 #endif
 };
 
+#if (defined(HAVE_MMAP) || defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
 static void
 _hb_mapped_file_destroy (hb_mapped_file_t *file)
 {
@@ -522,6 +523,7 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
 
   free (file);
 }
+#endif
 
 /**
  * hb_blob_create_from_file:
