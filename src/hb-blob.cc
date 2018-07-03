@@ -569,9 +569,15 @@ fail_without_close:
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
-  HANDLE fd = CreateFile (file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
-			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
-			  nullptr);
+  HANDLE fd;
+  unsigned int size = strlen (file_name) + 1;
+  wchar_t * wchar_file_name = (wchar_t *) malloc (sizeof (wchar_t) * size);
+  if (unlikely (wchar_file_name == nullptr)) goto fail_without_close;
+  mbstowcs (wchar_file_name, file_name, size);
+  fd = CreateFileW (wchar_file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
+		    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
+		    nullptr);
+  free (wchar_file_name);
 
   if (unlikely (fd == INVALID_HANDLE_VALUE)) goto fail_without_close;
 
