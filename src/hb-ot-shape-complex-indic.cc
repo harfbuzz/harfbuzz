@@ -1127,6 +1127,24 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    *     defined as “after last standalone halant glyph, after initial matra
    *     position and before the main consonant”. If ZWJ or ZWNJ follow this
    *     halant, position is moved after it.
+   *
+   * IMPLEMENTATION NOTES:
+   *
+   * It looks like the last sentence is wrong.  Testing, with Windows 7 Uniscribe
+   * and Devanagari shows that the behavior is best described as:
+   *
+   * "If ZWJ follows this halant, matra is NOT repositioned after this halant.
+   *  If ZWNJ follows this halant, position is moved after it."
+   *
+   * Test case, with Adobe Devanagari or Nirmala UI:
+   *
+   *   U+091F,U+094D,U+200C,U+092F,U+093F
+   *   (Matra moves to the middle, after ZWNJ.)
+   *
+   *   U+091F,U+094D,U+200D,U+092F,U+093F
+   *   (Matra does NOT move, stays to the left.)
+   *
+   * https://github.com/harfbuzz/harfbuzz/issues/1070
    */
 
   if (start + 1 < end && start < base) /* Otherwise there can't be any pre-base matra characters. */
@@ -1140,6 +1158,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
      */
     if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
     {
+    search:
       while (new_pos > start &&
 	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H)))))
 	new_pos--;
@@ -1150,9 +1169,27 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       if (is_halant (info[new_pos]) &&
 	  info[new_pos].indic_position() != POS_PRE_M)
       {
+#if 0 // See comment above
 	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
 	if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
 	  new_pos++;
+#endif
+	if (new_pos + 1 < end)
+	{
+	  /* -> If ZWJ follows this halant, matra is NOT repositioned after this halant. */
+	  if (info[new_pos + 1].indic_category() == OT_ZWJ)
+	  {
+	    /* Keep searching. */
+	    if (new_pos > start)
+	    {
+	      new_pos--;
+	      goto search;
+	    }
+	  }
+	  /* -> If ZWNJ follows this halant, position is moved after it. */
+	  if (info[new_pos + 1].indic_category() == OT_ZWNJ)
+	    new_pos++;
+	}
       }
       else
         new_pos = start; /* No move. */
