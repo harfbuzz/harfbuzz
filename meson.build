@@ -161,8 +161,6 @@ foreach check : check_funcs
     endif
   endif
 
-  message('func: @0@, found: @1@'.format(name, found))
-
   if found
     deps += extra_deps
     conf.set('HAVE_@0@'.format(name.to_upper()), 1)
