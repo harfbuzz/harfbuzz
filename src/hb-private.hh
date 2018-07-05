@@ -1108,10 +1108,12 @@ struct HbOpXor
 /* Compiler-assisted vectorization. */
 
 /* The `vector_size' attribute was introduced in gcc 3.1. */
-#if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#define HB_VECTOR_SIZE 128
-#elif !defined(HB_VECTOR_SIZE)
-#define HB_VECTOR_SIZE 0
+#if !defined(HB_VECTOR_SIZE)
+#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
+#    define HB_VECTOR_SIZE 128
+#  else
+#    define HB_VECTOR_SIZE 0
+#  endif
 #endif
 
 /* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))). */
