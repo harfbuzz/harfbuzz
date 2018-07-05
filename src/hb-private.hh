@@ -1107,6 +1107,18 @@ struct HbOpXor
 
 /* Compiler-assisted vectorization. */
 
+/*
+ * Disable vectorization for now.  To correctly use them, we should
+ * use posix_memalign() to allocate them.  Otherwise, can cause
+ * misaligned access.
+ *
+ * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
+ */
+#if !defined(HB_VECTOR_SIZE)
+#  define HB_VECTOR_SIZE 0
+#endif
+
+
 /* The `vector_size' attribute was introduced in gcc 3.1. */
 #if !defined(HB_VECTOR_SIZE)
 #  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
