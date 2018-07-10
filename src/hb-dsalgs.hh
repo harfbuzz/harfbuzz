@@ -424,8 +424,6 @@ struct hb_auto_t : Type
   void init (void) {}
   void fini (void) {}
 };
-template <typename Type>
-struct hb_auto_array_t : hb_auto_t <hb_vector_t <Type> > {};
 
 
 #define HB_LOCKABLE_SET_INIT {HB_VECTOR_INIT}
