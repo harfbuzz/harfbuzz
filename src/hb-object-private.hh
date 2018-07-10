@@ -33,6 +33,8 @@
 #define HB_OBJECT_PRIVATE_HH
 
 #include "hb-private.hh"
+#include "hb-atomic-private.hh"
+#include "hb-mutex-private.hh"
 
 
 /* reference_count */

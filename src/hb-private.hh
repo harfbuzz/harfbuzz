@@ -599,11 +599,12 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #endif
 
 
-/* Headers we include for everyone. Specifically ordered to resolve dependencies. */
+/* Headers we include for everyone.  Keep sorted.  They express dependency amongst
+ * themselves, but no other file should include them.*/
 #include "hb-atomic-private.hh"
-#include "hb-mutex-private.hh"
-#include "hb-dsalgs.hh"
 #include "hb-debug.hh"
+#include "hb-dsalgs.hh"
+#include "hb-mutex-private.hh"
 #include "hb-object-private.hh"
 
 #endif /* HB_PRIVATE_HH */
