@@ -78,6 +78,17 @@ extern "C" void  hb_free_impl(void *ptr);
 /* Compiler attributes */
 
 
+template <typename T>
+struct _hb_alignof
+{
+  struct s
+  {
+    char c;
+    T t;
+  };
+  static constexpr unsigned int value = offsetof (s, t);
+};
+
 #if __cplusplus < 201103L
 
 #ifndef nullptr
@@ -104,16 +115,6 @@ extern "C" void  hb_free_impl(void *ptr);
 
 #ifndef alignof
 #define alignof(x) (_hb_alignof<x>::value)
-template <typename T>
-struct _hb_alignof
-{
-  struct s
-  {
-    char c;
-    T t;
-  };
-  static constexpr unsigned int value = offsetof (s, t);
-};
 #endif // alignof
 
 #endif // __cplusplus < 201103L
@@ -1258,7 +1259,6 @@ struct hb_bytes_t
 
 
 /* fallback for round() */
-#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
 static inline double
 _hb_round (double x)
 {
@@ -1267,6 +1267,7 @@ _hb_round (double x)
   else
     return ceil (x - 0.5);
 }
+#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
 #define round(x) _hb_round(x)
 #endif
 
