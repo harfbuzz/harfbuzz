@@ -28,8 +28,6 @@
 
 #include "hb-private.hh"
 
-#include "hb-mutex-private.hh"
-#include "hb-object-private.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H

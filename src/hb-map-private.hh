@@ -28,7 +28,6 @@
 #define HB_MAP_PRIVATE_HH
 
 #include "hb-private.hh"
-#include "hb-object-private.hh"
 
 
 template <typename T>

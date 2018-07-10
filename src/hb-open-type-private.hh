@@ -30,7 +30,6 @@
 #define HB_OPEN_TYPE_PRIVATE_HH
 
 #include "hb-private.hh"
-#include "hb-debug.hh"
 #include "hb-blob-private.hh"
 #include "hb-face-private.hh"
 

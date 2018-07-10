@@ -31,7 +31,6 @@
 #endif
 
 #include "hb-private.hh"
-#include "hb-debug.hh"
 #include "hb-blob-private.hh"
 
 #ifdef HAVE_SYS_MMAN_H

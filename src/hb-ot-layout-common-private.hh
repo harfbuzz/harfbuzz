@@ -30,7 +30,6 @@
 #define HB_OT_LAYOUT_COMMON_PRIVATE_HH
 
 #include "hb-private.hh"
-#include "hb-debug.hh"
 #include "hb-ot-layout-private.hh"
 #include "hb-open-type-private.hh"
 #include "hb-set-private.hh"

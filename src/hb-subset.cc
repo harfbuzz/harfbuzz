@@ -25,7 +25,6 @@
  */
 
 #include "hb-private.hh"
-#include "hb-object-private.hh"
 #include "hb-open-type-private.hh"
 
 #include "hb-subset-glyf.hh"
