@@ -656,7 +656,7 @@ struct CrapOrNull<const Type> {
 /* arrays and maps */
 
 
-#define HB_PREALLOCED_ARRAY_INIT {0, 0, nullptr}
+#define HB_VECTOR_INIT {0, 0, false, nullptr}
 template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
@@ -875,7 +875,7 @@ template <typename Type>
 struct hb_auto_array_t : hb_auto_t <hb_vector_t <Type> > {};
 
 
-#define HB_LOCKABLE_SET_INIT {HB_PREALLOCED_ARRAY_INIT}
+#define HB_LOCKABLE_SET_INIT {HB_VECTOR_INIT}
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
