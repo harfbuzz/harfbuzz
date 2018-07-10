@@ -278,7 +278,7 @@ struct hb_vector_t
     }
     else
     {
-      bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
+      bool overflows = (new_allocated < allocated) || hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
       if (likely (!overflows))
         new_array = (Type *) realloc (arrayZ, new_allocated * sizeof (Type));
     }

@@ -99,7 +99,7 @@ struct ValueFormat : HBUINT16
 #endif
 
   inline unsigned int get_len (void) const
-  { return _hb_popcount ((unsigned int) *this); }
+  { return hb_popcount ((unsigned int) *this); }
   inline unsigned int get_size (void) const
   { return get_len () * Value::static_size; }
 
@@ -374,7 +374,7 @@ struct AnchorMatrix
   {
     TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return_trace (false);
-    if (unlikely (_hb_unsigned_int_mul_overflows (rows, cols))) return_trace (false);
+    if (unlikely (hb_unsigned_mul_overflows (rows, cols))) return_trace (false);
     unsigned int count = rows * cols;
     if (!c->check_array (matrixZ, matrixZ[0].static_size, count)) return_trace (false);
     for (unsigned int i = 0; i < count; i++)

@@ -94,7 +94,7 @@ struct hb_set_t
     {
       unsigned int pop = 0;
       for (unsigned int i = 0; i < len (); i++)
-        pop += _hb_popcount (v[i]);
+        pop += hb_popcount (v[i]);
       return pop;
     }
 
@@ -161,8 +161,8 @@ struct hb_set_t
     static const unsigned int PAGE_BITS = 512;
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
-    static inline unsigned int elt_get_min (const elt_t &elt) { return _hb_ctz (elt); }
-    static inline unsigned int elt_get_max (const elt_t &elt) { return _hb_bit_storage (elt) - 1; }
+    static inline unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
+    static inline unsigned int elt_get_max (const elt_t &elt) { return hb_bit_storage (elt) - 1; }
 
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 

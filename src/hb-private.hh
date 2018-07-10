@@ -362,7 +362,7 @@ typedef const struct _hb_void_t *hb_void_t;
 /* Return the number of 1 bits in v. */
 template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_popcount (T v)
+hb_popcount (T v)
 {
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) && defined(__OPTIMIZE__)
   if (sizeof (T) <= sizeof (unsigned int))
@@ -387,13 +387,13 @@ _hb_popcount (T v)
   if (sizeof (T) == 8)
   {
     unsigned int shift = 32;
-    return _hb_popcount<uint32_t> ((uint32_t) v) + _hb_popcount ((uint32_t) (v >> shift));
+    return hb_popcount<uint32_t> ((uint32_t) v) + hb_popcount ((uint32_t) (v >> shift));
   }
 
   if (sizeof (T) == 16)
   {
     unsigned int shift = 64;
-    return _hb_popcount<uint64_t> ((uint64_t) v) + _hb_popcount ((uint64_t) (v >> shift));
+    return hb_popcount<uint64_t> ((uint64_t) v) + hb_popcount ((uint64_t) (v >> shift));
   }
 
   assert (0);
@@ -403,7 +403,7 @@ _hb_popcount (T v)
 /* Returns the number of bits needed to store number */
 template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_bit_storage (T v)
+hb_bit_storage (T v)
 {
   if (unlikely (!v)) return 0;
 
@@ -466,8 +466,8 @@ _hb_bit_storage (T v)
   if (sizeof (T) == 16)
   {
     unsigned int shift = 64;
-    return (v >> shift) ? _hb_bit_storage<uint64_t> ((uint64_t) (v >> shift)) + shift :
-			  _hb_bit_storage<uint64_t> ((uint64_t) v);
+    return (v >> shift) ? hb_bit_storage<uint64_t> ((uint64_t) (v >> shift)) + shift :
+			  hb_bit_storage<uint64_t> ((uint64_t) v);
   }
 
   assert (0);
@@ -477,7 +477,7 @@ _hb_bit_storage (T v)
 /* Returns the number of zero bits in the least significant side of v */
 template <typename T>
 static inline HB_CONST_FUNC unsigned int
-_hb_ctz (T v)
+hb_ctz (T v)
 {
   if (unlikely (!v)) return 0;
 
@@ -539,8 +539,8 @@ _hb_ctz (T v)
   if (sizeof (T) == 16)
   {
     unsigned int shift = 64;
-    return (uint64_t) v ? _hb_bit_storage<uint64_t> ((uint64_t) v) :
-			  _hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift;
+    return (uint64_t) v ? hb_bit_storage<uint64_t> ((uint64_t) v) :
+			  hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift;
   }
 
   assert (0);
@@ -548,18 +548,19 @@ _hb_ctz (T v)
 }
 
 static inline bool
-_hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
+hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
 {
   return (size > 0) && (count >= ((unsigned int) -1) / size);
 }
 
 static inline unsigned int
-_hb_ceil_to_4 (unsigned int v)
+hb_ceil_to_4 (unsigned int v)
 {
   return ((v - 1) | 3) + 1;
 }
 
-static inline bool _hb_ispow2 (unsigned int v)
+static inline bool
+hb_ispow2 (unsigned int v)
 {
   return 0 == (v & (v - 1));
 }
@@ -925,7 +926,7 @@ _hb_round (double x)
 static inline int
 _hb_memalign(void **memptr, size_t alignment, size_t size)
 {
-  if (unlikely (!_hb_ispow2 (alignment) ||
+  if (unlikely (!hb_ispow2 (alignment) ||
 		!alignment ||
 		0 != (alignment & (sizeof (void *) - 1))))
     return EINVAL;
