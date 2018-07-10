@@ -103,7 +103,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #endif
 
 #ifndef alignof
-#define alignof(x) _hb_alignof<x>::value;
+#define alignof(x) (_hb_alignof<x>::value)
 template <typename T>
 struct _hb_alignof
 {
