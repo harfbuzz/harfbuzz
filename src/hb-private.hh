@@ -1059,55 +1059,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
 
 
-template <typename T, typename T2> static inline void
-hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), T2 *array2)
-{
-  for (unsigned int i = 1; i < len; i++)
-  {
-    unsigned int j = i;
-    while (j && compar (&array[j - 1], &array[i]) > 0)
-      j--;
-    if (i == j)
-      continue;
-    /* Move item i to occupy place for item j, shift what's in between. */
-    {
-      T t = array[i];
-      memmove (&array[j + 1], &array[j], (i - j) * sizeof (T));
-      array[j] = t;
-    }
-    if (array2)
-    {
-      T2 t = array2[i];
-      memmove (&array2[j + 1], &array2[j], (i - j) * sizeof (T2));
-      array2[j] = t;
-    }
-  }
-}
-
-template <typename T> static inline void
-hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
-{
-  hb_stable_sort (array, len, compar, (int *) nullptr);
-}
-
-static inline hb_bool_t
-hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *out)
-{
-  /* Pain because we don't know whether s is nul-terminated. */
-  char buf[64];
-  len = MIN (ARRAY_LENGTH (buf) - 1, len);
-  strncpy (buf, s, len);
-  buf[len] = '\0';
-
-  char *end;
-  errno = 0;
-  unsigned long v = strtoul (buf, &end, base);
-  if (errno) return false;
-  if (*end) return false;
-  *out = v;
-  return true;
-}
-
 
 /* Vectorization */
 
@@ -1310,6 +1261,8 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #define posix_memalign _hb_memalign
 #endif
 
+
+#include "hb-dsalgs.hh"
 
 
 #endif /* HB_PRIVATE_HH */
