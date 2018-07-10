@@ -30,6 +30,243 @@
 #include "hb-private.hh"
 
 
+/* Void! For when we need a expression-type of void. */
+typedef const struct _hb_void_t *hb_void_t;
+#define HB_VOID ((const _hb_void_t *) nullptr)
+
+
+/*
+ * Bithacks.
+ */
+
+/* Return the number of 1 bits in v. */
+template <typename T>
+static inline HB_CONST_FUNC unsigned int
+hb_popcount (T v)
+{
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) && defined(__OPTIMIZE__)
+  if (sizeof (T) <= sizeof (unsigned int))
+    return __builtin_popcount (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return __builtin_popcountl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return __builtin_popcountll (v);
+#endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "HACKMEM 169" */
+    uint32_t y;
+    y = (v >> 1) &033333333333;
+    y = v - y - ((y >>1) & 033333333333);
+    return (((y + (y >> 3)) & 030707070707) % 077);
+  }
+
+  if (sizeof (T) == 8)
+  {
+    unsigned int shift = 32;
+    return hb_popcount<uint32_t> ((uint32_t) v) + hb_popcount ((uint32_t) (v >> shift));
+  }
+
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return hb_popcount<uint64_t> ((uint64_t) v) + hb_popcount ((uint64_t) (v >> shift));
+  }
+
+  assert (0);
+  return 0; /* Shut up stupid compiler. */
+}
+
+/* Returns the number of bits needed to store number */
+template <typename T>
+static inline HB_CONST_FUNC unsigned int
+hb_bit_storage (T v)
+{
+  if (unlikely (!v)) return 0;
+
+#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
+  if (sizeof (T) <= sizeof (unsigned int))
+    return sizeof (unsigned int) * 8 - __builtin_clz (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return sizeof (unsigned long) * 8 - __builtin_clzl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
+#endif
+
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+  if (sizeof (T) <= sizeof (unsigned int))
+  {
+    unsigned long where;
+    _BitScanReverse (&where, v);
+    return 1 + where;
+  }
+# if _WIN64
+  if (sizeof (T) <= 8)
+  {
+    unsigned long where;
+    _BitScanReverse64 (&where, v);
+    return 1 + where;
+  }
+# endif
+#endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "bithacks" */
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    unsigned int r = 0;
+    for (int i = 4; i >= 0; i--)
+      if (v & b[i])
+      {
+	v >>= S[i];
+	r |= S[i];
+      }
+    return r + 1;
+  }
+  if (sizeof (T) <= 8)
+  {
+    /* "bithacks" */
+    const uint64_t b[] = {0x2ULL, 0xCULL, 0xF0ULL, 0xFF00ULL, 0xFFFF0000ULL, 0xFFFFFFFF00000000ULL};
+    const unsigned int S[] = {1, 2, 4, 8, 16, 32};
+    unsigned int r = 0;
+    for (int i = 5; i >= 0; i--)
+      if (v & b[i])
+      {
+	v >>= S[i];
+	r |= S[i];
+      }
+    return r + 1;
+  }
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return (v >> shift) ? hb_bit_storage<uint64_t> ((uint64_t) (v >> shift)) + shift :
+			  hb_bit_storage<uint64_t> ((uint64_t) v);
+  }
+
+  assert (0);
+  return 0; /* Shut up stupid compiler. */
+}
+
+/* Returns the number of zero bits in the least significant side of v */
+template <typename T>
+static inline HB_CONST_FUNC unsigned int
+hb_ctz (T v)
+{
+  if (unlikely (!v)) return 0;
+
+#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
+  if (sizeof (T) <= sizeof (unsigned int))
+    return __builtin_ctz (v);
+
+  if (sizeof (T) <= sizeof (unsigned long))
+    return __builtin_ctzl (v);
+
+  if (sizeof (T) <= sizeof (unsigned long long))
+    return __builtin_ctzll (v);
+#endif
+
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+  if (sizeof (T) <= sizeof (unsigned int))
+  {
+    unsigned long where;
+    _BitScanForward (&where, v);
+    return where;
+  }
+# if _WIN64
+  if (sizeof (T) <= 8)
+  {
+    unsigned long where;
+    _BitScanForward64 (&where, v);
+    return where;
+  }
+# endif
+#endif
+
+  if (sizeof (T) <= 4)
+  {
+    /* "bithacks" */
+    unsigned int c = 32;
+    v &= - (int32_t) v;
+    if (v) c--;
+    if (v & 0x0000FFFF) c -= 16;
+    if (v & 0x00FF00FF) c -= 8;
+    if (v & 0x0F0F0F0F) c -= 4;
+    if (v & 0x33333333) c -= 2;
+    if (v & 0x55555555) c -= 1;
+    return c;
+  }
+  if (sizeof (T) <= 8)
+  {
+    /* "bithacks" */
+    unsigned int c = 64;
+    v &= - (int64_t) (v);
+    if (v) c--;
+    if (v & 0x00000000FFFFFFFFULL) c -= 32;
+    if (v & 0x0000FFFF0000FFFFULL) c -= 16;
+    if (v & 0x00FF00FF00FF00FFULL) c -= 8;
+    if (v & 0x0F0F0F0F0F0F0F0FULL) c -= 4;
+    if (v & 0x3333333333333333ULL) c -= 2;
+    if (v & 0x5555555555555555ULL) c -= 1;
+    return c;
+  }
+  if (sizeof (T) == 16)
+  {
+    unsigned int shift = 64;
+    return (uint64_t) v ? hb_bit_storage<uint64_t> ((uint64_t) v) :
+			  hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift;
+  }
+
+  assert (0);
+  return 0; /* Shut up stupid compiler. */
+}
+
+
+/*
+ * Tiny stuff.
+ */
+
+#undef MIN
+template <typename Type>
+static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
+
+#undef MAX
+template <typename Type>
+static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
+
+static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
+{ return (a + (b - 1)) / b; }
+
+
+#undef  ARRAY_LENGTH
+template <typename Type, unsigned int n>
+static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
+/* A const version, but does not detect erratically being called on pointers. */
+#define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
+
+static inline bool
+hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
+{
+  return (size > 0) && (count >= ((unsigned int) -1) / size);
+}
+
+static inline unsigned int
+hb_ceil_to_4 (unsigned int v)
+{
+  return ((v - 1) | 3) + 1;
+}
+
+
+/*
+ * Sort and search.
+ */
+
 static inline void *
 hb_bsearch_r (const void *key, const void *base,
 	      size_t nmemb, size_t size,
