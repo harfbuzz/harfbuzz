@@ -220,7 +220,7 @@ hb_ctz (T v)
   {
     unsigned int shift = 64;
     return (uint64_t) v ? hb_bit_storage<uint64_t> ((uint64_t) v) :
-			  hb_bit_storage<uint64_t> ((uint64_t) v >> shift) + shift;
+			  hb_bit_storage<uint64_t> ((uint64_t) (v >> shift)) + shift;
   }
 
   assert (0);
