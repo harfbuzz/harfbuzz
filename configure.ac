@@ -78,7 +78,7 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 ])
 
 # Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l)
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l posix_memalign)
 
 save_libs="$LIBS"
 LIBS="$LIBS -lm"

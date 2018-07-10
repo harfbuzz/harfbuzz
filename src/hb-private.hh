@@ -58,6 +58,7 @@
 #define HB_PASTE1(a,b) a##b
 #define HB_PASTE(a,b) HB_PASTE1(a,b)
 
+
 /* Compile-time custom allocator support. */
 
 #if defined(hb_malloc_impl) \
@@ -72,6 +73,14 @@ extern "C" void  hb_free_impl(void *ptr);
 #define calloc hb_calloc_impl
 #define realloc hb_realloc_impl
 #define free hb_free_impl
+
+#if defined(hb_memalign_impl
+extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
+#define posix_memalign hb_memalign_impl
+#else
+#undef HAVE_POSIX_MEMALIGN
+#endif
+
 #endif
 
 
@@ -550,6 +559,10 @@ _hb_ceil_to_4 (unsigned int v)
   return ((v - 1) | 3) + 1;
 }
 
+static inline bool _hb_ispow2 (unsigned int v)
+{
+  return 0 == (v & (v - 1));
+}
 
 
 /*
@@ -1270,6 +1283,33 @@ _hb_round (double x)
 #if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
 #define round(x) _hb_round(x)
 #endif
+
+
+/* fallback for posix_memalign() */
+static inline int
+_hb_memalign(void **memptr, size_t alignment, size_t size)
+{
+  if (unlikely (!_hb_ispow2 (alignment) ||
+		!alignment ||
+		0 != (alignment & (sizeof (void *) - 1))))
+    return EINVAL;
+
+  char *p = (char *) malloc (size + alignment - 1);
+  if (unlikely (!p))
+    return ENOMEM;
+
+  size_t off = (size_t) p & (alignment - 1);
+  if (off)
+    p += alignment - off;
+
+  *memptr = (void *) p;
+
+  return 0;
+}
+#if !defined(posix_memalign) && !defined(HAVE_POSIX_MEMALIGN)
+#define posix_memalign _hb_memalign
+#endif
+
 
 
 #endif /* HB_PRIVATE_HH */
