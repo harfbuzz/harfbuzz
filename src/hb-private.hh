@@ -882,32 +882,6 @@ hb_options (void)
 #define VAR 1
 
 
-/* String type. */
-
-struct hb_bytes_t
-{
-  inline hb_bytes_t (void) : bytes (nullptr), len (0) {}
-  inline hb_bytes_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
-
-  inline int cmp (const hb_bytes_t &a) const
-  {
-    if (len != a.len)
-      return (int) a.len - (int) len;
-
-    return memcmp (a.bytes, bytes, len);
-  }
-  static inline int cmp (const void *pa, const void *pb)
-  {
-    hb_bytes_t *a = (hb_bytes_t *) pa;
-    hb_bytes_t *b = (hb_bytes_t *) pb;
-    return b->cmp (*a);
-  }
-
-  const char *bytes;
-  unsigned int len;
-};
-
-
 /* fallback for round() */
 static inline double
 _hb_round (double x)
