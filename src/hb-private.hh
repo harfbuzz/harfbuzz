@@ -74,7 +74,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #define realloc hb_realloc_impl
 #define free hb_free_impl
 
-#if defined(hb_memalign_impl
+#if defined(hb_memalign_impl)
 extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #define posix_memalign hb_memalign_impl
 #else
