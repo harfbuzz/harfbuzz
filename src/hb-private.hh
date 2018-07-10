@@ -84,6 +84,10 @@ extern "C" void  hb_free_impl(void *ptr);
 #define nullptr NULL
 #endif
 
+#ifndef constexpr
+#define constexpr const
+#endif
+
 // Static assertions
 #ifndef static_assert
 #define static_assert(e, msg) \
@@ -97,6 +101,20 @@ extern "C" void  hb_free_impl(void *ptr);
 #else
 #define thread_local
 #endif
+
+#ifndef alignof
+#define alignof(x) _hb_alignof<x>::value;
+template <typename T>
+struct _hb_alignof
+{
+  struct s
+  {
+    char c;
+    T t;
+  };
+  static constexpr unsigned int value = offsetof (s, t);
+};
+#endif // alignof
 
 #endif // __cplusplus < 201103L
 
