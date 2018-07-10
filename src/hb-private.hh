@@ -746,34 +746,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 
 
 
-/* Vectorization */
-
-struct HbOpOr
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
-};
-struct HbOpAnd
-{
-  static const bool passthru_left = false;
-  static const bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
-};
-struct HbOpMinus
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
-};
-struct HbOpXor
-{
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
-};
-
-
 /* Compiler-assisted vectorization. */
 
 /*
@@ -787,7 +759,6 @@ struct HbOpXor
 #  define HB_VECTOR_SIZE 0
 #endif
 
-
 /* The `vector_size' attribute was introduced in gcc 3.1. */
 #if !defined(HB_VECTOR_SIZE)
 #  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
@@ -796,58 +767,6 @@ struct HbOpXor
 #    define HB_VECTOR_SIZE 0
 #  endif
 #endif
-
-/* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))). */
-template <typename elt_t, unsigned int byte_size>
-struct hb_vector_size_t
-{
-  elt_t& operator [] (unsigned int i) { return u.v[i]; }
-  const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
-
-  template <class Op>
-  inline hb_vector_size_t process (const hb_vector_size_t &o) const
-  {
-    hb_vector_size_t r;
-#if HB_VECTOR_SIZE
-    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	Op::process (r.u.vec[i], u.vec[i], o.u.vec[i]);
-    else
-#endif
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-	Op::process (r.u.v[i], u.v[i], o.u.v[i]);
-    return r;
-  }
-  inline hb_vector_size_t operator | (const hb_vector_size_t &o) const
-  { return process<HbOpOr> (o); }
-  inline hb_vector_size_t operator & (const hb_vector_size_t &o) const
-  { return process<HbOpAnd> (o); }
-  inline hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
-  { return process<HbOpXor> (o); }
-  inline hb_vector_size_t operator ~ () const
-  {
-    hb_vector_size_t r;
-#if HB_VECTOR_SIZE && 0
-    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	r.u.vec[i] = ~u.vec[i];
-    else
-#endif
-    for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-      r.u.v[i] = ~u.v[i];
-    return r;
-  }
-
-  private:
-  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
-  union {
-    elt_t v[byte_size / sizeof (elt_t)];
-#if HB_VECTOR_SIZE
-    typedef unsigned long vec_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
-    vec_t vec[byte_size / sizeof (vec_t)];
-#endif
-  } u;
-};
 
 
 /* Global runtime options. */
