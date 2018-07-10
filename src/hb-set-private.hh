@@ -405,6 +405,7 @@ struct hb_set_t
     if (get_population () > larger_set->get_population ())
       return false;
 
+    /* TODO Optimize to use pages. */
     hb_codepoint_t c = INVALID;
     while (next (&c))
       if (!larger_set->has (c))
