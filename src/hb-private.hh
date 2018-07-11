@@ -334,6 +334,39 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   TypeName(const TypeName&); \
   void operator=(const TypeName&)
 
+
+/*
+ * Compiler-assisted vectorization parameters.
+ */
+
+/*
+ * Disable vectorization for now.  To correctly use them, we should
+ * use posix_memalign() to allocate in hb_vector_t.  Otherwise, can
+ * cause misaligned access.
+ *
+ * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
+ */
+#if !defined(HB_VECTOR_SIZE)
+#  define HB_VECTOR_SIZE 0
+#endif
+
+/* The `vector_size' attribute was introduced in gcc 3.1. */
+#if !defined(HB_VECTOR_SIZE)
+#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
+#    define HB_VECTOR_SIZE 128
+#  else
+#    define HB_VECTOR_SIZE 0
+#  endif
+#endif
+static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)), "HB_VECTOR_SIZE is not power of 2.");
+static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64.");
+#if HB_VECTOR_SIZE
+typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
+#else
+typedef uint64_t hb_vector_size_impl_t;
+#endif
+
+
 /*
  * Static pools
  */
@@ -341,18 +374,18 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
 #define HB_NULL_POOL_SIZE 264
-static_assert (HB_NULL_POOL_SIZE % sizeof (void *) == 0, "Align HB_NULL_POOL_SIZE.");
 
 #ifdef HB_NO_VISIBILITY
 static
 #else
 extern HB_INTERNAL
 #endif
-void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)]
 #ifdef HB_NO_VISIBILITY
 = {}
 #endif
 ;
+
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline Type const & Null (void) {
@@ -385,11 +418,12 @@ static
 #else
 extern HB_INTERNAL
 #endif
-/*thread_local*/ void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)]
+/*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)]
 #ifdef HB_NO_VISIBILITY
 = {}
 #endif
 ;
+
 /* CRAP pool: Common Region for Access Protection. */
 template <typename Type>
 static inline Type& Crap (void) {
@@ -501,30 +535,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 #define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned int)(x) < 32) + (1U << (unsigned int)(x)))
 #define FLAG_UNSAFE(x) ((unsigned int)(x) < 32 ? (1U << (unsigned int)(x)) : 0)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
-
-
-
-/* Compiler-assisted vectorization. */
-
-/*
- * Disable vectorization for now.  To correctly use them, we should
- * use posix_memalign() to allocate them.  Otherwise, can cause
- * misaligned access.
- *
- * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
- */
-#if !defined(HB_VECTOR_SIZE)
-#  define HB_VECTOR_SIZE 0
-#endif
-
-/* The `vector_size' attribute was introduced in gcc 3.1. */
-#if !defined(HB_VECTOR_SIZE)
-#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#    define HB_VECTOR_SIZE 128
-#  else
-#    define HB_VECTOR_SIZE 0
-#  endif
-#endif
 
 
 /* Global runtime options. */

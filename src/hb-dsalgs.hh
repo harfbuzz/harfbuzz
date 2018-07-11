@@ -854,8 +854,7 @@ struct hb_vector_size_t
   union {
     elt_t v[byte_size / sizeof (elt_t)];
 #if HB_VECTOR_SIZE
-    typedef unsigned long vec_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
-    vec_t vec[byte_size / sizeof (vec_t)];
+    hb_vector_size_impl_t vec[byte_size / sizeof (hb_vector_size_impl_t)];
 #endif
   } u;
 };

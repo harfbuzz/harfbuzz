@@ -27,6 +27,6 @@
 #include "hb-private.hh"
 
 #ifndef HB_NO_VISIBILITY
-void * const _hb_NullPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
-/*thread_local*/ void * _hb_CrapPool[HB_NULL_POOL_SIZE / sizeof (void *)] = {};
+hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
+/*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
 #endif
