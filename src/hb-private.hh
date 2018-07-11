@@ -84,19 +84,9 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #endif
 
 
-/* Compiler attributes */
-
-
-template <typename T>
-struct _hb_alignof
-{
-  struct s
-  {
-    char c;
-    T t;
-  };
-  static constexpr size_t value = offsetof (s, t);
-};
+/*
+ * Compiler attributes
+ * */
 
 #if __cplusplus < 201103L
 
@@ -122,6 +112,16 @@ struct _hb_alignof
 #define thread_local
 #endif
 
+template <typename T>
+struct _hb_alignof
+{
+  struct s
+  {
+    char c;
+    T t;
+  };
+  static constexpr size_t value = offsetof (s, t);
+};
 #ifndef alignof
 #define alignof(x) (_hb_alignof<x>::value)
 #endif // alignof
