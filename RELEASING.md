@@ -29,7 +29,7 @@ HarfBuzz release walk-through checklist:
 7. "make release-files".  Enter your GPG password.  This creates a sha256 hash
    and signs it.
 
-8. Now that you have release files built, commit NEWS and configure.ac changes,
+8. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
    as well as any REPLACEME changes you made.  The commit message is simply the
    release number.  Eg. "1.4.7"
 
