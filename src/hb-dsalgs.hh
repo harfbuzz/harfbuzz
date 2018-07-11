@@ -450,8 +450,7 @@ template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
   unsigned int len;
-  unsigned int allocated;
-  bool successful;
+  unsigned int allocated; /* == 0 means allocation failed. */
   Type *arrayZ;
   Type static_array[StaticSize];
 
@@ -459,7 +458,6 @@ struct hb_vector_t
   {
     len = 0;
     allocated = ARRAY_LENGTH (static_array);
-    successful = true;
     arrayZ = static_array;
   }
 
@@ -492,7 +490,7 @@ struct hb_vector_t
   /* Allocate for size but don't adjust len. */
   inline bool alloc (unsigned int size)
   {
-    if (unlikely (!successful))
+    if (unlikely (!allocated))
       return false;
 
     if (likely (size <= allocated))
@@ -521,7 +519,7 @@ struct hb_vector_t
 
     if (unlikely (!new_array))
     {
-      successful = false;
+      allocated = 0;
       return false;
     }
 
