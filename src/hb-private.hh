@@ -95,7 +95,7 @@ struct _hb_alignof
     char c;
     T t;
   };
-  static constexpr unsigned int value = offsetof (s, t);
+  static constexpr size_t value = offsetof (s, t);
 };
 
 #if __cplusplus < 201103L
