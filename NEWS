@@ -1,3 +1,11 @@
+Overview of changes leading to 1.8.3
+Wednesday, July 11, 2018
+====================================
+- A couple of Indic / USE bug fixes.
+- Disable vectorization, as it was causing unaligned access bus error on
+  certain 32bit architectures.
+
+
 Overview of changes leading to 1.8.2
 Tuesday, July 3, 2018
 ====================================
