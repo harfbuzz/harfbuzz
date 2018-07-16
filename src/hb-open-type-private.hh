@@ -1247,7 +1247,7 @@ struct hb_lazy_loader_t
 
   private:
   hb_face_t *face;
-  T *instance;
+  mutable T *instance;
 };
 
 /* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
