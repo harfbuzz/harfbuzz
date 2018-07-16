@@ -29,6 +29,8 @@ environment:
       MSYS2_ARCH: i686
 
 install:
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman -Su --noconfirm"'
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
 
 build_script:
