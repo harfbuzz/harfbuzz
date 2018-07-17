@@ -283,8 +283,6 @@ struct hb_sanitize_context_t :
   {
     bool sane;
 
-    /* TODO is_sane() stuff */
-
     init (blob);
 
   retry:
