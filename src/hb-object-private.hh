@@ -94,7 +94,7 @@ struct hb_user_data_array_t
 struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
-  hb_user_data_array_t *user_data;
+  mutable hb_user_data_array_t *user_data;
 
 #define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INIT, nullptr}
 
