@@ -66,6 +66,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->math.init (face);
   layout->fvar.init (face);
   layout->avar.init (face);
+  layout->morx.init (face);
 
   {
     /*
@@ -215,6 +216,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   layout->math.fini ();
   layout->fvar.fini ();
   layout->avar.fini ();
+  layout->morx.fini ();
 
   free (layout);
 }

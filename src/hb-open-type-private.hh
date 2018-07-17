@@ -290,9 +290,10 @@ struct hb_sanitize_context_t :
 template <typename Type>
 struct Sanitizer
 {
-  inline Sanitizer (void) {}
+  inline Sanitizer (unsigned int num_glyphs = 0) { c->num_glyphs = num_glyphs; }
 
-  inline hb_blob_t *sanitize (hb_blob_t *blob) {
+  inline hb_blob_t *sanitize (hb_blob_t *blob)
+  {
     bool sane;
 
     /* TODO is_sane() stuff */
@@ -1265,21 +1266,27 @@ struct hb_table_lazy_loader_t
     hb_blob_destroy (blob);
   }
 
-  inline const T* get (void) const
+  inline hb_blob_t* get_blob (void) const
   {
   retry:
-    hb_blob_t *blob_ = (hb_blob_t *) hb_atomic_ptr_get (&blob);
-    if (unlikely (!blob_))
+    hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&blob);
+    if (unlikely (!b))
     {
-      blob_ = OT::Sanitizer<T>().sanitize (face->reference_table (T::tableTag));
-      if (!hb_atomic_ptr_cmpexch (&blob, nullptr, blob_))
+      b = OT::Sanitizer<T>(face->get_num_glyphs ()).sanitize (face->reference_table (T::tableTag));
+      if (!hb_atomic_ptr_cmpexch (&blob, nullptr, b))
       {
-	hb_blob_destroy (blob_);
+	hb_blob_destroy (b);
 	goto retry;
       }
-      blob = blob_;
+      blob = b;
     }
-    return blob_->as<T> ();
+    return b;
+  }
+
+  inline const T* get (void) const
+  {
+    hb_blob_t *b = get_blob ();
+    return b->as<T> ();
   }
 
   inline const T* operator-> (void) const
