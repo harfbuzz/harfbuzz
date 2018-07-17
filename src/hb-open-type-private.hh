@@ -182,6 +182,9 @@ struct hb_sanitize_context_t :
     this->writable = false;
   }
 
+  inline void set_num_glyphs (unsigned int num_glyphs_) { num_glyphs = num_glyphs_; }
+  inline unsigned int get_num_glyphs (void) { return num_glyphs; }
+
   inline void start_processing (void)
   {
     this->start = hb_blob_get_data (this->blob, nullptr);
@@ -275,8 +278,78 @@ struct hb_sanitize_context_t :
     return false;
   }
 
+  template <typename Type>
+  inline hb_blob_t *sanitize (hb_blob_t *blob)
+  {
+    bool sane;
+
+    /* TODO is_sane() stuff */
+
+    init (blob);
+
+  retry:
+    DEBUG_MSG_FUNC (SANITIZE, start, "start");
+
+    start_processing ();
+
+    if (unlikely (!start))
+    {
+      end_processing ();
+      return blob;
+    }
+
+    Type *t = CastP<Type> (const_cast<char *> (start));
+
+    sane = t->sanitize (this);
+    if (sane)
+    {
+      if (edit_count)
+      {
+	DEBUG_MSG_FUNC (SANITIZE, start, "passed first round with %d edits; going for second round", edit_count);
+
+        /* sanitize again to ensure no toe-stepping */
+        edit_count = 0;
+	sane = t->sanitize (this);
+	if (edit_count) {
+	  DEBUG_MSG_FUNC (SANITIZE, start, "requested %d edits in second round; FAILLING", edit_count);
+	  sane = false;
+	}
+      }
+    }
+    else
+    {
+      if (edit_count && !writable) {
+        start = hb_blob_get_data_writable (blob, nullptr);
+	end = start + blob->length;
+
+	if (start)
+	{
+	  writable = true;
+	  /* ok, we made it writable by relocating.  try again */
+	  DEBUG_MSG_FUNC (SANITIZE, start, "retry");
+	  goto retry;
+	}
+      }
+    }
+
+    end_processing ();
+
+    DEBUG_MSG_FUNC (SANITIZE, start, sane ? "PASSED" : "FAILED");
+    if (sane)
+    {
+      blob->lock ();
+      return blob;
+    }
+    else
+    {
+      hb_blob_destroy (blob);
+      return hb_blob_get_empty ();
+    }
+  }
+
   mutable unsigned int debug_depth;
   const char *start, *end;
+  private:
   bool writable;
   unsigned int edit_count;
   mutable int max_ops;
@@ -290,72 +363,8 @@ struct hb_sanitize_context_t :
 template <typename Type>
 struct Sanitizer
 {
-  inline Sanitizer (unsigned int num_glyphs = 0) { c->num_glyphs = num_glyphs; }
-
-  inline hb_blob_t *sanitize (hb_blob_t *blob)
-  {
-    bool sane;
-
-    /* TODO is_sane() stuff */
-
-    c->init (blob);
-
-  retry:
-    DEBUG_MSG_FUNC (SANITIZE, c->start, "start");
-
-    c->start_processing ();
-
-    if (unlikely (!c->start)) {
-      c->end_processing ();
-      return blob;
-    }
-
-    Type *t = CastP<Type> (const_cast<char *> (c->start));
-
-    sane = t->sanitize (c);
-    if (sane) {
-      if (c->edit_count) {
-	DEBUG_MSG_FUNC (SANITIZE, c->start, "passed first round with %d edits; going for second round", c->edit_count);
-
-        /* sanitize again to ensure no toe-stepping */
-        c->edit_count = 0;
-	sane = t->sanitize (c);
-	if (c->edit_count) {
-	  DEBUG_MSG_FUNC (SANITIZE, c->start, "requested %d edits in second round; FAILLING", c->edit_count);
-	  sane = false;
-	}
-      }
-    } else {
-      unsigned int edit_count = c->edit_count;
-      if (edit_count && !c->writable) {
-        c->start = hb_blob_get_data_writable (blob, nullptr);
-	c->end = c->start + blob->length;
-
-	if (c->start) {
-	  c->writable = true;
-	  /* ok, we made it writable by relocating.  try again */
-	  DEBUG_MSG_FUNC (SANITIZE, c->start, "retry");
-	  goto retry;
-	}
-      }
-    }
-
-    c->end_processing ();
-
-    DEBUG_MSG_FUNC (SANITIZE, c->start, sane ? "PASSED" : "FAILED");
-    if (sane)
-    {
-      blob->lock ();
-      return blob;
-    }
-    else
-    {
-      hb_blob_destroy (blob);
-      return hb_blob_get_empty ();
-    }
-  }
-
-  inline void set_num_glyphs (unsigned int num_glyphs) { c->num_glyphs = num_glyphs; }
+  inline Sanitizer (unsigned int num_glyphs = 0) { c->set_num_glyphs (num_glyphs); }
+  inline hb_blob_t *sanitize (hb_blob_t *blob) { return c->sanitize<Type> (blob); }
 
   private:
   hb_sanitize_context_t c[1];
