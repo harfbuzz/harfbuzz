@@ -46,37 +46,21 @@
 /* Defined externally, i.e. in config.h; must have typedef'ed hb_atomic_int_impl_t as well. */
 
 
-#elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
-
-/* C++11-style GCC primitives. */
-
-typedef int hb_atomic_int_impl_t;
-#define hb_atomic_int_impl_add(AI, V)		__atomic_fetch_add (&(AI), (V), __ATOMIC_ACQ_REL)
-
-#define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_ACQUIRE)
-static inline bool
-_hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
-{
-  const void *O = O_; // Need lvalue
-  return __atomic_compare_exchange_n ((void **) P, (void **) O, (void *) N, true, __ATOMIC_ACQ_REL, __ATOMIC_RELAXED);
-}
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N)))
-
 #elif !defined(HB_NO_MT) && __cplusplus >= 201103L
 
-/* C++11 atomics. */
+/* Prefer C++11 atomics. */
 
 #include <atomic>
 
 typedef int hb_atomic_int_impl_t;
-#define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (&AI)->fetch_add ((V), std::memory_order_acq_rel))
+#define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (&AI)->fetch_add (V, std::memory_order_acq_rel))
 
 #define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_acquire))
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 {
   const void *O = O_; // Need lvalue
-  return reinterpret_cast<std::atomic<const void*> *> (P)->compare_exchange_weak (O, N, std::memory_order_acq_rel, std::memory_order_relaxed);
+  return reinterpret_cast<std::atomic<const void*> *> (P)->compare_exchange_weak ((O), (N), std::memory_order_acq_rel);
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N)))
 
