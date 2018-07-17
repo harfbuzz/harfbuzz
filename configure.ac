@@ -249,21 +249,21 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
 dnl ==========================================================================
 
-AC_ARG_WITH(fontconfig,
-	[AS_HELP_STRING([--with-fontconfig=@<:@yes/no/auto@:>@],
-			[Use fontconfig @<:@default=auto@:>@])],,
-	[with_fontconfig=auto])
-have_fontconfig=false
-if test "x$with_fontconfig" = "xyes" -o "x$with_fontconfig" = "xauto"; then
-	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fontconfig=true, :)
-fi
-if test "x$with_fontconfig" = "xyes" -a "x$have_fontconfig" != "xtrue"; then
-	AC_MSG_ERROR([fontconfig support requested but not found])
-fi
-if $have_fontconfig; then
-	AC_DEFINE(HAVE_FONTCONFIG, 1, [Have fontconfig library])
-fi
-AM_CONDITIONAL(HAVE_FONTCONFIG, $have_fontconfig)
+#AC_ARG_WITH(fontconfig,
+#	[AS_HELP_STRING([--with-fontconfig=@<:@yes/no/auto@:>@],
+#			[Use fontconfig @<:@default=auto@:>@])],,
+#	[with_fontconfig=auto])
+#have_fontconfig=false
+#if test "x$with_fontconfig" = "xyes" -o "x$with_fontconfig" = "xauto"; then
+#	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fontconfig=true, :)
+#fi
+#if test "x$with_fontconfig" = "xyes" -a "x$have_fontconfig" != "xtrue"; then
+#	AC_MSG_ERROR([fontconfig support requested but not found])
+#fi
+#if $have_fontconfig; then
+#	AC_DEFINE(HAVE_FONTCONFIG, 1, [Have fontconfig library])
+#fi
+#AM_CONDITIONAL(HAVE_FONTCONFIG, $have_fontconfig)
 
 dnl ==========================================================================
 
@@ -538,7 +538,6 @@ Font callbacks (the more the merrier):
 
 Tools used for command-line utilities:
 	Cairo:			${have_cairo}
-	Fontconfig:		${have_fontconfig}
 
 Additional shapers (the more the merrier):
 	Graphite2:		${have_graphite2}
