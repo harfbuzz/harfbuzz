@@ -52,10 +52,13 @@ hb_face_count (hb_blob_t *blob)
   if (unlikely (!blob))
     return 0;
 
-  hb_blob_t *sanitized = OT::Sanitizer<OT::OpenTypeFontFile> ().sanitize (blob);
+  /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
+  hb_blob_t *sanitized = OT::Sanitizer<OT::OpenTypeFontFile> ().sanitize (hb_blob_reference (blob));
   const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
+  unsigned int ret = ot.get_face_count ();
+  hb_blob_destroy (sanitized);
 
-  return ot.get_face_count ();
+  return ret;
 }
 
 /*
