@@ -14,6 +14,7 @@ check_PROGRAMS =
 
 # Convenience targets:
 lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
+libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
 fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la libharfbuzz-subset-fuzzing.la
 
 lib_LTLIBRARIES = libharfbuzz.la
