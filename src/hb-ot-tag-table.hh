@@ -747,50 +747,50 @@ static const LangTag ot_languages[] = {
   {"pt",	{HB_TAG('P','T','G',' ')}},	/* Portuguese */
   {"pwo",	{HB_TAG('P','W','O',' ')}},	/* Pwo Western Karen -> Western Pwo Karen */
   {"qu",	{HB_TAG('Q','U','Z',' ')}},	/* Quechua [macrolanguage] */
-  {"qub",	{HB_TAG('Q','U','Z',' ')}},	/* Huallaga Huánuco Quechua -> Quechua */
+  {"qub",	{HB_TAG('Q','W','H',' ')}},	/* Huallaga Huánuco Quechua -> Quechua (Peru) */
   {"quc",	{HB_TAG('Q','U','C',' ')}},	/* K’iche’ */
-  {"qud",	{HB_TAG('Q','U','Z',' ')}},	/* Calderón Highland Quichua -> Quechua */
+  {"qud",	{HB_TAG('Q','V','I',' ')}},	/* Calderón Highland Quichua -> Quechua (Ecuador) */
   {"quf",	{HB_TAG('Q','U','Z',' ')}},	/* Lambayeque Quechua -> Quechua */
-  {"qug",	{HB_TAG('Q','U','Z',' ')}},	/* Chimborazo Highland Quichua -> Quechua */
+  {"qug",	{HB_TAG('Q','V','I',' ')}},	/* Chimborazo Highland Quichua -> Quechua (Ecuador) */
   {"quh",	{HB_TAG('Q','U','H',' ')}},	/* South Bolivian Quechua -> Quechua (Bolivia) */
   {"quk",	{HB_TAG('Q','U','Z',' ')}},	/* Chachapoyas Quechua -> Quechua */
   {"qul",	{HB_TAG('Q','U','Z',' ')}},	/* North Bolivian Quechua -> Quechua */
-  {"qup",	{HB_TAG('Q','U','Z',' ')}},	/* Southern Pastaza Quechua -> Quechua */
-  {"qur",	{HB_TAG('Q','U','Z',' ')}},	/* Yanahuanca Pasco Quechua -> Quechua */
-  {"qus",	{HB_TAG('Q','U','Z',' ')}},	/* Santiago del Estero Quichua -> Quechua */
-  {"quw",	{HB_TAG('Q','U','Z',' ')}},	/* Tena Lowland Quichua -> Quechua */
-  {"qux",	{HB_TAG('Q','U','Z',' ')}},	/* Yauyos Quechua -> Quechua */
+  {"qup",	{HB_TAG('Q','V','I',' ')}},	/* Southern Pastaza Quechua -> Quechua (Ecuador) */
+  {"qur",	{HB_TAG('Q','W','H',' ')}},	/* Yanahuanca Pasco Quechua -> Quechua (Peru) */
+  {"qus",	{HB_TAG('Q','U','H',' ')}},	/* Santiago del Estero Quichua -> Quechua (Bolivia) */
+  {"quw",	{HB_TAG('Q','V','I',' ')}},	/* Tena Lowland Quichua -> Quechua (Ecuador) */
+  {"qux",	{HB_TAG('Q','W','H',' ')}},	/* Yauyos Quechua -> Quechua (Peru) */
   {"quy",	{HB_TAG('Q','U','Z',' ')}},	/* Ayacucho Quechua -> Quechua */
   {"quz",	{HB_TAG('Q','U','Z',' ')}},	/* Cusco Quechua -> Quechua */
-  {"qva",	{HB_TAG('Q','U','Z',' ')}},	/* Ambo-Pasco Quechua -> Quechua */
+  {"qva",	{HB_TAG('Q','W','H',' ')}},	/* Ambo-Pasco Quechua -> Quechua (Peru) */
   {"qvc",	{HB_TAG('Q','U','Z',' ')}},	/* Cajamarca Quechua -> Quechua */
   {"qve",	{HB_TAG('Q','U','Z',' ')}},	/* Eastern Apurímac Quechua -> Quechua */
-  {"qvh",	{HB_TAG('Q','U','Z',' ')}},	/* Huamalíes-Dos de Mayo Huánuco Quechua -> Quechua */
+  {"qvh",	{HB_TAG('Q','W','H',' ')}},	/* Huamalíes-Dos de Mayo Huánuco Quechua -> Quechua (Peru) */
   {"qvi",	{HB_TAG('Q','V','I',' ')}},	/* Imbabura Highland Quichua -> Quechua (Ecuador) */
-  {"qvj",	{HB_TAG('Q','U','Z',' ')}},	/* Loja Highland Quichua -> Quechua */
-  {"qvl",	{HB_TAG('Q','U','Z',' ')}},	/* Cajatambo North Lima Quechua -> Quechua */
-  {"qvm",	{HB_TAG('Q','U','Z',' ')}},	/* Margos-Yarowilca-Lauricocha Quechua -> Quechua */
-  {"qvn",	{HB_TAG('Q','U','Z',' ')}},	/* North Junín Quechua -> Quechua */
-  {"qvo",	{HB_TAG('Q','U','Z',' ')}},	/* Napo Lowland Quechua -> Quechua */
-  {"qvp",	{HB_TAG('Q','U','Z',' ')}},	/* Pacaraos Quechua -> Quechua */
+  {"qvj",	{HB_TAG('Q','V','I',' ')}},	/* Loja Highland Quichua -> Quechua (Ecuador) */
+  {"qvl",	{HB_TAG('Q','W','H',' ')}},	/* Cajatambo North Lima Quechua -> Quechua (Peru) */
+  {"qvm",	{HB_TAG('Q','W','H',' ')}},	/* Margos-Yarowilca-Lauricocha Quechua -> Quechua (Peru) */
+  {"qvn",	{HB_TAG('Q','W','H',' ')}},	/* North Junín Quechua -> Quechua (Peru) */
+  {"qvo",	{HB_TAG('Q','V','I',' ')}},	/* Napo Lowland Quechua -> Quechua (Ecuador) */
+  {"qvp",	{HB_TAG('Q','W','H',' ')}},	/* Pacaraos Quechua -> Quechua (Peru) */
   {"qvs",	{HB_TAG('Q','U','Z',' ')}},	/* San Martín Quechua -> Quechua */
-  {"qvw",	{HB_TAG('Q','U','Z',' ')}},	/* Huaylla Wanca Quechua -> Quechua */
-  {"qvz",	{HB_TAG('Q','U','Z',' ')}},	/* Northern Pastaza Quichua -> Quechua */
-  {"qwa",	{HB_TAG('Q','U','Z',' ')}},	/* Corongo Ancash Quechua -> Quechua */
+  {"qvw",	{HB_TAG('Q','W','H',' ')}},	/* Huaylla Wanca Quechua -> Quechua (Peru) */
+  {"qvz",	{HB_TAG('Q','V','I',' ')}},	/* Northern Pastaza Quichua -> Quechua (Ecuador) */
+  {"qwa",	{HB_TAG('Q','W','H',' ')}},	/* Corongo Ancash Quechua -> Quechua (Peru) */
   {"qwc",	{HB_TAG('Q','U','Z',' ')}},	/* Classical Quechua -> Quechua */
   {"qwh",	{HB_TAG('Q','W','H',' ')}},	/* Huaylas Ancash Quechua -> Quechua (Peru) */
-  {"qws",	{HB_TAG('Q','U','Z',' ')}},	/* Sihuas Ancash Quechua -> Quechua */
-  {"qxa",	{HB_TAG('Q','U','Z',' ')}},	/* Chiquián Ancash Quechua -> Quechua */
-  {"qxc",	{HB_TAG('Q','U','Z',' ')}},	/* Chincha Quechua -> Quechua */
-  {"qxh",	{HB_TAG('Q','U','Z',' ')}},	/* Panao Huánuco Quechua -> Quechua */
-  {"qxl",	{HB_TAG('Q','U','Z',' ')}},	/* Salasaca Highland Quichua -> Quechua */
-  {"qxn",	{HB_TAG('Q','U','Z',' ')}},	/* Northern Conchucos Ancash Quechua -> Quechua */
-  {"qxo",	{HB_TAG('Q','U','Z',' ')}},	/* Southern Conchucos Ancash Quechua -> Quechua */
+  {"qws",	{HB_TAG('Q','W','H',' ')}},	/* Sihuas Ancash Quechua -> Quechua (Peru) */
+  {"qxa",	{HB_TAG('Q','W','H',' ')}},	/* Chiquián Ancash Quechua -> Quechua (Peru) */
+  {"qxc",	{HB_TAG('Q','W','H',' ')}},	/* Chincha Quechua -> Quechua (Peru) */
+  {"qxh",	{HB_TAG('Q','W','H',' ')}},	/* Panao Huánuco Quechua -> Quechua (Peru) */
+  {"qxl",	{HB_TAG('Q','V','I',' ')}},	/* Salasaca Highland Quichua -> Quechua (Ecuador) */
+  {"qxn",	{HB_TAG('Q','W','H',' ')}},	/* Northern Conchucos Ancash Quechua -> Quechua (Peru) */
+  {"qxo",	{HB_TAG('Q','W','H',' ')}},	/* Southern Conchucos Ancash Quechua -> Quechua (Peru) */
   {"qxp",	{HB_TAG('Q','U','Z',' ')}},	/* Puno Quechua -> Quechua */
-  {"qxr",	{HB_TAG('Q','U','Z',' ')}},	/* Cañar Highland Quichua -> Quechua */
-  {"qxt",	{HB_TAG('Q','U','Z',' ')}},	/* Santa Ana de Tusi Pasco Quechua -> Quechua */
+  {"qxr",	{HB_TAG('Q','V','I',' ')}},	/* Cañar Highland Quichua -> Quechua (Ecuador) */
+  {"qxt",	{HB_TAG('Q','W','H',' ')}},	/* Santa Ana de Tusi Pasco Quechua -> Quechua (Peru) */
   {"qxu",	{HB_TAG('Q','U','Z',' ')}},	/* Arequipa-La Unión Quechua -> Quechua */
-  {"qxw",	{HB_TAG('Q','U','Z',' ')}},	/* Jauja Wanca Quechua -> Quechua */
+  {"qxw",	{HB_TAG('Q','W','H',' ')}},	/* Jauja Wanca Quechua -> Quechua (Peru) */
   {"rag",	{HB_TAG('L','U','H',' ')}},	/* Logooli -> Luyia */
   {"raj",	{HB_TAG('R','A','J',' ')}},	/* Rajasthani [macrolanguage] */
   {"rar",	{HB_TAG('R','A','R',' ')}},	/* Rarotongan */
@@ -1986,6 +1986,10 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("el-polyton", -1);  /* Modern Greek (1453-); Polytonic Greek */
   case HB_TAG('Q','U','H',' '):  /* Quechua (Bolivia) */
     return hb_language_from_string ("quh", -1);  /* South Bolivian Quechua */
+  case HB_TAG('Q','V','I',' '):  /* Quechua (Ecuador) */
+    return hb_language_from_string ("qvi", -1);  /* Imbabura Highland Quichua */
+  case HB_TAG('Q','W','H',' '):  /* Quechua (Peru) */
+    return hb_language_from_string ("qwh", -1);  /* Huaylas Ancash Quechua */
   case HB_TAG('R','A','J',' '):  /* Rajasthani */
     return hb_language_from_string ("raj", -1);  /* Rajasthani */
   case HB_TAG('R','O','Y',' '):  /* Romany */
