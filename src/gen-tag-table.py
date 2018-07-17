@@ -676,6 +676,35 @@ bcp_47.scopes['mhv'] = ' (retired code)'
 ot.add_language ('no', 'NOR')
 
 ot.add_language ('qu', 'QUZ')
+ot.add_language ('qub', 'QWH')
+ot.add_language ('qud', 'QVI')
+ot.add_language ('qug', 'QVI')
+ot.add_language ('qup', 'QVI')
+ot.add_language ('qur', 'QWH')
+ot.add_language ('qus', 'QUH')
+ot.add_language ('quw', 'QVI')
+ot.add_language ('qux', 'QWH')
+ot.add_language ('qva', 'QWH')
+ot.add_language ('qvh', 'QWH')
+ot.add_language ('qvj', 'QVI')
+ot.add_language ('qvl', 'QWH')
+ot.add_language ('qvm', 'QWH')
+ot.add_language ('qvn', 'QWH')
+ot.add_language ('qvo', 'QVI')
+ot.add_language ('qvp', 'QWH')
+ot.add_language ('qvw', 'QWH')
+ot.add_language ('qvz', 'QVI')
+ot.add_language ('qwa', 'QWH')
+ot.add_language ('qws', 'QWH')
+ot.add_language ('qxa', 'QWH')
+ot.add_language ('qxc', 'QWH')
+ot.add_language ('qxh', 'QWH')
+ot.add_language ('qxl', 'QVI')
+ot.add_language ('qxn', 'QWH')
+ot.add_language ('qxo', 'QWH')
+ot.add_language ('qxr', 'QVI')
+ot.add_language ('qxt', 'QWH')
+ot.add_language ('qxw', 'QWH')
 
 bcp_47.macrolanguages['ro'].remove ('mo')
 bcp_47.macrolanguages['ro-MD'].add ('mo')
@@ -754,6 +783,9 @@ disambiguation = {
 	'NIS': 'njz',
 	'PLG': 'pce',
 	'QIN': 'bgr',
+	'QUH': 'quh',
+	'QVI': 'qvi',
+	'QWH': 'qwh',
 	'SIG': 'stv',
 	'ZHH': 'zh-HK',
 	'ZHS': 'zh-Hans',
