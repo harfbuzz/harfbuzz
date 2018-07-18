@@ -23,6 +23,7 @@ HB_BASE_sources = \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
+	hb-ot-cff2-table.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
@@ -142,6 +143,7 @@ HB_OT_sources = \
 	hb-ot-shape-fallback-private.hh \
 	hb-ot-shape-fallback.cc \
 	hb-ot-shape-private.hh \
+	hb-ot-cff-common-private.hh \
 	hb-ot-var.cc \
 	hb-ot-var-avar-table.hh \
 	hb-ot-var-fvar-table.hh \
@@ -206,6 +208,7 @@ HB_SUBSET_sources = \
 	hb-static.cc \
 	hb-subset.cc \
 	hb-subset-glyf.cc \
+	hb-subset-cff2.cc \
 	hb-subset-input.cc \
 	hb-subset-plan.cc \
 	$(NULL)
@@ -213,6 +216,7 @@ HB_SUBSET_sources = \
 HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-glyf.hh \
+	hb-subset-cff2.hh \
 	hb-subset-plan.hh \
 	hb-subset-private.hh \
 	$(NULL)

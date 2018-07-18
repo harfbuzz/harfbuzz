@@ -42,6 +42,7 @@
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
+#include "hb-ot-cff2-table.hh"
 
 
 struct hb_subset_profile_t {
@@ -272,6 +273,9 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     case HB_OT_TAG_post:
       result = _subset<const OT::post> (plan);
+      break;
+    case HB_OT_TAG_cff2:
+      result = _subset<const OT::cff2> (plan);
       break;
     default:
       hb_blob_t *source_table = hb_face_reference_table(plan->source, tag);

@@ -32,6 +32,7 @@
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-cff2-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-post-table.hh"
@@ -45,6 +46,7 @@ struct hb_ot_font_t
   OT::hmtx::accelerator_t h_metrics;
   OT::vmtx::accelerator_t v_metrics;
   OT::hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
+  OT::hb_lazy_loader_t<OT::cff2::accelerator_t> cff2;
   OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
   OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
   OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
