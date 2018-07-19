@@ -288,6 +288,37 @@ class LanguageTag (object):
 		except StopIteration:
 			return None
 
+	def is_complex (self):
+		"""Return whether this tag is too complex to represent as a
+		``LangTag`` in the generated code.
+
+		Complex tags need to be handled in
+		``hb_ot_tags_from_complex_language``.
+
+		Returns:
+			Whether this tag is complex.
+		"""
+		return not (len (self.subtags) == 1
+			or self.grandfathered
+			and len (self.subtags[1]) != 3
+			and ot.from_bcp_47[self.subtags[0]] == ot.from_bcp_47[self.language])
+
+	def get_group (self):
+		"""Return the group into which this tag should be categorized in
+		``hb_ot_tags_from_complex_language``.
+
+		The group is the first letter of the tag, or ``'und'`` if this tag
+		should not be matched in a ``switch`` statement in the generated
+		code.
+
+		Returns:
+			This tag's group.
+		"""
+		return ('und'
+			if (self.language == 'und'
+				or self.variant in bcp_47.prefixes and len (bcp_47.prefixes[self.variant]) == 1)
+			else self.language[0])
+
 class OpenTypeRegistryParser (HTMLParser):
 	"""A parser for the OpenType language system tag registry.
 
@@ -598,16 +629,15 @@ class BCP47Parser (object):
 				for macrolanguage in macrolanguages:
 					self._add_macrolanguage (biggest_macrolanguage, macrolanguage)
 
-	def get_name (self, tag):
+	def get_name (self, lt):
 		"""Return the names of the subtags in a language tag.
 
 		Args:
-			tag (str): A BCP 47 language tag.
+			lt (LanguageTag): A BCP 47 language tag.
 
 		Returns:
-			The name form of ``tag``.
+			The name form of ``lt``.
 		"""
-		lt = LanguageTag (tag)
 		name = self.names[lt.language].split ('\n')[0]
 		if lt.script:
 			name += '; ' + self.names[lt.script.title ()].split ('\n')[0]
@@ -909,58 +939,101 @@ print ('\t\t\t\t  unsigned int *count /* IN/OUT */,')
 print ('\t\t\t\t  hb_tag_t     *tags /* OUT */)')
 print ('{')
 
-def print_subtag_matches (subtag):
+def print_subtag_matches (subtag, new_line):
 	if subtag:
-		print ()
-		print ('      && subtag_matches (lang_str, limit, "-%s")' % subtag, end='')
+		if new_line:
+			print ()
+			print ('\t&& ', end='')
+		print ('subtag_matches (lang_str, limit, "-%s")' % subtag, end='')
 
-for language, tags in sorted (ot.from_bcp_47.items (), key=lambda i: (-len (i[0]), i[0])):
-	lt = LanguageTag (language)
-	if len (lt.subtags) == 1 or lt.grandfathered and len (lt.subtags[1]) != 3 and ot.from_bcp_47[lt.subtags[0]] == tags:
+complex_tags = collections.defaultdict (list)
+for initial, group in itertools.groupby ((lt_tags for lt_tags in [
+			(LanguageTag (language), tags)
+			for language, tags in sorted (ot.from_bcp_47.items (),
+				key=lambda i: (-len (i[0]), i[0]))
+		] if lt_tags[0].is_complex ()),
+		key=lambda lt_tags: lt_tags[0].get_group ()):
+	complex_tags[initial] += group
+
+for initial, items in sorted (complex_tags.items ()):
+	if initial != 'und':
 		continue
-	print ('  if (', end='')
-	if (lt.language == 'und' or
-			lt.variant in bcp_47.prefixes and
-			len (bcp_47.prefixes[lt.variant]) == 1):
+	for lt, tags in items:
 		if lt.variant in bcp_47.prefixes:
 			expect (next (iter (bcp_47.prefixes[lt.variant])) == lt.language,
 					'%s is not a valid prefix of %s' % (lt.language, lt.variant))
-		print ('1', end='')
-	elif lt.grandfathered:
-		print ('0 == strcmp (lang_str, "%s")' % lt.language, end='')
-	else:
-		print ('lang_matches (lang_str, "%s' % lt.language, end='')
-		if lt.script:
-			print ('-%s' % lt.script, end='')
-			lt.script = None
-			if lt.region:
-				print ('-%s' % lt.region, end='')
-				lt.region = None
-		print ('")', end='')
-	print_subtag_matches (lt.script)
-	print_subtag_matches (lt.region)
-	print_subtag_matches (lt.variant)
-	print (')')
-	print ('  {')
-	write ('    /* %s */' % bcp_47.get_name (language))
-	print ()
-	if len (tags) == 1:
-		write ('    tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
+		print ('  if (', end='')
+		print_subtag_matches (lt.script, False)
+		print_subtag_matches (lt.region, False)
+		print_subtag_matches (lt.variant, False)
+		print (')')
+		print ('  {')
+		write ('    /* %s */' % bcp_47.get_name (lt))
 		print ()
-		print ('    *count = 1;')
-	else:
-		print ('    unsigned int i;')
-		print ('    hb_tag_t possible_tags[] = {')
-		for tag in tags:
-			write ('      %s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
+		if len (tags) == 1:
+			write ('    tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
 			print ()
-		print ('    };')
-		print ('    for (i = 0; i < %s && i < *count; i++)' % len (tags))
-		print ('      tags[i] = possible_tags[i];')
-		print ('    *count = i;')
-	print ('    return true;')
-	print ('  }')
+			print ('    *count = 1;')
+		else:
+			print ('    hb_tag_t possible_tags[] = {')
+			for tag in tags:
+				write ('      %s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
+				print ()
+			print ('    };')
+			print ('    for (i = 0; i < %s && i < *count; i++)' % len (tags))
+			print ('      tags[i] = possible_tags[i];')
+			print ('    *count = i;')
+		print ('    return true;')
+		print ('  }')
 
+print ('  switch (lang_str[0])')
+print ('  {')
+for initial, items in sorted (complex_tags.items ()):
+	if initial == 'und':
+		continue
+	print ("  case '%s':" % initial)
+	for lt, tags in items:
+		print ('    if (', end='')
+		if lt.grandfathered:
+			print ('0 == strcmp (&lang_str[1], "%s")' % lt.language[1:], end='')
+		else:
+			string_literal = lt.language[1:] + '-'
+			if lt.script:
+				string_literal += lt.script
+				lt.script = None
+				if lt.region:
+					string_literal += '-' + lt.region
+					lt.region = None
+			if string_literal[-1] == '-':
+				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
+			else:
+				print ('lang_matches (&lang_str[1], "%s")' % string_literal, end='')
+		print_subtag_matches (lt.script, True)
+		print_subtag_matches (lt.region, True)
+		print_subtag_matches (lt.variant, True)
+		print (')')
+		print ('    {')
+		write ('      /* %s */' % bcp_47.get_name (lt))
+		print ()
+		if len (tags) == 1:
+			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
+			print ()
+			print ('      *count = 1;')
+		else:
+			print ('      unsigned int i;')
+			print ('      hb_tag_t possible_tags[] = {')
+			for tag in tags:
+				write ('\t%s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
+				print ()
+			print ('      };')
+			print ('      for (i = 0; i < %s && i < *count; i++)' % len (tags))
+			print ('\ttags[i] = possible_tags[i];')
+			print ('      *count = i;')
+		print ('      return true;')
+		print ('    }')
+	print ('    break;')
+
+print ('  }')
 print ('  return false;')
 print ('}')
 print ()
@@ -1030,7 +1103,7 @@ verify_disambiguation_dict ()
 for ot_tag, bcp_47_tag in sorted (disambiguation.items ()):
 	write ('  case %s:  /* %s */' % (hb_tag (ot_tag), ot.names[ot_tag]))
 	print ()
-	write ('    return hb_language_from_string (\"%s\", -1);  /* %s */' % (bcp_47_tag, bcp_47.get_name (bcp_47_tag)))
+	write ('    return hb_language_from_string (\"%s\", -1);  /* %s */' % (bcp_47_tag, bcp_47.get_name (LanguageTag (bcp_47_tag))))
 	print ()
 
 print ('  default:')
