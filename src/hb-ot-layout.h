@@ -322,8 +322,6 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
 
-#define HB_NO_NAME_ID 0xFFFF
-
 HB_EXTERN hb_bool_t
 hb_ot_layout_get_feature_name_ids (hb_face_t      *face,
 				   hb_tag_t        feature,
@@ -332,14 +330,6 @@ hb_ot_layout_get_feature_name_ids (hb_face_t      *face,
 				   unsigned int   *sample_id            /* OUT.  May be NULL */,
 				   unsigned int   *num_named_parameters /* OUT.  May be NULL */,
 				   unsigned int   *first_param_id       /* OUT.  May be NULL */);
-
-
-HB_EXTERN unsigned int
-hb_ot_layout_get_feature_characters (hb_face_t      *face,
-				     hb_tag_t        feature,
-				     unsigned int    start_offset,
-				     unsigned int   *char_count    /* IN/OUT.  May be NULL */,
-				     hb_codepoint_t *characters    /* OUT.  May be NULL */);
 
 /*
  * BASE
