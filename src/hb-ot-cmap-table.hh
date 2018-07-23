@@ -894,10 +894,10 @@ struct cmap
   {
     inline void init (hb_face_t *face)
     {
-      this->blob = OT::hb_sanitize_context_t().reference_table<OT::cmap> (face);
+      this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
       const OT::cmap *cmap = this->blob->as<OT::cmap> ();
-      const OT::CmapSubtable *subtable = nullptr;
-      const OT::CmapSubtableFormat14 *subtable_uvs = nullptr;
+      const CmapSubtable *subtable = nullptr;
+      const CmapSubtableFormat14 *subtable_uvs = nullptr;
 
       bool symbol = false;
       /* 32-bit subtables. */
@@ -916,35 +916,35 @@ struct cmap
 	if (subtable) symbol = true;
       }
       /* Meh. */
-      if (!subtable) subtable = &Null(OT::CmapSubtable);
+      if (!subtable) subtable = &Null(CmapSubtable);
 
       /* UVS subtable. */
       if (!subtable_uvs)
       {
-	const OT::CmapSubtable *st = cmap->find_subtable (0, 5);
+	const CmapSubtable *st = cmap->find_subtable (0, 5);
 	if (st && st->u.format == 14)
 	  subtable_uvs = &st->u.format14;
       }
       /* Meh. */
-      if (!subtable_uvs) subtable_uvs = &Null(OT::CmapSubtableFormat14);
+      if (!subtable_uvs) subtable_uvs = &Null(CmapSubtableFormat14);
 
       this->uvs_table = subtable_uvs;
 
       this->get_glyph_data = subtable;
       if (unlikely (symbol))
       {
-	this->get_glyph_func = get_glyph_from_symbol<OT::CmapSubtable>;
+	this->get_glyph_func = get_glyph_from_symbol<CmapSubtable>;
 	this->get_all_codepoints_func = null_get_all_codepoints_func;
       } else {
 	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
 	default:
-	  this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;
+	  this->get_glyph_func = get_glyph_from<CmapSubtable>;
 	  this->get_all_codepoints_func = null_get_all_codepoints_func;
 	  break;
 	case 12:
-	  this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;
-	  this->get_all_codepoints_func = get_all_codepoints_from<OT::CmapSubtableFormat12>;
+	  this->get_glyph_func = get_glyph_from<CmapSubtableFormat12>;
+	  this->get_all_codepoints_func = get_all_codepoints_from<CmapSubtableFormat12>;
 	  break;
 	case  4:
 	  {
@@ -977,9 +977,9 @@ struct cmap
 						  variation_selector,
 						  glyph))
       {
-	case OT::GLYPH_VARIANT_NOT_FOUND:		return false;
-	case OT::GLYPH_VARIANT_FOUND:		return true;
-	case OT::GLYPH_VARIANT_USE_DEFAULT:	break;
+	case GLYPH_VARIANT_NOT_FOUND:	return false;
+	case GLYPH_VARIANT_FOUND:	return true;
+	case GLYPH_VARIANT_USE_DEFAULT:	break;
       }
 
       return get_nominal_glyph (unicode, glyph);
@@ -1046,9 +1046,9 @@ struct cmap
     const void *get_glyph_data;
     hb_cmap_get_all_codepoints_func_t get_all_codepoints_func;
 
-    OT::CmapSubtableFormat4::accelerator_t format4_accel;
+    CmapSubtableFormat4::accelerator_t format4_accel;
 
-    const OT::CmapSubtableFormat14 *uvs_table;
+    const CmapSubtableFormat14 *uvs_table;
     hb_blob_t *blob;
   };
 

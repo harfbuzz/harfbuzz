@@ -103,14 +103,14 @@ struct glyf
   static bool
   _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
   {
-    hb_blob_t *head_blob = OT::hb_sanitize_context_t().reference_table<OT::head> (plan->source);
+    hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (plan->source);
     hb_blob_t *head_prime_blob = hb_blob_copy_writable_or_fail (head_blob);
     hb_blob_destroy (head_blob);
 
     if (unlikely (!head_prime_blob))
       return false;
 
-    OT::head *head_prime = (OT::head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
+    head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
     head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
     bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 

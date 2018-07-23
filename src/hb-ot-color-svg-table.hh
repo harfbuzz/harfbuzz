@@ -96,9 +96,9 @@ struct SVG
   {
     inline void init (hb_face_t *face)
     {
-      svg_blob = OT::hb_sanitize_context_t().reference_table<SVG> (face);
+      svg_blob = hb_sanitize_context_t().reference_table<SVG> (face);
       svg_len = hb_blob_get_length (svg_blob);
-      svg = svg_blob->as<OT::SVG> ();
+      svg = svg_blob->as<SVG> ();
     }
 
     inline void fini (void)
