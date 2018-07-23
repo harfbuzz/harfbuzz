@@ -362,20 +362,6 @@ struct hb_sanitize_context_t :
 };
 
 
-
-/* Template to sanitize an object. */
-template <typename Type>
-struct Sanitizer
-{
-  inline Sanitizer (unsigned int num_glyphs = 0) { c->set_num_glyphs (num_glyphs); }
-  inline hb_blob_t *sanitize (hb_blob_t *blob) { return c[0].template/*clang idiosyncrasy*/sanitize_blob<Type> (blob); }
-
-  private:
-  hb_sanitize_context_t c[1];
-};
-
-
-
 /*
  * Serialize
  */
@@ -1285,7 +1271,7 @@ struct hb_table_lazy_loader_t
     hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&blob);
     if (unlikely (!b))
     {
-      b = OT::Sanitizer<T>(face->get_num_glyphs ()).sanitize (face->reference_table (T::tableTag));
+      b = OT::hb_sanitize_context_t().reference_table<T> (face);
       if (!hb_atomic_ptr_cmpexch (&blob, nullptr, b))
       {
 	hb_blob_destroy (b);
