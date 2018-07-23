@@ -348,6 +348,7 @@ struct hb_sanitize_context_t :
   template <typename Type>
   inline hb_blob_t *reference_table (const hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
   {
+    set_num_glyphs (face->get_num_glyphs ());
     return sanitize_blob<Type> (face->reference_table (tableTag));
   }
 

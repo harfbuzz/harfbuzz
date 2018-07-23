@@ -31,8 +31,6 @@
 #include "hb-face-private.hh"
 #include "hb-blob-private.hh"
 #include "hb-open-file-private.hh"
-#include "hb-ot-head-table.hh"
-#include "hb-ot-maxp-table.hh"
 
 
 
@@ -448,15 +446,6 @@ hb_face_get_upem (hb_face_t *face)
   return face->get_upem ();
 }
 
-void
-hb_face_t::load_upem (void) const
-{
-  hb_blob_t *head_blob = OT::hb_sanitize_context_t().reference_table<OT::head> (this);
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  upem = head_table->get_upem ();
-  hb_blob_destroy (head_blob);
-}
-
 /**
  * hb_face_set_glyph_count:
  * @face: a face.
@@ -490,15 +479,6 @@ unsigned int
 hb_face_get_glyph_count (hb_face_t *face)
 {
   return face->get_num_glyphs ();
-}
-
-void
-hb_face_t::load_num_glyphs (void) const
-{
-  hb_blob_t *maxp_blob = OT::hb_sanitize_context_t().reference_table<OT::maxp> (this);
-  const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
-  num_glyphs = maxp_table->get_num_glyphs ();
-  hb_blob_destroy (maxp_blob);
 }
 
 /**

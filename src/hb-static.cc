@@ -25,8 +25,30 @@
  */
 
 #include "hb-private.hh"
+#include "hb-face-private.hh"
+#include "hb-open-type-private.hh"
+#include "hb-ot-head-table.hh"
+#include "hb-ot-maxp-table.hh"
 
 #ifndef HB_NO_VISIBILITY
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
 /*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
 #endif
+
+void
+hb_face_t::load_num_glyphs (void) const
+{
+  hb_blob_t *maxp_blob = OT::hb_sanitize_context_t().reference_table<OT::maxp> (this);
+  const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
+  num_glyphs = maxp_table->get_num_glyphs ();
+  hb_blob_destroy (maxp_blob);
+}
+
+void
+hb_face_t::load_upem (void) const
+{
+  hb_blob_t *head_blob = OT::hb_sanitize_context_t().reference_table<OT::head> (this);
+  const OT::head *head_table = head_blob->as<OT::head> ();
+  upem = head_table->get_upem ();
+  hb_blob_destroy (head_blob);
+}
