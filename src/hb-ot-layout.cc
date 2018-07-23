@@ -971,6 +971,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
   const OT::GSUB& gsub = _get_gsub (face);
 
+  unsigned int iteration_count = 0;
   unsigned int glyphs_length;
   do
   {
@@ -985,7 +986,9 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
       for (unsigned int i = 0; i < gsub.get_lookup_count (); i++)
         gsub.get_lookup (i).closure (&c, i);
     }
-  } while (glyphs_length != glyphs->get_population ());
+    iteration_count++;
+  } while (iteration_count <= HB_CLOSURE_MAX_STAGES
+           && glyphs_length != glyphs->get_population ());
 }
 
 /*

@@ -41,6 +41,13 @@
 #ifndef HB_MAX_CONTEXT_LENGTH
 #define HB_MAX_CONTEXT_LENGTH	64
 #endif
+#ifndef HB_CLOSURE_MAX_STAGES
+/*
+ * The maximum number of times a lookup can be applied during shaping.
+ * Used to limit the number of iterations of the closure algorithm.
+ */
+#define HB_CLOSURE_MAX_STAGES	8
+#endif
 
 
 namespace OT {
