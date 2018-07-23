@@ -279,7 +279,7 @@ struct hb_sanitize_context_t :
   }
 
   template <typename Type>
-  inline hb_blob_t *sanitize (hb_blob_t *blob)
+  inline hb_blob_t *sanitize_blob (hb_blob_t *blob)
   {
     bool sane;
 
@@ -345,6 +345,12 @@ struct hb_sanitize_context_t :
     }
   }
 
+  template <typename Type>
+  inline hb_blob_t *reference_table (hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
+  {
+    return sanitize_blob<Type> (face->reference_table (tableTag));
+  }
+
   mutable unsigned int debug_depth;
   const char *start, *end;
   private:
@@ -362,7 +368,7 @@ template <typename Type>
 struct Sanitizer
 {
   inline Sanitizer (unsigned int num_glyphs = 0) { c->set_num_glyphs (num_glyphs); }
-  inline hb_blob_t *sanitize (hb_blob_t *blob) { return c->sanitize<Type> (blob); }
+  inline hb_blob_t *sanitize (hb_blob_t *blob) { return c[0].template/*clang idiosyncrasy*/sanitize_blob<Type> (blob); }
 
   private:
   hb_sanitize_context_t c[1];
