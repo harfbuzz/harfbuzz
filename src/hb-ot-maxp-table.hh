@@ -100,7 +100,7 @@ struct maxp
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_maxp));
+    hb_blob_t *maxp_blob = OT::hb_sanitize_context_t().reference_table<OT::maxp> (plan->source);
     hb_blob_t *maxp_prime_blob = hb_blob_copy_writable_or_fail (maxp_blob);
     hb_blob_destroy (maxp_blob);
 

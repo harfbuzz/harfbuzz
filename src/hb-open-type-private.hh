@@ -346,7 +346,7 @@ struct hb_sanitize_context_t :
   }
 
   template <typename Type>
-  inline hb_blob_t *reference_table (hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
+  inline hb_blob_t *reference_table (const hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
   {
     return sanitize_blob<Type> (face->reference_table (tableTag));
   }

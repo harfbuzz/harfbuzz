@@ -451,7 +451,7 @@ hb_face_get_upem (hb_face_t *face)
 void
 hb_face_t::load_upem (void) const
 {
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (reference_table (HB_OT_TAG_head));
+  hb_blob_t *head_blob = OT::hb_sanitize_context_t().reference_table<OT::head> (this);
   const OT::head *head_table = head_blob->as<OT::head> ();
   upem = head_table->get_upem ();
   hb_blob_destroy (head_blob);
@@ -495,7 +495,7 @@ hb_face_get_glyph_count (hb_face_t *face)
 void
 hb_face_t::load_num_glyphs (void) const
 {
-  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (reference_table (HB_OT_TAG_maxp));
+  hb_blob_t *maxp_blob = OT::hb_sanitize_context_t().reference_table<OT::maxp> (this);
   const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
   num_glyphs = maxp_table->get_num_glyphs ();
   hb_blob_destroy (maxp_blob);

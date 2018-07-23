@@ -78,9 +78,7 @@ template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan)
 {
-  OT::Sanitizer<TableType> sanitizer;
-
-  hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
+  hb_blob_t *source_blob = OT::hb_sanitize_context_t().reference_table<TableType> (plan->source);
   const TableType *table = source_blob->as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;

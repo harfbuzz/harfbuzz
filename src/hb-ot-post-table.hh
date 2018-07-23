@@ -110,7 +110,7 @@ struct post
     {
       index_to_offset.init ();
 
-      blob = Sanitizer<post>().sanitize (face->reference_table (HB_OT_TAG_post));
+      blob = hb_sanitize_context_t().reference_table<post> (face);
       const post *table = blob->as<post> ();
       unsigned int table_length = blob->length;
 
