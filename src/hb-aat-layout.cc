@@ -61,9 +61,7 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
 // static inline void
 // _hb_aat_layout_create (hb_face_t *face)
 // {
-//   OT::Sanitizer<AAT::morx> sanitizer;
-//   sanitizer.set_num_glyphs (face->get_num_glyphs ());
-//   hb_blob_t *morx_blob = sanitizer.sanitize (face->reference_table (HB_AAT_TAG_morx));
+//   hb_blob_t *morx_blob = OT::hb_sanitize_context_t().reference_table<AAT::morx> (face);
 //   morx_blob->as<AAT::morx> ();
 
 //   if (0)
