@@ -375,16 +375,8 @@ typedef uint64_t hb_vector_size_impl_t;
 
 #define HB_NULL_POOL_SIZE 264
 
-#ifdef HB_NO_VISIBILITY
-static
-#else
 extern HB_INTERNAL
-#endif
-hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)]
-#ifdef HB_NO_VISIBILITY
-= {}
-#endif
-;
+hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
@@ -413,16 +405,8 @@ static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool
  * for correct operation. It only exist to catch and divert program logic bugs instead of
  * causing bad memory access. So, races there are not actually introducing incorrectness
  * in the code. Has ~12kb binary size overhead to have it, also clang build fails with it. */
-#ifdef HB_NO_VISIBILITY
-static
-#else
 extern HB_INTERNAL
-#endif
-/*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)]
-#ifdef HB_NO_VISIBILITY
-= {}
-#endif
-;
+/*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
 
 /* CRAP pool: Common Region for Access Protection. */
 template <typename Type>

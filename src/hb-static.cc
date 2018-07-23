@@ -31,9 +31,9 @@
 #include "hb-ot-maxp-table.hh"
 
 #ifndef HB_NO_VISIBILITY
+
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
 /*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
-#endif
 
 void
 hb_face_t::load_num_glyphs (void) const
@@ -52,3 +52,5 @@ hb_face_t::load_upem (void) const
   upem = head_table->get_upem ();
   hb_blob_destroy (head_blob);
 }
+
+#endif
