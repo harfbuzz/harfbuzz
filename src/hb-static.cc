@@ -38,7 +38,9 @@ hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_
 void
 hb_face_t::load_num_glyphs (void) const
 {
-  hb_blob_t *maxp_blob = OT::hb_sanitize_context_t().reference_table<OT::maxp> (this);
+  OT::hb_sanitize_context_t c = OT::hb_sanitize_context_t();
+  c.set_num_glyphs (0); /* So we don't recurse ad infinitum. */
+  hb_blob_t *maxp_blob = c.reference_table<OT::maxp> (this);
   const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
   num_glyphs = maxp_table->get_num_glyphs ();
   hb_blob_destroy (maxp_blob);

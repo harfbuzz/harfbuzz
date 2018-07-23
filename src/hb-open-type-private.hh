@@ -164,7 +164,8 @@ struct hb_sanitize_context_t :
 	start (nullptr), end (nullptr),
 	writable (false), edit_count (0), max_ops (0),
 	blob (nullptr),
-	num_glyphs (0) {}
+	num_glyphs (65536),
+	num_glyphs_set (false) {}
 
   inline const char *get_name (void) { return "SANITIZE"; }
   template <typename T, typename F>
@@ -182,7 +183,11 @@ struct hb_sanitize_context_t :
     this->writable = false;
   }
 
-  inline void set_num_glyphs (unsigned int num_glyphs_) { num_glyphs = num_glyphs_; }
+  inline void set_num_glyphs (unsigned int num_glyphs_)
+  {
+    num_glyphs = num_glyphs_;
+    num_glyphs_set = true;
+  }
   inline unsigned int get_num_glyphs (void) { return num_glyphs; }
 
   inline void start_processing (void)
@@ -348,7 +353,8 @@ struct hb_sanitize_context_t :
   template <typename Type>
   inline hb_blob_t *reference_table (const hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
   {
-    set_num_glyphs (face->get_num_glyphs ());
+    if (!num_glyphs_set)
+      set_num_glyphs (face->get_num_glyphs ());
     return sanitize_blob<Type> (face->reference_table (tableTag));
   }
 
@@ -360,6 +366,7 @@ struct hb_sanitize_context_t :
   mutable int max_ops;
   hb_blob_t *blob;
   unsigned int num_glyphs;
+  bool  num_glyphs_set;
 };
 
 
