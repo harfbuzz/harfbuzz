@@ -800,37 +800,37 @@ struct cmap
   {
     hb_serialize_context_t c (dest, dest_sz);
 
-    OT::cmap *cmap = c.start_serialize<OT::cmap> ();
-    if (unlikely (!c.extend_min (*cmap)))
+    cmap *table = c.start_serialize<cmap> ();
+    if (unlikely (!c.extend_min (*table)))
     {
       return false;
     }
 
-    cmap->version.set (0);
+    table->version.set (0);
 
-    if (unlikely (!cmap->encodingRecord.serialize (&c, /* numTables */ 3)))
+    if (unlikely (!table->encodingRecord.serialize (&c, /* numTables */ 3)))
       return false;
 
     // TODO(grieger): Convert the below to a for loop
 
     // Format 4, Plat 0 Encoding Record
-    EncodingRecord &format4_plat0_rec = cmap->encodingRecord[0];
+    EncodingRecord &format4_plat0_rec = table->encodingRecord[0];
     format4_plat0_rec.platformID.set (0); // Unicode
     format4_plat0_rec.encodingID.set (3);
 
     // Format 4, Plat 3 Encoding Record
-    EncodingRecord &format4_plat3_rec = cmap->encodingRecord[1];
+    EncodingRecord &format4_plat3_rec = table->encodingRecord[1];
     format4_plat3_rec.platformID.set (3); // Windows
     format4_plat3_rec.encodingID.set (1); // Unicode BMP
 
     // Format 12 Encoding Record
-    EncodingRecord &format12_rec = cmap->encodingRecord[2];
+    EncodingRecord &format12_rec = table->encodingRecord[2];
     format12_rec.platformID.set (3); // Windows
     format12_rec.encodingID.set (10); // Unicode UCS-4
 
     // Write out format 4 sub table
     {
-      CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, cmap);
+      CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, table);
       format4_plat3_rec.subtable.set (format4_plat0_rec.subtable);
       subtable.u.format.set (4);
 
@@ -841,7 +841,7 @@ struct cmap
 
     // Write out format 12 sub table.
     {
-      CmapSubtable &subtable = format12_rec.subtable.serialize (&c, cmap);
+      CmapSubtable &subtable = format12_rec.subtable.serialize (&c, table);
       subtable.u.format.set (12);
 
       CmapSubtableFormat12 &format12 = subtable.u.format12;
@@ -895,24 +895,24 @@ struct cmap
     inline void init (hb_face_t *face)
     {
       this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
-      const OT::cmap *cmap = this->blob->as<OT::cmap> ();
+      const cmap *table = this->blob->as<cmap> ();
       const CmapSubtable *subtable = nullptr;
       const CmapSubtableFormat14 *subtable_uvs = nullptr;
 
       bool symbol = false;
       /* 32-bit subtables. */
-      if (!subtable) subtable = cmap->find_subtable (3, 10);
-      if (!subtable) subtable = cmap->find_subtable (0, 6);
-      if (!subtable) subtable = cmap->find_subtable (0, 4);
+      if (!subtable) subtable = table->find_subtable (3, 10);
+      if (!subtable) subtable = table->find_subtable (0, 6);
+      if (!subtable) subtable = table->find_subtable (0, 4);
       /* 16-bit subtables. */
-      if (!subtable) subtable = cmap->find_subtable (3, 1);
-      if (!subtable) subtable = cmap->find_subtable (0, 3);
-      if (!subtable) subtable = cmap->find_subtable (0, 2);
-      if (!subtable) subtable = cmap->find_subtable (0, 1);
-      if (!subtable) subtable = cmap->find_subtable (0, 0);
+      if (!subtable) subtable = table->find_subtable (3, 1);
+      if (!subtable) subtable = table->find_subtable (0, 3);
+      if (!subtable) subtable = table->find_subtable (0, 2);
+      if (!subtable) subtable = table->find_subtable (0, 1);
+      if (!subtable) subtable = table->find_subtable (0, 0);
       if (!subtable)
       {
-	subtable = cmap->find_subtable (3, 0);
+	subtable = table->find_subtable (3, 0);
 	if (subtable) symbol = true;
       }
       /* Meh. */
@@ -921,7 +921,7 @@ struct cmap
       /* UVS subtable. */
       if (!subtable_uvs)
       {
-	const CmapSubtable *st = cmap->find_subtable (0, 5);
+	const CmapSubtable *st = table->find_subtable (0, 5);
 	if (st && st->u.format == 14)
 	  subtable_uvs = &st->u.format14;
       }
