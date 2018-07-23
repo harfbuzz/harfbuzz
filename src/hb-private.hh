@@ -161,7 +161,11 @@ struct _hb_alignof
 #ifndef HB_INTERNAL
 # if !defined(HB_NO_VISIBILITY) && !defined(__MINGW32__) && !defined(__CYGWIN__) && !defined(_MSC_VER) && !defined(__SUNPRO_CC)
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
-# else
+# elif defined(__MINGW32__)
+   /* We use -export-symbols on mingw32, since it does not support visibility
+    * attribute. */
+#  define HB_INTERNAL
+#else
 #  define HB_INTERNAL
 #  define HB_NO_VISIBILITY 1
 # endif
