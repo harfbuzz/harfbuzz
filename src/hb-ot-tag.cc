@@ -121,7 +121,7 @@ hb_ot_tags_from_script (hb_script_t  script,
 {
   unsigned int count = 2;
   hb_tag_t tags[2];
-  hb_ot_tags (script, HB_LANGUAGE_INVALID, &count, tags, nullptr, nullptr);
+  hb_ot_tags_from_script_and_language (script, HB_LANGUAGE_INVALID, &count, tags, nullptr, nullptr);
   *script_tag_1 = count > 0 ? tags[0] : HB_OT_TAG_DEFAULT_SCRIPT;
   *script_tag_2 = count > 1 ? tags[1] : HB_OT_TAG_DEFAULT_SCRIPT;
 }
@@ -231,7 +231,7 @@ hb_ot_tag_from_language (hb_language_t language)
 {
   unsigned int count = 1;
   hb_tag_t tags[1];
-  hb_ot_tags (HB_SCRIPT_UNKNOWN, language, nullptr, nullptr, &count, tags);
+  hb_ot_tags_from_script_and_language (HB_SCRIPT_UNKNOWN, language, nullptr, nullptr, &count, tags);
   return count > 0 ? tags[0] : HB_OT_TAG_DEFAULT_LANGUAGE;
 }
 
@@ -307,6 +307,8 @@ parse_private_use_subtag (const char     *private_use_subtag,
 	for (; i < 4; i++)
 	  tag[i] = ' ';
 	tags[0] = HB_TAG (tag[0], tag[1], tag[2], tag[3]);
+	if ((tags[0] & 0xDFDFDFDF) == HB_OT_TAG_DEFAULT_SCRIPT)
+	  tags[0] ^= ~0xDFDFDFDF;
 	*count = 1;
 	return false;
       }
@@ -316,7 +318,7 @@ parse_private_use_subtag (const char     *private_use_subtag,
 }
 
 /**
- * hb_ot_tags:
+ * hb_ot_tags_from_script_and_language:
  * @script: an #hb_script_t to convert.
  * @language: an #hb_language_t to convert.
  * @script_count: (allow-none): maximum number of script tags to retrieve (IN)
@@ -332,12 +334,12 @@ parse_private_use_subtag (const char     *private_use_subtag,
  *
  **/
 void
-hb_ot_tags (hb_script_t   script,
-	    hb_language_t language,
-	    unsigned int *script_count /* IN/OUT */,
-	    hb_tag_t     *script_tags /* OUT */,
-	    unsigned int *language_count /* IN/OUT */,
-	    hb_tag_t     *language_tags /* OUT */)
+hb_ot_tags_from_script_and_language (hb_script_t   script,
+				     hb_language_t language,
+				     unsigned int *script_count /* IN/OUT */,
+				     hb_tag_t     *script_tags /* OUT */,
+				     unsigned int *language_count /* IN/OUT */,
+				     hb_tag_t     *language_tags /* OUT */)
 {
   bool needs_script = true;
 
@@ -425,6 +427,61 @@ hb_ot_tag_to_language (hb_tag_t tag)
       buf[9] = '\0';
     buf[10] = '\0';
     return hb_language_from_string ((char *) buf, -1);
+  }
+}
+
+/**
+ * hb_ot_tags_to_script_and_language:
+ * @script_tag: a script tag
+ * @language_tag: a language tag
+ * @script (allow-none): the #hb_script_t corresponding to @script_tag (OUT).
+ * @language (allow-none): the #hb_language_t corresponding to @script_tag and
+ * @language_tag (OUT).
+ *
+ * Converts a script tag and a language tag to an #hb_script_t and an
+ * #hb_language_t.
+ *
+ **/
+void
+hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
+				   hb_tag_t       language_tag,
+				   hb_script_t   *script /* OUT */,
+				   hb_language_t *language /* OUT */)
+{
+  hb_script_t script_out = hb_ot_tag_to_script (script_tag);
+  if (script)
+    *script = script_out;
+  if (language) {
+    unsigned int script_count = 1;
+    hb_tag_t primary_script_tag[1];
+    hb_ot_tags_from_script_and_language (script_out, HB_LANGUAGE_INVALID, &script_count, primary_script_tag, nullptr, nullptr);
+    *language = hb_ot_tag_to_language (language_tag);
+    if (script_count == 0 || primary_script_tag[0] != script_tag) {
+      unsigned char *buf;
+      const char *lang_str = hb_language_to_string (*language);
+      size_t len = strlen (lang_str);
+      buf = (unsigned char *) malloc (len + 11);
+      if (unlikely (!buf)) {
+	*language = nullptr;
+      } else {
+	memcpy (buf, lang_str, len);
+	if (lang_str[0] != 'x' || lang_str[1] != '-') {
+	  buf[len++] = '-';
+	  buf[len++] = 'x';
+	}
+	buf[len++] = '-';
+	buf[len++] = 'h';
+	buf[len++] = 'b';
+	buf[len++] = 's';
+	buf[len++] = 'c';
+	buf[len++] = script_tag >> 24;
+	buf[len++] = (script_tag >> 16) & 0xFF;
+	buf[len++] = (script_tag >> 8) & 0xFF;
+	buf[len++] = script_tag & 0xFF;
+	*language = hb_language_from_string ((char *) buf, len);
+	free (buf);
+      }
+    }
   }
 }
 
