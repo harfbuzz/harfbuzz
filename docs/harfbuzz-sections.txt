@@ -557,7 +557,8 @@ HB_OT_TAG_DEFAULT_LANGUAGE
 HB_OT_TAG_DEFAULT_SCRIPT
 hb_ot_tag_to_language
 hb_ot_tag_to_script
-hb_ot_tags
+hb_ot_tags_from_script_and_language
+hb_ot_tags_to_script_and_language
 </SECTION>
 
 <SECTION>
