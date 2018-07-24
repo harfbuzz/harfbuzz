@@ -69,12 +69,13 @@ struct hb_closure_context_t :
 
   bool is_lookup_done (unsigned int lookup_index)
   {
-    // Have we visited this lookup with the current set of glyphs?
+    /* Have we visited this lookup with the current set of glyphs? */
     return done_lookups->get (lookup_index) == glyphs->get_population ();
   }
 
   hb_face_t *face;
   hb_set_t *glyphs;
+  hb_set_t *out;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
@@ -85,12 +86,25 @@ struct hb_closure_context_t :
 		        unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
+			  out (hb_set_create ()),
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0),
                           done_lookups (done_lookups_) {}
 
+  ~hb_closure_context_t (void)
+  {
+    flush ();
+    hb_set_destroy (out);
+  }
+
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+
+  void flush (void)
+  {
+    hb_set_union (glyphs, out);
+    hb_set_clear (out);
+  }
 
   private:
   hb_map_t *done_lookups;
