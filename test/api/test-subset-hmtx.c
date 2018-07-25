@@ -154,6 +154,7 @@ static void
 test_subset_invalid_hmtx (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
+  hb_face_t *subset;
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
@@ -161,7 +162,7 @@ test_subset_invalid_hmtx (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 
