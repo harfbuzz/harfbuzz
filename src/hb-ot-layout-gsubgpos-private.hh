@@ -75,7 +75,7 @@ struct hb_closure_context_t :
 
   hb_face_t *face;
   hb_set_t *glyphs;
-  hb_set_t *out;
+  hb_auto_t<hb_set_t> out[1];
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
@@ -86,7 +86,6 @@ struct hb_closure_context_t :
 		        unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
-			  out (hb_set_create ()),
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0),
@@ -95,7 +94,6 @@ struct hb_closure_context_t :
   ~hb_closure_context_t (void)
   {
     flush ();
-    hb_set_destroy (out);
   }
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
