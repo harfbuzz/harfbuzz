@@ -574,7 +574,7 @@ if (HB_HAVE_GOBJECT)
 endif ()
 
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
-  add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+  add_definitions("-DHB_DLL_EXPORT")
 endif ()
 
 # On Windows, g-ir-scanner requires a DLL build in order for it to work
@@ -772,6 +772,11 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
   )
   if (HB_BUILD_UTILS)
+    if (WIN32 AND BUILD_SHARED_LIBS)
+      install(TARGETS harfbuzz-subset
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif ()
     install(TARGETS hb-view
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
