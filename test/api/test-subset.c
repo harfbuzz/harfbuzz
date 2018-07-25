@@ -36,11 +36,13 @@ test_subset_32_tables (void)
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset != hb_face_get_empty ());
 
@@ -56,11 +58,13 @@ test_subset_no_inf_loop (void)
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 
@@ -76,11 +80,13 @@ test_subset_crash (void)
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 

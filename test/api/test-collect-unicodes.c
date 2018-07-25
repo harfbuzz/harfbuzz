@@ -32,10 +32,11 @@ test_collect_unicodes_format4 (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.format4.ttf");
   hb_set_t *codepoints = hb_set_create();
+  hb_codepoint_t cp;
 
   hb_face_collect_unicodes (face, codepoints);
 
-  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x61, ==, cp);
   g_assert (hb_set_next (codepoints, &cp));
@@ -53,10 +54,11 @@ test_collect_unicodes_format12 (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.format12.ttf");
   hb_set_t *codepoints = hb_set_create();
+  hb_codepoint_t cp;
 
   hb_face_collect_unicodes (face, codepoints);
 
-  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x61, ==, cp);
   g_assert (hb_set_next (codepoints, &cp));
@@ -74,10 +76,11 @@ test_collect_unicodes (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
   hb_set_t *codepoints = hb_set_create();
+  hb_codepoint_t cp;
 
   hb_face_collect_unicodes (face, codepoints);
 
-  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x61, ==, cp);
   g_assert (hb_set_next (codepoints, &cp));
