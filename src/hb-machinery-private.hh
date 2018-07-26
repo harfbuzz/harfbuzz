@@ -400,7 +400,6 @@ struct hb_serialize_context_t
 		     this->start, this->end,
 		     (int) (this->head - this->start),
 		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
-
   }
 
   template <typename Type>
