@@ -14,6 +14,7 @@ HB_BASE_sources = \
 	hb-face.cc \
 	hb-font-private.hh \
 	hb-font.cc \
+	hb-iter-private.hh \
 	hb-map-private.hh \
 	hb-map.cc \
 	hb-machinery-private.hh \

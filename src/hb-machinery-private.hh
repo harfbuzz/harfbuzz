@@ -30,6 +30,7 @@
 #define HB_MACHINERY_PRIVATE_HH
 
 #include "hb-private.hh"
+#include "hb-iter-private.hh"
 
 
 namespace OT {
