@@ -615,6 +615,14 @@ struct Lookup
   inline OffsetArrayOf<SubTableType>& get_subtables (void)
   { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
 
+  inline unsigned int get_size (void) const
+  {
+    const HBUINT16 &markFilteringSet = StructAfter<const HBUINT16> (subTable);
+    if (lookupFlag & LookupFlag::UseMarkFilteringSet)
+      return (const char *) &StructAfter<const char> (markFilteringSet) - (const char *) this;
+    return (const char *) &markFilteringSet - (const char *) this;
+  }
+
   inline unsigned int get_type (void) const { return lookupType; }
 
   /* lookup_props is a 32-bit integer where the lower 16-bit is LookupFlag and
@@ -657,6 +665,7 @@ struct Lookup
     if (unlikely (!subTable.serialize (c, num_subtables))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
+      if (unlikely (!c->extend (*this))) return_trace (false);
       HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       markFilteringSet.set (lookup_props >> 16);
     }
