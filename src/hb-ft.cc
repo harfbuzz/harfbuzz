@@ -496,8 +496,9 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
     return nullptr;
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
-  if (error) {
-    free ((void*)buffer);
+  if (error)
+  {
+    free (buffer);
     return nullptr;
   }
 
