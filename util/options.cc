@@ -643,33 +643,26 @@ font_options_t::get_font (void) const
   if (font)
     return font;
 
-  hb_blob_t *blob = nullptr;
-
   /* Create the blob */
   if (!font_file)
     fail (true, "No font file set");
 
-  if (0 == strcmp (font_file, "-")) {
-    /* read it */
-    GString *gs = g_string_new (nullptr);
-    char buf[BUFSIZ];
+  const char *font_path = font_file;
+
+  if (0 == strcmp (font_path, "-"))
+  {
 #if defined(_WIN32) || defined(__CYGWIN__)
     setmode (fileno (stdin), O_BINARY);
+    font_path = "STDIN";
+#else
+    font_path = "/dev/stdin";
 #endif
-    while (!feof (stdin)) {
-      size_t ret = fread (buf, 1, sizeof (buf), stdin);
-      if (ferror (stdin))
-	fail (false, "Failed reading font from standard input: %s",
-	      strerror (errno));
-      g_string_append_len (gs, buf, ret);
-    }
-    char *font_data = g_string_free (gs, false);
-    blob = hb_blob_create (font_data, gs->len,
-			   HB_MEMORY_MODE_WRITABLE, font_data,
-			   (hb_destroy_func_t) g_free);
-  } else {
-    blob = hb_blob_create_from_file (font_file);
   }
+
+  blob = hb_blob_create_from_file (font_path);
+
+  if (blob == hb_blob_get_empty ())
+    fail (false, "No such file or directory");
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, face_index);

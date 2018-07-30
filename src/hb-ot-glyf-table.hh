@@ -103,14 +103,14 @@ struct glyf
   static bool
   _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
   {
-    hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_head));
+    hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (plan->source);
     hb_blob_t *head_prime_blob = hb_blob_copy_writable_or_fail (head_blob);
     hb_blob_destroy (head_blob);
 
     if (unlikely (!head_prime_blob))
       return false;
 
-    OT::head *head_prime = (OT::head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
+    head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
     head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
     bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 
@@ -236,7 +236,7 @@ struct glyf
     {
       memset (this, 0, sizeof (accelerator_t));
 
-      hb_blob_t *head_blob = Sanitizer<head>().sanitize (face->reference_table (HB_OT_TAG_head));
+      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (face);
       const head *head_table = head_blob->as<head> ();
       if (head_table == &Null(head) || (unsigned int) head_table->indexToLocFormat > 1 || head_table->glyphDataFormat != 0)
       {
@@ -247,9 +247,9 @@ struct glyf
       short_offset = 0 == head_table->indexToLocFormat;
       hb_blob_destroy (head_blob);
 
-      loca_blob = Sanitizer<loca>().sanitize (face->reference_table (HB_OT_TAG_loca));
+      loca_blob = hb_sanitize_context_t().reference_table<loca> (face);
       loca_table = loca_blob->as<loca> ();
-      glyf_blob = Sanitizer<glyf>().sanitize (face->reference_table (HB_OT_TAG_glyf));
+      glyf_blob = hb_sanitize_context_t().reference_table<glyf> (face);
       glyf_table = glyf_blob->as<glyf> ();
 
       num_glyphs = MAX (1u, hb_blob_get_length (loca_blob) / (short_offset ? 2 : 4)) - 1;

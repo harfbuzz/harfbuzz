@@ -97,6 +97,10 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
   retry: \
   HB_SHAPER_DATA_TYPE (shaper, object) *data = (HB_SHAPER_DATA_TYPE (shaper, object) *) hb_atomic_ptr_get (&HB_SHAPER_DATA (shaper, object)); \
   if (likely (data) && !(condition)) { \
+    /* Note that evaluating condition above can be dangerous if another thread \
+     * got here first and destructed data.  That's, as always, bad use pattern. \
+     * If you modify the font (change font size), other threads must not be \
+     * using it at the same time. */ \
     /* Drop and recreate. */ \
     /* If someone dropped it in the mean time, throw it away and don't touch it. \
      * Otherwise, destruct it. */ \

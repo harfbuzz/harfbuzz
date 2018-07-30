@@ -31,8 +31,6 @@
 #include "hb-face-private.hh"
 #include "hb-blob-private.hh"
 #include "hb-open-file-private.hh"
-#include "hb-ot-head-table.hh"
-#include "hb-ot-maxp-table.hh"
 
 
 
@@ -52,10 +50,13 @@ hb_face_count (hb_blob_t *blob)
   if (unlikely (!blob))
     return 0;
 
-  hb_blob_t *sanitized = OT::Sanitizer<OT::OpenTypeFontFile> ().sanitize (blob);
+  /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
+  hb_blob_t *sanitized = OT::hb_sanitize_context_t().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
   const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
+  unsigned int ret = ot.get_face_count ();
+  hb_blob_destroy (sanitized);
 
-  return ot.get_face_count ();
+  return ret;
 }
 
 /*
@@ -188,7 +189,7 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!blob))
     blob = hb_blob_get_empty ();
 
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::Sanitizer<OT::OpenTypeFontFile>().sanitize (hb_blob_reference (blob)), index);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::hb_sanitize_context_t().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
     return hb_face_get_empty ();
@@ -445,15 +446,6 @@ hb_face_get_upem (hb_face_t *face)
   return face->get_upem ();
 }
 
-void
-hb_face_t::load_upem (void) const
-{
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (reference_table (HB_OT_TAG_head));
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  upem = head_table->get_upem ();
-  hb_blob_destroy (head_blob);
-}
-
 /**
  * hb_face_set_glyph_count:
  * @face: a face.
@@ -487,15 +479,6 @@ unsigned int
 hb_face_get_glyph_count (hb_face_t *face)
 {
   return face->get_num_glyphs ();
-}
-
-void
-hb_face_t::load_num_glyphs (void) const
-{
-  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (reference_table (HB_OT_TAG_maxp));
-  const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
-  num_glyphs = maxp_table->get_num_glyphs ();
-  hb_blob_destroy (maxp_blob);
 }
 
 /**

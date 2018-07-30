@@ -28,7 +28,6 @@
 #define HB_OT_POST_TABLE_HH
 
 #include "hb-open-type-private.hh"
-#include "hb-dsalgs.hh"
 #include "hb-subset-plan.hh"
 
 #define HB_STRING_ARRAY_NAME format1_names
@@ -86,7 +85,7 @@ struct post
   inline bool subset (hb_subset_plan_t *plan) const
   {
     unsigned int post_prime_length;
-    hb_blob_t *post_blob = OT::Sanitizer<post>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_post));
+    hb_blob_t *post_blob = hb_sanitize_context_t().reference_table<post>(plan->source);
     hb_blob_t *post_prime_blob = hb_blob_create_sub_blob (post_blob, 0, post::static_size);
     post *post_prime = (post *) hb_blob_get_data_writable (post_prime_blob, &post_prime_length);
     hb_blob_destroy (post_blob);
@@ -111,7 +110,7 @@ struct post
     {
       index_to_offset.init ();
 
-      blob = Sanitizer<post>().sanitize (face->reference_table (HB_OT_TAG_post));
+      blob = hb_sanitize_context_t().reference_table<post> (face);
       const post *table = blob->as<post> ();
       unsigned int table_length = blob->length;
 

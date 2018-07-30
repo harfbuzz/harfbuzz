@@ -47,6 +47,9 @@ defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 data[0][0x034F] = defaults[0]
 data[0][0x2060] = defaults[0]
 data[0][0x20F0] = defaults[0]
+# TODO https://github.com/roozbehp/unicode-data/issues/9
+data[0][0x11C44] = 'Consonant_Placeholder'
+data[0][0x11C45] = 'Consonant_Placeholder'
 for u in range (0xFE00, 0xFE0F + 1):
 	data[0][u] = defaults[0]
 
@@ -165,7 +168,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -325,6 +328,9 @@ def map_to_use(data):
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/626
 		if U == 0xA8B4: UISC = Consonant_Medial
 
+		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
+		if U == 0x11134: UISC = Gemination_Mark
+
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
 		USE = values[0]
@@ -344,11 +350,21 @@ def map_to_use(data):
 		if 0xA926 <= U <= 0xA92A: UIPC = Top
 		if U == 0x111CA: UIPC = Bottom
 		if U == 0x11300: UIPC = Top
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1037
+		if U == 0x11302: UIPC = Top
+		if U == 0x1133C: UIPC = Bottom
 		if U == 0x1171E: UIPC = Left # Correct?!
 		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
 		# https://github.com/roozbehp/unicode-data/issues/8
 		if U == 0x0A51: UIPC = Bottom
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
+		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+			elif UIPC == Bottom:
+				UIPC = Top
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)

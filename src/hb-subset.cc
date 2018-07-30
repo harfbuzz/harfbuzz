@@ -25,7 +25,6 @@
  */
 
 #include "hb-private.hh"
-#include "hb-object-private.hh"
 #include "hb-open-type-private.hh"
 
 #include "hb-subset-glyf.hh"
@@ -80,9 +79,7 @@ template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan)
 {
-  OT::Sanitizer<TableType> sanitizer;
-
-  hb_blob_t *source_blob = sanitizer.sanitize (plan->source->reference_table (TableType::tableTag));
+  hb_blob_t *source_blob = OT::hb_sanitize_context_t().reference_table<TableType> (plan->source);
   const TableType *table = source_blob->as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;
@@ -155,7 +152,7 @@ _hb_subset_face_data_reference_blob (hb_subset_face_data_t *data)
   unsigned int face_length = table_count * 16 + 12;
 
   for (unsigned int i = 0; i < table_count; i++)
-    face_length += _hb_ceil_to_4 (hb_blob_get_length (data->tables.arrayZ[i].blob));
+    face_length += hb_ceil_to_4 (hb_blob_get_length (data->tables.arrayZ[i].blob));
 
   char *buf = (char *) malloc (face_length);
   if (unlikely (!buf))

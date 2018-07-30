@@ -51,8 +51,7 @@ main (int argc, char **argv)
   const char *font_data = hb_blob_get_data (blob, &len);
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
 
-  Sanitizer<OpenTypeFontFile> sanitizer;
-  hb_blob_t *font_blob = sanitizer.sanitize (blob);
+  hb_blob_t *font_blob = hb_sanitize_context_t().sanitize_blob<OpenTypeFontFile> (blob);
   const OpenTypeFontFile* sanitized = font_blob->as<OpenTypeFontFile> ();
   if (sanitized == &Null(OpenTypeFontFile))
   {
@@ -77,6 +76,9 @@ main (int argc, char **argv)
     break;
   case OpenTypeFontFile::Typ1Tag:
     printf ("Obsolete Apple Type1 font in SFNT container\n");
+    break;
+  case OpenTypeFontFile::DFontTag:
+    printf ("DFont Mac Resource Fork\n");
     break;
   default:
     printf ("Unknown font format\n");

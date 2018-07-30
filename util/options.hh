@@ -455,6 +455,7 @@ struct font_options_t : option_group_t
     font_size_x = font_size_y = default_font_size;
     font_funcs = nullptr;
 
+    blob = nullptr;
     font = nullptr;
 
     add_options (parser);
@@ -471,6 +472,7 @@ struct font_options_t : option_group_t
   hb_font_t *get_font (void) const;
 
   char *font_file;
+  mutable hb_blob_t *blob;
   int face_index;
   hb_variation_t *variations;
   unsigned int num_variations;

@@ -54,18 +54,19 @@ _hb_ot_layout_create (hb_face_t *face)
   if (unlikely (!layout))
     return nullptr;
 
-  layout->gdef_blob = OT::Sanitizer<OT::GDEF>().sanitize (face->reference_table (HB_OT_TAG_GDEF));
+  layout->gdef_blob = OT::hb_sanitize_context_t().reference_table<OT::GDEF> (face);
   layout->gdef = layout->gdef_blob->as<OT::GDEF> ();
 
-  layout->gsub_blob = OT::Sanitizer<OT::GSUB>().sanitize (face->reference_table (HB_OT_TAG_GSUB));
+  layout->gsub_blob = OT::hb_sanitize_context_t().reference_table<OT::GSUB> (face);
   layout->gsub = layout->gsub_blob->as<OT::GSUB> ();
 
-  layout->gpos_blob = OT::Sanitizer<OT::GPOS>().sanitize (face->reference_table (HB_OT_TAG_GPOS));
+  layout->gpos_blob = OT::hb_sanitize_context_t().reference_table<OT::GPOS> (face);
   layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
   layout->math.init (face);
   layout->fvar.init (face);
   layout->avar.init (face);
+  layout->morx.init (face);
 
   {
     /*
@@ -215,6 +216,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   layout->math.fini ();
   layout->fvar.fini ();
   layout->avar.fini ();
+  layout->morx.fini ();
 
   free (layout);
 }
@@ -661,6 +663,7 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 					unsigned int    script_index,
 					unsigned int    language_index,
 					const hb_tag_t *features,
+                                        hb_set_t       *visited_features,
 					hb_set_t       *lookup_indexes /* OUT */)
 {
   if (!features)
@@ -671,11 +674,15 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 						    script_index,
 						    language_index,
 						    &required_feature_index,
-						    nullptr))
-      _hb_ot_layout_collect_lookups_lookups (face,
-					     table_tag,
-					     required_feature_index,
-					     lookup_indexes);
+						    nullptr)
+        && !visited_features->has (required_feature_index))
+    {
+        _hb_ot_layout_collect_lookups_lookups (face,
+                                               table_tag,
+                                               required_feature_index,
+                                               lookup_indexes);
+        visited_features->add (required_feature_index);
+    }
 
     /* All features */
     unsigned int feature_indices[32];
@@ -692,10 +699,14 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 						 feature_indices);
 
       for (unsigned int i = 0; i < len; i++)
+      {
+        if (visited_features->has (feature_indices[i])) continue;
 	_hb_ot_layout_collect_lookups_lookups (face,
 					       table_tag,
 					       feature_indices[i],
 					       lookup_indexes);
+        visited_features->add (feature_indices[i]);
+      }
 
       offset += len;
     } while (len == ARRAY_LENGTH (feature_indices));
@@ -725,6 +736,7 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					 unsigned int    script_index,
 					 const hb_tag_t *languages,
 					 const hb_tag_t *features,
+                                         hb_set_t       *visited_features,
 					 hb_set_t       *lookup_indexes /* OUT */)
 {
   _hb_ot_layout_collect_lookups_features (face,
@@ -732,6 +744,7 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					  script_index,
 					  HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
 					  features,
+                                          visited_features,
 					  lookup_indexes);
 
   if (!languages)
@@ -747,6 +760,7 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					      script_index,
 					      language_index,
 					      features,
+                                              visited_features,
 					      lookup_indexes);
   }
   else
@@ -764,6 +778,7 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 						script_index,
 						language_index,
 						features,
+                                                visited_features,
 						lookup_indexes);
     }
   }
@@ -782,6 +797,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */)
 {
+  hb_auto_t<hb_set_t> visited_features;
   if (!scripts)
   {
     /* All scripts */
@@ -794,6 +810,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 					       script_index,
 					       languages,
 					       features,
+                                               &visited_features,
 					       lookup_indexes);
   }
   else
@@ -810,6 +827,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 						 script_index,
 						 languages,
 						 features,
+                                                 &visited_features,
 						 lookup_indexes);
     }
   }
@@ -969,6 +987,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
   const OT::GSUB& gsub = _get_gsub (face);
 
+  unsigned int iteration_count = 0;
   unsigned int glyphs_length;
   do
   {
@@ -983,7 +1002,9 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
       for (unsigned int i = 0; i < gsub.get_lookup_count (); i++)
         gsub.get_lookup (i).closure (&c, i);
     }
-  } while (glyphs_length != glyphs->get_population ());
+    iteration_count++;
+  } while (iteration_count <= HB_CLOSURE_MAX_STAGES
+           && glyphs_length != glyphs->get_population ());
 }
 
 /*
@@ -1012,6 +1033,24 @@ void
 hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 {
   OT::GPOS::position_finish_offsets (font, buffer);
+}
+
+static const OT::FeatureParams&
+_get_gsubgpos_matched_feature_params (hb_face_t *face, hb_tag_t feature)
+{
+  const OT::GSUB &gsub = _get_gsub (face);
+  unsigned int gsub_num_features = gsub.get_feature_count ();
+  for (unsigned int i = 0; i < gsub_num_features; i++)
+    if (feature == gsub.get_feature_tag (i))
+      return gsub.get_feature (i).get_feature_params ();
+
+  const OT::GPOS &gpos = _get_gpos (face);
+  unsigned int gpos_num_features = gpos.get_feature_count ();
+  for (unsigned int i = 0; i < gpos_num_features; i++)
+    if (feature == gpos.get_feature_tag (i))
+      return gpos.get_feature (i).get_feature_params ();
+
+  return Null (OT::FeatureParams);
 }
 
 /**
@@ -1061,6 +1100,74 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
   PARAM (range_end, rangeEnd);
 #undef PARAM
 
+  return false;
+}
+
+/**
+ * hb_ot_layout_get_feature_name_ids:
+ * @face: #hb_face_t to work upon
+ * @feature: ssXX and cvXX tag
+ * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *            for a user-interface label for this feature. (May be NULL.)
+ * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *              that an application can use for tooltip text for this
+ *              feature. (May be NULL.)
+ * @sample_id: (out) (allow-none): The ‘name’ table name ID that specifies sample text
+ *             that illustrates the effect of this feature. (May be NULL.)
+ * @num_named_parameters: (out) (allow-none):  Number of named parameters. (May be zero.)
+ * @first_param_id: (out) (allow-none): The first ‘name’ table name ID used to specify
+ *                  strings for user-interface labels for the feature
+ *                  parameters. (Must be zero if numParameters is zero.)
+ *
+ * Return value: true if could find any feature with the tag, false otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_ot_layout_get_feature_name_ids (hb_face_t      *face,
+				   hb_tag_t        feature,
+				   unsigned int   *label_id,             /* OUT.  May be nullptr  */
+				   unsigned int   *tooltip_id,           /* OUT.  May be nullptr  */
+				   unsigned int   *sample_id,            /* OUT.  May be nullptr  */
+				   unsigned int   *num_named_parameters, /* OUT.  May be nullptr  */
+				   unsigned int   *first_param_id        /* OUT.  May be nullptr  */)
+{
+  const OT::FeatureParams &feature_params =
+    _get_gsubgpos_matched_feature_params (face, feature);
+  if (&feature_params != &Null (OT::FeatureParams))
+  {
+    const OT::FeatureParamsStylisticSet& ss_params =
+      feature_params.get_stylistic_set_params (feature);
+    if (&ss_params != &Null (OT::FeatureParamsStylisticSet)) /* ssXX */
+    {
+#define PARAM(a, A) if (a) *a = A
+      PARAM(label_id, ss_params.uiNameID);
+      // ssXX features don't have the rest
+      PARAM(tooltip_id, 0);
+      PARAM(sample_id, 0);
+      PARAM(num_named_parameters, 0);
+      PARAM(first_param_id, 0);
+      return true;
+    }
+    const OT::FeatureParamsCharacterVariants& cv_params =
+      feature_params.get_character_variants_params (feature);
+    if (&cv_params != &Null (OT::FeatureParamsCharacterVariants)) /* cvXX */
+    {
+      PARAM(label_id, cv_params.featUILableNameID);
+      PARAM(tooltip_id, cv_params.featUITooltipTextNameID);
+      PARAM(sample_id, cv_params.sampleTextNameID);
+      PARAM(num_named_parameters, cv_params.numNamedParameters);
+      PARAM(first_param_id, cv_params.firstParamUILabelNameID);
+      return true;
+    }
+  }
+
+  PARAM(label_id, 0);
+  PARAM(tooltip_id, 0);
+  PARAM(sample_id, 0);
+  PARAM(num_named_parameters, 0);
+  PARAM(first_param_id, 0);
+#undef PARAM
   return false;
 }
 

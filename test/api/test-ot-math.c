@@ -396,8 +396,8 @@ test_get_min_connector_overlap (void)
   initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
-  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, FALSE), ==, 0); // MathVariants not available
-  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, TRUE), ==, 0); // MathVariants not available
+  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_LTR), ==, 0); // MathVariants not available
+  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_TTB), ==, 0); // MathVariants not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");

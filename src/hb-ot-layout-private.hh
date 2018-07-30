@@ -176,6 +176,7 @@ struct hb_ot_layout_t
   OT::hb_table_lazy_loader_t<struct OT::MATH> math;
   OT::hb_table_lazy_loader_t<struct OT::fvar> fvar;
   OT::hb_table_lazy_loader_t<struct OT::avar> avar;
+  OT::hb_table_lazy_loader_t<struct AAT::morx> morx;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

@@ -28,8 +28,6 @@
 
 #include "hb-private.hh"
 
-#include "hb-mutex-private.hh"
-#include "hb-object-private.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
@@ -545,6 +543,7 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
     /* https://github.com/harfbuzz/harfbuzz/issues/1000 */
     case HB_SCRIPT_OLD_ITALIC:
+    case HB_SCRIPT_RUNIC:
 
       return HB_DIRECTION_INVALID;
   }
@@ -1070,3 +1069,12 @@ hb_variation_to_string (hb_variation_t *variation,
   memcpy (buf, s, len);
   buf[len] = '\0';
 }
+
+/* If there is no visibility control, then hb-static.cc will NOT
+ * define anything.  Instead, we get it to define one set in here
+ * only, so only libharfbuzz.so defines them, not other libs. */
+#ifdef HB_NO_VISIBILITY
+#undef HB_NO_VISIBILITY
+#include "hb-static.cc"
+#define HB_NO_VISIBILITY 1
+#endif

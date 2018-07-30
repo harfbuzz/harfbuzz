@@ -14,8 +14,10 @@ HB_BASE_sources = \
 	hb-face.cc \
 	hb-font-private.hh \
 	hb-font.cc \
+	hb-iter-private.hh \
 	hb-map-private.hh \
 	hb-map.cc \
+	hb-machinery-private.hh \
 	hb-mutex-private.hh \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
@@ -94,8 +96,6 @@ HB_OT_sources = \
 	hb-aat-layout-morx-table.hh \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-layout-private.hh \
-	hb-aat-fmtx-table.hh \
-	hb-aat-gcid-table.hh \
 	hb-aat-ltag-table.hh \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
