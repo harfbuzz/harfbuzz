@@ -289,7 +289,6 @@ struct cff2
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  version.sanitize (c) &&
                   likely (version.major == 2));
   }
 
@@ -297,17 +296,23 @@ struct cff2
   {
     inline void init (hb_face_t *face)
     {
-      this->blob = OT::Sanitizer<OT::cff2>().sanitize (face->reference_table (HB_OT_TAG_cff2));
+      hb_sanitize_context_t c;
+      this->blob = c.reference_table<cff2> (face);
       const OT::cff2 *cff2 = this->blob->as<OT::cff2> ();
 
       if (cff2 == &Null(OT::cff2))
       {
-        hb_blob_destroy (blob);
+        fini ();
         return;
       }
 
       { /* parse top dict */
         ByteStr topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
+        if (unlikely (!topDictStr.sanitize (&c)))
+        {
+          fini ();
+          return;
+        }
         CFF2TopDict_Interpreter top_interp;
         top_interp.init ();
         top_interp.interpret (topDictStr, top);
@@ -319,20 +324,27 @@ struct cff2
       fdArray = &OT::StructAtOffset<FDArray>(cff2, top.FDArrayOffset);
       fdSelect = &OT::StructAtOffset<FDSelect>(cff2, top.FDSelectOffset);
       
-      // XXX: sanitize above?
-      if ((charStrings == &Null(CharStrings)) ||
-          (fdArray == &Null(FDArray)))
+      if (((varStore != &Null(VariationStore)) && unlikely (!varStore->sanitize (&c))) ||
+          ((charStrings == &Null(CharStrings)) || unlikely (!charStrings->sanitize (&c))) ||
+          ((fdArray == &Null(FDArray)) || unlikely (!fdArray->sanitize (&c))) ||
+          ((fdSelect == &Null(FDSelect)) || unlikely (!fdSelect->sanitize (&c))))
       {
-        hb_blob_destroy (blob);
+        fini ();
         return;
       }
 
       num_glyphs = charStrings->count;
+      if (num_glyphs != c.get_num_glyphs ())
+      {
+        fini ();
+        return;
+      }
     }
 
     inline void fini (void)
     {
       hb_blob_destroy (blob);
+      blob = nullptr;
     }
 
     inline bool get_extents (hb_codepoint_t glyph,

@@ -23,8 +23,8 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_OT_CFF_COMMON_HH
-#define HB_OT_CFF_COMMON_HH
+#ifndef HB_OT_CFF_COMMON_PRIVATE_HH
+#define HB_OT_CFF_COMMON_PRIVATE_HH
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
@@ -140,9 +140,9 @@ struct Index
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
-                  c->check_array (offsets, offSize, count + 1) &&
-                  c->check_array (data_base (), 1, offset_at (count)));
+    return_trace (likely (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
+                          c->check_array (offsets, offSize, count + 1) &&
+                          c->check_array (data_base (), 1, max_offset () - 1)));
   }
 
   inline unsigned int offset_array_size (void) const
@@ -182,6 +182,19 @@ struct Index
   inline unsigned int get_size (void) const
   { return count.static_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1); }
 
+  protected:
+  inline unsigned int max_offset (void) const
+  {
+    unsigned int max = 0;
+    for (unsigned int i = 0; i <= count; i++)
+    {
+      unsigned int off = offset_at (i);
+      if (off > max) max = off;
+    }
+    return max;
+  }
+
+  public:
   HBUINT32  count;        /* Number of object data. Note there are (count+1) offsets */
   HBUINT8   offSize;      /* The byte size of each offset in the offsets array. */
   HBUINT8   offsets[VAR]; /* The array of (count + 1) offsets into objects array (1-base). */
@@ -193,14 +206,6 @@ struct Index
 template <typename Type>
 struct IndexOf : Index
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
-                  c->check_array (offsets, offSize, count + 1) &&
-                  c->check_array (data_base (), sizeof (Type), offset_at (count)));
-  }
-
   inline const Type& operator [] (unsigned int index) const
   {
     if (likely (index < count))
@@ -235,27 +240,59 @@ typedef IndexOf<Dict> FDArray;
 
 /* FDSelect */
 struct FDSelect0 {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+  }
+
   HBUINT8     fds[VAR];
+
+  DEFINE_SIZE_MIN (1);
 };
 
 struct FDSelect3_Range {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) && (first < c->get_num_glyphs ())));
+  }
+
   HBUINT16    first;
   HBUINT8     fd;
+
+  DEFINE_SIZE_STATIC (3);
 };
 
 struct FDSelect3 {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) && (nRanges > 0) &&
+                         (ranges[nRanges - 1].sanitize (c))));
+  }
+
   HBUINT16         nRanges;
   FDSelect3_Range  ranges[VAR];
   /* HBUINT16 sentinel */
+
+  DEFINE_SIZE_MIN (5);
 };
 
 struct FDSelect {
-  // XXX: need to sanitize at run time
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) && (format == 0 || format == 3) &&
+                          (format == 0)? u.format0.sanitize (c): u.format3.sanitize (c)));
+  }
+
   HBUINT8       format;
   union {
     FDSelect0   format0;
     FDSelect3   format3;
   } u;
+
+  DEFINE_SIZE_MIN (2);
 };
 
 inline float parse_bcd (const ByteStr& str, unsigned int& offset, float& v)
@@ -471,5 +508,5 @@ struct Interpreter {
 
 } /* namespace CFF */
 
-#endif /* HB_OT_CFF_COMMON_HH */
+#endif /* HB_OT_CFF_COMMON_PRIVATE_HH */
 
