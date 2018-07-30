@@ -243,6 +243,7 @@ struct FDSelect0 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) && fds[c->get_num_glyphs () - 1].sanitize (c)));
   }
 
   HBUINT8     fds[VAR];
