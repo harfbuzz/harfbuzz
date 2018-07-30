@@ -467,12 +467,6 @@ struct hb_serialize_context_t
     return reinterpret_cast<Type *> (&obj);
   }
 
-  inline void truncate (void *new_head)
-  {
-    assert (this->start < new_head && new_head <= this->head);
-    this->head = (char *) new_head;
-  }
-
   unsigned int debug_depth;
   char *start, *end, *head;
   bool ran_out_of_room;
