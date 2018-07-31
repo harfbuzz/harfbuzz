@@ -190,6 +190,11 @@ struct IndexArray : ArrayOf<Index>
     }
     return this->len;
   }
+
+  inline void add_indexes_to (hb_set_t* output /* OUT */) const
+  {
+    output->add_array (arrayZ, len);
+  }
 };
 
 
@@ -208,6 +213,8 @@ struct LangSys
 					   unsigned int *feature_count /* IN/OUT */,
 					   unsigned int *feature_indexes /* OUT */) const
   { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
+  inline void add_feature_indexes_to (hb_set_t *feature_indexes) const
+  { featureIndex.add_indexes_to (feature_indexes); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xFFFFu; }
   inline unsigned int get_required_feature_index (void) const

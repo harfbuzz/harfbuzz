@@ -520,6 +520,19 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
   return l.has_required_feature ();
 }
 
+static void
+_hb_ot_layout_language_add_feature_indexes_to (hb_face_t    *face,
+                                               hb_tag_t      table_tag,
+                                               unsigned int  script_index,
+                                               unsigned int  language_index,
+                                               hb_set_t     *feature_indexes /* OUT */)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+  const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
+  l.add_feature_indexes_to (feature_indexes);
+}
+
+
 unsigned int
 hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 					   hb_tag_t      table_tag,
@@ -677,24 +690,11 @@ _hb_ot_layout_collect_features_features (hb_face_t      *face,
       feature_indexes->add (required_feature_index);
 
     /* All features */
-    unsigned int feature_indices[32];
-    unsigned int offset, len;
-
-    offset = 0;
-    do {
-      len = ARRAY_LENGTH (feature_indices);
-      hb_ot_layout_language_get_feature_indexes (face,
-						 table_tag,
-						 script_index,
-						 language_index,
-						 offset, &len,
-						 feature_indices);
-
-      for (unsigned int i = 0; i < len; i++)
-        feature_indexes->add (feature_indices[i]);
-
-      offset += len;
-    } while (len == ARRAY_LENGTH (feature_indices));
+    _hb_ot_layout_language_add_feature_indexes_to (face,
+                                                   table_tag,
+                                                   script_index,
+                                                   language_index,
+                                                   feature_indexes);
   }
   else
   {
@@ -763,9 +763,9 @@ _hb_ot_layout_collect_features_languages (hb_face_t      *face,
 }
 
 /**
- * hb_ot_layout_collect_lookups:
+ * hb_ot_layout_collect_features:
  *
- * Since: 0.9.8
+ * Since: REPLACEME
  **/
 void
 hb_ot_layout_collect_features (hb_face_t      *face,
