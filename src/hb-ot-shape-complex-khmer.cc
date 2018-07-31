@@ -105,22 +105,34 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
 
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
+  map->add_gsub_pause (reorder);
 
   map->add_global_bool_feature (HB_TAG('l','o','c','l'));
-  /* The Indic specs do not require ccmp, but we apply it here since if
-   * there is a use of it, it's typically at the beginning. */
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
-
+  map->add_gsub_pause (nullptr);
 
   unsigned int i = 0;
-  map->add_gsub_pause (reorder);
   for (; i < KHMER_BASIC_FEATURES; i++) {
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
     map->add_gsub_pause (nullptr);
   }
+
+  /* Testing suggests that Uniscribe applies 'ccmp' here, NOT before
+   * the basic features.  Test with KhmerUI.ttf and the following
+   * three sequences:
+   *
+   *   U+1789,U+17BC
+   *   U+1789,U+17D2,U+1789
+   *   U+1789,U+17D2,U+1789,U+17BC
+   *
+   * https://github.com/harfbuzz/harfbuzz/issues/974
+   */
+  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->add_gsub_pause (nullptr);
+
   for (; i < KHMER_NUM_FEATURES; i++) {
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
   }
+
 
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_global_bool_feature (HB_TAG('c','l','i','g'));
