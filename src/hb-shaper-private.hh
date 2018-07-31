@@ -49,15 +49,6 @@ HB_INTERNAL const hb_shaper_pair_t *
 _hb_shapers_get (void);
 
 
-/* For embedding in face / font / ... */
-struct hb_shaper_data_t {
-#define HB_SHAPER_IMPLEMENT(shaper) void *shaper;
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-};
-
-#define HB_SHAPERS_COUNT (sizeof (hb_shaper_data_t) / sizeof (void *))
-
 /* Means: succeeded, but don't need to keep any data. */
 #define HB_SHAPER_DATA_SUCCEEDED ((void *) +1)
 /* Means: tried but failed to create. */
@@ -121,6 +112,15 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
   } \
   return data != nullptr && (void *) data != HB_SHAPER_DATA_INVALID; \
 }
+
+
+/* For embedding in face / font / ... */
+struct hb_shaper_data_t {
+#define HB_SHAPER_IMPLEMENT(shaper) void *shaper;
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+};
+#define HB_SHAPERS_COUNT (sizeof (hb_shaper_data_t) / sizeof (void *))
 
 
 #endif /* HB_SHAPER_PRIVATE_HH */
