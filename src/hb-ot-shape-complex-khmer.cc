@@ -107,7 +107,7 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (setup_syllables);
   map->add_gsub_pause (reorder);
 
-  /* Testing suggests that Uniscribe does NOT before between basic
+  /* Testing suggests that Uniscribe does NOT pause between basic
    * features.  Test with KhmerUI.ttf and the following three
    * sequences:
    *
