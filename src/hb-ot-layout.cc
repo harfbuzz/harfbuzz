@@ -658,13 +658,12 @@ _hb_ot_layout_collect_lookups_lookups (hb_face_t      *face,
 }
 
 static void
-_hb_ot_layout_collect_lookups_features (hb_face_t      *face,
-					hb_tag_t        table_tag,
-					unsigned int    script_index,
-					unsigned int    language_index,
-					const hb_tag_t *features,
-                                        hb_set_t       *visited_features,
-					hb_set_t       *lookup_indexes /* OUT */)
+_hb_ot_layout_collect_features_features (hb_face_t      *face,
+                                         hb_tag_t        table_tag,
+                                         unsigned int    script_index,
+                                         unsigned int    language_index,
+                                         const hb_tag_t *features,
+                                         hb_set_t       *feature_indexes /* OUT */)
 {
   if (!features)
   {
@@ -674,15 +673,8 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 						    script_index,
 						    language_index,
 						    &required_feature_index,
-						    nullptr)
-        && !visited_features->has (required_feature_index))
-    {
-        _hb_ot_layout_collect_lookups_lookups (face,
-                                               table_tag,
-                                               required_feature_index,
-                                               lookup_indexes);
-        visited_features->add (required_feature_index);
-    }
+						    nullptr))
+      feature_indexes->add (required_feature_index);
 
     /* All features */
     unsigned int feature_indices[32];
@@ -699,14 +691,7 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 						 feature_indices);
 
       for (unsigned int i = 0; i < len; i++)
-      {
-        if (visited_features->has (feature_indices[i])) continue;
-	_hb_ot_layout_collect_lookups_lookups (face,
-					       table_tag,
-					       feature_indices[i],
-					       lookup_indexes);
-        visited_features->add (feature_indices[i]);
-      }
+        feature_indexes->add (feature_indices[i]);
 
       offset += len;
     } while (len == ARRAY_LENGTH (feature_indices));
@@ -722,30 +707,25 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 					      language_index,
 					      *features,
 					      &feature_index))
-        _hb_ot_layout_collect_lookups_lookups (face,
-					       table_tag,
-					       feature_index,
-					       lookup_indexes);
+        feature_indexes->add (feature_index);
     }
   }
 }
 
 static void
-_hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
-					 hb_tag_t        table_tag,
-					 unsigned int    script_index,
-					 const hb_tag_t *languages,
-					 const hb_tag_t *features,
-                                         hb_set_t       *visited_features,
-					 hb_set_t       *lookup_indexes /* OUT */)
+_hb_ot_layout_collect_features_languages (hb_face_t      *face,
+                                          hb_tag_t        table_tag,
+                                          unsigned int    script_index,
+                                          const hb_tag_t *languages,
+                                          const hb_tag_t *features,
+                                          hb_set_t       *feature_indexes /* OUT */)
 {
-  _hb_ot_layout_collect_lookups_features (face,
-					  table_tag,
-					  script_index,
-					  HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
-					  features,
-                                          visited_features,
-					  lookup_indexes);
+  _hb_ot_layout_collect_features_features (face,
+                                           table_tag,
+                                           script_index,
+                                           HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+                                           features,
+                                           feature_indexes);
 
   if (!languages)
   {
@@ -755,13 +735,12 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 								script_index,
 								0, nullptr, nullptr);
     for (unsigned int language_index = 0; language_index < count; language_index++)
-      _hb_ot_layout_collect_lookups_features (face,
-					      table_tag,
-					      script_index,
-					      language_index,
-					      features,
-                                              visited_features,
-					      lookup_indexes);
+      _hb_ot_layout_collect_features_features (face,
+                                               table_tag,
+                                               script_index,
+                                               language_index,
+                                               features,
+                                               feature_indexes);
   }
   else
   {
@@ -773,13 +752,58 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					     script_index,
 					     *languages,
 					     &language_index))
-        _hb_ot_layout_collect_lookups_features (face,
-						table_tag,
-						script_index,
-						language_index,
-						features,
-                                                visited_features,
-						lookup_indexes);
+        _hb_ot_layout_collect_features_features (face,
+                                                 table_tag,
+                                                 script_index,
+                                                 language_index,
+                                                 features,
+                                                 feature_indexes);
+    }
+  }
+}
+
+/**
+ * hb_ot_layout_collect_lookups:
+ *
+ * Since: 0.9.8
+ **/
+void
+hb_ot_layout_collect_features (hb_face_t      *face,
+                               hb_tag_t        table_tag,
+                               const hb_tag_t *scripts,
+                               const hb_tag_t *languages,
+                               const hb_tag_t *features,
+                               hb_set_t       *feature_indexes /* OUT */)
+{
+  if (!scripts)
+  {
+    /* All scripts */
+    unsigned int count = hb_ot_layout_table_get_script_tags (face,
+							     table_tag,
+							     0, nullptr, nullptr);
+    for (unsigned int script_index = 0; script_index < count; script_index++)
+      _hb_ot_layout_collect_features_languages (face,
+                                                table_tag,
+                                                script_index,
+                                                languages,
+                                                features,
+                                                feature_indexes);
+  }
+  else
+  {
+    for (; *scripts; scripts++)
+    {
+      unsigned int script_index;
+      if (hb_ot_layout_table_find_script (face,
+					  table_tag,
+					  *scripts,
+					  &script_index))
+        _hb_ot_layout_collect_features_languages (face,
+                                                  table_tag,
+                                                  script_index,
+                                                  languages,
+                                                  features,
+                                                  feature_indexes);
     }
   }
 }
@@ -797,40 +821,10 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */)
 {
-  hb_auto_t<hb_set_t> visited_features;
-  if (!scripts)
-  {
-    /* All scripts */
-    unsigned int count = hb_ot_layout_table_get_script_tags (face,
-							     table_tag,
-							     0, nullptr, nullptr);
-    for (unsigned int script_index = 0; script_index < count; script_index++)
-      _hb_ot_layout_collect_lookups_languages (face,
-					       table_tag,
-					       script_index,
-					       languages,
-					       features,
-                                               &visited_features,
-					       lookup_indexes);
-  }
-  else
-  {
-    for (; *scripts; scripts++)
-    {
-      unsigned int script_index;
-      if (hb_ot_layout_table_find_script (face,
-					  table_tag,
-					  *scripts,
-					  &script_index))
-        _hb_ot_layout_collect_lookups_languages (face,
-						 table_tag,
-						 script_index,
-						 languages,
-						 features,
-                                                 &visited_features,
-						 lookup_indexes);
-    }
-  }
+  hb_auto_t<hb_set_t> feature_indexes;
+  hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
+  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID; hb_set_next (&feature_indexes, &feature_index);)
+    _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
 }
 
 /**
