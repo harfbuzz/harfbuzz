@@ -60,10 +60,8 @@ struct hb_shaper_data_t {
 
 /* Means: succeeded, but don't need to keep any data. */
 #define HB_SHAPER_DATA_SUCCEEDED ((void *) +1)
-
 /* Means: tried but failed to create. */
 #define HB_SHAPER_DATA_INVALID ((void *) -1)
-#define HB_SHAPER_DATA_IS_INVALID(data) ((void *) (data) == HB_SHAPER_DATA_INVALID)
 
 #define HB_SHAPER_DATA_TYPE_NAME(shaper, object)	hb_##shaper##_shaper_##object##_data_t
 #define HB_SHAPER_DATA_TYPE(shaper, object)		struct HB_SHAPER_DATA_TYPE_NAME(shaper, object)
@@ -121,7 +119,7 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
       goto retry; \
     } \
   } \
-  return data != nullptr && !HB_SHAPER_DATA_IS_INVALID (data); \
+  return data != nullptr && (void *) data != HB_SHAPER_DATA_INVALID; \
 }
 
 
