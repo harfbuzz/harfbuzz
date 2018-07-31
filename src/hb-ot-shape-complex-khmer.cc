@@ -125,7 +125,7 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
   }
 
-  map->add_gsub_pause (nullptr);
+  map->add_gsub_pause (clear_syllables);
 
   for (; i < KHMER_NUM_FEATURES; i++) {
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
@@ -134,7 +134,6 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_global_bool_feature (HB_TAG('c','l','i','g'));
 
-  map->add_gsub_pause (clear_syllables);
 }
 
 static void
