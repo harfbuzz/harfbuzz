@@ -670,7 +670,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
    * is *not* a Halant after last consonant already.  We know that is the
    * case for Kannada, while it reorders unconditionally in other scripts,
    * eg. Malayalam, Bengali, and Devanagari.  We don't currently know about
-   * other scripts, so we whitelist Malayalam, Bengali, and Devanagari.
+   * other scripts, so we blacklist Kannada.
    *
    * Kannada test case:
    * U+0C9A,U+0CCD,U+0C9A,U+0CCD
@@ -693,9 +693,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
    */
   if (indic_plan->is_old_spec)
   {
-    bool disallow_double_halants = buffer->props.script != HB_SCRIPT_MALAYALAM &&
-				   buffer->props.script != HB_SCRIPT_BENGALI &&
-				   buffer->props.script != HB_SCRIPT_DEVANAGARI;
+    bool disallow_double_halants = buffer->props.script == HB_SCRIPT_KANNADA;
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H)
       {
