@@ -45,8 +45,10 @@
 /*
  * The maximum number of times a lookup can be applied during shaping.
  * Used to limit the number of iterations of the closure algorithm.
+ * This must be larger than the number of times add_pause() is
+ * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES	8
+#define HB_CLOSURE_MAX_STAGES	32
 #endif
 
 
