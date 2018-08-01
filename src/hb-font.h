@@ -132,6 +132,16 @@ typedef hb_position_t (*hb_font_get_glyph_advance_func_t) (hb_font_t *font, void
 typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_h_advance_func_t;
 typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_v_advance_func_t;
 
+typedef void (*hb_font_get_glyph_h_advances_func_t)(
+    hb_font_t* font,
+    void* font_data,
+    unsigned count,
+    hb_codepoint_t* glyphs,
+    unsigned glyph_struct_size,
+    hb_position_t* advances,
+    unsigned advance_struct_size,
+    void* user_data);
+
 typedef hb_bool_t (*hb_font_get_glyph_origin_func_t) (hb_font_t *font, void *font_data,
 						      hb_codepoint_t glyph,
 						      hb_position_t *x, hb_position_t *y,
@@ -246,6 +256,11 @@ hb_font_funcs_set_variation_glyph_func (hb_font_funcs_t *ffuncs,
 HB_EXTERN void
 hb_font_funcs_set_glyph_h_advance_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_h_advance_func_t func,
+					void *user_data, hb_destroy_func_t destroy);
+
+HB_EXTERN void
+hb_font_funcs_set_glyph_h_advances_func (hb_font_funcs_t *ffuncs,
+					hb_font_get_glyph_h_advances_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
 /**

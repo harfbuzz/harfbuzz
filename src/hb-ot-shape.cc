@@ -680,8 +680,8 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 
   if (HB_DIRECTION_IS_HORIZONTAL (direction))
   {
-    for (unsigned int i = 0; i < count; i++)
-      pos[i].x_advance = c->font->get_glyph_h_advance (info[i].codepoint);
+    c->font->get_glyph_h_advances (count, &info[0].codepoint, sizeof(info[0]),
+                                   &pos[0].x_advance, sizeof(pos[0]));
     /* The nil glyph_h_origin() func returns 0, so no need to apply it. */
     if (c->font->has_glyph_h_origin_func ())
       for (unsigned int i = 0; i < count; i++)

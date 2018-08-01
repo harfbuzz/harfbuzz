@@ -143,6 +143,43 @@ hb_font_get_glyph_h_advance_parent (hb_font_t *font,
   return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph));
 }
 
+template <class T>
+T* advance_by_byte_size(T* p, unsigned byte_size) {
+  return reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(p) + byte_size);
+}
+
+static void
+hb_font_get_glyph_h_advances_nil(hb_font_t *font,
+				 void *font_data HB_UNUSED,
+				 unsigned count,
+                                 hb_codepoint_t* glyphs,
+                                 unsigned glyph_struct_size,
+                                 hb_position_t* advances,
+                                 unsigned advance_struct_size,
+                                 void *user_data HB_UNUSED) {
+  for (; count--;
+       glyphs = advance_by_byte_size(glyphs, glyph_struct_size),
+       advances = advance_by_byte_size(advances, advance_struct_size)) {
+    *advances = hb_font_get_glyph_h_advance_nil(font, font_data, *glyphs, user_data);
+  }
+}
+
+static void
+hb_font_get_glyph_h_advances_parent(hb_font_t* font,
+                                    void* font_data HB_UNUSED,
+                                    unsigned count,
+                                    hb_codepoint_t* glyphs,
+                                    unsigned glyph_struct_size,
+                                    hb_position_t* advances,
+                                    unsigned advance_struct_size,
+                                    void* user_data HB_UNUSED) {
+  for (; count--;
+       glyphs = advance_by_byte_size(glyphs, glyph_struct_size),
+       advances = advance_by_byte_size(advances, advance_struct_size)) {
+    *advances = hb_font_get_glyph_h_advance_parent(font, font_data, *glyphs, user_data);
+  }
+}
+
 static hb_position_t
 hb_font_get_glyph_v_advance_nil (hb_font_t *font,
 				 void *font_data HB_UNUSED,

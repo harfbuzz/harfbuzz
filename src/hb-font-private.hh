@@ -54,6 +54,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_h_advances) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -225,6 +226,18 @@ struct hb_font_t
     return klass->get.f.glyph_h_advance (this, user_data,
 					 glyph,
 					 klass->user_data.glyph_h_advance);
+  }
+
+  inline void get_glyph_h_advances(unsigned count,
+                                   hb_codepoint_t* glyphs,
+                                   unsigned glyph_struct_size,
+                                   hb_position_t* advances,
+                                   unsigned advance_struct_size) {
+    return klass->get.f.glyph_h_advances (this, user_data,
+                                          count,
+                                          glyphs, glyph_struct_size,
+                                          advances, advance_struct_size,
+					  klass->user_data.glyph_h_advances);
   }
 
   inline hb_position_t get_glyph_v_advance (hb_codepoint_t glyph)
