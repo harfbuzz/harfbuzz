@@ -163,20 +163,20 @@ static inline void _hb_memory_barrier (void)	{ OSMemoryBarrier (); }
 static inline int _hb_fetch_and_add(volatile int* AI, unsigned int V) {
   __lwsync();
   int result = __fetch_and_add(AI, V);
-  __isync();
+  __lwsync();
   return result;
 }
 static inline int _hb_compare_and_swaplp(volatile long* P, long O, long N) {
-  __sync();
+  __lwsync();
   int result = __compare_and_swaplp (P, &O, N);
-  __sync();
+  __lwsync();
   return result;
 }
 
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
 
-static inline void _hb_memory_barrier (void)	{ __sync(); }
+static inline void _hb_memory_barrier (void)	{ __lwsync(); }
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swaplp ((long*)(P), (long)(O), (long)(N))
 
