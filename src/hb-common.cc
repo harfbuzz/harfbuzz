@@ -37,7 +37,7 @@
 
 /* hb_options_t */
 
-hb_options_union_t _hb_options;
+hb_atomic_int_t _hb_options;
 
 void
 _hb_options_init (void)
@@ -50,7 +50,7 @@ _hb_options_init (void)
   u.opts.uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
 
   /* This is idempotent and threadsafe. */
-  _hb_options = u;
+  _hb_options.set_relaxed (u.i);
 }
 
 

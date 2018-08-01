@@ -251,10 +251,10 @@ struct indic_shape_plan_t
 {
   ASSERT_POD ();
 
-  inline bool get_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
+  inline bool load_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
   {
-    hb_codepoint_t glyph = virama_glyph;
-    if (unlikely (virama_glyph == (hb_codepoint_t) -1))
+    hb_codepoint_t glyph = virama_glyph.get_relaxed ();
+    if (unlikely (glyph == (hb_codepoint_t) -1))
     {
       if (!config->virama || !font->get_nominal_glyph (config->virama, &glyph))
 	glyph = 0;
@@ -262,8 +262,8 @@ struct indic_shape_plan_t
        * Maybe one day... */
 
       /* Our get_nominal_glyph() function needs a font, so we can't get the virama glyph
-       * during shape planning...  Instead, overwrite it here.  It's safe.  Don't worry! */
-      virama_glyph = glyph;
+       * during shape planning...  Instead, overwrite it here. */
+      virama_glyph.set_relaxed ((int) glyph);
     }
 
     *pglyph = glyph;
@@ -273,7 +273,7 @@ struct indic_shape_plan_t
   const indic_config_t *config;
 
   bool is_old_spec;
-  mutable hb_codepoint_t virama_glyph;
+  mutable hb_atomic_int_t virama_glyph;
 
   would_substitute_feature_t rphf;
   would_substitute_feature_t pref;
@@ -298,7 +298,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
     }
 
   indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FFu) != '2');
-  indic_plan->virama_glyph = (hb_codepoint_t) -1;
+  indic_plan->virama_glyph.set_relaxed (-1);
 
   /* Use zero-context would_substitute() matching for new-spec of the main
    * Indic scripts, and scripts with one spec only, but not for old-specs.
@@ -419,7 +419,7 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
     return;
 
   hb_codepoint_t virama;
-  if (indic_plan->get_virama_glyph (font, &virama))
+  if (indic_plan->load_virama_glyph (font, &virama))
   {
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
@@ -1040,9 +1040,11 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    * phase, and that might have messed up our properties.  Recover
    * from a particular case of that where we're fairly sure that a
    * class of OT_H is desired but has been lost. */
-  if (indic_plan->virama_glyph)
+  /* We don't call load_virama_glyph(), since we know it's already
+   * loaded. */
+  hb_codepoint_t virama_glyph = indic_plan->virama_glyph.get_relaxed ();
+  if (virama_glyph)
   {
-    unsigned int virama_glyph = indic_plan->virama_glyph;
     for (unsigned int i = start; i < end; i++)
       if (info[i].codepoint == virama_glyph &&
 	  _hb_glyph_info_ligated (&info[i]) &&
