@@ -28,6 +28,7 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
+#include "hb-subset-plan.hh"
 
 namespace CFF {
 
@@ -132,7 +133,83 @@ enum OpCode {
     OpCode_reserved255 = 255
 };
 
-inline OpCode Make_OpCode_ESC(unsigned char byte2)  { return (OpCode)(OpCode_ESC_Base + byte2); }
+inline OpCode Make_OpCode_ESC (unsigned char byte2)  { return (OpCode)(OpCode_ESC_Base + byte2); }
+inline unsigned int OpCode_Size (OpCode op) { return (op >= OpCode_ESC_Base)? 2: 1; }
+
+/* pair of table offset and length */
+struct offset_size_pair {
+  unsigned int  offset;
+  unsigned int  size;
+};
+
+/* byte string */
+struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
+{
+  // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
+  template <typename INTTYPE, int minVal, int maxVal>
+  inline static bool serialize_int (hb_serialize_context_t *c, OpCode intOp, int value)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely ((value < minVal || value > maxVal)))
+      return_trace (false);
+
+    HBUINT8 *p = c->allocate_size<HBUINT8> (1);
+    if (unlikely (p == nullptr)) return_trace (false);
+    p->set (intOp);
+
+    INTTYPE *ip = c->allocate_size<INTTYPE> (INTTYPE::static_size);
+    if (unlikely (ip == nullptr)) return_trace (false);
+    ip->set ((unsigned int)value);
+
+    return_trace (true);
+  }
+  
+  inline static bool serialize_int4 (hb_serialize_context_t *c, int value)
+  { return serialize_int<HBUINT32, 0, 0x7FFFFFFF> (c, OpCode_longint, value); }
+  
+  inline static bool serialize_int2 (hb_serialize_context_t *c, int value)
+  { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
+};
+
+struct ByteStr
+{
+  ByteStr (const UnsizedByteStr& s, unsigned int l)
+    : str (&s), len (l) {}
+  ByteStr (const char *s=nullptr, unsigned int l=0)
+    : str ((const UnsizedByteStr *)s), len (l) {}
+  /* sub-string */
+  ByteStr (const ByteStr &bs, unsigned int offset, unsigned int l)
+  {  
+    str = (const UnsizedByteStr *)&bs.str[offset];
+    len = l;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
+
+  inline const HBUINT8& operator [] (unsigned int i) const {
+    assert (str && (i < len));
+    return (*str)[i];
+  }
+
+  inline bool check_limit (unsigned int offset, unsigned int count) const
+  { return (offset + count <= len); }
+
+  const UnsizedByteStr *str;
+  unsigned int len;
+};
+
+inline unsigned int calcOffSize(unsigned int offset)
+{
+  unsigned int size = 1;
+  while ((offset & ~0xFF) != 0)
+  {
+    size++;
+    offset >>= 8;
+  }
+  assert (size <= 4);
+  return size;
+}
 
 /* CFF INDEX */
 struct Index
@@ -145,8 +222,68 @@ struct Index
                           c->check_array (data_base (), 1, max_offset () - 1)));
   }
 
-  inline unsigned int offset_array_size (void) const
+  inline static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)
   { return offSize * (count + 1); }
+
+  inline unsigned int offset_array_size (void) const
+  { return calculate_offset_array_size (offSize, count); }
+
+  inline static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
+  { return min_size + calculate_offset_array_size (offSize, count) + dataSize; }
+
+  inline bool serialize (hb_serialize_context_t *c, const Index &src)
+  {
+    TRACE_SANITIZE (this);
+    unsigned int size = src.get_size ();
+    Index *dest = c->allocate_size<Index> (size);
+    if (unlikely (dest == nullptr)) return_trace (false);
+    memcpy (dest, &src, size);
+    return_trace (true);
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+                         unsigned int offSize,
+                         const hb_vector_t<ByteStr> &bytesArray)
+  {
+    TRACE_SERIALIZE (this);
+
+    /* serialize Index header */
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    this->count.set (bytesArray.len);
+    this->offSize.set (offSize);
+    if (!unlikely (c->allocate_size<HBUINT8> (offSize * (bytesArray.len + 1))))
+      return_trace (false);
+  
+    /* serialize indices */
+    unsigned int  offset = 1;
+    for (unsigned int i = 0; i < bytesArray.len; i++)
+    {
+      set_offset_at (i, offset);
+      offset += bytesArray[i].len;
+    }
+
+    /* serialize data */
+    for (unsigned int i = 0; i < bytesArray.len; i++)
+    {
+      HBUINT8 *dest = c->allocate_size<HBUINT8> (bytesArray[i].len);
+      if (dest == nullptr)
+        return_trace (false);
+      memcpy (dest, &bytesArray[i].str[0], bytesArray[i].len);
+    }
+    return_trace (true);
+  }
+
+  inline void set_offset_at (unsigned int index, unsigned int offset)
+  {
+    HBUINT8 *p = offsets + offSize * index + offSize;
+    unsigned int size = offSize;
+    for (; size; size--)
+    {
+      --p;
+      p->set (offset & 0xFF);
+      offset >>= 8;
+    }
+  }
 
   inline const unsigned int offset_at (unsigned int index) const
   {
@@ -167,20 +304,21 @@ struct Index
   inline unsigned int data_size (void) const
   { return HBINT8::static_size; };
 
-  inline hb_bytes_t operator [] (unsigned int index) const
+  inline ByteStr operator [] (unsigned int index) const
   {
     if (likely (index < count))
-    {
-      hb_bytes_t  b;
-      b.bytes = data_base () + offset_at (index) - 1;
-      b.len = offset_at (index + 1) - offset_at (index);
-      return b;
-    }
-    return Null(hb_bytes_t);
+      return ByteStr (data_base () + offset_at (index) - 1, offset_at (index + 1) - offset_at (index));
+    else
+      return Null(ByteStr);
   }
 
   inline unsigned int get_size (void) const
-  { return count.static_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1); }
+  {
+    if (this != &Null(Index))
+      return count.static_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1);
+    else
+      return 0;
+  }
 
   protected:
   inline unsigned int max_offset (void) const
@@ -200,43 +338,185 @@ struct Index
   HBUINT8   offsets[VAR]; /* The array of (count + 1) offsets into objects array (1-base). */
   /* HBUINT8 data[VAR];      Object data */
   public:
-  DEFINE_SIZE_MIN (6);
+  DEFINE_SIZE_ARRAY (5, offsets);
 };
 
 template <typename Type>
 struct IndexOf : Index
 {
-  inline const Type& operator [] (unsigned int index) const
+  inline ByteStr operator [] (unsigned int index) const
   {
     if (likely (index < count))
-      return StructAtOffset<Type>(data_base (), offset_at (index) - 1);
-    return Null(Type);
+      return ByteStr (data_base () + offset_at (index) - 1, length_at (index));
+    return Null(ByteStr);
   }
 };
 
-struct UnsizedByteStr : UnsizedArrayOf <HBUINT8> {};
+/* an operator prefixed by its operands in a byte string */
+struct OpStr
+{
+  OpCode  op;
+  ByteStr str;
+  bool    update;
+};
 
-struct ByteStr {
-  ByteStr (const UnsizedByteStr& s, unsigned int l)
-    : str (s), len (l) {}
+typedef hb_vector_t <OpStr> OpStrs;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const { return str.sanitize (c, len); }
+/* base param type for dict parsing */
+struct DictValues
+{
+  inline void init (void)
+  {
+    opStart = 0;
+    opStrs.init ();
+  }
 
-  inline const HBUINT8& operator [] (unsigned int i) const { return str[i]; }
+  inline void fini (void)
+  {
+    opStrs.fini ();
+  }
 
-  inline bool check_limit (unsigned int offset, unsigned int count) const
-  { return (offset + count <= len); }
+  void pushOpStr (OpCode op, const ByteStr& str, unsigned int offset, bool update)
+  {
+    OpStr *opstr = opStrs.push ();
+    opstr->op = op;
+    opstr->str = ByteStr (str, opStart, offset - opStart);
+    opstr->update = update;
+    opStart = offset;
+  }
 
-  const UnsizedByteStr& str;
-  const unsigned int len;
+  unsigned int  opStart;
+  OpStrs        opStrs;
+};
+
+/* base of OP_SERIALIZER */
+struct OpSerializer
+{
+  protected:
+  inline bool copy_opstr (hb_serialize_context_t *c, const OpStr& opstr) const
+  {
+    TRACE_SERIALIZE (this);
+
+    HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
+    if (unlikely (d == nullptr)) return_trace (false);
+    memcpy (d, &opstr.str.str[0], opstr.str.len);
+    return_trace (true);
+  }
 };
 
 /* Top Dict, Font Dict, Private Dict */
-typedef UnsizedByteStr Dict;
+struct Dict : UnsizedByteStr
+{
+  template <typename OP_SERIALIZER, typename PARAM>
+  inline bool serialize (hb_serialize_context_t *c,
+                        const DictValues &values,
+                        OP_SERIALIZER& opszr,
+                        PARAM& param)
+  {
+    TRACE_SERIALIZE (this);
+    for (unsigned int i = 0; i < values.opStrs.len; i++)
+    {
+      if (unlikely (!opszr.serialize (c, values.opStrs[i], param)))
+        return_trace (false);
+    }
+    return_trace (true);
+  }
 
-typedef Index CharStrings;
-typedef Index Subrs;
-typedef IndexOf<Dict> FDArray;
+  /* in parallel to above */
+  template <typename OP_SERIALIZER>
+  inline static unsigned int calculate_serialized_size (const DictValues &values,
+                                                        OP_SERIALIZER& opszr)
+  {
+    unsigned int size = 0;
+    for (unsigned int i = 0; i < values.opStrs.len; i++)
+      size += opszr.calculate_serialized_size (values.opStrs[i]);
+    return size;
+  }
+
+  template <typename INTTYPE, int minVal, int maxVal>
+  inline static bool serialize_offset_op (hb_serialize_context_t *c, OpCode op, int value, OpCode intOp)
+  {
+    if (value == 0)
+      return true;
+    // XXX: not sure why but LLVM fails to compile the following 'unlikely' macro invocation
+    if (/*unlikely*/ (!serialize_int<INTTYPE, minVal, maxVal> (c, intOp, value)))
+      return false;
+
+    TRACE_SERIALIZE (this);
+    /* serialize the opcode */
+    HBUINT8 *p = c->allocate_size<HBUINT8> ((op >= OpCode_ESC_Base)? 2: 1);
+    if (unlikely (p == nullptr)) return_trace (false);
+    if (op >= OpCode_ESC_Base)
+    {
+      p->set (OpCode_escape);
+      op = (OpCode)(op - OpCode_ESC_Base);
+      p++;
+    }
+    p->set (op);
+    return_trace (true);
+  }
+
+  inline static bool serialize_offset4_op (hb_serialize_context_t *c, OpCode op, int value)
+  { return serialize_offset_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longint); }
+
+  inline static bool serialize_offset2_op (hb_serialize_context_t *c, OpCode op, int value)
+  { return serialize_offset_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
+};
+
+struct TopDict : Dict {};
+struct FontDict : Dict {};
+struct PrivateDict : Dict {};
+
+struct FDArray : IndexOf<FontDict>
+{
+  template <typename DICTVAL, typename OP_SERIALIZER>
+  inline bool serialize (hb_serialize_context_t *c,
+                        unsigned int offSize,
+                        const hb_vector_t<DICTVAL> &fontDicts,
+                        OP_SERIALIZER& opszr,
+                        const hb_vector_t<offset_size_pair> &privatePairs)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    this->count.set (fontDicts.len);
+    this->offSize.set (offSize);
+    if (!unlikely (c->allocate_size<HBUINT8> (offSize * (fontDicts.len + 1))))
+      return_trace (false);
+    
+    /* serialize font dict offsets */
+    unsigned int  offset = 1;
+    unsigned int  i;
+    for (i = 0; i < fontDicts.len; i++)
+    {
+      set_offset_at (i, offset);
+      offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
+    }
+    set_offset_at (i, offset);
+
+    /* serialize font dicts */
+    for (unsigned int i = 0; i < fontDicts.len; i++)
+    {
+      FontDict *dict = c->start_embed<FontDict> ();
+      if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privatePairs[i])))
+        return_trace (false);
+    }
+    return_trace (true);
+  }
+  
+  /* in parallel to above */
+  template <typename OP_SERIALIZER, typename DICTVAL>
+  inline static unsigned int calculate_serialized_size (unsigned int &offSize /* OUT */,
+                                                        const hb_vector_t<DICTVAL> &fontDicts,
+                                                        OP_SERIALIZER& opszr)
+  {
+    unsigned int dictsSize = 0;
+    for (unsigned int i = 0; i < fontDicts.len; i++)
+      dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
+
+    offSize = calcOffSize (dictsSize + 1);
+    return Index::calculate_serialized_size (offSize, fontDicts.len, dictsSize);
+  }
+};
 
 /* FDSelect */
 struct FDSelect0 {
@@ -245,6 +525,9 @@ struct FDSelect0 {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) && fds[c->get_num_glyphs () - 1].sanitize (c)));
   }
+
+  inline unsigned int get_size (unsigned int num_glyphs) const
+  { return HBUINT8::static_size * num_glyphs; }
 
   HBUINT8     fds[VAR];
 
@@ -265,6 +548,9 @@ struct FDSelect3_Range {
 };
 
 struct FDSelect3 {
+  inline unsigned int get_size (void) const
+  { return HBUINT16::static_size * 2 + FDSelect3_Range::static_size * nRanges; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -283,8 +569,32 @@ struct FDSelect {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+
     return_trace (likely (c->check_struct (this) && (format == 0 || format == 3) &&
                           (format == 0)? u.format0.sanitize (c): u.format3.sanitize (c)));
+  }
+
+  inline bool serialize (hb_serialize_context_t *c, const FDSelect &src, unsigned int num_glyphs)
+  {
+    TRACE_SANITIZE (this);
+    unsigned int size = src.get_size (num_glyphs);
+    FDSelect *dest = c->allocate_size<FDSelect> (size);
+    if (unlikely (dest == nullptr)) return_trace (false);
+    memcpy (dest, &src, size);
+    return_trace (true);
+  }
+
+  inline unsigned int calculate_serialized_size (unsigned int num_glyphs) const
+  { return get_size (num_glyphs); }
+
+  inline unsigned int get_size (unsigned int num_glyphs) const
+  {
+    unsigned int size = format.static_size;
+    if (format == 0)
+      size += u.format0.get_size (num_glyphs);
+    else if (likely (format == 3))
+      size += u.format3.get_size ();
+    return size;
   }
 
   HBUINT8       format;
@@ -295,6 +605,9 @@ struct FDSelect {
 
   DEFINE_SIZE_MIN (2);
 };
+
+typedef Index CharStrings;
+typedef Index Subrs;
 
 inline float parse_bcd (const ByteStr& str, unsigned int& offset, float& v)
 {
@@ -430,71 +743,75 @@ inline bool check_pop_offset (Stack& stack, Offset& offset)
 template <typename OpSet, typename Param>
 struct Interpreter {
 
-  inline void init ()
+  inline Interpreter (void)
   {
     stack.init ();
   }
   
-  inline void fini ()
+  inline ~Interpreter (void)
   {
     stack.fini ();
   }
 
   inline bool interpret (const ByteStr& str, Param& param)
   {
-    param.init();
+    param.init ();
 
     for (unsigned int i = 0; i < str.len; i++)
     {
-      unsigned char byte = str[i];
-      if ((OpCode_shortint == byte) ||
-          (OpCode_OneByteIntFirst <= byte && OpCode_TwoByteNegInt3 >= byte))
+      OpCode op = (OpCode)(unsigned char)str[i];
+      if ((OpCode_shortint == op) ||
+          (OpCode_OneByteIntFirst <= op && OpCode_TwoByteNegInt3 >= op))
       {
-        if (unlikely (!process_intop (str, i, byte)))
+        if (unlikely (!process_intop (str, i, op)))
           return false;
       } else {
-        if (byte == OpCode_escape) {
+        if (op == OpCode_escape) {
           if (unlikely (!str.check_limit (i, 1)))
             return false;
-          byte = Make_OpCode_ESC(str[++i]);
+          op = Make_OpCode_ESC(str[++i]);
         }
 
-        if (unlikely (!OpSet::process_op (str, i, byte, stack, param)))
+        if (unlikely (!OpSet::process_op (str, i, op, stack, param)))
           return false;
       }
     }
+    
     return true;
   }
 
-  inline bool process_intop (const ByteStr& str, unsigned int& offset, unsigned char byte)
+  inline bool process_intop (const ByteStr& str, unsigned int& offset, OpCode op)
   {
-    switch (byte) {
+    switch (op) {
       case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
       case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-        if (unlikely (str.check_limit (offset, 2) || !stack.check_overflow (1)))
+        if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)((byte - OpCode_TwoBytePosInt0) * 256 + str[offset + 1] + 108));
+        stack.push ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + str[offset + 1] + 108));
+        offset++;
         break;
       
       case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
         if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)(-(byte - OpCode_TwoByteNegInt0) * 256 - str[offset + 1] - 108));
+        stack.push ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - str[offset + 1] - 108));
+        offset++;
         break;
       
       case OpCode_shortint: /* 3-byte integer */
         if (unlikely (!str.check_limit (offset, 3) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)((str[offset + 1] << 8) | str[offset + 2]));
+        stack.push ((int16_t)*(const HBUINT16*)&str[offset + 1]);
+        offset += 2;
         break;
       
       default:
         /* 1-byte integer */
-        if (likely ((OpCode_OneByteIntFirst <= byte) && (byte <= OpCode_OneByteIntLast)) &&
+        if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)) &&
             likely (stack.check_overflow (1)))
         {
-          stack.push ((int)byte - 139);
+          stack.push ((int)op - 139);
         } else {
           return false;
         }
@@ -505,6 +822,23 @@ struct Interpreter {
 
   protected:
   Stack stack;
+};
+
+/* used by subsettter */
+struct SubTableOffsets {
+  inline SubTableOffsets (void)
+  {
+    memset (this, 0, sizeof(*this));
+  }
+
+  unsigned int  topDictSize;
+  unsigned int  varStoreOffset;
+  unsigned int  FDSelectOffset;
+  unsigned int  FDArrayOffset;
+  unsigned int  FDArrayOffSize;
+  unsigned int  charStringsOffset;
+  unsigned int  charStringsOffSize;
+  unsigned int  privateDictsOffset;
 };
 
 } /* namespace CFF */
