@@ -447,6 +447,7 @@ HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
 HB_OT_TAG_JSTF
 hb_ot_layout_collect_lookups
+hb_ot_layout_collect_features
 hb_ot_layout_feature_get_lookups
 hb_ot_layout_feature_with_variations_get_lookups
 hb_ot_layout_get_attach_points
