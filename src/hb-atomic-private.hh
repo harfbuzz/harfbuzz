@@ -99,6 +99,7 @@ static inline void _hb_memory_barrier (void)
   MemoryBarrier ();
 #endif
 }
+#define _hb_memory_barrier()			_hb_memory_barrier ()
 
 typedef LONG hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((AI), (V))
@@ -108,10 +109,10 @@ typedef LONG hb_atomic_int_impl_t;
 
 #elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
 
+#define _hb_memory_barrier()			__sync_synchronize ()
+
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		__sync_fetch_and_add ((AI), (V))
-
-static inline void _hb_memory_barrier (void)	{ __sync_synchronize (); }
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
@@ -121,10 +122,12 @@ static inline void _hb_memory_barrier (void)	{ __sync_synchronize (); }
 #include <atomic.h>
 #include <mbarrier.h>
 
+#define _hb_memory_r_barrier()			__machine_r_barrier ()
+#define _hb_memory_w_barrier()			__machine_r_barrier ()
+#define _hb_memory_barrier()			__machine_rw_barrier ()
+
 typedef unsigned int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		( ({__machine_rw_barrier ();}), atomic_add_int_nv ((AI), (V)) - (V) /* XXX barrier again? */)
-
-static inline void _hb_memory_barrier (void)	{ __machine_rw_barrier (); }
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false /* XXX barrier again? */)
 
@@ -138,11 +141,10 @@ static inline void _hb_memory_barrier (void)	{ __machine_rw_barrier (); }
 #include <Availability.h>
 #endif
 
+#define _hb_memory_barrier()			OSMemoryBarrier ()
 
 typedef int32_t hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(OSAtomicAdd32Barrier ((V), (AI)) - (V))
-
-static inline void _hb_memory_barrier (void)	{ OSMemoryBarrier (); }
 
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
@@ -159,7 +161,6 @@ static inline void _hb_memory_barrier (void)	{ OSMemoryBarrier (); }
 
 #include <builtins.h>
 
-
 static inline int _hb_fetch_and_add(volatile int* AI, unsigned int V) {
   __lwsync();
   int result = __fetch_and_add(AI, V);
@@ -173,21 +174,23 @@ static inline int _hb_compare_and_swaplp(volatile long* P, long O, long N) {
   return result;
 }
 
+#define _hb_memory_barrier()			__lwsync ()
+
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
 
-static inline void _hb_memory_barrier (void)	{ __lwsync(); }
-
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swaplp ((long*)(P), (long)(O), (long)(N))
+
 
 #elif !defined(HB_NO_MT)
 
 #define HB_ATOMIC_INT_NIL 1 /* Warn that fallback implementation is in use. */
 
+#define _hb_memory_barrier()
+
 typedef volatile int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-static inline void _hb_memory_barrier (void)	{}
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
 
 
@@ -196,7 +199,7 @@ static inline void _hb_memory_barrier (void)	{}
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-static inline void _hb_memory_barrier (void)	{}
+#define _hb_memory_barrier()
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
@@ -204,6 +207,12 @@ static inline void _hb_memory_barrier (void)	{}
 #endif
 
 
+#ifndef _hb_memory_r_barrier
+#define _hb_memory_r_barrier()			_hb_memory_barrier ()
+#endif
+#ifndef _hb_memory_w_barrier
+#define _hb_memory_w_barrier()			_hb_memory_barrier ()
+#endif
 #ifndef HB_ATOMIC_INT_INIT
 #define HB_ATOMIC_INT_INIT(V)          {V}
 #endif
