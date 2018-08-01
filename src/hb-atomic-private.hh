@@ -223,7 +223,7 @@ typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_get_relaxed(AI)	(*(AI))
 #endif
 #ifndef hb_atomic_ptr_impl_get
-inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_barrier (); return v; }
+inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
 #endif
 
 
