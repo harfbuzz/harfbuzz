@@ -1,3 +1,11 @@
+Overview of changes leading to 1.8.5
+Wednesday, August 1, 2018
+====================================
+- Major Khmer shaper improvements to better match Microsoft.
+- Indic bug fixes.
+- Internal improvements to atomic operations.
+
+
 Overview of changes leading to 1.8.4
 Tuesday, July 17, 2018
 ====================================

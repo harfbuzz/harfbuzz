@@ -765,7 +765,7 @@ _hb_ot_layout_collect_features_languages (hb_face_t      *face,
 /**
  * hb_ot_layout_collect_features:
  *
- * Since: REPLACEME
+ * Since: 1.8.5
  **/
 void
 hb_ot_layout_collect_features (hb_face_t      *face,
