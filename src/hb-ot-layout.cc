@@ -1134,34 +1134,32 @@ hb_ot_layout_get_feature_name_ids (hb_face_t      *face,
       feature_params.get_stylistic_set_params (feature);
     if (&ss_params != &Null (OT::FeatureParamsStylisticSet)) /* ssXX */
     {
-#define PARAM(a, A) if (a) *a = A
-      PARAM(label_id, ss_params.uiNameID);
+      if (label_id) *label_id = ss_params.uiNameID;
       // ssXX features don't have the rest
-      PARAM(tooltip_id, 0);
-      PARAM(sample_id, 0);
-      PARAM(num_named_parameters, 0);
-      PARAM(first_param_id, 0);
+      if (tooltip_id) *tooltip_id = HB_NO_NAME_ID;
+      if (sample_id) *sample_id = HB_NO_NAME_ID;
+      if (num_named_parameters) *num_named_parameters = 0;
+      if (first_param_id) *first_param_id = HB_NO_NAME_ID;
       return true;
     }
     const OT::FeatureParamsCharacterVariants& cv_params =
       feature_params.get_character_variants_params (feature);
     if (&cv_params != &Null (OT::FeatureParamsCharacterVariants)) /* cvXX */
     {
-      PARAM(label_id, cv_params.featUILableNameID);
-      PARAM(tooltip_id, cv_params.featUITooltipTextNameID);
-      PARAM(sample_id, cv_params.sampleTextNameID);
-      PARAM(num_named_parameters, cv_params.numNamedParameters);
-      PARAM(first_param_id, cv_params.firstParamUILabelNameID);
+      if (label_id) *label_id = cv_params.featUILableNameID;
+      if (tooltip_id) *tooltip_id = cv_params.featUITooltipTextNameID;
+      if (sample_id) *sample_id = cv_params.sampleTextNameID;
+      if (num_named_parameters) *num_named_parameters = cv_params.numNamedParameters;
+      if (first_param_id) *first_param_id = cv_params.firstParamUILabelNameID;
       return true;
     }
   }
 
-  PARAM(label_id, 0);
-  PARAM(tooltip_id, 0);
-  PARAM(sample_id, 0);
-  PARAM(num_named_parameters, 0);
-  PARAM(first_param_id, 0);
-#undef PARAM
+  if (label_id) *label_id = HB_NO_NAME_ID;
+  if (tooltip_id) *tooltip_id = HB_NO_NAME_ID;
+  if (sample_id) *sample_id = HB_NO_NAME_ID;
+  if (num_named_parameters) *num_named_parameters = 0;
+  if (first_param_id) *first_param_id = HB_NO_NAME_ID;
   return false;
 }
 
