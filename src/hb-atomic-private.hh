@@ -46,14 +46,14 @@
 /* Defined externally, i.e. in config.h; must have typedef'ed hb_atomic_int_impl_t as well. */
 
 
-#elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
+#elif !defined(HB_NO_MT) && defined(__ATOMIC_CONSUME)
 
 /* C++11-style GCC primitives. */
 
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		__atomic_fetch_add (&(AI), (V), __ATOMIC_ACQ_REL)
 
-#define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_ACQUIRE)
+#define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_CONSUME)
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 {
@@ -71,7 +71,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (&AI)->fetch_add ((V), std::memory_order_acq_rel))
 
-#define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_acquire))
+#define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_consume))
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 {
