@@ -91,7 +91,7 @@ hb_gobject_set_get_type (void);
 
 HB_EXTERN GType
 hb_gobject_map_get_type (void);
-#define HB_GOBJECT_TYPE_SET (hb_gobject_map_get_type ())
+#define HB_GOBJECT_TYPE_MAP (hb_gobject_map_get_type ())
 
 HB_EXTERN GType
 hb_gobject_shape_plan_get_type (void);
