@@ -256,11 +256,13 @@ struct Index
   
     /* serialize indices */
     unsigned int  offset = 1;
-    for (unsigned int i = 0; i < bytesArray.len; i++)
+    unsigned int  i = 0;
+    for (; i < bytesArray.len; i++)
     {
       set_offset_at (i, offset);
       offset += bytesArray[i].len;
     }
+    set_offset_at (i, offset);
 
     /* serialize data */
     for (unsigned int i = 0; i < bytesArray.len; i++)
