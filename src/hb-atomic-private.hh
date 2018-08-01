@@ -89,11 +89,10 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 #include <windows.h>
 
-/* MinGW has a convoluted history of supporting MemoryBarrier
- * properly.  As such, define a function to wrap the whole
- * thing. */
-static inline void _HBMemoryBarrier (void) {
+static inline void _hb_memory_barrier (void)
+{
 #if !defined(MemoryBarrier)
+  /* MinGW has a convoluted history of supporting MemoryBarrier. */
   long dummy = 0;
   InterlockedExchange (&dummy, 1);
 #else
@@ -104,7 +103,6 @@ static inline void _HBMemoryBarrier (void) {
 typedef LONG hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((AI), (V))
 
-#define hb_atomic_ptr_impl_get(P)		(_HBMemoryBarrier (), (void *) *(P))
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 
 
@@ -113,7 +111,8 @@ typedef LONG hb_atomic_int_impl_t;
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		__sync_fetch_and_add ((AI), (V))
 
-#define hb_atomic_ptr_impl_get(P)		(void *) (__sync_synchronize (), *(P))
+static inline void _hb_memory_barrier (void)	{ __sync_synchronize (); }
+
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
 
@@ -125,7 +124,8 @@ typedef int hb_atomic_int_impl_t;
 typedef unsigned int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		( ({__machine_rw_barrier ();}), atomic_add_int_nv ((AI), (V)) - (V))
 
-#define hb_atomic_ptr_impl_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
+static inline void _hb_memory_barrier (void)	{ __machine_rw_barrier (); }
+
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
 
 
@@ -142,7 +142,8 @@ typedef unsigned int hb_atomic_int_impl_t;
 typedef int32_t hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(OSAtomicAdd32Barrier ((V), (AI)) - (V))
 
-#define hb_atomic_ptr_impl_get(P)		(OSMemoryBarrier (), (void *) *(P))
+static inline void _hb_memory_barrier (void)	{ OSMemoryBarrier (); }
+
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
 #else
@@ -175,7 +176,8 @@ static inline int _hb_compare_and_swaplp(volatile long* P, long O, long N) {
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
 
-#define hb_atomic_ptr_impl_get(P)               (__sync(), (void *) *(P))
+static inline void _hb_memory_barrier (void)	{ __sync(); }
+
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swaplp ((long*)(P), (long)(O), (long)(N))
 
 #elif !defined(HB_NO_MT)
@@ -185,7 +187,7 @@ typedef int hb_atomic_int_impl_t;
 typedef volatile int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-#define hb_atomic_ptr_impl_get(P)		((void *) *(P))
+static inline void _hb_memory_barrier (void)	{}
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
 
 
@@ -194,7 +196,8 @@ typedef volatile int hb_atomic_int_impl_t;
 typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-#define hb_atomic_ptr_impl_get(P)		((void *) *(P))
+static inline void _hb_memory_barrier (void)	{}
+
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
 
@@ -209,6 +212,9 @@ typedef int hb_atomic_int_impl_t;
 #endif
 #ifndef hb_atomic_int_impl_get_relaxed
 #define hb_atomic_int_impl_get_relaxed(AI)	(*(AI))
+#endif
+#ifndef hb_atomic_ptr_impl_get
+inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_barrier (); return v; }
 #endif
 
 
