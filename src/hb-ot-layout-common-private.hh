@@ -494,20 +494,6 @@ struct FeatureParams
     return Null(FeatureParamsSize);
   }
 
-  inline const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
-  {
-    if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
-      return u.stylisticSet;
-    return Null(FeatureParamsStylisticSet);
-  }
-
-  inline const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
-  {
-    if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
-      return u.characterVariants;
-    return Null(FeatureParamsCharacterVariants);
-  }
-
   private:
   union {
   FeatureParamsSize			size;
