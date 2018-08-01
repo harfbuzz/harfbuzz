@@ -122,11 +122,11 @@ static inline void _hb_memory_barrier (void)	{ __sync_synchronize (); }
 #include <mbarrier.h>
 
 typedef unsigned int hb_atomic_int_impl_t;
-#define hb_atomic_int_impl_add(AI, V)		( ({__machine_rw_barrier ();}), atomic_add_int_nv ((AI), (V)) - (V))
+#define hb_atomic_int_impl_add(AI, V)		( ({__machine_rw_barrier ();}), atomic_add_int_nv ((AI), (V)) - (V) /* XXX barrier again? */)
 
 static inline void _hb_memory_barrier (void)	{ __machine_rw_barrier (); }
 
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false /* XXX barrier again? */)
 
 
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
