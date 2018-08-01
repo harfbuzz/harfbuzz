@@ -161,13 +161,13 @@ typedef int32_t hb_atomic_int_impl_t;
 
 #include <builtins.h>
 
-static inline int _hb_fetch_and_add(volatile int* AI, unsigned int V) {
+static inline int _hb_fetch_and_add (int* AI, unsigned int V) {
   __lwsync();
   int result = __fetch_and_add(AI, V);
   __lwsync();
   return result;
 }
-static inline int _hb_compare_and_swaplp(volatile long* P, long O, long N) {
+static inline int _hb_compare_and_swaplp (long* P, long O, long N) {
   __lwsync();
   int result = __compare_and_swaplp (P, &O, N);
   __lwsync();
