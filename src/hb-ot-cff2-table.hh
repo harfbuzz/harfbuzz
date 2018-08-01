@@ -49,13 +49,14 @@ struct CFF2VariationStore
   inline bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
   {
     TRACE_SANITIZE (this);
-    CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (varStore->size);
+    unsigned int size_ = varStore->get_size ();
+    CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (size_);
     if (unlikely (dest == nullptr)) return_trace (false);
-    memcpy (dest, varStore, size);
+    memcpy (dest, varStore, size_);
     return_trace (true);
   }
 
-  inline unsigned int get_size (void) const { return size; }
+  inline unsigned int get_size (void) const { return HBUINT16::static_size + size; }
 
   HBUINT16        size;
   VariationStore  varStore;
