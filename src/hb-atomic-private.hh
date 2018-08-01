@@ -123,7 +123,7 @@ typedef int hb_atomic_int_impl_t;
 #include <mbarrier.h>
 
 #define _hb_memory_r_barrier()			__machine_r_barrier ()
-#define _hb_memory_w_barrier()			__machine_r_barrier ()
+#define _hb_memory_w_barrier()			__machine_w_barrier ()
 #define _hb_memory_barrier()			__machine_rw_barrier ()
 
 typedef unsigned int hb_atomic_int_impl_t;
