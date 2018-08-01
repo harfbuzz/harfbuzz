@@ -229,7 +229,7 @@ struct hb_atomic_int_t
 };
 
 
-#define hb_atomic_ptr_get(P) hb_atomic_ptr_impl_get(P)
+#define hb_atomic_ptr_get(P) hb_atomic_ptr_impl_get((void **) P)
 #define hb_atomic_ptr_cmpexch(P,O,N) hb_atomic_ptr_impl_cmpexch((P),(O),(N))
 
 
