@@ -205,10 +205,10 @@ typedef int hb_atomic_int_impl_t;
 #define HB_ATOMIC_INT_INIT(V)          {V}
 #endif
 #ifndef hb_atomic_int_impl_set_relaxed
-#define hb_atomic_int_impl_set_relaxed(AI, V)	((AI) = (V))
+#define hb_atomic_int_impl_set_relaxed(AI, V)	(*(AI) = (V))
 #endif
 #ifndef hb_atomic_int_impl_get_relaxed
-#define hb_atomic_int_impl_get_relaxed(AI)	(AI)
+#define hb_atomic_int_impl_get_relaxed(AI)	(*(AI))
 #endif
 
 
