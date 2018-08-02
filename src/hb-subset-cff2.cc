@@ -156,7 +156,7 @@ struct subset_plan {
     private_off_and_size_pairs.fini ();
   }
 
-  inline bool create (const OT::cff2::accelerator_t &acc,
+  inline bool create (const OT::cff2::accelerator_subset_t &acc,
               hb_subset_plan_t *plan)
   {
     final_size = 0;
@@ -233,7 +233,7 @@ struct subset_plan {
 };
 
 static inline bool _write_cff2 (const subset_plan &plan,
-                                const OT::cff2::accelerator_t  &acc,
+                                const OT::cff2::accelerator_subset_t  &acc,
                                 unsigned int dest_sz,
                                 void *dest)
 {
@@ -329,14 +329,15 @@ static inline bool _write_cff2 (const subset_plan &plan,
     PrivateDict  *pd = c.start_embed<PrivateDict> ();
     if (unlikely (pd == nullptr)) return false;
     CFF2PrivateDict_OpSerializer privSzr;
-    if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, acc.privateDicts[i].subrsOffset)))
+    /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
+    if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, plan.private_off_and_size_pairs[i].size)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Private Dict[%d]", i);
       return false;
     }
     if (acc.privateDicts[i].subrsOffset != 0)
     {
-      Subrs *subrs = c.allocate_size<Subrs> (acc.privateDicts[i].localSubrs->get_size ());
+      Subrs *subrs = c.start_embed<Subrs> ();
       if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(Subrs))
       {
         DEBUG_MSG (SUBSET, nullptr, "CFF2 subset: local subrs unexpectedly null [%d]", i);
@@ -356,7 +357,7 @@ static inline bool _write_cff2 (const subset_plan &plan,
 }
 
 static bool
-_hb_subset_cff2 (const OT::cff2::accelerator_t  &acc,
+_hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
                 const char                      *data,
                 hb_subset_plan_t                *plan,
                 hb_blob_t                       **prime /* OUT */)
@@ -400,7 +401,7 @@ hb_subset_cff2 (hb_subset_plan_t *plan,
   hb_blob_t *cff2_blob = hb_sanitize_context_t().reference_table<CFF::cff2> (plan->source);
   const char *data = hb_blob_get_data(cff2_blob, nullptr);
 
-  OT::cff2::accelerator_t acc;
+  OT::cff2::accelerator_subset_t acc;
   acc.init(plan->source);
   bool result = likely (acc.is_valid ()) &&
                 _hb_subset_cff2 (acc,

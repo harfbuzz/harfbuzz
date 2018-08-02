@@ -289,6 +289,7 @@ struct Index
 
   inline const unsigned int offset_at (unsigned int index) const
   {
+    assert (index <= count);
     const HBUINT8 *p = offsets + offSize * index;
     unsigned int size = offSize;
     unsigned int offset = 0;
@@ -317,7 +318,12 @@ struct Index
   inline unsigned int get_size (void) const
   {
     if (this != &Null(Index))
-      return count.static_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1);
+    {
+      if (count > 0)
+        return min_size + offset_array_size () + (offset_at (count) - 1);
+      else
+        return count.static_size;  /* empty Index contains count only */
+    }
     else
       return 0;
   }

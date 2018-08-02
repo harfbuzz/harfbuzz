@@ -212,41 +212,17 @@ struct CFF2FontDictOpSet
   }
 };
 
-struct CFF2PrivateDictValues : DictValues
+struct CFF2PrivateDictValues_Base : DictValues
 {
   inline void init (void)
   {
     DictValues::init ();
-
-    languageGroup = 0;
-    expansionFactor = 0.06f;
-    vsIndex = 0;
     subrsOffset.set (0);
-    blueScale = 0.039625f;
-    blueShift = 7.0f;
-    blueFuzz = 1.0f;
-    stdHW = UNSET_REAL_VALUE;
-    stdVW = UNSET_REAL_VALUE;
-    subrsOffset.set (0);
-    blueValues.init ();
-    otherBlues.init ();
-    familyBlues.init ();
-    familyOtherBlues.init ();
-    stemSnapH.init ();
-    stemSnapV.init ();
-
     localSubrs = &Null(Subrs);
   }
 
   inline void fini (void)
   {
-    blueValues.fini ();
-    otherBlues.fini ();
-    familyBlues.fini ();
-    familyOtherBlues.fini ();
-    stemSnapH.fini ();
-    stemSnapV.fini ();
-
     DictValues::fini ();
   }
 
@@ -261,10 +237,48 @@ struct CFF2PrivateDictValues : DictValues
     return size;
   }
 
+  LOffsetTo<Subrs>  subrsOffset;
+  const Subrs       *localSubrs;
+};
+
+struct CFF2PrivateDictValues : CFF2PrivateDictValues_Base
+{
+  inline void init (void)
+  {
+    CFF2PrivateDictValues_Base::init ();
+
+    languageGroup = 0;
+    expansionFactor = 0.06f;
+    vsIndex = 0;
+    blueScale = 0.039625f;
+    blueShift = 7.0f;
+    blueFuzz = 1.0f;
+    stdHW = UNSET_REAL_VALUE;
+    stdVW = UNSET_REAL_VALUE;
+    subrsOffset.set (0);
+    blueValues.init ();
+    otherBlues.init ();
+    familyBlues.init ();
+    familyOtherBlues.init ();
+    stemSnapH.init ();
+    stemSnapV.init ();
+  }
+
+  inline void fini (void)
+  {
+    blueValues.fini ();
+    otherBlues.fini ();
+    familyBlues.fini ();
+    familyOtherBlues.fini ();
+    stemSnapH.fini ();
+    stemSnapV.fini ();
+
+    CFF2PrivateDictValues_Base::fini ();
+  }
+
   int       languageGroup;
   float     expansionFactor;
   int       vsIndex;
-  OffsetTo<Subrs>  subrsOffset;
   float     blueScale;
   float     blueShift;
   float     blueFuzz;
@@ -276,8 +290,6 @@ struct CFF2PrivateDictValues : DictValues
   hb_vector_t <float> familyOtherBlues;
   hb_vector_t <float> stemSnapH;
   hb_vector_t <float> stemSnapV;
-
-  const Subrs *localSubrs;
 };
 
 struct CFF2PrivateDictOpSet
@@ -368,6 +380,56 @@ struct CFF2PrivateDictOpSet
   }
 };
 
+struct CFF2PrivateDictOpSet_Subset
+{
+  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues_Base& val)
+  {
+    switch (op) {
+      case OpCode_BlueValues:
+      case OpCode_OtherBlues:
+      case OpCode_FamilyBlues:
+      case OpCode_FamilyOtherBlues:
+      case OpCode_StdHW:
+      case OpCode_StdVW:
+      case OpCode_BlueScale:
+      case OpCode_BlueShift:
+      case OpCode_BlueFuzz:
+      case OpCode_StemSnapH:
+      case OpCode_StemSnapV:
+      case OpCode_LanguageGroup:
+      case OpCode_ExpansionFactor:
+      case OpCode_blend:
+        stack.clear ();
+        break;
+
+      case OpCode_BCD:
+        {
+          float v;
+          return parse_bcd (str, offset, v);
+        }
+
+      case OpCode_Subrs:
+        if (unlikely (!check_pop_offset (stack, val.subrsOffset)))
+          return false;
+        break;
+      case OpCode_longint:  /* 5-byte integer */
+        if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
+          return false;
+        stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
+        offset += 4;
+        break;
+
+      default:
+        return false;
+    }
+
+    if (op != OpCode_blend)
+      val.pushOpStr (op, str, offset + 1);
+
+    return true;
+  }
+};
+
 typedef Interpreter<CFF2TopDictOpSet, CFF2TopDictValues> CFF2TopDict_Interpreter;
 typedef Interpreter<CFF2FontDictOpSet, CFF2FontDictValues> CFF2FontDict_Interpreter;
 typedef Interpreter<CFF2PrivateDictOpSet, CFF2PrivateDictValues> CFF2PrivateDict_Interpreter;
@@ -389,7 +451,8 @@ struct cff2
                   likely (version.major == 2));
   }
 
-  struct accelerator_t
+  template <typename PrivOpSet, typename PrivDictVal>
+  struct accelerator_templ_t
   {
     inline void init (hb_face_t *face)
     {
@@ -402,7 +465,7 @@ struct cff2
       sc.init (this->blob);
       sc.start_processing ();
       
-      const OT::cff2 *cff2 = this->blob->as<OT::cff2> ();
+      const OT::cff2 *cff2 = this->blob->template as<OT::cff2> ();
 
       if (cff2 == &Null(OT::cff2))
       {
@@ -460,7 +523,7 @@ struct cff2
         }
 
         const ByteStr privDictStr (font->privateDictOffset (cff2), font->privateDictSize);
-        CFF2PrivateDict_Interpreter priv_interp;
+        Interpreter<PrivOpSet, PrivDictVal> priv_interp;
         if (unlikely (!privDictStr.sanitize (&sc) ||
                       !priv_interp.interpret (privDictStr, privateDicts[i])))
         {
@@ -468,7 +531,12 @@ struct cff2
           return;
         }
 
-        privateDicts[i].localSubrs = &privateDicts[i].subrsOffset (cff2);
+        privateDicts[i].localSubrs = &privateDicts[i].subrsOffset (privDictStr.str);
+        if (unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
+        {
+          fini ();
+          return;
+        }
       }
     }
 
@@ -506,10 +574,13 @@ struct cff2
     const FDSelect            *fdSelect;
 
     hb_vector_t<CFF2FontDictValues>     fontDicts;
-    hb_vector_t<CFF2PrivateDictValues>  privateDicts;
+    hb_vector_t<PrivDictVal>  privateDicts;
 
     unsigned int            num_glyphs;
   };
+
+  typedef accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues> accelerator_t;
+  typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Base> accelerator_subset_t;
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
