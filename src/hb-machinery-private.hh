@@ -590,38 +590,54 @@ struct BEInt<Type, 4>
  * Lazy struct and blob loaders.
  */
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t.
- * I mean, yeah, only every method is different. */
-template <typename T>
-struct hb_lazy_loader_t
+template <typename Subclass,
+	  typename Returned,
+	  typename Stored = Returned>
+struct hb_base_lazy_loader_t
 {
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
+
   inline void init (hb_face_t *face_)
   {
     face = face_;
     instance = nullptr;
   }
 
+  inline const Returned * operator-> (void) const
+  {
+    return thiz ()->get ();
+  }
+
+  protected:
+  hb_face_t *face;
+  mutable Stored *instance;
+};
+
+template <typename T>
+struct hb_lazy_loader_t : hb_base_lazy_loader_t<hb_lazy_loader_t<T>, T>
+{
   inline void fini (void)
   {
-    if (instance && instance != &Null(T))
+    if (this->instance && this->instance != &Null(T))
     {
-      instance->fini();
-      free (instance);
+      this->instance->fini();
+      free (this->instance);
     }
   }
 
   inline const T* get (void) const
   {
   retry:
-    T *p = (T *) hb_atomic_ptr_get (&instance);
+    T *p = (T *) hb_atomic_ptr_get (&this->instance);
     if (unlikely (!p))
     {
       p = (T *) calloc (1, sizeof (T));
       if (unlikely (!p))
         p = const_cast<T *> (&Null(T));
       else
-	p->init (face);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p)))
+	p->init (this->face);
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&this->instance), nullptr, p)))
       {
 	if (p != &Null(T))
 	  p->fini ();
@@ -630,46 +646,29 @@ struct hb_lazy_loader_t
     }
     return p;
   }
-
-  inline const T* operator-> (void) const
-  {
-    return get ();
-  }
-
-  private:
-  hb_face_t *face;
-  mutable T *instance;
 };
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t.
- * I mean, yeah, only every method is different. */
 template <typename T>
-struct hb_table_lazy_loader_t
+struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<hb_table_lazy_loader_t<T>, T, hb_blob_t>
 {
-  inline void init (hb_face_t *face_)
-  {
-    face = face_;
-    blob = nullptr;
-  }
-
   inline void fini (void)
   {
-    hb_blob_destroy (blob);
+    hb_blob_destroy (this->instance);
   }
 
   inline hb_blob_t* get_blob (void) const
   {
   retry:
-    hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&blob);
+    hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&this->instance);
     if (unlikely (!b))
     {
-      b = hb_sanitize_context_t ().reference_table<T> (face);
-      if (!hb_atomic_ptr_cmpexch (&blob, nullptr, b))
+      b = hb_sanitize_context_t ().reference_table<T> (this->face);
+      if (!hb_atomic_ptr_cmpexch (&this->instance, nullptr, b))
       {
 	hb_blob_destroy (b);
 	goto retry;
       }
-      blob = b;
+      this->instance = b;
     }
     return b;
   }
@@ -679,15 +678,6 @@ struct hb_table_lazy_loader_t
     hb_blob_t *b = get_blob ();
     return b->as<T> ();
   }
-
-  inline const T* operator-> (void) const
-  {
-    return get();
-  }
-
-  private:
-  hb_face_t *face;
-  mutable hb_blob_t *blob;
 };
 
 
