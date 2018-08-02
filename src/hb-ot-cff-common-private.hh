@@ -233,7 +233,7 @@ struct Index
 
   inline bool serialize (hb_serialize_context_t *c, const Index &src)
   {
-    TRACE_SANITIZE (this);
+    TRACE_SERIALIZE (this);
     unsigned int size = src.get_size ();
     Index *dest = c->allocate_size<Index> (size);
     if (unlikely (dest == nullptr)) return_trace (false);
@@ -576,7 +576,7 @@ struct FDSelect {
 
   inline bool serialize (hb_serialize_context_t *c, const FDSelect &src, unsigned int num_glyphs)
   {
-    TRACE_SANITIZE (this);
+    TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
     FDSelect *dest = c->allocate_size<FDSelect> (size);
     if (unlikely (dest == nullptr)) return_trace (false);
