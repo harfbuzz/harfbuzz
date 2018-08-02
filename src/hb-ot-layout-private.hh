@@ -179,11 +179,10 @@ struct hb_ot_layout_t
 
   /* TODO Move the following out of this struct. */
   hb_face_t *face; /* MUST be before the lazy loaders. */
-  hb_table_lazy_loader_t<1, struct OT::BASE> base;
-  hb_table_lazy_loader_t<2, struct OT::MATH> math;
-  hb_table_lazy_loader_t<3, struct OT::fvar> fvar;
-  hb_table_lazy_loader_t<4, struct OT::avar> avar;
-  hb_table_lazy_loader_t<5, struct AAT::morx> morx;
+  hb_table_lazy_loader_t<1, struct OT::MATH> math;
+  hb_table_lazy_loader_t<2, struct OT::fvar> fvar;
+  hb_table_lazy_loader_t<3, struct OT::avar> avar;
+  hb_table_lazy_loader_t<4, struct AAT::morx> morx;
 };
 
 
