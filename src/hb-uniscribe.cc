@@ -442,7 +442,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 hb_uniscribe_face_data_t *
 _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 {
-  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_face_data_t));
+  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -520,7 +520,7 @@ _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
   if (unlikely (!hb_uniscribe_shaper_face_data_ensure (font->face))) return nullptr;
 
-  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
+  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
   if (unlikely (!data))
     return nullptr;
 

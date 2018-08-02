@@ -106,7 +106,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   }
   hb_blob_destroy (silf_blob);
 
-  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) calloc (1, sizeof (hb_graphite2_shaper_face_data_t));
+  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) calloc (1, sizeof (hb_graphite2_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
