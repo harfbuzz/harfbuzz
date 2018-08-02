@@ -63,10 +63,11 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
   layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
-  layout->math.init (face);
-  layout->fvar.init (face);
-  layout->avar.init (face);
-  layout->morx.init (face);
+  layout->face = face;
+  layout->math.init ();
+  layout->fvar.init ();
+  layout->avar.init ();
+  layout->morx.init ();
 
   {
     /*

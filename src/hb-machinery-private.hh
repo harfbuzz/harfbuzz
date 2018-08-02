@@ -590,18 +590,26 @@ struct BEInt<Type, 4>
  * Lazy struct and blob loaders.
  */
 
-template <typename Subclass,
+template <unsigned int WheresFace,
+	  typename Subclass,
 	  typename Returned,
 	  typename Stored = Returned>
 struct hb_base_lazy_loader_t
 {
+  static_assert (WheresFace > 0, "");
+
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
+  inline Subclass* thiz (void) { return static_cast<Subclass *> (this); }
 
-  inline void init (hb_face_t *face_)
+  inline void init (void)
   {
-    face = face_;
     instance = nullptr;
+  }
+  inline void fini (void)
+  {
+    if (instance)
+      thiz ()->destroy (instance);
   }
 
   inline const Returned * operator-> (void) const
@@ -609,74 +617,79 @@ struct hb_base_lazy_loader_t
     return thiz ()->get ();
   }
 
-  protected:
-  hb_face_t *face;
-  mutable Stored *instance;
-};
-
-template <typename T>
-struct hb_lazy_loader_t : hb_base_lazy_loader_t<hb_lazy_loader_t<T>, T>
-{
-  inline void fini (void)
-  {
-    if (this->instance && this->instance != &Null(T))
-    {
-      this->instance->fini();
-      free (this->instance);
-    }
-  }
-
-  inline const T* get (void) const
+  inline Stored * get_stored (void) const
   {
   retry:
-    T *p = (T *) hb_atomic_ptr_get (&this->instance);
+    Stored *p = (Stored *) hb_atomic_ptr_get (&this->instance);
     if (unlikely (!p))
     {
-      p = (T *) calloc (1, sizeof (T));
-      if (unlikely (!p))
-        p = const_cast<T *> (&Null(T));
-      else
-	p->init (this->face);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&this->instance), nullptr, p)))
+      hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
+      p = thiz ()->create (face);
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), nullptr, p)))
       {
-	if (p != &Null(T))
-	  p->fini ();
+        thiz ()->destroy (p);
 	goto retry;
       }
     }
     return p;
   }
+
+  inline const Returned * get (void) const
+  {
+    return thiz ()->convert (get_stored ());
+  }
+
+  static inline const Returned* convert (const Stored *p)
+  {
+    return p;
+  }
+
+  private:
+  /* Must only have one pointer. */
+  mutable Stored *instance;
 };
 
-template <typename T>
-struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<hb_table_lazy_loader_t<T>, T, hb_blob_t>
+template <unsigned int WheresFace, typename T>
+struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<WheresFace, T>, T>
 {
-  inline void fini (void)
+  static inline T *create (hb_face_t *face)
   {
-    hb_blob_destroy (this->instance);
+    T *p = (T *) calloc (1, sizeof (T));
+    if (unlikely (!p))
+      p = const_cast<T *> (&Null(T));
+    else
+      p->init (face);
+    return p;
+  }
+  static inline void destroy (T *p)
+  {
+    if (p != &Null(T))
+    {
+      p->fini();
+      free (p);
+    }
+  }
+};
+
+template <unsigned int WheresFace, typename T>
+struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
+{
+  static inline hb_blob_t *create (hb_face_t *face)
+  {
+    return hb_sanitize_context_t ().reference_table<T> (face);
+  }
+  static inline void destroy (hb_blob_t *p)
+  {
+    hb_blob_destroy (p);
+  }
+  static inline const T* convert (const hb_blob_t *blob)
+  {
+    return blob->as<T> ();
   }
 
   inline hb_blob_t* get_blob (void) const
   {
-  retry:
-    hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&this->instance);
-    if (unlikely (!b))
-    {
-      b = hb_sanitize_context_t ().reference_table<T> (this->face);
-      if (!hb_atomic_ptr_cmpexch (&this->instance, nullptr, b))
-      {
-	hb_blob_destroy (b);
-	goto retry;
-      }
-      this->instance = b;
-    }
-    return b;
-  }
-
-  inline const T* get (void) const
-  {
-    hb_blob_t *b = get_blob ();
-    return b->as<T> ();
+    return this->get_stored ();
   }
 };
 
