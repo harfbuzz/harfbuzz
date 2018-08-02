@@ -359,7 +359,6 @@ struct OpStr
 {
   OpCode  op;
   ByteStr str;
-  bool    update;
 };
 
 typedef hb_vector_t <OpStr> OpStrs;
@@ -378,12 +377,11 @@ struct DictValues
     opStrs.fini ();
   }
 
-  void pushOpStr (OpCode op, const ByteStr& str, unsigned int offset, bool update)
+  void pushOpStr (OpCode op, const ByteStr& str, unsigned int offset)
   {
     OpStr *opstr = opStrs.push ();
     opstr->op = op;
     opstr->str = ByteStr (str, opStart, offset - opStart);
-    opstr->update = update;
     opStart = offset;
   }
 

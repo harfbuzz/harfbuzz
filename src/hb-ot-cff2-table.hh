@@ -111,29 +111,29 @@ struct CFF2TopDictOpSet
       case OpCode_CharStrings:
         if (unlikely (!check_pop_offset (stack, val.charStringsOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1, true);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_vstore:
         if (unlikely (!check_pop_offset (stack, val.vstoreOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1, true);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FDArray:
         if (unlikely (!check_pop_offset (stack, val.FDArrayOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1, true);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FDSelect:
         if (unlikely (!check_pop_offset (stack, val.FDSelectOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1, true);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FontMatrix:
         if (unlikely (!stack.check_underflow (6)))
           return false;
         for (int i = 0; i < 6; i++)
           val.FontMatrix[i] = stack.pop ().to_real ();
-        val.pushOpStr (op, str, offset + 1, false);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
@@ -187,7 +187,7 @@ struct CFF2FontDictOpSet
           return false;
         if (unlikely (!stack.check_pop_uint (val.privateDictSize)))
           return false;
-        val.pushOpStr (op, str, offset + 1, true);
+        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
@@ -286,19 +286,19 @@ struct CFF2PrivateDictOpSet
   {
     switch (op) {
       case OpCode_BlueValues:
-        if (unlikely (!stack.check_pop_delta (val.blueValues, true)))
+        if (unlikely (!stack.check_pop_delta (val.blueValues)))
           return false;
         break;
       case OpCode_OtherBlues:
-        if (unlikely (!stack.check_pop_delta (val.otherBlues, true)))
+        if (unlikely (!stack.check_pop_delta (val.otherBlues)))
           return false;
         break;
       case OpCode_FamilyBlues:
-        if (unlikely (!stack.check_pop_delta (val.familyBlues, true)))
+        if (unlikely (!stack.check_pop_delta (val.familyBlues)))
           return false;
         break;
       case OpCode_FamilyOtherBlues:
-        if (unlikely (!stack.check_pop_delta (val.familyOtherBlues, true)))
+        if (unlikely (!stack.check_pop_delta (val.familyOtherBlues)))
           return false;
         break;
       case OpCode_StdHW:
@@ -362,7 +362,7 @@ struct CFF2PrivateDictOpSet
     }
 
     if (op != OpCode_blend)
-      val.pushOpStr (op, str, offset + 1, op == OpCode_Subrs);
+      val.pushOpStr (op, str, offset + 1);
 
     return true;
   }
