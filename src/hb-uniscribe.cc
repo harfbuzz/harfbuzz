@@ -383,7 +383,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   memcpy(new_sfnt_data, orig_sfnt_data, length);
 
-  OT::name &name = OT::StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
+  OT::name &name = StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
   name.format.set (0);
   name.count.set (ARRAY_LENGTH (name_IDs));
   name.stringOffset.set (name.get_size ());
@@ -399,7 +399,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   }
 
   /* Copy string data from new_name, converting wchar_t to UTF16BE. */
-  unsigned char *p = &OT::StructAfter<unsigned char> (name);
+  unsigned char *p = &StructAfter<unsigned char> (name);
   for (unsigned int i = 0; i < name_str_len; i++)
   {
     *p++ = new_name[i] >> 8;
