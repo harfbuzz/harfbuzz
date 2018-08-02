@@ -656,6 +656,8 @@ struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<Whe
 {
   static inline T *create (hb_face_t *face)
   {
+    if (unlikely (!face))
+      return const_cast<T *> (&Null(T));
     T *p = (T *) calloc (1, sizeof (T));
     if (unlikely (!p))
       p = const_cast<T *> (&Null(T));
@@ -678,6 +680,8 @@ struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_table_lazy_
 {
   static inline hb_blob_t *create (hb_face_t *face)
   {
+    if (unlikely (!face))
+      return hb_blob_get_empty ();
     return hb_sanitize_context_t ().reference_table<T> (face);
   }
   static inline void destroy (hb_blob_t *p)
