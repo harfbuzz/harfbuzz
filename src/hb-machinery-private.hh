@@ -30,6 +30,8 @@
 #define HB_MACHINERY_PRIVATE_HH
 
 #include "hb-private.hh"
+#include "hb-blob-private.hh"
+
 #include "hb-iter-private.hh"
 
 
@@ -188,7 +190,7 @@ struct hb_sanitize_context_t :
 
   inline void start_processing (void)
   {
-    this->start = hb_blob_get_data (this->blob, nullptr);
+    this->start = this->blob->data;
     this->end = this->start + this->blob->length;
     assert (this->start <= this->end); /* Must not overflow. */
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
@@ -336,7 +338,7 @@ struct hb_sanitize_context_t :
     DEBUG_MSG_FUNC (SANITIZE, start, sane ? "PASSED" : "FAILED");
     if (sane)
     {
-      blob->lock ();
+      hb_blob_make_immutable (blob);
       return blob;
     }
     else
@@ -350,8 +352,8 @@ struct hb_sanitize_context_t :
   inline hb_blob_t *reference_table (const hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
   {
     if (!num_glyphs_set)
-      set_num_glyphs (face->get_num_glyphs ());
-    return sanitize_blob<Type> (face->reference_table (tableTag));
+      set_num_glyphs (hb_face_get_glyph_count (face));
+    return sanitize_blob<Type> (hb_face_reference_table (face, tableTag));
   }
 
   mutable unsigned int debug_depth;
