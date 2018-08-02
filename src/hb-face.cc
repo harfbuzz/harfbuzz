@@ -51,6 +51,7 @@ hb_face_count (hb_blob_t *blob)
     return 0;
 
   /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
+  /* Make API signature const after. */
   hb_blob_t *sanitized = OT::hb_sanitize_context_t().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
   const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
   unsigned int ret = ot.get_face_count ();
@@ -302,7 +303,7 @@ hb_face_set_user_data (hb_face_t          *face,
  * Since: 0.9.2
  **/
 void *
-hb_face_get_user_data (hb_face_t          *face,
+hb_face_get_user_data (const hb_face_t    *face,
 		       hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (face, key);
@@ -336,7 +337,7 @@ hb_face_make_immutable (hb_face_t *face)
  * Since: 0.9.2
  **/
 hb_bool_t
-hb_face_is_immutable (hb_face_t *face)
+hb_face_is_immutable (const hb_face_t *face)
 {
   return face->immutable;
 }
@@ -354,8 +355,8 @@ hb_face_is_immutable (hb_face_t *face)
  * Since: 0.9.2
  **/
 hb_blob_t *
-hb_face_reference_table (hb_face_t *face,
-			 hb_tag_t   tag)
+hb_face_reference_table (const hb_face_t *face,
+			 hb_tag_t tag)
 {
   return face->reference_table (tag);
 }
@@ -406,7 +407,7 @@ hb_face_set_index (hb_face_t    *face,
  * Since: 0.9.2
  **/
 unsigned int
-hb_face_get_index (hb_face_t    *face)
+hb_face_get_index (const hb_face_t *face)
 {
   return face->index;
 }
@@ -441,7 +442,7 @@ hb_face_set_upem (hb_face_t    *face,
  * Since: 0.9.2
  **/
 unsigned int
-hb_face_get_upem (hb_face_t *face)
+hb_face_get_upem (const hb_face_t *face)
 {
   return face->get_upem ();
 }
@@ -476,7 +477,7 @@ hb_face_set_glyph_count (hb_face_t    *face,
  * Since: 0.9.7
  **/
 unsigned int
-hb_face_get_glyph_count (hb_face_t *face)
+hb_face_get_glyph_count (const hb_face_t *face)
 {
   return face->get_num_glyphs ();
 }
@@ -492,7 +493,7 @@ hb_face_get_glyph_count (hb_face_t *face)
  * Since: 1.6.0
  **/
 unsigned int
-hb_face_get_table_tags (hb_face_t    *face,
+hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int  start_offset,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
