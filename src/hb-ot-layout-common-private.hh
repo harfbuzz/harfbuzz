@@ -45,8 +45,10 @@
 /*
  * The maximum number of times a lookup can be applied during shaping.
  * Used to limit the number of iterations of the closure algorithm.
+ * This must be larger than the number of times add_pause() is
+ * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES	8
+#define HB_CLOSURE_MAX_STAGES	32
 #endif
 
 
@@ -188,6 +190,11 @@ struct IndexArray : ArrayOf<Index>
     }
     return this->len;
   }
+
+  inline void add_indexes_to (hb_set_t* output /* OUT */) const
+  {
+    output->add_array (arrayZ, len);
+  }
 };
 
 
@@ -206,6 +213,8 @@ struct LangSys
 					   unsigned int *feature_count /* IN/OUT */,
 					   unsigned int *feature_indexes /* OUT */) const
   { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
+  inline void add_feature_indexes_to (hb_set_t *feature_indexes) const
+  { featureIndex.add_indexes_to (feature_indexes); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xFFFFu; }
   inline unsigned int get_required_feature_index (void) const
@@ -483,20 +492,6 @@ struct FeatureParams
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null(FeatureParamsSize);
-  }
-
-  inline const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
-  {
-    if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
-      return u.stylisticSet;
-    return Null(FeatureParamsStylisticSet);
-  }
-
-  inline const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
-  {
-    if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
-      return u.characterVariants;
-    return Null(FeatureParamsCharacterVariants);
   }
 
   private:

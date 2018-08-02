@@ -398,7 +398,7 @@ bool
 hb_subset_cff2 (hb_subset_plan_t *plan,
                 hb_blob_t       **prime /* OUT */)
 {
-  hb_blob_t *cff2_blob = OT::hb_sanitize_context_t().reference_table<CFF::cff2> (plan->source);
+  hb_blob_t *cff2_blob = hb_sanitize_context_t().reference_table<CFF::cff2> (plan->source);
   const char *data = hb_blob_get_data(cff2_blob, nullptr);
 
   OT::cff2::accelerator_t acc;

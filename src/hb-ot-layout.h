@@ -194,6 +194,13 @@ HB_EXTERN unsigned int
 hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 				     hb_tag_t      table_tag);
 
+HB_EXTERN void
+hb_ot_layout_collect_features (hb_face_t      *face,
+                               hb_tag_t        table_tag,
+                               const hb_tag_t *scripts,
+                               const hb_tag_t *languages,
+                               const hb_tag_t *features,
+                               hb_set_t       *feature_indexes /* OUT */);
 
 HB_EXTERN void
 hb_ot_layout_collect_lookups (hb_face_t      *face,
@@ -322,14 +329,6 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
 
-HB_EXTERN hb_bool_t
-hb_ot_layout_get_feature_name_ids (hb_face_t      *face,
-				   hb_tag_t        feature,
-				   unsigned int   *label_id             /* OUT.  May be NULL */,
-				   unsigned int   *tooltip_id           /* OUT.  May be NULL */,
-				   unsigned int   *sample_id            /* OUT.  May be NULL */,
-				   unsigned int   *num_named_parameters /* OUT.  May be NULL */,
-				   unsigned int   *first_param_id       /* OUT.  May be NULL */);
 
 /*
  * BASE

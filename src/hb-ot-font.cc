@@ -45,11 +45,13 @@ struct hb_ot_font_t
   OT::cmap::accelerator_t cmap;
   OT::hmtx::accelerator_t h_metrics;
   OT::vmtx::accelerator_t v_metrics;
-  OT::hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
-  OT::hb_lazy_loader_t<OT::cff2::accelerator_t> cff2;
-  OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
-  OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
-  OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
+
+  hb_face_t *face; /* MUST be before the lazy loaders. */
+  hb_lazy_loader_t<1, OT::glyf::accelerator_t> glyf;
+  hb_lazy_loader_t<2, OT::CBDT::accelerator_t> cbdt;
+  hb_lazy_loader_t<3, OT::post::accelerator_t> post;
+  hb_lazy_loader_t<4, OT::kern::accelerator_t> kern;
+  hb_lazy_loader_t<5, OT::kern::accelerator_t> cff2;
 };
 
 
@@ -64,10 +66,11 @@ _hb_ot_font_create (hb_face_t *face)
   ot_font->cmap.init (face);
   ot_font->h_metrics.init (face);
   ot_font->v_metrics.init (face, ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
-  ot_font->glyf.init (face);
-  ot_font->cbdt.init (face);
-  ot_font->post.init (face);
-  ot_font->kern.init (face);
+  ot_font->face = face;
+  ot_font->glyf.init ();
+  ot_font->cbdt.init ();
+  ot_font->post.init ();
+  ot_font->kern.init ();
 
   return ot_font;
 }

@@ -525,34 +525,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
 
 
-/* Global runtime options. */
-
-struct hb_options_t
-{
-  unsigned int initialized : 1;
-  unsigned int uniscribe_bug_compatible : 1;
-};
-
-union hb_options_union_t {
-  unsigned int i;
-  hb_options_t opts;
-};
-static_assert ((sizeof (int) == sizeof (hb_options_union_t)), "");
-
-HB_INTERNAL void
-_hb_options_init (void);
-
-extern HB_INTERNAL hb_options_union_t _hb_options;
-
-static inline hb_options_t
-hb_options (void)
-{
-  if (unlikely (!_hb_options.i))
-    _hb_options_init ();
-
-  return _hb_options.opts;
-}
-
 /* Size signifying variable-sized array */
 #define VAR 1
 

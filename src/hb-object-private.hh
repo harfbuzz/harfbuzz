@@ -47,14 +47,14 @@ struct hb_reference_count_t
 {
   hb_atomic_int_t ref_count;
 
-  inline void init (int v) { ref_count.set_unsafe (v); }
-  inline int get_unsafe (void) const { return ref_count.get_unsafe (); }
+  inline void init (int v) { ref_count.set_relaxed (v); }
+  inline int get_relaxed (void) const { return ref_count.get_relaxed (); }
   inline int inc (void) { return ref_count.inc (); }
   inline int dec (void) { return ref_count.dec (); }
-  inline void fini (void) { ref_count.set_unsafe (HB_REFERENCE_COUNT_POISON_VALUE); }
+  inline void fini (void) { ref_count.set_relaxed (HB_REFERENCE_COUNT_POISON_VALUE); }
 
-  inline bool is_inert (void) const { return ref_count.get_unsafe () == HB_REFERENCE_COUNT_INERT_VALUE; }
-  inline bool is_valid (void) const { return ref_count.get_unsafe () > 0; }
+  inline bool is_inert (void) const { return ref_count.get_relaxed () == HB_REFERENCE_COUNT_INERT_VALUE; }
+  inline bool is_valid (void) const { return ref_count.get_relaxed () > 0; }
 };
 
 
@@ -111,7 +111,7 @@ static inline void hb_object_trace (const Type *obj, const char *function)
   DEBUG_MSG (OBJECT, (void *) obj,
 	     "%s refcount=%d",
 	     function,
-	     obj ? obj->header.ref_count.get_unsafe () : 0);
+	     obj ? obj->header.ref_count.get_relaxed () : 0);
 }
 
 template <typename Type>

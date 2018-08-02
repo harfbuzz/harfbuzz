@@ -421,7 +421,7 @@ struct cff2
         }
       }
       
-      globalSubrs = &OT::StructAtOffset<Subrs> (cff2, cff2->topDict + cff2->topDictSize);
+      globalSubrs = &StructAtOffset<Subrs> (cff2, cff2->topDict + cff2->topDictSize);
       varStore = &top.vstoreOffset (cff2);
       charStrings = &top.charStringsOffset (cff2);
       fdArray = &top.FDArrayOffset (cff2);

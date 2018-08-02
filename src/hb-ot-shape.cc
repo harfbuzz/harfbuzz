@@ -27,8 +27,8 @@
  */
 
 #define HB_SHAPER ot
-#define hb_ot_shaper_face_data_t hb_ot_layout_t
-#define hb_ot_shaper_shape_plan_data_t hb_ot_shape_plan_t
+#define hb_ot_face_data_t hb_ot_layout_t
+#define hb_ot_shape_plan_data_t hb_ot_shape_plan_t
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-ot-shape-private.hh"
@@ -132,14 +132,14 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
 HB_SHAPER_DATA_ENSURE_DEFINE(ot, face)
 
-hb_ot_shaper_face_data_t *
+hb_ot_face_data_t *
 _hb_ot_shaper_face_data_create (hb_face_t *face)
 {
   return _hb_ot_layout_create (face);
 }
 
 void
-_hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
+_hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
 {
   _hb_ot_layout_destroy (data);
 }
@@ -151,16 +151,16 @@ _hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
 
 HB_SHAPER_DATA_ENSURE_DEFINE(ot, font)
 
-struct hb_ot_shaper_font_data_t {};
+struct hb_ot_font_data_t {};
 
-hb_ot_shaper_font_data_t *
+hb_ot_font_data_t *
 _hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 {
-  return (hb_ot_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
+_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data)
 {
 }
 
@@ -169,7 +169,7 @@ _hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
  * shaper shape_plan data
  */
 
-hb_ot_shaper_shape_plan_data_t *
+hb_ot_shape_plan_data_t *
 _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 				      const hb_feature_t *user_features,
 				      unsigned int        num_user_features,
@@ -204,7 +204,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 }
 
 void
-_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *plan)
+_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shape_plan_data_t *plan)
 {
   if (plan->shaper->data_destroy)
     plan->shaper->data_destroy (const_cast<void *> (plan->data));

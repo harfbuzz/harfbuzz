@@ -30,10 +30,9 @@
 #define HB_MACHINERY_PRIVATE_HH
 
 #include "hb-private.hh"
+#include "hb-blob-private.hh"
+
 #include "hb-iter-private.hh"
-
-
-namespace OT {
 
 
 /*
@@ -188,7 +187,7 @@ struct hb_sanitize_context_t :
 
   inline void start_processing (void)
   {
-    this->start = hb_blob_get_data (this->blob, nullptr);
+    this->start = this->blob->data;
     this->end = this->start + this->blob->length;
     assert (this->start <= this->end); /* Must not overflow. */
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
@@ -336,7 +335,7 @@ struct hb_sanitize_context_t :
     DEBUG_MSG_FUNC (SANITIZE, start, sane ? "PASSED" : "FAILED");
     if (sane)
     {
-      blob->lock ();
+      hb_blob_make_immutable (blob);
       return blob;
     }
     else
@@ -350,8 +349,8 @@ struct hb_sanitize_context_t :
   inline hb_blob_t *reference_table (const hb_face_t *face, hb_tag_t tableTag = Type::tableTag)
   {
     if (!num_glyphs_set)
-      set_num_glyphs (face->get_num_glyphs ());
-    return sanitize_blob<Type> (face->reference_table (tableTag));
+      set_num_glyphs (hb_face_get_glyph_count (face));
+    return sanitize_blob<Type> (hb_face_reference_table (face, tableTag));
   }
 
   mutable unsigned int debug_depth;
@@ -465,12 +464,6 @@ struct hb_serialize_context_t
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
     if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (&obj);
-  }
-
-  inline void truncate (void *new_head)
-  {
-    assert (this->start < new_head && new_head <= this->head);
-    this->head = (char *) new_head;
   }
 
   unsigned int debug_depth;
@@ -594,109 +587,117 @@ struct BEInt<Type, 4>
 
 
 /*
- * Lazy struct and blob loaders.
+ * Lazy loaders.
  */
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
-template <typename T>
-struct hb_lazy_loader_t
+template <unsigned int WheresFace,
+	  typename Subclass,
+	  typename Returned,
+	  typename Stored = Returned>
+struct hb_base_lazy_loader_t
 {
-  inline void init (hb_face_t *face_)
+  static_assert (WheresFace > 0, "");
+
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
+  inline Subclass* thiz (void) { return static_cast<Subclass *> (this); }
+
+  inline void init (void)
   {
-    face = face_;
     instance = nullptr;
   }
-
   inline void fini (void)
   {
-    if (instance && instance != &Null(T))
-    {
-      instance->fini();
-      free (instance);
-    }
+    if (instance)
+      thiz ()->destroy (instance);
   }
 
-  inline const T* get (void) const
+  inline const Returned * operator-> (void) const
+  {
+    return thiz ()->get ();
+  }
+
+  inline Stored * get_stored (void) const
   {
   retry:
-    T *p = (T *) hb_atomic_ptr_get (&instance);
+    Stored *p = (Stored *) hb_atomic_ptr_get (&this->instance);
     if (unlikely (!p))
     {
-      p = (T *) calloc (1, sizeof (T));
-      if (unlikely (!p))
-        p = const_cast<T *> (&Null(T));
-      else
-	p->init (face);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), nullptr, p)))
+      hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
+      p = thiz ()->create (face);
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), nullptr, p)))
       {
-	if (p != &Null(T))
-	  p->fini ();
+        thiz ()->destroy (p);
 	goto retry;
       }
     }
     return p;
   }
 
-  inline const T* operator-> (void) const
+  inline const Returned * get (void) const
   {
-    return get ();
+    return thiz ()->convert (get_stored ());
+  }
+
+  static inline const Returned* convert (const Stored *p)
+  {
+    return p;
   }
 
   private:
-  hb_face_t *face;
-  mutable T *instance;
+  /* Must only have one pointer. */
+  mutable Stored *instance;
 };
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
-template <typename T>
-struct hb_table_lazy_loader_t
-{
-  inline void init (hb_face_t *face_)
-  {
-    face = face_;
-    blob = nullptr;
-  }
+/* Specializations. */
 
-  inline void fini (void)
+template <unsigned int WheresFace, typename T>
+struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<WheresFace, T>, T>
+{
+  static inline T *create (hb_face_t *face)
   {
-    hb_blob_destroy (blob);
+    if (unlikely (!face))
+      return const_cast<T *> (&Null(T));
+    T *p = (T *) calloc (1, sizeof (T));
+    if (unlikely (!p))
+      p = const_cast<T *> (&Null(T));
+    else
+      p->init (face);
+    return p;
+  }
+  static inline void destroy (T *p)
+  {
+    if (p != &Null(T))
+    {
+      p->fini();
+      free (p);
+    }
+  }
+};
+
+template <unsigned int WheresFace, typename T>
+struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
+{
+  static inline hb_blob_t *create (hb_face_t *face)
+  {
+    if (unlikely (!face))
+      return hb_blob_get_empty ();
+    return hb_sanitize_context_t ().reference_table<T> (face);
+  }
+  static inline void destroy (hb_blob_t *p)
+  {
+    hb_blob_destroy (p);
+  }
+  static inline const T* convert (const hb_blob_t *blob)
+  {
+    return blob->as<T> ();
   }
 
   inline hb_blob_t* get_blob (void) const
   {
-  retry:
-    hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&blob);
-    if (unlikely (!b))
-    {
-      b = OT::hb_sanitize_context_t().reference_table<T> (face);
-      if (!hb_atomic_ptr_cmpexch (&blob, nullptr, b))
-      {
-	hb_blob_destroy (b);
-	goto retry;
-      }
-      blob = b;
-    }
-    return b;
+    return this->get_stored ();
   }
-
-  inline const T* get (void) const
-  {
-    hb_blob_t *b = get_blob ();
-    return b->as<T> ();
-  }
-
-  inline const T* operator-> (void) const
-  {
-    return get();
-  }
-
-  private:
-  hb_face_t *face;
-  mutable hb_blob_t *blob;
 };
-
-
-} /* namespace OT */
 
 
 #endif /* HB_MACHINERY_PRIVATE_HH */
