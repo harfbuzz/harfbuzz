@@ -54,7 +54,7 @@ _hb_shapers_get (void);
 /* Means: tried but failed to create. */
 #define HB_SHAPER_DATA_INVALID ((void *) -1)
 
-#define HB_SHAPER_DATA_TYPE_NAME(shaper, object)	hb_##shaper##_shaper_##object##_data_t
+#define HB_SHAPER_DATA_TYPE_NAME(shaper, object)	hb_##shaper##_##object##_data_t
 #define HB_SHAPER_DATA_TYPE(shaper, object)		struct HB_SHAPER_DATA_TYPE_NAME(shaper, object)
 #define HB_SHAPER_DATA_INSTANCE(shaper, object, instance)	(* (HB_SHAPER_DATA_TYPE(shaper, object) **) &(instance)->shaper_data.shaper)
 #define HB_SHAPER_DATA(shaper, object)			HB_SHAPER_DATA_INSTANCE(shaper, object, object)
