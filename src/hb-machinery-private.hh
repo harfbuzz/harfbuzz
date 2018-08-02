@@ -35,9 +35,6 @@
 #include "hb-iter-private.hh"
 
 
-namespace OT {
-
-
 /*
  * Casts
  */
@@ -593,7 +590,8 @@ struct BEInt<Type, 4>
  * Lazy struct and blob loaders.
  */
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
+/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t.
+ * I mean, yeah, only every method is different. */
 template <typename T>
 struct hb_lazy_loader_t
 {
@@ -643,7 +641,8 @@ struct hb_lazy_loader_t
   mutable T *instance;
 };
 
-/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t */
+/* Logic is shared between hb_lazy_loader_t and hb_table_lazy_loader_t.
+ * I mean, yeah, only every method is different. */
 template <typename T>
 struct hb_table_lazy_loader_t
 {
@@ -664,7 +663,7 @@ struct hb_table_lazy_loader_t
     hb_blob_t *b = (hb_blob_t *) hb_atomic_ptr_get (&blob);
     if (unlikely (!b))
     {
-      b = OT::hb_sanitize_context_t().reference_table<T> (face);
+      b = hb_sanitize_context_t ().reference_table<T> (face);
       if (!hb_atomic_ptr_cmpexch (&blob, nullptr, b))
       {
 	hb_blob_destroy (b);
@@ -690,9 +689,6 @@ struct hb_table_lazy_loader_t
   hb_face_t *face;
   mutable hb_blob_t *blob;
 };
-
-
-} /* namespace OT */
 
 
 #endif /* HB_MACHINERY_PRIVATE_HH */

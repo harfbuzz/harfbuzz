@@ -52,7 +52,7 @@ hb_face_count (hb_blob_t *blob)
 
   /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
   /* Make API signature const after. */
-  hb_blob_t *sanitized = OT::hb_sanitize_context_t().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
+  hb_blob_t *sanitized = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
   const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
   unsigned int ret = ot.get_face_count ();
   hb_blob_destroy (sanitized);
@@ -190,7 +190,7 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!blob))
     blob = hb_blob_get_empty ();
 
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::hb_sanitize_context_t().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob)), index);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
     return hb_face_get_empty ();

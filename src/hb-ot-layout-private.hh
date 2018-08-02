@@ -172,11 +172,11 @@ struct hb_ot_layout_t
   const struct OT::GPOS *gpos;
 
   /* TODO Move the following out of this struct. */
-  OT::hb_table_lazy_loader_t<struct OT::BASE> base;
-  OT::hb_table_lazy_loader_t<struct OT::MATH> math;
-  OT::hb_table_lazy_loader_t<struct OT::fvar> fvar;
-  OT::hb_table_lazy_loader_t<struct OT::avar> avar;
-  OT::hb_table_lazy_loader_t<struct AAT::morx> morx;
+  hb_table_lazy_loader_t<struct OT::BASE> base;
+  hb_table_lazy_loader_t<struct OT::MATH> math;
+  hb_table_lazy_loader_t<struct OT::fvar> fvar;
+  hb_table_lazy_loader_t<struct OT::avar> avar;
+  hb_table_lazy_loader_t<struct AAT::morx> morx;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

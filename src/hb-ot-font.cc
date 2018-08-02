@@ -44,10 +44,10 @@ struct hb_ot_font_t
   OT::cmap::accelerator_t cmap;
   OT::hmtx::accelerator_t h_metrics;
   OT::vmtx::accelerator_t v_metrics;
-  OT::hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
-  OT::hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
-  OT::hb_lazy_loader_t<OT::post::accelerator_t> post;
-  OT::hb_lazy_loader_t<OT::kern::accelerator_t> kern;
+  hb_lazy_loader_t<OT::glyf::accelerator_t> glyf;
+  hb_lazy_loader_t<OT::CBDT::accelerator_t> cbdt;
+  hb_lazy_loader_t<OT::post::accelerator_t> post;
+  hb_lazy_loader_t<OT::kern::accelerator_t> kern;
 };
 
 

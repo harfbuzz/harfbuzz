@@ -54,13 +54,13 @@ _hb_ot_layout_create (hb_face_t *face)
   if (unlikely (!layout))
     return nullptr;
 
-  layout->gdef_blob = OT::hb_sanitize_context_t().reference_table<OT::GDEF> (face);
+  layout->gdef_blob = hb_sanitize_context_t ().reference_table<OT::GDEF> (face);
   layout->gdef = layout->gdef_blob->as<OT::GDEF> ();
 
-  layout->gsub_blob = OT::hb_sanitize_context_t().reference_table<OT::GSUB> (face);
+  layout->gsub_blob = hb_sanitize_context_t ().reference_table<OT::GSUB> (face);
   layout->gsub = layout->gsub_blob->as<OT::GSUB> ();
 
-  layout->gpos_blob = OT::hb_sanitize_context_t().reference_table<OT::GPOS> (face);
+  layout->gpos_blob = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
   layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
   layout->math.init (face);
@@ -1116,7 +1116,7 @@ struct GPOSProxy
 
 
 struct hb_get_subtables_context_t :
-       OT::hb_dispatch_context_t<hb_get_subtables_context_t, hb_void_t, HB_DEBUG_APPLY>
+       hb_dispatch_context_t<hb_get_subtables_context_t, hb_void_t, HB_DEBUG_APPLY>
 {
   template <typename Type>
   static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
