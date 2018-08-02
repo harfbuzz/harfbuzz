@@ -48,7 +48,7 @@ struct CFF2VariationStore
 
   inline bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
   {
-    TRACE_SANITIZE (this);
+    TRACE_SERIALIZE (this);
     unsigned int size_ = varStore->get_size ();
     CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (size_);
     if (unlikely (dest == nullptr)) return_trace (false);

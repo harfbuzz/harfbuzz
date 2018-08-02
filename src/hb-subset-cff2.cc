@@ -144,6 +144,7 @@ struct CFF2PrivateDict_OpSerializer : OpSerializer
 
 struct subset_plan {
   inline subset_plan (void)
+    : final_size (0)
   {
     subset_charstrings.init ();
     private_off_and_size_pairs.init ();
