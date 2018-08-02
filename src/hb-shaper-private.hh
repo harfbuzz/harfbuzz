@@ -89,7 +89,13 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
     /* Note that evaluating condition above can be dangerous if another thread \
      * got here first and destructed data.  That's, as always, bad use pattern. \
      * If you modify the font (change font size), other threads must not be \
-     * using it at the same time. */ \
+     * using it at the same time.  However, since this check is delayed to \
+     * when one actually tries to shape something, this is a XXX race condition \
+     * (and the only know we have that I know of) right now.  Ie. you modify the \
+     * font size in one thread, then (supposedly safely) try to use it from two \
+     * or more threads and BOOM!  I'm not sure how to fix this.  We want RCU. \
+     * Maybe when it doesn't matter when we finally implement AAT shaping, as
+     * this (condition) is currently only used by hb-coretext. */ \
     /* Drop and recreate. */ \
     /* If someone dropped it in the mean time, throw it away and don't touch it. \
      * Otherwise, destruct it. */ \
