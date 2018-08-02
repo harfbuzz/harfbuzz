@@ -171,6 +171,12 @@ struct hb_ot_layout_t
   const struct OT::GSUB *gsub;
   const struct OT::GPOS *gpos;
 
+  unsigned int gsub_lookup_count;
+  unsigned int gpos_lookup_count;
+
+  hb_ot_layout_lookup_accelerator_t *gsub_accels;
+  hb_ot_layout_lookup_accelerator_t *gpos_accels;
+
   /* TODO Move the following out of this struct. */
   hb_face_t *face; /* MUST be before the lazy loaders. */
   hb_table_lazy_loader_t<1, struct OT::BASE> base;
@@ -178,12 +184,6 @@ struct hb_ot_layout_t
   hb_table_lazy_loader_t<3, struct OT::fvar> fvar;
   hb_table_lazy_loader_t<4, struct OT::avar> avar;
   hb_table_lazy_loader_t<5, struct AAT::morx> morx;
-
-  unsigned int gsub_lookup_count;
-  unsigned int gpos_lookup_count;
-
-  hb_ot_layout_lookup_accelerator_t *gsub_accels;
-  hb_ot_layout_lookup_accelerator_t *gpos_accels;
 };
 
 

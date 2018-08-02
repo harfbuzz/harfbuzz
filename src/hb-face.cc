@@ -33,7 +33,6 @@
 #include "hb-open-file-private.hh"
 
 
-
 /**
  * hb_face_count: Get number of faces on the blob
  * @blob:
