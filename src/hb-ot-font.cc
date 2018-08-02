@@ -45,7 +45,7 @@ struct hb_ot_font_t
   OT::hmtx::accelerator_t h_metrics;
   OT::vmtx::accelerator_t v_metrics;
 
-  hb_face_t *face; /* MUST be before the lazy loaders. */
+  hb_face_t *face; /* MUST be JUST before the lazy loaders. */
   hb_lazy_loader_t<1, OT::glyf::accelerator_t> glyf;
   hb_lazy_loader_t<2, OT::CBDT::accelerator_t> cbdt;
   hb_lazy_loader_t<3, OT::post::accelerator_t> post;

@@ -178,7 +178,7 @@ struct hb_ot_layout_t
   hb_ot_layout_lookup_accelerator_t *gpos_accels;
 
   /* TODO Move the following out of this struct. */
-  hb_face_t *face; /* MUST be before the lazy loaders. */
+  hb_face_t *face; /* MUST be JUST before the lazy loaders. */
   hb_table_lazy_loader_t<1, struct OT::MATH> math;
   hb_table_lazy_loader_t<2, struct OT::fvar> fvar;
   hb_table_lazy_loader_t<3, struct OT::avar> avar;
