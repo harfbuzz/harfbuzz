@@ -587,7 +587,7 @@ struct BEInt<Type, 4>
 
 
 /*
- * Lazy struct and blob loaders.
+ * Lazy loaders.
  */
 
 template <unsigned int WheresFace,
@@ -648,6 +648,8 @@ struct hb_base_lazy_loader_t
   /* Must only have one pointer. */
   mutable Stored *instance;
 };
+
+/* Specializations. */
 
 template <unsigned int WheresFace, typename T>
 struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<WheresFace, T>, T>
