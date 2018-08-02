@@ -625,8 +625,7 @@ inline float parse_bcd (const ByteStr& str, unsigned int& offset, float& v)
 
 struct Number
 {
-  Number (int v = 0) { set_int (v); }
-  Number (float v) { set_real (v); }
+  inline Number (void) { set_int (0); }
 
   inline void set_int (int v)       { is_real = false; u.int_val = v; };
   inline int to_int (void) const    { return is_real? (int)u.real_val: u.int_val; }
@@ -650,6 +649,20 @@ struct Stack
   {
     if (likely (size < kSizeLimit))
       numbers[size++] = v;
+  }
+
+  inline void push_int (int v)
+  {
+    Number n;
+    n.set_int (v);
+    push (n);
+  }
+
+  inline void push_real (float v)
+  {
+    Number n;
+    n.set_real (v);
+    push (n);
   }
 
   inline const Number& pop (void)
@@ -787,7 +800,7 @@ struct Interpreter {
       case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
         if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + str[offset + 1] + 108));
+        stack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + str[offset + 1] + 108));
         offset++;
         break;
       
@@ -795,14 +808,14 @@ struct Interpreter {
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
         if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - str[offset + 1] - 108));
+        stack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - str[offset + 1] - 108));
         offset++;
         break;
       
       case OpCode_shortint: /* 3-byte integer */
         if (unlikely (!str.check_limit (offset, 3) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int16_t)*(const HBUINT16*)&str[offset + 1]);
+        stack.push_int ((int16_t)*(const HBUINT16*)&str[offset + 1]);
         offset += 2;
         break;
       
@@ -811,7 +824,7 @@ struct Interpreter {
         if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)) &&
             likely (stack.check_overflow (1)))
         {
-          stack.push ((int)op - 139);
+          stack.push_int ((int)op - 139);
         } else {
           return false;
         }

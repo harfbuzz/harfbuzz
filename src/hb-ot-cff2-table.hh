@@ -138,7 +138,7 @@ struct CFF2TopDictOpSet
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int32_t)*(const HBUINT32*)&str[offset + 1]);
+        stack.push_int ((int32_t)*(const HBUINT32*)&str[offset + 1]);
         offset += 4;
         break;
       
@@ -146,7 +146,7 @@ struct CFF2TopDictOpSet
         float v;
         if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
-        stack.push (v);
+        stack.push_real (v);
         break;
     
       default:
@@ -192,14 +192,14 @@ struct CFF2FontDictOpSet
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int32_t)((str[offset + 1] << 24) | ((uint32_t)str[offset + 2] << 16) | ((uint32_t)str[offset + 3] << 8) | str[offset + 4]));
+        stack.push_int ((int32_t)((str[offset + 1] << 24) | ((uint32_t)str[offset + 2] << 16) | ((uint32_t)str[offset + 3] << 8) | str[offset + 4]));
         offset += 4;
         break;
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
-        stack.push (v);
+        stack.push_real (v);
         break;
     
       default:
@@ -347,14 +347,14 @@ struct CFF2PrivateDictOpSet
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
-        stack.push ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
+        stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
         offset += 4;
         break;
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (!stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
-        stack.push (v);
+        stack.push_real (v);
         break;
 
       default:
@@ -493,7 +493,7 @@ struct cff2
       return true;
     }
 
-    private:
+    protected:
     hb_blob_t               *blob;
     hb_sanitize_context_t   sc;
 
