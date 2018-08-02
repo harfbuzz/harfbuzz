@@ -239,10 +239,9 @@ static inline bool _write_cff2 (const subset_plan &plan,
 {
   hb_serialize_context_t c (dest, dest_sz);
 
-  TRACE_SERIALIZE (this);
   OT::cff2 *cff2 = c.start_serialize<OT::cff2> ();
   if (unlikely (!c.extend_min (*cff2)))
-    return_trace (false);
+    return false;
 
   /* header */
   cff2->version.major.set (0x02);
@@ -258,7 +257,7 @@ static inline bool _write_cff2 (const subset_plan &plan,
     if (unlikely (!dict.serialize (&c, acc.top, topSzr, plan.offsets)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 top dict");
-      return_trace (false);
+      return false;
     }
   }
 
@@ -266,11 +265,11 @@ static inline bool _write_cff2 (const subset_plan &plan,
   {
     assert (cff2->topDict + plan.offsets.topDictSize == c.head - c.start);
     Subrs *dest = c.start_embed<Subrs> ();
-    if (unlikely (dest == nullptr)) return_trace (false);;
+    if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, *acc.globalSubrs)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 global subrs");
-      return_trace (false);
+      return false;
     }
   }
   
@@ -282,7 +281,7 @@ static inline bool _write_cff2 (const subset_plan &plan,
     if (unlikely (!dest->serialize (&c, acc.varStore)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Variation Store");
-      return_trace (false);
+      return false;
     }
   }
 
@@ -294,7 +293,7 @@ static inline bool _write_cff2 (const subset_plan &plan,
     if (unlikely (!dest->serialize (&c, *acc.fdSelect, acc.num_glyphs)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDSelect");
-      return_trace (false);
+      return false;
     }
   }
 
@@ -302,12 +301,12 @@ static inline bool _write_cff2 (const subset_plan &plan,
   {
     assert (plan.offsets.FDArrayOffset == c.head - c.start);
     FDArray  *fda = c.start_embed<FDArray> ();
-    if (unlikely (fda == nullptr)) return_trace (false);
+    if (unlikely (fda == nullptr)) return false;
     CFF2FontDict_OpSerializer  fontSzr;
     if (unlikely (!fda->serialize (&c, plan.offsets.FDArrayOffSize, acc.fontDicts, fontSzr, plan.private_off_and_size_pairs)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDArray");
-      return_trace (false);
+      return false;
     }
   }
 
@@ -315,11 +314,11 @@ static inline bool _write_cff2 (const subset_plan &plan,
   {
     assert (plan.offsets.charStringsOffset == c.head - c.start);
     CharStrings  *cs = c.start_embed<CharStrings> ();
-    if (unlikely (cs == nullptr)) return_trace (false);
+    if (unlikely (cs == nullptr)) return false;
     if (unlikely (!cs->serialize (&c, plan.offsets.charStringsOffSize, plan.subset_charstrings)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 CharStrings");
-      return_trace (false);
+      return false;
     }
   }
 
@@ -328,12 +327,12 @@ static inline bool _write_cff2 (const subset_plan &plan,
   for (unsigned int i = 0; i < acc.privateDicts.len; i++)
   {
     PrivateDict  *pd = c.start_embed<PrivateDict> ();
-    if (unlikely (pd == nullptr)) return_trace (false);
+    if (unlikely (pd == nullptr)) return false;
     CFF2PrivateDict_OpSerializer privSzr;
     if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, acc.privateDicts[i].subrsOffset)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Private Dict[%d]", i);
-      return_trace (false);
+      return false;
     }
     if (acc.privateDicts[i].subrsOffset != 0)
     {
@@ -341,12 +340,12 @@ static inline bool _write_cff2 (const subset_plan &plan,
       if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(Subrs))
       {
         DEBUG_MSG (SUBSET, nullptr, "CFF2 subset: local subrs unexpectedly null [%d]", i);
-        return_trace (false);
+        return false;
       }
       if (unlikely (!subrs->serialize (&c, *acc.privateDicts[i].localSubrs)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 local subrs [%d]", i);
-        return_trace (false);
+        return false;
       }
     }
   }
