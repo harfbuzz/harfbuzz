@@ -91,18 +91,6 @@ _hb_ot_layout_create (hb_face_t *face)
       || (490 == gdef_len && 41638 == gpos_len && 3046 == gsub_len)
       /* sha1sum:ec0f5a8751845355b7c3271d11f9918a966cb8c9 OS X 10.11.3 Times New Roman Bold Italic.ttf */
       || (478 == gdef_len && 41902 == gpos_len && 3046 == gsub_len)
-    )
-    {
-      /* In certain versions of Times New Roman Italic and Bold Italic,
-       * ASCII double quotation mark U+0022, mapped to glyph 5, has wrong
-       * glyph class 3 (mark) in GDEF.  Nuke the GDEF to avoid zero-width
-       * double-quote.  See:
-       * https://lists.freedesktop.org/archives/harfbuzz/2016-February/005489.html
-       */
-     if (3 == layout->gdef->get_glyph_class (5))
-       layout->gdef = &Null(OT::GDEF);
-    }
-    else if (0
       /* sha1sum:96eda93f7d33e79962451c6c39a6b51ee893ce8c  tahoma.ttf from Windows 8 */
       || (898 == gdef_len && 46470 == gpos_len && 12554 == gsub_len)
       /* sha1sum:20928dc06014e0cd120b6fc942d0c3b1a46ac2bc  tahomabd.ttf from Windows 8 */
