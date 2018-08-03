@@ -68,7 +68,7 @@ struct CFF2TopDictValues : DictValues<OpStr>
 {
   inline void init (void)
   {
-    DictValues::init ();
+    DictValues<OpStr>::init ();
     charStringsOffset.set (0);
     vstoreOffset.set (0);
     FDArrayOffset.set (0);
@@ -77,7 +77,7 @@ struct CFF2TopDictValues : DictValues<OpStr>
 
   inline void fini (void)
   {
-    DictValues::fini ();
+    DictValues<OpStr>::fini ();
     FontMatrix[0] = FontMatrix[3] = 0.001f;
     FontMatrix[1] = FontMatrix[2] = FontMatrix[4] = FontMatrix[5] = 0.0f;
   }
@@ -159,14 +159,14 @@ struct CFF2FontDictValues : DictValues<OpStr>
 {
   inline void init (void)
   {
-    DictValues::init ();
+    DictValues<OpStr>::init ();
     privateDictSize = 0;
     privateDictOffset.set (0);
   }
 
   inline void fini (void)
   {
-    DictValues::fini ();
+    DictValues<OpStr>::fini ();
   }
 
   unsigned int            privateDictSize;
