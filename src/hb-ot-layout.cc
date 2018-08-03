@@ -31,6 +31,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
 #include "hb-ot-map-private.hh"
+#include "hb-map-private.hh"
 
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
@@ -44,7 +45,6 @@
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-svg-table.hh"
 #include "hb-ot-name-table.hh"
-#include "hb-map-private.hh"
 
 
 static bool
@@ -165,11 +165,11 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
   layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
-  layout->face = face;
-  layout->math.init ();
-  layout->fvar.init ();
-  layout->avar.init ();
-  layout->morx.init ();
+  layout->table.face = face;
+  layout->table.math.init0 ();
+  layout->table.fvar.init0 ();
+  layout->table.avar.init0 ();
+  layout->table.morx.init0 ();
 
   if (_hb_ot_blacklist_gdef (layout->gdef_blob->length,
 			     layout->gsub_blob->length,
@@ -214,10 +214,10 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
-  layout->math.fini ();
-  layout->fvar.fini ();
-  layout->avar.fini ();
-  layout->morx.fini ();
+  layout->table.math.fini ();
+  layout->table.fvar.fini ();
+  layout->table.avar.fini ();
+  layout->table.morx.fini ();
 
   free (layout);
 }

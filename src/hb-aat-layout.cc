@@ -52,9 +52,9 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
     return Null(AAT::morx);
   }
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  const AAT::morx& morx = *(layout->morx.get ());
+  const AAT::morx& morx = *(layout->table.morx.get ());
   if (blob)
-    *blob = layout->morx.get_blob ();
+    *blob = layout->table.morx.get_blob ();
   return morx;
 }
 

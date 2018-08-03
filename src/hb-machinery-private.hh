@@ -602,6 +602,7 @@ struct hb_base_lazy_loader_t
   inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
   inline Subclass* thiz (void) { return static_cast<Subclass *> (this); }
 
+  inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void)
   {
     instance = nullptr;

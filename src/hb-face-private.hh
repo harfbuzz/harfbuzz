@@ -55,15 +55,12 @@ struct hb_face_t {
 
   struct hb_shaper_data_t shaper_data;	/* Various shaper data. */
 
-  /* Various non-shaping data. */
-  /* ... */
-
   /* Cache */
-  struct plan_node_t {
+  struct plan_node_t
+  {
     hb_shape_plan_t *shape_plan;
     plan_node_t *next;
   } *shape_plans;
-
 
   inline hb_blob_t *reference_table (hb_tag_t tag) const
   {
