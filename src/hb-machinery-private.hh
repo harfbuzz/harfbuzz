@@ -613,10 +613,8 @@ struct hb_base_lazy_loader_t
       thiz ()->destroy (instance);
   }
 
-  inline const Returned * operator-> (void) const
-  {
-    return thiz ()->get ();
-  }
+  inline const Returned * operator -> (void) const { return thiz ()->get (); }
+  inline const Returned & operator * (void) const { return *thiz ()->get (); }
 
   inline Stored * get_stored (void) const
   {

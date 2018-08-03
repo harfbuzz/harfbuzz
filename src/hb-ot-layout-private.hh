@@ -158,6 +158,8 @@ namespace AAT {
 }
 
 #define HB_OT_LAYOUT_TABLES \
+    HB_OT_LAYOUT_TABLE(OT, GSUB) \
+    HB_OT_LAYOUT_TABLE(OT, GPOS) \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
     HB_OT_LAYOUT_TABLE(OT, fvar) \
     HB_OT_LAYOUT_TABLE(OT, avar) \
@@ -171,12 +173,7 @@ HB_OT_LAYOUT_TABLES
 struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
-  hb_blob_t *gsub_blob;
-  hb_blob_t *gpos_blob;
-
   const struct OT::GDEF *gdef;
-  const struct OT::GSUB *gsub;
-  const struct OT::GPOS *gpos;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

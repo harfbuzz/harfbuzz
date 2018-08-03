@@ -173,36 +173,33 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gdef_blob = hb_sanitize_context_t ().reference_table<OT::GDEF> (face);
   layout->gdef = layout->gdef_blob->as<OT::GDEF> ();
 
-  layout->gsub_blob = hb_sanitize_context_t ().reference_table<OT::GSUB> (face);
-  layout->gsub = layout->gsub_blob->as<OT::GSUB> ();
-
-  layout->gpos_blob = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
-  layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
-
   layout->table.init0 (face);
 
+  const OT::GSUB &gsub = *layout->table.GSUB;
+  const OT::GPOS &gpos = *layout->table.GPOS;
+
   if (_hb_ot_blacklist_gdef (layout->gdef_blob->length,
-			     layout->gsub_blob->length,
-			     layout->gpos_blob->length))
+			     layout->table.GSUB.get_blob()->length,
+			     layout->table.GPOS.get_blob()->length))
     layout->gdef = &Null(OT::GDEF);
 
-  layout->gsub_lookup_count = layout->gsub->get_lookup_count ();
-  layout->gpos_lookup_count = layout->gpos->get_lookup_count ();
+  unsigned int gsub_lookup_count = layout->gsub_lookup_count = gsub.get_lookup_count ();
+  unsigned int gpos_lookup_count = layout->gpos_lookup_count = gpos.get_lookup_count ();
 
-  layout->gsub_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (layout->gsub->get_lookup_count (), sizeof (hb_ot_layout_lookup_accelerator_t));
-  layout->gpos_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (layout->gpos->get_lookup_count (), sizeof (hb_ot_layout_lookup_accelerator_t));
+  layout->gsub_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (gsub_lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
+  layout->gpos_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (gpos_lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
 
-  if (unlikely ((layout->gsub_lookup_count && !layout->gsub_accels) ||
-		(layout->gpos_lookup_count && !layout->gpos_accels)))
+  if (unlikely ((gsub_lookup_count && !layout->gsub_accels) ||
+		(gpos_lookup_count && !layout->gpos_accels)))
   {
     _hb_ot_layout_destroy (layout);
     return nullptr;
   }
 
-  for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
-    layout->gsub_accels[i].init (layout->gsub->get_lookup (i));
-  for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
-    layout->gpos_accels[i].init (layout->gpos->get_lookup (i));
+  for (unsigned int i = 0; i < gsub_lookup_count; i++)
+    layout->gsub_accels[i].init (gsub.get_lookup (i));
+  for (unsigned int i = 0; i < gpos_lookup_count; i++)
+    layout->gpos_accels[i].init (gpos.get_lookup (i));
 
   return layout;
 }
@@ -221,8 +218,6 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   free (layout->gpos_accels);
 
   hb_blob_destroy (layout->gdef_blob);
-  hb_blob_destroy (layout->gsub_blob);
-  hb_blob_destroy (layout->gpos_blob);
 
   layout->table.fini ();
 
@@ -247,13 +242,13 @@ static inline const OT::GSUB&
 _get_gsub (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
-  return *hb_ot_layout_from_face (face)->gsub;
+  return *hb_ot_layout_from_face (face)->table.GSUB;
 }
 static inline const OT::GPOS&
 _get_gpos (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GPOS);
-  return *hb_ot_layout_from_face (face)->gpos;
+  return *hb_ot_layout_from_face (face)->table.GPOS;
 }
 
 /*
@@ -861,13 +856,13 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
   {
     case HB_OT_TAG_GSUB:
     {
-      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->table.GSUB->get_lookup (lookup_index);
       l.collect_glyphs (&c);
       return;
     }
     case HB_OT_TAG_GPOS:
     {
-      const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
+      const OT::PosLookup& l = hb_ot_layout_from_face (face)->table.GPOS->get_lookup (lookup_index);
       l.collect_glyphs (&c);
       return;
     }
@@ -943,7 +938,7 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
   if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
 
-  const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+  const OT::SubstLookup& l = hb_ot_layout_from_face (face)->table.GSUB->get_lookup (lookup_index);
 
   return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_accels[lookup_index]);
 }
@@ -1101,7 +1096,7 @@ struct GSUBProxy
   typedef OT::SubstLookup Lookup;
 
   GSUBProxy (hb_face_t *face) :
-    table (*hb_ot_layout_from_face (face)->gsub),
+    table (*hb_ot_layout_from_face (face)->table.GSUB),
     accels (hb_ot_layout_from_face (face)->gsub_accels) {}
 
   const OT::GSUB &table;
@@ -1115,7 +1110,7 @@ struct GPOSProxy
   typedef OT::PosLookup Lookup;
 
   GPOSProxy (hb_face_t *face) :
-    table (*hb_ot_layout_from_face (face)->gpos),
+    table (*hb_ot_layout_from_face (face)->table.GPOS),
     accels (hb_ot_layout_from_face (face)->gpos_accels) {}
 
   const OT::GPOS &table;
