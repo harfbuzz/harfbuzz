@@ -170,18 +170,15 @@ _hb_ot_layout_create (hb_face_t *face)
   if (unlikely (!layout))
     return nullptr;
 
-  layout->gdef_blob = hb_sanitize_context_t ().reference_table<OT::GDEF> (face);
-  layout->gdef = layout->gdef_blob->as<OT::GDEF> ();
-
   layout->table.init0 (face);
 
   const OT::GSUB &gsub = *layout->table.GSUB;
   const OT::GPOS &gpos = *layout->table.GPOS;
 
-  if (_hb_ot_blacklist_gdef (layout->gdef_blob->length,
-			     layout->table.GSUB.get_blob()->length,
-			     layout->table.GPOS.get_blob()->length))
-    layout->gdef = &Null(OT::GDEF);
+  if (unlikely (_hb_ot_blacklist_gdef (layout->table.GDEF.get_blob ()->length,
+				       layout->table.GSUB.get_blob ()->length,
+				       layout->table.GPOS.get_blob ()->length)))
+    layout->table.GDEF.set_stored (hb_blob_get_empty ());
 
   unsigned int gsub_lookup_count = layout->gsub_lookup_count = gsub.get_lookup_count ();
   unsigned int gpos_lookup_count = layout->gpos_lookup_count = gpos.get_lookup_count ();
@@ -217,8 +214,6 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   free (layout->gsub_accels);
   free (layout->gpos_accels);
 
-  hb_blob_destroy (layout->gdef_blob);
-
   layout->table.fini ();
 
   free (layout);
@@ -236,7 +231,7 @@ static inline const OT::GDEF&
 _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
-  return *hb_ot_layout_from_face (face)->gdef;
+  return *hb_ot_layout_from_face (face)->table.GDEF;
 }
 static inline const OT::GSUB&
 _get_gsub (hb_face_t *face)

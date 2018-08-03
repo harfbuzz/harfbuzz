@@ -633,6 +633,12 @@ struct hb_base_lazy_loader_t
     return p;
   }
 
+  inline void set_stored (Stored *instance_)
+  {
+    assert (instance == nullptr);
+    instance = instance_;
+  }
+
   inline const Returned * get (void) const
   {
     return thiz ()->convert (get_stored ());

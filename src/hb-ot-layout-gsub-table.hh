@@ -1335,7 +1335,7 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
-  const GDEF &gdef = *hb_ot_layout_from_face (font->face)->gdef;
+  const GDEF &gdef = *hb_ot_layout_from_face (font->face)->table.GDEF;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
   {

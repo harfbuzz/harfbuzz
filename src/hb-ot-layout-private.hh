@@ -146,9 +146,6 @@ namespace OT {
   struct BASE;
   struct COLR;
   struct CPAL;
-  struct GDEF;
-  struct GSUB;
-  struct GPOS;
 }
 
 namespace AAT {
@@ -158,6 +155,7 @@ namespace AAT {
 }
 
 #define HB_OT_LAYOUT_TABLES \
+    HB_OT_LAYOUT_TABLE(OT, GDEF) \
     HB_OT_LAYOUT_TABLE(OT, GSUB) \
     HB_OT_LAYOUT_TABLE(OT, GPOS) \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
@@ -172,9 +170,6 @@ HB_OT_LAYOUT_TABLES
 
 struct hb_ot_layout_t
 {
-  hb_blob_t *gdef_blob;
-  const struct OT::GDEF *gdef;
-
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;
 
