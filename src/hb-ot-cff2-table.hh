@@ -64,7 +64,7 @@ struct CFF2VariationStore
   DEFINE_SIZE_MIN (2 + VariationStore::min_size);
 };
 
-struct CFF2TopDictValues : DictValues
+struct CFF2TopDictValues : DictValues<OpStr>
 {
   inline void init (void)
   {
@@ -85,11 +85,11 @@ struct CFF2TopDictValues : DictValues
   inline unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < opStrs.len; i++)
+    for (unsigned int i = 0; i < values.len; i++)
     {
-      OpCode op = opStrs[i].op;
+      OpCode op = values[i].op;
       if (op == OpCode_FontMatrix)
-        size += opStrs[i].str.len;
+        size += values[i].str.len;
       else
         size += OpCode_Size (OpCode_longint) + 4 + OpCode_Size (op);
     }
@@ -105,49 +105,44 @@ struct CFF2TopDictValues : DictValues
 
 struct CFF2TopDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2TopDictValues& val)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
-        if (unlikely (!check_pop_offset (stack, val.charStringsOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.charStringsOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_vstore:
-        if (unlikely (!check_pop_offset (stack, val.vstoreOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.vstoreOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FDArray:
-        if (unlikely (!check_pop_offset (stack, val.FDArrayOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.FDArrayOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FDSelect:
-        if (unlikely (!check_pop_offset (stack, val.FDSelectOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.FDSelectOffset)))
           return false;
-        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_FontMatrix:
         if (unlikely (!stack.check_underflow (6)))
           return false;
         for (int i = 0; i < 6; i++)
-          val.FontMatrix[i] = stack.pop ().to_real ();
-        val.pushOpStr (op, str, offset + 1);
+          dictval.FontMatrix[i] = stack.pop ().to_real ();
         break;
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
         stack.push_int ((int32_t)*(const HBUINT32*)&str[offset + 1]);
         offset += 4;
-        break;
+        return true;
       
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
         stack.push_real (v);
-        break;
+        return true;
     
       default:
         /* XXX: invalid */
@@ -155,11 +150,12 @@ struct CFF2TopDictOpSet
         return false;
     }
 
+    dictval.pushVal (op, str, offset + 1);
     return true;
   }
 };
 
-struct CFF2FontDictValues : DictValues
+struct CFF2FontDictValues : DictValues<OpStr>
 {
   inline void init (void)
   {
@@ -179,28 +175,27 @@ struct CFF2FontDictValues : DictValues
 
 struct CFF2FontDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2FontDictValues& val)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_Private:
-        if (unlikely (!check_pop_offset (stack, val.privateDictOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.privateDictOffset)))
           return false;
-        if (unlikely (!stack.check_pop_uint (val.privateDictSize)))
+        if (unlikely (!stack.check_pop_uint (dictval.privateDictSize)))
           return false;
-        val.pushOpStr (op, str, offset + 1);
         break;
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
         stack.push_int ((int32_t)((str[offset + 1] << 24) | ((uint32_t)str[offset + 2] << 16) | ((uint32_t)str[offset + 3] << 8) | str[offset + 4]));
         offset += 4;
-        break;
+        return true;
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
         stack.push_real (v);
-        break;
+        return true;
     
       default:
         /* XXX: invalid */
@@ -208,32 +203,34 @@ struct CFF2FontDictOpSet
         return false;
     }
 
+    dictval.pushVal (op, str, offset + 1);
     return true;
   }
 };
 
-struct CFF2PrivateDictValues_Base : DictValues
+template <typename VAL>
+struct CFF2PrivateDictValues_Base : DictValues<VAL>
 {
   inline void init (void)
   {
-    DictValues::init ();
+    DictValues<VAL>::init ();
     subrsOffset.set (0);
     localSubrs = &Null(Subrs);
   }
 
   inline void fini (void)
   {
-    DictValues::fini ();
+    DictValues<VAL>::fini ();
   }
 
   inline unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < opStrs.len; i++)
-      if (opStrs[i].op == OpCode_Subrs)
+    for (unsigned int i = 0; i < DictValues<VAL>::values.len; i++)
+      if (DictValues<VAL>::values[i].op == OpCode_Subrs)
         size += OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
       else
-        size += opStrs[i].str.len;
+        size += DictValues<VAL>::values[i].str.len;
     return size;
   }
 
@@ -241,148 +238,71 @@ struct CFF2PrivateDictValues_Base : DictValues
   const Subrs       *localSubrs;
 };
 
-struct CFF2PrivateDictValues : CFF2PrivateDictValues_Base
-{
-  inline void init (void)
-  {
-    CFF2PrivateDictValues_Base::init ();
-
-    languageGroup = 0;
-    expansionFactor = 0.06f;
-    vsIndex = 0;
-    blueScale = 0.039625f;
-    blueShift = 7.0f;
-    blueFuzz = 1.0f;
-    stdHW = UNSET_REAL_VALUE;
-    stdVW = UNSET_REAL_VALUE;
-    subrsOffset.set (0);
-    blueValues.init ();
-    otherBlues.init ();
-    familyBlues.init ();
-    familyOtherBlues.init ();
-    stemSnapH.init ();
-    stemSnapV.init ();
-  }
-
-  inline void fini (void)
-  {
-    blueValues.fini ();
-    otherBlues.fini ();
-    familyBlues.fini ();
-    familyOtherBlues.fini ();
-    stemSnapH.fini ();
-    stemSnapV.fini ();
-
-    CFF2PrivateDictValues_Base::fini ();
-  }
-
-  int       languageGroup;
-  float     expansionFactor;
-  int       vsIndex;
-  float     blueScale;
-  float     blueShift;
-  float     blueFuzz;
-  float     stdHW;
-  float     stdVW;
-  hb_vector_t <float> blueValues;
-  hb_vector_t <float> otherBlues;
-  hb_vector_t <float> familyBlues;
-  hb_vector_t <float> familyOtherBlues;
-  hb_vector_t <float> stemSnapH;
-  hb_vector_t <float> stemSnapV;
-};
+typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
+typedef CFF2PrivateDictValues_Base<DictVal> CFF2PrivateDictValues;
 
 struct CFF2PrivateDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues& val)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues& dictval)
   {
+    DictVal val;
+    val.init ();
+
     switch (op) {
       case OpCode_BlueValues:
-        if (unlikely (!stack.check_pop_delta (val.blueValues)))
-          return false;
-        break;
       case OpCode_OtherBlues:
-        if (unlikely (!stack.check_pop_delta (val.otherBlues)))
-          return false;
-        break;
       case OpCode_FamilyBlues:
-        if (unlikely (!stack.check_pop_delta (val.familyBlues)))
-          return false;
-        break;
       case OpCode_FamilyOtherBlues:
-        if (unlikely (!stack.check_pop_delta (val.familyOtherBlues)))
+      case OpCode_StemSnapH:
+      case OpCode_StemSnapV:
+        if (unlikely (!stack.check_pop_delta (val.multi_val)))
           return false;
         break;
       case OpCode_StdHW:
-        if (unlikely (!stack.check_pop_real (val.stdHW)))
-          return false;
-        break;
       case OpCode_StdVW:
-        if (unlikely (!stack.check_pop_real (val.stdVW)))
-          return false;
-        break;
       case OpCode_BlueScale:
-        if (unlikely (!stack.check_pop_real (val.blueScale)))
-          return false;
-        break;
       case OpCode_BlueShift:
-        if (unlikely (!stack.check_pop_real (val.blueShift)))
-          return false;
-        break;
       case OpCode_BlueFuzz:
-        if (unlikely (!stack.check_pop_real (val.blueFuzz)))
-          return false;
-        break;
-      case OpCode_StemSnapH:
-        if (unlikely (!stack.check_pop_delta (val.stemSnapH)))
-          return false;
-        break;
-      case OpCode_StemSnapV:
-        if (unlikely (!stack.check_pop_delta (val.stemSnapV)))
+      case OpCode_ExpansionFactor:
+        if (unlikely (!stack.check_pop_num (val.single_val)))
           return false;
         break;
       case OpCode_LanguageGroup:
-        if (unlikely (!stack.check_pop_int (val.languageGroup)))
-          return false;
-        break;
-      case OpCode_ExpansionFactor:
-        if (unlikely (!stack.check_pop_real (val.expansionFactor)))
+        if (unlikely (!stack.check_pop_num (val.single_val)))
           return false;
         break;
       case OpCode_Subrs:
-        if (unlikely (!check_pop_offset (stack, val.subrsOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.subrsOffset)))
           return false;
         break;
       case OpCode_blend:
         // XXX: TODO
-        break;
+        return true;
       case OpCode_longint:  /* 5-byte integer */
         if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
           return false;
         stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
         offset += 4;
-        break;
+        return true;
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (!stack.check_overflow (1) || !parse_bcd (str, offset, v)))
           return false;
         stack.push_real (v);
-        break;
+        return true;
 
       default:
         return false;
     }
 
-    if (op != OpCode_blend)
-      val.pushOpStr (op, str, offset + 1);
-
+    dictval.pushVal (op, str, offset + 1, val);
     return true;
   }
 };
 
 struct CFF2PrivateDictOpSet_Subset
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues_Base& val)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -398,9 +318,12 @@ struct CFF2PrivateDictOpSet_Subset
       case OpCode_StemSnapV:
       case OpCode_LanguageGroup:
       case OpCode_ExpansionFactor:
-      case OpCode_blend:
         stack.clear ();
         break;
+
+      case OpCode_blend:
+        stack.clear ();
+        return true;
 
       case OpCode_BCD:
         {
@@ -409,7 +332,7 @@ struct CFF2PrivateDictOpSet_Subset
         }
 
       case OpCode_Subrs:
-        if (unlikely (!check_pop_offset (stack, val.subrsOffset)))
+        if (unlikely (!check_pop_offset (stack, dictval.subrsOffset)))
           return false;
         break;
       case OpCode_longint:  /* 5-byte integer */
@@ -417,15 +340,13 @@ struct CFF2PrivateDictOpSet_Subset
           return false;
         stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
         offset += 4;
-        break;
+        return true;
 
       default:
         return false;
     }
 
-    if (op != OpCode_blend)
-      val.pushOpStr (op, str, offset + 1);
-
+    dictval.pushVal (op, str, offset + 1);
     return true;
   }
 };
@@ -580,7 +501,7 @@ struct cff2
   };
 
   typedef accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues> accelerator_t;
-  typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Base> accelerator_subset_t;
+  typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Subset> accelerator_subset_t;
 
   inline bool subset (hb_subset_plan_t *plan) const
   {

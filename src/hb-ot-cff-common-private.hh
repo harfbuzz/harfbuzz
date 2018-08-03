@@ -136,6 +136,23 @@ enum OpCode {
 inline OpCode Make_OpCode_ESC (unsigned char byte2)  { return (OpCode)(OpCode_ESC_Base + byte2); }
 inline unsigned int OpCode_Size (OpCode op) { return (op >= OpCode_ESC_Base)? 2: 1; }
 
+struct Number
+{
+  inline Number (void) { set_int (0); }
+
+  inline void set_int (int v)       { is_real = false; u.int_val = v; };
+  inline int to_int (void) const    { return is_real? (int)u.real_val: u.int_val; }
+  inline void set_real (float v)    { is_real = true; u.real_val = v; };
+  inline float to_real (void) const { return is_real? u.real_val: (float)u.int_val; }
+
+protected:
+  bool is_real;
+  union {
+    int     int_val;
+    float   real_val;
+  } u;
+};
+
 /* pair of table offset and length */
 struct offset_size_pair {
   unsigned int  offset;
@@ -363,36 +380,62 @@ struct IndexOf : Index
 /* an operator prefixed by its operands in a byte string */
 struct OpStr
 {
+  inline void init (void) {}
+
   OpCode  op;
   ByteStr str;
 };
 
-typedef hb_vector_t <OpStr> OpStrs;
+/* an opstr and the parsed out dict value(s) */
+struct DictVal : OpStr
+{
+  inline void init (void)
+  {
+    single_val.set_int (0);
+    multi_val.init ();
+  }
 
-/* base param type for dict parsing */
+  inline void fini (void)
+  {
+    multi_val.fini ();
+  }
+
+  Number              single_val;
+  hb_vector_t<Number> multi_val;
+};
+
+template <typename VAL>
 struct DictValues
 {
   inline void init (void)
   {
     opStart = 0;
-    opStrs.init ();
+    values.init ();
   }
 
   inline void fini (void)
   {
-    opStrs.fini ();
+    values.fini ();
   }
 
-  void pushOpStr (OpCode op, const ByteStr& str, unsigned int offset)
+  inline void pushVal (OpCode op, const ByteStr& str, unsigned int offset)
   {
-    OpStr *opstr = opStrs.push ();
-    opstr->op = op;
-    opstr->str = ByteStr (str, opStart, offset - opStart);
+    VAL *val = values.push ();
+    val->op = op;
+    val->str = ByteStr (str, opStart, offset - opStart);
     opStart = offset;
   }
 
-  unsigned int  opStart;
-  OpStrs        opStrs;
+  inline void pushVal (OpCode op, const ByteStr& str, unsigned int offset, const VAL &v)
+  {
+    VAL *val = values.push (v);
+    val->op = op;
+    val->str = ByteStr (str, opStart, offset - opStart);
+    opStart = offset;
+  }
+
+  unsigned int       opStart;
+  hb_vector_t<VAL>   values;
 };
 
 /* base of OP_SERIALIZER */
@@ -413,29 +456,29 @@ struct OpSerializer
 /* Top Dict, Font Dict, Private Dict */
 struct Dict : UnsizedByteStr
 {
-  template <typename OP_SERIALIZER, typename PARAM>
+  template <typename DICTVAL, typename OP_SERIALIZER, typename PARAM>
   inline bool serialize (hb_serialize_context_t *c,
-                        const DictValues &values,
+                        const DICTVAL &dictval,
                         OP_SERIALIZER& opszr,
                         PARAM& param)
   {
     TRACE_SERIALIZE (this);
-    for (unsigned int i = 0; i < values.opStrs.len; i++)
+    for (unsigned int i = 0; i < dictval.values.len; i++)
     {
-      if (unlikely (!opszr.serialize (c, values.opStrs[i], param)))
+      if (unlikely (!opszr.serialize (c, dictval.values[i], param)))
         return_trace (false);
     }
     return_trace (true);
   }
 
   /* in parallel to above */
-  template <typename OP_SERIALIZER>
-  inline static unsigned int calculate_serialized_size (const DictValues &values,
+  template <typename DICTVAL, typename OP_SERIALIZER>
+  inline static unsigned int calculate_serialized_size (const DICTVAL &dictval,
                                                         OP_SERIALIZER& opszr)
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < values.opStrs.len; i++)
-      size += opszr.calculate_serialized_size (values.opStrs[i]);
+    for (unsigned int i = 0; i < dictval.values.len; i++)
+      size += opszr.calculate_serialized_size (dictval.values[i]);
     return size;
   }
 
@@ -629,23 +672,6 @@ inline float parse_bcd (const ByteStr& str, unsigned int& offset, float& v)
   return true;
 }
 
-struct Number
-{
-  inline Number (void) { set_int (0); }
-
-  inline void set_int (int v)       { is_real = false; u.int_val = v; };
-  inline int to_int (void) const    { return is_real? (int)u.real_val: u.int_val; }
-  inline void set_real (float v)    { is_real = true; u.real_val = v; };
-  inline float to_real (void) const { return is_real? u.real_val: (float)u.int_val; }
-
-protected:
-  bool is_real;
-  union {
-    int     int_val;
-    float   real_val;
-  } u;
-};
-
 struct Stack
 {
   inline void init (void) { size = 0; }
@@ -697,11 +723,11 @@ struct Stack
       return false;
   }
 
-  inline bool check_pop_int (int& v)
+  inline bool check_pop_num (Number& n)
   {
     if (unlikely (!this->check_underflow (1)))
       return false;
-    v = this->pop ().to_int ();
+    n = this->pop ();
     return true;
   }
 
@@ -717,15 +743,7 @@ struct Stack
     return true;
   }
 
-  inline bool check_pop_real (float& v)
-  {
-    if (unlikely (!this->check_underflow (1)))
-      return false;
-    v = this->pop ().to_real ();
-    return true;
-  }
-
-  inline bool check_pop_delta (hb_vector_t<float>& vec, bool even=false)
+  inline bool check_pop_delta (hb_vector_t<Number>& vec, bool even=false)
   {
     if (even && unlikely ((this->size & 1) != 0))
       return false;
@@ -733,7 +751,8 @@ struct Stack
     float val = 0.0f;
     for (unsigned int i = 0; i < size; i++) {
       val += numbers[i].to_real ();
-      vec.push (val);
+      Number *n = vec.push ();
+      n->set_real (val);
     }
     return true;
   }

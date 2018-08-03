@@ -167,7 +167,7 @@ struct subset_plan {
     /* top dict */
     {
       CFF2TopDict_OpSerializer topSzr;
-      offsets.topDictSize = TopDict::calculate_serialized_size<CFF2TopDict_OpSerializer> (acc.top, topSzr);
+      offsets.topDictSize = TopDict::calculate_serialized_size (acc.top, topSzr);
       final_size += offsets.topDictSize;
     }
 
