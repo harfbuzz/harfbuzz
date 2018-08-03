@@ -121,25 +121,6 @@ hb_ot_layout_position_finish_offsets (hb_font_t    *font,
  * hb_ot_layout_t
  */
 
-namespace OT {
-  struct BASE;
-  struct COLR;
-  struct CPAL;
-  struct GDEF;
-  struct GSUB;
-  struct GPOS;
-  struct MATH;
-  struct fvar;
-  struct avar;
-}
-
-namespace AAT {
-  struct ankr;
-  struct kerx;
-  struct morx;
-  struct trak;
-}
-
 struct hb_ot_layout_lookup_accelerator_t
 {
   template <typename TLookup>
@@ -161,6 +142,32 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_set_digest_t digest;
 };
 
+namespace OT {
+  struct BASE;
+  struct COLR;
+  struct CPAL;
+  struct GDEF;
+  struct GSUB;
+  struct GPOS;
+}
+
+namespace AAT {
+  struct ankr;
+  struct kerx;
+  struct trak;
+}
+
+#define HB_OT_LAYOUT_TABLES \
+    HB_OT_LAYOUT_TABLE(OT, MATH) \
+    HB_OT_LAYOUT_TABLE(OT, fvar) \
+    HB_OT_LAYOUT_TABLE(OT, avar) \
+    HB_OT_LAYOUT_TABLE(AAT, morx) \
+
+/* Declare tables. */
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) namespace Namespace { struct Type; }
+HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_TABLE
+
 struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
@@ -180,11 +187,25 @@ struct hb_ot_layout_t
   /* Various non-shaping tables. */
   struct tables_t
   {
+    HB_INTERNAL void init0 (hb_face_t *face);
+    HB_INTERNAL void fini (void);
+
+#define HB_OT_LAYOUT_TABLE_ORDER(Namespace, Type) \
+      HB_PASTE (TABLE_ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
+    enum order_t
+    {
+      TABLE_ORDER_ZERO,
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
+	HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
+      HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_TABLE
+    };
+
     hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-    hb_table_lazy_loader_t<1, struct OT::MATH> math;
-    hb_table_lazy_loader_t<2, struct OT::fvar> fvar;
-    hb_table_lazy_loader_t<3, struct OT::avar> avar;
-    hb_table_lazy_loader_t<4, struct AAT::morx> morx;
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
+    hb_table_lazy_loader_t<HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type), struct Namespace::Type> Type;
+    HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_TABLE
   } table;
 };
 

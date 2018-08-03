@@ -34,7 +34,7 @@ _get_math (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::MATH);
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->table.math.get ());
+  return *(layout->table.MATH.get ());
 }
 
 /*

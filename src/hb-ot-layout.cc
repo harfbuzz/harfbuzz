@@ -149,6 +149,20 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
   return false;
 }
 
+void hb_ot_layout_t::tables_t::init0 (hb_face_t *face)
+{
+  this->face = face;
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.init0 ();
+  HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_TABLE
+}
+void hb_ot_layout_t::tables_t::fini (void)
+{
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.fini ();
+  HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_TABLE
+}
+
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {
@@ -165,11 +179,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
   layout->gpos = layout->gpos_blob->as<OT::GPOS> ();
 
-  layout->table.face = face;
-  layout->table.math.init0 ();
-  layout->table.fvar.init0 ();
-  layout->table.avar.init0 ();
-  layout->table.morx.init0 ();
+  layout->table.init0 (face);
 
   if (_hb_ot_blacklist_gdef (layout->gdef_blob->length,
 			     layout->gsub_blob->length,
@@ -214,10 +224,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
-  layout->table.math.fini ();
-  layout->table.fvar.fini ();
-  layout->table.avar.fini ();
-  layout->table.morx.fini ();
+  layout->table.fini ();
 
   free (layout);
 }
