@@ -142,6 +142,8 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_set_digest_t digest;
 };
 
+/* Most of these tables are NOT needed for shaping.  But we need to hook them *somewhere*.
+ * This is as good as any place. */
 #define HB_OT_LAYOUT_TABLES \
     /* OpenType shaping. */ \
     HB_OT_LAYOUT_TABLE(OT, GDEF) \
