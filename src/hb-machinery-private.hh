@@ -623,7 +623,11 @@ struct hb_lazy_loader_t
     if (unlikely (!p))
     {
       hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
-      p = thiz ()->create (face);
+      if (likely (!p))
+	p = thiz ()->create (face);
+      if (unlikely (!p))
+	p = thiz ()->create (nullptr); /* Produce nil object. */
+      assert (p);
       if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), nullptr, p)))
       {
         thiz ()->destroy (p);
