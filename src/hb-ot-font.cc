@@ -70,10 +70,10 @@ struct hb_ot_font_t
   OT::vmtx::accelerator_t v_metrics;
 
   hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-  hb_lazy_loader_t<1, OT::glyf::accelerator_t> glyf;
-  hb_lazy_loader_t<2, OT::CBDT::accelerator_t> cbdt;
-  hb_lazy_loader_t<3, OT::post::accelerator_t> post;
-  hb_lazy_loader_t<4, OT::kern::accelerator_t> kern;
+  hb_object_lazy_loader_t<1, OT::glyf::accelerator_t> glyf;
+  hb_object_lazy_loader_t<2, OT::CBDT::accelerator_t> cbdt;
+  hb_object_lazy_loader_t<3, OT::post::accelerator_t> post;
+  hb_object_lazy_loader_t<4, OT::kern::accelerator_t> kern;
 };
 
 

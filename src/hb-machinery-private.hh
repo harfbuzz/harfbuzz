@@ -594,7 +594,7 @@ template <unsigned int WheresFace,
 	  typename Subclass,
 	  typename Returned,
 	  typename Stored = Returned>
-struct hb_base_lazy_loader_t
+struct hb_lazy_loader_t
 {
   static_assert (WheresFace > 0, "");
 
@@ -657,7 +657,7 @@ struct hb_base_lazy_loader_t
 /* Specializations. */
 
 template <unsigned int WheresFace, typename T>
-struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<WheresFace, T>, T>
+struct hb_object_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_object_lazy_loader_t<WheresFace, T>, T>
 {
   static inline T *create (hb_face_t *face)
   {
@@ -681,7 +681,7 @@ struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<Whe
 };
 
 template <unsigned int WheresFace, typename T>
-struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
+struct hb_table_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
 {
   static inline hb_blob_t *create (hb_face_t *face)
   {
