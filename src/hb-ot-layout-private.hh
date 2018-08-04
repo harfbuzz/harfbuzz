@@ -142,26 +142,34 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_set_digest_t digest;
 };
 
-namespace OT {
-  struct BASE;
-  struct COLR;
-  struct CPAL;
-}
-
-namespace AAT {
-  struct ankr;
-  struct kerx;
-  struct trak;
-}
-
 #define HB_OT_LAYOUT_TABLES \
+    /* OpenType shaping. */ \
     HB_OT_LAYOUT_TABLE(OT, GDEF) \
     HB_OT_LAYOUT_TABLE(OT, GSUB) \
     HB_OT_LAYOUT_TABLE(OT, GPOS) \
-    HB_OT_LAYOUT_TABLE(OT, MATH) \
+    HB_OT_LAYOUT_TABLE(OT, JSTF) \
+    HB_OT_LAYOUT_TABLE(OT, BASE) \
+    /* AAT shaping. */ \
+    HB_OT_LAYOUT_TABLE(AAT, morx) \
+    HB_OT_LAYOUT_TABLE(AAT, kerx) \
+    HB_OT_LAYOUT_TABLE(AAT, ankr) \
+    HB_OT_LAYOUT_TABLE(AAT, trak) \
+    /* OpenType variations. */ \
     HB_OT_LAYOUT_TABLE(OT, fvar) \
     HB_OT_LAYOUT_TABLE(OT, avar) \
-    HB_OT_LAYOUT_TABLE(AAT, morx) \
+    HB_OT_LAYOUT_TABLE(OT, MVAR) \
+    /* OpenType color. */ \
+    HB_OT_LAYOUT_TABLE(OT, COLR) \
+    HB_OT_LAYOUT_TABLE(OT, CPAL) \
+    HB_OT_LAYOUT_TABLE(OT, CBDT) \
+    HB_OT_LAYOUT_TABLE(OT, CBLC) \
+    HB_OT_LAYOUT_TABLE(OT, sbix) \
+    HB_OT_LAYOUT_TABLE(OT, svg) \
+    /* OpenType math. */ \
+    HB_OT_LAYOUT_TABLE(OT, MATH) \
+    /* OpenType fundamentals. */ \
+    HB_OT_LAYOUT_TABLE(OT, post) \
+    /* */
 
 /* Declare tables. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) namespace Namespace { struct Type; }
