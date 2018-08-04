@@ -193,10 +193,10 @@ struct hb_ot_layout_t
     HB_INTERNAL void fini (void);
 
 #define HB_OT_LAYOUT_TABLE_ORDER(Namespace, Type) \
-      HB_PASTE (TABLE_ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
+      HB_PASTE (ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
     enum order_t
     {
-      TABLE_ORDER_ZERO,
+      ORDER_ZERO,
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) \
 	HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
       HB_OT_LAYOUT_TABLES
