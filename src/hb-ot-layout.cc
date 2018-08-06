@@ -904,7 +904,7 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face)
 {
-  return &_get_gsub (face) != &Null(OT::GSUB);
+  return _get_gsub (face).has_data ();
 }
 
 /**
@@ -1006,7 +1006,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face)
 {
-  return &_get_gpos (face) != &Null(OT::GPOS);
+  return _get_gpos (face).has_data ();
 }
 
 void
@@ -1341,5 +1341,5 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 // hb_bool_t
 // hb_ot_base_has_data (hb_face_t *face)
 // {
-//   return &_get_base (face) != &Null(OT::BASE);
+//   return _get_base (face).has_data ();
 // }

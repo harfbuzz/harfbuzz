@@ -55,7 +55,7 @@ _get_math (hb_face_t *face)
 hb_bool_t
 hb_ot_math_has_data (hb_face_t *face)
 {
-  return &_get_math (face) != &Null(OT::MATH);
+  return _get_math (face).has_data ();
 }
 
 /**

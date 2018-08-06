@@ -313,6 +313,7 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
   if (arabic_fallback_plan_init_win1256 (fallback_plan, plan, font))
     return fallback_plan;
 
+  assert (fallback_plan->num_lookups == 0);
   free (fallback_plan);
   return const_cast<arabic_fallback_plan_t *> (&Null(arabic_fallback_plan_t));
 }
@@ -320,7 +321,7 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
 static void
 arabic_fallback_plan_destroy (arabic_fallback_plan_t *fallback_plan)
 {
-  if (!fallback_plan || fallback_plan == &Null(arabic_fallback_plan_t))
+  if (!fallback_plan || fallback_plan->num_lookups == 0)
     return;
 
   for (unsigned int i = 0; i < fallback_plan->num_lookups; i++)

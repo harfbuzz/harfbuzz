@@ -65,7 +65,7 @@ _get_avar (hb_face_t *face)
 hb_bool_t
 hb_ot_var_has_data (hb_face_t *face)
 {
-  return &_get_fvar (face) != &Null(OT::fvar);
+  return _get_fvar (face).has_data ();
 }
 
 /**

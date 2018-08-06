@@ -2320,6 +2320,7 @@ struct Extension
 
 struct GSUBGPOS
 {
+  inline bool has_data (void) const { return version.to_int () != 0; }
   inline unsigned int get_script_count (void) const
   { return (this+scriptList).len; }
   inline const Tag& get_script_tag (unsigned int i) const
