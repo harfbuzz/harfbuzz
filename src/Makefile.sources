@@ -19,6 +19,7 @@ HB_BASE_sources = \
 	hb-map.cc \
 	hb-machinery-private.hh \
 	hb-mutex-private.hh \
+	hb-null.hh \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
@@ -53,6 +54,7 @@ HB_BASE_sources = \
 	hb-string-array.hh \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
+	hb-vector-private.hh \
 	hb-utf-private.hh \
 	hb-warning.cc \
 	$(NULL)

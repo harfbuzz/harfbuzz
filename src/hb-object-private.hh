@@ -35,9 +35,107 @@
 #include "hb-private.hh"
 #include "hb-atomic-private.hh"
 #include "hb-mutex-private.hh"
+#include "hb-vector-private.hh"
 
 
-/* reference_count */
+/*
+ * Lockable set
+ */
+
+template <typename item_t, typename lock_t>
+struct hb_lockable_set_t
+{
+  hb_vector_t <item_t, 1> items;
+
+  inline void init (void) { items.init (); }
+
+  template <typename T>
+  inline item_t *replace_or_insert (T v, lock_t &l, bool replace)
+  {
+    l.lock ();
+    item_t *item = items.find (v);
+    if (item) {
+      if (replace) {
+	item_t old = *item;
+	*item = v;
+	l.unlock ();
+	old.fini ();
+      }
+      else {
+        item = nullptr;
+	l.unlock ();
+      }
+    } else {
+      item = items.push (v);
+      l.unlock ();
+    }
+    return item;
+  }
+
+  template <typename T>
+  inline void remove (T v, lock_t &l)
+  {
+    l.lock ();
+    item_t *item = items.find (v);
+    if (item) {
+      item_t old = *item;
+      *item = items[items.len - 1];
+      items.pop ();
+      l.unlock ();
+      old.fini ();
+    } else {
+      l.unlock ();
+    }
+  }
+
+  template <typename T>
+  inline bool find (T v, item_t *i, lock_t &l)
+  {
+    l.lock ();
+    item_t *item = items.find (v);
+    if (item)
+      *i = *item;
+    l.unlock ();
+    return !!item;
+  }
+
+  template <typename T>
+  inline item_t *find_or_insert (T v, lock_t &l)
+  {
+    l.lock ();
+    item_t *item = items.find (v);
+    if (!item) {
+      item = items.push (v);
+    }
+    l.unlock ();
+    return item;
+  }
+
+  inline void fini (lock_t &l)
+  {
+    if (!items.len) {
+      /* No need for locking. */
+      items.fini ();
+      return;
+    }
+    l.lock ();
+    while (items.len) {
+      item_t old = items[items.len - 1];
+	items.pop ();
+	l.unlock ();
+	old.fini ();
+	l.lock ();
+    }
+    items.fini ();
+    l.unlock ();
+  }
+
+};
+
+
+/*
+ * Reference-count.
+ */
 
 #define HB_REFERENCE_COUNT_INERT_VALUE 0
 #define HB_REFERENCE_COUNT_POISON_VALUE -0x0000DEAD
@@ -89,7 +187,9 @@ struct hb_user_data_array_t
 };
 
 
-/* object_header */
+/*
+ * Object header
+ */
 
 struct hb_object_header_t
 {
@@ -103,7 +203,9 @@ struct hb_object_header_t
 };
 
 
-/* object */
+/*
+ * Object
+ */
 
 template <typename Type>
 static inline void hb_object_trace (const Type *obj, const char *function)

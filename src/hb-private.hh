@@ -86,7 +86,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 
 /*
  * Compiler attributes
- * */
+ */
 
 #if __cplusplus < 201103L
 
@@ -98,7 +98,6 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #define constexpr const
 #endif
 
-// Static assertions
 #ifndef static_assert
 #define static_assert(e, msg) \
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
@@ -124,7 +123,7 @@ struct _hb_alignof
 };
 #ifndef alignof
 #define alignof(x) (_hb_alignof<x>::value)
-#endif // alignof
+#endif
 
 #endif // __cplusplus < 201103L
 
@@ -286,13 +285,12 @@ static int errno = 0; /* Use something better? */
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
 
+/* Static-assert as expression. */
 template <unsigned int cond> class hb_assert_constant_t;
 template <> class hb_assert_constant_t<1> {};
-
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
 
 /* Lets assert int types.  Saves trouble down the road. */
-
 static_assert ((sizeof (int8_t) == 1), "");
 static_assert ((sizeof (uint8_t) == 1), "");
 static_assert ((sizeof (int16_t) == 2), "");
@@ -301,7 +299,6 @@ static_assert ((sizeof (int32_t) == 4), "");
 static_assert ((sizeof (uint32_t) == 4), "");
 static_assert ((sizeof (int64_t) == 8), "");
 static_assert ((sizeof (uint64_t) == 8), "");
-
 static_assert ((sizeof (hb_codepoint_t) == 4), "");
 static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
@@ -371,82 +368,6 @@ typedef uint64_t hb_vector_size_impl_t;
 #endif
 
 
-/*
- * Static pools
- */
-
-/* Global nul-content Null pool.  Enlarge as necessary. */
-
-#define HB_NULL_POOL_SIZE 800
-
-extern HB_INTERNAL
-hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
-
-/* Generic nul-content Null objects. */
-template <typename Type>
-static inline Type const & Null (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
-  return *reinterpret_cast<Type const *> (_hb_NullPool);
-}
-#define Null(Type) Null<Type>()
-
-/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Namespace, Type, data) \
-} /* Close namespace. */ \
-static const char _Null##Type[sizeof (Namespace::Type) + 1] = data; /* +1 is for nul-termination in data */ \
-template <> \
-/*static*/ inline const Namespace::Type& Null<Namespace::Type> (void) { \
-  return *reinterpret_cast<const Namespace::Type *> (_Null##Type); \
-} \
-namespace Namespace { \
-/* The following line really exists such that we end in a place needing semicolon */ \
-static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
-
-
-/* Global writable pool.  Enlarge as necessary. */
-
-/* To be fully correct, CrapPool must be thread_local. However, we do not rely on CrapPool
- * for correct operation. It only exist to catch and divert program logic bugs instead of
- * causing bad memory access. So, races there are not actually introducing incorrectness
- * in the code. Has ~12kb binary size overhead to have it, also clang build fails with it. */
-extern HB_INTERNAL
-/*thread_local*/ hb_vector_size_impl_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
-
-/* CRAP pool: Common Region for Access Protection. */
-template <typename Type>
-static inline Type& Crap (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
-  Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
-  *obj = Null(Type);
-  return *obj;
-}
-#define Crap(Type) Crap<Type>()
-
-template <typename Type>
-struct CrapOrNull {
-  static inline Type & get (void) { return Crap(Type); }
-};
-template <typename Type>
-struct CrapOrNull<const Type> {
-  static inline Type const & get (void) { return Null(Type); }
-};
-#define CrapOrNull(Type) CrapOrNull<Type>::get ()
-
-
-/* ASCII tag/character handling */
-
-static inline bool ISALPHA (unsigned char c)
-{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-static inline bool ISALNUM (unsigned char c)
-{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'); }
-static inline bool ISSPACE (unsigned char c)
-{ return c == ' ' || c =='\f'|| c =='\n'|| c =='\r'|| c =='\t'|| c =='\v'; }
-static inline unsigned char TOUPPER (unsigned char c)
-{ return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
-static inline unsigned char TOLOWER (unsigned char c)
-{ return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; }
-
-
 /* HB_NDEBUG disables some sanity checks that are very safe to disable and
  * should be disabled in production systems.  If NDEBUG is defined, enable
  * HB_NDEBUG; but if it's desirable that normal assert()s (which are very
@@ -457,41 +378,7 @@ static inline unsigned char TOLOWER (unsigned char c)
 #endif
 
 
-/* Misc */
-
-template <typename T> class hb_assert_unsigned_t;
-template <> class hb_assert_unsigned_t<unsigned char> {};
-template <> class hb_assert_unsigned_t<unsigned short> {};
-template <> class hb_assert_unsigned_t<unsigned int> {};
-template <> class hb_assert_unsigned_t<unsigned long> {};
-
-template <typename T> static inline bool
-hb_in_range (T u, T lo, T hi)
-{
-  /* The sizeof() is here to force template instantiation.
-   * I'm sure there are better ways to do this but can't think of
-   * one right now.  Declaring a variable won't work as HB_UNUSED
-   * is unusable on some platforms and unused types are less likely
-   * to generate a warning than unused variables. */
-  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0), "");
-
-  /* The casts below are important as if T is smaller than int,
-   * the subtract results will become a signed int! */
-  return (T)(u - lo) <= (T)(hi - lo);
-}
-
-template <typename T> static inline bool
-hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2)
-{
-  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2);
-}
-
-template <typename T> static inline bool
-hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
-{
-  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2) || hb_in_range (u, lo3, hi3);
-}
-
+/* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */
 /* To my surprise, looks like the function resolver is happy to silently cast
@@ -514,7 +401,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
 	}
-
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:
@@ -575,6 +461,7 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #include "hb-debug.hh"
 #include "hb-dsalgs.hh"
 #include "hb-mutex-private.hh"
+#include "hb-null.hh"
 #include "hb-object-private.hh"
 
 #endif /* HB_PRIVATE_HH */

@@ -84,7 +84,7 @@ _subset (hb_subset_plan_t *plan)
 
   hb_tag_t tag = TableType::tableTag;
   hb_bool_t result = false;
-  if (table != &Null(TableType))
+  if (source_blob->data)
   {
     result = table->subset(plan);
   } else {

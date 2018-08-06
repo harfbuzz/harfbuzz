@@ -173,7 +173,7 @@ struct RangeRecord
   public:
   DEFINE_SIZE_STATIC (6);
 };
-DEFINE_NULL_DATA (OT, RangeRecord, "\000\001");
+DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
 
 
 struct IndexArray : ArrayOf<Index>
@@ -240,8 +240,7 @@ struct LangSys
   public:
   DEFINE_SIZE_ARRAY (6, featureIndex);
 };
-DEFINE_NULL_DATA (OT, LangSys, "\0\0\xFF\xFF");
-
+DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
 
 struct Script
 {

@@ -594,7 +594,7 @@ template <unsigned int WheresFace,
 	  typename Subclass,
 	  typename Returned,
 	  typename Stored = Returned>
-struct hb_base_lazy_loader_t
+struct hb_lazy_loader_t
 {
   static_assert (WheresFace > 0, "");
 
@@ -602,6 +602,7 @@ struct hb_base_lazy_loader_t
   inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
   inline Subclass* thiz (void) { return static_cast<Subclass *> (this); }
 
+  inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void)
   {
     instance = nullptr;
@@ -612,10 +613,8 @@ struct hb_base_lazy_loader_t
       thiz ()->destroy (instance);
   }
 
-  inline const Returned * operator-> (void) const
-  {
-    return thiz ()->get ();
-  }
+  inline const Returned * operator -> (void) const { return thiz ()->get (); }
+  inline const Returned & operator * (void) const { return *thiz ()->get (); }
 
   inline Stored * get_stored (void) const
   {
@@ -624,7 +623,11 @@ struct hb_base_lazy_loader_t
     if (unlikely (!p))
     {
       hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
-      p = thiz ()->create (face);
+      if (likely (!p))
+	p = thiz ()->create (face);
+      if (unlikely (!p))
+	p = thiz ()->create (nullptr); /* Produce nil object. */
+      assert (p);
       if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), nullptr, p)))
       {
         thiz ()->destroy (p);
@@ -632,6 +635,12 @@ struct hb_base_lazy_loader_t
       }
     }
     return p;
+  }
+
+  inline void set_stored (Stored *instance_)
+  {
+    assert (instance == nullptr);
+    instance = instance_;
   }
 
   inline const Returned * get (void) const
@@ -652,7 +661,7 @@ struct hb_base_lazy_loader_t
 /* Specializations. */
 
 template <unsigned int WheresFace, typename T>
-struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<WheresFace, T>, T>
+struct hb_object_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_object_lazy_loader_t<WheresFace, T>, T>
 {
   static inline T *create (hb_face_t *face)
   {
@@ -676,7 +685,7 @@ struct hb_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_lazy_loader_t<Whe
 };
 
 template <unsigned int WheresFace, typename T>
-struct hb_table_lazy_loader_t : hb_base_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
+struct hb_table_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
 {
   static inline hb_blob_t *create (hb_face_t *face)
   {
