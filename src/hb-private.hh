@@ -435,20 +435,6 @@ struct CrapOrNull<const Type> {
 #define CrapOrNull(Type) CrapOrNull<Type>::get ()
 
 
-/* ASCII tag/character handling */
-
-static inline bool ISALPHA (unsigned char c)
-{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-static inline bool ISALNUM (unsigned char c)
-{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'); }
-static inline bool ISSPACE (unsigned char c)
-{ return c == ' ' || c =='\f'|| c =='\n'|| c =='\r'|| c =='\t'|| c =='\v'; }
-static inline unsigned char TOUPPER (unsigned char c)
-{ return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
-static inline unsigned char TOLOWER (unsigned char c)
-{ return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; }
-
-
 /* HB_NDEBUG disables some sanity checks that are very safe to disable and
  * should be disabled in production systems.  If NDEBUG is defined, enable
  * HB_NDEBUG; but if it's desirable that normal assert()s (which are very
@@ -459,41 +445,7 @@ static inline unsigned char TOLOWER (unsigned char c)
 #endif
 
 
-/* Misc */
-
-template <typename T> class hb_assert_unsigned_t;
-template <> class hb_assert_unsigned_t<unsigned char> {};
-template <> class hb_assert_unsigned_t<unsigned short> {};
-template <> class hb_assert_unsigned_t<unsigned int> {};
-template <> class hb_assert_unsigned_t<unsigned long> {};
-
-template <typename T> static inline bool
-hb_in_range (T u, T lo, T hi)
-{
-  /* The sizeof() is here to force template instantiation.
-   * I'm sure there are better ways to do this but can't think of
-   * one right now.  Declaring a variable won't work as HB_UNUSED
-   * is unusable on some platforms and unused types are less likely
-   * to generate a warning than unused variables. */
-  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0), "");
-
-  /* The casts below are important as if T is smaller than int,
-   * the subtract results will become a signed int! */
-  return (T)(u - lo) <= (T)(hi - lo);
-}
-
-template <typename T> static inline bool
-hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2)
-{
-  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2);
-}
-
-template <typename T> static inline bool
-hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
-{
-  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2) || hb_in_range (u, lo3, hi3);
-}
-
+/* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */
 /* To my surprise, looks like the function resolver is happy to silently cast
@@ -516,7 +468,6 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
 	}
-
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:
