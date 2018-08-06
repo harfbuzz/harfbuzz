@@ -52,6 +52,7 @@ HB_BASE_sources = \
 	hb-string-array.hh \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
+	hb-vector-private.hh \
 	hb-utf-private.hh \
 	hb-warning.cc \
 	$(NULL)
