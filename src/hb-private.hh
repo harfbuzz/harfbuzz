@@ -86,7 +86,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 
 /*
  * Compiler attributes
- * */
+ */
 
 #if __cplusplus < 201103L
 
@@ -98,7 +98,6 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #define constexpr const
 #endif
 
-// Static assertions
 #ifndef static_assert
 #define static_assert(e, msg) \
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
@@ -124,7 +123,7 @@ struct _hb_alignof
 };
 #ifndef alignof
 #define alignof(x) (_hb_alignof<x>::value)
-#endif // alignof
+#endif
 
 #endif // __cplusplus < 201103L
 
