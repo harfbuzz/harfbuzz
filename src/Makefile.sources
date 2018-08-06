@@ -209,6 +209,7 @@ HB_SUBSET_sources = \
 	hb-subset.cc \
 	hb-subset-glyf.cc \
 	hb-subset-cff2.cc \
+	hb-subset-cff-common-private.cc \
 	hb-subset-input.cc \
 	hb-subset-plan.cc \
 	$(NULL)
@@ -217,6 +218,7 @@ HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-glyf.hh \
 	hb-subset-cff2.hh \
+	hb-subset-cff-common-private.hh \
 	hb-subset-plan.hh \
 	hb-subset-private.hh \
 	$(NULL)

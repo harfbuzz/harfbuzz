@@ -38,6 +38,68 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff2 HB_TAG('C','F','F','2')
 
+typedef FDSelect3_4<HBUINT32, HBUINT16> FDSelect4;
+typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
+
+struct CFF2FDSelect
+{
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  {
+    TRACE_SANITIZE (this);
+
+    return_trace (likely (c->check_struct (this) && (format == 0 || format == 3 || format == 4) &&
+                          (format == 0)?
+                          u.format0.sanitize (c, fdcount):
+                            ((format == 3)?
+                            u.format3.sanitize (c, fdcount):
+                            u.format4.sanitize (c, fdcount))));
+  }
+
+  inline bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned int size = src.get_size (num_glyphs);
+    CFF2FDSelect *dest = c->allocate_size<CFF2FDSelect> (size);
+    if (unlikely (dest == nullptr)) return_trace (false);
+    memcpy (dest, &src, size);
+    return_trace (true);
+  }
+
+  inline unsigned int calculate_serialized_size (unsigned int num_glyphs) const
+  { return get_size (num_glyphs); }
+
+  inline unsigned int get_size (unsigned int num_glyphs) const
+  {
+    unsigned int size = format.static_size;
+    if (format == 0)
+      size += u.format0.get_size (num_glyphs);
+    else if (format == 3)
+      size += u.format3.get_size ();
+    else
+      size += u.format4.get_size ();
+    return size;
+  }
+
+  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  {
+    if (format == 0)
+      return u.format0.get_fd (glyph);
+    else if (format == 3)
+      return u.format3.get_fd (glyph);
+    else
+      return u.format4.get_fd (glyph);
+  }
+
+  HBUINT8       format;
+  union {
+    FDSelect0   format0;
+    FDSelect3   format3;
+    FDSelect4   format4;
+  } u;
+
+  DEFINE_SIZE_MIN (2);
+};
+
 struct CFF2VariationStore
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -100,7 +162,7 @@ struct CFF2TopDictValues : DictValues<OpStr>
   LOffsetTo<CharStrings>        charStringsOffset;
   LOffsetTo<CFF2VariationStore> vstoreOffset;
   LOffsetTo<FDArray>            FDArrayOffset;
-  LOffsetTo<FDSelect>           FDSelectOffset;
+  LOffsetTo<CFF2FDSelect>       FDSelectOffset;
 };
 
 struct CFF2TopDictOpSet
@@ -414,7 +476,7 @@ struct cff2
       if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
           ((charStrings == &Null(CharStrings)) || unlikely (!charStrings->sanitize (&sc))) ||
           ((fdArray == &Null(FDArray)) || unlikely (!fdArray->sanitize (&sc))) ||
-          ((fdSelect != &Null(FDSelect)) && unlikely (!fdSelect->sanitize (&sc))))
+          ((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count))))
       {
         fini ();
         return;
@@ -453,7 +515,8 @@ struct cff2
         }
 
         privateDicts[i].localSubrs = &privateDicts[i].subrsOffset (privDictStr.str);
-        if (unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
+        if (privateDicts[i].localSubrs != &Null(Subrs) &&
+          unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
         {
           fini ();
           return;
@@ -492,7 +555,7 @@ struct cff2
     const CFF2VariationStore  *varStore;
     const CharStrings         *charStrings;
     const FDArray             *fdArray;
-    const FDSelect            *fdSelect;
+    const CFF2FDSelect        *fdSelect;
 
     hb_vector_t<CFF2FontDictValues>     fontDicts;
     hb_vector_t<PrivDictVal>  privateDicts;

@@ -522,33 +522,37 @@ struct FDArray : IndexOf<FontDict>
   inline bool serialize (hb_serialize_context_t *c,
                         unsigned int offSize,
                         const hb_vector_t<DICTVAL> &fontDicts,
+                        unsigned int fdCount,
+                        const hb_vector_t<hb_codepoint_t> &fdmap,
                         OP_SERIALIZER& opszr,
                         const hb_vector_t<offset_size_pair> &privatePairs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (fontDicts.len);
+    this->count.set (fdCount);
     this->offSize.set (offSize);
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize * (fontDicts.len + 1))))
+    if (!unlikely (c->allocate_size<HBUINT8> (offSize * (fdCount + 1))))
       return_trace (false);
     
     /* serialize font dict offsets */
     unsigned int  offset = 1;
-    unsigned int  i;
-    for (i = 0; i < fontDicts.len; i++)
-    {
-      set_offset_at (i, offset);
-      offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
-    }
-    set_offset_at (i, offset);
+    unsigned int  fid = 0;
+    for (unsigned i = 0; i < fontDicts.len; i++)
+      if (!fdmap.len || fdmap[i] != HB_SET_VALUE_INVALID)
+      {
+        set_offset_at (fid++, offset);
+        offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
+      }
+    set_offset_at (fid, offset);
 
     /* serialize font dicts */
     for (unsigned int i = 0; i < fontDicts.len; i++)
-    {
-      FontDict *dict = c->start_embed<FontDict> ();
-      if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privatePairs[i])))
-        return_trace (false);
-    }
+      if (fdmap[i] != HB_SET_VALUE_INVALID)
+      {
+        FontDict *dict = c->start_embed<FontDict> ();
+        if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privatePairs[i])))
+          return_trace (false);
+      }
     return_trace (true);
   }
   
@@ -556,23 +560,37 @@ struct FDArray : IndexOf<FontDict>
   template <typename OP_SERIALIZER, typename DICTVAL>
   inline static unsigned int calculate_serialized_size (unsigned int &offSize /* OUT */,
                                                         const hb_vector_t<DICTVAL> &fontDicts,
+                                                        unsigned int fdCount,
+                                                        const hb_vector_t<hb_codepoint_t> &fdmap,
                                                         OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
+      if (!fdmap.len || fdmap[i] != HB_SET_VALUE_INVALID)
+        dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
     offSize = calcOffSize (dictsSize + 1);
-    return Index::calculate_serialized_size (offSize, fontDicts.len, dictsSize);
+    return Index::calculate_serialized_size (offSize, fdCount, dictsSize);
   }
 };
 
 /* FDSelect */
 struct FDSelect0 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && fds[c->get_num_glyphs () - 1].sanitize (c)));
+    if (unlikely (!(c->check_struct (this))))
+      return_trace (false);
+    for (unsigned int i = 0; i < c->get_num_glyphs (); i++)
+      if (unlikely (!fds[i].sanitize (c)))
+        return_trace (false);
+
+    return_trace (true);
+  }
+
+  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  {
+    return (hb_codepoint_t)fds[glyph];
   }
 
   inline unsigned int get_size (unsigned int num_glyphs) const
@@ -583,44 +601,75 @@ struct FDSelect0 {
   DEFINE_SIZE_MIN (1);
 };
 
-struct FDSelect3_Range {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+template <typename GID_TYPE, typename FD_TYPE>
+struct FDSelect3_4_Range {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && (first < c->get_num_glyphs ())));
+    return_trace (likely (c->check_struct (this) && (first < c->get_num_glyphs ()) && (fd < fdcount)));
   }
 
-  HBUINT16    first;
-  HBUINT8     fd;
+  GID_TYPE    first;
+  FD_TYPE     fd;
 
-  DEFINE_SIZE_STATIC (3);
+  DEFINE_SIZE_STATIC (GID_TYPE::static_size + FD_TYPE::static_size);
 };
 
-struct FDSelect3 {
+template <typename GID_TYPE, typename FD_TYPE>
+struct FDSelect3_4 {
   inline unsigned int get_size (void) const
-  { return HBUINT16::static_size * 2 + FDSelect3_Range::static_size * nRanges; }
+  { return GID_TYPE::static_size * 2 + FDSelect3_4_Range<GID_TYPE, FD_TYPE>::static_size * nRanges; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && (nRanges > 0) &&
-                         (ranges[nRanges - 1].sanitize (c))));
+    if (unlikely (!(c->check_struct (this) && (nRanges > 0) && (ranges[0].first == 0))))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < nRanges; i++)
+    {
+      if (unlikely (!ranges[i].sanitize (c, fdcount)))
+        return_trace (false);
+      if ((0 < i) && unlikely (ranges[i - 1].first >= ranges[i].first))
+        return_trace (false);
+    }
+    if (unlikely (!sentinel().sanitize (c) || (sentinel() != c->get_num_glyphs ())))
+      return_trace (false);
+
+    return_trace (true);
   }
 
-  HBUINT16         nRanges;
-  FDSelect3_Range  ranges[VAR];
-  /* HBUINT16 sentinel */
+  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  {
+    for (unsigned int i = 0; i < nRanges; i++)
+      if (glyph < ranges[i + 1].first)
+        return (hb_codepoint_t)ranges[i].fd;
 
-  DEFINE_SIZE_MIN (5);
+    assert (false);
+  }
+
+  inline GID_TYPE &sentinel (void)  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
+  inline const GID_TYPE &sentinel (void) const  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
+
+  GID_TYPE         nRanges;
+  FDSelect3_4_Range<GID_TYPE, FD_TYPE>  ranges[VAR];
+  /* GID_TYPE sentinel */
+
+  DEFINE_SIZE_ARRAY (GID_TYPE::static_size * 2, ranges);
 };
+
+typedef FDSelect3_4<HBUINT16, HBUINT8> FDSelect3;
+typedef FDSelect3_4_Range<HBUINT16, HBUINT8> FDSelect3_Range;
 
 struct FDSelect {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
 
     return_trace (likely (c->check_struct (this) && (format == 0 || format == 3) &&
-                          (format == 0)? u.format0.sanitize (c): u.format3.sanitize (c)));
+                          (format == 0)?
+                          u.format0.sanitize (c, fdcount):
+                          u.format3.sanitize (c, fdcount)));
   }
 
   inline bool serialize (hb_serialize_context_t *c, const FDSelect &src, unsigned int num_glyphs)
@@ -641,9 +690,17 @@ struct FDSelect {
     unsigned int size = format.static_size;
     if (format == 0)
       size += u.format0.get_size (num_glyphs);
-    else if (likely (format == 3))
+    else
       size += u.format3.get_size ();
     return size;
+  }
+
+  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  {
+    if (format == 0)
+      return u.format0.get_fd (glyph);
+    else
+      return u.format3.get_fd (glyph);
   }
 
   HBUINT8       format;
@@ -872,6 +929,7 @@ struct SubTableOffsets {
   unsigned int  topDictSize;
   unsigned int  varStoreOffset;
   unsigned int  FDSelectOffset;
+  unsigned int  FDSelectSize;
   unsigned int  FDArrayOffset;
   unsigned int  FDArrayOffSize;
   unsigned int  charStringsOffset;
