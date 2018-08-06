@@ -76,7 +76,8 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
       }
     }
 
-    if (set->get_population () == fdCount)
+    subset_fd_count = set->get_population ();
+    if (subset_fd_count == fdCount)
     {
       /* all font dicts belong to the subset. no need to subset FDSelect & FDArray */
       hb_set_destroy (set);
@@ -88,9 +89,10 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
     for (unsigned int i = 0; i < fdmap.len; i++)
       fdmap[i] = HB_SET_VALUE_INVALID;
     hb_codepoint_t  fd = HB_SET_VALUE_INVALID;
+    unsigned int fdindex = 0;
     while (set->next (&fd))
-      fdmap[fd] = subset_fd_count++;
-    assert (subset_fd_count == set->get_population ());
+      fdmap[fd] = fdindex++;
+    assert (fdindex == subset_fd_count);
     hb_set_destroy (set);
   }
 

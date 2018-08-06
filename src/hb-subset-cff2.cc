@@ -146,7 +146,9 @@ struct CFF2PrivateDict_OpSerializer : OpSerializer
 struct subset_plan {
   inline subset_plan (void)
     : final_size (0),
-      subst_fdcount(1)
+      orig_fdcount (0),
+      subst_fdcount(1),
+      subst_fdselect_format (0)
   {
     subst_fdselect_first_glyphs.init ();
     fdmap.init ();
