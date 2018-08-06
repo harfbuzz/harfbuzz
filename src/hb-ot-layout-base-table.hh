@@ -525,78 +525,78 @@ struct BASE
 {
   static const hb_tag_t tableTag = HB_OT_TAG_BASE;
 
-  inline bool has_vert_axis(void) { return vertAxis != 0; }
+  inline bool has_v_axis(void) { return vAxis != 0; }
 
-  inline bool has_horiz_axis(void) { return horizAxis != 0; }
+  inline bool has_h_axis(void) { return hAxis != 0; }
 
-  inline unsigned int get_horiz_base_tag_index (Tag baselineTag) const
+  inline unsigned int get_h_base_tag_index (Tag baselineTag) const
   {
-    return (this+horizAxis).get_base_tag_index(baselineTag);
+    return (this+hAxis).get_base_tag_index(baselineTag);
   }
 
-  inline unsigned int get_horiz_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
+  inline unsigned int get_h_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
   {
-    return (this+horizAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
+    return (this+hAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
   }
 
-  inline int get_horiz_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
+  inline int get_h_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
   {
-    return (this+horizAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
+    return (this+hAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
   }
 
-  inline unsigned int get_vert_base_tag_index(Tag baselineTag) const
+  inline unsigned int get_v_base_tag_index(Tag baselineTag) const
   {
-    return (this+vertAxis).get_base_tag_index(baselineTag);
+    return (this+vAxis).get_base_tag_index(baselineTag);
   }
 
-  inline unsigned int get_vert_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
+  inline unsigned int get_v_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
   {
-    return (this+vertAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
+    return (this+vAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
   }
 
-  inline int get_vert_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
+  inline int get_v_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
   {
-    return (this+vertAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
+    return (this+vAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
   }
 
-  inline unsigned int get_horiz_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
+  inline unsigned int get_h_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
   {
-    return (this+horizAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
+    return (this+hAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
   }
 
-  inline unsigned int get_horiz_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
+  inline unsigned int get_h_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
   {
-    return (this+horizAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
+    return (this+hAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
   }
 
-  inline int get_horiz_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  inline int get_h_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
   {
-    return (this+horizAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
+    return (this+hAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
   }
 
-  inline int get_horiz_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  inline int get_h_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
   {
-    return (this+horizAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
+    return (this+hAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
   }
 
-  inline unsigned int get_vert_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
+  inline unsigned int get_v_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
   {
-    return (this+vertAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
+    return (this+vAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
   }
 
-  inline unsigned int get_vert_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
+  inline unsigned int get_v_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
   {
-    return (this+vertAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
+    return (this+vAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
   }
 
-  inline int get_vert_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  inline int get_v_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
   {
-    return (this+vertAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
+    return (this+vAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
   }
 
-  inline int get_vert_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
+  inline int get_v_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
   {
-    return (this+vertAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
+    return (this+vAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -604,15 +604,15 @@ struct BASE
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  likely (version.major == 1) &&
-		  horizAxis.sanitize (c, this) &&
-		  vertAxis.sanitize (c, this) &&
+		  hAxis.sanitize (c, this) &&
+		  vAxis.sanitize (c, this) &&
 		  (version.to_int () < 0x00010001u || varStore.sanitize (c, this)));
   }
 
   protected:
   FixedVersion<>  version;
-  OffsetTo<Axis>  horizAxis;
-  OffsetTo<Axis>  vertAxis;
+  OffsetTo<Axis>  hAxis;
+  OffsetTo<Axis>  vAxis;
   LOffsetTo<VariationStore>
 		varStore;		/* Offset to the table of Item Variation
 					 * Store--from beginning of BASE
