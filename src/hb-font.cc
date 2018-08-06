@@ -341,7 +341,8 @@ hb_font_get_glyph_from_name_parent (hb_font_t *font,
   return font->parent->get_glyph_from_name (name, len, glyph);
 }
 
-static const hb_font_funcs_t _hb_font_funcs_nil = {
+DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
+{
   HB_OBJECT_HEADER_STATIC,
 
   true, /* immutable */
@@ -364,6 +365,7 @@ static const hb_font_funcs_t _hb_font_funcs_nil = {
     }
   }
 };
+
 static const hb_font_funcs_t _hb_font_funcs_parent = {
   HB_OBJECT_HEADER_STATIC,
 
@@ -1100,6 +1102,37 @@ hb_font_glyph_from_string (hb_font_t *font,
  * hb_font_t
  */
 
+DEFINE_NULL_INSTANCE (hb_font_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  true, /* immutable */
+
+  nullptr, /* parent */
+  const_cast<hb_face_t *> (&_hb_Null_hb_face_t),
+
+  1000, /* x_scale */
+  1000, /* y_scale */
+
+  0, /* x_ppem */
+  0, /* y_ppem */
+  0, /* ptem */
+
+  0, /* num_coords */
+  nullptr, /* coords */
+
+  const_cast<hb_font_funcs_t *> (&_hb_Null_hb_font_funcs_t), /* klass */
+  nullptr, /* user_data */
+  nullptr, /* destroy */
+
+  {
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  }
+};
+
+
 /**
  * hb_font_create: (Xconstructor)
  * @face: a face.
@@ -1187,36 +1220,7 @@ hb_font_create_sub_font (hb_font_t *parent)
 hb_font_t *
 hb_font_get_empty (void)
 {
-  static const hb_font_t _hb_font_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    true, /* immutable */
-
-    nullptr, /* parent */
-    const_cast<hb_face_t *> (&_hb_face_nil),
-
-    1000, /* x_scale */
-    1000, /* y_scale */
-
-    0, /* x_ppem */
-    0, /* y_ppem */
-    0, /* ptem */
-
-    0, /* num_coords */
-    nullptr, /* coords */
-
-    const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
-    nullptr, /* user_data */
-    nullptr, /* destroy */
-
-    {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-    }
-  };
-
-  return const_cast<hb_font_t *> (&_hb_font_nil);
+  return const_cast<hb_font_t *> (&Null(hb_font_t));
 }
 
 /**

@@ -35,7 +35,6 @@
 #include "hb-shaper-private.hh"
 
 
-
 /*
  * hb_font_funcs_t
  */
@@ -57,7 +56,8 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
   /* ^--- Add new callbacks here */
 
-struct hb_font_funcs_t {
+struct hb_font_funcs_t
+{
   hb_object_header_t header;
   ASSERT_POD ();
 
@@ -89,14 +89,15 @@ struct hb_font_funcs_t {
 		]) (void);
   } get;
 };
-
+DECLARE_NULL_INSTANCE (hb_font_funcs_t);
 
 
 /*
  * hb_font_t
  */
 
-struct hb_font_t {
+struct hb_font_t
+{
   hb_object_header_t header;
   ASSERT_POD ();
 
@@ -553,6 +554,7 @@ struct hb_font_t {
     return (float) v * scale / face->get_upem ();
   }
 };
+DECLARE_NULL_INSTANCE (hb_font_t);
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, font);

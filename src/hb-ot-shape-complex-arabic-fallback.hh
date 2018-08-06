@@ -205,8 +205,6 @@ struct arabic_fallback_plan_t
   hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
 };
 
-static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
-
 #if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_WIN1256)
 #define HB_WITH_WIN1256
 #endif
@@ -215,7 +213,8 @@ static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
 #include "hb-ot-shape-complex-arabic-win1256.hh"
 #endif
 
-struct ManifestLookup {
+struct ManifestLookup
+{
   OT::Tag tag;
   OT::OffsetTo<OT::SubstLookup> lookupOffset;
 };
@@ -299,7 +298,7 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
 {
   arabic_fallback_plan_t *fallback_plan = (arabic_fallback_plan_t *) calloc (1, sizeof (arabic_fallback_plan_t));
   if (unlikely (!fallback_plan))
-    return const_cast<arabic_fallback_plan_t *> (&arabic_fallback_plan_nil);
+    return const_cast<arabic_fallback_plan_t *> (&Null(arabic_fallback_plan_t));
 
   fallback_plan->num_lookups = 0;
   fallback_plan->free_lookups = false;
@@ -315,13 +314,13 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
     return fallback_plan;
 
   free (fallback_plan);
-  return const_cast<arabic_fallback_plan_t *> (&arabic_fallback_plan_nil);
+  return const_cast<arabic_fallback_plan_t *> (&Null(arabic_fallback_plan_t));
 }
 
 static void
 arabic_fallback_plan_destroy (arabic_fallback_plan_t *fallback_plan)
 {
-  if (!fallback_plan || fallback_plan == &arabic_fallback_plan_nil)
+  if (!fallback_plan || fallback_plan == &Null(arabic_fallback_plan_t))
     return;
 
   for (unsigned int i = 0; i < fallback_plan->num_lookups; i++)

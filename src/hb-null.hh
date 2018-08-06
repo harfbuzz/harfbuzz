@@ -59,10 +59,19 @@ template <> \
 } \
 namespace Namespace { \
 static_assert (true, "Just so we take semicolon after.")
-
 #define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 const unsigned char _hb_Null_##Namespace##_##Type[Namespace::Type::min_size]
 
+/* Specializaitons for arbitrary-content Null objects expressed as struct initializer. */
+#define DECLARE_NULL_INSTANCE(Type) \
+extern HB_INTERNAL const Type _hb_Null_##Type; \
+template <> \
+/*static*/ inline const Type& Null<Type> (void) { \
+  return _hb_Null_##Type; \
+} \
+static_assert (true, "Just so we take semicolon after.")
+#define DEFINE_NULL_INSTANCE(Type) \
+const Type _hb_Null_##Type
 
 /* Global writable pool.  Enlarge as necessary. */
 

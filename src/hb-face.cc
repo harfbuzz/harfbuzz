@@ -63,7 +63,8 @@ hb_face_count (hb_blob_t *blob)
  * hb_face_t
  */
 
-const hb_face_t _hb_face_nil = {
+DEFINE_NULL_INSTANCE (hb_face_t) =
+{
   HB_OBJECT_HEADER_STATIC,
 
   true, /* immutable */
@@ -215,7 +216,7 @@ hb_face_create (hb_blob_t    *blob,
 hb_face_t *
 hb_face_get_empty (void)
 {
-  return const_cast<hb_face_t *> (&_hb_face_nil);
+  return const_cast<hb_face_t *> (&Null(hb_face_t));
 }
 
 
