@@ -46,6 +46,8 @@
   HB_FONT_FUNC_IMPLEMENT (variation_glyph) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_advance) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_advance) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_h_advances) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_v_advances) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_origin) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_origin) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_kerning) \
@@ -54,7 +56,6 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
-  HB_FONT_FUNC_IMPLEMENT (glyph_h_advances) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -228,23 +229,37 @@ struct hb_font_t
 					 klass->user_data.glyph_h_advance);
   }
 
-  inline void get_glyph_h_advances(unsigned count,
-                                   hb_codepoint_t* glyphs,
-                                   unsigned glyph_struct_size,
-                                   hb_position_t* advances,
-                                   unsigned advance_struct_size) {
-    return klass->get.f.glyph_h_advances (this, user_data,
-                                          count,
-                                          glyphs, glyph_struct_size,
-                                          advances, advance_struct_size,
-					  klass->user_data.glyph_h_advances);
-  }
-
   inline hb_position_t get_glyph_v_advance (hb_codepoint_t glyph)
   {
     return klass->get.f.glyph_v_advance (this, user_data,
 					 glyph,
 					 klass->user_data.glyph_v_advance);
+  }
+
+  inline void get_glyph_h_advances (unsigned int count,
+				    hb_codepoint_t *first_glyph,
+				    unsigned int glyph_stride,
+				    hb_position_t *first_advance,
+				    unsigned int advance_stride)
+  {
+    return klass->get.f.glyph_h_advances (this, user_data,
+					  count,
+					  first_glyph, glyph_stride,
+					  first_advance, advance_stride,
+					  klass->user_data.glyph_h_advances);
+  }
+
+  inline void get_glyph_v_advances (unsigned int count,
+				    hb_codepoint_t *first_glyph,
+				    unsigned int glyph_stride,
+				    hb_position_t *first_advance,
+				    unsigned int advance_stride)
+  {
+    return klass->get.f.glyph_v_advances (this, user_data,
+					  count,
+					  first_glyph, glyph_stride,
+					  first_advance, advance_stride,
+					  klass->user_data.glyph_v_advances);
   }
 
   inline hb_bool_t get_glyph_h_origin (hb_codepoint_t glyph,

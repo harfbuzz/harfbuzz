@@ -691,9 +691,10 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
   }
   else
   {
+    c->font->get_glyph_v_advances (count, &info[0].codepoint, sizeof(info[0]),
+                                   &pos[0].y_advance, sizeof(pos[0]));
     for (unsigned int i = 0; i < count; i++)
     {
-      pos[i].y_advance = c->font->get_glyph_v_advance (info[i].codepoint);
       c->font->subtract_glyph_v_origin (info[i].codepoint,
 					&pos[i].x_offset,
 					&pos[i].y_offset);
