@@ -285,13 +285,12 @@ static int errno = 0; /* Use something better? */
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
 
+/* Static-assert as expression. */
 template <unsigned int cond> class hb_assert_constant_t;
 template <> class hb_assert_constant_t<1> {};
-
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
 
 /* Lets assert int types.  Saves trouble down the road. */
-
 static_assert ((sizeof (int8_t) == 1), "");
 static_assert ((sizeof (uint8_t) == 1), "");
 static_assert ((sizeof (int16_t) == 2), "");
@@ -300,7 +299,6 @@ static_assert ((sizeof (int32_t) == 4), "");
 static_assert ((sizeof (uint32_t) == 4), "");
 static_assert ((sizeof (int64_t) == 8), "");
 static_assert ((sizeof (uint64_t) == 8), "");
-
 static_assert ((sizeof (hb_codepoint_t) == 4), "");
 static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
