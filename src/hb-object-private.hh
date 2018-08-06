@@ -42,7 +42,6 @@
  * Lockable set
  */
 
-#define HB_LOCKABLE_SET_INIT {HB_VECTOR_INIT}
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {

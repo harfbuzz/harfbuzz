@@ -31,7 +31,6 @@
 #include "hb-private.hh"
 
 
-#define HB_VECTOR_INIT {0, 0, false, nullptr}
 template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
