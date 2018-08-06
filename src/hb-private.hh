@@ -391,16 +391,18 @@ static inline Type const & Null (void) {
 #define Null(Type) Null<Type>()
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Namespace, Type, data) \
+#define DECLARE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 } /* Close namespace. */ \
-static const char _Null##Type[sizeof (Namespace::Type) + 1] = data; /* +1 is for nul-termination in data */ \
+extern HB_INTERNAL const unsigned char _hb_Null_##Namespace##_##Type[sizeof (Namespace::Type)]; \
 template <> \
 /*static*/ inline const Namespace::Type& Null<Namespace::Type> (void) { \
-  return *reinterpret_cast<const Namespace::Type *> (_Null##Type); \
+  return *reinterpret_cast<const Namespace::Type *> (_hb_Null_##Namespace##_##Type); \
 } \
 namespace Namespace { \
-/* The following line really exists such that we end in a place needing semicolon */ \
-static_assert (Namespace::Type::min_size + 1 <= sizeof (_Null##Type), "Null pool too small.  Enlarge.")
+static_assert (Namespace::Type::min_size <= sizeof (Type), "Null pool too small.  Enlarge."); \
+
+#define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
+const unsigned char _hb_Null_##Namespace##_##Type[sizeof (Namespace::Type)]
 
 
 /* Global writable pool.  Enlarge as necessary. */

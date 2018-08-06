@@ -140,7 +140,6 @@ struct Tag : HBUINT32
   public:
   DEFINE_SIZE_STATIC (4);
 };
-DEFINE_NULL_DATA (OT, Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef HBUINT16 GlyphID;
@@ -152,7 +151,7 @@ typedef HBUINT16 NameID;
 struct Index : HBUINT16 {
   static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;
 };
-DEFINE_NULL_DATA (OT, Index, "\xff\xff");
+DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
 /* Offset, Null offset = 0 */
 template <typename Type>
