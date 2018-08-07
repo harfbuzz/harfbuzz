@@ -789,7 +789,7 @@ hb_font_get_glyph_v_advance (hb_font_t *font,
  *
  * 
  *
- * Since: REPLACEME
+ * Since: 1.8.6
  **/
 void
 hb_font_get_glyph_h_advances (hb_font_t* font,
@@ -807,7 +807,7 @@ hb_font_get_glyph_h_advances (hb_font_t* font,
  *
  * 
  *
- * Since: REPLACEME
+ * Since: 1.8.6
  **/
 void
 hb_font_get_glyph_v_advances (hb_font_t* font,
@@ -1031,7 +1031,7 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
  *
  * 
  *
- * Since: REPLACEME
+ * Since: 1.8.6
  **/
 HB_EXTERN void
 hb_font_get_glyph_advances_for_direction (hb_font_t* font,

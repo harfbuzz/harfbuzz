@@ -283,7 +283,7 @@ hb_font_funcs_set_glyph_v_advance_func (hb_font_funcs_t *ffuncs,
  *
  * 
  *
- * Since: REPLACEME
+ * Since: 1.8.6
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_h_advances_func (hb_font_funcs_t *ffuncs,
@@ -299,7 +299,7 @@ hb_font_funcs_set_glyph_h_advances_func (hb_font_funcs_t *ffuncs,
  *
  * 
  *
- * Since: REPLACEME
+ * Since: 1.8.6
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_v_advances_func (hb_font_funcs_t *ffuncs,
