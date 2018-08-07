@@ -370,13 +370,11 @@ struct hb_font_t
 					       hb_direction_t direction,
 					       hb_position_t *x, hb_position_t *y)
   {
-    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
+    *x = *y = 0;
+    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
       *x = get_glyph_h_advance (glyph);
-      *y = 0;
-    } else {
-      *x = 0;
+    else
       *y = get_glyph_v_advance (glyph);
-    }
   }
 
   inline void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
