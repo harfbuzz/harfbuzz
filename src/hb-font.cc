@@ -784,6 +784,43 @@ hb_font_get_glyph_v_advance (hb_font_t *font,
 }
 
 /**
+ * hb_font_get_glyph_h_advances:
+ * @font: a font.
+ *
+ * 
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_font_get_glyph_h_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride)
+{
+  font->get_glyph_h_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
+}
+/**
+ * hb_font_get_glyph_v_advances:
+ * @font: a font.
+ *
+ * 
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_font_get_glyph_v_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride)
+{
+  font->get_glyph_v_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
+}
+
+/**
  * hb_font_get_glyph_h_origin:
  * @font: a font.
  * @glyph: 

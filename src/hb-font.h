@@ -459,6 +459,21 @@ HB_EXTERN hb_position_t
 hb_font_get_glyph_v_advance (hb_font_t *font,
 			     hb_codepoint_t glyph);
 
+HB_EXTERN void
+hb_font_get_glyph_h_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride);
+HB_EXTERN void
+hb_font_get_glyph_v_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride);
+
 HB_EXTERN hb_bool_t
 hb_font_get_glyph_h_origin (hb_font_t *font,
 			    hb_codepoint_t glyph,
