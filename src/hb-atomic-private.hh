@@ -101,8 +101,8 @@ static inline void _hb_memory_barrier (void)
 }
 #define _hb_memory_barrier()			_hb_memory_barrier ()
 
-typedef LONG hb_atomic_int_impl_t;
-#define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((AI), (V))
+typedef int hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((unsigned *) (AI), (V))
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 
