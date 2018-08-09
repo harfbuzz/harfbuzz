@@ -639,7 +639,8 @@ struct hb_lazy_loader_t
 
   inline void set_stored (Stored *instance_)
   {
-    assert (instance == nullptr);
+    if (instance)
+      thiz ()->destroy (instance);
     instance = instance_;
   }
 
