@@ -126,12 +126,12 @@ typedef int hb_atomic_int_impl_t;
 #define _hb_memory_w_barrier()			__machine_w_barrier ()
 #define _hb_memory_barrier()			__machine_rw_barrier ()
 
-typedef unsigned int hb_atomic_int_impl_t;
+typedef int hb_atomic_int_impl_t;
 
 static inline int _hb_fetch_and_add (hb_atomic_int_impl_t *AI, int V)
 {
   _hb_memory_w_barrier ();
-  int result = atomic_add_int_nv (AI, V);
+  int result = atomic_add_int_nv ((uint_t *) AI, V);
   _hb_memory_r_barrier ();
   return result;
 }
