@@ -40,8 +40,6 @@
  */
 
 
-typedef int hb_atomic_int_impl_t;
-
 /* We need external help for these */
 
 #if defined(hb_atomic_int_impl_add) \
@@ -127,7 +125,7 @@ static inline void _hb_memory_barrier (void)
 #define _hb_memory_w_barrier()			__machine_w_barrier ()
 #define _hb_memory_barrier()			__machine_rw_barrier ()
 
-static inline int _hb_fetch_and_add (hb_atomic_int_impl_t *AI, int V)
+static inline int _hb_fetch_and_add (int *AI, int V)
 {
   _hb_memory_w_barrier ();
   int result = atomic_add_int_nv ((uint_t *) AI, V);
@@ -177,7 +175,7 @@ static inline bool _hb_compare_and_swap_ptr (const void **P, const void *O, cons
 
 #define _hb_memory_barrier()			__lwsync ()
 
-static inline int _hb_fetch_and_add (hb_atomic_int_impl_t *AI, int V)
+static inline int _hb_fetch_and_add (int *AI, int V)
 {
   _hb_memory_barrier ();
   int result = __fetch_and_add (AI, V);
@@ -227,9 +225,6 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 #ifndef _hb_memory_w_barrier
 #define _hb_memory_w_barrier()			_hb_memory_barrier ()
 #endif
-#ifndef HB_ATOMIC_INT_INIT
-#define HB_ATOMIC_INT_INIT(V)          {V}
-#endif
 #ifndef hb_atomic_int_impl_set_relaxed
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(*(AI) = (V))
 #endif
@@ -241,14 +236,15 @@ inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barr
 #endif
 
 
+#define HB_ATOMIC_INT_INIT(V)          {V}
 struct hb_atomic_int_t
 {
-  mutable hb_atomic_int_impl_t v;
-
   inline void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
   inline int get_relaxed (void) const { return hb_atomic_int_impl_get_relaxed (&v); }
   inline int inc (void) { return hb_atomic_int_impl_add (&v,  1); }
   inline int dec (void) { return hb_atomic_int_impl_add (&v, -1); }
+
+  mutable int v;
 };
 
 
