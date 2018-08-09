@@ -312,10 +312,13 @@ template <typename Type>
 static inline void *hb_object_get_user_data (Type               *obj,
 					     hb_user_data_key_t *key)
 {
-  if (unlikely (!obj || hb_object_is_inert (obj) || !obj->header.user_data.get ()))
+  if (unlikely (!obj || hb_object_is_inert (obj)))
     return nullptr;
   assert (hb_object_is_valid (obj));
-  return obj->header.user_data->get (key);
+  hb_user_data_array_t *user_data = obj->header.user_data.get ();
+  if (!user_data)
+    return nullptr;
+  return user_data->get (key);
 }
 
 
