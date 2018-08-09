@@ -609,7 +609,7 @@ struct hb_lazy_loader_t
   }
   inline void fini (void)
   {
-    Stored *p = instance.get ();
+    Stored *p = this->instance.get ();
     if (p)
       thiz ()->destroy (p);
   }
