@@ -639,9 +639,16 @@ struct hb_lazy_loader_t
 
   inline void set_stored (Stored *instance_)
   {
-    if (instance)
-      thiz ()->destroy (instance);
-    instance = instance_;
+    /* This *must* be called when there are no other threads accessing.
+     * However, to make TSan, etc, happy, we using cmpexch. */
+  retry:
+    Stored *p = (Stored *) hb_atomic_ptr_get (&this->instance);
+    if (p)
+    {
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), p, instance_)))
+        goto retry;
+      thiz ()->destroy (p);
+    }
   }
 
   inline const Returned * get (void) const
