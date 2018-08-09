@@ -159,7 +159,7 @@ static inline bool _hb_compare_and_swap_ptr (const void **P, const void *O, cons
 
 #define _hb_memory_barrier()			OSMemoryBarrier ()
 
-typedef int32_t hb_atomic_int_impl_t;
+typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(OSAtomicAdd32Barrier ((V), (AI)) - (V))
 
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
