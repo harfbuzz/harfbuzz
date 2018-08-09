@@ -35,7 +35,12 @@
 #include "hb-private.hh"
 
 
-/* atomic_int */
+/*
+ * Atomic integers and pointers.
+ */
+
+
+typedef int hb_atomic_int_impl_t;
 
 /* We need external help for these */
 
@@ -43,14 +48,13 @@
  && defined(hb_atomic_ptr_impl_get) \
  && defined(hb_atomic_ptr_impl_cmpexch)
 
-/* Defined externally, i.e. in config.h; must have typedef'ed hb_atomic_int_impl_t as well. */
+/* Defined externally, i.e. in config.h. */
 
 
 #elif !defined(HB_NO_MT) && defined(__ATOMIC_CONSUME)
 
 /* C++11-style GCC primitives. */
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		__atomic_fetch_add ((AI), (V), __ATOMIC_ACQ_REL)
 #define hb_atomic_int_impl_set_relaxed(AI, V)	__atomic_store_n ((AI), (V), __ATOMIC_RELAXED)
 #define hb_atomic_int_impl_get_relaxed(AI)	__atomic_load_n ((AI), __ATOMIC_RELAXED)
@@ -70,7 +74,6 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 #include <atomic>
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->fetch_add ((V), std::memory_order_acq_rel))
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_relaxed))
 #define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_relaxed))
@@ -101,7 +104,6 @@ static inline void _hb_memory_barrier (void)
 }
 #define _hb_memory_barrier()			_hb_memory_barrier ()
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((unsigned *) (AI), (V))
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
@@ -111,7 +113,6 @@ typedef int hb_atomic_int_impl_t;
 
 #define _hb_memory_barrier()			__sync_synchronize ()
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		__sync_fetch_and_add ((AI), (V))
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
@@ -125,8 +126,6 @@ typedef int hb_atomic_int_impl_t;
 #define _hb_memory_r_barrier()			__machine_r_barrier ()
 #define _hb_memory_w_barrier()			__machine_w_barrier ()
 #define _hb_memory_barrier()			__machine_rw_barrier ()
-
-typedef int hb_atomic_int_impl_t;
 
 static inline int _hb_fetch_and_add (hb_atomic_int_impl_t *AI, int V)
 {
@@ -159,7 +158,6 @@ static inline bool _hb_compare_and_swap_ptr (const void **P, const void *O, cons
 
 #define _hb_memory_barrier()			OSMemoryBarrier ()
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		(OSAtomicAdd32Barrier ((V), (AI)) - (V))
 
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
@@ -178,8 +176,6 @@ typedef int hb_atomic_int_impl_t;
 #include <builtins.h>
 
 #define _hb_memory_barrier()			__lwsync ()
-
-typedef int hb_atomic_int_impl_t;
 
 static inline int _hb_fetch_and_add (hb_atomic_int_impl_t *AI, int V)
 {
@@ -208,15 +204,13 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 
 #define _hb_memory_barrier()
 
-typedef volatile int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
 
 #else /* HB_NO_MT */
 
-typedef int hb_atomic_int_impl_t;
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
 #define _hb_memory_barrier()
