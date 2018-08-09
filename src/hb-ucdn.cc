@@ -238,15 +238,15 @@ hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return ucdn_compat_decompose(u, decomposed);
 }
 
-static hb_unicode_funcs_t *static_ucdn_funcs = nullptr;
+static hb_atomic_ptr_t<hb_unicode_funcs_t> static_ucdn_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_ucdn_funcs (void)
 {
 retry:
-  hb_unicode_funcs_t *ucdn_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_ucdn_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_ucdn_funcs, ucdn_funcs, nullptr))
+  hb_unicode_funcs_t *ucdn_funcs = static_ucdn_funcs.get ();
+  if (unlikely (!static_ucdn_funcs.cmpexch (ucdn_funcs, nullptr)))
     goto retry;
 
   hb_unicode_funcs_destroy (ucdn_funcs);
@@ -258,7 +258,7 @@ hb_unicode_funcs_t *
 hb_ucdn_get_unicode_funcs (void)
 {
 retry:
-  hb_unicode_funcs_t *funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_ucdn_funcs);
+  hb_unicode_funcs_t *funcs = static_ucdn_funcs.get ();
 
   if (unlikely (!funcs))
   {
@@ -271,7 +271,8 @@ retry:
 
     hb_unicode_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_ucdn_funcs, nullptr, funcs)) {
+    if (unlikely (!static_ucdn_funcs.cmpexch (nullptr, funcs)))
+    {
       hb_unicode_funcs_destroy (funcs);
       goto retry;
     }

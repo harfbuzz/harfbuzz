@@ -57,6 +57,8 @@
 #define hb_atomic_int_impl_set_relaxed(AI, V)	__atomic_store_n ((AI), (V), __ATOMIC_RELAXED)
 #define hb_atomic_int_impl_get_relaxed(AI)	__atomic_load_n ((AI), __ATOMIC_RELAXED)
 
+#define hb_atomic_ptr_impl_set_relaxed(P, V)	__atomic_store_n ((P), (V), __ATOMIC_RELAXED)
+#define hb_atomic_ptr_impl_get_relaxed(P)	__atomic_load_n ((P), __ATOMIC_RELAXED)
 #define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_CONSUME)
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
@@ -76,6 +78,8 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_relaxed))
 #define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_relaxed))
 
+#define hb_atomic_ptr_impl_set_relaxed(P, V)	(reinterpret_cast<std::atomic<void*> *> (P)->store ((V), std::memory_order_relaxed))
+#define hb_atomic_ptr_impl_get_relaxed(P)	(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_relaxed))
 #define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_consume))
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
@@ -231,6 +235,13 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 #ifndef hb_atomic_int_impl_get_relaxed
 #define hb_atomic_int_impl_get_relaxed(AI)	(*(AI))
 #endif
+
+#ifndef hb_atomic_ptr_impl_set_relaxed
+#define hb_atomic_ptr_impl_set_relaxed(P, V)	(*(P) = (V))
+#endif
+#ifndef hb_atomic_ptr_impl_get_relaxed
+#define hb_atomic_ptr_impl_get_relaxed(P)	(*(P))
+#endif
 #ifndef hb_atomic_ptr_impl_get
 inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
 #endif
@@ -239,7 +250,7 @@ inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barr
 #define HB_ATOMIC_INT_INIT(V)          {V}
 struct hb_atomic_int_t
 {
-  inline void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
+  inline void set_relaxed (int v_) const { hb_atomic_int_impl_set_relaxed (&v, v_); }
   inline int get_relaxed (void) const { return hb_atomic_int_impl_get_relaxed (&v); }
   inline int inc (void) { return hb_atomic_int_impl_add (&v,  1); }
   inline int dec (void) { return hb_atomic_int_impl_add (&v, -1); }
@@ -248,8 +259,25 @@ struct hb_atomic_int_t
 };
 
 
-#define hb_atomic_ptr_get(P) hb_atomic_ptr_impl_get((void **) P)
-#define hb_atomic_ptr_cmpexch(P,O,N) hb_atomic_ptr_impl_cmpexch((P),(O),(N))
+template <typename T> struct hb_remove_ptr_t { typedef T value; };
+template <typename T> struct hb_remove_ptr_t<T *> { typedef T value; };
+
+#define HB_ATOMIC_PTR_INIT(V)          {V}
+template <typename P>
+struct hb_atomic_ptr_t
+{
+  typedef typename hb_remove_ptr_t<P>::value T;
+
+  inline void init (T* v_ = nullptr) { set_relaxed (v_); }
+  inline void set_relaxed (T* v_) const { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
+  inline T *get_relaxed (void) const { return hb_atomic_ptr_impl_get_relaxed (&v); }
+  inline T *get (void) const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
+  inline bool cmpexch (const T *old, T *new_) const{ return hb_atomic_ptr_impl_cmpexch (&v, old, new_); }
+
+  inline T* operator -> (void) const { return get (); }
+
+  mutable T *v;
+};
 
 
 #endif /* HB_ATOMIC_PRIVATE_HH */

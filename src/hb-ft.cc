@@ -416,15 +416,15 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   return true;
 }
 
-static hb_font_funcs_t *static_ft_funcs = nullptr;
+static hb_atomic_ptr_t<hb_font_funcs_t> static_ft_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_ft_funcs (void)
 {
 retry:
-  hb_font_funcs_t *ft_funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ft_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, ft_funcs, nullptr))
+  hb_font_funcs_t *ft_funcs = static_ft_funcs.get ();
+  if (unlikely (!static_ft_funcs.cmpexch (ft_funcs, nullptr)))
     goto retry;
 
   hb_font_funcs_destroy (ft_funcs);
@@ -435,7 +435,7 @@ static void
 _hb_ft_font_set_funcs (hb_font_t *font, FT_Face ft_face, bool unref)
 {
 retry:
-  hb_font_funcs_t *funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ft_funcs);
+  hb_font_funcs_t *funcs = static_ft_funcs.get ();
 
   if (unlikely (!funcs))
   {
@@ -458,7 +458,8 @@ retry:
 
     hb_font_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, nullptr, funcs)) {
+    if (unlikely (!static_ft_funcs. cmpexch (nullptr, funcs)))
+    {
       hb_font_funcs_destroy (funcs);
       goto retry;
     }
@@ -686,15 +687,15 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 
 /* Thread-safe, lock-free, FT_Library */
 
-static FT_Library ft_library;
+static hb_atomic_ptr_t<FT_Library> ft_library;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_ft_library (void)
 {
 retry:
-  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
-  if (!hb_atomic_ptr_cmpexch (&ft_library, library, nullptr))
+  FT_Library library = ft_library.get ();
+  if (unlikely (!ft_library.cmpexch (library, nullptr)))
     goto retry;
 
   FT_Done_FreeType (library);
@@ -705,7 +706,7 @@ static FT_Library
 get_ft_library (void)
 {
 retry:
-  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
+  FT_Library library = ft_library.get ();
 
   if (unlikely (!library))
   {
@@ -713,7 +714,8 @@ retry:
     if (FT_Init_FreeType (&library))
       return nullptr;
 
-    if (!hb_atomic_ptr_cmpexch (&ft_library, nullptr, library)) {
+    if (unlikely (!ft_library.cmpexch (nullptr, library)))
+    {
       FT_Done_FreeType (library);
       goto retry;
     }

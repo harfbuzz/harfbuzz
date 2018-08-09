@@ -605,12 +605,13 @@ struct hb_lazy_loader_t
   inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void)
   {
-    instance = nullptr;
+    instance.set_relaxed (nullptr);
   }
   inline void fini (void)
   {
-    if (instance)
-      thiz ()->destroy (instance);
+    Stored *p = instance.get ();
+    if (p)
+      thiz ()->destroy (p);
   }
 
   inline const Returned * operator -> (void) const { return thiz ()->get (); }
@@ -619,7 +620,7 @@ struct hb_lazy_loader_t
   inline Stored * get_stored (void) const
   {
   retry:
-    Stored *p = (Stored *) hb_atomic_ptr_get (&this->instance);
+    Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
       hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
@@ -628,7 +629,7 @@ struct hb_lazy_loader_t
       if (unlikely (!p))
 	p = thiz ()->create (nullptr); /* Produce nil object. */
       assert (p);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), nullptr, p)))
+      if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
         thiz ()->destroy (p);
 	goto retry;
@@ -642,10 +643,10 @@ struct hb_lazy_loader_t
     /* This *must* be called when there are no other threads accessing.
      * However, to make TSan, etc, happy, we using cmpexch. */
   retry:
-    Stored *p = (Stored *) hb_atomic_ptr_get (&this->instance);
+    Stored *p = this->instance.get ();
     if (p)
     {
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<Stored **>(&this->instance), p, instance_)))
+      if (unlikely (!this->instance.cmpexch (p, instance_)))
         goto retry;
       thiz ()->destroy (p);
     }
@@ -663,7 +664,7 @@ struct hb_lazy_loader_t
 
   private:
   /* Must only have one pointer. */
-  mutable Stored *instance;
+  hb_atomic_ptr_t<Stored *> instance;
 };
 
 /* Specializations. */

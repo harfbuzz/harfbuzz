@@ -219,7 +219,7 @@ HB_INTERNAL void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
 
-#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
+#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot.get_relaxed ())
 
 
 /*

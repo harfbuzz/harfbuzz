@@ -38,15 +38,15 @@ static const hb_shaper_pair_t all_shapers[] = {
 
 /* Thread-safe, lock-free, shapers */
 
-static const hb_shaper_pair_t *static_shapers;
+static hb_atomic_ptr_t<const hb_shaper_pair_t> static_shapers;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_shapers (void)
 {
 retry:
-  hb_shaper_pair_t *shapers = (hb_shaper_pair_t *) hb_atomic_ptr_get (&static_shapers);
-  if (!hb_atomic_ptr_cmpexch (&static_shapers, shapers, nullptr))
+  const hb_shaper_pair_t *shapers = static_shapers.get ();
+  if (unlikely (!static_shapers.cmpexch (shapers, nullptr)))
     goto retry;
 
   if (unlikely (shapers != all_shapers))
@@ -58,20 +58,21 @@ const hb_shaper_pair_t *
 _hb_shapers_get (void)
 {
 retry:
-  hb_shaper_pair_t *shapers = (hb_shaper_pair_t *) hb_atomic_ptr_get (&static_shapers);
+  hb_shaper_pair_t *shapers = const_cast<hb_shaper_pair_t *> (static_shapers.get ());
 
   if (unlikely (!shapers))
   {
     char *env = getenv ("HB_SHAPER_LIST");
     if (!env || !*env) {
-      (void) hb_atomic_ptr_cmpexch (&static_shapers, nullptr, &all_shapers[0]);
+      (void) static_shapers.cmpexch (nullptr, &all_shapers[0]);
       return (const hb_shaper_pair_t *) all_shapers;
     }
 
     /* Not found; allocate one. */
     shapers = (hb_shaper_pair_t *) calloc (1, sizeof (all_shapers));
-    if (unlikely (!shapers)) {
-      (void) hb_atomic_ptr_cmpexch (&static_shapers, nullptr, &all_shapers[0]);
+    if (unlikely (!shapers))
+    {
+      (void) static_shapers.cmpexch (nullptr, &all_shapers[0]);
       return (const hb_shaper_pair_t *) all_shapers;
     }
 
@@ -102,7 +103,8 @@ retry:
 	p = end + 1;
     }
 
-    if (!hb_atomic_ptr_cmpexch (&static_shapers, nullptr, shapers)) {
+    if (unlikely (!static_shapers.cmpexch (nullptr, shapers)))
+    {
       free (shapers);
       goto retry;
     }

@@ -225,15 +225,15 @@ hb_ot_get_font_v_extents (hb_font_t *font,
   return ot_font->v_metrics.has_font_extents;
 }
 
-static hb_font_funcs_t *static_ot_funcs = nullptr;
+static hb_atomic_ptr_t <hb_font_funcs_t> static_ot_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_ot_funcs (void)
 {
 retry:
-  hb_font_funcs_t *ot_funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ot_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, ot_funcs, nullptr))
+  hb_font_funcs_t *ot_funcs = static_ot_funcs.get ();
+  if (unlikely (!static_ot_funcs.cmpexch (ot_funcs, nullptr)))
     goto retry;
 
   hb_font_funcs_destroy (ot_funcs);
@@ -244,7 +244,7 @@ static hb_font_funcs_t *
 _hb_ot_get_font_funcs (void)
 {
 retry:
-  hb_font_funcs_t *funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ot_funcs);
+  hb_font_funcs_t *funcs = static_ot_funcs.get ();
 
   if (unlikely (!funcs))
   {
@@ -267,7 +267,8 @@ retry:
 
     hb_font_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, nullptr, funcs)) {
+    if (unlikely (!static_ot_funcs.cmpexch (nullptr, funcs)))
+    {
       hb_font_funcs_destroy (funcs);
       goto retry;
     }
