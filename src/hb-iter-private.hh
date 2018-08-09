@@ -72,7 +72,7 @@ struct Iter<T *>
     array (array_), length (length_) {}
 
   /* Emptiness. */
-  explicit inline operator bool (void) const { return bool (length); }
+  inline operator bool (void) const { return bool (length); }
 
   /* Current item. */
   inline T &operator * (void)
