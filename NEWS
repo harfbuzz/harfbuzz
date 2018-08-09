@@ -1,3 +1,9 @@
+Overview of changes leading to 1.8.7
+Wednesday, August 8, 2018
+====================================
+- Fix assertion failure with GDEF-blacklisted fonts.
+
+
 Overview of changes leading to 1.8.6
 Tuesday, August 7, 2018
 ====================================
