@@ -25,42 +25,50 @@
  */
 
 #include "hb-open-type-private.hh"
-#include "hb-ot-cff2-table.hh"
+#include "hb-ot-cff-table.hh"
 #include "hb-set.h"
-#include "hb-subset-cff2.hh"
+#include "hb-subset-cff.hh"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common-private.hh"
 
 using namespace CFF;
 
-struct CFF2SubTableOffsets {
-  inline CFF2SubTableOffsets (void)
+struct CFFSubTableOffsets {
+  inline CFFSubTableOffsets (void)
   {
     memset (this, 0, sizeof(*this));
   }
 
-  unsigned int  topDictSize;
-  unsigned int  varStoreOffset;
+  unsigned int  nameIndexOffset;
+  unsigned int  topDictOffset;
+  unsigned int  topDictOffSize;
+  unsigned int  stringIndexOffset;
+  unsigned int  globalSubrsOffset;
+  unsigned int  encodingOffset;
+  unsigned int  charsetOffset;
   TableInfo     FDSelectInfo;
   unsigned int  FDArrayOffset;
   unsigned int  FDArrayOffSize;
   unsigned int  charStringsOffset;
   unsigned int  charStringsOffSize;
-  unsigned int  privateDictsOffset;
+  TableInfo     privateDictInfo;
 };
 
-struct CFF2TopDict_OpSerializer : OpSerializer
+struct CFFTopDict_OpSerializer : OpSerializer
 {
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
-                         const CFF2SubTableOffsets &offsets) const
+                         const CFFSubTableOffsets &offsets) const
   {
     TRACE_SERIALIZE (this);
 
     switch (opstr.op)
     {
-      case OpCode_vstore:
-        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.varStoreOffset));
+      case OpCode_charset:
+        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.charsetOffset));
+
+      case OpCode_Encoding:
+        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.encodingOffset));
 
       case OpCode_CharStrings:
         return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.charStringsOffset));
@@ -70,6 +78,18 @@ struct CFF2TopDict_OpSerializer : OpSerializer
 
       case OpCode_FDSelect:
         return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.FDSelectInfo.offset));
+
+      case OpCode_Private:
+        {
+          if (unlikely (!UnsizedByteStr::serialize_int2 (c, offsets.privateDictInfo.size)))
+            return_trace (false);
+          if (unlikely (!UnsizedByteStr::serialize_int4 (c, offsets.privateDictInfo.offset)))
+            return_trace (false);
+          HBUINT8 *p = c->allocate_size<HBUINT8> (1);
+          if (unlikely (p == nullptr)) return_trace (false);
+          p->set (OpCode_Private);
+        }
+        break;
 
       default:
         return_trace (copy_opstr (c, opstr));
@@ -81,11 +101,15 @@ struct CFF2TopDict_OpSerializer : OpSerializer
   {
     switch (opstr.op)
     {
-      case OpCode_vstore:
+      case OpCode_charset:
+      case OpCode_Encoding:
       case OpCode_CharStrings:
       case OpCode_FDArray:
       case OpCode_FDSelect:
         return OpCode_Size (OpCode_longint) + 4 + OpCode_Size (opstr.op);
+    
+      case OpCode_Private:
+        return OpCode_Size (OpCode_longint) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
     
       default:
         return opstr.str.len;
@@ -93,22 +117,22 @@ struct CFF2TopDict_OpSerializer : OpSerializer
   }
 };
 
-struct CFF2FontDict_OpSerializer : OpSerializer
+struct CFFFontDict_OpSerializer : OpSerializer
 {
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
-                         const TableInfo& privDictInfo) const
+                         const TableInfo &privateDictInfo) const
   {
     TRACE_SERIALIZE (this);
 
     if (opstr.op == OpCode_Private)
     {
       /* serialize the private dict size as a 2-byte integer */
-      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privDictInfo.size)))
+      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privateDictInfo.size)))
         return_trace (false);
 
       /* serialize the private dict offset as a 4-byte integer */
-      if (unlikely (!UnsizedByteStr::serialize_int4 (c, privDictInfo.offset)))
+      if (unlikely (!UnsizedByteStr::serialize_int4 (c, privateDictInfo.offset)))
         return_trace (false);
 
       /* serialize the opcode */
@@ -136,7 +160,7 @@ struct CFF2FontDict_OpSerializer : OpSerializer
   }
 };
 
-struct CFF2PrivateDict_OpSerializer : OpSerializer
+struct CFFPrivateDict_OpSerializer : OpSerializer
 {
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
@@ -159,60 +183,77 @@ struct CFF2PrivateDict_OpSerializer : OpSerializer
   }
 };
 
-struct cff2_subset_plan {
-  inline cff2_subset_plan (void)
+struct cff_subset_plan {
+  inline cff_subset_plan (void)
     : final_size (0),
       orig_fdcount (0),
       subst_fdcount(1),
       subst_fdselect_format (0)
   {
+    topdict_sizes.init ();
+    topdict_sizes.resize (1);
     subst_fdselect_first_glyphs.init ();
     fdmap.init ();
     subset_charstrings.init ();
     privateDictInfos.init ();
   }
 
-  inline ~cff2_subset_plan (void)
+  inline ~cff_subset_plan (void)
   {
+    topdict_sizes.fini ();
     subst_fdselect_first_glyphs.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
     privateDictInfos.fini ();
   }
 
-  inline bool create (const OT::cff2::accelerator_subset_t &acc,
-              hb_subset_plan_t *plan)
+  inline bool create (const OT::cff::accelerator_subset_t &acc,
+                      hb_subset_plan_t *plan)
   {
     final_size = 0;
-    orig_fdcount = acc.fdArray->count;
+    orig_fdcount = acc.fdCount;
 
-    /* CFF2 header */
-    final_size += OT::cff2::static_size;
+    /* CFF header */
+    final_size += OT::cff::static_size;
     
-    /* top dict */
+    /* Name INDEX */
+    offsets.nameIndexOffset = final_size;
+    final_size += acc.nameIndex->get_size ();
+    
+    /* top dict INDEX */
     {
-      CFF2TopDict_OpSerializer topSzr;
-      offsets.topDictSize = TopDict::calculate_serialized_size (acc.topDict, topSzr);
-      final_size += offsets.topDictSize;
+      offsets.topDictOffset = final_size;
+      CFFTopDict_OpSerializer topSzr;
+      unsigned int topDictSize = TopDict::calculate_serialized_size (acc.topDicts[0], topSzr);
+      offsets.topDictOffSize = calcOffSize(topDictSize);
+      final_size += CFFIndexOf<TopDict>::calculate_serialized_size<CFFTopDictValues> (offsets.topDictOffSize, acc.topDicts, topdict_sizes, topSzr);
     }
 
+    /* String INDEX */
+    offsets.stringIndexOffset = final_size;
+    final_size += acc.stringIndex->get_size ();
+    
     /* global subrs */
+    offsets.globalSubrsOffset = final_size;
     final_size += acc.globalSubrs->get_size ();
 
-    /* variation store */
-    if (acc.varStore != &Null(CFF2VariationStore))
-    {
-      offsets.varStoreOffset = final_size;
-      final_size += acc.varStore->get_size ();
-    }
+    /* Encoding */
+    offsets.encodingOffset = final_size;
+    if (acc.encoding != &Null(Encoding))
+      final_size += acc.encoding->get_size ();
+
+    /* Charset */
+    offsets.charsetOffset = final_size;
+    if (acc.charset != &Null(Charset))
+      final_size += acc.charset->get_size (acc.num_glyphs);
 
     /* FDSelect */
-    if (acc.fdSelect != &Null(CFF2FDSelect))
+    if (acc.fdSelect != &Null(CFFFDSelect))
     {
       offsets.FDSelectInfo.offset = final_size;
       if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
                                   orig_fdcount,
-                                  *(const FDSelect *)acc.fdSelect,
+                                  *acc.fdSelect,
                                   subst_fdcount,
                                   offsets.FDSelectInfo.size,
                                   subst_fdselect_format,
@@ -226,10 +267,10 @@ struct cff2_subset_plan {
     }
 
     /* FDArray (FDIndex) */
-    {
+    if (acc.fdArray != &Null(CFFFDArray)) {
       offsets.FDArrayOffset = final_size;
-      CFF2FontDict_OpSerializer fontSzr;
-      final_size += CFF2FDArray::calculate_serialized_size(offsets.FDArrayOffSize/*OUT*/, acc.fontDicts, subst_fdcount, fdmap, fontSzr);
+      CFFFontDict_OpSerializer fontSzr;
+      final_size += CFFFDArray::calculate_serialized_size(offsets.FDArrayOffSize/*OUT*/, acc.fontDicts, subst_fdcount, fdmap, fontSzr);
     }
 
     /* CharStrings */
@@ -243,18 +284,21 @@ struct cff2_subset_plan {
         dataSize += str.len;
       }
       offsets.charStringsOffSize = calcOffSize (dataSize + 1);
-      final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsOffSize, plan->glyphs.len, dataSize);
+      final_size += CFFCharStrings::calculate_serialized_size (offsets.charStringsOffSize, plan->glyphs.len, dataSize);
     }
 
     /* private dicts & local subrs */
-    offsets.privateDictsOffset = final_size;
+    offsets.privateDictInfo.offset = final_size;
     for (unsigned int i = 0; i < orig_fdcount; i++)
     {
-      CFF2PrivateDict_OpSerializer privSzr;
+      CFFPrivateDict_OpSerializer privSzr;
       TableInfo  privInfo = { final_size, PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr) };
       privateDictInfos.push (privInfo);
       final_size += privInfo.size + acc.privateDicts[i].localSubrs->get_size ();
     }
+
+    if (!acc.is_CID ())
+      offsets.privateDictInfo = privateDictInfos[0];
 
     return true;
   }
@@ -262,7 +306,8 @@ struct cff2_subset_plan {
   inline unsigned int get_final_size (void) const  { return final_size; }
 
   unsigned int        final_size;
-  CFF2SubTableOffsets offsets;
+  hb_vector_t<unsigned int> topdict_sizes;
+  CFFSubTableOffsets  offsets;
 
   unsigned int    orig_fdcount;
   unsigned int    subst_fdcount;
@@ -278,98 +323,137 @@ struct cff2_subset_plan {
   hb_vector_t<TableInfo> privateDictInfos;
 };
 
-static inline bool _write_cff2 (const cff2_subset_plan &plan,
-                                const OT::cff2::accelerator_subset_t  &acc,
+static inline bool _write_cff (const cff_subset_plan &plan,
+                                const OT::cff::accelerator_subset_t  &acc,
                                 const hb_vector_t<hb_codepoint_t>& glyphs,
                                 unsigned int dest_sz,
                                 void *dest)
 {
   hb_serialize_context_t c (dest, dest_sz);
 
-  OT::cff2 *cff2 = c.start_serialize<OT::cff2> ();
-  if (unlikely (!c.extend_min (*cff2)))
+  OT::cff *cff = c.start_serialize<OT::cff> ();
+  if (unlikely (!c.extend_min (*cff)))
     return false;
 
   /* header */
-  cff2->version.major.set (0x02);
-  cff2->version.minor.set (0x00);
-  cff2->topDict.set (OT::cff2::static_size);
+  cff->version.major.set (0x01);
+  cff->version.minor.set (0x00);
+  cff->nameIndex.set (cff->min_size);
+  cff->offSize.set (4); /* unused? */
 
-  /* top dict */
+  /* name INDEX */
   {
-    assert (cff2->topDict == c.head - c.start);
-    cff2->topDictSize.set (plan.offsets.topDictSize);
-    TopDict &dict = cff2 + cff2->topDict;
-    CFF2TopDict_OpSerializer topSzr;
-    if (unlikely (!dict.serialize (&c, acc.topDict, topSzr, plan.offsets)))
+    assert (cff->nameIndex == c.head - c.start);
+    NameIndex *dest = c.start_embed<NameIndex> ();
+    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest->serialize (&c, *acc.nameIndex)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 top dict");
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF name INDEX");
+      return false;
+    }
+  }
+
+  /* top dict INDEX */
+  {
+    assert (plan.offsets.topDictOffset == c.head - c.start);
+    CFFIndexOf<TopDict> *dest = c.start_embed< CFFIndexOf<TopDict> > ();
+    if (dest == nullptr) return false;
+    CFFTopDict_OpSerializer topSzr;
+    if (unlikely (!dest->serialize (&c, plan.offsets.topDictOffSize, acc.topDicts, plan.topdict_sizes, topSzr, plan.offsets)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF top dict");
+      return false;
+    }
+  }
+
+  /* String INDEX */
+  {
+    assert (plan.offsets.stringIndexOffset == c.head - c.start);
+    StringIndex *dest = c.start_embed<StringIndex> ();
+    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest->serialize (&c, *acc.stringIndex)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF string INDEX");
       return false;
     }
   }
 
   /* global subrs */
   {
-    assert (cff2->topDict + plan.offsets.topDictSize == c.head - c.start);
-    CFF2Subrs *dest = c.start_embed<CFF2Subrs> ();
+    assert (plan.offsets.globalSubrsOffset == c.head - c.start);
+    CFFSubrs *dest = c.start_embed<CFFSubrs> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, *acc.globalSubrs)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 global subrs");
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF global subrs");
       return false;
     }
   }
-  
-  /* variation store */
-  if (acc.varStore != &Null(CFF2VariationStore))
-  {
-    assert (plan.offsets.varStoreOffset == c.head - c.start);
-    CFF2VariationStore *dest = c.start_embed<CFF2VariationStore> ();
-    if (unlikely (!dest->serialize (&c, acc.varStore)))
+
+  /* Encoding */
+  if (acc.encoding != &Null(Encoding)){
+    assert (plan.offsets.encodingOffset == c.head - c.start);
+    Encoding *dest = c.start_embed<Encoding> ();
+    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest->serialize (&c, *acc.encoding, acc.num_glyphs)))  // XXX: TODO
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Variation Store");
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize Encoding");
+      return false;
+    }
+  }
+
+  /* Charset */
+  if (acc.charset != &Null(Charset))
+  {
+    assert (plan.offsets.charsetOffset == c.head - c.start);
+    Charset *dest = c.start_embed<Charset> ();
+    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest->serialize (&c, *acc.charset, acc.num_glyphs)))  // XXX: TODO
+    {
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize Charset");
       return false;
     }
   }
 
   /* FDSelect */
-  if (acc.fdSelect != &Null(CFF2FDSelect))
+  if (acc.fdSelect != &Null(CFFFDSelect))
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
     
     if (plan.is_fds_subsetted ())
     {
-      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
+      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *acc.fdSelect, acc.fdCount,
                                                 plan.subst_fdselect_format, plan.offsets.FDSelectInfo.size,
                                                 plan.subst_fdselect_first_glyphs,
                                                 plan.fdmap)))
       {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 subset FDSelect");
+        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");
         return false;
       }
     }
     else
     {
-      CFF2FDSelect *dest = c.start_embed<CFF2FDSelect> ();
+      CFFFDSelect *dest = c.start_embed<CFFFDSelect> ();
       if (unlikely (!dest->serialize (&c, *acc.fdSelect, acc.num_glyphs)))
       {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDSelect");
+        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF FDSelect");
         return false;
       }
     }
   }
 
   /* FDArray (FD Index) */
+  if (acc.fdArray != &Null(CFFFDArray))
   {
     assert (plan.offsets.FDArrayOffset == c.head - c.start);
-    CFF2FDArray  *fda = c.start_embed<CFF2FDArray> ();
+    CFFFDArray  *fda = c.start_embed<CFFFDArray> ();
     if (unlikely (fda == nullptr)) return false;
-    CFF2FontDict_OpSerializer  fontSzr;
+    CFFFontDict_OpSerializer  fontSzr;
     if (unlikely (!fda->serialize (&c, plan.offsets.FDArrayOffSize,
                                    acc.fontDicts, plan.subst_fdcount, plan.fdmap,
                                    fontSzr, plan.privateDictInfos)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDArray");
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF FDArray");
       return false;
     }
   }
@@ -377,39 +461,39 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   /* CharStrings */
   {
     assert (plan.offsets.charStringsOffset == c.head - c.start);
-    CFF2CharStrings  *cs = c.start_embed<CFF2CharStrings> ();
+    CFFCharStrings  *cs = c.start_embed<CFFCharStrings> ();
     if (unlikely (cs == nullptr)) return false;
     if (unlikely (!cs->serialize (&c, plan.offsets.charStringsOffSize, plan.subset_charstrings)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 CharStrings");
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF CharStrings");
       return false;
     }
   }
 
   /* private dicts & local subrs */
-  assert (plan.offsets.privateDictsOffset == c.head - c.start);
+  assert (plan.offsets.privateDictInfo.offset == c.head - c.start);
   for (unsigned int i = 0; i < acc.privateDicts.len; i++)
   {
     PrivateDict  *pd = c.start_embed<PrivateDict> ();
     if (unlikely (pd == nullptr)) return false;
-    CFF2PrivateDict_OpSerializer privSzr;
+    CFFPrivateDict_OpSerializer privSzr;
     /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
     if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, plan.privateDictInfos[i].size)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Private Dict[%d]", i);
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);
       return false;
     }
     if (acc.privateDicts[i].subrsOffset != 0)
     {
-      CFF2Subrs *subrs = c.start_embed<CFF2Subrs> ();
-      if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(CFF2Subrs))
+      CFFSubrs *subrs = c.start_embed<CFFSubrs> ();
+      if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(CFFSubrs))
       {
-        DEBUG_MSG (SUBSET, nullptr, "CFF2 subset: local subrs unexpectedly null [%d]", i);
+        DEBUG_MSG (SUBSET, nullptr, "CFF subset: local subrs unexpectedly null [%d]", i);
         return false;
       }
       if (unlikely (!subrs->serialize (&c, *acc.privateDicts[i].localSubrs)))
       {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 local subrs [%d]", i);
+        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF local subrs [%d]", i);
         return false;
       }
     }
@@ -421,56 +505,55 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 }
 
 static bool
-_hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
+_hb_subset_cff (const OT::cff::accelerator_subset_t  &acc,
                 const char                      *data,
                 hb_subset_plan_t                *plan,
                 hb_blob_t                       **prime /* OUT */)
 {
-  cff2_subset_plan cff2_plan;
+  cff_subset_plan cff_plan;
 
-  if (unlikely (!cff2_plan.create (acc, plan)))
+  if (unlikely (!cff_plan.create (acc, plan)))
   {
-    DEBUG_MSG(SUBSET, nullptr, "Failed to generate a cff2 subsetting plan.");
+    DEBUG_MSG(SUBSET, nullptr, "Failed to generate a cff subsetting plan.");
     return false;
   }
 
-  unsigned int  cff2_prime_size = cff2_plan.get_final_size ();
-  char *cff2_prime_data = (char *) calloc (1, cff2_prime_size);
+  unsigned int  cff_prime_size = cff_plan.get_final_size ();
+  char *cff_prime_data = (char *) calloc (1, cff_prime_size);
 
-  if (unlikely (!_write_cff2 (cff2_plan, acc, plan->glyphs,
-                              cff2_prime_size, cff2_prime_data))) {
-    DEBUG_MSG(SUBSET, nullptr, "Failed to write a subset cff2.");
-    free (cff2_prime_data);
+  if (unlikely (!_write_cff (cff_plan, acc, plan->glyphs,
+                              cff_prime_size, cff_prime_data))) {
+    DEBUG_MSG(SUBSET, nullptr, "Failed to write a subset cff.");
+    free (cff_prime_data);
     return false;
   }
 
-  *prime = hb_blob_create (cff2_prime_data,
-                                cff2_prime_size,
-                                HB_MEMORY_MODE_READONLY,
-                                cff2_prime_data,
-                                free);
+  *prime = hb_blob_create (cff_prime_data,
+                           cff_prime_size,
+                           HB_MEMORY_MODE_READONLY,
+                           cff_prime_data,
+                           free);
   return true;
 }
 
 /**
- * hb_subset_cff2:
- * Subsets the CFF2 table according to a provided plan.
+ * hb_subset_cff:
+ * Subsets the CFF table according to a provided plan.
  *
- * Return value: subsetted cff2 table.
+ * Return value: subsetted cff table.
  **/
 bool
-hb_subset_cff2 (hb_subset_plan_t *plan,
+hb_subset_cff (hb_subset_plan_t *plan,
                 hb_blob_t       **prime /* OUT */)
 {
-  hb_blob_t *cff2_blob = hb_sanitize_context_t().reference_table<CFF::cff2> (plan->source);
-  const char *data = hb_blob_get_data(cff2_blob, nullptr);
+  hb_blob_t *cff_blob = hb_sanitize_context_t().reference_table<CFF::cff> (plan->source);
+  const char *data = hb_blob_get_data(cff_blob, nullptr);
 
-  OT::cff2::accelerator_subset_t acc;
+  OT::cff::accelerator_subset_t acc;
   acc.init(plan->source);
   bool result = likely (acc.is_valid ()) &&
-                _hb_subset_cff2 (acc, data, plan, prime);
-
-  hb_blob_destroy (cff2_blob);
+                        _hb_subset_cff (acc, data, plan, prime);
+  hb_blob_destroy (cff_blob);
   acc.fini ();
 
   return result;

@@ -24,31 +24,15 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#ifndef HB_SUBSET_CFF_COMMON_PRIVATE_HH
-#define HB_SUBSET_CFF_COMMON_PRIVATE_HH
+#ifndef HB_SUBSET_CFF_HH
+#define HB_SUBSET_CFF_HH
 
 #include "hb-private.hh"
 
 #include "hb-subset-plan.hh"
 
 HB_INTERNAL bool
-hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
-                            unsigned int fdCount,
-                            const CFF::FDSelect &src, /* IN */
-                            unsigned int &subset_fd_count /* OUT */,
-                            unsigned int &subst_fdselect_size /* OUT */,
-                            unsigned int &subst_fdselect_format /* OUT */,
-                            hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
-                            hb_vector_t<hb_codepoint_t> &fdmap /* OUT */);
+hb_subset_cff (hb_subset_plan_t *plan,
+               hb_blob_t        **cff_prime /* OUT */);
 
-HB_INTERNAL bool
-hb_serialize_cff_fdselect (hb_serialize_context_t *c,
-                          const hb_vector_t<hb_codepoint_t> &glyphs,
-                          const CFF::FDSelect &src,
-                          unsigned int fd_count,
-                          unsigned int fdselect_format,
-                          unsigned int size,
-                          const hb_vector_t<hb_codepoint_t> &first_glyphs,
-                          const hb_vector_t<hb_codepoint_t> &fdmap);
-
-#endif /* HB_SUBSET_CFF_COMMON_PRIVATE_HH */
+#endif /* HB_SUBSET_CFF_HH */

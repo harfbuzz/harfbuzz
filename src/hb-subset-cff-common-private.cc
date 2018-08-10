@@ -41,7 +41,7 @@ using namespace CFF;
 bool
 hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int fdCount,
-                            const CFF2FDSelect &src, /* IN */
+                            const FDSelect &src, /* IN */
                             unsigned int &subset_fd_count /* OUT */,
                             unsigned int &subst_fdselect_size /* OUT */,
                             unsigned int &subst_fdselect_format /* OUT */,
@@ -128,7 +128,7 @@ template <typename FDSELECT3_4>
 static inline bool
 serialize_fdselect_3_4 (hb_serialize_context_t *c,
                           unsigned int num_glyphs,
-                          const CFF2FDSelect &src,
+                          const FDSelect &src,
                           unsigned int size,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
                           const hb_vector_t<hb_codepoint_t> &fdmap)
@@ -154,7 +154,7 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
 bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           const hb_vector_t<hb_codepoint_t> &glyphs,
-                          const CFF2FDSelect &src,
+                          const FDSelect &src,
                           unsigned int fd_count,
                           unsigned int fdselect_format,
                           unsigned int size,

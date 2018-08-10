@@ -38,6 +38,13 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff2 HB_TAG('C','F','F','2')
 
+typedef Index<HBUINT32>   CFF2Index;
+template <typename Type> struct CFF2IndexOf : IndexOf<HBUINT32, Type> {};
+
+typedef CFF2Index         CFF2CharStrings;
+typedef FDArray<HBUINT32> CFF2FDArray;
+typedef CFF2Index         CFF2Subrs;
+
 typedef FDSelect3_4<HBUINT32, HBUINT16> FDSelect4;
 typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
 
@@ -126,22 +133,18 @@ struct CFF2VariationStore
   DEFINE_SIZE_MIN (2 + VariationStore::min_size);
 };
 
-struct CFF2TopDictValues : DictValues<OpStr>
+struct CFF2TopDictValues : TopDictValues
 {
   inline void init (void)
   {
-    DictValues<OpStr>::init ();
-    charStringsOffset.set (0);
-    vstoreOffset.set (0);
-    FDArrayOffset.set (0);
-    FDSelectOffset.set (0);
+    TopDictValues::init ();
+    vstoreOffset = 0;
+    FDSelectOffset = 0;
   }
 
   inline void fini (void)
   {
-    DictValues<OpStr>::fini ();
-    FontMatrix[0] = FontMatrix[3] = 0.001f;
-    FontMatrix[1] = FontMatrix[2] = FontMatrix[4] = FontMatrix[5] = 0.0f;
+    TopDictValues::fini ();
   }
 
   inline unsigned int calculate_serialized_size (void) const
@@ -150,66 +153,55 @@ struct CFF2TopDictValues : DictValues<OpStr>
     for (unsigned int i = 0; i < values.len; i++)
     {
       OpCode op = values[i].op;
-      if (op == OpCode_FontMatrix)
-        size += values[i].str.len;
-      else
-        size += OpCode_Size (OpCode_longint) + 4 + OpCode_Size (op);
+      switch (op)
+      {
+        case OpCode_vstore:
+        case OpCode_FDSelect:
+          size += OpCode_Size (OpCode_longint) + 4 + OpCode_Size (op);
+          break;
+        default:
+          size += TopDictValues::calculate_serialized_op_size (values[i]);
+          break;
+      }
     }
     return size;
   }
 
-  float     FontMatrix[6];
-  LOffsetTo<CharStrings>        charStringsOffset;
-  LOffsetTo<CFF2VariationStore> vstoreOffset;
-  LOffsetTo<FDArray>            FDArrayOffset;
-  LOffsetTo<CFF2FDSelect>       FDSelectOffset;
+  unsigned int  vstoreOffset;
+  unsigned int  FDSelectOffset;
 };
 
-struct CFF2TopDictOpSet
+struct CFF2TopDictOpSet : TopDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2TopDictValues& dictval)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset,
+                                 OpCode op, Stack& stack, CFF2TopDictValues& dictval)
   {
     switch (op) {
-      case OpCode_CharStrings:
-        if (unlikely (!check_pop_offset (stack, dictval.charStringsOffset)))
-          return false;
+      case OpCode_FontMatrix:
+        {
+          DictVal val;
+          val.init ();
+          dictval.pushVal (op, str, offset + 1);
+          stack.clear ();
+        }
         break;
+
       case OpCode_vstore:
-        if (unlikely (!check_pop_offset (stack, dictval.vstoreOffset)))
+        if (unlikely (!stack.check_pop_uint (dictval.vstoreOffset)))
           return false;
-        break;
-      case OpCode_FDArray:
-        if (unlikely (!check_pop_offset (stack, dictval.FDArrayOffset)))
-          return false;
+        stack.clear ();
         break;
       case OpCode_FDSelect:
-        if (unlikely (!check_pop_offset (stack, dictval.FDSelectOffset)))
+        if (unlikely (!stack.check_pop_uint (dictval.FDSelectOffset)))
           return false;
+        stack.clear ();
         break;
-      case OpCode_FontMatrix:
-        if (unlikely (!stack.check_underflow (6)))
-          return false;
-        for (int i = 0; i < 6; i++)
-          dictval.FontMatrix[i] = stack.pop ().to_real ();
-        break;
-      case OpCode_longint:  /* 5-byte integer */
-        if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int32_t)*(const HBUINT32*)&str[offset + 1]);
-        offset += 4;
-        return true;
-      
-      case OpCode_BCD:  /* real number */
-        float v;
-        if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
-          return false;
-        stack.push_real (v);
-        return true;
     
       default:
-        /* XXX: invalid */
-        stack.clear ();
-        return false;
+        if (unlikely (!TopDictOpSet::process_op (str, offset, op, stack, dictval)))
+          return false;
+        /* Record this operand below if stack is empty, otherwise done */
+        if (!stack.is_empty ()) return true;
     }
 
     dictval.pushVal (op, str, offset + 1);
@@ -222,8 +214,7 @@ struct CFF2FontDictValues : DictValues<OpStr>
   inline void init (void)
   {
     DictValues<OpStr>::init ();
-    privateDictSize = 0;
-    privateDictOffset.set (0);
+    privateDictInfo.init ();
   }
 
   inline void fini (void)
@@ -231,27 +222,24 @@ struct CFF2FontDictValues : DictValues<OpStr>
     DictValues<OpStr>::fini ();
   }
 
-  unsigned int            privateDictSize;
-  LOffsetTo<PrivateDict>  privateDictOffset;
+  TableInfo    privateDictInfo;
 };
 
 struct CFF2FontDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2FontDictValues& dictval)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset,
+                                 OpCode op, Stack& stack, CFF2FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_Private:
-        if (unlikely (!check_pop_offset (stack, dictval.privateDictOffset)))
+        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.offset)))
           return false;
-        if (unlikely (!stack.check_pop_uint (dictval.privateDictSize)))
+        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
+        stack.clear ();
         break;
       case OpCode_longint:  /* 5-byte integer */
-        if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int32_t)((str[offset + 1] << 24) | ((uint32_t)str[offset + 2] << 16) | ((uint32_t)str[offset + 3] << 8) | str[offset + 4]));
-        offset += 4;
-        return true;
+        return stack.push_longint_from_str (str, offset);
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
@@ -276,8 +264,8 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
   inline void init (void)
   {
     DictValues<VAL>::init ();
-    subrsOffset.set (0);
-    localSubrs = &Null(Subrs);
+    subrsOffset = 0;
+    localSubrs = &Null(CFF2Subrs);
   }
 
   inline void fini (void)
@@ -296,8 +284,8 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
     return size;
   }
 
-  LOffsetTo<Subrs>  subrsOffset;
-  const Subrs       *localSubrs;
+  unsigned int      subrsOffset;
+  const CFF2Subrs   *localSubrs;
 };
 
 typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
@@ -305,12 +293,24 @@ typedef CFF2PrivateDictValues_Base<DictVal> CFF2PrivateDictValues;
 
 struct CFF2PrivateDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues& dictval)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset,
+                                 OpCode op, Stack& stack, CFF2PrivateDictValues& dictval)
   {
     DictVal val;
     val.init ();
 
     switch (op) {
+      case OpCode_StdHW:
+      case OpCode_StdVW:
+      case OpCode_BlueScale:
+      case OpCode_BlueShift:
+      case OpCode_BlueFuzz:
+      case OpCode_ExpansionFactor:
+      case OpCode_LanguageGroup:
+        if (unlikely (!stack.check_pop_num (val.single_val)))
+          return false;
+        stack.clear ();
+        break;
       case OpCode_BlueValues:
       case OpCode_OtherBlues:
       case OpCode_FamilyBlues:
@@ -319,33 +319,18 @@ struct CFF2PrivateDictOpSet
       case OpCode_StemSnapV:
         if (unlikely (!stack.check_pop_delta (val.multi_val)))
           return false;
-        break;
-      case OpCode_StdHW:
-      case OpCode_StdVW:
-      case OpCode_BlueScale:
-      case OpCode_BlueShift:
-      case OpCode_BlueFuzz:
-      case OpCode_ExpansionFactor:
-        if (unlikely (!stack.check_pop_num (val.single_val)))
-          return false;
-        break;
-      case OpCode_LanguageGroup:
-        if (unlikely (!stack.check_pop_num (val.single_val)))
-          return false;
+        stack.clear ();
         break;
       case OpCode_Subrs:
-        if (unlikely (!check_pop_offset (stack, dictval.subrsOffset)))
+        if (unlikely (!stack.check_pop_uint (dictval.subrsOffset)))
           return false;
+        stack.clear ();
         break;
       case OpCode_blend:
         // XXX: TODO
         return true;
       case OpCode_longint:  /* 5-byte integer */
-        if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
-        offset += 4;
-        return true;
+        return stack.push_longint_from_str (str, offset);
       case OpCode_BCD:  /* real number */
         float v;
         if (unlikely (!stack.check_overflow (1) || !parse_bcd (str, offset, v)))
@@ -364,7 +349,8 @@ struct CFF2PrivateDictOpSet
 
 struct CFF2PrivateDictOpSet_Subset
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, CFF2PrivateDictValues_Subset& dictval)
+  static inline bool process_op (const ByteStr& str, unsigned int& offset,
+                                 OpCode op, Stack& stack, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -394,15 +380,12 @@ struct CFF2PrivateDictOpSet_Subset
         }
 
       case OpCode_Subrs:
-        if (unlikely (!check_pop_offset (stack, dictval.subrsOffset)))
+        if (unlikely (!stack.check_pop_uint (dictval.subrsOffset)))
           return false;
+        stack.clear ();
         break;
       case OpCode_longint:  /* 5-byte integer */
-        if (unlikely (!str.check_limit (offset, 5) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int32_t)((str[offset + 1] << 24) | (str[offset + 2] << 16) || (str[offset + 3] << 8) || str[offset + 4]));
-        offset += 4;
-        return true;
+        return stack.push_longint_from_str (str, offset);
 
       default:
         return false;
@@ -439,6 +422,7 @@ struct cff2
   {
     inline void init (hb_face_t *face)
     {
+      topDict.init ();
       fontDicts.init ();
       privateDicts.init ();
       
@@ -451,43 +435,31 @@ struct cff2
       const OT::cff2 *cff2 = this->blob->template as<OT::cff2> ();
 
       if (cff2 == &Null(OT::cff2))
-      {
-        fini ();
-        return;
-      }
+      { fini (); return; }
 
       { /* parse top dict */
         ByteStr topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
         CFF2TopDict_Interpreter top_interp;
         if (unlikely (!topDictStr.sanitize (&sc) ||
-                      !top_interp.interpret (topDictStr, top)))
-        {
-          fini ();
-          return;
-        }
+                      !top_interp.interpret (topDictStr, topDict)))
+        { fini (); return; }
       }
       
-      globalSubrs = &StructAtOffset<Subrs> (cff2, cff2->topDict + cff2->topDictSize);
-      varStore = &top.vstoreOffset (cff2);
-      charStrings = &top.charStringsOffset (cff2);
-      fdArray = &top.FDArrayOffset (cff2);
-      fdSelect = &top.FDSelectOffset (cff2);
+      globalSubrs = &StructAtOffset<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
+      varStore = &StructAtOffsetOrNull<CFF2VariationStore> (cff2, topDict.vstoreOffset);
+      charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset);
+      fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
+      fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset);
       
       if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
-          ((charStrings == &Null(CharStrings)) || unlikely (!charStrings->sanitize (&sc))) ||
-          ((fdArray == &Null(FDArray)) || unlikely (!fdArray->sanitize (&sc))) ||
-          ((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count))))
-      {
-        fini ();
-        return;
-      }
+          (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
+          (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
+          (((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
+      { fini (); return; }
 
       num_glyphs = charStrings->count;
       if (num_glyphs != sc.get_num_glyphs ())
-      {
-        fini ();
-        return;
-      }
+      { fini (); return; }
 
       privateDicts.resize (fdArray->count);
 
@@ -500,27 +472,18 @@ struct cff2
         font = fontDicts.push ();
         if (unlikely (!fontDictStr.sanitize (&sc) ||
                       !font_interp.interpret (fontDictStr, *font)))
-        {
-          fini ();
-          return;
-        }
+        { fini (); return; }
 
-        const ByteStr privDictStr (font->privateDictOffset (cff2), font->privateDictSize);
+        const ByteStr privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
         Interpreter<PrivOpSet, PrivDictVal> priv_interp;
         if (unlikely (!privDictStr.sanitize (&sc) ||
                       !priv_interp.interpret (privDictStr, privateDicts[i])))
-        {
-          fini ();
-          return;
-        }
+        { fini (); return; }
 
-        privateDicts[i].localSubrs = &privateDicts[i].subrsOffset (privDictStr.str);
-        if (privateDicts[i].localSubrs != &Null(Subrs) &&
+        privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (privDictStr.str, privateDicts[i].subrsOffset);
+        if (privateDicts[i].localSubrs != &Null(CFF2Subrs) &&
           unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
-        {
-          fini ();
-          return;
-        }
+        { fini (); return; }
       }
     }
 
@@ -550,11 +513,11 @@ struct cff2
     hb_sanitize_context_t   sc;
 
     public:
-    CFF2TopDictValues         top;
-    const Subrs               *globalSubrs;
+    CFF2TopDictValues         topDict;
+    const CFF2Subrs           *globalSubrs;
     const CFF2VariationStore  *varStore;
-    const CharStrings         *charStrings;
-    const FDArray             *fdArray;
+    const CFF2CharStrings     *charStrings;
+    const CFF2FDArray         *fdArray;
     const CFF2FDSelect        *fdSelect;
 
     hb_vector_t<CFF2FontDictValues>     fontDicts;
