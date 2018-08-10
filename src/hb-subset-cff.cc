@@ -291,10 +291,13 @@ struct cff_subset_plan {
     offsets.privateDictInfo.offset = final_size;
     for (unsigned int i = 0; i < orig_fdcount; i++)
     {
-      CFFPrivateDict_OpSerializer privSzr;
-      TableInfo  privInfo = { final_size, PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr) };
-      privateDictInfos.push (privInfo);
-      final_size += privInfo.size + acc.privateDicts[i].localSubrs->get_size ();
+      if (!fdmap.excludes (i))
+      {
+        CFFPrivateDict_OpSerializer privSzr;
+        TableInfo  privInfo = { final_size, PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr) };
+        privateDictInfos.push (privInfo);
+        final_size += privInfo.size + acc.privateDicts[i].localSubrs->get_size ();
+      }
     }
 
     if (!acc.is_CID ())
@@ -317,7 +320,7 @@ struct cff_subset_plan {
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to HB_SET_VALUE_INVALID if excluded from subset */
-  hb_vector_t<hb_codepoint_t>   fdmap;
+  FDMap   fdmap;
 
   hb_vector_t<ByteStr> subset_charstrings;
   hb_vector_t<TableInfo> privateDictInfos;
@@ -474,27 +477,30 @@ static inline bool _write_cff (const cff_subset_plan &plan,
   assert (plan.offsets.privateDictInfo.offset == c.head - c.start);
   for (unsigned int i = 0; i < acc.privateDicts.len; i++)
   {
-    PrivateDict  *pd = c.start_embed<PrivateDict> ();
-    if (unlikely (pd == nullptr)) return false;
-    CFFPrivateDict_OpSerializer privSzr;
-    /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-    if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, plan.privateDictInfos[i].size)))
+    if (!plan.fdmap.excludes (i))
     {
-      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);
-      return false;
-    }
-    if (acc.privateDicts[i].subrsOffset != 0)
-    {
-      CFFSubrs *subrs = c.start_embed<CFFSubrs> ();
-      if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(CFFSubrs))
+      PrivateDict  *pd = c.start_embed<PrivateDict> ();
+      if (unlikely (pd == nullptr)) return false;
+      CFFPrivateDict_OpSerializer privSzr;
+      /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
+      if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, plan.privateDictInfos[plan.fdmap[i]].size)))
       {
-        DEBUG_MSG (SUBSET, nullptr, "CFF subset: local subrs unexpectedly null [%d]", i);
+        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);
         return false;
       }
-      if (unlikely (!subrs->serialize (&c, *acc.privateDicts[i].localSubrs)))
+      if (acc.privateDicts[i].subrsOffset != 0)
       {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF local subrs [%d]", i);
-        return false;
+        CFFSubrs *subrs = c.start_embed<CFFSubrs> ();
+        if (unlikely (subrs == nullptr) || acc.privateDicts[i].localSubrs == &Null(CFFSubrs))
+        {
+          DEBUG_MSG (SUBSET, nullptr, "CFF subset: local subrs unexpectedly null [%d]", i);
+          return false;
+        }
+        if (unlikely (!subrs->serialize (&c, *acc.privateDicts[i].localSubrs)))
+        {
+          DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF local subrs [%d]", i);
+          return false;
+        }
       }
     }
   }

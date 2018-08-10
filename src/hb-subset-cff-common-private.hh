@@ -39,7 +39,7 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int &subst_fdselect_size /* OUT */,
                             unsigned int &subst_fdselect_format /* OUT */,
                             hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
-                            hb_vector_t<hb_codepoint_t> &fdmap /* OUT */);
+                            CFF::FDMap &fdmap /* OUT */);
 
 HB_INTERNAL bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
@@ -49,6 +49,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           unsigned int fdselect_format,
                           unsigned int size,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
-                          const hb_vector_t<hb_codepoint_t> &fdmap);
+                          const CFF::FDMap &fdmap);
 
 #endif /* HB_SUBSET_CFF_COMMON_PRIVATE_HH */

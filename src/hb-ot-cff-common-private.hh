@@ -700,6 +700,28 @@ struct TableInfo
   unsigned int    size;
 };
 
+/* font dict index remap table from fullset FDArray to subset FDArray.
+ * set to HB_SET_VALUE_INVALID if excluded from subset */
+struct FDMap : hb_vector_t<hb_codepoint_t>
+{
+  inline void init (void)
+  { hb_vector_t<hb_codepoint_t>::init (); }
+
+  inline void fini (void)
+  { hb_vector_t<hb_codepoint_t>::fini (); }
+
+  inline bool fullset (void) const
+  {
+    for (unsigned int i = 0; i < len; i++)
+      if ((*this)[i] == HB_SET_VALUE_INVALID)
+        return false;
+    return true;
+  }
+
+  inline bool excludes (hb_codepoint_t fd) const
+  { return (fd < len) && ((*this)[fd] == HB_SET_VALUE_INVALID); }
+};
+
 template <typename COUNT>
 struct FDArray : IndexOf<COUNT, FontDict>
 {
@@ -708,7 +730,7 @@ struct FDArray : IndexOf<COUNT, FontDict>
                         unsigned int offSize_,
                         const hb_vector_t<DICTVAL> &fontDicts,
                         unsigned int fdCount,
-                        const hb_vector_t<hb_codepoint_t> &fdmap,
+                        const FDMap &fdmap,
                         OP_SERIALIZER& opszr,
                         const hb_vector_t<TableInfo> &privateInfos)
   {
@@ -723,7 +745,7 @@ struct FDArray : IndexOf<COUNT, FontDict>
     unsigned int  offset = 1;
     unsigned int  fid = 0;
     for (unsigned i = 0; i < fontDicts.len; i++)
-      if (!fdmap.len || fdmap[i] != HB_SET_VALUE_INVALID)
+      if (!fdmap.excludes (i))
       {
         IndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
         offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
@@ -732,10 +754,10 @@ struct FDArray : IndexOf<COUNT, FontDict>
 
     /* serialize font dicts */
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      if (fdmap[i] != HB_SET_VALUE_INVALID)
+      if (!fdmap.excludes (i))
       {
         FontDict *dict = c->start_embed<FontDict> ();
-        if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[i])))
+        if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]])))
           return_trace (false);
       }
     return_trace (true);
@@ -746,12 +768,12 @@ struct FDArray : IndexOf<COUNT, FontDict>
   inline static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
                                                         const hb_vector_t<DICTVAL> &fontDicts,
                                                         unsigned int fdCount,
-                                                        const hb_vector_t<hb_codepoint_t> &fdmap,
+                                                        const FDMap &fdmap,
                                                         OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      if (!fdmap.len || fdmap[i] != HB_SET_VALUE_INVALID)
+      if (!fdmap.excludes (i))
         dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
     offSize_ = calcOffSize (dictsSize + 1);
