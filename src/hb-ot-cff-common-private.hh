@@ -210,7 +210,7 @@ struct ByteStr
 
   inline bool serialize (hb_serialize_context_t *c, const ByteStr &src)
   {
-    TRACE_SANITIZE (this);
+    TRACE_SERIALIZE (this);
     HBUINT8 *dest = c->allocate_size<HBUINT8> (src.len);
     if (unlikely (dest == nullptr))
       return_trace (false);
