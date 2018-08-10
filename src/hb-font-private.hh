@@ -370,13 +370,23 @@ struct hb_font_t
 					       hb_direction_t direction,
 					       hb_position_t *x, hb_position_t *y)
   {
-    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
+    *x = *y = 0;
+    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
       *x = get_glyph_h_advance (glyph);
-      *y = 0;
-    } else {
-      *x = 0;
+    else
       *y = get_glyph_v_advance (glyph);
-    }
+  }
+  inline void get_glyph_advances_for_direction (hb_direction_t direction,
+						unsigned count,
+						hb_codepoint_t *first_glyph,
+						unsigned glyph_stride,
+						hb_position_t *first_advance,
+						unsigned advance_stride)
+  {
+    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      get_glyph_h_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
+    else
+      get_glyph_v_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
   }
 
   inline void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,

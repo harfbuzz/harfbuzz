@@ -364,15 +364,15 @@ hb_glib_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return utf8_decomposed_len;
 }
 
-static hb_unicode_funcs_t *static_glib_funcs = nullptr;
+static hb_atomic_ptr_t<hb_unicode_funcs_t> static_glib_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_glib_funcs (void)
 {
 retry:
-  hb_unicode_funcs_t *glib_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_glib_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_glib_funcs, glib_funcs, nullptr))
+  hb_unicode_funcs_t *glib_funcs = static_glib_funcs.get ();
+  if (unlikely (!static_glib_funcs.cmpexch (glib_funcs, nullptr)))
     goto retry;
 
   hb_unicode_funcs_destroy (glib_funcs);
@@ -383,7 +383,7 @@ hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
 retry:
-  hb_unicode_funcs_t *funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_glib_funcs);
+  hb_unicode_funcs_t *funcs = static_glib_funcs.get ();
 
   if (unlikely (!funcs))
   {
@@ -396,7 +396,8 @@ retry:
 
     hb_unicode_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_glib_funcs, nullptr, funcs)) {
+    if (unlikely (!static_glib_funcs.cmpexch (nullptr, funcs)))
+    {
       hb_unicode_funcs_destroy (funcs);
       goto retry;
     }

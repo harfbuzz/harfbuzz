@@ -220,19 +220,18 @@ struct hb_uniscribe_shaper_funcs_t {
     }
   }
 };
-static hb_uniscribe_shaper_funcs_t *uniscribe_funcs;
+static hb_atomic_ptr_t<hb_uniscribe_shaper_funcs_t> uniscribe_funcs;
 
 #ifdef HB_USE_ATEXIT
 static inline void
 free_uniscribe_funcs (void)
 {
 retry:
-  hb_uniscribe_shaper_funcs_t *local_uniscribe_funcs =
-    (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
-  if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, local_uniscribe_funcs, nullptr))
+  hb_uniscribe_shaper_funcs_t *local_uniscribe_funcs = uniscribe_funcs.get ();
+  if (unlikely (!uniscribe_funcs.cmpexch (local_uniscribe_funcs, nullptr)))
     goto retry;
 
-  free (uniscribe_funcs);
+  free (local_uniscribe_funcs);
 }
 #endif
 
@@ -240,7 +239,7 @@ static hb_uniscribe_shaper_funcs_t *
 hb_uniscribe_shaper_get_funcs (void)
 {
 retry:
-  hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
+  hb_uniscribe_shaper_funcs_t *funcs = uniscribe_funcs.get ();
 
   if (unlikely (!funcs))
   {
@@ -250,7 +249,8 @@ retry:
 
     funcs->init ();
 
-    if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, nullptr, funcs)) {
+    if (unlikely (!uniscribe_funcs.cmpexch (nullptr, funcs)))
+    {
       free (funcs);
       goto retry;
     }

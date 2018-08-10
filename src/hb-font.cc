@@ -162,23 +162,7 @@ hb_font_get_glyph_v_advance_default (hb_font_t *font,
   return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph));
 }
 
-static void
-hb_font_get_glyph_h_advances_nil (hb_font_t* font,
-				  void* font_data HB_UNUSED,
-				  unsigned int count,
-				  hb_codepoint_t *first_glyph HB_UNUSED,
-				  unsigned int glyph_stride HB_UNUSED,
-				  hb_position_t *first_advance,
-				  unsigned int advance_stride,
-				  void *user_data HB_UNUSED)
-{
-  for (unsigned int i = 0; i < count; i++)
-  {
-    *first_advance = font->get_glyph_h_advance (*first_glyph);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
-  }
-}
+#define hb_font_get_glyph_h_advances_nil hb_font_get_glyph_h_advances_default
 static void
 hb_font_get_glyph_h_advances_default (hb_font_t* font,
 				      void* font_data HB_UNUSED,
@@ -210,23 +194,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t* font,
   }
 }
 
-static void
-hb_font_get_glyph_v_advances_nil (hb_font_t* font,
-				  void* font_data HB_UNUSED,
-				  unsigned int count,
-				  hb_codepoint_t *first_glyph HB_UNUSED,
-				  unsigned int glyph_stride HB_UNUSED,
-				  hb_position_t *first_advance,
-				  unsigned int advance_stride,
-				  void *user_data HB_UNUSED)
-{
-  for (unsigned int i = 0; i < count; i++)
-  {
-    *first_advance = font->get_glyph_v_advance (*first_glyph);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
-  }
-}
+#define hb_font_get_glyph_v_advances_nil hb_font_get_glyph_v_advances_default
 static void
 hb_font_get_glyph_v_advances_default (hb_font_t* font,
 				      void* font_data HB_UNUSED,
@@ -816,6 +784,43 @@ hb_font_get_glyph_v_advance (hb_font_t *font,
 }
 
 /**
+ * hb_font_get_glyph_h_advances:
+ * @font: a font.
+ *
+ * 
+ *
+ * Since: 1.8.6
+ **/
+void
+hb_font_get_glyph_h_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride)
+{
+  font->get_glyph_h_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
+}
+/**
+ * hb_font_get_glyph_v_advances:
+ * @font: a font.
+ *
+ * 
+ *
+ * Since: 1.8.6
+ **/
+void
+hb_font_get_glyph_v_advances (hb_font_t* font,
+			      unsigned count,
+			      hb_codepoint_t *first_glyph,
+			      unsigned glyph_stride,
+			      hb_position_t *first_advance,
+			      unsigned advance_stride)
+{
+  font->get_glyph_v_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
+}
+
+/**
  * hb_font_get_glyph_h_origin:
  * @font: a font.
  * @glyph: 
@@ -1018,6 +1023,26 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
 					 hb_position_t *x, hb_position_t *y)
 {
   return font->get_glyph_advance_for_direction (glyph, direction, x, y);
+}
+/**
+ * hb_font_get_glyph_advances_for_direction:
+ * @font: a font.
+ * @direction: 
+ *
+ * 
+ *
+ * Since: 1.8.6
+ **/
+HB_EXTERN void
+hb_font_get_glyph_advances_for_direction (hb_font_t* font,
+					  hb_direction_t direction,
+					  unsigned count,
+					  hb_codepoint_t *first_glyph,
+					  unsigned glyph_stride,
+					  hb_position_t *first_advance,
+					  unsigned advance_stride)
+{
+  font->get_glyph_advances_for_direction (direction, count, first_glyph, glyph_stride, first_advance, advance_stride);
 }
 
 /**
@@ -1222,7 +1247,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   nullptr, /* destroy */
 
   {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
+#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
   }
