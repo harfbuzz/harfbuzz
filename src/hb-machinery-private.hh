@@ -693,7 +693,21 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   /* To be possibly overloaded by subclasses. */
   static inline const Returned* convert (const Stored *p) { return p; }
   static inline Returned* convert (Stored *p) { return p; }
+
+  /* By default null/init/fini the object. */
   static inline const Stored* get_null (void) { return &Null(Stored); }
+  static inline Stored *create (Data *data)
+  {
+    Stored *p = (Stored *) calloc (1, sizeof (Stored));
+    if (likely (p))
+      p->init (data);
+    return p;
+  }
+  static inline void destroy (Stored *p)
+  {
+    p->fini ();
+    ::free (p);
+  }
 
   private:
   /* Must only have one pointer. */
@@ -703,23 +717,9 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 /* Specializations. */
 
 template <unsigned int WheresFace, typename T>
-struct hb_object_lazy_loader_t : hb_lazy_loader_t<hb_object_lazy_loader_t<WheresFace, T>,
+struct hb_face_lazy_loader_t : hb_lazy_loader_t<hb_face_lazy_loader_t<WheresFace, T>,
 						  hb_face_t, WheresFace,
-						  T>
-{
-  static inline T *create (hb_face_t *face)
-  {
-    T *p = (T *) calloc (1, sizeof (T));
-    if (likely (p))
-      p->init (face);
-    return p;
-  }
-  static inline void destroy (T *p)
-  {
-    p->fini ();
-    free (p);
-  }
-};
+						  T> {};
 
 template <typename T, unsigned int WheresFace>
 struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, WheresFace>,
@@ -751,8 +751,8 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, Where
 
 template <typename Subclass>
 struct hb_font_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
-						       void, 0,
-						       hb_font_funcs_t>
+						      void, 0,
+						      hb_font_funcs_t>
 {
   static inline void destroy (hb_font_funcs_t *p)
   {
