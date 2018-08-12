@@ -719,10 +719,6 @@ struct hb_object_lazy_loader_t : hb_lazy_loader_t<hb_object_lazy_loader_t<Wheres
     p->fini ();
     free (p);
   }
-  static inline const T *get_null (void)
-  {
-    return &Null(T);
-  }
 };
 
 template <typename T, unsigned int WheresFace>
