@@ -590,13 +590,14 @@ struct BEInt<Type, 4>
  * Lazy loaders.
  */
 
-template <unsigned int WheresFace,
-	  typename Subclass,
+template <typename Subclass,
+	  typename Data,
+	  unsigned int WheresData,
 	  typename Returned,
 	  typename Stored = Returned>
 struct hb_lazy_loader_t
 {
-  static_assert (WheresFace > 0, "");
+  static_assert (WheresData > 0, "");
 
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
@@ -623,9 +624,9 @@ struct hb_lazy_loader_t
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
-      hb_face_t *face = *(((hb_face_t **) this) - WheresFace);
+      Data *data= *(((Data **) this) - WheresData);
       if (likely (!p))
-	p = thiz ()->create (face);
+	p = thiz ()->create (data);
       if (unlikely (!p))
 	p = thiz ()->create (nullptr); /* Produce nil object. */
       assert (p);
@@ -670,7 +671,9 @@ struct hb_lazy_loader_t
 /* Specializations. */
 
 template <unsigned int WheresFace, typename T>
-struct hb_object_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_object_lazy_loader_t<WheresFace, T>, T>
+struct hb_object_lazy_loader_t : hb_lazy_loader_t<hb_object_lazy_loader_t<WheresFace, T>,
+						  hb_face_t, WheresFace,
+						  T>
 {
   static inline T *create (hb_face_t *face)
   {
@@ -694,7 +697,9 @@ struct hb_object_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_object_lazy_loa
 };
 
 template <unsigned int WheresFace, typename T>
-struct hb_table_lazy_loader_t : hb_lazy_loader_t<WheresFace, hb_table_lazy_loader_t<WheresFace, T>, T, hb_blob_t>
+struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<WheresFace, T>,
+						 hb_face_t, WheresFace,
+						 T, hb_blob_t>
 {
   static inline hb_blob_t *create (hb_face_t *face)
   {
