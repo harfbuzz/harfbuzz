@@ -590,18 +590,51 @@ struct BEInt<Type, 4>
  * Lazy loaders.
  */
 
+template <typename Data, unsigned int WheresData>
+struct hb_data_wrapper_t
+{
+  static_assert (WheresData > 0, "");
+
+  inline Data * get_data (void) const
+  {
+    return *(((Data **) this) - WheresData);
+  }
+
+  template <typename Stored, typename Subclass>
+  inline Stored * call_create (void) const
+  {
+    Data *data = this->get_data ();
+    return likely (data) ? Subclass::create (data) : nullptr;
+  }
+};
+template <>
+struct hb_data_wrapper_t<void, 0>
+{
+  template <typename Stored, typename Subclass>
+  inline Stored * call_create (void) const
+  {
+    return Subclass::create ();
+  }
+};
+
 template <typename Subclass,
 	  typename Data,
 	  unsigned int WheresData,
 	  typename Returned,
 	  typename Stored = Returned>
-struct hb_lazy_loader_t
+struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 {
-  static_assert (WheresData > 0, "");
-
   inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void) { instance.set_relaxed (nullptr); }
   inline void fini (void) { destroy (instance.get ()); }
+
+  inline Stored * create (void) const
+  {
+    Stored *p = this->template call_create<Stored, Subclass> ();
+    if (unlikely (!p))
+      p = const_cast<Stored *> (Subclass::get_null ());
+    return p;
+  }
   static inline void destroy (Stored *p)
   {
     if (p && p != Subclass::get_null ())
@@ -622,11 +655,7 @@ struct hb_lazy_loader_t
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
-      Data *data = get_data ();
-      if (likely (data))
-	p = Subclass::create (data);
-      if (unlikely (!p))
-	p = const_cast<Stored *> (Subclass::get_null ());
+      p = create ();
       assert (p);
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
