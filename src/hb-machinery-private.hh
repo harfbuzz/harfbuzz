@@ -610,20 +610,27 @@ struct hb_data_wrapper_t
 template <>
 struct hb_data_wrapper_t<void, 0>
 {
-  template <typename Stored, typename Subclass>
+  template <typename Stored, typename Funcs>
   inline Stored * call_create (void) const
   {
-    return Subclass::create ();
+    return Funcs::create ();
   }
 };
 
-template <typename Subclass,
-	  typename Data,
-	  unsigned int WheresData,
-	  typename Returned,
+template <typename T1, typename T2> struct hb_non_void_t { typedef T1 value; };
+template <typename T2> struct hb_non_void_t<void, T2> { typedef T2 value; };
+
+template <typename Returned,
+	  typename Subclass = void,
+	  typename Data = void,
+	  unsigned int WheresData = 0,
 	  typename Stored = Returned>
 struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 {
+  typedef typename hb_non_void_t<Subclass,
+				 hb_lazy_loader_t<Returned,Subclass,Data,WheresData,Stored>
+				>::value Funcs;
+
   inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void) { instance.set_relaxed (nullptr); }
   inline void fini (void)
@@ -641,15 +648,15 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   inline Stored * do_create (void) const
   {
-    Stored *p = this->template call_create<Stored, Subclass> ();
+    Stored *p = this->template call_create<Stored, Funcs> ();
     if (unlikely (!p))
-      p = const_cast<Stored *> (Subclass::get_null ());
+      p = const_cast<Stored *> (Funcs::get_null ());
     return p;
   }
   static inline void do_destroy (Stored *p)
   {
-    if (p && p != Subclass::get_null ())
-      Subclass::destroy (p);
+    if (p && p != Funcs::get_null ())
+      Funcs::destroy (p);
   }
 
   inline const Returned * operator -> (void) const { return get (); }
@@ -687,8 +694,8 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     do_destroy (p);
   }
 
-  inline const Returned * get (void) const { return Subclass::convert (get_stored ()); }
-  inline Returned * get_unconst (void) const { return const_cast<Returned *> (Subclass::convert (get_stored ())); }
+  inline const Returned * get (void) const { return Funcs::convert (get_stored ()); }
+  inline Returned * get_unconst (void) const { return const_cast<Returned *> (Funcs::convert (get_stored ())); }
 
   /* To be possibly overloaded by subclasses. */
   static inline const Returned* convert (const Stored *p) { return p; }
@@ -701,6 +708,13 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = (Stored *) calloc (1, sizeof (Stored));
     if (likely (p))
       p->init (data);
+    return p;
+  }
+  static inline Stored *create (void)
+  {
+    Stored *p = (Stored *) calloc (1, sizeof (Stored));
+    if (likely (p))
+      p->init ();
     return p;
   }
   static inline void destroy (Stored *p)
@@ -717,14 +731,15 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 /* Specializations. */
 
 template <unsigned int WheresFace, typename T>
-struct hb_face_lazy_loader_t : hb_lazy_loader_t<hb_face_lazy_loader_t<WheresFace, T>,
-						  hb_face_t, WheresFace,
-						  T> {};
+struct hb_face_lazy_loader_t : hb_lazy_loader_t<T,
+						hb_face_lazy_loader_t<WheresFace, T>,
+						hb_face_t, WheresFace> {};
 
 template <typename T, unsigned int WheresFace>
-struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, WheresFace>,
+struct hb_table_lazy_loader_t : hb_lazy_loader_t<T,
+						 hb_table_lazy_loader_t<T, WheresFace>,
 						 hb_face_t, WheresFace,
-						 T, hb_blob_t>
+						 hb_blob_t>
 {
   static inline hb_blob_t *create (hb_face_t *face)
   {
@@ -750,9 +765,7 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, Where
 };
 
 template <typename Subclass>
-struct hb_font_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
-						      void, 0,
-						      hb_font_funcs_t>
+struct hb_font_funcs_lazy_loader_t : hb_lazy_loader_t<hb_font_funcs_t, Subclass>
 {
   static inline void destroy (hb_font_funcs_t *p)
   {
@@ -764,9 +777,7 @@ struct hb_font_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
   }
 };
 template <typename Subclass>
-struct hb_unicode_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
-							 void, 0,
-							 hb_unicode_funcs_t>
+struct hb_unicode_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unicode_funcs_t, Subclass>
 {
   static inline void destroy (hb_unicode_funcs_t *p)
   {

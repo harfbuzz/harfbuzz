@@ -685,9 +685,8 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 
 static void free_static_ft_library (void);
 
-static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_ft_library_lazy_loader_t,
-							     void, 0,
-							     hb_remove_ptr_t<FT_Library>::value>
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<FT_Library>::value,
+							     hb_ft_library_lazy_loader_t>
 {
   static inline FT_Library create (void)
   {
@@ -705,7 +704,7 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_ft_library_lazy_
   {
     FT_Done_FreeType (l);
   }
-  static inline const FT_Library get_null (void)
+  static inline FT_Library get_null (void)
   {
     return nullptr;
   }
