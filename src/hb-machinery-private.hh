@@ -626,7 +626,14 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 {
   inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
   inline void init (void) { instance.set_relaxed (nullptr); }
-  inline void fini (void) { destroy (instance.get ()); }
+  inline void fini (void)
+  {
+  retry:
+    Stored *p = instance.get ();
+    if (unlikely (p && !this->instance.cmpexch (p, nullptr)))
+      goto retry;
+    destroy (p);
+  }
 
   inline Stored * create (void) const
   {
