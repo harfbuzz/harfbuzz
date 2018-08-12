@@ -599,24 +599,22 @@ struct hb_lazy_loader_t
 {
   static_assert (WheresData > 0, "");
 
-  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  inline const Subclass* thiz (void) const { return static_cast<const Subclass *> (this); }
-  inline Subclass* thiz (void) { return static_cast<Subclass *> (this); }
-
   inline void init0 (void) {} /* Init, when memory is already set to 0. No-op for us. */
-  inline void init (void)
+  inline void init (void) { instance.set_relaxed (nullptr); }
+  inline void fini (void) { destroy (instance.get ()); }
+  static inline void destroy (Stored *p)
   {
-    instance.set_relaxed (nullptr);
-  }
-  inline void fini (void)
-  {
-    Stored *p = this->instance.get ();
-    if (p)
-      thiz ()->destroy (p);
+    if (p && p != Subclass::get_null ())
+      Subclass::destroy (p);
   }
 
-  inline const Returned * operator -> (void) const { return thiz ()->get (); }
-  inline const Returned & operator * (void) const { return *thiz ()->get (); }
+  inline const Returned * operator -> (void) const { return get (); }
+  inline const Returned & operator * (void) const { return *get (); }
+
+  inline Data * get_data (void) const
+  {
+    return *(((Data **) this) - WheresData);
+  }
 
   inline Stored * get_stored (void) const
   {
@@ -624,15 +622,15 @@ struct hb_lazy_loader_t
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
-      Data *data= *(((Data **) this) - WheresData);
-      if (likely (!p))
-	p = thiz ()->create (data);
+      Data *data = get_data ();
+      if (likely (data))
+	p = Subclass::create (data);
       if (unlikely (!p))
-	p = thiz ()->create (nullptr); /* Produce nil object. */
+	p = const_cast<Stored *> (Subclass::get_null ());
       assert (p);
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
-        thiz ()->destroy (p);
+        destroy (p);
 	goto retry;
       }
     }
@@ -645,23 +643,16 @@ struct hb_lazy_loader_t
      * However, to make TSan, etc, happy, we using cmpexch. */
   retry:
     Stored *p = this->instance.get ();
-    if (p)
-    {
-      if (unlikely (!this->instance.cmpexch (p, instance_)))
-        goto retry;
-      thiz ()->destroy (p);
-    }
+    if (unlikely (!this->instance.cmpexch (p, instance_)))
+      goto retry;
+    destroy (p);
   }
 
-  inline const Returned * get (void) const
-  {
-    return thiz ()->convert (get_stored ());
-  }
+  inline const Returned * get (void) const { return Subclass::convert (get_stored ()); }
 
-  static inline const Returned* convert (const Stored *p)
-  {
-    return p;
-  }
+  /* To be possibly overloaded by subclasses. */
+  static inline const Returned* convert (const Stored *p) { return p; }
+  static inline const Stored* get_null (void) { return &Null(Stored); }
 
   private:
   /* Must only have one pointer. */
@@ -677,22 +668,19 @@ struct hb_object_lazy_loader_t : hb_lazy_loader_t<hb_object_lazy_loader_t<Wheres
 {
   static inline T *create (hb_face_t *face)
   {
-    if (unlikely (!face))
-      return const_cast<T *> (&Null(T));
     T *p = (T *) calloc (1, sizeof (T));
-    if (unlikely (!p))
-      p = const_cast<T *> (&Null(T));
-    else
+    if (likely (p))
       p->init (face);
     return p;
   }
   static inline void destroy (T *p)
   {
-    if (p != &Null(T))
-    {
-      p->fini();
-      free (p);
-    }
+    p->fini ();
+    free (p);
+  }
+  static inline const T *get_null (void)
+  {
+    return &Null(T);
   }
 };
 
@@ -701,17 +689,17 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, Where
 						 hb_face_t, WheresFace,
 						 T, hb_blob_t>
 {
-  static_assert (WheresFace > 0, "");
-
   static inline hb_blob_t *create (hb_face_t *face)
   {
-    if (unlikely (!face))
-      return hb_blob_get_empty ();
     return hb_sanitize_context_t ().reference_table<T> (face);
   }
   static inline void destroy (hb_blob_t *p)
   {
     hb_blob_destroy (p);
+  }
+  static inline const hb_blob_t *get_null (void)
+  {
+      return hb_blob_get_empty ();
   }
   static inline const T* convert (const hb_blob_t *blob)
   {
