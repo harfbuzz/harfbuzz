@@ -667,7 +667,6 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     if (unlikely (!p))
     {
       p = do_create ();
-      assert (p);
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
         do_destroy (p);
@@ -689,6 +688,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   }
 
   inline const Returned * get (void) const { return Subclass::convert (get_stored ()); }
+  inline Returned * get_unconst (void) const { return const_cast<Returned *> (Subclass::convert (get_stored ())); }
 
   /* To be possibly overloaded by subclasses. */
   static inline const Returned* convert (const Stored *p) { return p; }

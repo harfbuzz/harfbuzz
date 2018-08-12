@@ -380,5 +380,5 @@ void free_static_icu_funcs (void)
 hb_unicode_funcs_t *
 hb_icu_get_unicode_funcs (void)
 {
-  return hb_unicode_funcs_reference (const_cast<hb_unicode_funcs_t *> (static_icu_funcs.get ()));
+  return hb_unicode_funcs_reference (static_icu_funcs.get_unconst ());
 }

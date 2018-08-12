@@ -271,7 +271,7 @@ void free_static_ot_funcs (void)
 static hb_font_funcs_t *
 _hb_ot_get_font_funcs (void)
 {
-  return const_cast<hb_font_funcs_t *> (static_ot_funcs.get ());
+  return static_ot_funcs.get_unconst ();
 }
 
 

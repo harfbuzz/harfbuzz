@@ -461,7 +461,7 @@ void free_static_ft_funcs (void)
 static hb_font_funcs_t *
 _hb_ft_get_font_funcs (void)
 {
-  return const_cast<hb_font_funcs_t *> (static_ft_funcs.get ());
+  return static_ft_funcs.get_unconst ();
 }
 
 static void
@@ -683,47 +683,46 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 }
 
 
-/* Thread-safe, lock-free, FT_Library */
+static void free_static_ft_library (void);
 
-static hb_atomic_ptr_t<FT_Library> ft_library;
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_ft_library_lazy_loader_t,
+							     void, 0,
+							     hb_remove_ptr_t<FT_Library>::value>
+{
+  static inline FT_Library create (void)
+  {
+    FT_Library l;
+    if (FT_Init_FreeType (&l))
+      return nullptr;
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ft_library);
+#endif
+
+    return l;
+  }
+  static inline void destroy (FT_Library l)
+  {
+    FT_Done_FreeType (l);
+  }
+  static inline const FT_Library get_null (void)
+  {
+    return nullptr;
+  }
+} static_ft_library;
 
 #ifdef HB_USE_ATEXIT
 static
-void free_ft_library (void)
+void free_static_ft_library (void)
 {
-retry:
-  FT_Library library = ft_library.get ();
-  if (unlikely (!ft_library.cmpexch (library, nullptr)))
-    goto retry;
-
-  FT_Done_FreeType (library);
+  static_ft_library.free ();
 }
 #endif
 
 static FT_Library
 get_ft_library (void)
 {
-retry:
-  FT_Library library = ft_library.get ();
-
-  if (unlikely (!library))
-  {
-    /* Not found; allocate one. */
-    if (FT_Init_FreeType (&library))
-      return nullptr;
-
-    if (unlikely (!ft_library.cmpexch (nullptr, library)))
-    {
-      FT_Done_FreeType (library);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_ft_library); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return library;
+  return static_ft_library.get_unconst ();
 }
 
 static void
