@@ -628,6 +628,10 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   inline void init (void) { instance.set_relaxed (nullptr); }
   inline void fini (void)
   {
+    do_destroy (instance.get ());
+  }
+  inline void free (void)
+  {
   retry:
     Stored *p = instance.get ();
     if (unlikely (p && !this->instance.cmpexch (p, nullptr)))

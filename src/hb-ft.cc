@@ -454,7 +454,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 static
 void free_static_ft_funcs (void)
 {
-  static_ft_funcs.fini ();
+  static_ft_funcs.free ();
 }
 #endif
 

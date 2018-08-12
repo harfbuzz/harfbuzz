@@ -394,7 +394,7 @@ static struct hb_glib_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
 static
 void free_static_glib_funcs (void)
 {
-  static_glib_funcs.fini ();
+  static_glib_funcs.free ();
 }
 #endif
 
