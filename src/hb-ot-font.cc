@@ -29,6 +29,7 @@
 #include "hb-ot.h"
 
 #include "hb-font-private.hh"
+#include "hb-machinery-private.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
@@ -225,30 +226,14 @@ hb_ot_get_font_v_extents (hb_font_t *font,
   return ot_font->v_metrics.has_font_extents;
 }
 
-static hb_atomic_ptr_t <hb_font_funcs_t> static_ot_funcs;
 
-#ifdef HB_USE_ATEXIT
-static
-void free_static_ot_funcs (void)
+static void free_static_ot_funcs (void);
+
+static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_font_funcs_lazy_loader_t>
 {
-retry:
-  hb_font_funcs_t *ot_funcs = static_ot_funcs.get ();
-  if (unlikely (!static_ot_funcs.cmpexch (ot_funcs, nullptr)))
-    goto retry;
-
-  hb_font_funcs_destroy (ot_funcs);
-}
-#endif
-
-static hb_font_funcs_t *
-_hb_ot_get_font_funcs (void)
-{
-retry:
-  hb_font_funcs_t *funcs = static_ot_funcs.get ();
-
-  if (unlikely (!funcs))
+  static inline hb_font_funcs_t *create (void)
   {
-    funcs = hb_font_funcs_create ();
+    hb_font_funcs_t *funcs = hb_font_funcs_create ();
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_ot_get_font_h_extents, nullptr, nullptr);
     hb_font_funcs_set_font_v_extents_func (funcs, hb_ot_get_font_v_extents, nullptr, nullptr);
@@ -267,18 +252,26 @@ retry:
 
     hb_font_funcs_make_immutable (funcs);
 
-    if (unlikely (!static_ot_funcs.cmpexch (nullptr, funcs)))
-    {
-      hb_font_funcs_destroy (funcs);
-      goto retry;
-    }
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ot_funcs);
+#endif
+
+    return funcs;
+  }
+} static_ot_funcs;
 
 #ifdef HB_USE_ATEXIT
-    atexit (free_static_ot_funcs); /* First person registers atexit() callback. */
+static
+void free_static_ot_funcs (void)
+{
+  static_ot_funcs.fini ();
+}
 #endif
-  };
 
-  return funcs;
+static hb_font_funcs_t *
+_hb_ot_get_font_funcs (void)
+{
+  return const_cast<hb_font_funcs_t *> (static_ot_funcs.get ());
 }
 
 

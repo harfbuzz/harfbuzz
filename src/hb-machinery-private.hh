@@ -750,6 +750,20 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, Where
 };
 
 template <typename Subclass>
+struct hb_font_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
+						       void, 0,
+						       hb_font_funcs_t>
+{
+  static inline void destroy (hb_font_funcs_t *p)
+  {
+    hb_font_funcs_destroy (p);
+  }
+  static inline const hb_font_funcs_t *get_null (void)
+  {
+      return hb_font_funcs_get_empty ();
+  }
+};
+template <typename Subclass>
 struct hb_unicode_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
 							 void, 0,
 							 hb_unicode_funcs_t>
