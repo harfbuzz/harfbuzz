@@ -352,6 +352,16 @@ static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_
 {
   static inline hb_unicode_funcs_t *create (void)
   {
+#if U_ICU_VERSION_MAJOR_NUM >= 49
+  retry:
+    if (!normalizer.get ())
+    {
+      UErrorCode icu_err = U_ZERO_ERROR;
+      if (unlikely (!normalizer.cmpexch (nullptr, unorm2_getNFCInstance (&icu_err))))
+        goto retry;
+    }
+#endif
+
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
 #define HB_UNICODE_FUNC_IMPLEMENT(name) \
