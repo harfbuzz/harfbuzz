@@ -32,6 +32,7 @@
 #include "hb-icu.h"
 
 #include "hb-unicode-private.hh"
+#include "hb-machinery-private.hh"
 
 #include <unicode/uchar.h>
 #include <unicode/unorm2.h>
@@ -345,39 +346,13 @@ hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 
-static hb_atomic_ptr_t<hb_unicode_funcs_t> static_icu_funcs;
+static void free_static_icu_funcs (void);
 
-#ifdef HB_USE_ATEXIT
-static
-void free_static_icu_funcs (void)
+static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_icu_unicode_funcs_lazy_loader_t>
 {
-retry:
-  hb_unicode_funcs_t *icu_funcs = static_icu_funcs.get ();
-  if (unlikely (!static_icu_funcs.cmpexch (icu_funcs, nullptr)))
-    goto retry;
-
-  hb_unicode_funcs_destroy (icu_funcs);
-}
-#endif
-
-hb_unicode_funcs_t *
-hb_icu_get_unicode_funcs (void)
-{
-retry:
-  hb_unicode_funcs_t *funcs = static_icu_funcs.get ();
-
-  if (unlikely (!funcs))
+  static inline hb_unicode_funcs_t *create (void)
   {
-#if U_ICU_VERSION_MAJOR_NUM >= 49
-    if (!normalizer.get ())
-    {
-      UErrorCode icu_err = U_ZERO_ERROR;
-      /* We ignore failure in getNFCInstace(). */
-      (void) normalizer.cmpexch (nullptr, unorm2_getNFCInstance (&icu_err));
-    }
-#endif
-
-    funcs = hb_unicode_funcs_create (nullptr);
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
 #define HB_UNICODE_FUNC_IMPLEMENT(name) \
     hb_unicode_funcs_set_##name##_func (funcs, hb_icu_unicode_##name, nullptr, nullptr);
@@ -386,16 +361,24 @@ retry:
 
     hb_unicode_funcs_make_immutable (funcs);
 
-    if (unlikely (!static_icu_funcs.cmpexch (nullptr, funcs)))
-    {
-      hb_unicode_funcs_destroy (funcs);
-      goto retry;
-    }
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_icu_funcs);
+#endif
+
+    return funcs;
+  }
+} static_icu_funcs;
 
 #ifdef HB_USE_ATEXIT
-    atexit (free_static_icu_funcs); /* First person registers atexit() callback. */
+static
+void free_static_icu_funcs (void)
+{
+  static_icu_funcs.fini ();
+}
 #endif
-  };
 
-  return hb_unicode_funcs_reference (funcs);
+hb_unicode_funcs_t *
+hb_icu_get_unicode_funcs (void)
+{
+  return hb_unicode_funcs_reference (const_cast<hb_unicode_funcs_t *> (static_icu_funcs.get ()));
 }

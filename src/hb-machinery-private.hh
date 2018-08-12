@@ -632,17 +632,17 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = instance.get ();
     if (unlikely (p && !this->instance.cmpexch (p, nullptr)))
       goto retry;
-    destroy (p);
+    do_destroy (p);
   }
 
-  inline Stored * create (void) const
+  inline Stored * do_create (void) const
   {
     Stored *p = this->template call_create<Stored, Subclass> ();
     if (unlikely (!p))
       p = const_cast<Stored *> (Subclass::get_null ());
     return p;
   }
-  static inline void destroy (Stored *p)
+  static inline void do_destroy (Stored *p)
   {
     if (p && p != Subclass::get_null ())
       Subclass::destroy (p);
@@ -662,11 +662,11 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
-      p = create ();
+      p = do_create ();
       assert (p);
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
-        destroy (p);
+        do_destroy (p);
 	goto retry;
       }
     }
@@ -681,13 +681,14 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = this->instance.get ();
     if (unlikely (!this->instance.cmpexch (p, instance_)))
       goto retry;
-    destroy (p);
+    do_destroy (p);
   }
 
   inline const Returned * get (void) const { return Subclass::convert (get_stored ()); }
 
   /* To be possibly overloaded by subclasses. */
   static inline const Returned* convert (const Stored *p) { return p; }
+  static inline Returned* convert (Stored *p) { return p; }
   static inline const Stored* get_null (void) { return &Null(Stored); }
 
   private:
@@ -745,6 +746,21 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, Where
   inline hb_blob_t* get_blob (void) const
   {
     return this->get_stored ();
+  }
+};
+
+template <typename Subclass>
+struct hb_unicode_funcs_lazy_loader_t : hb_lazy_loader_t<Subclass,
+							 void, 0,
+							 hb_unicode_funcs_t>
+{
+  static inline void destroy (hb_unicode_funcs_t *p)
+  {
+    hb_unicode_funcs_destroy (p);
+  }
+  static inline const hb_unicode_funcs_t *get_null (void)
+  {
+      return hb_unicode_funcs_get_empty ();
   }
 };
 
