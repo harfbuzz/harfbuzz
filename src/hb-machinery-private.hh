@@ -696,11 +696,13 @@ struct hb_object_lazy_loader_t : hb_lazy_loader_t<hb_object_lazy_loader_t<Wheres
   }
 };
 
-template <unsigned int WheresFace, typename T>
-struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<WheresFace, T>,
+template <typename T, unsigned int WheresFace>
+struct hb_table_lazy_loader_t : hb_lazy_loader_t<hb_table_lazy_loader_t<T, WheresFace>,
 						 hb_face_t, WheresFace,
 						 T, hb_blob_t>
 {
+  static_assert (WheresFace > 0, "");
+
   static inline hb_blob_t *create (hb_face_t *face)
   {
     if (unlikely (!face))
