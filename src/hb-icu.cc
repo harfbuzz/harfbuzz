@@ -178,7 +178,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 {
 #if U_ICU_VERSION_MAJOR_NUM >= 49
   {
-    UChar32 ret = unorm2_composePair (normalizer.get (), a, b);
+    UChar32 ret = unorm2_composePair (normalizer.get_relaxed (), a, b);
     if (ret < 0) return false;
     *ab = ret;
     return true;
@@ -226,7 +226,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     UChar decomposed[4];
     int len;
     UErrorCode icu_err = U_ZERO_ERROR;
-    len = unorm2_getRawDecomposition (normalizer.get (), ab, decomposed,
+    len = unorm2_getRawDecomposition (normalizer.get_relaxed (), ab, decomposed,
 				      ARRAY_LENGTH (decomposed), &icu_err);
     if (U_FAILURE (icu_err) || len < 0) return false;
 
