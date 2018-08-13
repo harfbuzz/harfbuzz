@@ -221,47 +221,49 @@ struct hb_uniscribe_shaper_funcs_t
     }
   }
 };
-static hb_atomic_ptr_t<hb_uniscribe_shaper_funcs_t> uniscribe_funcs;
+
+
+static void free_static_uniscribe_shaper_funcs (void);
+
+static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
+									 hb_uniscribe_shaper_funcs_lazy_loader_t>
+{
+  static inline hb_uniscribe_shaper_funcs_t *create (void)
+  {
+    hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
+    if (unlikely (!funcs))
+      return nullptr;
+
+    funcs->init ();
 
 #ifdef HB_USE_ATEXIT
-static inline void
-free_uniscribe_funcs (void)
-{
-retry:
-  hb_uniscribe_shaper_funcs_t *local_uniscribe_funcs = uniscribe_funcs.get ();
-  if (unlikely (!uniscribe_funcs.cmpexch (local_uniscribe_funcs, nullptr)))
-    goto retry;
+    atexit (free_static_uniscribe_shaper_funcs);
+#endif
 
-  free (local_uniscribe_funcs);
+    return funcs;
+  }
+  static inline void destroy (hb_uniscribe_shaper_funcs_t *p)
+  {
+    free ((void *) p);
+  }
+  static inline hb_uniscribe_shaper_funcs_t *get_null (void)
+  {
+    return nullptr;
+  }
+} static_uniscribe_shaper_funcs;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_uniscribe_shaper_funcs (void)
+{
+  static_uniscribe_shaper_funcs.free_instance ();
 }
 #endif
 
 static hb_uniscribe_shaper_funcs_t *
 hb_uniscribe_shaper_get_funcs (void)
 {
-retry:
-  hb_uniscribe_shaper_funcs_t *funcs = uniscribe_funcs.get ();
-
-  if (unlikely (!funcs))
-  {
-    funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
-    if (unlikely (!funcs))
-      return nullptr;
-
-    funcs->init ();
-
-    if (unlikely (!uniscribe_funcs.cmpexch (nullptr, funcs)))
-    {
-      free (funcs);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_uniscribe_funcs); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return funcs;
+  return static_uniscribe_shaper_funcs.get_unconst ();
 }
 
 
