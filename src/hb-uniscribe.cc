@@ -190,7 +190,8 @@ hb_ScriptPlaceOpenType(
 }
 
 
-struct hb_uniscribe_shaper_funcs_t {
+struct hb_uniscribe_shaper_funcs_t
+{
   SIOT ScriptItemizeOpenType;
   SSOT ScriptShapeOpenType;
   SPOT ScriptPlaceOpenType;

@@ -698,7 +698,6 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   inline Returned * get_unconst (void) const { return const_cast<Returned *> (Funcs::convert (get_stored ())); }
 
   /* To be possibly overloaded by subclasses. */
-  static inline const Returned* convert (const Stored *p) { return p; }
   static inline Returned* convert (Stored *p) { return p; }
 
   /* By default null/init/fini the object. */

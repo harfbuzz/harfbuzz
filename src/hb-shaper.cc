@@ -26,7 +26,7 @@
 
 #include "hb-private.hh"
 #include "hb-shaper-private.hh"
-#include "hb-atomic-private.hh"
+#include "hb-machinery-private.hh"
 
 
 static const hb_shaper_pair_t all_shapers[] = {
@@ -36,52 +36,28 @@ static const hb_shaper_pair_t all_shapers[] = {
 };
 
 
-/* Thread-safe, lock-free, shapers */
+static void free_static_shapers (void);
 
-static hb_atomic_ptr_t<const hb_shaper_pair_t> static_shapers;
-
-#ifdef HB_USE_ATEXIT
-static
-void free_static_shapers (void)
+static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_pair_t,
+							  hb_shapers_lazy_loader_t>
 {
-retry:
-  const hb_shaper_pair_t *shapers = static_shapers.get ();
-  if (unlikely (!static_shapers.cmpexch (shapers, nullptr)))
-    goto retry;
-
-  if (unlikely (shapers != all_shapers))
-    free ((void *) shapers);
-}
-#endif
-
-const hb_shaper_pair_t *
-_hb_shapers_get (void)
-{
-retry:
-  hb_shaper_pair_t *shapers = const_cast<hb_shaper_pair_t *> (static_shapers.get ());
-
-  if (unlikely (!shapers))
+  static inline hb_shaper_pair_t *create (void)
   {
     char *env = getenv ("HB_SHAPER_LIST");
-    if (!env || !*env) {
-      (void) static_shapers.cmpexch (nullptr, &all_shapers[0]);
-      return (const hb_shaper_pair_t *) all_shapers;
-    }
+    if (!env || !*env)
+      return nullptr;
 
-    /* Not found; allocate one. */
-    shapers = (hb_shaper_pair_t *) calloc (1, sizeof (all_shapers));
+    hb_shaper_pair_t *shapers = (hb_shaper_pair_t *) calloc (1, sizeof (all_shapers));
     if (unlikely (!shapers))
-    {
-      (void) static_shapers.cmpexch (nullptr, &all_shapers[0]);
-      return (const hb_shaper_pair_t *) all_shapers;
-    }
+      return nullptr;
 
     memcpy (shapers, all_shapers, sizeof (all_shapers));
 
      /* Reorder shaper list to prefer requested shapers. */
     unsigned int i = 0;
     char *end, *p = env;
-    for (;;) {
+    for (;;)
+    {
       end = strchr (p, ',');
       if (!end)
 	end = p + strlen (p);
@@ -103,16 +79,32 @@ retry:
 	p = end + 1;
     }
 
-    if (unlikely (!static_shapers.cmpexch (nullptr, shapers)))
-    {
-      free (shapers);
-      goto retry;
-    }
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_shapers);
+#endif
+
+    return shapers;
+  }
+  static inline void destroy (const hb_shaper_pair_t *p)
+  {
+    free ((void *) p);
+  }
+  static inline const hb_shaper_pair_t *get_null (void)
+  {
+    return all_shapers;
+  }
+} static_shapers;
 
 #ifdef HB_USE_ATEXIT
-    atexit (free_static_shapers); /* First person registers atexit() callback. */
+static
+void free_static_shapers (void)
+{
+  static_shapers.free_instance ();
+}
 #endif
-  }
 
-  return shapers;
+const hb_shaper_pair_t *
+_hb_shapers_get (void)
+{
+  return static_shapers.get_unconst ();
 }
