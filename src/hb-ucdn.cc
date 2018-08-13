@@ -267,7 +267,7 @@ static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
 static
 void free_static_ucdn_funcs (void)
 {
-  static_ucdn_funcs.free ();
+  static_ucdn_funcs.free_instance ();
 }
 #endif
 

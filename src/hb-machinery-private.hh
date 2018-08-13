@@ -637,7 +637,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   {
     do_destroy (instance.get ());
   }
-  inline void free (void)
+  inline void free_instance (void)
   {
   retry:
     Stored *p = instance.get ();
@@ -720,7 +720,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   static inline void destroy (Stored *p)
   {
     p->fini ();
-    ::free (p);
+    free (p);
   }
 
   private:

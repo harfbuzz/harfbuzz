@@ -264,7 +264,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 static
 void free_static_ot_funcs (void)
 {
-  static_ot_funcs.free ();
+  static_ot_funcs.free_instance ();
 }
 #endif
 

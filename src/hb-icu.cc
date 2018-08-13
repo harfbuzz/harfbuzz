@@ -383,7 +383,7 @@ static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_
 static
 void free_static_icu_funcs (void)
 {
-  static_icu_funcs.free ();
+  static_icu_funcs.free_instance ();
 }
 #endif
 

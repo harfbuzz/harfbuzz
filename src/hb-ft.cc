@@ -454,7 +454,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 static
 void free_static_ft_funcs (void)
 {
-  static_ft_funcs.free ();
+  static_ft_funcs.free_instance ();
 }
 #endif
 
@@ -714,7 +714,7 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<FT_
 static
 void free_static_ft_library (void)
 {
-  static_ft_library.free ();
+  static_ft_library.free_instance ();
 }
 #endif
 

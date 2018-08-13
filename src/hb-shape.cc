@@ -50,7 +50,7 @@
 static void free_static_shaper_list (void);
 
 static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
-							     hb_shaper_list_lazy_loader_t>
+							      hb_shaper_list_lazy_loader_t>
 {
   static inline const char ** create (void)
   {
@@ -72,7 +72,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
   }
   static inline void destroy (const char **l)
   {
-    ::free (l);
+    free (l);
   }
   static inline const char ** get_null (void)
   {
@@ -85,7 +85,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
 static
 void free_static_shaper_list (void)
 {
-  static_shaper_list.free ();
+  static_shaper_list.free_instance ();
 }
 #endif
 
