@@ -597,7 +597,7 @@ struct hb_data_wrapper_t
 
   inline Data * get_data (void) const
   {
-    return *(((Data **) this) - WheresData);
+    return *(((Data **) (void *) this) - WheresData);
   }
 
   template <typename Stored, typename Subclass>
