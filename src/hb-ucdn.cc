@@ -275,5 +275,5 @@ extern "C" HB_INTERNAL
 hb_unicode_funcs_t *
 hb_ucdn_get_unicode_funcs (void)
 {
-  return hb_unicode_funcs_reference (static_ucdn_funcs.get_unconst ());
+  return static_ucdn_funcs.get_unconst ();
 }

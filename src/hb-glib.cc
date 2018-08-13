@@ -401,7 +401,7 @@ void free_static_glib_funcs (void)
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-  return hb_unicode_funcs_reference (static_glib_funcs.get_unconst ());
+  return static_glib_funcs.get_unconst ();
 }
 
 
