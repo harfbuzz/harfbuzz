@@ -165,10 +165,6 @@ hb_icu_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return hb_icu_script_to_script (scriptCode);
 }
 
-#if U_ICU_VERSION_MAJOR_NUM >= 49
-static hb_atomic_ptr_t <const UNormalizer2> normalizer;
-#endif
-
 static hb_bool_t
 hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			hb_codepoint_t      a,
@@ -178,7 +174,8 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 {
 #if U_ICU_VERSION_MAJOR_NUM >= 49
   {
-    UChar32 ret = unorm2_composePair (normalizer.get_relaxed (), a, b);
+    const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
+    UChar32 ret = unorm2_composePair (normalizer, a, b);
     if (ret < 0) return false;
     *ab = ret;
     return true;
@@ -223,10 +220,11 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 {
 #if U_ICU_VERSION_MAJOR_NUM >= 49
   {
+    const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
     UChar decomposed[4];
     int len;
     UErrorCode icu_err = U_ZERO_ERROR;
-    len = unorm2_getRawDecomposition (normalizer.get_relaxed (), ab, decomposed,
+    len = unorm2_getRawDecomposition (normalizer, ab, decomposed,
 				      ARRAY_LENGTH (decomposed), &icu_err);
     if (U_FAILURE (icu_err) || len < 0) return false;
 
@@ -352,20 +350,17 @@ static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_
 {
   static inline hb_unicode_funcs_t *create (void)
   {
+    void *user_data = nullptr;
 #if U_ICU_VERSION_MAJOR_NUM >= 49
-  retry:
-    if (!normalizer.get ())
-    {
-      UErrorCode icu_err = U_ZERO_ERROR;
-      if (unlikely (!normalizer.cmpexch (nullptr, unorm2_getNFCInstance (&icu_err))))
-        goto retry;
-    }
+    UErrorCode icu_err = U_ZERO_ERROR;
+    user_data = (void *) unorm2_getNFCInstance (&icu_err);
+    assert (user_data);
 #endif
 
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
 #define HB_UNICODE_FUNC_IMPLEMENT(name) \
-    hb_unicode_funcs_set_##name##_func (funcs, hb_icu_unicode_##name, nullptr, nullptr);
+    hb_unicode_funcs_set_##name##_func (funcs, hb_icu_unicode_##name, user_data, nullptr);
       HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_UNICODE_FUNC_IMPLEMENT
 
