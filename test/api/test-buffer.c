@@ -369,10 +369,10 @@ typedef struct {
 
 /* note: we skip the first and last byte when adding to buffer */
 static const utf8_conversion_test_t utf8_conversion_tests[] = {
-  {"a\303\207", {-1}},
+  {"a\303\207", {(hb_codepoint_t) -1}},
   {"a\303\207b", {0xC7}},
-  {"ab\303cd", {'b', -1, 'c'}},
-  {"ab\303\302\301cd", {'b', -1, -1, -1, 'c'}}
+  {"ab\303cd", {'b', (hb_codepoint_t) -1, 'c'}},
+  {"ab\303\302\301cd", {'b', (hb_codepoint_t) -1, (hb_codepoint_t) -1, (hb_codepoint_t) -1, 'c'}}
 };
 
 static void
@@ -445,7 +445,7 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
   { "\xe2\x89\xa0\xe2\x89\xa0",  5, 3, FALSE },
   { "\xe2\x89\xa0\xe2\x89\xa0",  6, 6, TRUE },
 
-  /* examples from http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt */
+  /* examples from https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt */
   /* greek 'kosme' */
   { "\xce\xba\xe1\xbd\xb9\xcf\x83\xce\xbc\xce\xb5", -1, 11, TRUE },
   /* first sequence of each length */
@@ -715,10 +715,10 @@ typedef struct {
 static const utf16_conversion_test_t utf16_conversion_tests[] = {
   {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
   {{0x41, 0xD800, 0xDF02, 0x61}, {0x10302}},
-  {{0x41, 0xD800, 0xDF02}, {-1}},
-  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, -1}},
-  {{0x41, 0xD800, 0x61, 0xDF02}, {-1, 0x61}},
-  {{0x41, 0xDF00, 0x61}, {-1}},
+  {{0x41, 0xD800, 0xDF02}, {(hb_codepoint_t) -1}},
+  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, (hb_codepoint_t) -1}},
+  {{0x41, 0xD800, 0x61, 0xDF02}, {(hb_codepoint_t) -1, 0x61}},
+  {{0x41, 0xDF00, 0x61}, {(hb_codepoint_t) -1}},
   {{0x41, 0x61}, {0}}
 };
 
@@ -764,15 +764,15 @@ typedef struct {
 
 /* note: we skip the first and last item from utf32 when adding to buffer */
 static const utf32_conversion_test_t utf32_conversion_tests[] = {
-  {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, -3, -3}},
+  {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, (hb_codepoint_t) -3, (hb_codepoint_t) -3}},
   {{0x41, 0x004D, 0x0430, 0x4E8C, 0x10302, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
-  {{0x41, 0xD800, 0xDF02, 0x61}, {-3, -3}},
-  {{0x41, 0xD800, 0xDF02}, {-3}},
-  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, -3}},
-  {{0x41, 0xD800, 0x61, 0xDF02}, {-3, 0x61}},
-  {{0x41, 0xDF00, 0x61}, {-3}},
+  {{0x41, 0xD800, 0xDF02, 0x61}, {(hb_codepoint_t) -3, (hb_codepoint_t) -3}},
+  {{0x41, 0xD800, 0xDF02}, {(hb_codepoint_t) -3}},
+  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, (hb_codepoint_t) -3}},
+  {{0x41, 0xD800, 0x61, 0xDF02}, {(hb_codepoint_t) -3, 0x61}},
+  {{0x41, 0xDF00, 0x61}, {(hb_codepoint_t) -3}},
   {{0x41, 0x10FFFF, 0x61}, {0x10FFFF}},
-  {{0x41, 0x110000, 0x61}, {-3}},
+  {{0x41, 0x110000, 0x61}, {(hb_codepoint_t) -3}},
   {{0x41, 0x61}, {0}}
 };
 

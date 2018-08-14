@@ -28,15 +28,17 @@
 
 #include "hb-private.hh"
 
-#include "hb-mutex-private.hh"
-#include "hb-object-private.hh"
+#include "hb-machinery-private.hh"
 
 #include <locale.h>
+#ifdef HAVE_XLOCALE_H
+#include <xlocale.h>
+#endif
 
 
 /* hb_options_t */
 
-hb_options_union_t _hb_options;
+hb_atomic_int_t _hb_options;
 
 void
 _hb_options_init (void)
@@ -49,7 +51,7 @@ _hb_options_init (void)
   u.opts.uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
 
   /* This is idempotent and threadsafe. */
-  _hb_options = u;
+  _hb_options.set_relaxed (u.i);
 }
 
 
@@ -57,12 +59,12 @@ _hb_options_init (void)
 
 /**
  * hb_tag_from_string:
- * @str: (array length=len) (element-type uint8_t): 
- * @len: 
+ * @str: (array length=len) (element-type uint8_t):
+ * @len:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -82,15 +84,15 @@ hb_tag_from_string (const char *str, int len)
   for (; i < 4; i++)
     tag[i] = ' ';
 
-  return HB_TAG_CHAR4 (tag);
+  return HB_TAG (tag[0], tag[1], tag[2], tag[3]);
 }
 
 /**
  * hb_tag_to_string:
- * @tag: 
- * @buf: (out caller-allocates) (array fixed-size=4) (element-type uint8_t): 
+ * @tag:
+ * @buf: (out caller-allocates) (array fixed-size=4) (element-type uint8_t):
  *
- * 
+ *
  *
  * Since: 0.9.5
  **/
@@ -115,12 +117,12 @@ const char direction_strings[][4] = {
 
 /**
  * hb_direction_from_string:
- * @str: (array length=len) (element-type uint8_t): 
- * @len: 
+ * @str: (array length=len) (element-type uint8_t):
+ * @len:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -143,11 +145,11 @@ hb_direction_from_string (const char *str, int len)
 
 /**
  * hb_direction_to_string:
- * @direction: 
+ * @direction:
  *
- * 
  *
- * Return value: (transfer none): 
+ *
+ * Return value: (transfer none):
  *
  * Since: 0.9.2
  **/
@@ -222,7 +224,7 @@ struct hb_language_item_t {
 
   inline hb_language_item_t & operator = (const char *s) {
     /* If a custom allocated is used calling strdup() pairs
-    badly with a call to the custom free() in finish() below.
+    badly with a call to the custom free() in fini() below.
     Therefore don't call strdup(), implement its behavior.
     */
     size_t len = strlen(s) + 1;
@@ -237,23 +239,28 @@ struct hb_language_item_t {
     return *this;
   }
 
-  void finish (void) { free ((void *) lang); }
+  void fini (void) { free ((void *) lang); }
 };
 
 
 /* Thread-safe lock-free language list */
 
-static hb_language_item_t *langs;
+static hb_atomic_ptr_t <hb_language_item_t> langs;
 
 #ifdef HB_USE_ATEXIT
-static
-void free_langs (void)
+static void
+free_langs (void)
 {
-  while (langs) {
-    hb_language_item_t *next = langs->next;
-    langs->finish ();
-    free (langs);
-    langs = next;
+retry:
+  hb_language_item_t *first_lang = langs.get ();
+  if (unlikely (!langs.cmpexch (first_lang, nullptr)))
+    goto retry;
+
+  while (first_lang) {
+    hb_language_item_t *next = first_lang->next;
+    first_lang->fini ();
+    free (first_lang);
+    first_lang = next;
   }
 }
 #endif
@@ -262,7 +269,7 @@ static hb_language_item_t *
 lang_find_or_insert (const char *key)
 {
 retry:
-  hb_language_item_t *first_lang = (hb_language_item_t *) hb_atomic_ptr_get (&langs);
+  hb_language_item_t *first_lang = langs.get ();
 
   for (hb_language_item_t *lang = first_lang; lang; lang = lang->next)
     if (*lang == key)
@@ -271,17 +278,18 @@ retry:
   /* Not found; allocate one. */
   hb_language_item_t *lang = (hb_language_item_t *) calloc (1, sizeof (hb_language_item_t));
   if (unlikely (!lang))
-    return NULL;
+    return nullptr;
   lang->next = first_lang;
   *lang = key;
   if (unlikely (!lang->lang))
   {
     free (lang);
-    return NULL;
+    return nullptr;
   }
 
-  if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
-    lang->finish ();
+  if (unlikely (!langs.cmpexch (first_lang, lang)))
+  {
+    lang->fini ();
     free (lang);
     goto retry;
   }
@@ -315,7 +323,7 @@ hb_language_from_string (const char *str, int len)
   if (!str || !len || !*str)
     return HB_LANGUAGE_INVALID;
 
-  hb_language_item_t *item = NULL;
+  hb_language_item_t *item = nullptr;
   if (len >= 0)
   {
     /* NUL-terminate it. */
@@ -346,14 +354,14 @@ hb_language_from_string (const char *str, int len)
 const char *
 hb_language_to_string (hb_language_t language)
 {
-  /* This is actually NULL-safe! */
+  /* This is actually nullptr-safe! */
   return language->s;
 }
 
 /**
  * hb_language_get_default:
  *
- * 
+ *
  *
  * Return value: (transfer none):
  *
@@ -362,15 +370,16 @@ hb_language_to_string (hb_language_t language)
 hb_language_t
 hb_language_get_default (void)
 {
-  static hb_language_t default_language = HB_LANGUAGE_INVALID;
+  static hb_atomic_ptr_t <hb_language_t> default_language;
 
-  hb_language_t language = (hb_language_t) hb_atomic_ptr_get (&default_language);
-  if (unlikely (language == HB_LANGUAGE_INVALID)) {
-    language = hb_language_from_string (setlocale (LC_CTYPE, NULL), -1);
-    (void) hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
+  hb_language_t language = default_language.get ();
+  if (unlikely (language == HB_LANGUAGE_INVALID))
+  {
+    language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);
+    (void) default_language.cmpexch (HB_LANGUAGE_INVALID, language);
   }
 
-  return default_language;
+  return language;
 }
 
 
@@ -382,7 +391,7 @@ hb_language_get_default (void)
  *
  * Converts an ISO 15924 script tag to a corresponding #hb_script_t.
  *
- * Return value: 
+ * Return value:
  * An #hb_script_t corresponding to the ISO 15924 tag.
  *
  * Since: 0.9.2
@@ -404,7 +413,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
     case HB_TAG('Q','a','a','i'): return HB_SCRIPT_INHERITED;
     case HB_TAG('Q','a','a','c'): return HB_SCRIPT_COPTIC;
 
-    /* Script variants from http://unicode.org/iso15924/ */
+    /* Script variants from https://unicode.org/iso15924/ */
     case HB_TAG('C','y','r','s'): return HB_SCRIPT_CYRILLIC;
     case HB_TAG('L','a','t','f'): return HB_SCRIPT_LATIN;
     case HB_TAG('L','a','t','g'): return HB_SCRIPT_LATIN;
@@ -431,7 +440,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
  * corresponding #hb_script_t. Shorthand for hb_tag_from_string() then
  * hb_script_from_iso15924_tag().
  *
- * Return value: 
+ * Return value:
  * An #hb_script_t corresponding to the ISO 15924 tag.
  *
  * Since: 0.9.2
@@ -461,18 +470,18 @@ hb_script_to_iso15924_tag (hb_script_t script)
 
 /**
  * hb_script_get_horizontal_direction:
- * @script: 
+ * @script:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
 hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script)
 {
-  /* http://goo.gl/x9ilM */
+  /* https://docs.google.com/spreadsheets/d/1Y90M0Ie3MUJ6UVCRDOypOtijlMDLNNyyLk36T6iMu0o */
   switch ((hb_tag_t) script)
   {
     /* Unicode-1.1 additions */
@@ -521,12 +530,25 @@ hb_script_get_horizontal_direction (hb_script_t script)
     case HB_SCRIPT_PSALTER_PAHLAVI:
 
     /* Unicode-8.0 additions */
+    case HB_SCRIPT_HATRAN:
     case HB_SCRIPT_OLD_HUNGARIAN:
 
     /* Unicode-9.0 additions */
     case HB_SCRIPT_ADLAM:
 
+    /* Unicode-11.0 additions */
+    case HB_SCRIPT_HANIFI_ROHINGYA:
+    case HB_SCRIPT_OLD_SOGDIAN:
+    case HB_SCRIPT_SOGDIAN:
+
       return HB_DIRECTION_RTL;
+
+
+    /* https://github.com/harfbuzz/harfbuzz/issues/1000 */
+    case HB_SCRIPT_OLD_ITALIC:
+    case HB_SCRIPT_RUNIC:
+
+      return HB_DIRECTION_INVALID;
   }
 
   return HB_DIRECTION_LTR;
@@ -559,9 +581,9 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
 void *
 hb_user_data_array_t::get (hb_user_data_key_t *key)
 {
-  hb_user_data_item_t item = {NULL, NULL, NULL};
+  hb_user_data_item_t item = {nullptr, nullptr, nullptr};
 
-  return items.find (key, &item, lock) ? item.data : NULL;
+  return items.find (key, &item, lock) ? item.data : nullptr;
 }
 
 
@@ -604,13 +626,13 @@ hb_version_string (void)
 
 /**
  * hb_version_atleast:
- * @major: 
- * @minor: 
- * @micro: 
+ * @major:
+ * @minor:
+ * @micro:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.30
  **/
@@ -694,6 +716,62 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
   return true;
 }
 
+#if defined (HAVE_NEWLOCALE) && defined (HAVE_STRTOD_L)
+#define USE_XLOCALE 1
+#define HB_LOCALE_T locale_t
+#define HB_CREATE_LOCALE(locName) newlocale (LC_ALL_MASK, locName, nullptr)
+#define HB_FREE_LOCALE(loc) freelocale (loc)
+#elif defined(_MSC_VER)
+#define USE_XLOCALE 1
+#define HB_LOCALE_T _locale_t
+#define HB_CREATE_LOCALE(locName) _create_locale (LC_ALL, locName)
+#define HB_FREE_LOCALE(loc) _free_locale (loc)
+#define strtod_l(a, b, c) _strtod_l ((a), (b), (c))
+#endif
+
+#ifdef USE_XLOCALE
+
+
+static void free_static_C_locale (void);
+
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<HB_LOCALE_T>::value,
+							  hb_C_locale_lazy_loader_t>
+{
+  static inline HB_LOCALE_T create (void)
+  {
+    HB_LOCALE_T C_locale = HB_CREATE_LOCALE ("C");
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_C_locale);
+#endif
+
+    return C_locale;
+  }
+  static inline void destroy (HB_LOCALE_T p)
+  {
+    HB_FREE_LOCALE (p);
+  }
+  static inline HB_LOCALE_T get_null (void)
+  {
+    return nullptr;
+  }
+} static_C_locale;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_C_locale (void)
+{
+  static_C_locale.free_instance ();
+}
+#endif
+
+static HB_LOCALE_T
+get_C_locale (void)
+{
+  return static_C_locale.get_unconst ();
+}
+#endif /* USE_XLOCALE */
+
 static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
@@ -707,7 +785,11 @@ parse_float (const char **pp, const char *end, float *pv)
   float v;
 
   errno = 0;
+#ifdef USE_XLOCALE
+  v = strtod_l (p, &pend, get_C_locale ());
+#else
   v = strtod (p, &pend);
+#endif
   if (errno || p == pend)
     return false;
 
@@ -726,9 +808,9 @@ parse_bool (const char **pp, const char *end, uint32_t *pv)
     (*pp)++;
 
   /* CSS allows on/off as aliases 1/0. */
-  if (*pp - p == 2 || 0 == strncmp (p, "on", 2))
+  if (*pp - p == 2 && 0 == strncmp (p, "on", 2))
     *pv = 1;
-  else if (*pp - p == 3 || 0 == strncmp (p, "off", 2))
+  else if (*pp - p == 3 && 0 == strncmp (p, "off", 3))
     *pv = 0;
   else
     return false;
@@ -765,7 +847,7 @@ parse_tag (const char **pp, const char *end, hb_tag_t *tag)
   }
 
   const char *p = *pp;
-  while (*pp < end && ISALNUM(**pp))
+  while (*pp < end && (ISALNUM(**pp) || **pp == '_'))
     (*pp)++;
 
   if (p == *pp || *pp - p > 4)
@@ -820,7 +902,7 @@ parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *fea
                    parse_bool (pp, end, &feature->value);
   /* CSS doesn't use equal-sign between tag and value.
    * If there was an equal-sign, then there *must* be a value.
-   * A value without an eqaul-sign is ok, but not required. */
+   * A value without an equal-sign is ok, but not required. */
   return !had_equal || had_value;
 }
 
@@ -989,3 +1071,12 @@ hb_variation_to_string (hb_variation_t *variation,
   memcpy (buf, s, len);
   buf[len] = '\0';
 }
+
+/* If there is no visibility control, then hb-static.cc will NOT
+ * define anything.  Instead, we get it to define one set in here
+ * only, so only libharfbuzz.so defines them, not other libs. */
+#ifdef HB_NO_VISIBILITY
+#undef HB_NO_VISIBILITY
+#include "hb-static.cc"
+#define HB_NO_VISIBILITY 1
+#endif

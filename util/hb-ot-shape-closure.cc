@@ -43,8 +43,8 @@ struct shape_closure_consumer_t : option_group_t
   {
     GOptionEntry entries[] =
     {
-      {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	NULL},
-      {NULL}
+      {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	nullptr},
+      {nullptr}
     };
     parser->add_group (entries,
 		       "format",
@@ -93,11 +93,11 @@ struct shape_closure_consumer_t : option_group_t
   {
     printf ("\n");
     hb_font_destroy (font);
-    font = NULL;
+    font = nullptr;
     hb_set_destroy (glyphs);
-    glyphs = NULL;
+    glyphs = nullptr;
     hb_buffer_destroy (buffer);
-    buffer = NULL;
+    buffer = nullptr;
   }
 
   bool failed;

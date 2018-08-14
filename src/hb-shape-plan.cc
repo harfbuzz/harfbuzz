@@ -24,15 +24,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb-private.hh"
 #include "hb-shape-plan-private.hh"
 #include "hb-shaper-private.hh"
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
-
-
-#ifndef HB_DEBUG_SHAPE_PLAN
-#define HB_DEBUG_SHAPE_PLAN (HB_DEBUG+0)
-#endif
 
 
 static void
@@ -53,11 +49,13 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
-	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face_unsafe)) { \
-	    HB_SHAPER_DATA (shaper, shape_plan) = \
+	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face_unsafe)) \
+	  { \
+	    /* XXX-MT-bug What happened to *ensure*ing this?!!!! */ \
+	    HB_SHAPER_DATA (shaper, shape_plan).set_relaxed ( \
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, \
 							       user_features, num_user_features, \
-							       coords, num_coords); \
+							       coords, num_coords)); \
 	    shape_plan->shaper_func = _hb_##shaper##_shape; \
 	    shape_plan->shaper_name = #shaper; \
 	    return; \
@@ -92,6 +90,31 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
  * hb_shape_plan_t
  */
 
+DEFINE_NULL_INSTANCE (hb_shape_plan_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  true, /* default_shaper_list */
+  nullptr, /* face */
+  HB_SEGMENT_PROPERTIES_DEFAULT, /* props */
+
+  nullptr, /* shaper_func */
+  nullptr, /* shaper_name */
+
+  nullptr, /* user_features */
+  0,    /* num_user_featurs */
+
+  nullptr, /* coords */
+  0,    /* num_coords */
+
+  {
+#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  },
+};
+
+
 /**
  * hb_shape_plan_create: (Xconstructor)
  * @face: 
@@ -115,7 +138,7 @@ hb_shape_plan_create (hb_face_t                     *face,
 {
   return hb_shape_plan_create2 (face, props,
 				user_features, num_user_features,
-				NULL, 0,
+				nullptr, 0,
 				shaper_list);
 }
 
@@ -128,7 +151,7 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		       unsigned int                   num_coords,
 		       const char * const            *shaper_list)
 {
-  DEBUG_MSG_FUNC (SHAPE_PLAN, NULL,
+  DEBUG_MSG_FUNC (SHAPE_PLAN, nullptr,
 		  "face=%p num_features=%d num_coords=%d shaper_list=%p",
 		  face,
 		  num_user_features,
@@ -136,8 +159,8 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		  shaper_list);
 
   hb_shape_plan_t *shape_plan;
-  hb_feature_t *features = NULL;
-  int *coords = NULL;
+  hb_feature_t *features = nullptr;
+  int *coords = nullptr;
 
   if (unlikely (!face))
     face = hb_face_get_empty ();
@@ -192,30 +215,7 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 hb_shape_plan_t *
 hb_shape_plan_get_empty (void)
 {
-  static const hb_shape_plan_t _hb_shape_plan_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    true, /* default_shaper_list */
-    NULL, /* face */
-    HB_SEGMENT_PROPERTIES_DEFAULT, /* props */
-
-    NULL, /* shaper_func */
-    NULL, /* shaper_name */
-
-    NULL, /* user_features */
-    0,    /* num_user_featurs */
-
-    NULL, /* coords */
-    0,    /* num_coords */
-
-    {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-    }
-  };
-
-  return const_cast<hb_shape_plan_t *> (&_hb_shape_plan_nil);
+  return const_cast<hb_shape_plan_t *> (&Null(hb_shape_plan_t));
 }
 
 /**
@@ -341,7 +341,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  return HB_SHAPER_DATA (shaper, shape_plan) && \
+	  return HB_SHAPER_DATA (shaper, shape_plan).get () && \
 		 hb_##shaper##_shaper_font_data_ensure (font) && \
 		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
@@ -470,7 +470,7 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
 {
   return hb_shape_plan_create_cached2 (face, props,
 				       user_features, num_user_features,
-				       NULL, 0,
+				       nullptr, 0,
 				       shaper_list);
 }
 
@@ -483,7 +483,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 			      unsigned int                   num_coords,
 			      const char * const            *shaper_list)
 {
-  DEBUG_MSG_FUNC (SHAPE_PLAN, NULL,
+  DEBUG_MSG_FUNC (SHAPE_PLAN, nullptr,
 		  "face=%p num_features=%d shaper_list=%p",
 		  face,
 		  num_user_features,
@@ -494,7 +494,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
     shaper_list,
     user_features,
     num_user_features,
-    NULL
+    nullptr
   };
 
   if (shaper_list) {
@@ -519,16 +519,18 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 
 
 retry:
-  hb_face_t::plan_node_t *cached_plan_nodes = (hb_face_t::plan_node_t *) hb_atomic_ptr_get (&face->shape_plans);
-  for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
-    if (hb_shape_plan_matches (node->shape_plan, &proposal))
-    {
-      DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
-      return hb_shape_plan_reference (node->shape_plan);
-    }
+  hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans.get ();
+
+  /* Don't look for plan in the cache if there were variation coordinates XXX Fix me. */
+  if (!hb_coords_present (coords, num_coords))
+    for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
+      if (hb_shape_plan_matches (node->shape_plan, &proposal))
+      {
+        DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
+        return hb_shape_plan_reference (node->shape_plan);
+      }
 
   /* Not found. */
-
   hb_shape_plan_t *shape_plan = hb_shape_plan_create2 (face, props,
 						       user_features, num_user_features,
 						       coords, num_coords,
@@ -552,7 +554,8 @@ retry:
   node->shape_plan = shape_plan;
   node->next = cached_plan_nodes;
 
-  if (!hb_atomic_ptr_cmpexch (&face->shape_plans, cached_plan_nodes, node)) {
+  if (unlikely (!face->shape_plans.cmpexch (cached_plan_nodes, node)))
+  {
     hb_shape_plan_destroy (shape_plan);
     free (node);
     goto retry;

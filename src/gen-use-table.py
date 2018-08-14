@@ -1,14 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-import sys
+from __future__ import print_function, division, absolute_import
+
+import io, sys
 
 if len (sys.argv) != 5:
-	print >>sys.stderr, "usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt"
+	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
 	sys.exit (1)
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
 
-files = [file (x) for x in sys.argv[1:]]
+files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for j,f in enumerate(files) if j != 2]
 headers.append (["UnicodeData.txt does not have a header."])
@@ -44,6 +46,10 @@ defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 # TODO Characters that are not in Unicode Indic files, but used in USE
 data[0][0x034F] = defaults[0]
 data[0][0x2060] = defaults[0]
+data[0][0x20F0] = defaults[0]
+# TODO https://github.com/roozbehp/unicode-data/issues/9
+data[0][0x11C44] = 'Consonant_Placeholder'
+data[0][0x11C45] = 'Consonant_Placeholder'
 for u in range (0xFE00, 0xFE0F + 1):
 	data[0][u] = defaults[0]
 
@@ -92,6 +98,7 @@ property_names = [
 	'Consonant_Medial',
 	'Consonant_Final',
 	'Consonant_Head_Letter',
+	'Consonant_Initial_Postfixed',
 	'Modifying_Letter',
 	'Tone_Letter',
 	'Tone_Mark',
@@ -117,10 +124,16 @@ property_names = [
 	'Top_And_Right',
 	'Top_And_Left',
 	'Top_And_Left_And_Right',
+	'Bottom_And_Left',
 	'Bottom_And_Right',
 	'Top_And_Bottom_And_Right',
 	'Overstruck',
 ]
+
+try:
+	basestring
+except NameError:
+	basestring = str
 
 class PropertyValue(object):
 	def __init__(self, name_):
@@ -131,6 +144,8 @@ class PropertyValue(object):
 		return self.name == (other if isinstance(other, basestring) else other.name)
 	def __ne__(self, other):
 		return not (self == other)
+	def __hash__(self):
+		return hash(str(self))
 
 property_values = {}
 
@@ -153,7 +168,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104E, 0x2022]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -165,7 +180,9 @@ def is_BASE_OTHER(U, UISC, UGC):
 def is_CGJ(U, UISC, UGC):
 	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
+	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
 	return ((UISC == Consonant_Final and UGC != Lo) or
+		UISC == Consonant_Initial_Postfixed or
 		UISC == Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
 	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
@@ -177,6 +194,8 @@ def is_CONS_MOD(U, UISC, UGC):
 def is_CONS_SUB(U, UISC, UGC):
 	#SPEC-DRAFT return UISC == Consonant_Subjoined
 	return UISC == Consonant_Subjoined and UGC != Lo
+def is_CONS_WITH_STACKER(U, UISC, UGC):
+	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
 	return UISC in [Virama, Invisible_Stacker]
 def is_HALANT_NUM(U, UISC, UGC):
@@ -198,9 +217,7 @@ def is_OTHER(U, UISC, UGC):
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
-	#return UISC == Consonant_Preceding_Repha
-	#SPEC-OUTDATED hack to categorize Consonant_With_Stacker and Consonant_Prefixed
-	return UISC in [Consonant_Preceding_Repha, Consonant_With_Stacker, Consonant_Prefixed]
+	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SYM(U, UISC, UGC):
 	if U == 0x25CC: return False #SPEC-DRAFT
 	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
@@ -229,6 +246,7 @@ use_mapping = {
 	'M':	is_CONS_MED,
 	'CM':	is_CONS_MOD,
 	'SUB':	is_CONS_SUB,
+	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
 	'HN':	is_HALANT_NUM,
 	'ZWNJ':	is_ZWNJ,
@@ -252,7 +270,7 @@ use_positions = {
 	},
 	'M': {
 		'Abv': [Top],
-		'Blw': [Bottom],
+		'Blw': [Bottom, Bottom_And_Left],
 		'Pst': [Right],
 		'Pre': [Left],
 	},
@@ -294,12 +312,26 @@ def map_to_use(data):
 		if U == 0x17DD: UISC = Vowel_Dependent
 		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
 
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/627
+		if 0x1BF2 <= U <= 0x1BF3: UISC = Nukta; UIPC = Bottom
+
 		# TODO: U+1CED should only be allowed after some of
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
 
-		evals = [(k, v(U,UISC,UGC)) for k,v in items]
-		values = [k for k,v in evals if v]
+		# TODO: https://github.com/harfbuzz/harfbuzz/issues/525
+		if U == 0x1A7F: UISC = Consonant_Final; UIPC = Bottom
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/609
+		if U == 0x20F0: UISC = Cantillation_Mark; UIPC = Top
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/626
+		if U == 0xA8B4: UISC = Consonant_Medial
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
+		if U == 0x11134: UISC = Gemination_Mark
+
+		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
 		USE = values[0]
 
@@ -311,17 +343,28 @@ def map_to_use(data):
 		# TODO: These should die, but have UIPC in Unicode 8.0
 		if U in [0x953, 0x954]: UIPC = Not_Applicable
 
-		# TODO: In USE's override list but not in Unicode 8.0
+		# TODO: In USE's override list but not in Unicode 11.0
 		if U == 0x103C: UIPC = Left
 
-		# TODO: These are not in USE's override list that we have, nor are they in Unicode 8.0
+		# TODO: These are not in USE's override list that we have, nor are they in Unicode 11.0
 		if 0xA926 <= U <= 0xA92A: UIPC = Top
 		if U == 0x111CA: UIPC = Bottom
 		if U == 0x11300: UIPC = Top
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1037
+		if U == 0x11302: UIPC = Top
 		if U == 0x1133C: UIPC = Bottom
 		if U == 0x1171E: UIPC = Left # Correct?!
 		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
+		# https://github.com/roozbehp/unicode-data/issues/8
+		if U == 0x0A51: UIPC = Bottom
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
+		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+			elif UIPC == Bottom:
+				UIPC = Top
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
@@ -338,27 +381,21 @@ def map_to_use(data):
 defaults = ('O', 'No_Block')
 data = map_to_use(data)
 
-# Remove the outliers
-singles = {}
-for u in [0x034F, 0x25CC, 0x1107F]:
-	singles[u] = data[u]
-	del data[u]
-
-print "/* == Start of generated table == */"
-print "/*"
-print " * The following table is generated by running:"
-print " *"
-print " *   ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt"
-print " *"
-print " * on files with these headers:"
-print " *"
+print ("/* == Start of generated table == */")
+print ("/*")
+print (" * The following table is generated by running:")
+print (" *")
+print (" *   ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt")
+print (" *")
+print (" * on files with these headers:")
+print (" *")
 for h in headers:
 	for l in h:
-		print " * %s" % (l.strip())
-print " */"
-print
-print '#include "hb-ot-shape-complex-use-private.hh"'
-print
+		print (" * %s" % (l.strip()))
+print (" */")
+print ()
+print ('#include "hb-ot-shape-complex-use-private.hh"')
+print ()
 
 total = 0
 used = 0
@@ -366,30 +403,29 @@ last_block = None
 def print_block (block, start, end, data):
 	global total, used, last_block
 	if block and block != last_block:
-		print
-		print
-		print "  /* %s */" % block
+		print ()
+		print ()
+		print ("  /* %s */" % block)
 		if start % 16:
-			print ' ' * (20 + (start % 16 * 6)),
+			print (' ' * (20 + (start % 16 * 6)), end='')
 	num = 0
 	assert start % 8 == 0
 	assert (end+1) % 8 == 0
 	for u in range (start, end+1):
 		if u % 16 == 0:
-			print
-			print "  /* %04X */" % u,
+			print ()
+			print ("  /* %04X */" % u, end='')
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		sys.stdout.write ("%6s," % d[0])
+		print ("%6s," % d[0], end='')
 
 	total += end - start + 1
 	used += num
 	if block:
 		last_block = block
 
-uu = data.keys ()
-uu.sort ()
+uu = sorted (data.keys ())
 
 last = -100000
 num = 0
@@ -398,14 +434,14 @@ starts = []
 ends = []
 for k,v in sorted(use_mapping.items()):
 	if k in use_positions and use_positions[k]: continue
-	print "#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:])
+	print ("#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:]))
 for k,v in sorted(use_positions.items()):
 	if not v: continue
 	for suf in v.keys():
 		tag = k + suf
-		print "#define %s	USE_%s" % (tag, tag)
-print ""
-print "static const USE_TABLE_ELEMENT_TYPE use_table[] = {"
+		print ("#define %s	USE_%s" % (tag, tag))
+print ("")
+print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
 for u in uu:
 	if u <= last:
 		continue
@@ -425,54 +461,51 @@ for u in uu:
 			if last >= 0:
 				ends.append (last + 1)
 				offset += ends[-1] - starts[-1]
-			print
-			print
-			print "#define use_offset_0x%04xu %d" % (start, offset)
+			print ()
+			print ()
+			print ("#define use_offset_0x%04xu %d" % (start, offset))
 			starts.append (start)
 
 	print_block (block, start, end, data)
 	last = end
 ends.append (last + 1)
 offset += ends[-1] - starts[-1]
-print
-print
+print ()
+print ()
 occupancy = used * 100. / total
 page_bits = 12
-print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
-print
-print "USE_TABLE_ELEMENT_TYPE"
-print "hb_use_get_categories (hb_codepoint_t u)"
-print "{"
-print "  switch (u >> %d)" % page_bits
-print "  {"
-pages = set([u>>page_bits for u in starts+ends+singles.keys()])
+print ("}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy))
+print ()
+print ("USE_TABLE_ELEMENT_TYPE")
+print ("hb_use_get_category (hb_codepoint_t u)")
+print ("{")
+print ("  switch (u >> %d)" % page_bits)
+print ("  {")
+pages = set([u>>page_bits for u in starts+ends])
 for p in sorted(pages):
-	print "    case 0x%0Xu:" % p
+	print ("    case 0x%0Xu:" % p)
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>page_bits, end>>page_bits]: continue
 		offset = "use_offset_0x%04xu" % start
-		print "      if (hb_in_range<hb_codepoint_t> (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
-	for u,d in singles.items ():
-		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
-	print "      break;"
-	print ""
-print "    default:"
-print "      break;"
-print "  }"
-print "  return USE_O;"
-print "}"
-print
+		print ("      if (hb_in_range<hb_codepoint_t> (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset))
+	print ("      break;")
+	print ("")
+print ("    default:")
+print ("      break;")
+print ("  }")
+print ("  return USE_O;")
+print ("}")
+print ()
 for k in sorted(use_mapping.keys()):
 	if k in use_positions and use_positions[k]: continue
-	print "#undef %s" % k
+	print ("#undef %s" % k)
 for k,v in sorted(use_positions.items()):
 	if not v: continue
 	for suf in v.keys():
 		tag = k + suf
-		print "#undef %s" % tag
-print
-print "/* == End of generated table == */"
+		print ("#undef %s" % tag)
+print ()
+print ("/* == End of generated table == */")
 
 # Maintain at least 50% occupancy in the table */
 if occupancy < 50:

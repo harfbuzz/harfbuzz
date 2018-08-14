@@ -29,6 +29,14 @@
 
 #include "hb-open-type-private.hh"
 
+/*
+ * fvar -- Font Variations
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/fvar
+ */
+
+#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
+
+
 namespace OT {
 
 
@@ -42,11 +50,11 @@ struct InstanceRecord
   }
 
   protected:
-  USHORT	subfamilyNameID;/* The name ID for entries in the 'name' table
+  NameID	subfamilyNameID;/* The name ID for entries in the 'name' table
 				 * that provide subfamily names for this instance. */
-  USHORT	reserved;	/* Reserved for future use — set to 0. */
+  HBUINT16	reserved;	/* Reserved for future use — set to 0. */
   Fixed		coordinates[VAR];/* The coordinates array for this instance. */
-  //USHORT	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
+  //NameID	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
   //				  * table that provide PostScript names for this
   //				  * instance. */
 
@@ -67,24 +75,19 @@ struct AxisRecord
   Fixed		minValue;	/* The minimum coordinate value for the axis. */
   Fixed		defaultValue;	/* The default coordinate value for the axis. */
   Fixed		maxValue;	/* The maximum coordinate value for the axis. */
-  USHORT	reserved;	/* Reserved for future use — set to 0. */
-  USHORT	axisNameID;	/* The name ID for entries in the 'name' table that
+  HBUINT16	reserved;	/* Reserved for future use — set to 0. */
+  NameID	axisNameID;	/* The name ID for entries in the 'name' table that
 				 * provide a display name for this axis. */
 
   public:
   DEFINE_SIZE_STATIC (20);
 };
 
-
-/*
- * fvar — Font Variations Table
- */
-
-#define HB_OT_TAG_fvar HB_TAG('f','v','a','r')
-
 struct fvar
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_fvar;
+
+  inline bool has_data (void) const { return version.to_int () != 0; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -186,16 +189,16 @@ struct fvar
   protected:
   FixedVersion<>version;	/* Version of the fvar table
 				 * initially set to 0x00010000u */
-  Offset<>	things;		/* Offset in bytes from the beginning of the table
+  Offset16	things;		/* Offset in bytes from the beginning of the table
 				 * to the start of the AxisRecord array. */
-  USHORT	reserved;	/* This field is permanently reserved. Set to 2. */
-  USHORT	axisCount;	/* The number of variation axes in the font (the
+  HBUINT16	reserved;	/* This field is permanently reserved. Set to 2. */
+  HBUINT16	axisCount;	/* The number of variation axes in the font (the
 				 * number of records in the axes array). */
-  USHORT	axisSize;	/* The size in bytes of each VariationAxisRecord —
+  HBUINT16	axisSize;	/* The size in bytes of each VariationAxisRecord —
 				 * set to 20 (0x0014) for this version. */
-  USHORT	instanceCount;	/* The number of named instances defined in the font
+  HBUINT16	instanceCount;	/* The number of named instances defined in the font
 				 * (the number of records in the instances array). */
-  USHORT	instanceSize;	/* The size in bytes of each InstanceRecord — set
+  HBUINT16	instanceSize;	/* The size in bytes of each InstanceRecord — set
 				 * to either axisCount * sizeof(Fixed) + 4, or to
 				 * axisCount * sizeof(Fixed) + 6. */
 

@@ -32,7 +32,6 @@
 #define HB_UNICODE_PRIVATE_HH
 
 #include "hb-private.hh"
-#include "hb-object-private.hh"
 
 
 extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
@@ -61,7 +60,8 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
   HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script) \
   /* ^--- Add new simple callbacks here */
 
-struct hb_unicode_funcs_t {
+struct hb_unicode_funcs_t
+{
   hb_object_header_t header;
   ASSERT_POD ();
 
@@ -105,14 +105,10 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   inline unsigned int
   modified_combining_class (hb_codepoint_t unicode)
   {
-    /* XXX This hack belongs to the Arabic shaper:
-     * Put HAMZA ABOVE in the same class as SHADDA. */
-    if (unlikely (unicode == 0x0654u)) unicode = 0x0651u;
-
     /* XXX This hack belongs to the Myanmar shaper. */
     if (unlikely (unicode == 0x1037u)) unicode = 0x103Au;
 
-    /* XXX This hack belongs to the SEA shaper (for Tai Tham):
+    /* XXX This hack belongs to the USE shaper (for Tai Tham):
      * Reorder SAKOT to ensure it comes after any tone marks. */
     if (unlikely (unicode == 0x1A60u)) return 254;
 
@@ -141,6 +137,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * we do NOT want to hide them, as the way Uniscribe has implemented them
    * is with regular spacing glyphs, and that's the way fonts are made to work.
    * As such, we make exceptions for those four.
+   * Also ignoring U+1BCA0..1BCA3. https://github.com/harfbuzz/harfbuzz/issues/503
    *
    * Unicode 7.0:
    * $ grep '; Default_Ignorable_Code_Point ' DerivedCoreProperties.txt | sed 's/;.*#/#/'
@@ -197,8 +194,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     {
       /* Other planes */
       switch (plane) {
-	case 0x01: return hb_in_ranges<hb_codepoint_t> (ch, 0x1BCA0u, 0x1BCA3u,
-					    0x1D173u, 0x1D17Au);
+	case 0x01: return hb_in_range<hb_codepoint_t> (ch, 0x1D173u, 0x1D17Au);
 	case 0x0E: return hb_in_range<hb_codepoint_t> (ch, 0xE0000u, 0xE0FFFu);
 	default: return false;
       }
@@ -206,8 +202,8 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   }
 
   /* Space estimates based on:
-   * http://www.unicode.org/charts/PDF/U2000.pdf
-   * https://www.microsoft.com/typography/developers/fdsspec/spaces.aspx
+   * https://unicode.org/charts/PDF/U2000.pdf
+   * https://docs.microsoft.com/en-us/typography/develop/character-design-standards/whitespace
    */
   enum space_t {
     NOT_SPACE = 0,
@@ -268,9 +264,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 #undef HB_UNICODE_FUNC_IMPLEMENT
   } destroy;
 };
-
-
-extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
+DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 
 
 /* Modified combining marks */
@@ -280,10 +274,10 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
  * We permute the "fixed-position" classes 10-26 into the order
  * described in the SBL Hebrew manual:
  *
- * http://www.sbl-site.org/Fonts/SBLHebrewUserManual1.5x.pdf
+ * https://www.sbl-site.org/Fonts/SBLHebrewUserManual1.5x.pdf
  *
  * (as recommended by:
- *  http://forum.fontlab.com/archive-old-microsoft-volt-group/vista-and-diacritic-ordering-t6751.0.html)
+ *  https://forum.fontlab.com/archive-old-microsoft-volt-group/vista-and-diacritic-ordering/msg22823/)
  *
  * More details here:
  * https://bugzilla.mozilla.org/show_bug.cgi?id=662055
@@ -310,8 +304,8 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
  * Arabic
  *
  * Modify to move Shadda (ccc=33) before other marks.  See:
- * http://unicode.org/faq/normalization.html#8
- * http://unicode.org/faq/normalization.html#9
+ * https://unicode.org/faq/normalization.html#8
+ * https://unicode.org/faq/normalization.html#9
  */
 #define HB_MODIFIED_COMBINING_CLASS_CCC27 28 /* fathatan */
 #define HB_MODIFIED_COMBINING_CLASS_CCC28 29 /* dammatan */
@@ -350,9 +344,9 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define HB_MODIFIED_COMBINING_CLASS_CCC122 122 /* mai * */
 
 /* Tibetan
- * 
- * In case of multiple vowel-signs, use u first (but after achung) 
- * this allows Dzongkha multi-vowel shortcuts to render correctly 
+ *
+ * In case of multiple vowel-signs, use u first (but after achung)
+ * this allows Dzongkha multi-vowel shortcuts to render correctly
  */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
 #define HB_MODIFIED_COMBINING_CLASS_CCC130 132 /* sign i */
@@ -361,13 +355,13 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 /* Misc */
 
 #define HB_UNICODE_GENERAL_CATEGORY_IS_MARK(gen_cat) \
-	(FLAG_SAFE (gen_cat) & \
+	(FLAG_UNSAFE (gen_cat) & \
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
 
 #define HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL(gen_cat) \
-	(FLAG_SAFE (gen_cat) & \
+	(FLAG_UNSAFE (gen_cat) & \
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL)))

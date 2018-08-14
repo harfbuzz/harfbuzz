@@ -97,7 +97,7 @@ thai_pua_shape (hb_codepoint_t u, thai_action_t action, hb_font_t *font)
     hb_codepoint_t u;
     hb_codepoint_t win_pua;
     hb_codepoint_t mac_pua;
-  } const *pua_mappings = NULL;
+  } const *pua_mappings = nullptr;
   static const thai_pua_mapping_t SD_mappings[] = {
     {0x0E48u, 0xF70Au, 0xF88Bu}, /* MAI EK */
     {0x0E49u, 0xF70Bu, 0xF88Eu}, /* MAI THO */
@@ -260,7 +260,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 {
   /* This function implements the shaping logic documented here:
    *
-   *   http://linux.thai.net/~thep/th-otf/shaping.html
+   *   https://linux.thai.net/~thep/th-otf/shaping.html
    *
    * The first shaping rule listed there is needed even if the font has Thai
    * OpenType tables.  The rest do fallback positioning based on PUA codepoints.
@@ -315,7 +315,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 
   buffer->clear_output ();
   unsigned int count = buffer->len;
-  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
+  for (buffer->idx = 0; buffer->idx < count && buffer->successful;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
     if (likely (!IS_SARA_AM (u))) {
@@ -327,7 +327,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     hb_codepoint_t decomposed[2] = {hb_codepoint_t (NIKHAHIT_FROM_SARA_AM (u)),
 				    hb_codepoint_t (SARA_AA_FROM_SARA_AM (u))};
     buffer->replace_glyphs (1, 2, decomposed);
-    if (unlikely (buffer->in_error))
+    if (unlikely (!buffer->successful))
       return;
 
     /* Make Nikhahit be recognized as a ccc=0 mark when zeroing widths. */
@@ -366,18 +366,18 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
 {
-  "thai",
-  NULL, /* collect_features */
-  NULL, /* override_features */
-  NULL, /* data_create */
-  NULL, /* data_destroy */
+  nullptr, /* collect_features */
+  nullptr, /* override_features */
+  nullptr, /* data_create */
+  nullptr, /* data_destroy */
   preprocess_text_thai,
-  NULL, /* postprocess_glyphs */
+  nullptr, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
-  NULL, /* decompose */
-  NULL, /* compose */
-  NULL, /* setup_masks */
-  NULL, /* disable_otl */
+  nullptr, /* decompose */
+  nullptr, /* compose */
+  nullptr, /* setup_masks */
+  nullptr, /* disable_otl */
+  nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   false,/* fallback_position */
 };

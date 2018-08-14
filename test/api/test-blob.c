@@ -116,7 +116,7 @@ free_up_free (fixture_t *fixture)
 static uintptr_t
 get_pagesize (void)
 {
-  uintptr_t pagesize = -1;
+  uintptr_t pagesize = (uintptr_t) -1;
 
 #if defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
   pagesize = (uintptr_t) sysconf (_SC_PAGE_SIZE);

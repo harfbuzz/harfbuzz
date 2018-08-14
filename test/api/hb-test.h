@@ -27,7 +27,9 @@
 #ifndef HB_TEST_H
 #define HB_TEST_H
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include <hb-glib.h>
 
@@ -84,7 +86,6 @@ hb_test_run (void)
 {
   return g_test_run ();
 }
-
 
 /* Bugzilla helpers */
 
@@ -158,6 +159,21 @@ typedef void (*hb_test_fixture_func_t) (void);
 #if !GLIB_CHECK_VERSION(2,30,0)
 #define g_test_fail() g_error("Test failed")
 #endif
+#ifndef g_assert_true
+#define g_assert_true g_assert
+#endif
+#ifndef g_assert_cmpmem
+#define g_assert_cmpmem(m1, l1, m2, l2) g_assert_true (l1 == l2 && memcmp (m1, m2, l1) == 0)
+#endif
+
+static inline void hb_test_assert_blobs_equal (hb_blob_t *expected_blob, hb_blob_t *actual_blob)
+{
+  unsigned int expected_length, actual_length;
+  const char *raw_expected = hb_blob_get_data (expected_blob, &expected_length);
+  const char *raw_actual = hb_blob_get_data (actual_blob, &actual_length);
+  g_assert_cmpint(expected_length, ==, actual_length);
+  g_assert_cmpint(0, ==, memcmp(raw_expected, raw_actual, expected_length));
+}
 
 static inline void
 hb_test_add_func (const char *test_path,

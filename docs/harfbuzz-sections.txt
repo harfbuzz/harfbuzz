@@ -8,7 +8,9 @@ HB_EXTERN
 <SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
+hb_blob_create_from_file
 hb_blob_create_sub_blob
+hb_blob_copy_writable_or_fail
 hb_blob_destroy
 hb_blob_get_data
 hb_blob_get_data_writable
@@ -41,6 +43,7 @@ hb_buffer_add_utf32
 hb_buffer_add_utf16
 hb_buffer_add_utf8
 hb_buffer_add_latin1
+hb_buffer_append
 hb_buffer_set_content_type
 hb_buffer_get_content_type
 hb_buffer_set_direction
@@ -77,9 +80,12 @@ hb_buffer_serialize_format_to_string
 hb_buffer_serialize_list_formats
 hb_segment_properties_equal
 hb_segment_properties_hash
+hb_buffer_diff
 hb_buffer_set_message_func
 hb_buffer_t
+hb_glyph_info_get_glyph_flags
 hb_glyph_info_t
+hb_glyph_flags_t
 hb_glyph_position_t
 hb_buffer_content_type_t
 hb_buffer_flags_t
@@ -87,6 +93,7 @@ hb_buffer_cluster_level_t
 hb_segment_properties_t
 hb_buffer_serialize_format_t
 hb_buffer_serialize_flags_t
+hb_buffer_diff_flags_t
 hb_buffer_message_func_t
 </SECTION>
 
@@ -146,23 +153,28 @@ HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
 HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
+hb_set_invert
 </SECTION>
 
 <SECTION>
 <FILE>hb-coretext</FILE>
+HB_CORETEXT_TAG_KERX
 HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
+hb_coretext_font_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
 </SECTION>
 
 <SECTION>
 <FILE>hb-face</FILE>
+hb_face_count
 hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
 hb_face_get_empty
+hb_face_get_table_tags
 hb_face_get_glyph_count
 hb_face_get_index
 hb_face_get_upem
@@ -196,10 +208,12 @@ hb_font_funcs_set_glyph_contour_point_func
 hb_font_funcs_set_glyph_extents_func
 hb_font_funcs_set_glyph_from_name_func
 hb_font_funcs_set_glyph_h_advance_func
+hb_font_funcs_set_glyph_h_advances_func
 hb_font_funcs_set_glyph_h_kerning_func
 hb_font_funcs_set_glyph_h_origin_func
 hb_font_funcs_set_glyph_name_func
 hb_font_funcs_set_glyph_v_advance_func
+hb_font_funcs_set_glyph_v_advances_func
 hb_font_funcs_set_glyph_v_kerning_func
 hb_font_funcs_set_glyph_v_origin_func
 hb_font_funcs_set_nominal_glyph_func
@@ -211,6 +225,7 @@ hb_font_get_face
 hb_font_get_glyph
 hb_font_get_glyph_advance_for_direction
 hb_font_get_glyph_advance_func_t
+hb_font_get_glyph_advances_for_direction
 hb_font_get_glyph_contour_point
 hb_font_get_glyph_contour_point_for_origin
 hb_font_get_glyph_contour_point_func_t
@@ -221,6 +236,8 @@ hb_font_get_glyph_from_name
 hb_font_get_glyph_from_name_func_t
 hb_font_get_glyph_h_advance
 hb_font_get_glyph_h_advance_func_t
+hb_font_get_glyph_h_advances
+hb_font_get_glyph_h_advances_func_t
 hb_font_get_glyph_h_kerning
 hb_font_get_glyph_h_kerning_func_t
 hb_font_get_glyph_h_origin
@@ -233,6 +250,8 @@ hb_font_get_glyph_origin_for_direction
 hb_font_get_glyph_origin_func_t
 hb_font_get_glyph_v_advance
 hb_font_get_glyph_v_advance_func_t
+hb_font_get_glyph_v_advances
+hb_font_get_glyph_v_advances_func_t
 hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
 hb_font_get_glyph_v_origin
@@ -241,6 +260,7 @@ hb_font_get_nominal_glyph
 hb_font_get_nominal_glyph_func_t
 hb_font_get_parent
 hb_font_get_ppem
+hb_font_get_ptem
 hb_font_get_scale
 hb_font_get_user_data
 hb_font_get_variation_glyph
@@ -251,10 +271,12 @@ hb_font_glyph_to_string
 hb_font_is_immutable
 hb_font_make_immutable
 hb_font_reference
+hb_font_set_face
 hb_font_set_funcs
 hb_font_set_funcs_data
 hb_font_set_parent
 hb_font_set_ppem
+hb_font_set_ptem
 hb_font_set_scale
 hb_font_set_user_data
 hb_variation_t
@@ -283,6 +305,7 @@ hb_ft_face_create_cached
 hb_ft_face_create_referenced
 hb_ft_font_create
 hb_ft_font_create_referenced
+hb_ft_font_changed
 hb_ft_font_get_face
 hb_ft_font_set_load_flags
 hb_ft_font_get_load_flags
@@ -302,6 +325,7 @@ hb_glib_blob_create
 HB_GOBJECT_TYPE_BLOB
 HB_GOBJECT_TYPE_BUFFER
 HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE
+HB_GOBJECT_TYPE_BUFFER_DIFF_FLAGS
 HB_GOBJECT_TYPE_BUFFER_FLAGS
 HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS
 HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT
@@ -309,10 +333,14 @@ HB_GOBJECT_TYPE_DIRECTION
 HB_GOBJECT_TYPE_FACE
 HB_GOBJECT_TYPE_FONT
 HB_GOBJECT_TYPE_FONT_FUNCS
+HB_GOBJECT_TYPE_GLYPH_FLAGS
+HB_GOBJECT_TYPE_MAP
 HB_GOBJECT_TYPE_MEMORY_MODE
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
 HB_GOBJECT_TYPE_OT_MATH_CONSTANT
+HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART
 HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART_FLAGS
+HB_GOBJECT_TYPE_OT_MATH_GLYPH_VARIANT
 HB_GOBJECT_TYPE_OT_MATH_KERN
 HB_GOBJECT_TYPE_SCRIPT
 HB_GOBJECT_TYPE_SHAPE_PLAN
@@ -328,6 +356,7 @@ HB_GOBJECT_TYPE_SET
 HB_GOBJECT_TYPE_USER_DATA_KEY
 hb_gobject_blob_get_type
 hb_gobject_buffer_content_type_get_type
+hb_gobject_buffer_diff_flags_get_type
 hb_gobject_buffer_flags_get_type
 hb_gobject_buffer_get_type
 hb_gobject_buffer_serialize_flags_get_type
@@ -336,10 +365,14 @@ hb_gobject_direction_get_type
 hb_gobject_face_get_type
 hb_gobject_font_funcs_get_type
 hb_gobject_font_get_type
+hb_gobject_glyph_flags_get_type
+hb_gobject_map_get_type
 hb_gobject_memory_mode_get_type
 hb_gobject_ot_layout_glyph_class_get_type
 hb_gobject_ot_math_constant_get_type
+hb_gobject_ot_math_glyph_part_get_type
 hb_gobject_ot_math_glyph_part_flags_get_type
+hb_gobject_ot_math_glyph_variant_get_type
 hb_gobject_ot_math_kern_get_type
 hb_gobject_script_get_type
 hb_gobject_shape_plan_get_type
@@ -377,6 +410,26 @@ hb_icu_script_to_script
 </SECTION>
 
 <SECTION>
+<FILE>hb-map</FILE>
+HB_MAP_VALUE_INVALID
+hb_map_allocation_successful
+hb_map_clear
+hb_map_create
+hb_map_del
+hb_map_destroy
+hb_map_get
+hb_map_get_empty
+hb_map_get_population
+hb_map_get_user_data
+hb_map_has
+hb_map_is_empty
+hb_map_reference
+hb_map_set
+hb_map_set_user_data
+hb_map_t
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot</FILE>
 <SUBSECTION Private>
 HB_OT_H_IN
@@ -403,6 +456,7 @@ HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
 HB_OT_TAG_JSTF
 hb_ot_layout_collect_lookups
+hb_ot_layout_collect_features
 hb_ot_layout_feature_get_lookups
 hb_ot_layout_feature_with_variations_get_lookups
 hb_ot_layout_get_attach_points
@@ -421,6 +475,7 @@ hb_ot_layout_language_get_feature_tags
 hb_ot_layout_language_get_required_feature
 hb_ot_layout_lookup_collect_glyphs
 hb_ot_layout_lookup_substitute_closure
+hb_ot_layout_lookups_substitute_closure
 hb_ot_layout_lookup_would_substitute
 hb_ot_layout_script_find_language
 hb_ot_layout_script_get_language_tags
@@ -503,11 +558,13 @@ hb_set_get_population
 hb_set_get_user_data
 hb_set_has
 hb_set_intersect
-hb_set_invert
 hb_set_is_empty
 hb_set_is_equal
+hb_set_is_subset
 hb_set_next
 hb_set_next_range
+hb_set_previous
+hb_set_previous_range
 hb_set_reference
 hb_set_set
 hb_set_set_user_data

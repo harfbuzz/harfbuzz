@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
+
 import sys, os, re, difflib, unicodedata, errno, cgi
 from itertools import *
 
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
+
+def codepoints(s):
+	return (ord (u) for u in s)
 
 try:
 	unichr = unichr
@@ -42,6 +46,28 @@ try:
 					return escape_str.decode("unicode-escape")
 				except UnicodeDecodeError:
 					raise ValueError('unichr() arg not in range(0x110000)')
+
+		def codepoints(s):
+			high_surrogate = None
+			for u in s:
+				cp = ord (u)
+				if 0xDC00 <= cp <= 0xDFFF:
+					if high_surrogate:
+						yield 0x10000 + (high_surrogate - 0xD800) * 0x400 + (cp - 0xDC00)
+						high_surrogate = None
+					else:
+						yield 0xFFFC
+				else:
+					if high_surrogate:
+						yield 0xFFFC
+						high_surrogate = None
+					if 0xD800 <= cp <= 0xDBFF:
+						high_surrogate = cp
+					else:
+						yield cp
+						high_surrogate = None
+			if high_surrogate:
+				yield 0xFFFC
 
 except NameError:
 	unichr = chr
@@ -268,32 +294,6 @@ class DiffSinks:
 		total = passed + failed
 		print ("%d out of %d tests passed.  %d failed (%g%%)" % (passed, total, failed, 100. * failed / total))
 
-	@staticmethod
-	def print_ngrams (f, ns=(1,2,3)):
-		gens = tuple (Ngram.generator (n) for n in ns)
-		allstats = Stats ()
-		allgrams = {}
-		for key, lines in DiffHelpers.separate_test_cases (f):
-			test = Test (lines)
-			allstats.add (test)
-
-			for gen in gens:
-				for ngram in gen (test.unicodes):
-					if ngram not in allgrams:
-						allgrams[ngram] = Stats ()
-					allgrams[ngram].add (test)
-
-		importantgrams = {}
-		for ngram, stats in allgrams.iteritems ():
-			if stats.failed.count >= 30: # for statistical reasons
-				importantgrams[ngram] = stats
-		allgrams = importantgrams
-		del importantgrams
-
-		for ngram, stats in allgrams.iteritems ():
-			print ("zscore: %9f failed: %6d passed: %6d ngram: <%s>" % (stats.zscore (allstats), stats.failed.count, stats.passed.count, ','.join ("U+%04X" % u for u in ngram)))
-
-
 
 class Test:
 
@@ -456,12 +456,12 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return u','.join ("U+%04X" % ord (u) for u in tounicode (s, 'utf-8'))
+		return u','.join ("U+%04X" % cp for cp in codepoints (tounicode (s, 'utf-8')))
 
 	@staticmethod
 	def parse (s):
 		s = re.sub (r"0[xX]", " ", s)
-		s = re.sub (r"[<+>{},;&#\\xXuUnNiI\n	]", " ", s)
+		s = re.sub (r"[<+>{},;&#\\xXuUnNiI\n\t]", " ", s)
 		return [int (x, 16) for x in s.split ()]
 
 	@staticmethod
@@ -514,7 +514,7 @@ class FileHelpers:
 	def open_file_or_stdin (f):
 		if f == '-':
 			return sys.stdin
-		return file (f)
+		return open (f)
 
 
 class Manifest:
@@ -533,7 +533,7 @@ class Manifest:
 		if os.path.isdir (s):
 
 			try:
-				m = file (os.path.join (s, "MANIFEST"))
+				m = open (os.path.join (s, "MANIFEST"))
 				items = [x.strip () for x in m.readlines ()]
 				for f in items:
 					for p in Manifest.read (os.path.join (s, f)):

@@ -17,6 +17,7 @@
 #include "hb-private.hh"
 
 #include "hb-unicode-private.hh"
+#include "hb-machinery-private.hh"
 
 #include "ucdn.h"
 
@@ -160,17 +161,30 @@ static const hb_script_t ucdn_script_translate[] =
     HB_SCRIPT_NEWA,
     HB_SCRIPT_OSAGE,
     HB_SCRIPT_TANGUT,
+    HB_SCRIPT_MASARAM_GONDI,
+    HB_SCRIPT_NUSHU,
+    HB_SCRIPT_SOYOMBO,
+    HB_SCRIPT_ZANABAZAR_SQUARE,
+    HB_SCRIPT_DOGRA,
+    HB_SCRIPT_GUNJALA_GONDI,
+    HB_SCRIPT_HANIFI_ROHINGYA,
+    HB_SCRIPT_MAKASAR,
+    HB_SCRIPT_MEDEFAIDRIN,
+    HB_SCRIPT_OLD_SOGDIAN,
+    HB_SCRIPT_SOGDIAN,
 };
 
 static hb_unicode_combining_class_t
-hb_ucdn_combining_class(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
+hb_ucdn_combining_class(hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			hb_codepoint_t unicode,
 			void *user_data HB_UNUSED)
 {
     return (hb_unicode_combining_class_t) ucdn_get_combining_class(unicode);
 }
 
 static unsigned int
-hb_ucdn_eastasian_width(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
+hb_ucdn_eastasian_width(hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			hb_codepoint_t unicode,
 			void *user_data HB_UNUSED)
 {
     int w = ucdn_get_east_asian_width(unicode);
@@ -178,28 +192,31 @@ hb_ucdn_eastasian_width(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
 }
 
 static hb_unicode_general_category_t
-hb_ucdn_general_category(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
+hb_ucdn_general_category(hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			 hb_codepoint_t unicode,
 			 void *user_data HB_UNUSED)
 {
     return (hb_unicode_general_category_t)ucdn_get_general_category(unicode);
 }
 
 static hb_codepoint_t
-hb_ucdn_mirroring(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
+hb_ucdn_mirroring(hb_unicode_funcs_t *ufuncs HB_UNUSED,
+		  hb_codepoint_t unicode,
 		  void *user_data HB_UNUSED)
 {
     return ucdn_mirror(unicode);
 }
 
 static hb_script_t
-hb_ucdn_script(hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode,
+hb_ucdn_script(hb_unicode_funcs_t *ufuncs HB_UNUSED,
+	       hb_codepoint_t unicode,
 	       void *user_data HB_UNUSED)
 {
     return ucdn_script_translate[ucdn_get_script(unicode)];
 }
 
 static hb_bool_t
-hb_ucdn_compose(hb_unicode_funcs_t *ufuncs,
+hb_ucdn_compose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 		hb_codepoint_t a, hb_codepoint_t b, hb_codepoint_t *ab,
 		void *user_data HB_UNUSED)
 {
@@ -207,7 +224,7 @@ hb_ucdn_compose(hb_unicode_funcs_t *ufuncs,
 }
 
 static hb_bool_t
-hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs,
+hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 		  hb_codepoint_t ab, hb_codepoint_t *a, hb_codepoint_t *b,
 		  void *user_data HB_UNUSED)
 {
@@ -215,29 +232,48 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs,
 }
 
 static unsigned int
-hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs,
+hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 				hb_codepoint_t u, hb_codepoint_t *decomposed,
 				void *user_data HB_UNUSED)
 {
     return ucdn_compat_decompose(u, decomposed);
 }
 
+
+static void free_static_ucdn_funcs (void);
+
+static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_ucdn_unicode_funcs_lazy_loader_t>
+{
+  static inline hb_unicode_funcs_t *create (void)
+  {
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
+
+#define HB_UNICODE_FUNC_IMPLEMENT(name) \
+    hb_unicode_funcs_set_##name##_func (funcs, hb_ucdn_##name, nullptr, nullptr);
+      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
+
+    hb_unicode_funcs_make_immutable (funcs);
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ucdn_funcs);
+#endif
+
+    return funcs;
+  }
+} static_ucdn_funcs;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_ucdn_funcs (void)
+{
+  static_ucdn_funcs.free_instance ();
+}
+#endif
+
 extern "C" HB_INTERNAL
 hb_unicode_funcs_t *
 hb_ucdn_get_unicode_funcs (void)
 {
-  static const hb_unicode_funcs_t _hb_ucdn_unicode_funcs = {
-    HB_OBJECT_HEADER_STATIC,
-
-    NULL, /* parent */
-    true, /* immutable */
-    {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_ucdn_##name,
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-    }
-  };
-
-  return const_cast<hb_unicode_funcs_t *> (&_hb_ucdn_unicode_funcs);
+  return static_ucdn_funcs.get_unconst ();
 }
-

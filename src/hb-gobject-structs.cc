@@ -58,7 +58,7 @@ hb_gobject_##name##_get_type (void) \
 	static hb_##name##_t *_hb_##name##_reference (const hb_##name##_t *l) \
 	{ \
 	  hb_##name##_t *c = (hb_##name##_t *) calloc (1, sizeof (hb_##name##_t)); \
-	  if (unlikely (!c)) return NULL; \
+	  if (unlikely (!c)) return nullptr; \
 	  *c = *l; \
 	  return c; \
 	} \
@@ -71,6 +71,7 @@ HB_DEFINE_OBJECT_TYPE (face)
 HB_DEFINE_OBJECT_TYPE (font)
 HB_DEFINE_OBJECT_TYPE (font_funcs)
 HB_DEFINE_OBJECT_TYPE (set)
+HB_DEFINE_OBJECT_TYPE (map)
 HB_DEFINE_OBJECT_TYPE (shape_plan)
 HB_DEFINE_OBJECT_TYPE (unicode_funcs)
 HB_DEFINE_VALUE_TYPE (feature)

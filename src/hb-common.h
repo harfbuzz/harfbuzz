@@ -43,16 +43,14 @@
 # endif /* !__cplusplus */
 #endif
 
-#if !defined (HB_DONT_DEFINE_STDINT)
-
 #if defined (_SVR4) || defined (SVR4) || defined (__OpenBSD__) || \
     defined (_sgi) || defined (__sun) || defined (sun) || \
     defined (__digital__) || defined (__HP_cc)
 #  include <inttypes.h>
 #elif defined (_AIX)
 #  include <sys/inttypes.h>
-/* VS 2010 (_MSC_VER 1600) has stdint.h */
 #elif defined (_MSC_VER) && _MSC_VER < 1600
+/* VS 2010 (_MSC_VER 1600) has stdint.h */
 typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
@@ -63,8 +61,6 @@ typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
 #else
 #  include <stdint.h>
-#endif
-
 #endif
 
 HB_BEGIN_DECLS
@@ -148,7 +144,7 @@ hb_language_from_string (const char *str, int len);
 HB_EXTERN const char *
 hb_language_to_string (hb_language_t language);
 
-#define HB_LANGUAGE_INVALID ((hb_language_t) NULL)
+#define HB_LANGUAGE_INVALID ((hb_language_t) 0)
 
 HB_EXTERN hb_language_t
 hb_language_get_default (void);
@@ -156,8 +152,8 @@ hb_language_get_default (void);
 
 /* hb_script_t */
 
-/* http://unicode.org/iso15924/ */
-/* http://goo.gl/x9ilM */
+/* https://unicode.org/iso15924/ */
+/* https://docs.google.com/spreadsheets/d/1Y90M0Ie3MUJ6UVCRDOypOtijlMDLNNyyLk36T6iMu0o */
 /* Unicode Character Database property: Script (sc) */
 typedef enum
 {
@@ -321,6 +317,25 @@ typedef enum
   /*9.0*/ HB_SCRIPT_TANGUT			= HB_TAG ('T','a','n','g'),
   /*9.0*/ HB_SCRIPT_NEWA			= HB_TAG ('N','e','w','a'),
 
+  /*
+   * Since 1.6.0
+   */
+  /*10.0*/HB_SCRIPT_MASARAM_GONDI		= HB_TAG ('G','o','n','m'),
+  /*10.0*/HB_SCRIPT_NUSHU			= HB_TAG ('N','s','h','u'),
+  /*10.0*/HB_SCRIPT_SOYOMBO			= HB_TAG ('S','o','y','o'),
+  /*10.0*/HB_SCRIPT_ZANABAZAR_SQUARE		= HB_TAG ('Z','a','n','b'),
+
+  /*
+   * Since 1.8.0
+   */
+  /*11.0*/HB_SCRIPT_DOGRA			= HB_TAG ('D','o','g','r'),
+  /*11.0*/HB_SCRIPT_GUNJALA_GONDI		= HB_TAG ('G','o','n','g'),
+  /*11.0*/HB_SCRIPT_HANIFI_ROHINGYA		= HB_TAG ('R','o','h','g'),
+  /*11.0*/HB_SCRIPT_MAKASAR			= HB_TAG ('M','a','k','a'),
+  /*11.0*/HB_SCRIPT_MEDEFAIDRIN			= HB_TAG ('M','e','d','f'),
+  /*11.0*/HB_SCRIPT_OLD_SOGDIAN			= HB_TAG ('S','o','g','o'),
+  /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
@@ -329,7 +344,7 @@ typedef enum
    * since technically enums are int, and indeed, hb_script_t ends up being signed.
    * See this thread for technicalities:
    *
-   *   http://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
+   *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
   _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/

@@ -31,6 +31,7 @@
 #include "hb-glib.h"
 
 #include "hb-unicode-private.hh"
+#include "hb-machinery-private.hh"
 
 
 #if !GLIB_CHECK_VERSION(2,29,14)
@@ -364,25 +365,55 @@ hb_glib_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return utf8_decomposed_len;
 }
 
+
+
+static void free_static_glib_funcs (void);
+
+static struct hb_glib_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_glib_unicode_funcs_lazy_loader_t>
+{
+  static inline hb_unicode_funcs_t *create (void)
+  {
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
+
+#define HB_UNICODE_FUNC_IMPLEMENT(name) \
+    hb_unicode_funcs_set_##name##_func (funcs, hb_glib_unicode_##name, nullptr, nullptr);
+      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
+
+    hb_unicode_funcs_make_immutable (funcs);
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_glib_funcs);
+#endif
+
+    return funcs;
+  }
+} static_glib_funcs;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_glib_funcs (void)
+{
+  static_glib_funcs.free_instance ();
+}
+#endif
+
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-  static const hb_unicode_funcs_t _hb_glib_unicode_funcs = {
-    HB_OBJECT_HEADER_STATIC,
-
-    NULL, /* parent */
-    true, /* immutable */
-    {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_glib_unicode_##name,
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-    }
-  };
-
-  return const_cast<hb_unicode_funcs_t *> (&_hb_glib_unicode_funcs);
+  return static_glib_funcs.get_unconst ();
 }
 
+
+
 #if GLIB_CHECK_VERSION(2,31,10)
+
+static void
+_hb_g_bytes_unref (void *data)
+{
+  g_bytes_unref ((GBytes *) data);
+}
+
 /**
  * hb_glib_blob_create:
  *
@@ -397,6 +428,6 @@ hb_glib_blob_create (GBytes *gbytes)
 			 size,
 			 HB_MEMORY_MODE_READONLY,
 			 g_bytes_ref (gbytes),
-			 (hb_destroy_func_t) g_bytes_unref);
+			 _hb_g_bytes_unref);
 }
 #endif

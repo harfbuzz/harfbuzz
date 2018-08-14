@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
+
 import sys
 import array
 from gi.repository import HarfBuzz as hb
@@ -45,7 +46,7 @@ hb.buffer_set_message_func (buf, debugger.message, 1, 0)
 ## Add text to buffer
 ##
 #
-# See https://github.com/behdad/harfbuzz/pull/271
+# See https://github.com/harfbuzz/harfbuzz/pull/271
 #
 if False:
 	# If you do not care about cluster values reflecting Python

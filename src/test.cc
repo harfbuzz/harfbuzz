@@ -24,19 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "hb-private.hh"
 
 #include "hb.h"
 
-#ifdef HAVE_GLIB
-# include <glib.h>
-# if !GLIB_CHECK_VERSION (2, 22, 0)
-#  define g_mapped_file_unref g_mapped_file_free
-# endif
-#endif
-#include <stdlib.h>
 #include <stdio.h>
 
 #ifdef HAVE_FREETYPE
@@ -46,51 +37,18 @@
 int
 main (int argc, char **argv)
 {
-  hb_blob_t *blob = NULL;
-
   if (argc != 2) {
     fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
     exit (1);
   }
 
-  /* Create the blob */
-  {
-    const char *font_data;
-    unsigned int len;
-    hb_destroy_func_t destroy;
-    void *user_data;
-    hb_memory_mode_t mm;
-
-#ifdef HAVE_GLIB
-    GMappedFile *mf = g_mapped_file_new (argv[1], false, NULL);
-    font_data = g_mapped_file_get_contents (mf);
-    len = g_mapped_file_get_length (mf);
-    destroy = (hb_destroy_func_t) g_mapped_file_unref;
-    user_data = (void *) mf;
-    mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
-#else
-    FILE *f = fopen (argv[1], "rb");
-    fseek (f, 0, SEEK_END);
-    len = ftell (f);
-    fseek (f, 0, SEEK_SET);
-    font_data = (const char *) malloc (len);
-    if (!font_data) len = 0;
-    len = fread ((char *) font_data, 1, len, f);
-    destroy = free;
-    user_data = (void *) font_data;
-    fclose (f);
-    mm = HB_MEMORY_MODE_WRITABLE;
-#endif
-
-    blob = hb_blob_create (font_data, len, mm, user_data, destroy);
-  }
-
+  hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   printf ("Opened font file %s: %u bytes long\n", argv[1], hb_blob_get_length (blob));
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, 0 /* first face */);
   hb_blob_destroy (blob);
-  blob = NULL;
+  blob = nullptr;
   unsigned int upem = hb_face_get_upem (face);
 
   hb_font_t *font = hb_font_create (face);
@@ -105,11 +63,11 @@ main (int argc, char **argv)
   hb_buffer_add_utf8 (buffer, "\xe0\xa4\x95\xe0\xa5\x8d\xe0\xa4\xb0\xe0\xa5\x8d\xe0\xa4\x95", -1, 0, -1);
   hb_buffer_guess_segment_properties (buffer);
 
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape (font, buffer, nullptr, 0);
 
   unsigned int count = hb_buffer_get_length (buffer);
-  hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, NULL);
-  hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, NULL);
+  hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, nullptr);
+  hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, nullptr);
 
   for (unsigned int i = 0; i < count; i++)
   {

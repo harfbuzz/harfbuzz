@@ -80,7 +80,7 @@ data_create_hangul (const hb_ot_shape_plan_t *plan)
 {
   hangul_shape_plan_t *hangul_plan = (hangul_shape_plan_t *) calloc (1, sizeof (hangul_shape_plan_t));
   if (unlikely (!hangul_plan))
-    return NULL;
+    return nullptr;
 
   for (unsigned int i = 0; i < HANGUL_FEATURE_COUNT; i++)
     hangul_plan->mask_array[i] = plan->map.get_1_mask (hangul_features[i]);
@@ -151,8 +151,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
    *   - <V>: U+1160..11A7, U+D7B0..D7C7
    *   - <T>: U+11A8..11FF, U+D7CB..D7FB
    *
-   *   - Only the <L,V> sequences for the 11xx ranges combine.
-   *   - Only <LV,T> sequences for T in U+11A8..11C3 combine.
+   *   - Only the <L,V> sequences for some of the U+11xx ranges combine.
+   *   - Only <LV,T> sequences for some of the Ts in U+11xx range combine.
    *
    * Here is what we want to accomplish in this shaper:
    *
@@ -188,7 +188,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 				    */
   unsigned int count = buffer->len;
 
-  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
+  for (buffer->idx = 0; buffer->idx < count && buffer->successful;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
 
@@ -269,7 +269,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	  if (font->has_glyph (s))
 	  {
 	    buffer->replace_glyphs (t ? 3 : 2, 1, &s);
-	    if (unlikely (buffer->in_error))
+	    if (unlikely (!buffer->successful))
 	      return;
 	    end = start + 1;
 	    continue;
@@ -319,7 +319,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	if (font->has_glyph (new_s))
 	{
 	  buffer->replace_glyphs (2, 1, &new_s);
-	  if (unlikely (buffer->in_error))
+	  if (unlikely (!buffer->successful))
 	    return;
 	  end = start + 1;
 	  continue;
@@ -345,7 +345,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	{
 	  unsigned int s_len = tindex ? 3 : 2;
 	  buffer->replace_glyphs (1, s_len, decomposed);
-	  if (unlikely (buffer->in_error))
+	  if (unlikely (!buffer->successful))
 	    return;
 
 	  /* We decomposed S: apply jamo features to the individual glyphs
@@ -414,18 +414,18 @@ setup_masks_hangul (const hb_ot_shape_plan_t *plan,
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_hangul =
 {
-  "hangul",
   collect_features_hangul,
   override_features_hangul,
   data_create_hangul,
   data_destroy_hangul,
   preprocess_text_hangul,
-  NULL, /* postprocess_glyphs */
+  nullptr, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_NONE,
-  NULL, /* decompose */
-  NULL, /* compose */
+  nullptr, /* decompose */
+  nullptr, /* compose */
   setup_masks_hangul,
-  NULL, /* disable_otl */
+  nullptr, /* disable_otl */
+  nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
 };

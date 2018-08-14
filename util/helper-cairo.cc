@@ -79,7 +79,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   /* We cannot use the FT_Face from hb_font_t, as doing so will confuse hb_font_t because
    * cairo will reset the face size.  As such, create new face...
    * TODO Perhaps add API to hb-ft to encapsulate this code. */
-  FT_Face ft_face = NULL;//hb_ft_font_get_face (font);
+  FT_Face ft_face = nullptr;//hb_ft_font_get_face (font);
   if (!ft_face)
   {
     if (!ft_library)
@@ -89,10 +89,16 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
       atexit (free_ft_library);
 #endif
     }
-    FT_New_Face (ft_library,
-		 font_opts->font_file,
-		 font_opts->face_index,
-		 &ft_face);
+
+    unsigned int blob_length;
+    const char *blob_data = hb_blob_get_data (font_opts->blob, &blob_length);
+
+    if (FT_New_Memory_Face (ft_library,
+			    (const FT_Byte *) blob_data,
+                            blob_length,
+			    font_opts->face_index,
+			    &ft_face))
+      fail (false, "FT_New_Memory_Face fail");
   }
   if (!ft_face)
   {
@@ -103,6 +109,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   }
   else
   {
+#ifdef HAVE_FT_SET_VAR_BLEND_COORDINATES
     unsigned int num_coords;
     const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
     if (num_coords)
@@ -116,6 +123,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 	free (ft_coords);
       }
     }
+#endif
 
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   }
@@ -325,7 +333,7 @@ const char *helper_cairo_supported_formats[] =
     "eps",
    #endif
   #endif
-  NULL
+  nullptr
 };
 
 cairo_t *
@@ -337,12 +345,12 @@ helper_cairo_create_context (double w, double h,
   cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
 				   void *closure,
 				   double width,
-				   double height) = NULL;
+				   double height) = nullptr;
   cairo_surface_t *(*constructor2) (cairo_write_func_t write_func,
 				    void *closure,
 				    double width,
 				    double height,
-				    cairo_content_t content) = NULL;
+				    cairo_content_t content) = nullptr;
 
   const char *extension = out_opts->output_format;
   if (!extension) {
@@ -471,8 +479,8 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
   memset (l, 0, sizeof (*l));
 
   l->num_glyphs = hb_buffer_get_length (buffer);
-  hb_glyph_info_t *hb_glyph = hb_buffer_get_glyph_infos (buffer, NULL);
-  hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, NULL);
+  hb_glyph_info_t *hb_glyph = hb_buffer_get_glyph_infos (buffer, nullptr);
+  hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, nullptr);
   l->glyphs = cairo_glyph_allocate (l->num_glyphs + 1);
 
   if (text) {

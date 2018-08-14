@@ -31,13 +31,13 @@
 /* Unit tests for hb-ot-tag.h */
 
 
-/* https://www.microsoft.com/typography/otspec/scripttags.htm */
+/* https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags */
 
 static void
 test_simple_tags (const char *s, hb_script_t script)
 {
   hb_script_t tag;
-  hb_script_t t1, t2;
+  hb_tag_t t1, t2;
 
   g_test_message ("Testing script %c%c%c%c: tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s);
   tag = hb_tag_from_string (s, -1);
@@ -72,7 +72,7 @@ test_indic_tags (const char *s1, const char *s2, hb_script_t script)
 static void
 test_ot_tag_script_degenerate (void)
 {
-  hb_script_t t1, t2;
+  hb_tag_t t1, t2;
 
   g_assert_cmphex (HB_TAG_CHAR4 ("DFLT"), ==, HB_OT_TAG_DEFAULT_SCRIPT);
 
@@ -112,7 +112,7 @@ test_ot_tag_script_simple (void)
   /* Unicode-5.1 additions */
   test_simple_tags ("vai ", HB_SCRIPT_VAI);
 
-  /* https://www.microsoft.com/typography/otspec160/scripttagsProposed.htm */
+  /* https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags */
 
   /* Unicode-5.2 additions */
   test_simple_tags ("mtei", HB_SCRIPT_MEETEI_MAYEK);
@@ -137,7 +137,7 @@ test_ot_tag_script_indic (void)
 
 
 
-/* https://www.microsoft.com/typography/otspec/languagetags.htm */
+/* https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags */
 
 static void
 test_language_two_way (const char *tag_s, const char *lang_s)

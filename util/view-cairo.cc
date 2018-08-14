@@ -49,7 +49,7 @@ view_cairo_t::render (const font_options_t *font_opts)
   double leading = font_height + view_options.line_space;
 
   /* Calculate surface size. */
-  double w, h;
+  double w = 0, h = 0;
   (vertical ? w : h) = (int) lines->len * leading - view_options.line_space;
   (vertical ? h : w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {

@@ -45,7 +45,7 @@ hb_set_create (void)
   if (!(set = hb_object_create<hb_set_t> ()))
     return hb_set_get_empty ();
 
-  set->clear ();
+  set->init_shallow ();
 
   return set;
 }
@@ -60,14 +60,7 @@ hb_set_create (void)
 hb_set_t *
 hb_set_get_empty (void)
 {
-  static const hb_set_t _hb_set_nil = {
-    HB_OBJECT_HEADER_STATIC,
-    true, /* in_error */
-
-    {0} /* elts */
-  };
-
-  return const_cast<hb_set_t *> (&_hb_set_nil);
+  return const_cast<hb_set_t *> (&Null(hb_set_t));
 }
 
 /**
@@ -95,7 +88,7 @@ hb_set_destroy (hb_set_t *set)
 {
   if (!hb_object_destroy (set)) return;
 
-  set->fini ();
+  set->fini_shallow ();
 
   free (set);
 }
@@ -150,9 +143,9 @@ hb_set_get_user_data (hb_set_t           *set,
  * Since: 0.9.2
  **/
 hb_bool_t
-hb_set_allocation_successful (const hb_set_t  *set HB_UNUSED)
+hb_set_allocation_successful (const hb_set_t  *set)
 {
-  return !set->in_error;
+  return set->successful;
 }
 
 /**
@@ -274,11 +267,11 @@ hb_set_del_range (hb_set_t       *set,
 /**
  * hb_set_is_equal:
  * @set: a set.
- * @other: 
+ * @other: other set.
  *
  * 
  *
- * Return value: 
+ * Return value: %TRUE if the two sets are equal, %FALSE otherwise.
  *
  * Since: 0.9.7
  **/
@@ -287,6 +280,24 @@ hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other)
 {
   return set->is_equal (other);
+}
+
+/**
+ * hb_set_is_subset:
+ * @set: a set.
+ * @larger_set: other set.
+ *
+ *
+ *
+ * Return value: %TRUE if the @set is a subset of (or equal to) @larger_set, %FALSE otherwise.
+ *
+ * Since: 1.8.1
+ **/
+hb_bool_t
+hb_set_is_subset (const hb_set_t *set,
+		  const hb_set_t *larger_set)
+{
+  return set->is_subset (larger_set);
 }
 
 /**
@@ -376,11 +387,12 @@ hb_set_symmetric_difference (hb_set_t       *set,
  * 
  *
  * Since: 0.9.10
+ *
+ * Deprecated: 1.6.1
  **/
 void
 hb_set_invert (hb_set_t *set)
 {
-  set->invert ();
 }
 
 /**
@@ -436,7 +448,9 @@ hb_set_get_max (const hb_set_t *set)
  * @set: a set.
  * @codepoint: (inout):
  *
- * 
+ * Gets the next number in @set that is greater than current value of @codepoint.
+ *
+ * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
  *
  * Return value: whether there was a next value.
  *
@@ -450,6 +464,26 @@ hb_set_next (const hb_set_t *set,
 }
 
 /**
+ * hb_set_previous:
+ * @set: a set.
+ * @codepoint: (inout):
+ *
+ * Gets the previous number in @set that is slower than current value of @codepoint.
+ *
+ * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
+ *
+ * Return value: whether there was a previous value.
+ *
+ * Since: 1.8.0
+ **/
+hb_bool_t
+hb_set_previous (const hb_set_t *set,
+		 hb_codepoint_t *codepoint)
+{
+  return set->previous (codepoint);
+}
+
+/**
  * hb_set_next_range:
  * @set: a set.
  * @first: (out): output first codepoint in the range.
@@ -457,6 +491,8 @@ hb_set_next (const hb_set_t *set,
  *
  * Gets the next consecutive range of numbers in @set that
  * are greater than current value of @last.
+ *
+ * Set @last to %HB_SET_VALUE_INVALID to get started.
  *
  * Return value: whether there was a next range.
  *
@@ -468,4 +504,27 @@ hb_set_next_range (const hb_set_t *set,
 		   hb_codepoint_t *last)
 {
   return set->next_range (first, last);
+}
+
+/**
+ * hb_set_previous_range:
+ * @set: a set.
+ * @first: (inout): input current first and output first codepoint in the range.
+ * @last: (out): output last codepoint in the range.
+ *
+ * Gets the previous consecutive range of numbers in @set that
+ * are greater than current value of @last.
+ *
+ * Set @first to %HB_SET_VALUE_INVALID to get started.
+ *
+ * Return value: whether there was a previous range.
+ *
+ * Since: 1.8.0
+ **/
+hb_bool_t
+hb_set_previous_range (const hb_set_t *set,
+		       hb_codepoint_t *first,
+		       hb_codepoint_t *last)
+{
+  return set->previous_range (first, last);
 }

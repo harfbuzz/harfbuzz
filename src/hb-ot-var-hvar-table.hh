@@ -55,7 +55,7 @@ struct DeltaSetIndexMap
     unsigned int u = 0;
     { /* Fetch it. */
       unsigned int w = get_width ();
-      const BYTE *p = mapData + w * v;
+      const HBUINT8 *p = mapData + w * v;
       for (; w; w--)
 	u = (u << 8) + *p++;
     }
@@ -78,10 +78,10 @@ struct DeltaSetIndexMap
   { return (format & 0xF) + 1; }
 
   protected:
-  USHORT	format;		/* A packed field that describes the compressed
+  HBUINT16	format;		/* A packed field that describes the compressed
 				 * representation of delta-set indices. */
-  USHORT	mapCount;	/* The number of mapping entries. */
-  BYTE		mapData[VAR];	/* The delta-set index mapping data. */
+  HBUINT16	mapCount;	/* The number of mapping entries. */
+  HBUINT8		mapData[VAR];	/* The delta-set index mapping data. */
 
   public:
   DEFINE_SIZE_ARRAY (4, mapData);
@@ -89,10 +89,11 @@ struct DeltaSetIndexMap
 
 
 /*
- * HVAR -- The Horizontal Metrics Variations Table
- * VVAR -- The Vertical Metrics Variations Table
+ * HVAR -- Horizontal Metrics Variations
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/hvar
+ * VVAR -- Vertical Metrics Variations
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/vvar
  */
-
 #define HB_OT_TAG_HVAR HB_TAG('H','V','A','R')
 #define HB_OT_TAG_VVAR HB_TAG('V','V','A','R')
 

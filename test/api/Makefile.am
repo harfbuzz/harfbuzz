@@ -9,12 +9,18 @@ MAINTAINERCLEANFILES =
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+libs:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
+
+EXTRA_DIST += CMakeLists.txt
+
+EXTRA_DIST += fonts
 
 if HAVE_GLIB
 AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
 
-EXTRA_DIST += hb-test.h
+EXTRA_DIST += hb-test.h hb-subset-test.h
 
 check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
@@ -27,15 +33,34 @@ TEST_PROGS = \
 	test-object \
 	test-set \
 	test-shape \
+	test-subset \
+	test-subset-codepoints \
+	test-subset-cmap \
+	test-subset-glyf \
+	test-subset-hdmx \
+	test-subset-hmtx \
+	test-subset-os2 \
+	test-subset-post \
+	test-subset-vmtx \
 	test-unicode \
 	test-version \
 	$(NULL)
 
-test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
+test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_codepoints_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_hdmx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_hmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_os2_LDADD  = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_post_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_vmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+
+test_unicode_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(NULL)
 test_unicode_LDADD = $(LDADD)
-if HAVE_GLIB
-test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
-endif
 if HAVE_ICU
 test_unicode_CPPFLAGS += $(ICU_CFLAGS)
 test_unicode_LDADD += $(top_builddir)/src/libharfbuzz-icu.la $(ICU_LIBS)
@@ -45,6 +70,7 @@ endif
 if HAVE_OT
 
 TEST_PROGS += \
+	test-ot-color \
 	test-ot-tag \
 	$(NULL)
 
@@ -54,15 +80,6 @@ TEST_PROGS += \
 	$(NULL)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
-EXTRA_DIST += \
-	fonts/MathTestFontEmpty.otf \
-	fonts/MathTestFontFull.otf \
-	fonts/MathTestFontNone.otf \
-	fonts/MathTestFontPartial1.otf \
-	fonts/MathTestFontPartial2.otf \
-	fonts/MathTestFontPartial3.otf \
-	fonts/MathTestFontPartial4.otf \
-	$(NULL)
 endif # HAVE_FREETYPE
 
 endif # HAVE_OT
@@ -149,12 +166,12 @@ check-symbols: symbols-untested.txt
 
 
 
-else
+else # !HAVE_GLIB
 check-am: err-glib
 err-glib:
 	@echo "You need to have glib support enabled to run the tests"
 	@exit 77
-endif
+endif # HAVE_GLIB
 
 .PHONY: check-symbols check-tool check-valgrind
 

@@ -154,7 +154,7 @@ test_shape_clusters (void)
   buffer =  hb_buffer_create ();
   hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
   {
-    /* https://code.google.com/p/chromium/issues/detail?id=497578 */
+    /* https://crbug.com/497578 */
     hb_codepoint_t test[] = {0xFFF1, 0xF0B6};
     hb_buffer_add_utf32 (buffer, test, 2, 0, 2);
   }
