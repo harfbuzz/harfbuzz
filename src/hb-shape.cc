@@ -46,8 +46,10 @@
  * contains the output glyphs and their positions.
  **/
 
-
+#ifdef HB_USE_ATEXIT
 static void free_static_shaper_list (void);
+#endif
+
 static const char *nil_shaper_list[] = {nullptr};
 
 static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
