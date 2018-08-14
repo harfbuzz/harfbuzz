@@ -226,8 +226,9 @@ hb_ot_get_font_v_extents (hb_font_t *font,
   return ot_font->v_metrics.has_font_extents;
 }
 
-
+#ifdef HB_USE_ATEXIT
 static void free_static_ot_funcs (void);
+#endif
 
 static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_font_funcs_lazy_loader_t>
 {
