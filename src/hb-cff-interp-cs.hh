@@ -23,8 +23,8 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_CFF_CS_INTERP_HH
-#define HB_CFF_CS_INTERP_HH
+#ifndef HB_CFF_INTERP_CS_HH
+#define HB_CFF_INTERP_CS_HH
 
 #include "hb-cff-interp-cs.hh"
 
@@ -279,4 +279,4 @@ struct CFFCSInterpreter : CSInterpreter<CFFCSInterpEnv, OPSET, PARAM> {};
 
 } /* namespace CFF */
 
-#endif /* HB_CFF_CS_INTERP_HH */
+#endif /* HB_CFF_INTERP_CS_HH */

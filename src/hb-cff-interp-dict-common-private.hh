@@ -23,8 +23,8 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_CFF_DICT_INTERP_COMMON_PRIVATE_HH
-#define HB_CFF_DICT_INTERP_COMMON_PRIVATE_HH
+#ifndef HB_CFF_INTERP_DICT_COMMON_PRIVATE_HH
+#define HB_CFF_INTERP_DICT_COMMON_PRIVATE_HH
 
 #include "hb-cff-interp-common-private.hh"
 
@@ -180,4 +180,4 @@ struct DictInterpreter : Interpreter<InterpEnv>
 
 } /* namespace CFF */
 
-#endif /* HB_CFF_DICT_INTERP_COMMON_PRIVATE_HH */
+#endif /* HB_CFF_INTERP_DICT_COMMON_PRIVATE_HH */
