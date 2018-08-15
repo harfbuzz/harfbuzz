@@ -26,8 +26,6 @@
 #ifndef HB_CFF_INTERP_COMMON_PRIVATE_HH
 #define HB_CFF_INTERP_COMMON_PRIVATE_HH
 
-#include "hb-common.h"
-
 namespace CFF {
 
 using namespace OT;

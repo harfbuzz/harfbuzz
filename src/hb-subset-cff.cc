@@ -382,7 +382,7 @@ static inline bool _write_cff (const cff_subset_plan &plan,
   hb_serialize_context_t c (dest, dest_sz);
 
   char RETURN_OP[1] = { OpCode_return };
-  const ByteStr NULL_SUBR = { RETURN_OP/* str */, 1/* len */ };
+  const ByteStr NULL_SUBR (RETURN_OP, 1);
 
   OT::cff *cff = c.start_serialize<OT::cff> ();
   if (unlikely (!c.extend_min (*cff)))

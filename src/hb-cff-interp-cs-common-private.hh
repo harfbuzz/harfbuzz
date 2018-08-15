@@ -26,6 +26,7 @@
 #ifndef HB_CFF_INTERP_CS_COMMON_PRIVATE_HH
 #define HB_CFF_INTERP_CS_COMMON_PRIVATE_HH
 
+#include "hb-private.hh"
 #include "hb-cff-interp-common-private.hh"
 
 namespace CFF {
