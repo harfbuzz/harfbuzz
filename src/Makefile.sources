@@ -147,15 +147,15 @@ HB_OT_sources = \
 	hb-ot-shape-fallback.cc \
 	hb-ot-shape-private.hh \
 	hb-ot-cff-common-private.hh \
-	hb-ot-cff-interp-common-private.hh \
-	hb-ot-cff-interp-cs-common-private.hh \
-	hb-ot-cff-interp-cs.hh \
-	hb-ot-cff-interp-dict-common-private.hh \
 	hb-ot-var.cc \
 	hb-ot-var-avar-table.hh \
 	hb-ot-var-fvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	hb-cff-interp-common-private.hh \
+	hb-cff-interp-cs-common-private.hh \
+	hb-cff-interp-cs.hh \
+	hb-cff-interp-dict-common-private.hh \
 	$(NULL)
 
 HB_OT_RAGEL_GENERATED_sources = \
