@@ -312,7 +312,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     assert (cff2->topDict + plan.offsets.topDictSize == c.head - c.start);
     CFF2Subrs *dest = c.start_embed<CFF2Subrs> ();
     if (unlikely (dest == nullptr)) return false;
-    if (unlikely (!dest->Index<HBUINT32>::serialize (&c, *acc.globalSubrs)))
+    if (unlikely (!((Index<HBUINT32>*)dest)->serialize (&c, *acc.globalSubrs)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 global subrs");
       return false;
@@ -408,7 +408,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
           DEBUG_MSG (SUBSET, nullptr, "CFF2 subset: local subrs unexpectedly null [%d]", i);
           return false;
         }
-        if (unlikely (!subrs->Index<HBUINT32>::serialize (&c, *acc.privateDicts[i].localSubrs)))
+        if (unlikely (!((Index<HBUINT32>*)subrs)->serialize (&c, *acc.privateDicts[i].localSubrs)))
         {
           DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 local subrs [%d]", i);
           return false;
