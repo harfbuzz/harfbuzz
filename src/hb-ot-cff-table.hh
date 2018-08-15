@@ -44,7 +44,7 @@ template <typename Type> struct CFFIndexOf : IndexOf<HBUINT16, Type> {};
 typedef Index<HBUINT16>   CFFIndex;
 typedef CFFIndex          CFFCharStrings;
 typedef FDArray<HBUINT16> CFFFDArray;
-typedef CFFIndex          CFFSubrs;
+typedef Subrs<HBUINT16>   CFFSubrs;
 
 struct CFFFDSelect : FDSelect {};
 
@@ -387,7 +387,7 @@ struct CFFTopDictValues : TopDictValues
       switch (op)
       {
         case OpCode_FDSelect:
-          size += OpCode_Size (OpCode_longint) + 4 + OpCode_Size (op);
+          size += OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
           break;
         default:
           size += TopDictValues::calculate_serialized_op_size (values[i]);
@@ -409,8 +409,7 @@ struct CFFTopDictValues : TopDictValues
 
 struct CFFTopDictOpSet : TopDictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset,
-                                 OpCode op, Stack& stack, CFFTopDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFFTopDictValues& dictval)
   {
   
     switch (op) {
@@ -438,58 +437,58 @@ struct CFFTopDictOpSet : TopDictOpSet
       case OpCode_FontBBox:
       case OpCode_XUID:
       case OpCode_BaseFontBlend:
-        stack.clear ();
+        env.argStack.clear ();
         break;
         
       case OpCode_CIDCount:
-        if (unlikely (!stack.check_pop_uint (dictval.cidCount)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.cidCount)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
 
       case OpCode_ROS:
-        if (unlikely (!stack.check_pop_uint (dictval.ros[2]) ||
-                      !stack.check_pop_uint (dictval.ros[1]) ||
-                      !stack.check_pop_uint (dictval.ros[0])))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.ros[2]) ||
+                      !env.argStack.check_pop_uint (dictval.ros[1]) ||
+                      !env.argStack.check_pop_uint (dictval.ros[0])))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
 
       case OpCode_Encoding:
-        if (unlikely (!stack.check_pop_uint (dictval.EncodingOffset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.EncodingOffset)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
 
       case OpCode_charset:
-        if (unlikely (!stack.check_pop_uint (dictval.CharsetOffset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.CharsetOffset)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
 
       case OpCode_FDSelect:
-        if (unlikely (!stack.check_pop_uint (dictval.FDSelectOffset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.FDSelectOffset)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
     
       case OpCode_Private:
-        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.offset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.offset)))
           return false;
-        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.size)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
     
       default:
-        if (unlikely (!TopDictOpSet::process_op (str, offset, op, stack, dictval)))
+        if (unlikely (!TopDictOpSet::process_op (op, env, dictval)))
           return false;
         /* Record this operand below if stack is empty, otherwise done */
-        if (!stack.is_empty ()) return true;
+        if (!env.argStack.is_empty ()) return true;
         break;
     }
 
-    dictval.pushVal (op, str, offset + 1);
+    dictval.pushVal (op, env.substr);
     return true;
   }
 };
@@ -510,40 +509,32 @@ struct CFFFontDictValues : DictValues<OpStr>
   TableInfo   privateDictInfo;
 };
 
-struct CFFFontDictOpSet
+struct CFFFontDictOpSet : DictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset,
-                                 OpCode op, Stack& stack, CFFFontDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFFFontDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontName:
       case OpCode_FontMatrix:
       case OpCode_PaintType:
-        stack.clear ();
+        env.argStack.clear ();
         break;
       case OpCode_Private:
-        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.offset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.offset)))
           return false;
-        if (unlikely (!stack.check_pop_uint (dictval.privateDictInfo.size)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
-      case OpCode_longint:  /* 5-byte integer */
-        return stack.push_longint_from_str (str, offset);
-      case OpCode_BCD:  /* real number */
-        float v;
-        if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
-          return false;
-        stack.push_real (v);
-        return true;
     
       default:
-        /* XXX: invalid */
-        stack.clear ();
-        return false;
+        if (unlikely (!DictOpSet::process_op (op, env)))
+          return false;
+        if (!env.argStack.is_empty ()) return true;
+        break;
     }
 
-    dictval.pushVal (op, str, offset + 1);
+    dictval.pushVal (op, env.substr);
     return true;
   }
 };
@@ -581,10 +572,9 @@ struct CFFPrivateDictValues_Base : DictValues<VAL>
 typedef CFFPrivateDictValues_Base<OpStr> CFFPrivateDictValues_Subset;
 typedef CFFPrivateDictValues_Base<DictVal> CFFPrivateDictValues;
 
-struct CFFPrivateDictOpSet
+struct CFFPrivateDictOpSet : DictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset,
-                                 OpCode op, Stack& stack, CFFPrivateDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFFPrivateDictValues& dictval)
   {
     DictVal val;
     val.init ();
@@ -596,7 +586,7 @@ struct CFFPrivateDictOpSet
       case OpCode_FamilyOtherBlues:
       case OpCode_StemSnapH:
       case OpCode_StemSnapV:
-        if (unlikely (!stack.check_pop_delta (val.multi_val)))
+        if (unlikely (!env.argStack.check_pop_delta (val.multi_val)))
           return false;
         break;
       case OpCode_StdHW:
@@ -610,37 +600,31 @@ struct CFFPrivateDictOpSet
       case OpCode_initialRandomSeed:
       case OpCode_defaultWidthX:
       case OpCode_nominalWidthX:
-        if (unlikely (!stack.check_pop_num (val.single_val)))
+        if (unlikely (!env.argStack.check_pop_num (val.single_val)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
       case OpCode_Subrs:
-        if (unlikely (!stack.check_pop_uint (dictval.subrsOffset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
-      case OpCode_longint:  /* 5-byte integer */
-        return stack.push_longint_from_str (str, offset);
-      case OpCode_BCD:  /* real number */
-        float v;
-        if (unlikely (!stack.check_overflow (1) || !parse_bcd (str, offset, v)))
-          return false;
-        stack.push_real (v);
-        return true;
 
       default:
-        return false;
+        if (unlikely (!DictOpSet::process_op (op, env)))
+          return false;
+        if (!env.argStack.is_empty ()) return true;
+        break;
     }
 
-    dictval.pushVal (op, str, offset + 1, val);
+    dictval.pushVal (op, env.substr, val);
     return true;
   }
 };
 
-struct CFFPrivateDictOpSet_Subset
+struct CFFPrivateDictOpSet_Subset : DictOpSet
 {
-  static inline bool process_op (const ByteStr& str, unsigned int& offset,
-                                 OpCode op, Stack& stack, CFFPrivateDictValues_Subset& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFFPrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -660,35 +644,30 @@ struct CFFPrivateDictOpSet_Subset
       case OpCode_initialRandomSeed:
       case OpCode_defaultWidthX:
       case OpCode_nominalWidthX:
-        stack.clear ();
+        env.argStack.clear ();
         break;
-
-      case OpCode_BCD:
-        {
-          float v;
-          return parse_bcd (str, offset, v);
-        }
 
       case OpCode_Subrs:
-        if (unlikely (!stack.check_pop_uint (dictval.subrsOffset)))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        stack.clear ();
+        env.argStack.clear ();
         break;
-      case OpCode_longint:  /* 5-byte integer */
-        return stack.push_longint_from_str (str, offset);
 
       default:
-        return false;
+        if (unlikely (!DictOpSet::process_op (op, env)))
+          return false;
+        if (!env.argStack.is_empty ()) return true;
+        break;
     }
 
-    dictval.pushVal (op, str, offset + 1);
+    dictval.pushVal (op, env.substr);
     return true;
   }
 };
 
-typedef Interpreter<CFFTopDictOpSet, CFFTopDictValues> CFFTopDict_Interpreter;
-typedef Interpreter<CFFFontDictOpSet, CFFFontDictValues> CFFFontDict_Interpreter;
-typedef Interpreter<CFFPrivateDictOpSet, CFFPrivateDictValues> CFFPrivateDict_Interpreter;
+typedef DictInterpreter<CFFTopDictOpSet, CFFTopDictValues> CFFTopDict_Interpreter;
+typedef DictInterpreter<CFFFontDictOpSet, CFFFontDictValues> CFFFontDict_Interpreter;
+typedef DictInterpreter<CFFPrivateDictOpSet, CFFPrivateDictValues> CFFPrivateDict_Interpreter;
 
 typedef CFFIndex NameIndex;
 typedef CFFIndexOf<TopDict> TopDictIndex;
@@ -743,10 +722,10 @@ struct cff
 
       { /* parse top dict */
         const ByteStr topDictStr = (*topDictIndex)[0];
+        if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
         CFFTopDict_Interpreter top_interp;
-        if (unlikely (!topDictStr.sanitize (&sc) ||
-                      !top_interp.interpret (topDictStr, topDicts[0])))
-        { fini (); return; }
+        top_interp.env.init (topDictStr);
+        if (unlikely (!top_interp.interpret (topDicts[0]))) { fini (); return; }
       }
       
       encoding = &Null(Encoding);
@@ -803,18 +782,18 @@ struct cff
         for (unsigned int i = 0; i < fdCount; i++)
         {
           ByteStr fontDictStr = (*fdArray)[i];
+          if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
           CFFFontDictValues  *font;
           CFFFontDict_Interpreter font_interp;
+          font_interp.env.init (fontDictStr);
           font = fontDicts.push ();
-          if (unlikely (!fontDictStr.sanitize (&sc) ||
-                        !font_interp.interpret (fontDictStr, *font)))
-          { fini (); return; }
+          if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
           PrivDictVal  *priv = &privateDicts[i];
           const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
-          Interpreter<PrivOpSet, PrivDictVal> priv_interp;
-          if (unlikely (!privDictStr.sanitize (&sc) ||
-                        !priv_interp.interpret (privDictStr, *priv)))
-          { fini (); return; }
+          if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
+          DictInterpreter<PrivOpSet, PrivDictVal> priv_interp;
+          priv_interp.env.init (privDictStr);
+          if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
           priv->localSubrs = &StructAtOffsetOrNull<CFFSubrs> (privDictStr.str, priv->subrsOffset);
           if (priv->localSubrs != &Null(CFFSubrs) &&
@@ -828,10 +807,10 @@ struct cff
         PrivDictVal  *priv = &privateDicts[0];
         
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
-        Interpreter<PrivOpSet, PrivDictVal> priv_interp;
-        if (unlikely (!privDictStr.sanitize (&sc) ||
-                      !priv_interp.interpret (privDictStr, *priv)))
-        { fini (); return; }
+        if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
+        DictInterpreter<PrivOpSet, PrivDictVal> priv_interp;
+        priv_interp.env.init (privDictStr);
+        if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
         priv->localSubrs = &StructAtOffsetOrNull<CFFSubrs> (privDictStr.str, priv->subrsOffset);
         if (priv->localSubrs != &Null(CFFSubrs) &&

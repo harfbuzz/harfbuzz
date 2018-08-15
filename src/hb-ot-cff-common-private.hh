@@ -28,6 +28,7 @@
 
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-common-private.hh"
+#include "hb-cff-interp-dict-common-private.hh"
 #include "hb-subset-plan.hh"
 
 namespace CFF {
@@ -38,194 +39,6 @@ using namespace OT;
 template<typename Type>
 static inline const Type& StructAtOffsetOrNull(const void *P, unsigned int offset)
 { return offset? (* reinterpret_cast<const Type*> ((const char *) P + offset)): Null(Type); }
-
-const float UNSET_REAL_VALUE = -1.0f;
-
-enum OpCode {
-    /* One byte operators (0-31) */
-    OpCode_version,                /* 0   CFF Top */
-    OpCode_Notice,                 /* 1   CFF Top */
-    OpCode_FullName,               /* 2   CFF Top */
-    OpCode_FamilyName,             /* 3   CFF Top */
-    OpCode_Weight,                 /* 4   CFF Top */
-    OpCode_FontBBox,               /* 5   CFF Top */
-    OpCode_BlueValues,             /* 6   CFF Private, CFF2 Private */
-    OpCode_OtherBlues,             /* 7   CFF Private, CFF2 Private */
-    OpCode_FamilyBlues,            /* 8   CFF Private, CFF2 Private */
-    OpCode_FamilyOtherBlues,       /* 9   CFF Private, CFF2 Private */
-    OpCode_StdHW,                  /* 10  CFF Private, CFF2 Private */
-    OpCode_StdVW,                  /* 11  CFF Private, CFF2 Private */
-    OpCode_escape,                 /* 12  All. Shared with CS */
-    OpCode_UniqueID,               /* 13  CFF Top */
-    OpCode_XUID,                   /* 14  CFF Top */
-    OpCode_charset,                /* 15  CFF Top (0) */
-    OpCode_Encoding,               /* 16  CFF Top (0) */
-    OpCode_CharStrings,            /* 17  CFF Top, CFF2 Top */
-    OpCode_Private,                /* 18  CFF Top, CFF2 FD */
-    OpCode_Subrs,                  /* 19  CFF Private, CFF2 Private */
-    OpCode_defaultWidthX,          /* 20  CFF Private (0) */
-    OpCode_nominalWidthX,          /* 21  CFF Private (0) */
-    OpCode_vsindex,                /* 22  CFF2 Private/CS */
-    OpCode_blend,                  /* 23  CFF2 Private/CS  */
-    OpCode_vstore,                 /* 24  CFF2 Top */
-    OpCode_reserved25,             /* 25 */
-    OpCode_reserved26,             /* 26 */
-    OpCode_reserved27,             /* 27 */
-
-    /* Numbers */
-    OpCode_shortint,               /* 28  All */
-    OpCode_longint,                /* 29  All */
-    OpCode_BCD,                    /* 30  CFF2 Top/FD */
-    OpCode_reserved31,             /* 31 */
-
-    /* 1-byte integers */
-    OpCode_OneByteIntFirst = 32,   /* All. beginning of the range of first byte ints */
-    OpCode_OneByteIntLast = 246,   /* All. ending of the range of first byte int */
-
-    /* 2-byte integers */
-    OpCode_TwoBytePosInt0,         /* 247  All. first byte of two byte positive int (+108 to +1131) */
-    OpCode_TwoBytePosInt1,
-    OpCode_TwoBytePosInt2,
-    OpCode_TwoBytePosInt3,
-
-    OpCode_TwoByteNegInt0,         /* 251  All. first byte of two byte negative int (-1131 to -108) */
-    OpCode_TwoByteNegInt1,
-    OpCode_TwoByteNegInt2,
-    OpCode_TwoByteNegInt3,
-
-    /* Two byte escape operators 12, (0-41) */
-    OpCode_ESC_Base = 32,
-    OpCode_Copyright = OpCode_ESC_Base, /* OpCode_ESC(0) CFF Top */
-    OpCode_isFixedPitch,           /* OpCode_ESC(1)  CFF Top (false) */
-    OpCode_ItalicAngle,            /* OpCode_ESC(2)  CFF Top (0) */
-    OpCode_UnderlinePosition,      /* OpCode_ESC(3)  CFF Top (-100) */
-    OpCode_UnderlineThickness,     /* OpCode_ESC(4)  CFF Top (50) */
-    OpCode_PaintType,              /* OpCode_ESC(5)  CFF Top (0) */
-    OpCode_CharstringType,         /* OpCode_ESC(6)  CFF Top (2) */
-    OpCode_FontMatrix,             /* OpCode_ESC(7)  CFF Top, CFF2 Top (.001 0 0 .001 0 0)*/
-    OpCode_StrokeWidth,            /* OpCode_ESC(8)  CFF Top (0) */
-    OpCode_BlueScale,              /* OpCode_ESC(9)  CFF Private, CFF2 Private (0.039625) */
-    OpCode_BlueShift,              /* OpCode_ESC(10) CFF Private, CFF2 Private (7) */
-    OpCode_BlueFuzz,               /* OpCode_ESC(11) CFF Private, CFF2 Private (1) */
-    OpCode_StemSnapH,              /* OpCode_ESC(12) CFF Private, CFF2 Private */
-    OpCode_StemSnapV,              /* OpCode_ESC(13) CFF Private, CFF2 Private */
-    OpCode_ForceBold,              /* OpCode_ESC(14) CFF Private (false) */
-    OpCode_reservedESC15,          /* OpCode_ESC(15) */
-    OpCode_reservedESC16,          /* OpCode_ESC(16) */
-    OpCode_LanguageGroup,          /* OpCode_ESC(17) CFF Private, CFF2 Private (0) */
-    OpCode_ExpansionFactor,        /* OpCode_ESC(18) CFF Private, CFF2 Private (0.06) */
-    OpCode_initialRandomSeed,      /* OpCode_ESC(19) CFF Private (0) */
-    OpCode_SyntheticBase,          /* OpCode_ESC(20) CFF Top */
-    OpCode_PostScript,             /* OpCode_ESC(21) CFF Top */
-    OpCode_BaseFontName,           /* OpCode_ESC(22) CFF Top */
-    OpCode_BaseFontBlend,          /* OpCode_ESC(23) CFF Top */
-    OpCode_reservedESC24,          /* OpCode_ESC(24) */
-    OpCode_reservedESC25,          /* OpCode_ESC(25) */
-    OpCode_reservedESC26,          /* OpCode_ESC(26) */
-    OpCode_reservedESC27,          /* OpCode_ESC(27) */
-    OpCode_reservedESC28,          /* OpCode_ESC(28) */
-    OpCode_reservedESC29,          /* OpCode_ESC(29) */
-    OpCode_ROS,                    /* OpCode_ESC(30) CFF Top_CID */
-    OpCode_CIDFontVersion,         /* OpCode_ESC(31) CFF Top_CID (0) */
-    OpCode_CIDFontRevision,        /* OpCode_ESC(32) CFF Top_CID (0) */
-    OpCode_CIDFontType,            /* OpCode_ESC(33) CFF Top_CID (0) */
-    OpCode_CIDCount,               /* OpCode_ESC(34) CFF Top_CID (8720) */
-    OpCode_UIDBase,                /* OpCode_ESC(35) CFF Top_CID */
-    OpCode_FDArray,                /* OpCode_ESC(36) CFF Top_CID, CFF2 Top */
-    OpCode_FDSelect,               /* OpCode_ESC(37) CFF Top_CID, CFF2 Top */
-    OpCode_FontName,               /* OpCode_ESC(38) CFF Top_CID */
-
-    OpCode_reserved255 = 255
-};
-
-inline OpCode Make_OpCode_ESC (unsigned char byte2)  { return (OpCode)(OpCode_ESC_Base + byte2); }
-inline unsigned int OpCode_Size (OpCode op) { return (op >= OpCode_ESC_Base)? 2: 1; }
-
-struct Number
-{
-  inline Number (void) { set_int (0); }
-
-  inline void set_int (int v)       { is_real = false; u.int_val = v; };
-  inline int to_int (void) const    { return is_real? (int)u.real_val: u.int_val; }
-  inline void set_real (float v)    { is_real = true; u.real_val = v; };
-  inline float to_real (void) const { return is_real? u.real_val: (float)u.int_val; }
-
-protected:
-  bool is_real;
-  union {
-    int     int_val;
-    float   real_val;
-  } u;
-};
-
-/* byte string */
-struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
-{
-  // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
-  template <typename INTTYPE, int minVal, int maxVal>
-  inline static bool serialize_int (hb_serialize_context_t *c, OpCode intOp, int value)
-  {
-    TRACE_SERIALIZE (this);
-
-    if (unlikely ((value < minVal || value > maxVal)))
-      return_trace (false);
-
-    HBUINT8 *p = c->allocate_size<HBUINT8> (1);
-    if (unlikely (p == nullptr)) return_trace (false);
-    p->set (intOp);
-
-    INTTYPE *ip = c->allocate_size<INTTYPE> (INTTYPE::static_size);
-    if (unlikely (ip == nullptr)) return_trace (false);
-    ip->set ((unsigned int)value);
-
-    return_trace (true);
-  }
-  
-  inline static bool serialize_int4 (hb_serialize_context_t *c, int value)
-  { return serialize_int<HBUINT32, 0, 0x7FFFFFFF> (c, OpCode_longint, value); }
-  
-  inline static bool serialize_int2 (hb_serialize_context_t *c, int value)
-  { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
-};
-
-struct ByteStr
-{
-  ByteStr (const UnsizedByteStr& s, unsigned int l)
-    : str (&s), len (l) {}
-  ByteStr (const char *s=nullptr, unsigned int l=0)
-    : str ((const UnsizedByteStr *)s), len (l) {}
-  /* sub-string */
-  ByteStr (const ByteStr &bs, unsigned int offset, unsigned int l)
-  {  
-    str = (const UnsizedByteStr *)&bs.str[offset];
-    len = l;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
-
-  inline const HBUINT8& operator [] (unsigned int i) const {
-    assert (str && (i < len));
-    return (*str)[i];
-  }
-
-  inline bool serialize (hb_serialize_context_t *c, const ByteStr &src)
-  {
-    TRACE_SERIALIZE (this);
-    HBUINT8 *dest = c->allocate_size<HBUINT8> (src.len);
-    if (unlikely (dest == nullptr))
-      return_trace (false);
-    memcpy (dest, src.str, src.len);
-    return_trace (true);
-  }
-
-  inline unsigned int get_size (void) const { return len; }
-
-  inline bool check_limit (unsigned int offset, unsigned int count) const
-  { return (offset + count <= len); }
-
-  const UnsizedByteStr *str;
-  unsigned int len;
-};
 
 inline unsigned int calcOffSize(unsigned int offset)
 {
@@ -445,190 +258,6 @@ struct IndexOf : Index<COUNT>
   }
 };
 
-inline float parse_bcd (const ByteStr& str, unsigned int& offset, float& v)
-{
-  // XXX: TODO
-  v = 0;
-  for (;;) {
-    if (++offset >= str.len)
-      return false;
-    unsigned char byte = str[offset];
-    if (((byte & 0xF0) == 0xF0) || ((byte & 0x0F) == 0x0F))
-      break;
-  }
-  return true;
-}
-
-/* operand stack */
-struct Stack
-{
-  inline void init (void) { size = 0; }
-  inline void fini (void) { }
-
-  inline void push (const Number &v)
-  {
-    if (likely (size < kSizeLimit))
-      numbers[size++] = v;
-  }
-
-  inline void push_int (int v)
-  {
-    Number n;
-    n.set_int (v);
-    push (n);
-  }
-
-  inline void push_real (float v)
-  {
-    Number n;
-    n.set_real (v);
-    push (n);
-  }
-
-  inline const Number& pop (void)
-  {
-    if (likely (size > 0))
-      return numbers[--size];
-    else
-      return Null(Number);
-  }
-
-  inline bool check_push (void)
-  {
-    if (likely (size < kSizeLimit)) {
-      size++;
-      return true;
-    } else
-      return false;
-  }
-
-  inline bool check_pop (void)
-  {
-    if (likely (0 < size)) {
-      size--;
-      return true;
-    } else
-      return false;
-  }
-
-  inline bool check_pop_num (Number& n)
-  {
-    if (unlikely (!this->check_underflow (1)))
-      return false;
-    n = this->pop ();
-    return true;
-  }
-
-  inline bool check_pop_uint (unsigned int& v)
-  {
-    uint32_t  i;
-    if (unlikely (!this->check_underflow (1)))
-      return false;
-    i = this->pop ().to_int ();
-    if (unlikely (i < 0))
-      return false;
-    v = (uint32_t)i;
-    return true;
-  }
-
-  inline bool check_pop_delta (hb_vector_t<Number>& vec, bool even=false)
-  {
-    if (even && unlikely ((this->size & 1) != 0))
-      return false;
-
-    float val = 0.0f;
-    for (unsigned int i = 0; i < size; i++) {
-      val += numbers[i].to_real ();
-      Number *n = vec.push ();
-      n->set_real (val);
-    }
-    return true;
-  }
-
-  inline bool push_longint_from_str (const ByteStr& str, unsigned int& offset)
-  {
-    if (unlikely (!str.check_limit (offset, 5) || !check_overflow (1)))
-      return false;
-    push_int ((int32_t)*(const HBUINT32*)&str[offset + 1]);
-    offset += 4;
-    return true;
-  }
-
-  inline void clear (void) { size = 0; }
-
-  inline bool check_overflow (unsigned int count) const { return (count <= kSizeLimit) && (count + size <= kSizeLimit); }
-  inline bool check_underflow (unsigned int count) const { return (count <= size); }
-
-  inline unsigned int get_size (void) const { return size; }
-  inline bool is_empty (void) const { return size == 0; }
-
-  static const unsigned int kSizeLimit = 513;
-
-  unsigned int size;
-  Number numbers[kSizeLimit];
-};
-
-/* an operator prefixed by its operands in a byte string */
-struct OpStr
-{
-  inline void init (void) {}
-
-  OpCode  op;
-  ByteStr str;
-};
-
-/* an opstr and the parsed out dict value(s) */
-struct DictVal : OpStr
-{
-  inline void init (void)
-  {
-    single_val.set_int (0);
-    multi_val.init ();
-  }
-
-  inline void fini (void)
-  {
-    multi_val.fini ();
-  }
-
-  Number              single_val;
-  hb_vector_t<Number> multi_val;
-};
-
-template <typename VAL>
-struct DictValues
-{
-  inline void init (void)
-  {
-    opStart = 0;
-    values.init ();
-  }
-
-  inline void fini (void)
-  {
-    values.fini ();
-  }
-
-  inline void pushVal (OpCode op, const ByteStr& str, unsigned int offset)
-  {
-    VAL *val = values.push ();
-    val->op = op;
-    val->str = ByteStr (str, opStart, offset - opStart);
-    opStart = offset;
-  }
-
-  inline void pushVal (OpCode op, const ByteStr& str, unsigned int offset, const VAL &v)
-  {
-    VAL *val = values.push (v);
-    val->op = op;
-    val->str = ByteStr (str, opStart, offset - opStart);
-    opStart = offset;
-  }
-
-  unsigned int       opStart;
-  hb_vector_t<VAL>   values;
-};
-
 /* Top Dict, Font Dict, Private Dict */
 struct Dict : UnsizedByteStr
 {
@@ -682,7 +311,7 @@ struct Dict : UnsizedByteStr
   }
 
   inline static bool serialize_offset4_op (hb_serialize_context_t *c, OpCode op, int value)
-  { return serialize_offset_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longint); }
+  { return serialize_offset_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longintdict); }
 
   inline static bool serialize_offset2_op (hb_serialize_context_t *c, OpCode op, int value)
   { return serialize_offset_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
@@ -694,10 +323,11 @@ struct PrivateDict : Dict {};
 
 struct TableInfo
 {
-  void init (void) { offset = size = 0; }
+  void init (void) { offSize = offset = size = 0; }
 
   unsigned int    offset;
   unsigned int    size;
+  unsigned int    offSize;
 };
 
 /* font dict index remap table from fullset FDArray to subset FDArray.
@@ -904,6 +534,8 @@ struct FDSelect {
 
   inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
+    if (this == &Null(FDSelect))
+      return 0;
     if (format == 0)
       return u.format0.get_fd (glyph);
     else
@@ -919,169 +551,51 @@ struct FDSelect {
   DEFINE_SIZE_MIN (1);
 };
 
-struct TopDictValues : DictValues<OpStr>
+template <typename COUNT>
+struct Subrs : Index<COUNT>
 {
-  inline void init (void)
-  {
-    DictValues<OpStr>::init ();
-    charStringsOffset = 0;
-    FDArrayOffset = 0;
-  }
-
-  inline void fini (void)
-  {
-    DictValues<OpStr>::fini ();
-  }
-
-  inline unsigned int calculate_serialized_op_size (const OpStr& opstr) const
-  {
-    switch (opstr.op)
-    {
-      case OpCode_CharStrings:
-      case OpCode_FDArray:
-        return OpCode_Size (OpCode_longint) + 4 + OpCode_Size (opstr.op);
-
-      default:
-        return opstr.str.len;
-    }
-  }
-
-  unsigned int  charStringsOffset;
-  unsigned int  FDArrayOffset;
-};
-
-struct TopDictOpSet
-{
-  static inline bool process_op (const ByteStr& str, unsigned int& offset, OpCode op, Stack& stack, TopDictValues& dictval)
-  {
-    switch (op) {
-      case OpCode_CharStrings:
-        if (unlikely (!stack.check_pop_uint (dictval.charStringsOffset)))
-          return false;
-        stack.clear ();
-        break;
-      case OpCode_FDArray:
-        if (unlikely (!stack.check_pop_uint (dictval.FDArrayOffset)))
-          return false;
-        stack.clear ();
-        break;
-      case OpCode_longint:  /* 5-byte integer */
-        return stack.push_longint_from_str (str, offset);
-      
-      case OpCode_BCD:  /* real number */
-        float v;
-        if (unlikely (stack.check_overflow (1) || !parse_bcd (str, offset, v)))
-          return false;
-        stack.push_real (v);
-        return true;
-    
-      default:
-        /* XXX: invalid */
-        stack.clear ();
-        return false;
-    }
-
-    return true;
-  }
-};
-
-/* base of OP_SERIALIZER */
-struct OpSerializer
-{
-  protected:
-  inline bool copy_opstr (hb_serialize_context_t *c, const OpStr& opstr) const
+  inline bool serialize (hb_serialize_context_t *c, const Subrs<COUNT> &subrs, unsigned int offSize, const hb_set_t *set, const ByteStr& nullStr = ByteStr())
   {
     TRACE_SERIALIZE (this);
-
-    HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
-    if (unlikely (d == nullptr)) return_trace (false);
-    memcpy (d, &opstr.str.str[0], opstr.str.len);
-    return_trace (true);
-  }
-};
-
-template <typename OpSet, typename Param>
-struct Interpreter {
-
-  inline Interpreter (void)
-  {
-    stack.init ();
-  }
-  
-  inline ~Interpreter (void)
-  {
-    stack.fini ();
-  }
-
-  inline bool interpret (const ByteStr& str, Param& param)
-  {
-    param.init ();
-
-    for (unsigned int i = 0; i < str.len; i++)
+    if ((subrs.count == 0) || (hb_set_get_population (set) == 0))
     {
-      OpCode op = (OpCode)(unsigned char)str[i];
-      if ((OpCode_shortint == op) ||
-          (OpCode_OneByteIntFirst <= op && OpCode_TwoByteNegInt3 >= op))
-      {
-        if (unlikely (!process_intop (str, i, op)))
-          return false;
-      } else {
-        if (op == OpCode_escape) {
-          if (unlikely (!str.check_limit (i, 1)))
-            return false;
-          op = Make_OpCode_ESC(str[++i]);
-        }
-
-        if (unlikely (!OpSet::process_op (str, i, op, stack, param)))
-          return false;
-      }
+      if (!unlikely (c->allocate_size<COUNT> (COUNT::static_size)))
+        return_trace (false);
+      Index<COUNT>::count.set (0);
+      return_trace (true);
     }
     
-    return true;
-  }
+    hb_vector_t<ByteStr> bytesArray;
+    bytesArray.init ();
+    if (!bytesArray.resize (subrs.count))
+      return_trace (false);
+    for (hb_codepoint_t i = 0; i < subrs.count; i++)
+      bytesArray[i] = (hb_set_has (set, i))? subrs[i]: nullStr;
 
-  inline bool process_intop (const ByteStr& str, unsigned int& offset, OpCode op)
+    bool result = Index<COUNT>::serialize (c, offSize, bytesArray);
+    bytesArray.fini ();
+    return_trace (result);
+  }
+  
+  /* in parallel to above */
+  inline unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_set_t *set, unsigned int nullStrSize = 0) const
   {
-    switch (op) {
-      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
-      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-        if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + str[offset + 1] + 108));
-        offset++;
-        break;
-      
-      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
-      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-        if (unlikely (!str.check_limit (offset, 2) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - str[offset + 1] - 108));
-        offset++;
-        break;
-      
-      case OpCode_shortint: /* 3-byte integer */
-        if (unlikely (!str.check_limit (offset, 3) || !stack.check_overflow (1)))
-          return false;
-        stack.push_int ((int16_t)*(const HBUINT16*)&str[offset + 1]);
-        offset += 2;
-        break;
-      
-      default:
-        /* 1-byte integer */
-        if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)) &&
-            likely (stack.check_overflow (1)))
-        {
-          stack.push_int ((int)op - 139);
-        } else {
-          return false;
-        }
-        break;
-    }
-    return true;
-  }
+    unsigned int  count_ = Index<COUNT>::count;
+    offSize = 0;
+    if ((count_ == 0) || (hb_set_get_population (set) == 0))
+      return COUNT::static_size;
 
-  protected:
-  Stack stack;
+    unsigned int dataSize = 0;
+    for (hb_codepoint_t i = 0; i < count_; i++)
+    {
+      if (hb_set_has (set, i))
+        dataSize += (*this)[i].len;
+      else
+        dataSize += nullStrSize;
+    }
+    offSize = calcOffSize(dataSize);
+    return Index<COUNT>::calculate_serialized_size (offSize, count_, dataSize);
+  }
 };
 
 } /* namespace CFF */

@@ -26,8 +26,8 @@ HB_BASE_sources = \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
-  hb-ot-cff-table.hh \
-  hb-ot-cff2-table.hh \
+	hb-ot-cff-table.hh \
+	hb-ot-cff2-table.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
@@ -147,6 +147,10 @@ HB_OT_sources = \
 	hb-ot-shape-fallback.cc \
 	hb-ot-shape-private.hh \
 	hb-ot-cff-common-private.hh \
+	hb-ot-cff-interp-common-private.hh \
+	hb-ot-cff-interp-cs-common-private.hh \
+	hb-ot-cff-interp-cs.hh \
+	hb-ot-cff-interp-dict-common-private.hh \
 	hb-ot-var.cc \
 	hb-ot-var-avar-table.hh \
 	hb-ot-var-fvar-table.hh \
