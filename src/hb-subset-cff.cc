@@ -209,7 +209,7 @@ struct CFFCSOpSet_SubrSubset : CFFCSOpSet<SubrRefMapPair>
       default:
         break;
     }
-    return CFFCSOpSet::process_op (op, env, refMapPair);
+    return CFFCSOpSet<SubrRefMapPair>::process_op (op, env, refMapPair);
   }
 };
 

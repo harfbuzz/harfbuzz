@@ -116,11 +116,11 @@ struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
         return true;
       case OpCode_and:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
-        env.argStack.push_int ((n1.to_real() != 0.0f) && (n1.to_real() != 0.0f));
+        env.argStack.push_int ((n1.to_real() != 0.0f) && (n2.to_real() != 0.0f));
         break;
       case OpCode_or:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
-        env.argStack.push_int ((n1.to_real() != 0.0f) || (n1.to_real() != 0.0f));
+        env.argStack.push_int ((n1.to_real() != 0.0f) || (n2.to_real() != 0.0f));
         break;
       case OpCode_not:
         if (unlikely (!env.argStack.check_pop_num (n1))) return false;
@@ -132,11 +132,11 @@ struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
         break;
       case OpCode_add:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
-        env.argStack.push_real (n1.to_real() + n1.to_real());
+        env.argStack.push_real (n1.to_real() + n2.to_real());
         break;
       case OpCode_sub:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
-        env.argStack.push_real (n1.to_real() - n1.to_real());
+        env.argStack.push_real (n1.to_real() - n2.to_real());
         break;
       case OpCode_div:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
@@ -151,7 +151,7 @@ struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
         break;
       case OpCode_eq:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
-        env.argStack.push_int (n1.to_real() == n1.to_real());
+        env.argStack.push_int (n1.to_real() == n2.to_real());
         break;
       case OpCode_drop:
         if (unlikely (!env.argStack.check_pop_num (n1))) return false;
