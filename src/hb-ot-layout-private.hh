@@ -205,7 +205,7 @@ struct hb_ot_layout_t
 
     hb_face_t *face; /* MUST be JUST before the lazy loaders. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-    hb_table_lazy_loader_t<HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type), struct Namespace::Type> Type;
+    hb_table_lazy_loader_t<struct Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
     HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_TABLE
   } table;
