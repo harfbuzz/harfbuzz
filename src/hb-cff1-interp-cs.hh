@@ -224,13 +224,11 @@ struct CFF1CSOpSet : CSOpSet<CFF1Subrs, PARAM>
         }
         break;
       case OpCode_hstem:
-      case OpCode_vstem:
-        env.clear_stack ();
-        break;
       case OpCode_hstemhm:
         env.hstem_count += env.argStack.size / 2;
         env.clear_stack ();
         break;
+      case OpCode_vstem:
       case OpCode_vstemhm:
         env.vstem_count += env.argStack.size / 2;
         env.clear_stack ();
