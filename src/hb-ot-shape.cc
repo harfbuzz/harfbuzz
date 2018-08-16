@@ -27,7 +27,6 @@
  */
 
 #define HB_SHAPER ot
-#define hb_ot_face_data_t hb_ot_layout_t
 #define hb_ot_shape_plan_data_t hb_ot_shape_plan_t
 #include "hb-shaper-impl-private.hh"
 
@@ -135,13 +134,13 @@ HB_SHAPER_DATA_ENSURE_DEFINE(ot, face)
 hb_ot_face_data_t *
 _hb_ot_shaper_face_data_create (hb_face_t *face)
 {
-  return _hb_ot_layout_create (face);
+  return _hb_ot_face_data_create (face);
 }
 
 void
 _hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
 {
-  _hb_ot_layout_destroy (data);
+  _hb_ot_face_data_destroy (data);
 }
 
 

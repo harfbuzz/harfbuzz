@@ -118,7 +118,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t    *font,
 
 
 /*
- * hb_ot_layout_t
+ * hb_ot_face_data_t
  */
 
 struct hb_ot_layout_lookup_accelerator_t
@@ -178,7 +178,7 @@ struct hb_ot_layout_lookup_accelerator_t
 HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_TABLE
 
-struct hb_ot_layout_t
+struct hb_ot_face_data_t
 {
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;
@@ -212,14 +212,14 @@ struct hb_ot_layout_t
 };
 
 
-HB_INTERNAL hb_ot_layout_t *
-_hb_ot_layout_create (hb_face_t *face);
+HB_INTERNAL hb_ot_face_data_t *
+_hb_ot_face_data_create (hb_face_t *face);
 
 HB_INTERNAL void
-_hb_ot_layout_destroy (hb_ot_layout_t *layout);
+_hb_ot_face_data_destroy (hb_ot_face_data_t *data);
 
 
-#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot.get_relaxed ())
+#define hb_ot_face_data(face) ((hb_ot_face_data_t *) face->shaper_data.ot.get_relaxed ())
 
 
 /*
