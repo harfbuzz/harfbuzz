@@ -239,14 +239,14 @@ struct cff_subset_plan {
     subrRefMaps.fini ();
   }
 
-  inline bool create (const OT::cff::accelerator_subset_t &acc,
+  inline bool create (const OT::cff1::accelerator_subset_t &acc,
                       hb_subset_plan_t *plan)
   {
     final_size = 0;
     orig_fdcount = acc.fdCount;
 
     /* CFF header */
-    final_size += OT::cff::static_size;
+    final_size += OT::cff1::static_size;
     
     /* Name INDEX */
     offsets.nameIndexOffset = final_size;
@@ -267,7 +267,7 @@ struct cff_subset_plan {
     
     /* Subset global & local subrs */
     {
-      SubrSubsetter<const OT::cff::accelerator_subset_t, CFF1CSInterpEnv, CFF1CSOpSet_SubrSubset> subsetter(acc, plan->glyphs);
+      SubrSubsetter<const OT::cff1::accelerator_subset_t, CFF1CSInterpEnv, CFF1CSOpSet_SubrSubset> subsetter(acc, plan->glyphs);
       if (!subsetter.collect_refs (subrRefMaps))
         return false;
       
@@ -374,7 +374,7 @@ struct cff_subset_plan {
 };
 
 static inline bool _write_cff1 (const cff_subset_plan &plan,
-                                const OT::cff::accelerator_subset_t  &acc,
+                                const OT::cff1::accelerator_subset_t  &acc,
                                 const hb_vector_t<hb_codepoint_t>& glyphs,
                                 unsigned int dest_sz,
                                 void *dest)
@@ -384,7 +384,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   char RETURN_OP[1] = { OpCode_return };
   const ByteStr NULL_SUBR (RETURN_OP, 1);
 
-  OT::cff *cff = c.start_serialize<OT::cff> ();
+  OT::cff1 *cff = c.start_serialize<OT::cff1> ();
   if (unlikely (!c.extend_min (*cff)))
     return false;
 
@@ -561,7 +561,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 }
 
 static bool
-_hb_subset_cff1 (const OT::cff::accelerator_subset_t  &acc,
+_hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
                 const char                      *data,
                 hb_subset_plan_t                *plan,
                 hb_blob_t                       **prime /* OUT */)
@@ -602,10 +602,10 @@ bool
 hb_subset_cff1 (hb_subset_plan_t *plan,
                 hb_blob_t       **prime /* OUT */)
 {
-  hb_blob_t *cff_blob = hb_sanitize_context_t().reference_table<CFF::cff> (plan->source);
+  hb_blob_t *cff_blob = hb_sanitize_context_t().reference_table<CFF::cff1> (plan->source);
   const char *data = hb_blob_get_data(cff_blob, nullptr);
 
-  OT::cff::accelerator_subset_t acc;
+  OT::cff1::accelerator_subset_t acc;
   acc.init(plan->source);
   bool result = likely (acc.is_valid ()) &&
                         _hb_subset_cff1 (acc, data, plan, prime);

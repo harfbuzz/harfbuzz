@@ -36,7 +36,7 @@ namespace CFF {
  * CFF -- Compact Font Format (CFF)
  * http://www.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf
  */
-#define HB_OT_TAG_cff HB_TAG('C','F','F',' ')
+#define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
 typedef Index<HBUINT16>   CFF1Index;
 template <typename Type> struct CFF1IndexOf : IndexOf<HBUINT16, Type> {};
@@ -679,9 +679,9 @@ namespace OT {
 
 using namespace CFF;
 
-struct cff
+struct cff1
 {
-  static const hb_tag_t tableTag        = HB_OT_TAG_cff;
+  static const hb_tag_t tableTag        = HB_OT_TAG_cff1;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -701,15 +701,15 @@ struct cff
       fontDicts.init ();
       privateDicts.init ();
       
-      this->blob = sc.reference_table<cff> (face);
+      this->blob = sc.reference_table<cff1> (face);
 
       /* setup for run-time santization */
       sc.init (this->blob);
       sc.start_processing ();
       
-      const OT::cff *cff = this->blob->template as<OT::cff> ();
+      const OT::cff1 *cff = this->blob->template as<OT::cff1> ();
 
-      if (cff == &Null(OT::cff))
+      if (cff == &Null(OT::cff1))
       { fini (); return; }
 
       nameIndex = &cff->nameIndex (cff);
@@ -875,7 +875,7 @@ struct cff
 
     bool success = true;
     if (hb_subset_cff1 (plan, &cff_prime)) {
-      success = success && plan->add_table (HB_OT_TAG_cff, cff_prime);
+      success = success && plan->add_table (HB_OT_TAG_cff1, cff_prime);
     } else {
       success = false;
     }

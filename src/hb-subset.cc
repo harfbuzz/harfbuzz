@@ -272,8 +272,8 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_post:
       result = _subset<const OT::post> (plan);
       break;
-    case HB_OT_TAG_cff:
-      result = _subset<const OT::cff> (plan);
+    case HB_OT_TAG_cff1:
+      result = _subset<const OT::cff1> (plan);
       break;
     case HB_OT_TAG_cff2:
       result = _subset<const OT::cff2> (plan);
