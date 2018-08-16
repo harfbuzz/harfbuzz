@@ -24,11 +24,11 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#ifndef HB_OT_CFF_TABLE_HH
-#define HB_OT_CFF_TABLE_HH
+#ifndef HB_OT_CFF1_TABLE_HH
+#define HB_OT_CFF1_TABLE_HH
 
 #include "hb-ot-cff-common-private.hh"
-#include "hb-subset-cff.hh"
+#include "hb-subset-cff1.hh"
 
 namespace CFF {
 
@@ -38,15 +38,15 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff HB_TAG('C','F','F',' ')
 
-typedef Index<HBUINT16>   CFFIndex;
-template <typename Type> struct CFFIndexOf : IndexOf<HBUINT16, Type> {};
+typedef Index<HBUINT16>   CFF1Index;
+template <typename Type> struct CFF1IndexOf : IndexOf<HBUINT16, Type> {};
 
-typedef Index<HBUINT16>   CFFIndex;
-typedef CFFIndex          CFFCharStrings;
-typedef FDArray<HBUINT16> CFFFDArray;
-typedef Subrs<HBUINT16>   CFFSubrs;
+typedef Index<HBUINT16>   CFF1Index;
+typedef CFF1Index         CFF1CharStrings;
+typedef FDArray<HBUINT16> CFF1FDArray;
+typedef Subrs<HBUINT16>   CFF1Subrs;
 
-struct CFFFDSelect : FDSelect {};
+struct CFF1FDSelect : FDSelect {};
 
 /* Encoding */
 struct Encoding0 {
@@ -133,7 +133,7 @@ struct EncSupplement {
   DEFINE_SIZE_STATIC (3);
 };
 
-struct CFFSuppEncData {
+struct CFF1SuppEncData {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -207,12 +207,12 @@ struct Encoding {
     return false;
   }
 
-  inline const CFFSuppEncData &suppEncData (void) const
+  inline const CFF1SuppEncData &suppEncData (void) const
   {
     if ((format & 0x7F) == 0)
-      return StructAfter<CFFSuppEncData> (u.format0.codes[u.format0.nCodes-1]);
+      return StructAfter<CFF1SuppEncData> (u.format0.codes[u.format0.nCodes-1]);
     else
-      return StructAfter<CFFSuppEncData> (u.format1.ranges[u.format1.nRanges-1]);
+      return StructAfter<CFF1SuppEncData> (u.format1.ranges[u.format1.nRanges-1]);
   }
 
   HBUINT8       format;
@@ -220,7 +220,7 @@ struct Encoding {
     Encoding0   format0;
     Encoding1   format1;
   } u;
-  /* CFFSuppEncData  suppEncData; */
+  /* CFF1SuppEncData  suppEncData; */
 
   DEFINE_SIZE_MIN (1);
 };
@@ -356,7 +356,7 @@ struct Charset {
   DEFINE_SIZE_MIN (1);
 };
 
-struct CFFTopDictValues : TopDictValues
+struct CFF1TopDictValues : TopDictValues
 {
   inline void init (void)
   {
@@ -407,9 +407,9 @@ struct CFFTopDictValues : TopDictValues
   TableInfo     privateDictInfo;
 };
 
-struct CFFTopDictOpSet : TopDictOpSet
+struct CFF1TopDictOpSet : TopDictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFFTopDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFF1TopDictValues& dictval)
   {
   
     switch (op) {
@@ -493,7 +493,7 @@ struct CFFTopDictOpSet : TopDictOpSet
   }
 };
 
-struct CFFFontDictValues : DictValues<OpStr>
+struct CFF1FontDictValues : DictValues<OpStr>
 {
   inline void init (void)
   {
@@ -509,9 +509,9 @@ struct CFFFontDictValues : DictValues<OpStr>
   TableInfo   privateDictInfo;
 };
 
-struct CFFFontDictOpSet : DictOpSet
+struct CFF1FontDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFFFontDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFF1FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontName:
@@ -540,13 +540,13 @@ struct CFFFontDictOpSet : DictOpSet
 };
 
 template <typename VAL>
-struct CFFPrivateDictValues_Base : DictValues<VAL>
+struct CFF1PrivateDictValues_Base : DictValues<VAL>
 {
   inline void init (void)
   {
     DictValues<VAL>::init ();
     subrsOffset = 0;
-    localSubrs = &Null(CFFSubrs);
+    localSubrs = &Null(CFF1Subrs);
   }
 
   inline void fini (void)
@@ -566,15 +566,15 @@ struct CFFPrivateDictValues_Base : DictValues<VAL>
   }
 
   unsigned int      subrsOffset;
-  const CFFSubrs    *localSubrs;
+  const CFF1Subrs    *localSubrs;
 };
 
-typedef CFFPrivateDictValues_Base<OpStr> CFFPrivateDictValues_Subset;
-typedef CFFPrivateDictValues_Base<DictVal> CFFPrivateDictValues;
+typedef CFF1PrivateDictValues_Base<OpStr> CFF1PrivateDictValues_Subset;
+typedef CFF1PrivateDictValues_Base<DictVal> CFF1PrivateDictValues;
 
-struct CFFPrivateDictOpSet : DictOpSet
+struct CFF1PrivateDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFFPrivateDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFF1PrivateDictValues& dictval)
   {
     DictVal val;
     val.init ();
@@ -622,9 +622,9 @@ struct CFFPrivateDictOpSet : DictOpSet
   }
 };
 
-struct CFFPrivateDictOpSet_Subset : DictOpSet
+struct CFF1PrivateDictOpSet_Subset : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFFPrivateDictValues_Subset& dictval)
+  static inline bool process_op (OpCode op, InterpEnv& env, CFF1PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -665,13 +665,13 @@ struct CFFPrivateDictOpSet_Subset : DictOpSet
   }
 };
 
-typedef DictInterpreter<CFFTopDictOpSet, CFFTopDictValues> CFFTopDict_Interpreter;
-typedef DictInterpreter<CFFFontDictOpSet, CFFFontDictValues> CFFFontDict_Interpreter;
-typedef DictInterpreter<CFFPrivateDictOpSet, CFFPrivateDictValues> CFFPrivateDict_Interpreter;
+typedef DictInterpreter<CFF1TopDictOpSet, CFF1TopDictValues> CFF1TopDict_Interpreter;
+typedef DictInterpreter<CFF1FontDictOpSet, CFF1FontDictValues> CFF1FontDict_Interpreter;
+typedef DictInterpreter<CFF1PrivateDictOpSet, CFF1PrivateDictValues> CFF1PrivateDict_Interpreter;
 
-typedef CFFIndex NameIndex;
-typedef CFFIndexOf<TopDict> TopDictIndex;
-typedef CFFIndex StringIndex;
+typedef CFF1Index CFF1NameIndex;
+typedef CFF1IndexOf<TopDict> CFF1TopDictIndex;
+typedef CFF1Index CFF1StringIndex;
 
 }; /* namespace CFF */
 
@@ -713,17 +713,17 @@ struct cff
       { fini (); return; }
 
       nameIndex = &cff->nameIndex (cff);
-      if ((nameIndex == &Null (NameIndex)) || !nameIndex->sanitize (&sc))
+      if ((nameIndex == &Null (CFF1NameIndex)) || !nameIndex->sanitize (&sc))
       { fini (); return; }
 
-      topDictIndex = &StructAtOffset<TopDictIndex> (nameIndex, nameIndex->get_size ());
-      if ((topDictIndex == &Null (TopDictIndex)) || !topDictIndex->sanitize (&sc) || (topDictIndex->count == 0))
+      topDictIndex = &StructAtOffset<CFF1TopDictIndex> (nameIndex, nameIndex->get_size ());
+      if ((topDictIndex == &Null (CFF1TopDictIndex)) || !topDictIndex->sanitize (&sc) || (topDictIndex->count == 0))
       { fini (); return; }
 
       { /* parse top dict */
         const ByteStr topDictStr = (*topDictIndex)[0];
         if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
-        CFFTopDict_Interpreter top_interp;
+        CFF1TopDict_Interpreter top_interp;
         top_interp.env.init (topDictStr);
         if (unlikely (!top_interp.interpret (topDicts[0]))) { fini (); return; }
       }
@@ -734,20 +734,20 @@ struct cff
       fdCount = 1;
       if (is_CID ())
       {
-        fdArray = &StructAtOffsetOrNull<CFFFDArray> (cff, topDicts[0].FDArrayOffset);
-        fdSelect = &StructAtOffsetOrNull<CFFFDSelect> (cff, topDicts[0].FDSelectOffset);
-        if (unlikely ((fdArray == &Null(CFFFDArray)) || !fdArray->sanitize (&sc) ||
-            (fdSelect == &Null(CFFFDSelect)) || !fdSelect->sanitize (&sc, fdArray->count)))
+        fdArray = &StructAtOffsetOrNull<CFF1FDArray> (cff, topDicts[0].FDArrayOffset);
+        fdSelect = &StructAtOffsetOrNull<CFF1FDSelect> (cff, topDicts[0].FDSelectOffset);
+        if (unlikely ((fdArray == &Null(CFF1FDArray)) || !fdArray->sanitize (&sc) ||
+            (fdSelect == &Null(CFF1FDSelect)) || !fdSelect->sanitize (&sc, fdArray->count)))
         { fini (); return; }
 
         fdCount = fdArray->count;
       }
       else
       {
-        fdArray = &Null(CFFFDArray);
-        fdSelect = &Null(CFFFDSelect);
-        if (topDicts[0].EncodingOffset != CFFTopDictValues::StandardEncoding &&
-            topDicts[0].EncodingOffset != CFFTopDictValues::ExpertEncoding)
+        fdArray = &Null(CFF1FDArray);
+        fdSelect = &Null(CFF1FDSelect);
+        if (topDicts[0].EncodingOffset != CFF1TopDictValues::StandardEncoding &&
+            topDicts[0].EncodingOffset != CFF1TopDictValues::ExpertEncoding)
         {
           encoding = &StructAtOffsetOrNull<Encoding> (cff, topDicts[0].EncodingOffset);
           if ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))
@@ -755,17 +755,17 @@ struct cff
         }
       }
 
-      stringIndex = &StructAtOffset<StringIndex> (topDictIndex, topDictIndex->get_size ());
-      if ((stringIndex == &Null (StringIndex)) || !stringIndex->sanitize (&sc))
+      stringIndex = &StructAtOffset<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
+      if ((stringIndex == &Null (CFF1StringIndex)) || !stringIndex->sanitize (&sc))
       { fini (); return; }
 
-      globalSubrs = &StructAtOffset<CFFSubrs> (stringIndex, stringIndex->get_size ());
-      if ((globalSubrs != &Null (CFFSubrs)) && !stringIndex->sanitize (&sc))
+      globalSubrs = &StructAtOffset<CFF1Subrs> (stringIndex, stringIndex->get_size ());
+      if ((globalSubrs != &Null (CFF1Subrs)) && !stringIndex->sanitize (&sc))
       { fini (); return; }
 
-      charStrings = &StructAtOffsetOrNull<CFFCharStrings> (cff, topDicts[0].charStringsOffset);
+      charStrings = &StructAtOffsetOrNull<CFF1CharStrings> (cff, topDicts[0].charStringsOffset);
 
-      if ((charStrings == &Null(CFFCharStrings)) || unlikely (!charStrings->sanitize (&sc)))
+      if ((charStrings == &Null(CFF1CharStrings)) || unlikely (!charStrings->sanitize (&sc)))
       { fini (); return; }
 
       num_glyphs = charStrings->count;
@@ -783,8 +783,8 @@ struct cff
         {
           ByteStr fontDictStr = (*fdArray)[i];
           if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
-          CFFFontDictValues  *font;
-          CFFFontDict_Interpreter font_interp;
+          CFF1FontDictValues  *font;
+          CFF1FontDict_Interpreter font_interp;
           font_interp.env.init (fontDictStr);
           font = fontDicts.push ();
           if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
@@ -795,15 +795,15 @@ struct cff
           priv_interp.env.init (privDictStr);
           if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
-          priv->localSubrs = &StructAtOffsetOrNull<CFFSubrs> (privDictStr.str, priv->subrsOffset);
-          if (priv->localSubrs != &Null(CFFSubrs) &&
+          priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
+          if (priv->localSubrs != &Null(CFF1Subrs) &&
               unlikely (!priv->localSubrs->sanitize (&sc)))
           { fini (); return; }
         }
       }
       else  /* non-CID */
       {
-        CFFTopDictValues  *font = &topDicts[0];
+        CFF1TopDictValues  *font = &topDicts[0];
         PrivDictVal  *priv = &privateDicts[0];
         
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
@@ -812,8 +812,8 @@ struct cff
         priv_interp.env.init (privDictStr);
         if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
-        priv->localSubrs = &StructAtOffsetOrNull<CFFSubrs> (privDictStr.str, priv->subrsOffset);
-        if (priv->localSubrs != &Null(CFFSubrs) &&
+        priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
+        if (priv->localSubrs != &Null(CFF1Subrs) &&
             unlikely (!priv->localSubrs->sanitize (&sc)))
         { fini (); return; }
       }
@@ -848,33 +848,33 @@ struct cff
     hb_sanitize_context_t   sc;
 
     public:
-    const NameIndex         *nameIndex;
-    const TopDictIndex      *topDictIndex;
-    const StringIndex       *stringIndex;
+    const CFF1NameIndex     *nameIndex;
+    const CFF1TopDictIndex  *topDictIndex;
+    const CFF1StringIndex   *stringIndex;
     const Encoding          *encoding;
     const Charset           *charset;
-    const CFFSubrs          *globalSubrs;
-    const CFFCharStrings    *charStrings;
-    const CFFFDArray        *fdArray;
-    const CFFFDSelect       *fdSelect;
+    const CFF1Subrs         *globalSubrs;
+    const CFF1CharStrings   *charStrings;
+    const CFF1FDArray       *fdArray;
+    const CFF1FDSelect      *fdSelect;
     unsigned int            fdCount;
 
-    hb_vector_t<CFFTopDictValues>     topDicts;
-    hb_vector_t<CFFFontDictValues>    fontDicts;
+    hb_vector_t<CFF1TopDictValues>    topDicts;
+    hb_vector_t<CFF1FontDictValues>   fontDicts;
     hb_vector_t<PrivDictVal>          privateDicts;
 
     unsigned int            num_glyphs;
   };
 
-  typedef accelerator_templ_t<CFFPrivateDictOpSet, CFFPrivateDictValues> accelerator_t;
-  typedef accelerator_templ_t<CFFPrivateDictOpSet_Subset, CFFPrivateDictValues_Subset> accelerator_subset_t;
+  typedef accelerator_templ_t<CFF1PrivateDictOpSet, CFF1PrivateDictValues> accelerator_t;
+  typedef accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset> accelerator_subset_t;
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *cff_prime = nullptr;
 
     bool success = true;
-    if (hb_subset_cff (plan, &cff_prime)) {
+    if (hb_subset_cff1 (plan, &cff_prime)) {
       success = success && plan->add_table (HB_OT_TAG_cff, cff_prime);
     } else {
       success = false;
@@ -886,7 +886,7 @@ struct cff
 
   public:
   FixedVersion<HBUINT8> version;          /* Version of CFF table. set to 0x0100u */
-  OffsetTo<NameIndex, HBUINT8> nameIndex; /* headerSize = Offset to Name INDEX. */
+  OffsetTo<CFF1NameIndex, HBUINT8> nameIndex; /* headerSize = Offset to Name INDEX. */
   HBUINT8               offSize;          /* offset size (unused?) */
 
   public:
@@ -895,4 +895,4 @@ struct cff
 
 } /* namespace OT */
 
-#endif /* HB_OT_CFF_TABLE_HH */
+#endif /* HB_OT_CFF1_TABLE_HH */

@@ -24,15 +24,15 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#ifndef HB_SUBSET_CFF_HH
-#define HB_SUBSET_CFF_HH
+#ifndef HB_SUBSET_CFF1_HH
+#define HB_SUBSET_CFF1_HH
 
 #include "hb-private.hh"
 
 #include "hb-subset-plan.hh"
 
 HB_INTERNAL bool
-hb_subset_cff (hb_subset_plan_t *plan,
+hb_subset_cff1 (hb_subset_plan_t *plan,
                hb_blob_t        **cff_prime /* OUT */);
 
-#endif /* HB_SUBSET_CFF_HH */
+#endif /* HB_SUBSET_CFF1_HH */

@@ -26,7 +26,7 @@ HB_BASE_sources = \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
-	hb-ot-cff-table.hh \
+	hb-ot-cff1-table.hh \
 	hb-ot-cff2-table.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
@@ -154,7 +154,7 @@ HB_OT_sources = \
 	hb-ot-var-mvar-table.hh \
 	hb-cff-interp-common-private.hh \
 	hb-cff-interp-cs-common-private.hh \
-	hb-cff-interp-cs.hh \
+	hb-cff1-interp-cs.hh \
 	hb-cff-interp-dict-common-private.hh \
 	$(NULL)
 
@@ -215,7 +215,7 @@ HB_SUBSET_sources = \
 	hb-static.cc \
 	hb-subset.cc \
 	hb-subset-glyf.cc \
-  hb-subset-cff.cc \
+  hb-subset-cff1.cc \
   hb-subset-cff2.cc \
 	hb-subset-cff-common-private.cc \
 	hb-subset-input.cc \
@@ -225,7 +225,7 @@ HB_SUBSET_sources = \
 HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-glyf.hh \
-  hb-subset-cff.hh \
+  hb-subset-cff1.hh \
   hb-subset-cff2.hh \
 	hb-subset-cff-common-private.hh \
 	hb-subset-plan.hh \

@@ -41,7 +41,7 @@
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
-#include "hb-ot-cff-table.hh"
+#include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
 
 

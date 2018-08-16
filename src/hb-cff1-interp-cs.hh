@@ -23,21 +23,21 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_CFF_INTERP_CS_HH
-#define HB_CFF_INTERP_CS_HH
+#ifndef HB_CFF1_INTERP_CS_HH
+#define HB_CFF1_INTERP_CS_HH
 
 #include "hb-private.hh"
-#include "hb-cff-interp-cs.hh"
+#include "hb-cff-interp-cs-common-private.hh"
 
 namespace CFF {
 
 using namespace OT;
 
-struct CFFCSInterpEnv : CSInterpEnv<CFFSubrs>
+struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
 {
-  inline void init (const ByteStr &str, const CFFSubrs &globalSubrs, const CFFSubrs &localSubrs)
+  inline void init (const ByteStr &str, const CFF1Subrs &globalSubrs, const CFF1Subrs &localSubrs)
   {
-    CSInterpEnv<CFFSubrs>::init (str, globalSubrs, localSubrs);
+    CSInterpEnv<CFF1Subrs>::init (str, globalSubrs, localSubrs);
     seen_width = false;
     seen_moveto = true;
     seen_hintmask = false;
@@ -101,9 +101,9 @@ struct CFFCSInterpEnv : CSInterpEnv<CFFSubrs>
 };
 
 template <typename PARAM>
-struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
+struct CFF1CSOpSet : CSOpSet<CFF1Subrs, PARAM>
 {
-  static inline bool process_op (OpCode op, CFFCSInterpEnv &env, PARAM& param)
+  static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
     Number  n1, n2;
 
@@ -265,7 +265,7 @@ struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
         env.clear_stack ();
         break;
       default:
-        typedef CSOpSet<CFFSubrs, PARAM>  SUPER;
+        typedef CSOpSet<CFF1Subrs, PARAM>  SUPER;
         if (unlikely (!SUPER::process_op (op, env, param)))
           return false;
         env.process_width ();
@@ -276,8 +276,8 @@ struct CFFCSOpSet : CSOpSet<CFFSubrs, PARAM>
 };
 
 template <typename OPSET, typename PARAM>
-struct CFFCSInterpreter : CSInterpreter<CFFCSInterpEnv, OPSET, PARAM> {};
+struct CFF1CSInterpreter : CSInterpreter<CFF1CSInterpEnv, OPSET, PARAM> {};
 
 } /* namespace CFF */
 
-#endif /* HB_CFF_INTERP_CS_HH */
+#endif /* HB_CFF1_INTERP_CS_HH */
