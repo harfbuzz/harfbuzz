@@ -38,10 +38,10 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
-typedef Index<HBUINT16>   CFF1Index;
+typedef CFFIndex<HBUINT16>  CFF1Index;
 template <typename Type> struct CFF1IndexOf : IndexOf<HBUINT16, Type> {};
 
-typedef Index<HBUINT16>   CFF1Index;
+typedef CFFIndex<HBUINT16>  CFF1Index;
 typedef CFF1Index         CFF1CharStrings;
 typedef FDArray<HBUINT16> CFF1FDArray;
 typedef Subrs<HBUINT16>   CFF1Subrs;

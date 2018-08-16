@@ -38,7 +38,7 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff2 HB_TAG('C','F','F','2')
 
-typedef Index<HBUINT32>   CFF2Index;
+typedef CFFIndex<HBUINT32>  CFF2Index;
 template <typename Type> struct CFF2IndexOf : IndexOf<HBUINT32, Type> {};
 
 typedef CFF2Index         CFF2CharStrings;

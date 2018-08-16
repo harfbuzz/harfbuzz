@@ -54,7 +54,7 @@ inline unsigned int calcOffSize(unsigned int offset)
 
 /* CFF INDEX */
 template <typename COUNT>
-struct Index
+struct CFFIndex
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -73,11 +73,11 @@ struct Index
   inline static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
   { return min_size + calculate_offset_array_size (offSize, count) + dataSize; }
 
-  inline bool serialize (hb_serialize_context_t *c, const Index &src)
+  inline bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
   {
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size ();
-    Index *dest = c->allocate_size<Index> (size);
+    CFFIndex *dest = c->allocate_size<CFFIndex> (size);
     if (unlikely (dest == nullptr)) return_trace (false);
     memcpy (dest, &src, size);
     return_trace (true);
@@ -88,7 +88,7 @@ struct Index
                          const hb_vector_t<ByteStr> &byteArray)
   {
     TRACE_SERIALIZE (this);
-    /* serialize Index header */
+    /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count.set (byteArray.len);
     this->offSize.set (offSize_);
@@ -158,12 +158,12 @@ struct Index
 
   inline unsigned int get_size (void) const
   {
-    if (this != &Null(Index))
+    if (this != &Null(CFFIndex))
     {
       if (count > 0)
         return min_size + offset_array_size () + (offset_at (count) - 1);
       else
-        return count.static_size;  /* empty Index contains count only */
+        return count.static_size;  /* empty CFFIndex contains count only */
     }
     else
       return 0;
@@ -191,12 +191,12 @@ struct Index
 };
 
 template <typename COUNT, typename TYPE>
-struct IndexOf : Index<COUNT>
+struct IndexOf : CFFIndex<COUNT>
 {
   inline const ByteStr operator [] (unsigned int index) const
   {
-    if (likely (index < Index<COUNT>::count))
-      return ByteStr (Index<COUNT>::data_base () + Index<COUNT>::offset_at (index) - 1, Index<COUNT>::length_at (index));
+    if (likely (index < CFFIndex<COUNT>::count))
+      return ByteStr (CFFIndex<COUNT>::data_base () + CFFIndex<COUNT>::offset_at (index) - 1, CFFIndex<COUNT>::length_at (index));
     return Null(ByteStr);
   }
 
@@ -209,7 +209,7 @@ struct IndexOf : Index<COUNT>
                          const PARAM2 &param2)
   {
     TRACE_SERIALIZE (this);
-    /* serialize Index header */
+    /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count.set (dataArray.len);
     this->offSize.set (offSize_);
@@ -221,10 +221,10 @@ struct IndexOf : Index<COUNT>
     unsigned int  i = 0;
     for (; i < dataArray.len; i++)
     {
-      Index<COUNT>::set_offset_at (i, offset);
+      CFFIndex<COUNT>::set_offset_at (i, offset);
       offset += dataSizeArray[i];
     }
-    Index<COUNT>::set_offset_at (i, offset);
+    CFFIndex<COUNT>::set_offset_at (i, offset);
 
     /* serialize data */
     for (unsigned int i = 0; i < dataArray.len; i++)
@@ -254,7 +254,7 @@ struct IndexOf : Index<COUNT>
     }
     offSize_ = calcOffSize (totalDataSize);
 
-    return Index<COUNT>::calculate_serialized_size (offSize_, dataArray.len, totalDataSize);
+    return CFFIndex<COUNT>::calculate_serialized_size (offSize_, dataArray.len, totalDataSize);
   }
 };
 
@@ -407,7 +407,7 @@ struct FDArray : IndexOf<COUNT, FontDict>
         dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
     offSize_ = calcOffSize (dictsSize + 1);
-    return Index<COUNT>::calculate_serialized_size (offSize_, fdCount, dictsSize);
+    return CFFIndex<COUNT>::calculate_serialized_size (offSize_, fdCount, dictsSize);
   }
 };
 
@@ -552,7 +552,7 @@ struct FDSelect {
 };
 
 template <typename COUNT>
-struct Subrs : Index<COUNT>
+struct Subrs : CFFIndex<COUNT>
 {
   inline bool serialize (hb_serialize_context_t *c, const Subrs<COUNT> &subrs, unsigned int offSize, const hb_set_t *set, const ByteStr& nullStr = ByteStr())
   {
@@ -561,7 +561,7 @@ struct Subrs : Index<COUNT>
     {
       if (!unlikely (c->allocate_size<COUNT> (COUNT::static_size)))
         return_trace (false);
-      Index<COUNT>::count.set (0);
+      CFFIndex<COUNT>::count.set (0);
       return_trace (true);
     }
     
@@ -572,7 +572,7 @@ struct Subrs : Index<COUNT>
     for (hb_codepoint_t i = 0; i < subrs.count; i++)
       bytesArray[i] = (hb_set_has (set, i))? subrs[i]: nullStr;
 
-    bool result = Index<COUNT>::serialize (c, offSize, bytesArray);
+    bool result = CFFIndex<COUNT>::serialize (c, offSize, bytesArray);
     bytesArray.fini ();
     return_trace (result);
   }
@@ -580,7 +580,7 @@ struct Subrs : Index<COUNT>
   /* in parallel to above */
   inline unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_set_t *set, unsigned int nullStrSize = 0) const
   {
-    unsigned int  count_ = Index<COUNT>::count;
+    unsigned int  count_ = CFFIndex<COUNT>::count;
     offSize = 0;
     if ((count_ == 0) || (hb_set_get_population (set) == 0))
       return COUNT::static_size;
@@ -594,7 +594,7 @@ struct Subrs : Index<COUNT>
         dataSize += nullStrSize;
     }
     offSize = calcOffSize(dataSize);
-    return Index<COUNT>::calculate_serialized_size (offSize, count_, dataSize);
+    return CFFIndex<COUNT>::calculate_serialized_size (offSize, count_, dataSize);
   }
 };
 
