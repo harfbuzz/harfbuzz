@@ -318,6 +318,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
           return false;
         env.argStack.clear ();
         break;
+      case OpCode_vsindexdict:
       case OpCode_blenddict:
         // XXX: TODO
         return true;
@@ -442,10 +443,11 @@ struct cff2
       if (num_glyphs != sc.get_num_glyphs ())
       { fini (); return; }
 
-      privateDicts.resize (fdArray->count);
+      fdCount = fdArray->count;
+      privateDicts.resize (fdCount);
 
       /* parse font dicts and gather private dicts */
-      for (unsigned int i = 0; i < fdArray->count; i++)
+      for (unsigned int i = 0; i < fdCount; i++)
       {
         const ByteStr fontDictStr = (*fdArray)[i];
         if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
@@ -500,6 +502,7 @@ struct cff2
     const CFF2CharStrings     *charStrings;
     const CFF2FDArray         *fdArray;
     const CFF2FDSelect        *fdSelect;
+    unsigned int              fdCount;
 
     hb_vector_t<CFF2FontDictValues>     fontDicts;
     hb_vector_t<PrivDictVal>  privateDicts;

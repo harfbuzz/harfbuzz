@@ -557,6 +557,8 @@ struct Subrs : CFFIndex<COUNT>
   inline bool serialize (hb_serialize_context_t *c, const Subrs<COUNT> &subrs, unsigned int offSize, const hb_set_t *set, const ByteStr& nullStr = ByteStr())
   {
     TRACE_SERIALIZE (this);
+    if (&subrs == &Null(Subrs<COUNT>))
+      return_trace (true);
     if ((subrs.count == 0) || (hb_set_get_population (set) == 0))
     {
       if (!unlikely (c->allocate_size<COUNT> (COUNT::static_size)))
@@ -580,6 +582,8 @@ struct Subrs : CFFIndex<COUNT>
   /* in parallel to above */
   inline unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_set_t *set, unsigned int nullStrSize = 0) const
   {
+    if (this == &Null(Subrs<COUNT>))
+      return 0;
     unsigned int  count_ = CFFIndex<COUNT>::count;
     offSize = 0;
     if ((count_ == 0) || (hb_set_get_population (set) == 0))

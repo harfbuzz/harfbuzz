@@ -555,6 +555,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     }
   }
 
+  assert (c.head == c.end);
   c.end_serialize ();
 
   return true;

@@ -155,6 +155,7 @@ HB_OT_sources = \
 	hb-cff-interp-common-private.hh \
 	hb-cff-interp-cs-common-private.hh \
 	hb-cff1-interp-cs.hh \
+	hb-cff2-interp-cs.hh \
 	hb-cff-interp-dict-common-private.hh \
 	$(NULL)
 

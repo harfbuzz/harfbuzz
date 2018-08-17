@@ -56,7 +56,7 @@ enum OpCode {
     OpCode_Subrs,                  /* 19  CFF Private, CFF2 Private */
     OpCode_defaultWidthX,          /* 20  CFF Private (0) */
     OpCode_nominalWidthX,          /* 21  CFF Private (0) */
-    OpCode_vsindex,                /* 22  CFF2 Private/CS */
+    OpCode_vsindexdict,            /* 22  CFF2 Private/CS */
     OpCode_blenddict,              /* 23  CFF2 Private/CS  */
     OpCode_vstore,                 /* 24  CFF2 Top */
     OpCode_reserved25,             /* 25 */
@@ -142,8 +142,8 @@ enum OpCode {
  // OpCode_escape,                 /* 12 CFF, CFF2 */
     OpCode_Reserved13 = 13,
     OpCode_endchar,                /* 14 CFF */
- // OpCode_vsindex,                /* 15 CFF2 */
-    OpCode_blendcs = 16,           /* 16 CFF2 */
+    OpCode_vsindexcs,              /* 15 CFF2 */
+    OpCode_blendcs,                /* 16 CFF2 */
     OpCode_Reserved17,
     OpCode_hstemhm,                /* 18 CFF, CFF2 */
     OpCode_hintmask,               /* 19 CFF, CFF2 */
@@ -365,8 +365,8 @@ struct Stack
 
   inline void clear (void) { size = 0; }
 
-  inline bool check_overflow (unsigned int count) const { return (count <= kSizeLimit) && (count + size <= kSizeLimit); }
-  inline bool check_underflow (unsigned int count) const { return (count <= size); }
+  inline bool check_overflow (unsigned int count=1) const { return (count <= kSizeLimit) && (count + size <= kSizeLimit); }
+  inline bool check_underflow (unsigned int count=1) const { return (count <= size); }
 
   inline unsigned int get_size (void) const { return size; }
   inline bool is_empty (void) const { return size == 0; }
@@ -396,7 +396,7 @@ struct ArgStack : Stack<Number, 513>
 
   inline bool check_pop_num (Number& n)
   {
-    if (unlikely (!this->check_underflow (1)))
+    if (unlikely (!this->check_underflow ()))
       return false;
     n = this->pop ();
     return true;
@@ -413,7 +413,7 @@ struct ArgStack : Stack<Number, 513>
 
   inline bool check_pop_int (int& v)
   {
-    if (unlikely (!this->check_underflow (1)))
+    if (unlikely (!this->check_underflow ()))
       return false;
     v = this->pop ().to_int ();
     return true;
@@ -501,6 +501,21 @@ struct InterpEnv
     argStack.fini ();
   }
 
+  inline bool fetch_op (OpCode &op)
+  {
+    if (unlikely (!substr.avail ()))
+      return false;
+    op = (OpCode)(unsigned char)substr[0];
+    if (op == OpCode_escape) {
+      if (unlikely (!substr.avail ()))
+        return false;
+      op = Make_OpCode_ESC (substr[1]);
+      substr.inc ();
+    }
+    substr.inc ();
+    return true;
+  }
+
   SubByteStr    substr;
   ArgStack      argStack;
 };
@@ -557,21 +572,6 @@ struct Interpreter {
   inline ~Interpreter(void) { fini (); }
 
   inline void fini (void) { env.fini (); }
-
-  inline bool fetch_op (OpCode &op)
-  {
-    if (unlikely (!env.substr.avail ()))
-      return false;
-    op = (OpCode)(unsigned char)env.substr[0];
-    if (op == OpCode_escape) {
-      if (unlikely (!env.substr.avail ()))
-        return false;
-      op = Make_OpCode_ESC (env.substr[1]);
-      env.substr.inc ();
-    }
-    env.substr.inc ();
-    return true;
-  }
 
   ENV env;
 };

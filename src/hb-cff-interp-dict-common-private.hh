@@ -170,7 +170,8 @@ struct DictInterpreter : Interpreter<InterpEnv>
     do
     {
       OpCode op;
-      if (unlikely (!super.fetch_op (op) || !OPSET::process_op (op, super.env, param)))
+      if (unlikely (!super.env.fetch_op (op) ||
+                    !OPSET::process_op (op, super.env, param)))
         return false;
     } while (super.env.substr.avail ());
     
