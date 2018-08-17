@@ -135,6 +135,30 @@ struct DictOpSet : OpSet
 
     return true;
   }
+
+  static inline bool is_hint_op (OpCode op)
+  {
+    switch (op)
+    {
+      case OpCode_BlueValues:
+      case OpCode_OtherBlues:
+      case OpCode_FamilyBlues:
+      case OpCode_FamilyOtherBlues:
+      case OpCode_StemSnapH:
+      case OpCode_StemSnapV:
+      case OpCode_StdHW:
+      case OpCode_StdVW:
+      case OpCode_BlueScale:
+      case OpCode_BlueShift:
+      case OpCode_BlueFuzz:
+      case OpCode_ForceBold:
+      case OpCode_LanguageGroup:
+      case OpCode_ExpansionFactor:
+        return true;
+      default:
+        return false;
+    }
+  }
 };
 
 struct TopDictOpSet : DictOpSet

@@ -166,6 +166,27 @@ struct CFF2PrivateDict_OpSerializer : OpSerializer
   }
 };
 
+struct CFF2PrivateDict_OpSerializer_DropHints : CFF2PrivateDict_OpSerializer
+{
+  inline bool serialize (hb_serialize_context_t *c,
+                         const OpStr &opstr,
+                         const unsigned int subrsOffset) const
+  {
+    if (DictOpSet::is_hint_op (opstr.op))
+      return true;
+    else
+      return CFF2PrivateDict_OpSerializer::serialize (c, opstr, subrsOffset);
+  }
+
+  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  {
+    if (DictOpSet::is_hint_op (opstr.op))
+      return 0;
+    else
+      return CFF2PrivateDict_OpSerializer::calculate_serialized_size (opstr);
+  }
+};
+
 struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<SubrRefMapPair>
 {
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, SubrRefMapPair& refMapPair)
@@ -218,6 +239,8 @@ struct cff2_subset_plan {
   {
     final_size = 0;
     orig_fdcount = acc.fdArray->count;
+
+    drop_hints = plan->drop_hints;
 
     /* CFF2 header */
     final_size += OT::cff2::static_size;
@@ -299,8 +322,18 @@ struct cff2_subset_plan {
     {
       if (!fdmap.excludes (i))
       {
-        CFF2PrivateDict_OpSerializer privSzr;
-        TableInfo  privInfo = { final_size, PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr), 0 };
+        unsigned int priv_size;
+        if (plan->drop_hints)
+        {
+          CFF2PrivateDict_OpSerializer_DropHints privSzr_drop;
+          priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr_drop);
+        }
+        else
+        {
+          CFF2PrivateDict_OpSerializer privSzr;
+          priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr);
+        }
+        TableInfo  privInfo = { final_size, priv_size, 0 };
         privateDictInfos.push (privInfo);
         final_size += privInfo.size + offsets.localSubrsInfos[i].size;
       }
@@ -326,6 +359,8 @@ struct cff2_subset_plan {
   hb_vector_t<TableInfo> privateDictInfos;
 
   SubrRefMaps             subrRefMaps;
+
+  bool            drop_hints;
 };
 
 static inline bool _write_cff2 (const cff2_subset_plan &plan,
@@ -444,9 +479,19 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
-      CFF2PrivateDict_OpSerializer privSzr;
-      /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-      if (unlikely (!pd->serialize (&c, acc.privateDicts[i], privSzr, plan.privateDictInfos[plan.fdmap[i]].size)))
+      unsigned int priv_size = plan.privateDictInfos[plan.fdmap[i]].size;
+      bool result;
+      if (plan.drop_hints)
+      {
+        CFF2PrivateDict_OpSerializer_DropHints privSzr_drop;
+        result = pd->serialize (&c, acc.privateDicts[i], privSzr_drop, priv_size);
+      }
+      else
+      {
+        CFF2PrivateDict_OpSerializer privSzr;
+        result = pd->serialize (&c, acc.privateDicts[i], privSzr, priv_size);
+      }
+      if (unlikely (!result))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Private Dict[%d]", i);
         return false;
