@@ -10,7 +10,7 @@ jobs:
       - run: brew update-reset
       - run: brew install wget pkg-config libtool ragel freetype glib cairo
       - run: wget https://packages.macports.org/llvm-gcc42/llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2
-      - run: CC=$PWD/opt/local/bin/llvm-gcc-4.2 CXX=$PWD/opt/local/bin/llvm-g++-4.2 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
+      - run: CC=$PWD/opt/local/bin/llvm-gcc-4.2 CXX=$PWD/opt/local/bin/llvm-g++-4.2 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-coretext
       # Ignoring assembler complains, https://stackoverflow.com/a/39867021
       - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
       - run: make check || .ci/fail.sh
