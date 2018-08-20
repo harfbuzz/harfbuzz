@@ -59,9 +59,10 @@ struct CFFIndex
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
-                          c->check_array (offsets, offSize, count + 1) &&
-                          c->check_array (data_base (), 1, max_offset () - 1)));
+    return_trace (likely ((count.sanitize (c) && count == 0) || /* empty INDEX */
+                          (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
+                           c->check_array (offsets, offSize, count + 1) &&
+                           c->check_array (data_base (), 1, max_offset () - 1))));
   }
 
   inline static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)
@@ -350,6 +351,20 @@ struct FDMap : hb_vector_t<hb_codepoint_t>
 
   inline bool excludes (hb_codepoint_t fd) const
   { return (fd < len) && ((*this)[fd] == HB_SET_VALUE_INVALID); }
+
+  inline hb_codepoint_t operator[] (hb_codepoint_t i) const
+  {
+    if (fullset ())
+      return i;
+    else
+      return hb_vector_t<hb_codepoint_t>::operator[] (i);
+  }
+
+  inline hb_codepoint_t &operator[] (hb_codepoint_t i)
+  {
+    assert (i < len);
+    return hb_vector_t<hb_codepoint_t>::operator[] (i);
+  }
 };
 
 template <typename COUNT>
