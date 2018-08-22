@@ -177,8 +177,8 @@ struct CSOpSet : OpSet
         env.set_endchar (true);
         return true;
 
-      case OpCode_longintcs:
-        return env.argStack.push_longint_from_substr (env.substr);
+      case OpCode_fixedcs:
+        return env.argStack.push_fixed_from_substr (env.substr);
 
       case OpCode_callsubr:
         return env.callSubr (env.localSubrs);

@@ -160,7 +160,7 @@ enum OpCode {
     OpCode_vhcurveto,              /* 30 CFF, CFF2 */
     OpCode_hvcurveto,              /* 31 CFF, CFF2 */
 
-    OpCode_longintcs = 255,        /* 32-bit integer */
+    OpCode_fixedcs = 255,          /* 32-bit fixed */
 
     /* Two byte escape operators 12, (0-41) */
     OpCode_ReservedESC0 = OpCode_ESC_Base, /* Make_OpCode_ESC (0) */
@@ -447,6 +447,15 @@ struct ArgStack : Stack<Number, 513>
     if (unlikely (!substr.avail (4) || !check_overflow (1)))
       return false;
     push_int ((int32_t)*(const HBUINT32*)&substr[0]);
+    substr.inc (4);
+    return true;
+  }
+
+  inline bool push_fixed_from_substr (SubByteStr& substr)
+  {
+    if (unlikely (!substr.avail (4) || !check_overflow (1)))
+      return false;
+    push_real ((int32_t)*(const HBUINT32*)&substr[0] / 65536.0);
     substr.inc (4);
     return true;
   }
