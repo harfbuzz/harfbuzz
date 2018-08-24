@@ -502,6 +502,9 @@ struct hb_bytes_t
 {
   inline hb_bytes_t (void) : bytes (nullptr), len (0) {}
   inline hb_bytes_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
+  inline hb_bytes_t (const void *bytes_, unsigned int len_) : bytes ((const char *) bytes_), len (len_) {}
+
+  inline void free (void) { ::free ((void *) bytes); bytes = nullptr; len = 0; }
 
   inline int cmp (const hb_bytes_t &a) const
   {

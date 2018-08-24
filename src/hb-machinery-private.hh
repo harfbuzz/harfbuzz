@@ -402,7 +402,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *copy (void)
+  inline Type *copy (void) const
   {
     assert (!this->ran_out_of_room);
     unsigned int len = this->head - this->start;
@@ -410,6 +410,25 @@ struct hb_serialize_context_t
     if (p)
       memcpy (p, this->start, len);
     return reinterpret_cast<Type *> (p);
+  }
+  inline hb_bytes_t copy_bytes (void) const
+  {
+    assert (!this->ran_out_of_room);
+    unsigned int len = this->head - this->start;
+    void *p = malloc (len);
+    if (p)
+      memcpy (p, this->start, len);
+    else
+      return hb_bytes_t ();
+    return hb_bytes_t (p, len);
+  }
+  inline hb_blob_t *copy_blob (void) const
+  {
+    assert (!this->ran_out_of_room);
+    return hb_blob_create (this->start,
+			   this->head - this->start,
+			   HB_MEMORY_MODE_DUPLICATE,
+			   nullptr, nullptr);
   }
 
   template <typename Type>
