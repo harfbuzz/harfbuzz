@@ -138,6 +138,68 @@ struct hb_dispatch_context_t
 
 /*
  * Sanitize
+ *
+ *
+ * === Introduction ===
+ *
+ * The sanitize machinery is at the core of our zero-cost font loading.  We
+ * mmap() font file into memory and create a blob out of it.  Font subtables
+ * are returned as a readonly sub-blob of the main font blob.  These table
+ * blobs are then sanitized before use, to ensure invalid memory access does
+ * not happen.  The toplevel sanitize API use is like, eg. to load the 'head'
+ * table:
+ *
+ *   hb_blob_t *head_blob = hb_sanitize_context_t ().reference_table<OT::head> (face);
+ *
+ * The blob then can be converted to a head table struct with:
+ *
+ *   const head *head_table = head_blob->as<head> ();
+ *
+ * What the reference_table does is, to call hb_face_reference_table() to load
+ * the table blob, sanitize it and return either the sanitized blob, or empty
+ * blob if sanitization failed.  The blob->as() function returns the null
+ * object of its template type argument if the blob is empty.  Otherwise, it
+ * just casts the blob contents to the desired type.
+ *
+ * Sanitizing a blob of data with a type T works as follows (with minor
+ * simplification):
+ *
+ *   - Cast blob content to T*, call sanitize() method of it,
+ *   - If sanitize succeeded, return blob.
+ *   - Otherwise, if blob is not writable, try making it writable,
+ *     or copy if cannot be made writable in-place,
+ *   - Call sanitize() again.  Return blob if sanitize succeeded.
+ *   - Return empty blob otherwise.
+ *
+ *
+ * === The sanitize() contract ===
+ *
+ * The sanitize() method of each object type shall return true if it's safe to
+ * call other methods of the object, and false otherwise.
+ *
+ * Note that what sanitize() checks for might align with what the specification
+ * describes as valid table data, but does not have to be.  In particular, we
+ * do NOT want to be pedantic and concern ourselves with validity checks that
+ * are irrelevant to our use of the table.  On the contrary, we want to be
+ * lenient with error handling and accept invalid data to the extent that it
+ * does not impose extra burden on us.
+ *
+ * Based on the sanitize contract, one can see that what we check for depends
+ * on how we use the data in other table methods.  Ie. if other table methods
+ * assume that offsets do NOT point out of the table data block, then that's
+ * something sanitize() must check for (GSUB/GPOS/GDEF/etc work this way).  On
+ * the other hand, if other methods do such checks themselves, then sanitize()
+ * does not have to bother with them (glyf/local work this way).  The choice
+ * depends on the table structure and sanitize() performance.  For example, to
+ * check glyf/loca offsets in sanitize() would cost O(num-glyphs).  We try hard
+ * to avoid such costs during font loading.  By postponing such checks to the
+ * actual glyph loading, we reduce the sanitize cost to O(1) and total runtime
+ * cost to O(used-glyphs).  As such, this is preferred.
+ *
+ * The same argument can be made re GSUB/GPOS/GDEF, but there, the table
+ * structure is so complicated that by checking all offsets at sanitize() time,
+ * we make the code much simpler in other methods, as offsets and referenced
+ * objectes do not need to be validated at each use site.
  */
 
 /* This limits sanitizing time on really broken fonts. */
