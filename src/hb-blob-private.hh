@@ -62,6 +62,10 @@ struct hb_blob_t
   {
     return unlikely (!data) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
+  inline hb_bytes_t as_bytes (void) const
+  {
+    return hb_bytes_t (data, length);
+  }
 
   public:
   hb_object_header_t header;
