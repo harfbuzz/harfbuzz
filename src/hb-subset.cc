@@ -238,14 +238,36 @@ hb_subset (hb_face_t *source,
 
 /**
  * hb_subset_collect_unicodes:
- * @source: font face data to load.
- * @out: set to add the all codepoints covered by font face, source.
+ * @face: font face.
+ * @out: set to add Unicode characters covered by @face to.
+ *
+ * Since: REPLACEME
  */
 void
-hb_subset_collect_unicodes (hb_face_t *source, hb_set_t *out)
+hb_subset_collect_unicodes (hb_face_t *face, hb_set_t *out)
 {
+  /* XXX Use saved accel. */
   OT::cmap::accelerator_t cmap;
-  cmap.init (source);
+  cmap.init (face);
   cmap.collect_unicodes (out);
+  cmap.fini();
+}
+
+/**
+ * hb_subset_collect_variation_selectors:
+ * @face: font face.
+ * @out: set to add Variation Selector characters covered by @face to.
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+void
+hb_subset_collect_variation_selectors (hb_face_t *face, hb_set_t *out)
+{
+  /* XXX Use saved accel. */
+  OT::cmap::accelerator_t cmap;
+  cmap.init (face);
+  cmap.collect_variation_selectors (out);
   cmap.fini();
 }

@@ -594,7 +594,7 @@ struct UnicodeValueRange
   }
 
   HBUINT24	startUnicodeValue;	/* First value in this range. */
-  HBUINT8		additionalCount;	/* Number of additional values in this
+  HBUINT8	additionalCount;	/* Number of additional values in this
 					 * range. */
   public:
   DEFINE_SIZE_STATIC (4);
@@ -673,6 +673,13 @@ struct CmapSubtableFormat14
 					    hb_codepoint_t *glyph) const
   {
     return record[record.bsearch(variation_selector)].get_glyph (codepoint, glyph, this);
+  }
+
+  inline void collect_variation_selectors (hb_set_t *out) const
+  {
+    unsigned int count = record.len;
+    for (unsigned int i = 0; i < count; i++)
+      out->add (record.arrayZ[i].varSelector);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -977,7 +984,7 @@ struct cmap
       /* Meh. */
       if (!subtable_uvs) subtable_uvs = &Null(CmapSubtableFormat14);
 
-      this->uvs_table = subtable_uvs;
+      this->subtable_uvs = subtable_uvs;
 
       this->get_glyph_data = subtable;
       if (unlikely (symbol))
@@ -1018,7 +1025,7 @@ struct cmap
 				     hb_codepoint_t  variation_selector,
 				     hb_codepoint_t *glyph) const
     {
-      switch (this->uvs_table->get_glyph_variant (unicode,
+      switch (this->subtable_uvs->get_glyph_variant (unicode,
 						  variation_selector,
 						  glyph))
       {
@@ -1033,6 +1040,10 @@ struct cmap
     inline void collect_unicodes (hb_set_t *out) const
     {
       subtable->collect_unicodes (out);
+    }
+    inline void collect_variation_selectors (hb_set_t *out) const
+    {
+      subtable_uvs->collect_variation_selectors (out);
     }
 
     protected:
@@ -1073,12 +1084,13 @@ struct cmap
 
     private:
     const CmapSubtable *subtable;
+    const CmapSubtableFormat14 *subtable_uvs;
+
     hb_cmap_get_glyph_func_t get_glyph_func;
     const void *get_glyph_data;
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 
-    const CmapSubtableFormat14 *uvs_table;
     hb_blob_t *blob;
   };
 
