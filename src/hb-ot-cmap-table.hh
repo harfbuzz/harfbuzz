@@ -244,14 +244,12 @@ struct CmapSubtableFormat4
       glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2;
     }
 
-    static inline bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
+    inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
     {
-      const accelerator_t *thiz = (const accelerator_t *) obj;
-
       /* Custom two-array bsearch. */
-      int min = 0, max = (int) thiz->segCount - 1;
-      const HBUINT16 *startCount = thiz->startCount;
-      const HBUINT16 *endCount = thiz->endCount;
+      int min = 0, max = (int) this->segCount - 1;
+      const HBUINT16 *startCount = this->startCount;
+      const HBUINT16 *endCount = this->endCount;
       unsigned int i;
       while (min <= max)
       {
@@ -270,23 +268,36 @@ struct CmapSubtableFormat4
 
     found:
       hb_codepoint_t gid;
-      unsigned int rangeOffset = thiz->idRangeOffset[i];
+      unsigned int rangeOffset = this->idRangeOffset[i];
       if (rangeOffset == 0)
-	gid = codepoint + thiz->idDelta[i];
+	gid = codepoint + this->idDelta[i];
       else
       {
 	/* Somebody has been smoking... */
-	unsigned int index = rangeOffset / 2 + (codepoint - thiz->startCount[i]) + i - thiz->segCount;
-	if (unlikely (index >= thiz->glyphIdArrayLength))
+	unsigned int index = rangeOffset / 2 + (codepoint - this->startCount[i]) + i - this->segCount;
+	if (unlikely (index >= this->glyphIdArrayLength))
 	  return false;
-	gid = thiz->glyphIdArray[index];
+	gid = this->glyphIdArray[index];
 	if (unlikely (!gid))
 	  return false;
-	gid += thiz->idDelta[i];
+	gid += this->idDelta[i];
       }
 
       *glyph = gid & 0xFFFFu;
       return *glyph != 0;
+    }
+    static inline bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
+    {
+      return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph);
+    }
+    inline void collect_unicodes (hb_set_t *out) const
+    {
+      for (unsigned int i = 0; i < this->segCount; i++)
+      {
+	/* XXX This does NOT skip over chars mapping to gid0... */
+	if (this->startCount[i] != 0xFFFFu || this->endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
+	  hb_set_add_range (out, this->startCount[i], this->endCount[i]);
+      }
     }
 
     const HBUINT16 *endCount;
@@ -306,16 +317,9 @@ struct CmapSubtableFormat4
   }
   inline void collect_unicodes (hb_set_t *out) const
   {
-    unsigned int segCount = this->segCountX2 / 2;
-    const HBUINT16 *endCount = this->values;
-    const HBUINT16 *startCount = endCount + segCount + 1;
-
-    for (unsigned int i = 0; i < segCount; i++)
-    {
-      /* XXX This does NOT skip over chars mapping to gid0... */
-      if (startCount[i] != 0xFFFFu || endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
-	hb_set_add_range (out, startCount[i], endCount[i]);
-    }
+    accelerator_t accel;
+    accel.init (this);
+    accel.collect_unicodes (out);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
