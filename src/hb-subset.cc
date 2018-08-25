@@ -263,7 +263,8 @@ hb_subset_collect_unicodes (hb_face_t *face, hb_set_t *out)
  * Since: REPLACEME
  */
 void
-hb_subset_collect_variation_selectors (hb_face_t *face, hb_set_t *out)
+hb_subset_collect_variation_selectors (hb_face_t *face,
+				       hb_set_t *out)
 {
   /* XXX Use saved accel. */
   OT::cmap::accelerator_t cmap;
@@ -271,3 +272,25 @@ hb_subset_collect_variation_selectors (hb_face_t *face, hb_set_t *out)
   cmap.collect_variation_selectors (out);
   cmap.fini();
 }
+
+/**
+ * hb_subset_collect_variation_unicodes:
+ * @face: font face.
+ * @out: set to add Unicode characters for @variation_selector covered by @face to.
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+void
+hb_subset_collect_variation_unicodes (hb_face_t *face,
+				      hb_codepoint_t variation_selector,
+				      hb_set_t *out)
+{
+  /* XXX Use saved accel. */
+  OT::cmap::accelerator_t cmap;
+  cmap.init (face);
+  cmap.collect_variation_unicodes (variation_selector, out);
+  cmap.fini();
+}
+

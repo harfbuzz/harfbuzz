@@ -296,7 +296,7 @@ struct CmapSubtableFormat4
       {
 	/* XXX This does NOT skip over chars mapping to gid0... */
 	if (this->startCount[i] != 0xFFFFu || this->endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
-	  hb_set_add_range (out, this->startCount[i], this->endCount[i]);
+	  out->add_range (this->startCount[i], this->endCount[i]);
       }
     }
 
@@ -459,11 +459,9 @@ struct CmapSubtableLongSegmented
   inline void collect_unicodes (hb_set_t *out) const
   {
     for (unsigned int i = 0; i < this->groups.len; i++) {
-      hb_set_add_range (out,
-			MIN ((unsigned int) this->groups[i].startCharCode,
-			     (unsigned int) HB_MAX_UNICODE_CODEPOINT_VALUE),
-			MIN ((unsigned int) this->groups[i].endCharCode,
-			     (unsigned int) HB_MAX_UNICODE_CODEPOINT_VALUE));
+      out->add_range (this->groups[i].startCharCode,
+		      MIN ((hb_codepoint_t) this->groups[i].endCharCode,
+			   (hb_codepoint_t) HB_MAX_UNICODE_CODEPOINT_VALUE));
     }
   }
 
@@ -600,7 +598,23 @@ struct UnicodeValueRange
   DEFINE_SIZE_STATIC (4);
 };
 
-typedef SortedArrayOf<UnicodeValueRange, HBUINT32> DefaultUVS;
+struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
+{
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      hb_codepoint_t first = arrayZ[i].startUnicodeValue;
+      hb_codepoint_t last = MIN ((hb_codepoint_t) (first + arrayZ[i].additionalCount),
+				 (hb_codepoint_t) HB_MAX_UNICODE_CODEPOINT_VALUE);
+      out->add_range (first, last);
+    }
+  }
+
+  public:
+  DEFINE_SIZE_ARRAY (4, arrayZ);
+};
 
 struct UVSMapping
 {
@@ -621,7 +635,18 @@ struct UVSMapping
   DEFINE_SIZE_STATIC (5);
 };
 
-typedef SortedArrayOf<UVSMapping, HBUINT32> NonDefaultUVS;
+struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
+{
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      out->add (arrayZ[i].glyphID);
+  }
+
+  public:
+  DEFINE_SIZE_ARRAY (4, arrayZ);
+};
 
 struct VariationSelectorRecord
 {
@@ -642,6 +667,12 @@ struct VariationSelectorRecord
        return GLYPH_VARIANT_FOUND;
     }
     return GLYPH_VARIANT_NOT_FOUND;
+  }
+
+  inline void collect_unicodes (hb_set_t *out, const void *base) const
+  {
+    (base+defaultUVS).collect_unicodes (out);
+    (base+nonDefaultUVS).collect_unicodes (out);
   }
 
   inline int cmp (const hb_codepoint_t &variation_selector) const
@@ -672,7 +703,7 @@ struct CmapSubtableFormat14
 					    hb_codepoint_t variation_selector,
 					    hb_codepoint_t *glyph) const
   {
-    return record[record.bsearch(variation_selector)].get_glyph (codepoint, glyph, this);
+    return record[record.bsearch (variation_selector)].get_glyph (codepoint, glyph, this);
   }
 
   inline void collect_variation_selectors (hb_set_t *out) const
@@ -680,6 +711,11 @@ struct CmapSubtableFormat14
     unsigned int count = record.len;
     for (unsigned int i = 0; i < count; i++)
       out->add (record.arrayZ[i].varSelector);
+  }
+  inline void collect_variation_unicodes (hb_codepoint_t variation_selector,
+					  hb_set_t *out) const
+  {
+    record[record.bsearch (variation_selector)].collect_unicodes (out, this);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1044,6 +1080,11 @@ struct cmap
     inline void collect_variation_selectors (hb_set_t *out) const
     {
       subtable_uvs->collect_variation_selectors (out);
+    }
+    inline void collect_variation_unicodes (hb_codepoint_t variation_selector,
+					    hb_set_t *out) const
+    {
+      subtable_uvs->collect_variation_unicodes (variation_selector, out);
     }
 
     protected:
