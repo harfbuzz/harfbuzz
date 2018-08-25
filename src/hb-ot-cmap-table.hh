@@ -292,11 +292,13 @@ struct CmapSubtableFormat4
     }
     inline void collect_unicodes (hb_set_t *out) const
     {
-      for (unsigned int i = 0; i < this->segCount; i++)
+      unsigned int count = this->segCount;
+      if (count && this->startCount[count - 1] == 0xFFFFu)
+        count--; /* Skip sentinel segment. */
+      for (unsigned int i = 0; i < count; i++)
       {
 	/* XXX This does NOT skip over chars mapping to gid0... */
-	if (this->startCount[i] != 0xFFFFu || this->endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
-	  out->add_range (this->startCount[i], this->endCount[i]);
+	out->add_range (this->startCount[i], this->endCount[i]);
       }
     }
 
