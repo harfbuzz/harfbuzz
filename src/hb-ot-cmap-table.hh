@@ -1039,8 +1039,6 @@ struct cmap
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					      hb_codepoint_t codepoint,
 					      hb_codepoint_t *glyph);
-    typedef void (*hb_cmap_collect_unicodes_func_t) (const void *obj,
-						       hb_set_t *out);
 
     template <typename Type>
     static inline bool get_glyph_from (const void *obj,
@@ -1049,14 +1047,6 @@ struct cmap
     {
       const Type *typed_obj = (const Type *) obj;
       return typed_obj->get_glyph (codepoint, glyph);
-    }
-
-    template <typename Type>
-    static inline void collect_unicodes_from (const void *obj,
-						hb_set_t *out)
-    {
-      const Type *typed_obj = (const Type *) obj;
-      typed_obj->collect_unicodes (out);
     }
 
     template <typename Type>
