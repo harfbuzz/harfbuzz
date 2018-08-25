@@ -283,17 +283,6 @@ struct CmapSubtableFormat4
       return *glyph != 0;
     }
 
-    static inline void collect_unicodes_func (const void *obj, hb_set_t *out)
-    {
-      const accelerator_t *thiz = (const accelerator_t *) obj;
-      for (unsigned int i = 0; i < thiz->segCount; i++)
-      {
-	if (thiz->startCount[i] != 0xFFFFu
-	    || thiz->endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
-	  hb_set_add_range (out, thiz->startCount[i], thiz->endCount[i]);
-      }
-    }
-
     const HBUINT16 *endCount;
     const HBUINT16 *startCount;
     const HBUINT16 *idDelta;
@@ -308,6 +297,18 @@ struct CmapSubtableFormat4
     accelerator_t accel;
     accel.init (this);
     return accel.get_glyph_func (&accel, codepoint, glyph);
+  }
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    unsigned int segCount = this->segCountX2 / 2;
+    const HBUINT16 *endCount = this->values;
+    const HBUINT16 *startCount = endCount + segCount + 1;
+
+    for (unsigned int i = 0; i < segCount; i++)
+    {
+      if (startCount[i] != 0xFFFFu || endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
+	hb_set_add_range (out, startCount[i], endCount[i]);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -690,6 +691,19 @@ struct CmapSubtable
     default: return false;
     }
   }
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    switch (u.format) {
+//    case  0: u.format0 .collect_unicodes (out); return;
+    case  4: u.format4 .collect_unicodes (out); return;
+//    case  6: u.format6 .collect_unicodes (out); return;
+//    case 10: u.format10.collect_unicodes (out); return;
+    case 12: u.format12.collect_unicodes (out); return;
+    case 13: u.format13.collect_unicodes (out); return;
+    case 14:
+    default: return;
+    }
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -901,8 +915,9 @@ struct cmap
     {
       this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
       const cmap *table = this->blob->as<cmap> ();
-      const CmapSubtable *subtable = nullptr;
       const CmapSubtableFormat14 *subtable_uvs = nullptr;
+
+      subtable = nullptr;
 
       bool symbol = false;
       /* 32-bit subtables. */
@@ -939,24 +954,20 @@ struct cmap
       if (unlikely (symbol))
       {
 	this->get_glyph_func = get_glyph_from_symbol<CmapSubtable>;
-	this->collect_unicodes_func = collect_unicodes_func_nil;
       } else {
 	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
 	default:
 	  this->get_glyph_func = get_glyph_from<CmapSubtable>;
-	  this->collect_unicodes_func = collect_unicodes_func_nil;
 	  break;
 	case 12:
 	  this->get_glyph_func = get_glyph_from<CmapSubtableFormat12>;
-	  this->collect_unicodes_func = collect_unicodes_from<CmapSubtableFormat12>;
 	  break;
 	case  4:
 	  {
 	    this->format4_accel.init (&subtable->u.format4);
 	    this->get_glyph_data = &this->format4_accel;
 	    this->get_glyph_func = this->format4_accel.get_glyph_func;
-	    this->collect_unicodes_func = this->format4_accel.collect_unicodes_func;
 	  }
 	  break;
 	}
@@ -992,7 +1003,7 @@ struct cmap
 
     inline void collect_unicodes (hb_set_t *out) const
     {
-      this->collect_unicodes_func (get_glyph_data, out);
+      subtable->collect_unicodes (out);
     }
 
     protected:
@@ -1001,11 +1012,6 @@ struct cmap
 					      hb_codepoint_t *glyph);
     typedef void (*hb_cmap_collect_unicodes_func_t) (const void *obj,
 						       hb_set_t *out);
-
-    static inline void collect_unicodes_func_nil (const void *obj, hb_set_t *out)
-    {
-      // NOOP
-    }
 
     template <typename Type>
     static inline bool get_glyph_from (const void *obj,
@@ -1047,9 +1053,9 @@ struct cmap
     }
 
     private:
+    const CmapSubtable *subtable;
     hb_cmap_get_glyph_func_t get_glyph_func;
     const void *get_glyph_data;
-    hb_cmap_collect_unicodes_func_t collect_unicodes_func;
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 
