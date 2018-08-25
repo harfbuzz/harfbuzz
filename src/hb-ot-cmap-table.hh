@@ -52,7 +52,7 @@ struct CmapSubtableFormat0
     if (!gid)
       return false;
     *glyph = gid;
-    return true;
+    return *glyph != 0;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -280,7 +280,7 @@ struct CmapSubtableFormat4
       }
 
       *glyph = gid & 0xFFFFu;
-      return true;
+      return *glyph != 0;
     }
 
     static inline void get_all_codepoints_func (const void *obj, hb_set_t *out)
@@ -398,7 +398,7 @@ struct CmapSubtableTrimmed
     if (!gid)
       return false;
     *glyph = gid;
-    return true;
+    return *glyph != 0;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -433,7 +433,7 @@ struct CmapSubtableLongSegmented
     if (i == -1)
       return false;
     *glyph = T::group_get_glyph (groups[i], codepoint);
-    return true;
+    return *glyph != 0;
   }
 
   inline void get_all_codepoints (hb_set_t *out) const
