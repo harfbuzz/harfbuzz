@@ -928,6 +928,35 @@ struct cmap
     return result;
   }
 
+  const CmapSubtable *find_best_subtable (bool *symbol = nullptr) const
+  {
+    if (symbol) *symbol = false;
+
+    const CmapSubtable *subtable;
+
+    /* 32-bit subtables. */
+    if ((subtable = this->find_subtable (3, 10))) return subtable;
+    if ((subtable = this->find_subtable (0, 6))) return subtable;
+    if ((subtable = this->find_subtable (0, 4))) return subtable;
+
+    /* 16-bit subtables. */
+    if ((subtable = this->find_subtable (3, 1))) return subtable;
+    if ((subtable = this->find_subtable (0, 3))) return subtable;
+    if ((subtable = this->find_subtable (0, 2))) return subtable;
+    if ((subtable = this->find_subtable (0, 1))) return subtable;
+    if ((subtable = this->find_subtable (0, 0))) return subtable;
+
+    /* Symbol subtable. */
+    if ((subtable = this->find_subtable (3, 0)))
+    {
+      if (symbol) *symbol = true;
+      return subtable;
+    }
+
+    /* Meh. */
+    return &Null(CmapSubtable);
+  }
+
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
@@ -935,27 +964,8 @@ struct cmap
       this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
       const cmap *table = this->blob->as<cmap> ();
       const CmapSubtableFormat14 *subtable_uvs = nullptr;
-
-      subtable = nullptr;
-
-      bool symbol = false;
-      /* 32-bit subtables. */
-      if (!subtable) subtable = table->find_subtable (3, 10);
-      if (!subtable) subtable = table->find_subtable (0, 6);
-      if (!subtable) subtable = table->find_subtable (0, 4);
-      /* 16-bit subtables. */
-      if (!subtable) subtable = table->find_subtable (3, 1);
-      if (!subtable) subtable = table->find_subtable (0, 3);
-      if (!subtable) subtable = table->find_subtable (0, 2);
-      if (!subtable) subtable = table->find_subtable (0, 1);
-      if (!subtable) subtable = table->find_subtable (0, 0);
-      if (!subtable)
-      {
-	subtable = table->find_subtable (3, 0);
-	if (subtable) symbol = true;
-      }
-      /* Meh. */
-      if (!subtable) subtable = &Null(CmapSubtable);
+      bool symbol;
+      subtable = table->find_best_subtable (&symbol);
 
       /* UVS subtable. */
       if (!subtable_uvs)
