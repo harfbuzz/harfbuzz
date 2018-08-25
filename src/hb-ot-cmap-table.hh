@@ -54,6 +54,12 @@ struct CmapSubtableFormat0
     *glyph = gid;
     return *glyph != 0;
   }
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    for (unsigned int i = 0; i < 256; i++)
+      if (glyphIdArray[i])
+        out->add (i);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -306,6 +312,7 @@ struct CmapSubtableFormat4
 
     for (unsigned int i = 0; i < segCount; i++)
     {
+      /* XXX This does NOT skip over chars mapping to gid0... */
       if (startCount[i] != 0xFFFFu || endCount[i] != 0xFFFFu) // Skip the last segment (0xFFFF)
 	hb_set_add_range (out, startCount[i], endCount[i]);
     }
@@ -384,7 +391,7 @@ struct CmapSubtableLongGroup
   HBUINT32		startCharCode;	/* First character code in this group. */
   HBUINT32		endCharCode;	/* Last character code in this group. */
   HBUINT32		glyphID;	/* Glyph index; interpretation depends on
-				 * subtable format. */
+					 * subtable format. */
   public:
   DEFINE_SIZE_STATIC (12);
 };
@@ -400,6 +407,14 @@ struct CmapSubtableTrimmed
       return false;
     *glyph = gid;
     return *glyph != 0;
+  }
+  inline void collect_unicodes (hb_set_t *out) const
+  {
+    hb_codepoint_t start = startCharCode;
+    unsigned int count = glyphIdArray.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (glyphIdArray[i])
+        out->add (start + i);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -694,10 +709,10 @@ struct CmapSubtable
   inline void collect_unicodes (hb_set_t *out) const
   {
     switch (u.format) {
-//    case  0: u.format0 .collect_unicodes (out); return;
+    case  0: u.format0 .collect_unicodes (out); return;
     case  4: u.format4 .collect_unicodes (out); return;
-//    case  6: u.format6 .collect_unicodes (out); return;
-//    case 10: u.format10.collect_unicodes (out); return;
+    case  6: u.format6 .collect_unicodes (out); return;
+    case 10: u.format10.collect_unicodes (out); return;
     case 12: u.format12.collect_unicodes (out); return;
     case 13: u.format13.collect_unicodes (out); return;
     case 14:
