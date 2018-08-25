@@ -1101,10 +1101,7 @@ struct cmap
     key.platformID.set (platform_id);
     key.encodingID.set (encoding_id);
 
-    /* Note: We can use bsearch, but since it has no performance
-     * implications, we use lsearch and as such accept fonts with
-     * unsorted subtable list. */
-    int result = encodingRecord./*bsearch*/lsearch (key);
+    int result = encodingRecord.bsearch (key);
     if (result == -1 || !encodingRecord[result].subtable)
       return nullptr;
 
