@@ -120,6 +120,20 @@ hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */);
 
+
+/*
+ * Builder face.
+ */
+
+HB_EXTERN hb_face_t *
+hb_face_builder_create (void);
+
+HB_EXTERN hb_bool_t
+hb_face_builder_add_table (hb_face_t *face,
+			   hb_tag_t   tag,
+			   hb_blob_t *blob);
+
+
 HB_END_DECLS
 
 #endif /* HB_FACE_H */

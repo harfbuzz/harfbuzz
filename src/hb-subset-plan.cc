@@ -154,7 +154,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->unicodes = hb_set_create();
   plan->glyphs.init();
   plan->source = hb_face_reference (face);
-  plan->dest = hb_subset_face_create ();
+  plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create();
   plan->glyph_map = hb_map_create();
 

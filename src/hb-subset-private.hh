@@ -34,8 +34,6 @@
 
 #include "hb-font-private.hh"
 
-typedef struct hb_subset_face_data_t hb_subset_face_data_t;
-
 struct hb_subset_input_t {
   hb_object_header_t header;
   ASSERT_POD ();
@@ -54,10 +52,5 @@ struct hb_subset_input_t {
    */
 };
 
-HB_INTERNAL hb_face_t *
-hb_subset_face_create (void);
-
-HB_INTERNAL hb_bool_t
-hb_subset_face_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob);
 
 #endif /* HB_SUBSET_PRIVATE_HH */
