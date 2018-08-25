@@ -283,7 +283,7 @@ struct CmapSubtableFormat4
       return *glyph != 0;
     }
 
-    static inline void get_all_codepoints_func (const void *obj, hb_set_t *out)
+    static inline void collect_unicodes_func (const void *obj, hb_set_t *out)
     {
       const accelerator_t *thiz = (const accelerator_t *) obj;
       for (unsigned int i = 0; i < thiz->segCount; i++)
@@ -436,7 +436,7 @@ struct CmapSubtableLongSegmented
     return *glyph != 0;
   }
 
-  inline void get_all_codepoints (hb_set_t *out) const
+  inline void collect_unicodes (hb_set_t *out) const
   {
     for (unsigned int i = 0; i < this->groups.len; i++) {
       hb_set_add_range (out,
@@ -939,24 +939,24 @@ struct cmap
       if (unlikely (symbol))
       {
 	this->get_glyph_func = get_glyph_from_symbol<CmapSubtable>;
-	this->get_all_codepoints_func = null_get_all_codepoints_func;
+	this->collect_unicodes_func = collect_unicodes_func_nil;
       } else {
 	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
 	default:
 	  this->get_glyph_func = get_glyph_from<CmapSubtable>;
-	  this->get_all_codepoints_func = null_get_all_codepoints_func;
+	  this->collect_unicodes_func = collect_unicodes_func_nil;
 	  break;
 	case 12:
 	  this->get_glyph_func = get_glyph_from<CmapSubtableFormat12>;
-	  this->get_all_codepoints_func = get_all_codepoints_from<CmapSubtableFormat12>;
+	  this->collect_unicodes_func = collect_unicodes_from<CmapSubtableFormat12>;
 	  break;
 	case  4:
 	  {
 	    this->format4_accel.init (&subtable->u.format4);
 	    this->get_glyph_data = &this->format4_accel;
 	    this->get_glyph_func = this->format4_accel.get_glyph_func;
-	    this->get_all_codepoints_func = this->format4_accel.get_all_codepoints_func;
+	    this->collect_unicodes_func = this->format4_accel.collect_unicodes_func;
 	  }
 	  break;
 	}
@@ -990,19 +990,19 @@ struct cmap
       return get_nominal_glyph (unicode, glyph);
     }
 
-    inline void get_all_codepoints (hb_set_t *out) const
+    inline void collect_unicodes (hb_set_t *out) const
     {
-      this->get_all_codepoints_func (get_glyph_data, out);
+      this->collect_unicodes_func (get_glyph_data, out);
     }
 
     protected:
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					      hb_codepoint_t codepoint,
 					      hb_codepoint_t *glyph);
-    typedef void (*hb_cmap_get_all_codepoints_func_t) (const void *obj,
+    typedef void (*hb_cmap_collect_unicodes_func_t) (const void *obj,
 						       hb_set_t *out);
 
-    static inline void null_get_all_codepoints_func (const void *obj, hb_set_t *out)
+    static inline void collect_unicodes_func_nil (const void *obj, hb_set_t *out)
     {
       // NOOP
     }
@@ -1017,11 +1017,11 @@ struct cmap
     }
 
     template <typename Type>
-    static inline void get_all_codepoints_from (const void *obj,
+    static inline void collect_unicodes_from (const void *obj,
 						hb_set_t *out)
     {
       const Type *typed_obj = (const Type *) obj;
-      typed_obj->get_all_codepoints (out);
+      typed_obj->collect_unicodes (out);
     }
 
     template <typename Type>
@@ -1049,7 +1049,7 @@ struct cmap
     private:
     hb_cmap_get_glyph_func_t get_glyph_func;
     const void *get_glyph_data;
-    hb_cmap_get_all_codepoints_func_t get_all_codepoints_func;
+    hb_cmap_collect_unicodes_func_t collect_unicodes_func;
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 

@@ -237,15 +237,15 @@ hb_subset (hb_face_t *source,
 }
 
 /**
- * hb_subset_get_all_codepoints:
+ * hb_subset_collect_unicodes:
  * @source: font face data to load.
  * @out: set to add the all codepoints covered by font face, source.
  */
 void
-hb_subset_get_all_codepoints (hb_face_t *source, hb_set_t *out)
+hb_subset_collect_unicodes (hb_face_t *source, hb_set_t *out)
 {
   OT::cmap::accelerator_t cmap;
   cmap.init (source);
-  cmap.get_all_codepoints (out);
+  cmap.collect_unicodes (out);
   cmap.fini();
 }
