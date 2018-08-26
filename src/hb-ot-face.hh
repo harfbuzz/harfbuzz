@@ -95,7 +95,6 @@ struct hb_ot_layout_lookup_accelerator_t
     /* OpenType math. */ \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
     /* OpenType fundamentals. */ \
-    HB_OT_LAYOUT_TABLE(OT, post) \
     /* */
 
 /* Declare tables. */
