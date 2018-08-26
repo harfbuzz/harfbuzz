@@ -1630,13 +1630,13 @@ GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const PosLookup &l = _get_gpos (c->face)->get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos_relaxed (c->face)->get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const PosLookup &l = _get_gpos (c->face).get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos_relaxed (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);

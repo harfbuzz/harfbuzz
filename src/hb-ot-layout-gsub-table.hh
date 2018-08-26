@@ -1351,13 +1351,13 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = _get_gsub (c->face).get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool SubstLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = _get_gsub (c->face).get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);
