@@ -1018,7 +1018,6 @@ struct cmap
   {
     inline void init (hb_face_t *face)
     {
-      /* TODO Switch to using table from face->ot.table. */
       this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
       const cmap *table = this->blob->as<cmap> ();
       const CmapSubtableFormat14 *subtable_uvs = nullptr;

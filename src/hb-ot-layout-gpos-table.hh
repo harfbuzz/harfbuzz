@@ -1522,6 +1522,8 @@ struct GPOS : GSUBGPOS
     const OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return_trace (list.sanitize (c, this));
   }
+
+  typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
 
 

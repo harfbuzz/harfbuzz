@@ -1317,6 +1317,8 @@ struct GSUB : GSUBGPOS
     const OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return_trace (list.sanitize (c, this));
   }
+
+  typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
 };
 
 

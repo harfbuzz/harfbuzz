@@ -32,7 +32,6 @@
 #include "hb.hh"
 
 #include "hb-machinery.hh"
-#include "hb-set-digest.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
@@ -45,27 +44,6 @@
 /*
  * hb_ot_face_data_t
  */
-
-struct hb_ot_layout_lookup_accelerator_t
-{
-  template <typename TLookup>
-  inline void init (const TLookup &lookup)
-  {
-    digest.init ();
-    lookup.add_coverage (&digest);
-  }
-
-  inline void fini (void)
-  {
-  }
-
-  inline bool may_have (hb_codepoint_t g) const {
-    return digest.may_have (g);
-  }
-
-  private:
-  hb_set_digest_t digest;
-};
 
 /* Most of these tables are NOT needed for shaping.  But we need to hook them *somewhere*.
  * This is as good as any place. */

@@ -988,7 +988,6 @@ struct LookupRecord
   DEFINE_SIZE_STATIC (4);
 };
 
-
 template <typename context_t>
 static inline void recurse_lookups (context_t *c,
 				    unsigned int lookupCount,
@@ -2381,6 +2380,36 @@ struct GSUBGPOS
 		  lookupList.sanitize (c, this) &&
 		  (version.to_int () < 0x00010001u || featureVars.sanitize (c, this)));
   }
+
+  template <typename T>
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      this->blob = hb_sanitize_context_t().reference_table<T> (face);
+      const T &table = *this->blob->as<T> ();
+
+      this->lookup_count = table.get_lookup_count ();
+
+      this->accels = (hb_ot_layout_lookup_accelerator_t *) calloc (this->lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
+      if (unlikely (!this->accels))
+        this->lookup_count = 0;
+
+      for (unsigned int i = 0; i < this->lookup_count; i++)
+	this->accels[i].init (table.get_lookup (i));
+    }
+
+    inline void fini (void)
+    {
+      hb_blob_destroy (this->blob);
+      free (accels);
+    }
+
+    private:
+      hb_blob_t *blob;
+      unsigned int lookup_count;
+      hb_ot_layout_lookup_accelerator_t *accels;
+  };
 
   protected:
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
