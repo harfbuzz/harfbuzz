@@ -189,6 +189,9 @@ hb_face_set_glyph_count
 hb_face_set_index
 hb_face_set_upem
 hb_face_set_user_data
+hb_face_collect_unicodes
+hb_face_collect_variation_selectors
+hb_face_collect_variation_unicodes
 hb_face_builder_create
 hb_face_builder_add_table
 </SECTION>

@@ -81,21 +81,6 @@ hb_subset (hb_face_t *source,
            hb_subset_input_t *input);
 
 
-/* TODO Move to hb-face.h. */
-
-HB_EXTERN void
-hb_subset_collect_unicodes (hb_face_t *face, hb_set_t *out);
-
-HB_EXTERN void
-hb_subset_collect_variation_selectors (hb_face_t *face,
-				       hb_set_t *out);
-
-HB_EXTERN void
-hb_subset_collect_variation_unicodes (hb_face_t *face,
-				      hb_codepoint_t variation_selector,
-				      hb_set_t *out);
-
-
 HB_END_DECLS
 
 #endif /* HB_SUBSET_H */

@@ -31,6 +31,7 @@
 #include "hb-face.hh"
 #include "hb-blob.hh"
 #include "hb-open-file.hh"
+#include "hb-ot-cmap-table.hh"
 
 
 /**
@@ -515,6 +516,65 @@ hb_face_get_table_tags (const hb_face_t *face,
 
 
 /*
+ * Character set.
+ */
+
+/**
+ * hb_face_collect_unicodes:
+ * @face: font face.
+ * @out: set to add Unicode characters covered by @face to.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_face_collect_unicodes (hb_face_t *face,
+			  hb_set_t  *out)
+{
+  /* XXX Use saved accel. */
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
+  cmap.collect_unicodes (out);
+}
+
+/**
+ * hb_face_collect_variation_selectors:
+ * @face: font face.
+ * @out: set to add Variation Selector characters covered by @face to.
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+void
+hb_face_collect_variation_selectors (hb_face_t *face,
+				     hb_set_t  *out)
+{
+  /* XXX Use saved accel. */
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
+  cmap.collect_variation_selectors (out);
+}
+
+/**
+ * hb_face_collect_variation_unicodes:
+ * @face: font face.
+ * @out: set to add Unicode characters for @variation_selector covered by @face to.
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+void
+hb_face_collect_variation_unicodes (hb_face_t *face,
+				    hb_codepoint_t variation_selector,
+				    hb_set_t  *out)
+{
+  /* XXX Use saved accel. */
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
+  cmap.collect_variation_unicodes (variation_selector, out);
+}
+
+
+
+/*
  * face-builder: A face that has add_table().
  */
 
@@ -660,4 +720,3 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
   return true;
 }
-
