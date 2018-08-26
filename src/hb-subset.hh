@@ -34,7 +34,8 @@
 
 #include "hb-font.hh"
 
-struct hb_subset_input_t {
+struct hb_subset_input_t
+{
   hb_object_header_t header;
   ASSERT_POD ();
 
