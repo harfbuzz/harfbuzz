@@ -32,9 +32,9 @@
 #include "hb.hh"
 #include "hb-buffer.hh"
 #include "hb-map.hh"
-#include "hb-ot-face.hh"
-#include "hb-ot-layout-gdef-table.hh"
 #include "hb-set.hh"
+#include "hb-ot-layout-common.hh"
+#include "hb-ot-layout-gdef-table.hh"
 
 
 namespace OT {
@@ -481,7 +481,7 @@ struct hb_ot_apply_context_t :
 			iter_input (), iter_context (),
 			font (font_), face (font->face), buffer (buffer_),
 			recurse_func (nullptr),
-			gdef (*hb_ot_face_data (face)->table.GDEF),
+			gdef (_get_gdef (face)),
 			var_store (gdef.get_var_store ()),
 			direction (buffer_->props.direction),
 			lookup_mask (1),
@@ -2387,28 +2387,30 @@ struct GSUBGPOS
     inline void init (hb_face_t *face)
     {
       this->blob = hb_sanitize_context_t().reference_table<T> (face);
-      const T &table = *this->blob->as<T> ();
+      table = this->blob->as<T> ();
 
-      this->lookup_count = table.get_lookup_count ();
+      this->lookup_count = table->get_lookup_count ();
 
       this->accels = (hb_ot_layout_lookup_accelerator_t *) calloc (this->lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
       if (unlikely (!this->accels))
         this->lookup_count = 0;
 
       for (unsigned int i = 0; i < this->lookup_count; i++)
-	this->accels[i].init (table.get_lookup (i));
+	this->accels[i].init (table->get_lookup (i));
     }
 
     inline void fini (void)
     {
+      for (unsigned int i = 0; i < this->lookup_count; i++)
+	this->accels[i].fini ();
+      free (this->accels);
       hb_blob_destroy (this->blob);
-      free (accels);
     }
 
-    private:
-      hb_blob_t *blob;
-      unsigned int lookup_count;
-      hb_ot_layout_lookup_accelerator_t *accels;
+    hb_blob_t *blob;
+    const T *table;
+    unsigned int lookup_count;
+    hb_ot_layout_lookup_accelerator_t *accels;
   };
 
   protected:

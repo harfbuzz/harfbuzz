@@ -1636,7 +1636,7 @@ template <typename context_t>
 
 /*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const PosLookup &l = hb_ot_face_data (c->face)->table.GPOS->get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);

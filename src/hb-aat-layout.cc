@@ -26,9 +26,7 @@
 
 #include "hb-open-type.hh"
 
-#include "hb-ot-layout.hh"
-#include "hb-ot-layout-gsubgpos.hh"
-
+#include "hb-ot-face.hh"
 #include "hb-aat-layout.hh"
 #include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-bsln-table.hh" // Just so we compile it; unused otherwise.

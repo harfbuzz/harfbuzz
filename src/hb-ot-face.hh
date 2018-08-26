@@ -33,12 +33,19 @@
 
 #include "hb-machinery.hh"
 
+
+#define hb_ot_face_data(face) ((hb_ot_face_data_t *) face->shaper_data.ot.get_relaxed ())
+
+
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
+#include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-layout-gpos-table.hh"
 
 
 /*
@@ -50,8 +57,6 @@
 #define HB_OT_LAYOUT_TABLES \
     /* OpenType shaping. */ \
     HB_OT_LAYOUT_TABLE(OT, GDEF) \
-    HB_OT_LAYOUT_TABLE(OT, GSUB) \
-    HB_OT_LAYOUT_TABLE(OT, GPOS) \
     HB_OT_LAYOUT_TABLE(OT, JSTF) \
     HB_OT_LAYOUT_TABLE(OT, BASE) \
     /* AAT shaping. */ \
@@ -66,6 +71,8 @@
     /* OpenType math. */ \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
     /* OpenType fundamentals. */ \
+    HB_OT_LAYOUT_ACCELERATOR(OT, GSUB) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, GPOS) \
     HB_OT_LAYOUT_ACCELERATOR(OT, cmap) \
     HB_OT_LAYOUT_ACCELERATOR(OT, hmtx) \
     HB_OT_LAYOUT_ACCELERATOR(OT, vmtx) \
@@ -104,19 +111,13 @@ struct hb_ot_face_data_t
 
     hb_face_t *face; /* MUST be JUST before the lazy loaders. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-    hb_table_lazy_loader_t<struct Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+    hb_table_lazy_loader_t<Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
 #define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) \
-    hb_face_lazy_loader_t<struct Namespace::Type::accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+    hb_face_lazy_loader_t<Namespace::Type::accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
     HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
   } table;
-
-  /* More accelerators.  Merge into previous. */
-  unsigned int gsub_lookup_count;
-  unsigned int gpos_lookup_count;
-  hb_ot_layout_lookup_accelerator_t *gsub_accels;
-  hb_ot_layout_lookup_accelerator_t *gpos_accels;
 };
 
 
@@ -125,10 +126,6 @@ _hb_ot_face_data_create (hb_face_t *face);
 
 HB_INTERNAL void
 _hb_ot_face_data_destroy (hb_ot_face_data_t *data);
-
-
-#define hb_ot_face_data(face) ((hb_ot_face_data_t *) face->shaper_data.ot.get_relaxed ())
-
 
 
 #endif /* HB_OT_FACE_HH */

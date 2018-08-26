@@ -35,6 +35,7 @@
 #include "hb-ot-shape-fallback.hh"
 #include "hb-ot-shape-normalize.hh"
 
+#include "hb-ot-face.hh"
 #include "hb-ot-layout.hh"
 #include "hb-unicode.hh"
 #include "hb-set.hh"

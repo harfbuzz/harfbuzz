@@ -26,10 +26,6 @@
 
 #include "hb-ot-face.hh"
 
-#include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-gsub-table.hh"
-#include "hb-ot-layout-gpos-table.hh"
-
 
 static bool
 _hb_ot_blacklist_gdef (unsigned int gdef_len,
@@ -161,31 +157,10 @@ _hb_ot_face_data_create (hb_face_t *face)
 
   data->table.init0 (face);
 
-  const OT::GSUB &gsub = *data->table.GSUB;
-  const OT::GPOS &gpos = *data->table.GPOS;
-
   if (unlikely (_hb_ot_blacklist_gdef (data->table.GDEF.get_blob ()->length,
-				       data->table.GSUB.get_blob ()->length,
-				       data->table.GPOS.get_blob ()->length)))
+				       data->table.GSUB->blob->length,
+				       data->table.GPOS->blob->length)))
     data->table.GDEF.set_stored (hb_blob_get_empty ());
-
-  unsigned int gsub_lookup_count = data->gsub_lookup_count = gsub.get_lookup_count ();
-  unsigned int gpos_lookup_count = data->gpos_lookup_count = gpos.get_lookup_count ();
-
-  data->gsub_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (gsub_lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
-  data->gpos_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (gpos_lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
-
-  if (unlikely ((gsub_lookup_count && !data->gsub_accels) ||
-		(gpos_lookup_count && !data->gpos_accels)))
-  {
-    _hb_ot_face_data_destroy (data);
-    return nullptr;
-  }
-
-  for (unsigned int i = 0; i < gsub_lookup_count; i++)
-    data->gsub_accels[i].init (gsub.get_lookup (i));
-  for (unsigned int i = 0; i < gpos_lookup_count; i++)
-    data->gpos_accels[i].init (gpos.get_lookup (i));
 
   return data;
 }
@@ -193,18 +168,7 @@ _hb_ot_face_data_create (hb_face_t *face)
 void
 _hb_ot_face_data_destroy (hb_ot_face_data_t *data)
 {
-  if (data->gsub_accels)
-    for (unsigned int i = 0; i < data->gsub_lookup_count; i++)
-      data->gsub_accels[i].fini ();
-  if (data->gpos_accels)
-    for (unsigned int i = 0; i < data->gpos_lookup_count; i++)
-      data->gpos_accels[i].fini ();
-
-  free (data->gsub_accels);
-  free (data->gpos_accels);
-
   data->table.fini ();
-
   free (data);
 }
 

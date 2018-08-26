@@ -1327,7 +1327,7 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
-  const GDEF &gdef = *hb_ot_face_data (font->face)->table.GDEF;
+  const GDEF &gdef = _get_gdef (font->face);
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
   {
@@ -1351,13 +1351,13 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = hb_ot_face_data (c->face)->table.GSUB->get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub (c->face).get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool SubstLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = hb_ot_face_data (c->face)->table.GSUB->get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);

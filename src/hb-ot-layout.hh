@@ -37,6 +37,23 @@
 #include "hb-set-digest.hh"
 
 
+namespace OT
+{
+  struct GDEF;
+  struct GSUB;
+  struct GPOS;
+}
+
+HB_INTERNAL const OT::GDEF&
+_get_gdef (hb_face_t *face);
+
+HB_INTERNAL const OT::GSUB&
+_get_gsub (hb_face_t *face);
+
+HB_INTERNAL const OT::GPOS&
+_get_gpos (hb_face_t *face);
+
+
 /* Private API corresponding to hb-ot-layout.h: */
 
 HB_INTERNAL hb_bool_t
