@@ -2387,7 +2387,7 @@ struct GSUBGPOS
     inline void init (hb_face_t *face)
     {
       this->blob = hb_sanitize_context_t().reference_table<T> (face);
-      table = this->blob->as<T> ();
+      table = this->blob->template as<T> ();
 
       this->lookup_count = table->get_lookup_count ();
 
