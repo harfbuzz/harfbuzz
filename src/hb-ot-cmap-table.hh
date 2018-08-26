@@ -298,8 +298,24 @@ struct CmapSubtableFormat4
         count--; /* Skip sentinel segment. */
       for (unsigned int i = 0; i < count; i++)
       {
-	/* XXX This does NOT skip over chars mapping to gid0... */
-	out->add_range (this->startCount[i], this->endCount[i]);
+	unsigned int rangeOffset = this->idRangeOffset[i];
+	if (rangeOffset == 0)
+	  out->add_range (this->startCount[i], this->endCount[i]);
+	else
+	{
+	  for (hb_codepoint_t codepoint = this->startCount[i];
+	       codepoint <= this->endCount[i];
+	       codepoint++)
+	  {
+	    unsigned int index = rangeOffset / 2 + (codepoint - this->startCount[i]) + i - this->segCount;
+	    if (unlikely (index >= this->glyphIdArrayLength))
+	      break;
+	    hb_codepoint_t gid = this->glyphIdArray[index];
+	    if (unlikely (!gid))
+	      continue;
+	    out->add (codepoint);
+	  }
+	}
       }
     }
 
