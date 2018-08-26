@@ -135,8 +135,8 @@ struct hb_ot_face_data_t
     {
       this->face = face;
       cmap.init0 ();
-      h_metrics.init0 ();
-      v_metrics.init0 ();
+      hmtx.init0 ();
+      vmtx.init0 ();
       glyf.init0 ();
       cbdt.init0 ();
       post.init0 ();
@@ -145,8 +145,8 @@ struct hb_ot_face_data_t
     inline void fini (void)
     {
       cmap.fini ();
-      h_metrics.fini ();
-      v_metrics.fini ();
+      hmtx.fini ();
+      vmtx.fini ();
       glyf.fini ();
       cbdt.fini ();
       post.fini ();
@@ -155,8 +155,8 @@ struct hb_ot_face_data_t
 
     hb_face_t *face; /* MUST be JUST before the lazy loaders. */
     hb_face_lazy_loader_t<1, OT::cmap::accelerator_t> cmap;
-    hb_face_lazy_loader_t<2, OT::hmtx::accelerator_t> h_metrics;
-    hb_face_lazy_loader_t<3, OT::vmtx::accelerator_t> v_metrics;
+    hb_face_lazy_loader_t<2, OT::hmtx::accelerator_t> hmtx;
+    hb_face_lazy_loader_t<3, OT::vmtx::accelerator_t> vmtx;
     hb_face_lazy_loader_t<4, OT::glyf::accelerator_t> glyf;
     hb_face_lazy_loader_t<5, OT::CBDT::accelerator_t> cbdt;
     hb_face_lazy_loader_t<6, OT::post::accelerator_t> post;
