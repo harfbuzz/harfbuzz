@@ -60,13 +60,25 @@ inline const OT::GDEF&
 _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
-  return *hb_ot_face_data (face)->table.GDEF;
+  return *hb_ot_face_data (face)->table.GDEF->table;
+}
+hb_blob_t *
+_get_gsub_blob (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
+  return hb_ot_face_data (face)->table.GSUB->blob;
 }
 inline const OT::GSUB&
 _get_gsub (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
   return *hb_ot_face_data (face)->table.GSUB->table;
+}
+hb_blob_t *
+_get_gpos_blob (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
+  return hb_ot_face_data (face)->table.GPOS->blob;
 }
 inline const OT::GPOS&
 _get_gpos (hb_face_t *face)

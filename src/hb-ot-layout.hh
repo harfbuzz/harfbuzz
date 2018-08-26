@@ -46,10 +46,13 @@ namespace OT
 
 HB_INTERNAL const OT::GDEF&
 _get_gdef (hb_face_t *face);
-
+HB_INTERNAL hb_blob_t *
+_get_gsub_blob (hb_face_t *face);
 HB_INTERNAL const OT::GSUB&
 _get_gsub (hb_face_t *face);
 
+HB_INTERNAL hb_blob_t *
+_get_gpos_blob (hb_face_t *face);
 HB_INTERNAL const OT::GPOS&
 _get_gpos (hb_face_t *face);
 

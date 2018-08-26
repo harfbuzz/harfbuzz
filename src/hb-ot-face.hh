@@ -56,7 +56,6 @@
  * This is as good as any place. */
 #define HB_OT_LAYOUT_TABLES \
     /* OpenType shaping. */ \
-    HB_OT_LAYOUT_TABLE(OT, GDEF) \
     HB_OT_LAYOUT_TABLE(OT, JSTF) \
     HB_OT_LAYOUT_TABLE(OT, BASE) \
     /* AAT shaping. */ \
@@ -71,6 +70,7 @@
     /* OpenType math. */ \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
     /* OpenType fundamentals. */ \
+    HB_OT_LAYOUT_ACCELERATOR(OT, GDEF) \
     HB_OT_LAYOUT_ACCELERATOR(OT, GSUB) \
     HB_OT_LAYOUT_ACCELERATOR(OT, GPOS) \
     HB_OT_LAYOUT_ACCELERATOR(OT, cmap) \
