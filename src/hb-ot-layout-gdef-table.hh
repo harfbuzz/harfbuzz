@@ -467,6 +467,7 @@ struct GDEF
   DEFINE_SIZE_MIN (12);
 };
 
+struct GDEF_accelerator_t : GDEF::accelerator_t {};
 
 } /* namespace OT */
 

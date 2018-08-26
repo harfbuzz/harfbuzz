@@ -26,6 +26,16 @@
 
 #include "hb-ot-face.hh"
 
+#include "hb-ot-cmap-table.hh"
+#include "hb-ot-glyf-table.hh"
+#include "hb-ot-hmtx-table.hh"
+#include "hb-ot-kern-table.hh"
+#include "hb-ot-post-table.hh"
+#include "hb-ot-color-cbdt-table.hh"
+#include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-layout-gpos-table.hh"
+
 
 void hb_ot_face_data_t::tables_t::init0 (hb_face_t *face)
 {

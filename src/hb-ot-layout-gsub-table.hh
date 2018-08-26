@@ -1350,6 +1350,7 @@ template <typename context_t>
   return ret;
 }
 
+struct GSUB_accelerator_t : GSUB::accelerator_t {};
 
 } /* namespace OT */
 

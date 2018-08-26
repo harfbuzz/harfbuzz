@@ -32,6 +32,13 @@
 #include "hb-machinery.hh"
 #include "hb-ot-face.hh"
 
+#include "hb-ot-cmap-table.hh"
+#include "hb-ot-hmtx-table.hh"
+#include "hb-ot-kern-table.hh"
+#include "hb-ot-post-table.hh"
+#include "hb-ot-glyf-table.hh"
+#include "hb-ot-color-cbdt-table.hh"
+
 
 typedef hb_ot_face_data_t::tables_t hb_ot_font_t;
 

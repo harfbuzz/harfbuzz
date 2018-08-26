@@ -390,6 +390,8 @@ struct kern
   DEFINE_SIZE_UNION (2, major);
 };
 
+struct kern_accelerator_t : kern::accelerator_t {};
+
 } /* namespace OT */
 
 

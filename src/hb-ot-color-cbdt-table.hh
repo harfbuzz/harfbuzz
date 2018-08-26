@@ -533,6 +533,8 @@ struct CBDT
   DEFINE_SIZE_ARRAY(4, dataZ);
 };
 
+struct CBDT_accelerator_t : CBDT::accelerator_t {};
+
 } /* namespace OT */
 
 #endif /* HB_OT_COLOR_CBDT_TABLE_HH */

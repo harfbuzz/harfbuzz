@@ -37,17 +37,6 @@
 #define hb_ot_face_data(face) ((hb_ot_face_data_t *) face->shaper_data.ot.get_relaxed ())
 
 
-#include "hb-ot-cmap-table.hh"
-#include "hb-ot-glyf-table.hh"
-#include "hb-ot-hmtx-table.hh"
-#include "hb-ot-kern-table.hh"
-#include "hb-ot-post-table.hh"
-#include "hb-ot-color-cbdt-table.hh"
-#include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-gsub-table.hh"
-#include "hb-ot-layout-gpos-table.hh"
-
-
 /*
  * hb_ot_face_data_t
  */
@@ -84,7 +73,7 @@
 
 /* Declare tables. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) namespace Namespace { struct Type; }
-#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type##_accelerator_t)
 HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
@@ -113,7 +102,7 @@ struct hb_ot_face_data_t
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) \
     hb_table_lazy_loader_t<Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
 #define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) \
-    hb_face_lazy_loader_t<Namespace::Type::accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+    hb_face_lazy_loader_t<Namespace::Type##_accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
     HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE

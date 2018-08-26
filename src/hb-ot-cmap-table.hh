@@ -1173,6 +1173,7 @@ struct cmap
   DEFINE_SIZE_ARRAY (4, encodingRecord);
 };
 
+struct cmap_accelerator_t : cmap::accelerator_t {};
 
 } /* namespace OT */
 

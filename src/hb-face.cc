@@ -32,6 +32,7 @@
 #include "hb-blob.hh"
 #include "hb-open-file.hh"
 #include "hb-ot-face.hh"
+#include "hb-ot-cmap-table.hh"
 
 
 /**

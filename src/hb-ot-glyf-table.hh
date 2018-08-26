@@ -490,6 +490,8 @@ struct glyf
   DEFINE_SIZE_ARRAY (0, dataZ);
 };
 
+struct glyf_accelerator_t : glyf::accelerator_t {};
+
 } /* namespace OT */
 
 

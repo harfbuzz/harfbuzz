@@ -1647,6 +1647,8 @@ template <typename context_t>
   return ret;
 }
 
+struct GPOS_accelerator_t : GPOS::accelerator_t {};
+
 
 #undef attach_chain
 #undef attach_type

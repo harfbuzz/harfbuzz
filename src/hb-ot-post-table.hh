@@ -295,6 +295,8 @@ struct post
   DEFINE_SIZE_STATIC (32);
 };
 
+struct post_accelerator_t : post::accelerator_t {};
+
 } /* namespace OT */
 
 

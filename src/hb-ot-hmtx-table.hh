@@ -332,6 +332,9 @@ struct vmtx : hmtxvmtx<vmtx, vhea> {
   static const hb_tag_t os2Tag		= HB_TAG_NONE;
 };
 
+struct hmtx_accelerator_t : hmtx::accelerator_t {};
+struct vmtx_accelerator_t : vmtx::accelerator_t {};
+
 } /* namespace OT */
 
 
