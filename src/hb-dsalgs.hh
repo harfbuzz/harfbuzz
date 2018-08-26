@@ -27,7 +27,7 @@
 #ifndef HB_DSALGS_HH
 #define HB_DSALGS_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 
 /* Void! For when we need a expression-type of void. */

@@ -29,7 +29,7 @@
 #ifndef HB_OT_LAYOUT_GSUB_TABLE_HH
 #define HB_OT_LAYOUT_GSUB_TABLE_HH
 
-#include "hb-ot-layout-gsubgpos-private.hh"
+#include "hb-ot-layout-gsubgpos.hh"
 
 
 namespace OT {

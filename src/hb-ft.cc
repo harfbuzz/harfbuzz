@@ -27,12 +27,12 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-ft.h"
 
-#include "hb-font-private.hh"
-#include "hb-machinery-private.hh"
+#include "hb-font.hh"
+#include "hb-machinery.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H

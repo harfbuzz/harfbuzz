@@ -27,9 +27,9 @@
 #ifndef HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
 #define HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-ot-shape-private.hh"
+#include "hb-ot-shape.hh"
 #include "hb-ot-layout-gsub-table.hh"
 
 

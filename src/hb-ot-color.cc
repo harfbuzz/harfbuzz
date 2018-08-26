@@ -25,7 +25,7 @@
  * Google Author(s): Sascha Brawer
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
 #include "hb-ot.h"
@@ -33,8 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hb-ot-layout-private.hh"
-#include "hb-shaper-private.hh"
+#include "hb-ot-layout.hh"
+#include "hb-shaper.hh"
 
 #if 0
 HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)

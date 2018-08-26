@@ -47,7 +47,9 @@ hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 
 hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
-hb_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+hb_subset_LDADD = \
+	$(LDADD) \
+	$(top_builddir)/src/libharfbuzz-subset.la
 bin_PROGRAMS += hb-subset
 
 if HAVE_OT

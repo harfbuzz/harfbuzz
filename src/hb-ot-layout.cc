@@ -28,10 +28,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-open-type-private.hh"
-#include "hb-ot-layout-private.hh"
-#include "hb-ot-map-private.hh"
-#include "hb-map-private.hh"
+#include "hb-open-type.hh"
+#include "hb-ot-layout.hh"
+#include "hb-ot-map.hh"
+#include "hb-map.hh"
 
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"

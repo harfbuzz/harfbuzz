@@ -24,12 +24,12 @@
  * Google Author(s): Behdad Esfahbod, Roozbeh Pournader
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-ot.h"
 
-#include "hb-font-private.hh"
-#include "hb-machinery-private.hh"
+#include "hb-font.hh"
+#include "hb-machinery.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"

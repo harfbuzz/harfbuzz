@@ -24,7 +24,7 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-set.h"
 #include "hb-subset-glyf.hh"

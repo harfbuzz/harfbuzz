@@ -27,12 +27,12 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-icu.h"
 
-#include "hb-unicode-private.hh"
-#include "hb-machinery-private.hh"
+#include "hb-unicode.hh"
+#include "hb-machinery.hh"
 
 #include <unicode/uchar.h>
 #include <unicode/unorm2.h>

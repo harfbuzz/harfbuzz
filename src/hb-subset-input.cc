@@ -24,8 +24,8 @@
  * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
-#include "hb-subset-private.hh"
-#include "hb-set-private.hh"
+#include "hb-subset.hh"
+#include "hb-set.hh"
 
 /**
  * hb_subset_input_create_or_fail:

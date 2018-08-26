@@ -27,12 +27,12 @@
 #ifndef HB_SUBSET_PLAN_HH
 #define HB_SUBSET_PLAN_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-subset.h"
-#include "hb-subset-private.hh"
+#include "hb-subset.hh"
 
-#include "hb-map-private.hh"
+#include "hb-map.hh"
 
 struct hb_subset_plan_t
 {

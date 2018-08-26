@@ -29,7 +29,7 @@
 
 #include "main-font-text.hh"
 #include "hb-subset.h"
-#include "hb-subset-private.hh"
+#include "hb-subset.hh" /* XXX */
 
 /*
  * Command line interface to the harfbuzz font subsetter.

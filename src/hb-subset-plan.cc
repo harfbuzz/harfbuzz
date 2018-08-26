@@ -24,9 +24,9 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
-#include "hb-map-private.hh"
-#include "hb-subset-private.hh"
-#include "hb-set-private.hh"
+#include "hb-map.hh"
+#include "hb-subset.hh"
+#include "hb-set.hh"
 
 #include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"

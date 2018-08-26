@@ -26,11 +26,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-face-private.hh"
-#include "hb-blob-private.hh"
-#include "hb-open-file-private.hh"
+#include "hb-face.hh"
+#include "hb-blob.hh"
+#include "hb-open-file.hh"
 
 
 /**

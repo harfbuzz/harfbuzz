@@ -27,7 +27,7 @@
 #ifndef HB_OT_HMTX_TABLE_HH
 #define HB_OT_HMTX_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"

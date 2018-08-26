@@ -27,7 +27,7 @@
 #ifndef HB_OT_OS2_TABLE_HH
 #define HB_OT_OS2_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
 #include "hb-subset-plan.hh"
 

@@ -27,7 +27,7 @@
 #ifndef HB_NULL_HH
 #define HB_NULL_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 
 /*

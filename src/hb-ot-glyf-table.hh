@@ -27,11 +27,11 @@
 #ifndef HB_OT_GLYF_TABLE_HH
 #define HB_OT_GLYF_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-subset-glyf.hh"
 #include "hb-subset-plan.hh"
-#include "hb-subset-private.hh"
+#include "hb-subset.hh"
 
 namespace OT {
 

@@ -29,9 +29,9 @@
 #ifndef HB_OT_LAYOUT_GDEF_TABLE_HH
 #define HB_OT_LAYOUT_GDEF_TABLE_HH
 
-#include "hb-ot-layout-common-private.hh"
+#include "hb-ot-layout-common.hh"
 
-#include "hb-font-private.hh"
+#include "hb-font.hh"
 
 
 namespace OT {

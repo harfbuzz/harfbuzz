@@ -24,14 +24,14 @@
  * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-#include "hb-open-type-private.hh"
+#include "hb.hh"
+#include "hb-open-type.hh"
 
 #include "hb-subset-glyf.hh"
-#include "hb-subset-private.hh"
+#include "hb-subset.hh"
 #include "hb-subset-plan.hh"
 
-#include "hb-open-file-private.hh"
+#include "hb-open-file.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-hdmx-table.hh"

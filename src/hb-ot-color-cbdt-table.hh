@@ -27,7 +27,7 @@
 #ifndef HB_OT_COLOR_CBDT_TABLE_HH
 #define HB_OT_COLOR_CBDT_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 /*
  * CBLC -- Color Bitmap Location

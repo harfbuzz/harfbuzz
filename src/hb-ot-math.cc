@@ -24,9 +24,9 @@
  * Igalia Author(s): Frédéric Wang
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
-#include "hb-ot-layout-private.hh"
+#include "hb-ot-layout.hh"
 #include "hb-ot-math-table.hh"
 
 static inline const OT::MATH&
