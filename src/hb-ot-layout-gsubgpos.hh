@@ -32,6 +32,7 @@
 #include "hb.hh"
 #include "hb-buffer.hh"
 #include "hb-map.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-set.hh"
 

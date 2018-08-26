@@ -34,6 +34,13 @@
 #include "hb-machinery.hh"
 #include "hb-set-digest.hh"
 
+#include "hb-ot-cmap-table.hh"
+#include "hb-ot-glyf-table.hh"
+#include "hb-ot-hmtx-table.hh"
+#include "hb-ot-kern-table.hh"
+#include "hb-ot-post-table.hh"
+#include "hb-ot-color-cbdt-table.hh"
+
 
 /*
  * hb_ot_face_data_t
@@ -98,13 +105,7 @@ HB_OT_LAYOUT_TABLES
 
 struct hb_ot_face_data_t
 {
-  unsigned int gsub_lookup_count;
-  unsigned int gpos_lookup_count;
-
-  hb_ot_layout_lookup_accelerator_t *gsub_accels;
-  hb_ot_layout_lookup_accelerator_t *gpos_accels;
-
-  /* Various non-shaping tables. */
+  /* All the president's tables. */
   struct tables_t
   {
     HB_INTERNAL void init0 (hb_face_t *face);
@@ -127,6 +128,46 @@ struct hb_ot_face_data_t
     HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_TABLE
   } table;
+
+  struct accelerator_t
+  {
+    inline void init0 (hb_face_t *face)
+    {
+      this->face = face;
+      cmap.init0 ();
+      h_metrics.init0 ();
+      v_metrics.init0 ();
+      glyf.init0 ();
+      cbdt.init0 ();
+      post.init0 ();
+      kern.init0 ();
+    }
+    inline void fini (void)
+    {
+      cmap.fini ();
+      h_metrics.fini ();
+      v_metrics.fini ();
+      glyf.fini ();
+      cbdt.fini ();
+      post.fini ();
+      kern.fini ();
+    }
+
+    hb_face_t *face; /* MUST be JUST before the lazy loaders. */
+    hb_face_lazy_loader_t<1, OT::cmap::accelerator_t> cmap;
+    hb_face_lazy_loader_t<2, OT::hmtx::accelerator_t> h_metrics;
+    hb_face_lazy_loader_t<3, OT::vmtx::accelerator_t> v_metrics;
+    hb_face_lazy_loader_t<4, OT::glyf::accelerator_t> glyf;
+    hb_face_lazy_loader_t<5, OT::CBDT::accelerator_t> cbdt;
+    hb_face_lazy_loader_t<6, OT::post::accelerator_t> post;
+    hb_face_lazy_loader_t<7, OT::kern::accelerator_t> kern;
+  } accel;
+
+  /* More accelerators.  Merge into previous. */
+  unsigned int gsub_lookup_count;
+  unsigned int gpos_lookup_count;
+  hb_ot_layout_lookup_accelerator_t *gsub_accels;
+  hb_ot_layout_lookup_accelerator_t *gpos_accels;
 };
 
 

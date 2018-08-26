@@ -30,73 +30,10 @@
 
 #include "hb-font.hh"
 #include "hb-machinery.hh"
-
-#include "hb-ot-cmap-table.hh"
-#include "hb-ot-glyf-table.hh"
-#include "hb-ot-hmtx-table.hh"
-#include "hb-ot-kern-table.hh"
-#include "hb-ot-post-table.hh"
-
-#include "hb-ot-color-cbdt-table.hh"
+#include "hb-ot-face.hh"
 
 
-struct hb_ot_font_t
-{
-  inline void init0 (hb_face_t *face)
-  {
-    this->face = face;
-    cmap.init0 ();
-    h_metrics.init0 ();
-    v_metrics.init0 ();
-    glyf.init0 ();
-    cbdt.init0 ();
-    post.init0 ();
-    kern.init0 ();
-  }
-  inline void fini (void)
-  {
-    cmap.fini ();
-    h_metrics.fini ();
-    v_metrics.fini ();
-    glyf.fini ();
-    cbdt.fini ();
-    post.fini ();
-    kern.fini ();
-  }
-
-  hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-  hb_face_lazy_loader_t<1, OT::cmap::accelerator_t> cmap;
-  hb_face_lazy_loader_t<2, OT::hmtx::accelerator_t> h_metrics;
-  hb_face_lazy_loader_t<3, OT::vmtx::accelerator_t> v_metrics;
-  hb_face_lazy_loader_t<4, OT::glyf::accelerator_t> glyf;
-  hb_face_lazy_loader_t<5, OT::CBDT::accelerator_t> cbdt;
-  hb_face_lazy_loader_t<6, OT::post::accelerator_t> post;
-  hb_face_lazy_loader_t<7, OT::kern::accelerator_t> kern;
-};
-
-
-static hb_ot_font_t *
-_hb_ot_font_create (hb_face_t *face)
-{
-  hb_ot_font_t *ot_font = (hb_ot_font_t *) calloc (1, sizeof (hb_ot_font_t));
-
-  if (unlikely (!ot_font))
-    return nullptr;
-
-  ot_font->init0 (face);
-
-  return ot_font;
-}
-
-static void
-_hb_ot_font_destroy (void *data)
-{
-  hb_ot_font_t *ot_font = (hb_ot_font_t *) data;
-
-  ot_font->fini ();
-
-  free (ot_font);
-}
+typedef hb_ot_face_data_t::accelerator_t hb_ot_font_t;
 
 
 static hb_bool_t
@@ -281,10 +218,10 @@ _hb_ot_get_font_funcs (void)
 void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
-  hb_ot_font_t *ot_font = _hb_ot_font_create (font->face);
-  if (unlikely (!ot_font))
-    return;
+  if (unlikely (!hb_ot_shaper_face_data_ensure (font->face))) return;
+  hb_ot_font_t *ot_font =  &hb_ot_face_data (font->face)->accel;
 
+  /* Load them lazies.  We access them with get_relaxed() for performance. */
   ot_font->cmap.get ();
   ot_font->h_metrics.get ();
   ot_font->v_metrics.get ();
@@ -292,5 +229,5 @@ hb_ot_font_set_funcs (hb_font_t *font)
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
 		     ot_font,
-		     _hb_ot_font_destroy);
+		     nullptr);
 }

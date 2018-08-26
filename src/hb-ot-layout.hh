@@ -34,7 +34,6 @@
 #include "hb-font.hh"
 #include "hb-buffer.hh"
 #include "hb-open-type.hh"
-#include "hb-ot-face.hh"
 
 
 /* Private API corresponding to hb-ot-layout.h: */
