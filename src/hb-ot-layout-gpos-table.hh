@@ -1630,7 +1630,7 @@ GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const PosLookup &l = hb_ot_face_data (c->face)->table.GPOS->get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos (c->face)->get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
