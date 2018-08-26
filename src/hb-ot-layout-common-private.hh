@@ -743,6 +743,7 @@ struct CoverageFormat1
   /* Older compilers need this to be public. */
   struct Iter {
     inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
+    inline void fini (void) {};
     inline bool more (void) { return i < c->glyphArray.len; }
     inline void next (void) { i++; }
     inline hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
@@ -859,6 +860,7 @@ struct CoverageFormat2
         i = c->rangeRecord.len;
       }
     }
+    inline void fini (void) {};
     inline bool more (void) { return i < c->rangeRecord.len; }
     inline void next (void)
     {
@@ -924,7 +926,8 @@ struct Coverage
       if (glyphs[i - 1] + 1 != glyphs[i])
         num_ranges++;
     u.format.set (num_glyphs * 2 < num_ranges * 3 ? 1 : 2);
-    switch (u.format) {
+    switch (u.format)
+    {
     case 1: return_trace (u.format1.serialize (c, glyphs, num_glyphs));
     case 2: return_trace (u.format2.serialize (c, glyphs, num_glyphs));
     default:return_trace (false);
@@ -935,25 +938,27 @@ struct Coverage
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
-    switch (u.format) {
+    switch (u.format)
+    {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     default:return_trace (true);
     }
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
     /* TODO speed this up */
-    Coverage::Iter iter;
-    for (iter.init (*this); iter.more (); iter.next ()) {
+    for (hb_auto_t<Coverage::Iter> iter (*this); iter.more (); iter.next ())
       if (glyphs->has (iter.get_glyph ()))
         return true;
-    }
     return false;
   }
 
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
-    switch (u.format) {
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  {
+    switch (u.format)
+    {
     case 1: return u.format1.intersects_coverage (glyphs, index);
     case 2: return u.format2.intersects_coverage (glyphs, index);
     default:return false;
@@ -963,47 +968,61 @@ struct Coverage
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
-    switch (u.format) {
+  inline bool add_coverage (set_t *glyphs) const
+  {
+    switch (u.format)
+    {
     case 1: return u.format1.add_coverage (glyphs);
     case 2: return u.format2.add_coverage (glyphs);
     default:return false;
     }
   }
 
-  struct Iter {
+  struct Iter
+  {
     Iter (void) : format (0), u () {};
-    inline void init (const Coverage &c_) {
+    inline void init (const Coverage &c_)
+    {
       format = c_.u.format;
-      switch (format) {
+      switch (format)
+      {
       case 1: u.format1.init (c_.u.format1); return;
       case 2: u.format2.init (c_.u.format2); return;
-      default:                               return;
+      default:				     return;
       }
     }
-    inline bool more (void) {
-      switch (format) {
+    inline void fini (void) {}
+    inline bool more (void)
+    {
+      switch (format)
+      {
       case 1: return u.format1.more ();
       case 2: return u.format2.more ();
       default:return false;
       }
     }
-    inline void next (void) {
-      switch (format) {
+    inline void next (void)
+    {
+      switch (format)
+      {
       case 1: u.format1.next (); break;
       case 2: u.format2.next (); break;
-      default:                   break;
+      default:			 break;
       }
     }
-    inline hb_codepoint_t get_glyph (void) {
-      switch (format) {
+    inline hb_codepoint_t get_glyph (void)
+    {
+      switch (format)
+      {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
       default:return 0;
       }
     }
-    inline unsigned int get_coverage (void) {
-      switch (format) {
+    inline unsigned int get_coverage (void)
+    {
+      switch (format)
+      {
       case 1: return u.format1.get_coverage ();
       case 2: return u.format2.get_coverage ();
       default:return -1;

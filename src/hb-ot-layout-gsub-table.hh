@@ -40,8 +40,7 @@ struct SingleSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -55,8 +54,7 @@ struct SingleSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -125,9 +123,8 @@ struct SingleSubstFormat2
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -140,9 +137,8 @@ struct SingleSubstFormat2
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -332,9 +328,8 @@ struct MultipleSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = sequence.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -454,9 +449,8 @@ struct AlternateSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = alternateSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -473,9 +467,8 @@ struct AlternateSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = alternateSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -781,9 +774,8 @@ struct LigatureSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = ligatureSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -796,9 +788,8 @@ struct LigatureSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = ligatureSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -950,9 +941,8 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    Coverage::Iter iter;
     count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
