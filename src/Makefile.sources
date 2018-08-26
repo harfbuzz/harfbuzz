@@ -98,6 +98,8 @@ HB_OT_sources = \
 	hb-aat-layout-trak-table.hh \
 	hb-aat-layout.hh \
 	hb-aat-ltag-table.hh \
+	hb-ot-face.hh \
+	hb-ot-face.cc \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-base-table.hh \

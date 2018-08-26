@@ -26,7 +26,7 @@
 
 #include "hb-open-type.hh"
 
-#include "hb-ot-layout.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot-math-table.hh"
 
 static inline const OT::MATH&

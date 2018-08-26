@@ -26,7 +26,7 @@
 
 #include "hb-open-type.hh"
 
-#include "hb-ot-layout.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot-var-avar-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var-mvar-table.hh"

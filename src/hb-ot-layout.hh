@@ -33,8 +33,8 @@
 
 #include "hb-font.hh"
 #include "hb-buffer.hh"
-#include "hb-set-digest.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-face.hh"
 
 
 /* Private API corresponding to hb-ot-layout.h: */
@@ -114,112 +114,6 @@ hb_ot_layout_position_finish_advances (hb_font_t    *font,
 HB_INTERNAL void
 hb_ot_layout_position_finish_offsets (hb_font_t    *font,
 				      hb_buffer_t  *buffer);
-
-
-
-/*
- * hb_ot_face_data_t
- */
-
-struct hb_ot_layout_lookup_accelerator_t
-{
-  template <typename TLookup>
-  inline void init (const TLookup &lookup)
-  {
-    digest.init ();
-    lookup.add_coverage (&digest);
-  }
-
-  inline void fini (void)
-  {
-  }
-
-  inline bool may_have (hb_codepoint_t g) const {
-    return digest.may_have (g);
-  }
-
-  private:
-  hb_set_digest_t digest;
-};
-
-/* Most of these tables are NOT needed for shaping.  But we need to hook them *somewhere*.
- * This is as good as any place. */
-#define HB_OT_LAYOUT_TABLES \
-    /* OpenType shaping. */ \
-    HB_OT_LAYOUT_TABLE(OT, GDEF) \
-    HB_OT_LAYOUT_TABLE(OT, GSUB) \
-    HB_OT_LAYOUT_TABLE(OT, GPOS) \
-    HB_OT_LAYOUT_TABLE(OT, JSTF) \
-    HB_OT_LAYOUT_TABLE(OT, BASE) \
-    /* AAT shaping. */ \
-    HB_OT_LAYOUT_TABLE(AAT, morx) \
-    HB_OT_LAYOUT_TABLE(AAT, kerx) \
-    HB_OT_LAYOUT_TABLE(AAT, ankr) \
-    HB_OT_LAYOUT_TABLE(AAT, trak) \
-    /* OpenType variations. */ \
-    HB_OT_LAYOUT_TABLE(OT, fvar) \
-    HB_OT_LAYOUT_TABLE(OT, avar) \
-    HB_OT_LAYOUT_TABLE(OT, MVAR) \
-    /* OpenType color. */ \
-    HB_OT_LAYOUT_TABLE(OT, COLR) \
-    HB_OT_LAYOUT_TABLE(OT, CPAL) \
-    HB_OT_LAYOUT_TABLE(OT, CBDT) \
-    HB_OT_LAYOUT_TABLE(OT, CBLC) \
-    HB_OT_LAYOUT_TABLE(OT, sbix) \
-    HB_OT_LAYOUT_TABLE(OT, svg) \
-    /* OpenType math. */ \
-    HB_OT_LAYOUT_TABLE(OT, MATH) \
-    /* OpenType fundamentals. */ \
-    HB_OT_LAYOUT_TABLE(OT, post) \
-    /* */
-
-/* Declare tables. */
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) namespace Namespace { struct Type; }
-HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_TABLE
-
-struct hb_ot_face_data_t
-{
-  unsigned int gsub_lookup_count;
-  unsigned int gpos_lookup_count;
-
-  hb_ot_layout_lookup_accelerator_t *gsub_accels;
-  hb_ot_layout_lookup_accelerator_t *gpos_accels;
-
-  /* Various non-shaping tables. */
-  struct tables_t
-  {
-    HB_INTERNAL void init0 (hb_face_t *face);
-    HB_INTERNAL void fini (void);
-
-#define HB_OT_LAYOUT_TABLE_ORDER(Namespace, Type) \
-      HB_PASTE (ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
-    enum order_t
-    {
-      ORDER_ZERO,
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-	HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
-      HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_TABLE
-    };
-
-    hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-    hb_table_lazy_loader_t<struct Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
-    HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_TABLE
-  } table;
-};
-
-
-HB_INTERNAL hb_ot_face_data_t *
-_hb_ot_face_data_create (hb_face_t *face);
-
-HB_INTERNAL void
-_hb_ot_face_data_destroy (hb_ot_face_data_t *data);
-
-
-#define hb_ot_face_data(face) ((hb_ot_face_data_t *) face->shaper_data.ot.get_relaxed ())
 
 
 /*
