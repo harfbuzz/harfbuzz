@@ -605,6 +605,7 @@ hb_shape_plan_t
 
 <SECTION>
 <FILE>hb-unicode</FILE>
+HB_UNICODE_MAX
 HB_UNICODE_MAX_DECOMPOSITION_LEN
 hb_unicode_combining_class
 hb_unicode_combining_class_func_t

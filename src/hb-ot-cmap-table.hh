@@ -37,10 +37,6 @@
  */
 #define HB_OT_TAG_cmap HB_TAG('c','m','a','p')
 
-#ifndef HB_MAX_UNICODE_CODEPOINT_VALUE
-#define HB_MAX_UNICODE_CODEPOINT_VALUE 0x10FFFF
-#endif
-
 namespace OT {
 
 
@@ -478,7 +474,7 @@ struct CmapSubtableLongSegmented
     for (unsigned int i = 0; i < this->groups.len; i++) {
       out->add_range (this->groups[i].startCharCode,
 		      MIN ((hb_codepoint_t) this->groups[i].endCharCode,
-			   (hb_codepoint_t) HB_MAX_UNICODE_CODEPOINT_VALUE));
+			   (hb_codepoint_t) HB_UNICODE_MAX));
     }
   }
 
@@ -624,7 +620,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
     {
       hb_codepoint_t first = arrayZ[i].startUnicodeValue;
       hb_codepoint_t last = MIN ((hb_codepoint_t) (first + arrayZ[i].additionalCount),
-				 (hb_codepoint_t) HB_MAX_UNICODE_CODEPOINT_VALUE);
+				 (hb_codepoint_t) HB_UNICODE_MAX);
       out->add_range (first, last);
     }
   }
