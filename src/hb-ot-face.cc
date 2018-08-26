@@ -37,7 +37,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 
 
-void hb_ot_face_data_t::tables_t::init0 (hb_face_t *face)
+void hb_ot_face_data_t::init0 (hb_face_t *face)
 {
   this->face = face;
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.init0 ();
@@ -46,7 +46,7 @@ void hb_ot_face_data_t::tables_t::init0 (hb_face_t *face)
 #undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
 }
-void hb_ot_face_data_t::tables_t::fini (void)
+void hb_ot_face_data_t::fini (void)
 {
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.fini ();
 #define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
@@ -62,7 +62,7 @@ _hb_ot_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return nullptr;
 
-  data->table.init0 (face);
+  data->init0 (face);
 
   return data;
 }
@@ -70,7 +70,7 @@ _hb_ot_face_data_create (hb_face_t *face)
 void
 _hb_ot_face_data_destroy (hb_ot_face_data_t *data)
 {
-  data->table.fini ();
+  data->fini ();
   free (data);
 }
 

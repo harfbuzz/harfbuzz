@@ -80,33 +80,29 @@ HB_OT_LAYOUT_TABLES
 
 struct hb_ot_face_data_t
 {
-  /* All the president's tables. */
-  struct tables_t
-  {
-    HB_INTERNAL void init0 (hb_face_t *face);
-    HB_INTERNAL void fini (void);
+  HB_INTERNAL void init0 (hb_face_t *face);
+  HB_INTERNAL void fini (void);
 
 #define HB_OT_LAYOUT_TABLE_ORDER(Namespace, Type) \
-      HB_PASTE (ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
-    enum order_t
-    {
-      ORDER_ZERO,
+    HB_PASTE (ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))
+  enum order_t
+  {
+    ORDER_ZERO,
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
 #define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
-      HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_ACCELERATOR
-#undef HB_OT_LAYOUT_TABLE
-    };
-
-    hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-    hb_table_lazy_loader_t<Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
-#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) \
-    hb_face_lazy_loader_t<Namespace::Type##_accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
     HB_OT_LAYOUT_TABLES
 #undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
-  } table;
+  };
+
+  hb_face_t *face; /* MUST be JUST before the lazy loaders. */
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
+  hb_table_lazy_loader_t<Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) \
+  hb_face_lazy_loader_t<Namespace::Type##_accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+  HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
+#undef HB_OT_LAYOUT_TABLE
 };
 
 

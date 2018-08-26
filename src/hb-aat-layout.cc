@@ -49,9 +49,9 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(AAT::morx);
   }
-  const AAT::morx& morx = *(hb_ot_face_data (face)->table.morx.get ());
+  const AAT::morx& morx = *(hb_ot_face_data (face)->morx.get ());
   if (blob)
-    *blob = hb_ot_face_data (face)->table.morx.get_blob ();
+    *blob = hb_ot_face_data (face)->morx.get_blob ();
   return morx;
 }
 

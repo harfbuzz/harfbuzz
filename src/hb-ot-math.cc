@@ -33,8 +33,8 @@ static inline const OT::MATH&
 _get_math (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::MATH);
-  hb_ot_face_data_t * layout = hb_ot_face_data (face);
-  return *(layout->table.MATH.get ());
+  hb_ot_face_data_t * data = hb_ot_face_data (face);
+  return *(data->MATH.get ());
 }
 
 /*
