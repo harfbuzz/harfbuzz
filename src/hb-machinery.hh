@@ -763,6 +763,10 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     }
     return p;
   }
+  inline Stored * get_stored_relaxed (void) const
+  {
+    return this->instance.get_relaxed ();
+  }
 
   inline void set_stored (Stored *instance_)
   {
@@ -776,6 +780,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   }
 
   inline const Returned * get (void) const { return Funcs::convert (get_stored ()); }
+  inline const Returned * get_relaxed (void) const { return Funcs::convert (get_stored_relaxed ()); }
   inline Returned * get_unconst (void) const { return const_cast<Returned *> (Funcs::convert (get_stored ())); }
 
   /* To be possibly overloaded by subclasses. */
