@@ -42,16 +42,16 @@
 
 struct hb_ot_font_t
 {
-  inline void init (hb_face_t *face)
+  inline void init0 (hb_face_t *face)
   {
     this->face = face;
-    cmap.init ();
-    h_metrics.init ();
-    v_metrics.init ();
-    glyf.init ();
-    cbdt.init ();
-    post.init ();
-    kern.init ();
+    cmap.init0 ();
+    h_metrics.init0 ();
+    v_metrics.init0 ();
+    glyf.init0 ();
+    cbdt.init0 ();
+    post.init0 ();
+    kern.init0 ();
   }
   inline void fini (void)
   {
@@ -83,7 +83,7 @@ _hb_ot_font_create (hb_face_t *face)
   if (unlikely (!ot_font))
     return nullptr;
 
-  ot_font->init (face);
+  ot_font->init0 (face);
 
   return ot_font;
 }
