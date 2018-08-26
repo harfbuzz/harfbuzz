@@ -247,10 +247,8 @@ void
 hb_subset_collect_unicodes (hb_face_t *face, hb_set_t *out)
 {
   /* XXX Use saved accel. */
-  OT::cmap::accelerator_t cmap;
-  cmap.init (face);
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
   cmap.collect_unicodes (out);
-  cmap.fini();
 }
 
 /**
@@ -267,10 +265,8 @@ hb_subset_collect_variation_selectors (hb_face_t *face,
 				       hb_set_t *out)
 {
   /* XXX Use saved accel. */
-  OT::cmap::accelerator_t cmap;
-  cmap.init (face);
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
   cmap.collect_variation_selectors (out);
-  cmap.fini();
 }
 
 /**
@@ -288,9 +284,7 @@ hb_subset_collect_variation_unicodes (hb_face_t *face,
 				      hb_set_t *out)
 {
   /* XXX Use saved accel. */
-  OT::cmap::accelerator_t cmap;
-  cmap.init (face);
+  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
   cmap.collect_variation_unicodes (variation_selector, out);
-  cmap.fini();
 }
 
