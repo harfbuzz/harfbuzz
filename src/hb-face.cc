@@ -31,7 +31,7 @@
 #include "hb-face.hh"
 #include "hb-blob.hh"
 #include "hb-open-file.hh"
-#include "hb-ot-cmap-table.hh"
+#include "hb-ot-face.hh"
 
 
 /**
@@ -519,6 +519,7 @@ hb_face_get_table_tags (const hb_face_t *face,
  * Character set.
  */
 
+
 /**
  * hb_face_collect_unicodes:
  * @face: font face.
@@ -530,9 +531,8 @@ void
 hb_face_collect_unicodes (hb_face_t *face,
 			  hb_set_t  *out)
 {
-  /* XXX Use saved accel. */
-  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
-  cmap.collect_unicodes (out);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->table.cmap->collect_unicodes (out);
 }
 
 /**
@@ -548,9 +548,8 @@ void
 hb_face_collect_variation_selectors (hb_face_t *face,
 				     hb_set_t  *out)
 {
-  /* XXX Use saved accel. */
-  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
-  cmap.collect_variation_selectors (out);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->table.cmap->collect_variation_selectors (out);
 }
 
 /**
@@ -567,9 +566,8 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 				    hb_codepoint_t variation_selector,
 				    hb_set_t  *out)
 {
-  /* XXX Use saved accel. */
-  hb_auto_t<OT::cmap::accelerator_t> cmap (face);
-  cmap.collect_variation_unicodes (variation_selector, out);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->table.cmap->collect_variation_unicodes (variation_selector, out);
 }
 
 
