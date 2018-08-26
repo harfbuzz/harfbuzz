@@ -85,21 +85,23 @@ struct hb_ot_layout_lookup_accelerator_t
     HB_OT_LAYOUT_TABLE(OT, fvar) \
     HB_OT_LAYOUT_TABLE(OT, avar) \
     HB_OT_LAYOUT_TABLE(OT, MVAR) \
-    /* OpenType color. */ \
-    HB_OT_LAYOUT_TABLE(OT, COLR) \
-    HB_OT_LAYOUT_TABLE(OT, CPAL) \
-    HB_OT_LAYOUT_TABLE(OT, CBDT) \
-    HB_OT_LAYOUT_TABLE(OT, CBLC) \
-    HB_OT_LAYOUT_TABLE(OT, sbix) \
-    HB_OT_LAYOUT_TABLE(OT, svg) \
     /* OpenType math. */ \
     HB_OT_LAYOUT_TABLE(OT, MATH) \
     /* OpenType fundamentals. */ \
+    HB_OT_LAYOUT_ACCELERATOR(OT, cmap) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, hmtx) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, vmtx) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, post) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, kern) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, glyf) \
+    HB_OT_LAYOUT_ACCELERATOR(OT, CBDT) \
     /* */
 
 /* Declare tables. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) namespace Namespace { struct Type; }
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
 HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
 
 struct hb_ot_face_data_t
@@ -115,52 +117,22 @@ struct hb_ot_face_data_t
     enum order_t
     {
       ORDER_ZERO,
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) \
-	HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
+#define HB_OT_LAYOUT_TABLE(Namespace, Type) HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type),
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
       HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
     };
 
     hb_face_t *face; /* MUST be JUST before the lazy loaders. */
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) \
     hb_table_lazy_loader_t<struct Namespace::Type, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) \
+    hb_face_lazy_loader_t<struct Namespace::Type::accelerator_t, HB_OT_LAYOUT_TABLE_ORDER (Namespace, Type)> Type;
     HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
   } table;
-
-  struct accelerator_t
-  {
-    inline void init0 (hb_face_t *face)
-    {
-      this->face = face;
-      cmap.init0 ();
-      hmtx.init0 ();
-      vmtx.init0 ();
-      glyf.init0 ();
-      cbdt.init0 ();
-      post.init0 ();
-      kern.init0 ();
-    }
-    inline void fini (void)
-    {
-      cmap.fini ();
-      hmtx.fini ();
-      vmtx.fini ();
-      glyf.fini ();
-      cbdt.fini ();
-      post.fini ();
-      kern.fini ();
-    }
-
-    hb_face_t *face; /* MUST be JUST before the lazy loaders. */
-    hb_face_lazy_loader_t<1, OT::cmap::accelerator_t> cmap;
-    hb_face_lazy_loader_t<2, OT::hmtx::accelerator_t> hmtx;
-    hb_face_lazy_loader_t<3, OT::vmtx::accelerator_t> vmtx;
-    hb_face_lazy_loader_t<4, OT::glyf::accelerator_t> glyf;
-    hb_face_lazy_loader_t<5, OT::CBDT::accelerator_t> cbdt;
-    hb_face_lazy_loader_t<6, OT::post::accelerator_t> post;
-    hb_face_lazy_loader_t<7, OT::kern::accelerator_t> kern;
-  } accel;
 
   /* More accelerators.  Merge into previous. */
   unsigned int gsub_lookup_count;

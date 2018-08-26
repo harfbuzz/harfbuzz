@@ -138,13 +138,17 @@ void hb_ot_face_data_t::tables_t::init0 (hb_face_t *face)
 {
   this->face = face;
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.init0 ();
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
   HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
 }
 void hb_ot_face_data_t::tables_t::fini (void)
 {
 #define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.fini ();
+#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
   HB_OT_LAYOUT_TABLES
+#undef HB_OT_LAYOUT_ACCELERATOR
 #undef HB_OT_LAYOUT_TABLE
 }
 
@@ -156,7 +160,6 @@ _hb_ot_face_data_create (hb_face_t *face)
     return nullptr;
 
   data->table.init0 (face);
-  data->accel.init0 (face);
 
   const OT::GSUB &gsub = *data->table.GSUB;
   const OT::GPOS &gpos = *data->table.GPOS;
@@ -200,7 +203,6 @@ _hb_ot_face_data_destroy (hb_ot_face_data_t *data)
   free (data->gsub_accels);
   free (data->gpos_accels);
 
-  data->accel.fini ();
   data->table.fini ();
 
   free (data);

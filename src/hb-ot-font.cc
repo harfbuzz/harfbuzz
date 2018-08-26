@@ -33,7 +33,7 @@
 #include "hb-ot-face.hh"
 
 
-typedef hb_ot_face_data_t::accelerator_t hb_ot_font_t;
+typedef hb_ot_face_data_t::tables_t hb_ot_font_t;
 
 
 static hb_bool_t
@@ -101,7 +101,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   bool ret = ot_font->glyf->get_extents (glyph, extents);
   if (!ret)
-    ret = ot_font->cbdt->get_extents (glyph, extents);
+    ret = ot_font->CBDT->get_extents (glyph, extents);
   // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
@@ -219,7 +219,7 @@ void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (font->face))) return;
-  hb_ot_font_t *ot_font =  &hb_ot_face_data (font->face)->accel;
+  hb_ot_font_t *ot_font =  &hb_ot_face_data (font->face)->table;
 
   /* Load them lazies.  We access them with get_relaxed() for performance. */
   ot_font->cmap.get ();

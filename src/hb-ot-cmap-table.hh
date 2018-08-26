@@ -843,7 +843,8 @@ struct cmap
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
 
-  struct subset_plan {
+  struct subset_plan
+  {
     subset_plan(void)
     {
       format4_segments.init();

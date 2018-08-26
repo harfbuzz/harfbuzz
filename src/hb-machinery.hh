@@ -815,9 +815,9 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
 /* Specializations. */
 
-template <unsigned int WheresFace, typename T>
+template <typename T, unsigned int WheresFace>
 struct hb_face_lazy_loader_t : hb_lazy_loader_t<T,
-						hb_face_lazy_loader_t<WheresFace, T>,
+						hb_face_lazy_loader_t<T, WheresFace>,
 						hb_face_t, WheresFace> {};
 
 template <typename T, unsigned int WheresFace>
