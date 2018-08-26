@@ -213,6 +213,24 @@ OT::GDEF::accelerator_t::init (hb_face_t *face)
   table = this->blob->as<GDEF> ();
 }
 
+static void
+_hb_ot_layout_set_glyph_props (hb_font_t *font,
+			       hb_buffer_t *buffer)
+{
+  _hb_buffer_assert_gsubgpos_vars (buffer);
+
+  const OT::GDEF &gdef = _get_gdef (font->face);
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+  {
+    _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
+    _hb_glyph_info_clear_lig_props (&buffer->info[i]);
+    buffer->info[i].syllable() = 0;
+  }
+}
+
+/* Public API */
+
 hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face)
 {
@@ -902,9 +920,10 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 }
 
 void
-hb_ot_layout_substitute_start (hb_font_t *font, hb_buffer_t *buffer)
+hb_ot_layout_substitute_start (hb_font_t    *font,
+			       hb_buffer_t  *buffer)
 {
-  OT::GSUB::substitute_start (font, buffer);
+_hb_ot_layout_set_glyph_props (font, buffer);
 }
 
 /**

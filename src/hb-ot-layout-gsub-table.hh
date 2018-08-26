@@ -1308,8 +1308,6 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1320,22 +1318,6 @@ struct GSUB : GSUBGPOS
 
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
 };
-
-
-void
-GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
-{
-  _hb_buffer_assert_gsubgpos_vars (buffer);
-
-  const GDEF &gdef = _get_gdef (font->face);
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-  {
-    _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
-    _hb_glyph_info_clear_lig_props (&buffer->info[i]);
-    buffer->info[i].syllable() = 0;
-  }
-}
 
 
 /* Out-of-class implementation for methods recursing */
