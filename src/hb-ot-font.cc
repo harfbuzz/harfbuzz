@@ -46,7 +46,7 @@ struct hb_ot_font_t
   {
     cmap.init (face);
     h_metrics.init (face);
-    v_metrics.init (face, h_metrics.ascender - h_metrics.descender); /* TODO Can we do this lazily? */
+    v_metrics.init (face);
 
     this->face = face;
     glyf.init ();
