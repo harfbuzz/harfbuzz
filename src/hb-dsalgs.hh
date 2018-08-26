@@ -492,6 +492,7 @@ template <typename Type>
 struct hb_auto_t : Type
 {
   hb_auto_t (void) { Type::init (); }
+  template <typename T1> hb_auto_t (T1 t1) { Type::init (t1); }
   ~hb_auto_t (void) { Type::fini (); }
   private: /* Hide */
   void init (void) {}

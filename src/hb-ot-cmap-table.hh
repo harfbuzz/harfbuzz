@@ -243,6 +243,7 @@ struct CmapSubtableFormat4
       glyphIdArray = idRangeOffset + segCount;
       glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2;
     }
+    inline void fini (void) {}
 
     inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
     {
@@ -313,14 +314,12 @@ struct CmapSubtableFormat4
 
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
-    accelerator_t accel;
-    accel.init (this);
+    hb_auto_t<accelerator_t> accel (this);
     return accel.get_glyph_func (&accel, codepoint, glyph);
   }
   inline void collect_unicodes (hb_set_t *out) const
   {
-    accelerator_t accel;
-    accel.init (this);
+    hb_auto_t<accelerator_t> accel (this);
     accel.collect_unicodes (out);
   }
 
