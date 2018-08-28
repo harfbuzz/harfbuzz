@@ -492,7 +492,14 @@ template <typename Type>
 struct hb_auto_t : Type
 {
   hb_auto_t (void) { Type::init (); }
-  template <typename T1> hb_auto_t (T1 t1) { Type::init (t1); }
+  /* Explicitly allow the following only for pointer and references,
+   * to avoid any accidental copies.
+   *
+   * Apparently if we template for all types, then gcc seems to
+   * capture a reference argument in the type, but clang doesn't,
+   * causing unwanted copies and bugs that come with it. */
+  template <typename T1> hb_auto_t (T1 *t1) { Type::init (t1); }
+  template <typename T1> hb_auto_t (T1 &t1) { Type::init (t1); }
   ~hb_auto_t (void) { Type::fini (); }
   private: /* Hide */
   void init (void) {}
