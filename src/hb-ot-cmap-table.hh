@@ -48,7 +48,7 @@ struct CmapSubtableFormat0
     if (!gid)
       return false;
     *glyph = gid;
-    return *glyph != 0;
+    return true;
   }
   inline void collect_unicodes (hb_set_t *out) const
   {
@@ -279,9 +279,11 @@ struct CmapSubtableFormat4
 	  return false;
 	gid += this->idDelta[i];
       }
-
-      *glyph = gid & 0xFFFFu;
-      return *glyph != 0;
+      gid &= 0xFFFFu;
+      if (!gid)
+	return false;
+      *glyph = gid;
+      return true;
     }
     static inline bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
     {
@@ -423,7 +425,7 @@ struct CmapSubtableTrimmed
     if (!gid)
       return false;
     *glyph = gid;
-    return *glyph != 0;
+    return true;
   }
   inline void collect_unicodes (hb_set_t *out) const
   {
@@ -465,8 +467,11 @@ struct CmapSubtableLongSegmented
     int i = groups.bsearch (codepoint);
     if (i == -1)
       return false;
-    *glyph = T::group_get_glyph (groups[i], codepoint);
-    return *glyph != 0;
+    hb_codepoint_t gid = T::group_get_glyph (groups[i], codepoint);
+    if (!gid)
+      return false;
+    *glyph = gid;
+    return true;
   }
 
   inline void collect_unicodes (hb_set_t *out) const
@@ -674,7 +679,7 @@ struct VariationSelectorRecord
       return GLYPH_VARIANT_USE_DEFAULT;
     const NonDefaultUVS &nonDefaults = base+nonDefaultUVS;
     i = nonDefaults.bsearch (codepoint);
-    if (i != -1)
+    if (i != -1 && nonDefaults[i].glyphID)
     {
       *glyph = nonDefaults[i].glyphID;
        return GLYPH_VARIANT_FOUND;
@@ -1076,8 +1081,8 @@ struct cmap
 				     hb_codepoint_t *glyph) const
     {
       switch (this->subtable_uvs->get_glyph_variant (unicode,
-						  variation_selector,
-						  glyph))
+						     variation_selector,
+						     glyph))
       {
 	case GLYPH_VARIANT_NOT_FOUND:	return false;
 	case GLYPH_VARIANT_FOUND:	return true;
