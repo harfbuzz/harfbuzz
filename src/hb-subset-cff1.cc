@@ -226,8 +226,8 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, ByteStrBuff>
             return false;
         break;
       default:
-        if (!CSOpSet::is_subr_op (op) &&
-            !CSOpSet::is_arg_op (op))
+        if (!SUPER::is_subr_op (op) &&
+            !SUPER::is_arg_op (op))
           return flatStr.encode_op (op);
     }
     return true;
