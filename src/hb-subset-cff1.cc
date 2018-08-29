@@ -226,8 +226,8 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, ByteStrBuff>
             return false;
         break;
       default:
-        if (!SUPER::is_subr_op (op) &&
-            !SUPER::is_arg_op (op))
+        if (!CSOPSET::is_subr_op (op) &&
+            !CSOPSET::is_arg_op (op))
           return flatStr.encode_op (op);
     }
     return true;
@@ -242,6 +242,7 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, ByteStrBuff>
 
   private:
   typedef CFF1CSOpSet<CFF1CSOpSet_Flatten, ByteStrBuff> SUPER;
+  typedef CSOpSet<CFF1CSOpSet_Flatten, CFF1CSInterpEnv, ByteStrBuff> CSOPSET;
 };
 
 struct CFF1CSOpSet_SubsetSubrs : CFF1CSOpSet<CFF1CSOpSet_SubsetSubrs, SubrRefMapPair>
