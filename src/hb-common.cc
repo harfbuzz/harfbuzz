@@ -26,9 +26,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-machinery-private.hh"
+#include "hb-machinery.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H

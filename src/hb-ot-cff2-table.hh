@@ -27,7 +27,7 @@
 #ifndef HB_OT_CFF2_TABLE_HH
 #define HB_OT_CFF2_TABLE_HH
 
-#include "hb-ot-cff-common-private.hh"
+#include "hb-ot-cff-common.hh"
 #include "hb-subset-cff2.hh"
 
 namespace CFF {

@@ -26,12 +26,12 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-glib.h"
 
-#include "hb-unicode-private.hh"
-#include "hb-machinery-private.hh"
+#include "hb-unicode.hh"
+#include "hb-machinery.hh"
 
 
 #if !GLIB_CHECK_VERSION(2,29,14)

@@ -13,7 +13,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_face_t *face = hb_face_create (blob, 0);
 
   hb_set_t *output = hb_set_create();
-  hb_subset_get_all_codepoints (face, output);
+  hb_face_collect_unicodes (face, output);
 
   hb_set_destroy (output);
   hb_face_destroy (face);

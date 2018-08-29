@@ -24,12 +24,12 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-set.h"
 #include "hb-subset-cff1.hh"
 #include "hb-subset-plan.hh"
-#include "hb-subset-cff-common-private.hh"
+#include "hb-subset-cff-common.hh"
 #include "hb-cff1-interp-cs.hh"
 
 using namespace CFF;

@@ -24,9 +24,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-#include "hb-shaper-private.hh"
-#include "hb-machinery-private.hh"
+#include "hb.hh"
+#include "hb-shaper.hh"
+#include "hb-machinery.hh"
 
 
 static const hb_shaper_pair_t all_shapers[] = {

@@ -29,9 +29,9 @@
 #ifndef HB_OT_LAYOUT_GDEF_TABLE_HH
 #define HB_OT_LAYOUT_GDEF_TABLE_HH
 
-#include "hb-ot-layout-common-private.hh"
+#include "hb-ot-layout-common.hh"
 
-#include "hb-font-private.hh"
+#include "hb-font.hh"
 
 
 namespace OT {
@@ -337,6 +337,7 @@ struct MarkGlyphSets
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gdef
  */
 
+
 struct GDEF
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_GDEF;
@@ -420,6 +421,18 @@ struct GDEF
     }
   }
 
+  struct accelerator_t
+  {
+    HB_INTERNAL inline void init (hb_face_t *face);
+
+    inline void fini (void)
+    {
+      hb_blob_destroy (this->blob);
+    }
+
+    hb_blob_t *blob;
+    const GDEF *table;
+  };
 
   protected:
   FixedVersion<>version;		/* Version of the GDEF table--currently
@@ -454,6 +467,7 @@ struct GDEF
   DEFINE_SIZE_MIN (12);
 };
 
+struct GDEF_accelerator_t : GDEF::accelerator_t {};
 
 } /* namespace OT */
 

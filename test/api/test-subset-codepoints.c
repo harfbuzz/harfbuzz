@@ -28,12 +28,12 @@
 #include "hb-subset-test.h"
 
 static void
-test_get_all_codepoints_format4 (void)
+test_collect_unicodes_format4 (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.format4.ttf");
   hb_set_t *codepoints = hb_set_create();
 
-  hb_subset_get_all_codepoints (face, codepoints);
+  hb_face_collect_unicodes (face, codepoints);
 
   hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
@@ -49,12 +49,12 @@ test_get_all_codepoints_format4 (void)
 }
 
 static void
-test_get_all_codepoints_format12 (void)
+test_collect_unicodes_format12 (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.format12.ttf");
   hb_set_t *codepoints = hb_set_create();
 
-  hb_subset_get_all_codepoints (face, codepoints);
+  hb_face_collect_unicodes (face, codepoints);
 
   hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
@@ -70,12 +70,12 @@ test_get_all_codepoints_format12 (void)
 }
 
 static void
-test_get_all_codepoints (void)
+test_collect_unicodes (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
   hb_set_t *codepoints = hb_set_create();
 
-  hb_subset_get_all_codepoints (face, codepoints);
+  hb_face_collect_unicodes (face, codepoints);
 
   hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
@@ -95,9 +95,9 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_get_all_codepoints);
-  hb_test_add (test_get_all_codepoints_format4);
-  hb_test_add (test_get_all_codepoints_format12);
+  hb_test_add (test_collect_unicodes);
+  hb_test_add (test_collect_unicodes_format4);
+  hb_test_add (test_collect_unicodes_format12);
 
   return hb_test_run();
 }

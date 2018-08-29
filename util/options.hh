@@ -27,7 +27,7 @@
 #ifndef OPTIONS_HH
 #define OPTIONS_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include <stdlib.h>
 #include <stddef.h>

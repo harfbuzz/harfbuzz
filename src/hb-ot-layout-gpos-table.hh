@@ -29,7 +29,7 @@
 #ifndef HB_OT_LAYOUT_GPOS_TABLE_HH
 #define HB_OT_LAYOUT_GPOS_TABLE_HH
 
-#include "hb-ot-layout-gsubgpos-private.hh"
+#include "hb-ot-layout-gsubgpos.hh"
 
 
 namespace OT {
@@ -1522,6 +1522,8 @@ struct GPOS : GSUBGPOS
     const OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return_trace (list.sanitize (c, this));
   }
+
+  typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
 
 
@@ -1628,15 +1630,13 @@ GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->table.GPOS);
-  const PosLookup &l = gpos.get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos_relaxed (c->face)->get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->table.GPOS);
-  const PosLookup &l = gpos.get_lookup (lookup_index);
+  const PosLookup &l = _get_gpos_relaxed (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);
@@ -1646,6 +1646,8 @@ template <typename context_t>
   c->set_lookup_props (saved_lookup_props);
   return ret;
 }
+
+struct GPOS_accelerator_t : GPOS::accelerator_t {};
 
 
 #undef attach_chain

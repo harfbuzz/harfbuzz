@@ -170,6 +170,7 @@ hb_coretext_font_get_ct_font
 <SECTION>
 <FILE>hb-face</FILE>
 hb_face_count
+hb_face_t
 hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
@@ -188,7 +189,11 @@ hb_face_set_glyph_count
 hb_face_set_index
 hb_face_set_upem
 hb_face_set_user_data
-hb_face_t
+hb_face_collect_unicodes
+hb_face_collect_variation_selectors
+hb_face_collect_variation_unicodes
+hb_face_builder_create
+hb_face_builder_add_table
 </SECTION>
 
 <SECTION>
@@ -226,6 +231,7 @@ hb_font_get_glyph
 hb_font_get_glyph_advance_for_direction
 hb_font_get_glyph_advance_func_t
 hb_font_get_glyph_advances_for_direction
+hb_font_get_glyph_advances_func_t
 hb_font_get_glyph_contour_point
 hb_font_get_glyph_contour_point_for_origin
 hb_font_get_glyph_contour_point_func_t
@@ -602,6 +608,7 @@ hb_shape_plan_t
 
 <SECTION>
 <FILE>hb-unicode</FILE>
+HB_UNICODE_MAX
 HB_UNICODE_MAX_DECOMPOSITION_LEN
 hb_unicode_combining_class
 hb_unicode_combining_class_func_t

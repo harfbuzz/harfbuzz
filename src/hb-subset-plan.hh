@@ -27,12 +27,12 @@
 #ifndef HB_SUBSET_PLAN_HH
 #define HB_SUBSET_PLAN_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-subset.h"
-#include "hb-subset-private.hh"
+#include "hb-subset.hh"
 
-#include "hb-map-private.hh"
+#include "hb-map.hh"
 
 struct hb_subset_plan_t
 {
@@ -89,7 +89,7 @@ struct hb_subset_plan_t
               hb_blob_get_length (contents),
               hb_blob_get_length (source_blob));
     hb_blob_destroy (source_blob);
-    return hb_subset_face_add_table(dest, tag, contents);
+    return hb_face_builder_add_table (dest, tag, contents);
   }
 };
 

@@ -29,7 +29,7 @@
 #ifndef HB_OT_LAYOUT_GSUB_TABLE_HH
 #define HB_OT_LAYOUT_GSUB_TABLE_HH
 
-#include "hb-ot-layout-gsubgpos-private.hh"
+#include "hb-ot-layout-gsubgpos.hh"
 
 
 namespace OT {
@@ -40,8 +40,7 @@ struct SingleSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -55,8 +54,7 @@ struct SingleSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -125,9 +123,8 @@ struct SingleSubstFormat2
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -140,9 +137,8 @@ struct SingleSubstFormat2
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -332,9 +328,8 @@ struct MultipleSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = sequence.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -454,9 +449,8 @@ struct AlternateSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = alternateSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -473,9 +467,8 @@ struct AlternateSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = alternateSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -781,9 +774,8 @@ struct LigatureSubstFormat1
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    Coverage::Iter iter;
     unsigned int count = ligatureSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -796,9 +788,8 @@ struct LigatureSubstFormat1
   {
     TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    Coverage::Iter iter;
     unsigned int count = ligatureSet.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -950,9 +941,8 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    Coverage::Iter iter;
     count = substitute.len;
-    for (iter.init (this+coverage); iter.more (); iter.next ())
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -1318,8 +1308,6 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1327,23 +1315,9 @@ struct GSUB : GSUBGPOS
     const OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return_trace (list.sanitize (c, this));
   }
+
+  typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
 };
-
-
-void
-GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
-{
-  _hb_buffer_assert_gsubgpos_vars (buffer);
-
-  const GDEF &gdef = *hb_ot_layout_from_face (font->face)->table.GDEF;
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-  {
-    _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
-    _hb_glyph_info_clear_lig_props (&buffer->info[i]);
-    buffer->info[i].syllable() = 0;
-  }
-}
 
 
 /* Out-of-class implementation for methods recursing */
@@ -1359,15 +1333,13 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 template <typename context_t>
 /*static*/ inline typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->table.GSUB);
-  const SubstLookup &l = gsub.get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool SubstLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->table.GSUB);
-  const SubstLookup &l = gsub.get_lookup (lookup_index);
+  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);
@@ -1378,6 +1350,7 @@ template <typename context_t>
   return ret;
 }
 
+struct GSUB_accelerator_t : GSUB::accelerator_t {};
 
 } /* namespace OT */
 

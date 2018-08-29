@@ -27,7 +27,7 @@
 #ifndef HB_SUBSET_CFF1_HH
 #define HB_SUBSET_CFF1_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-subset-plan.hh"
 
