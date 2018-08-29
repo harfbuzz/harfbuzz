@@ -34,12 +34,108 @@
 
 namespace CFF {
 
+/* Used for writing a temporary charstring */
+struct ByteStrBuff : hb_vector_t<char, 1>
+{
+  inline bool encode_byte (unsigned char b)
+  {
+    return (push ((const char)b) != &Crap(char));
+  }
+
+  inline bool encode_num (const Number& n)
+  {
+    if (n.in_int_range ())
+    {
+      int v = n.to_int ();
+      if ((-1131 <= v) && (v <= 1131))
+      {
+        if ((-107 <= v) && (v <= 107))
+          return encode_byte (v + 139);
+        else if (v > 0)
+        {
+          v -= 108;
+          return encode_byte ((v >> 8) + OpCode_TwoBytePosInt0) && encode_byte (v & 0xFF);
+        }
+        else
+        {
+          v = -v - 108;
+          return encode_byte ((v >> 8) + OpCode_TwoByteNegInt0) && encode_byte (v & 0xFF);
+        }
+      }
+      assert ((v & ~0xFFFF) == 0);
+      return encode_byte (OpCode_shortint) &&
+             encode_byte ((v >> 8) & 0xFF) &&
+             encode_byte (v & 0xFF);
+    }
+    else
+    {
+      int32_t v = n.to_fixed ();
+      return encode_byte (OpCode_fixedcs) &&
+             encode_byte ((v >> 24) & 0xFF) &&
+             encode_byte ((v >> 16) & 0xFF) &&
+             encode_byte ((v >> 8) & 0xFF) &&
+             encode_byte (v & 0xFF);
+    }
+  }
+
+  inline bool encode_op (OpCode op)
+  {
+    if (Is_OpCode_ESC (op))
+      return encode_byte (OpCode_escape) &&
+             encode_byte (Unmake_OpCode_ESC (op));
+    else
+      return encode_byte (op);
+  }
+};
+
+struct ByteStrBuffArray : hb_vector_t<ByteStrBuff, 1>
+{
+  inline void fini (void)
+  {
+    for (unsigned int i = 0; i < len; i++)
+      hb_vector_t<ByteStrBuff, 1>::operator[] (i).fini ();
+    hb_vector_t<ByteStrBuff, 1>::fini ();
+  }
+};
+
+
+template <typename ACCESSOR, typename ENV, typename OPSET>
+struct SubrFlattener
+{
+  inline SubrFlattener (const ACCESSOR &acc_, const hb_vector_t<hb_codepoint_t> &glyphs_)
+    : acc (acc_),
+      glyphs (glyphs_)
+  {}
+
+  inline bool flatten (ByteStrBuffArray &flat_charstrings)
+  {
+    if (!flat_charstrings.resize (glyphs.len))
+      return false;
+    for (unsigned int i = 0; i < glyphs.len; i++)
+      flat_charstrings[i].init ();
+    for (unsigned int i = 0; i < glyphs.len; i++)
+    {
+      hb_codepoint_t  glyph = glyphs[i];
+      const ByteStr str = (*acc.charStrings)[glyph];
+      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      CSInterpreter<ENV, OPSET, ByteStrBuff> interp;
+      interp.env.init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
+      if (unlikely (!interp.interpret (flat_charstrings[i])))
+        return false;
+    }
+    return true;
+  }
+  
+  const ACCESSOR &acc;
+  const hb_vector_t<hb_codepoint_t> &glyphs;
+};
+
 struct SubrRefMaps
 {
-  inline SubrRefMaps (void)
-    : valid (false),
-      global_map (nullptr)
+  inline void init (void)
   {
+    valid = false;
+    global_map = nullptr;
     local_maps.init ();
   }
 

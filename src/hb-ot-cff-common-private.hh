@@ -299,12 +299,12 @@ struct Dict : UnsizedByteStr
 
     TRACE_SERIALIZE (this);
     /* serialize the opcode */
-    HBUINT8 *p = c->allocate_size<HBUINT8> ((op >= OpCode_ESC_Base)? 2: 1);
+    HBUINT8 *p = c->allocate_size<HBUINT8> (OpCode_Size (op));
     if (unlikely (p == nullptr)) return_trace (false);
-    if (op >= OpCode_ESC_Base)
+    if (Is_OpCode_ESC (op))
     {
       p->set (OpCode_escape);
-      op = (OpCode)(op - OpCode_ESC_Base);
+      op = Unmake_OpCode_ESC (op);
       p++;
     }
     p->set (op);
@@ -344,7 +344,7 @@ struct FDMap : hb_vector_t<hb_codepoint_t>
   inline bool fullset (void) const
   {
     for (unsigned int i = 0; i < len; i++)
-      if ((*this)[i] == HB_SET_VALUE_INVALID)
+      if (hb_vector_t<hb_codepoint_t>::operator[] (i) == HB_SET_VALUE_INVALID)
         return false;
     return true;
   }
@@ -574,7 +574,7 @@ struct Subrs : CFFIndex<COUNT>
     TRACE_SERIALIZE (this);
     if (&subrs == &Null(Subrs<COUNT>))
       return_trace (true);
-    if ((subrs.count == 0) || (hb_set_get_population (set) == 0))
+    if ((subrs.count == 0) || (set == nullptr) || (hb_set_is_empty (set)))
     {
       if (!unlikely (c->allocate_size<COUNT> (COUNT::static_size)))
         return_trace (false);

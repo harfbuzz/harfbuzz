@@ -204,23 +204,62 @@ enum OpCode {
 };
 
 inline OpCode Make_OpCode_ESC (unsigned char byte2)  { return (OpCode)(OpCode_ESC_Base + byte2); }
-inline unsigned int OpCode_Size (OpCode op) { return (op >= OpCode_ESC_Base)? 2: 1; }
+inline OpCode Unmake_OpCode_ESC (OpCode op)  { return (OpCode)(op - OpCode_ESC_Base); }
+inline bool Is_OpCode_ESC (OpCode op) { return op >= OpCode_ESC_Base; }
+inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op)? 2: 1; }
 
 struct Number
 {
   inline Number (void) { set_int (0); }
 
-  inline void set_int (int v)       { is_real = false; u.int_val = v; };
-  inline int to_int (void) const    { return is_real? (int)u.real_val: u.int_val; }
-  inline void set_real (float v)    { is_real = true; u.real_val = v; };
-  inline float to_real (void) const { return is_real? u.real_val: (float)u.int_val; }
+  inline void set_int (int v)           { format = NumInt; u.int_val = v; };
+  inline int to_int (void) const        { return is_int ()? u.int_val: (int)to_real (); }
+  inline void set_fixed (int32_t v)     { format = NumFixed; u.fixed_val = v; };
+  inline int32_t to_fixed (void) const
+  {
+    if (is_fixed ())
+      return u.fixed_val;
+    else if (is_real ())
+      return (int32_t)(u.real_val * 65536.0);
+    else
+      return (int32_t)(u.int_val << 16);
+  }
+  inline void set_real (float v)        { format = NumReal; u.real_val = v; };
+  inline float to_real (void) const
+  {
+    if (is_real ())
+      return u.real_val;
+    if (is_fixed ())
+      return u.fixed_val / 65536.0;
+    else
+      return (float)u.int_val;
+  }
+  inline bool in_int_range (void) const
+  {
+    if (is_int ())
+      return true;
+    if (is_fixed () && ((u.fixed_val & 0xFFFF) == 0))
+      return true;
+    else
+      return ((float)(int16_t)to_int () == u.real_val);
+  }
 
 protected:
-  bool is_real;
+  enum NumFormat {
+    NumInt,
+    NumFixed,
+    NumReal
+  };
+  NumFormat  format;
   union {
     int     int_val;
+    int32_t fixed_val;
     float   real_val;
   } u;
+
+  inline bool  is_int (void) const { return format == NumInt; }
+  inline bool  is_fixed (void) const { return format == NumFixed; }
+  inline bool  is_real (void) const { return format == NumReal; }
 };
 
 /* byte string */
@@ -308,7 +347,7 @@ struct SubByteStr
     offset = offset_;
   }
 
-  inline const HBUINT8& operator [] (unsigned int i) const {
+  inline const HBUINT8& operator [] (int i) const {
     return str[offset + i];
   }
 

@@ -187,7 +187,7 @@ struct CFF2PrivateDict_OpSerializer_DropHints : CFF2PrivateDict_OpSerializer
   }
 };
 
-struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<SubrRefMapPair>
+struct CFF2CSOpSet_SubsetSubrs : CFF2CSOpSet<CFF2CSOpSet_SubsetSubrs, SubrRefMapPair>
 {
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, SubrRefMapPair& refMapPair)
   {
@@ -208,7 +208,7 @@ struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<SubrRefMapPair>
       default:
         break;
     }
-    return CFF2CSOpSet<SubrRefMapPair>::process_op (op, env, refMapPair);
+    return CFF2CSOpSet<CFF2CSOpSet_SubsetSubrs, SubrRefMapPair>::process_op (op, env, refMapPair);
   }
 };
 
@@ -223,6 +223,7 @@ struct cff2_subset_plan {
     fdmap.init ();
     subset_charstrings.init ();
     privateDictInfos.init ();
+    subrRefMaps.init ();
   }
 
   inline ~cff2_subset_plan (void)
@@ -254,7 +255,7 @@ struct cff2_subset_plan {
 
     /* Subset global & local subrs */
     {
-      SubrSubsetter<const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_SubrSubset> subsetter(acc, plan->glyphs);
+      SubrSubsetter<const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_SubsetSubrs> subsetter(acc, plan->glyphs);
       if (!subsetter.collect_refs (subrRefMaps))
         return false;
       

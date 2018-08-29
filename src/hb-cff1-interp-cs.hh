@@ -38,6 +38,8 @@ struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
   inline void init (const ByteStr &str, const CFF1Subrs &globalSubrs, const CFF1Subrs &localSubrs)
   {
     CSInterpEnv<CFF1Subrs>::init (str, globalSubrs, localSubrs);
+    processed_width = false;
+    has_width = false;
     for (unsigned int i = 0; i < kTransientArraySize; i++)
       transient_array[i].set_int (0);
   }
@@ -45,25 +47,29 @@ struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
   bool check_transient_array_index (unsigned int i) const
   { return i < kTransientArraySize; }
 
-  inline void process_width (void)
+  inline void check_width (void)
   {
-    if (!seen_width && (argStack.size > 0))
+    if (!processed_width)
     {
-      assert (argStack.size == 1);
-      width = argStack.pop ();
-      seen_width = true;
+      if ((this->argStack.size & 1) != 0)
+      {
+        width = this->argStack.elements[0];
+        has_width = true;
+      }
+      processed_width = true;
     }
   }
 
-  bool          seen_width;
+  bool          processed_width;
+  bool          has_width;
   Number        width;
 
   static const unsigned int kTransientArraySize = 32;
   Number  transient_array[kTransientArraySize];
 };
 
-template <typename PARAM>
-struct CFF1CSOpSet : CSOpSet<CFF1Subrs, PARAM>
+template <typename OPSET, typename PARAM>
+struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
 {
   static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
@@ -133,7 +139,7 @@ struct CFF1CSOpSet : CSOpSet<CFF1Subrs, PARAM>
         break;
       case OpCode_random:
           if (unlikely (!env.argStack.check_overflow (1))) return false;
-          env.argStack.push_real (((float)rand() + 1) / ((float)RAND_MAX + 1));
+          env.argStack.push_int (1);  /* we can't deal with random behavior; make it constant */
       case OpCode_mul:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
         env.argStack.push_real (n1.to_real() * n2.to_real());
@@ -181,14 +187,21 @@ struct CFF1CSOpSet : CSOpSet<CFF1Subrs, PARAM>
         }
         break;
       default:
-        typedef CSOpSet<CFF1Subrs, PARAM>  SUPER;
         if (unlikely (!SUPER::process_op (op, env, param)))
           return false;
-        env.process_width ();
         break;
     }
     return true;
   }
+
+  static inline void flush_stack (CFF1CSInterpEnv &env, PARAM& param)
+  {
+    env.check_width ();
+    SUPER::flush_stack (env, param);
+  }
+
+  private:
+  typedef CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>  SUPER;
 };
 
 template <typename OPSET, typename PARAM>

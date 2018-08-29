@@ -125,18 +125,6 @@ struct CSInterpEnv : InterpEnv
       hintmask_size = (hstem_count + vstem_count + 7) >> 3;
       seen_hintmask = true;
     }
-    clear_stack ();
-  }
-
-  inline void process_moveto (void)
-  {
-    clear_stack ();
-
-    if (!seen_moveto)
-    {
-      determine_hintmask_size ();
-      seen_moveto = true;
-    }
   }
 
   inline void clear_stack (void)
@@ -149,13 +137,12 @@ struct CSInterpEnv : InterpEnv
   inline bool is_endchar (void) const { return endchar_flag; }
   inline bool is_stack_cleared (void) const { return stack_cleared; }
 
-  protected:
+  public:
   bool          endchar_flag;
   bool          stack_cleared;
   bool          seen_moveto;
   bool          seen_hintmask;
 
-  public:
   unsigned int  hstem_count;
   unsigned int  vstem_count;
   unsigned int  hintmask_size;
@@ -164,11 +151,11 @@ struct CSInterpEnv : InterpEnv
   BiasedSubrs<SUBRS>   localSubrs;
 };
 
-template <typename SUBRS, typename PARAM>
+template <typename OPSET, typename ENV, typename PARAM>
 struct CSOpSet : OpSet
 {
-  static inline bool process_op (OpCode op, CSInterpEnv<SUBRS> &env, PARAM& param)
-  {
+  static inline bool process_op (OpCode op, ENV &env, PARAM& param)
+  {  
     switch (op) {
 
       case OpCode_return:
@@ -188,17 +175,16 @@ struct CSOpSet : OpSet
 
       case OpCode_hstem:
       case OpCode_hstemhm:
-        env.hstem_count += env.argStack.size / 2;
-        env.clear_stack ();
+        OPSET::process_hstem (env, param);
         break;
       case OpCode_vstem:
       case OpCode_vstemhm:
-        env.vstem_count += env.argStack.size / 2;
-        env.clear_stack ();
+        OPSET::process_vstem (env, param);
         break;
       case OpCode_hintmask:
       case OpCode_cntrmask:
         env.determine_hintmask_size ();
+        OPSET::flush_stack (env, param);
         if (unlikely (!env.substr.avail (env.hintmask_size)))
           return false;
         env.substr.inc (env.hintmask_size);
@@ -210,7 +196,7 @@ struct CSOpSet : OpSet
       case OpCode_vlineto:
       case OpCode_rmoveto:
       case OpCode_hmoveto:
-        env.process_moveto ();
+        OPSET::process_moveto (env, param);
         break;
       case OpCode_rrcurveto:
       case OpCode_rcurveline:
@@ -223,13 +209,90 @@ struct CSOpSet : OpSet
       case OpCode_flex:
       case OpCode_hflex1:
       case OpCode_flex1:
-        env.clear_stack ();
+        OPSET::flush_stack (env, param);
         break;
 
       default:
         return OpSet::process_op (op, env);
     }
     return true;
+  }
+
+  static inline void process_hstem (ENV &env, PARAM& param)
+  {
+    env.hstem_count += env.argStack.size / 2;
+    OPSET::flush_stack (env, param);
+  }
+
+  static inline void process_vstem (ENV &env, PARAM& param)
+  {
+    env.vstem_count += env.argStack.size / 2;
+    OPSET::flush_stack (env, param);
+  }
+
+  static inline void process_moveto (ENV &env, PARAM& param)
+  {
+    if (!env.seen_moveto)
+    {
+      env.determine_hintmask_size ();
+      env.seen_moveto = true;
+    }
+    OPSET::flush_stack (env, param);
+  }
+
+  static inline void flush_stack (ENV &env, PARAM& param)
+  {
+    env.clear_stack ();
+  }
+
+  /* numeric / logical / arithmetic operators */
+  static inline bool is_arg_op (OpCode op)
+  {
+    switch (op)
+    {
+      case OpCode_shortint:
+      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
+      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
+      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
+      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
+      case OpCode_fixedcs:
+      case OpCode_and:
+      case OpCode_or:
+      case OpCode_not:
+      case OpCode_abs:
+      case OpCode_add:
+      case OpCode_sub:
+      case OpCode_div:
+      case OpCode_neg:
+      case OpCode_eq:
+      case OpCode_drop:
+      case OpCode_put:
+      case OpCode_get:
+      case OpCode_ifelse:
+      case OpCode_random:
+      case OpCode_mul:
+      case OpCode_sqrt:
+      case OpCode_dup:
+      case OpCode_exch:
+      case OpCode_index:
+      case OpCode_roll:
+        return true;
+      default:
+        return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast);
+    }
+  }
+
+  static inline bool is_subr_op (OpCode op)
+  {
+    switch (op)
+    {
+      case OpCode_callsubr:
+      case OpCode_callgsubr:
+      case OpCode_return:
+        return true;
+      default:
+        return false;
+    }
   }
 };
 

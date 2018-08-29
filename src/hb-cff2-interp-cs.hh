@@ -43,11 +43,11 @@ struct CFF2CSInterpEnv : CSInterpEnv<CFF2Subrs>
 
   inline bool fetch_op (OpCode &op)
   {
-    if (unlikely (substr.avail ()))
+    if (unlikely (this->substr.avail ()))
       return CSInterpEnv<CFF2Subrs>::fetch_op (op);
 
     /* make up return or endchar op */
-    if (callStack.check_underflow ())
+    if (this->callStack.check_underflow ())
       op = OpCode_return;
     else
       op = OpCode_endchar;
@@ -61,26 +61,26 @@ struct CFF2CSInterpEnv : CSInterpEnv<CFF2Subrs>
   unsigned int  ivs;
 };
 
-template <typename PARAM>
-struct CFF2CSOpSet : CSOpSet<CFF2Subrs, PARAM>
+template <typename OPSET, typename PARAM>
+struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
 {
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
   {
     switch (op) {
 
       case OpCode_blendcs:
-        env.clear_stack (); // XXX: TODO
+        //env.flush_stack (); // XXX: TODO
         break;
       case OpCode_vsindexcs:
         {
           unsigned int ivs;
           if (unlikely (!env.argStack.check_pop_uint (ivs))) return false;
           env.set_ivs (ivs);
-          env.clear_stack ();
+          //env.flush_stack ();
         }
         break;
       default:
-        typedef CSOpSet<CFF2Subrs, PARAM>  SUPER;
+        typedef CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>  SUPER;
         if (unlikely (!SUPER::process_op (op, env, param)))
           return false;
         break;
