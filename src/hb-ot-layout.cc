@@ -56,7 +56,7 @@
 //   return *(data->base.get ());
 // }
 
-inline const OT::GDEF& _get_gdef (hb_face_t *face)
+const OT::GDEF& _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
   return *hb_ot_face_data (face)->GDEF->table;
@@ -71,7 +71,7 @@ static inline const OT::GSUB& _get_gsub (hb_face_t *face)
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
   return *hb_ot_face_data (face)->GSUB->table;
 }
-inline const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
+const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
 {
   return *hb_ot_face_data (face)->GSUB.get_relaxed ()->table;
 }
@@ -85,7 +85,7 @@ static inline const OT::GPOS& _get_gpos (hb_face_t *face)
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GPOS);
   return *hb_ot_face_data (face)->GPOS->table;
 }
-inline const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
+const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 {
   return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
 }
