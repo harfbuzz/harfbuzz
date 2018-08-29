@@ -23,8 +23,8 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_OT_CFF_COMMON_PRIVATE_HH
-#define HB_OT_CFF_COMMON_PRIVATE_HH
+#ifndef HB_OT_CFF_COMMON_HH
+#define HB_OT_CFF_COMMON_HH
 
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
@@ -619,5 +619,5 @@ struct Subrs : CFFIndex<COUNT>
 
 } /* namespace CFF */
 
-#endif /* HB_OT_CFF_COMMON_PRIVATE_HH */
+#endif /* HB_OT_CFF_COMMON_HH */
 

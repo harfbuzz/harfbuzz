@@ -24,8 +24,8 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#ifndef HB_SUBSET_CFF_COMMON_PRIVATE_HH
-#define HB_SUBSET_CFF_COMMON_PRIVATE_HH
+#ifndef HB_SUBSET_CFF_COMMON_HH
+#define HB_SUBSET_CFF_COMMON_HH
 
 #include "hb.hh"
 
@@ -230,4 +230,4 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
                           const CFF::FDMap &fdmap);
 
-#endif /* HB_SUBSET_CFF_COMMON_PRIVATE_HH */
+#endif /* HB_SUBSET_CFF_COMMON_HH */

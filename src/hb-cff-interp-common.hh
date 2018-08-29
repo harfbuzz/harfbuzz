@@ -23,8 +23,8 @@
  *
  * Adobe Author(s): Michiharu Ariza
  */
-#ifndef HB_CFF_INTERP_COMMON_PRIVATE_HH
-#define HB_CFF_INTERP_COMMON_PRIVATE_HH
+#ifndef HB_CFF_INTERP_COMMON_HH
+#define HB_CFF_INTERP_COMMON_HH
 
 namespace CFF {
 
@@ -626,4 +626,4 @@ struct Interpreter {
 
 } /* namespace CFF */
 
-#endif /* HB_CFF_INTERP_COMMON_PRIVATE_HH */
+#endif /* HB_CFF_INTERP_COMMON_HH */
