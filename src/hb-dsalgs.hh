@@ -497,9 +497,10 @@ struct hb_auto_t : Type
    *
    * Apparently if we template for all types, then gcc seems to
    * capture a reference argument in the type, but clang doesn't,
-   * causing unwanted copies and bugs that come with it. */
-  template <typename T1> hb_auto_t (T1 *t1) { Type::init (t1); }
-  template <typename T1> hb_auto_t (T1 &t1) { Type::init (t1); }
+   * causing unwanted copies and bugs that come with it.  Ideally
+   * we should use C++11-style rvalue reference &&t1. */
+  template <typename T1> explicit hb_auto_t (T1 *t1) { Type::init (t1); }
+  template <typename T1> explicit hb_auto_t (T1 &t1) { Type::init (t1); }
   ~hb_auto_t (void) { Type::fini (); }
   private: /* Hide */
   void init (void) {}
