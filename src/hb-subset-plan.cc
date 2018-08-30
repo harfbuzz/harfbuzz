@@ -135,7 +135,7 @@ _create_old_gid_to_new_gid_map (const hb_vector_t<hb_codepoint_t> &glyphs,
 /**
  * hb_subset_plan_create:
  * Computes a plan for subsetting the supplied face according
- * to a provide profile and input. The plan describes
+ * to a provided input. The plan describes
  * which tables and glyphs should be retained.
  *
  * Return value: New subset plan.
@@ -144,7 +144,6 @@ _create_old_gid_to_new_gid_map (const hb_vector_t<hb_codepoint_t> &glyphs,
  **/
 hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-                       hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();

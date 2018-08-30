@@ -43,37 +43,6 @@
 #include "hb-ot-post-table.hh"
 
 
-struct hb_subset_profile_t {
-  hb_object_header_t header;
-  ASSERT_POD ();
-};
-
-/**
- * hb_subset_profile_create:
- *
- * Return value: New profile with default settings.
- *
- * Since: 1.8.0
- **/
-hb_subset_profile_t *
-hb_subset_profile_create ()
-{
-  return hb_object_create<hb_subset_profile_t>();
-}
-
-/**
- * hb_subset_profile_destroy:
- *
- * Since: 1.8.0
- **/
-void
-hb_subset_profile_destroy (hb_subset_profile_t *profile)
-{
-  if (!hb_object_destroy (profile)) return;
-
-  free (profile);
-}
-
 template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan)
@@ -198,19 +167,17 @@ _should_drop_table(hb_subset_plan_t *plan, hb_tag_t tag)
 /**
  * hb_subset:
  * @source: font face data to be subset.
- * @profile: profile to use for the subsetting.
  * @input: input to use for the subsetting.
  *
- * Subsets a font according to provided profile and input.
+ * Subsets a font according to provided input.
  **/
 hb_face_t *
 hb_subset (hb_face_t *source,
-           hb_subset_profile_t *profile,
            hb_subset_input_t *input)
 {
-  if (unlikely (!profile || !input || !source)) return hb_face_get_empty();
+  if (unlikely (!input || !source)) return hb_face_get_empty();
 
-  hb_subset_plan_t *plan = hb_subset_plan_create (source, profile, input);
+  hb_subset_plan_t *plan = hb_subset_plan_create (source, input);
 
   hb_tag_t table_tags[32];
   unsigned int offset = 0, count;

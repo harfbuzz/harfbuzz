@@ -97,7 +97,6 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
 
 HB_INTERNAL hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-                       hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 
 HB_INTERNAL void

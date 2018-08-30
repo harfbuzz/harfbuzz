@@ -32,20 +32,6 @@
 HB_BEGIN_DECLS
 
 /*
- * hb_subset_profile_t
- * Things that change based on target environment, e.g. OS.
- * Threadsafe for multiple concurrent subset operations.
- */
-
-typedef struct hb_subset_profile_t hb_subset_profile_t;
-
-HB_EXTERN hb_subset_profile_t *
-hb_subset_profile_create (void);
-
-HB_EXTERN void
-hb_subset_profile_destroy (hb_subset_profile_t *profile);
-
-/*
  * hb_subset_input_t
  *
  * Things that change based on the input. Characters to keep, etc.
@@ -74,10 +60,10 @@ hb_subset_input_drop_hints (hb_subset_input_t *subset_input);
 HB_EXTERN hb_bool_t *
 hb_subset_input_drop_ot_layout (hb_subset_input_t *subset_input);
 
+
 /* hb_subset() */
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source,
-	   hb_subset_profile_t *profile,
            hb_subset_input_t *input);
 
 

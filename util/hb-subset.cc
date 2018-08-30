@@ -92,17 +92,15 @@ struct subset_consumer_t
   {
     input->drop_hints = subset_options.drop_hints;
 
-    hb_subset_profile_t *subset_profile = hb_subset_profile_create();
     hb_face_t *face = hb_font_get_face (font);
 
-    hb_face_t *new_face = hb_subset(face, subset_profile, input);
+    hb_face_t *new_face = hb_subset(face, input);
     hb_blob_t *result = hb_face_reference_blob (new_face);
 
     failed = !hb_blob_get_length (result);
     if (!failed)
       write_file (options.output_file, result);
 
-    hb_subset_profile_destroy (subset_profile);
     hb_subset_input_destroy (input);
     hb_blob_destroy (result);
     hb_face_destroy (new_face);

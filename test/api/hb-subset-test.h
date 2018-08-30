@@ -72,11 +72,9 @@ static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
                               hb_subset_input_t *input)
 {
-  hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_face_t *subset = hb_subset (source, profile, input);
+  hb_face_t *subset = hb_subset (source, input);
   g_assert (subset);
 
-  hb_subset_profile_destroy (profile);
   hb_subset_input_destroy (input);
   return subset;
 }

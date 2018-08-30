@@ -12,8 +12,6 @@ void trySubset (hb_face_t *face,
                 bool drop_hints,
                 bool drop_ot_layout)
 {
-  hb_subset_profile_t *profile = hb_subset_profile_create ();
-
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   *hb_subset_input_drop_hints (input) = drop_hints;
   *hb_subset_input_drop_ot_layout (input) = drop_ot_layout;
@@ -24,11 +22,10 @@ void trySubset (hb_face_t *face,
     hb_set_add (codepoints, text[i]);
   }
 
-  hb_face_t *result = hb_subset (face, profile, input);
+  hb_face_t *result = hb_subset (face, input);
   hb_face_destroy (result);
 
   hb_subset_input_destroy (input);
-  hb_subset_profile_destroy (profile);
 }
 
 void trySubset (hb_face_t *face,
