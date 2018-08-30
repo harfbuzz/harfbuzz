@@ -98,6 +98,160 @@ struct ByteStrBuffArray : hb_vector_t<ByteStrBuff, 1>
   }
 };
 
+struct CFFSubTableOffsets {
+  inline CFFSubTableOffsets (void)
+    : privateDictsOffset (0)
+  
+  {
+    topDictInfo.init ();
+    FDSelectInfo.init ();
+    FDArrayInfo.init ();
+    charStringsInfo.init ();
+    globalSubrsInfo.init ();
+    localSubrsInfos.init ();
+  }
+
+  inline ~CFFSubTableOffsets (void)
+  {
+    localSubrsInfos.fini ();
+  }
+
+  TableInfo     topDictInfo;
+  TableInfo     FDSelectInfo;
+  TableInfo     FDArrayInfo;
+  TableInfo     charStringsInfo;
+  unsigned int  privateDictsOffset;
+  TableInfo     globalSubrsInfo;
+  hb_vector_t<TableInfo>  localSubrsInfos;
+};
+
+struct CFFTopDict_OpSerializer : OpSerializer
+{
+  inline bool serialize (hb_serialize_context_t *c,
+                         const OpStr &opstr,
+                         const CFFSubTableOffsets &offsets) const
+  {
+    TRACE_SERIALIZE (this);
+
+    switch (opstr.op)
+    {
+      case OpCode_CharStrings:
+        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.charStringsInfo.offset));
+
+      case OpCode_FDArray:
+        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.FDArrayInfo.offset));
+
+      case OpCode_FDSelect:
+        return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.FDSelectInfo.offset));
+
+      default:
+        return_trace (copy_opstr (c, opstr));
+    }
+    return_trace (true);
+  }
+
+  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  {
+    switch (opstr.op)
+    {
+      case OpCode_CharStrings:
+      case OpCode_FDArray:
+      case OpCode_FDSelect:
+        return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
+    
+      default:
+        return opstr.str.len;
+    }
+  }
+};
+
+struct CFFFontDict_OpSerializer : OpSerializer
+{
+  inline bool serialize (hb_serialize_context_t *c,
+                         const OpStr &opstr,
+                         const TableInfo &privateDictInfo) const
+  {
+    TRACE_SERIALIZE (this);
+
+    if (opstr.op == OpCode_Private)
+    {
+      /* serialize the private dict size as a 2-byte integer */
+      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privateDictInfo.size)))
+        return_trace (false);
+
+      /* serialize the private dict offset as a 4-byte integer */
+      if (unlikely (!UnsizedByteStr::serialize_int4 (c, privateDictInfo.offset)))
+        return_trace (false);
+
+      /* serialize the opcode */
+      HBUINT8 *p = c->allocate_size<HBUINT8> (1);
+      if (unlikely (p == nullptr)) return_trace (false);
+      p->set (OpCode_Private);
+
+      return_trace (true);
+    }
+    else
+    {
+      HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
+      if (unlikely (d == nullptr)) return_trace (false);
+      memcpy (d, &opstr.str.str[0], opstr.str.len);
+    }
+    return_trace (true);
+  }
+
+  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  {
+    if (opstr.op == OpCode_Private)
+      return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
+    else
+      return opstr.str.len;
+  }
+};
+
+struct CFFPrivateDict_OpSerializer : OpSerializer
+{
+  inline CFFPrivateDict_OpSerializer (bool drop_hints_=false, bool flatten_subrs_=false)
+    : drop_hints (drop_hints_), flatten_subrs (flatten_subrs_) {}
+
+  inline bool serialize (hb_serialize_context_t *c,
+                         const OpStr &opstr,
+                         const unsigned int subrsOffset) const
+  {
+    TRACE_SERIALIZE (this);
+
+    if (drop_hints && DictOpSet::is_hint_op (opstr.op))
+      return true;
+    if (opstr.op == OpCode_Subrs)
+    {
+      if (flatten_subrs)
+        return_trace (true);
+      else
+        return_trace (FontDict::serialize_offset2_op(c, OpCode_Subrs, subrsOffset));
+    }
+    else
+      return_trace (copy_opstr (c, opstr));
+  }
+
+  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  {
+    if (drop_hints && DictOpSet::is_hint_op (opstr.op))
+      return 0;
+    if (opstr.op == OpCode_Subrs)
+    {
+      if (flatten_subrs)
+        return 0;
+      else
+        return OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
+    }
+    else
+      return opstr.str.len;
+  }
+
+  protected:
+  const bool  drop_hints;
+  const bool  flatten_subrs;
+};
+
 
 template <typename ACCESSOR, typename ENV, typename OPSET>
 struct SubrFlattener

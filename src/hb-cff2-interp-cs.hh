@@ -54,6 +54,15 @@ struct CFF2CSInterpEnv : CSInterpEnv<CFF2Subrs>
     return true;
   }
 
+  inline bool process_vsindex (void)
+  {
+    unsigned int  index;
+    if (unlikely (!argStack.check_pop_uint (index)))
+      return false;
+    set_ivs (index);
+    return true;
+  }
+
   inline unsigned int get_ivs (void) const { return ivs; }
   inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
 
@@ -69,16 +78,11 @@ struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
     switch (op) {
 
       case OpCode_blendcs:
-        //env.flush_stack (); // XXX: TODO
-        break;
+        return OPSET::process_blend (env, param);
+
       case OpCode_vsindexcs:
-        {
-          unsigned int ivs;
-          if (unlikely (!env.argStack.check_pop_uint (ivs))) return false;
-          env.set_ivs (ivs);
-          //env.flush_stack ();
-        }
-        break;
+        return OPSET::process_vsindex (env, param);
+
       default:
         typedef CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>  SUPER;
         if (unlikely (!SUPER::process_op (op, env, param)))
@@ -86,6 +90,18 @@ struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
         break;
     }
     return true;
+  }
+
+  static inline bool process_blend (CFF2CSInterpEnv &env, PARAM& param)
+  {
+    // XXX: TODO leave default values?
+    OPSET::flush_stack (env, param);
+    return true;
+  }
+
+  static inline bool process_vsindex (CFF2CSInterpEnv &env, PARAM& param)
+  {
+    return env.process_vsindex ();
   }
 };
 
