@@ -464,36 +464,6 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *copy (void) const
-  {
-    assert (!this->ran_out_of_room);
-    unsigned int len = this->head - this->start;
-    void *p = malloc (len);
-    if (p)
-      memcpy (p, this->start, len);
-    return reinterpret_cast<Type *> (p);
-  }
-  inline hb_bytes_t copy_bytes (void) const
-  {
-    assert (!this->ran_out_of_room);
-    unsigned int len = this->head - this->start;
-    void *p = malloc (len);
-    if (p)
-      memcpy (p, this->start, len);
-    else
-      return hb_bytes_t ();
-    return hb_bytes_t (p, len);
-  }
-  inline hb_blob_t *copy_blob (void) const
-  {
-    assert (!this->ran_out_of_room);
-    return hb_blob_create (this->start,
-			   this->head - this->start,
-			   HB_MEMORY_MODE_DUPLICATE,
-			   nullptr, nullptr);
-  }
-
-  template <typename Type>
   inline Type *allocate_size (unsigned int size)
   {
     if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
@@ -547,6 +517,38 @@ struct hb_serialize_context_t
     return reinterpret_cast<Type *> (&obj);
   }
 
+  /* Output routines. */
+  template <typename Type>
+  inline Type *copy (void) const
+  {
+    assert (!this->ran_out_of_room);
+    unsigned int len = this->head - this->start;
+    void *p = malloc (len);
+    if (p)
+      memcpy (p, this->start, len);
+    return reinterpret_cast<Type *> (p);
+  }
+  inline hb_bytes_t copy_bytes (void) const
+  {
+    assert (!this->ran_out_of_room);
+    unsigned int len = this->head - this->start;
+    void *p = malloc (len);
+    if (p)
+      memcpy (p, this->start, len);
+    else
+      return hb_bytes_t ();
+    return hb_bytes_t (p, len);
+  }
+  inline hb_blob_t *copy_blob (void) const
+  {
+    assert (!this->ran_out_of_room);
+    return hb_blob_create (this->start,
+			   this->head - this->start,
+			   HB_MEMORY_MODE_DUPLICATE,
+			   nullptr, nullptr);
+  }
+
+  public:
   unsigned int debug_depth;
   char *start, *end, *head;
   bool ran_out_of_room;
