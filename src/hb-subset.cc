@@ -53,11 +53,9 @@ _subset (hb_subset_plan_t *plan)
   hb_tag_t tag = TableType::tableTag;
   hb_bool_t result = false;
   if (source_blob->data)
-  {
-    result = table->subset(plan);
-  } else {
+    result = table->subset (plan);
+  else
     DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG(tag));
-  }
 
   hb_blob_destroy (source_blob);
   DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset %s", HB_UNTAG(tag), result ? "success" : "FAILED!");
@@ -196,7 +194,7 @@ hb_subset (hb_face_t *source,
       success = success && _subset_table (plan, tag);
     }
     offset += count;
-  } while (count == ARRAY_LENGTH (table_tags));
+  } while (success && count == ARRAY_LENGTH (table_tags));
 
   hb_face_t *result = success ? hb_face_reference(plan->dest) : hb_face_get_empty();
   hb_subset_plan_destroy (plan);
