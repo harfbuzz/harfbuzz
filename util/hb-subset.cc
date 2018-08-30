@@ -29,7 +29,6 @@
 
 #include "main-font-text.hh"
 #include "hb-subset.h"
-#include "hb-subset.hh" /* XXX */
 
 /*
  * Command line interface to the harfbuzz font subsetter.
@@ -90,7 +89,7 @@ struct subset_consumer_t
 
   void finish (const font_options_t *font_opts)
   {
-    input->drop_hints = subset_options.drop_hints;
+    hb_subset_input_set_drop_hints (input, subset_options.drop_hints);
 
     hb_face_t *face = hb_font_get_face (font);
 

@@ -39,8 +39,8 @@ struct hb_subset_plan_t
   hb_object_header_t header;
   ASSERT_POD ();
 
-  hb_bool_t drop_hints;
-  hb_bool_t drop_ot_layout;
+  bool drop_hints : 1;
+  bool drop_layout : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
@@ -56,7 +56,7 @@ struct hb_subset_plan_t
   hb_face_t *source;
   hb_face_t *dest;
 
-  inline hb_bool_t
+  inline bool
   new_gid_for_codepoint (hb_codepoint_t codepoint,
                          hb_codepoint_t *new_gid) const
   {
@@ -67,7 +67,7 @@ struct hb_subset_plan_t
     return new_gid_for_old_gid (old_gid, new_gid);
   }
 
-  inline hb_bool_t
+  inline bool
   new_gid_for_old_gid (hb_codepoint_t old_gid,
                       hb_codepoint_t *new_gid) const
   {
@@ -79,7 +79,7 @@ struct hb_subset_plan_t
     return true;
   }
 
-  inline hb_bool_t
+  inline bool
   add_table (hb_tag_t tag,
              hb_blob_t *contents)
   {

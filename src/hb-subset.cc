@@ -136,7 +136,7 @@ _should_drop_table(hb_subset_plan_t *plan, hb_tag_t tag)
     case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
     case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
     case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
-      return plan->drop_ot_layout;
+      return plan->drop_layout;
     // Drop these tables below by default, list pulled
     // from fontTools:
     case HB_TAG ('B', 'A', 'S', 'E'):

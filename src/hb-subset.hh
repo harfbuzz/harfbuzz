@@ -42,8 +42,8 @@ struct hb_subset_input_t
   hb_set_t *unicodes;
   hb_set_t *glyphs;
 
-  hb_bool_t drop_hints;
-  hb_bool_t drop_ot_layout;
+  bool drop_hints : 1;
+  bool drop_layout : 1;
   /* TODO
    *
    * features

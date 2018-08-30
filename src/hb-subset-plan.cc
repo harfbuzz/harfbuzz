@@ -149,7 +149,7 @@ hb_subset_plan_create (hb_face_t           *face,
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
 
   plan->drop_hints = input->drop_hints;
-  plan->drop_ot_layout = input->drop_ot_layout;
+  plan->drop_layout = input->drop_layout;
   plan->unicodes = hb_set_create();
   plan->glyphs.init();
   plan->source = hb_face_reference (face);
@@ -159,7 +159,7 @@ hb_subset_plan_create (hb_face_t           *face,
 
   _populate_gids_to_retain (face,
                             input->unicodes,
-                            !plan->drop_ot_layout,
+                            !plan->drop_layout,
                             plan->unicodes,
                             plan->codepoint_to_glyph,
                             &plan->glyphs);
