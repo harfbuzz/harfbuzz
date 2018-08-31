@@ -1312,6 +1312,7 @@ struct GSUB : GSUBGPOS
   inline bool subset (hb_subset_context_t<Serializer> *c)
   {
     TRACE_SUBSET (this);
+    //struct GSUB *out = c->serializer->start_embed<GSUB> ();
     //XXX if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
     return_trace (true);
   }

@@ -443,6 +443,7 @@ struct hb_serialize_context_t
     this->debug_depth = 0;
   }
 
+  /* To be called around main operation. */
   template <typename Type>
   inline Type *start_serialize (void)
   {
@@ -453,7 +454,6 @@ struct hb_serialize_context_t
 
     return start_embed<Type> ();
   }
-
   inline void end_serialize (void)
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
@@ -461,6 +461,22 @@ struct hb_serialize_context_t
 		     this->start, this->end,
 		     (int) (this->head - this->start),
 		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
+  }
+
+  inline unsigned int length (void) const { return this->head - this->start; }
+
+  inline void align (unsigned int alignment)
+  {
+    unsigned int l = length () % alignment;
+    if (l)
+      allocate_size<void> (alignment - l);
+  }
+
+  template <typename Type>
+  inline Type *start_embed (void)
+  {
+    Type *ret = reinterpret_cast<Type *> (this->head);
+    return ret;
   }
 
   template <typename Type>
@@ -480,13 +496,6 @@ struct hb_serialize_context_t
   inline Type *allocate_min (void)
   {
     return this->allocate_size<Type> (Type::min_size);
-  }
-
-  template <typename Type>
-  inline Type *start_embed (void)
-  {
-    Type *ret = reinterpret_cast<Type *> (this->head);
-    return ret;
   }
 
   template <typename Type>
