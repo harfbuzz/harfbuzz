@@ -1308,11 +1308,10 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  template <typename Serializer>
-  inline bool subset (hb_subset_context_t<Serializer> *c)
+  inline bool subset (hb_subset_context_t *c)
   {
     TRACE_SUBSET (this);
-    //struct GSUB *out = c->serializer->start_embed<GSUB> ();
+    struct GSUB *out = c->serializer->start_embed<GSUB> ();
     //XXX if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
     return_trace (true);
   }
