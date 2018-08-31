@@ -75,20 +75,30 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
   }
 };
 
-struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, ByteStrBuff>
+struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, ByteStrBuff& flatStr)
+  static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    if (unlikely (!SUPER::process_op (op, env, flatStr)))
+    if (param.drop_hints && CSOPSET::is_hint_op (op))
+    {
+      env.clear_stack ();
+      return true;
+    }
+    if (unlikely (!SUPER::process_op (op, env, param)))
       return false;
     switch (op)
     {
       case OpCode_hintmask:
       case OpCode_cntrmask:
-        if (unlikely (!flatStr.encode_op (op)))
+        if (param.drop_hints)
+        {
+          env.clear_stack ();
+          return true;
+        }
+        if (unlikely (!param.flatStr.encode_op (op)))
           return false;
         for (int i = -env.hintmask_size; i < 0; i++)
-          if (unlikely (!flatStr.encode_byte (env.substr[i])))
+          if (unlikely (!param.flatStr.encode_byte (env.substr[i])))
             return false;
         break;
       case OpCode_return:
@@ -98,33 +108,33 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, ByteStrBuff>
       default:
         if (!CSOPSET::is_subr_op (op) &&
             !CSOPSET::is_arg_op (op))
-          return flatStr.encode_op (op);
+          return param.flatStr.encode_op (op);
     }
     return true;
   }
 
-  static inline bool process_blend (CFF2CSInterpEnv &env, ByteStrBuff& flatStr)
+  static inline bool process_blend (CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    flush_stack (env, flatStr);
+    flush_stack (env, param);
     return true;
   }
 
-  static inline bool process_vsindex (CFF2CSInterpEnv &env, ByteStrBuff& flatStr)
+  static inline bool process_vsindex (CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    flush_stack (env, flatStr);
+    flush_stack (env, param);
     return true;
   }
 
-  static inline void flush_stack (CFF2CSInterpEnv &env, ByteStrBuff& flatStr)
+  static inline void flush_stack (CFF2CSInterpEnv &env, FlattenParam& param)
   {
     for (unsigned int i = 0; i < env.argStack.size; i++)
-      flatStr.encode_num (env.argStack.elements[i]);
-    SUPER::flush_stack (env, flatStr);
+      param.flatStr.encode_num (env.argStack.elements[i]);
+    SUPER::flush_stack (env, param);
   }
 
   private:
-  typedef CFF2CSOpSet<CFF2CSOpSet_Flatten, ByteStrBuff> SUPER;
-  typedef CSOpSet<CFF2CSOpSet_Flatten, CFF2CSInterpEnv, ByteStrBuff> CSOPSET;
+  typedef CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam> SUPER;
+  typedef CSOpSet<CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
 };
 
 struct CFF2CSOpSet_SubsetSubrs : CFF2CSOpSet<CFF2CSOpSet_SubsetSubrs, SubrRefMapPair>
@@ -200,7 +210,8 @@ struct cff2_subset_plan {
     if (flatten_subrs)
     {
       /* Flatten global & local subrs */
-      SubrFlattener<const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_Flatten> flattener(acc, plan->glyphs);
+      SubrFlattener<const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_Flatten>
+                    flattener(acc, plan->glyphs, plan->drop_hints);
       if (!flattener.flatten (flat_charstrings))
         return false;
       

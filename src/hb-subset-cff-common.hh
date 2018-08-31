@@ -252,13 +252,21 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
   const bool  flatten_subrs;
 };
 
+struct FlattenParam
+{
+  ByteStrBuff &flatStr;
+  bool        drop_hints;
+};
 
 template <typename ACCESSOR, typename ENV, typename OPSET>
 struct SubrFlattener
 {
-  inline SubrFlattener (const ACCESSOR &acc_, const hb_vector_t<hb_codepoint_t> &glyphs_)
+  inline SubrFlattener (const ACCESSOR &acc_,
+                        const hb_vector_t<hb_codepoint_t> &glyphs_,
+                        bool drop_hints_)
     : acc (acc_),
-      glyphs (glyphs_)
+      glyphs (glyphs_),
+      drop_hints (drop_hints_)
   {}
 
   inline bool flatten (ByteStrBuffArray &flat_charstrings)
@@ -272,9 +280,10 @@ struct SubrFlattener
       hb_codepoint_t  glyph = glyphs[i];
       const ByteStr str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
-      CSInterpreter<ENV, OPSET, ByteStrBuff> interp;
+      CSInterpreter<ENV, OPSET, FlattenParam> interp;
       interp.env.init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
-      if (unlikely (!interp.interpret (flat_charstrings[i])))
+      FlattenParam  param = { flat_charstrings[i], drop_hints };
+      if (unlikely (!interp.interpret (param)))
         return false;
     }
     return true;
@@ -282,6 +291,7 @@ struct SubrFlattener
   
   const ACCESSOR &acc;
   const hb_vector_t<hb_codepoint_t> &glyphs;
+  bool  drop_hints;
 };
 
 struct SubrRefMaps

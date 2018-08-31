@@ -282,6 +282,25 @@ struct CSOpSet : OpSet
     }
   }
 
+  /* hint operators (excluding hint/counter mask) */
+  static inline bool is_hint_op (OpCode op)
+  {
+    switch (op)
+    {
+      case OpCode_hstem:
+      case OpCode_vstem:
+      case OpCode_hstemhm:
+      case OpCode_vstemhm:
+      case OpCode_hflex:
+      case OpCode_flex:
+      case OpCode_hflex1:
+      case OpCode_flex1:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static inline bool is_subr_op (OpCode op)
   {
     switch (op)
@@ -301,7 +320,6 @@ struct CSInterpreter : Interpreter<ENV>
 {
   inline bool interpret (PARAM& param)
   {
-    param.init ();
     Interpreter<ENV> &super = *this;
     super.env.set_endchar (false);
 
