@@ -32,26 +32,9 @@
 
 #include "hb-subset.h"
 
-#include "hb-font.hh"
+#include "hb-subset-input.hh"
+#include "hb-subset-plan.hh"
 
-struct hb_subset_input_t
-{
-  hb_object_header_t header;
-  ASSERT_POD ();
-
-  hb_set_t *unicodes;
-  hb_set_t *glyphs;
-
-  bool drop_hints : 1;
-  bool drop_layout : 1;
-  /* TODO
-   *
-   * features
-   * lookups
-   * nameIDs
-   * ...
-   */
-};
 
 
 #endif /* HB_SUBSET_HH */

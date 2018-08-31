@@ -24,11 +24,10 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
+#include "hb-subset-plan.hh"
 #include "hb-map.hh"
-#include "hb-subset.hh"
 #include "hb-set.hh"
 
-#include "hb-subset-plan.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 

@@ -29,7 +29,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-set.hh"
-#include "hb-subset-plan.hh"
+#include "hb-subset.hh"
 
 /*
  * cmap -- Character to Glyph Index Mapping

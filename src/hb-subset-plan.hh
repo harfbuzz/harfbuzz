@@ -30,7 +30,7 @@
 #include "hb.hh"
 
 #include "hb-subset.h"
-#include "hb-subset.hh"
+#include "hb-subset-input.hh"
 
 #include "hb-map.hh"
 

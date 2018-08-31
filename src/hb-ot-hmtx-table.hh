@@ -31,7 +31,7 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
-#include "hb-subset-plan.hh"
+#include "hb-subset.hh"
 
 /*
  * hmtx -- Horizontal Metrics

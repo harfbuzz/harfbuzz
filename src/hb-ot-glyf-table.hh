@@ -30,8 +30,6 @@
 #include "hb-open-type.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-subset-glyf.hh"
-#include "hb-subset-plan.hh"
-#include "hb-subset.hh"
 
 namespace OT {
 
