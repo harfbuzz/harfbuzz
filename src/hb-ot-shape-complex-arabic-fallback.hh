@@ -173,7 +173,6 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					 ligatures_supplier,
 					 component_count_supplier,
 					 component_supplier);
-
   c.end_serialize ();
   /* TODO sanitize the results? */
 
