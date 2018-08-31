@@ -33,6 +33,7 @@
 #include "hb-blob.hh"
 #include "hb-face.hh"
 #include "hb-machinery.hh"
+#include "hb-subset.hh"
 
 
 namespace OT {

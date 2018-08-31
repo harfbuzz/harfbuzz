@@ -32,9 +32,30 @@
 
 #include "hb-subset.h"
 
+#include "hb-machinery.hh"
 #include "hb-subset-input.hh"
 #include "hb-subset-plan.hh"
 
+template <typename Serializer>
+struct hb_subset_context_t :
+       hb_dispatch_context_t<hb_subset_context_t<Serializer>, bool, HB_DEBUG_SUBSET>
+{
+  inline const char *get_name (void) { return "SUBSET"; }
+  template <typename T>
+  inline bool dispatch (const T &obj) { return obj.subset (this); }
+  static bool default_return_value (void) { return true; }
+  bool stop_sublookup_iteration (bool r) const { return false; }
+
+  hb_subset_plan_t *plan;
+  Serializer *serializer;
+  unsigned int debug_depth;
+
+  hb_subset_context_t (hb_subset_plan_t *plan_,
+		       Serializer *serializer_) :
+			plan (plan_),
+			serializer (serializer_),
+			debug_depth (0) {}
+};
 
 
 #endif /* HB_SUBSET_HH */
