@@ -106,43 +106,50 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer
 
 struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 {
-  static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_args_and_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
-    if (param.drop_hints && CSOPSET::is_hint_op (op))
-    {
-      env.clear_stack ();
-      return true;
-    }
-    if (unlikely (!SUPER::process_op (op, env, param)))
-      return false;
     switch (op)
     {
+      case OpCode_hstem:
+      case OpCode_hstemhm:
+      case OpCode_vstem:
+      case OpCode_vstemhm:
       case OpCode_hintmask:
       case OpCode_cntrmask:
+      case OpCode_hflex:
+      case OpCode_flex:
+      case OpCode_hflex1:
+      case OpCode_flex1:
         if (param.drop_hints)
         {
-          env.clear_stack ();
-          return true;
+          env.clear_args ();
+          return;
         }
-        if (unlikely (!param.flatStr.encode_op (op)))
-          return false;
-        for (int i = -env.hintmask_size; i < 0; i++)
-          if (unlikely (!param.flatStr.encode_byte (env.substr[i])))
-            return false;
-        break;
+        /* NO BREAK */
+
       default:
-        if (!CSOPSET::is_subr_op (op) &&
-            !CSOPSET::is_arg_op (op))
-          return param.flatStr.encode_op (op);
+        SUPER::flush_args_and_op (op, env, param);
+        break;
     }
-    return true;
   }
 
-  static inline void flush_stack (CFF1CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_n_args (unsigned int n, CFF1CSInterpEnv &env, FlattenParam& param)
   {
-    for (unsigned int i = 0; i < env.argStack.size; i++)
+    for (unsigned int i = env.argStack.count - n; i < env.argStack.count; i++)
       param.flatStr.encode_num (env.argStack.elements[i]);
-    SUPER::flush_stack (env, param);
+    SUPER::flush_n_args (n, env, param);
+  }
+
+  static inline void flush_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  {
+    param.flatStr.encode_op (op);
+  }
+
+  static inline void flush_hintmask (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  {
+    SUPER::flush_hintmask (op, env, param);
+    for (unsigned int i = 0; i < env.hintmask_size; i++)
+      param.flatStr.encode_byte (env.substr[i]);
   }
 
   private:

@@ -437,13 +437,13 @@ struct CFF1TopDictOpSet : TopDictOpSet
       case OpCode_FontBBox:
       case OpCode_XUID:
       case OpCode_BaseFontBlend:
-        env.argStack.clear ();
+        env.clear_args ();
         break;
         
       case OpCode_CIDCount:
         if (unlikely (!env.argStack.check_pop_uint (dictval.cidCount)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_ROS:
@@ -451,25 +451,25 @@ struct CFF1TopDictOpSet : TopDictOpSet
                       !env.argStack.check_pop_uint (dictval.ros[1]) ||
                       !env.argStack.check_pop_uint (dictval.ros[0])))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_Encoding:
         if (unlikely (!env.argStack.check_pop_uint (dictval.EncodingOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_charset:
         if (unlikely (!env.argStack.check_pop_uint (dictval.CharsetOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_FDSelect:
         if (unlikely (!env.argStack.check_pop_uint (dictval.FDSelectOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
     
       case OpCode_Private:
@@ -477,7 +477,7 @@ struct CFF1TopDictOpSet : TopDictOpSet
           return false;
         if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
     
       default:
@@ -517,14 +517,14 @@ struct CFF1FontDictOpSet : DictOpSet
       case OpCode_FontName:
       case OpCode_FontMatrix:
       case OpCode_PaintType:
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_Private:
         if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.offset)))
           return false;
         if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
     
       default:
@@ -602,12 +602,12 @@ struct CFF1PrivateDictOpSet : DictOpSet
       case OpCode_nominalWidthX:
         if (unlikely (!env.argStack.check_pop_num (val.single_val)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_Subrs:
         if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       default:
@@ -644,13 +644,13 @@ struct CFF1PrivateDictOpSet_Subset : DictOpSet
       case OpCode_initialRandomSeed:
       case OpCode_defaultWidthX:
       case OpCode_nominalWidthX:
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_Subrs:
         if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       default:

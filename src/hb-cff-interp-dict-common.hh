@@ -169,12 +169,12 @@ struct TopDictOpSet : DictOpSet
       case OpCode_CharStrings:
         if (unlikely (!env.argStack.check_pop_uint (dictval.charStringsOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_FDArray:
         if (unlikely (!env.argStack.check_pop_uint (dictval.FDArrayOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       default:
         return DictOpSet::process_op (op, env);

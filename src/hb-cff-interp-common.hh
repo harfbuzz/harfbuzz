@@ -379,40 +379,40 @@ inline float parse_bcd (SubByteStr& substr, float& v)
 template <typename ELEM, int LIMIT>
 struct Stack
 {
-  inline void init (void) { size = 0; }
+  inline void init (void) { count = 0; }
   inline void fini (void) { }
 
   inline void push (const ELEM &v)
   {
-    if (likely (size < kSizeLimit))
-      elements[size++] = v;
+    if (likely (count < kSizeLimit))
+      elements[count++] = v;
   }
 
   inline const ELEM& pop (void)
   {
-    if (likely (size > 0))
-      return elements[--size];
+    if (likely (count > 0))
+      return elements[--count];
     else
       return Null(ELEM);
   }
 
   inline void unpop (void)
   {
-    if (likely (size < kSizeLimit))
-      size++;
+    if (likely (count < kSizeLimit))
+      count++;
   }
 
-  inline void clear (void) { size = 0; }
+  inline void clear (void) { count = 0; }
 
-  inline bool check_overflow (unsigned int count=1) const { return (count <= kSizeLimit) && (count + size <= kSizeLimit); }
-  inline bool check_underflow (unsigned int count=1) const { return (count <= size); }
+  inline bool check_overflow (unsigned int n=1) const { return (n <= kSizeLimit) && (n + count <= kSizeLimit); }
+  inline bool check_underflow (unsigned int n=1) const { return (n <= count); }
 
-  inline unsigned int get_size (void) const { return size; }
-  inline bool is_empty (void) const { return size == 0; }
+  inline unsigned int get_count (void) const { return count; }
+  inline bool is_empty (void) const { return count == 0; }
 
   static const unsigned int kSizeLimit = LIMIT;
 
-  unsigned int size;
+  unsigned int count;
   ELEM elements[kSizeLimit];
 };
 
@@ -469,11 +469,11 @@ struct ArgStack : Stack<Number, 513>
 
   inline bool check_pop_delta (hb_vector_t<Number>& vec, bool even=false)
   {
-    if (even && unlikely ((this->size & 1) != 0))
+    if (even && unlikely ((this->count & 1) != 0))
       return false;
 
     float val = 0.0f;
-    for (unsigned int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < count; i++) {
       val += elements[i].to_real ();
       Number *n = vec.push ();
       n->set_real (val);
@@ -564,6 +564,17 @@ struct InterpEnv
     return true;
   }
 
+  inline void pop_n_args (unsigned int n)
+  {
+    assert (n <= argStack.count);
+    argStack.count -= n;
+  }
+
+  inline void clear_args (void)
+  {
+    pop_n_args (argStack.count);
+  }
+
   SubByteStr    substr;
   ArgStack      argStack;
 };
@@ -604,7 +615,7 @@ struct OpSet
           env.argStack.push_int ((int)op - 139);
         } else {
           /* invalid unknown operator */
-          env.argStack.clear ();
+          env.clear_args ();
           return false;
         }
         break;

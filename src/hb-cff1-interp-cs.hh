@@ -51,7 +51,7 @@ struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
   {
     if (!processed_width)
     {
-      if ((this->argStack.size & 1) != 0)
+      if ((this->argStack.count & 1) != 0)
       {
         width = this->argStack.elements[0];
         has_width = true;
@@ -163,8 +163,8 @@ struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
           if (unlikely (!env.argStack.check_pop_num (n1))) return false;
           int i = n1.to_int ();
           if (i < 0) i = 0;
-          if (unlikely (i >= env.argStack.size || !env.argStack.check_overflow (1))) return false;
-          env.argStack.push (env.argStack.elements[env.argStack.size - i - 1]);
+          if (unlikely (i >= env.argStack.count || !env.argStack.check_overflow (1))) return false;
+          env.argStack.push (env.argStack.elements[env.argStack.count - i - 1]);
         }
         break;
       case OpCode_roll:
@@ -172,13 +172,13 @@ struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
           if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
           int n = n1.to_int ();
           int j = n2.to_int ();
-          if (unlikely (n < 0 || n > env.argStack.size)) return false;
+          if (unlikely (n < 0 || n > env.argStack.count)) return false;
           if (likely (n > 0))
           {
             if (j < 0)
               j = n - (-j % n);
             j %= n;
-            unsigned int top = env.argStack.size - 1;
+            unsigned int top = env.argStack.count - 1;
             unsigned int bot = top - n + 1;
             env.argStack.reverse_range (top - j + 1, top);
             env.argStack.reverse_range (bot, top - j);
@@ -194,10 +194,10 @@ struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
     return true;
   }
 
-  static inline void flush_stack (CFF1CSInterpEnv &env, PARAM& param)
+  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)
   {
     env.check_width ();
-    SUPER::flush_stack (env, param);
+    SUPER::flush_args (env, param);
   }
 
   private:

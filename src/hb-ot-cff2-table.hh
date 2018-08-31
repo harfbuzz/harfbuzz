@@ -183,19 +183,19 @@ struct CFF2TopDictOpSet : TopDictOpSet
           DictVal val;
           val.init ();
           dictval.pushVal (op, env.substr);
-          env.argStack.clear ();
+          env.clear_args ();
         }
         break;
 
       case OpCode_vstore:
         if (unlikely (!env.argStack.check_pop_uint (dictval.vstoreOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_FDSelect:
         if (unlikely (!env.argStack.check_pop_uint (dictval.FDSelectOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
     
       default:
@@ -236,7 +236,7 @@ struct CFF2FontDictOpSet : DictOpSet
           return false;
         if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
     
       default:
@@ -301,7 +301,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_LanguageGroup:
         if (unlikely (!env.argStack.check_pop_num (val.single_val)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_BlueValues:
       case OpCode_OtherBlues:
@@ -311,12 +311,12 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_StemSnapV:
         if (unlikely (!env.argStack.check_pop_delta (val.multi_val)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_Subrs:
         if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
       case OpCode_vsindexdict:
       case OpCode_blenddict:
@@ -353,17 +353,17 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
       case OpCode_StemSnapV:
       case OpCode_LanguageGroup:
       case OpCode_ExpansionFactor:
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       case OpCode_blenddict:
-        env.argStack.clear ();
+        env.clear_args ();
         return true;
 
       case OpCode_Subrs:
         if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
           return false;
-        env.argStack.clear ();
+        env.clear_args ();
         break;
 
       default:

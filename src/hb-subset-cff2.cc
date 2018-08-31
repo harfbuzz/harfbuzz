@@ -77,59 +77,54 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
 
 struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  static inline bool process_blend (CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    if (param.drop_hints && CSOPSET::is_hint_op (op))
-    {
-      env.clear_stack ();
-      return true;
-    }
-    if (unlikely (!SUPER::process_op (op, env, param)))
-      return false;
+    flush_args (env, param);
+    return true;
+  }
+
+  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  {
     switch (op)
     {
-      case OpCode_hintmask:
-      case OpCode_cntrmask:
-        if (param.drop_hints)
-        {
-          env.clear_stack ();
-          return true;
-        }
-        if (unlikely (!param.flatStr.encode_op (op)))
-          return false;
-        for (int i = -env.hintmask_size; i < 0; i++)
-          if (unlikely (!param.flatStr.encode_byte (env.substr[i])))
-            return false;
-        break;
       case OpCode_return:
       case OpCode_endchar:
         /* dummy opcodes in CFF2. ignore */
         break;
+    
+      case OpCode_hstem:
+      case OpCode_hstemhm:
+      case OpCode_vstem:
+      case OpCode_vstemhm:
+      case OpCode_hintmask:
+      case OpCode_cntrmask:
+      case OpCode_hflex:
+      case OpCode_flex:
+      case OpCode_hflex1:
+      case OpCode_flex1:
+        if (param.drop_hints)
+        {
+          env.clear_args ();
+          return;
+        }
+        /* NO BREAK */
+
       default:
-        if (!CSOPSET::is_subr_op (op) &&
-            !CSOPSET::is_arg_op (op))
-          return param.flatStr.encode_op (op);
+        SUPER::flush_args_and_op (op, env, param);
+        break;
     }
-    return true;
   }
 
-  static inline bool process_blend (CFF2CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_n_args (unsigned int n, CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    flush_stack (env, param);
-    return true;
-  }
-
-  static inline bool process_vsindex (CFF2CSInterpEnv &env, FlattenParam& param)
-  {
-    flush_stack (env, param);
-    return true;
-  }
-
-  static inline void flush_stack (CFF2CSInterpEnv &env, FlattenParam& param)
-  {
-    for (unsigned int i = 0; i < env.argStack.size; i++)
+    for (unsigned int i = env.argStack.count - n; i < env.argStack.count; i++)
       param.flatStr.encode_num (env.argStack.elements[i]);
-    SUPER::flush_stack (env, param);
+    SUPER::flush_n_args (n, env, param);
+  }
+
+  static inline void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  {
+    param.flatStr.encode_op (op);
   }
 
   private:

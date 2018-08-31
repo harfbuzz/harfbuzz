@@ -64,7 +64,6 @@ struct CSInterpEnv : InterpEnv
   {
     InterpEnv::init (str);
 
-    stack_cleared = false;
     seen_moveto = true;
     seen_hintmask = false;
     hstem_count = 0;
@@ -121,25 +120,17 @@ struct CSInterpEnv : InterpEnv
   {
     if (!seen_hintmask)
     {
-      vstem_count += argStack.size / 2;
+      vstem_count += argStack.get_count() / 2;
       hintmask_size = (hstem_count + vstem_count + 7) >> 3;
       seen_hintmask = true;
     }
   }
 
-  inline void clear_stack (void)
-  {
-    stack_cleared = true;
-    argStack.clear ();
-  }
-
   inline void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
   inline bool is_endchar (void) const { return endchar_flag; }
-  inline bool is_stack_cleared (void) const { return stack_cleared; }
 
   public:
   bool          endchar_flag;
-  bool          stack_cleared;
   bool          seen_moveto;
   bool          seen_hintmask;
 
@@ -162,7 +153,8 @@ struct CSOpSet : OpSet
         return env.returnFromSubr ();
       case OpCode_endchar:
         env.set_endchar (true);
-        return true;
+        OPSET::flush_op (op, env, param);
+        break;
 
       case OpCode_fixedcs:
         return env.argStack.push_fixed_from_substr (env.substr);
@@ -175,19 +167,15 @@ struct CSOpSet : OpSet
 
       case OpCode_hstem:
       case OpCode_hstemhm:
-        OPSET::process_hstem (env, param);
+        OPSET::process_hstem (op, env, param);
         break;
       case OpCode_vstem:
       case OpCode_vstemhm:
-        OPSET::process_vstem (env, param);
+        OPSET::process_vstem (op, env, param);
         break;
       case OpCode_hintmask:
       case OpCode_cntrmask:
-        env.determine_hintmask_size ();
-        OPSET::flush_stack (env, param);
-        if (unlikely (!env.substr.avail (env.hintmask_size)))
-          return false;
-        env.substr.inc (env.hintmask_size);
+        OPSET::process_hintmask (op, env, param);
         break;
       
       case OpCode_vmoveto:
@@ -196,7 +184,7 @@ struct CSOpSet : OpSet
       case OpCode_vlineto:
       case OpCode_rmoveto:
       case OpCode_hmoveto:
-        OPSET::process_moveto (env, param);
+        OPSET::process_moveto (op, env, param);
         break;
       case OpCode_rrcurveto:
       case OpCode_rcurveline:
@@ -205,11 +193,14 @@ struct CSOpSet : OpSet
       case OpCode_hhcurveto:
       case OpCode_vhcurveto:
       case OpCode_hvcurveto:
+        OPSET::process_path (op, env, param);
+        break;
+
       case OpCode_hflex:
       case OpCode_flex:
       case OpCode_hflex1:
       case OpCode_flex1:
-        OPSET::flush_stack (env, param);
+        OPSET::process_flex (op, env, param);
         break;
 
       default:
@@ -218,87 +209,76 @@ struct CSOpSet : OpSet
     return true;
   }
 
-  static inline void process_hstem (ENV &env, PARAM& param)
+  static inline void process_hstem (OpCode op, ENV &env, PARAM& param)
   {
-    env.hstem_count += env.argStack.size / 2;
-    OPSET::flush_stack (env, param);
+    env.hstem_count += env.argStack.count / 2;
+    OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_vstem (ENV &env, PARAM& param)
+  static inline void process_vstem (OpCode op, ENV &env, PARAM& param)
   {
-    env.vstem_count += env.argStack.size / 2;
-    OPSET::flush_stack (env, param);
+    env.vstem_count += env.argStack.count / 2;
+    OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_moveto (ENV &env, PARAM& param)
+  static inline void process_hintmask (OpCode op, ENV &env, PARAM& param)
+  {
+    env.determine_hintmask_size ();
+    if (likely (env.substr.avail (env.hintmask_size)))
+    {
+      OPSET::flush_hintmask (op, env, param);
+      env.substr.inc (env.hintmask_size);
+    }
+  }
+
+  static inline void process_flex (OpCode op, ENV &env, PARAM& param)
+  {
+    OPSET::flush_args_and_op (op, env, param);
+  }
+
+  static inline void process_moveto (OpCode op, ENV &env, PARAM& param)
   {
     if (!env.seen_moveto)
     {
       env.determine_hintmask_size ();
       env.seen_moveto = true;
     }
-    OPSET::flush_stack (env, param);
+    OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void flush_stack (ENV &env, PARAM& param)
+  static inline void process_path (OpCode op, ENV &env, PARAM& param)
   {
-    env.clear_stack ();
+    OPSET::flush_args_and_op (op, env, param);
   }
 
-  /* numeric / logical / arithmetic operators */
-  static inline bool is_arg_op (OpCode op)
+  static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param)
   {
-    switch (op)
-    {
-      case OpCode_shortint:
-      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
-      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
-      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-      case OpCode_fixedcs:
-      case OpCode_and:
-      case OpCode_or:
-      case OpCode_not:
-      case OpCode_abs:
-      case OpCode_add:
-      case OpCode_sub:
-      case OpCode_div:
-      case OpCode_neg:
-      case OpCode_eq:
-      case OpCode_drop:
-      case OpCode_put:
-      case OpCode_get:
-      case OpCode_ifelse:
-      case OpCode_random:
-      case OpCode_mul:
-      case OpCode_sqrt:
-      case OpCode_dup:
-      case OpCode_exch:
-      case OpCode_index:
-      case OpCode_roll:
-        return true;
-      default:
-        return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast);
-    }
+    OPSET::flush_n_args_and_op (op, env.argStack.count, env, param);
   }
 
-  /* hint operators (excluding hint/counter mask) */
-  static inline bool is_hint_op (OpCode op)
+  static inline void flush_n_args_and_op (OpCode op, unsigned int n, ENV &env, PARAM& param)
   {
-    switch (op)
-    {
-      case OpCode_hstem:
-      case OpCode_vstem:
-      case OpCode_hstemhm:
-      case OpCode_vstemhm:
-      case OpCode_hflex:
-      case OpCode_flex:
-      case OpCode_hflex1:
-      case OpCode_flex1:
-        return true;
-      default:
-        return false;
-    }
+    OPSET::flush_n_args (n, env, param);
+    OPSET::flush_op (op, env, param);
+  }
+
+  static inline void flush_args (ENV &env, PARAM& param)
+  {
+    OPSET::flush_n_args (env.argStack.count, env, param);
+  }
+
+  static inline void flush_n_args (unsigned int n, ENV &env, PARAM& param)
+  {
+    env.pop_n_args (n);
+  }
+
+  static inline void flush_op (OpCode op, ENV &env, PARAM& param)
+  {
+  }
+
+  static inline void flush_hintmask (OpCode op, ENV &env, PARAM& param)
+  {
+    OPSET::flush_args_and_op (op, env, param);
   }
 
   static inline bool is_subr_op (OpCode op)
