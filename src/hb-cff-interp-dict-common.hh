@@ -33,6 +33,7 @@ namespace CFF {
 using namespace OT;
 
 /* an opstr and the parsed out dict value(s) */
+template <typename ARG=Number>
 struct DictVal : OpStr
 {
   inline void init (void)
@@ -46,9 +47,11 @@ struct DictVal : OpStr
     multi_val.fini ();
   }
 
-  Number              single_val;
-  hb_vector_t<Number> multi_val;
+  ARG              single_val;
+  hb_vector_t<ARG> multi_val;
 };
+
+typedef DictVal<> NumDictVal;
 
 template <typename VAL>
 struct DictValues
@@ -115,9 +118,10 @@ struct TopDictValues : DictValues<OpStr>
   unsigned int  FDArrayOffset;
 };
 
-struct DictOpSet : OpSet
+template <typename ARG=Number>
+struct DictOpSet : OpSet<ARG>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env)
+  static inline bool process_op (OpCode op, InterpEnv<ARG>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
@@ -130,7 +134,7 @@ struct DictOpSet : OpSet
         return true;
 
       default:
-        return OpSet::process_op (op, env);
+        return OpSet<ARG>::process_op (op, env);
     }
 
     return true;
@@ -161,9 +165,10 @@ struct DictOpSet : OpSet
   }
 };
 
-struct TopDictOpSet : DictOpSet
+template <typename ARG=Number>
+struct TopDictOpSet : DictOpSet<ARG>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, TopDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv<ARG>& env, TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
@@ -177,30 +182,32 @@ struct TopDictOpSet : DictOpSet
         env.clear_args ();
         break;
       default:
-        return DictOpSet::process_op (op, env);
+        return DictOpSet<ARG>::process_op (op, env);
     }
 
     return true;
   }
 };
 
-template <typename OPSET, typename PARAM>
-struct DictInterpreter : Interpreter<InterpEnv>
+template <typename OPSET, typename PARAM, typename ENV=NumInterpEnv>
+struct DictInterpreter : Interpreter<ENV>
 {
   inline bool interpret (PARAM& param)
   {
     param.init ();
-    Interpreter<InterpEnv>  &super = *this;
     do
     {
       OpCode op;
-      if (unlikely (!super.env.fetch_op (op) ||
-                    !OPSET::process_op (op, super.env, param)))
+      if (unlikely (!SUPER::env.fetch_op (op) ||
+                    !OPSET::process_op (op, SUPER::env, param)))
         return false;
-    } while (super.env.substr.avail ());
+    } while (SUPER::env.substr.avail ());
     
     return true;
   }
+
+  private:
+  typedef Interpreter<ENV> SUPER;
 };
 
 } /* namespace CFF */

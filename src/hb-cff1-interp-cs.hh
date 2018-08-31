@@ -33,11 +33,11 @@ namespace CFF {
 
 using namespace OT;
 
-struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
+struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 {
   inline void init (const ByteStr &str, const CFF1Subrs &globalSubrs, const CFF1Subrs &localSubrs)
   {
-    CSInterpEnv<CFF1Subrs>::init (str, globalSubrs, localSubrs);
+    SUPER::init (str, globalSubrs, localSubrs);
     processed_width = false;
     has_width = false;
     for (unsigned int i = 0; i < kTransientArraySize; i++)
@@ -51,9 +51,9 @@ struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
   {
     if (!processed_width)
     {
-      if ((this->argStack.count & 1) != 0)
+      if ((SUPER::argStack.count & 1) != 0)
       {
-        width = this->argStack.elements[0];
+        width = SUPER::argStack.elements[0];
         has_width = true;
       }
       processed_width = true;
@@ -66,10 +66,13 @@ struct CFF1CSInterpEnv : CSInterpEnv<CFF1Subrs>
 
   static const unsigned int kTransientArraySize = 32;
   Number  transient_array[kTransientArraySize];
+
+  private:
+  typedef CSInterpEnv<Number, CFF1Subrs> SUPER;
 };
 
 template <typename OPSET, typename PARAM>
-struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
+struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>
 {
   static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
@@ -201,7 +204,7 @@ struct CFF1CSOpSet : CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>
   }
 
   private:
-  typedef CSOpSet<OPSET, CFF1CSInterpEnv, PARAM>  SUPER;
+  typedef CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>  SUPER;
 };
 
 template <typename OPSET, typename PARAM>

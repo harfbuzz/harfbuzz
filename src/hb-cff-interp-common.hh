@@ -417,23 +417,24 @@ struct Stack
 };
 
 /* argument stack */
-struct ArgStack : Stack<Number, 513>
+template <typename ARG=Number>
+struct ArgStack : Stack<ARG, 513>
 {
   inline void push_int (int v)
   {
-    Number n;
+    ARG n;
     n.set_int (v);
-    push (n);
+    S::push (n);
   }
 
   inline void push_real (float v)
   {
-    Number n;
+    ARG n;
     n.set_real (v);
-    push (n);
+    S::push (n);
   }
 
-  inline bool check_pop_num (Number& n)
+  inline bool check_pop_num (ARG& n)
   {
     if (unlikely (!this->check_underflow ()))
       return false;
@@ -441,7 +442,7 @@ struct ArgStack : Stack<Number, 513>
     return true;
   }
 
-  inline bool check_pop_num2 (Number& n1, Number& n2)
+  inline bool check_pop_num2 (ARG& n1, ARG& n2)
   {
     if (unlikely (!this->check_underflow (2)))
       return false;
@@ -467,15 +468,15 @@ struct ArgStack : Stack<Number, 513>
     return true;
   }
 
-  inline bool check_pop_delta (hb_vector_t<Number>& vec, bool even=false)
+  inline bool check_pop_delta (hb_vector_t<ARG>& vec, bool even=false)
   {
     if (even && unlikely ((this->count & 1) != 0))
       return false;
 
     float val = 0.0f;
-    for (unsigned int i = 0; i < count; i++) {
-      val += elements[i].to_real ();
-      Number *n = vec.push ();
+    for (unsigned int i = 0; i < S::count; i++) {
+      val += S::elements[i].to_real ();
+      ARG *n = vec.push ();
       n->set_real (val);
     }
     return true;
@@ -483,7 +484,7 @@ struct ArgStack : Stack<Number, 513>
 
   inline bool push_longint_from_substr (SubByteStr& substr)
   {
-    if (unlikely (!substr.avail (4) || !check_overflow (1)))
+    if (unlikely (!substr.avail (4) || !S::check_overflow (1)))
       return false;
     push_int ((int32_t)*(const HBUINT32*)&substr[0]);
     substr.inc (4);
@@ -492,7 +493,7 @@ struct ArgStack : Stack<Number, 513>
 
   inline bool push_fixed_from_substr (SubByteStr& substr)
   {
-    if (unlikely (!substr.avail (4) || !check_overflow (1)))
+    if (unlikely (!substr.avail (4) || !S::check_overflow (1)))
       return false;
     push_real ((int32_t)*(const HBUINT32*)&substr[0] / 65536.0);
     substr.inc (4);
@@ -502,14 +503,17 @@ struct ArgStack : Stack<Number, 513>
   inline void reverse_range (int i, int j)
   {
     assert (i >= 0 && i < j);
-    Number  tmp;
+    ARG  tmp;
     while (i < j)
     {
-      tmp = elements[i];
-      elements[i++] = elements[j];
-      elements[j++] = tmp;
+      tmp = S::elements[i];
+      S::elements[i++] = S::elements[j];
+      S::elements[j++] = tmp;
     }
   }
+
+  private:
+  typedef Stack<ARG, 513> S;
 };
 
 /* an operator prefixed by its operands in a byte string */
@@ -536,6 +540,7 @@ struct OpSerializer
   }
 };
 
+template <typename ARG=Number>
 struct InterpEnv
 {
   inline void init (const ByteStr &str_)
@@ -576,12 +581,15 @@ struct InterpEnv
   }
 
   SubByteStr    substr;
-  ArgStack      argStack;
+  ArgStack<ARG> argStack;
 };
 
+typedef InterpEnv<> NumInterpEnv;
+
+template <typename ARG=Number>
 struct OpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv& env)
+  static inline bool process_op (OpCode op, InterpEnv<ARG>& env)
   {
     switch (op) {
       case OpCode_shortint:

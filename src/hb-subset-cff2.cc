@@ -129,7 +129,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 
   private:
   typedef CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam> SUPER;
-  typedef CSOpSet<CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
+  typedef CSOpSet<BlendArg, CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
 };
 
 struct CFF2CSOpSet_SubsetSubrs : CFF2CSOpSet<CFF2CSOpSet_SubsetSubrs, SubrRefMapPair>

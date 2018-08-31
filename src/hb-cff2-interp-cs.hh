@@ -33,18 +33,18 @@ namespace CFF {
 
 using namespace OT;
 
-struct CFF2CSInterpEnv : CSInterpEnv<CFF2Subrs>
+struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
   inline void init (const ByteStr &str, const CFF2Subrs &globalSubrs_, const CFF2Subrs &localSubrs_)
   {
-    CSInterpEnv<CFF2Subrs>::init (str, globalSubrs_, localSubrs_);
+    SUPER::init (str, globalSubrs_, localSubrs_);
     ivs = 0;
   }
 
   inline bool fetch_op (OpCode &op)
   {
     if (unlikely (this->substr.avail ()))
-      return CSInterpEnv<CFF2Subrs>::fetch_op (op);
+      return SUPER::fetch_op (op);
 
     /* make up return or endchar op */
     if (this->callStack.check_underflow ())
@@ -66,10 +66,12 @@ struct CFF2CSInterpEnv : CSInterpEnv<CFF2Subrs>
 
   protected:
   unsigned int  ivs;
+
+  typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;
 };
 
 template <typename OPSET, typename PARAM>
-struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
+struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>
 {
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
   {
@@ -83,7 +85,6 @@ struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
         break;
 
       default:
-        typedef CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>  SUPER;
         if (unlikely (!SUPER::process_op (op, env, param)))
           return false;
         break;
@@ -103,6 +104,9 @@ struct CFF2CSOpSet : CSOpSet<OPSET, CFF2CSInterpEnv, PARAM>
     env.process_vsindex ();
     OPSET::flush_n_args_and_op (OpCode_vsindexcs, 1, env, param);
   }
+
+  private:
+  typedef CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>  SUPER;
 };
 
 template <typename OPSET, typename PARAM>

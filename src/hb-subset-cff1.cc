@@ -154,7 +154,6 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 
   private:
   typedef CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam> SUPER;
-  typedef CSOpSet<CFF1CSOpSet_Flatten, CFF1CSInterpEnv, FlattenParam> CSOPSET;
 };
 
 struct CFF1CSOpSet_SubsetSubrs : CFF1CSOpSet<CFF1CSOpSet_SubsetSubrs, SubrRefMapPair>

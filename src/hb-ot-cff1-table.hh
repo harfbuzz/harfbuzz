@@ -407,9 +407,9 @@ struct CFF1TopDictValues : TopDictValues
   TableInfo     privateDictInfo;
 };
 
-struct CFF1TopDictOpSet : TopDictOpSet
+struct CFF1TopDictOpSet : TopDictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF1TopDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1TopDictValues& dictval)
   {
   
     switch (op) {
@@ -509,9 +509,9 @@ struct CFF1FontDictValues : DictValues<OpStr>
   TableInfo   privateDictInfo;
 };
 
-struct CFF1FontDictOpSet : DictOpSet
+struct CFF1FontDictOpSet : DictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF1FontDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontName:
@@ -570,13 +570,13 @@ struct CFF1PrivateDictValues_Base : DictValues<VAL>
 };
 
 typedef CFF1PrivateDictValues_Base<OpStr> CFF1PrivateDictValues_Subset;
-typedef CFF1PrivateDictValues_Base<DictVal> CFF1PrivateDictValues;
+typedef CFF1PrivateDictValues_Base<NumDictVal> CFF1PrivateDictValues;
 
-struct CFF1PrivateDictOpSet : DictOpSet
+struct CFF1PrivateDictOpSet : DictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF1PrivateDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1PrivateDictValues& dictval)
   {
-    DictVal val;
+    NumDictVal val;
     val.init ();
 
     switch (op) {
@@ -622,9 +622,9 @@ struct CFF1PrivateDictOpSet : DictOpSet
   }
 };
 
-struct CFF1PrivateDictOpSet_Subset : DictOpSet
+struct CFF1PrivateDictOpSet_Subset : DictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF1PrivateDictValues_Subset& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -690,7 +690,7 @@ struct cff1
                   likely (version.major == 1));
   }
 
-  template <typename PrivOpSet, typename PrivDictVal>
+  template <typename PRIVOPSET, typename PRIVDICTVAL>
   struct accelerator_templ_t
   {
     inline void init (hb_face_t *face)
@@ -788,10 +788,10 @@ struct cff1
           font_interp.env.init (fontDictStr);
           font = fontDicts.push ();
           if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
-          PrivDictVal  *priv = &privateDicts[i];
+          PRIVDICTVAL  *priv = &privateDicts[i];
           const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
           if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
-          DictInterpreter<PrivOpSet, PrivDictVal> priv_interp;
+          DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
           priv_interp.env.init (privDictStr);
           if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
@@ -804,11 +804,11 @@ struct cff1
       else  /* non-CID */
       {
         CFF1TopDictValues  *font = &topDicts[0];
-        PrivDictVal  *priv = &privateDicts[0];
+        PRIVDICTVAL  *priv = &privateDicts[0];
         
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
-        DictInterpreter<PrivOpSet, PrivDictVal> priv_interp;
+        DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
         priv_interp.env.init (privDictStr);
         if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
@@ -861,7 +861,7 @@ struct cff1
 
     hb_vector_t<CFF1TopDictValues>    topDicts;
     hb_vector_t<CFF1FontDictValues>   fontDicts;
-    hb_vector_t<PrivDictVal>          privateDicts;
+    hb_vector_t<PRIVDICTVAL>          privateDicts;
 
     unsigned int            num_glyphs;
   };

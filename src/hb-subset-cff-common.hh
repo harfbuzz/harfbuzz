@@ -219,7 +219,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
   {
     TRACE_SERIALIZE (this);
 
-    if (drop_hints && DictOpSet::is_hint_op (opstr.op))
+    if (drop_hints && DictOpSet<>::is_hint_op (opstr.op))
       return true;
     if (opstr.op == OpCode_Subrs)
     {
@@ -234,7 +234,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
 
   inline unsigned int calculate_serialized_size (const OpStr &opstr) const
   {
-    if (drop_hints && DictOpSet::is_hint_op (opstr.op))
+    if (drop_hints && DictOpSet<>::is_hint_op (opstr.op))
       return 0;
     if (opstr.op == OpCode_Subrs)
     {

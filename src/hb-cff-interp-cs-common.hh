@@ -57,12 +57,12 @@ struct BiasedSubrs
   unsigned int  bias;
 };
 
-template <typename SUBRS>
-struct CSInterpEnv : InterpEnv
+template <typename ARG, typename SUBRS>
+struct CSInterpEnv : InterpEnv<ARG>
 {
   inline void init (const ByteStr &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
   {
-    InterpEnv::init (str);
+    InterpEnv<ARG>::init (str);
 
     seen_moveto = true;
     seen_hintmask = false;
@@ -74,7 +74,7 @@ struct CSInterpEnv : InterpEnv
   }
   inline void fini (void)
   {
-    InterpEnv::fini ();
+    InterpEnv<ARG>::fini ();
 
     callStack.fini ();
     globalSubrs.fini ();
@@ -85,7 +85,7 @@ struct CSInterpEnv : InterpEnv
   {
     int n;
     if (unlikely ((!callStack.check_overflow (1) ||
-                   !argStack.check_pop_int (n))))
+                   !SUPER::argStack.check_pop_int (n))))
       return false;
     n += biasedSubrs.bias;
     if (unlikely ((n < 0) || (n >= biasedSubrs.subrs->count)))
@@ -101,8 +101,8 @@ struct CSInterpEnv : InterpEnv
 
     if (unlikely (!popSubrNum (biasedSubrs, subr_num)))
       return false;
-    callStack.push (substr);
-    substr = (*biasedSubrs.subrs)[subr_num];
+    callStack.push (SUPER::substr);
+    SUPER::substr = (*biasedSubrs.subrs)[subr_num];
 
     return true;
   }
@@ -112,7 +112,7 @@ struct CSInterpEnv : InterpEnv
     if (unlikely (!callStack.check_underflow ()))
       return false;
 
-    substr = callStack.pop ();
+    SUPER::substr = callStack.pop ();
     return true;
   }
 
@@ -120,7 +120,7 @@ struct CSInterpEnv : InterpEnv
   {
     if (!seen_hintmask)
     {
-      vstem_count += argStack.get_count() / 2;
+      vstem_count += SUPER::argStack.get_count() / 2;
       hintmask_size = (hstem_count + vstem_count + 7) >> 3;
       seen_hintmask = true;
     }
@@ -140,10 +140,13 @@ struct CSInterpEnv : InterpEnv
   CallStack            callStack;
   BiasedSubrs<SUBRS>   globalSubrs;
   BiasedSubrs<SUBRS>   localSubrs;
+
+  private:
+  typedef InterpEnv<ARG> SUPER;
 };
 
-template <typename OPSET, typename ENV, typename PARAM>
-struct CSOpSet : OpSet
+template <typename ARG, typename OPSET, typename ENV, typename PARAM>
+struct CSOpSet : OpSet<ARG>
 {
   static inline bool process_op (OpCode op, ENV &env, PARAM& param)
   {  
@@ -204,7 +207,7 @@ struct CSOpSet : OpSet
         break;
 
       default:
-        return OpSet::process_op (op, env);
+        return SUPER::process_op (op, env);
     }
     return true;
   }
@@ -293,6 +296,8 @@ struct CSOpSet : OpSet
         return false;
     }
   }
+
+  typedef OpSet<ARG>  SUPER;
 };
 
 template <typename ENV, typename OPSET, typename PARAM>
@@ -300,20 +305,22 @@ struct CSInterpreter : Interpreter<ENV>
 {
   inline bool interpret (PARAM& param)
   {
-    Interpreter<ENV> &super = *this;
-    super.env.set_endchar (false);
+    SUPER::env.set_endchar (false);
 
     for (;;) {
       OpCode op;
-      if (unlikely (!super.env.fetch_op (op) ||
-                    !OPSET::process_op (op, super.env, param)))
+      if (unlikely (!SUPER::env.fetch_op (op) ||
+                    !OPSET::process_op (op, SUPER::env, param)))
         return false;
-      if (super.env.is_endchar ())
+      if (SUPER::env.is_endchar ())
         break;
     }
     
     return true;
   }
+
+  private:
+  typedef Interpreter<ENV> SUPER;
 };
 
 } /* namespace CFF */

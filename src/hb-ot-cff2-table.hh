@@ -48,6 +48,13 @@ typedef Subrs<HBUINT32>   CFF2Subrs;
 typedef FDSelect3_4<HBUINT32, HBUINT16> FDSelect4;
 typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
 
+struct BlendArg : Number
+{
+  // XXX: TODO
+};
+
+typedef InterpEnv<BlendArg> BlendInterpEnv;
+
 struct CFF2FDSelect
 {
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
@@ -173,14 +180,14 @@ struct CFF2TopDictValues : TopDictValues
   unsigned int  FDSelectOffset;
 };
 
-struct CFF2TopDictOpSet : TopDictOpSet
+struct CFF2TopDictOpSet : TopDictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF2TopDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
         {
-          DictVal val;
+          DictVal<> val;
           val.init ();
           dictval.pushVal (op, env.substr);
           env.clear_args ();
@@ -199,7 +206,7 @@ struct CFF2TopDictOpSet : TopDictOpSet
         break;
     
       default:
-        if (unlikely (!TopDictOpSet::process_op (op, env, dictval)))
+        if (unlikely (!SUPER::process_op (op, env, dictval)))
           return false;
         /* Record this operand below if stack is empty, otherwise done */
         if (!env.argStack.is_empty ()) return true;
@@ -208,6 +215,8 @@ struct CFF2TopDictOpSet : TopDictOpSet
     dictval.pushVal (op, env.substr);
     return true;
   }
+
+  typedef TopDictOpSet<> SUPER;
 };
 
 struct CFF2FontDictValues : DictValues<OpStr>
@@ -226,9 +235,9 @@ struct CFF2FontDictValues : DictValues<OpStr>
   TableInfo    privateDictInfo;
 };
 
-struct CFF2FontDictOpSet : DictOpSet
+struct CFF2FontDictOpSet : DictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF2FontDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_Private:
@@ -240,7 +249,7 @@ struct CFF2FontDictOpSet : DictOpSet
         break;
     
       default:
-        if (unlikely (!DictOpSet::process_op (op, env)))
+        if (unlikely (!SUPER::process_op (op, env)))
           return false;
         if (!env.argStack.is_empty ())
           return true;
@@ -249,6 +258,9 @@ struct CFF2FontDictOpSet : DictOpSet
     dictval.pushVal (op, env.substr);
     return true;
   }
+
+  private:
+  typedef DictOpSet<> SUPER;
 };
 
 template <typename VAL>
@@ -281,14 +293,15 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
   const CFF2Subrs   *localSubrs;
 };
 
+typedef DictVal<BlendArg> BlendDictVal;
 typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
-typedef CFF2PrivateDictValues_Base<DictVal> CFF2PrivateDictValues;
+typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
-struct CFF2PrivateDictOpSet : DictOpSet
+struct CFF2PrivateDictOpSet : DictOpSet<>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF2PrivateDictValues& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues& dictval)
   {
-    DictVal val;
+    NumDictVal val;
     val.init ();
 
     switch (op) {
@@ -335,9 +348,9 @@ struct CFF2PrivateDictOpSet : DictOpSet
   }
 };
 
-struct CFF2PrivateDictOpSet_Subset : DictOpSet
+struct CFF2PrivateDictOpSet_Subset : DictOpSet<Number>
 {
-  static inline bool process_op (OpCode op, InterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
+  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -367,7 +380,7 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
         break;
 
       default:
-        if (unlikely (!DictOpSet::process_op (op, env)))
+        if (unlikely (!SUPER::process_op (op, env)))
           return false;
         if (!env.argStack.is_empty ()) return true;
         break;
@@ -376,11 +389,13 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
     dictval.pushVal (op, env.substr);
     return true;
   }
+
+  private:
+  typedef DictOpSet<Number> SUPER;
 };
 
 typedef DictInterpreter<CFF2TopDictOpSet, CFF2TopDictValues> CFF2TopDict_Interpreter;
 typedef DictInterpreter<CFF2FontDictOpSet, CFF2FontDictValues> CFF2FontDict_Interpreter;
-typedef DictInterpreter<CFF2PrivateDictOpSet, CFF2PrivateDictValues> CFF2PrivateDict_Interpreter;
 
 }; /* namespace CFF */
 
@@ -399,7 +414,7 @@ struct cff2
                   likely (version.major == 2));
   }
 
-  template <typename PrivOpSet, typename PrivDictVal>
+  template <typename PRIVOPSET, typename PRIVDICTVAL>
   struct accelerator_templ_t
   {
     inline void init (hb_face_t *face)
@@ -459,7 +474,7 @@ struct cff2
 
         const ByteStr privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
-        DictInterpreter<PrivOpSet, PrivDictVal> priv_interp;
+        DictInterpreter<PRIVOPSET, PRIVDICTVAL>  priv_interp;
         priv_interp.env.init(privDictStr);
         if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
@@ -505,7 +520,7 @@ struct cff2
     unsigned int              fdCount;
 
     hb_vector_t<CFF2FontDictValues>     fontDicts;
-    hb_vector_t<PrivDictVal>  privateDicts;
+    hb_vector_t<PRIVDICTVAL>  privateDicts;
 
     unsigned int            num_glyphs;
   };
