@@ -437,7 +437,11 @@ struct hb_serialize_context_t
   {
     this->start = (char *) start_;
     this->end = this->start + size;
+    reset ();
+  }
 
+  inline void reset (void)
+  {
     this->ran_out_of_room = false;
     this->head = this->start;
     this->debug_depth = 0;
