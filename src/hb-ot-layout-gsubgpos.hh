@@ -2370,6 +2370,25 @@ struct GSUBGPOS
     return get_feature (feature_index);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct GSUBGPOS *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    out->scriptList.serialize_subset (c, this+scriptList, this);
+    out->featureList.serialize_subset (c, this+featureList, this);
+    out->lookupList.serialize_subset (c, this+lookupList, this);
+    if (version.to_int () >= 0x00010001u)
+     out->featureVars.serialize_subset (c, this+featureVars, this);
+    return_trace (true);
+  }
+
+  inline unsigned int get_size (void) const
+  {
+    return min_size +
+	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

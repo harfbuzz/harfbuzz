@@ -1308,14 +1308,19 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  inline bool subset (hb_subset_context_t *c)
+  inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     struct GSUB *out = c->serializer->start_embed<GSUB> ();
-    //XXX if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
+    if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
+    /* TODO Replace following with c->iter_copy_and_subset()ish. */
+    unsigned int count = get_lookup_count ();
+    LookupList &outLookupList = out+out->lookupList;
+    for (unsigned int i = 0; i < count; i++)
+      //XXX if (unlikely (!outLookupList.arrayZ[i].subset (c, get_lookup (i), &outLookupList)))
+	return_trace (false);
     return_trace (true);
   }
-
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

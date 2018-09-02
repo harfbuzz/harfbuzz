@@ -97,15 +97,14 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : SortedArrayOf<Record<Type> > {
+struct RecordArrayOf : SortedArrayOf<Record<Type> >
+{
+  inline const OffsetTo<Type>& get_offset (unsigned int i) const
+  { return (*this)[i].offset; }
+  inline OffsetTo<Type>& get_offset (unsigned int i)
+  { return (*this)[i].offset; }
   inline const Tag& get_tag (unsigned int i) const
-  {
-    /* We cheat slightly and don't define separate Null objects
-     * for Record types.  Instead, we return the correct Null(Tag)
-     * here. */
-    if (unlikely (i >= this->len)) return Null(Tag);
-    return (*this)[i].tag;
-  }
+  { return (*this)[i].tag; }
   inline unsigned int get_tags (unsigned int start_offset,
 				unsigned int *record_count /* IN/OUT */,
 				hb_tag_t     *record_tags /* OUT */) const
@@ -136,7 +135,18 @@ template <typename Type>
 struct RecordListOf : RecordArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
-  { return this+RecordArrayOf<Type>::operator [](i).offset; }
+  { return this+this->get_offset (i); }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct RecordListOf<Type> *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      out->get_offset (i).serialize_subset (c, (*this)[i], this);
+    return_trace (true);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -224,6 +234,12 @@ struct LangSys
    return reqFeatureIndex;;
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    return_trace (c->serializer->embed (*this));
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<LangSys>::sanitize_closure_t * = nullptr) const
   {
@@ -238,7 +254,7 @@ struct LangSys
 				 * = 0xFFFFu */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
   public:
-  DEFINE_SIZE_ARRAY (6, featureIndex);
+  DEFINE_SIZE_ARRAY_SIZED (6, featureIndex);
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
 
@@ -263,6 +279,18 @@ struct Script
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Script *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, this);
+    unsigned int count = langSys.len;
+    for (unsigned int i = 0; i < count; i++)
+      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, this);
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Script>::sanitize_closure_t * = nullptr) const
   {
@@ -278,7 +306,7 @@ struct Script
 		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
   public:
-  DEFINE_SIZE_ARRAY (4, langSys);
+  DEFINE_SIZE_ARRAY_SIZED (4, langSys);
 };
 
 typedef RecordListOf<Script> ScriptList;
@@ -516,6 +544,15 @@ struct Feature
   inline const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Feature *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    out->featureParams.set (0); /* TODO(subset) FeatureParams. */
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Feature>::sanitize_closure_t *closure = nullptr) const
   {
@@ -567,7 +604,7 @@ struct Feature
 				 * if not required */
   IndexArray	 lookupIndex;	/* Array of LookupList indices */
   public:
-  DEFINE_SIZE_ARRAY (4, lookupIndex);
+  DEFINE_SIZE_ARRAY_SIZED (4, lookupIndex);
 };
 
 typedef RecordListOf<Feature> FeatureList;
@@ -663,6 +700,17 @@ struct Lookup
       HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       markFilteringSet.set (lookup_props >> 16);
     }
+    return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Lookup *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    unsigned int count = subTable.len;
+    for (unsigned int i = 0; i < count; i++)
+      out->subTable[i].set (0); /* To be filled out by SubstLookup/PosLookup. */
     return_trace (true);
   }
 
@@ -1629,6 +1677,12 @@ struct FeatureVariations
     return (this+record.substitutions).find_substitute (feature_index);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    return_trace (c->serializer->embed (*this));
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1642,7 +1696,7 @@ struct FeatureVariations
   LArrayOf<FeatureVariationRecord>
 			varRecords;
   public:
-  DEFINE_SIZE_ARRAY (8, varRecords);
+  DEFINE_SIZE_ARRAY_SIZED (8, varRecords);
 };
 
 

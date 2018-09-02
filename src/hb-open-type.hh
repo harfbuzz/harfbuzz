@@ -247,6 +247,19 @@ struct OffsetTo : Offset<OffsetType>
     return * (Type *) Offset<OffsetType>::serialize (c, base);
   }
 
+  template <typename T>
+  inline void serialize_subset (hb_subset_context_t *c, const T &src, const void *base)
+  {
+    if (&src == &Null(T))
+    {
+      this->set (0);
+      return;
+    }
+    serialize (c->serializer, base);
+    if (!src.subset (c))
+      this->set (0);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -405,7 +418,6 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<Type> &items,
 			 unsigned int items_len)
@@ -504,6 +516,17 @@ struct OffsetListOf : OffsetArrayOf<Type>
   {
     if (unlikely (i >= this->len)) return Crap(Type);
     return this+this->arrayZ[i];
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct OffsetListOf<Type> *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      out->arrayZ[i].serialize_subset (c, (*this)[i], this);
+    return_trace (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

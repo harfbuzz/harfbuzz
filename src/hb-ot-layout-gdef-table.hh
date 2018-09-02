@@ -387,19 +387,6 @@ struct GDEF
   inline const VariationStore &get_var_store (void) const
   { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
-		  glyphClassDef.sanitize (c, this) &&
-		  attachList.sanitize (c, this) &&
-		  ligCaretList.sanitize (c, this) &&
-		  markAttachClassDef.sanitize (c, this) &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
-		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
-  }
-
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
    * glyph class and other bits, and high 8-bit gthe mark attachment type (if any).
    * Not to be confused with lookup_props which is very similar. */
@@ -433,6 +420,26 @@ struct GDEF
     hb_blob_t *blob;
     const GDEF *table;
   };
+
+  inline unsigned int get_size (void) const
+  {
+    return min_size +
+	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +
+	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  glyphClassDef.sanitize (c, this) &&
+		  attachList.sanitize (c, this) &&
+		  ligCaretList.sanitize (c, this) &&
+		  markAttachClassDef.sanitize (c, this) &&
+		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
+		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
+  }
 
   protected:
   FixedVersion<>version;		/* Version of the GDEF table--currently

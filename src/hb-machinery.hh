@@ -111,9 +111,13 @@ static inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (array[0])); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof (array[0])); \
   DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
-  static const unsigned int min_size = (size)
+  static const unsigned int min_size = (size); \
+
+#define DEFINE_SIZE_ARRAY_SIZED(size, array) \
+	DEFINE_SIZE_ARRAY(size, array); \
+	inline unsigned int get_size (void) const { return (size - array[0].min_size + array.get_size ()); }
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
@@ -508,7 +512,7 @@ struct hb_serialize_context_t
     unsigned int size = obj.get_size ();
     Type *ret = this->allocate_size<Type> (size);
     if (unlikely (!ret)) return nullptr;
-    memcpy (ret, obj, size);
+    memcpy (ret, &obj, size);
     return ret;
   }
 
