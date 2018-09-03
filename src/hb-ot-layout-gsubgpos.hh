@@ -2565,14 +2565,16 @@ struct GSUBGPOS
 	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
   }
 
+  template <typename TLookup>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    typedef OffsetListOf<TLookup> TLookupList;
     return_trace (version.sanitize (c) &&
 		  likely (version.major == 1) &&
 		  scriptList.sanitize (c, this) &&
 		  featureList.sanitize (c, this) &&
-		  lookupList.sanitize (c, this) &&
+		  CastR<OffsetTo<TLookupList> > (lookupList).sanitize (c, this) &&
 		  (version.to_int () < 0x00010001u || featureVars.sanitize (c, this)));
   }
 

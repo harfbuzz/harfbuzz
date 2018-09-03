@@ -1385,8 +1385,6 @@ struct SubstLookup : Lookup
   }
 };
 
-typedef OffsetListOf<SubstLookup> SubstLookupList;
-
 /*
  * GSUB -- Glyph Substitution
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
@@ -1402,11 +1400,11 @@ struct GSUB : GSUBGPOS
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct GSUB *out = c->serializer->start_embed<GSUB> ();
+    //struct GSUB *out = c->serializer->start_embed<GSUB> ();
     if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
-    const OffsetTo<SubstLookupList> &list = CastR<const OffsetTo<SubstLookupList> > (lookupList);
-    OffsetTo<SubstLookupList> &outList = CastR<OffsetTo<SubstLookupList> > (out->lookupList);
-    outList.set (0);
+    //const OffsetTo<SubstLookupList> &list = CastR<const OffsetTo<SubstLookupList> > (lookupList);
+    //OffsetTo<SubstLookupList> &outList = CastR<OffsetTo<SubstLookupList> > (out->lookupList);
+    //outList.set (0);
     //outList.serialize_subset (c, this+list, out);
     /* TODO Use intersects() to count how many subtables survive? */
     return_trace (true);
@@ -1415,9 +1413,7 @@ struct GSUB : GSUBGPOS
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!GSUBGPOS::sanitize (c))) return_trace (false);
-    const OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
-    return_trace (list.sanitize (c, this));
+    return_trace (GSUBGPOS::sanitize<SubstLookup> (c));
   }
 
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;

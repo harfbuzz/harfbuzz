@@ -1548,8 +1548,6 @@ struct PosLookup : Lookup
   }
 };
 
-typedef OffsetListOf<PosLookup> PosLookupList;
-
 /*
  * GPOS -- Glyph Positioning
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gpos
@@ -1569,9 +1567,7 @@ struct GPOS : GSUBGPOS
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!GSUBGPOS::sanitize (c))) return_trace (false);
-    const OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
-    return_trace (list.sanitize (c, this));
+    return_trace (GSUBGPOS::sanitize<PosLookup> (c));
   }
 
   typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
