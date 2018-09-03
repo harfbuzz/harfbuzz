@@ -2377,7 +2377,7 @@ struct GSUBGPOS
     if (unlikely (!out)) return_trace (false);
     out->scriptList.serialize_subset (c, this+scriptList, this);
     out->featureList.serialize_subset (c, this+featureList, this);
-    out->lookupList.serialize_subset (c, this+lookupList, this);
+    out->lookupList.set (0); /* GSUB/GPOS fill this one in. */
     if (version.to_int () >= 0x00010001u)
      out->featureVars.serialize_subset (c, this+featureVars, this);
     return_trace (true);

@@ -703,17 +703,6 @@ struct Lookup
     return_trace (true);
   }
 
-  inline bool subset (hb_subset_context_t *c) const
-  {
-    TRACE_SUBSET (this);
-    struct Lookup *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
-    unsigned int count = subTable.len;
-    for (unsigned int i = 0; i < count; i++)
-      out->subTable[i].set (0); /* To be filled out by SubstLookup/PosLookup. */
-    return_trace (true);
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
