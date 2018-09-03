@@ -1402,14 +1402,13 @@ struct GSUB : GSUBGPOS
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    //struct GSUB *out = c->serializer->start_embed<GSUB> ();
+    struct GSUB *out = c->serializer->start_embed<GSUB> ();
     if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
-    /* TODO Replace following with c->iter_copy_and_subset()ish. */
-    unsigned int count = get_lookup_count ();
-    //LookupList &outLookupList = out+out->lookupList;
-    for (unsigned int i = 0; i < count; i++)
-      //XXX if (unlikely (!outLookupList.arrayZ[i].subset (c, get_lookup (i), &outLookupList)))
-	return_trace (false);
+    const OffsetTo<SubstLookupList> &list = CastR<const OffsetTo<SubstLookupList> > (lookupList);
+    OffsetTo<SubstLookupList> &outList = CastR<OffsetTo<SubstLookupList> > (out->lookupList);
+    outList.set (0);
+    //outList.serialize_subset (c, this+list, out);
+    /* TODO Use intersects() to count how many subtables survive? */
     return_trace (true);
   }
 

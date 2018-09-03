@@ -144,7 +144,7 @@ struct RecordListOf : RecordArrayOf<Type>
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->get_offset (i).serialize_subset (c, (*this)[i], this);
+      out->get_offset (i).serialize_subset (c, (*this)[i], out);
     return_trace (true);
   }
 
@@ -283,10 +283,10 @@ struct Script
     TRACE_SUBSET (this);
     struct Script *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, this);
+    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, out);
     unsigned int count = langSys.len;
     for (unsigned int i = 0; i < count; i++)
-      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, this);
+      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, out);
     return_trace (true);
   }
 

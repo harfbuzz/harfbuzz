@@ -525,7 +525,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->arrayZ[i].serialize_subset (c, (*this)[i], this);
+      out->arrayZ[i].serialize_subset (c, (*this)[i], out);
     return_trace (true);
   }
 
