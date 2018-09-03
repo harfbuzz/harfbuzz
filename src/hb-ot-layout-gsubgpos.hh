@@ -2420,8 +2420,8 @@ struct ExtensionFormat1
   inline const X& get_subtable (void) const
   {
     unsigned int offset = extensionOffset;
-    if (unlikely (!offset)) return Null(typename T::LookupSubTable);
-    return StructAtOffset<typename T::LookupSubTable> (this, offset);
+    if (unlikely (!offset)) return Null(typename T::SubTable);
+    return StructAtOffset<typename T::SubTable> (this, offset);
   }
 
   template <typename context_t>
@@ -2429,7 +2429,7 @@ struct ExtensionFormat1
   {
     TRACE_DISPATCH (this, format);
     if (unlikely (!c->may_dispatch (this, this))) return_trace (c->no_dispatch_return_value ());
-    return_trace (get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ()));
+    return_trace (get_subtable<typename T::SubTable> ().dispatch (c, get_type ()));
   }
 
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
@@ -2438,7 +2438,7 @@ struct ExtensionFormat1
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  extensionOffset != 0 &&
-		  extensionLookupType != T::LookupSubTable::Extension);
+		  extensionLookupType != T::SubTable::Extension);
   }
 
   protected:
@@ -2466,8 +2466,8 @@ struct Extension
   inline const X& get_subtable (void) const
   {
     switch (u.format) {
-    case 1: return u.format1.template get_subtable<typename T::LookupSubTable> ();
-    default:return Null(typename T::LookupSubTable);
+    case 1: return u.format1.template get_subtable<typename T::SubTable> ();
+    default:return Null(typename T::SubTable);
     }
   }
 
@@ -2546,6 +2546,7 @@ struct GSUBGPOS
     return get_feature (feature_index);
   }
 
+  template <typename TLookup>
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -2553,7 +2554,14 @@ struct GSUBGPOS
     if (unlikely (!out)) return_trace (false);
     out->scriptList.serialize_subset (c, this+scriptList, out);
     out->featureList.serialize_subset (c, this+featureList, out);
-    out->lookupList.set (0); /* GSUB/GPOS fill this one in. */
+
+    typedef OffsetListOf<TLookup> TLookupList;
+    /* TODO Use intersects() to count how many subtables survive? */
+    CastR<OffsetTo<TLookupList> > (out->lookupList)
+      .serialize_subset (c,
+			 this+CastR<const OffsetTo<TLookupList> > (lookupList),
+			 out);
+
     if (version.to_int () >= 0x00010001u)
      out->featureVars.serialize_subset (c, this+featureVars, out);
     return_trace (true);

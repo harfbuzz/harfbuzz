@@ -980,7 +980,7 @@ struct ChainContextSubst : ChainContext {};
 
 struct ExtensionSubst : Extension<ExtensionSubst>
 {
-  typedef struct SubstLookupSubTable LookupSubTable;
+  typedef struct SubstLookupSubTable SubTable;
 
   inline bool is_reverse (void) const;
 };
@@ -1211,16 +1211,18 @@ struct SubstLookupSubTable
 
 struct SubstLookup : Lookup
 {
-  inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return Lookup::get_subtable<SubstLookupSubTable> (i); }
+  typedef SubstLookupSubTable SubTable;
+
+  inline const SubTable& get_subtable (unsigned int i) const
+  { return Lookup::get_subtable<SubTable> (i); }
 
   inline static bool lookup_type_is_reverse (unsigned int lookup_type)
-  { return lookup_type == SubstLookupSubTable::ReverseChainSingle; }
+  { return lookup_type == SubTable::ReverseChainSingle; }
 
   inline bool is_reverse (void) const
   {
     unsigned int type = get_type ();
-    if (unlikely (type == SubstLookupSubTable::Extension))
+    if (unlikely (type == SubTable::Extension))
       return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
   }
@@ -1277,9 +1279,9 @@ struct SubstLookup : Lookup
 
   static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
-  inline SubstLookupSubTable& serialize_subtable (hb_serialize_context_t *c,
-						  unsigned int i)
-  { return get_subtables<SubstLookupSubTable> ()[i].serialize (c, this); }
+  inline SubTable& serialize_subtable (hb_serialize_context_t *c,
+				       unsigned int i)
+  { return get_subtables<SubTable> ()[i].serialize (c, this); }
 
   inline bool serialize_single (hb_serialize_context_t *c,
 				uint32_t lookup_props,
@@ -1288,7 +1290,7 @@ struct SubstLookup : Lookup
 			        unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Single, lookup_props, 1))) return_trace (false);
+    if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);
     return_trace (serialize_subtable (c, 0).u.single.serialize (c, glyphs, substitutes, num_glyphs));
   }
 
@@ -1300,7 +1302,7 @@ struct SubstLookup : Lookup
 				  Supplier<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Multiple, lookup_props, 1))) return_trace (false);
+    if (unlikely (!Lookup::serialize (c, SubTable::Multiple, lookup_props, 1))) return_trace (false);
     return_trace (serialize_subtable (c, 0).u.multiple.serialize (c,
 								  glyphs,
 								  substitute_len_list,
@@ -1316,7 +1318,7 @@ struct SubstLookup : Lookup
 				   Supplier<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Alternate, lookup_props, 1))) return_trace (false);
+    if (unlikely (!Lookup::serialize (c, SubTable::Alternate, lookup_props, 1))) return_trace (false);
     return_trace (serialize_subtable (c, 0).u.alternate.serialize (c,
 								   glyphs,
 								   alternate_len_list,
@@ -1334,7 +1336,7 @@ struct SubstLookup : Lookup
 				  Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Ligature, lookup_props, 1))) return_trace (false);
+    if (unlikely (!Lookup::serialize (c, SubTable::Ligature, lookup_props, 1))) return_trace (false);
     return_trace (serialize_subtable (c, 0).u.ligature.serialize (c,
 								  first_glyphs,
 								  ligature_per_first_glyph_count_list,
@@ -1361,7 +1363,12 @@ struct SubstLookup : Lookup
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
-  { return Lookup::dispatch<SubstLookupSubTable> (c); }
+  { return Lookup::dispatch<SubTable> (c); }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    return false; //XXX
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1369,7 +1376,7 @@ struct SubstLookup : Lookup
     if (unlikely (!Lookup::sanitize (c))) return_trace (false);
     if (unlikely (!dispatch (c))) return_trace (false);
 
-    if (unlikely (get_type () == SubstLookupSubTable::Extension))
+    if (unlikely (get_type () == SubTable::Extension))
     {
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
@@ -1400,14 +1407,7 @@ struct GSUB : GSUBGPOS
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    //struct GSUB *out = c->serializer->start_embed<GSUB> ();
-    if (unlikely (!GSUBGPOS::subset (c))) return_trace (false);
-    //const OffsetTo<SubstLookupList> &list = CastR<const OffsetTo<SubstLookupList> > (lookupList);
-    //OffsetTo<SubstLookupList> &outList = CastR<OffsetTo<SubstLookupList> > (out->lookupList);
-    //outList.set (0);
-    //outList.serialize_subset (c, this+list, out);
-    /* TODO Use intersects() to count how many subtables survive? */
-    return_trace (true);
+    return_trace (GSUBGPOS::subset<SubstLookup> (c));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1425,8 +1425,8 @@ struct GSUB : GSUBGPOS
 /*static*/ inline bool ExtensionSubst::is_reverse (void) const
 {
   unsigned int type = get_type ();
-  if (unlikely (type == SubstLookupSubTable::Extension))
-    return CastR<ExtensionSubst> (get_subtable<LookupSubTable>()).is_reverse ();
+  if (unlikely (type == SubTable::Extension))
+    return CastR<ExtensionSubst> (get_subtable<SubTable>()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
 

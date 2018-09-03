@@ -1433,7 +1433,7 @@ struct ChainContextPos : ChainContext {};
 
 struct ExtensionPos : Extension<ExtensionPos>
 {
-  typedef struct PosLookupSubTable LookupSubTable;
+  typedef struct PosLookupSubTable SubTable;
 };
 
 
@@ -1498,8 +1498,10 @@ struct PosLookupSubTable
 
 struct PosLookup : Lookup
 {
-  inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return Lookup::get_subtable<PosLookupSubTable> (i); }
+  typedef struct PosLookupSubTable SubTable;
+
+  inline const SubTable& get_subtable (unsigned int i) const
+  { return Lookup::get_subtable<SubTable> (i); }
 
   inline bool is_reverse (void) const
   {
@@ -1538,7 +1540,7 @@ struct PosLookup : Lookup
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
-  { return Lookup::dispatch<PosLookupSubTable> (c); }
+  { return Lookup::dispatch<SubTable> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
