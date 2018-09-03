@@ -459,6 +459,9 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
 struct SinglePosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+coverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -466,9 +469,7 @@ struct SinglePosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+coverage;
-  }
+  { return this+coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -507,6 +508,9 @@ struct SinglePosFormat1
 
 struct SinglePosFormat2
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+coverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -514,9 +518,7 @@ struct SinglePosFormat2
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+coverage;
-  }
+  { return this+coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -598,6 +600,24 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
+  inline bool intersects (const hb_set_t *glyphs,
+			  const ValueFormat *valueFormats) const
+  {
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
+    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
+
+    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (glyphs->has (record->secondGlyph))
+        return true;
+      record = &StructAtOffset<const PairValueRecord> (record, record_size);
+    }
+    return false;
+  }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c,
 			      const ValueFormat *valueFormats) const
   {
@@ -652,7 +672,8 @@ struct PairSet
     return_trace (false);
   }
 
-  struct sanitize_closure_t {
+  struct sanitize_closure_t
+  {
     const void *base;
     const ValueFormat *valueFormats;
     unsigned int len1; /* valueFormats[0].get_len() */
@@ -681,6 +702,20 @@ struct PairSet
 
 struct PairPosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    unsigned int count = pairSet.len;
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
+    {
+      if (unlikely (iter.get_coverage () >= count))
+        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      if (glyphs->has (iter.get_glyph ()) &&
+	  (this+pairSet[iter.get_coverage ()]).intersects (glyphs, valueFormat))
+        return true;
+    }
+    return false;
+  }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -691,9 +726,7 @@ struct PairPosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+coverage;
-  }
+  { return this+coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -717,7 +750,8 @@ struct PairPosFormat1
 
     unsigned int len1 = valueFormat[0].get_len ();
     unsigned int len2 = valueFormat[1].get_len ();
-    PairSet::sanitize_closure_t closure = {
+    PairSet::sanitize_closure_t closure =
+    {
       this,
       valueFormat,
       len1,
@@ -747,6 +781,12 @@ struct PairPosFormat1
 
 struct PairPosFormat2
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    return (this+coverage).intersects (glyphs) &&
+	   (this+classDef2).intersects (glyphs);
+  }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -755,9 +795,7 @@ struct PairPosFormat2
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+coverage;
-  }
+  { return this+coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -889,6 +927,9 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
 
 struct CursivePosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+coverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -896,9 +937,7 @@ struct CursivePosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+coverage;
-  }
+  { return this+coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1047,6 +1086,10 @@ typedef AnchorMatrix BaseArray;		/* base-major--
 
 struct MarkBasePosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+markCoverage).intersects (glyphs) &&
+	   (this+baseCoverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -1055,9 +1098,7 @@ struct MarkBasePosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+markCoverage;
-  }
+  { return this+markCoverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1161,6 +1202,10 @@ typedef OffsetListOf<LigatureAttach> LigatureArray;
 
 struct MarkLigPosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+markCoverage).intersects (glyphs) &&
+	   (this+ligatureCoverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -1169,9 +1214,7 @@ struct MarkLigPosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+markCoverage;
-  }
+  { return this+markCoverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1274,6 +1317,10 @@ typedef AnchorMatrix Mark2Array;	/* mark2-major--
 
 struct MarkMarkPosFormat1
 {
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return (this+mark1Coverage).intersects (glyphs) &&
+	   (this+mark2Coverage).intersects (glyphs); }
+
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
@@ -1282,9 +1329,7 @@ struct MarkMarkPosFormat1
   }
 
   inline const Coverage &get_coverage (void) const
-  {
-    return this+mark1Coverage;
-  }
+  { return this+mark1Coverage; }
 
   inline bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1465,6 +1510,12 @@ struct PosLookup : Lookup
   {
     TRACE_APPLY (this);
     return_trace (dispatch (c));
+  }
+
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    hb_intersects_context_t c (glyphs);
+    return dispatch (&c);
   }
 
   inline hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const

@@ -168,9 +168,8 @@ struct RangeRecord
     return_trace (c->check_struct (this));
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const {
-    return glyphs->intersects (start, end);
-  }
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return glyphs->intersects (start, end); }
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
@@ -767,9 +766,17 @@ struct CoverageFormat1
     return_trace (glyphArray.sanitize (c));
   }
 
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
-    return glyphs->has (glyphArray[index]);
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = glyphArray.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (glyphs->has (glyphArray[i]))
+        return true;
+    return false;
   }
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  { return glyphs->has (glyphArray[index]); }
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
@@ -857,7 +864,17 @@ struct CoverageFormat2
     return_trace (rangeRecord.sanitize (c));
   }
 
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].intersects (glyphs))
+        return true;
+    return false;
+  }
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  {
     unsigned int i;
     unsigned int count = rangeRecord.len;
     for (i = 0; i < count; i++) {
@@ -985,13 +1002,13 @@ struct Coverage
 
   inline bool intersects (const hb_set_t *glyphs) const
   {
-    /* TODO speed this up */
-    for (hb_auto_t<Coverage::Iter> iter (*this); iter.more (); iter.next ())
-      if (glyphs->has (iter.get_glyph ()))
-        return true;
-    return false;
+    switch (u.format)
+    {
+    case 1: return u.format1.intersects (glyphs);
+    case 2: return u.format2.intersects (glyphs);
+    default:return false;
+    }
   }
-
   inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     switch (u.format)
@@ -1141,6 +1158,17 @@ struct ClassDefFormat1
     return true;
   }
 
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next()? */
+    hb_codepoint_t start = startGlyph;
+    hb_codepoint_t end = startGlyph + classValue.len;
+    for (hb_codepoint_t iter = startGlyph - 1;
+	 hb_set_next (glyphs, &iter) && iter < end;)
+      if (classValue[iter - start])
+        return true;
+    return false;
+  }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
     if (klass == 0)
@@ -1191,7 +1219,8 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const
+  {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value)
@@ -1201,7 +1230,8 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_class (set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -1212,7 +1242,17 @@ struct ClassDefFormat2
     return true;
   }
 
-  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].intersects (glyphs))
+        return true;
+    return false;
+  }
+  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = rangeRecord.len;
     if (klass == 0)
     {
@@ -1289,6 +1329,13 @@ struct ClassDef
     }
   }
 
+  inline bool intersects (const hb_set_t *glyphs) const {
+    switch (u.format) {
+    case 1: return u.format1.intersects (glyphs);
+    case 2: return u.format2.intersects (glyphs);
+    default:return false;
+    }
+  }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
