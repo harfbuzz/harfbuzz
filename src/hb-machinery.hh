@@ -452,6 +452,8 @@ struct hb_serialize_context_t
     this->debug_depth = 0;
   }
 
+  inline bool err (bool e) { return this->ran_out_of_room = this->ran_out_of_room || e; }
+
   /* To be called around main operation. */
   template <typename Type>
   inline Type *start_serialize (void)

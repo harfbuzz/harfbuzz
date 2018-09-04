@@ -35,6 +35,11 @@
 namespace OT {
 
 
+static inline void SingleSubst_serialize (hb_serialize_context_t *c,
+					  Supplier<GlyphID> &glyphs,
+					  Supplier<GlyphID> &substitutes,
+					  unsigned int num_glyphs);
+
 struct SingleSubstFormat1
 {
   inline bool intersects (const hb_set_t *glyphs) const
@@ -104,19 +109,26 @@ struct SingleSubstFormat1
 
   inline bool subset (hb_subset_context_t *c) const
   {
-    return false;
     TRACE_SUBSET (this);
-    hb_auto_t<hb_vector_t<hb_codepoint_t>> from;
-    hb_auto_t<hb_vector_t<hb_codepoint_t>> to;
+    hb_auto_t<hb_vector_t<GlyphID>> from;
+    hb_auto_t<hb_vector_t<GlyphID>> to;
     hb_codepoint_t delta = deltaGlyphID;
     for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
-      //if (!c->plan->glyphs->has (iter.get_glyph ()))
-      //  continue;
-      from.push (iter.get_glyph ());
-      to.push ((iter.get_glyph () + delta) & 0xFFFF);
+      if (!c->plan->glyphset->has (iter.get_glyph ()))
+        continue;
+      from.push ()->set (iter.get_glyph ());
+      to.push ()->set ((iter.get_glyph () + delta) & 0xFFFF);
     }
-    return_trace (false);
+    c->serializer->err (from.in_error () || to.in_error ());
+
+    Supplier<GlyphID> from_supplier (&from);
+    Supplier<GlyphID> to_supplier (&to);
+    SingleSubst_serialize (c->serializer,
+			   from_supplier,
+			   to_supplier,
+			   from.len);
+    return_trace (from.len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -204,8 +216,24 @@ struct SingleSubstFormat2
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    hb_auto_t<hb_vector_t<GlyphID>> from;
+    hb_auto_t<hb_vector_t<GlyphID>> to;
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
+    {
+      if (!c->plan->glyphset->has (iter.get_glyph ()))
+        continue;
+      from.push ()->set (iter.get_glyph ());
+      to.push ()->set (substitute[iter.get_coverage ()]);
+    }
+    c->serializer->err (from.in_error () || to.in_error ());
+
+    Supplier<GlyphID> from_supplier (&from);
+    Supplier<GlyphID> to_supplier (&to);
+    SingleSubst_serialize (c->serializer,
+			   from_supplier,
+			   to_supplier,
+			   from.len);
+    return_trace (from.len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -275,6 +303,17 @@ struct SingleSubst
   } u;
 };
 
+static inline void
+SingleSubst_serialize (hb_serialize_context_t *c,
+		       Supplier<GlyphID> &glyphs,
+		       Supplier<GlyphID> &substitutes,
+		       unsigned int num_glyphs)
+{
+  c->start_embed<SingleSubst> ()->serialize (c,
+					     glyphs,
+					     substitutes,
+					     num_glyphs);
+}
 
 struct Sequence
 {
