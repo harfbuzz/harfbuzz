@@ -102,6 +102,13 @@ struct SingleSubstFormat1
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -182,6 +189,13 @@ struct SingleSubstFormat2
     if (unlikely (!substitute.serialize (c, substitutes, num_glyphs))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return_trace (false);
     return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -387,6 +401,13 @@ struct MultipleSubstFormat1
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -568,6 +589,13 @@ struct AlternateSubstFormat1
     alternate_len_list += num_glyphs;
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return_trace (false);
     return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -911,6 +939,13 @@ struct LigatureSubstFormat1
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1098,6 +1133,13 @@ struct ReverseChainSingleSubstFormat1
       return_trace (true);
     }
 
+    return_trace (false);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
     return_trace (false);
   }
 
@@ -1367,7 +1409,7 @@ struct SubstLookup : Lookup
   { return Lookup::dispatch<SubTable> (c); }
 
   inline bool subset (hb_subset_context_t *c) const
-  { return false; }//XXX Lookup::subset<SubTable> (c); }
+  { return Lookup::subset<SubTable> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   { return Lookup::sanitize<SubTable> (c); }
@@ -1386,16 +1428,10 @@ struct GSUB : GSUBGPOS
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
   inline bool subset (hb_subset_context_t *c) const
-  {
-    TRACE_SUBSET (this);
-    return_trace (GSUBGPOS::subset<SubstLookup> (c));
-  }
+  { return GSUBGPOS::subset<SubstLookup> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (GSUBGPOS::sanitize<SubstLookup> (c));
-  }
+  { return GSUBGPOS::sanitize<SubstLookup> (c); }
 
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
 };

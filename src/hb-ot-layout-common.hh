@@ -703,6 +703,42 @@ struct Lookup
   }
 
   template <typename TSubTable>
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Lookup *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+
+    /* Subset the actual subtables. */
+    /* TODO Drop empty ones, either by calling intersects() beforehand,
+     * or just dropping null offsets after. */
+    const OffsetArrayOf<TSubTable>& subtables = get_subtables<TSubTable> ();
+    OffsetArrayOf<TSubTable>& out_subtables = out->get_subtables<TSubTable> ();
+    unsigned int count = subTable.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      struct Wrapper
+      {
+        inline Wrapper (const TSubTable &subtable_,
+			unsigned int lookup_type_) :
+			  subtable (subtable_),
+			  lookup_type (lookup_type_) {}
+
+	inline bool subset (hb_subset_context_t *c) const
+	{ return subtable.dispatch (c, lookup_type); }
+
+	private:
+	const TSubTable &subtable;
+	unsigned int lookup_type;
+      } wrapper (this+subtables[i], get_type ());
+
+      out_subtables[i].serialize_subset (c, wrapper, out);
+    }
+
+    return_trace (true);
+  }
+
+  template <typename TSubTable>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

@@ -1435,6 +1435,13 @@ struct ContextFormat1
     return_trace (rule_set.apply (c, lookup_context));
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1547,6 +1554,13 @@ struct ContextFormat2
     return_trace (rule_set.apply (c, lookup_context));
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1646,6 +1660,13 @@ struct ContextFormat3
       this
     };
     return_trace (context_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -2076,6 +2097,13 @@ struct ChainContextFormat1
     return_trace (rule_set.apply (c, lookup_context));
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -2207,6 +2235,13 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
     return_trace (rule_set.apply (c, lookup_context));
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -2350,6 +2385,13 @@ struct ChainContextFormat3
 					      input.len, (const HBUINT16 *) input.arrayZ + 1,
 					      lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
 					      lookup.len, lookup.arrayZ, lookup_context));
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

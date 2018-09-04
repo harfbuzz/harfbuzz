@@ -484,6 +484,13 @@ struct SinglePosFormat1
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -535,6 +542,13 @@ struct SinglePosFormat2
 
     buffer->idx++;
     return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -742,6 +756,13 @@ struct PairPosFormat1
     return_trace ((this+pairSet[index]).apply (c, valueFormat, skippy_iter.idx));
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -826,6 +847,13 @@ struct PairPosFormat2
       buffer->idx++;
 
     return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1040,6 +1068,13 @@ struct CursivePosFormat1
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1138,6 +1173,13 @@ struct MarkBasePosFormat1
     if (base_index == NOT_COVERED) return_trace (false);
 
     return_trace ((this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, skippy_iter.idx));
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1259,6 +1301,13 @@ struct MarkLigPosFormat1
     return_trace ((this+markArray).apply (c, mark_index, comp_index, lig_attach, classCount, j));
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1373,6 +1422,13 @@ struct MarkMarkPosFormat1
     if (mark2_index == NOT_COVERED) return_trace (false);
 
     return_trace ((this+mark1Array).apply (c, mark1_index, mark2_index, this+mark2Array, classCount, j));
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1543,6 +1599,9 @@ struct PosLookup : Lookup
   inline typename context_t::return_t dispatch (context_t *c) const
   { return Lookup::dispatch<SubTable> (c); }
 
+  inline bool subset (hb_subset_context_t *c) const
+  { return Lookup::subset<SubTable> (c); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   { return Lookup::sanitize<SubTable> (c); }
 };
@@ -1563,11 +1622,11 @@ struct GPOS : GSUBGPOS
   static inline void position_finish_advances (hb_font_t *font, hb_buffer_t *buffer);
   static inline void position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer);
 
+  inline bool subset (hb_subset_context_t *c) const
+  { return GSUBGPOS::subset<PosLookup> (c); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (GSUBGPOS::sanitize<PosLookup> (c));
-  }
+  { return GSUBGPOS::sanitize<PosLookup> (c); }
 
   typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
