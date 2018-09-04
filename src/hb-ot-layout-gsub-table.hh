@@ -1161,6 +1161,7 @@ struct ReverseChainSingleSubst
 
 struct SubstLookupSubTable
 {
+  friend struct Lookup;
   friend struct SubstLookup;
 
   enum Type {
@@ -1366,30 +1367,10 @@ struct SubstLookup : Lookup
   { return Lookup::dispatch<SubTable> (c); }
 
   inline bool subset (hb_subset_context_t *c) const
-  {
-    return false; //XXX
-  }
+  { return false; }//XXX Lookup::subset<SubTable> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!Lookup::sanitize (c))) return_trace (false);
-    if (unlikely (!dispatch (c))) return_trace (false);
-
-    if (unlikely (get_type () == SubTable::Extension))
-    {
-      /* The spec says all subtables of an Extension lookup should
-       * have the same type, which shall not be the Extension type
-       * itself (but we already checked for that).
-       * This is specially important if one has a reverse type! */
-      unsigned int type = get_subtable (0).u.extension.get_type ();
-      unsigned int count = get_subtable_count ();
-      for (unsigned int i = 1; i < count; i++)
-        if (get_subtable (i).u.extension.get_type () != type)
-	  return_trace (false);
-    }
-    return_trace (true);
-  }
+  { return Lookup::sanitize<SubTable> (c); }
 };
 
 /*

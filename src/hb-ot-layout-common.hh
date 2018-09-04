@@ -634,16 +634,16 @@ struct Lookup
 {
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
-  template <typename SubTableType>
-  inline const SubTableType& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<SubTableType> > (subTable)[i]; }
+  template <typename TSubTable>
+  inline const TSubTable& get_subtable (unsigned int i) const
+  { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
 
-  template <typename SubTableType>
-  inline const OffsetArrayOf<SubTableType>& get_subtables (void) const
-  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
-  template <typename SubTableType>
-  inline OffsetArrayOf<SubTableType>& get_subtables (void)
-  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
+  template <typename TSubTable>
+  inline const OffsetArrayOf<TSubTable>& get_subtables (void) const
+  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  template <typename TSubTable>
+  inline OffsetArrayOf<TSubTable>& get_subtables (void)
+  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
 
   inline unsigned int get_size (void) const
   {
@@ -669,14 +669,14 @@ struct Lookup
     return flag;
   }
 
-  template <typename SubTableType, typename context_t>
+  template <typename TSubTable, typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable<SubTableType> (i).dispatch (c, lookup_type);
+      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type);
       if (c->stop_sublookup_iteration (r))
         return_trace (r);
     }
@@ -702,16 +702,32 @@ struct Lookup
     return_trace (true);
   }
 
+  template <typename TSubTable>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* Real sanitize of the subtables is done by GSUB/GPOS/... */
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
+
+    if (unlikely (!dispatch<TSubTable> (c))) return_trace (false);
+
+    if (unlikely (get_type () == TSubTable::Extension))
+    {
+      /* The spec says all subtables of an Extension lookup should
+       * have the same type, which shall not be the Extension type
+       * itself (but we already checked for that).
+       * This is specially important if one has a reverse type! */
+      unsigned int type = get_subtable<TSubTable> (0).u.extension.get_type ();
+      unsigned int count = get_subtable_count ();
+      for (unsigned int i = 1; i < count; i++)
+        if (get_subtable<TSubTable> (i).u.extension.get_type () != type)
+	  return_trace (false);
+    }
+    return_trace (true);
     return_trace (true);
   }
 

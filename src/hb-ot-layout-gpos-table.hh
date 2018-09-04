@@ -1445,6 +1445,7 @@ struct ExtensionPos : Extension<ExtensionPos>
 
 struct PosLookupSubTable
 {
+  friend struct Lookup;
   friend struct PosLookup;
 
   enum Type {
@@ -1543,11 +1544,7 @@ struct PosLookup : Lookup
   { return Lookup::dispatch<SubTable> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!Lookup::sanitize (c))) return_trace (false);
-    return_trace (dispatch (c));
-  }
+  { return Lookup::sanitize<SubTable> (c); }
 };
 
 /*
