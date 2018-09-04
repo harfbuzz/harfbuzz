@@ -33,6 +33,7 @@
 #include "hb-blob.hh"
 
 #include "hb-iter.hh"
+#include "hb-vector.hh"
 
 
 /*
@@ -579,12 +580,19 @@ struct hb_serialize_context_t
 template <typename Type>
 struct Supplier
 {
-  inline Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof(Type))
+  inline Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof (Type))
   {
     head = array;
     len = len_;
     stride = stride_;
   }
+  inline Supplier (const hb_vector_t<Type> *v)
+  {
+    head = v->arrayZ;
+    len = v->len;
+    stride = sizeof (Type);
+  }
+
   inline const Type operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Type ();

@@ -104,8 +104,18 @@ struct SingleSubstFormat1
 
   inline bool subset (hb_subset_context_t *c) const
   {
+    return false;
     TRACE_SUBSET (this);
-    // TODO(subset)
+    hb_auto_t<hb_vector_t<hb_codepoint_t>> from;
+    hb_auto_t<hb_vector_t<hb_codepoint_t>> to;
+    hb_codepoint_t delta = deltaGlyphID;
+    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
+    {
+      //if (!c->plan->glyphs->has (iter.get_glyph ()))
+      //  continue;
+      from.push (iter.get_glyph ());
+      to.push ((iter.get_glyph () + delta) & 0xFFFF);
+    }
     return_trace (false);
   }
 
