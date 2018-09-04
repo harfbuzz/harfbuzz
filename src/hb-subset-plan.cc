@@ -68,7 +68,7 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 }
 
 
-static void
+static hb_set_t *
 _populate_gids_to_retain (hb_face_t *face,
                           const hb_set_t *unicodes,
                           bool close_over_gsub,
@@ -117,9 +117,10 @@ _populate_gids_to_retain (hb_face_t *face,
   while (all_gids_to_retain->next (&gid))
     glyphs->push (gid);
 
-  hb_set_destroy (all_gids_to_retain);
   glyf.fini ();
   cmap.fini ();
+
+  return all_gids_to_retain;
 }
 
 static void
@@ -155,13 +156,12 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create();
   plan->glyph_map = hb_map_create();
-
-  _populate_gids_to_retain (face,
-                            input->unicodes,
-                            !plan->drop_layout,
-                            plan->unicodes,
-                            plan->codepoint_to_glyph,
-                            &plan->glyphs);
+  plan->glyphset = _populate_gids_to_retain (face,
+					     input->unicodes,
+					     !plan->drop_layout,
+					     plan->unicodes,
+					     plan->codepoint_to_glyph,
+					     &plan->glyphs);
   _create_old_gid_to_new_gid_map (plan->glyphs,
                                   plan->glyph_map);
 
@@ -184,6 +184,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);
   hb_map_destroy (plan->glyph_map);
+  hb_set_destroy (plan->glyphset);
 
   free (plan);
 }

@@ -45,9 +45,8 @@ struct hb_subset_plan_t
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
 
-  // This list contains the complete set of glyphs to retain and may contain
-  // more glyphs then the lists above.
   hb_vector_t<hb_codepoint_t> glyphs;
+  hb_set_t *glyphset;
 
   hb_map_t *codepoint_to_glyph;
   hb_map_t *glyph_map;
