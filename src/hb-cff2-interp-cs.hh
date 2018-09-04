@@ -77,7 +77,6 @@ struct BlendArg : Number
 };
 
 typedef InterpEnv<BlendArg> BlendInterpEnv;
-typedef DictVal<BlendArg> BlendDictVal;
 
 struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {

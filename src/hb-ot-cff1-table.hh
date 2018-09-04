@@ -407,7 +407,7 @@ struct CFF1TopDictValues : TopDictValues
   TableInfo     privateDictInfo;
 };
 
-struct CFF1TopDictOpSet : TopDictOpSet<>
+struct CFF1TopDictOpSet : TopDictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1TopDictValues& dictval)
   {
@@ -509,7 +509,7 @@ struct CFF1FontDictValues : DictValues<OpStr>
   TableInfo   privateDictInfo;
 };
 
-struct CFF1FontDictOpSet : DictOpSet<>
+struct CFF1FontDictOpSet : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1FontDictValues& dictval)
   {
@@ -572,7 +572,7 @@ struct CFF1PrivateDictValues_Base : DictValues<VAL>
 typedef CFF1PrivateDictValues_Base<OpStr> CFF1PrivateDictValues_Subset;
 typedef CFF1PrivateDictValues_Base<NumDictVal> CFF1PrivateDictValues;
 
-struct CFF1PrivateDictOpSet : DictOpSet<>
+struct CFF1PrivateDictOpSet : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1PrivateDictValues& dictval)
   {
@@ -622,7 +622,7 @@ struct CFF1PrivateDictOpSet : DictOpSet<>
   }
 };
 
-struct CFF1PrivateDictOpSet_Subset : DictOpSet<>
+struct CFF1PrivateDictOpSet_Subset : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1PrivateDictValues_Subset& dictval)
   {

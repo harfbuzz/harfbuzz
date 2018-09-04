@@ -173,14 +173,14 @@ struct CFF2TopDictValues : TopDictValues
   unsigned int  FDSelectOffset;
 };
 
-struct CFF2TopDictOpSet : TopDictOpSet<>
+struct CFF2TopDictOpSet : TopDictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
         {
-          DictVal<> val;
+          DictVal val;
           val.init ();
           dictval.pushVal (op, env.substr);
           env.clear_args ();
@@ -209,7 +209,7 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
     return true;
   }
 
-  typedef TopDictOpSet<> SUPER;
+  typedef TopDictOpSet SUPER;
 };
 
 struct CFF2FontDictValues : DictValues<OpStr>
@@ -228,7 +228,7 @@ struct CFF2FontDictValues : DictValues<OpStr>
   TableInfo    privateDictInfo;
 };
 
-struct CFF2FontDictOpSet : DictOpSet<>
+struct CFF2FontDictOpSet : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
   {
@@ -253,7 +253,7 @@ struct CFF2FontDictOpSet : DictOpSet<>
   }
 
   private:
-  typedef DictOpSet<> SUPER;
+  typedef DictOpSet SUPER;
 };
 
 template <typename VAL>
@@ -291,7 +291,7 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
 typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
 typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
-struct CFF2PrivateDictOpSet : DictOpSet<>
+struct CFF2PrivateDictOpSet : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues& dictval)
   {
@@ -344,7 +344,7 @@ struct CFF2PrivateDictOpSet : DictOpSet<>
   }
 };
 
-struct CFF2PrivateDictOpSet_Subset : DictOpSet<Number>
+struct CFF2PrivateDictOpSet_Subset : DictOpSet
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
   {
@@ -387,7 +387,7 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet<Number>
   }
 
   private:
-  typedef DictOpSet<Number> SUPER;
+  typedef DictOpSet SUPER;
 };
 
 typedef DictInterpreter<CFF2TopDictOpSet, CFF2TopDictValues> CFF2TopDict_Interpreter;

@@ -33,7 +33,6 @@ namespace CFF {
 using namespace OT;
 
 /* an opstr and the parsed out dict value(s) */
-template <typename ARG=Number>
 struct DictVal : OpStr
 {
   inline void init (void)
@@ -47,11 +46,11 @@ struct DictVal : OpStr
     multi_val.fini ();
   }
 
-  ARG              single_val;
-  hb_vector_t<ARG> multi_val;
+  Number              single_val;
+  hb_vector_t<Number> multi_val;
 };
 
-typedef DictVal<> NumDictVal;
+typedef DictVal NumDictVal;
 
 template <typename VAL>
 struct DictValues
@@ -118,10 +117,9 @@ struct TopDictValues : DictValues<OpStr>
   unsigned int  FDArrayOffset;
 };
 
-template <typename ARG=Number>
-struct DictOpSet : OpSet<ARG>
+struct DictOpSet : OpSet<Number>
 {
-  static inline bool process_op (OpCode op, InterpEnv<ARG>& env)
+  static inline bool process_op (OpCode op, InterpEnv<Number>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
@@ -134,7 +132,7 @@ struct DictOpSet : OpSet<ARG>
         return true;
 
       default:
-        return OpSet<ARG>::process_op (op, env);
+        return OpSet<Number>::process_op (op, env);
     }
 
     return true;
@@ -165,10 +163,9 @@ struct DictOpSet : OpSet<ARG>
   }
 };
 
-template <typename ARG=Number>
-struct TopDictOpSet : DictOpSet<ARG>
+struct TopDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv<ARG>& env, TopDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv<Number>& env, TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
@@ -182,7 +179,7 @@ struct TopDictOpSet : DictOpSet<ARG>
         env.clear_args ();
         break;
       default:
-        return DictOpSet<ARG>::process_op (op, env);
+        return DictOpSet::process_op (op, env);
     }
 
     return true;
