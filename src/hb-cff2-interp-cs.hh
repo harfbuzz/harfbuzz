@@ -33,12 +33,60 @@ namespace CFF {
 
 using namespace OT;
 
+struct BlendArg : Number
+{
+  inline void init (void)
+  {
+    Number::init ();
+    deltas.init ();
+  }
+
+  inline void fini (void)
+  {
+    Number::fini ();
+
+    for (unsigned int i = 0; i < deltas.len; i++)
+      deltas[i].fini ();
+    deltas.fini ();
+  }
+
+  inline void set_int (int v) { reset_blends (); Number::set_int (v); }
+  inline void set_fixed (int32_t v) { reset_blends (); Number::set_fixed (v); }
+  inline void set_real (float v) { reset_blends (); Number::set_real (v); }
+
+  inline void set_blends (unsigned int numValues_, unsigned int valueIndex_,
+                          unsigned int numBlends, const BlendArg *blends_)
+  {
+    numValues = numValues_;
+    valueIndex = valueIndex_;
+    deltas.resize (numBlends);
+    for (unsigned int i = 0; i < numBlends; i++)
+      deltas[i] = blends_[i];
+  }
+
+  inline bool blended (void) const { return deltas.len > 0; }
+  inline void reset_blends (void)
+  {
+    numValues = valueIndex = 0;
+    deltas.resize (0);
+  }
+
+  unsigned int numValues;
+  unsigned int valueIndex;
+  hb_vector_t<Number> deltas;
+};
+
+typedef InterpEnv<BlendArg> BlendInterpEnv;
+typedef DictVal<BlendArg> BlendDictVal;
+
 struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
-  inline void init (const ByteStr &str, const CFF2Subrs &globalSubrs_, const CFF2Subrs &localSubrs_)
+  template <typename ACC>
+  inline void init (const ByteStr &str, ACC &acc, unsigned int fd)
   {
-    SUPER::init (str, globalSubrs_, localSubrs_);
-    ivs = 0;
+    SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
+    set_region_count (acc.region_count);
+    set_vsindex (acc.privateDicts[fd].vsindex);
   }
 
   inline bool fetch_op (OpCode &op)
@@ -58,14 +106,17 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   {
     unsigned int  index;
     if (likely (argStack.check_pop_uint (index)))
-      set_ivs (argStack.check_pop_uint (index));
+      set_vsindex (argStack.check_pop_uint (index));
   }
 
-  inline unsigned int get_ivs (void) const { return ivs; }
-  inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  inline unsigned int get_region_count (void) const { return region_count; }
+  inline void         set_region_count (unsigned int region_count_) { region_count = region_count_; }
+  inline unsigned int get_vsindex (void) const { return vsindex; }
+  inline void         set_vsindex (unsigned int vsindex_) { vsindex = vsindex_; }
 
   protected:
-  unsigned int  ivs;
+  unsigned int  region_count;
+  unsigned int  vsindex;
 
   typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;
 };
@@ -76,26 +127,42 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
   {
     switch (op) {
+      case OpCode_callsubr:
+      case OpCode_callgsubr:
+        /* a subroutine number shoudln't be a blended value */
+        return (!env.argStack.peek ().blended () &&
+                SUPER::process_op (op, env, param));
 
       case OpCode_blendcs:
         return OPSET::process_blend (env, param);
 
       case OpCode_vsindexcs:
+        if (unlikely (env.argStack.peek ().blended ()))
+          return false;
         OPSET::process_vsindex (env, param);
         break;
 
       default:
-        if (unlikely (!SUPER::process_op (op, env, param)))
-          return false;
-        break;
+        return SUPER::process_op (op, env, param);
     }
     return true;
   }
 
   static inline bool process_blend (CFF2CSInterpEnv &env, PARAM& param)
   {
-    // XXX: TODO leave default values?
-    OPSET::flush_args (env, param);
+    unsigned int n, k;
+
+    k = env.get_region_count ();
+    if (unlikely (!env.argStack.check_pop_uint (n) ||
+                  (k+1) * n > env.argStack.get_count ()))
+      return false;
+    /* copy the blend values into blend array of the default values */
+    unsigned int start = env.argStack.get_count () - ((k+1) * n);
+    for (unsigned int i = 0; i < n; i++)
+      env.argStack.elements[start + i].set_blends (n, i, k, &env.argStack.elements[start + n + (i * k)]);
+
+    /* pop off blend values leaving default values now adorned with blend values */
+    env.argStack.count -= k * n;
     return true;
   }
 

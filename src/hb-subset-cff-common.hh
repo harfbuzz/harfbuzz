@@ -42,30 +42,34 @@ struct ByteStrBuff : hb_vector_t<char, 1>
     return (push ((const char)b) != &Crap(char));
   }
 
+  inline bool encode_int (int v)
+  {
+    if ((-1131 <= v) && (v <= 1131))
+    {
+      if ((-107 <= v) && (v <= 107))
+        return encode_byte (v + 139);
+      else if (v > 0)
+      {
+        v -= 108;
+        return encode_byte ((v >> 8) + OpCode_TwoBytePosInt0) && encode_byte (v & 0xFF);
+      }
+      else
+      {
+        v = -v - 108;
+        return encode_byte ((v >> 8) + OpCode_TwoByteNegInt0) && encode_byte (v & 0xFF);
+      }
+    }
+    assert ((v & ~0xFFFF) == 0);
+    return encode_byte (OpCode_shortint) &&
+           encode_byte ((v >> 8) & 0xFF) &&
+           encode_byte (v & 0xFF);
+  }
+
   inline bool encode_num (const Number& n)
   {
     if (n.in_int_range ())
     {
-      int v = n.to_int ();
-      if ((-1131 <= v) && (v <= 1131))
-      {
-        if ((-107 <= v) && (v <= 107))
-          return encode_byte (v + 139);
-        else if (v > 0)
-        {
-          v -= 108;
-          return encode_byte ((v >> 8) + OpCode_TwoBytePosInt0) && encode_byte (v & 0xFF);
-        }
-        else
-        {
-          v = -v - 108;
-          return encode_byte ((v >> 8) + OpCode_TwoByteNegInt0) && encode_byte (v & 0xFF);
-        }
-      }
-      assert ((v & ~0xFFFF) == 0);
-      return encode_byte (OpCode_shortint) &&
-             encode_byte ((v >> 8) & 0xFF) &&
-             encode_byte (v & 0xFF);
+      return encode_int (n.to_int ());
     }
     else
     {
@@ -258,10 +262,10 @@ struct FlattenParam
   bool        drop_hints;
 };
 
-template <typename ACCESSOR, typename ENV, typename OPSET>
+template <typename ACC, typename ENV, typename OPSET>
 struct SubrFlattener
 {
-  inline SubrFlattener (const ACCESSOR &acc_,
+  inline SubrFlattener (const ACC &acc_,
                         const hb_vector_t<hb_codepoint_t> &glyphs_,
                         bool drop_hints_)
     : acc (acc_),
@@ -281,7 +285,7 @@ struct SubrFlattener
       const ByteStr str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       CSInterpreter<ENV, OPSET, FlattenParam> interp;
-      interp.env.init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
+      interp.env.init (str, acc, fd);
       FlattenParam  param = { flat_charstrings[i], drop_hints };
       if (unlikely (!interp.interpret (param)))
         return false;
@@ -289,7 +293,7 @@ struct SubrFlattener
     return true;
   }
   
-  const ACCESSOR &acc;
+  const ACC &acc;
   const hb_vector_t<hb_codepoint_t> &glyphs;
   bool  drop_hints;
 };
@@ -342,10 +346,10 @@ struct SubrRefMapPair
   hb_set_t  *local_map;
 };
 
-template <typename ACCESSOR, typename ENV, typename OPSET>
+template <typename ACC, typename ENV, typename OPSET>
 struct SubrSubsetter
 {
-  inline SubrSubsetter (const ACCESSOR &acc_, const hb_vector_t<hb_codepoint_t> &glyphs_)
+  inline SubrSubsetter (const ACC &acc_, const hb_vector_t<hb_codepoint_t> &glyphs_)
     : acc (acc_),
       glyphs (glyphs_)
   {}
@@ -361,14 +365,14 @@ struct SubrSubsetter
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       SubrRefMapPair  pair = { refmaps.global_map, refmaps.local_maps[fd] };
       CSInterpreter<ENV, OPSET, SubrRefMapPair> interp;
-      interp.env.init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
+      interp.env.init (str, acc, fd);
       if (unlikely (!interp.interpret (pair)))
         return false;
     }
     return true;
   }
 
-  const ACCESSOR &acc;
+  const ACC &acc;
   const hb_vector_t<hb_codepoint_t> &glyphs;
 };
 

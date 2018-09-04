@@ -48,13 +48,6 @@ typedef Subrs<HBUINT32>   CFF2Subrs;
 typedef FDSelect3_4<HBUINT32, HBUINT16> FDSelect4;
 typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
 
-struct BlendArg : Number
-{
-  // XXX: TODO
-};
-
-typedef InterpEnv<BlendArg> BlendInterpEnv;
-
 struct CFF2FDSelect
 {
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
@@ -271,6 +264,7 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
     DictValues<VAL>::init ();
     subrsOffset = 0;
     localSubrs = &Null(CFF2Subrs);
+    vsindex = 0;
   }
 
   inline void fini (void)
@@ -291,9 +285,9 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
 
   unsigned int      subrsOffset;
   const CFF2Subrs   *localSubrs;
+  unsigned int      vsindex;
 };
 
-typedef DictVal<BlendArg> BlendDictVal;
 typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
 typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
@@ -332,9 +326,11 @@ struct CFF2PrivateDictOpSet : DictOpSet<>
         env.clear_args ();
         break;
       case OpCode_vsindexdict:
+        if (unlikely (!env.argStack.check_pop_uint (dictval.vsindex)))
+          return false;
+        break;
       case OpCode_blenddict:
-        // XXX: TODO
-        return true;
+        break;
 
       default:
         if (unlikely (!DictOpSet::process_op (op, env)))
@@ -458,6 +454,11 @@ struct cff2
       if (num_glyphs != sc.get_num_glyphs ())
       { fini (); return; }
 
+      if (varStore != &Null(CFF2VariationStore))
+        region_count = varStore->varStore.get_region_count ();
+      else
+        region_count = 0;
+
       fdCount = fdArray->count;
       privateDicts.resize (fdCount);
 
@@ -523,6 +524,7 @@ struct cff2
     hb_vector_t<PRIVDICTVAL>  privateDicts;
 
     unsigned int            num_glyphs;
+    unsigned int            region_count;
   };
 
   typedef accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues> accelerator_t;

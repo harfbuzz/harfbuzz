@@ -77,12 +77,6 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
 
 struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline bool process_blend (CFF2CSInterpEnv &env, FlattenParam& param)
-  {
-    flush_args (env, param);
-    return true;
-  }
-
   static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
@@ -117,14 +111,56 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 
   static inline void flush_n_args (unsigned int n, CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    for (unsigned int i = env.argStack.count - n; i < env.argStack.count; i++)
-      param.flatStr.encode_num (env.argStack.elements[i]);
+    for (unsigned int i = env.argStack.count - n; i < env.argStack.count;)
+    {
+      const BlendArg &arg = env.argStack.elements[i];
+      if (arg.blended ())
+      {
+        assert ((arg.numValues > 0) && (n >= arg.numValues));
+        flatten_blends (arg, i, env, param);
+        i += arg.numValues;
+      }
+      else
+      {
+        param.flatStr.encode_num (arg);
+        i++;
+      }
+    }
     SUPER::flush_n_args (n, env, param);
+  }
+
+  static inline void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)
+  {
+    /* flatten the default values */
+    for (unsigned int j = 0; j < arg.numValues; j++)
+    {
+      const BlendArg &arg1 = env.argStack.elements[i + j];
+      assert (arg1.blended () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
+              (arg1.deltas.len == env.get_region_count ()));
+      param.flatStr.encode_num (arg1);
+    }
+    /* flatten deltas for each value */
+    for (unsigned int j = 0; j < arg.numValues; j++)
+    {
+      const BlendArg &arg1 = env.argStack.elements[i + j];
+      for (unsigned int k = 0; k < arg1.deltas.len; k++)
+        param.flatStr.encode_num (arg1.deltas[k]);
+    }
+    /* flatten the number of values followed by blend operator */
+    param.flatStr.encode_int (arg.numValues);
+    param.flatStr.encode_op (OpCode_blendcs);
   }
 
   static inline void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    param.flatStr.encode_op (op);
+    switch (op)
+    {
+      case OpCode_return:
+      case OpCode_endchar:
+        return;
+      default:
+        param.flatStr.encode_op (op);
+    }
   }
 
   private:

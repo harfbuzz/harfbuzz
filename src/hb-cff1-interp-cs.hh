@@ -35,9 +35,10 @@ using namespace OT;
 
 struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 {
-  inline void init (const ByteStr &str, const CFF1Subrs &globalSubrs, const CFF1Subrs &localSubrs)
+  template <typename ACC>
+  inline void init (const ByteStr &str, ACC &acc, unsigned int fd)
   {
-    SUPER::init (str, globalSubrs, localSubrs);
+    SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
     has_width = false;
     for (unsigned int i = 0; i < kTransientArraySize; i++)

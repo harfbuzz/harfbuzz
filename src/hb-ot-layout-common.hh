@@ -1346,6 +1346,9 @@ struct VarRegionList
 		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
   }
 
+  inline unsigned int get_region_count (void) const
+  { return regionCount; }
+
   protected:
   HBUINT16	axisCount;
   HBUINT16	regionCount;
@@ -1443,6 +1446,9 @@ struct VariationStore
 		  regions.sanitize (c, this) &&
 		  dataSets.sanitize (c, this));
   }
+
+  inline unsigned int get_region_count (void) const
+  { return (this+regions).get_region_count (); }
 
   protected:
   HBUINT16				format;

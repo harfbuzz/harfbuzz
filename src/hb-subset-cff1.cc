@@ -148,8 +148,9 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
   static inline void flush_hintmask (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
     SUPER::flush_hintmask (op, env, param);
-    for (unsigned int i = 0; i < env.hintmask_size; i++)
-      param.flatStr.encode_byte (env.substr[i]);
+    if (!param.drop_hints)
+      for (unsigned int i = 0; i < env.hintmask_size; i++)
+        param.flatStr.encode_byte (env.substr[i]);
   }
 
   private:

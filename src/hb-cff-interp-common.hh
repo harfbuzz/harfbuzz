@@ -210,7 +210,10 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op)? 2: 1; }
 
 struct Number
 {
-  inline Number (void) { set_int (0); }
+  inline void init (void)
+  { set_int (0); }
+  inline void fini (void)
+  {}
 
   inline void set_int (int v)           { format = NumInt; u.int_val = v; };
   inline int to_int (void) const        { return is_int ()? u.int_val: (int)to_real (); }
@@ -336,7 +339,15 @@ struct ByteStr
 struct SubByteStr
 {
   inline SubByteStr (void)
-    : str (), offset (0) {}
+  { init (); }
+
+  inline void init (void)
+  {
+    str = ByteStr (0);
+    offset = 0;
+  }
+
+  inline void fini (void) {}
 
   inline SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_) {}
@@ -379,13 +390,33 @@ inline float parse_bcd (SubByteStr& substr, float& v)
 template <typename ELEM, int LIMIT>
 struct Stack
 {
-  inline void init (void) { count = 0; }
-  inline void fini (void) { }
+  inline void init (void)
+  {
+    count = 0;
+    elements.init ();
+    elements.resize (kSizeLimit);
+    for (unsigned int i = 0; i < elements.len; i++)
+      elements[i].init ();
+  }
+
+  inline void fini (void)
+  {
+    for (unsigned int i = 0; i < elements.len; i++)
+      elements[i].fini ();
+  }
 
   inline void push (const ELEM &v)
   {
-    if (likely (count < kSizeLimit))
+    if (likely (count < elements.len))
       elements[count++] = v;
+  }
+
+  inline ELEM &push (void)
+  {
+    if (likely (count < elements.len))
+      return elements[count++];
+    else
+      return Crap(ELEM);
   }
 
   inline const ELEM& pop (void)
@@ -396,9 +427,17 @@ struct Stack
       return Null(ELEM);
   }
 
+  inline const ELEM& peek (void)
+  {
+    if (likely (count > 0))
+      return elements[count];
+    else
+      return Null(ELEM);
+  }
+
   inline void unpop (void)
   {
-    if (likely (count < kSizeLimit))
+    if (likely (count < elements.len))
       count++;
   }
 
@@ -413,7 +452,7 @@ struct Stack
   static const unsigned int kSizeLimit = LIMIT;
 
   unsigned int count;
-  ELEM elements[kSizeLimit];
+  hb_vector_t<ELEM, kSizeLimit> elements;
 };
 
 /* argument stack */
@@ -422,16 +461,20 @@ struct ArgStack : Stack<ARG, 513>
 {
   inline void push_int (int v)
   {
-    ARG n;
+    ARG &n = S::push ();
     n.set_int (v);
-    S::push (n);
+  }
+
+  inline void push_fixed (int32_t v)
+  {
+    ARG &n = S::push ();
+    n.set_fixed (v);
   }
 
   inline void push_real (float v)
   {
-    ARG n;
+    ARG &n = S::push ();
     n.set_real (v);
-    S::push (n);
   }
 
   inline bool check_pop_num (ARG& n)
@@ -495,7 +538,7 @@ struct ArgStack : Stack<ARG, 513>
   {
     if (unlikely (!substr.avail (4) || !S::check_overflow (1)))
       return false;
-    push_real ((int32_t)*(const HBUINT32*)&substr[0] / 65536.0);
+    push_fixed ((int32_t)*(const HBUINT32*)&substr[0]);
     substr.inc (4);
     return true;
   }
