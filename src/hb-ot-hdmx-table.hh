@@ -177,7 +177,8 @@ struct hdmx
 
     hb_serialize_context_t c (dest, dest_size);
     hdmx *hdmx_prime = c.start_serialize<hdmx> ();
-    if (!hdmx_prime || !hdmx_prime->serialize (&c, this, plan)) {
+    if (!hdmx_prime || !hdmx_prime->serialize (&c, this, plan))
+    {
       free (dest);
       return false;
     }
