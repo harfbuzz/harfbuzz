@@ -88,8 +88,13 @@ struct DeviceRecord
   {
     TRACE_SERIALIZE (this);
 
-    if (unlikely (!c->allocate_size<DeviceRecord> (get_size (subset_view.len()))))
+    unsigned int size = get_size (subset_view.len());
+    if (unlikely (!c->allocate_size<DeviceRecord> (size)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for DeviceRecord: %d.",
+                 size);
       return_trace (false);
+    }
 
     this->pixel_size.set (subset_view.source_device_record->pixel_size);
     this->max_width.set (subset_view.source_device_record->max_width);
@@ -160,14 +165,14 @@ struct hdmx
     return_trace (true);
   }
 
-  static inline size_t get_subsetted_size (hb_subset_plan_t *plan)
+  static inline size_t get_subsetted_size (const hdmx *source_hdmx, hb_subset_plan_t *plan)
   {
-    return min_size + DeviceRecord::get_size (plan->glyphs.len);
+    return min_size + source_hdmx->num_records * DeviceRecord::get_size (plan->glyphs.len);
   }
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    size_t dest_size = get_subsetted_size (plan);
+    size_t dest_size = get_subsetted_size (this, plan);
     hdmx *dest = (hdmx *) malloc (dest_size);
     if (unlikely (!dest))
     {
@@ -179,6 +184,7 @@ struct hdmx
     hdmx *hdmx_prime = c.start_serialize<hdmx> ();
     if (!hdmx_prime || !hdmx_prime->serialize (&c, this, plan)) {
       free (dest);
+      DEBUG_MSG(SUBSET, nullptr, "Failed to serialize write new hdmx.");
       return false;
     }
     c.end_serialize ();
