@@ -1142,10 +1142,10 @@ struct cff1
   }
 
   protected:
-  static hb_codepoint_t lookup_standard_encoding (hb_codepoint_t sid);
-  static hb_codepoint_t lookup_expert_encoding (hb_codepoint_t sid);
-  static hb_codepoint_t lookup_expert_charset (hb_codepoint_t glyph);
-  static hb_codepoint_t lookup_expert_subset_charset (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_standard_encoding (hb_codepoint_t sid);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_encoding (hb_codepoint_t sid);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_charset (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset (hb_codepoint_t glyph);
 
   public:
   FixedVersion<HBUINT8> version;          /* Version of CFF table. set to 0x0100u */
