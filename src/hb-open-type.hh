@@ -150,7 +150,7 @@ typedef HBUINT16 NameID;
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
-  static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;
+  enum { NOT_FOUND_INDEX = 0xFFFFu };
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 

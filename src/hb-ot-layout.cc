@@ -1068,7 +1068,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
 struct GSUBProxy
 {
-  static const unsigned int table_index = 0;
+  enum { table_index = 0 };
   static const bool inplace = false;
   typedef OT::SubstLookup Lookup;
 
@@ -1082,7 +1082,7 @@ struct GSUBProxy
 
 struct GPOSProxy
 {
-  static const unsigned int table_index = 1;
+  enum { table_index = 1 };
   static const bool inplace = true;
   typedef OT::PosLookup Lookup;
 

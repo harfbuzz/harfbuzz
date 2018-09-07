@@ -50,8 +50,8 @@ struct hb_set_digest_lowest_bits_t
 {
   ASSERT_POD ();
 
-  static const unsigned int mask_bytes = sizeof (mask_t);
-  static const unsigned int mask_bits = sizeof (mask_t) * 8;
+  enum { mask_bytes = sizeof (mask_t) };
+  enum { mask_bits = sizeof (mask_t) * 8 };
   static const unsigned int num_bits = 0
 				     + (mask_bytes >= 1 ? 3 : 0)
 				     + (mask_bytes >= 2 ? 1 : 0)

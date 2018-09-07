@@ -115,7 +115,7 @@ typedef struct OffsetTable
      * table list. */
     int i = tables.len < 64 ? tables.lsearch (t) : tables.bsearch (t);
     if (table_index)
-      *table_index = i == -1 ? Index::NOT_FOUND_INDEX : (unsigned int) i;
+      *table_index = i == -1 ? (unsigned) Index::NOT_FOUND_INDEX : (unsigned) i;
     return i != -1;
   }
   inline const TableRecord& get_table_by_tag (hb_tag_t tag) const
