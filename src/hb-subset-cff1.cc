@@ -292,7 +292,6 @@ struct cff_subset_plan {
 
   inline unsigned int plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
   {
-    const Charset *charset = acc.charset;
     unsigned int  size0, size_ranges;
     hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
     bool  two_byte = false;
