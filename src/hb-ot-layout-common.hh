@@ -702,6 +702,23 @@ struct Lookup
     return_trace (true);
   }
 
+  /* Older compileres need this to NOT be locally defined in a function. */
+  template <typename TSubTable>
+  struct SubTableSubsetWrapper
+  {
+    inline SubTableSubsetWrapper (const TSubTable &subtable_,
+				  unsigned int lookup_type_) :
+				    subtable (subtable_),
+				    lookup_type (lookup_type_) {}
+
+    inline bool subset (hb_subset_context_t *c) const
+    { return subtable.dispatch (c, lookup_type); }
+
+    private:
+    const TSubTable &subtable;
+    unsigned int lookup_type;
+  };
+
   template <typename TSubTable>
   inline bool subset (hb_subset_context_t *c) const
   {
@@ -717,20 +734,7 @@ struct Lookup
     unsigned int count = subTable.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      struct Wrapper
-      {
-        inline Wrapper (const TSubTable &subtable_,
-			unsigned int lookup_type_) :
-			  subtable (subtable_),
-			  lookup_type (lookup_type_) {}
-
-	inline bool subset (hb_subset_context_t *c) const
-	{ return subtable.dispatch (c, lookup_type); }
-
-	private:
-	const TSubTable &subtable;
-	unsigned int lookup_type;
-      } wrapper (this+subtables[i], get_type ());
+      SubTableSubsetWrapper<TSubTable> wrapper (this+subtables[i], get_type ());
 
       out_subtables[i].serialize_subset (c, wrapper, out);
     }

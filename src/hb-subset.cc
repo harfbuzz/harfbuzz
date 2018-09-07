@@ -53,6 +53,9 @@ _plan_estimate_subset_table_size (hb_subset_plan_t *plan,
   unsigned int src_glyphs = plan->source->get_num_glyphs ();
   unsigned int dst_glyphs = plan->glyphset->get_population ();
 
+  if (unlikely (!src_glyphs))
+    return 512 + table_len;
+
   return 512 + (unsigned int) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
 }
 
