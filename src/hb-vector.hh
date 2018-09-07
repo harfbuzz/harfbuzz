@@ -72,6 +72,8 @@ struct hb_vector_t
     return p;
   }
 
+  inline bool in_error (void) const { return allocated == 0; }
+
   /* Allocate for size but don't adjust len. */
   inline bool alloc (unsigned int size)
   {

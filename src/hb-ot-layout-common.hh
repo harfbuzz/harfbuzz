@@ -97,15 +97,14 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : SortedArrayOf<Record<Type> > {
+struct RecordArrayOf : SortedArrayOf<Record<Type> >
+{
+  inline const OffsetTo<Type>& get_offset (unsigned int i) const
+  { return (*this)[i].offset; }
+  inline OffsetTo<Type>& get_offset (unsigned int i)
+  { return (*this)[i].offset; }
   inline const Tag& get_tag (unsigned int i) const
-  {
-    /* We cheat slightly and don't define separate Null objects
-     * for Record types.  Instead, we return the correct Null(Tag)
-     * here. */
-    if (unlikely (i >= this->len)) return Null(Tag);
-    return (*this)[i].tag;
-  }
+  { return (*this)[i].tag; }
   inline unsigned int get_tags (unsigned int start_offset,
 				unsigned int *record_count /* IN/OUT */,
 				hb_tag_t     *record_tags /* OUT */) const
@@ -136,7 +135,18 @@ template <typename Type>
 struct RecordListOf : RecordArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
-  { return this+RecordArrayOf<Type>::operator [](i).offset; }
+  { return this+this->get_offset (i); }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct RecordListOf<Type> *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      out->get_offset (i).serialize_subset (c, (*this)[i], out);
+    return_trace (true);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -158,9 +168,8 @@ struct RangeRecord
     return_trace (c->check_struct (this));
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const {
-    return glyphs->intersects (start, end);
-  }
+  inline bool intersects (const hb_set_t *glyphs) const
+  { return glyphs->intersects (start, end); }
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
@@ -224,6 +233,12 @@ struct LangSys
    return reqFeatureIndex;;
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    return_trace (c->serializer->embed (*this));
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<LangSys>::sanitize_closure_t * = nullptr) const
   {
@@ -238,7 +253,7 @@ struct LangSys
 				 * = 0xFFFFu */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
   public:
-  DEFINE_SIZE_ARRAY (6, featureIndex);
+  DEFINE_SIZE_ARRAY_SIZED (6, featureIndex);
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
 
@@ -263,6 +278,18 @@ struct Script
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Script *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, out);
+    unsigned int count = langSys.len;
+    for (unsigned int i = 0; i < count; i++)
+      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, out);
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Script>::sanitize_closure_t * = nullptr) const
   {
@@ -278,7 +305,7 @@ struct Script
 		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
   public:
-  DEFINE_SIZE_ARRAY (4, langSys);
+  DEFINE_SIZE_ARRAY_SIZED (4, langSys);
 };
 
 typedef RecordListOf<Script> ScriptList;
@@ -516,6 +543,15 @@ struct Feature
   inline const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Feature *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    out->featureParams.set (0); /* TODO(subset) FeatureParams. */
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Feature>::sanitize_closure_t *closure = nullptr) const
   {
@@ -567,7 +603,7 @@ struct Feature
 				 * if not required */
   IndexArray	 lookupIndex;	/* Array of LookupList indices */
   public:
-  DEFINE_SIZE_ARRAY (4, lookupIndex);
+  DEFINE_SIZE_ARRAY_SIZED (4, lookupIndex);
 };
 
 typedef RecordListOf<Feature> FeatureList;
@@ -598,16 +634,16 @@ struct Lookup
 {
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
-  template <typename SubTableType>
-  inline const SubTableType& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<SubTableType> > (subTable)[i]; }
+  template <typename TSubTable>
+  inline const TSubTable& get_subtable (unsigned int i) const
+  { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
 
-  template <typename SubTableType>
-  inline const OffsetArrayOf<SubTableType>& get_subtables (void) const
-  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
-  template <typename SubTableType>
-  inline OffsetArrayOf<SubTableType>& get_subtables (void)
-  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
+  template <typename TSubTable>
+  inline const OffsetArrayOf<TSubTable>& get_subtables (void) const
+  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  template <typename TSubTable>
+  inline OffsetArrayOf<TSubTable>& get_subtables (void)
+  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
 
   inline unsigned int get_size (void) const
   {
@@ -633,14 +669,14 @@ struct Lookup
     return flag;
   }
 
-  template <typename SubTableType, typename context_t>
+  template <typename TSubTable, typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable<SubTableType> (i).dispatch (c, lookup_type);
+      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type);
       if (c->stop_sublookup_iteration (r))
         return_trace (r);
     }
@@ -666,16 +702,68 @@ struct Lookup
     return_trace (true);
   }
 
+  template <typename TSubTable>
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct Lookup *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+
+    /* Subset the actual subtables. */
+    /* TODO Drop empty ones, either by calling intersects() beforehand,
+     * or just dropping null offsets after. */
+    const OffsetArrayOf<TSubTable>& subtables = get_subtables<TSubTable> ();
+    OffsetArrayOf<TSubTable>& out_subtables = out->get_subtables<TSubTable> ();
+    unsigned int count = subTable.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      struct Wrapper
+      {
+        inline Wrapper (const TSubTable &subtable_,
+			unsigned int lookup_type_) :
+			  subtable (subtable_),
+			  lookup_type (lookup_type_) {}
+
+	inline bool subset (hb_subset_context_t *c) const
+	{ return subtable.dispatch (c, lookup_type); }
+
+	private:
+	const TSubTable &subtable;
+	unsigned int lookup_type;
+      } wrapper (this+subtables[i], get_type ());
+
+      out_subtables[i].serialize_subset (c, wrapper, out);
+    }
+
+    return_trace (true);
+  }
+
+  template <typename TSubTable>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* Real sanitize of the subtables is done by GSUB/GPOS/... */
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
+
+    if (unlikely (!dispatch<TSubTable> (c))) return_trace (false);
+
+    if (unlikely (get_type () == TSubTable::Extension))
+    {
+      /* The spec says all subtables of an Extension lookup should
+       * have the same type, which shall not be the Extension type
+       * itself (but we already checked for that).
+       * This is specially important if one has a reverse type! */
+      unsigned int type = get_subtable<TSubTable> (0).u.extension.get_type ();
+      unsigned int count = get_subtable_count ();
+      for (unsigned int i = 1; i < count; i++)
+        if (get_subtable<TSubTable> (i).u.extension.get_type () != type)
+	  return_trace (false);
+    }
+    return_trace (true);
     return_trace (true);
   }
 
@@ -730,9 +818,17 @@ struct CoverageFormat1
     return_trace (glyphArray.sanitize (c));
   }
 
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
-    return glyphs->has (glyphArray[index]);
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = glyphArray.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (glyphs->has (glyphArray[i]))
+        return true;
+    return false;
   }
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  { return glyphs->has (glyphArray[index]); }
 
   template <typename set_t>
   inline bool add_coverage (set_t *glyphs) const {
@@ -820,7 +916,17 @@ struct CoverageFormat2
     return_trace (rangeRecord.sanitize (c));
   }
 
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].intersects (glyphs))
+        return true;
+    return false;
+  }
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  {
     unsigned int i;
     unsigned int count = rangeRecord.len;
     for (i = 0; i < count; i++) {
@@ -948,13 +1054,13 @@ struct Coverage
 
   inline bool intersects (const hb_set_t *glyphs) const
   {
-    /* TODO speed this up */
-    for (hb_auto_t<Coverage::Iter> iter (*this); iter.more (); iter.next ())
-      if (glyphs->has (iter.get_glyph ()))
-        return true;
-    return false;
+    switch (u.format)
+    {
+    case 1: return u.format1.intersects (glyphs);
+    case 2: return u.format2.intersects (glyphs);
+    default:return false;
+    }
   }
-
   inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     switch (u.format)
@@ -1104,6 +1210,17 @@ struct ClassDefFormat1
     return true;
   }
 
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next()? */
+    hb_codepoint_t start = startGlyph;
+    hb_codepoint_t end = startGlyph + classValue.len;
+    for (hb_codepoint_t iter = startGlyph - 1;
+	 hb_set_next (glyphs, &iter) && iter < end;)
+      if (classValue[iter - start])
+        return true;
+    return false;
+  }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
     if (klass == 0)
@@ -1154,7 +1271,8 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  inline bool add_coverage (set_t *glyphs) const
+  {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value)
@@ -1164,7 +1282,8 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+  inline bool add_class (set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -1175,7 +1294,17 @@ struct ClassDefFormat2
     return true;
   }
 
-  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
+  inline bool intersects (const hb_set_t *glyphs) const
+  {
+    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].intersects (glyphs))
+        return true;
+    return false;
+  }
+  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = rangeRecord.len;
     if (klass == 0)
     {
@@ -1252,6 +1381,13 @@ struct ClassDef
     }
   }
 
+  inline bool intersects (const hb_set_t *glyphs) const {
+    switch (u.format) {
+    case 1: return u.format1.intersects (glyphs);
+    case 2: return u.format2.intersects (glyphs);
+    default:return false;
+    }
+  }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
@@ -1635,6 +1771,12 @@ struct FeatureVariations
     return (this+record.substitutions).find_substitute (feature_index);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    return_trace (c->serializer->embed (*this));
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1648,7 +1790,7 @@ struct FeatureVariations
   LArrayOf<FeatureVariationRecord>
 			varRecords;
   public:
-  DEFINE_SIZE_ARRAY (8, varRecords);
+  DEFINE_SIZE_ARRAY_SIZED (8, varRecords);
 };
 
 

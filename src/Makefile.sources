@@ -226,6 +226,7 @@ HB_SUBSET_sources = \
 	hb-subset-cff-common.cc \
 	hb-ot-cff1-table.cc \
 	hb-subset-input.cc \
+	hb-subset-input.hh \
 	hb-subset-plan.cc \
 	hb-subset-plan.hh \
 	$(NULL)

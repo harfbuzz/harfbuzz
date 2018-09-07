@@ -30,7 +30,7 @@
 #include "hb.hh"
 
 #include "hb-subset.h"
-#include "hb-subset.hh"
+#include "hb-subset-input.hh"
 
 #include "hb-map.hh"
 
@@ -39,15 +39,14 @@ struct hb_subset_plan_t
   hb_object_header_t header;
   ASSERT_POD ();
 
-  hb_bool_t drop_hints;
-  hb_bool_t drop_ot_layout;
+  bool drop_hints : 1;
+  bool drop_layout : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
 
-  // This list contains the complete set of glyphs to retain and may contain
-  // more glyphs then the lists above.
   hb_vector_t<hb_codepoint_t> glyphs;
+  hb_set_t *glyphset;
 
   hb_map_t *codepoint_to_glyph;
   hb_map_t *glyph_map;
@@ -56,7 +55,7 @@ struct hb_subset_plan_t
   hb_face_t *source;
   hb_face_t *dest;
 
-  inline hb_bool_t
+  inline bool
   new_gid_for_codepoint (hb_codepoint_t codepoint,
                          hb_codepoint_t *new_gid) const
   {
@@ -67,7 +66,7 @@ struct hb_subset_plan_t
     return new_gid_for_old_gid (old_gid, new_gid);
   }
 
-  inline hb_bool_t
+  inline bool
   new_gid_for_old_gid (hb_codepoint_t old_gid,
                       hb_codepoint_t *new_gid) const
   {
@@ -79,7 +78,7 @@ struct hb_subset_plan_t
     return true;
   }
 
-  inline hb_bool_t
+  inline bool
   add_table (hb_tag_t tag,
              hb_blob_t *contents)
   {
@@ -97,7 +96,6 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
 
 HB_INTERNAL hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-                       hb_subset_profile_t *profile,
                        hb_subset_input_t   *input);
 
 HB_INTERNAL void

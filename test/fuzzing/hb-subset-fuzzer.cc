@@ -10,13 +10,11 @@ void trySubset (hb_face_t *face,
                 const hb_codepoint_t text[],
                 int text_length,
                 bool drop_hints,
-                bool drop_ot_layout)
+                bool drop_layout)
 {
-  hb_subset_profile_t *profile = hb_subset_profile_create ();
-
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-  *hb_subset_input_drop_hints (input) = drop_hints;
-  *hb_subset_input_drop_ot_layout (input) = drop_ot_layout;
+  hb_subset_input_set_drop_hints (input, drop_hints);
+  hb_subset_input_set_drop_layout (input, drop_layout);
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
 
   for (int i = 0; i < text_length; i++)
@@ -24,11 +22,10 @@ void trySubset (hb_face_t *face,
     hb_set_add (codepoints, text[i]);
   }
 
-  hb_face_t *result = hb_subset (face, profile, input);
+  hb_face_t *result = hb_subset (face, input);
   hb_face_destroy (result);
 
   hb_subset_input_destroy (input);
-  hb_subset_profile_destroy (profile);
 }
 
 void trySubset (hb_face_t *face,
@@ -37,10 +34,10 @@ void trySubset (hb_face_t *face,
 {
   for (unsigned int drop_hints = 0; drop_hints < 2; drop_hints++)
   {
-    for (unsigned int drop_ot_layout = 0; drop_ot_layout < 2; drop_ot_layout++)
+    for (unsigned int drop_layout = 0; drop_layout < 2; drop_layout++)
     {
       trySubset (face, text, text_length,
-                 (bool) drop_hints, (bool) drop_ot_layout);
+                 (bool) drop_hints, (bool) drop_layout);
     }
   }
 }

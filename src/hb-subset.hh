@@ -32,25 +32,28 @@
 
 #include "hb-subset.h"
 
-#include "hb-font.hh"
+#include "hb-machinery.hh"
+#include "hb-subset-input.hh"
+#include "hb-subset-plan.hh"
 
-struct hb_subset_input_t
+struct hb_subset_context_t :
+       hb_dispatch_context_t<hb_subset_context_t, bool, HB_DEBUG_SUBSET>
 {
-  hb_object_header_t header;
-  ASSERT_POD ();
+  inline const char *get_name (void) { return "SUBSET"; }
+  template <typename T>
+  inline bool dispatch (const T &obj) { return obj.subset (this); }
+  static bool default_return_value (void) { return true; }
+  bool stop_sublookup_iteration (bool r) const { return false; }
 
-  hb_set_t *unicodes;
-  hb_set_t *glyphs;
+  hb_subset_plan_t *plan;
+  hb_serialize_context_t *serializer;
+  unsigned int debug_depth;
 
-  hb_bool_t drop_hints;
-  hb_bool_t drop_ot_layout;
-  /* TODO
-   *
-   * features
-   * lookups
-   * nameIDs
-   * ...
-   */
+  hb_subset_context_t (hb_subset_plan_t *plan_,
+		       hb_serialize_context_t *serializer_) :
+			plan (plan_),
+			serializer (serializer_),
+			debug_depth (0) {}
 };
 
 

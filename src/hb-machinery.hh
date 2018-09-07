@@ -33,6 +33,7 @@
 #include "hb-blob.hh"
 
 #include "hb-iter.hh"
+#include "hb-vector.hh"
 
 
 /*
@@ -111,9 +112,13 @@ static inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (array[0])); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof (array[0])); \
   DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
-  static const unsigned int min_size = (size)
+  static const unsigned int min_size = (size); \
+
+#define DEFINE_SIZE_ARRAY_SIZED(size, array) \
+	DEFINE_SIZE_ARRAY(size, array); \
+	inline unsigned int get_size (void) const { return (size - array[0].min_size + array.get_size ()); }
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
@@ -437,12 +442,19 @@ struct hb_serialize_context_t
   {
     this->start = (char *) start_;
     this->end = this->start + size;
+    reset ();
+  }
 
+  inline void reset (void)
+  {
     this->ran_out_of_room = false;
     this->head = this->start;
     this->debug_depth = 0;
   }
 
+  inline bool err (bool e) { return this->ran_out_of_room = this->ran_out_of_room || e; }
+
+  /* To be called around main operation. */
   template <typename Type>
   inline Type *start_serialize (void)
   {
@@ -453,7 +465,6 @@ struct hb_serialize_context_t
 
     return start_embed<Type> ();
   }
-
   inline void end_serialize (void)
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
@@ -463,6 +474,70 @@ struct hb_serialize_context_t
 		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
   }
 
+  inline unsigned int length (void) const { return this->head - this->start; }
+
+  inline void align (unsigned int alignment)
+  {
+    unsigned int l = length () % alignment;
+    if (l)
+      allocate_size<void> (alignment - l);
+  }
+
+  template <typename Type>
+  inline Type *start_embed (void) const
+  {
+    Type *ret = reinterpret_cast<Type *> (this->head);
+    return ret;
+  }
+
+  template <typename Type>
+  inline Type *allocate_size (unsigned int size)
+  {
+    if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
+      this->ran_out_of_room = true;
+      return nullptr;
+    }
+    memset (this->head, 0, size);
+    char *ret = this->head;
+    this->head += size;
+    return reinterpret_cast<Type *> (ret);
+  }
+
+  template <typename Type>
+  inline Type *allocate_min (void)
+  {
+    return this->allocate_size<Type> (Type::min_size);
+  }
+
+  template <typename Type>
+  inline Type *embed (const Type &obj)
+  {
+    unsigned int size = obj.get_size ();
+    Type *ret = this->allocate_size<Type> (size);
+    if (unlikely (!ret)) return nullptr;
+    memcpy (ret, &obj, size);
+    return ret;
+  }
+
+  template <typename Type>
+  inline Type *extend_min (Type &obj)
+  {
+    unsigned int size = obj.min_size;
+    assert (this->start <= (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
+    return reinterpret_cast<Type *> (&obj);
+  }
+
+  template <typename Type>
+  inline Type *extend (Type &obj)
+  {
+    unsigned int size = obj.get_size ();
+    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
+    return reinterpret_cast<Type *> (&obj);
+  }
+
+  /* Output routines. */
   template <typename Type>
   inline Type *copy (void) const
   {
@@ -493,60 +568,7 @@ struct hb_serialize_context_t
 			   nullptr, nullptr);
   }
 
-  template <typename Type>
-  inline Type *allocate_size (unsigned int size)
-  {
-    if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
-      this->ran_out_of_room = true;
-      return nullptr;
-    }
-    memset (this->head, 0, size);
-    char *ret = this->head;
-    this->head += size;
-    return reinterpret_cast<Type *> (ret);
-  }
-
-  template <typename Type>
-  inline Type *allocate_min (void)
-  {
-    return this->allocate_size<Type> (Type::min_size);
-  }
-
-  template <typename Type>
-  inline Type *start_embed (void)
-  {
-    Type *ret = reinterpret_cast<Type *> (this->head);
-    return ret;
-  }
-
-  template <typename Type>
-  inline Type *embed (const Type &obj)
-  {
-    unsigned int size = obj.get_size ();
-    Type *ret = this->allocate_size<Type> (size);
-    if (unlikely (!ret)) return nullptr;
-    memcpy (ret, obj, size);
-    return ret;
-  }
-
-  template <typename Type>
-  inline Type *extend_min (Type &obj)
-  {
-    unsigned int size = obj.min_size;
-    assert (this->start <= (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
-    return reinterpret_cast<Type *> (&obj);
-  }
-
-  template <typename Type>
-  inline Type *extend (Type &obj)
-  {
-    unsigned int size = obj.get_size ();
-    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
-    return reinterpret_cast<Type *> (&obj);
-  }
-
+  public:
   unsigned int debug_depth;
   char *start, *end, *head;
   bool ran_out_of_room;
@@ -560,12 +582,19 @@ struct hb_serialize_context_t
 template <typename Type>
 struct Supplier
 {
-  inline Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof(Type))
+  inline Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof (Type))
   {
     head = array;
     len = len_;
     stride = stride_;
   }
+  inline Supplier (const hb_vector_t<Type> *v)
+  {
+    head = v->arrayZ;
+    len = v->len;
+    stride = sizeof (Type);
+  }
+
   inline const Type operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Type ();

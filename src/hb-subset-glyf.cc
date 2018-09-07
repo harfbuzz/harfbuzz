@@ -28,7 +28,6 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-set.h"
 #include "hb-subset-glyf.hh"
-#include "hb-subset-plan.hh"
 
 static bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,

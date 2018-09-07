@@ -28,7 +28,6 @@
 #define HB_OT_POST_TABLE_HH
 
 #include "hb-open-type.hh"
-#include "hb-subset-plan.hh"
 
 #define HB_STRING_ARRAY_NAME format1_names
 #define HB_STRING_ARRAY_LIST "hb-ot-post-macroman.hh"

@@ -161,8 +161,7 @@ typedef struct OffsetTable
       memcpy (start, hb_blob_get_data (blob, nullptr), rec.length);
 
       /* 4-byte allignment. */
-      if (rec.length % 4)
-	c->allocate_size<void> (4 - rec.length % 4);
+      c->align (4);
       const char *end = (const char *) c->head;
 
       if (tags[i] == HB_OT_TAG_head && end - start >= head::static_size)
