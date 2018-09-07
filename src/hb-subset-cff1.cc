@@ -186,39 +186,186 @@ struct cff_subset_plan {
   inline cff_subset_plan (void)
     : final_size (0),
       orig_fdcount (0),
-      subst_fdcount (1),
-      subst_fdselect_format (0),
+      subset_fdcount (1),
+      subset_fdselect_format (0),
       offsets (),
       flatten_subrs (true),
       drop_hints (false)
   {
     topdict_sizes.init ();
     topdict_sizes.resize (1);
-    subst_fdselect_first_glyphs.init ();
+    topdict_mod.init ();
+    subset_fdselect_first_glyphs.init ();
     fdmap.init ();
     subset_charstrings.init ();
     flat_charstrings.init ();
     privateDictInfos.init ();
     subrRefMaps.init ();
+    subset_enc_code_ranges.init ();
+    subset_enc_supp_codes.init ();
+    subset_charset_ranges.init ();
   }
 
   inline ~cff_subset_plan (void)
   {
     topdict_sizes.fini ();
-    subst_fdselect_first_glyphs.fini ();
+    topdict_mod.fini ();
+    subset_fdselect_first_glyphs.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
     flat_charstrings.fini ();
     privateDictInfos.fini ();
     subrRefMaps.fini ();
+    subset_enc_code_ranges.fini ();
+    subset_enc_supp_codes.init ();
+    subset_charset_ranges.fini ();
+  }
+
+  inline unsigned int plan_subset_encoding (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
+  {
+    const Encoding *encoding = acc.encoding;
+    unsigned int  size0, size1, supp_size;
+    hb_codepoint_t  code, last_code = CFF_UNDEF_CODE;
+    hb_vector_t<hb_codepoint_t> supp_codes;
+
+    subset_enc_code_ranges.resize (0);
+    supp_size = 0;
+    supp_codes.init ();
+
+    subset_enc_num_codes = plan->glyphs.len - 1;
+    unsigned int glyph;
+    for (glyph = 1; glyph < plan->glyphs.len; glyph++)
+    {
+      hb_codepoint_t  orig_glyph = plan->glyphs[glyph];
+      code = acc.glyph_to_code (orig_glyph);
+      if (code == CFF_UNDEF_CODE)
+      {
+        subset_enc_num_codes = glyph - 1;
+        break;
+      }
+
+      if (code != last_code + 1)
+      {
+        if (subset_enc_code_ranges.len > 0)
+        {
+          code_pair &pair = subset_enc_code_ranges[subset_enc_code_ranges.len - 1];
+          pair.glyph = glyph - pair.glyph - 1;
+        }
+        code_pair pair = { code, glyph };
+        subset_enc_code_ranges.push (pair);
+      }
+      last_code = code;
+
+      if (encoding != &Null(Encoding))
+      {
+        hb_codepoint_t  sid = acc.glyph_to_sid (orig_glyph);
+        encoding->get_supplement_codes (sid, supp_codes);
+        for (unsigned int i = 0; i < supp_codes.len; i++)
+        {
+          code_pair pair = { supp_codes[i], sid };
+          subset_enc_supp_codes.push (pair);
+        }
+        supp_size += SuppEncoding::static_size * supp_codes.len;
+      }
+    }
+    supp_codes.fini ();
+    if (subset_enc_code_ranges.len > 0)
+    {
+      code_pair &pair = subset_enc_code_ranges[subset_enc_code_ranges.len - 1];
+      pair.glyph = glyph - pair.glyph - 1;
+    }
+
+    assert (subset_enc_num_codes <= 0xFF);
+    size0 = Encoding0::min_size + HBUINT8::static_size * subset_enc_num_codes;
+    size1 = Encoding1::min_size + Encoding1_Range::static_size * subset_enc_code_ranges.len;
+
+    if (size0 < size1)
+      subset_enc_format = 0;
+    else
+      subset_enc_format = 1;
+
+    return Encoding::calculate_serialized_size (
+                        subset_enc_format,
+                        subset_enc_format? subset_enc_code_ranges.len: subset_enc_num_codes,
+                        subset_enc_supp_codes.len);
+  }
+
+  inline unsigned int plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
+  {
+    const Charset *charset = acc.charset;
+    unsigned int  size0, size_ranges;
+    hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
+    bool  two_byte = false;
+
+    subset_charset_ranges.resize (0);
+    unsigned int glyph;
+    for (glyph = 1; glyph < plan->glyphs.len; glyph++)
+    {
+      hb_codepoint_t  orig_glyph = plan->glyphs[glyph];
+      sid = acc.glyph_to_sid (orig_glyph);
+
+      if (sid != last_sid + 1)
+      {
+        if (subset_charset_ranges.len > 0)
+        {
+          code_pair &pair = subset_charset_ranges[subset_charset_ranges.len - 1];
+          pair.glyph = glyph - pair.glyph - 1;
+          if ((pair.glyph & ~0xFF) != 0) two_byte = true;
+        }
+        code_pair pair = { sid, glyph };
+        subset_charset_ranges.push (pair);
+      }
+      last_sid = sid;
+    }
+
+    if (subset_charset_ranges.len > 0)
+    {
+      code_pair &pair = subset_charset_ranges[subset_charset_ranges.len - 1];
+      pair.glyph = glyph - pair.glyph - 1;
+      if ((pair.glyph & ~0xFF) != 0) two_byte = true;
+    }
+
+    size0 = Charset0::min_size + HBUINT16::static_size * (plan->glyphs.len - 1);
+    if (!two_byte)
+      size_ranges = Charset1::min_size + Charset1_Range::static_size * subset_charset_ranges.len;
+    else
+      size_ranges = Charset2::min_size + Charset2_Range::static_size * subset_charset_ranges.len;
+
+    if (size0 < size_ranges)
+      subset_charset_format = 0;
+    else if (!two_byte)
+      subset_charset_format = 1;
+    else
+      subset_charset_format = 2;
+
+    return Charset::calculate_serialized_size (
+                        subset_charset_format,
+                        subset_charset_format? subset_charset_ranges.len: plan->glyphs.len);
   }
 
   inline bool create (const OT::cff1::accelerator_subset_t &acc,
                       hb_subset_plan_t *plan)
   {
+     /* make sure notdef is first */
+    if ((plan->glyphs.len == 0) || (plan->glyphs[0] != 0)) return false;
+
     final_size = 0;
+    num_glyphs = plan->glyphs.len;
     orig_fdcount = acc.fdCount;
     drop_hints = plan->drop_hints;
+
+    /* check whether the subset renumbers any glyph IDs */
+    gid_renum = false;
+    for (unsigned int glyph = 0; glyph < plan->glyphs.len; glyph++)
+    {
+      if (plan->glyphs[glyph] != glyph) {
+        gid_renum = true;
+        break;
+      }
+    }
+
+    subset_charset = gid_renum || !acc.is_predef_charset ();
+    subset_encoding = !acc.is_CID() && (gid_renum || !acc.is_predef_encoding ());
 
     /* CFF header */
     final_size += OT::cff1::static_size;
@@ -226,14 +373,27 @@ struct cff_subset_plan {
     /* Name INDEX */
     offsets.nameIndexOffset = final_size;
     final_size += acc.nameIndex->get_size ();
-    
+
     /* top dict INDEX */
     {
+      /* Add encoding/charset to a (copy of) top dict as necessary */
+      topdict_mod.init (&acc.topDicts[0]);
+      bool need_to_add_enc = (subset_encoding && !acc.topDicts[0].hasOp (OpCode_Encoding));
+      bool need_to_add_set = (subset_charset && !acc.topDicts[0].hasOp (OpCode_charset));
+      if (need_to_add_enc || need_to_add_set)
+      {
+        if (need_to_add_enc)
+          topdict_mod.addOp (OpCode_Encoding);
+        if (need_to_add_set)
+          topdict_mod.addOp (OpCode_charset);
+      }
       offsets.topDictInfo.offset = final_size;
       CFF1TopDict_OpSerializer topSzr;
-      unsigned int topDictSize = TopDict::calculate_serialized_size (acc.topDicts[0], topSzr);
+      unsigned int topDictSize = TopDict::calculate_serialized_size (topdict_mod, topSzr);
       offsets.topDictInfo.offSize = calcOffSize(topDictSize);
-      final_size += CFF1IndexOf<TopDict>::calculate_serialized_size<CFF1TopDictValues> (offsets.topDictInfo.offSize, acc.topDicts, topdict_sizes, topSzr);
+      final_size += CFF1IndexOf<TopDict>::calculate_serialized_size<CFF1TopDictValuesMod>
+                                                (offsets.topDictInfo.offSize,
+                                                 &topdict_mod, 1, topdict_sizes, topSzr);
     }
 
     /* String INDEX */
@@ -270,13 +430,13 @@ struct cff_subset_plan {
 
     /* Encoding */
     offsets.encodingOffset = final_size;
-    if (acc.encoding != &Null(Encoding))
-      final_size += acc.encoding->get_size ();
+    if (subset_encoding)
+      final_size += plan_subset_encoding (acc, plan);
 
     /* Charset */
     offsets.charsetOffset = final_size;
-    if (acc.charset != &Null(Charset))
-      final_size += acc.charset->get_size (acc.num_glyphs);
+    if (subset_charset)
+      final_size += plan_subset_charset (acc, plan);
 
     /* FDSelect */
     if (acc.fdSelect != &Null(CFF1FDSelect))
@@ -285,10 +445,10 @@ struct cff_subset_plan {
       if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
                                   orig_fdcount,
                                   *acc.fdSelect,
-                                  subst_fdcount,
+                                  subset_fdcount,
                                   offsets.FDSelectInfo.size,
-                                  subst_fdselect_format,
-                                  subst_fdselect_first_glyphs,
+                                  subset_fdselect_format,
+                                  subset_fdselect_first_glyphs,
                                   fdmap)))
         return false;
       
@@ -301,7 +461,7 @@ struct cff_subset_plan {
     if (acc.fdArray != &Null(CFF1FDArray)) {
       offsets.FDArrayInfo.offset = final_size;
       CFFFontDict_OpSerializer fontSzr;
-      final_size += CFF1FDArray::calculate_serialized_size(offsets.FDArrayInfo.offSize/*OUT*/, acc.fontDicts, subst_fdcount, fdmap, fontSzr);
+      final_size += CFF1FDArray::calculate_serialized_size(offsets.FDArrayInfo.offSize/*OUT*/, acc.fontDicts, subset_fdcount, fdmap, fontSzr);
     }
 
     /* CharStrings */
@@ -349,20 +509,22 @@ struct cff_subset_plan {
       offsets.privateDictInfo = privateDictInfos[0];
 
     return ((subset_charstrings.len == plan->glyphs.len) &&
-            (privateDictInfos.len == subst_fdcount));
+            (privateDictInfos.len == subset_fdcount));
   }
 
   inline unsigned int get_final_size (void) const  { return final_size; }
 
-  unsigned int        final_size;
+  unsigned int              final_size;
   hb_vector_t<unsigned int> topdict_sizes;
-  CFF1SubTableOffsets  offsets;
+  CFF1TopDictValuesMod      topdict_mod;
+  CFF1SubTableOffsets       offsets;
 
+  unsigned int    num_glyphs;
   unsigned int    orig_fdcount;
-  unsigned int    subst_fdcount;
-  inline bool     is_fds_subsetted (void) const { return subst_fdcount < orig_fdcount; }
-  unsigned int    subst_fdselect_format;
-  hb_vector_t<hb_codepoint_t>   subst_fdselect_first_glyphs;
+  unsigned int    subset_fdcount;
+  inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
+  unsigned int    subset_fdselect_format;
+  hb_vector_t<hb_codepoint_t>   subset_fdselect_first_glyphs;
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to HB_SET_VALUE_INVALID if excluded from subset */
@@ -374,8 +536,19 @@ struct cff_subset_plan {
 
   SubrRefMaps             subrRefMaps;
 
-  bool            flatten_subrs;
-  bool            drop_hints;
+  bool                    flatten_subrs;
+  bool                    drop_hints;
+
+  bool                    gid_renum;
+  bool                    subset_encoding;
+  uint8_t                 subset_enc_format;
+  unsigned int            subset_enc_num_codes;
+  hb_vector_t<code_pair>  subset_enc_code_ranges;
+  hb_vector_t<code_pair>  subset_enc_supp_codes;
+
+  uint8_t                 subset_charset_format;
+  hb_vector_t<code_pair>  subset_charset_ranges;
+  bool                    subset_charset;
 };
 
 static inline bool _write_cff1 (const cff_subset_plan &plan,
@@ -417,7 +590,9 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict> > ();
     if (dest == nullptr) return false;
     CFF1TopDict_OpSerializer topSzr;
-    if (unlikely (!dest->serialize (&c, plan.offsets.topDictInfo.offSize, acc.topDicts, plan.topdict_sizes, topSzr, plan.offsets)))
+    if (unlikely (!dest->serialize (&c, plan.offsets.topDictInfo.offSize,
+                                    &plan.topdict_mod, 1,
+                                    plan.topdict_sizes, topSzr, plan.offsets)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF top dict");
       return false;
@@ -450,11 +625,16 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   }
 
   /* Encoding */
-  if (acc.encoding != &Null(Encoding)){
+  if (plan.subset_encoding)
+  {
     assert (plan.offsets.encodingOffset == c.head - c.start);
     Encoding *dest = c.start_embed<Encoding> ();
     if (unlikely (dest == nullptr)) return false;
-    if (unlikely (!dest->serialize (&c, *acc.encoding, acc.num_glyphs)))  // XXX: TODO
+    if (unlikely (!dest->serialize (&c,
+                                    plan.subset_enc_format,
+                                    plan.subset_enc_num_codes,
+                                    plan.subset_enc_code_ranges,
+                                    plan.subset_enc_supp_codes)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize Encoding");
       return false;
@@ -462,12 +642,15 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   }
 
   /* Charset */
-  if (acc.charset != &Null(Charset))
+  if (plan.subset_charset)
   {
     assert (plan.offsets.charsetOffset == c.head - c.start);
     Charset *dest = c.start_embed<Charset> ();
     if (unlikely (dest == nullptr)) return false;
-    if (unlikely (!dest->serialize (&c, *acc.charset, acc.num_glyphs)))  // XXX: TODO
+    if (unlikely (!dest->serialize (&c,
+                                    plan.subset_charset_format,
+                                    plan.num_glyphs,
+                                    plan.subset_charset_ranges)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize Charset");
       return false;
@@ -482,8 +665,8 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     if (plan.is_fds_subsetted ())
     {
       if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *acc.fdSelect, acc.fdCount,
-                                                plan.subst_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subst_fdselect_first_glyphs,
+                                                plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
+                                                plan.subset_fdselect_first_glyphs,
                                                 plan.fdmap)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");
@@ -509,7 +692,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     if (unlikely (fda == nullptr)) return false;
     CFFFontDict_OpSerializer  fontSzr;
     if (unlikely (!fda->serialize (&c, plan.offsets.FDArrayInfo.offSize,
-                                   acc.fontDicts, plan.subst_fdcount, plan.fdmap,
+                                   acc.fontDicts, plan.subset_fdcount, plan.fdmap,
                                    fontSzr, plan.privateDictInfos)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF FDArray");

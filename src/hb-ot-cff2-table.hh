@@ -39,7 +39,7 @@ namespace CFF {
 #define HB_OT_TAG_cff2 HB_TAG('C','F','F','2')
 
 typedef CFFIndex<HBUINT32>  CFF2Index;
-template <typename Type> struct CFF2IndexOf : IndexOf<HBUINT32, Type> {};
+template <typename Type> struct CFF2IndexOf : CFFIndexOf<HBUINT32, Type> {};
 
 typedef CFF2Index         CFF2CharStrings;
 typedef FDArray<HBUINT32> CFF2FDArray;
@@ -152,9 +152,9 @@ struct CFF2TopDictValues : TopDictValues
   inline unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < values.len; i++)
+    for (unsigned int i = 0; i < getNumValues (); i++)
     {
-      OpCode op = values[i].op;
+      OpCode op = getValue (i).op;
       switch (op)
       {
         case OpCode_vstore:
@@ -162,7 +162,7 @@ struct CFF2TopDictValues : TopDictValues
           size += OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
           break;
         default:
-          size += TopDictValues::calculate_serialized_op_size (values[i]);
+          size += TopDictValues::calculate_serialized_op_size (getValue (i));
           break;
       }
     }
@@ -182,7 +182,7 @@ struct CFF2TopDictOpSet : TopDictOpSet
         {
           DictVal val;
           val.init ();
-          dictval.pushVal (op, env.substr);
+          dictval.addOp (op, env.substr);
           env.clear_args ();
         }
         break;
@@ -205,7 +205,7 @@ struct CFF2TopDictOpSet : TopDictOpSet
         if (!env.argStack.is_empty ()) return true;
     }
 
-    dictval.pushVal (op, env.substr);
+    dictval.addOp (op, env.substr);
     return true;
   }
 
@@ -248,7 +248,7 @@ struct CFF2FontDictOpSet : DictOpSet
           return true;
     }
 
-    dictval.pushVal (op, env.substr);
+    dictval.addOp (op, env.substr);
     return true;
   }
 
@@ -275,11 +275,11 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
   inline unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < DictValues<VAL>::values.len; i++)
-      if (DictValues<VAL>::values[i].op == OpCode_Subrs)
+    for (unsigned int i = 0; i < DictValues<VAL>::getNumValues; i++)
+      if (DictValues<VAL>::getValue (i).op == OpCode_Subrs)
         size += OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
       else
-        size += DictValues<VAL>::values[i].str.len;
+        size += DictValues<VAL>::getValue (i).str.len;
     return size;
   }
 
@@ -339,7 +339,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
         break;
     }
 
-    dictval.pushVal (op, env.substr, val);
+    dictval.addOp (op, env.substr, val);
     return true;
   }
 };
@@ -382,7 +382,7 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
         break;
     }
 
-    dictval.pushVal (op, env.substr);
+    dictval.addOp (op, env.substr);
     return true;
   }
 

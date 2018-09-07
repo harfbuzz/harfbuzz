@@ -66,7 +66,7 @@ struct DictValues
     values.fini ();
   }
 
-  inline void pushVal (OpCode op, const SubByteStr& substr)
+  inline void addOp (OpCode op, const SubByteStr& substr = SubByteStr ())
   {
     VAL *val = values.push ();
     val->op = op;
@@ -74,13 +74,24 @@ struct DictValues
     opStart = substr.offset;
   }
 
-  inline void pushVal (OpCode op, const SubByteStr& substr, const VAL &v)
+  inline void addOp (OpCode op, const SubByteStr& substr, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
     val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
+
+  inline bool hasOp (OpCode op) const
+  {
+    for (unsigned int i = 0; i < getNumValues (); i++)
+      if (getValue (i).op == op) return true;
+    return false;
+  }
+
+  inline unsigned getNumValues (void) const { return values.len; }
+  inline const VAL &getValue (unsigned int i) const { return values[i]; }
+  inline const VAL &operator [] (unsigned int i) const { return getValue (i); }
 
   unsigned int       opStart;
   hb_vector_t<VAL>   values;

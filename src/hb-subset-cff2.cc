@@ -197,12 +197,12 @@ struct cff2_subset_plan {
   inline cff2_subset_plan (void)
     : final_size (0),
       orig_fdcount (0),
-      subst_fdcount(1),
-      subst_fdselect_format (0),
+      subset_fdcount(1),
+      subset_fdselect_format (0),
       flatten_subrs (true),
       drop_hints (false)
   {
-    subst_fdselect_first_glyphs.init ();
+    subset_fdselect_first_glyphs.init ();
     fdmap.init ();
     subset_charstrings.init ();
     flat_charstrings.init ();
@@ -212,7 +212,7 @@ struct cff2_subset_plan {
 
   inline ~cff2_subset_plan (void)
   {
-    subst_fdselect_first_glyphs.fini ();
+    subset_fdselect_first_glyphs.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
     flat_charstrings.fini ();
@@ -281,10 +281,10 @@ struct cff2_subset_plan {
       if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
                                   orig_fdcount,
                                   *(const FDSelect *)acc.fdSelect,
-                                  subst_fdcount,
+                                  subset_fdcount,
                                   offsets.FDSelectInfo.size,
-                                  subst_fdselect_format,
-                                  subst_fdselect_first_glyphs,
+                                  subset_fdselect_format,
+                                  subset_fdselect_first_glyphs,
                                   fdmap)))
         return false;
       
@@ -297,7 +297,7 @@ struct cff2_subset_plan {
     {
       offsets.FDArrayInfo.offset = final_size;
       CFFFontDict_OpSerializer fontSzr;
-      final_size += CFF2FDArray::calculate_serialized_size(offsets.FDArrayInfo.offSize/*OUT*/, acc.fontDicts, subst_fdcount, fdmap, fontSzr);
+      final_size += CFF2FDArray::calculate_serialized_size(offsets.FDArrayInfo.offSize/*OUT*/, acc.fontDicts, subset_fdcount, fdmap, fontSzr);
     }
 
     /* CharStrings */
@@ -350,10 +350,10 @@ struct cff2_subset_plan {
   CFF2SubTableOffsets offsets;
 
   unsigned int    orig_fdcount;
-  unsigned int    subst_fdcount;
-  inline bool     is_fds_subsetted (void) const { return subst_fdcount < orig_fdcount; }
-  unsigned int    subst_fdselect_format;
-  hb_vector_t<hb_codepoint_t>   subst_fdselect_first_glyphs;
+  unsigned int    subset_fdcount;
+  inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
+  unsigned int    subset_fdselect_format;
+  hb_vector_t<hb_codepoint_t>   subset_fdselect_first_glyphs;
 
   FDMap   fdmap;
 
@@ -429,8 +429,8 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     if (plan.is_fds_subsetted ())
     {
       if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
-                                                plan.subst_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subst_fdselect_first_glyphs,
+                                                plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
+                                                plan.subset_fdselect_first_glyphs,
                                                 plan.fdmap)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 subset FDSelect");
@@ -455,7 +455,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     if (unlikely (fda == nullptr)) return false;
     CFFFontDict_OpSerializer  fontSzr;
     if (unlikely (!fda->serialize (&c, plan.offsets.FDArrayInfo.offSize,
-                                   acc.fontDicts, plan.subst_fdcount, plan.fdmap,
+                                   acc.fontDicts, plan.subset_fdcount, plan.fdmap,
                                    fontSzr, plan.privateDictInfos)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDArray");
