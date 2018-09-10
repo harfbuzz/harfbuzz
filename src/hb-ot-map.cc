@@ -95,7 +95,8 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  unsigned int  variations_index,
 				  hb_mask_t     mask,
 				  bool          auto_zwnj,
-				  bool          auto_zwj)
+				  bool          auto_zwj,
+				  bool          random)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -122,6 +123,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
       lookup->index = lookup_indices[i];
       lookup->auto_zwnj = auto_zwnj;
       lookup->auto_zwj = auto_zwj;
+      lookup->random = random;
     }
 
     offset += len;
@@ -252,6 +254,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
     map->stage[1] = info->stage[1];
     map->auto_zwnj = !(info->flags & F_MANUAL_ZWNJ);
     map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
+    map->random = !!(info->flags & F_RANDOM);
     if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = global_bit_shift;
@@ -301,7 +304,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 		       variations_index,
 		       m.features[i].mask,
 		       m.features[i].auto_zwnj,
-		       m.features[i].auto_zwj);
+		       m.features[i].auto_zwj,
+		       m.features[i].random);
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)

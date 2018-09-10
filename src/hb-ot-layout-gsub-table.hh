@@ -534,16 +534,21 @@ struct AlternateSet
 
     if (unlikely (!count)) return_trace (false);
 
-    hb_mask_t glyph_mask = c->buffer->cur().mask;
-    hb_mask_t lookup_mask = c->lookup_mask;
+    if (c->random) {
+      c->random_state = (0x5DEECE66Dull * c->random_state + 11) & (((uint64_t) 1 << 48) - 1);
+      c->replace_glyph (alternates[(c->random_state >> 32) % count]);
+    } else {
+      hb_mask_t glyph_mask = c->buffer->cur().mask;
+      hb_mask_t lookup_mask = c->lookup_mask;
 
-    /* Note: This breaks badly if two features enabled this lookup together. */
-    unsigned int shift = hb_ctz (lookup_mask);
-    unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
+      /* Note: This breaks badly if two features enabled this lookup together. */
+      unsigned int shift = hb_ctz (lookup_mask);
+      unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
-    if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
+      if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
 
-    c->replace_glyph (alternates[alt_index - 1]);
+      c->replace_glyph (alternates[alt_index - 1]);
+    }
 
     return_trace (true);
   }

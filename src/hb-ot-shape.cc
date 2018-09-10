@@ -70,6 +70,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      unsigned int                    num_user_features)
 {
   hb_ot_map_builder_t *map = &planner->map;
+  bool default_rand = true;
 
   map->add_global_bool_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
@@ -122,7 +123,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     map->add_feature (feature->tag, feature->value,
 		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
 		       F_GLOBAL : F_NONE);
+    if (feature->tag == HB_TAG ('r','a','n','d'))
+      default_rand = false;
   }
+
+  if (default_rand)
+    map->add_feature (HB_TAG ('r','a','n','d'), 1, F_GLOBAL | F_RANDOM);
 }
 
 
