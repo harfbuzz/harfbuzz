@@ -212,8 +212,8 @@ struct CFFFontDict_OpSerializer : OpSerializer
 
 struct CFFPrivateDict_OpSerializer : OpSerializer
 {
-  inline CFFPrivateDict_OpSerializer (bool drop_hints_=false, bool flatten_subrs_=false)
-    : drop_hints (drop_hints_), flatten_subrs (flatten_subrs_) {}
+  inline CFFPrivateDict_OpSerializer (bool drop_hints_=false)
+    : drop_hints (drop_hints_) {}
 
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
@@ -224,12 +224,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return true;
     if (opstr.op == OpCode_Subrs)
-    {
-      if (flatten_subrs)
-        return_trace (true);
-      else
-        return_trace (FontDict::serialize_offset2_op(c, OpCode_Subrs, subrsOffset));
-    }
+      return_trace (true);
     else
       return_trace (copy_opstr (c, opstr));
   }
@@ -239,19 +234,13 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return 0;
     if (opstr.op == OpCode_Subrs)
-    {
-      if (flatten_subrs)
-        return 0;
-      else
-        return OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
-    }
+      return 0;
     else
       return opstr.str.len;
   }
 
   protected:
   const bool  drop_hints;
-  const bool  flatten_subrs;
 };
 
 struct FlattenParam
@@ -295,85 +284,6 @@ struct SubrFlattener
   const hb_vector_t<hb_codepoint_t> &glyphs;
   bool  drop_hints;
 };
-
-struct SubrRefMaps
-{
-  inline void init (void)
-  {
-    valid = false;
-    global_map = nullptr;
-    local_maps.init ();
-  }
-
-  inline void init (unsigned int fd_count)
-  {
-    valid = true;
-    global_map = hb_set_create ();
-    if (global_map == hb_set_get_empty ())
-      valid = false;
-    if (!local_maps.resize (fd_count))
-      valid = false;
-
-    for (unsigned int i = 0; i < local_maps.len; i++)
-    {
-      local_maps[i] = hb_set_create ();
-      if (local_maps[i] == hb_set_get_empty ())
-        valid = false;
-    }
-  }
-
-  inline void fini (void)
-  {
-    hb_set_destroy (global_map);
-    for (unsigned int i = 0; i < local_maps.len; i++)
-      hb_set_destroy (local_maps[i]);
-    local_maps.fini ();
-  }
-
-  bool is_valid (void) const { return valid; }
-  bool  valid;
-  hb_set_t  *global_map;
-  hb_vector_t<hb_set_t *> local_maps;
-};
-
-struct SubrRefMapPair
-{
-  inline void init (void) {}
-
-  hb_set_t  *global_map;
-  hb_set_t  *local_map;
-};
-
-template <typename ACC, typename ENV, typename OPSET>
-struct SubrSubsetter
-{
-  inline SubrSubsetter (const ACC &acc_, const hb_vector_t<hb_codepoint_t> &glyphs_)
-    : acc (acc_),
-      glyphs (glyphs_)
-  {}
-  
-  bool collect_refs (SubrRefMaps& refmaps /*OUT*/)
-  {
-    refmaps.init (acc.fdCount);
-    if (unlikely (!refmaps.valid)) return false;
-    for (unsigned int i = 0; i < glyphs.len; i++)
-    {
-      hb_codepoint_t  glyph = glyphs[i];
-      const ByteStr str = (*acc.charStrings)[glyph];
-      unsigned int fd = acc.fdSelect->get_fd (glyph);
-      SubrRefMapPair  pair = { refmaps.global_map, refmaps.local_maps[fd] };
-      CSInterpreter<ENV, OPSET, SubrRefMapPair> interp;
-      interp.env.init (str, acc, fd);
-      if (unlikely (!interp.interpret (pair)))
-        return false;
-    }
-    return true;
-  }
-
-  const ACC &acc;
-  const hb_vector_t<hb_codepoint_t> &glyphs;
-};
-
 };  /* namespace CFF */
 
 HB_INTERNAL bool
