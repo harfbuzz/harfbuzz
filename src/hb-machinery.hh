@@ -296,7 +296,8 @@ struct hb_sanitize_context_t :
     return likely (ok);
   }
 
-  inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
+  template <typename T>
+  inline bool check_array (const T *base, unsigned int len, unsigned int record_size = T::static_size) const
   {
     const char *p = (const char *) base;
     bool overflows = hb_unsigned_mul_overflows (len, record_size);

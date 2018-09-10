@@ -242,9 +242,7 @@ struct MathKern
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (mathValueRecords,
-				  mathValueRecords[0].static_size,
-				  2 * heightCount + 1) &&
+		  c->check_array (mathValueRecords, 2 * heightCount + 1) &&
 		  sanitize_math_value_records (c));
   }
 
@@ -598,9 +596,7 @@ struct MathVariants
     return_trace (c->check_struct (this) &&
 		  vertGlyphCoverage.sanitize (c, this) &&
 		  horizGlyphCoverage.sanitize (c, this) &&
-		  c->check_array (glyphConstruction,
-				  glyphConstruction[0].static_size,
-				  vertGlyphCount + horizGlyphCount) &&
+		  c->check_array (glyphConstruction, vertGlyphCount + horizGlyphCount) &&
 		  sanitize_offsets (c));
   }
 

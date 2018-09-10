@@ -648,7 +648,7 @@ struct Chain
 	!c->check_range (this, length))
       return_trace (false);
 
-    if (!c->check_array (featureZ, featureZ[0].static_size, featureCount))
+    if (!c->check_array (featureZ, featureCount))
       return_trace (false);
 
     const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);

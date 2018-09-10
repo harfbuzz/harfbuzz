@@ -46,7 +46,7 @@ struct InstanceRecord
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (coordinatesZ.arrayZ, coordinatesZ[0].static_size, axis_count));
+		  c->check_array (coordinatesZ.arrayZ, axis_count));
   }
 
   protected:

@@ -1677,11 +1677,11 @@ struct ContextFormat3
     if (!c->check_struct (this)) return_trace (false);
     unsigned int count = glyphCount;
     if (!count) return_trace (false); /* We want to access coverageZ[0] freely. */
-    if (!c->check_array (coverageZ.arrayZ, coverageZ[0].static_size, count)) return_trace (false);
+    if (!c->check_array (coverageZ.arrayZ, count)) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (!coverageZ[i].sanitize (c, this)) return_trace (false);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * count);
-    return_trace (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
+    return_trace (c->check_array (lookupRecord, lookupCount));
   }
 
   protected:

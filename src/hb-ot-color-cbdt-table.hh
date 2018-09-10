@@ -128,7 +128,7 @@ struct IndexSubtableFormat1Or3
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (offsetArrayZ, offsetArrayZ[0].static_size, glyph_count + 1));
+		  c->check_array (offsetArrayZ, glyph_count + 1));
   }
 
   bool get_image_data (unsigned int idx,
@@ -240,7 +240,7 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_array (&indexSubtablesZ, indexSubtablesZ[0].static_size, count)))
+    if (unlikely (!c->check_array (indexSubtablesZ, count)))
       return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))

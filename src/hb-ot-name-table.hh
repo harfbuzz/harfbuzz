@@ -118,7 +118,7 @@ struct name
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  likely (format == 0 || format == 1) &&
-		  c->check_array (nameRecord, nameRecord[0].static_size, count) &&
+		  c->check_array (nameRecord, count) &&
 		  sanitize_records (c));
   }
 

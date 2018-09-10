@@ -93,6 +93,7 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
 	    (value - arrayZ[i-1].fromCoord) + denom/2) / denom;
   }
 
+  public:
   DEFINE_SIZE_ARRAY (2, arrayZ);
 };
 
@@ -105,8 +106,7 @@ struct avar
     TRACE_SANITIZE (this);
     if (unlikely (!(version.sanitize (c) &&
 		    version.major == 1 &&
-		    c->check_struct (this),
-		    c->check_array(axisSegmentMapsZ.arrayZ, sizeof (axisSegmentMapsZ[0]), axisCount))))
+		    c->check_struct (this))))
       return_trace (false);
 
     const SegmentMaps *map = axisSegmentMapsZ.arrayZ;

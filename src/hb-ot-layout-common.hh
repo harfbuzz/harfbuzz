@@ -1542,7 +1542,7 @@ struct VarData
 		  regionIndices.sanitize(c) &&
 		  shortCount <= regionIndices.len &&
 		  c->check_array (&StructAfter<HBUINT8> (regionIndices),
-				  get_row_size (), itemCount));
+				  itemCount, get_row_size ()));
   }
 
   protected:
