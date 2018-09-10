@@ -299,7 +299,6 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) 
  * Array Types
  */
 
-/* TODO Use it in ArrayOf, HeadlessArrayOf, and other places around the code base?? */
 template <typename Type>
 struct UnsizedArrayOf
 {
