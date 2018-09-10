@@ -105,10 +105,11 @@ struct avar
     TRACE_SANITIZE (this);
     if (unlikely (!(version.sanitize (c) &&
 		    version.major == 1 &&
-		    c->check_struct (this))))
+		    c->check_struct (this),
+		    c->check_array(axisSegmentMapsZ.arrayZ, sizeof (axisSegmentMapsZ[0]), axisCount))))
       return_trace (false);
 
-    const SegmentMaps *map = axisSegmentMapsZ;
+    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
     unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -124,7 +125,7 @@ struct avar
   {
     unsigned int count = MIN<unsigned int> (coords_length, axisCount);
 
-    const SegmentMaps *map = axisSegmentMapsZ;
+    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
     for (unsigned int i = 0; i < count; i++)
     {
       coords[i] = map->map (coords[i]);
@@ -139,7 +140,8 @@ struct avar
   HBUINT16	axisCount;	/* The number of variation axes in the font. This
 				 * must be the same number as axisCount in the
 				 * 'fvar' table. */
-  SegmentMaps	axisSegmentMapsZ[VAR];
+  UnsizedArrayOf<SegmentMaps>
+		axisSegmentMapsZ;
 
   public:
   DEFINE_SIZE_MIN (8);
