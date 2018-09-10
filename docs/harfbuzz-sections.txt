@@ -582,6 +582,8 @@ hb_set_union
 
 <SECTION>
 <FILE>hb-shape</FILE>
+HB_FEATURE_GLOBAL_END
+HB_FEATURE_GLOBAL_START
 hb_feature_t
 hb_feature_from_string
 hb_feature_to_string

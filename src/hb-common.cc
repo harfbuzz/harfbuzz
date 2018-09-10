@@ -877,8 +877,8 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 
   bool has_start;
 
-  feature->start = 0;
-  feature->end = (unsigned int) -1;
+  feature->start = HB_FEATURE_GLOBAL_START;
+  feature->end = HB_FEATURE_GLOBAL_END;
 
   if (!parse_char (pp, end, '['))
     return true;
