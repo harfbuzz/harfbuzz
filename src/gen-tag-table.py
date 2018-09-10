@@ -368,7 +368,7 @@ class OpenTypeRegistryParser (HTMLParser):
 		elif tag == 'tr' and self._current_tr:
 			expect (2 <= len (self._current_tr) <= 3)
 			name = self._current_tr[0].strip ()
-			tag = self._current_tr[1].strip ()
+			tag = self._current_tr[1].strip ("\t\n\v\f\r '")
 			rank = 0
 			if len (tag) > 4:
 				expect (tag.endswith (' (deprecated)'), 'ill-formed OpenType tag: %s' % tag)
@@ -671,6 +671,8 @@ bcp_47.names['flm'] = 'Falam Chin'
 bcp_47.scopes['flm'] = ' (retired code)'
 bcp_47.macrolanguages['flm'] = {'cfm'}
 
+ot.ranks['FNE'] = ot.ranks['TNE'] + 1
+
 ot.add_language ('und-fonipa', 'IPPH')
 
 ot.add_language ('und-fonnapa', 'APPH')
@@ -704,6 +706,8 @@ bcp_47.names['mhv'] = 'Arakanese'
 bcp_47.scopes['mhv'] = ' (retired code)'
 
 ot.add_language ('no', 'NOR')
+
+ot.add_language ('oc-provenc', 'PRO')
 
 ot.add_language ('qu', 'QUZ')
 ot.add_language ('qub', 'QWH')
@@ -803,20 +807,24 @@ disambiguation = {
 	'BTI': 'beb',
 	'CCHN': 'cco',
 	'CMR': 'swb',
+	'CPP': 'crp',
 	'CRR': 'crx',
 	'DUJ': 'dwu',
 	'ECR': 'crj',
+	'HAL': 'cfm',
 	'HND': 'hnd',
 	'KIS': 'kqs',
 	'LRC': 'bqi',
 	'NDB': 'nd',
 	'NIS': 'njz',
 	'PLG': 'pce',
+	'PRO': 'pro',
 	'QIN': 'bgr',
 	'QUH': 'quh',
 	'QVI': 'qvi',
 	'QWH': 'qwh',
 	'SIG': 'stv',
+	'TNE': 'yrk',
 	'ZHH': 'zh-HK',
 	'ZHS': 'zh-Hans',
 	'ZHT': 'zh-Hant',
