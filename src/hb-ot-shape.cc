@@ -70,7 +70,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      unsigned int                    num_user_features)
 {
   hb_ot_map_builder_t *map = &planner->map;
-  bool default_rand = true;
 
   map->add_global_bool_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
@@ -91,9 +90,13 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
+  /* Automatic fractions. */
   map->add_feature (HB_TAG ('f','r','a','c'), 1, F_NONE);
   map->add_feature (HB_TAG ('n','u','m','r'), 1, F_NONE);
   map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
+
+  /* Random! */
+  map->add_feature (HB_TAG ('r','a','n','d'), 1, F_GLOBAL | F_RANDOM);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
@@ -118,17 +121,13 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
 
-  for (unsigned int i = 0; i < num_user_features; i++) {
+  for (unsigned int i = 0; i < num_user_features; i++)
+  {
     const hb_feature_t *feature = &user_features[i];
     map->add_feature (feature->tag, feature->value,
 		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
 		       F_GLOBAL : F_NONE);
-    if (feature->tag == HB_TAG ('r','a','n','d'))
-      default_rand = false;
   }
-
-  if (default_rand)
-    map->add_feature (HB_TAG ('r','a','n','d'), 1, F_GLOBAL | F_RANDOM);
 }
 
 

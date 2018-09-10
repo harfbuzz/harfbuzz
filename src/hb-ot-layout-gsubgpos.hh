@@ -478,11 +478,12 @@ struct hb_ot_apply_context_t :
   unsigned int nesting_level_left;
   unsigned int debug_depth;
 
+  bool has_glyph_classes;
   bool auto_zwnj;
   bool auto_zwj;
   bool random;
+
   uint64_t random_state;
-  bool has_glyph_classes;
 
 
   hb_ot_apply_context_t (unsigned int table_index_,
@@ -500,11 +501,11 @@ struct hb_ot_apply_context_t :
 			lookup_props (0),
 			nesting_level_left (HB_MAX_NESTING_LEVEL),
 			debug_depth (0),
+			has_glyph_classes (gdef.has_glyph_classes ()),
 			auto_zwnj (true),
 			auto_zwj (true),
 			random (false),
-			random_state (1),
-			has_glyph_classes (gdef.has_glyph_classes ()) {}
+			random_state (1) {}
 
   inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
   inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }

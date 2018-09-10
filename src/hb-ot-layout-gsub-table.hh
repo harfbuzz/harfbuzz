@@ -534,10 +534,13 @@ struct AlternateSet
 
     if (unlikely (!count)) return_trace (false);
 
-    if (c->random) {
+    if (c->random)
+    {
       c->random_state = (0x5DEECE66Dull * c->random_state + 11) & (((uint64_t) 1 << 48) - 1);
       c->replace_glyph (alternates[(c->random_state >> 32) % count]);
-    } else {
+    }
+    else
+    {
       hb_mask_t glyph_mask = c->buffer->cur().mask;
       hb_mask_t lookup_mask = c->lookup_mask;
 
