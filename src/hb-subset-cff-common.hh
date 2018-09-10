@@ -129,10 +129,11 @@ struct CFFSubTableOffsets {
   hb_vector_t<TableInfo>  localSubrsInfos;
 };
 
+template <typename OPSTR=OpStr>
 struct CFFTopDict_OpSerializer : OpSerializer
 {
   inline bool serialize (hb_serialize_context_t *c,
-                         const OpStr &opstr,
+                         const OPSTR &opstr,
                          const CFFSubTableOffsets &offsets) const
   {
     TRACE_SERIALIZE (this);
@@ -154,7 +155,7 @@ struct CFFTopDict_OpSerializer : OpSerializer
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  inline unsigned int calculate_serialized_size (const OPSTR &opstr) const
   {
     switch (opstr.op)
     {
@@ -162,7 +163,7 @@ struct CFFTopDict_OpSerializer : OpSerializer
       case OpCode_FDArray:
       case OpCode_FDSelect:
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
-    
+
       default:
         return opstr.str.len;
     }
@@ -179,12 +180,9 @@ struct CFFFontDict_OpSerializer : OpSerializer
 
     if (opstr.op == OpCode_Private)
     {
-      /* serialize the private dict size as a 2-byte integer */
-      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privateDictInfo.size)))
-        return_trace (false);
-
-      /* serialize the private dict offset as a 4-byte integer */
-      if (unlikely (!UnsizedByteStr::serialize_int4 (c, privateDictInfo.offset)))
+      /* serialize the private dict size & offset as 2-byte & 4-byte integers */
+      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privateDictInfo.size) ||
+                    !UnsizedByteStr::serialize_int4 (c, privateDictInfo.offset)))
         return_trace (false);
 
       /* serialize the opcode */
@@ -386,7 +384,7 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int &subst_fdselect_size /* OUT */,
                             unsigned int &subst_fdselect_format /* OUT */,
                             hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
-                            CFF::FDMap &fdmap /* OUT */);
+                            CFF::Remap &fdmap /* OUT */);
 
 HB_INTERNAL bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
@@ -396,6 +394,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           unsigned int fdselect_format,
                           unsigned int size,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
-                          const CFF::FDMap &fdmap);
+                          const CFF::Remap &fdmap);
 
 #endif /* HB_SUBSET_CFF_COMMON_HH */

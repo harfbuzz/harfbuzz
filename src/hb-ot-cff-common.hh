@@ -35,6 +35,8 @@ namespace CFF {
 
 using namespace OT;
 
+#define CFF_UNDEF_CODE  0xFFFFFFFF
+
 /* utility macro */
 template<typename Type>
 static inline const Type& StructAtOffsetOrNull(const void *P, unsigned int offset)
@@ -291,10 +293,8 @@ struct Dict : UnsizedByteStr
   }
 
   template <typename INTTYPE, int minVal, int maxVal>
-  inline static bool serialize_offset_op (hb_serialize_context_t *c, OpCode op, int value, OpCode intOp)
+  inline static bool serialize_int_op (hb_serialize_context_t *c, OpCode op, int value, OpCode intOp)
   {
-    if (value == 0)
-      return true;
     // XXX: not sure why but LLVM fails to compile the following 'unlikely' macro invocation
     if (/*unlikely*/ (!serialize_int<INTTYPE, minVal, maxVal> (c, intOp, value)))
       return false;
@@ -313,11 +313,23 @@ struct Dict : UnsizedByteStr
     return_trace (true);
   }
 
+  inline static bool serialize_uint4_op (hb_serialize_context_t *c, OpCode op, int value)
+  { return serialize_int_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longintdict); }
+
+  inline static bool serialize_uint2_op (hb_serialize_context_t *c, OpCode op, int value)
+  { return serialize_int_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
+
   inline static bool serialize_offset4_op (hb_serialize_context_t *c, OpCode op, int value)
-  { return serialize_offset_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longintdict); }
+  {
+    if (value == 0) return true;
+    return serialize_uint4_op (c, op, value);
+  }
 
   inline static bool serialize_offset2_op (hb_serialize_context_t *c, OpCode op, int value)
-  { return serialize_offset_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
+  {
+    if (value == 0) return true;
+    return serialize_uint2_op (c, op, value);
+  }
 };
 
 struct TopDict : Dict {};
@@ -333,9 +345,9 @@ struct TableInfo
   unsigned int    offSize;
 };
 
-/* font dict index remap table from fullset FDArray to subset FDArray.
- * set to HB_SET_VALUE_INVALID if excluded from subset */
-struct FDMap : hb_vector_t<hb_codepoint_t>
+/* used to remap font index or SID from fullset to subset.
+ * set to CFF_UNDEF_CODE if excluded from subset */
+struct Remap : hb_vector_t<hb_codepoint_t>
 {
   inline void init (void)
   { hb_vector_t<hb_codepoint_t>::init (); }
@@ -343,16 +355,26 @@ struct FDMap : hb_vector_t<hb_codepoint_t>
   inline void fini (void)
   { hb_vector_t<hb_codepoint_t>::fini (); }
 
+  inline bool reset (unsigned int count)
+  {
+    if (unlikely (!hb_vector_t<hb_codepoint_t>::resize (count)))
+      return false;
+    for (unsigned int i = 0; i < len; i++)
+      (*this)[i] = CFF_UNDEF_CODE;
+    count = 0;
+    return true;
+  }
+
   inline bool fullset (void) const
   {
     for (unsigned int i = 0; i < len; i++)
-      if (hb_vector_t<hb_codepoint_t>::operator[] (i) == HB_SET_VALUE_INVALID)
+      if (hb_vector_t<hb_codepoint_t>::operator[] (i) == CFF_UNDEF_CODE)
         return false;
     return true;
   }
 
-  inline bool excludes (hb_codepoint_t fd) const
-  { return (fd < len) && ((*this)[fd] == HB_SET_VALUE_INVALID); }
+  inline bool excludes (hb_codepoint_t id) const
+  { return (id < len) && ((*this)[id] == CFF_UNDEF_CODE); }
 
   inline hb_codepoint_t operator[] (hb_codepoint_t i) const
   {
@@ -367,17 +389,65 @@ struct FDMap : hb_vector_t<hb_codepoint_t>
     assert (i < len);
     return hb_vector_t<hb_codepoint_t>::operator[] (i);
   }
+
+  inline unsigned int add (unsigned int i)
+  {
+    if ((*this)[i] == CFF_UNDEF_CODE)
+      (*this)[i] = count++;
+    return (*this)[i];
+  }
+
+  inline hb_codepoint_t get_count (void) const
+  { return count; }
+
+  protected:
+  hb_codepoint_t  count;
 };
 
 template <typename COUNT>
 struct FDArray : CFFIndexOf<COUNT, FontDict>
 {
+  /* used by CFF1 */
+  template <typename DICTVAL, typename OP_SERIALIZER>
+  inline bool serialize (hb_serialize_context_t *c,
+                        unsigned int offSize_,
+                        const hb_vector_t<DICTVAL> &fontDicts,
+                        OP_SERIALIZER& opszr)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    this->count.set (fontDicts.len);
+    this->offSize.set (offSize_);
+    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.len + 1))))
+      return_trace (false);
+    
+    /* serialize font dict offsets */
+    unsigned int  offset = 1;
+    unsigned int fid = 0;
+    for (; fid < fontDicts.len; fid++)
+    {
+      CFFIndexOf<COUNT, FontDict>::set_offset_at (fid, offset);
+      offset += FontDict::calculate_serialized_size (fontDicts[fid], opszr);
+    }
+    CFFIndexOf<COUNT, FontDict>::set_offset_at (fid, offset);
+
+    /* serialize font dicts */
+    for (unsigned int i = 0; i < fontDicts.len; i++)
+    {
+      FontDict *dict = c->start_embed<FontDict> ();
+      if (unlikely (!dict->serialize (c, fontDicts[i], opszr, fontDicts[i])))
+        return_trace (false);
+    }
+    return_trace (true);
+  }
+  
+  /* used by CFF2 */
   template <typename DICTVAL, typename OP_SERIALIZER>
   inline bool serialize (hb_serialize_context_t *c,
                         unsigned int offSize_,
                         const hb_vector_t<DICTVAL> &fontDicts,
                         unsigned int fdCount,
-                        const FDMap &fdmap,
+                        const Remap &fdmap,
                         OP_SERIALIZER& opszr,
                         const hb_vector_t<TableInfo> &privateInfos)
   {
@@ -415,7 +485,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   inline static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
                                                         const hb_vector_t<DICTVAL> &fontDicts,
                                                         unsigned int fdCount,
-                                                        const FDMap &fdmap,
+                                                        const Remap &fdmap,
                                                         OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;

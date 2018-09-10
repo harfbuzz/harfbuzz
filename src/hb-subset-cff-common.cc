@@ -46,7 +46,7 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int &subst_fdselect_size /* OUT */,
                             unsigned int &subst_fdselect_format /* OUT */,
                             hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
-                            FDMap &fdmap /* OUT */)
+                            Remap &fdmap /* OUT */)
 {
   subset_fd_count = 0;
   subst_fdselect_size = 0;
@@ -62,7 +62,7 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
     hb_set_t  *set = hb_set_create ();
     if (set == &Null (hb_set_t))
       return false;
-    hb_codepoint_t  prev_fd = HB_SET_VALUE_INVALID;
+    hb_codepoint_t  prev_fd = CFF_UNDEF_CODE;
     for (hb_codepoint_t i = 0; i < subset_num_glyphs; i++)
     {
       hb_codepoint_t  fd = src.get_fd (glyphs[i]);
@@ -85,14 +85,16 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
     }
 
     /* create a fdmap */
-    fdmap.resize (fdCount);
-    for (unsigned int i = 0; i < fdmap.len; i++)
-      fdmap[i] = HB_SET_VALUE_INVALID;
-    hb_codepoint_t  fd = HB_SET_VALUE_INVALID;
-    unsigned int fdindex = 0;
+    if (!fdmap.reset (fdCount))
+    {
+      hb_set_destroy (set);
+      return false;
+    }
+
+    hb_codepoint_t  fd = CFF_UNDEF_CODE;
     while (set->next (&fd))
-      fdmap[fd] = fdindex++;
-    assert (fdindex == subset_fd_count);
+      fdmap.add (fd);
+    assert (fdmap.get_count () == subset_fd_count);
     hb_set_destroy (set);
   }
 
@@ -131,7 +133,7 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
                           const FDSelect &src,
                           unsigned int size,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
-                          const FDMap &fdmap)
+                          const Remap &fdmap)
 {
   TRACE_SERIALIZE (this);
   FDSELECT3_4 *p = c->allocate_size<FDSELECT3_4> (size);
@@ -159,7 +161,7 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           unsigned int fdselect_format,
                           unsigned int size,
                           const hb_vector_t<hb_codepoint_t> &first_glyphs,
-                          const FDMap &fdmap)
+                          const Remap &fdmap)
 {
   TRACE_SERIALIZE (this);
   FDSelect  *p = c->allocate_min<FDSelect> ();

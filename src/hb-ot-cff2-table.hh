@@ -135,18 +135,18 @@ struct CFF2VariationStore
   DEFINE_SIZE_MIN (2 + VariationStore::min_size);
 };
 
-struct CFF2TopDictValues : TopDictValues
+struct CFF2TopDictValues : TopDictValues<>
 {
   inline void init (void)
   {
-    TopDictValues::init ();
+    TopDictValues<>::init ();
     vstoreOffset = 0;
     FDSelectOffset = 0;
   }
 
   inline void fini (void)
   {
-    TopDictValues::fini ();
+    TopDictValues<>::fini ();
   }
 
   inline unsigned int calculate_serialized_size (void) const
@@ -162,7 +162,7 @@ struct CFF2TopDictValues : TopDictValues
           size += OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
           break;
         default:
-          size += TopDictValues::calculate_serialized_op_size (getValue (i));
+          size += TopDictValues<>::calculate_serialized_op_size (getValue (i));
           break;
       }
     }
@@ -173,7 +173,7 @@ struct CFF2TopDictValues : TopDictValues
   unsigned int  FDSelectOffset;
 };
 
-struct CFF2TopDictOpSet : TopDictOpSet
+struct CFF2TopDictOpSet : TopDictOpSet<>
 {
   static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
   {
@@ -209,7 +209,7 @@ struct CFF2TopDictOpSet : TopDictOpSet
     return true;
   }
 
-  typedef TopDictOpSet SUPER;
+  typedef TopDictOpSet<> SUPER;
 };
 
 struct CFF2FontDictValues : DictValues<OpStr>

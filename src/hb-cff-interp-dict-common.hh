@@ -97,21 +97,22 @@ struct DictValues
   hb_vector_t<VAL>   values;
 };
 
-struct TopDictValues : DictValues<OpStr>
+template <typename OPSTR=OpStr>
+struct TopDictValues : DictValues<OPSTR>
 {
   inline void init (void)
   {
-    DictValues<OpStr>::init ();
+    DictValues<OPSTR>::init ();
     charStringsOffset = 0;
     FDArrayOffset = 0;
   }
 
   inline void fini (void)
   {
-    DictValues<OpStr>::fini ();
+    DictValues<OPSTR>::fini ();
   }
 
-  inline unsigned int calculate_serialized_op_size (const OpStr& opstr) const
+  inline unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
   {
     switch (opstr.op)
     {
@@ -174,9 +175,10 @@ struct DictOpSet : OpSet<Number>
   }
 };
 
+template <typename VAL=OpStr>
 struct TopDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv<Number>& env, TopDictValues& dictval)
+  static inline bool process_op (OpCode op, InterpEnv<Number>& env, TopDictValues<VAL> & dictval)
   {
     switch (op) {
       case OpCode_CharStrings:

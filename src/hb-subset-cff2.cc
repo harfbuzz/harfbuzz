@@ -44,7 +44,7 @@ struct CFF2SubTableOffsets : CFFSubTableOffsets
   unsigned int  varStoreOffset;
 };
 
-struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
+struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
 {
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
@@ -58,7 +58,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
         return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.varStoreOffset));
 
       default:
-        return_trace (CFFTopDict_OpSerializer::serialize (c, opstr, offsets));
+        return_trace (CFFTopDict_OpSerializer<>::serialize (c, opstr, offsets));
     }
   }
 
@@ -70,7 +70,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
     
       default:
-        return CFFTopDict_OpSerializer::calculate_serialized_size (opstr);
+        return CFFTopDict_OpSerializer<>::calculate_serialized_size (opstr);
     }
   }
 };
@@ -355,7 +355,7 @@ struct cff2_subset_plan {
   unsigned int    subset_fdselect_format;
   hb_vector_t<hb_codepoint_t>   subset_fdselect_first_glyphs;
 
-  FDMap   fdmap;
+  Remap   fdmap;
 
   hb_vector_t<ByteStr>    subset_charstrings;
   ByteStrBuffArray        flat_charstrings;

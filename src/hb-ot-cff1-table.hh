@@ -38,7 +38,7 @@ namespace CFF {
  */
 #define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
-#define CFF_UNDEF_CODE  0xFFFFFFFF
+#define CFF_UNDEF_SID   CFF_UNDEF_CODE
 
 enum EncodingID { StandardEncoding = 0, ExpertEncoding = 1 };
 enum CharsetID { ISOAdobeCharset = 0, ExpertCharset = 1, ExpertSubsetCharset = 2 };
@@ -529,13 +529,132 @@ struct Charset {
   DEFINE_SIZE_MIN (1);
 };
 
-struct CFF1TopDictValues : TopDictValues
+struct CFF1StringIndex : CFF1Index
+{
+  inline bool serialize (hb_serialize_context_t *c, const CFF1StringIndex &strings, unsigned int offSize_, const Remap &sidmap)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely ((strings.count == 0) || (sidmap.get_count () == 0)))
+    {
+      if (!unlikely (c->extend_min (*this)))
+        return_trace (false);
+      count.set (0);
+      return_trace (true);
+    }
+    
+    hb_vector_t<ByteStr> bytesArray;
+    bytesArray.init ();
+    if (!bytesArray.resize (sidmap.get_count ()))
+      return_trace (false);
+    for (unsigned int i = 0; i < strings.count; i++)
+    {
+      hb_codepoint_t  j = sidmap[i];
+      if (j != CFF_UNDEF_CODE)
+        bytesArray[j] = strings[i];
+    }
+
+    bool result = CFF1Index::serialize (c, offSize_, bytesArray);
+    bytesArray.fini ();
+    return_trace (result);
+  }
+  
+  /* in parallel to above */
+  inline unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const Remap &sidmap) const
+  {
+    offSize = 0;
+    if ((count == 0) || (sidmap.get_count () == 0))
+      return count.static_size;
+
+    unsigned int dataSize = 0;
+    for (unsigned int i = 0; i < count; i++)
+      if (sidmap[i] != CFF_UNDEF_CODE)
+        dataSize += length_at (i);
+
+    offSize = calcOffSize(dataSize);
+    return CFF1Index::calculate_serialized_size (offSize, sidmap.get_count (), dataSize);
+  }
+};
+
+struct CFF1TopDictInterpEnv : NumInterpEnv
+{
+  inline CFF1TopDictInterpEnv (void)
+    : NumInterpEnv(), prev_offset(0), last_offset(0) {}
+
+  unsigned int prev_offset;
+  unsigned int last_offset;
+};
+
+enum NameDictValIndex
+{
+    version,
+    notice,
+    copyright,
+    fullName,
+    familyName,
+    weight,
+    postscript,
+    fontName,
+    baseFontName,
+    registry,
+    ordering,
+
+    NameDictValCount
+};
+
+struct NameDictValues
+{
+  inline void init (void)
+  {
+    for (unsigned int i = 0; i < NameDictValCount; i++)
+      values[i] = CFF_UNDEF_SID;
+  }
+
+  inline unsigned int& operator[] (unsigned int i)
+  { assert (i < NameDictValCount); return values[i]; }
+
+  inline unsigned int operator[] (unsigned int i) const
+  { assert (i < NameDictValCount); return values[i]; }
+
+  static inline enum NameDictValIndex name_op_to_index (OpCode op)
+  {
+    switch (op) {
+      case OpCode_version:
+        return NameDictValIndex::version;
+      case OpCode_Notice:
+        return NameDictValIndex::notice;
+      case OpCode_Copyright:
+        return NameDictValIndex::copyright;
+      case OpCode_FullName:
+        return NameDictValIndex::fullName;
+      case OpCode_FamilyName:
+        return NameDictValIndex::familyName;
+      case OpCode_Weight:
+        return NameDictValIndex::weight;
+      case OpCode_PostScript:
+        return NameDictValIndex::postscript;
+      case OpCode_FontName:
+        return NameDictValIndex::fontName;
+      default:
+        assert (0);
+      }
+  }
+
+  unsigned int  values[NameDictValCount];
+};
+
+struct CFF1TopDictVal : OpStr
+{
+  unsigned int  last_arg_offset;
+};
+
+struct CFF1TopDictValues : TopDictValues<CFF1TopDictVal>
 {
   inline void init (void)
   {
     TopDictValues::init ();
 
-    ros[0] = ros[1] = ros[2] = 0;
+    nameSIDs.init ();
+    ros_supplement = 0;
     cidCount = 8720;
     EncodingOffset = 0;
     CharsetOffset = 0;
@@ -549,73 +668,26 @@ struct CFF1TopDictValues : TopDictValues
   }
 
   inline bool is_CID (void) const
-  { return ros[0] != 0; }
+  { return nameSIDs[NameDictValIndex::registry] != CFF_UNDEF_SID; }
 
-  inline unsigned int calculate_serialized_size (void) const
-  {
-    unsigned int size = 0;
-    for (unsigned int i = 0; i < getNumValues (); i++)
-    {
-      OpCode op = getValue (i).op;
-      switch (op)
-      {
-        case OpCode_FDSelect:
-          size += OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
-          break;
-        default:
-          size += TopDictValues::calculate_serialized_op_size (getValue (i));
-          break;
-      }
-    }
-    return size;
-  }
+  NameDictValues  nameSIDs;
+  unsigned int    ros_supplement_offset;
+  unsigned int    ros_supplement;
+  unsigned int    cidCount;
 
-  unsigned int              ros[3]; /* registry, ordering, supplement */
-  unsigned int              cidCount;
-
-  unsigned int  EncodingOffset;
-  unsigned int  CharsetOffset;
-  unsigned int  FDSelectOffset;
-  TableInfo     privateDictInfo;
+  unsigned int    EncodingOffset;
+  unsigned int    CharsetOffset;
+  unsigned int    FDSelectOffset;
+  TableInfo       privateDictInfo;
 };
 
-/* a copy of a parsed out CFF1TopDictValues augmented with additional operators */
-struct CFF1TopDictValuesMod : CFF1TopDictValues
+struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 {
-  inline void init (const CFF1TopDictValues *base_= &Null(CFF1TopDictValues))
+  static inline bool process_op (OpCode op, CFF1TopDictInterpEnv& env, CFF1TopDictValues& dictval)
   {
-    SUPER::init ();
-    base = base_;
-  }
+    CFF1TopDictVal  val;
+    val.last_arg_offset = (env.last_offset-1) - dictval.opStart;  /* offset to the last argument */
 
-  inline void fini (void)
-  {
-    SUPER::fini ();
-  }
-
-  inline unsigned getNumValues (void) const
-  {
-    return base->getNumValues () + SUPER::getNumValues ();
-  }
-  inline const OpStr &getValue (unsigned int i) const
-  {
-    if (i < base->getNumValues ())
-      return (*base)[i];
-    else
-      return SUPER::values[i - base->getNumValues ()];
-  }
-  inline const OpStr &operator [] (unsigned int i) const { return getValue (i); }
-
-  protected:
-  typedef CFF1TopDictValues SUPER;
-  const CFF1TopDictValues *base;
-};
-
-struct CFF1TopDictOpSet : TopDictOpSet
-{
-  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF1TopDictValues& dictval)
-  {
-  
     switch (op) {
       case OpCode_version:
       case OpCode_Notice:
@@ -623,6 +695,12 @@ struct CFF1TopDictOpSet : TopDictOpSet
       case OpCode_FullName:
       case OpCode_FamilyName:
       case OpCode_Weight:
+      case OpCode_PostScript:
+      case OpCode_BaseFontName:
+        if (unlikely (!env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValues::name_op_to_index (op)])))
+          return false;
+        env.clear_args ();
+        break;
       case OpCode_isFixedPitch:
       case OpCode_ItalicAngle:
       case OpCode_UnderlinePosition:
@@ -632,8 +710,6 @@ struct CFF1TopDictOpSet : TopDictOpSet
       case OpCode_UniqueID:
       case OpCode_StrokeWidth:
       case OpCode_SyntheticBase:
-      case OpCode_PostScript:
-      case OpCode_BaseFontName:
       case OpCode_CIDFontVersion:
       case OpCode_CIDFontRevision:
       case OpCode_CIDFontType:
@@ -651,9 +727,9 @@ struct CFF1TopDictOpSet : TopDictOpSet
         break;
 
       case OpCode_ROS:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.ros[2]) ||
-                      !env.argStack.check_pop_uint (dictval.ros[1]) ||
-                      !env.argStack.check_pop_uint (dictval.ros[0])))
+        if (unlikely (!env.argStack.check_pop_uint (dictval.ros_supplement) ||
+                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValIndex::ordering]) ||
+                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValIndex::registry])))
           return false;
         env.clear_args ();
         break;
@@ -685,6 +761,7 @@ struct CFF1TopDictOpSet : TopDictOpSet
         break;
     
       default:
+        env.last_offset = env.substr.offset;
         if (unlikely (!TopDictOpSet::process_op (op, env, dictval)))
           return false;
         /* Record this operand below if stack is empty, otherwise done */
@@ -692,7 +769,7 @@ struct CFF1TopDictOpSet : TopDictOpSet
         break;
     }
 
-    dictval.addOp (op, env.substr);
+    dictval.addOp (op, env.substr, val);
     return true;
   }
 };
@@ -703,6 +780,7 @@ struct CFF1FontDictValues : DictValues<OpStr>
   {
     DictValues<OpStr>::init ();
     privateDictInfo.init ();
+    fontName = CFF_UNDEF_SID;
   }
 
   inline void fini (void)
@@ -710,7 +788,8 @@ struct CFF1FontDictValues : DictValues<OpStr>
     DictValues<OpStr>::fini ();
   }
 
-  TableInfo   privateDictInfo;
+  TableInfo       privateDictInfo;
+  unsigned int    fontName;
 };
 
 struct CFF1FontDictOpSet : DictOpSet
@@ -719,6 +798,10 @@ struct CFF1FontDictOpSet : DictOpSet
   {
     switch (op) {
       case OpCode_FontName:
+        if (unlikely (!env.argStack.check_pop_uint (dictval.fontName)))
+          return false;
+        env.clear_args ();
+        break;
       case OpCode_FontMatrix:
       case OpCode_PaintType:
         env.clear_args ();
@@ -869,13 +952,12 @@ struct CFF1PrivateDictOpSet_Subset : DictOpSet
   }
 };
 
-typedef DictInterpreter<CFF1TopDictOpSet, CFF1TopDictValues> CFF1TopDict_Interpreter;
+typedef DictInterpreter<CFF1TopDictOpSet, CFF1TopDictValues, CFF1TopDictInterpEnv> CFF1TopDict_Interpreter;
 typedef DictInterpreter<CFF1FontDictOpSet, CFF1FontDictValues> CFF1FontDict_Interpreter;
 typedef DictInterpreter<CFF1PrivateDictOpSet, CFF1PrivateDictValues> CFF1PrivateDict_Interpreter;
 
 typedef CFF1Index CFF1NameIndex;
 typedef CFF1IndexOf<TopDict> CFF1TopDictIndex;
-typedef CFF1Index CFF1StringIndex;
 
 }; /* namespace CFF */
 
@@ -899,9 +981,7 @@ struct cff1
   {
     inline void init (hb_face_t *face)
     {
-      topDicts.init ();
-      topDicts.resize (1);
-      topDicts[0].init ();
+      topDict.init ();
       fontDicts.init ();
       privateDicts.init ();
       
@@ -929,19 +1009,19 @@ struct cff1
         if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
         CFF1TopDict_Interpreter top_interp;
         top_interp.env.init (topDictStr);
-        if (unlikely (!top_interp.interpret (topDicts[0]))) { fini (); return; }
+        if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
       
       encoding = &Null(Encoding);
-      charset = &StructAtOffsetOrNull<Charset> (cff, topDicts[0].CharsetOffset);
+      charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
       if (unlikely (is_CID () && (charset == &Null(Charset))))
       { fini (); return; }
 
       fdCount = 1;
       if (is_CID ())
       {
-        fdArray = &StructAtOffsetOrNull<CFF1FDArray> (cff, topDicts[0].FDArrayOffset);
-        fdSelect = &StructAtOffsetOrNull<CFF1FDSelect> (cff, topDicts[0].FDSelectOffset);
+        fdArray = &StructAtOffsetOrNull<CFF1FDArray> (cff, topDict.FDArrayOffset);
+        fdSelect = &StructAtOffsetOrNull<CFF1FDSelect> (cff, topDict.FDSelectOffset);
         if (unlikely ((fdArray == &Null(CFF1FDArray)) || !fdArray->sanitize (&sc) ||
             (fdSelect == &Null(CFF1FDSelect)) || !fdSelect->sanitize (&sc, fdArray->count)))
         { fini (); return; }
@@ -954,7 +1034,7 @@ struct cff1
         fdSelect = &Null(CFF1FDSelect);
         if (!is_predef_encoding ())
         {
-          encoding = &StructAtOffsetOrNull<Encoding> (cff, topDicts[0].EncodingOffset);
+          encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
           if ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))
           { fini (); return; }
         }
@@ -968,7 +1048,7 @@ struct cff1
       if ((globalSubrs != &Null (CFF1Subrs)) && !stringIndex->sanitize (&sc))
       { fini (); return; }
 
-      charStrings = &StructAtOffsetOrNull<CFF1CharStrings> (cff, topDicts[0].charStringsOffset);
+      charStrings = &StructAtOffsetOrNull<CFF1CharStrings> (cff, topDict.charStringsOffset);
 
       if ((charStrings == &Null(CFF1CharStrings)) || unlikely (!charStrings->sanitize (&sc)))
       { fini (); return; }
@@ -1008,7 +1088,7 @@ struct cff1
       }
       else  /* non-CID */
       {
-        CFF1TopDictValues  *font = &topDicts[0];
+        CFF1TopDictValues  *font = &topDict;
         PRIVDICTVAL  *priv = &privateDicts[0];
         
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
@@ -1027,8 +1107,7 @@ struct cff1
     inline void fini (void)
     {
       sc.end_processing ();
-      topDicts[0].fini ();
-      topDicts.fini ();
+      topDict.fini ();
       fontDicts.fini ();
       privateDicts.fini ();
       hb_blob_destroy (blob);
@@ -1036,10 +1115,10 @@ struct cff1
     }
 
     inline bool is_valid (void) const { return blob != nullptr; }
-    inline bool is_CID (void) const { return topDicts[0].is_CID (); }
+    inline bool is_CID (void) const { return topDict.is_CID (); }
 
-    inline bool is_predef_encoding (void) const { return topDicts[0].EncodingOffset <= ExpertEncoding; }
-    inline bool is_predef_charset (void) const { return topDicts[0].CharsetOffset <= ExpertSubsetCharset; }
+    inline bool is_predef_encoding (void) const { return topDict.EncodingOffset <= ExpertEncoding; }
+    inline bool is_predef_charset (void) const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
 
     inline hb_codepoint_t  glyph_to_code (hb_codepoint_t glyph) const
     {
@@ -1050,7 +1129,7 @@ struct cff1
         hb_codepoint_t  sid = glyph_to_sid (glyph);
         if (sid == 0) return 0;
         hb_codepoint_t  code = 0;
-        switch (topDicts[0].EncodingOffset)
+        switch (topDict.EncodingOffset)
         {
           case  StandardEncoding:
             code = lookup_standard_encoding (sid);
@@ -1072,7 +1151,7 @@ struct cff1
       else
       {
         hb_codepoint_t sid = 0;
-        switch (topDicts[0].CharsetOffset)
+        switch (topDict.CharsetOffset)
         {
           case  ISOAdobeCharset:
             if (glyph <= 228 /*zcaron*/) sid = glyph;
@@ -1116,7 +1195,7 @@ struct cff1
     const CFF1FDSelect      *fdSelect;
     unsigned int            fdCount;
 
-    hb_vector_t<CFF1TopDictValues>    topDicts;
+    CFF1TopDictValues       topDict;
     hb_vector_t<CFF1FontDictValues>   fontDicts;
     hb_vector_t<PRIVDICTVAL>          privateDicts;
 
