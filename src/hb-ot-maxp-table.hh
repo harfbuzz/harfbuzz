@@ -136,7 +136,7 @@ struct maxp
   FixedVersion<>version;		/* Version of the maxp table (0.5 or 1.0),
 					 * 0x00005000u or 0x00010000u. */
   HBUINT16	numGlyphs;		/* The number of glyphs in the font. */
-/*maxpV1Tail v1Tail[VAR]; */
+/*maxpV1Tail	v1Tail[VAR]; */
   public:
   DEFINE_SIZE_STATIC (6);
 };

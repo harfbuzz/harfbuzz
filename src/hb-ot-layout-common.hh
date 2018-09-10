@@ -1549,7 +1549,7 @@ struct VarData
   HBUINT16		itemCount;
   HBUINT16		shortCount;
   ArrayOf<HBUINT16>	regionIndices;
-  HBUINT8		bytesX[VAR];
+  UnsizedArrayOf<HBUINT8>bytesX;
   public:
   DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
 };
@@ -1844,7 +1844,7 @@ struct HintingDevice
 
     unsigned int s = ppem_size - startSize;
 
-    unsigned int byte = deltaValue[s >> (4 - f)];
+    unsigned int byte = deltaValueZ[s >> (4 - f)];
     unsigned int bits = (byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f)));
     unsigned int mask = (0xFFFFu >> (16 - (1 << f)));
 
@@ -1864,9 +1864,10 @@ struct HintingDevice
 					 * 2	Signed 4-bit value, 4 values per uint16
 					 * 3	Signed 8-bit value, 2 values per uint16
 					 */
-  HBUINT16	deltaValue[VAR];	/* Array of compressed data */
+  UnsizedArrayOf<HBUINT16>
+		deltaValueZ;		/* Array of compressed data */
   public:
-  DEFINE_SIZE_ARRAY (6, deltaValue);
+  DEFINE_SIZE_ARRAY (6, deltaValueZ);
 };
 
 struct VariationDevice

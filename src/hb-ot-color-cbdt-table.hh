@@ -128,7 +128,7 @@ struct IndexSubtableFormat1Or3
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (offsetArrayZ, glyph_count + 1));
+		  c->check_array (offsetArrayZ.arrayZ, glyph_count + 1));
   }
 
   bool get_image_data (unsigned int idx,
@@ -144,7 +144,8 @@ struct IndexSubtableFormat1Or3
   }
 
   IndexSubtableHeader	header;
-  Offset<OffsetType>	offsetArrayZ[VAR];
+  UnsizedArrayOf<Offset<OffsetType> >
+ 			offsetArrayZ;
   public:
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);
 };
@@ -240,7 +241,7 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_array (indexSubtablesZ, count)))
+    if (unlikely (!c->check_array (indexSubtablesZ.arrayZ, count)))
       return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))
@@ -255,15 +256,14 @@ struct IndexSubtableArray
     {
       unsigned int firstGlyphIndex = indexSubtablesZ[i].firstGlyphIndex;
       unsigned int lastGlyphIndex = indexSubtablesZ[i].lastGlyphIndex;
-      if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex) {
+      if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex)
         return &indexSubtablesZ[i];
-      }
     }
     return nullptr;
   }
 
   protected:
-  IndexSubtableRecord	indexSubtablesZ[VAR];
+  UnsizedArrayOf<IndexSubtableRecord>	indexSubtablesZ;
   public:
   DEFINE_SIZE_ARRAY(0, indexSubtablesZ);
 };
@@ -527,8 +527,8 @@ struct CBDT
 
 
   protected:
-  FixedVersion<>	version;
-  HBUINT8		dataZ[VAR];
+  FixedVersion<>		version;
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
   DEFINE_SIZE_ARRAY(4, dataZ);
 };

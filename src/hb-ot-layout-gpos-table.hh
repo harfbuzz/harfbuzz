@@ -376,7 +376,7 @@ struct AnchorMatrix
     if (!c->check_struct (this)) return_trace (false);
     if (unlikely (hb_unsigned_mul_overflows (rows, cols))) return_trace (false);
     unsigned int count = rows * cols;
-    if (!c->check_array (matrixZ, count)) return_trace (false);
+    if (!c->check_array (matrixZ.arrayZ, count)) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (!matrixZ[i].sanitize (c, this)) return_trace (false);
     return_trace (true);
@@ -384,8 +384,8 @@ struct AnchorMatrix
 
   HBUINT16	rows;			/* Number of rows */
   protected:
-  OffsetTo<Anchor>
-		matrixZ[VAR];		/* Matrix of offsets to Anchor tables--
+  UnsizedArrayOf<OffsetTo<Anchor> >
+		matrixZ;		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
   public:
   DEFINE_SIZE_ARRAY (2, matrixZ);
@@ -621,7 +621,7 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
-    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    const PairValueRecord *record = &firstPairValueRecord;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -640,7 +640,7 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
-    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    const PairValueRecord *record = &firstPairValueRecord;
     c->input->add_array (&record->secondGlyph, len, record_size);
   }
 
@@ -654,7 +654,6 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
-    const PairValueRecord *record_array = CastP<PairValueRecord> (arrayZ);
     unsigned int count = len;
 
     /* Hand-coded bsearch. */
@@ -665,7 +664,7 @@ struct PairSet
     while (min <= max)
     {
       int mid = (min + max) / 2;
-      const PairValueRecord *record = &StructAtOffset<PairValueRecord> (record_array, record_size * mid);
+      const PairValueRecord *record = &StructAtOffset<PairValueRecord> (&firstPairValueRecord, record_size * mid);
       hb_codepoint_t mid_x = record->secondGlyph;
       if (x < mid_x)
         max = mid - 1;
@@ -698,20 +697,21 @@ struct PairSet
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this)
-       && c->check_array (arrayZ, len, HBUINT16::static_size * closure->stride))) return_trace (false);
+       && c->check_array (&firstPairValueRecord, len, HBUINT16::static_size * closure->stride))) return_trace (false);
 
     unsigned int count = len;
-    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    const PairValueRecord *record = &firstPairValueRecord;
     return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride) &&
 		  closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
   }
 
   protected:
-  HBUINT16	len;			/* Number of PairValueRecords */
-  HBUINT16	arrayZ[VAR];		/* Array of PairValueRecords--ordered
-					 * by GlyphID of the second glyph */
+  HBUINT16		len;	/* Number of PairValueRecords */
+  PairValueRecord	firstPairValueRecord;
+				/* Array of PairValueRecords--ordered
+				 * by GlyphID of the second glyph */
   public:
-  DEFINE_SIZE_ARRAY (2, arrayZ);
+  DEFINE_SIZE_MIN (2);
 };
 
 struct PairPosFormat1
