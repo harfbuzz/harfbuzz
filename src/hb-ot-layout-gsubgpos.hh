@@ -1267,7 +1267,7 @@ struct Rule
     return_trace (inputCount.sanitize (c) &&
 		  lookupCount.sanitize (c) &&
 		  c->check_range (inputZ,
-				  inputZ[0].static_size * inputCount +
+				  inputZ[0].static_size * (inputCount ? inputCount - 1 : 0) +
 				  LookupRecord::static_size * lookupCount));
   }
 
