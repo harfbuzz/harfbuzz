@@ -526,7 +526,7 @@ hb_face_get_table_tags (const hb_face_t *face,
  * @face: font face.
  * @out: set to add Unicode characters covered by @face to.
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_unicodes (hb_face_t *face,
@@ -543,7 +543,7 @@ hb_face_collect_unicodes (hb_face_t *face,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_variation_selectors (hb_face_t *face,
@@ -560,7 +560,7 @@ hb_face_collect_variation_selectors (hb_face_t *face,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_variation_unicodes (hb_face_t *face,
@@ -684,7 +684,7 @@ _hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data
  *
  * Return value: (transfer full) New face.
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  **/
 hb_face_t *
 hb_face_builder_create (void)
@@ -703,7 +703,7 @@ hb_face_builder_create (void)
  * Add table for @tag with data provided by @blob to the face.  @face must
  * be created using hb_face_builder_create().
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  **/
 hb_bool_t
 hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
