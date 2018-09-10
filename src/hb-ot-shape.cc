@@ -96,7 +96,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
 
   /* Random! */
-  map->add_feature (HB_TAG ('r','a','n','d'), 1, F_GLOBAL | F_RANDOM);
+  map->add_feature (HB_TAG ('r','a','n','d'), HB_OT_MAP_MAX_VALUE, F_GLOBAL | F_RANDOM);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);

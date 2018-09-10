@@ -210,8 +210,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
       /* Uses the global bit */
       bits_needed = 0;
     else
-      /* Limit to 8 bits per feature. */
-      bits_needed = MIN(8u, hb_bit_storage (info->max_value));
+      /* Limit bits per feature. */
+      bits_needed = MIN(HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
 
     if (!info->max_value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
       continue; /* Feature disabled, or not enough bits. */

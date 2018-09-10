@@ -541,17 +541,14 @@ struct AlternateSet
     unsigned int shift = hb_ctz (lookup_mask);
     unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
-    if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
-
-    /* This is ugly...  If alt_index is 1, we take it as "on", and randomize
-     * feature if it is the rand feature.  If it's > 1, it's a user-set value
-     * for sure, so respect it.  So, user cannot set rand=1 and expect it to
-     * choose the first alternate... */
-    if (alt_index == 1 && c->random)
+    /* If alt_index is MAX, randomize feature if it is the rand feature. */
+    if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
     {
       c->random_state = (0x5DEECE66Dull * c->random_state + 11) & (((uint64_t) 1 << 48) - 1);
       alt_index = (c->random_state >> 32) % count + 1;
     }
+
+    if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
 
     c->replace_glyph (alternates[alt_index - 1]);
 

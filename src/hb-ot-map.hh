@@ -32,6 +32,9 @@
 #include "hb-buffer.hh"
 
 
+#define HB_OT_MAP_MAX_BITS 8u
+#define HB_OT_MAP_MAX_VALUE ((1u << HB_OT_MAP_MAX_BITS) - 1u)
+
 struct hb_ot_shape_plan_t;
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
