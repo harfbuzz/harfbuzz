@@ -273,6 +273,7 @@ struct indic_shape_plan_t
   const indic_config_t *config;
 
   bool is_old_spec;
+  bool uniscribe_bug_compatible;
   mutable hb_atomic_int_t virama_glyph;
 
   would_substitute_feature_t rphf;
@@ -298,6 +299,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
     }
 
   indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FFu) != '2');
+  indic_plan->uniscribe_bug_compatible = hb_options ().uniscribe_bug_compatible;
   indic_plan->virama_glyph.set_relaxed (-1);
 
   /* Use zero-context would_substitute() matching for new-spec of the main
@@ -913,10 +915,12 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 				       hb_buffer_t *buffer,
 				       unsigned int start, unsigned int end)
 {
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
+
   /* We treat placeholder/dotted-circle as if they are consonants, so we
    * should just chain.  Only if not in compatibility mode that is... */
 
-  if (hb_options ().uniscribe_bug_compatible)
+  if (indic_plan->uniscribe_bug_compatible)
   {
     /* For dotted-circle, this is what Uniscribe does:
      * If dotted-circle is the last glyph, it just does nothing.
@@ -1356,7 +1360,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
        * Uniscribe doesn't do this.
        * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
        */
-      if (!hb_options ().uniscribe_bug_compatible &&
+      if (!indic_plan->uniscribe_bug_compatible &&
 	  unlikely (is_halant (info[new_reph_pos]))) {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
 	  if (info[i].indic_category() == OT_M) {
@@ -1462,7 +1466,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   /*
    * Finish off the clusters and go home!
    */
-  if (hb_options ().uniscribe_bug_compatible)
+  if (indic_plan->uniscribe_bug_compatible)
   {
     switch ((hb_tag_t) plan->props.script)
     {
