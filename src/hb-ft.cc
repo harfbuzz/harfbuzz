@@ -228,6 +228,32 @@ hb_ft_get_glyph_h_advance (hb_font_t *font,
   return (v + (1<<9)) >> 10;
 }
 
+static void
+hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
+			    unsigned count,
+			    hb_codepoint_t *first_glyph,
+			    unsigned glyph_stride,
+			    hb_position_t *first_advance,
+			    unsigned advance_stride,
+			    void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Face ft_face = ft_font->ft_face;
+  int load_flags = ft_font->load_flags;
+
+  int mult = font->x_scale < 0 ? -1 : +1;
+  FT_Fixed v;
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    v = 0;
+    FT_Get_Advance (ft_face, *first_glyph, load_flags, &v);
+    *first_advance = (v * mult + (1<<9)) >> 10;
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
+}
+
 static hb_position_t
 hb_ft_get_glyph_v_advance (hb_font_t *font,
 			   void *font_data,
@@ -433,6 +459,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_nominal_glyph_func (funcs, hb_ft_get_nominal_glyph, nullptr, nullptr);
     hb_font_funcs_set_variation_glyph_func (funcs, hb_ft_get_variation_glyph, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ft_get_glyph_h_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ft_get_glyph_h_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, nullptr, nullptr);
