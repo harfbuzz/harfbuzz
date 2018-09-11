@@ -163,11 +163,12 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
     return hb_blob_reference (data->blob);
 
   const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+  unsigned int base_offset;
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index, &base_offset);
 
   const OT::OpenTypeTable &table = ot_face.get_table_by_tag (tag);
 
-  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, table.offset, table.length);
+  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, base_offset + table.offset, table.length);
 
   return blob;
 }

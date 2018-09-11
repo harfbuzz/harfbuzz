@@ -428,14 +428,19 @@ struct ResourceForkHeader
     return StructAtOffset<LArrayOf<HBUINT8> > (this, offset);
   }
 
-  inline const OpenTypeFontFace& get_face (unsigned int idx) const
+  inline const OpenTypeFontFace& get_face (unsigned int idx, unsigned int *base_offset = nullptr) const
   {
     const ResourceMap &resource_map = this+map;
     for (unsigned int i = 0; i < resource_map.get_types_count (); ++i)
     {
       const ResourceTypeItem& type = resource_map.get_type (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
-	return (OpenTypeFontFace&) get_data (type, idx).arrayZ;
+      {
+	const OpenTypeFontFace &face = (OpenTypeFontFace&) get_data (type, idx).arrayZ;
+	if (base_offset)
+	  *base_offset = (const char *) &face - (const char *) this;
+	return face;
+      }
     }
     return Null (OpenTypeFontFace);
   }
@@ -502,12 +507,14 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return 1;
     case TTCTag:	return u.ttcHeader.get_face_count ();
-//    case DFontTag:	return u.rfHeader.get_face_count ();
+    case DFontTag:	return u.rfHeader.get_face_count ();
     default:		return 0;
     }
   }
-  inline const OpenTypeFontFace& get_face (unsigned int i) const
+  inline const OpenTypeFontFace& get_face (unsigned int i, unsigned int *base_offset = nullptr) const
   {
+    if (base_offset)
+      *base_offset = 0;
     switch (u.tag) {
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
@@ -517,7 +524,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return u.fontFace;
     case TTCTag:	return u.ttcHeader.get_face (i);
-//    case DFontTag:	return u.rfHeader.get_face (i);
+    case DFontTag:	return u.rfHeader.get_face (i, base_offset);
     default:		return Null(OpenTypeFontFace);
     }
   }
@@ -544,7 +551,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return_trace (u.fontFace.sanitize (c));
     case TTCTag:	return_trace (u.ttcHeader.sanitize (c));
-//    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
+    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
     default:		return_trace (true);
     }
   }
