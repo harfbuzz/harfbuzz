@@ -363,10 +363,7 @@ struct ResourceMap
     return ((&reserved[2])+typeList)[i];
   }
 
-  inline unsigned int get_types_count () const
-  {
-    return nTypes + 1;
-  }
+  inline unsigned int get_types_count () const { return nTypes + 1; }
 
   inline const ResourceRefItem &get_ref_item (const ResourceTypeItem &type,
 					      unsigned int i) const
@@ -392,7 +389,7 @@ struct ResourceMap
   OffsetTo<UnsizedArrayOf<ResourceTypeItem> >
 		typeList;	/* Offset from beginning of map to
 				 * resource type list */
-  HBUINT16	nameList;	/* Offset from beginning of map to
+  Offset16	nameList;	/* Offset from beginning of map to
 				 * resource name list */
   HBUINT16	nTypes;		/* Number of types in the map minus 1 */
   public:
