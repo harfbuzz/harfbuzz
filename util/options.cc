@@ -556,6 +556,7 @@ font_options_t::add_options (option_parser_t *parser)
     {"font-ppem",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, 0, G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
+    {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
     {nullptr}
   };
   parser->add_group (entries,
@@ -717,6 +718,9 @@ font_options_t::get_font (void) const
     }
   }
   set_font_funcs (font);
+#ifdef HAVE_FREETYPE
+  hb_ft_font_set_load_flags (font, ft_load_flags);
+#endif
 
   return font;
 }
