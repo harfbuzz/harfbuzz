@@ -107,7 +107,7 @@ struct CFF1TopDictValuesMod : CFF1TopDictValues
 
   inline void reassignSIDs (const RemapSID& sidmap)
   {
-    for (unsigned int i = 0; i < NameDictValCount; i++)
+    for (unsigned int i = 0; i < NameDictValues::ValCount; i++)
       nameSIDs[i] = sidmap[base->nameSIDs[i]];
   }
 
@@ -119,13 +119,13 @@ struct CFF1TopDictValuesMod : CFF1TopDictValues
 struct TopDictModifiers
 {
   inline TopDictModifiers (const CFF1SubTableOffsets &offsets_,
-                           const unsigned int (&nameSIDs_)[NameDictValCount])
+                           const unsigned int (&nameSIDs_)[NameDictValues::ValCount])
     : offsets (offsets_),
       nameSIDs (nameSIDs_)
   {}
 
   const CFF1SubTableOffsets &offsets;
-  const unsigned int        (&nameSIDs)[NameDictValCount];
+  const unsigned int        (&nameSIDs)[NameDictValues::ValCount];
 };
 
 struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
@@ -177,8 +177,8 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
           supp_op.str.str = opstr.str.str + opstr.last_arg_offset;
           assert (opstr.str.len >= opstr.last_arg_offset + 3);
           supp_op.str.len = opstr.str.len - opstr.last_arg_offset;
-        return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValIndex::registry]) &&
-                      UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValIndex::ordering]) &&
+        return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::registry]) &&
+                      UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::ordering]) &&
                       copy_opstr (c, supp_op));
         }
       default:
@@ -342,7 +342,7 @@ struct cff_subset_plan {
     subset_enc_supp_codes.init ();
     subset_charset_ranges.init ();
     sidmap.init ();
-    for (unsigned int i = 0; i < NameDictValCount; i++)
+    for (unsigned int i = 0; i < NameDictValues::ValCount; i++)
       topDictModSIDs[i] = CFF_UNDEF_SID;
   }
 
@@ -491,7 +491,7 @@ struct cff_subset_plan {
     if (unlikely (!sidmap.reset (acc.stringIndex->count)))
       return false;
     
-    for (unsigned int i = 0; i < NameDictValCount; i++)
+    for (unsigned int i = 0; i < NameDictValues::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
       if (sid != CFF_UNDEF_SID)
@@ -714,7 +714,7 @@ struct cff_subset_plan {
   bool                    subset_charset;
 
   RemapSID                sidmap;
-  unsigned int            topDictModSIDs[NameDictValCount];
+  unsigned int            topDictModSIDs[NameDictValues::ValCount];
 };
 
 static inline bool _write_cff1 (const cff_subset_plan &plan,

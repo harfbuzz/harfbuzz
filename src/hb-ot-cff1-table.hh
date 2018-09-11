@@ -584,62 +584,62 @@ struct CFF1TopDictInterpEnv : NumInterpEnv
   unsigned int last_offset;
 };
 
-enum NameDictValIndex
-{
-    version,
-    notice,
-    copyright,
-    fullName,
-    familyName,
-    weight,
-    postscript,
-    fontName,
-    baseFontName,
-    registry,
-    ordering,
-
-    NameDictValCount
-};
-
 struct NameDictValues
 {
+  enum NameDictValIndex
+  {
+      version,
+      notice,
+      copyright,
+      fullName,
+      familyName,
+      weight,
+      postscript,
+      fontName,
+      baseFontName,
+      registry,
+      ordering,
+
+      ValCount
+  };
+
   inline void init (void)
   {
-    for (unsigned int i = 0; i < NameDictValCount; i++)
+    for (unsigned int i = 0; i < ValCount; i++)
       values[i] = CFF_UNDEF_SID;
   }
 
   inline unsigned int& operator[] (unsigned int i)
-  { assert (i < NameDictValCount); return values[i]; }
+  { assert (i < ValCount); return values[i]; }
 
   inline unsigned int operator[] (unsigned int i) const
-  { assert (i < NameDictValCount); return values[i]; }
+  { assert (i < ValCount); return values[i]; }
 
   static inline enum NameDictValIndex name_op_to_index (OpCode op)
   {
     switch (op) {
       case OpCode_version:
-        return NameDictValIndex::version;
+        return version;
       case OpCode_Notice:
-        return NameDictValIndex::notice;
+        return notice;
       case OpCode_Copyright:
-        return NameDictValIndex::copyright;
+        return copyright;
       case OpCode_FullName:
-        return NameDictValIndex::fullName;
+        return fullName;
       case OpCode_FamilyName:
-        return NameDictValIndex::familyName;
+        return familyName;
       case OpCode_Weight:
-        return NameDictValIndex::weight;
+        return weight;
       case OpCode_PostScript:
-        return NameDictValIndex::postscript;
+        return postscript;
       case OpCode_FontName:
-        return NameDictValIndex::fontName;
+        return fontName;
       default:
         assert (0);
       }
   }
 
-  unsigned int  values[NameDictValCount];
+  unsigned int  values[ValCount];
 };
 
 struct CFF1TopDictVal : OpStr
@@ -651,7 +651,7 @@ struct CFF1TopDictValues : TopDictValues<CFF1TopDictVal>
 {
   inline void init (void)
   {
-    TopDictValues::init ();
+    TopDictValues<CFF1TopDictVal>::init ();
 
     nameSIDs.init ();
     ros_supplement = 0;
@@ -664,11 +664,11 @@ struct CFF1TopDictValues : TopDictValues<CFF1TopDictVal>
 
   inline void fini (void)
   {
-    TopDictValues::fini ();
+    TopDictValues<CFF1TopDictVal>::fini ();
   }
 
   inline bool is_CID (void) const
-  { return nameSIDs[NameDictValIndex::registry] != CFF_UNDEF_SID; }
+  { return nameSIDs[NameDictValues::registry] != CFF_UNDEF_SID; }
 
   NameDictValues  nameSIDs;
   unsigned int    ros_supplement_offset;
@@ -728,8 +728,8 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 
       case OpCode_ROS:
         if (unlikely (!env.argStack.check_pop_uint (dictval.ros_supplement) ||
-                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValIndex::ordering]) ||
-                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValIndex::registry])))
+                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValues::ordering]) ||
+                      !env.argStack.check_pop_uint (dictval.nameSIDs[NameDictValues::registry])))
           return false;
         env.clear_args ();
         break;
@@ -762,7 +762,7 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
     
       default:
         env.last_offset = env.substr.offset;
-        if (unlikely (!TopDictOpSet::process_op (op, env, dictval)))
+        if (unlikely (!TopDictOpSet<CFF1TopDictVal>::process_op (op, env, dictval)))
           return false;
         /* Record this operand below if stack is empty, otherwise done */
         if (!env.argStack.is_empty ()) return true;
