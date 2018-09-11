@@ -300,7 +300,7 @@ struct ResourceRefItem
 
   HBINT16	id;		/* Resource ID, is really should be signed? */
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
-				 * to resource name, minus means there is none. */
+				 * to resource name, -1 means there is none. */
   HBUINT8	attr;		/* Resource attributes */
   HBUINT24	dataOffset;	/* Offset from beginning of resource data to
 				 * data for this resource */
@@ -374,7 +374,7 @@ struct ResourceMap
   inline const PString& get_name (const ResourceRefItem &item,
 				  unsigned int i) const
   {
-    if (item.nameOffset == -1)
+    if (item.nameOffset < 0)
       return Null (PString);
 
     return StructAtOffset<PString> (this, nameList + item.nameOffset);
@@ -452,8 +452,11 @@ struct ResourceForkHeader
       for (unsigned int j = 0; j < type.get_resource_count (); ++j)
       {
         const LArrayOf<HBUINT8>& data = get_data (type, j);
-	if (unlikely (!(data.sanitize (c) &&
-			((OpenTypeFontFace&) data.arrayZ).sanitize (c))))
+	if (unlikely (!data.sanitize (c)))
+	  return_trace (false);
+
+	if (unlikely (type.is_sfnt () &&
+		      !((OpenTypeFontFace&) data.arrayZ).sanitize (c)))
 	  return_trace (false);
       }
     }
