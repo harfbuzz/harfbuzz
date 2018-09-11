@@ -26,6 +26,7 @@
 #ifndef HB_CFF_INTERP_DICT_COMMON_HH
 #define HB_CFF_INTERP_DICT_COMMON_HH
 
+#include "hb-common.h"
 #include "hb-cff-interp-common.hh"
 
 namespace CFF {
@@ -148,6 +149,49 @@ struct DictOpSet : OpSet<Number>
     }
 
     return true;
+  }
+
+  static inline bool parse_bcd (SubByteStr& substr, float& v)
+  {
+    v = 0.0f;
+    hb_vector_t<char, 64> str;
+
+    str.init ();
+    str.push ('x'); /* hack: disguise a varation option string */
+    str.push ('=');
+    unsigned char byte = 0;
+    for (unsigned int i = 0; substr.avail (); i++)
+    {
+      char c;
+      if ((i & 1) == 0)
+      {
+        byte = substr[0];
+        substr.inc ();
+        c = (byte & 0xF0) >> 4;
+      }
+      else
+        c = byte & 0x0F;
+
+      if (c == 0x0F)
+      {
+        hb_variation_t  var;
+        if (unlikely (!hb_variation_from_string (&str[0], str.len, &var)))
+        {
+          str.fini ();
+          return false;
+        }
+        v = var.value;
+        str.fini ();
+        return true;
+      }
+      else if (c == 0x0D) return false;
+      
+      str.push ("0123456789.EE - "[c]);
+      if (c == 0x0C)
+        str.push ('-');
+    }
+    str.fini ();
+    return false;
   }
 
   static inline bool is_hint_op (OpCode op)

@@ -371,21 +371,6 @@ struct SubByteStr
   unsigned int  offset; /* beginning of the sub-string within str */
 };
 
-inline float parse_bcd (SubByteStr& substr, float& v)
-{
-  // XXX: TODO
-  v = 0;
-  for (;;) {
-    if (!substr.avail ())
-      return false;
-    unsigned char byte = substr[0];
-    substr.inc ();
-    if (((byte & 0xF0) == 0xF0) || ((byte & 0x0F) == 0x0F))
-      break;
-  }
-  return true;
-}
-
 /* stack */
 template <typename ELEM, int LIMIT>
 struct Stack
