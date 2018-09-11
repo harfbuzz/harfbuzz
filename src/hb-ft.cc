@@ -33,6 +33,7 @@
 
 #include "hb-font.hh"
 #include "hb-machinery.hh"
+#include "hb-cache.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
