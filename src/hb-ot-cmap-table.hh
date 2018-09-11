@@ -231,7 +231,7 @@ struct CmapSubtableFormat4
     inline void init (const CmapSubtableFormat4 *subtable)
     {
       segCount = subtable->segCountX2 / 2;
-      endCount = subtable->values;
+      endCount = subtable->values.arrayZ;
       startCount = endCount + segCount + 1;
       idDelta = startCount + segCount;
       idRangeOffset = idDelta + segCount;
@@ -369,7 +369,8 @@ struct CmapSubtableFormat4
   HBUINT16	entrySelector;	/* log2(searchRange/2) */
   HBUINT16	rangeShift;	/* 2 x segCount - searchRange */
 
-  HBUINT16	values[VAR];
+  UnsizedArrayOf<HBUINT16>
+		values;
 #if 0
   HBUINT16	endCount[segCount];	/* End characterCode for each segment,
 					 * last=0xFFFFu. */
@@ -377,7 +378,8 @@ struct CmapSubtableFormat4
   HBUINT16	startCount[segCount];	/* Start character code for each segment. */
   HBINT16		idDelta[segCount];	/* Delta for all character codes in segment. */
   HBUINT16	idRangeOffset[segCount];/* Offsets into glyphIdArray or 0 */
-  HBUINT16	glyphIdArray[VAR];	/* Glyph index array (arbitrary length) */
+  UnsizedArrayOf<HBUINT16>
+		glyphIdArray;	/* Glyph index array (arbitrary length) */
 #endif
 
   public:

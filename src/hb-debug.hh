@@ -67,7 +67,10 @@ hb_options (void)
   u.i = _hb_options.get_relaxed ();
 
   if (unlikely (!u.i))
+  {
     _hb_options_init ();
+    u.i = _hb_options.get_relaxed ();
+  }
 
   return u.opts;
 }

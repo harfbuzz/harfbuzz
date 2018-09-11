@@ -163,11 +163,12 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
     return hb_blob_reference (data->blob);
 
   const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+  unsigned int base_offset;
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index, &base_offset);
 
   const OT::OpenTypeTable &table = ot_face.get_table_by_tag (tag);
 
-  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, table.offset, table.length);
+  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, base_offset + table.offset, table.length);
 
   return blob;
 }
@@ -526,7 +527,7 @@ hb_face_get_table_tags (const hb_face_t *face,
  * @face: font face.
  * @out: set to add Unicode characters covered by @face to.
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_unicodes (hb_face_t *face,
@@ -543,7 +544,7 @@ hb_face_collect_unicodes (hb_face_t *face,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_variation_selectors (hb_face_t *face,
@@ -560,7 +561,7 @@ hb_face_collect_variation_selectors (hb_face_t *face,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  */
 void
 hb_face_collect_variation_unicodes (hb_face_t *face,
@@ -684,7 +685,7 @@ _hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data
  *
  * Return value: (transfer full) New face.
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  **/
 hb_face_t *
 hb_face_builder_create (void)
@@ -703,7 +704,7 @@ hb_face_builder_create (void)
  * Add table for @tag with data provided by @blob to the face.  @face must
  * be created using hb_face_builder_create().
  *
- * Since: REPLACEME
+ * Since: 1.9.0
  **/
 hb_bool_t
 hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)

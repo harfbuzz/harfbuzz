@@ -541,6 +541,10 @@ struct AlternateSet
     unsigned int shift = hb_ctz (lookup_mask);
     unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
+    /* If alt_index is MAX, randomize feature if it is the rand feature. */
+    if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
+      alt_index = c->random_number () % count + 1;
+
     if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
 
     c->replace_glyph (alternates[alt_index - 1]);

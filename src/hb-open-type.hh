@@ -150,7 +150,7 @@ typedef HBUINT16 NameID;
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
-  static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;
+  enum { NOT_FOUND_INDEX = 0xFFFFu };
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
@@ -299,7 +299,6 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) 
  * Array Types
  */
 
-/* TODO Use it in ArrayOf, HeadlessArrayOf, and other places around the code base?? */
 template <typename Type>
 struct UnsizedArrayOf
 {
@@ -345,11 +344,11 @@ struct UnsizedArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_array (arrayZ, arrayZ[0].static_size, count));
+    return_trace (c->check_array (arrayZ, count));
   }
 
   public:
-  Type	arrayZ[VAR];
+  Type		arrayZ[VAR];
   public:
   DEFINE_SIZE_ARRAY (0, arrayZ);
 };
@@ -487,12 +486,12 @@ struct ArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (len.sanitize (c) && c->check_array (arrayZ, Type::static_size, len));
+    return_trace (len.sanitize (c) && c->check_array (arrayZ, len));
   }
 
   public:
-  LenType len;
-  Type arrayZ[VAR];
+  LenType	len;
+  Type		arrayZ[VAR];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -596,12 +595,12 @@ struct HeadlessArrayOf
   {
     TRACE_SANITIZE (this);
     return_trace (len.sanitize (c) &&
-		  (!len || c->check_array (arrayZ, Type::static_size, len - 1)));
+		  (!len || c->check_array (arrayZ, len - 1)));
   }
 
   public:
-  LenType len;
-  Type arrayZ[VAR];
+  LenType	len;
+  Type		arrayZ[VAR];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };

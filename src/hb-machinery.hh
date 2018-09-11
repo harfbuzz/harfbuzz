@@ -99,8 +99,8 @@ static inline Type& StructAfter(TObject &X)
 
 #define DEFINE_SIZE_STATIC(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)); \
-  static const unsigned int static_size = (size); \
-  static const unsigned int min_size = (size); \
+  enum { static_size = (size) }; \
+  enum { min_size = (size) }; \
   inline unsigned int get_size (void) const { return (size); }
 
 #define DEFINE_SIZE_UNION(size, _member) \
@@ -114,7 +114,7 @@ static inline Type& StructAfter(TObject &X)
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof (array[0])); \
   DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
-  static const unsigned int min_size = (size); \
+  enum { min_size = (size) }; \
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
 	DEFINE_SIZE_ARRAY(size, array); \
@@ -133,7 +133,7 @@ static inline Type& StructAfter(TObject &X)
 template <typename Context, typename Return, unsigned int MaxDebugDepth>
 struct hb_dispatch_context_t
 {
-  static const unsigned int max_debug_depth = MaxDebugDepth;
+  enum { max_debug_depth = MaxDebugDepth };
   typedef Return return_t;
   template <typename T, typename F>
   inline bool may_dispatch (const T *obj, const F *format) { return true; }
@@ -296,7 +296,8 @@ struct hb_sanitize_context_t :
     return likely (ok);
   }
 
-  inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
+  template <typename T>
+  inline bool check_array (const T *base, unsigned int len, unsigned int record_size = T::static_size) const
   {
     const char *p = (const char *) base;
     bool overflows = hb_unsigned_mul_overflows (len, record_size);

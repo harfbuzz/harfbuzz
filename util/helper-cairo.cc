@@ -125,7 +125,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
     }
 #endif
 
-    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
+    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, font_opts->ft_load_flags);
   }
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;

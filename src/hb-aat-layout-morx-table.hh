@@ -619,7 +619,7 @@ struct Chain
 {
   inline void apply (hb_aat_apply_context_t *c) const
   {
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -648,10 +648,10 @@ struct Chain
 	!c->check_range (this, length))
       return_trace (false);
 
-    if (!c->check_array (featureZ, featureZ[0].static_size, featureCount))
+    if (!c->check_array (featureZ.arrayZ, featureCount))
       return_trace (false);
 
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -669,8 +669,8 @@ struct Chain
   HBUINT32	featureCount;	/* Number of feature subtable entries. */
   HBUINT32	subtableCount;	/* The number of subtables in the chain. */
 
-  Feature	featureZ[VAR];	/* Features. */
-/*ChainSubtable	subtableX[VAR];*//* Subtables. */
+  UnsizedArrayOf<Feature>	featureZ;	/* Features. */
+/*ChainSubtable	firstSubtable;*//* Subtables. */
 /*subtableGlyphCoverageArray*/	/* Only if major == 3. */
 
   public:
@@ -689,7 +689,7 @@ struct morx
   inline void apply (hb_aat_apply_context_t *c) const
   {
     c->set_lookup_index (0);
-    const Chain *chain = chainsZ;
+    const Chain *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -706,7 +706,7 @@ struct morx
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain *chain = chainsZ;
+    const Chain *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -723,7 +723,7 @@ struct morx
 				 * 1 for mort, 2 or 3 for morx. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain		chainsZ[VAR];	/* Chains. */
+  Chain		firstChain;	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);

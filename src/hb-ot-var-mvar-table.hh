@@ -68,14 +68,14 @@ struct MVAR
 		  c->check_struct (this) &&
 		  valueRecordSize >= VariationValueRecord::static_size &&
 		  varStore.sanitize (c, this) &&
-		  c->check_array (values, valueRecordSize, valueRecordCount));
+		  c->check_array (valuesZ.arrayZ, valueRecordCount, valueRecordSize));
   }
 
   inline float get_var (hb_tag_t tag,
 			int *coords, unsigned int coord_count) const
   {
     const VariationValueRecord *record;
-    record = (VariationValueRecord *) bsearch (&tag, values,
+    record = (VariationValueRecord *) bsearch (&tag, valuesZ.arrayZ,
 					       valueRecordCount, valueRecordSize,
 					       tag_compare);
     if (!record)
@@ -101,11 +101,12 @@ protected:
   HBUINT16	valueRecordCount;/* The number of value records — may be zero. */
   OffsetTo<VariationStore>
 		varStore;	/* Offset to item variation store table. */
-  HBUINT8		values[VAR];	/* Array of value records. The records must be
+  UnsizedArrayOf<HBUINT8>
+		valuesZ;	/* Array of value records. The records must be
 				 * in binary order of their valueTag field. */
 
   public:
-  DEFINE_SIZE_ARRAY (12, values);
+  DEFINE_SIZE_ARRAY (12, valuesZ);
 };
 
 } /* namespace OT */

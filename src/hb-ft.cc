@@ -33,6 +33,7 @@
 
 #include "hb-font.hh"
 #include "hb-machinery.hh"
+#include "hb-cache.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
@@ -68,6 +69,9 @@ struct hb_ft_font_t
   int load_flags;
   bool symbol; /* Whether selected cmap is symbol cmap. */
   bool unref; /* Whether to destroy ft_face when done. */
+
+  mutable int cached_x_scale;
+  mutable hb_advance_cache_t advance_cache;
 };
 
 static hb_ft_font_t *
@@ -84,6 +88,9 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 
+  ft_font->cached_x_scale = 0;
+  ft_font->advance_cache.init ();
+
   return ft_font;
 }
 
@@ -97,6 +104,8 @@ static void
 _hb_ft_font_destroy (void *data)
 {
   hb_ft_font_t *ft_font = (hb_ft_font_t *) data;
+
+  ft_font->advance_cache.fini ();
 
   if (ft_font->unref)
     _hb_ft_face_destroy (ft_font->ft_face);
@@ -225,6 +234,46 @@ hb_ft_get_glyph_h_advance (hb_font_t *font,
     v = -v;
 
   return (v + (1<<9)) >> 10;
+}
+
+static void
+hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
+			    unsigned count,
+			    hb_codepoint_t *first_glyph,
+			    unsigned glyph_stride,
+			    hb_position_t *first_advance,
+			    unsigned advance_stride,
+			    void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Face ft_face = ft_font->ft_face;
+  int load_flags = ft_font->load_flags;
+  int mult = font->x_scale < 0 ? -1 : +1;
+
+  if (font->x_scale != ft_font->cached_x_scale)
+  {
+    ft_font->advance_cache.clear ();
+    ft_font->cached_x_scale = font->x_scale;
+  }
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    FT_Fixed v = 0;
+    hb_codepoint_t glyph = *first_glyph;
+
+    unsigned int cv;
+    if (ft_font->advance_cache.get (glyph, &cv))
+      v = cv;
+    else
+    {
+      FT_Get_Advance (ft_face, glyph, load_flags, &v);
+      ft_font->advance_cache.set (glyph, v);
+    }
+
+    *first_advance = (v * mult + (1<<9)) >> 10;
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
 }
 
 static hb_position_t
@@ -432,6 +481,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_nominal_glyph_func (funcs, hb_ft_get_nominal_glyph, nullptr, nullptr);
     hb_font_funcs_set_variation_glyph_func (funcs, hb_ft_get_variation_glyph, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ft_get_glyph_h_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ft_get_glyph_h_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, nullptr, nullptr);

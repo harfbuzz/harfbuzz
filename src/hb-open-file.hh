@@ -115,7 +115,7 @@ typedef struct OffsetTable
      * table list. */
     int i = tables.len < 64 ? tables.lsearch (t) : tables.bsearch (t);
     if (table_index)
-      *table_index = i == -1 ? Index::NOT_FOUND_INDEX : (unsigned int) i;
+      *table_index = i == -1 ? (unsigned) Index::NOT_FOUND_INDEX : (unsigned) i;
     return i != -1;
   }
   inline const TableRecord& get_table_by_tag (hb_tag_t tag) const
@@ -300,7 +300,7 @@ struct ResourceRefItem
 
   HBINT16	id;		/* Resource ID, is really should be signed? */
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
-				 * to resource name, minus means there is no */
+				 * to resource name, minus means there is none. */
   HBUINT8	attr;		/* Resource attributes */
   HBUINT24	dataOffset;	/* Offset from beginning of resource data to
 				 * data for this resource */
@@ -318,15 +318,9 @@ struct ResourceTypeItem
     return_trace (likely (c->check_struct (this)));
   }
 
-  inline unsigned int get_resource_count () const
-  {
-    return numRes + 1;
-  }
+  inline unsigned int get_resource_count () const { return numRes + 1; }
 
-  inline bool is_sfnt () const
-  {
-    return type == HB_TAG ('s','f','n','t');
-  }
+  inline bool is_sfnt () const { return type == HB_TAG ('s','f','n','t'); }
 
   inline const ResourceRefItem& get_ref_item (const void *base,
 					      unsigned int i) const
@@ -335,11 +329,11 @@ struct ResourceTypeItem
   }
 
   protected:
-  Tag		type;		/* Resource type */
-  HBUINT16	numRes;		/* Number of resource this type in map minus 1 */
+  Tag		type;		/* Resource type. */
+  HBUINT16	numRes;		/* Number of resources minus 1. */
   OffsetTo<UnsizedArrayOf<ResourceRefItem> >
 		refList;	/* Offset from beginning of resource type list
-				 * to reference list for this type */
+				 * to reference item list for this type. */
   public:
   DEFINE_SIZE_STATIC (8);
 };
@@ -428,14 +422,19 @@ struct ResourceForkHeader
     return StructAtOffset<LArrayOf<HBUINT8> > (this, offset);
   }
 
-  inline const OpenTypeFontFace& get_face (unsigned int idx) const
+  inline const OpenTypeFontFace& get_face (unsigned int idx, unsigned int *base_offset = nullptr) const
   {
     const ResourceMap &resource_map = this+map;
     for (unsigned int i = 0; i < resource_map.get_types_count (); ++i)
     {
       const ResourceTypeItem& type = resource_map.get_type (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
-	return (OpenTypeFontFace&) get_data (type, idx).arrayZ;
+      {
+	const OpenTypeFontFace &face = (OpenTypeFontFace&) get_data (type, idx).arrayZ;
+	if (base_offset)
+	  *base_offset = (const char *) &face - (const char *) this;
+	return face;
+      }
     }
     return Null (OpenTypeFontFace);
   }
@@ -485,7 +484,7 @@ struct OpenTypeFontFile
 {
   enum {
     CFFTag		= HB_TAG ('O','T','T','O'), /* OpenType with Postscript outlines */
-    TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 ), /* OpenType with TrueType outlines */
+    TrueTypeTag		= HB_TAG ( 0 , 1 , 0 , 0 ), /* OpenType with TrueType outlines */
     TTCTag		= HB_TAG ('t','t','c','f'), /* TrueType Collection */
     DFontTag		= HB_TAG ( 0 , 0 , 1 , 0 ), /* DFont Mac Resource Fork */
     TrueTag		= HB_TAG ('t','r','u','e'), /* Obsolete Apple TrueType */
@@ -502,12 +501,14 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return 1;
     case TTCTag:	return u.ttcHeader.get_face_count ();
-//    case DFontTag:	return u.rfHeader.get_face_count ();
+    case DFontTag:	return u.rfHeader.get_face_count ();
     default:		return 0;
     }
   }
-  inline const OpenTypeFontFace& get_face (unsigned int i) const
+  inline const OpenTypeFontFace& get_face (unsigned int i, unsigned int *base_offset = nullptr) const
   {
+    if (base_offset)
+      *base_offset = 0;
     switch (u.tag) {
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
@@ -517,7 +518,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return u.fontFace;
     case TTCTag:	return u.ttcHeader.get_face (i);
-//    case DFontTag:	return u.rfHeader.get_face (i);
+    case DFontTag:	return u.rfHeader.get_face (i, base_offset);
     default:		return Null(OpenTypeFontFace);
     }
   }
@@ -544,7 +545,7 @@ struct OpenTypeFontFile
     case Typ1Tag:
     case TrueTypeTag:	return_trace (u.fontFace.sanitize (c));
     case TTCTag:	return_trace (u.ttcHeader.sanitize (c));
-//    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
+    case DFontTag:	return_trace (u.rfHeader.sanitize (c));
     default:		return_trace (true);
     }
   }

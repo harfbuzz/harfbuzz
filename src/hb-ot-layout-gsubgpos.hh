@@ -33,6 +33,7 @@
 #include "hb-buffer.hh"
 #include "hb-map.hh"
 #include "hb-set.hh"
+#include "hb-ot-map.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gdef-table.hh"
 
@@ -478,9 +479,12 @@ struct hb_ot_apply_context_t :
   unsigned int nesting_level_left;
   unsigned int debug_depth;
 
+  bool has_glyph_classes;
   bool auto_zwnj;
   bool auto_zwj;
-  bool has_glyph_classes;
+  bool random;
+
+  uint32_t random_state;
 
 
   hb_ot_apply_context_t (unsigned int table_index_,
@@ -498,13 +502,16 @@ struct hb_ot_apply_context_t :
 			lookup_props (0),
 			nesting_level_left (HB_MAX_NESTING_LEVEL),
 			debug_depth (0),
+			has_glyph_classes (gdef.has_glyph_classes ()),
 			auto_zwnj (true),
 			auto_zwj (true),
-			has_glyph_classes (gdef.has_glyph_classes ()) {}
+			random (false),
+			random_state (1) {}
 
   inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
   inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
   inline void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; }
+  inline void set_random (bool random_) { random = random_; }
   inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   inline void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
   inline void set_lookup_props (unsigned int lookup_props_)
@@ -512,6 +519,13 @@ struct hb_ot_apply_context_t :
     lookup_props = lookup_props_;
     iter_input.init (this, false);
     iter_context.init (this, true);
+  }
+
+  inline uint32_t random_number (void)
+  {
+    /* http://www.cplusplus.com/reference/random/minstd_rand/ */
+    random_state = random_state * 48271 % 2147483647;
+    return random_state;
   }
 
   inline bool
@@ -1222,42 +1236,42 @@ struct Rule
   inline bool intersects (const hb_set_t *glyphs, ContextClosureLookupContext &lookup_context) const
   {
     return context_intersects (glyphs,
-			       inputCount, inputZ,
+			       inputCount, inputZ.arrayZ,
 			       lookup_context);
   }
 
   inline void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
     TRACE_CLOSURE (this);
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAtOffset<UnsizedArrayOf<LookupRecord> > (inputZ.arrayZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
     context_closure_lookup (c,
-			    inputCount, inputZ,
-			    lookupCount, lookupRecord,
+			    inputCount, inputZ.arrayZ,
+			    lookupCount, lookupRecord.arrayZ,
 			    lookup_context);
   }
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c, ContextCollectGlyphsLookupContext &lookup_context) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAtOffset<UnsizedArrayOf<LookupRecord> > (inputZ.arrayZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
     context_collect_glyphs_lookup (c,
-				   inputCount, inputZ,
-				   lookupCount, lookupRecord,
+				   inputCount, inputZ.arrayZ,
+				   lookupCount, lookupRecord.arrayZ,
 				   lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
     TRACE_WOULD_APPLY (this);
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return_trace (context_would_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAtOffset<UnsizedArrayOf<LookupRecord> > (inputZ.arrayZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
+    return_trace (context_would_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
   }
 
   inline bool apply (hb_ot_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return_trace (context_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAtOffset<UnsizedArrayOf<LookupRecord> > (inputZ.arrayZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
+    return_trace (context_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
   }
 
   public:
@@ -1266,8 +1280,8 @@ struct Rule
     TRACE_SANITIZE (this);
     return_trace (inputCount.sanitize (c) &&
 		  lookupCount.sanitize (c) &&
-		  c->check_range (inputZ,
-				  inputZ[0].static_size * inputCount +
+		  c->check_range (inputZ.arrayZ,
+				  inputZ[0].static_size * (inputCount ? inputCount - 1 : 0) +
 				  LookupRecord::static_size * lookupCount));
   }
 
@@ -1276,9 +1290,11 @@ struct Rule
 					 * glyph sequence--includes the first
 					 * glyph */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
-  HBUINT16	inputZ[VAR];		/* Array of match inputs--start with
+  UnsizedArrayOf<HBUINT16>
+ 		inputZ;			/* Array of match inputs--start with
 					 * second glyph */
-/*LookupRecord	lookupRecordX[VAR];*/	/* Array of LookupRecords--in
+/*UnsizedArrayOf<LookupRecord>
+		lookupRecordX;*/	/* Array of LookupRecords--in
 					 * design order */
   public:
   DEFINE_SIZE_ARRAY (4, inputZ);
@@ -1595,7 +1611,7 @@ struct ContextFormat3
       this
     };
     return context_intersects (glyphs,
-			       glyphCount, (const HBUINT16 *) (coverageZ + 1),
+			       glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 			       lookup_context);
   }
 
@@ -1605,13 +1621,13 @@ struct ContextFormat3
     if (!(this+coverageZ[0]).intersects (c->glyphs))
       return;
 
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * glyphCount);
     struct ContextClosureLookupContext lookup_context = {
       {intersects_coverage},
       this
     };
     context_closure_lookup (c,
-			    glyphCount, (const HBUINT16 *) (coverageZ + 1),
+			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 			    lookupCount, lookupRecord,
 			    lookup_context);
   }
@@ -1621,14 +1637,14 @@ struct ContextFormat3
     TRACE_COLLECT_GLYPHS (this);
     (this+coverageZ[0]).add_coverage (c->input);
 
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * glyphCount);
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_coverage},
       this
     };
 
     context_collect_glyphs_lookup (c,
-				   glyphCount, (const HBUINT16 *) (coverageZ + 1),
+				   glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 				   lookupCount, lookupRecord,
 				   lookup_context);
   }
@@ -1637,12 +1653,12 @@ struct ContextFormat3
   {
     TRACE_WOULD_APPLY (this);
 
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
       {match_coverage},
       this
     };
-    return_trace (context_would_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
+    return_trace (context_would_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1654,12 +1670,12 @@ struct ContextFormat3
     unsigned int index = (this+coverageZ[0]).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
       {match_coverage},
       this
     };
-    return_trace (context_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
+    return_trace (context_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
   inline bool subset (hb_subset_context_t *c) const
@@ -1675,11 +1691,11 @@ struct ContextFormat3
     if (!c->check_struct (this)) return_trace (false);
     unsigned int count = glyphCount;
     if (!count) return_trace (false); /* We want to access coverageZ[0] freely. */
-    if (!c->check_array (coverageZ, coverageZ[0].static_size, count)) return_trace (false);
+    if (!c->check_array (coverageZ.arrayZ, count)) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (!coverageZ[i].sanitize (c, this)) return_trace (false);
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * count);
-    return_trace (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ.arrayZ, coverageZ[0].static_size * count);
+    return_trace (c->check_array (lookupRecord, lookupCount));
   }
 
   protected:
@@ -1687,10 +1703,11 @@ struct ContextFormat3
   HBUINT16	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
-  OffsetTo<Coverage>
-		coverageZ[VAR];		/* Array of offsets to Coverage
+  UnsizedArrayOf<OffsetTo<Coverage> >
+		coverageZ;		/* Array of offsets to Coverage
 					 * table in glyph sequence order */
-/*LookupRecord	lookupRecordX[VAR];*/	/* Array of LookupRecords--in
+/*UnsizedArrayOf<LookupRecord>
+		lookupRecordX;*/	/* Array of LookupRecords--in
 					 * design order */
   public:
   DEFINE_SIZE_ARRAY (6, coverageZ);

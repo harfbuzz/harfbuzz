@@ -66,7 +66,7 @@ struct DeviceRecord
       if (unlikely (i >= len())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->glyphs [i];
 
-      const HBUINT8* width = &(this->source_device_record->widths[gid]);
+      const HBUINT8* width = &(this->source_device_record->widthsZ[gid]);
 
       if (width < ((const HBUINT8 *) this->source_device_record) + size_device_record)
 	return width;
@@ -77,11 +77,7 @@ struct DeviceRecord
 
   static inline unsigned int get_size (unsigned int count)
   {
-    unsigned int raw_size = min_size + count * HBUINT8::static_size;
-    if (raw_size % 4)
-      /* Align to 32 bits */
-      return raw_size + (4 - (raw_size % 4));
-    return raw_size;
+    return hb_ceil_to_4 (min_size + count * HBUINT8::static_size);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
@@ -107,7 +103,7 @@ struct DeviceRecord
 	DEBUG_MSG(SUBSET, nullptr, "HDMX width for new gid %d is missing.", i);
 	return_trace (false);
       }
-      widths[i].set (*width);
+      widthsZ[i].set (*width);
     }
 
     return_trace (true);
@@ -120,11 +116,11 @@ struct DeviceRecord
 			  c->check_range (this, size_device_record)));
   }
 
-  HBUINT8 pixel_size;   /* Pixel size for following widths (as ppem). */
-  HBUINT8 max_width;    /* Maximum width. */
-  HBUINT8 widths[VAR];  /* Array of widths (numGlyphs is from the 'maxp' table). */
+  HBUINT8			pixel_size;   /* Pixel size for following widths (as ppem). */
+  HBUINT8			max_width;    /* Maximum width. */
+  UnsizedArrayOf<HBUINT8>	widthsZ;  /* Array of widths (numGlyphs is from the 'maxp' table). */
   public:
-  DEFINE_SIZE_ARRAY (2, widths);
+  DEFINE_SIZE_ARRAY (2, widthsZ);
 };
 
 
@@ -140,7 +136,7 @@ struct hdmx
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
     if (unlikely (i >= num_records)) return Null(DeviceRecord);
-    return StructAtOffset<DeviceRecord> (this->data, i * size_device_record);
+    return StructAtOffset<DeviceRecord> (&this->dataZ, i * size_device_record);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
@@ -211,12 +207,12 @@ struct hdmx
   }
 
   protected:
-  HBUINT16	version;		/* Table version number (0) */
-  HBUINT16	num_records;		/* Number of device records. */
-  HBUINT32	size_device_record;	/* Size of a device record, 32-bit aligned. */
-  HBUINT8	data[VAR];		/* Array of device records. */
+  HBUINT16			version;		/* Table version number (0) */
+  HBUINT16			num_records;		/* Number of device records. */
+  HBUINT32			size_device_record;	/* Size of a device record, 32-bit aligned. */
+  UnsizedArrayOf<HBUINT8>	dataZ;			/* Array of device records. */
   public:
-  DEFINE_SIZE_ARRAY (8, data);
+  DEFINE_SIZE_ARRAY (8, dataZ);
 };
 
 } /* namespace OT */

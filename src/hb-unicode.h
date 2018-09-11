@@ -40,6 +40,11 @@
 HB_BEGIN_DECLS
 
 
+/**
+ * HB_UNICODE_MAX
+ *
+ * Since: 1.9.0
+ */
 #define HB_UNICODE_MAX 0x10FFFFu
 
 

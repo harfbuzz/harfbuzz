@@ -90,9 +90,13 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
+  /* Automatic fractions. */
   map->add_feature (HB_TAG ('f','r','a','c'), 1, F_NONE);
   map->add_feature (HB_TAG ('n','u','m','r'), 1, F_NONE);
   map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
+
+  /* Random! */
+  map->add_feature (HB_TAG ('r','a','n','d'), HB_OT_MAP_MAX_VALUE, F_GLOBAL | F_RANDOM);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
@@ -117,7 +121,8 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
 
-  for (unsigned int i = 0; i < num_user_features; i++) {
+  for (unsigned int i = 0; i < num_user_features; i++)
+  {
     const hb_feature_t *feature = &user_features[i];
     map->add_feature (feature->tag, feature->value,
 		      (feature->start == 0 && feature->end == (unsigned int) -1) ?

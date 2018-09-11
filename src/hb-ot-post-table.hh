@@ -55,10 +55,11 @@ struct postV2Tail
     return_trace (glyphNameIndex.sanitize (c));
   }
 
-  ArrayOf<HBUINT16>glyphNameIndex;	/* This is not an offset, but is the
+  ArrayOf<HBUINT16>	glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
-  HBUINT8		namesX[VAR];		/* Glyph names with length bytes [variable]
+  UnsizedArrayOf<HBUINT8>
+			namesX;		/* Glyph names with length bytes [variable]
 					 * (a Pascal string). */
 
   DEFINE_SIZE_ARRAY2 (2, glyphNameIndex, namesX);

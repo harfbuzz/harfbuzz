@@ -157,7 +157,7 @@ struct hb_set_t
     }
 
     typedef unsigned long long elt_t;
-    static const unsigned int PAGE_BITS = 512;
+    enum { PAGE_BITS = 512 };
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
     static inline unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
@@ -165,11 +165,11 @@ struct hb_set_t
 
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
-    static const unsigned int ELT_BITS = sizeof (elt_t) * 8;
-    static const unsigned int ELT_MASK = ELT_BITS - 1;
-    static const unsigned int BITS = sizeof (vector_t) * 8;
-    static const unsigned int MASK = BITS - 1;
-    static_assert (PAGE_BITS == BITS, "");
+    enum { ELT_BITS = sizeof (elt_t) * 8 };
+    enum { ELT_MASK = ELT_BITS - 1 };
+    enum { BITS = sizeof (vector_t) * 8 };
+    enum { MASK = BITS - 1 };
+    static_assert ((unsigned) PAGE_BITS == (unsigned) BITS, "");
 
     elt_t &elt (hb_codepoint_t g) { return v[(g & MASK) / ELT_BITS]; }
     elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }

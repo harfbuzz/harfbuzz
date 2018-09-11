@@ -392,7 +392,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   name.stringOffset.set (name.get_size ());
   for (unsigned int i = 0; i < ARRAY_LENGTH (name_IDs); i++)
   {
-    OT::NameRecord &record = name.nameRecord[i];
+    OT::NameRecord &record = name.nameRecordZ[i];
     record.platformID.set (3);
     record.encodingID.set (1);
     record.languageID.set (0x0409u); /* English */

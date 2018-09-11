@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#include "hb-null.hh"
+
 
 /* Void! For when we need a expression-type of void. */
 typedef const struct _hb_void_t *hb_void_t;
@@ -505,6 +507,24 @@ struct hb_auto_t : Type
   private: /* Hide */
   void init (void) {}
   void fini (void) {}
+};
+
+template <typename T>
+struct hb_array_t
+{
+  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
+  inline hb_array_t (const T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+
+  inline const T& operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= len)) return Null(T);
+    return arrayZ[i];
+  }
+
+  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+
+  const T *arrayZ;
+  unsigned int len;
 };
 
 struct hb_bytes_t

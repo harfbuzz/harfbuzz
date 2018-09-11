@@ -98,7 +98,7 @@ static inline void _hb_memory_barrier (void)
 {
 #if !defined(MemoryBarrier)
   /* MinGW has a convoluted history of supporting MemoryBarrier. */
-  long dummy = 0;
+  LONG dummy = 0;
   InterlockedExchange (&dummy, 1);
 #else
   MemoryBarrier ();
@@ -106,7 +106,8 @@ static inline void _hb_memory_barrier (void)
 }
 #define _hb_memory_barrier()			_hb_memory_barrier ()
 
-#define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((unsigned *) (AI), (V))
+#define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((LONG *) (AI), (V))
+static_assert ((sizeof (LONG) == sizeof (int)), "");
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 

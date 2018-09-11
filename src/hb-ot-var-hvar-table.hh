@@ -39,7 +39,7 @@ struct DeltaSetIndexMap
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (mapData, get_width (), mapCount));
+		  c->check_array (mapDataZ.arrayZ, mapCount, get_width ()));
   }
 
   unsigned int map (unsigned int v) const /* Returns 16.16 outer.inner. */
@@ -55,7 +55,7 @@ struct DeltaSetIndexMap
     unsigned int u = 0;
     { /* Fetch it. */
       unsigned int w = get_width ();
-      const HBUINT8 *p = mapData + w * v;
+      const HBUINT8 *p = mapDataZ.arrayZ + w * v;
       for (; w; w--)
 	u = (u << 8) + *p++;
     }
@@ -81,10 +81,11 @@ struct DeltaSetIndexMap
   HBUINT16	format;		/* A packed field that describes the compressed
 				 * representation of delta-set indices. */
   HBUINT16	mapCount;	/* The number of mapping entries. */
-  HBUINT8		mapData[VAR];	/* The delta-set index mapping data. */
+  UnsizedArrayOf<HBUINT8>
+ 		mapDataZ;	/* The delta-set index mapping data. */
 
   public:
-  DEFINE_SIZE_ARRAY (4, mapData);
+  DEFINE_SIZE_ARRAY (4, mapDataZ);
 };
 
 

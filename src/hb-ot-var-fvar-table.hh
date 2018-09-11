@@ -46,20 +46,21 @@ struct InstanceRecord
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (coordinates, coordinates[0].static_size, axis_count));
+		  c->check_array (coordinatesZ.arrayZ, axis_count));
   }
 
   protected:
   NameID	subfamilyNameID;/* The name ID for entries in the 'name' table
 				 * that provide subfamily names for this instance. */
   HBUINT16	reserved;	/* Reserved for future use — set to 0. */
-  Fixed		coordinates[VAR];/* The coordinates array for this instance. */
+  UnsizedArrayOf<Fixed>
+		coordinatesZ;	/* The coordinates array for this instance. */
   //NameID	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
   //				  * table that provide PostScript names for this
   //				  * instance. */
 
   public:
-  DEFINE_SIZE_ARRAY (4, coordinates);
+  DEFINE_SIZE_ARRAY (4, coordinatesZ);
 };
 
 struct AxisRecord

@@ -1068,7 +1068,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
 struct GSUBProxy
 {
-  static const unsigned int table_index = 0;
+  enum { table_index = 0 };
   static const bool inplace = false;
   typedef OT::SubstLookup Lookup;
 
@@ -1082,7 +1082,7 @@ struct GSUBProxy
 
 struct GPOSProxy
 {
-  static const unsigned int table_index = 1;
+  enum { table_index = 1 };
   static const bool inplace = true;
   typedef OT::PosLookup Lookup;
 
@@ -1268,6 +1268,11 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       c.set_lookup_mask (lookups[table_index][i].mask);
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
       c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
+      if (lookups[table_index][i].random)
+      {
+	c.set_random (true);
+	buffer->unsafe_to_break_all ();
+      }
       apply_string<Proxy> (&c,
 			   proxy.table.get_lookup (lookup_index),
 			   proxy.accels[lookup_index]);
