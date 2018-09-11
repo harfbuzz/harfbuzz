@@ -484,7 +484,7 @@ struct hb_ot_apply_context_t :
   bool auto_zwj;
   bool random;
 
-  uint64_t random_state;
+  uint32_t random_state;
 
 
   hb_ot_apply_context_t (unsigned int table_index_,
@@ -523,8 +523,9 @@ struct hb_ot_apply_context_t :
 
   inline uint32_t random_number (void)
   {
-    random_state = (0x5DEECE66Dull * random_state + 11) & (((uint64_t) 1 << 48) - 1);
-    return random_state >> 32;
+    /* http://www.cplusplus.com/reference/random/minstd_rand/ */
+    random_state = random_state * 48271 % 2147483647;
+    return random_state;
   }
 
   inline bool
