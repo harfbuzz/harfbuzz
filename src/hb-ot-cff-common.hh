@@ -42,9 +42,10 @@ template<typename Type>
 static inline const Type& StructAtOffsetOrNull(const void *P, unsigned int offset)
 { return offset? (* reinterpret_cast<const Type*> ((const char *) P + offset)): Null(Type); }
 
-inline unsigned int calcOffSize(unsigned int offset)
+inline unsigned int calcOffSize(unsigned int dataSize)
 {
   unsigned int size = 1;
+  unsigned int offset = dataSize + 1;
   while ((offset & ~0xFF) != 0)
   {
     size++;
@@ -493,7 +494,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
       if (!fdmap.excludes (i))
         dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
-    offSize_ = calcOffSize (dictsSize + 1);
+    offSize_ = calcOffSize (dictsSize);
     return CFFIndex<COUNT>::calculate_serialized_size (offSize_, fdCount, dictsSize);
   }
 };

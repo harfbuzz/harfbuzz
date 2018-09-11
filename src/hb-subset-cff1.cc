@@ -635,7 +635,7 @@ struct cff_subset_plan {
         if (!fdmap.excludes (i))
           dictsSize += FontDict::calculate_serialized_size (acc.fontDicts[i], fontSzr);
 
-      offsets.FDArrayInfo.offSize = calcOffSize (dictsSize + 1);
+      offsets.FDArrayInfo.offSize = calcOffSize (dictsSize);
       final_size += CFF1Index::calculate_serialized_size (offsets.FDArrayInfo.offSize, subset_fdcount, dictsSize);
     }
 
@@ -650,7 +650,7 @@ struct cff_subset_plan {
         subset_charstrings.push (str);
         dataSize += flatstr.len;
       }
-      offsets.charStringsInfo.offSize = calcOffSize (dataSize + 1);
+      offsets.charStringsInfo.offSize = calcOffSize (dataSize);
       final_size += CFF1CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.len, dataSize);
     }
 

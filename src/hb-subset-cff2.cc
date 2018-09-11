@@ -269,7 +269,7 @@ struct cff2_subset_plan {
         subset_charstrings.push (str);
         dataSize += flatstr.len;
       }
-      offsets.charStringsInfo.offSize = calcOffSize (dataSize + 1);
+      offsets.charStringsInfo.offSize = calcOffSize (dataSize);
       final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.len, dataSize);
     }
 
