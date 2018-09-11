@@ -543,10 +543,7 @@ struct AlternateSet
 
     /* If alt_index is MAX, randomize feature if it is the rand feature. */
     if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
-    {
-      c->random_state = (0x5DEECE66Dull * c->random_state + 11) & (((uint64_t) 1 << 48) - 1);
-      alt_index = (c->random_state >> 32) % count + 1;
-    }
+      alt_index = c->random_number () % count + 1;
 
     if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
 

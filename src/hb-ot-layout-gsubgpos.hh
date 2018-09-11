@@ -521,6 +521,12 @@ struct hb_ot_apply_context_t :
     iter_context.init (this, true);
   }
 
+  inline uint32_t random_number (void)
+  {
+    random_state = (0x5DEECE66Dull * random_state + 11) & (((uint64_t) 1 << 48) - 1);
+    return random_state >> 32;
+  }
+
   inline bool
   match_properties_mark (hb_codepoint_t  glyph,
 			 unsigned int    glyph_props,
