@@ -59,7 +59,7 @@ struct ByteStrBuff : hb_vector_t<char, 1>
         return encode_byte ((v >> 8) + OpCode_TwoByteNegInt0) && encode_byte (v & 0xFF);
       }
     }
-    assert ((v & ~0xFFFF) == 0);
+    assert ((-32768 <= v) && (v <= 32767));
     return encode_byte (OpCode_shortint) &&
            encode_byte ((v >> 8) & 0xFF) &&
            encode_byte (v & 0xFF);

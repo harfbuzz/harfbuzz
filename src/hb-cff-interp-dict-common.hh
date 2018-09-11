@@ -279,6 +279,9 @@ struct TopDictOpSet : DictOpSet
           return false;
         env.clear_args ();
         break;
+      case OpCode_FontMatrix:
+        env.clear_args ();
+        break;
       default:
         return DictOpSet::process_op (op, env);
     }
