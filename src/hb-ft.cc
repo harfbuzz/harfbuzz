@@ -239,14 +239,30 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   FT_Face ft_face = ft_font->ft_face;
-  int load_flags = ft_font->load_flags;
+  int load_flags;
 
   int mult = font->x_scale < 0 ? -1 : +1;
-  FT_Fixed v;
 
-  for (unsigned int i = 0; i < count; i++)
+  unsigned int i = 0;
+
+  load_flags = ft_font->load_flags | FT_ADVANCE_FLAG_FAST_ONLY;
+  for (; i < count; i++)
   {
-    v = 0;
+    FT_Fixed v = 0;
+    if (unlikely (FT_Get_Advance (ft_face, *first_glyph, load_flags, &v)))
+      goto slow;
+    *first_advance = (v * mult + (1<<9)) >> 10;
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
+  return;
+
+slow:
+  /* TODO Prepare and use cache. */
+  load_flags = ft_font->load_flags;// & ~FT_ADVANCE_FLAG_FAST_ONLY;
+  for (; i < count; i++)
+  {
+    FT_Fixed v = 0;
     FT_Get_Advance (ft_face, *first_glyph, load_flags, &v);
     *first_advance = (v * mult + (1<<9)) >> 10;
     first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
