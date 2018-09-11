@@ -287,9 +287,11 @@ struct TTCHeader
 
 /*
  * Mac Resource Fork
+ *
+ * http://mirror.informatimago.com/next/developer.apple.com/documentation/mac/MoreToolbox/MoreToolbox-99.html
  */
 
-struct ResourceRefItem
+struct ResourceRecord
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -298,10 +300,10 @@ struct ResourceRefItem
     return_trace (likely (c->check_struct (this)));
   }
 
-  HBINT16	id;		/* Resource ID, is really should be signed? */
+  HBUINT16	id;		/* Resource ID, is really should be signed? */
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
 				 * to resource name, -1 means there is none. */
-  HBUINT8	attr;		/* Resource attributes */
+  HBUINT8	attrs;		/* Resource attributes */
   HBUINT24	dataOffset;	/* Offset from beginning of resource data to
 				 * data for this resource */
   HBUINT32	reserved;	/* Reserved for handle to resource */
@@ -309,7 +311,7 @@ struct ResourceRefItem
   DEFINE_SIZE_STATIC (12);
 };
 
-struct ResourceTypeItem
+struct ResourceTypeRecord
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -318,20 +320,20 @@ struct ResourceTypeItem
     return_trace (likely (c->check_struct (this)));
   }
 
-  inline unsigned int get_resource_count () const { return numRes + 1; }
+  inline unsigned int get_resource_count () const { return resCountM1 + 1; }
 
-  inline bool is_sfnt () const { return type == HB_TAG ('s','f','n','t'); }
+  inline bool is_sfnt () const { return tag == HB_TAG ('s','f','n','t'); }
 
-  inline const ResourceRefItem& get_ref_item (const void *base,
-					      unsigned int i) const
+  inline const ResourceRecord& get_resource_record (const void *base,
+						    unsigned int i) const
   {
     return (base+refList)[i];
   }
 
   protected:
-  Tag		type;		/* Resource type. */
-  HBUINT16	numRes;		/* Number of resources minus 1. */
-  OffsetTo<UnsizedArrayOf<ResourceRefItem> >
+  Tag		tag;		/* Resource type. */
+  HBUINT16	resCountM1;	/* Number of resources minus 1. */
+  OffsetTo<UnsizedArrayOf<ResourceRecord> >
 		refList;	/* Offset from beginning of resource type list
 				 * to reference item list for this type. */
   public:
@@ -347,51 +349,41 @@ struct ResourceMap
       return_trace (false);
     for (unsigned int i = 0; i < get_types_count (); ++i)
     {
-      const ResourceTypeItem& type = get_type (i);
+      const ResourceTypeRecord& type = get_type_record (i);
       if (unlikely (!type.sanitize (c)))
         return_trace (false);
       for (unsigned int j = 0; j < type.get_resource_count (); ++j)
-	if (unlikely (!get_ref_item (type, j).sanitize (c)))
+	if (unlikely (!get_resource_record (type, j).sanitize (c)))
 	  return_trace (false);
     }
     return_trace (true);
   }
 
-  inline const ResourceTypeItem& get_type (unsigned int i) const
+  inline const ResourceTypeRecord& get_type_record (unsigned int i) const
   {
-    // Why offset from the second byte of the object? I'm not sure
-    return ((&reserved[2])+typeList)[i];
+    // Why offset from the third byte of the object? I'm not sure
+    return (((const char *) this + 2)+typeListZ)[i];
   }
 
-  inline unsigned int get_types_count () const { return nTypes + 1; }
+  inline unsigned int get_types_count () const { return typeCountM1 + 1; }
 
-  inline const ResourceRefItem &get_ref_item (const ResourceTypeItem &type,
-					      unsigned int i) const
+  inline const ResourceRecord &get_resource_record (const ResourceTypeRecord &type,
+						    unsigned int i) const
   {
-    return type.get_ref_item (&(this+typeList), i);
-  }
-
-  inline const PString& get_name (const ResourceRefItem &item,
-				  unsigned int i) const
-  {
-    if (item.nameOffset < 0)
-      return Null (PString);
-
-    return StructAtOffset<PString> (this, nameList + item.nameOffset);
+    return type.get_resource_record (&(this+typeListZ), i);
   }
 
   protected:
-  HBUINT8	reserved[16];	/* Reserved for copy of resource header */
-  LOffsetTo<ResourceMap>
-		reserved1;	/* Reserved for handle to next resource map */
-  HBUINT16	reserved2;	/* Reserved for file reference number */
-  HBUINT16	attr;		/* Resource fork attribute */
-  OffsetTo<UnsizedArrayOf<ResourceTypeItem> >
-		typeList;	/* Offset from beginning of map to
+  HBUINT8	reserved0[16];	/* Reserved for copy of resource header */
+  HBUINT32	reserved1;	/* Reserved for handle to next resource map */
+  HBUINT16	resreved2;	/* Reserved for file reference number */
+  HBUINT16	attrs;		/* Resource fork attribute */
+  OffsetTo<UnsizedArrayOf<ResourceTypeRecord> >
+		typeListZ;	/* Offset from beginning of map to
 				 * resource type list */
   Offset16	nameList;	/* Offset from beginning of map to
 				 * resource name list */
-  HBUINT16	nTypes;		/* Number of types in the map minus 1 */
+  HBUINT16	typeCountM1;	/* Number of types in the map minus 1 */
   public:
   DEFINE_SIZE_STATIC (30);
 };
@@ -403,19 +395,18 @@ struct ResourceForkHeader
     const ResourceMap &resource_map = this+map;
     for (unsigned int i = 0; i < resource_map.get_types_count (); ++i)
     {
-      const ResourceTypeItem& type = resource_map.get_type (i);
+      const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt ())
 	return type.get_resource_count ();
     }
     return 0;
   }
 
-  inline const LArrayOf<HBUINT8>& get_data (const ResourceTypeItem& type,
+  inline const LArrayOf<HBUINT8>& get_data (const ResourceTypeRecord& type,
 					    unsigned int idx) const
   {
     const ResourceMap &resource_map = this+map;
-    unsigned int offset = dataOffset;
-    offset += resource_map.get_ref_item (type, idx).dataOffset;
+    unsigned int offset = dataOffset + resource_map.get_resource_record (type, idx).dataOffset;
     return StructAtOffset<LArrayOf<HBUINT8> > (this, offset);
   }
 
@@ -424,7 +415,7 @@ struct ResourceForkHeader
     const ResourceMap &resource_map = this+map;
     for (unsigned int i = 0; i < resource_map.get_types_count (); ++i)
     {
-      const ResourceTypeItem& type = resource_map.get_type (i);
+      const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
       {
 	const OpenTypeFontFace &face = (OpenTypeFontFace&) get_data (type, idx).arrayZ;
@@ -448,7 +439,7 @@ struct ResourceForkHeader
 
     for (unsigned int i = 0; i < resource_map.get_types_count (); ++i)
     {
-      const ResourceTypeItem& type = resource_map.get_type (i);
+      const ResourceTypeRecord& type = resource_map.get_type_record (i);
       for (unsigned int j = 0; j < type.get_resource_count (); ++j)
       {
         const LArrayOf<HBUINT8>& data = get_data (type, j);
@@ -465,7 +456,7 @@ struct ResourceForkHeader
   }
 
   protected:
-  HBUINT32	dataOffset;	/* Offset from beginning of resource fork
+  Offset32	dataOffset;	/* Offset from beginning of resource fork
 				 * to resource data */
   LOffsetTo<ResourceMap>
 		map;		/* Offset from beginning of resource fork
