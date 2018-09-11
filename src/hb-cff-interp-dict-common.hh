@@ -26,8 +26,8 @@
 #ifndef HB_CFF_INTERP_DICT_COMMON_HH
 #define HB_CFF_INTERP_DICT_COMMON_HH
 
-#include "hb-common.h"
 #include "hb-cff-interp-common.hh"
+#include <math.h>
 
 namespace CFF {
 
@@ -154,43 +154,87 @@ struct DictOpSet : OpSet<Number>
   static inline bool parse_bcd (SubByteStr& substr, float& v)
   {
     v = 0.0f;
-    hb_vector_t<char, 64> str;
 
-    str.init ();
-    str.push ('x'); /* hack: disguise a varation option string */
-    str.push ('=');
+    bool    neg = false;
+    double  int_part = 0;
+    long    frac_part = 0;
+    unsigned int  frac_count = 0;
+    bool    exp_neg = false;
+    unsigned int  exp_part = 0;
+    enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
+    enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
+
+    double  value = 0.0;
     unsigned char byte = 0;
-    for (unsigned int i = 0; substr.avail (); i++)
+    for (unsigned int i = 0;; i++)
     {
-      char c;
+      char d;
       if ((i & 1) == 0)
       {
+        if (!substr.avail ()) return false;
         byte = substr[0];
         substr.inc ();
-        c = (byte & 0xF0) >> 4;
+        d = byte >> 4;
       }
       else
-        c = byte & 0x0F;
+        d = byte & 0x0F;
 
-      if (c == 0x0F)
+      switch (d)
       {
-        hb_variation_t  var;
-        if (unlikely (!hb_variation_from_string (&str[0], str.len, &var)))
-        {
-          str.fini ();
+        case RESERVED:
           return false;
-        }
-        v = var.value;
-        str.fini ();
-        return true;
+
+        case END:
+          value = (double)int_part;
+          if (frac_count > 0)
+            value += (frac_part / pow (10.0, (double)frac_count));
+          if (exp_part != 0)
+          {
+            if (exp_neg)
+              value /= pow (10.0, (double)exp_part);
+            else
+              value *= pow (10.0, (double)exp_part);
+          }
+          v = (float)value;
+          return true;
+
+        case NEG:
+          if (i != 0) return false;
+          neg = true;
+          break;
+
+        case DECIMAL:
+          if (part != INT_PART) return false;
+          part = FRAC_PART;
+          break;
+
+        case EXP_NEG:
+          exp_neg = true;
+          /* NO BREAK */
+        case EXP_POS:
+          if (part == EXP_PART) return false;
+          part = EXP_PART;
+          break;
+
+        default:
+          switch (part) {
+            default:
+            case INT_PART:
+              int_part = (int_part * 10) + d;
+              break;
+            
+            case FRAC_PART:
+              frac_part = (frac_part * 10) + d;
+              frac_count++;
+              break;
+
+            case EXP_PART:
+              exp_part = (exp_part * 10) + d;
+              break;
+          }
       }
-      else if (c == 0x0D) return false;
-      
-      str.push ("0123456789.EE - "[c]);
-      if (c == 0x0C)
-        str.push ('-');
     }
-    str.fini ();
+
     return false;
   }
 
