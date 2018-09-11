@@ -46,7 +46,6 @@ hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 hb_codepoint_t unicode,
 			 hb_codepoint_t *glyph,
 			 void *user_data HB_UNUSED)
-
 {
   const hb_ot_face_data_t *ot_font = (const hb_ot_face_data_t *) font_data;
   return ot_font->cmap.get_relaxed()->get_nominal_glyph (unicode, glyph);
@@ -74,6 +73,26 @@ hb_ot_get_glyph_h_advance (hb_font_t *font,
   return font->em_scale_x (ot_font->hmtx.get_relaxed ()->get_advance (glyph, font));
 }
 
+static void
+hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
+			    unsigned count,
+			    hb_codepoint_t *first_glyph,
+			    unsigned glyph_stride,
+			    hb_position_t *first_advance,
+			    unsigned advance_stride,
+			    void *user_data HB_UNUSED)
+{
+  const hb_ot_face_data_t *ot_font = (const hb_ot_face_data_t *) font_data;
+  const OT::hmtx_accelerator_t &hmtx = *ot_font->hmtx.get_relaxed ();
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font));
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
+}
+
 static hb_position_t
 hb_ot_get_glyph_v_advance (hb_font_t *font,
 			   void *font_data,
@@ -82,6 +101,26 @@ hb_ot_get_glyph_v_advance (hb_font_t *font,
 {
   const hb_ot_face_data_t *ot_font = (const hb_ot_face_data_t *) font_data;
   return font->em_scale_y (-(int) ot_font->vmtx.get_relaxed ()->get_advance (glyph, font));
+}
+
+static void
+hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
+			    unsigned count,
+			    hb_codepoint_t *first_glyph,
+			    unsigned glyph_stride,
+			    hb_position_t *first_advance,
+			    unsigned advance_stride,
+			    void *user_data HB_UNUSED)
+{
+  const hb_ot_face_data_t *ot_font = (const hb_ot_face_data_t *) font_data;
+  const OT::vmtx_accelerator_t &vmtx = *ot_font->vmtx.get_relaxed ();
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font));
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
 }
 
 static hb_position_t
@@ -179,7 +218,9 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
     hb_font_funcs_set_nominal_glyph_func (funcs, hb_ot_get_nominal_glyph, nullptr, nullptr);
     hb_font_funcs_set_variation_glyph_func (funcs, hb_ot_get_variation_glyph, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ot_get_glyph_h_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ot_get_glyph_h_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ot_get_glyph_v_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_advances_func (funcs, hb_ot_get_glyph_v_advances, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, nullptr, nullptr);
     //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ot_get_glyph_h_kerning, nullptr, nullptr);
