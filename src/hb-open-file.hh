@@ -300,7 +300,7 @@ struct ResourceRefItem
 
   HBINT16	id;		/* Resource ID, is really should be signed? */
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
-				 * to resource name, minus means there is no */
+				 * to resource name, minus means there is none. */
   HBUINT8	attr;		/* Resource attributes */
   HBUINT24	dataOffset;	/* Offset from beginning of resource data to
 				 * data for this resource */
@@ -318,15 +318,9 @@ struct ResourceTypeItem
     return_trace (likely (c->check_struct (this)));
   }
 
-  inline unsigned int get_resource_count () const
-  {
-    return numRes + 1;
-  }
+  inline unsigned int get_resource_count () const { return numRes + 1; }
 
-  inline bool is_sfnt () const
-  {
-    return type == HB_TAG ('s','f','n','t');
-  }
+  inline bool is_sfnt () const { return type == HB_TAG ('s','f','n','t'); }
 
   inline const ResourceRefItem& get_ref_item (const void *base,
 					      unsigned int i) const
@@ -335,11 +329,11 @@ struct ResourceTypeItem
   }
 
   protected:
-  Tag		type;		/* Resource type */
-  HBUINT16	numRes;		/* Number of resource this type in map minus 1 */
+  Tag		type;		/* Resource type. */
+  HBUINT16	numRes;		/* Number of resources minus 1. */
   OffsetTo<UnsizedArrayOf<ResourceRefItem> >
 		refList;	/* Offset from beginning of resource type list
-				 * to reference list for this type */
+				 * to reference item list for this type. */
   public:
   DEFINE_SIZE_STATIC (8);
 };
