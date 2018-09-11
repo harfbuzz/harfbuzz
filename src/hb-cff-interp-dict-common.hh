@@ -185,7 +185,7 @@ struct DictOpSet : OpSet<Number>
           return false;
 
         case END:
-          value = (double)int_part;
+          value = (double)(neg? -int_part: int_part);
           if (frac_count > 0)
             value += (frac_part / pow (10.0, (double)frac_count));
           if (exp_part != 0)
