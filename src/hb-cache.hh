@@ -44,7 +44,7 @@ struct hb_cache_t
   inline void clear (void)
   { memset (values, 255, sizeof (values)); }
 
-  inline bool get (unsigned int key, unsigned int *value)
+  inline bool get (unsigned int key, unsigned int *value) const
   {
     unsigned int k = key & ((1u<<cache_bits)-1);
     unsigned int v = values[k].get_relaxed ();
