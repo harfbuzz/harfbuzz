@@ -464,6 +464,18 @@ AM_CONDITIONAL(HAVE_CORETEXT, $have_coretext)
 
 dnl ===========================================================================
 
+AC_ARG_ENABLE(h_advance_cache,
+	[AS_HELP_STRING([--enable-h_advance_cache=@<:@yes/no@:>@],
+			[Use cache for hb_ft_get_glyph_h_advance @<:@default=no@:>@])],
+			[with_h_advance_cache=true],
+			[with_h_advance_cache=false])
+
+if $with_h_advance_cache; then
+	AC_DEFINE(USE_H_ADVANCE_CACHE, 1, [Use cache for hb_ft_get_glyph_h_advance])
+fi
+
+dnl ===========================================================================
+
 AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
 	hb_cv_have_intel_atomic_primitives=false
 	AC_TRY_LINK([

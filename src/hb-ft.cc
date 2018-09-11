@@ -34,6 +34,10 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 
+#if USE_H_ADVANCE_CACHE
+#include "hb-cache-private.hh"
+#endif
+
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_TRUETYPE_TABLES_H
@@ -65,6 +69,9 @@
 struct hb_ft_font_t
 {
   FT_Face ft_face;
+#if USE_H_ADVANCE_CACHE
+  mutable hb_advance_cache_t advance_cache;
+#endif
   int load_flags;
   bool symbol; /* Whether selected cmap is symbol cmap. */
   bool unref; /* Whether to destroy ft_face when done. */
@@ -83,7 +90,9 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
   ft_font->unref = unref;
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
-
+#if USE_H_ADVANCE_CACHE
+  ft_font->advance_cache.clear();
+#endif
   return ft_font;
 }
 
@@ -218,8 +227,21 @@ hb_ft_get_glyph_h_advance (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   FT_Fixed v;
 
+#if USE_H_ADVANCE_CACHE
+  unsigned int cv;
+  if (ft_font->advance_cache.get(glyph, &cv) == false) {
+    if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags, &v))) {
+      return 0;
+    } else {
+      ft_font->advance_cache.set(glyph, v);
+    }
+  } else {
+    v = cv;
+  }
+#else
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags, &v)))
     return 0;
+#endif
 
   if (font->x_scale < 0)
     v = -v;
