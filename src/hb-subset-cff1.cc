@@ -321,6 +321,21 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
   typedef CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam> SUPER;
 };
 
+struct RangeList : hb_vector_t<code_pair>
+{
+  /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
+  inline void finalize (unsigned int last_glyph)
+  {
+    for (unsigned int i = (*this).len; i > 0; i--)
+    {
+      code_pair &pair = (*this)[i - 1];
+      unsigned int  nLeft = last_glyph - pair.glyph - 1;
+      last_glyph = pair.glyph;
+      pair.glyph = nLeft;
+    }
+  }
+};
+
 struct cff_subset_plan {
   inline cff_subset_plan (void)
     : final_size (0),
@@ -387,11 +402,6 @@ struct cff_subset_plan {
 
       if (code != last_code + 1)
       {
-        if (subset_enc_code_ranges.len > 0)
-        {
-          code_pair &pair = subset_enc_code_ranges[subset_enc_code_ranges.len - 1];
-          pair.glyph = glyph - pair.glyph - 1;
-        }
         code_pair pair = { code, glyph };
         subset_enc_code_ranges.push (pair);
       }
@@ -410,11 +420,8 @@ struct cff_subset_plan {
       }
     }
     supp_codes.fini ();
-    if (subset_enc_code_ranges.len > 0)
-    {
-      code_pair &pair = subset_enc_code_ranges[subset_enc_code_ranges.len - 1];
-      pair.glyph = glyph - pair.glyph - 1;
-    }
+
+    subset_enc_code_ranges.finalize (glyph);
 
     assert (subset_enc_num_codes <= 0xFF);
     size0 = Encoding0::min_size + HBUINT8::static_size * subset_enc_num_codes;
@@ -449,24 +456,13 @@ struct cff_subset_plan {
 
       if (sid != last_sid + 1)
       {
-        if (subset_charset_ranges.len > 0)
-        {
-          code_pair &pair = subset_charset_ranges[subset_charset_ranges.len - 1];
-          pair.glyph = glyph - pair.glyph - 1;
-          if ((pair.glyph & ~0xFF) != 0) two_byte = true;
-        }
         code_pair pair = { sid, glyph };
         subset_charset_ranges.push (pair);
       }
       last_sid = sid;
     }
 
-    if (subset_charset_ranges.len > 0)
-    {
-      code_pair &pair = subset_charset_ranges[subset_charset_ranges.len - 1];
-      pair.glyph = glyph - pair.glyph - 1;
-      if ((pair.glyph & ~0xFF) != 0) two_byte = true;
-    }
+    subset_charset_ranges.finalize (glyph);
 
     size0 = Charset0::min_size + HBUINT16::static_size * (plan->glyphs.len - 1);
     if (!two_byte)
@@ -706,11 +702,11 @@ struct cff_subset_plan {
   bool                    subset_encoding;
   uint8_t                 subset_enc_format;
   unsigned int            subset_enc_num_codes;
-  hb_vector_t<code_pair>  subset_enc_code_ranges;
+  RangeList               subset_enc_code_ranges;
   hb_vector_t<code_pair>  subset_enc_supp_codes;
 
   uint8_t                 subset_charset_format;
-  hb_vector_t<code_pair>  subset_charset_ranges;
+  RangeList               subset_charset_ranges;
   bool                    subset_charset;
 
   RemapSID                sidmap;

@@ -446,7 +446,7 @@ struct Charset {
     dest->format.set (format);
     if (format == 0)
     {
-      Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::min_size + HBUINT8::static_size * (num_glyphs - 1));
+      Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::min_size + HBUINT16::static_size * (num_glyphs - 1));
     if (unlikely (fmt0 == nullptr)) return_trace (false);
       unsigned int glyph = 0;
       for (unsigned int i = 0; i < sid_ranges.len; i++)
@@ -488,7 +488,7 @@ struct Charset {
   {
     unsigned int  size = min_size;
     if (format == 0)
-      size += Charset0::min_size + HBUINT8::static_size * (count - 1);
+      size += Charset0::min_size + HBUINT16::static_size * (count - 1);
     else if (format == 1)
       size += Charset1::min_size + Charset1_Range::static_size * count;
     else
