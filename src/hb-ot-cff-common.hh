@@ -356,9 +356,9 @@ struct Remap : hb_vector_t<hb_codepoint_t>
   inline void fini (void)
   { hb_vector_t<hb_codepoint_t>::fini (); }
 
-  inline bool reset (unsigned int count)
+  inline bool reset (unsigned int size)
   {
-    if (unlikely (!hb_vector_t<hb_codepoint_t>::resize (count)))
+    if (unlikely (!hb_vector_t<hb_codepoint_t>::resize (size)))
       return false;
     for (unsigned int i = 0; i < len; i++)
       (*this)[i] = CFF_UNDEF_CODE;
