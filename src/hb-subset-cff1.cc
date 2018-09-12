@@ -348,7 +348,7 @@ struct cff_subset_plan {
     topdict_sizes.init ();
     topdict_sizes.resize (1);
     topdict_mod.init ();
-    subset_fdselect_first_glyphs.init ();
+    subset_fdselect_ranges.init ();
     fdmap.init ();
     subset_charstrings.init ();
     flat_charstrings.init ();
@@ -365,7 +365,7 @@ struct cff_subset_plan {
   {
     topdict_sizes.fini ();
     topdict_mod.fini ();
-    subset_fdselect_first_glyphs.fini ();
+    subset_fdselect_ranges.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
     flat_charstrings.fini ();
@@ -566,7 +566,7 @@ struct cff_subset_plan {
                                   subset_fdcount,
                                   offsets.FDSelectInfo.size,
                                   subset_fdselect_format,
-                                  subset_fdselect_first_glyphs,
+                                  subset_fdselect_ranges,
                                   fdmap)))
         return false;
 
@@ -685,7 +685,7 @@ struct cff_subset_plan {
   unsigned int    subset_fdcount;
   inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
   unsigned int    subset_fdselect_format;
-  hb_vector_t<hb_codepoint_t>   subset_fdselect_first_glyphs;
+  hb_vector_t<code_pair>   subset_fdselect_ranges;
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to CFF_UNDEF_CODE if excluded from subset */
@@ -823,9 +823,9 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     
     if (plan.is_fds_subsetted ())
     {
-      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *acc.fdSelect, acc.fdCount,
+      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *acc.fdSelect, acc.fdCount,
                                                 plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subset_fdselect_first_glyphs,
+                                                plan.subset_fdselect_ranges,
                                                 plan.fdmap)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");

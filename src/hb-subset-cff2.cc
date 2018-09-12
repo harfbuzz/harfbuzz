@@ -176,7 +176,7 @@ struct cff2_subset_plan {
       subset_fdselect_format (0),
       drop_hints (false)
   {
-    subset_fdselect_first_glyphs.init ();
+    subset_fdselect_ranges.init ();
     fdmap.init ();
     subset_charstrings.init ();
     flat_charstrings.init ();
@@ -185,7 +185,7 @@ struct cff2_subset_plan {
 
   inline ~cff2_subset_plan (void)
   {
-    subset_fdselect_first_glyphs.fini ();
+    subset_fdselect_ranges.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
     flat_charstrings.fini ();
@@ -242,7 +242,7 @@ struct cff2_subset_plan {
                                   subset_fdcount,
                                   offsets.FDSelectInfo.size,
                                   subset_fdselect_format,
-                                  subset_fdselect_first_glyphs,
+                                  subset_fdselect_ranges,
                                   fdmap)))
         return false;
       
@@ -300,7 +300,7 @@ struct cff2_subset_plan {
   unsigned int    subset_fdcount;
   inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
   unsigned int    subset_fdselect_format;
-  hb_vector_t<hb_codepoint_t>   subset_fdselect_first_glyphs;
+  hb_vector_t<code_pair>   subset_fdselect_ranges;
 
   Remap   fdmap;
 
@@ -368,9 +368,9 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     
     if (plan.is_fds_subsetted ())
     {
-      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
+      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
                                                 plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subset_fdselect_first_glyphs,
+                                                plan.subset_fdselect_ranges,
                                                 plan.fdmap)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 subset FDSelect");

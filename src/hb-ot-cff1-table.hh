@@ -158,12 +158,6 @@ struct CFF1SuppEncData {
   DEFINE_SIZE_ARRAY (1, supps);
 };
 
-struct code_pair
-{
-  hb_codepoint_t  code;
-  hb_codepoint_t  glyph;
-};
-
 struct Encoding {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

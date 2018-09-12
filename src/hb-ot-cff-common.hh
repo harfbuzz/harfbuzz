@@ -55,6 +55,12 @@ inline unsigned int calcOffSize(unsigned int dataSize)
   return size;
 }
 
+struct code_pair
+{
+  hb_codepoint_t  code;
+  hb_codepoint_t  glyph;
+};
+
 /* CFF INDEX */
 template <typename COUNT>
 struct CFFIndex

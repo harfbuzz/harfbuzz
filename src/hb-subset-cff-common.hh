@@ -291,19 +291,19 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int fdCount,
                             const CFF::FDSelect &src, /* IN */
                             unsigned int &subset_fd_count /* OUT */,
-                            unsigned int &subst_fdselect_size /* OUT */,
-                            unsigned int &subst_fdselect_format /* OUT */,
-                            hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
+                            unsigned int &subset_fdselect_size /* OUT */,
+                            unsigned int &subset_fdselect_format /* OUT */,
+                            hb_vector_t<CFF::code_pair> &fdselect_ranges /* OUT */,
                             CFF::Remap &fdmap /* OUT */);
 
 HB_INTERNAL bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
-                          const hb_vector_t<hb_codepoint_t> &glyphs,
+                          unsigned int num_glyphs,
                           const CFF::FDSelect &src,
                           unsigned int fd_count,
                           unsigned int fdselect_format,
                           unsigned int size,
-                          const hb_vector_t<hb_codepoint_t> &first_glyphs,
+                          const hb_vector_t<CFF::code_pair> &fdselect_ranges,
                           const CFF::Remap &fdmap);
 
 #endif /* HB_SUBSET_CFF_COMMON_HH */

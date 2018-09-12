@@ -43,14 +43,14 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
                             unsigned int fdCount,
                             const FDSelect &src, /* IN */
                             unsigned int &subset_fd_count /* OUT */,
-                            unsigned int &subst_fdselect_size /* OUT */,
-                            unsigned int &subst_fdselect_format /* OUT */,
-                            hb_vector_t<hb_codepoint_t> &subst_first_glyphs /* OUT */,
+                            unsigned int &subset_fdselect_size /* OUT */,
+                            unsigned int &subset_fdselect_format /* OUT */,
+                            hb_vector_t<code_pair> &fdselect_ranges /* OUT */,
                             Remap &fdmap /* OUT */)
 {
   subset_fd_count = 0;
-  subst_fdselect_size = 0;
-  subst_fdselect_format = 0;
+  subset_fdselect_size = 0;
+  subset_fdselect_format = 0;
   unsigned int  num_ranges = 0;
 
   unsigned int subset_num_glyphs = glyphs.len;
@@ -72,7 +72,8 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
       {
         num_ranges++;
         prev_fd = fd;
-        subst_first_glyphs.push (i);
+        code_pair pair = { fd, i };
+        fdselect_ranges.push (pair);
       }
     }
 
@@ -96,14 +97,18 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
       fdmap.add (fd);
     assert (fdmap.get_count () == subset_fd_count);
     hb_set_destroy (set);
+
+    /* update each font dict index stored as "code" in fdselect_ranges */
+    for (unsigned int i = 0; i < fdselect_ranges.len; i++)
+      fdselect_ranges[i].code = fdmap[fdselect_ranges[i].code];
   }
 
   /* determine which FDSelect format is most compact */
   if (subset_fd_count > 0xFF)
   {
     assert (src.format == 4);
-    subst_fdselect_format = 4;
-    subst_fdselect_size = FDSelect4::min_size + FDSelect4_Range::static_size * num_ranges;
+    subset_fdselect_format = 4;
+    subset_fdselect_size = FDSelect4::min_size + FDSelect4_Range::static_size * num_ranges;
   }
   else
   {
@@ -112,14 +117,13 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
 
     if (format0_size <= format3_size)
     {
-      // subst_fdselect_format = 0;
-      subst_fdselect_size = format0_size;
-      subst_first_glyphs.fini ();
+      // subset_fdselect_format = 0;
+      subset_fdselect_size = format0_size;
     }
     else
     {
-      subst_fdselect_format = 3;
-      subst_fdselect_size = format3_size;
+      subset_fdselect_format = 3;
+      subset_fdselect_size = format3_size;
     }
   }
 
@@ -129,21 +133,20 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
 template <typename FDSELECT3_4>
 static inline bool
 serialize_fdselect_3_4 (hb_serialize_context_t *c,
-                          unsigned int num_glyphs,
+                          const unsigned int num_glyphs,
                           const FDSelect &src,
                           unsigned int size,
-                          const hb_vector_t<hb_codepoint_t> &first_glyphs,
+                          const hb_vector_t<code_pair> &fdselect_ranges,
                           const Remap &fdmap)
 {
   TRACE_SERIALIZE (this);
   FDSELECT3_4 *p = c->allocate_size<FDSELECT3_4> (size);
   if (unlikely (p == nullptr)) return_trace (false);
-  p->nRanges.set (first_glyphs.len);
-  for (unsigned int i = 0; i < first_glyphs.len; i++)
+  p->nRanges.set (fdselect_ranges.len);
+  for (unsigned int i = 0; i < fdselect_ranges.len; i++)
   {
-    hb_codepoint_t  glyph = first_glyphs[i];
-    p->ranges[i].first.set (glyph);
-    p->ranges[i].fd.set (fdmap[src.get_fd (glyph)]);
+    p->ranges[i].first.set (fdselect_ranges[i].glyph);
+    p->ranges[i].fd.set (fdselect_ranges[i].code);
   }
   p->sentinel().set (num_glyphs);
   return_trace (true);
@@ -155,12 +158,12 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
  **/
 bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
-                          const hb_vector_t<hb_codepoint_t> &glyphs,
+                          const unsigned int num_glyphs,
                           const FDSelect &src,
                           unsigned int fd_count,
                           unsigned int fdselect_format,
                           unsigned int size,
-                          const hb_vector_t<hb_codepoint_t> &first_glyphs,
+                          const hb_vector_t<code_pair> &fdselect_ranges,
                           const Remap &fdmap)
 {
   TRACE_SERIALIZE (this);
@@ -175,25 +178,34 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
     {
       FDSelect0 *p = c->allocate_size<FDSelect0> (size);
       if (unlikely (p == nullptr)) return_trace (false);
-      for (unsigned int i = 0; i < glyphs.len; i++)
-        p->fds[i].set (fdmap[src.get_fd (glyphs[i])]);
+      unsigned int range_index = 0;
+      unsigned int  fd = fdselect_ranges[range_index].code;
+      for (unsigned int i = 0; i < num_glyphs; i++)
+      {
+        if ((range_index < fdselect_ranges.len) &&
+            (i >= fdselect_ranges[range_index + 1].glyph))
+        {
+          fd = fdselect_ranges[++range_index].code;
+        }
+        p->fds[i].set (fd);
+      }
       break;
     }
     
     case 3:
       return serialize_fdselect_3_4<FDSelect3> (c,
-                                                glyphs.len,
+                                                num_glyphs,
                                                 src,
                                                 size,
-                                                first_glyphs,
+                                                fdselect_ranges,
                                                 fdmap);
     
     case 4:
       return serialize_fdselect_3_4<FDSelect4> (c,
-                                                glyphs.len,
+                                                num_glyphs,
                                                 src,
                                                 size,
-                                                first_glyphs,
+                                                fdselect_ranges,
                                                 fdmap);
 
     default:
