@@ -274,7 +274,8 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c) ||
+		  (!*this ||
+		   StructAtOffset<Type> (base, *this).sanitize (c) ||
 		   neuter (c)));
   }
   template <typename T1>
@@ -282,7 +283,8 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c, d1) ||
+		  (!*this ||
+		   StructAtOffset<Type> (base, *this).sanitize (c, d1) ||
 		   neuter (c)));
   }
   template <typename T1, typename T2>
@@ -290,7 +292,8 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c, d1, d2) ||
+		  (!*this ||
+		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2) ||
 		   neuter (c)));
   }
   template <typename T1, typename T2, typename T3>
@@ -298,7 +301,8 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c, d1, d2, d3) ||
+		  (!*this ||
+		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2, d3) ||
 		   neuter (c)));
   }
 
