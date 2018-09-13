@@ -305,7 +305,7 @@ struct ResourceRecord
   }
 
   protected:
-  HBUINT16	id;		/* Resource ID, is really should be signed? */
+  HBUINT16	id;		/* Resource ID. */
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
 				 * to resource name, -1 means there is none. */
   HBUINT8	attrs;		/* Resource attributes */
@@ -400,7 +400,7 @@ struct ResourceForkHeader
   {
     const ResourceMap &resource_map = this+map;
     unsigned int count = resource_map.get_type_count ();
-    for (unsigned int i = 0; i < count; ++i)
+    for (unsigned int i = 0; i < count; i++)
     {
       const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt ())
@@ -421,7 +421,7 @@ struct ResourceForkHeader
 					   unsigned int *base_offset = nullptr) const
   {
     const ResourceMap &resource_map = this+map;
-    for (unsigned int i = 0; i < resource_map.get_type_count (); ++i)
+    for (unsigned int i = 0; i < resource_map.get_type_count (); i++)
     {
       const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
