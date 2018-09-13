@@ -322,9 +322,9 @@ struct ResourceRecord
 
 struct ResourceTypeRecord
 {
-  inline unsigned int get_resource_count () const { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
+  inline unsigned int get_resource_count (void) const { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
 
-  inline bool is_sfnt () const { return tag == HB_TAG_sfnt; }
+  inline bool is_sfnt (void) const { return tag == HB_TAG_sfnt; }
 
   inline const ResourceRecord& get_resource_record (unsigned int i,
 						    const void *type_base) const
@@ -363,7 +363,7 @@ struct ResourceMap
 					   get_type_count ()) [i];
   }
 
-  inline unsigned int get_type_count () const { return typeCountM1 + 1; }
+  inline unsigned int get_type_count (void) const { return typeCountM1 + 1; }
 
   inline const ResourceRecord &get_resource_record (const ResourceTypeRecord &type,
 						    unsigned int i) const
@@ -399,7 +399,7 @@ struct ResourceMap
 
 struct ResourceForkHeader
 {
-  inline unsigned int get_face_count () const
+  inline unsigned int get_face_count (void) const
   {
     const ResourceMap &resource_map = this+map;
     unsigned int count = resource_map.get_type_count ();
