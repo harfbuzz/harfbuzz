@@ -371,6 +371,34 @@ struct ResourceMap
     return type.get_resource_record (i, &(this+typeListZ));
   }
 
+  inline unsigned int get_face_count (void) const
+  {
+    unsigned int count = get_type_count ();
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const ResourceTypeRecord& type = get_type_record (i);
+      if (type.is_sfnt ())
+	return type.get_resource_count ();
+    }
+    return 0;
+  }
+
+  inline const OpenTypeFontFace& get_face (unsigned int idx,
+					   const void *data_base) const
+  {
+    unsigned int count = get_type_count ();
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const ResourceTypeRecord& type = get_type_record (i);
+      if (type.is_sfnt () && idx < type.get_resource_count ())
+      {
+	const OpenTypeFontFace &face = get_resource_record (type, idx).get_face (data_base);
+	return face;
+      }
+    }
+    return Null (OpenTypeFontFace);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *data_base) const
   {
     TRACE_SANITIZE (this);
@@ -400,35 +428,15 @@ struct ResourceMap
 struct ResourceForkHeader
 {
   inline unsigned int get_face_count (void) const
-  {
-    const ResourceMap &resource_map = this+map;
-    unsigned int count = resource_map.get_type_count ();
-    for (unsigned int i = 0; i < count; i++)
-    {
-      const ResourceTypeRecord& type = resource_map.get_type_record (i);
-      if (type.is_sfnt ())
-	return type.get_resource_count ();
-    }
-    return 0;
-  }
+  { return (this+map).get_face_count (); }
 
   inline const OpenTypeFontFace& get_face (unsigned int idx,
 					   unsigned int *base_offset = nullptr) const
   {
-    const ResourceMap &resource_map = this+map;
-    unsigned int count = resource_map.get_type_count ();
-    for (unsigned int i = 0; i < count; i++)
-    {
-      const ResourceTypeRecord& type = resource_map.get_type_record (i);
-      if (type.is_sfnt () && idx < type.get_resource_count ())
-      {
-	const OpenTypeFontFace &face = resource_map.get_resource_record (type, idx).get_face (&(this+data));
-	if (base_offset)
-	  *base_offset = (const char *) &face - (const char *) this;
-	return face;
-      }
-    }
-    return Null (OpenTypeFontFace);
+    const OpenTypeFontFace &face = (this+map).get_face (idx, &(this+data));
+    if (base_offset)
+      *base_offset = (const char *) &face - (const char *) this;
+    return face;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
