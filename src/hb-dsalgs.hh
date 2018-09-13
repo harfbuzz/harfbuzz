@@ -532,8 +532,16 @@ struct hb_bytes_t
   inline hb_bytes_t (void) : bytes (nullptr), len (0) {}
   inline hb_bytes_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
   inline hb_bytes_t (const void *bytes_, unsigned int len_) : bytes ((const char *) bytes_), len (len_) {}
+  template <typename T>
+  inline hb_bytes_t (const T& array) : bytes ((const char *) array.arrayZ), len (array.len) {}
 
   inline void free (void) { ::free ((void *) bytes); bytes = nullptr; len = 0; }
+
+  template <typename Type>
+  inline const Type* as (void) const
+  {
+    return unlikely (!bytes) ? &Null(Type) : reinterpret_cast<const Type *> (bytes);
+  }
 
   inline int cmp (const hb_bytes_t &a) const
   {
