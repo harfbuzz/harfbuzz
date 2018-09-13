@@ -1879,7 +1879,7 @@ struct ChainRule
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16> > (input);
     return chain_context_intersects (glyphs,
 				     backtrack.len, backtrack.arrayZ,
-				     input.len, input.arrayZ,
+				     input.lenP1, input.arrayZ,
 				     lookahead.len, lookahead.arrayZ,
 				     lookup_context);
   }
@@ -1892,7 +1892,7 @@ struct ChainRule
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     chain_context_closure_lookup (c,
 				  backtrack.len, backtrack.arrayZ,
-				  input.len, input.arrayZ,
+				  input.lenP1, input.arrayZ,
 				  lookahead.len, lookahead.arrayZ,
 				  lookup.len, lookup.arrayZ,
 				  lookup_context);
@@ -1906,7 +1906,7 @@ struct ChainRule
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     chain_context_collect_glyphs_lookup (c,
 					 backtrack.len, backtrack.arrayZ,
-					 input.len, input.arrayZ,
+					 input.lenP1, input.arrayZ,
 					 lookahead.len, lookahead.arrayZ,
 					 lookup.len, lookup.arrayZ,
 					 lookup_context);
@@ -1920,7 +1920,7 @@ struct ChainRule
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return_trace (chain_context_would_apply_lookup (c,
 						    backtrack.len, backtrack.arrayZ,
-						    input.len, input.arrayZ,
+						    input.lenP1, input.arrayZ,
 						    lookahead.len, lookahead.arrayZ, lookup.len,
 						    lookup.arrayZ, lookup_context));
   }
@@ -1933,7 +1933,7 @@ struct ChainRule
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return_trace (chain_context_apply_lookup (c,
 					      backtrack.len, backtrack.arrayZ,
-					      input.len, input.arrayZ,
+					      input.lenP1, input.arrayZ,
 					      lookahead.len, lookahead.arrayZ, lookup.len,
 					      lookup.arrayZ, lookup_context));
   }

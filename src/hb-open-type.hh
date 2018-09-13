@@ -570,16 +570,16 @@ struct HeadlessArrayOf
 {
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= len || !i)) return Null(Type);
+    if (unlikely (i >= lenP1 || !i)) return Null(Type);
     return arrayZ[i-1];
   }
   inline Type& operator [] (unsigned int i)
   {
-    if (unlikely (i >= len || !i)) return Crap(Type);
+    if (unlikely (i >= lenP1 || !i)) return Crap(Type);
     return arrayZ[i-1];
   }
   inline unsigned int get_size (void) const
-  { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
+  { return lenP1.static_size + (lenP1 ? lenP1 - 1 : 0) * Type::static_size; }
 
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<Type> &items,
@@ -587,7 +587,7 @@ struct HeadlessArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    len.set (items_len); /* TODO(serialize) Overflow? */
+    lenP1.set (items_len); /* TODO(serialize) Overflow? */
     if (unlikely (!items_len)) return_trace (true);
     if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items_len - 1; i++)
@@ -617,12 +617,12 @@ struct HeadlessArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (len.sanitize (c) &&
-		  (!len || c->check_array (arrayZ, len - 1)));
+    return_trace (lenP1.sanitize (c) &&
+		  (!lenP1 || c->check_array (arrayZ, lenP1 - 1)));
   }
 
   public:
-  LenType	len;
+  LenType	lenP1;
   Type		arrayZ[VAR];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);

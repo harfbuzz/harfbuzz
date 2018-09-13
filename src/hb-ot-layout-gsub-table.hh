@@ -710,7 +710,7 @@ struct Ligature
 {
   inline bool intersects (const hb_set_t *glyphs) const
   {
-    unsigned int count = component.len;
+    unsigned int count = component.lenP1;
     for (unsigned int i = 1; i < count; i++)
       if (!glyphs->has (component[i]))
         return false;
@@ -720,7 +720,7 @@ struct Ligature
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
-    unsigned int count = component.len;
+    unsigned int count = component.lenP1;
     for (unsigned int i = 1; i < count; i++)
       if (!c->glyphs->has (component[i]))
         return;
@@ -730,14 +730,14 @@ struct Ligature
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    c->input->add_array (component.arrayZ, component.len ? component.len - 1 : 0);
+    c->input->add_array (component.arrayZ, component.lenP1 ? component.lenP1 - 1 : 0);
     c->output->add (ligGlyph);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    if (c->len != component.len)
+    if (c->len != component.lenP1)
       return_trace (false);
 
     for (unsigned int i = 1; i < c->len; i++)
@@ -750,7 +750,7 @@ struct Ligature
   inline bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int count = component.len;
+    unsigned int count = component.lenP1;
 
     if (unlikely (!count)) return_trace (false);
 
