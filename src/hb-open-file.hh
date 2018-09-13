@@ -293,15 +293,16 @@ struct TTCHeader
 
 struct ResourceRecord
 {
-  inline const hb_bytes_t get_data (const void *data_base) const
-  { return hb_bytes_t (data_base+offset); }
+  inline const OpenTypeFontFace & get_face (const void *data_base) const
+  { return CastR<OpenTypeFontFace> ((data_base+offset).arrayZ); }
 
   inline bool sanitize (hb_sanitize_context_t *c,
 			const void *data_base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  offset.sanitize (c, data_base));
+		  offset.sanitize (c, data_base) &&
+		  get_face (data_base).sanitize (c));
   }
 
   protected:
@@ -317,11 +318,13 @@ struct ResourceRecord
   DEFINE_SIZE_STATIC (12);
 };
 
+#define HB_TAG_sfnt HB_TAG ('s','f','n','t')
+
 struct ResourceTypeRecord
 {
-  inline unsigned int get_resource_count () const { return resCountM1 + 1; }
+  inline unsigned int get_resource_count () const { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
 
-  inline bool is_sfnt () const { return tag == HB_TAG ('s','f','n','t'); }
+  inline bool is_sfnt () const { return tag == HB_TAG_sfnt; }
 
   inline const ResourceRecord& get_resource_record (unsigned int i,
 						    const void *type_base) const
@@ -409,10 +412,6 @@ struct ResourceForkHeader
     return 0;
   }
 
-  inline const hb_bytes_t get_data (const ResourceTypeRecord& type,
-				    unsigned int idx) const
-  { return (this+map).get_resource_record (type, idx).get_data (&(this+data)); }
-
   inline const OpenTypeFontFace& get_face (unsigned int idx,
 					   unsigned int *base_offset = nullptr) const
   {
@@ -423,7 +422,7 @@ struct ResourceForkHeader
       const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
       {
-	const OpenTypeFontFace &face = *get_data (type, idx).as<OpenTypeFontFace> ();
+	const OpenTypeFontFace &face = resource_map.get_resource_record (type, idx).get_face (&(this+data));
 	if (base_offset)
 	  *base_offset = (const char *) &face - (const char *) this;
 	return face;
@@ -437,8 +436,6 @@ struct ResourceForkHeader
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  map.sanitize (c, this, &(this+data)));
-
-    // XXX Sanitize OpenTypeFontFace's
   }
 
   protected:
