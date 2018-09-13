@@ -309,7 +309,7 @@ struct ResourceRecord
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
 				 * to resource name, -1 means there is none. */
   HBUINT8	attrs;		/* Resource attributes */
-  OffsetTo<LArrayOf<HBUINT8>, HBUINT24>
+  OffsetTo<LArrayOf<HBUINT8>, HBUINT24, false>
 		offset;		/* Offset from beginning of data block to
 				 * data for this resource */
   HBUINT32	reserved;	/* Reserved for handle to resource */
