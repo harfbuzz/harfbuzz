@@ -628,6 +628,50 @@ struct HeadlessArrayOf
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
 
+/* An array storing length-1. */
+template <typename Type, typename LenType=HBUINT16>
+struct ArrayOfM1
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
+    if (unlikely (i > lenM1)) return Null(Type);
+    return arrayZ[i];
+  }
+  inline Type& operator [] (unsigned int i)
+  {
+    if (unlikely (i > lenM1)) return Crap(Type);
+    return arrayZ[i];
+  }
+  inline unsigned int get_size (void) const
+  { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
+
+  template <typename T>
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    unsigned int count = lenM1 + 1;
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
+        return_trace (false);
+    return_trace (true);
+  }
+
+  private:
+  inline bool sanitize_shallow (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (lenM1.sanitize (c) &&
+		  (c->check_array (arrayZ, lenM1 + 1)));
+  }
+
+  public:
+  LenType	lenM1;
+  Type		arrayZ[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
+};
+
 /* An array with sorted elements.  Supports binary searching. */
 template <typename Type, typename LenType=HBUINT16>
 struct SortedArrayOf : ArrayOf<Type, LenType>

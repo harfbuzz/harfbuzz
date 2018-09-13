@@ -357,13 +357,6 @@ struct ResourceTypeRecord
 
 struct ResourceMap
 {
-  inline const ResourceTypeRecord& get_type_record (unsigned int i) const
-  {
-    // Why offset from the third byte of the object? I'm not sure
-    return hb_array_t<ResourceTypeRecord> (((2 + (const char *) this )+typeListZ).arrayZ,
-					   get_type_count ()) [i];
-  }
-
   inline unsigned int get_face_count (void) const
   {
     unsigned int count = get_type_count ();
@@ -386,7 +379,7 @@ struct ResourceMap
       /* The check for idx < count is here because ResourceRecord is NOT null-safe.
        * Because an offset of 0 there does NOT mean null. */
       if (type.is_sfnt () && idx < type.get_resource_count ())
-	return type.get_resource_record (idx, &(this+typeListZ)).get_face (data_base);
+	return type.get_resource_record (idx, &(this+typeList)).get_face (data_base);
     }
     return Null (OpenTypeFontFace);
   }
@@ -394,30 +387,31 @@ struct ResourceMap
   inline bool sanitize (hb_sanitize_context_t *c, const void *data_base) const
   {
     TRACE_SANITIZE (this);
-    const void *type_base = &(this+typeListZ);
+    const void *type_base = &(this+typeList);
     return_trace (c->check_struct (this) &&
-		  typeListZ.sanitize (c, 2 + (const char *) this,
-				      get_type_count (),
-				      type_base,
-				      data_base));
+		  typeList.sanitize (c, this,
+				     type_base,
+				     data_base));
   }
 
   private:
-  inline unsigned int get_type_count (void) const { return typeCountM1 + 1; }
+  inline unsigned int get_type_count (void) const { return (this+typeList).lenM1 + 1; }
+
+  inline const ResourceTypeRecord& get_type_record (unsigned int i) const
+  { return (this+typeList)[i]; }
 
   protected:
   HBUINT8	reserved0[16];	/* Reserved for copy of resource header */
   HBUINT32	reserved1;	/* Reserved for handle to next resource map */
   HBUINT16	resreved2;	/* Reserved for file reference number */
   HBUINT16	attrs;		/* Resource fork attribute */
-  OffsetTo<UnsizedArrayOf<ResourceTypeRecord> >
-		typeListZ;	/* Offset from beginning of map to
+  OffsetTo<ArrayOfM1<ResourceTypeRecord> >
+		typeList;	/* Offset from beginning of map to
 				 * resource type list */
   Offset16	nameList;	/* Offset from beginning of map to
 				 * resource name list */
-  HBUINT16	typeCountM1;	/* Number of types in the map minus 1 */
   public:
-  DEFINE_SIZE_STATIC (30);
+  DEFINE_SIZE_STATIC (28);
 };
 
 struct ResourceForkHeader
