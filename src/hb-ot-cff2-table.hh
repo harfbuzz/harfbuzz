@@ -27,6 +27,7 @@
 #ifndef HB_OT_CFF2_TABLE_HH
 #define HB_OT_CFF2_TABLE_HH
 
+#include "hb-ot-head-table.hh"
 #include "hb-ot-cff-common.hh"
 #include "hb-subset-cff2.hh"
 
@@ -537,6 +538,9 @@ struct cff2
     bool success = true;
     if (hb_subset_cff2 (plan, &cff2_prime)) {
       success = success && plan->add_table (HB_OT_TAG_cff2, cff2_prime);
+      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (plan->source);
+      success = success && head_blob && plan->add_table (HB_OT_TAG_head, head_blob);
+      hb_blob_destroy (head_blob);
     } else {
       success = false;
     }
