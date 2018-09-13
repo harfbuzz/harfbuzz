@@ -155,10 +155,10 @@ struct Index : HBUINT16 {
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
 /* Offset, Null offset = 0 */
-template <typename Type>
+template <typename Type, bool has_null=true>
 struct Offset : Type
 {
-  inline bool is_null (void) const { return 0 == *this; }
+  inline bool is_null (void) const { return has_null && 0 == *this; }
 
   inline void *serialize (hb_serialize_context_t *c, const void *base)
   {
@@ -226,20 +226,18 @@ struct FixedVersion
  * Use: (base+offset)
  */
 
-template <typename Type, typename OffsetType=HBUINT16>
-struct OffsetTo : Offset<OffsetType>
+template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
+struct OffsetTo : Offset<OffsetType, has_null>
 {
   inline const Type& operator () (const void *base) const
   {
-    unsigned int offset = *this;
-    if (unlikely (!offset)) return Null(Type);
-    return StructAtOffset<const Type> (base, offset);
+    if (unlikely (this->is_null ())) return Null(Type);
+    return StructAtOffset<const Type> (base, *this);
   }
   inline Type& operator () (void *base) const
   {
-    unsigned int offset = *this;
-    if (unlikely (!offset)) return Crap(Type);
-    return StructAtOffset<Type> (base, offset);
+    if (unlikely (this->is_null ())) return Crap(Type);
+    return StructAtOffset<Type> (base, *this);
   }
 
   inline Type& serialize (hb_serialize_context_t *c, const void *base)
@@ -264,9 +262,8 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
-    unsigned int offset = *this;
-    if (unlikely (!offset)) return_trace (true);
-    if (unlikely (!c->check_range (base, offset))) return_trace (false);
+    if (unlikely (this->is_null ())) return_trace (true);
+    if (unlikely (!c->check_range (base, *this))) return_trace (false);
     return_trace (true);
   }
 
@@ -274,7 +271,7 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (!*this ||
+		  (this->is_null () ||
 		   StructAtOffset<Type> (base, *this).sanitize (c) ||
 		   neuter (c)));
   }
@@ -283,7 +280,7 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (!*this ||
+		  (this->is_null () ||
 		   StructAtOffset<Type> (base, *this).sanitize (c, d1) ||
 		   neuter (c)));
   }
@@ -292,7 +289,7 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (!*this ||
+		  (this->is_null () ||
 		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2) ||
 		   neuter (c)));
   }
@@ -301,22 +298,24 @@ struct OffsetTo : Offset<OffsetType>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (!*this ||
+		  (this->is_null () ||
 		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2, d3) ||
 		   neuter (c)));
   }
 
   /* Set the offset to Null */
-  inline bool neuter (hb_sanitize_context_t *c) const {
+  inline bool neuter (hb_sanitize_context_t *c) const
+  {
+    if (!has_null) return false;
     return c->try_set (this, 0);
   }
   DEFINE_SIZE_STATIC (sizeof(OffsetType));
 };
 template <typename Type> struct LOffsetTo : OffsetTo<Type, HBUINT32> {};
-template <typename Base, typename OffsetType, typename Type>
-static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType> &offset) { return offset (base); }
-template <typename Base, typename OffsetType, typename Type>
-static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) { return offset (base); }
+template <typename Base, typename OffsetType, bool has_null, typename Type>
+static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
+template <typename Base, typename OffsetType, bool has_null, typename Type>
+static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
 
 
 /*
