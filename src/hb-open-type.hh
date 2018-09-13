@@ -273,25 +273,25 @@ struct OffsetTo : Offset<OffsetType>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, base))) return_trace (false);
-    const Type &obj = StructAtOffset<Type> (base, *this);
-    return_trace (likely (obj.sanitize (c)) || neuter (c));
+    return_trace (sanitize_shallow (c, base) &&
+		  (StructAtOffset<Type> (base, *this).sanitize (c) ||
+		   neuter (c)));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, base))) return_trace (false);
-    const Type &obj = StructAtOffset<Type> (base, *this);
-    return_trace (likely (obj.sanitize (c, user_data)) || neuter (c));
+    return_trace (sanitize_shallow (c, base) &&
+		  (StructAtOffset<Type> (base, *this).sanitize (c, user_data) ||
+		   neuter (c)));
   }
   template <typename T1, typename T2>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base, T1 user_data1, T2 user_data2) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, base))) return_trace (false);
-    const Type &obj = StructAtOffset<Type> (base, *this);
-    return_trace (likely (obj.sanitize (c, user_data1, user_data2)) || neuter (c));
+    return_trace (sanitize_shallow (c, base) &&
+		  (StructAtOffset<Type> (base, *this).sanitize (c, user_data1, user_data2) ||
+		   neuter (c)));
   }
 
   /* Set the offset to Null */
