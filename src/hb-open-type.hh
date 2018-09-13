@@ -277,20 +277,28 @@ struct OffsetTo : Offset<OffsetType>
 		  (StructAtOffset<Type> (base, *this).sanitize (c) ||
 		   neuter (c)));
   }
-  template <typename T>
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
+  template <typename T1>
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c, user_data) ||
+		  (StructAtOffset<Type> (base, *this).sanitize (c, d1) ||
 		   neuter (c)));
   }
   template <typename T1, typename T2>
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T1 user_data1, T2 user_data2) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1, T2 d2) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
-		  (StructAtOffset<Type> (base, *this).sanitize (c, user_data1, user_data2) ||
+		  (StructAtOffset<Type> (base, *this).sanitize (c, d1, d2) ||
+		   neuter (c)));
+  }
+  template <typename T1, typename T2, typename T3>
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1, T2 d2, T3 d3) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (sanitize_shallow (c, base) &&
+		  (StructAtOffset<Type> (base, *this).sanitize (c, d1, d2, d3) ||
 		   neuter (c)));
   }
 
