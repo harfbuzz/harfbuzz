@@ -432,6 +432,7 @@ struct ResourceForkHeader
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  data.sanitize (c, this, dataLen) &&
 		  map.sanitize (c, this, &(this+data)));
   }
 
