@@ -322,7 +322,8 @@ struct ResourceRecord
 
 struct ResourceTypeRecord
 {
-  inline unsigned int get_resource_count (void) const { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
+  inline unsigned int get_resource_count (void) const
+  { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
 
   inline bool is_sfnt (void) const { return tag == HB_TAG_sfnt; }
 
@@ -363,14 +364,6 @@ struct ResourceMap
 					   get_type_count ()) [i];
   }
 
-  inline unsigned int get_type_count (void) const { return typeCountM1 + 1; }
-
-  inline const ResourceRecord &get_resource_record (const ResourceTypeRecord &type,
-						    unsigned int i) const
-  {
-    return type.get_resource_record (i, &(this+typeListZ));
-  }
-
   inline unsigned int get_face_count (void) const
   {
     unsigned int count = get_type_count ();
@@ -390,11 +383,10 @@ struct ResourceMap
     for (unsigned int i = 0; i < count; i++)
     {
       const ResourceTypeRecord& type = get_type_record (i);
+      /* The check for idx < count is here because ResourceRecord is NOT null-safe.
+       * Because an offset of 0 there does NOT mean null. */
       if (type.is_sfnt () && idx < type.get_resource_count ())
-      {
-	const OpenTypeFontFace &face = get_resource_record (type, idx).get_face (data_base);
-	return face;
-      }
+	return type.get_resource_record (idx, &(this+typeListZ)).get_face (data_base);
     }
     return Null (OpenTypeFontFace);
   }
@@ -409,6 +401,9 @@ struct ResourceMap
 				      type_base,
 				      data_base));
   }
+
+  private:
+  inline unsigned int get_type_count (void) const { return typeCountM1 + 1; }
 
   protected:
   HBUINT8	reserved0[16];	/* Reserved for copy of resource header */
