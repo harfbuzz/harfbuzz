@@ -529,18 +529,18 @@ struct hb_array_t
 
 struct hb_bytes_t
 {
-  inline hb_bytes_t (void) : bytes (nullptr), len (0) {}
-  inline hb_bytes_t (const char *bytes_, unsigned int len_) : bytes (bytes_), len (len_) {}
-  inline hb_bytes_t (const void *bytes_, unsigned int len_) : bytes ((const char *) bytes_), len (len_) {}
+  inline hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
+  inline hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
+  inline hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
   template <typename T>
-  inline hb_bytes_t (const T& array) : bytes ((const char *) array.arrayZ), len (array.len) {}
+  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len) {}
 
-  inline void free (void) { ::free ((void *) bytes); bytes = nullptr; len = 0; }
+  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   template <typename Type>
   inline const Type* as (void) const
   {
-    return unlikely (!bytes) ? &Null(Type) : reinterpret_cast<const Type *> (bytes);
+    return unlikely (!arrayZ) ? &Null(Type) : reinterpret_cast<const Type *> (arrayZ);
   }
 
   inline int cmp (const hb_bytes_t &a) const
@@ -548,7 +548,7 @@ struct hb_bytes_t
     if (len != a.len)
       return (int) a.len - (int) len;
 
-    return memcmp (a.bytes, bytes, len);
+    return memcmp (a.arrayZ, arrayZ, len);
   }
   static inline int cmp (const void *pa, const void *pb)
   {
@@ -557,7 +557,7 @@ struct hb_bytes_t
     return b->cmp (*a);
   }
 
-  const char *bytes;
+  const char *arrayZ;
   unsigned int len;
 };
 
