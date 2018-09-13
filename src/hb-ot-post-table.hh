@@ -143,7 +143,7 @@ struct post
 	return true;
       if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
         return false;
-      strncpy (buf, s.bytes, s.len);
+      strncpy (buf, s.arrayZ, s.len);
       buf[s.len] = '\0';
       return true;
     }
