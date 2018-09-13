@@ -411,17 +411,14 @@ struct ResourceForkHeader
 
   inline const hb_bytes_t get_data (const ResourceTypeRecord& type,
 				    unsigned int idx) const
-  {
-    const ResourceMap &resource_map = this+map;
-    const void *data_base = &(this+data);
-    return resource_map.get_resource_record (type, idx).get_data (data_base);
-  }
+  { return (this+map).get_resource_record (type, idx).get_data (&(this+data)); }
 
   inline const OpenTypeFontFace& get_face (unsigned int idx,
 					   unsigned int *base_offset = nullptr) const
   {
     const ResourceMap &resource_map = this+map;
-    for (unsigned int i = 0; i < resource_map.get_type_count (); i++)
+    unsigned int count = resource_map.get_type_count ();
+    for (unsigned int i = 0; i < count; i++)
     {
       const ResourceTypeRecord& type = resource_map.get_type_record (i);
       if (type.is_sfnt () && idx < type.get_resource_count ())
