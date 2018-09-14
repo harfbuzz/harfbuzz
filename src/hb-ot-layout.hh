@@ -263,7 +263,7 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
        * Also, all Mn's that are Default_Ignorable, have ccc=0, hence
        * the "else if".
        */
-      props |= unicode->modified_combining_class (info->codepoint)<<8;
+      props |= unicode->modified_combining_class (u)<<8;
 
       /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
        * behave correctly in non-native directionality.  They originally
