@@ -245,7 +245,7 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
 	props |= UPROPS_MASK_HIDDEN;
       }
     }
-    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL (gen_cat)))
+    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK (gen_cat)))
     {
       /* The above check is just an optimization to let in only things we need further
        * processing on. */
@@ -264,16 +264,6 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
        * the "else if".
        */
       props |= unicode->modified_combining_class (u)<<8;
-
-      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
-       * behave correctly in non-native directionality.  They originally
-       * are MODIFIER_SYMBOL.  Fixes:
-       * https://github.com/harfbuzz/harfbuzz/issues/169
-       */
-      if (unlikely (hb_in_range (u, 0x1F3FBu, 0x1F3FFu)))
-      {
-	props = gen_cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
-      }
     }
   }
 

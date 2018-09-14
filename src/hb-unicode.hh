@@ -102,23 +102,42 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   }
 
 
+  inline hb_unicode_general_category_t
+  modified_general_category (hb_codepoint_t u)
+  {
+    hb_unicode_general_category_t cat = general_category (u);
+
+    if (unlikely (cat == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL))
+    {
+      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
+       * behave correctly in non-native directionality.  They originally
+       * are MODIFIER_SYMBOL.  Fixes:
+       * https://github.com/harfbuzz/harfbuzz/issues/169
+       */
+      if (unlikely (hb_in_range (u, 0x1F3FBu, 0x1F3FFu)))
+	cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
+    }
+
+    return cat;
+  }
+
   inline unsigned int
-  modified_combining_class (hb_codepoint_t unicode)
+  modified_combining_class (hb_codepoint_t u)
   {
     /* XXX This hack belongs to the Myanmar shaper. */
-    if (unlikely (unicode == 0x1037u)) unicode = 0x103Au;
+    if (unlikely (u == 0x1037u)) u = 0x103Au;
 
     /* XXX This hack belongs to the USE shaper (for Tai Tham):
      * Reorder SAKOT to ensure it comes after any tone marks. */
-    if (unlikely (unicode == 0x1A60u)) return 254;
+    if (unlikely (u == 0x1A60u)) return 254;
 
     /* XXX This hack belongs to the Tibetan shaper:
      * Reorder PADMA to ensure it comes after any vowel marks. */
-    if (unlikely (unicode == 0x0FC6u)) return 254;
+    if (unlikely (u == 0x0FC6u)) return 254;
     /* Reorder TSA -PHRU to reorder before U+0F74 */
-    if (unlikely (unicode == 0x0F39u)) return 127;
+    if (unlikely (u == 0x0F39u)) return 127;
 
-    return _hb_modified_combining_class[combining_class (unicode)];
+    return _hb_modified_combining_class[combining_class (u)];
   }
 
   static inline hb_bool_t
@@ -360,10 +379,9 @@ DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
 
-#define HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL(gen_cat) \
+#define HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK(gen_cat) \
 	(FLAG_UNSAFE (gen_cat) & \
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
-	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | \
-	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL)))
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
 
 #endif /* HB_UNICODE_HH */
