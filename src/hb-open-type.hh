@@ -311,7 +311,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
   DEFINE_SIZE_STATIC (sizeof(OffsetType));
 };
-template <typename Type> struct LOffsetTo : OffsetTo<Type, HBUINT32> {};
+template <typename Type, bool has_null=true> struct LOffsetTo : OffsetTo<Type, HBUINT32, has_null> {};
 template <typename Base, typename OffsetType, bool has_null, typename Type>
 static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
 template <typename Base, typename OffsetType, bool has_null, typename Type>
