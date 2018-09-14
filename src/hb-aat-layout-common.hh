@@ -439,10 +439,23 @@ struct Entry<void>
 template <typename Extra>
 struct StateTable
 {
+  enum State
+  {
+    STATE_START_OF_TEXT = 0,
+    STATE_START_OF_LINE = 1,
+  };
+  enum Class
+  {
+    CLASS_END_OF_TEXT = 0,
+    CLASS_OUT_OF_BOUNDS = 1,
+    CLASS_DELETED_GLYPH = 2,
+    CLASS_END_OF_LINE = 3,
+  };
+
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
-    return v ? *v : 1;
+    return v ? *v : CLASS_OUT_OF_BOUNDS;
   }
 
   inline const Entry<Extra> *get_entries () const
@@ -538,13 +551,13 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
-    unsigned int state = 0;
+    unsigned int state = StateTable<EntryData>::STATE_START_OF_TEXT;
     bool last_was_dont_advance = false;
     for (buffer->idx = 0;;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (info[buffer->idx].codepoint, num_glyphs) :
-			   0 /* End of text */;
+			   (unsigned) StateTable<EntryData>::CLASS_END_OF_TEXT;
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
