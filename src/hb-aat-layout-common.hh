@@ -455,7 +455,7 @@ struct StateTable
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
-    return v ? *v : CLASS_OUT_OF_BOUNDS;
+    return v ? (unsigned) *v : (unsigned) CLASS_OUT_OF_BOUNDS;
   }
 
   inline const Entry<Extra> *get_entries () const
