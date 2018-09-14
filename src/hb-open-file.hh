@@ -387,10 +387,9 @@ struct ResourceMap
   inline bool sanitize (hb_sanitize_context_t *c, const void *data_base) const
   {
     TRACE_SANITIZE (this);
-    const void *type_base = &(this+typeList);
     return_trace (c->check_struct (this) &&
 		  typeList.sanitize (c, this,
-				     type_base,
+				     &(this+typeList),
 				     data_base));
   }
 
