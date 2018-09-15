@@ -14,9 +14,7 @@ unset PKG_CONFIG_PATH
 # Removed -static from the following
 export CFLAGS="-static-libgcc"
 export CXXFLAGS="-static-libgcc -static-libstdc++"
-export CPPFLAGS="-I$HOME/.local/$target/include -O2"
-export LDFLAGS=-L$HOME/.local/$target/lib
-export PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig
-export PATH=$HOME/.local/$target/bin:$PATH
+export CPPFLAGS="-O2"
+export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/sys-root/mingw/lib/pkgconfig/
 
-../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target "$@"
+../configure --build=`../config.guess` --host=$target "$@"
