@@ -831,7 +831,7 @@ struct Chain
 
   inline unsigned int get_size (void) const { return length; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int major) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int version) const
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||
@@ -862,7 +862,7 @@ struct Chain
 
   UnsizedArrayOf<Feature>	featureZ;	/* Features. */
 /*ChainSubtable	firstSubtable;*//* Subtables. */
-/*subtableGlyphCoverageArray*/	/* Only if major == 3. */
+/*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
   DEFINE_SIZE_MIN (16);
@@ -892,8 +892,7 @@ struct morx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) ||
-	(version.major >> (sizeof (HBUINT32) == 4 ? 1 : 0)) != 1 ||
+    if (!version.sanitize (c) || version < 2 ||
 	!chainCount.sanitize (c))
       return_trace (false);
 
@@ -901,7 +900,7 @@ struct morx
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!chain->sanitize (c, version.major))
+      if (!chain->sanitize (c, version))
 	return_trace (false);
       chain = &StructAfter<Chain> (*chain);
     }
@@ -910,8 +909,9 @@ struct morx
   }
 
   protected:
-  FixedVersion<>version;	/* Version number of the glyph metamorphosis table.
-				 * 1 for mort, 2 or 3 for morx. */
+  HBUINT16	version;	/* Version number of the glyph metamorphosis table.
+				 * 2 or 3. */
+  HBUINT16	unused;		/* Set to 0. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
   Chain		firstChain;	/* Chains. */
