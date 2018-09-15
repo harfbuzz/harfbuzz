@@ -760,11 +760,6 @@ struct ChainSubtable
     Insertion		= 5
   };
 
-  inline void apply (hb_aat_apply_context_t *c) const
-  {
-    dispatch (c);
-  }
-
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
@@ -810,21 +805,38 @@ struct Chain
 {
   inline void apply (hb_aat_apply_context_t *c) const
   {
+    uint32_t flags = defaultFlags;
+    {
+      /* Compute applicable flags.  TODO Should move this to planning
+       * stage and take user-requested features into account. */
+      unsigned int count = featureCount;
+      for (unsigned i = 0; i < count; i++)
+      {
+        const Feature &feature = featureZ[i];
+	if (false) /* XXX Check if feature enabled... */
+	{
+	  flags &= feature.disableFlags;
+	  flags |= feature.enableFlags;
+	}
+      }
+    }
+
     const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
-      {
-	c->set_lookup_index (c->lookup_index + 1);
-	continue;
-      }
+      if (!(subtable->subFeatureFlags & flags))
+        goto skip;
 
-      subtable->apply (c);
-      subtable = &StructAfter<ChainSubtable> (*subtable);
+      if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
+        goto skip;
+
+      subtable->dispatch (c);
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
+    skip:
+      subtable = &StructAfter<ChainSubtable> (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
