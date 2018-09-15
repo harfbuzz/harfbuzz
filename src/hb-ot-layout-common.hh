@@ -70,6 +70,11 @@ namespace OT {
  * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList
  */
 
+struct Record_sanitize_closure_t {
+  hb_tag_t tag;
+  const void *list_base;
+};
+
 template <typename Type>
 struct Record
 {
@@ -77,14 +82,10 @@ struct Record
     return tag.cmp (a);
   }
 
-  struct sanitize_closure_t {
-    hb_tag_t tag;
-    const void *list_base;
-  };
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    const sanitize_closure_t closure = {tag, base};
+    const Record_sanitize_closure_t closure = {tag, base};
     return_trace (c->check_struct (this) && offset.sanitize (c, base, &closure));
   }
 
@@ -240,7 +241,7 @@ struct LangSys
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<LangSys>::sanitize_closure_t * = nullptr) const
+			const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && featureIndex.sanitize (c));
@@ -291,7 +292,7 @@ struct Script
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Script>::sanitize_closure_t * = nullptr) const
+			const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
@@ -526,6 +527,7 @@ struct FeatureParams
   FeatureParamsStylisticSet		stylisticSet;
   FeatureParamsCharacterVariants	characterVariants;
   } u;
+  public:
   DEFINE_SIZE_STATIC (17);
 };
 
@@ -553,7 +555,7 @@ struct Feature
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Feature>::sanitize_closure_t *closure = nullptr) const
+			const Record_sanitize_closure_t *closure = nullptr) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))

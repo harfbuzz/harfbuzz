@@ -54,7 +54,7 @@ struct SVGDocumentIndexEntry
 				 * this index entry. */
   HBUINT16	endGlyphID;	/* The last glyph ID in the range described by
 				 * this index entry. Must be >= startGlyphID. */
-  LOffsetTo<UnsizedArrayOf<HBUINT8> >
+  LOffsetTo<UnsizedArrayOf<HBUINT8>, false>
 		svgDoc;		/* Offset from the beginning of the SVG Document Index
 				 * to an SVG document. Must be non-zero. */
   HBUINT32 svgDocLength;	/* Length of the SVG document.

@@ -264,8 +264,6 @@ struct IndexSubtableArray
 
   protected:
   UnsizedArrayOf<IndexSubtableRecord>	indexSubtablesZ;
-  public:
-  DEFINE_SIZE_ARRAY(0, indexSubtablesZ);
 };
 
 struct BitmapSizeTable
@@ -289,7 +287,7 @@ struct BitmapSizeTable
   }
 
   protected:
-  LOffsetTo<IndexSubtableArray>
+  LOffsetTo<IndexSubtableArray, false>
 			indexSubtableArrayOffset;
   HBUINT32		indexTablesSize;
   HBUINT32		numberOfIndexSubtables;

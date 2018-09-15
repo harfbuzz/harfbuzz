@@ -243,7 +243,7 @@ struct LookupSegmentArray
 
   GlyphID	last;		/* Last GlyphID in this segment */
   GlyphID	first;		/* First GlyphID in this segment */
-  OffsetTo<UnsizedArrayOf<T> >
+  OffsetTo<UnsizedArrayOf<T>, HBUINT16, false>
 		valuesZ;	/* A 16-bit offset from the start of
 				 * the table to the data. */
   public:
@@ -522,11 +522,11 @@ struct StateTable
   protected:
   HBUINT32	nClasses;	/* Number of classes, which is the number of indices
 				 * in a single line in the state array. */
-  LOffsetTo<Lookup<HBUINT16> >
+  LOffsetTo<Lookup<HBUINT16>, false>
 		classTable;	/* Offset to the class table. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16> >
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
 		stateArrayTable;/* Offset to the state array. */
-  LOffsetTo<UnsizedArrayOf<Entry<Extra> > >
+  LOffsetTo<UnsizedArrayOf<Entry<Extra> >, false>
 		entryTable;	/* Offset to the entry array. */
 
   public:

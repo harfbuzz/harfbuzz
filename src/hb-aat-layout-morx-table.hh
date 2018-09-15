@@ -311,7 +311,7 @@ struct ContextualSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> >
+  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, false>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
@@ -473,11 +473,11 @@ struct LigatureSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedArrayOf<HBUINT32> >
+  LOffsetTo<UnsizedArrayOf<HBUINT32>, false>
 		ligAction;	/* Offset to the ligature action table. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16> >
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
 		component;	/* Offset to the component table. */
-  LOffsetTo<UnsizedArrayOf<GlyphID> >
+  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
 		ligature;	/* Offset to the actual ligature lists. */
   public:
   DEFINE_SIZE_STATIC (28);
@@ -715,7 +715,7 @@ struct InsertionSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedArrayOf<GlyphID> >
+  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
 		insertionAction;	/* Byte offset from stateHeader to the start of
 					 * the insertion glyph table. */
   public:
