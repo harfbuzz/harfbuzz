@@ -50,7 +50,8 @@ struct RearrangementSubtable
   struct driver_context_t
   {
     static const bool in_place = true;
-    enum Flags {
+    enum Flags
+    {
       MarkFirst		= 0x8000,	/* If set, make the current glyph the first
 					 * glyph to be rearranged. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
@@ -196,7 +197,8 @@ struct ContextualSubtable
   struct driver_context_t
   {
     static const bool in_place = true;
-    enum Flags {
+    enum Flags
+    {
       SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
 					 * going to the new state. */
@@ -329,7 +331,8 @@ struct LigatureSubtable
   struct driver_context_t
   {
     static const bool in_place = false;
-    enum Flags {
+    enum Flags
+    {
       SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
 					 * eventual processing. */
       DontAdvance	= 0x4000,	/* Leave the glyph pointer at this glyph for the
@@ -338,7 +341,8 @@ struct LigatureSubtable
 					 * group. */
       Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
     };
-    enum LigActionFlags {
+    enum LigActionFlags
+    {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
 					 * implies storage. */
       LigActionStore	= 0x40000000,	/* Store the ligature at the current cumulated index
@@ -517,19 +521,205 @@ struct NoncontextualSubtable
 
 struct InsertionSubtable
 {
+  struct EntryData
+  {
+    HBUINT16	currentInsertIndex;	/* Zero-based index into the insertion glyph table.
+					 * The number of glyphs to be inserted is contained
+					 * in the currentInsertCount field in the flags.
+					 * A value of 0xFFFF indicates no insertion is to
+					 * be done. */
+    HBUINT16	markedInsertIndex;	/* Zero-based index into the insertion glyph table.
+					 * The number of glyphs to be inserted is contained
+					 * in the markedInsertCount field in the flags.
+					 * A value of 0xFFFF indicates no insertion is to
+					 * be done. */
+    public:
+    DEFINE_SIZE_STATIC (4);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = false;
+    enum Flags
+    {
+      SetMark		= 0x8000,	/* If set, mark the current glyph. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state.  This does not mean
+					 * that the glyph pointed to is the same one as
+					 * before. If you've made insertions immediately
+					 * downstream of the current glyph, the next glyph
+					 * processed would in fact be the first one
+					 * inserted. */
+      CurrentIsKashidaLike= 0x2000,	/* If set, and the currentInsertList is nonzero,
+					 * then the specified glyph list will be inserted
+					 * as a kashida-like insertion, either before or
+					 * after the current glyph (depending on the state
+					 * of the currentInsertBefore flag). If clear, and
+					 * the currentInsertList is nonzero, then the
+					 * specified glyph list will be inserted as a
+					 * split-vowel-like insertion, either before or
+					 * after the current glyph (depending on the state
+					 * of the currentInsertBefore flag). */
+      MarkedIsKashidaLike= 0x1000,	/* If set, and the markedInsertList is nonzero,
+					 * then the specified glyph list will be inserted
+					 * as a kashida-like insertion, either before or
+					 * after the marked glyph (depending on the state
+					 * of the markedInsertBefore flag). If clear, and
+					 * the markedInsertList is nonzero, then the
+					 * specified glyph list will be inserted as a
+					 * split-vowel-like insertion, either before or
+					 * after the marked glyph (depending on the state
+					 * of the markedInsertBefore flag). */
+      CurrentInsertBefore= 0x0800,	/* If set, specifies that insertions are to be made
+					 * to the left of the current glyph. If clear,
+					 * they're made to the right of the current glyph. */
+      MarkedInsertBefore= 0x0400,	/* If set, specifies that insertions are to be
+					 * made to the left of the marked glyph. If clear,
+					 * they're made to the right of the marked glyph. */
+      CurrentInsertCount= 0x3E0,	/* This 5-bit field is treated as a count of the
+					 * number of glyphs to insert at the current
+					 * position. Since zero means no insertions, the
+					 * largest number of insertions at any given
+					 * current location is 31 glyphs. */
+      MarkedInsertCount= 0x001F,	/* This 5-bit field is treated as a count of the
+					 * number of glyphs to insert at the marked
+					 * position. Since zero means no insertions, the
+					 * largest number of insertions at any given
+					 * marked location is 31 glyphs. */
+    };
+
+    inline driver_context_t (const InsertionSubtable *table,
+			     hb_aat_apply_context_t *c_) :
+	ret (false),
+	c (c_),
+	mark_set (false),
+	mark (0),
+	insertionAction (table+table->insertionAction) {}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
+	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+#if 0
+      if (flags & SetComponent)
+      {
+        if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
+	  return false;
+
+	/* Never mark same index twice, in case DontAdvance was used... */
+	if (match_length && match_positions[match_length - 1] == buffer->out_len)
+	  match_length--;
+
+	match_positions[match_length++] = buffer->out_len;
+      }
+
+      if (flags & PerformAction)
+      {
+	unsigned int end = buffer->out_len;
+	unsigned int action_idx = entry->data.ligActionIndex;
+	unsigned int action;
+	unsigned int ligature_idx = 0;
+        do
+	{
+	  if (unlikely (!match_length))
+	    return false;
+
+	  buffer->move_to (match_positions[--match_length]);
+
+	  const HBUINT32 &actionData = ligAction[action_idx];
+	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
+	  action = actionData;
+
+	  uint32_t uoffset = action & LigActionOffset;
+	  if (uoffset & 0x20000000)
+	    uoffset += 0xC0000000;
+	  int32_t offset = (int32_t) uoffset;
+	  unsigned int component_idx = buffer->cur().codepoint + offset;
+
+	  const HBUINT16 &componentData = component[component_idx];
+	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
+	  ligature_idx += componentData;
+
+	  if (action & (LigActionStore | LigActionLast))
+	  {
+	    const GlyphID &ligatureData = ligature[ligature_idx];
+	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
+	    hb_codepoint_t lig = ligatureData;
+
+	    match_positions[match_length++] = buffer->out_len;
+	    buffer->replace_glyph (lig);
+
+	    //ligature_idx = 0; // XXX Yes or no?
+	  }
+	  else
+	  {
+	    buffer->skip_glyph ();
+	    end--;
+	  }
+	  /* TODO merge_clusters / unsafe_to_break */
+
+	  action_idx++;
+	}
+	while (!(action & LigActionLast));
+	buffer->move_to (end);
+      }
+#endif
+
+      if (flags & SetMark)
+      {
+	mark_set = true;
+	mark = buffer->idx;
+      }
+
+
+      return true;
+    }
+
+    public:
+    bool ret;
+    private:
+    hb_aat_apply_context_t *c;
+    bool mark_set;
+    unsigned int mark;
+    const UnsizedArrayOf<GlyphID> &insertionAction;
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    /* TODO */
-    return_trace (false);
+
+    driver_context_t dc (this, c);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    driver.drive (&dc);
+
+    return_trace (dc.ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (true);
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (c->check_struct (this) && machine.sanitize (c) &&
+		  insertionAction);
   }
+
+  protected:
+  StateTable<EntryData>
+		machine;
+  LOffsetTo<UnsizedArrayOf<GlyphID> >
+		insertionAction;	/* Byte offset from stateHeader to the start of
+					 * the insertion glyph table. */
+  public:
+  DEFINE_SIZE_STATIC (20);
 };
 
 
@@ -561,7 +751,8 @@ struct ChainSubtable
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & 0xFF; }
 
-  enum Type {
+  enum Type
+  {
     Rearrangement	= 0,
     Contextual		= 1,
     Ligature		= 2,
