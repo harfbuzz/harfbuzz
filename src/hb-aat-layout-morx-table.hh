@@ -608,6 +608,8 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
+      if (0)
+	c->sanitizer.check_range (nullptr, 0);
 #if 0
       if (flags & SetComponent)
       {
