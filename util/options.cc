@@ -523,8 +523,7 @@ font_options_t::add_options (option_parser_t *parser)
   char *text = nullptr;
 
   {
-    static_assert ((ARRAY_LENGTH_CONST (supported_font_funcs) > 0),
-		   "No supported font-funcs found.");
+    static_assert ((ARRAY_LENGTH_CONST (supported_font_funcs) > 0));
     GString *s = g_string_new (nullptr);
     g_string_printf (s, "Set font functions implementation to use (default: %s)\n\n    Supported font function implementations are: %s",
 		     supported_font_funcs[0].name,
