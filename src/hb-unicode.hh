@@ -114,7 +114,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
        * are MODIFIER_SYMBOL.  Fixes:
        * https://github.com/harfbuzz/harfbuzz/issues/169
        */
-      if (unlikely (hb_in_range (u, 0x1F3FBu, 0x1F3FFu)))
+      if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1F3FBu, 0x1F3FFu)))
 	cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
     }
 
