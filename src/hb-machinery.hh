@@ -83,7 +83,7 @@ static inline Type& StructAfter(TObject &X)
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
   { \
-    static_assert ((_assertion)); \
+    static_assert ((_assertion), ""); \
     ASSERT_INSTANCE_POD (*this); /* Make sure it's POD. */ \
   }
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
@@ -704,7 +704,7 @@ struct BEInt<Type, 4>
 template <typename Data, unsigned int WheresData>
 struct hb_data_wrapper_t
 {
-  static_assert (WheresData > 0);
+  static_assert (WheresData > 0, "");
 
   inline Data * get_data (void) const
   {

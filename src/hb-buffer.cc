@@ -130,7 +130,7 @@ hb_buffer_t::enlarge (unsigned int size)
   while (size >= new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
-  static_assert ((sizeof (info[0]) == sizeof (pos[0])));
+  static_assert ((sizeof (info[0]) == sizeof (pos[0])), "");
   if (unlikely (hb_unsigned_mul_overflows (new_allocated, sizeof (info[0]))))
     goto done;
 

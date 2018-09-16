@@ -290,7 +290,7 @@ hb_in_range (T u, T lo, T hi)
    * one right now.  Declaring a variable won't work as HB_UNUSED
    * is unusable on some platforms and unused types are less likely
    * to generate a warning than unused variables. */
-  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0));
+  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0), "");
 
   /* The casts below are important as if T is smaller than int,
    * the subtract results will become a signed int! */
@@ -628,7 +628,7 @@ struct hb_vector_size_t
   }
 
   private:
-  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size);
+  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
   union {
     elt_t v[byte_size / sizeof (elt_t)];
 #if HB_VECTOR_SIZE

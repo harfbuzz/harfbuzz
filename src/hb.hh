@@ -99,7 +99,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #endif
 
 #ifndef static_assert
-#define static_assert(e) \
+#define static_assert(e, msg) \
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert
 
@@ -135,10 +135,6 @@ struct _hb_alignof
 /* https://github.com/harfbuzz/harfbuzz/issues/1127 */
 #ifndef explicit_operator
 #define explicit_operator explicit
-#endif
-
-#if __cplusplus < 201703L || true /* Only allow single-arg form. */
-#define static_assert(x) static_assert(x, "")
 #endif
 
 #endif /* __cplusplus < 201103L */
@@ -308,18 +304,18 @@ template <> class hb_assert_constant_t<1> {};
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
 
 /* Lets assert int types.  Saves trouble down the road. */
-static_assert ((sizeof (int8_t) == 1));
-static_assert ((sizeof (uint8_t) == 1));
-static_assert ((sizeof (int16_t) == 2));
-static_assert ((sizeof (uint16_t) == 2));
-static_assert ((sizeof (int32_t) == 4));
-static_assert ((sizeof (uint32_t) == 4));
-static_assert ((sizeof (int64_t) == 8));
-static_assert ((sizeof (uint64_t) == 8));
-static_assert ((sizeof (hb_codepoint_t) == 4));
-static_assert ((sizeof (hb_position_t) == 4));
-static_assert ((sizeof (hb_mask_t) == 4));
-static_assert ((sizeof (hb_var_int_t) == 4));
+static_assert ((sizeof (int8_t) == 1), "");
+static_assert ((sizeof (uint8_t) == 1), "");
+static_assert ((sizeof (int16_t) == 2), "");
+static_assert ((sizeof (uint16_t) == 2), "");
+static_assert ((sizeof (int32_t) == 4), "");
+static_assert ((sizeof (uint32_t) == 4), "");
+static_assert ((sizeof (int64_t) == 8), "");
+static_assert ((sizeof (uint64_t) == 8), "");
+static_assert ((sizeof (hb_codepoint_t) == 4), "");
+static_assert ((sizeof (hb_position_t) == 4), "");
+static_assert ((sizeof (hb_mask_t) == 4), "");
+static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
 /* We like our types POD */
@@ -376,8 +372,8 @@ static_assert ((sizeof (hb_var_int_t) == 4));
 #    define HB_VECTOR_SIZE 0
 #  endif
 #endif
-static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)));
-static_assert (0 == (HB_VECTOR_SIZE % 64));
+static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)), "HB_VECTOR_SIZE is not power of 2.");
+static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64.");
 #if HB_VECTOR_SIZE
 typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
 #else

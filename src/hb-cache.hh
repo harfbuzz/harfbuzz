@@ -35,8 +35,8 @@
 template <unsigned int key_bits, unsigned int value_bits, unsigned int cache_bits>
 struct hb_cache_t
 {
-  static_assert ((key_bits >= cache_bits));
-  static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (unsigned int)));
+  static_assert ((key_bits >= cache_bits), "");
+  static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (unsigned int)), "");
 
   inline void init (void) { clear (); }
   inline void fini (void) {}
