@@ -52,7 +52,7 @@ union hb_options_union_t {
   int i;
   hb_options_t opts;
 };
-static_assert ((sizeof (hb_atomic_int_t) >= sizeof (hb_options_union_t)), "");
+static_assert ((sizeof (hb_atomic_int_t) >= sizeof (hb_options_union_t)));
 
 HB_INTERNAL void
 _hb_options_init (void);

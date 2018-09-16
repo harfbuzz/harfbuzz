@@ -44,7 +44,7 @@ hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline Type const & Null (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE);
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
 #define Null(Type) Null<Type>()
@@ -58,7 +58,7 @@ static inline Type const & Null (void) {
 	  return *reinterpret_cast<const Namespace::Type *> (_hb_Null_##Namespace##_##Type); \
 	} \
 	namespace Namespace { \
-	static_assert (true, "Just so we take semicolon after.")
+	static_assert (true) /* Just so we take semicolon after. */
 #define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 	const unsigned char _hb_Null_##Namespace##_##Type[Namespace::Type::min_size]
 
@@ -69,7 +69,7 @@ static inline Type const & Null (void) {
 	/*static*/ inline const Type& Null<Type> (void) { \
 	  return _hb_Null_##Type; \
 	} \
-static_assert (true, "Just so we take semicolon after.")
+	static_assert (true) /* Just so we take semicolon after. */
 #define DEFINE_NULL_INSTANCE(Type) \
 	const Type _hb_Null_##Type
 
@@ -85,7 +85,7 @@ extern HB_INTERNAL
 /* CRAP pool: Common Region for Access Protection. */
 template <typename Type>
 static inline Type& Crap (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE);
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
   *obj = Null(Type);
   return *obj;

@@ -107,7 +107,7 @@ static inline void _hb_memory_barrier (void)
 #define _hb_memory_barrier()			_hb_memory_barrier ()
 
 #define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((LONG *) (AI), (V))
-static_assert ((sizeof (LONG) == sizeof (int)), "");
+static_assert ((sizeof (LONG) == sizeof (int)));
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 
@@ -198,7 +198,7 @@ static inline bool _hb_compare_and_swaplp (long *P, long O, long N)
 #define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swaplp ((long *) (P), (long) (O), (long) (N))
-static_assert ((sizeof (long) == sizeof (void *)), "");
+static_assert ((sizeof (long) == sizeof (void *)));
 
 
 #elif !defined(HB_NO_MT)

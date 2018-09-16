@@ -269,7 +269,7 @@ arabic_fallback_plan_init_unicode (arabic_fallback_plan_t *fallback_plan,
 				   const hb_ot_shape_plan_t *plan,
 				   hb_font_t *font)
 {
-  static_assert ((ARRAY_LENGTH_CONST(arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS), "");
+  static_assert ((ARRAY_LENGTH_CONST(arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS));
   unsigned int j = 0;
   for (unsigned int i = 0; i < ARRAY_LENGTH(arabic_fallback_features) ; i++)
   {

@@ -60,8 +60,8 @@ struct hb_set_digest_lowest_bits_t
 				     + (mask_bytes >= 16? 1 : 0)
 				     + 0;
 
-  static_assert ((shift < sizeof (hb_codepoint_t) * 8), "");
-  static_assert ((shift + num_bits <= sizeof (hb_codepoint_t) * 8), "");
+  static_assert ((shift < sizeof (hb_codepoint_t) * 8));
+  static_assert ((shift + num_bits <= sizeof (hb_codepoint_t) * 8));
 
   inline void init (void) {
     mask = 0;

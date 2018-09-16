@@ -800,7 +800,7 @@ struct CoverageFormat1
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     int i = glyphArray.bsearch (glyph_id);
-    static_assert ((((unsigned int) -1) == NOT_COVERED), "");
+    static_assert ((((unsigned int) -1) == NOT_COVERED));
     return i;
   }
 

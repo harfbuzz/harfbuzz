@@ -463,7 +463,7 @@ struct MathGlyphPartRecord
     out.full_advance		= font->em_scale (fullAdvance, scale);
 
     static_assert ((unsigned int) HB_MATH_GLYPH_PART_FLAG_EXTENDER ==
-		   (unsigned int) PartFlags::Extender, "");
+		   (unsigned int) PartFlags::Extender);
 
     out.flags = (hb_ot_math_glyph_part_flags_t)
 		(unsigned int)

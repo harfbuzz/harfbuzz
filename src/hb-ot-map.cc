@@ -145,7 +145,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 			      const int    *coords,
 			      unsigned int  num_coords)
 {
-  static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))), "");
+  static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))));
   unsigned int global_bit_mask = HB_GLYPH_FLAG_DEFINED + 1;
   unsigned int global_bit_shift = hb_popcount (HB_GLYPH_FLAG_DEFINED);
 

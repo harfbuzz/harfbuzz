@@ -349,7 +349,7 @@ set_indic_properties (hb_glyph_info_t &info)
 				      0x1CEEu, 0x1CF1u)))
   {
     cat = OT_Symbol;
-    static_assert (((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol), "");
+    static_assert (((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol));
   }
   else if (unlikely (u == 0x0A51u))
   {
