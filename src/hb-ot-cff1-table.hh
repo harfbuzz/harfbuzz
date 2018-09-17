@@ -1124,7 +1124,7 @@ struct cff1
 
   struct accelerator_t : accelerator_templ_t<CFF1PrivateDictOpSet, CFF1PrivateDictValues>
   {
-    bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
+    HB_INTERNAL bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
   };
 
   struct accelerator_subset_t : accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset>
