@@ -68,7 +68,7 @@ struct TrackTableEntry
   protected:
   Fixed		track;		/* Track value for this record. */
   NameID	trackNameID;	/* The 'name' table index for this track */
-  OffsetTo<UnsizedArrayOf<FWORD> >
+  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>
 		valuesZ;	/* Offset from start of tracking table to
 				 * per-size tracking values for this track. */
 
@@ -134,7 +134,7 @@ struct TrackData
   protected:
   HBUINT16	nTracks;	/* Number of separate tracks included in this table. */
   HBUINT16	nSizes;		/* Number of point sizes included in this table. */
-  LOffsetTo<UnsizedArrayOf<Fixed> >
+  LOffsetTo<UnsizedArrayOf<Fixed>, false>
 		sizeTable;	/* Offset to array[nSizes] of size values. */
   UnsizedArrayOf<TrackTableEntry>
 		trackTable;	/* Array[nTracks] of TrackTableEntry records. */

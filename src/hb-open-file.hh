@@ -348,7 +348,7 @@ struct ResourceTypeRecord
   protected:
   Tag		tag;		/* Resource type. */
   HBUINT16	resCountM1;	/* Number of resources minus 1. */
-  OffsetTo<UnsizedArrayOf<ResourceRecord> >
+  OffsetTo<UnsizedArrayOf<ResourceRecord>, HBUINT16, false>
 		resourcesZ;	/* Offset from beginning of resource type list
 				 * to reference item list for this type. */
   public:
@@ -387,10 +387,9 @@ struct ResourceMap
   inline bool sanitize (hb_sanitize_context_t *c, const void *data_base) const
   {
     TRACE_SANITIZE (this);
-    const void *type_base = &(this+typeList);
     return_trace (c->check_struct (this) &&
 		  typeList.sanitize (c, this,
-				     type_base,
+				     &(this+typeList),
 				     data_base));
   }
 
@@ -405,7 +404,7 @@ struct ResourceMap
   HBUINT32	reserved1;	/* Reserved for handle to next resource map */
   HBUINT16	resreved2;	/* Reserved for file reference number */
   HBUINT16	attrs;		/* Resource fork attribute */
-  OffsetTo<ArrayOfM1<ResourceTypeRecord> >
+  OffsetTo<ArrayOfM1<ResourceTypeRecord>, HBUINT16, false>
 		typeList;	/* Offset from beginning of map to
 				 * resource type list */
   Offset16	nameList;	/* Offset from beginning of map to
@@ -437,10 +436,10 @@ struct ResourceForkHeader
   }
 
   protected:
-  LOffsetTo<UnsizedArrayOf<HBUINT8> >
+  LOffsetTo<UnsizedArrayOf<HBUINT8>, false>
 		data;		/* Offset from beginning of resource fork
 				 * to resource data */
-  LOffsetTo<ResourceMap>
+  LOffsetTo<ResourceMap, false>
 		map;		/* Offset from beginning of resource fork
 				 * to resource map */
   HBUINT32	dataLen;	/* Length of resource data */

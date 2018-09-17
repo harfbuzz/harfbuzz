@@ -73,19 +73,6 @@ static_assert (true, "Just so we take semicolon after.")
 #define DEFINE_NULL_INSTANCE(Type) \
 	const Type _hb_Null_##Type
 
-/* Specializaiton to disallow Null objects. */
-#define DECLARE_NULL_DISALLOW(Type) \
-	template <> inline const Type& Null<Type> (void)
-#define DECLARE_NULL_NAMSPACE_DISALLOW(Namespace, Type) \
-	} /* Close namespace. */ \
-	template <> \
-	/*static*/ inline const Namespace::Type& Null<Namespace::Type> (void) { \
-	  extern void *_hb_undefined; \
-	  return *reinterpret_cast<const Namespace::Type *> (_hb_undefined); \
-	} \
-	namespace Namespace { \
-	static_assert (true, "Just so we take semicolon after.")
-
 /* Global writable pool.  Enlarge as necessary. */
 
 /* To be fully correct, CrapPool must be thread_local. However, we do not rely on CrapPool
