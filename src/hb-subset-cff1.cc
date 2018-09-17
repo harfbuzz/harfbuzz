@@ -299,8 +299,8 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 
   static inline void flush_n_args (unsigned int n, CFF1CSInterpEnv &env, FlattenParam& param)
   {
-    for (unsigned int i = env.argStack.count - n; i < env.argStack.count; i++)
-      param.flatStr.encode_num (env.argStack.elements[i]);
+    for (unsigned int i = env.argStack.get_count () - n; i < env.argStack.get_count (); i++)
+      param.flatStr.encode_num (env.argStack[i]);
     SUPER::flush_n_args (n, env, param);
   }
 

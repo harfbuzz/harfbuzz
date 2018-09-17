@@ -120,8 +120,8 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;
 };
 
-template <typename OPSET, typename PARAM>
-struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>
+template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF2CSInterpEnv, PARAM> >
+struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
 {
   static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
   {
@@ -158,10 +158,10 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>
     /* copy the blend values into blend array of the default values */
     unsigned int start = env.argStack.get_count () - ((k+1) * n);
     for (unsigned int i = 0; i < n; i++)
-      env.argStack.elements[start + i].set_blends (n, i, k, &env.argStack.elements[start + n + (i * k)]);
+      env.argStack[start + i].set_blends (n, i, k, &env.argStack[start + n + (i * k)]);
 
     /* pop off blend values leaving default values now adorned with blend values */
-    env.argStack.count -= k * n;
+    env.argStack.pop (k * n);
     return true;
   }
 
@@ -172,7 +172,7 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>
   }
 
   private:
-  typedef CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM>  SUPER;
+  typedef CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>  SUPER;
 };
 
 template <typename OPSET, typename PARAM>

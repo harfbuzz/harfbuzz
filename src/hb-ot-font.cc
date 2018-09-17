@@ -146,6 +146,8 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
   bool ret = ot_face->glyf->get_extents (glyph, extents);
   if (!ret)
+    ret = ot_face->cff1->get_extents (glyph, extents);
+  if (!ret)
     ret = ot_face->CBDT->get_extents (glyph, extents);
   // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);

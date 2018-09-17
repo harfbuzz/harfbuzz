@@ -57,6 +57,22 @@ struct BiasedSubrs
   unsigned int  bias;
 };
 
+struct Point
+{
+  inline void init (void)
+  {
+    x.init ();
+    y.init ();
+  }
+
+  inline void move_x (const Number &dx) { x += dx; }
+  inline void move_y (const Number &dy) { y += dy; }
+  inline void move (const Number &dx, const Number &dy) { move_x (dx); move_y (dy); }
+
+  Number  x;
+  Number  y;
+};
+
 template <typename ARG, typename SUBRS>
 struct CSInterpEnv : InterpEnv<ARG>
 {
@@ -68,6 +84,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     seen_hintmask = false;
     hstem_count = 0;
     vstem_count = 0;
+    pt.init ();
     callStack.init ();
     globalSubrs.init (globalSubrs_);
     localSubrs.init (localSubrs_);
@@ -129,6 +146,30 @@ struct CSInterpEnv : InterpEnv<ARG>
   inline void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
   inline bool is_endchar (void) const { return endchar_flag; }
 
+  inline const Number &get_x (void) const { return pt.x; }
+  inline const Number &get_y (void) const { return pt.y; }
+  inline const Point &get_pt (void) const { return pt; }
+
+  inline void moveto (const Point &pt_ ) { pt = pt_; }
+
+  inline unsigned int move_x_with_arg (unsigned int i)
+  {
+    pt.move_x (SUPER::argStack[i]);
+    return i + 1;
+  }
+
+  inline unsigned int move_y_with_arg (unsigned int i)
+  {
+    pt.move_y (SUPER::argStack[i]);
+    return i + 1;
+  }
+
+  inline unsigned int move_xy_with_arg (unsigned int i)
+  {
+    pt.move (SUPER::argStack[i], SUPER::argStack[i+1]);
+    return i + 2;
+  }
+
   public:
   bool          endchar_flag;
   bool          seen_moveto;
@@ -142,10 +183,33 @@ struct CSInterpEnv : InterpEnv<ARG>
   BiasedSubrs<SUBRS>   localSubrs;
 
   private:
+  Point         pt;
+
   typedef InterpEnv<ARG> SUPER;
 };
 
-template <typename ARG, typename OPSET, typename ENV, typename PARAM>
+template <typename ENV, typename PARAM>
+struct PathProcsNull
+{
+  static inline void rmoveto (ENV &env, PARAM& param) {}
+  static inline void hmoveto (ENV &env, PARAM& param) {}
+  static inline void vmoveto (ENV &env, PARAM& param) {}
+  static inline void rlineto (ENV &env, PARAM& param) {}
+  static inline void hlineto (ENV &env, PARAM& param) {}
+  static inline void vlineto (ENV &env, PARAM& param) {}
+  static inline void rrcurveto (ENV &env, PARAM& param) {}
+  static inline void rcurveline (ENV &env, PARAM& param) {}
+  static inline void rlinecurve (ENV &env, PARAM& param) {}
+  static inline void vvcurveto (ENV &env, PARAM& param) {}
+  static inline void hhcurveto (ENV &env, PARAM& param) {}
+  static inline void vhcurveto (ENV &env, PARAM& param) {}
+  static inline void hvcurveto (ENV &env, PARAM& param) {}
+  static inline void moveto (ENV &env, PARAM& param, const Point &pt) {}
+  static inline void line (ENV &env, PARAM& param, const Point &pt1) {}
+  static inline void curve (ENV &env, PARAM& param, const Point &pt1, const Point &pt2, const Point &pt3) {}
+};
+
+template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=PathProcsNull<ENV, PARAM> >
 struct CSOpSet : OpSet<ARG>
 {
   static inline bool process_op (OpCode op, ENV &env, PARAM& param)
@@ -180,23 +244,57 @@ struct CSOpSet : OpSet<ARG>
       case OpCode_cntrmask:
         OPSET::process_hintmask (op, env, param);
         break;
-      
-      case OpCode_vmoveto:
-      case OpCode_rlineto:
-      case OpCode_hlineto:
-      case OpCode_vlineto:
       case OpCode_rmoveto:
+        PATH::rmoveto (env, param);
+        process_post_move (op, env, param);
+        break;
       case OpCode_hmoveto:
-        OPSET::process_moveto (op, env, param);
+        PATH::hmoveto (env, param);
+        process_post_move (op, env, param);
+        break;
+      case OpCode_vmoveto:
+        PATH::vmoveto (env, param);
+        process_post_move (op, env, param);
+        break;
+      case OpCode_rlineto:
+        PATH::rlineto (env, param);
+        process_post_path (op, env, param);
+        break;
+      case OpCode_hlineto:
+        PATH::hlineto (env, param);
+        process_post_path (op, env, param);
+        break;
+      case OpCode_vlineto:
+        PATH::vlineto (env, param);
+        process_post_path (op, env, param);
         break;
       case OpCode_rrcurveto:
+        PATH::rrcurveto (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_rcurveline:
+        PATH::rcurveline (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_rlinecurve:
+        PATH::rlinecurve (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_vvcurveto:
+        PATH::vvcurveto (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_hhcurveto:
+        PATH::hhcurveto (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_vhcurveto:
+        PATH::vhcurveto (env, param);
+        process_post_path (op, env, param);
+        break;
       case OpCode_hvcurveto:
-        OPSET::process_path (op, env, param);
+        PATH::hvcurveto (env, param);
+        process_post_path (op, env, param);
         break;
 
       case OpCode_hflex:
@@ -214,13 +312,13 @@ struct CSOpSet : OpSet<ARG>
 
   static inline void process_hstem (OpCode op, ENV &env, PARAM& param)
   {
-    env.hstem_count += env.argStack.count / 2;
+    env.hstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
   static inline void process_vstem (OpCode op, ENV &env, PARAM& param)
   {
-    env.vstem_count += env.argStack.count / 2;
+    env.vstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
@@ -239,7 +337,7 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_moveto (OpCode op, ENV &env, PARAM& param)
+  static inline void process_post_move (OpCode op, ENV &env, PARAM& param)
   {
     if (!env.seen_moveto)
     {
@@ -249,14 +347,14 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_path (OpCode op, ENV &env, PARAM& param)
+  static inline void process_post_path (OpCode op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
   static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param)
   {
-    OPSET::flush_n_args_and_op (op, env.argStack.count, env, param);
+    OPSET::flush_n_args_and_op (op, env.argStack.get_count (), env, param);
   }
 
   static inline void flush_n_args_and_op (OpCode op, unsigned int n, ENV &env, PARAM& param)
@@ -267,7 +365,7 @@ struct CSOpSet : OpSet<ARG>
 
   static inline void flush_args (ENV &env, PARAM& param)
   {
-    OPSET::flush_n_args (env.argStack.count, env, param);
+    OPSET::flush_n_args (env.argStack.get_count (), env, param);
   }
 
   static inline void flush_n_args (unsigned int n, ENV &env, PARAM& param)
@@ -297,7 +395,310 @@ struct CSOpSet : OpSet<ARG>
     }
   }
 
+  protected:
   typedef OpSet<ARG>  SUPER;
+};
+
+template <typename PATH, typename ENV, typename PARAM>
+struct PathProcs
+{
+  static inline void rmoveto (ENV &env, PARAM& param)
+  {
+    Point pt1 = env.get_pt ();
+    const Number &dy = env.argStack.pop ();
+    const Number &dx = env.argStack.pop ();
+    pt1.move (dx, dy);
+    env.moveto (pt1);
+  }
+
+  static inline void hmoveto (ENV &env, PARAM& param)
+  {
+    Point pt1 = env.get_pt ();
+    pt1.move_x (env.argStack.pop ());
+    env.moveto (pt1);
+  }
+
+  static inline void vmoveto (ENV &env, PARAM& param)
+  {
+    Point pt1 = env.get_pt ();
+    pt1.move_y (env.argStack.pop ());
+    env.moveto (pt1);
+  }
+
+  static inline void rlineto (ENV &env, PARAM& param)
+  {
+    for (unsigned int i = 0; i + 2 <= env.argStack.get_count (); i += 2)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      PATH::line (env, param, pt1);
+    }
+  }
+  
+  static inline void hlineto (ENV &env, PARAM& param)
+  {
+    Point pt1;
+    unsigned int i = 0;
+    for (; i + 2 <= env.argStack.get_count (); i += 2)
+    {
+      pt1 = env.get_pt ();
+      pt1.move_x (env.argStack[i]);
+      PATH::line (env, param, pt1);
+      pt1.move_y (env.argStack[i+1]);
+      PATH::line (env, param, pt1);
+    }
+    if (i < env.argStack.get_count ())
+    {
+      pt1 = env.get_pt ();
+      pt1.move_x (env.argStack[i]);
+      PATH::line (env, param, pt1);
+    }
+  }
+
+  static inline void vlineto (ENV &env, PARAM& param)
+  {
+    Point pt1;
+    unsigned int i = 0;
+    for (; i + 2 <= env.argStack.get_count (); i += 2)
+    {
+      pt1 = env.get_pt ();
+      pt1.move_y (env.argStack[i]);
+      PATH::line (env, param, pt1);
+      pt1.move_x (env.argStack[i+1]);
+      PATH::line (env, param, pt1);
+    }
+    if (i < env.argStack.get_count ())
+    {
+      pt1 = env.get_pt ();
+      pt1.move_y (env.argStack[i]);
+      PATH::line (env, param, pt1);
+    }
+  }
+
+  static inline void rrcurveto (ENV &env, PARAM& param)
+  {
+    for (unsigned int i = 0; i + 6 <= env.argStack.get_count (); i += 6)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      Point pt3 = pt2;
+      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+    }
+  }
+
+  static inline void rcurveline (ENV &env, PARAM& param)
+  {
+    unsigned int i = 0;
+    for (; i + 6 <= env.argStack.get_count (); i += 6)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      Point pt3 = pt2;
+      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+    }
+    for (; i + 2 <= env.argStack.get_count (); i += 2)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      PATH::line (env, param, pt1);
+    }
+  }
+
+  static inline void rlinecurve (ENV &env, PARAM& param)
+  {
+    unsigned int i = 0;
+    unsigned int line_limit = (env.argStack.get_count () % 6);
+    for (; i + 2 <= line_limit; i += 2)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      PATH::line (env, param, pt1);
+    }
+    for (; i + 6 <= env.argStack.get_count (); i += 6)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.argStack[i], env.argStack[i+1]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      Point pt3 = pt2;
+      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+    }
+  }
+
+  static inline void vvcurveto (ENV &env, PARAM& param)
+  {
+    unsigned int i = 0;
+    Point pt1 = env.get_pt ();
+    if ((env.argStack.get_count () & 1) != 0)
+      pt1.move_x (env.argStack[i++]);
+    for (; i + 4 <= env.argStack.get_count (); i += 4)
+    {
+      pt1.move_y (env.argStack[i]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      Point pt3 = pt2;
+      pt3.move_y (env.argStack[i+3]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+      pt1 = env.get_pt ();
+    }
+  }
+
+  static inline void hhcurveto (ENV &env, PARAM& param)
+  {
+    unsigned int i = 0;
+    Point pt1 = env.get_pt ();
+    if ((env.argStack.get_count () & 1) != 0)
+      pt1.move_y (env.argStack[i++]);
+    for (; i + 4 <= env.argStack.get_count (); i += 4)
+    {
+      pt1.move_x (env.argStack[i]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      Point pt3 = pt2;
+      pt3.move_x (env.argStack[i+3]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+      pt1 = env.get_pt ();
+    }
+  }
+
+  static inline void vhcurveto (ENV &env, PARAM& param)
+  {
+    Point pt1, pt2, pt3;
+    unsigned int i = 0;
+    if ((env.argStack.get_count () % 8) >= 4)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move_y (env.argStack[i]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      Point pt3 = pt2;
+      pt3.move_x (env.argStack[i+3]);
+      i += 4;
+
+      for (; i + 8 <= env.argStack.get_count (); i += 8)
+      {
+        PATH::curve (env, param, pt1, pt2, pt3);
+        pt1 = env.get_pt ();
+        pt1.move_x (env.argStack[i]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt3 = pt2;
+        pt3.move_y (env.argStack[i+3]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+
+        pt1 = pt3;
+        pt1.move_y (env.argStack[i+4]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt3 = pt2;
+        pt3.move_x (env.argStack[i+7]);
+      }
+      if (i < env.argStack.get_count ())
+        pt3.move_y (env.argStack[i]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+    }
+    else
+    {
+      for (; i + 8 <= env.argStack.get_count (); i += 8)
+      {
+        pt1 = env.get_pt ();
+        pt1.move_y (env.argStack[i]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt3 = pt2;
+        pt3.move_x (env.argStack[i+3]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+
+        pt1 = pt3;
+        pt1.move_x (env.argStack[i+4]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt3 = pt2;
+        pt3.move_y (env.argStack[i+7]);
+        if ((env.argStack.get_count () - i < 16) && ((env.argStack.get_count () & 1) != 0))
+          pt3.move_x (env.argStack[i+8]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+      }
+    }
+  }
+
+  static inline void hvcurveto (ENV &env, PARAM& param)
+  {
+    Point pt1, pt2, pt3;
+    unsigned int i = 0;
+    if ((env.argStack.get_count () % 8) >= 4)
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move_x (env.argStack[i]);
+      Point pt2 = pt1;
+      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      Point pt3 = pt2;
+      pt3.move_y (env.argStack[i+3]);
+      i += 4;
+
+      for (; i + 8 <= env.argStack.get_count (); i += 8)
+      {
+        PATH::curve (env, param, pt1, pt2, pt3);
+        pt1 = env.get_pt ();
+        pt1.move_y (env.argStack[i]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt3 = pt2;
+        pt3.move_x (env.argStack[i+3]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+
+        pt1 = pt3;
+        pt1.move_x (env.argStack[i+4]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt3 = pt2;
+        pt3.move_y (env.argStack[i+7]);
+      }
+      if (i < env.argStack.get_count ())
+        pt3.move_x (env.argStack[i]);
+      PATH::curve (env, param, pt1, pt2, pt3);
+    }
+    else
+    {
+      for (; i + 8 <= env.argStack.get_count (); i += 8)
+      {
+        pt1 = env.get_pt ();
+        pt1.move_x (env.argStack[i]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt3 = pt2;
+        pt3.move_y (env.argStack[i+3]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+
+        pt1 = pt3;
+        pt1.move_y (env.argStack[i+4]);
+        pt2 = pt1;
+        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt3 = pt2;
+        pt3.move_x (env.argStack[i+7]);
+        if ((env.argStack.get_count () - i < 16) && ((env.argStack.get_count () & 1) != 0))
+          pt3.move_y (env.argStack[i+8]);
+        PATH::curve (env, param, pt1, pt2, pt3);
+      }
+    }
+  }
+
+  /* default actions to be overridden */
+  static inline void moveto (ENV &env, PARAM& param, const Point &pt)
+  { env.moveto (pt); }
+
+  static inline void line (ENV &env, PARAM& param, const Point &pt1)
+  { PATH::moveto (env, param, pt1); }
+
+  static inline void curve (ENV &env, PARAM& param, const Point &pt1, const Point &pt2, const Point &pt3)
+  { PATH::moveto (env, param, pt3); }
 };
 
 template <typename ENV, typename OPSET, typename PARAM>

@@ -52,9 +52,9 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
   {
     if (!processed_width)
     {
-      if ((SUPER::argStack.count & 1) != 0)
+      if ((SUPER::argStack.get_count () & 1) != 0)
       {
-        width = SUPER::argStack.elements[0];
+        width = SUPER::argStack[0];
         has_width = true;
       }
       processed_width = true;
@@ -72,8 +72,8 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
   typedef CSInterpEnv<Number, CFF1Subrs> SUPER;
 };
 
-template <typename OPSET, typename PARAM>
-struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>
+template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF1CSInterpEnv, PARAM> >
+struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
 {
   static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
@@ -167,8 +167,8 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>
           if (unlikely (!env.argStack.check_pop_num (n1))) return false;
           int i = n1.to_int ();
           if (i < 0) i = 0;
-          if (unlikely (i >= env.argStack.count || !env.argStack.check_overflow (1))) return false;
-          env.argStack.push (env.argStack.elements[env.argStack.count - i - 1]);
+          if (unlikely (i >= env.argStack.get_count () || !env.argStack.check_overflow (1))) return false;
+          env.argStack.push (env.argStack[env.argStack.get_count () - i - 1]);
         }
         break;
       case OpCode_roll:
@@ -176,13 +176,13 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>
           if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
           int n = n1.to_int ();
           int j = n2.to_int ();
-          if (unlikely (n < 0 || n > env.argStack.count)) return false;
+          if (unlikely (n < 0 || n > env.argStack.get_count ())) return false;
           if (likely (n > 0))
           {
             if (j < 0)
               j = n - (-j % n);
             j %= n;
-            unsigned int top = env.argStack.count - 1;
+            unsigned int top = env.argStack.get_count () - 1;
             unsigned int bot = top - n + 1;
             env.argStack.reverse_range (top - j + 1, top);
             env.argStack.reverse_range (bot, top - j);
@@ -205,7 +205,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>
   }
 
   private:
-  typedef CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM>  SUPER;
+  typedef CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>  SUPER;
 };
 
 template <typename OPSET, typename PARAM>

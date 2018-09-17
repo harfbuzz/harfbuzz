@@ -111,9 +111,9 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 
   static inline void flush_n_args (unsigned int n, CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    for (unsigned int i = env.argStack.count - n; i < env.argStack.count;)
+    for (unsigned int i = env.argStack.get_count () - n; i < env.argStack.get_count ();)
     {
-      const BlendArg &arg = env.argStack.elements[i];
+      const BlendArg &arg = env.argStack[i];
       if (arg.blended ())
       {
         assert ((arg.numValues > 0) && (n >= arg.numValues));
@@ -134,7 +134,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     /* flatten the default values */
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
-      const BlendArg &arg1 = env.argStack.elements[i + j];
+      const BlendArg &arg1 = env.argStack[i + j];
       assert (arg1.blended () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
               (arg1.deltas.len == env.get_region_count ()));
       param.flatStr.encode_num (arg1);
@@ -142,7 +142,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     /* flatten deltas for each value */
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
-      const BlendArg &arg1 = env.argStack.elements[i + j];
+      const BlendArg &arg1 = env.argStack[i + j];
       for (unsigned int k = 0; k < arg1.deltas.len; k++)
         param.flatStr.encode_num (arg1.deltas[k]);
     }
@@ -165,7 +165,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 
   private:
   typedef CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam> SUPER;
-  typedef CSOpSet<BlendArg, CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
+  typedef CSOpSet<BlendArg, CFF2CSOpSet_Flatten, CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
 };
 
 struct cff2_subset_plan {

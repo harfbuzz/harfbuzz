@@ -25,6 +25,9 @@
  */
 
 #include "hb-ot-cff1-table.hh"
+#include "hb-cff1-interp-cs.hh"
+
+using namespace CFF;
 
 /* SID to code */
 static const uint8_t standard_encoding [] =
@@ -127,4 +130,83 @@ hb_codepoint_t OT::cff1::lookup_expert_subset_charset (hb_codepoint_t glyph)
     return (hb_codepoint_t)expert_subset_charset[glyph];
   else
     return 0;
+}
+
+struct ExtentsParam
+{
+  inline void init (void)
+  {
+    min_x.set_int (INT32_MAX);
+    min_y.set_int (INT32_MAX);
+    max_x.set_int (INT32_MIN);
+    max_y.set_int (INT32_MIN);
+  }
+
+  inline void update_bounds (const Point &pt)
+  {
+    if (pt.x < min_x) min_x = pt.x;
+    if (pt.x > max_x) max_x = pt.x;
+    if (pt.y < min_y) min_y = pt.y;
+    if (pt.y > max_y) max_y = pt.y;
+  }
+
+  Number min_x;
+  Number min_y;
+  Number max_x;
+  Number max_y;
+};
+
+struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv, ExtentsParam>
+{
+  static inline void line (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
+  {
+    param.update_bounds (env.get_pt ());
+    env.moveto (pt1);
+    param.update_bounds (env.get_pt ());
+  }
+
+  static inline void curve (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
+  {
+    param.update_bounds (env.get_pt ());
+    env.moveto (pt3);
+    param.update_bounds (env.get_pt ());
+  }
+};
+
+struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1PathProcs_Extents> {};
+
+bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+{
+  if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+
+  unsigned int fd = fdSelect->get_fd (glyph);
+  CFF1CSInterpreter<CFF1CSOpSet_Extents, ExtentsParam> interp;
+  const ByteStr str = (*charStrings)[glyph];
+  interp.env.init (str, *this, fd);
+  ExtentsParam  param;
+  param.init ();
+  if (unlikely (!interp.interpret (param))) return false;
+
+  if (param.min_x >= param.max_x)
+  {
+    extents->width = 0;
+    extents->x_bearing = 0;
+  }
+  else
+  {
+    extents->x_bearing = (int32_t)param.min_x.floor ();
+    extents->width = (int32_t)param.max_x.ceil () - extents->x_bearing;
+  }
+  if (param.min_y >= param.max_y)
+  {
+    extents->height = 0;
+    extents->y_bearing = 0;
+  }
+  else
+  {
+    extents->y_bearing = (int32_t)param.max_y.ceil ();
+    extents->height = (int32_t)param.min_y.floor () - extents->y_bearing;
+  }
+
+  return true;
 }

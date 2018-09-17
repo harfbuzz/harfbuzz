@@ -1007,11 +1007,6 @@ struct cff1
         if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
       
-      encoding = &Null(Encoding);
-      charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
-      if (unlikely (is_CID () && (charset == &Null(Charset))))
-      { fini (); return; }
-
       fdCount = 1;
       if (is_CID ())
       {
@@ -1027,12 +1022,6 @@ struct cff1
       {
         fdArray = &Null(CFF1FDArray);
         fdSelect = &Null(CFF1FDSelect);
-        if (!is_predef_encoding ())
-        {
-          encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
-          if ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))
-          { fini (); return; }
-        }
       }
 
       stringIndex = &StructAtOffset<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
@@ -1112,6 +1101,56 @@ struct cff1
     inline bool is_valid (void) const { return blob != nullptr; }
     inline bool is_CID (void) const { return topDict.is_CID (); }
 
+    protected:
+    hb_blob_t               *blob;
+    hb_sanitize_context_t   sc;
+
+    public:
+    const CFF1NameIndex     *nameIndex;
+    const CFF1TopDictIndex  *topDictIndex;
+    const CFF1StringIndex   *stringIndex;
+    const CFF1Subrs         *globalSubrs;
+    const CFF1CharStrings   *charStrings;
+    const CFF1FDArray       *fdArray;
+    const CFF1FDSelect      *fdSelect;
+    unsigned int            fdCount;
+
+    CFF1TopDictValues       topDict;
+    hb_vector_t<CFF1FontDictValues>   fontDicts;
+    hb_vector_t<PRIVDICTVAL>          privateDicts;
+
+    unsigned int            num_glyphs;
+  };
+
+  struct accelerator_t : accelerator_templ_t<CFF1PrivateDictOpSet, CFF1PrivateDictValues>
+  {
+    bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
+  };
+
+  struct accelerator_subset_t : accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset>
+  {
+    inline void init (hb_face_t *face)
+    {
+      SUPER::init (face);
+      if (blob == nullptr) return;
+    
+      const OT::cff1 *cff = this->blob->template as<OT::cff1> ();
+      encoding = &Null(Encoding);
+      charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
+      if (is_CID ())
+      {
+        if (unlikely (charset == &Null(Charset))) { fini (); return; }
+      }
+      else
+      {
+        if (!is_predef_encoding ())
+        {
+          encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
+          if (unlikely ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))) { fini (); return; }
+        }
+      }
+    }
+
     inline bool is_predef_encoding (void) const { return topDict.EncodingOffset <= ExpertEncoding; }
     inline bool is_predef_charset (void) const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
 
@@ -1164,41 +1203,12 @@ struct cff1
       }
     }
 
-    inline bool get_extents (hb_codepoint_t glyph,
-           hb_glyph_extents_t *extents) const
-    {
-      // XXX: TODO
-      if (glyph >= num_glyphs)
-        return false;
-      
-      return true;
-    }
-
-    protected:
-    hb_blob_t               *blob;
-    hb_sanitize_context_t   sc;
-
-    public:
-    const CFF1NameIndex     *nameIndex;
-    const CFF1TopDictIndex  *topDictIndex;
-    const CFF1StringIndex   *stringIndex;
     const Encoding          *encoding;
     const Charset           *charset;
-    const CFF1Subrs         *globalSubrs;
-    const CFF1CharStrings   *charStrings;
-    const CFF1FDArray       *fdArray;
-    const CFF1FDSelect      *fdSelect;
-    unsigned int            fdCount;
 
-    CFF1TopDictValues       topDict;
-    hb_vector_t<CFF1FontDictValues>   fontDicts;
-    hb_vector_t<PRIVDICTVAL>          privateDicts;
-
-    unsigned int            num_glyphs;
+    private:
+    typedef accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset> SUPER;
   };
-
-  typedef accelerator_templ_t<CFF1PrivateDictOpSet, CFF1PrivateDictValues> accelerator_t;
-  typedef accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset> accelerator_subset_t;
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
@@ -1233,6 +1243,7 @@ struct cff1
   DEFINE_SIZE_STATIC (4);
 };
 
+struct cff1_accelerator_t : cff1::accelerator_t {};
 } /* namespace OT */
 
 #endif /* HB_OT_CFF1_TABLE_HH */

@@ -237,6 +237,35 @@ struct Number
     else
       return (float)u.int_val;
   }
+
+  inline int ceil (void) const
+  {
+    switch (format)
+    {
+      default:
+      case NumInt:
+        return u.int_val;
+      case NumFixed:
+        return (u.fixed_val + 0xFFFF) >> 16;
+      case NumReal:
+        return (int)ceilf (u.real_val);
+    }
+  }
+
+  inline int floor (void) const
+  {
+    switch (format)
+    {
+      default:
+      case NumInt:
+        return u.int_val;
+      case NumFixed:
+        return u.fixed_val >> 16;
+      case NumReal:
+        return (int)floorf (u.real_val);
+    }
+  }
+
   inline bool in_int_range (void) const
   {
     if (is_int ())
@@ -245,6 +274,44 @@ struct Number
       return true;
     else
       return ((float)(int16_t)to_int () == u.real_val);
+  }
+
+  inline bool operator > (const Number &n) const
+  {
+    switch (format)
+    {
+      default:
+      case NumInt: return u.int_val > n.to_int ();
+      case NumFixed: return u.fixed_val > n.to_fixed ();
+      case NumReal: return u.real_val > n.to_real ();
+    }
+  }
+
+  inline bool operator < (const Number &n) const
+  { return n > *this; }
+
+  inline bool operator >= (const Number &n) const
+  { return ! (*this < n); }
+
+  inline bool operator <= (const Number &n) const
+  { return ! (*this > n); }
+
+  inline const Number &operator += (const Number &n)
+  {
+    switch (format)
+    {
+      default:
+      case NumInt:
+        u.int_val += n.to_int ();
+        break;
+      case NumFixed:
+        u.fixed_val += n.to_fixed ();
+        break;
+      case NumReal:
+        u.real_val += n.to_real ();
+        break;
+    }
+    return *this;
   }
 
 protected:
@@ -390,6 +457,12 @@ struct Stack
       elements[i].fini ();
   }
 
+  inline const ELEM& operator [] (unsigned int i) const
+  { return elements[i]; }
+
+  inline ELEM& operator [] (unsigned int i)
+  { return elements[i]; }
+
   inline void push (const ELEM &v)
   {
     if (likely (count < elements.len))
@@ -410,6 +483,12 @@ struct Stack
       return elements[--count];
     else
       return Null(ELEM);
+  }
+
+  inline void pop (unsigned int n)
+  {
+    if (likely (count >= n))
+      count -= n;
   }
 
   inline const ELEM& peek (void)
@@ -436,6 +515,7 @@ struct Stack
 
   static const unsigned int kSizeLimit = LIMIT;
 
+  protected:
   unsigned int count;
   hb_vector_t<ELEM, kSizeLimit> elements;
 };
@@ -597,13 +677,13 @@ struct InterpEnv
 
   inline void pop_n_args (unsigned int n)
   {
-    assert (n <= argStack.count);
-    argStack.count -= n;
+    assert (n <= argStack.get_count ());
+    argStack.pop (n);
   }
 
   inline void clear_args (void)
   {
-    pop_n_args (argStack.count);
+    pop_n_args (argStack.get_count ());
   }
 
   SubByteStr    substr;
