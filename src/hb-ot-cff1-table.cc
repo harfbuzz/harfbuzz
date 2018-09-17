@@ -136,11 +136,16 @@ struct ExtentsParam
 {
   inline void init (void)
   {
+    path_open = false;
     min_x.set_int (0x7FFFFFFF);
     min_y.set_int (0x7FFFFFFF);
     max_x.set_int (-0x80000000);
     max_y.set_int (-0x80000000);
   }
+
+  inline void start_path (void) { path_open = true; }
+  inline void end_path (void) { path_open = false; }
+  inline bool is_path_open (void) const { return path_open; }
 
   inline void update_bounds (const Point &pt)
   {
@@ -150,6 +155,7 @@ struct ExtentsParam
     if (pt.y > max_y) max_y = pt.y;
   }
 
+  bool  path_open;
   Number min_x;
   Number min_y;
   Number max_x;
@@ -158,16 +164,33 @@ struct ExtentsParam
 
 struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv, ExtentsParam>
 {
+  static inline void moveto (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt)
+  {
+    param.end_path ();
+    env.moveto (pt);
+  }
+
   static inline void line (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
   {
-    param.update_bounds (env.get_pt ());
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.update_bounds (env.get_pt ());
+    }
     env.moveto (pt1);
     param.update_bounds (env.get_pt ());
   }
 
   static inline void curve (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
   {
-    param.update_bounds (env.get_pt ());
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.update_bounds (env.get_pt ());
+    }
+    /* include control points */
+    param.update_bounds (pt1);
+    param.update_bounds (pt2);
     env.moveto (pt3);
     param.update_bounds (env.get_pt ());
   }

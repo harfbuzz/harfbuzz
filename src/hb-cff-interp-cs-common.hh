@@ -408,21 +408,21 @@ struct PathProcs
     const Number &dy = env.argStack.pop ();
     const Number &dx = env.argStack.pop ();
     pt1.move (dx, dy);
-    env.moveto (pt1);
+    PATH::moveto (env, param, pt1);
   }
 
   static inline void hmoveto (ENV &env, PARAM& param)
   {
     Point pt1 = env.get_pt ();
     pt1.move_x (env.argStack.pop ());
-    env.moveto (pt1);
+    PATH::moveto (env, param, pt1);
   }
 
   static inline void vmoveto (ENV &env, PARAM& param)
   {
     Point pt1 = env.get_pt ();
     pt1.move_y (env.argStack.pop ());
-    env.moveto (pt1);
+    PATH::moveto (env, param, pt1);
   }
 
   static inline void rlineto (ENV &env, PARAM& param)
