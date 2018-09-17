@@ -1134,7 +1134,7 @@ struct cff1
       SUPER::init (face);
       if (blob == nullptr) return;
     
-      const OT::cff1 *cff = this->blob->template as<OT::cff1> ();
+      const OT::cff1 *cff = this->blob->as<OT::cff1> ();
       encoding = &Null(Encoding);
       charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
       if (is_CID ())
