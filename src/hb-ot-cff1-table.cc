@@ -136,10 +136,10 @@ struct ExtentsParam
 {
   inline void init (void)
   {
-    min_x.set_int (INT32_MAX);
-    min_y.set_int (INT32_MAX);
-    max_x.set_int (INT32_MIN);
-    max_y.set_int (INT32_MIN);
+    min_x.set_int (0x7FFFFFFF);
+    min_y.set_int (0x7FFFFFFF);
+    max_x.set_int (-0x80000000);
+    max_y.set_int (-0x80000000);
   }
 
   inline void update_bounds (const Point &pt)
