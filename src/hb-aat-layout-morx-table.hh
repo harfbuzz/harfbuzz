@@ -608,79 +608,58 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (0)
-	c->sanitizer.check_range (nullptr, 0);
-#if 0
-      if (flags & SetComponent)
+      if (entry->data.markedInsertIndex != 0xFFFF)
       {
-        if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
-	  return false;
+	unsigned int count = (entry->flags & MarkedInsertCount);
+	unsigned int start = entry->data.markedInsertIndex;
+	const GlyphID *glyphs = &insertionAction[start];
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
-	/* Never mark same index twice, in case DontAdvance was used... */
-	if (match_length && match_positions[match_length - 1] == buffer->out_len)
-	  match_length--;
+	bool before = entry->flags & MarkedInsertBefore;
 
-	match_positions[match_length++] = buffer->out_len;
+	if (unlikely (!mark_set)) return false;
+
+	unsigned int end = buffer->out_len;
+	buffer->move_to (mark);
+
+	if (!before)
+	  buffer->copy_glyph ();
+	/* TODO We ignore KashidaLike setting. */
+	for (unsigned int i = 0; i < count; i++)
+	  buffer->output_glyph (glyphs[i]);
+	if (!before)
+	  buffer->skip_glyph ();
+
+	buffer->move_to (end + count);
       }
 
-      if (flags & PerformAction)
+      if (entry->data.currentInsertIndex != 0xFFFF)
       {
+	unsigned int count = (entry->flags & CurrentInsertCount) >> 5;
+	unsigned int start = entry->data.currentInsertIndex;
+	const GlyphID *glyphs = &insertionAction[start];
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
+
+	bool before = entry->flags & CurrentInsertBefore;
+
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = entry->data.ligActionIndex;
-	unsigned int action;
-	unsigned int ligature_idx = 0;
-        do
-	{
-	  if (unlikely (!match_length))
-	    return false;
 
-	  buffer->move_to (match_positions[--match_length]);
+	if (!before)
+	  buffer->copy_glyph ();
+	/* TODO We ignore KashidaLike setting. */
+	for (unsigned int i = 0; i < count; i++)
+	  buffer->output_glyph (glyphs[i]);
+	if (!before)
+	  buffer->skip_glyph ();
 
-	  const HBUINT32 &actionData = ligAction[action_idx];
-	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
-	  action = actionData;
-
-	  uint32_t uoffset = action & LigActionOffset;
-	  if (uoffset & 0x20000000)
-	    uoffset += 0xC0000000;
-	  int32_t offset = (int32_t) uoffset;
-	  unsigned int component_idx = buffer->cur().codepoint + offset;
-
-	  const HBUINT16 &componentData = component[component_idx];
-	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
-	  ligature_idx += componentData;
-
-	  if (action & (LigActionStore | LigActionLast))
-	  {
-	    const GlyphID &ligatureData = ligature[ligature_idx];
-	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
-	    hb_codepoint_t lig = ligatureData;
-
-	    match_positions[match_length++] = buffer->out_len;
-	    buffer->replace_glyph (lig);
-
-	    //ligature_idx = 0; // XXX Yes or no?
-	  }
-	  else
-	  {
-	    buffer->skip_glyph ();
-	    end--;
-	  }
-	  /* TODO merge_clusters / unsafe_to_break */
-
-	  action_idx++;
-	}
-	while (!(action & LigActionLast));
 	buffer->move_to (end);
       }
-#endif
 
       if (flags & SetMark)
       {
 	mark_set = true;
-	mark = buffer->idx;
+	mark = buffer->out_len;
       }
-
 
       return true;
     }
