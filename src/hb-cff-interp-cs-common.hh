@@ -220,7 +220,7 @@ struct CSOpSet : OpSet<ARG>
         return env.returnFromSubr ();
       case OpCode_endchar:
         env.set_endchar (true);
-        OPSET::flush_op (op, env, param);
+        OPSET::flush_args_and_op (op, env, param);
         break;
 
       case OpCode_fixedcs:
@@ -352,25 +352,15 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param)
+  static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param, unsigned int start_arg = 0)
   {
-    OPSET::flush_n_args_and_op (op, env.argStack.get_count (), env, param);
-  }
-
-  static inline void flush_n_args_and_op (OpCode op, unsigned int n, ENV &env, PARAM& param)
-  {
-    OPSET::flush_n_args (n, env, param);
+    OPSET::flush_args (env, param, start_arg);
     OPSET::flush_op (op, env, param);
   }
 
-  static inline void flush_args (ENV &env, PARAM& param)
+  static inline void flush_args (ENV &env, PARAM& param, unsigned int start_arg = 0)
   {
-    OPSET::flush_n_args (env.argStack.get_count (), env, param);
-  }
-
-  static inline void flush_n_args (unsigned int n, ENV &env, PARAM& param)
-  {
-    env.pop_n_args (n);
+    env.pop_n_args (env.argStack.get_count () - start_arg);
   }
 
   static inline void flush_op (OpCode op, ENV &env, PARAM& param)

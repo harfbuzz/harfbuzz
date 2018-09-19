@@ -48,17 +48,20 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
   bool check_transient_array_index (unsigned int i) const
   { return i < kTransientArraySize; }
 
-  inline void check_width (void)
+  inline unsigned int check_width (void)
   {
+    unsigned int arg_start = 0;
     if (!processed_width)
     {
       if ((SUPER::argStack.get_count () & 1) != 0)
       {
         width = SUPER::argStack[0];
         has_width = true;
+        arg_start = 1;
       }
       processed_width = true;
     }
+    return arg_start;
   }
 
   bool          processed_width;
@@ -198,10 +201,10 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
     return true;
   }
 
-  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)
+  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param, unsigned int start_arg = 0)
   {
-    env.check_width ();
-    SUPER::flush_args (env, param);
+    start_arg = env.check_width ();
+    SUPER::flush_args (env, param, start_arg);
   }
 
   private:

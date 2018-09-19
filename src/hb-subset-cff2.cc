@@ -77,7 +77,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
 
 struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
   {
     switch (op)
     {
@@ -104,19 +104,19 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
         /* NO BREAK */
 
       default:
-        SUPER::flush_args_and_op (op, env, param);
+        SUPER::flush_args_and_op (op, env, param, start_arg);
         break;
     }
   }
 
-  static inline void flush_n_args (unsigned int n, CFF2CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_args (CFF2CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
   {
-    for (unsigned int i = env.argStack.get_count () - n; i < env.argStack.get_count ();)
+    for (unsigned int i = start_arg; i < env.argStack.get_count ();)
     {
       const BlendArg &arg = env.argStack[i];
       if (arg.blended ())
       {
-        assert ((arg.numValues > 0) && (n >= arg.numValues));
+        assert ((arg.numValues > 0) && (env.argStack.get_count () - start_arg >= arg.numValues));
         flatten_blends (arg, i, env, param);
         i += arg.numValues;
       }
@@ -126,7 +126,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
         i++;
       }
     }
-    SUPER::flush_n_args (n, env, param);
+    SUPER::flush_args (env, param, start_arg);
   }
 
   static inline void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)

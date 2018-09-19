@@ -270,8 +270,12 @@ struct CFF1FontDict_OpSerializer : CFFFontDict_OpSerializer
 
 struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 {
-  static inline void flush_args_and_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_args_and_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
   {
+    start_arg = env.check_width ();
+    if ((start_arg > 0) && likely (param.flatStr.len == 0))
+      flush_width (env, param);
+
     switch (op)
     {
       case OpCode_hstem:
@@ -292,21 +296,27 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
         /* NO BREAK */
 
       default:
-        SUPER::flush_args_and_op (op, env, param);
+        SUPER::flush_args_and_op (op, env, param, start_arg);
         break;
     }
   }
 
-  static inline void flush_n_args (unsigned int n, CFF1CSInterpEnv &env, FlattenParam& param)
+  static inline void flush_args (CFF1CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
   {
-    for (unsigned int i = env.argStack.get_count () - n; i < env.argStack.get_count (); i++)
+    for (unsigned int i = start_arg; i < env.argStack.get_count (); i++)
       param.flatStr.encode_num (env.argStack[i]);
-    SUPER::flush_n_args (n, env, param);
+    SUPER::flush_args (env, param, start_arg);
   }
 
   static inline void flush_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
     param.flatStr.encode_op (op);
+  }
+
+  static inline void flush_width (CFF1CSInterpEnv &env, FlattenParam& param)
+  {
+    assert (env.has_width);
+    param.flatStr.encode_num (env.width);
   }
 
   static inline void flush_hintmask (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
@@ -527,7 +537,7 @@ struct cff_subset_plan {
     }
 
     subset_charset = gid_renum || !acc.is_predef_charset ();
-    subset_encoding = !acc.is_CID() && (gid_renum || !acc.is_predef_encoding ());
+    subset_encoding = !acc.is_CID() && !acc.is_predef_encoding ();
 
     /* CFF header */
     final_size += OT::cff1::static_size;
