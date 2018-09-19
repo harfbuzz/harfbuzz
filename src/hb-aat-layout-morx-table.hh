@@ -610,12 +610,12 @@ struct InsertionSubtable
 
       if (entry->data.markedInsertIndex != 0xFFFF)
       {
-	unsigned int count = (entry->flags & MarkedInsertCount);
+	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry->data.markedInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
-	bool before = entry->flags & MarkedInsertBefore;
+	bool before = flags & MarkedInsertBefore;
 
 	if (unlikely (!mark_set)) return false;
 
@@ -635,12 +635,12 @@ struct InsertionSubtable
 
       if (entry->data.currentInsertIndex != 0xFFFF)
       {
-	unsigned int count = (entry->flags & CurrentInsertCount) >> 5;
+	unsigned int count = (flags & CurrentInsertCount) >> 5;
 	unsigned int start = entry->data.currentInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
-	bool before = entry->flags & CurrentInsertBefore;
+	bool before = flags & CurrentInsertBefore;
 
 	unsigned int end = buffer->out_len;
 
@@ -652,7 +652,20 @@ struct InsertionSubtable
 	if (!before)
 	  buffer->skip_glyph ();
 
-	buffer->move_to (end);
+	/* Humm. Not sure where to move to.  There's this wording under
+	 * DontAdvance flag:
+	 *
+	 * "If set, don't update the glyph index before going to the new state.
+	 * This does not mean that the glyph pointed to is the same one as
+	 * before. If you've made insertions immediately downstream of the
+	 * current glyph, the next glyph processed would in fact be the first
+	 * one inserted."
+	 *
+	 * This suggests that if DontAdvance is NOT set, we should move to
+	 * end+count.  If it *was*, then move to end, such that newly inserted
+	 * glyphs are now visible.
+	 */
+	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
 
       if (flags & SetMark)
