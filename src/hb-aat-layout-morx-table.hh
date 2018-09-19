@@ -836,6 +836,8 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      bool reverse;
+
       if (!(subtable->subFeatureFlags & flags))
         goto skip;
 
@@ -844,10 +846,48 @@ struct Chain
 	  bool (subtable->coverage & ChainSubtable::Vertical))
         goto skip;
 
+      /* Buffer contents is always in logical direction.  Determine if
+       * we need to reverse before applying this subtable.  We reverse
+       * back after if we did reverse indeed.
+       *
+       * Quoting the spac:
+       * """
+       * Bits 28 and 30 of the coverage field control the order in which
+       * glyphs are processed when the subtable is run by the layout engine.
+       * Bit 28 is used to indicate if the glyph processing direction is
+       * the same as logical order or layout order. Bit 30 is used to
+       * indicate whether glyphs are processed forwards or backwards within
+       * that order.
+
+		Bit 30	Bit 28	Interpretation for Horizontal Text
+		0	0	The subtable is processed in layout order
+				(the same order as the glyphs, which is
+				always left-to-right).
+		1	0	The subtable is processed in reverse layout order
+				(the order opposite that of the glyphs, which is
+				always right-to-left).
+		0	1	The subtable is processed in logical order
+				(the same order as the characters, which may be
+				left-to-right or right-to-left).
+		1	1	The subtable is processed in reverse logical order
+				(the order opposite that of the characters, which
+				may be right-to-left or left-to-right).
+       */
+      reverse = subtable->coverage & ChainSubtable::Logical ?
+		bool (subtable->coverage & ChainSubtable::Descending) :
+		bool (subtable->coverage & ChainSubtable::Descending) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
         goto skip;
 
+      if (reverse)
+        c->buffer->reverse ();
+
       subtable->dispatch (c);
+
+      if (reverse)
+        c->buffer->reverse ();
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
