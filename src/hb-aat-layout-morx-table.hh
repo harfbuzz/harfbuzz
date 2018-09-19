@@ -743,8 +743,25 @@ struct ChainSubtable
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & 0xFF; }
+  inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* If set, this subtable will only be applied
+					 * to vertical text. If clear, this subtable
+					 * will only be applied to horizontal text. */
+    Descending		= 0x40000000,	/* If set, this subtable will process glyphs
+					 * in descending order. If clear, it will
+					 * process the glyphs in ascending order. */
+    AllDirections	= 0x20000000,	/* If set, this subtable will be applied to
+					 * both horizontal and vertical text (i.e.
+					 * the state of bit 0x80000000 is ignored). */
+    Logical		= 0x10000000,	/* If set, this subtable will process glyphs
+					 * in logical order (or reverse logical order,
+					 * depending on the value of bit 0x80000000). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type; see following table. */
+  };
   enum Type
   {
     Rearrangement	= 0,
@@ -820,6 +837,11 @@ struct Chain
     for (unsigned int i = 0; i < count; i++)
     {
       if (!(subtable->subFeatureFlags & flags))
+        goto skip;
+
+      if (!(subtable->coverage & ChainSubtable::AllDirections) &&
+	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
+	  bool (subtable->coverage & ChainSubtable::Vertical))
         goto skip;
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
