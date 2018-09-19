@@ -569,7 +569,8 @@ struct StateTableDriver
 	/* If there's no action and we're just epsilon-transitioning to state 0,
 	 * safe to break. */
 	if (c->is_actionable (this, entry) ||
-	    !(entry->newState == 0 && entry->flags == context_t::DontAdvance))
+	    !(entry->newState == StateTable<EntryData>::STATE_START_OF_TEXT &&
+	      entry->flags == context_t::DontAdvance))
 	  buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
       }
 
