@@ -610,12 +610,12 @@ struct InsertionSubtable
 
       if (entry->data.markedInsertIndex != 0xFFFF)
       {
-	unsigned int count = (entry->flags & MarkedInsertCount);
+	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry->data.markedInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
-	bool before = entry->flags & MarkedInsertBefore;
+	bool before = flags & MarkedInsertBefore;
 
 	if (unlikely (!mark_set)) return false;
 
@@ -635,12 +635,12 @@ struct InsertionSubtable
 
       if (entry->data.currentInsertIndex != 0xFFFF)
       {
-	unsigned int count = (entry->flags & CurrentInsertCount) >> 5;
+	unsigned int count = (flags & CurrentInsertCount) >> 5;
 	unsigned int start = entry->data.currentInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
-	bool before = entry->flags & CurrentInsertBefore;
+	bool before = flags & CurrentInsertBefore;
 
 	unsigned int end = buffer->out_len;
 
@@ -652,7 +652,20 @@ struct InsertionSubtable
 	if (!before)
 	  buffer->skip_glyph ();
 
-	buffer->move_to (end);
+	/* Humm. Not sure where to move to.  There's this wording under
+	 * DontAdvance flag:
+	 *
+	 * "If set, don't update the glyph index before going to the new state.
+	 * This does not mean that the glyph pointed to is the same one as
+	 * before. If you've made insertions immediately downstream of the
+	 * current glyph, the next glyph processed would in fact be the first
+	 * one inserted."
+	 *
+	 * This suggests that if DontAdvance is NOT set, we should move to
+	 * end+count.  If it *was*, then move to end, such that newly inserted
+	 * glyphs are now visible.
+	 */
+	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
 
       if (flags & SetMark)
@@ -730,8 +743,25 @@ struct ChainSubtable
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & 0xFF; }
+  inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* If set, this subtable will only be applied
+					 * to vertical text. If clear, this subtable
+					 * will only be applied to horizontal text. */
+    Descending		= 0x40000000,	/* If set, this subtable will process glyphs
+					 * in descending order. If clear, it will
+					 * process the glyphs in ascending order. */
+    AllDirections	= 0x20000000,	/* If set, this subtable will be applied to
+					 * both horizontal and vertical text (i.e.
+					 * the state of bit 0x80000000 is ignored). */
+    Logical		= 0x10000000,	/* If set, this subtable will process glyphs
+					 * in logical order (or reverse logical order,
+					 * depending on the value of bit 0x80000000). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type; see following table. */
+  };
   enum Type
   {
     Rearrangement	= 0,
@@ -806,13 +836,58 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      bool reverse;
+
       if (!(subtable->subFeatureFlags & flags))
         goto skip;
+
+      if (!(subtable->coverage & ChainSubtable::AllDirections) &&
+	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
+	  bool (subtable->coverage & ChainSubtable::Vertical))
+        goto skip;
+
+      /* Buffer contents is always in logical direction.  Determine if
+       * we need to reverse before applying this subtable.  We reverse
+       * back after if we did reverse indeed.
+       *
+       * Quoting the spac:
+       * """
+       * Bits 28 and 30 of the coverage field control the order in which
+       * glyphs are processed when the subtable is run by the layout engine.
+       * Bit 28 is used to indicate if the glyph processing direction is
+       * the same as logical order or layout order. Bit 30 is used to
+       * indicate whether glyphs are processed forwards or backwards within
+       * that order.
+
+		Bit 30	Bit 28	Interpretation for Horizontal Text
+		0	0	The subtable is processed in layout order
+				(the same order as the glyphs, which is
+				always left-to-right).
+		1	0	The subtable is processed in reverse layout order
+				(the order opposite that of the glyphs, which is
+				always right-to-left).
+		0	1	The subtable is processed in logical order
+				(the same order as the characters, which may be
+				left-to-right or right-to-left).
+		1	1	The subtable is processed in reverse logical order
+				(the order opposite that of the characters, which
+				may be right-to-left or left-to-right).
+       */
+      reverse = subtable->coverage & ChainSubtable::Logical ?
+		bool (subtable->coverage & ChainSubtable::Descending) :
+		bool (subtable->coverage & ChainSubtable::Descending) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
         goto skip;
 
+      if (reverse)
+        c->buffer->reverse ();
+
       subtable->dispatch (c);
+
+      if (reverse)
+        c->buffer->reverse ();
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
