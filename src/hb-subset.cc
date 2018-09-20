@@ -42,6 +42,7 @@
 #include "hb-ot-post-table.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
+#include "hb-ot-vorg-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 
@@ -185,7 +186,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_cff2:
       result = _subset<const OT::cff2> (plan);
       break;
-
+    case HB_OT_TAG_VORG:
+      result = _subset<const OT::VORG> (plan);
+      break;
     case HB_OT_TAG_GSUB:
       result = _subset2<const OT::GSUB> (plan);
       break;
