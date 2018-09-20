@@ -28,6 +28,10 @@
 #include "hb-ot-cff2-table.hh"
 #include "hb-subset-cff-common.hh"
 
+/* Disable FDSelect format 0 for compatibility with fonttools which doesn't seem choose it.
+ * Rarely any/much smaller than format 3 anyway. */
+#define CFF_SERIALIZE_FDSELECT_0  0
+
 using namespace CFF;
 
 /**
@@ -112,15 +116,19 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
   }
   else
   {
+#if CFF_SERIALIZE_FDSELECT_0
     unsigned int format0_size = FDSelect0::min_size + HBUINT8::static_size * subset_num_glyphs;
+#endif
     unsigned int format3_size = FDSelect3::min_size + FDSelect3_Range::static_size * num_ranges + HBUINT16::static_size;
 
+#if CFF_SERIALIZE_FDSELECT_0
     if (format0_size <= format3_size)
     {
       // subset_fdselect_format = 0;
       subset_fdselect_size = format0_size;
     }
     else
+#endif
     {
       subset_fdselect_format = 3;
       subset_fdselect_size = format3_size;
@@ -174,23 +182,25 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
 
   switch (fdselect_format)
   {
+#if CFF_SERIALIZE_FDSELECT_0
     case 0:
     {
       FDSelect0 *p = c->allocate_size<FDSelect0> (size);
       if (unlikely (p == nullptr)) return_trace (false);
       unsigned int range_index = 0;
-      unsigned int  fd = fdselect_ranges[range_index].code;
+      unsigned int  fd = fdselect_ranges[range_index++].code;
       for (unsigned int i = 0; i < num_glyphs; i++)
       {
         if ((range_index < fdselect_ranges.len) &&
-            (i >= fdselect_ranges[range_index + 1].glyph))
+            (i >= fdselect_ranges[range_index].glyph))
         {
-          fd = fdselect_ranges[++range_index].code;
+          fd = fdselect_ranges[range_index++].code;
         }
         p->fds[i].set (fd);
       }
       break;
     }
+#endif /* CFF_SERIALIZE_FDSELECT_0 */
     
     case 3:
       return serialize_fdselect_3_4<FDSelect3> (c,
