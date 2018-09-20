@@ -608,7 +608,7 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (entry->data.markedInsertIndex != 0xFFFF)
+      if (entry->data.markedInsertIndex != 0xFFFF && mark_set)
       {
 	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry->data.markedInsertIndex;
@@ -616,8 +616,6 @@ struct InsertionSubtable
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
 	bool before = flags & MarkedInsertBefore;
-
-	if (unlikely (!mark_set)) return false;
 
 	unsigned int end = buffer->out_len;
 	buffer->move_to (mark);
