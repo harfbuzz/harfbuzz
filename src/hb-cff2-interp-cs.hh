@@ -90,7 +90,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 
   inline bool fetch_op (OpCode &op)
   {
-    if (unlikely (this->substr.avail ()))
+    if (this->substr.avail ())
       return SUPER::fetch_op (op);
 
     /* make up return or endchar op */
@@ -129,8 +129,9 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
       case OpCode_callsubr:
       case OpCode_callgsubr:
         /* a subroutine number shoudln't be a blended value */
-        return (!env.argStack.peek ().blended () &&
-                SUPER::process_op (op, env, param));
+        if (unlikely (env.argStack.peek ().blended ()))
+          return false;
+        return SUPER::process_op (op, env, param);
 
       case OpCode_blendcs:
         return OPSET::process_blend (env, param);

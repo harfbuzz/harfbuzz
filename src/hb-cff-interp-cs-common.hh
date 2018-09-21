@@ -372,19 +372,6 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline bool is_subr_op (OpCode op)
-  {
-    switch (op)
-    {
-      case OpCode_callsubr:
-      case OpCode_callgsubr:
-      case OpCode_return:
-        return true;
-      default:
-        return false;
-    }
-  }
-
   protected:
   typedef OpSet<ARG>  SUPER;
 };

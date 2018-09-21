@@ -494,7 +494,7 @@ struct Stack
   inline const ELEM& peek (void)
   {
     if (likely (count > 0))
-      return elements[count];
+      return elements[count-1];
     else
       return Null(ELEM);
   }
