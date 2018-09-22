@@ -100,10 +100,14 @@ test_has_data (void)
   hb_face = hb_face_get_empty ();
   hb_font = hb_font_create (hb_face);
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
+  hb_font_destroy (hb_font);
+  hb_face_destroy (hb_face);
 
   hb_font = hb_font_get_empty ();
   hb_face = hb_font_get_face (hb_font);
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
+  hb_font_destroy (hb_font);
+  hb_face_destroy (hb_face);
 
   cleanupFreeType();
 }
