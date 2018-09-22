@@ -361,6 +361,7 @@ test_fontfuncs_subclassing (void)
 
 
   hb_font_destroy (font3);
+  hb_font_destroy (font2);
 }
 
 
