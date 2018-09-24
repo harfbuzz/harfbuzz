@@ -202,28 +202,28 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
 
   map->add_gsub_pause (nuke_joiners);
 
-  map->add_global_bool_feature (HB_TAG('s','t','c','h'));
+  map->enable_feature (HB_TAG('s','t','c','h'));
   map->add_gsub_pause (record_stch);
 
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
 
   map->add_gsub_pause (nullptr);
 
   for (unsigned int i = 0; i < ARABIC_NUM_FEATURES; i++)
   {
     bool has_fallback = plan->props.script == HB_SCRIPT_ARABIC && !FEATURE_IS_SYRIAC (arabic_features[i]);
-    map->add_feature (arabic_features[i], 1, has_fallback ? F_HAS_FALLBACK : F_NONE);
+    map->add_feature (arabic_features[i], has_fallback ? F_HAS_FALLBACK : F_NONE);
     map->add_gsub_pause (nullptr);
   }
 
-  map->add_feature (HB_TAG('r','l','i','g'), 1, F_GLOBAL|F_HAS_FALLBACK);
+  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL|F_HAS_FALLBACK);
   if (plan->props.script == HB_SCRIPT_ARABIC)
     map->add_gsub_pause (arabic_fallback_shape);
 
   /* No pause after rclt.  See 98460779bae19e4d64d29461ff154b3527bf8420. */
-  map->add_global_bool_feature (HB_TAG('r','c','l','t'));
-  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('r','c','l','t'));
+  map->enable_feature (HB_TAG('c','a','l','t'));
   map->add_gsub_pause (nullptr);
 
   /* The spec includes 'cswh'.  Earlier versions of Windows
@@ -234,8 +234,8 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    * Note that IranNastaliq uses this feature extensively
    * to fixup broken glyph sequences.  Oh well...
    * Test case: U+0643,U+0640,U+0631. */
-  //map->add_global_bool_feature (HB_TAG('c','s','w','h'));
-  map->add_global_bool_feature (HB_TAG('m','s','e','t'));
+  //map->enable_feature (HB_TAG('c','s','w','h'));
+  map->enable_feature (HB_TAG('m','s','e','t'));
 }
 
 #include "hb-ot-shape-complex-arabic-fallback.hh"

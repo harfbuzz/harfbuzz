@@ -190,10 +190,10 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
 
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
    * there is a use of it, it's typically at the beginning. */
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
 
 
   unsigned int i = 0;
@@ -209,8 +209,8 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   for (; i < INDIC_NUM_FEATURES; i++)
     map->add_feature (indic_features[i]);
 
-  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
-  map->add_global_bool_feature (HB_TAG('c','l','i','g'));
+  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('c','l','i','g'));
 
   map->add_gsub_pause (clear_syllables);
 }

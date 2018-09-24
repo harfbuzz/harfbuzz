@@ -196,17 +196,18 @@ struct hb_ot_map_builder_t
 
   HB_INTERNAL ~hb_ot_map_builder_t (void);
 
-  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value,
-				hb_ot_map_feature_flags_t flags);
+  HB_INTERNAL void add_feature (hb_tag_t tag,
+				hb_ot_map_feature_flags_t flags=F_NONE,
+				unsigned int value=1);
 
   inline void add_feature (const hb_ot_map_feature_t &feat)
-  { add_feature (feat.tag, 1, feat.flags); }
+  { add_feature (feat.tag, feat.flags); }
 
-  inline void add_global_bool_feature (hb_tag_t tag)
-  { add_feature (tag, 1, F_GLOBAL); }
+  inline void enable_feature (hb_tag_t tag)
+  { add_feature (tag, F_GLOBAL); }
 
   inline void disable_feature (hb_tag_t tag)
-  { add_feature (tag, 0, F_GLOBAL); }
+  { add_feature (tag, F_GLOBAL, 0); }
 
   inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }

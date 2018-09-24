@@ -116,8 +116,8 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
    *
    * https://github.com/harfbuzz/harfbuzz/issues/974
    */
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
 
   unsigned int i = 0;
   for (; i < KHMER_BASIC_FEATURES; i++)
@@ -128,8 +128,8 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   for (; i < KHMER_NUM_FEATURES; i++)
     map->add_feature (khmer_features[i]);
 
-  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
-  map->add_global_bool_feature (HB_TAG('c','l','i','g'));
+  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('c','l','i','g'));
 
 }
 

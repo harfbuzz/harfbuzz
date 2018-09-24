@@ -40,7 +40,7 @@ static void
 collect_features_tibetan (hb_ot_shape_planner_t *plan)
 {
   for (const hb_tag_t *script_features = tibetan_features; script_features && *script_features; script_features++)
-    plan->map.add_global_bool_feature (*script_features);
+    plan->map.enable_feature (*script_features);
 }
 
 
