@@ -36,12 +36,12 @@
 
 
 /**
- * hb_face_count: Get number of faces on the blob
- * @blob:
+ * hb_face_count:
+ * @blob: a blob.
  *
+ * Get number of faces in a blob.
  *
- *
- * Return value: Number of faces on the blob
+ * Return value: Number of faces in @blob
  *
  * Since: 1.7.7
  **/
@@ -488,6 +488,9 @@ hb_face_get_glyph_count (const hb_face_t *face)
 /**
  * hb_face_get_table_tags:
  * @face: a face.
+ * @start_offset: index of first tag to return.
+ * @table_count: input length of @table_tags array, output number of items written.
+ * @table_tags: array to write tags into.
  *
  * Retrieves table tags for a face, if possible.
  *

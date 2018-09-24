@@ -86,7 +86,14 @@ other_features[] =
   HB_TAG('h','a','l','n'),
   HB_TAG('p','r','e','s'),
   HB_TAG('p','s','t','s'),
-  /* Positioning features, though we don't care about the types. */
+};
+static const hb_tag_t
+positioning_features[] =
+{
+  /*
+   * Positioning features.
+   * We don't care about the types.
+   */
   HB_TAG('d','i','s','t'),
   HB_TAG('a','b','v','m'),
   HB_TAG('b','l','w','m'),
@@ -146,9 +153,13 @@ collect_features_use (hb_ot_shape_planner_t *plan)
     map->add_feature (arabic_features[i], 1, F_NONE);
   map->add_gsub_pause (nullptr);
 
-  /* "Standard typographic presentation" and "Positional feature application" */
+  /* "Standard typographic presentation" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
     map->add_feature (other_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
+
+  /* "Positional feature application" */
+  for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
+    map->add_feature (positioning_features[i], 1, F_GLOBAL);
 }
 
 struct use_shape_plan_t

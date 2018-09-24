@@ -1703,9 +1703,11 @@ hb_font_get_ppem (hb_font_t *font,
 /**
  * hb_font_set_ptem:
  * @font: a font.
- * @ptem: 
+ * @ptem: font size in points.
  *
- * Sets "point size" of the font.
+ * Sets "point size" of the font.  Set to 0 to unset.
+ *
+ * There are 72 points in an inch.
  *
  * Since: 1.6.0
  **/
@@ -1931,9 +1933,9 @@ hb_font_get_variation_glyph_trampoline (hb_font_t *font,
 /**
  * hb_font_funcs_set_glyph_func:
  * @ffuncs: font functions.
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy:
+ * @func: (closure user_data) (destroy destroy) (scope notified): callback function.
+ * @user_data: data to pass to @func.
+ * @destroy: function to call when @user_data is not needed anymore.
  *
  * Deprecated.  Use hb_font_funcs_set_nominal_glyph_func() and
  * hb_font_funcs_set_variation_glyph_func() instead.

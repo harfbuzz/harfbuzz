@@ -344,10 +344,10 @@ struct hb_ot_apply_context_t :
       match_glyph_data = nullptr;
       matcher.set_match_func (nullptr, nullptr);
       matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+      /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
       matcher.set_ignore_zwnj (c->table_index == 1 || (context_match && c->auto_zwnj));
-      /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
-      matcher.set_ignore_zwj  (c->table_index == 1 || (context_match || c->auto_zwj));
+      /* Ignore ZWJ if we are matching context, or asked to. */
+      matcher.set_ignore_zwj  (context_match || c->auto_zwj);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
     }
     inline void set_lookup_props (unsigned int lookup_props)
@@ -508,18 +508,19 @@ struct hb_ot_apply_context_t :
 			random (false),
 			random_state (1) {}
 
-  inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
-  inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
-  inline void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; }
-  inline void set_random (bool random_) { random = random_; }
-  inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
-  inline void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
-  inline void set_lookup_props (unsigned int lookup_props_)
+  inline void reinit_iters (void)
   {
-    lookup_props = lookup_props_;
     iter_input.init (this, false);
     iter_context.init (this, true);
   }
+
+  inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
+  inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; reinit_iters (); }
+  inline void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; reinit_iters (); }
+  inline void set_random (bool random_) { random = random_; }
+  inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+  inline void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
+  inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; reinit_iters (); }
 
   inline uint32_t random_number (void)
   {

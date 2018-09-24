@@ -79,6 +79,54 @@ jobs:
       - run: make
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
 
+  clang-asan:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make
+      - run: make check || .ci/fail.sh
+
+  clang-msan:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make
+      - run: make check || .ci/fail.sh
+
+  clang-tsan:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make
+      - run: make check || .ci/fail.sh
+
+  clang-ubsan:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CPPFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make
+      - run: make check || .ci/fail.sh
+
   fedora-outoftreebuild:
     docker:
       - image: fedora
@@ -200,6 +248,10 @@ workflows:
       - alpine-O3-NOMMAP
       - archlinux-debug-O0-py3
       - clang-O3-O0
+      - clang-asan
+      #- clang-msan
+      - clang-tsan
+      #- clang-ubsan
       - fedora-outoftreebuild
 
       # cmake based builds

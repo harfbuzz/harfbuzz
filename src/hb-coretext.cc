@@ -515,12 +515,14 @@ struct range_record_t {
 #define kUpperCaseType				38
 
 /* Table data courtesy of Apple. */
-static const struct feature_mapping_t {
-    FourCharCode otFeatureTag;
+static const struct feature_mapping_t
+{
+    hb_tag_t otFeatureTag;
     uint16_t aatFeatureType;
     uint16_t selectorToEnable;
     uint16_t selectorToDisable;
-} feature_mappings[] = {
+} feature_mappings[] =
+{
     { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
     { 'c2sc',   kUpperCaseType,             kUpperCaseSmallCapsSelector,            kDefaultUpperCaseSelector },
     { 'calt',   kContextualAlternatesType,  kContextualAlternatesOnSelector,        kContextualAlternatesOffSelector },
@@ -601,7 +603,7 @@ static const struct feature_mapping_t {
 static int
 _hb_feature_mapping_cmp (const void *key_, const void *entry_)
 {
-  unsigned int key = * (unsigned int *) key_;
+  hb_tag_t key = * (unsigned int *) key_;
   const feature_mapping_t * entry = (const feature_mapping_t *) entry_;
   return key < entry->otFeatureTag ? -1 :
 	 key > entry->otFeatureTag ? 1 :
