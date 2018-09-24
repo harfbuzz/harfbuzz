@@ -79,6 +79,22 @@ jobs:
       - run: make
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
 
+  clang-everything:
+    docker:
+      - image: ubuntu:18.10
+    steps:
+      - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: apt update || true
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CFLAGS="-Weverything -Wno-padded -Wno-cast-qual -Wno-sign-conversion -Wno-conversion" CXXFLAGS="-Weverything -Wno-old-style-cast -Wno-documentation -Wno-conversion -Wno-sign-conversion -Wno-c++98-compat -Wno-extra-semi -Wno-c++98-compat-pedantic -Wno-documentation-unknown-command -Wno-padded -Wno-shift-sign-overflow -Wno-missing-field-initializers -Wno-double-promotion -Wno-reserved-id-macro -Wno-cast-qual -Wno-unused-parameter -Wno-comma -Wno-shadow -Wno-used-but-marked-unused -Wno-format-pedantic -Wno-zero-as-null-pointer-constant -Wno-disabled-macro-expansion -Wno-covered-switch-default -Wno-conditional-uninitialized -Wno-unreachable-code -Wno-unused-macros -Wno-float-equal -Wno-missing-prototypes" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make
+      - run: make check || .ci/fail.sh
+
   clang-asan:
     docker:
       - image: ubuntu:18.10
@@ -264,6 +280,7 @@ workflows:
       - alpine-O3-NOMMAP
       - archlinux-debug-O0-py3
       - clang-O3-O0
+      - clang-everything
       - clang-asan
       - clang-msan
       - clang-tsan
