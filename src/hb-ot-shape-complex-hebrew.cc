@@ -70,7 +70,7 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
 
   bool found = (bool) c->unicode->compose (a, b, ab);
 
-  if (!found && !c->plan->has_mark)
+  if (!found)
   {
       /* Special-case Hebrew presentation forms that are excluded from
        * standard normalization, but wanted for old fonts. */

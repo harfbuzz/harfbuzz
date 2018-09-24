@@ -294,6 +294,14 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   _hb_buffer_assert_unicode_vars (buffer);
 
   hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference;
+  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
+  {
+    if (plan->has_mark)
+      mode = HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;
+    else
+      mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
+  }
+
   const hb_ot_shape_normalize_context_t c = {
     plan,
     buffer,
@@ -358,65 +366,6 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
     i = end;
   }
-
-
-  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_NONE ||
-      mode == HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED)
-    return;
-
-  /* Third round, recompose */
-
-  /* As noted in the comment earlier, we don't try to combine
-   * ccc=0 chars with their previous Starter. */
-
-  buffer->clear_output ();
-  count = buffer->len;
-  unsigned int starter = 0;
-  buffer->next_glyph ();
-  while (buffer->idx < count && buffer->successful)
-  {
-    hb_codepoint_t composed, glyph;
-    if (/* We don't try to compose a non-mark character with it's preceding starter.
-	 * This is both an optimization to avoid trying to compose every two neighboring
-	 * glyphs in most scripts AND a desired feature for Hangul.  Apparently Hangul
-	 * fonts are not designed to mix-and-match pre-composed syllables and Jamo. */
-	HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->cur())))
-    {
-      if (/* If there's anything between the starter and this char, they should have CCC
-	   * smaller than this character's. */
-	  (starter == buffer->out_len - 1 ||
-	   info_cc (buffer->prev()) < info_cc (buffer->cur())) &&
-	  /* And compose. */
-	  c.compose (&c,
-		     buffer->out_info[starter].codepoint,
-		     buffer->cur().codepoint,
-		     &composed) &&
-	  /* And the font has glyph for the composite. */
-	  font->get_nominal_glyph (composed, &glyph))
-      {
-	/* Composes. */
-	buffer->next_glyph (); /* Copy to out-buffer. */
-	if (unlikely (!buffer->successful))
-	  return;
-	buffer->merge_out_clusters (starter, buffer->out_len);
-	buffer->out_len--; /* Remove the second composable. */
-	/* Modify starter and carry on. */
-	buffer->out_info[starter].codepoint = composed;
-	buffer->out_info[starter].glyph_index() = glyph;
-	_hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer);
-
-	continue;
-      }
-    }
-
-    /* Blocked, or doesn't compose. */
-    buffer->next_glyph ();
-
-    if (info_cc (buffer->prev()) == 0)
-      starter = buffer->out_len - 1;
-  }
-  buffer->swap_buffers ();
-
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_CGJ)
   {
     /* For all CGJ, check if it prevented any reordering at all.
@@ -429,5 +378,64 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       {
 	_hb_glyph_info_unhide (&buffer->info[i]);
       }
+  }
+
+
+  /* Third round, recompose */
+
+  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS ||
+      mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT)
+    return;
+  {
+    /* As noted in the comment earlier, we don't try to combine
+     * ccc=0 chars with their previous Starter. */
+
+    buffer->clear_output ();
+    count = buffer->len;
+    unsigned int starter = 0;
+    buffer->next_glyph ();
+    while (buffer->idx < count && buffer->successful)
+    {
+      hb_codepoint_t composed, glyph;
+      if (/* We don't try to compose a non-mark character with it's preceding starter.
+	   * This is both an optimization to avoid trying to compose every two neighboring
+	   * glyphs in most scripts AND a desired feature for Hangul.  Apparently Hangul
+	   * fonts are not designed to mix-and-match pre-composed syllables and Jamo. */
+	  HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->cur())))
+      {
+	if (/* If there's anything between the starter and this char, they should have CCC
+	     * smaller than this character's. */
+	    (starter == buffer->out_len - 1 ||
+	     info_cc (buffer->prev()) < info_cc (buffer->cur())) &&
+	    /* And compose. */
+	    c.compose (&c,
+		       buffer->out_info[starter].codepoint,
+		       buffer->cur().codepoint,
+		       &composed) &&
+	    /* And the font has glyph for the composite. */
+	    font->get_nominal_glyph (composed, &glyph))
+	{
+	  /* Composes. */
+	  buffer->next_glyph (); /* Copy to out-buffer. */
+	  if (unlikely (!buffer->successful))
+	    return;
+	  buffer->merge_out_clusters (starter, buffer->out_len);
+	  buffer->out_len--; /* Remove the second composable. */
+	  /* Modify starter and carry on. */
+	  buffer->out_info[starter].codepoint = composed;
+	  buffer->out_info[starter].glyph_index() = glyph;
+	  _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer);
+
+	  continue;
+	}
+      }
+
+      /* Blocked, or doesn't compose. */
+      buffer->next_glyph ();
+
+      if (info_cc (buffer->prev()) == 0)
+	starter = buffer->out_len - 1;
+    }
+    buffer->swap_buffers ();
   }
 }
