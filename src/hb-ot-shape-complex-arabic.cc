@@ -217,7 +217,7 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
     map->add_gsub_pause (nullptr);
   }
 
-  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL|F_HAS_FALLBACK);
+  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL | F_HAS_FALLBACK);
   if (plan->props.script == HB_SCRIPT_ARABIC)
     map->add_gsub_pause (arabic_fallback_shape);
 

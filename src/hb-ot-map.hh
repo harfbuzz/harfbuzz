@@ -177,8 +177,6 @@ enum hb_ot_map_feature_flags_t
   F_RANDOM		= 0x0020u  /* Randomly select a glyph from an AlternateSubstFormat1 subtable. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
-/* Macro version for where const is desired. */
-#define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))
 
 struct hb_ot_map_feature_t
 {
