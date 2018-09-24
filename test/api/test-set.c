@@ -262,6 +262,7 @@ test_set_algebra (void)
 
   hb_set_destroy (s);
   hb_set_destroy (o);
+  hb_set_destroy (o2);
 }
 
 static void
