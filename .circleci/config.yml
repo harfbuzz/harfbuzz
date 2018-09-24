@@ -249,9 +249,9 @@ workflows:
       - archlinux-debug-O0-py3
       - clang-O3-O0
       - clang-asan
-      - clang-msan
+      #- clang-msan
       - clang-tsan
-      - clang-ubsan
+      #- clang-ubsan
       - fedora-outoftreebuild
 
       # cmake based builds
