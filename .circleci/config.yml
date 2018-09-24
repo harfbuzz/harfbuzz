@@ -101,7 +101,7 @@ jobs:
       - run: pip install fonttools
       - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
-      - run: make check || .ci/fail.sh
+      - run: MSAN_OPTIONS=exitcode=42 make check || .ci/fail.sh
 
   clang-tsan:
     docker:
