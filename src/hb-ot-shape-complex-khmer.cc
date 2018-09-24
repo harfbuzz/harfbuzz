@@ -39,19 +39,19 @@ khmer_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after reordering.
    */
-  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('c','f','a','r'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('c','f','a','r'), F_NONE   | F_MANUAL_JOINERS},
   /*
    * Other features.
    * These features are applied all at once.
    */
-  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_JOINERS},
   /*
    * Positioning features.
    * We don't care about the types.
