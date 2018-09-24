@@ -251,7 +251,7 @@ workflows:
       - clang-asan
       #- clang-msan
       - clang-tsan
-      #- clang-ubsan
+      - clang-ubsan
       - fedora-outoftreebuild
 
       # cmake based builds
