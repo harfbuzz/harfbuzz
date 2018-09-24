@@ -385,7 +385,6 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
   if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS ||
       mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT)
-    return;
   {
     /* As noted in the comment earlier, we don't try to combine
      * ccc=0 chars with their previous Starter. */
