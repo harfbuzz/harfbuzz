@@ -81,51 +81,67 @@ jobs:
 
   clang-asan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" CFLAGS="-O1 -g -fno-omit-frame-pointer" CXXFLAGS="-O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
-      - run: make check || .ci/fail.sh
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-msan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-O1 -g -fno-omit-frame-pointer" CXXFLAGS="-O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
-      - run: MSAN_OPTIONS=exitcode=42 make check || .ci/fail.sh
+      - run: MSAN_OPTIONS=exitcode=42 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-O1 -g -fno-omit-frame-pointer" CXXFLAGS="-O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
-      - run: make check || .ci/fail.sh
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-ubsan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" CFLAGS="-O1 -g -fno-omit-frame-pointer" CXXFLAGS="-O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
-      - run: make check || .ci/fail.sh
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   fedora-outoftreebuild:
     docker:
