@@ -125,7 +125,8 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   {
     const hb_feature_t *feature = &user_features[i];
     map->add_feature (feature->tag,
-		      (feature->start == 0 && feature->end == (unsigned int) -1) ?  F_GLOBAL : F_NONE,
+		      (feature->start == HB_FEATURE_GLOBAL_START &&
+		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
 		      feature->value);
   }
 }
