@@ -166,7 +166,8 @@ struct hb_ot_map_t
   hb_vector_t<stage_map_t, 4> stages[2]; /* GSUB/GPOS */
 };
 
-enum hb_ot_map_feature_flags_t {
+enum hb_ot_map_feature_flags_t
+{
   F_NONE		= 0x0000u,
   F_GLOBAL		= 0x0001u, /* Feature applies to all characters; results in no mask allocated for it. */
   F_HAS_FALLBACK	= 0x0002u, /* Has fallback implementation, so include mask bit even if feature not found. */
@@ -176,8 +177,12 @@ enum hb_ot_map_feature_flags_t {
   F_RANDOM		= 0x0020u  /* Randomly select a glyph from an AlternateSubstFormat1 subtable. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
-/* Macro version for where const is desired. */
-#define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))
+
+struct hb_ot_map_feature_t
+{
+  hb_tag_t tag;
+  hb_ot_map_feature_flags_t flags;
+};
 
 
 struct hb_ot_map_builder_t
@@ -189,11 +194,18 @@ struct hb_ot_map_builder_t
 
   HB_INTERNAL ~hb_ot_map_builder_t (void);
 
-  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value,
-				hb_ot_map_feature_flags_t flags);
+  HB_INTERNAL void add_feature (hb_tag_t tag,
+				hb_ot_map_feature_flags_t flags=F_NONE,
+				unsigned int value=1);
 
-  inline void add_global_bool_feature (hb_tag_t tag)
-  { add_feature (tag, 1, F_GLOBAL); }
+  inline void add_feature (const hb_ot_map_feature_t &feat)
+  { add_feature (feat.tag, feat.flags); }
+
+  inline void enable_feature (hb_tag_t tag)
+  { add_feature (tag, F_GLOBAL); }
+
+  inline void disable_feature (hb_tag_t tag)
+  { add_feature (tag, F_GLOBAL, 0); }
 
   inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }

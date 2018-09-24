@@ -95,42 +95,36 @@ static const indic_config_t indic_configs[] =
  * Indic shaper.
  */
 
-struct feature_list_t
-{
-  hb_tag_t tag;
-  hb_ot_map_feature_flags_t flags;
-};
-
-static const feature_list_t
+static const hb_ot_map_feature_t
 indic_features[] =
 {
   /*
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), F_GLOBAL},
-  {HB_TAG('a','k','h','n'), F_GLOBAL},
-  {HB_TAG('r','p','h','f'), F_NONE},
-  {HB_TAG('r','k','r','f'), F_GLOBAL},
-  {HB_TAG('p','r','e','f'), F_NONE},
-  {HB_TAG('b','l','w','f'), F_NONE},
-  {HB_TAG('a','b','v','f'), F_NONE},
-  {HB_TAG('h','a','l','f'), F_NONE},
-  {HB_TAG('p','s','t','f'), F_NONE},
-  {HB_TAG('v','a','t','u'), F_GLOBAL},
-  {HB_TAG('c','j','c','t'), F_GLOBAL},
+  {HB_TAG('n','u','k','t'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('a','k','h','n'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('r','p','h','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('r','k','r','f'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('h','a','l','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('v','a','t','u'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('c','j','c','t'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
    * Default Bengali font in Windows for example has intermixed
    * lookups for init,pres,abvs,blws features.
    */
-  {HB_TAG('i','n','i','t'), F_NONE},
-  {HB_TAG('p','r','e','s'), F_GLOBAL},
-  {HB_TAG('a','b','v','s'), F_GLOBAL},
-  {HB_TAG('b','l','w','s'), F_GLOBAL},
-  {HB_TAG('p','s','t','s'), F_GLOBAL},
-  {HB_TAG('h','a','l','n'), F_GLOBAL},
+  {HB_TAG('i','n','i','t'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('h','a','l','n'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
   /*
    * Positioning features.
    * We don't care about the types.
@@ -169,7 +163,6 @@ enum {
 
   INDIC_NUM_FEATURES,
   INDIC_BASIC_FEATURES = INIT, /* Don't forget to update this! */
-  INDIC_SUBST_FEATURES = _DIST /* Don't forget to update this! */
 };
 
 static void
@@ -197,30 +190,27 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
 
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
    * there is a use of it, it's typically at the beginning. */
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
 
 
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
 
   for (; i < INDIC_BASIC_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
+    map->add_feature (indic_features[i]);
     map->add_gsub_pause (nullptr);
   }
 
   map->add_gsub_pause (final_reordering);
 
-  for (; i < INDIC_SUBST_FEATURES; i++)
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
-
   for (; i < INDIC_NUM_FEATURES; i++)
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
+    map->add_feature (indic_features[i]);
 
-  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
-  map->add_global_bool_feature (HB_TAG('c','l','i','g'));
+  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('c','l','i','g'));
 
   map->add_gsub_pause (clear_syllables);
 }
@@ -228,7 +218,7 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
 static void
 override_features_indic (hb_ot_shape_planner_t *plan)
 {
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
+  plan->map.disable_feature (HB_TAG('l','i','g','a'));
 }
 
 

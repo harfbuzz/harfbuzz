@@ -32,32 +32,26 @@
  * Khmer shaper.
  */
 
-struct feature_list_t
-{
-  hb_tag_t tag;
-  hb_ot_map_feature_flags_t flags;
-};
-
-static const feature_list_t
+static const hb_ot_map_feature_t
 khmer_features[] =
 {
   /*
    * Basic features.
    * These features are applied in order, one at a time, after reordering.
    */
-  {HB_TAG('p','r','e','f'), F_NONE},
-  {HB_TAG('b','l','w','f'), F_NONE},
-  {HB_TAG('a','b','v','f'), F_NONE},
-  {HB_TAG('p','s','t','f'), F_NONE},
-  {HB_TAG('c','f','a','r'), F_NONE},
+  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('c','f','a','r'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
   /*
    * Other features.
    * These features are applied all at once.
    */
-  {HB_TAG('p','r','e','s'), F_GLOBAL},
-  {HB_TAG('a','b','v','s'), F_GLOBAL},
-  {HB_TAG('b','l','w','s'), F_GLOBAL},
-  {HB_TAG('p','s','t','s'), F_GLOBAL},
+  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
   /*
    * Positioning features.
    * We don't care about the types.
@@ -88,7 +82,6 @@ enum {
 
   KHMER_NUM_FEATURES,
   KHMER_BASIC_FEATURES = _PRES, /* Don't forget to update this! */
-  KHMER_SUBST_FEATURES = _DIST, /* Don't forget to update this! */
 };
 
 static void
@@ -123,23 +116,20 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
    *
    * https://github.com/harfbuzz/harfbuzz/issues/974
    */
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
 
   unsigned int i = 0;
   for (; i < KHMER_BASIC_FEATURES; i++)
-    map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
+    map->add_feature (khmer_features[i]);
 
   map->add_gsub_pause (clear_syllables);
 
-  for (; i < KHMER_SUBST_FEATURES; i++)
-    map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
-
   for (; i < KHMER_NUM_FEATURES; i++)
-    map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags);
+    map->add_feature (khmer_features[i]);
 
-  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
-  map->add_global_bool_feature (HB_TAG('c','l','i','g'));
+  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('c','l','i','g'));
 
 }
 
@@ -149,10 +139,10 @@ override_features_khmer (hb_ot_shape_planner_t *plan)
   /* Uniscribe does not apply 'kern' in Khmer. */
   if (hb_options ().uniscribe_bug_compatible)
   {
-    plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
+    plan->map.disable_feature (HB_TAG('k','e','r','n'));
   }
 
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
+  plan->map.disable_feature (HB_TAG('l','i','g','a'));
 }
 
 

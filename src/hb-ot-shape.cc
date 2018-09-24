@@ -71,17 +71,17 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 {
   hb_ot_map_builder_t *map = &planner->map;
 
-  map->add_global_bool_feature (HB_TAG('r','v','r','n'));
+  map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
 
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      map->add_global_bool_feature (HB_TAG ('l','t','r','a'));
-      map->add_global_bool_feature (HB_TAG ('l','t','r','m'));
+      map->enable_feature (HB_TAG ('l','t','r','a'));
+      map->enable_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      map->add_global_bool_feature (HB_TAG ('r','t','l','a'));
-      map->add_feature (HB_TAG ('r','t','l','m'), 1, F_NONE);
+      map->enable_feature (HB_TAG ('r','t','l','a'));
+      map->add_feature (HB_TAG ('r','t','l','m'));
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -91,22 +91,22 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   }
 
   /* Automatic fractions. */
-  map->add_feature (HB_TAG ('f','r','a','c'), 1, F_NONE);
-  map->add_feature (HB_TAG ('n','u','m','r'), 1, F_NONE);
-  map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
+  map->add_feature (HB_TAG ('f','r','a','c'));
+  map->add_feature (HB_TAG ('n','u','m','r'));
+  map->add_feature (HB_TAG ('d','n','o','m'));
 
   /* Random! */
-  map->add_feature (HB_TAG ('r','a','n','d'), HB_OT_MAP_MAX_VALUE, F_GLOBAL | F_RANDOM);
+  map->add_feature (HB_TAG ('r','a','n','d'), F_GLOBAL | F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
-    map->add_global_bool_feature (common_features[i]);
+    map->enable_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
-      map->add_feature (horizontal_features[i], 1, F_GLOBAL |
+      map->add_feature (horizontal_features[i], F_GLOBAL |
 			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
 			 F_HAS_FALLBACK : F_NONE));
   else
@@ -115,7 +115,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
      * matter which script/langsys it is listed (or not) under.
      * See various bugs referenced from:
      * https://github.com/harfbuzz/harfbuzz/issues/63 */
-    map->add_feature (HB_TAG ('v','e','r','t'), 1, F_GLOBAL | F_GLOBAL_SEARCH);
+    map->add_feature (HB_TAG ('v','e','r','t'), F_GLOBAL | F_GLOBAL_SEARCH);
   }
 
   if (planner->shaper->override_features)
@@ -124,9 +124,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   for (unsigned int i = 0; i < num_user_features; i++)
   {
     const hb_feature_t *feature = &user_features[i];
-    map->add_feature (feature->tag, feature->value,
-		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
-		       F_GLOBAL : F_NONE);
+    map->add_feature (feature->tag,
+		      (feature->start == 0 && feature->end == (unsigned int) -1) ?  F_GLOBAL : F_NONE,
+		      feature->value);
   }
 }
 
