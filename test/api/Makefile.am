@@ -16,6 +16,8 @@ EXTRA_DIST += CMakeLists.txt
 
 EXTRA_DIST += fonts
 
+LINK = $(CXXLINK)
+
 if HAVE_GLIB
 AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
