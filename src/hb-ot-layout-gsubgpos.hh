@@ -344,10 +344,10 @@ struct hb_ot_apply_context_t :
       match_glyph_data = nullptr;
       matcher.set_match_func (nullptr, nullptr);
       matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+      /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
       matcher.set_ignore_zwnj (c->table_index == 1 || (context_match && c->auto_zwnj));
-      /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
-      matcher.set_ignore_zwj  (c->table_index == 1 || (context_match || c->auto_zwj));
+      /* Ignore ZWJ if we are matching context, or asked to. */
+      matcher.set_ignore_zwj  (context_match || c->auto_zwj);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
     }
     inline void set_lookup_props (unsigned int lookup_props)

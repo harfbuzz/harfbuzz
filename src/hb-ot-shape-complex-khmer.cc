@@ -32,7 +32,8 @@
  * Khmer shaper.
  */
 
-struct feature_list_t {
+struct feature_list_t
+{
   hb_tag_t tag;
   hb_ot_map_feature_flags_t flags;
 };
@@ -57,7 +58,10 @@ khmer_features[] =
   {HB_TAG('a','b','v','s'), F_GLOBAL},
   {HB_TAG('b','l','w','s'), F_GLOBAL},
   {HB_TAG('p','s','t','s'), F_GLOBAL},
-  /* Positioning features, though we don't care about the types. */
+  /*
+   * Positioning features.
+   * We don't care about the types.
+   */
   {HB_TAG('d','i','s','t'), F_GLOBAL},
   {HB_TAG('a','b','v','m'), F_GLOBAL},
   {HB_TAG('b','l','w','m'), F_GLOBAL},
@@ -77,12 +81,14 @@ enum {
   _ABVS,
   _BLWS,
   _PSTS,
+
   _DIST,
   _ABVM,
   _BLWM,
 
   KHMER_NUM_FEATURES,
-  KHMER_BASIC_FEATURES = _PRES /* Don't forget to update this! */
+  KHMER_BASIC_FEATURES = _PRES, /* Don't forget to update this! */
+  KHMER_SUBST_FEATURES = _DIST, /* Don't forget to update this! */
 };
 
 static void
@@ -121,15 +127,16 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   map->add_global_bool_feature (HB_TAG('c','c','m','p'));
 
   unsigned int i = 0;
-  for (; i < KHMER_BASIC_FEATURES; i++) {
+  for (; i < KHMER_BASIC_FEATURES; i++)
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
-  }
 
   map->add_gsub_pause (clear_syllables);
 
-  for (; i < KHMER_NUM_FEATURES; i++) {
+  for (; i < KHMER_SUBST_FEATURES; i++)
     map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
-  }
+
+  for (; i < KHMER_NUM_FEATURES; i++)
+    map->add_feature (khmer_features[i].tag, 1, khmer_features[i].flags);
 
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_global_bool_feature (HB_TAG('c','l','i','g'));

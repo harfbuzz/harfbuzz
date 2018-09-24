@@ -95,7 +95,8 @@ static const indic_config_t indic_configs[] =
  * Indic shaper.
  */
 
-struct feature_list_t {
+struct feature_list_t
+{
   hb_tag_t tag;
   hb_ot_map_feature_flags_t flags;
 };
@@ -130,7 +131,10 @@ indic_features[] =
   {HB_TAG('b','l','w','s'), F_GLOBAL},
   {HB_TAG('p','s','t','s'), F_GLOBAL},
   {HB_TAG('h','a','l','n'), F_GLOBAL},
-  /* Positioning features, though we don't care about the types. */
+  /*
+   * Positioning features.
+   * We don't care about the types.
+   */
   {HB_TAG('d','i','s','t'), F_GLOBAL},
   {HB_TAG('a','b','v','m'), F_GLOBAL},
   {HB_TAG('b','l','w','m'), F_GLOBAL},
@@ -158,12 +162,14 @@ enum {
   _BLWS,
   _PSTS,
   _HALN,
+
   _DIST,
   _ABVM,
   _BLWM,
 
   INDIC_NUM_FEATURES,
-  INDIC_BASIC_FEATURES = INIT /* Don't forget to update this! */
+  INDIC_BASIC_FEATURES = INIT, /* Don't forget to update this! */
+  INDIC_SUBST_FEATURES = _DIST /* Don't forget to update this! */
 };
 
 static void
@@ -199,14 +205,19 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
 
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
+
   for (; i < INDIC_BASIC_FEATURES; i++) {
     map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
     map->add_gsub_pause (nullptr);
   }
+
   map->add_gsub_pause (final_reordering);
-  for (; i < INDIC_NUM_FEATURES; i++) {
+
+  for (; i < INDIC_SUBST_FEATURES; i++)
     map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ | F_MANUAL_ZWNJ);
-  }
+
+  for (; i < INDIC_NUM_FEATURES; i++)
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
 
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_global_bool_feature (HB_TAG('c','l','i','g'));
