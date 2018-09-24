@@ -42,6 +42,8 @@ TEST_PROGS = \
 	test-subset-os2 \
 	test-subset-post \
 	test-subset-vmtx \
+	test-subset-cff1 \
+	test-subset-cff2 \
 	test-unicode \
 	test-version \
 	$(NULL)
@@ -55,6 +57,8 @@ test_subset_hmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_os2_LDADD  = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_post_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_vmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_cff1_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_cff2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
