@@ -129,6 +129,7 @@ struct VORG
     if (unlikely (!dest))
     {
       subset_metrics.fini ();
+      hb_blob_destroy (vorg_blob);
       return false;
     }
 
@@ -137,6 +138,7 @@ struct VORG
     {
       subset_metrics.fini ();
       free (dest);
+      hb_blob_destroy (vorg_blob);
       return false;
     }
 
@@ -148,6 +150,7 @@ struct VORG
     bool success = plan->add_table (HB_OT_TAG_VORG, result);
     hb_blob_destroy (result);
     subset_metrics.fini ();
+    hb_blob_destroy (vorg_blob);
     return success;
   }
 
