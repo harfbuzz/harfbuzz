@@ -102,29 +102,29 @@ indic_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('a','k','h','n'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('r','p','h','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('r','k','r','f'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('h','a','l','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('v','a','t','u'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('c','j','c','t'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('n','u','k','t'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('a','k','h','n'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('r','p','h','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('r','k','r','f'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('p','r','e','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('b','l','w','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('a','b','v','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('h','a','l','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('p','s','t','f'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('v','a','t','u'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('c','j','c','t'), F_GLOBAL | F_MANUAL_JOINERS},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
    * Default Bengali font in Windows for example has intermixed
    * lookups for init,pres,abvs,blws features.
    */
-  {HB_TAG('i','n','i','t'), F_NONE   | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
-  {HB_TAG('h','a','l','n'), F_GLOBAL | F_MANUAL_ZWJ | F_MANUAL_ZWNJ},
+  {HB_TAG('i','n','i','t'), F_NONE   | F_MANUAL_JOINERS},
+  {HB_TAG('p','r','e','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('a','b','v','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('b','l','w','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('p','s','t','s'), F_GLOBAL | F_MANUAL_JOINERS},
+  {HB_TAG('h','a','l','n'), F_GLOBAL | F_MANUAL_JOINERS},
   /*
    * Positioning features.
    * We don't care about the types.
