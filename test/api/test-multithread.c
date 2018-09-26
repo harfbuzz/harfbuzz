@@ -78,7 +78,7 @@ int
 main (int argc, char **argv)
 {
   int i;
-  int num_threads = 30; // FIXME: Increase this and fix the issue
+  int num_threads = 30;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
 
