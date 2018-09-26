@@ -576,7 +576,7 @@ struct FDSelect3_4 {
       if (glyph < ranges[i].first)
         return (hb_codepoint_t)ranges[i - 1].fd;
 
-    assert (false);
+    return (hb_codepoint_t)ranges[nRanges - 1].fd;
   }
 
   inline GID_TYPE &sentinel (void)  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
