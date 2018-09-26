@@ -30,6 +30,7 @@
 #include <pthread.h>
 
 #include <hb.h>
+#include <hb-ft.h>
 #include <hb-ot.h>
 
 const char *text = "طرح‌نَما";
@@ -74,8 +75,8 @@ thread_func (void *data)
   return 0;
 }
 
-int
-main (int argc, char **argv)
+void
+test_body ()
 {
   int i;
   int num_threads = 30;
@@ -83,11 +84,6 @@ main (int argc, char **argv)
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
 
   pthread_mutex_lock (&mutex);
-
-  hb_blob_t *blob = hb_blob_create_from_file (path);
-  hb_face_t *face = hb_face_create (blob, 0);
-  font = hb_font_create (face);
-  hb_ot_font_set_funcs (font);
 
   for (i = 0; i < num_threads; i++)
   {
@@ -124,7 +120,7 @@ main (int argc, char **argv)
 				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
       fprintf (stderr, "Expected: %s\n", out);
 
-      return 1;
+      exit (1);
     }
     hb_buffer_destroy (buffer);
   }
@@ -133,6 +129,19 @@ main (int argc, char **argv)
 
   free (buffers);
   free (threads);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_blob_t *blob = hb_blob_create_from_file (path);
+  hb_face_t *face = hb_face_create (blob, 0);
+  font = hb_font_create (face);
+
+  hb_ft_font_set_funcs (font);
+  test_body ();
+  hb_ot_font_set_funcs (font);
+  test_body ();
 
   hb_font_destroy (font);
   hb_face_destroy (face);
