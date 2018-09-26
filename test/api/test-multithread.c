@@ -78,7 +78,7 @@ int
 main (int argc, char **argv)
 {
   int i;
-  int num_threads = 1; // FIXME: Increase this and fix the issue
+  int num_threads = 30; // FIXME: Increase this and fix the issue
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
 
@@ -99,41 +99,37 @@ main (int argc, char **argv)
   /* Let them loose! */
   pthread_mutex_unlock (&mutex);
 
+  hb_buffer_t *ref_buffer = hb_buffer_create ();
+  fill_the_buffer (ref_buffer);
+
   for (i = 0; i < num_threads; i++)
   {
     pthread_join (threads[i], NULL);
-
-    hb_buffer_t *ref_buffer = hb_buffer_create ();
-    fill_the_buffer (ref_buffer);
-
-    for (i = 0; i < num_threads; i++)
+    hb_buffer_t *buffer = buffers[i];
+    hb_buffer_diff_flags_t diff = hb_buffer_diff (ref_buffer, buffer, (hb_codepoint_t) -1, 0);
+    if (diff)
     {
-      hb_buffer_t *buffer = buffers[i];
-      hb_buffer_diff_flags_t diff = hb_buffer_diff (ref_buffer, buffer, (hb_codepoint_t) -1, 0);
-      if (diff)
-      {
-	fprintf (stderr, "One of the buffers (%d) was different from the reference.\n", i);
-	char out[255];
+      fprintf (stderr, "One of the buffers (%d) was different from the reference.\n", i);
+      char out[255];
 
-	hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (ref_buffer),
-				    out, sizeof (out), NULL,
-				    font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				    HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-	fprintf (stderr, "Actual: %s\n", out);
+      hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (ref_buffer),
+				  out, sizeof (out), NULL,
+				  font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+      fprintf (stderr, "Actual: %s\n", out);
 
-	hb_buffer_serialize_glyphs (ref_buffer, 0, hb_buffer_get_length (ref_buffer),
-				    out, sizeof (out), NULL,
-				    font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				    HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-	fprintf (stderr, "Expected: %s\n", out);
+      hb_buffer_serialize_glyphs (ref_buffer, 0, hb_buffer_get_length (ref_buffer),
+				  out, sizeof (out), NULL,
+				  font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+      fprintf (stderr, "Expected: %s\n", out);
 
-	return 1;
-      }
-      hb_buffer_destroy (buffer);
+      return 1;
     }
-
-    hb_buffer_destroy (ref_buffer);
+    hb_buffer_destroy (buffer);
   }
+
+  hb_buffer_destroy (ref_buffer);
 
   free (buffers);
   free (threads);
