@@ -77,9 +77,11 @@ TEST_PROGS += \
 	$(NULL)
 
 if HAVE_PTHREAD
+if HAVE_FREETYPE
 TEST_PROGS += test-multithread
-test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS)
-test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS)
+test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS) $(FREETYPE_CFLAGS)
+test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS) $(FREETYPE_LIBS)
+endif
 endif
 
 if HAVE_FREETYPE
