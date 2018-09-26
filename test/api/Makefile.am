@@ -30,13 +30,13 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS = \
 	test-blob \
 	test-buffer \
+	test-collect-unicodes \
 	test-common \
 	test-font \
 	test-object \
 	test-set \
 	test-shape \
 	test-subset \
-	test-subset-codepoints \
 	test-subset-cmap \
 	test-subset-glyf \
 	test-subset-hdmx \
