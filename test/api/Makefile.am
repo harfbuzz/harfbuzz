@@ -76,6 +76,12 @@ TEST_PROGS += \
 	test-ot-tag \
 	$(NULL)
 
+if HAVE_PTHREAD
+TEST_PROGS += test-multithread
+test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS)
+test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS)
+endif
+
 if HAVE_FREETYPE
 TEST_PROGS += \
 	test-ot-math \
