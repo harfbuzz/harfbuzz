@@ -586,6 +586,8 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
 {
   if (unlikely (hb_object_is_inert (ffuncs)))
     return;
+  if (ffuncs->immutable)
+    return;
 
   ffuncs->immutable = true;
 }
@@ -1443,6 +1445,8 @@ void
 hb_font_make_immutable (hb_font_t *font)
 {
   if (unlikely (hb_object_is_inert (font)))
+    return;
+  if (font->immutable)
     return;
 
   if (font->parent)

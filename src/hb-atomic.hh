@@ -49,17 +49,21 @@
 /* Defined externally, i.e. in config.h. */
 
 
-#elif !defined(HB_NO_MT) && defined(__ATOMIC_CONSUME)
+#elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
 
 /* C++11-style GCC primitives. */
 
+#define _hb_memory_barrier()			__sync_synchronize ()
+
 #define hb_atomic_int_impl_add(AI, V)		__atomic_fetch_add ((AI), (V), __ATOMIC_ACQ_REL)
 #define hb_atomic_int_impl_set_relaxed(AI, V)	__atomic_store_n ((AI), (V), __ATOMIC_RELAXED)
+#define hb_atomic_int_impl_set(AI, V)		__atomic_store_n ((AI), (V), __ATOMIC_RELEASE)
 #define hb_atomic_int_impl_get_relaxed(AI)	__atomic_load_n ((AI), __ATOMIC_RELAXED)
+#define hb_atomic_int_impl_get(AI)		__atomic_load_n ((AI), __ATOMIC_ACQUIRE)
 
 #define hb_atomic_ptr_impl_set_relaxed(P, V)	__atomic_store_n ((P), (V), __ATOMIC_RELAXED)
 #define hb_atomic_ptr_impl_get_relaxed(P)	__atomic_load_n ((P), __ATOMIC_RELAXED)
-#define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_CONSUME)
+#define hb_atomic_ptr_impl_get(P)		__atomic_load_n ((P), __ATOMIC_ACQUIRE)
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 {
@@ -74,13 +78,19 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 #include <atomic>
 
+#define _hb_memory_barrier()			std::atomic_thread_fence(std::memory_order_ack_rel)
+#define _hb_memory_r_barrier()			std::atomic_thread_fence(std::memory_order_acquire)
+#define _hb_memory_w_barrier()			std::atomic_thread_fence(std::memory_order_release)
+
 #define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->fetch_add ((V), std::memory_order_acq_rel))
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_relaxed))
+#define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_release))
 #define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_relaxed))
+#define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_acquire))
 
 #define hb_atomic_ptr_impl_set_relaxed(P, V)	(reinterpret_cast<std::atomic<void*> *> (P)->store ((V), std::memory_order_relaxed))
 #define hb_atomic_ptr_impl_get_relaxed(P)	(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_relaxed))
-#define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_consume))
+#define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_acquire))
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 {
@@ -243,6 +253,9 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 #ifndef hb_atomic_ptr_impl_get_relaxed
 #define hb_atomic_ptr_impl_get_relaxed(P)	(*(P))
 #endif
+#ifndef hb_atomic_int_impl_get
+inline int hb_atomic_int_impl_get (int *AI)	{ int v = *AI; _hb_memory_r_barrier (); return v; }
+#endif
 #ifndef hb_atomic_ptr_impl_get
 inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
 #endif
@@ -252,7 +265,9 @@ inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barr
 struct hb_atomic_int_t
 {
   inline void set_relaxed (int v_) const { hb_atomic_int_impl_set_relaxed (&v, v_); }
+  inline void set (int v_) const { hb_atomic_int_impl_set (&v, v_); }
   inline int get_relaxed (void) const { return hb_atomic_int_impl_get_relaxed (&v); }
+  inline int get (void) const { return hb_atomic_int_impl_get (&v); }
   inline int inc (void) { return hb_atomic_int_impl_add (&v,  1); }
   inline int dec (void) { return hb_atomic_int_impl_add (&v, -1); }
 
