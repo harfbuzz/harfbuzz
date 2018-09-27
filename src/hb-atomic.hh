@@ -84,9 +84,9 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 #define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->fetch_add ((V), std::memory_order_acq_rel))
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_relaxed))
-#define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_release))
+#define hb_atomic_int_impl_set(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_release))
 #define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_relaxed))
-#define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_acquire))
+#define hb_atomic_int_impl_get(AI)		(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_acquire))
 
 #define hb_atomic_ptr_impl_set_relaxed(P, V)	(reinterpret_cast<std::atomic<void*> *> (P)->store ((V), std::memory_order_relaxed))
 #define hb_atomic_ptr_impl_get_relaxed(P)	(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_relaxed))
@@ -252,6 +252,9 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 #endif
 #ifndef hb_atomic_ptr_impl_get_relaxed
 #define hb_atomic_ptr_impl_get_relaxed(P)	(*(P))
+#endif
+#ifndef hb_atomic_int_impl_set
+inline void hb_atomic_int_impl_get (int *AI, int v)	{ _hb_memory_w_barrier (); *AI = v; }
 #endif
 #ifndef hb_atomic_int_impl_get
 inline int hb_atomic_int_impl_get (int *AI)	{ int v = *AI; _hb_memory_r_barrier (); return v; }
