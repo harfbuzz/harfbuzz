@@ -139,7 +139,7 @@ jobs:
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" ./autogen.sh && ./configure && make -j4 && cd ..
+      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh && ./configure && make -j4 && cd ..
       - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh | asan_symbolize | c++filt

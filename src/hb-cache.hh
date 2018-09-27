@@ -42,7 +42,10 @@ struct hb_cache_t
   inline void fini (void) {}
 
   inline void clear (void)
-  { memset (values, 255, sizeof (values)); }
+  {
+    for (unsigned i = 0; i < ARRAY_LENGTH (values); i++)
+      values[i].set_relaxed (-1);
+  }
 
   inline bool get (unsigned int key, unsigned int *value) const
   {
