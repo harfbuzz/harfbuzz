@@ -25,7 +25,7 @@
 #ifndef HB_OT_COLOR_COLR_TABLE_HH
 #define HB_OT_COLOR_COLR_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 /*
  * COLR -- Color
@@ -129,9 +129,9 @@ struct COLR
   protected:
   HBUINT16	version;	/* Table version number */
   HBUINT16	numBaseGlyphs;	/* Number of Base Glyph Records */
-  LOffsetTo<UnsizedArrayOf<BaseGlyphRecord> >
+  LOffsetTo<UnsizedArrayOf<BaseGlyphRecord>, false>
 		baseGlyphsZ;	/* Offset to Base Glyph records. */
-  LOffsetTo<UnsizedArrayOf<LayerRecord> >
+  LOffsetTo<UnsizedArrayOf<LayerRecord>, false>
 		layersZ;	/* Offset to Layer Records */
   HBUINT16	numLayers;	/* Number of Layer Records */
   public:

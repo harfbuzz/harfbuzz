@@ -24,11 +24,10 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-set.h"
 #include "hb-subset-glyf.hh"
-#include "hb-subset-plan.hh"
 
 static bool
 _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
@@ -292,7 +291,7 @@ hb_subset_glyf_and_loca (hb_subset_plan_t *plan,
                          hb_blob_t       **glyf_prime, /* OUT */
                          hb_blob_t       **loca_prime /* OUT */)
 {
-  hb_blob_t *glyf_blob = OT::Sanitizer<OT::glyf>().sanitize (plan->source->reference_table (HB_OT_TAG_glyf));
+  hb_blob_t *glyf_blob = hb_sanitize_context_t ().reference_table<OT::glyf> (plan->source);
   const char *glyf_data = hb_blob_get_data(glyf_blob, nullptr);
 
   OT::glyf::accelerator_t glyf;

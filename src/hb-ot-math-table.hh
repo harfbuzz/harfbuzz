@@ -27,8 +27,8 @@
 #ifndef HB_OT_MATH_TABLE_HH
 #define HB_OT_MATH_TABLE_HH
 
-#include "hb-open-type-private.hh"
-#include "hb-ot-layout-common-private.hh"
+#include "hb-open-type.hh"
+#include "hb-ot-layout-common.hh"
 #include "hb-ot-math.h"
 
 namespace OT {
@@ -234,7 +234,7 @@ struct MathKern
     TRACE_SANITIZE (this);
     unsigned int count = 2 * heightCount + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (!mathValueRecords[i].sanitize (c, this)) return_trace (false);
+      if (!mathValueRecordsZ.arrayZ[i].sanitize (c, this)) return_trace (false);
     return_trace (true);
   }
 
@@ -242,16 +242,14 @@ struct MathKern
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (mathValueRecords,
-				  mathValueRecords[0].static_size,
-				  2 * heightCount + 1) &&
+		  c->check_array (mathValueRecordsZ.arrayZ, 2 * heightCount + 1) &&
 		  sanitize_math_value_records (c));
   }
 
   inline hb_position_t get_value (hb_position_t correction_height, hb_font_t *font) const
   {
-    const MathValueRecord* correctionHeight = mathValueRecords;
-    const MathValueRecord* kernValue = mathValueRecords + heightCount;
+    const MathValueRecord* correctionHeight = mathValueRecordsZ.arrayZ;
+    const MathValueRecord* kernValue = mathValueRecordsZ.arrayZ + heightCount;
     int sign = font->y_scale < 0 ? -1 : +1;
 
     /* The description of the MathKern table is a ambiguous, but interpreting
@@ -279,18 +277,19 @@ struct MathKern
   }
 
   protected:
-  HBUINT16	  heightCount;
-  MathValueRecord mathValueRecords[VAR]; /* Array of correction heights at
-					  * which the kern value changes.
-					  * Sorted by the height value in
-					  * design units (heightCount entries),
-					  * Followed by:
-					  * Array of kern values corresponding
-					  * to heights. (heightCount+1 entries).
-					  */
+  HBUINT16	heightCount;
+  UnsizedArrayOf<MathValueRecord>
+		mathValueRecordsZ;	/* Array of correction heights at
+					 * which the kern value changes.
+					 * Sorted by the height value in
+					 * design units (heightCount entries),
+					 * Followed by:
+					 * Array of kern values corresponding
+					 * to heights. (heightCount+1 entries).
+					 */
 
   public:
-  DEFINE_SIZE_ARRAY (2, mathValueRecords);
+  DEFINE_SIZE_ARRAY (2, mathValueRecordsZ);
 };
 
 struct MathKernInfoRecord
@@ -588,7 +587,7 @@ struct MathVariants
     TRACE_SANITIZE (this);
     unsigned int count = vertGlyphCount + horizGlyphCount;
     for (unsigned int i = 0; i < count; i++)
-      if (!glyphConstruction[i].sanitize (c, this)) return_trace (false);
+      if (!glyphConstruction.arrayZ[i].sanitize (c, this)) return_trace (false);
     return_trace (true);
   }
 
@@ -598,9 +597,7 @@ struct MathVariants
     return_trace (c->check_struct (this) &&
 		  vertGlyphCoverage.sanitize (c, this) &&
 		  horizGlyphCoverage.sanitize (c, this) &&
-		  c->check_array (glyphConstruction,
-				  glyphConstruction[0].static_size,
-				  vertGlyphCount + horizGlyphCount) &&
+		  c->check_array (glyphConstruction.arrayZ, vertGlyphCount + horizGlyphCount) &&
 		  sanitize_offsets (c));
   }
 
@@ -670,7 +667,8 @@ struct MathVariants
   /* Array of offsets to MathGlyphConstruction tables - from the beginning of
      the MathVariants table, for shapes growing in vertical/horizontal
      direction. */
-  OffsetTo<MathGlyphConstruction> glyphConstruction[VAR];
+  UnsizedArrayOf<OffsetTo<MathGlyphConstruction> >
+ 			glyphConstruction;
 
   public:
   DEFINE_SIZE_ARRAY (10, glyphConstruction);
@@ -685,6 +683,8 @@ struct MathVariants
 struct MATH
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_MATH;
+
+  inline bool has_data (void) const { return version.to_int () != 0; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

@@ -27,7 +27,7 @@
 #ifndef OPTIONS_HH
 #define OPTIONS_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -454,6 +454,7 @@ struct font_options_t : option_group_t
     face_index = 0;
     font_size_x = font_size_y = default_font_size;
     font_funcs = nullptr;
+    ft_load_flags = 2;
 
     blob = nullptr;
     font = nullptr;
@@ -484,6 +485,7 @@ struct font_options_t : option_group_t
   mutable double font_size_x;
   mutable double font_size_y;
   char *font_funcs;
+  int ft_load_flags;
 
   private:
   mutable hb_font_t *font;

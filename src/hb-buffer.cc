@@ -27,8 +27,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-buffer-private.hh"
-#include "hb-utf-private.hh"
+#include "hb-buffer.hh"
+#include "hb-utf.hh"
 
 
 /**
@@ -124,14 +124,14 @@ hb_buffer_t::enlarge (unsigned int size)
   hb_glyph_info_t *new_info = nullptr;
   bool separate_out = out_info != info;
 
-  if (unlikely (_hb_unsigned_int_mul_overflows (size, sizeof (info[0]))))
+  if (unlikely (hb_unsigned_mul_overflows (size, sizeof (info[0]))))
     goto done;
 
   while (size >= new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
   static_assert ((sizeof (info[0]) == sizeof (pos[0])), "");
-  if (unlikely (_hb_unsigned_int_mul_overflows (new_allocated, sizeof (info[0]))))
+  if (unlikely (hb_unsigned_mul_overflows (new_allocated, sizeof (info[0]))))
     goto done;
 
   new_pos = (hb_glyph_position_t *) realloc (pos, new_allocated * sizeof (pos[0]));
@@ -216,7 +216,7 @@ hb_buffer_t::reset (void)
     return;
 
   hb_unicode_funcs_destroy (unicode);
-  unicode = hb_unicode_funcs_get_default ();
+  unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
   replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
 
@@ -701,6 +701,28 @@ hb_buffer_t::guess_segment_properties (void)
 
 /* Public API */
 
+DEFINE_NULL_INSTANCE (hb_buffer_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  const_cast<hb_unicode_funcs_t *> (&_hb_Null_hb_unicode_funcs_t),
+  HB_BUFFER_FLAG_DEFAULT,
+  HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
+  HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
+  HB_BUFFER_SCRATCH_FLAG_DEFAULT,
+  HB_BUFFER_MAX_LEN_DEFAULT,
+  HB_BUFFER_MAX_OPS_DEFAULT,
+
+  HB_BUFFER_CONTENT_TYPE_INVALID,
+  HB_SEGMENT_PROPERTIES_DEFAULT,
+  false, /* successful */
+  true, /* have_output */
+  true  /* have_positions */
+
+  /* Zero is good enough for everything else. */
+};
+
+
 /**
  * hb_buffer_create: (Xconstructor)
  *
@@ -743,27 +765,7 @@ hb_buffer_create (void)
 hb_buffer_t *
 hb_buffer_get_empty (void)
 {
-  static const hb_buffer_t _hb_buffer_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
-    HB_BUFFER_FLAG_DEFAULT,
-    HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
-    HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
-    HB_BUFFER_SCRATCH_FLAG_DEFAULT,
-    HB_BUFFER_MAX_LEN_DEFAULT,
-    HB_BUFFER_MAX_OPS_DEFAULT,
-
-    HB_BUFFER_CONTENT_TYPE_INVALID,
-    HB_SEGMENT_PROPERTIES_DEFAULT,
-    false, /* successful */
-    true, /* have_output */
-    true  /* have_positions */
-
-    /* Zero is good enough for everything else. */
-  };
-
-  return const_cast<hb_buffer_t *> (&_hb_buffer_nil);
+  return const_cast<hb_buffer_t *> (&Null(hb_buffer_t));
 }
 
 /**
@@ -905,7 +907,6 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
 
   if (!unicode_funcs)
     unicode_funcs = hb_unicode_funcs_get_default ();
-
 
   hb_unicode_funcs_reference (unicode_funcs);
   hb_unicode_funcs_destroy (buffer->unicode);
@@ -1886,6 +1887,10 @@ hb_buffer_t::sort (unsigned int start, unsigned int end, int(*compar)(const hb_g
 
 /**
  * hb_buffer_diff:
+ * @buffer: a buffer.
+ * @reference: other buffer to compare to.
+ * @dottedcircle_glyph: glyph id of U+25CC DOTTED CIRCLE, or (hb_codepont_t) -1.
+ * @position_fuzz: allowed absolute difference in position values.
  *
  * If dottedcircle_glyph is (hb_codepoint_t) -1 then %HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT
  * and %HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT are never returned.  This should be used by most

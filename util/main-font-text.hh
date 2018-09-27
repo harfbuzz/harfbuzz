@@ -27,7 +27,7 @@
 #ifndef HB_MAIN_FONT_TEXT_HH
 #define HB_MAIN_FONT_TEXT_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 #include "options.hh"
 
 /* main() body for utilities taking font and processing text.*/

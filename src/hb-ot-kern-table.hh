@@ -27,7 +27,7 @@
 #ifndef HB_OT_KERN_TABLE_HH
 #define HB_OT_KERN_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 /*
  * kern -- Kerning
@@ -208,7 +208,7 @@ struct KernSubTableWrapper
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (thiz()) &&
 		  thiz()->length >= T::min_size &&
-		  c->check_array (thiz(), 1, thiz()->length) &&
+		  c->check_array (thiz(), thiz()->length, 1) &&
 		  thiz()->subtable.sanitize (c, thiz()->format));
   }
 };
@@ -222,7 +222,7 @@ struct KernTable
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
   {
     int v = 0;
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -241,7 +241,7 @@ struct KernTable
 		  thiz()->version != T::VERSION))
       return_trace (false);
 
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -287,11 +287,11 @@ struct KernOT : KernTable<KernOT>
   };
 
   protected:
-  HBUINT16	version;	/* Version--0x0000u */
-  HBUINT16	nTables;	/* Number of subtables in the kerning table. */
-  HBUINT8		data[VAR];
+  HBUINT16			version;	/* Version--0x0000u */
+  HBUINT16			nTables;	/* Number of subtables in the kerning table. */
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
-  DEFINE_SIZE_ARRAY (4, data);
+  DEFINE_SIZE_ARRAY (4, dataZ);
 };
 
 struct KernAAT : KernTable<KernAAT>
@@ -327,11 +327,11 @@ struct KernAAT : KernTable<KernAAT>
   };
 
   protected:
-  HBUINT32		version;	/* Version--0x00010000u */
-  HBUINT32		nTables;	/* Number of subtables in the kerning table. */
-  HBUINT8		data[VAR];
+  HBUINT32			version;	/* Version--0x00010000u */
+  HBUINT32			nTables;	/* Number of subtables in the kerning table. */
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
-  DEFINE_SIZE_ARRAY (8, data);
+  DEFINE_SIZE_ARRAY (8, dataZ);
 };
 
 struct kern
@@ -362,7 +362,7 @@ struct kern
   {
     inline void init (hb_face_t *face)
     {
-      blob = Sanitizer<kern>().sanitize (face->reference_table (HB_OT_TAG_kern));
+      blob = hb_sanitize_context_t().reference_table<kern> (face);
       table = blob->as<kern> ();
       table_length = blob->length;
     }
@@ -389,6 +389,8 @@ struct kern
   public:
   DEFINE_SIZE_UNION (2, major);
 };
+
+struct kern_accelerator_t : kern::accelerator_t {};
 
 } /* namespace OT */
 

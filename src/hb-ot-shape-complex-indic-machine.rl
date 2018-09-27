@@ -27,7 +27,7 @@
 #ifndef HB_OT_SHAPE_COMPLEX_INDIC_MACHINE_HH
 #define HB_OT_SHAPE_COMPLEX_INDIC_MACHINE_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 %%{
   machine indic_syllable_machine;
@@ -69,7 +69,7 @@ syllable_tail = (z?.SM.SM?.ZWNJ?)? A{0,3}?;
 halant_group = (z?.H.(ZWJ.N?)?);
 final_halant_group = halant_group | H.ZWNJ;
 medial_group = CM?;
-halant_or_matra_group = (final_halant_group | (H.ZWJ)? matra_group{0,4});
+halant_or_matra_group = (final_halant_group | matra_group{0,4});
 
 
 consonant_syllable =	(Repha|CS)? (cn.halant_group){0,4} cn medial_group halant_or_matra_group syllable_tail;

@@ -9,10 +9,14 @@ MAINTAINERCLEANFILES =
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+libs:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
 
 EXTRA_DIST += CMakeLists.txt
 
 EXTRA_DIST += fonts
+
+LINK = $(CXXLINK)
 
 if HAVE_GLIB
 AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS)
@@ -26,13 +30,13 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS = \
 	test-blob \
 	test-buffer \
+	test-collect-unicodes \
 	test-common \
 	test-font \
 	test-object \
 	test-set \
 	test-shape \
 	test-subset \
-	test-subset-codepoints \
 	test-subset-cmap \
 	test-subset-glyf \
 	test-subset-hdmx \
@@ -71,6 +75,14 @@ TEST_PROGS += \
 	test-ot-color \
 	test-ot-tag \
 	$(NULL)
+
+if HAVE_PTHREAD
+if HAVE_FREETYPE
+TEST_PROGS += test-multithread
+test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS) $(FREETYPE_CFLAGS)
+test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS) $(FREETYPE_LIBS)
+endif
+endif
 
 if HAVE_FREETYPE
 TEST_PROGS += \

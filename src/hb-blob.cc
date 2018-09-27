@@ -30,9 +30,8 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "hb-private.hh"
-#include "hb-debug.hh"
-#include "hb-blob-private.hh"
+#include "hb.hh"
+#include "hb-blob.hh"
 
 #ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
@@ -45,6 +44,20 @@
 #include <errno.h>
 #include <stdlib.h>
 
+
+DEFINE_NULL_INSTANCE (hb_blob_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  true, /* immutable */
+
+  nullptr, /* data */
+  0, /* length */
+  HB_MEMORY_MODE_READONLY, /* mode */
+
+  nullptr, /* user_data */
+  nullptr  /* destroy */
+};
 
 /**
  * hb_blob_create: (skip)
@@ -183,20 +196,7 @@ hb_blob_copy_writable_or_fail (hb_blob_t *blob)
 hb_blob_t *
 hb_blob_get_empty (void)
 {
-  static const hb_blob_t _hb_blob_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    true, /* immutable */
-
-    nullptr, /* data */
-    0, /* length */
-    HB_MEMORY_MODE_READONLY, /* mode */
-
-    nullptr, /* user_data */
-    nullptr  /* destroy */
-  };
-
-  return const_cast<hb_blob_t *> (&_hb_blob_nil);
+  return const_cast<hb_blob_t *> (&Null(hb_blob_t));
 }
 
 /**
@@ -292,6 +292,8 @@ void
 hb_blob_make_immutable (hb_blob_t *blob)
 {
   if (hb_object_is_inert (blob))
+    return;
+  if (blob->immutable)
     return;
 
   blob->immutable = true;
@@ -489,10 +491,10 @@ hb_blob_t::try_make_writable (void)
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 # include <windows.h>
-#endif
-
-#ifndef _O_BINARY
-# define _O_BINARY 0
+#else
+# ifndef _O_BINARY
+#  define _O_BINARY 0
+# endif
 #endif
 
 #ifndef MAP_NORESERVE
@@ -508,6 +510,7 @@ struct hb_mapped_file_t
 #endif
 };
 
+#if (defined(HAVE_MMAP) || defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
 static void
 _hb_mapped_file_destroy (hb_mapped_file_t *file)
 {
@@ -522,6 +525,7 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
 
   free (file);
 }
+#endif
 
 /**
  * hb_blob_create_from_file:
@@ -534,9 +538,9 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
 {
-  // Adopted from glib's gmappedfile.c with Matthias Clasen and
-  // Allison Lortie permission but changed a lot to suit our need.
-#if defined(HAVE_MMAP) && !defined(NOMMAPFILEREADER)
+  /* Adopted from glib's gmappedfile.c with Matthias Clasen and
+     Allison Lortie permission but changed a lot to suit our need. */
+#if defined(HAVE_MMAP) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
@@ -563,21 +567,54 @@ fail:
 fail_without_close:
   free (file);
 
-#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(NOMMAPFILEREADER)
+#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
-  HANDLE fd = CreateFile (file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
-			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
-			  nullptr);
+  HANDLE fd;
+  unsigned int size = strlen (file_name) + 1;
+  wchar_t * wchar_file_name = (wchar_t *) malloc (sizeof (wchar_t) * size);
+  if (unlikely (wchar_file_name == nullptr)) goto fail_without_close;
+  mbstowcs (wchar_file_name, file_name, size);
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  {
+    CREATEFILE2_EXTENDED_PARAMETERS ceparams = { 0 };
+    ceparams.dwSize = sizeof(CREATEFILE2_EXTENDED_PARAMETERS);
+    ceparams.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0xFFFF;
+    ceparams.dwFileFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0xFFF00000;
+    ceparams.dwSecurityQosFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0x000F0000;
+    ceparams.lpSecurityAttributes = nullptr;
+    ceparams.hTemplateFile = nullptr;
+    fd = CreateFile2 (wchar_file_name, GENERIC_READ, FILE_SHARE_READ,
+                      OPEN_EXISTING, &ceparams);
+  }
+#else
+  fd = CreateFileW (wchar_file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
+		    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
+		    nullptr);
+#endif
+  free (wchar_file_name);
 
   if (unlikely (fd == INVALID_HANDLE_VALUE)) goto fail_without_close;
 
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  {
+    LARGE_INTEGER length;
+    GetFileSizeEx (fd, &length);
+    file->length = length.LowPart;
+    file->mapping = CreateFileMappingFromApp (fd, nullptr, PAGE_READONLY, length.QuadPart, nullptr);
+  }
+#else
   file->length = (unsigned long) GetFileSize (fd, nullptr);
   file->mapping = CreateFileMapping (fd, nullptr, PAGE_READONLY, 0, 0, nullptr);
+#endif
   if (unlikely (file->mapping == nullptr)) goto fail;
 
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  file->contents = (char *) MapViewOfFileFromApp (file->mapping, FILE_MAP_READ, 0, 0);
+#else
   file->contents = (char *) MapViewOfFile (file->mapping, FILE_MAP_READ, 0, 0, 0);
+#endif
   if (unlikely (file->contents == nullptr)) goto fail;
 
   CloseHandle (fd);
@@ -592,12 +629,11 @@ fail_without_close:
 
 #endif
 
-  // The following tries to read a file without knowing its size beforehand
-  // It's used for systems without mmap concept or to read from pipes
-  int len = 0;
-  int allocated = BUFSIZ * 16;
-  char *blob = (char *) malloc (allocated);
-  if (blob == nullptr) return hb_blob_get_empty ();
+  /* The following tries to read a file without knowing its size beforehand
+     It's used as a fallback for systems without mmap or to read from pipes */
+  unsigned long len = 0, allocated = BUFSIZ * 16;
+  char *data = (char *) malloc (allocated);
+  if (unlikely (data == nullptr)) return hb_blob_get_empty ();
 
   FILE *fp = fopen (file_name, "rb");
   if (unlikely (fp == nullptr)) goto fread_fail_without_close;
@@ -607,24 +643,31 @@ fail_without_close:
     if (allocated - len < BUFSIZ)
     {
       allocated *= 2;
-      // Don't allocate more than 200MB, our mmap reader still
-      // can cover files like that but lets limit our fallback reader
-      if (unlikely (allocated > 200000000)) goto fread_fail;
-      char *new_blob = (char *) realloc (blob, allocated);
-      if (unlikely (!new_blob)) goto fread_fail;
-      blob = new_blob;
+      /* Don't allocate and go more than ~536MB, our mmap reader still
+	 can cover files like that but lets limit our fallback reader */
+      if (unlikely (allocated > (2 << 28))) goto fread_fail;
+      char *new_data = (char *) realloc (data, allocated);
+      if (unlikely (new_data == nullptr)) goto fread_fail;
+      data = new_data;
     }
 
-    len += fread (blob + len, 1, allocated - len, fp);
-    if (unlikely (ferror (fp))) goto fread_fail;
+    unsigned long addition = fread (data + len, 1, allocated - len, fp);
+
+    int err = ferror (fp);
+#ifdef EINTR // armcc doesn't have it
+    if (unlikely (err == EINTR)) continue;
+#endif
+    if (unlikely (err)) goto fread_fail;
+
+    len += addition;
   }
 
-  return hb_blob_create (blob, len, HB_MEMORY_MODE_WRITABLE, blob,
+  return hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, data,
                          (hb_destroy_func_t) free);
 
 fread_fail:
   fclose (fp);
 fread_fail_without_close:
-  free (blob);
+  free (data);
   return hb_blob_get_empty ();
 }

@@ -51,6 +51,25 @@ test_subset_hdmx_simple_subset (void)
 }
 
 static void
+test_subset_hdmx_multiple_device_records (void)
+{
+  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.multihdmx.abc.ttf");
+  hb_face_t *face_a = hb_subset_test_open_font ("fonts/Roboto-Regular.multihdmx.a.ttf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 'a');
+  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_a, face_abc_subset, HB_TAG ('h','d','m','x'));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_a);
+}
+
+static void
 test_subset_hdmx_invalid (void)
 {
   hb_face_t *face = hb_subset_test_open_font("fonts/crash-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
@@ -61,13 +80,11 @@ test_subset_hdmx_invalid (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_face_t *subset = hb_subset (face, profile, input);
+  hb_face_t *subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 
   hb_subset_input_destroy (input);
-  hb_subset_profile_destroy (profile);
   hb_face_destroy (subset);
   hb_face_destroy (face);
 }
@@ -83,13 +100,11 @@ test_subset_hdmx_fails_sanitize (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_subset_profile_t *profile = hb_subset_profile_create();
-  hb_face_t *subset = hb_subset (face, profile, input);
+  hb_face_t *subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 
   hb_subset_input_destroy (input);
-  hb_subset_profile_destroy (profile);
   hb_face_destroy (subset);
   hb_face_destroy (face);
 }
@@ -119,6 +134,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_hdmx_simple_subset);
+  hb_test_add (test_subset_hdmx_multiple_device_records);
   hb_test_add (test_subset_hdmx_invalid);
   hb_test_add (test_subset_hdmx_fails_sanitize);
   hb_test_add (test_subset_hdmx_noop);

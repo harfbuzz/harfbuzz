@@ -28,7 +28,7 @@
 #ifndef HB_OT_COLOR_CPAL_TABLE_HH
 #define HB_OT_COLOR_CPAL_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 
 /*
@@ -118,15 +118,15 @@ struct CPALV1Tail
   }
 
   protected:
-  LOffsetTo<UnsizedArrayOf<HBUINT32> >
+  LOffsetTo<UnsizedArrayOf<HBUINT32>, false>
 		paletteFlagsZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Type Array. Set to 0 if no array
 					 * is provided. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16> >
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
 		paletteLabelZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Labels Array. Set to 0 if no
 					 * array is provided. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16> >
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
 		paletteEntryLabelZ;	/* Offset from the beginning of CPAL table to
 					 * the Palette Entry Label Array. Set to 0
 					 * if no array is provided. */
@@ -207,7 +207,7 @@ struct CPAL
   HBUINT16	numPalettes;		/* Number of palettes in the table. */
   HBUINT16	numColorRecords;	/* Total number of color records, combined for
 					 * all palettes. */
-  LOffsetTo<UnsizedArrayOf<BGRAColor> >
+  LOffsetTo<UnsizedArrayOf<BGRAColor>, false>
 		colorRecordsZ;		/* Offset from the beginning of CPAL table to
 					 * the first ColorRecord. */
   UnsizedArrayOf<HBUINT16>

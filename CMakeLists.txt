@@ -761,10 +761,15 @@ endif ()
 
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install(TARGETS harfbuzz
+    EXPORT harfbuzzConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     FRAMEWORK DESTINATION Library/Frameworks
+  )
+  install(EXPORT harfbuzzConfig
+      NAMESPACE harfbuzz::
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
   )
   if (HB_BUILD_UTILS)
     install(TARGETS hb-view
@@ -834,9 +839,8 @@ set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
 if (UNIX OR MINGW)
   if (BUILD_SHARED_LIBS)
     # generate harfbuzz.def after build completion
-    string(REPLACE ";" " " space_separated_headers "${project_headers}")
     add_custom_command(TARGET harfbuzz POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E env "headers=${space_separated_headers}" python ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def
+      COMMAND "${PYTHON_EXECUTABLE}" ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def ${project_headers}
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 
     add_test(NAME check-static-inits.sh

@@ -28,9 +28,8 @@
 
 #define HB_SHAPER coretext
 
-#include "hb-private.hh"
-#include "hb-debug.hh"
-#include "hb-shaper-impl-private.hh"
+#include "hb.hh"
+#include "hb-shaper-impl.hh"
 
 #include "hb-coretext.h"
 #include <math.h>
@@ -211,7 +210,7 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
   }
 
   CFURLRef original_url = nullptr;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+#if TARGET_OS_MAC && MAC_OS_X_VERSION_MIN_REQUIRED < 1060
   ATSFontRef atsFont;
   FSRef fsref;
   OSStatus status;
@@ -241,7 +240,7 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
        * process in Blink. This can be detected by the new file URL location
        * that the newly found font points to. */
       CFURLRef new_url = nullptr;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+#if TARGET_OS_MAC && MAC_OS_X_VERSION_MIN_REQUIRED < 1060
       atsFont = CTFontGetPlatformFont (new_ct_font, NULL);
       status = ATSFontGetFileReference (atsFont, &fsref);
       if (status == noErr)
@@ -270,7 +269,7 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
   return ct_font;
 }
 
-hb_coretext_shaper_face_data_t *
+hb_coretext_face_data_t *
 _hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
   CGFontRef cg_font = create_cg_font (face);
@@ -281,11 +280,11 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
     return nullptr;
   }
 
-  return (hb_coretext_shaper_face_data_t *) cg_font;
+  return (hb_coretext_face_data_t *) cg_font;
 }
 
 void
-_hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
+_hb_coretext_shaper_face_data_destroy (hb_coretext_face_data_t *data)
 {
   CFRelease ((CGFontRef) data);
 }
@@ -307,7 +306,7 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 }
 
 
-hb_coretext_shaper_font_data_t *
+hb_coretext_font_data_t *
 _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
   hb_face_t *face = font->face;
@@ -322,11 +321,11 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
     return nullptr;
   }
 
-  return (hb_coretext_shaper_font_data_t *) ct_font;
+  return (hb_coretext_font_data_t *) ct_font;
 }
 
 void
-_hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *data)
+_hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
 {
   CFRelease ((CTFontRef) data);
 }
@@ -349,7 +348,7 @@ hb_coretext_font_create (CTFontRef ct_font)
   hb_font_set_ptem (font, coretext_font_size_to_ptem (CTFontGetSize(ct_font)));
 
   /* Let there be dragons here... */
-  HB_SHAPER_DATA_GET (font) = (hb_coretext_shaper_font_data_t *) CFRetain (ct_font);
+  HB_SHAPER_DATA (HB_SHAPER, font).set_relaxed ((hb_coretext_font_data_t *) CFRetain (ct_font));
 
   return font;
 }
@@ -367,20 +366,20 @@ hb_coretext_font_get_ct_font (hb_font_t *font)
  * shaper shape_plan data
  */
 
-struct hb_coretext_shaper_shape_plan_data_t {};
+struct hb_coretext_shape_plan_data_t {};
 
-hb_coretext_shaper_shape_plan_data_t *
+hb_coretext_shape_plan_data_t *
 _hb_coretext_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
 					     const hb_feature_t *user_features HB_UNUSED,
 					     unsigned int        num_user_features HB_UNUSED,
 					     const int          *coords HB_UNUSED,
 					     unsigned int        num_coords HB_UNUSED)
 {
-  return (hb_coretext_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_coretext_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shaper_shape_plan_data_t *data HB_UNUSED)
+_hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shape_plan_data_t *data HB_UNUSED)
 {
 }
 
@@ -516,12 +515,14 @@ struct range_record_t {
 #define kUpperCaseType				38
 
 /* Table data courtesy of Apple. */
-static const struct feature_mapping_t {
-    FourCharCode otFeatureTag;
+static const struct feature_mapping_t
+{
+    hb_tag_t otFeatureTag;
     uint16_t aatFeatureType;
     uint16_t selectorToEnable;
     uint16_t selectorToDisable;
-} feature_mappings[] = {
+} feature_mappings[] =
+{
     { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
     { 'c2sc',   kUpperCaseType,             kUpperCaseSmallCapsSelector,            kDefaultUpperCaseSelector },
     { 'calt',   kContextualAlternatesType,  kContextualAlternatesOnSelector,        kContextualAlternatesOffSelector },
@@ -602,7 +603,7 @@ static const struct feature_mapping_t {
 static int
 _hb_feature_mapping_cmp (const void *key_, const void *entry_)
 {
-  unsigned int key = * (unsigned int *) key_;
+  hb_tag_t key = * (unsigned int *) key_;
   const feature_mapping_t * entry = (const feature_mapping_t *) entry_;
   return key < entry->otFeatureTag ? -1 :
 	 key > entry->otFeatureTag ? 1 :
@@ -1330,9 +1331,9 @@ HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font)
  * shaper face data
  */
 
-struct hb_coretext_aat_shaper_face_data_t {};
+struct hb_coretext_aat_face_data_t {};
 
-hb_coretext_aat_shaper_face_data_t *
+hb_coretext_aat_face_data_t *
 _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
 {
   static const hb_tag_t tags[] = {HB_CORETEXT_TAG_MORX, HB_CORETEXT_TAG_MORT, HB_CORETEXT_TAG_KERX};
@@ -1343,7 +1344,7 @@ _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
     if (hb_blob_get_length (blob))
     {
       hb_blob_destroy (blob);
-      return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
+      return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
     }
     hb_blob_destroy (blob);
   }
@@ -1352,7 +1353,7 @@ _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
 }
 
 void
-_hb_coretext_aat_shaper_face_data_destroy (hb_coretext_aat_shaper_face_data_t *data HB_UNUSED)
+_hb_coretext_aat_shaper_face_data_destroy (hb_coretext_aat_face_data_t *data HB_UNUSED)
 {
 }
 
@@ -1361,16 +1362,16 @@ _hb_coretext_aat_shaper_face_data_destroy (hb_coretext_aat_shaper_face_data_t *d
  * shaper font data
  */
 
-struct hb_coretext_aat_shaper_font_data_t {};
+struct hb_coretext_aat_font_data_t {};
 
-hb_coretext_aat_shaper_font_data_t *
+hb_coretext_aat_font_data_t *
 _hb_coretext_aat_shaper_font_data_create (hb_font_t *font)
 {
-  return hb_coretext_shaper_font_data_ensure (font) ? (hb_coretext_aat_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
+  return hb_coretext_shaper_font_data_ensure (font) ? (hb_coretext_aat_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
 }
 
 void
-_hb_coretext_aat_shaper_font_data_destroy (hb_coretext_aat_shaper_font_data_t *data HB_UNUSED)
+_hb_coretext_aat_shaper_font_data_destroy (hb_coretext_aat_font_data_t *data HB_UNUSED)
 {
 }
 
@@ -1379,20 +1380,20 @@ _hb_coretext_aat_shaper_font_data_destroy (hb_coretext_aat_shaper_font_data_t *d
  * shaper shape_plan data
  */
 
-struct hb_coretext_aat_shaper_shape_plan_data_t {};
+struct hb_coretext_aat_shape_plan_data_t {};
 
-hb_coretext_aat_shaper_shape_plan_data_t *
+hb_coretext_aat_shape_plan_data_t *
 _hb_coretext_aat_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
 					     const hb_feature_t *user_features HB_UNUSED,
 					     unsigned int        num_user_features HB_UNUSED,
 					     const int          *coords HB_UNUSED,
 					     unsigned int        num_coords HB_UNUSED)
 {
-  return (hb_coretext_aat_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_coretext_aat_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_coretext_aat_shaper_shape_plan_data_destroy (hb_coretext_aat_shaper_shape_plan_data_t *data HB_UNUSED)
+_hb_coretext_aat_shaper_shape_plan_data_destroy (hb_coretext_aat_shape_plan_data_t *data HB_UNUSED)
 {
 }
 

@@ -27,21 +27,21 @@
  */
 
 #define HB_SHAPER ot
-#define hb_ot_shaper_face_data_t hb_ot_layout_t
-#define hb_ot_shaper_shape_plan_data_t hb_ot_shape_plan_t
-#include "hb-shaper-impl-private.hh"
+#define hb_ot_shape_plan_data_t hb_ot_shape_plan_t
+#include "hb-shaper-impl.hh"
 
-#include "hb-ot-shape-private.hh"
-#include "hb-ot-shape-complex-private.hh"
-#include "hb-ot-shape-fallback-private.hh"
-#include "hb-ot-shape-normalize-private.hh"
+#include "hb-ot-shape.hh"
+#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shape-fallback.hh"
+#include "hb-ot-shape-normalize.hh"
 
-#include "hb-ot-layout-private.hh"
-#include "hb-unicode-private.hh"
-#include "hb-set-private.hh"
+#include "hb-ot-face.hh"
+#include "hb-ot-layout.hh"
+#include "hb-unicode.hh"
+#include "hb-set.hh"
 
-#include "hb-ot-layout-gsubgpos-private.hh"
-//#include "hb-aat-layout-private.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+#include "hb-aat-layout.hh"
 
 static hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
@@ -71,17 +71,17 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 {
   hb_ot_map_builder_t *map = &planner->map;
 
-  map->add_global_bool_feature (HB_TAG('r','v','r','n'));
+  map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
 
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      map->add_global_bool_feature (HB_TAG ('l','t','r','a'));
-      map->add_global_bool_feature (HB_TAG ('l','t','r','m'));
+      map->enable_feature (HB_TAG ('l','t','r','a'));
+      map->enable_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      map->add_global_bool_feature (HB_TAG ('r','t','l','a'));
-      map->add_feature (HB_TAG ('r','t','l','m'), 1, F_NONE);
+      map->enable_feature (HB_TAG ('r','t','l','a'));
+      map->add_feature (HB_TAG ('r','t','l','m'));
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -90,19 +90,23 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
-  map->add_feature (HB_TAG ('f','r','a','c'), 1, F_NONE);
-  map->add_feature (HB_TAG ('n','u','m','r'), 1, F_NONE);
-  map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
+  /* Automatic fractions. */
+  map->add_feature (HB_TAG ('f','r','a','c'));
+  map->add_feature (HB_TAG ('n','u','m','r'));
+  map->add_feature (HB_TAG ('d','n','o','m'));
+
+  /* Random! */
+  map->add_feature (HB_TAG ('r','a','n','d'), F_GLOBAL | F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
-    map->add_global_bool_feature (common_features[i]);
+    map->enable_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
-      map->add_feature (horizontal_features[i], 1, F_GLOBAL |
+      map->add_feature (horizontal_features[i], F_GLOBAL |
 			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
 			 F_HAS_FALLBACK : F_NONE));
   else
@@ -111,17 +115,19 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
      * matter which script/langsys it is listed (or not) under.
      * See various bugs referenced from:
      * https://github.com/harfbuzz/harfbuzz/issues/63 */
-    map->add_feature (HB_TAG ('v','e','r','t'), 1, F_GLOBAL | F_GLOBAL_SEARCH);
+    map->add_feature (HB_TAG ('v','e','r','t'), F_GLOBAL | F_GLOBAL_SEARCH);
   }
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
 
-  for (unsigned int i = 0; i < num_user_features; i++) {
+  for (unsigned int i = 0; i < num_user_features; i++)
+  {
     const hb_feature_t *feature = &user_features[i];
-    map->add_feature (feature->tag, feature->value,
-		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
-		       F_GLOBAL : F_NONE);
+    map->add_feature (feature->tag,
+		      (feature->start == HB_FEATURE_GLOBAL_START &&
+		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
+		      feature->value);
   }
 }
 
@@ -132,16 +138,16 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
 HB_SHAPER_DATA_ENSURE_DEFINE(ot, face)
 
-hb_ot_shaper_face_data_t *
+hb_ot_face_data_t *
 _hb_ot_shaper_face_data_create (hb_face_t *face)
 {
-  return _hb_ot_layout_create (face);
+  return _hb_ot_face_data_create (face);
 }
 
 void
-_hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
+_hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
 {
-  _hb_ot_layout_destroy (data);
+  _hb_ot_face_data_destroy (data);
 }
 
 
@@ -151,16 +157,16 @@ _hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
 
 HB_SHAPER_DATA_ENSURE_DEFINE(ot, font)
 
-struct hb_ot_shaper_font_data_t {};
+struct hb_ot_font_data_t {};
 
-hb_ot_shaper_font_data_t *
+hb_ot_font_data_t *
 _hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 {
-  return (hb_ot_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
+_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data)
 {
 }
 
@@ -169,7 +175,7 @@ _hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
  * shaper shape_plan data
  */
 
-hb_ot_shaper_shape_plan_data_t *
+hb_ot_shape_plan_data_t *
 _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 				      const hb_feature_t *user_features,
 				      unsigned int        num_user_features,
@@ -194,14 +200,17 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   if (plan->shaper->data_create) {
     plan->data = plan->shaper->data_create (plan);
     if (unlikely (!plan->data))
+    {
+      free (plan);
       return nullptr;
+    }
   }
 
   return plan;
 }
 
 void
-_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *plan)
+_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shape_plan_data_t *plan)
 {
   if (plan->shaper->data_destroy)
     plan->shaper->data_destroy (const_cast<void *> (plan->data));
@@ -623,8 +632,8 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   c->plan->substitute (c->font, buffer);
 
-  /* XXX Call morx instead. */
-  //hb_aat_layout_substitute (c->font, c->buffer);
+  if (0) /* XXX Call morx instead. */
+    hb_aat_layout_substitute (c->font, c->buffer);
 }
 
 static inline void
@@ -677,8 +686,8 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 
   if (HB_DIRECTION_IS_HORIZONTAL (direction))
   {
-    for (unsigned int i = 0; i < count; i++)
-      pos[i].x_advance = c->font->get_glyph_h_advance (info[i].codepoint);
+    c->font->get_glyph_h_advances (count, &info[0].codepoint, sizeof(info[0]),
+                                   &pos[0].x_advance, sizeof(pos[0]));
     /* The nil glyph_h_origin() func returns 0, so no need to apply it. */
     if (c->font->has_glyph_h_origin_func ())
       for (unsigned int i = 0; i < count; i++)
@@ -688,9 +697,10 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
   }
   else
   {
+    c->font->get_glyph_v_advances (count, &info[0].codepoint, sizeof(info[0]),
+                                   &pos[0].y_advance, sizeof(pos[0]));
     for (unsigned int i = 0; i < count; i++)
     {
-      pos[i].y_advance = c->font->get_glyph_v_advance (info[i].codepoint);
       c->font->subtract_glyph_v_origin (info[i].codepoint,
 					&pos[i].x_offset,
 					&pos[i].y_offset);
@@ -829,12 +839,12 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   c->buffer->deallocate_var_all ();
   c->buffer->scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
-  if (likely (!_hb_unsigned_int_mul_overflows (c->buffer->len, HB_BUFFER_MAX_LEN_FACTOR)))
+  if (likely (!hb_unsigned_mul_overflows (c->buffer->len, HB_BUFFER_MAX_LEN_FACTOR)))
   {
     c->buffer->max_len = MAX (c->buffer->len * HB_BUFFER_MAX_LEN_FACTOR,
 			      (unsigned) HB_BUFFER_MAX_LEN_MIN);
   }
-  if (likely (!_hb_unsigned_int_mul_overflows (c->buffer->len, HB_BUFFER_MAX_OPS_FACTOR)))
+  if (likely (!hb_unsigned_mul_overflows (c->buffer->len, HB_BUFFER_MAX_OPS_FACTOR)))
   {
     c->buffer->max_ops = MAX (c->buffer->len * HB_BUFFER_MAX_OPS_FACTOR,
 			      (unsigned) HB_BUFFER_MAX_OPS_MIN);

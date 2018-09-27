@@ -10,7 +10,7 @@
 ../fonts/fab39d60d758cb586db5a504f218442cd1395725.ttf:--font-funcs=ot:U+0041,U+0041:[gid0=0+1000|gid0=1+1000]
 ../fonts/205edd09bd3d141cc9580f650109556cc28b22cb.ttf:--font-funcs=ot:U+0041:[gid0=0+1000]
 ../fonts/217a934cfe15c548b572c203dceb2befdf026462.ttf:--font-funcs=ot:U+0061,U+0061,U+0061:[]
-../fonts/558661aa659912f4d30ecd27bd09835171a8e2b0.ttf:--font-funcs=ot:U+FFFD,U+E0100,U+FFFD,U+E0010:[]
+../fonts/558661aa659912f4d30ecd27bd09835171a8e2b0.ttf:--font-funcs=ot:U+FFFD,U+E0100,U+FFFD,U+E0010:[gid3584=0+1000|gid1024=0+1000|gid1=0+1000|gid8=0+1000|gid3=0+1000|gid0=0+1000|gid1=0+1000|gid3584=0+1000|gid3584=2+1000|gid1024=2+1000|gid1=2+1000|gid8=2+1000|gid3=2+1000|gid0=2+1000|gid1=2+1000|gid3584=2+1000]
 ../fonts/a34a9191d9376bda419836effeef7e75c1386016.ttf:--font-funcs=ot:U+0041:[]
 ../fonts/a69118c2c2ada48ff803d9149daa54c9ebdae30e.ttf:--font-funcs=ot:U+0041:[gid0=0+1229]
 ../fonts/b6acef662e0beb8d5fcf5b61c6b0ca69537b7402.ttf:--font-funcs=ot:U+0041:[gid0=0+1000]

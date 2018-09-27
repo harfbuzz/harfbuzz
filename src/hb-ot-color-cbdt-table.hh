@@ -27,7 +27,7 @@
 #ifndef HB_OT_COLOR_CBDT_TABLE_HH
 #define HB_OT_COLOR_CBDT_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 /*
  * CBLC -- Color Bitmap Location
@@ -128,7 +128,7 @@ struct IndexSubtableFormat1Or3
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (offsetArrayZ, offsetArrayZ[0].static_size, glyph_count + 1));
+		  c->check_array (offsetArrayZ.arrayZ, glyph_count + 1));
   }
 
   bool get_image_data (unsigned int idx,
@@ -144,7 +144,8 @@ struct IndexSubtableFormat1Or3
   }
 
   IndexSubtableHeader	header;
-  Offset<OffsetType>	offsetArrayZ[VAR];
+  UnsizedArrayOf<Offset<OffsetType> >
+ 			offsetArrayZ;
   public:
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);
 };
@@ -240,7 +241,7 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_array (&indexSubtablesZ, indexSubtablesZ[0].static_size, count)))
+    if (unlikely (!c->check_array (indexSubtablesZ.arrayZ, count)))
       return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))
@@ -255,17 +256,14 @@ struct IndexSubtableArray
     {
       unsigned int firstGlyphIndex = indexSubtablesZ[i].firstGlyphIndex;
       unsigned int lastGlyphIndex = indexSubtablesZ[i].lastGlyphIndex;
-      if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex) {
+      if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex)
         return &indexSubtablesZ[i];
-      }
     }
     return nullptr;
   }
 
   protected:
-  IndexSubtableRecord	indexSubtablesZ[VAR];
-  public:
-  DEFINE_SIZE_ARRAY(0, indexSubtablesZ);
+  UnsizedArrayOf<IndexSubtableRecord>	indexSubtablesZ;
 };
 
 struct BitmapSizeTable
@@ -289,7 +287,7 @@ struct BitmapSizeTable
   }
 
   protected:
-  LOffsetTo<IndexSubtableArray>
+  LOffsetTo<IndexSubtableArray, false>
 			indexSubtableArrayOffset;
   HBUINT32		indexTablesSize;
   HBUINT32		numberOfIndexSubtables;
@@ -394,8 +392,8 @@ struct CBDT
     {
       upem = hb_face_get_upem (face);
 
-      cblc_blob = Sanitizer<CBLC>().sanitize (face->reference_table (HB_OT_TAG_CBLC));
-      cbdt_blob = Sanitizer<CBDT>().sanitize (face->reference_table (HB_OT_TAG_CBDT));
+      cblc_blob = hb_sanitize_context_t().reference_table<CBLC> (face);
+      cbdt_blob = hb_sanitize_context_t().reference_table<CBDT> (face);
       cbdt_len = hb_blob_get_length (cbdt_blob);
 
       if (hb_blob_get_length (cblc_blob) == 0) {
@@ -527,11 +525,13 @@ struct CBDT
 
 
   protected:
-  FixedVersion<>	version;
-  HBUINT8		dataZ[VAR];
+  FixedVersion<>		version;
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
   DEFINE_SIZE_ARRAY(4, dataZ);
 };
+
+struct CBDT_accelerator_t : CBDT::accelerator_t {};
 
 } /* namespace OT */
 

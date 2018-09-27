@@ -379,6 +379,19 @@ typedef void (*hb_destroy_func_t) (void *user_data);
 
 /* Font features and variations. */
 
+/**
+ * HB_FEATURE_GLOBAL_START
+ *
+ * Since: REPLACEME
+ */
+#define HB_FEATURE_GLOBAL_START	0
+/**
+ * HB_FEATURE_GLOBAL_END
+ *
+ * Since: REPLACEME
+ */
+#define HB_FEATURE_GLOBAL_END	((unsigned int) -1)
+
 typedef struct hb_feature_t {
   hb_tag_t      tag;
   uint32_t      value;

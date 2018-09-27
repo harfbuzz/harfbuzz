@@ -27,7 +27,7 @@
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 #include "options.hh"
 #include "helper-cairo.hh"
 

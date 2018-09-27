@@ -26,9 +26,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-map-private.hh"
+#include "hb-ot-map.hh"
 
-#include "hb-ot-layout-private.hh"
+#include "hb-ot-layout.hh"
 
 
 void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
@@ -74,8 +74,9 @@ hb_ot_map_builder_t::~hb_ot_map_builder_t (void)
     stages[table_index].fini ();
 }
 
-void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
-				       hb_ot_map_feature_flags_t flags)
+void hb_ot_map_builder_t::add_feature (hb_tag_t tag,
+				       hb_ot_map_feature_flags_t flags,
+				       unsigned int value)
 {
   feature_info_t *info = feature_infos.push();
   if (unlikely (!tag)) return;
@@ -95,7 +96,8 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  unsigned int  variations_index,
 				  hb_mask_t     mask,
 				  bool          auto_zwnj,
-				  bool          auto_zwj)
+				  bool          auto_zwj,
+				  bool          random)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -122,6 +124,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
       lookup->index = lookup_indices[i];
       lookup->auto_zwnj = auto_zwnj;
       lookup->auto_zwj = auto_zwj;
+      lookup->random = random;
     }
 
     offset += len;
@@ -145,7 +148,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 {
   static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))), "");
   unsigned int global_bit_mask = HB_GLYPH_FLAG_DEFINED + 1;
-  unsigned int global_bit_shift = _hb_popcount (HB_GLYPH_FLAG_DEFINED);
+  unsigned int global_bit_shift = hb_popcount (HB_GLYPH_FLAG_DEFINED);
 
   m.global_mask = global_bit_mask;
 
@@ -208,8 +211,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
       /* Uses the global bit */
       bits_needed = 0;
     else
-      /* Limit to 8 bits per feature. */
-      bits_needed = MIN(8u, _hb_bit_storage (info->max_value));
+      /* Limit bits per feature. */
+      bits_needed = MIN(HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
 
     if (!info->max_value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
       continue; /* Feature disabled, or not enough bits. */
@@ -252,6 +255,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
     map->stage[1] = info->stage[1];
     map->auto_zwnj = !(info->flags & F_MANUAL_ZWNJ);
     map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
+    map->random = !!(info->flags & F_RANDOM);
     if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = global_bit_shift;
@@ -301,7 +305,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 		       variations_index,
 		       m.features[i].mask,
 		       m.features[i].auto_zwnj,
-		       m.features[i].auto_zwj);
+		       m.features[i].auto_zwj,
+		       m.features[i].random);
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)

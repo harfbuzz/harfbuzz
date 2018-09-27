@@ -1,9 +1,98 @@
+Overview of changes leading to 1.9.0
+Monday, September 10, 2018
+====================================
+- Added 'cmap' API to hb_face_t.
+- Face-builder API.
+- hb-ot-font re-creation should be much leaner now, as the
+  font tables it uses are cached on hb_face_t now.
+- Internal source header file name changes:
+  hb-*-private.hh is renamed to hb-*.hh.
+
+New API:
++HB_UNICODE_MAX
++hb_face_collect_unicodes()
++hb_face_collect_variation_selectors()
++hb_face_collect_variation_unicodes()
++hb_face_builder_create()
++hb_face_builder_add_table()
+
+
+Overview of changes leading to 1.8.8
+Tuesday, August 14, 2018
+====================================
+- Fix hb-icu crash on architectures where compare_exchange_weak() can
+  fail falsely.  This bug was introduced in 1.8.4.
+  https://bugs.chromium.org/p/chromium/issues/detail?id=873568
+- More internal refactoring of atomic operations and singletons.
+- API changes:
+  The following functions do NOT reference their return value before
+  returning:
+  * hb_unicode_funcs_get_default()
+  * hb_glib_get_unicode_funcs()
+  * hb_icu_get_unicode_funcs()
+  This is consistent with their naming ("get", instead of "reference")
+  as well as how they are used in the wild (ie. no one calls destroy()
+  on their return value.)
+
+
+Overview of changes leading to 1.8.7
+Wednesday, August 8, 2018
+====================================
+- Fix assertion failure with GDEF-blacklisted fonts.
+
+
+Overview of changes leading to 1.8.6
+Tuesday, August 7, 2018
+====================================
+- Internal code shuffling.
+- New API to speed up getting advance widths for implementations
+  that have heavy overhead in get_h_advance callback:
++hb_font_funcs_set_glyph_h_advances_func
++hb_font_funcs_set_glyph_v_advances_func
++hb_font_get_glyph_advances_for_direction
++hb_font_get_glyph_h_advances
++hb_font_get_glyph_h_advances_func_t
++hb_font_get_glyph_v_advances
++hb_font_get_glyph_v_advances_func_t
+
+
+Overview of changes leading to 1.8.5
+Wednesday, August 1, 2018
+====================================
+- Major Khmer shaper improvements to better match Microsoft.
+- Indic bug fixes.
+- Internal improvements to atomic operations.
+
+
+Overview of changes leading to 1.8.4
+Tuesday, July 17, 2018
+====================================
+- Fix build on non-C++11.
+- Use C++-style GCC atomics and C++11 atomics.
+
+
+Overview of changes leading to 1.8.3
+Wednesday, July 11, 2018
+====================================
+- A couple of Indic / USE bug fixes.
+- Disable vectorization, as it was causing unaligned access bus error on
+  certain 32bit architectures.
+
+
+Overview of changes leading to 1.8.2
+Tuesday, July 3, 2018
+====================================
+- Fix infinite loop in Khmer shaper.
+- Improve hb_blob_create_from_file() for streams.
+
+
 Overview of changes leading to 1.8.1
 Tuesday, June 12, 2018
 ====================================
 - Fix hb-version.h file generation; last two releases went out with wrong ones.
 - Add correctness bug in hb_set_t operations, introduced in 1.7.7.
 - Remove HB_SUBSET_BUILTIN build option.  Not necessary.
+
 
 Overview of changes leading to 1.8.0
 Tuesday, June 5, 2018

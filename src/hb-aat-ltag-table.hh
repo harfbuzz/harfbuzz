@@ -25,7 +25,7 @@
 #ifndef HB_AAT_LTAG_TABLE_HH
 #define HB_AAT_LTAG_TABLE_HH
 
-#include "hb-aat-layout-common-private.hh"
+#include "hb-aat-layout-common.hh"
 
 /*
  * ltag -- Language Tag
@@ -46,7 +46,7 @@ struct FTStringRange
   }
 
   protected:
-  OffsetTo<UnsizedArrayOf<HBUINT8> >
+  OffsetTo<UnsizedArrayOf<HBUINT8>, HBUINT16, false>
 		tag;		/* Offset from the start of the table to
 				 * the beginning of the string */
   HBUINT16	length;		/* String length (in bytes) */

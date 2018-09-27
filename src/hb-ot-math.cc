@@ -24,17 +24,17 @@
  * Igalia Author(s): Frédéric Wang
  */
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
-#include "hb-ot-layout-private.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot-math-table.hh"
 
 static inline const OT::MATH&
 _get_math (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::MATH);
-  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->math.get ());
+  hb_ot_face_data_t * data = hb_ot_face_data (face);
+  return *(data->MATH.get ());
 }
 
 /*
@@ -55,7 +55,7 @@ _get_math (hb_face_t *face)
 hb_bool_t
 hb_ot_math_has_data (hb_face_t *face)
 {
-  return &_get_math (face) != &Null(OT::MATH);
+  return _get_math (face).has_data ();
 }
 
 /**

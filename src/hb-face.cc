@@ -26,23 +26,22 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-face-private.hh"
-#include "hb-blob-private.hh"
-#include "hb-open-file-private.hh"
-#include "hb-ot-head-table.hh"
-#include "hb-ot-maxp-table.hh"
-
+#include "hb-face.hh"
+#include "hb-blob.hh"
+#include "hb-open-file.hh"
+#include "hb-ot-face.hh"
+#include "hb-ot-cmap-table.hh"
 
 
 /**
- * hb_face_count: Get number of faces on the blob
- * @blob:
+ * hb_face_count:
+ * @blob: a blob.
  *
+ * Get number of faces in a blob.
  *
- *
- * Return value: Number of faces on the blob
+ * Return value: Number of faces in @blob
  *
  * Since: 1.7.7
  **/
@@ -52,17 +51,22 @@ hb_face_count (hb_blob_t *blob)
   if (unlikely (!blob))
     return 0;
 
-  hb_blob_t *sanitized = OT::Sanitizer<OT::OpenTypeFontFile> ().sanitize (blob);
+  /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
+  /* Make API signature const after. */
+  hb_blob_t *sanitized = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
   const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
+  unsigned int ret = ot.get_face_count ();
+  hb_blob_destroy (sanitized);
 
-  return ot.get_face_count ();
+  return ret;
 }
 
 /*
  * hb_face_t
  */
 
-const hb_face_t _hb_face_nil = {
+DEFINE_NULL_INSTANCE (hb_face_t) =
+{
   HB_OBJECT_HEADER_STATIC,
 
   true, /* immutable */
@@ -76,12 +80,12 @@ const hb_face_t _hb_face_nil = {
   0,    /* num_glyphs */
 
   {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
+#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
   },
 
-  nullptr, /* shape_plans */
+  HB_ATOMIC_PTR_INIT (nullptr), /* shape_plans */
 };
 
 
@@ -159,11 +163,12 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
     return hb_blob_reference (data->blob);
 
   const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+  unsigned int base_offset;
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index, &base_offset);
 
   const OT::OpenTypeTable &table = ot_face.get_table_by_tag (tag);
 
-  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, table.offset, table.length);
+  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, base_offset + table.offset, table.length);
 
   return blob;
 }
@@ -188,7 +193,7 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!blob))
     blob = hb_blob_get_empty ();
 
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (OT::Sanitizer<OT::OpenTypeFontFile>().sanitize (hb_blob_reference (blob)), index);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
     return hb_face_get_empty ();
@@ -214,7 +219,7 @@ hb_face_create (hb_blob_t    *blob,
 hb_face_t *
 hb_face_get_empty (void)
 {
-  return const_cast<hb_face_t *> (&_hb_face_nil);
+  return const_cast<hb_face_t *> (&Null(hb_face_t));
 }
 
 
@@ -247,7 +252,7 @@ hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
 
-  for (hb_face_t::plan_node_t *node = face->shape_plans; node; )
+  for (hb_face_t::plan_node_t *node = face->shape_plans.get (); node; )
   {
     hb_face_t::plan_node_t *next = node->next;
     hb_shape_plan_destroy (node->shape_plan);
@@ -301,7 +306,7 @@ hb_face_set_user_data (hb_face_t          *face,
  * Since: 0.9.2
  **/
 void *
-hb_face_get_user_data (hb_face_t          *face,
+hb_face_get_user_data (const hb_face_t    *face,
 		       hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (face, key);
@@ -320,6 +325,8 @@ hb_face_make_immutable (hb_face_t *face)
 {
   if (unlikely (hb_object_is_inert (face)))
     return;
+  if (face->immutable)
+    return;
 
   face->immutable = true;
 }
@@ -335,7 +342,7 @@ hb_face_make_immutable (hb_face_t *face)
  * Since: 0.9.2
  **/
 hb_bool_t
-hb_face_is_immutable (hb_face_t *face)
+hb_face_is_immutable (const hb_face_t *face)
 {
   return face->immutable;
 }
@@ -353,8 +360,8 @@ hb_face_is_immutable (hb_face_t *face)
  * Since: 0.9.2
  **/
 hb_blob_t *
-hb_face_reference_table (hb_face_t *face,
-			 hb_tag_t   tag)
+hb_face_reference_table (const hb_face_t *face,
+			 hb_tag_t tag)
 {
   return face->reference_table (tag);
 }
@@ -405,7 +412,7 @@ hb_face_set_index (hb_face_t    *face,
  * Since: 0.9.2
  **/
 unsigned int
-hb_face_get_index (hb_face_t    *face)
+hb_face_get_index (const hb_face_t *face)
 {
   return face->index;
 }
@@ -440,18 +447,9 @@ hb_face_set_upem (hb_face_t    *face,
  * Since: 0.9.2
  **/
 unsigned int
-hb_face_get_upem (hb_face_t *face)
+hb_face_get_upem (const hb_face_t *face)
 {
   return face->get_upem ();
-}
-
-void
-hb_face_t::load_upem (void) const
-{
-  hb_blob_t *head_blob = OT::Sanitizer<OT::head>().sanitize (reference_table (HB_OT_TAG_head));
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  upem = head_table->get_upem ();
-  hb_blob_destroy (head_blob);
 }
 
 /**
@@ -484,23 +482,17 @@ hb_face_set_glyph_count (hb_face_t    *face,
  * Since: 0.9.7
  **/
 unsigned int
-hb_face_get_glyph_count (hb_face_t *face)
+hb_face_get_glyph_count (const hb_face_t *face)
 {
   return face->get_num_glyphs ();
-}
-
-void
-hb_face_t::load_num_glyphs (void) const
-{
-  hb_blob_t *maxp_blob = OT::Sanitizer<OT::maxp>().sanitize (reference_table (HB_OT_TAG_maxp));
-  const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
-  num_glyphs = maxp_table->get_num_glyphs ();
-  hb_blob_destroy (maxp_blob);
 }
 
 /**
  * hb_face_get_table_tags:
  * @face: a face.
+ * @start_offset: index of first tag to return.
+ * @table_count: input length of @table_tags array, output number of items written.
+ * @table_tags: array to write tags into.
  *
  * Retrieves table tags for a face, if possible.
  *
@@ -509,7 +501,7 @@ hb_face_t::load_num_glyphs (void) const
  * Since: 1.6.0
  **/
 unsigned int
-hb_face_get_table_tags (hb_face_t    *face,
+hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int  start_offset,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
@@ -527,4 +519,209 @@ hb_face_get_table_tags (hb_face_t    *face,
   const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
 
   return ot_face.get_table_tags (start_offset, table_count, table_tags);
+}
+
+
+/*
+ * Character set.
+ */
+
+
+/**
+ * hb_face_collect_unicodes:
+ * @face: font face.
+ * @out: set to add Unicode characters covered by @face to.
+ *
+ * Since: 1.9.0
+ */
+void
+hb_face_collect_unicodes (hb_face_t *face,
+			  hb_set_t  *out)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->cmap->collect_unicodes (out);
+}
+
+/**
+ * hb_face_collect_variation_selectors:
+ * @face: font face.
+ * @out: set to add Variation Selector characters covered by @face to.
+ *
+ *
+ *
+ * Since: 1.9.0
+ */
+void
+hb_face_collect_variation_selectors (hb_face_t *face,
+				     hb_set_t  *out)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->cmap->collect_variation_selectors (out);
+}
+
+/**
+ * hb_face_collect_variation_unicodes:
+ * @face: font face.
+ * @out: set to add Unicode characters for @variation_selector covered by @face to.
+ *
+ *
+ *
+ * Since: 1.9.0
+ */
+void
+hb_face_collect_variation_unicodes (hb_face_t *face,
+				    hb_codepoint_t variation_selector,
+				    hb_set_t  *out)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+  hb_ot_face_data (face)->cmap->collect_variation_unicodes (variation_selector, out);
+}
+
+
+
+/*
+ * face-builder: A face that has add_table().
+ */
+
+struct hb_face_builder_data_t
+{
+  struct table_entry_t
+  {
+    inline int cmp (const hb_tag_t *t) const
+    {
+      if (*t < tag) return -1;
+      if (*t > tag) return -1;
+      return 0;
+    }
+
+    hb_tag_t   tag;
+    hb_blob_t *blob;
+  };
+
+  hb_vector_t<table_entry_t, 32> tables;
+};
+
+static hb_face_builder_data_t *
+_hb_face_builder_data_create (void)
+{
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) calloc (1, sizeof (hb_face_builder_data_t));
+  if (unlikely (!data))
+    return nullptr;
+
+  data->tables.init ();
+
+  return data;
+}
+
+static void
+_hb_face_builder_data_destroy (void *user_data)
+{
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
+
+  for (unsigned int i = 0; i < data->tables.len; i++)
+    hb_blob_destroy (data->tables[i].blob);
+
+  data->tables.fini ();
+
+  free (data);
+}
+
+static hb_blob_t *
+_hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
+{
+
+  unsigned int table_count = data->tables.len;
+  unsigned int face_length = table_count * 16 + 12;
+
+  for (unsigned int i = 0; i < table_count; i++)
+    face_length += hb_ceil_to_4 (hb_blob_get_length (data->tables.arrayZ[i].blob));
+
+  char *buf = (char *) malloc (face_length);
+  if (unlikely (!buf))
+    return nullptr;
+
+  hb_serialize_context_t c (buf, face_length);
+  OT::OpenTypeFontFile *f = c.start_serialize<OT::OpenTypeFontFile> ();
+
+  bool is_cff = data->tables.lsearch (HB_TAG ('C','F','F',' ')) || data->tables.lsearch (HB_TAG ('C','F','F','2'));
+  hb_tag_t sfnt_tag = is_cff ? OT::OpenTypeFontFile::CFFTag : OT::OpenTypeFontFile::TrueTypeTag;
+
+  Supplier<hb_tag_t>    tags_supplier  (&data->tables[0].tag, table_count, sizeof (data->tables[0]));
+  Supplier<hb_blob_t *> blobs_supplier (&data->tables[0].blob, table_count, sizeof (data->tables[0]));
+  bool ret = f->serialize_single (&c,
+				  sfnt_tag,
+				  tags_supplier,
+				  blobs_supplier,
+				  table_count);
+
+  c.end_serialize ();
+
+  if (unlikely (!ret))
+  {
+    free (buf);
+    return nullptr;
+  }
+
+  return hb_blob_create (buf, face_length, HB_MEMORY_MODE_WRITABLE, buf, free);
+}
+
+static hb_blob_t *
+_hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+{
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
+
+  if (!tag)
+    return _hb_face_builder_data_reference_blob (data);
+
+  hb_face_builder_data_t::table_entry_t *entry = data->tables.lsearch (tag);
+  if (entry)
+    return hb_blob_reference (entry->blob);
+
+  return nullptr;
+}
+
+
+/**
+ * hb_face_builder_create:
+ *
+ * Creates a #hb_face_t that can be used with hb_face_builder_add_table().
+ * After tables are added to the face, it can be compiled to a binary
+ * font file by calling hb_face_reference_blob().
+ *
+ * Return value: (transfer full) New face.
+ *
+ * Since: 1.9.0
+ **/
+hb_face_t *
+hb_face_builder_create (void)
+{
+  hb_face_builder_data_t *data = _hb_face_builder_data_create ();
+  if (unlikely (!data)) return hb_face_get_empty ();
+
+  return hb_face_create_for_tables (_hb_face_builder_reference_table,
+				    data,
+				    _hb_face_builder_data_destroy);
+}
+
+/**
+ * hb_face_builder_add_table:
+ *
+ * Add table for @tag with data provided by @blob to the face.  @face must
+ * be created using hb_face_builder_create().
+ *
+ * Since: 1.9.0
+ **/
+hb_bool_t
+hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
+{
+  if (unlikely (face->destroy != (hb_destroy_func_t) _hb_face_builder_data_destroy))
+    return false;
+
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
+  hb_face_builder_data_t::table_entry_t *entry = data->tables.push ();
+
+  entry->tag = tag;
+  entry->blob = hb_blob_reference (blob);
+
+  return true;
 }

@@ -26,10 +26,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-mutex-private.hh"
-#include "hb-object-private.hh"
+#include "hb-machinery.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
@@ -39,7 +38,7 @@
 
 /* hb_options_t */
 
-hb_options_union_t _hb_options;
+hb_atomic_int_t _hb_options;
 
 void
 _hb_options_init (void)
@@ -52,7 +51,7 @@ _hb_options_init (void)
   u.opts.uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
 
   /* This is idempotent and threadsafe. */
-  _hb_options = u;
+  _hb_options.set_relaxed (u.i);
 }
 
 
@@ -246,15 +245,15 @@ struct hb_language_item_t {
 
 /* Thread-safe lock-free language list */
 
-static hb_language_item_t *langs;
+static hb_atomic_ptr_t <hb_language_item_t> langs;
 
 #ifdef HB_USE_ATEXIT
 static void
 free_langs (void)
 {
 retry:
-  hb_language_item_t *first_lang = (hb_language_item_t *) hb_atomic_ptr_get (&langs);
-  if (!hb_atomic_ptr_cmpexch (&langs, first_lang, nullptr))
+  hb_language_item_t *first_lang = langs.get ();
+  if (unlikely (!langs.cmpexch (first_lang, nullptr)))
     goto retry;
 
   while (first_lang) {
@@ -270,7 +269,7 @@ static hb_language_item_t *
 lang_find_or_insert (const char *key)
 {
 retry:
-  hb_language_item_t *first_lang = (hb_language_item_t *) hb_atomic_ptr_get (&langs);
+  hb_language_item_t *first_lang = langs.get ();
 
   for (hb_language_item_t *lang = first_lang; lang; lang = lang->next)
     if (*lang == key)
@@ -288,7 +287,8 @@ retry:
     return nullptr;
   }
 
-  if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
+  if (unlikely (!langs.cmpexch (first_lang, lang)))
+  {
     lang->fini ();
     free (lang);
     goto retry;
@@ -370,15 +370,16 @@ hb_language_to_string (hb_language_t language)
 hb_language_t
 hb_language_get_default (void)
 {
-  static hb_language_t default_language = HB_LANGUAGE_INVALID;
+  static hb_atomic_ptr_t <hb_language_t> default_language;
 
-  hb_language_t language = (hb_language_t) hb_atomic_ptr_get (&default_language);
-  if (unlikely (language == HB_LANGUAGE_INVALID)) {
+  hb_language_t language = default_language.get ();
+  if (unlikely (language == HB_LANGUAGE_INVALID))
+  {
     language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);
-    (void) hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
+    (void) default_language.cmpexch (HB_LANGUAGE_INVALID, language);
   }
 
-  return default_language;
+  return language;
 }
 
 
@@ -530,7 +531,6 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
     /* Unicode-8.0 additions */
     case HB_SCRIPT_HATRAN:
-    case HB_SCRIPT_OLD_HUNGARIAN:
 
     /* Unicode-9.0 additions */
     case HB_SCRIPT_ADLAM:
@@ -544,7 +544,9 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
 
     /* https://github.com/harfbuzz/harfbuzz/issues/1000 */
+    case HB_SCRIPT_OLD_HUNGARIAN:
     case HB_SCRIPT_OLD_ITALIC:
+    case HB_SCRIPT_RUNIC:
 
       return HB_DIRECTION_INVALID;
   }
@@ -729,47 +731,47 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 
 #ifdef USE_XLOCALE
 
-static HB_LOCALE_T C_locale;
+#ifdef HB_USE_ATEXIT
+static void free_static_C_locale (void);
+#endif
+
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<HB_LOCALE_T>::value,
+							  hb_C_locale_lazy_loader_t>
+{
+  static inline HB_LOCALE_T create (void)
+  {
+    HB_LOCALE_T C_locale = HB_CREATE_LOCALE ("C");
 
 #ifdef HB_USE_ATEXIT
-static void
-free_C_locale (void)
+    atexit (free_static_C_locale);
+#endif
+
+    return C_locale;
+  }
+  static inline void destroy (HB_LOCALE_T p)
+  {
+    HB_FREE_LOCALE (p);
+  }
+  static inline HB_LOCALE_T get_null (void)
+  {
+    return nullptr;
+  }
+} static_C_locale;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_C_locale (void)
 {
-retry:
-  HB_LOCALE_T locale = (HB_LOCALE_T) hb_atomic_ptr_get (&C_locale);
-
-  if (!hb_atomic_ptr_cmpexch (&C_locale, locale, nullptr))
-    goto retry;
-
-  if (locale)
-    HB_FREE_LOCALE (locale);
+  static_C_locale.free_instance ();
 }
 #endif
 
 static HB_LOCALE_T
 get_C_locale (void)
 {
-retry:
-  HB_LOCALE_T C = (HB_LOCALE_T) hb_atomic_ptr_get (&C_locale);
-
-  if (unlikely (!C))
-  {
-    C = HB_CREATE_LOCALE ("C");
-
-    if (!hb_atomic_ptr_cmpexch (&C_locale, nullptr, C))
-    {
-      HB_FREE_LOCALE (C_locale);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_C_locale); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return C;
+  return static_C_locale.get_unconst ();
 }
-#endif
+#endif /* USE_XLOCALE */
 
 static bool
 parse_float (const char **pp, const char *end, float *pv)
@@ -846,7 +848,7 @@ parse_tag (const char **pp, const char *end, hb_tag_t *tag)
   }
 
   const char *p = *pp;
-  while (*pp < end && ISALNUM(**pp))
+  while (*pp < end && (ISALNUM(**pp) || **pp == '_'))
     (*pp)++;
 
   if (p == *pp || *pp - p > 4)
@@ -875,8 +877,8 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 
   bool has_start;
 
-  feature->start = 0;
-  feature->end = (unsigned int) -1;
+  feature->start = HB_FEATURE_GLOBAL_START;
+  feature->end = HB_FEATURE_GLOBAL_END;
 
   if (!parse_char (pp, end, '['))
     return true;
@@ -1070,3 +1072,12 @@ hb_variation_to_string (hb_variation_t *variation,
   memcpy (buf, s, len);
   buf[len] = '\0';
 }
+
+/* If there is no visibility control, then hb-static.cc will NOT
+ * define anything.  Instead, we get it to define one set in here
+ * only, so only libharfbuzz.so defines them, not other libs. */
+#ifdef HB_NO_VISIBILITY
+#undef HB_NO_VISIBILITY
+#include "hb-static.cc"
+#define HB_NO_VISIBILITY 1
+#endif

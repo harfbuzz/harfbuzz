@@ -27,12 +27,13 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-#include "hb-debug.hh"
+#include "hb.hh"
 
 #include "hb-ft.h"
 
-#include "hb-font-private.hh"
+#include "hb-font.hh"
+#include "hb-machinery.hh"
+#include "hb-cache.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
@@ -68,6 +69,9 @@ struct hb_ft_font_t
   int load_flags;
   bool symbol; /* Whether selected cmap is symbol cmap. */
   bool unref; /* Whether to destroy ft_face when done. */
+
+  mutable hb_atomic_int_t cached_x_scale;
+  mutable hb_advance_cache_t advance_cache;
 };
 
 static hb_ft_font_t *
@@ -84,6 +88,9 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 
+  ft_font->cached_x_scale.set (0);
+  ft_font->advance_cache.init ();
+
   return ft_font;
 }
 
@@ -97,6 +104,8 @@ static void
 _hb_ft_font_destroy (void *data)
 {
   hb_ft_font_t *ft_font = (hb_ft_font_t *) data;
+
+  ft_font->advance_cache.fini ();
 
   if (ft_font->unref)
     _hb_ft_face_destroy (ft_font->ft_face);
@@ -225,6 +234,46 @@ hb_ft_get_glyph_h_advance (hb_font_t *font,
     v = -v;
 
   return (v + (1<<9)) >> 10;
+}
+
+static void
+hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
+			    unsigned count,
+			    hb_codepoint_t *first_glyph,
+			    unsigned glyph_stride,
+			    hb_position_t *first_advance,
+			    unsigned advance_stride,
+			    void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Face ft_face = ft_font->ft_face;
+  int load_flags = ft_font->load_flags;
+  int mult = font->x_scale < 0 ? -1 : +1;
+
+  if (font->x_scale != ft_font->cached_x_scale.get ())
+  {
+    ft_font->advance_cache.clear ();
+    ft_font->cached_x_scale.set (font->x_scale);
+  }
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    FT_Fixed v = 0;
+    hb_codepoint_t glyph = *first_glyph;
+
+    unsigned int cv;
+    if (ft_font->advance_cache.get (glyph, &cv))
+      v = cv;
+    else
+    {
+      FT_Get_Advance (ft_face, glyph, load_flags, &v);
+      ft_font->advance_cache.set (glyph, v);
+    }
+
+    *first_advance = (v * mult + (1<<9)) >> 10;
+    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+  }
 }
 
 static hb_position_t
@@ -417,36 +466,22 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   return true;
 }
 
-static hb_font_funcs_t *static_ft_funcs = nullptr;
-
 #ifdef HB_USE_ATEXIT
-static
-void free_static_ft_funcs (void)
-{
-retry:
-  hb_font_funcs_t *ft_funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ft_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, ft_funcs, nullptr))
-    goto retry;
-
-  hb_font_funcs_destroy (ft_funcs);
-}
+static void free_static_ft_funcs (void);
 #endif
 
-static void
-_hb_ft_font_set_funcs (hb_font_t *font, FT_Face ft_face, bool unref)
+static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft_font_funcs_lazy_loader_t>
 {
-retry:
-  hb_font_funcs_t *funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ft_funcs);
-
-  if (unlikely (!funcs))
+  static inline hb_font_funcs_t *create (void)
   {
-    funcs = hb_font_funcs_create ();
+    hb_font_funcs_t *funcs = hb_font_funcs_create ();
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_ft_get_font_h_extents, nullptr, nullptr);
     //hb_font_funcs_set_font_v_extents_func (funcs, hb_ft_get_font_v_extents, nullptr, nullptr);
     hb_font_funcs_set_nominal_glyph_func (funcs, hb_ft_get_nominal_glyph, nullptr, nullptr);
     hb_font_funcs_set_variation_glyph_func (funcs, hb_ft_get_variation_glyph, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ft_get_glyph_h_advance, nullptr, nullptr);
+    hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ft_get_glyph_h_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, nullptr, nullptr);
@@ -459,20 +494,35 @@ retry:
 
     hb_font_funcs_make_immutable (funcs);
 
-    if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, nullptr, funcs)) {
-      hb_font_funcs_destroy (funcs);
-      goto retry;
-    }
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ft_funcs);
+#endif
+
+    return funcs;
+  }
+} static_ft_funcs;
 
 #ifdef HB_USE_ATEXIT
-    atexit (free_static_ft_funcs); /* First person registers atexit() callback. */
+static
+void free_static_ft_funcs (void)
+{
+  static_ft_funcs.free_instance ();
+}
 #endif
-  };
 
+static hb_font_funcs_t *
+_hb_ft_get_font_funcs (void)
+{
+  return static_ft_funcs.get_unconst ();
+}
+
+static void
+_hb_ft_font_set_funcs (hb_font_t *font, FT_Face ft_face, bool unref)
+{
   bool symbol = ft_face->charmap && ft_face->charmap->encoding == FT_ENCODING_MS_SYMBOL;
 
   hb_font_set_funcs (font,
-		     funcs,
+		     _hb_ft_get_font_funcs (),
 		     _hb_ft_font_create (ft_face, symbol, unref),
 		     _hb_ft_font_destroy);
 }
@@ -498,7 +548,10 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
   if (error)
+  {
+    free (buffer);
     return nullptr;
+  }
 
   return hb_blob_create ((const char *) buffer, length,
 			 HB_MEMORY_MODE_WRITABLE,
@@ -681,47 +734,47 @@ hb_ft_font_create_referenced (FT_Face ft_face)
   return hb_ft_font_create (ft_face, _hb_ft_face_destroy);
 }
 
+#ifdef HB_USE_ATEXIT
+static void free_static_ft_library (void);
+#endif
 
-/* Thread-safe, lock-free, FT_Library */
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<FT_Library>::value,
+							     hb_ft_library_lazy_loader_t>
+{
+  static inline FT_Library create (void)
+  {
+    FT_Library l;
+    if (FT_Init_FreeType (&l))
+      return nullptr;
 
-static FT_Library ft_library;
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ft_library);
+#endif
+
+    return l;
+  }
+  static inline void destroy (FT_Library l)
+  {
+    FT_Done_FreeType (l);
+  }
+  static inline FT_Library get_null (void)
+  {
+    return nullptr;
+  }
+} static_ft_library;
 
 #ifdef HB_USE_ATEXIT
 static
-void free_ft_library (void)
+void free_static_ft_library (void)
 {
-retry:
-  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
-  if (!hb_atomic_ptr_cmpexch (&ft_library, library, nullptr))
-    goto retry;
-
-  FT_Done_FreeType (library);
+  static_ft_library.free_instance ();
 }
 #endif
 
 static FT_Library
 get_ft_library (void)
 {
-retry:
-  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
-
-  if (unlikely (!library))
-  {
-    /* Not found; allocate one. */
-    if (FT_Init_FreeType (&library))
-      return nullptr;
-
-    if (!hb_atomic_ptr_cmpexch (&ft_library, nullptr, library)) {
-      FT_Done_FreeType (library);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_ft_library); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return library;
+  return static_ft_library.get_unconst ();
 }
 
 static void

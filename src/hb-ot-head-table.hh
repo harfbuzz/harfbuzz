@@ -29,7 +29,7 @@
 #ifndef HB_OT_HEAD_TABLE_HH
 #define HB_OT_HEAD_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 /*
  * head -- Font Header
@@ -141,8 +141,8 @@ struct head
 					 * -1: Only strongly right to left;
 					 * -2: Like -1 but also contains neutrals. */
   public:
-  HBINT16	indexToLocFormat;	/* 0 for short offsets, 1 for long. */
-  HBINT16	glyphDataFormat;	/* 0 for current format. */
+  HBUINT16	indexToLocFormat;	/* 0 for short offsets, 1 for long. */
+  HBUINT16	glyphDataFormat;	/* 0 for current format. */
 
   DEFINE_SIZE_STATIC (54);
 };
