@@ -289,7 +289,7 @@ struct hb_atomic_ptr_t
 
   inline void init (T* v_ = nullptr) { set_relaxed (v_); }
   inline void set_relaxed (T* v_) const { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
-  inline T *get_relaxed (void) const { return hb_atomic_ptr_impl_get_relaxed (&v); }
+  inline T *get_relaxed (void) const { return (T *) hb_atomic_ptr_impl_get_relaxed (&v); }
   inline T *get (void) const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
   inline bool cmpexch (const T *old, T *new_) const{ return hb_atomic_ptr_impl_cmpexch (&v, old, new_); }
 
