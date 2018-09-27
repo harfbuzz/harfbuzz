@@ -572,11 +572,12 @@ struct FDSelect3_4 {
 
   inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
-    for (unsigned int i = 1; i < nRanges; i++)
+    unsigned int i;
+    for (i = 1; i < nRanges; i++)
       if (glyph < ranges[i].first)
-        return (hb_codepoint_t)ranges[i - 1].fd;
+        break;
 
-    return (hb_codepoint_t)ranges[nRanges - 1].fd;
+    return (hb_codepoint_t)ranges[i - 1].fd;
   }
 
   inline GID_TYPE &sentinel (void)  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
