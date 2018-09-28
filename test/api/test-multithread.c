@@ -147,12 +147,13 @@ main (int argc, char **argv)
   hb_face_t *face = hb_face_create (blob, 0);
   font = hb_font_create (face);
 
+  hb_ot_font_set_funcs (font);
+
   ref_buffer = hb_buffer_create ();
   fill_the_buffer (ref_buffer);
 
-  hb_ft_font_set_funcs (font);
   test_body ();
-  hb_ot_font_set_funcs (font);
+  hb_ft_font_set_funcs (font);
   test_body ();
 
   hb_buffer_destroy (ref_buffer);
