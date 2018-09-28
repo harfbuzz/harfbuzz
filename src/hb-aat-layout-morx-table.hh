@@ -629,6 +629,8 @@ struct InsertionSubtable
 	  buffer->skip_glyph ();
 
 	buffer->move_to (end + count);
+
+	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
       }
 
       if (entry->data.currentInsertIndex != 0xFFFF)
