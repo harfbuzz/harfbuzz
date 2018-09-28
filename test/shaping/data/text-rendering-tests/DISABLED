@@ -28,6 +28,10 @@ tests/MORX-25.tests
 tests/MORX-26.tests
 tests/MORX-27.tests
 tests/MORX-28.tests
+tests/MORX-29.tests
+tests/MORX-30.tests
+tests/MORX-31.tests
+tests/MORX-32.tests
 
 # Rounding differences
 tests/SHARAN-1.tests

@@ -81,6 +81,9 @@ if HAVE_FREETYPE
 TEST_PROGS += test-multithread
 test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS) $(FREETYPE_CFLAGS)
 test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS) $(FREETYPE_LIBS)
+# The auto-generated link rule somehow includes CFLAGS as well.  Without
+# it, pthread link fails, because, who knows why, $PTHREAD_LIBS is empty.
+test_multithread_LINK = $(LINK) $(PTHREAD_CFLAGS)
 endif
 endif
 
