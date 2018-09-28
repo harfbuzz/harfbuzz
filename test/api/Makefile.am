@@ -81,7 +81,7 @@ if HAVE_FREETYPE
 TEST_PROGS += test-multithread
 test_multithread_CFLAGS = $(CFLAGS) $(PTHREAD_CFLAGS) $(FREETYPE_CFLAGS)
 test_multithread_LDADD = $(LDADD) $(PTHREAD_LIBS) $(FREETYPE_LIBS)
-test_multithread_LINK = $(LINK)
+test_multithread_LINK = $(LINK) $(test_multithread_LDADD)
 endif
 endif
 
