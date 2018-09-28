@@ -69,13 +69,13 @@ validity_check (hb_buffer_t *buffer) {
     hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (ref_buffer),
 				out, sizeof (out), NULL,
 				font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+				HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES);
     fprintf (stderr, "Actual: %s\n", out);
 
     hb_buffer_serialize_glyphs (ref_buffer, 0, hb_buffer_get_length (ref_buffer),
 				out, sizeof (out), NULL,
 				font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+				HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES);
     fprintf (stderr, "Expected: %s\n", out);
 
     exit (1);
