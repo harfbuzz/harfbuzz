@@ -50,7 +50,7 @@ hb_font_t *font;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void
-fill_the_buffer(hb_buffer_t *buffer)
+fill_the_buffer (hb_buffer_t *buffer)
 {
   hb_buffer_add_utf8 (buffer, text, sizeof (text), 0, sizeof (text));
   hb_buffer_guess_segment_properties (buffer);
@@ -134,6 +134,9 @@ test_body ()
 int
 main (int argc, char **argv)
 {
+  // Dummy call to alleviate _guess_segment_properties thread safety-ness
+  hb_language_get_default ();
+
   hb_blob_t *blob = hb_blob_create_from_file (path);
   hb_face_t *face = hb_face_create (blob, 0);
   font = hb_font_create (face);
