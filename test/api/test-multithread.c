@@ -135,6 +135,7 @@ int
 main (int argc, char **argv)
 {
   // Dummy call to alleviate _guess_segment_properties thread safety-ness
+  // https://github.com/harfbuzz/harfbuzz/issues/1191
   hb_language_get_default ();
 
   hb_blob_t *blob = hb_blob_create_from_file (path);
