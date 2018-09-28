@@ -134,6 +134,11 @@ test_body ()
 int
 main (int argc, char **argv)
 {
+  if (argc > 1)
+    num_threads = atoi (argv[1]);
+  if (argc > 2)
+    num_iters = atoi (argv[2]);
+
   // Dummy call to alleviate _guess_segment_properties thread safety-ness
   // https://github.com/harfbuzz/harfbuzz/issues/1191
   hb_language_get_default ();
