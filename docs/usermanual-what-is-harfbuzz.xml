@@ -1,13 +1,13 @@
 <chapter id="what-is-harfbuzz">
   <title>What is HarfBuzz?</title>
   <para>
-    HarfBuzz is a <emphasis>text shaping engine</emphasis>. If you
+    HarfBuzz is a <emphasis>text-shaping engine</emphasis>. If you
     give HarfBuzz a font and a string containing a sequence of Unicode
     codepoints, HarfBuzz selects and positions the corresponding
     glyphs from the font, applying all of the necessary layout rules
     and font features. HarfBuzz then returns the string to you in the
     form that is correctly arranged for the language and writing
-    system.
+    system. 
   </para>
   <para>
     HarfBuzz can properly shape all of the world's major writing
@@ -21,7 +21,7 @@
       Text shaping is the process of translating a string of character
       codes (such as Unicode codepoints) into a properly arranged
       sequence of glyphs that can be rendered onto a screen or into
-      final output form for a document.
+      final output form for inclusion in a document.
     </para>
     <para>
       The shaping process is dependent on the input string, the active
@@ -66,6 +66,7 @@
       tags are defined by OpenType.
     </para>
   </section>
+  
   <section id="why-do-i-need-a-shaping-engine">
     <title>Why do I need a shaping engine?</title>
     <para>
@@ -212,6 +213,98 @@
       implementor of a text-layout engine.
     </para>
   </section>
+  
+    <section id="what-harfbuzz-doesnt-do">
+    <title>What HarfBuzz doesn't do</title>
+    <para>
+      HarfBuzz will take a Unicode string, shape it, and give you the
+      information required to lay it out correctly on a single
+      horizontal (or vertical) line using the font provided. That is the
+      extent of HarfBuzz's responsibility.
+    </para>
+    <para>
+      It is important to note that if you are implementing a
+      text-layout engine you may have other responsibilities that
+      HarfBuzz will <emphasis>not</emphasis> help you with. For example:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          HarfBuzz won't help you with bidirectionality. If you want to
+          lay out text that includes a mix of Hebrew and English, you
+	  will need to ensure that each buffer provided to HarfBuzz has its
+          characters in the correct layout order. This will be different
+          from the logical order in which the Unicode text is stored. In
+          other words, the user will hit the keys in the following
+          sequence:
+        </para>
+        <programlisting>
+A B C [space] ג ב א [space] D E F
+        </programlisting>
+        <para>
+          but will expect to see in the output:
+        </para>
+        <programlisting>
+ABC אבג DEF
+        </programlisting>
+        <para>
+          This reordering is called <emphasis>bidi processing</emphasis>
+          (&quot;bidi&quot; is short for bidirectional), and there's an
+          algorithm as an annex to the Unicode Standard which tells you how
+          to reorder a string from logical order into presentation order.
+          Before sending your string to HarfBuzz, you may need to apply the
+          bidi algorithm to it. Libraries such as ICU and fribidi can do
+          this for you.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          HarfBuzz won't help you with text that contains different font
+          properties. For instance, if you have the string &quot;a
+          <emphasis>huge</emphasis> breakfast&quot;, and you expect
+          &quot;huge&quot; to be italic, then you will need to send three
+          strings to HarfBuzz: <literal>a</literal>, in your Roman font;
+          <literal>huge</literal> using your italic font; and
+          <literal>breakfast</literal> using your Roman font again.
+	</para>
+	<para>
+          Similarly, if you change the font, font size, script,
+	  language, or direction within your string, then you will
+	  need to shape each run independently and output them
+	  independently. HarfBuzz expects to shape a run of characters
+	  that all share the same properties.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          HarfBuzz won't help you with line breaking, hyphenation, or
+          justification. As mentioned above, HarfBuzz lays out the string
+          along a <emphasis>single line</emphasis> of, notionally,
+          infinite length. If you want to find out where the potential
+          word, sentence and line break points are in your text, you
+          could use the ICU library's break iterator functions.
+        </para>
+        <para>
+          HarfBuzz can tell you how wide a shaped piece of text is, which is
+          useful input to a justification algorithm, but it knows nothing
+          about paragraphs, lines or line lengths. Nor will it adjust the
+          space between words to fit them proportionally into a line. If you
+          want to layout text in paragraphs, you will probably want to send
+          each word of your text to HarfBuzz to determine its shaped width
+          after glyph substitutions, then work out how many words will fit
+          on a line, and then finally output each word of the line separated
+          by a space of the correct size to fully justify the paragraph.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      As a layout-engine implementor, HarfBuzz will help you with the
+      interface between your text and your font, and that's something
+      that you'll need&mdash;what you then do with the glyphs that your font
+      returns is up to you. 
+    </para>
+  </section>
+
   <section id="why-is-it-called-harfbuzz">
     <title>Why is it called HarfBuzz?</title>
     <para>
@@ -220,7 +313,7 @@
       within the source code copyright declarations), but was then
       extracted out to its own project. This project is maintained by
       Behdad Esfahbod, and named HarfBuzz. Originally, it was a shaping
-      engine for OpenType fonts - &quot;HarfBuzz&quot; is the Persian
+      engine for OpenType fonts&mdash;&quot;HarfBuzz&quot; is the Persian
       for &quot;open type&quot;.
     </para>
   </section>
