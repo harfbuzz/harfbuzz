@@ -1,40 +1,98 @@
+64-bit wine is under somewhat active development so a recent installation is
+recommended. Fedora keeps it up-to-date and ships version 3.15 of both
+32-bit and 64-bit as of the time of writing. This also allow `WOW64` i.e.
+runnning both 32-bit and 64-bit window binaries in the same setting.
+
 For the development of HarfBuzz, the Microsoft shaping technology, Uniscribe,
 as a widely used and tested shaper is used as more-or-less OpenType reference
 implemenetation and that specially is important where OpenType specification
 is or wasn't that clear. For having access to Uniscribe on Linux/macOS these
 steps are recommended:
 
-1. Install Wine from your favorite package manager.
+1. Install Wine and mingw32/mingw64 from your package manager. This likely
+   means, at the very least, running this:
 
-2. And `mingw-w64` compiler.
-   With `brew` on macOS, you can have it like `brew install mingw-w64`
+```
+sudo dnf install -y wine.i686 wine.x86_64 mingw32-gcc-c++ mingw64-gcc-c++
+```
 
-3. Download and put [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ)
-   on your `~/.local/i686-w64-mingw32`.
+2. set up autoconf with `NOCONFIGURE=1 ./autogen.sh`
 
-4. Replace all the instances of `/home/behdad/.local/i586-mingw32msvc`
-   and `/home/behdad/.local/i686-w64-mingw32` with `<$HOME>/.local/i686-w64-mingw32`
-   on that folder. (`<$HOME>` replace it with `/home/XXX` or `/Users/XXX` on macOS)
+3. Build the win32 version of harbuzz with:
 
-   Probably you shouldn't replace the ones are inside binaries.
+```
+mkdir win32build
+cd win32build && ../mingw32.sh --with-uniscribe && cd ..
+make -Cwin32build
+```
 
-5. `NOCONFIGURE=1 ./autogen.sh && mkdir winbuild && cd winbuild`
+4. Build the win64 version of harbuzz with:
 
-6. `../mingw32.sh --with-uniscribe && cd ..`
+```
+mkdir win64build
+cd win64build && ../mingw64.sh --with-uniscribe && cd ..
+make -Cwin64build
+```
 
-7. `make -Cwinbuild`
+5. set up a new and clean `WINEPREFIX`, where wine puts all its user-specific files in. It is
+   auto-populated if empty, when running any wine commands. For example, you can try
+   running the command shell `cmd`, and just type `exit` when wine finishes launching:
 
-Now you can use hb-shape using `wine winbuild/util/hb-shape.exe` but if you like to
-to use the original Uniscribe,
+```
+mkdir /tmp/wine-testing
+WINEPREFIX=/tmp/wine-testing wine64 cmd
+```
+Just type `exit` when the cmd `Z:\...someplace...\harfbuzz>` prompt appears.
 
-8. Bring a 32bit version of `usp10.dll` for youself from `C:\Windows\SysWOW64\usp10.dll` of your
-   Windows installation (asuming you have a 64-bit installation, otherwise `C:\Windows\System32\usp10.dll`)
-   that it is not a DirectWrite proxy ([for more info](https://en.wikipedia.org/wiki/Uniscribe)).
-   Rule of thumb, your `usp10.dll` should have a size more than 500kb, otherwise
-   it is designed to work with DirectWrite which Wine can't work with its original one.
+6. Now you can use hb-shape using `WINEPREFIX=/tmp/wine-testing wine win32build/util/hb-shape.exe`
+   or `WINEPREFIX=/tmp/wine-testing wine win64build/util/hb-shape.exe`, but if you like to
+   to use the original Uniscribe,
 
-   Put the dll on the folder you are going to run the next command,
+7. Bring the Microsoft-built versions of `usp10.dll` from your Windows installation.
+   On not-too-old 64-bit MS Windows, these are at `C:\Windows\SysWOW64\usp10.dll`
+   and `C:\Windows\System32\usp10.dll`.
 
-9. `WINEDLLOVERRIDES="usp10=n" wine winbuild/util/hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe`
+   You want to avoid the very latest ones, whch are DirectWrite proxies
+   ([for more info](https://en.wikipedia.org/wiki/Uniscribe)).
+   Rule of thumb, your `usp10.dll` should have a size more than 300kb (useable and interesting versions are 500k to 800k).
+   Those designed to work with DirectWrite are about 80k and does not work with wine at the moment. Avoid those.
+
+   Overwrite the wine-builtin ones in your `WINEPREFIX` with them. Before overwriting, these are about 4k each and shows:
+
+```
+$ file /tmp/wine-testing/drive_c/*/*/usp10.dll
+/tmp/wine-testing/drive_c/windows/system32/usp10.dll: , created: Thu Jan  1 00:01:36 1970
+/tmp/wine-testing/drive_c/windows/syswow64/usp10.dll: , created: Thu Jan  1 00:01:36 1970
+```
+
+   After overwriting, they should say:
+
+```
+$ file /tmp/wine-testing/drive_c/*/*/usp10.dll
+/tmp/wine-testing/drive_c/windows/system32/usp10.dll: PE32+ executable (DLL) (GUI) x86-64, for MS Windows
+/tmp/wine-testing/drive_c/windows/syswow64/usp10.dll: PE32 executable (DLL) (GUI) Intel 80386, for MS Windows
+```
+
+8. Now you can use Uniscribe with either
+
+```
+WINEPREFIX=/tmp/wine-testing WINEDLLOVERRIDES="usp10=n" wine win32build/util/hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe
+```
+
+or
+
+```
+WINEPREFIX=/tmp/wine-testing WINEDLLOVERRIDES="usp10=n" wine win64build/util/hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe
+```
 
 (`0061,0062,0063` means `abc`, use test/shaping/hb-unicode-decode to generate ones you need)
+
+If you are mistakenly using DirectWrite proxies, you will likely see something similar to below:
+
+```
+000d:err:module:find_forwarded_export function not found for forward 'GDI32.ScriptBreak' used by L"C:\\windows\\system32\\usp10.dll". If you are using builtin L"usp10.dll", try using the native one instead.
+000d:err:module:find_forwarded_export function not found for forward 'GDI32.ScriptStringAnalyse' used by L"C:\\windows\\system32\\usp10.dll". If you are using builtin L"usp10.dll", try using the native one instead.
+000d:err:module:find_forwarded_export function not found for forward 'GDI32.ScriptStringCPtoX' used by L"C:\\windows\\system32\\usp10.dll". If you are using builtin L"usp10.dll", try using the native one instead.
+000d:err:module:find_forwarded_export function not found for forward 'GDI32.ScriptStringFree' used by L"C:\\windows\\system32\\usp10.dll". If you are using builtin L"usp10.dll", try using the native one instead.
+...
+```
