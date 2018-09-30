@@ -9,7 +9,8 @@ jobs:
       - checkout
       - run: brew update-reset
       - run: brew install wget pkg-config libtool ragel freetype glib cairo
-      - run: wget https://packages.macports.org/llvm-gcc42/llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2
+      - run: wget https:/
+      /packages.macports.org/llvm-gcc42/llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2
       - run: CC=$PWD/opt/local/bin/llvm-gcc-4.2 CXX=$PWD/opt/local/bin/llvm-g++-4.2 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
       # Ignoring assembler complains, https://stackoverflow.com/a/39867021
       - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
@@ -123,7 +124,7 @@ jobs:
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake automake1.11 gtk-doc-tools gettext make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.0.tar.bz2 && tar xf glib-2.28.0.tar.bz2 && cd glib-2.28.0 && CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh || true && ./configure && make -j32 --ignore-errors && cd ..
+      - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.0.tar.bz2 && tar xf glib-2.28.0.tar.bz2 && cd glib-2.28.0 && ./autogen.sh || true && CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ ./configure && make -j32 && cd ..
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh && ./configure && make -j32 && cd ..
       - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
