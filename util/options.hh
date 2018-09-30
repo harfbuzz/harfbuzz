@@ -76,7 +76,7 @@ struct option_parser_t
 
     add_main_options ();
   }
-  virtual ~option_parser_t (void)
+  ~option_parser_t (void)
   {
     g_option_context_free (context);
     g_ptr_array_foreach (to_free, (GFunc) g_free, nullptr);
