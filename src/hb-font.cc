@@ -141,6 +141,12 @@ hb_font_get_glyph_h_advance_default (hb_font_t *font,
 				     hb_codepoint_t glyph,
 				     void *user_data HB_UNUSED)
 {
+  if (font->has_glyph_h_advances_func ())
+  {
+    hb_position_t ret;
+    font->get_glyph_h_advances (1, &glyph, 0, &ret, 0);
+    return ret;
+  }
   return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph));
 }
 
@@ -159,6 +165,12 @@ hb_font_get_glyph_v_advance_default (hb_font_t *font,
 				     hb_codepoint_t glyph,
 				     void *user_data HB_UNUSED)
 {
+  if (font->has_glyph_v_advances_func ())
+  {
+    hb_position_t ret;
+    font->get_glyph_v_advances (1, &glyph, 0, &ret, 0);
+    return ret;
+  }
   return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph));
 }
 
