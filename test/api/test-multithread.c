@@ -101,7 +101,7 @@ thread_func (void *data)
   return 0;
 }
 
-void
+static void
 test_body (void)
 {
   int i;

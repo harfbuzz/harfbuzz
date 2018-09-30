@@ -58,7 +58,7 @@
 #endif
 
 int
-main (int argc, char **argv)
+main (void)
 {
   return !*hb_shape_list_shapers ();
 }
