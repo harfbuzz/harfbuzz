@@ -67,7 +67,8 @@ struct option_group_t
 
 struct option_parser_t
 {
-  option_parser_t (const char *usage) {
+  option_parser_t (const char *usage)
+  {
     memset (this, 0, sizeof (*this));
     usage_str = usage;
     context = g_option_context_new (usage);
@@ -75,7 +76,8 @@ struct option_parser_t
 
     add_main_options ();
   }
-  ~option_parser_t (void) {
+  virtual ~option_parser_t (void)
+  {
     g_option_context_free (context);
     g_ptr_array_foreach (to_free, (GFunc) g_free, nullptr);
     g_ptr_array_free (to_free, TRUE);
@@ -115,7 +117,8 @@ struct option_parser_t
 
 struct view_options_t : option_group_t
 {
-  view_options_t (option_parser_t *parser) {
+  view_options_t (option_parser_t *parser)
+  {
     annotate = false;
     fore = nullptr;
     back = nullptr;
@@ -124,7 +127,7 @@ struct view_options_t : option_group_t
 
     add_options (parser);
   }
-  ~view_options_t (void)
+  virtual ~view_options_t (void)
   {
     g_free (fore);
     g_free (back);
@@ -159,7 +162,7 @@ struct shape_options_t : option_group_t
 
     add_options (parser);
   }
-  ~shape_options_t (void)
+  virtual ~shape_options_t (void)
   {
     g_free (direction);
     g_free (language);
@@ -463,7 +466,8 @@ struct font_options_t : option_group_t
 
     add_options (parser);
   }
-  ~font_options_t (void) {
+  virtual ~font_options_t (void)
+  {
     g_free (font_file);
     free (variations);
     g_free (font_funcs);
@@ -496,7 +500,8 @@ struct font_options_t : option_group_t
 
 struct text_options_t : option_group_t
 {
-  text_options_t (option_parser_t *parser) {
+  text_options_t (option_parser_t *parser)
+  {
     text_before = nullptr;
     text_after = nullptr;
 
@@ -510,7 +515,8 @@ struct text_options_t : option_group_t
 
     add_options (parser);
   }
-  ~text_options_t (void) {
+  virtual ~text_options_t (void)
+  {
     g_free (text_before);
     g_free (text_after);
     g_free (text);
@@ -548,7 +554,8 @@ struct text_options_t : option_group_t
 struct output_options_t : option_group_t
 {
   output_options_t (option_parser_t *parser,
-		    const char **supported_formats_ = nullptr) {
+		    const char **supported_formats_ = nullptr)
+  {
     output_file = nullptr;
     output_format = nullptr;
     supported_formats = supported_formats_;
@@ -558,7 +565,8 @@ struct output_options_t : option_group_t
 
     add_options (parser);
   }
-  ~output_options_t (void) {
+  virtual ~output_options_t (void)
+  {
     g_free (output_file);
     g_free (output_format);
     if (fp)
