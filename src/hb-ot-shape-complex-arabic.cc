@@ -399,6 +399,9 @@ flip_joiners (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	      hb_font_t *font HB_UNUSED,
 	      hb_buffer_t *buffer)
 {
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_JOINERS))
+    return;
+
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
