@@ -455,7 +455,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
   hb_glyph_position_t *pos = buffer->pos;
   for (unsigned int idx = 0; idx < count;)
   {
-    if (!(buffer->cur().mask & kern_mask))
+    if (!(info[idx].mask & kern_mask))
     {
       idx++;
       continue;
