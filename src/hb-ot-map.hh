@@ -174,10 +174,12 @@ enum hb_ot_map_feature_flags_t
   F_MANUAL_ZWNJ		= 0x0004u, /* Don't skip over ZWNJ when matching **context**. */
   F_MANUAL_ZWJ		= 0x0008u, /* Don't skip over ZWJ when matching **input**. */
   F_MANUAL_JOINERS	= F_MANUAL_ZWNJ | F_MANUAL_ZWJ,
+  F_GLOBAL_MANUAL_JOINERS= F_GLOBAL | F_MANUAL_JOINERS,
   F_GLOBAL_SEARCH	= 0x0010u, /* If feature not found in LangSys, look for it in global feature list and pick one. */
   F_RANDOM		= 0x0020u  /* Randomly select a glyph from an AlternateSubstFormat1 subtable. */
 };
 HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
+
 
 struct hb_ot_map_feature_t
 {
