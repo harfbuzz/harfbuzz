@@ -33,8 +33,8 @@
 #include <hb-ft.h>
 #include <hb-ot.h>
 
-const char *text = "طرح‌نَما";
-const char *path =
+static const char *text = "طرح‌نَما";
+static const char *path =
 #if defined(__linux__)
 		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
 #elif defined(_WIN32) || defined(_WIN64)
@@ -43,11 +43,11 @@ const char *path =
 		"/Library/Fonts/Tahoma.ttf";
 #endif
 
-int num_threads = 30;
-int num_iters = 200;
+static int num_threads = 30;
+static int num_iters = 200;
 
-hb_font_t *font;
-hb_buffer_t *ref_buffer;
+static hb_font_t *font;
+static hb_buffer_t *ref_buffer;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -102,7 +102,7 @@ thread_func (void *data)
 }
 
 void
-test_body ()
+test_body (void)
 {
   int i;
   int num_threads = 30;
