@@ -25,11 +25,6 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-/* http://www.oracle.com/technetwork/articles/servers-storage-dev/standardheaderfiles-453865.html */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-
 #include "hb.hh"
 #include "hb-blob.hh"
 
