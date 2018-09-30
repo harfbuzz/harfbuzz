@@ -62,7 +62,9 @@ HB_BEGIN_DECLS
 typedef struct hb_glyph_info_t
 {
   hb_codepoint_t codepoint;
+  /*< private >*/
   hb_mask_t      mask;
+  /*< public >*/
   uint32_t       cluster;
 
   /*< private >*/
