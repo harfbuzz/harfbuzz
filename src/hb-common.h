@@ -340,13 +340,15 @@ typedef enum
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
   /* Dummy values to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior.  Include both a signed and unsigned max,
-   * since technically enums are int, and indeed, hb_script_t ends up being signed.
+   * without risking undefined behavior.  We have two, for historical reasons.
+   * HB_TAG_MAX used to be unsigned, but that was invalid Ansi C, so was changed
+   * to _HB_SCRIPT_MAX_VALUE to be equal to HB_TAG_MAX_SIGNED as well.
+   *
    * See this thread for technicalities:
    *
    *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
-  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
+  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX_SIGNED, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/
 
 } hb_script_t;
