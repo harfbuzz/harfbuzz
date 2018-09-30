@@ -56,6 +56,8 @@ void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GN
 
 struct option_group_t
 {
+  virtual ~option_group_t () {}
+
   virtual void add_options (struct option_parser_t *parser) = 0;
 
   virtual void pre_parse (GError **error G_GNUC_UNUSED) {};
