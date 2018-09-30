@@ -33,7 +33,7 @@
 #include <hb-ot.h>
 #endif
 
-struct supported_font_funcs_t {
+static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
