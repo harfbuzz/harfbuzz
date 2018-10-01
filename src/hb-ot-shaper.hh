@@ -230,9 +230,6 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TAMIL:
     case HB_SCRIPT_TELUGU:
 
-    /* Unicode-3.0 additions */
-    case HB_SCRIPT_SINHALA:
-
       /* If the designer designed the font for the 'DFLT' script,
        * (or we ended up arbitrarily pick 'latn'), use the default shaper.
        * Otherwise, use the specific shaper.
@@ -277,7 +274,7 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
 
     /* Unicode-3.0 additions */
     case HB_SCRIPT_MONGOLIAN:
-    //case HB_SCRIPT_SINHALA:
+    case HB_SCRIPT_SINHALA:
 
     /* Unicode-3.2 additions */
     case HB_SCRIPT_BUHID:
