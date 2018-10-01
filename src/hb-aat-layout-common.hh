@@ -585,6 +585,8 @@ struct StateTableDriver
       if (unlikely (!c->transition (this, entry)))
         break;
 
+      if (unlikely (!buffer->successful)) return;
+
       last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
 
       state = entry->newState;
