@@ -26,6 +26,8 @@ TESTS = \
 	tests/indic-script-extensions.tests \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
+	tests/khmer-mark-order.tests \
+	tests/khmer-misc.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
 	tests/mark-attachment.tests \
