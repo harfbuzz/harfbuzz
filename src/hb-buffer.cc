@@ -1499,6 +1499,8 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
  * it will be set to the process's default language as returned by
  * hb_language_get_default().  This may change in the future by
  * taking buffer script into consideration when choosing a language.
+ * Note that hb_language_get_default() is NOT threadsafe the first time
+ * it is called.  See documentation for that function for details.
  *
  * Since: 0.9.7
  **/

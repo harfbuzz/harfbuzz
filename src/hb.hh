@@ -35,6 +35,10 @@
 #include "config.h"
 #endif
 
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "hb.h"
 #define HB_H_IN
 #ifdef HAVE_OT

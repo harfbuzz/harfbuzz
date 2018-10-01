@@ -592,7 +592,6 @@ struct InsertionSubtable
 			     hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
-	mark_set (false),
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
@@ -608,7 +607,7 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (entry->data.markedInsertIndex != 0xFFFF && mark_set)
+      if (entry->data.markedInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry->data.markedInsertIndex;
@@ -629,6 +628,8 @@ struct InsertionSubtable
 	  buffer->skip_glyph ();
 
 	buffer->move_to (end + count);
+
+	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
       }
 
       if (entry->data.currentInsertIndex != 0xFFFF)
@@ -667,10 +668,7 @@ struct InsertionSubtable
       }
 
       if (flags & SetMark)
-      {
-	mark_set = true;
 	mark = buffer->out_len;
-      }
 
       return true;
     }
@@ -679,7 +677,6 @@ struct InsertionSubtable
     bool ret;
     private:
     hb_aat_apply_context_t *c;
-    bool mark_set;
     unsigned int mark;
     const UnsizedArrayOf<GlyphID> &insertionAction;
   };
@@ -889,6 +886,8 @@ struct Chain
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
+      if (unlikely (!c->buffer->successful)) return;
+
     skip:
       subtable = &StructAfter<ChainSubtable> (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
@@ -945,12 +944,14 @@ struct morx
 
   inline void apply (hb_aat_apply_context_t *c) const
   {
+    if (unlikely (!c->buffer->successful)) return;
     c->set_lookup_index (0);
     const Chain *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       chain->apply (c);
+      if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain> (*chain);
     }
   }

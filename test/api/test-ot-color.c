@@ -99,6 +99,7 @@ static hb_face_t *cpal_v0 = NULL;
 static hb_face_t *cpal_v1 = NULL;
 
 
+#if 0
 #define assert_color_rgba(colors, i, r, g, b, a) G_STMT_START {	\
   const hb_ot_color_t *_colors = (colors); \
   const size_t _i = (i); \
@@ -122,7 +123,6 @@ static hb_face_t *cpal_v1 = NULL;
 } G_STMT_END
 
 
-#if 0
 static void
 test_hb_ot_color_get_palette_count (void)
 {

@@ -645,18 +645,18 @@ typedef struct {
 } data_fixture_t;
 
 static void
-data_fixture_init (data_fixture_t *f, gconstpointer user_data)
+data_fixture_init (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
 {
   f->data[0].value = MAGIC0;
   f->data[1].value = MAGIC1;
 }
 static void
-data_fixture_finish (data_fixture_t *f, gconstpointer user_data)
+data_fixture_finish (data_fixture_t *f HB_UNUSED, gconstpointer user_data HB_UNUSED)
 {
 }
 
 static void
-test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data)
+test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -678,7 +678,7 @@ test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data)
 }
 
 static void
-test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data)
+test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -697,7 +697,7 @@ test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data)
 }
 
 static void
-test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data)
+test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
 {
   hb_unicode_funcs_t *uf, *aa;
 

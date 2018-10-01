@@ -96,33 +96,33 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
 
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
    * there is a use of it, it's typically at the beginning. */
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
 
 
   map->add_gsub_pause (initial_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
   {
-    map->add_feature (basic_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
+    map->add_feature (basic_features[i], F_GLOBAL | F_MANUAL_ZWJ);
     map->add_gsub_pause (nullptr);
   }
 
   map->add_gsub_pause (final_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->add_feature (other_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
+    map->add_feature (other_features[i], F_GLOBAL | F_MANUAL_ZWJ);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
-    map->add_feature (positioning_features[i], 1, F_GLOBAL);
+    map->enable_feature (positioning_features[i]);
 }
 
 static void
 override_features_myanmar (hb_ot_shape_planner_t *plan)
 {
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
+  plan->map.disable_feature (HB_TAG('l','i','g','a'));
 }
 
 

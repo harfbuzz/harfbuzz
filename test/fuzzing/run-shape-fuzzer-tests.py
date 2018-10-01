@@ -4,6 +4,8 @@ from __future__ import print_function, division, absolute_import
 
 import sys, os, subprocess
 
+if os.environ.get ("SKIPFUZZERTESTS", "") != "": sys.exit (0)
+
 srcdir = os.environ.get ("srcdir", ".")
 EXEEXT = os.environ.get ("EXEEXT", "")
 top_builddir = os.environ.get ("top_builddir", ".")

@@ -33,7 +33,7 @@
 #include <hb-ot.h>
 #endif
 
-struct supported_font_funcs_t {
+static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
@@ -172,9 +172,9 @@ parse_margin (const char *name G_GNUC_UNUSED,
   view_options_t *view_opts = (view_options_t *) data;
   view_options_t::margin_t &m = view_opts->margin;
   switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &m.t, &m.r, &m.b, &m.l)) {
-    case 1: m.r = m.t;
-    case 2: m.b = m.t;
-    case 3: m.l = m.r;
+    case 1: m.r = m.t; HB_FALLTHROUGH;
+    case 2: m.b = m.t; HB_FALLTHROUGH;
+    case 3: m.l = m.r; HB_FALLTHROUGH;
     case 4: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -489,7 +489,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     return true;
   }
   switch (sscanf (arg, "%lf%*[ ,]%lf", &font_opts->font_size_x, &font_opts->font_size_y)) {
-    case 1: font_opts->font_size_y = font_opts->font_size_x;
+    case 1: font_opts->font_size_y = font_opts->font_size_x; HB_FALLTHROUGH;
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -507,7 +507,7 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
 {
   font_options_t *font_opts = (font_options_t *) data;
   switch (sscanf (arg, "%d%*[ ,]%d", &font_opts->x_ppem, &font_opts->y_ppem)) {
-    case 1: font_opts->y_ppem = font_opts->x_ppem;
+    case 1: font_opts->y_ppem = font_opts->x_ppem; HB_FALLTHROUGH;
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,

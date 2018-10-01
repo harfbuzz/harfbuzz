@@ -32,10 +32,10 @@ jobs:
       - image: ubuntu:17.10
     steps:
       - checkout
-      - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
       - run: ./autogen.sh
-      - run: make
+      - run: make -j32
       - run: make distcheck || .ci/fail.sh
       - run: rm -rf harfbuzz-*
       - run: make distdir && cd harfbuzz-* && cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
@@ -48,7 +48,7 @@ jobs:
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
       # C??FLAGS are not needed for a regular build
       - run: CFLAGS="-O3" CXXFLAGS="-O3 -DHB_NO_MMAP" ./autogen.sh
-      - run: make
+      - run: make -j32
       - run: make check || .ci/fail.sh
 
   archlinux-debug-O0-py3:
@@ -60,7 +60,7 @@ jobs:
       - run: pip install fonttools
       # C??FLAGS are not needed for a regular build
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: make
+      - run: make -j32
       - run: make check || .ci/fail.sh
 
   clang-O3-O0:
@@ -69,63 +69,98 @@ jobs:
     steps:
       - checkout
       - run: apt update || true
-      - run: apt install -y ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j4 && cd ..
-      - run: CFLAGS="-O3" CXXFLAGS="-O3" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
+      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j32 && cd ..
+      - run: CFLAGS="-O3" CXXFLAGS="-O3" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
-      - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
+      - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
+
+  clang-everything:
+    docker:
+      - image: ubuntu:18.10
+    steps:
+      - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: apt update || true
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: pip install fonttools
+      - run: CFLAGS="-Weverything -Werror -fPIC -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-padded -Wno-cast-qual -Wno-sign-conversion -Wno-conversion -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-shadow -Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-missing-variable-declarations -Wno-unused-macros -Wno-unreachable-code-return" CXXFLAGS="-Weverything -Werror -fPIC -Wno-undef -Wno-deprecated-declarations -Wno-weak-vtables -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-conversion -Wno-sign-conversion -Wno-c++98-compat -Wno-extra-semi -Wno-c++98-compat-pedantic -Wno-padded -Wno-shift-sign-overflow -Wno-missing-field-initializers -Wno-double-promotion -Wno-reserved-id-macro -Wno-cast-qual -Wno-unused-parameter -Wno-comma -Wno-shadow -Wno-used-but-marked-unused -Wno-format-pedantic -Wno-zero-as-null-pointer-constant -Wno-disabled-macro-expansion -Wno-covered-switch-default -Wno-conditional-uninitialized -Wno-unreachable-code -Wno-unused-macros -Wno-float-equal -Wno-missing-prototypes" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
+      - run: make check || .ci/fail.sh
 
   clang-asan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
-      - run: make check || .ci/fail.sh
+      - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-msan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake automake1.11 gtk-doc-tools gettext make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
-      - run: make check || .ci/fail.sh
+      - run: update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.lld" 10
+      - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.0.tar.bz2 && tar xf glib-2.28.0.tar.bz2 && cd glib-2.28.0 && ./autogen.sh || true && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
+      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
+      - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --without-icu
+      - run: make -j32
+      - run: MSAN_OPTIONS=exitcode=42 SKIPCHECKSYMBOLS=1 SKIPFUZZERTESTS=1 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
-      - run: make check || .ci/fail.sh
+      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-ubsan:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:18.10
     steps:
       - checkout
+      - run: apt update || true; apt install -y wget gnupg
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang-6.0 binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined" CC=clang-6.0 CXX=clang++-6.0 ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make
-      - run: make check || .ci/fail.sh
+      - run: CPPFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32
+      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
   fedora-outoftreebuild:
     docker:
@@ -156,7 +191,7 @@ jobs:
       - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
       - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
       - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
-      - run: make -Cbuild
+      - run: make -Cbuild -j32
       - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
       - run: make -Cbuild install
 
@@ -167,7 +202,7 @@ jobs:
       - checkout
       - run: apt update && apt install -y ragel pkg-config libtool autoconf
       - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
-      - run: make
+      - run: make -j32
 
   crosscompile-notest-freebsd9:
     docker:
@@ -176,7 +211,7 @@ jobs:
       - checkout
       - run: apt update && apt install -y pkg-config ragel
       - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9
-      - run: make
+      - run: make -j32
 
   crosscompile-notest-psvita:
     docker:
@@ -186,7 +221,7 @@ jobs:
       - run: apt update && apt install ragel
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
-      - run: make
+      - run: make -j32
 
   crosscompile-cmake-notest-android-arm:
     docker:
@@ -248,10 +283,11 @@ workflows:
       - alpine-O3-NOMMAP
       - archlinux-debug-O0-py3
       - clang-O3-O0
+      - clang-everything
       - clang-asan
-      #- clang-msan
+      - clang-msan
       - clang-tsan
-      #- clang-ubsan
+      - clang-ubsan
       - fedora-outoftreebuild
 
       # cmake based builds

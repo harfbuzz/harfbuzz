@@ -308,6 +308,8 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {
   if (unlikely (hb_object_is_inert (ufuncs)))
     return;
+  if (ufuncs->immutable)
+    return;
 
   ufuncs->immutable = true;
 }

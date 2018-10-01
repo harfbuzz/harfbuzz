@@ -86,8 +86,8 @@ typedef union _hb_var_int_t {
 
 typedef uint32_t hb_tag_t;
 
-#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint8_t)(c1))<<24)|(((uint8_t)(c2))<<16)|(((uint8_t)(c3))<<8)|((uint8_t)(c4))))
-#define HB_UNTAG(tag)   ((uint8_t)((tag)>>24)), ((uint8_t)((tag)>>16)), ((uint8_t)((tag)>>8)), ((uint8_t)(tag))
+#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
+#define HB_UNTAG(tag)   (((tag)>>24)&0xFF), (((tag)>>16)&0xFF), (((tag)>>8)&0xFF), ((tag)&0xFF)
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
@@ -340,13 +340,15 @@ typedef enum
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
   /* Dummy values to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior.  Include both a signed and unsigned max,
-   * since technically enums are int, and indeed, hb_script_t ends up being signed.
+   * without risking undefined behavior.  We have two, for historical reasons.
+   * HB_TAG_MAX used to be unsigned, but that was invalid Ansi C, so was changed
+   * to _HB_SCRIPT_MAX_VALUE to be equal to HB_TAG_MAX_SIGNED as well.
+   *
    * See this thread for technicalities:
    *
    *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
-  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
+  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX_SIGNED, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/
 
 } hb_script_t;

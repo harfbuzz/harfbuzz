@@ -444,7 +444,8 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
   if (!plan->has_kern) return;
 
   OT::hb_ot_apply_context_t c (1, font, buffer);
-  c.set_lookup_mask (plan->kern_mask);
+  hb_mask_t kern_mask = plan->kern_mask;
+  c.set_lookup_mask (kern_mask);
   c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
   OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
   skippy_iter.init (&c);
@@ -454,6 +455,12 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
   hb_glyph_position_t *pos = buffer->pos;
   for (unsigned int idx = 0; idx < count;)
   {
+    if (!(info[idx].mask & kern_mask))
+    {
+      idx++;
+      continue;
+    }
+
     skippy_iter.reset (idx, 1);
     if (!skippy_iter.next ())
     {

@@ -74,8 +74,9 @@ hb_ot_map_builder_t::~hb_ot_map_builder_t (void)
     stages[table_index].fini ();
 }
 
-void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
-				       hb_ot_map_feature_flags_t flags)
+void hb_ot_map_builder_t::add_feature (hb_tag_t tag,
+				       hb_ot_map_feature_flags_t flags,
+				       unsigned int value)
 {
   feature_info_t *info = feature_infos.push();
   if (unlikely (!tag)) return;

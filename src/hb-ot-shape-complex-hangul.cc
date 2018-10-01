@@ -56,7 +56,7 @@ collect_features_hangul (hb_ot_shape_planner_t *plan)
   hb_ot_map_builder_t *map = &plan->map;
 
   for (unsigned int i = FIRST_HANGUL_FEATURE; i < HANGUL_FEATURE_COUNT; i++)
-    map->add_feature (hangul_features[i], 1, F_NONE);
+    map->add_feature (hangul_features[i]);
 }
 
 static void
@@ -65,7 +65,7 @@ override_features_hangul (hb_ot_shape_planner_t *plan)
   /* Uniscribe does not apply 'calt' for Hangul, and certain fonts
    * (Noto Sans CJK, Source Sans Han, etc) apply all of jamo lookups
    * in calt, which is not desirable. */
-  plan->map.add_feature (HB_TAG('c','a','l','t'), 0, F_GLOBAL);
+  plan->map.disable_feature (HB_TAG('c','a','l','t'));
 }
 
 struct hangul_shape_plan_t

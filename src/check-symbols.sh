@@ -3,6 +3,8 @@
 LC_ALL=C
 export LC_ALL
 
+test -z "$SKIPCHECKSYMBOLS" || exit 77
+
 test -z "$srcdir" && srcdir=.
 test -z "$libs" && libs=.libs
 stat=0
@@ -26,7 +28,7 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 		symprefix=
 		if test $suffix = dylib; then symprefix=_; fi
 
-		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTV] .' | grep -v " $symprefix\\($IGNORED_SYMBOLS\\>\\)" | cut -d' ' -f3 | c++filt`"
+		EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRST] .' | grep -v " $symprefix\\($IGNORED_SYMBOLS\\>\\)" | cut -d' ' -f3 | c++filt`"
 
 		prefix=$symprefix`basename "$so" | sed 's/libharfbuzz/hb/; s/-/_/g; s/[.].*//'`
 
