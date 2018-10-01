@@ -3,8 +3,6 @@
 LC_ALL=C
 export LC_ALL
 
-test -z "$SKIPCHECKSYMBOLS" || exit 77
-
 test -z "$srcdir" && srcdir=.
 test -z "$libs" && libs=.libs
 stat=0

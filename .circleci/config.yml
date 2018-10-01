@@ -91,9 +91,9 @@ jobs:
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CFLAGS="-Weverything -Werror -fPIC -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-padded -Wno-cast-qual -Wno-sign-conversion -Wno-conversion -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-shadow -Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-missing-variable-declarations -Wno-unused-macros -Wno-unreachable-code-return" CXXFLAGS="-Weverything -Werror -fPIC -Wno-undef -Wno-deprecated-declarations -Wno-weak-vtables -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-conversion -Wno-sign-conversion -Wno-c++98-compat -Wno-extra-semi -Wno-c++98-compat-pedantic -Wno-padded -Wno-shift-sign-overflow -Wno-missing-field-initializers -Wno-double-promotion -Wno-reserved-id-macro -Wno-cast-qual -Wno-unused-parameter -Wno-comma -Wno-shadow -Wno-used-but-marked-unused -Wno-format-pedantic -Wno-zero-as-null-pointer-constant -Wno-disabled-macro-expansion -Wno-covered-switch-default -Wno-conditional-uninitialized -Wno-unreachable-code -Wno-unused-macros -Wno-float-equal -Wno-missing-prototypes" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
-      - run: make -j32
-      - run: make check || .ci/fail.sh
+      - run: CFLAGS="-Weverything -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-padded -Wno-cast-qual -Wno-sign-conversion -Wno-conversion -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-shadow -Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-missing-variable-declarations -Wno-unused-macros -Wno-unreachable-code-return" CXXFLAGS="-Weverything -Wno-undef -Wno-deprecated-declarations -Wno-weak-vtables -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-conversion -Wno-sign-conversion -Wno-c++98-compat -Wno-extra-semi -Wno-c++98-compat-pedantic -Wno-padded -Wno-shift-sign-overflow -Wno-missing-field-initializers -Wno-double-promotion -Wno-reserved-id-macro -Wno-cast-qual -Wno-unused-parameter -Wno-comma -Wno-shadow -Wno-used-but-marked-unused -Wno-format-pedantic -Wno-zero-as-null-pointer-constant -Wno-disabled-macro-expansion -Wno-covered-switch-default -Wno-conditional-uninitialized -Wno-unreachable-code -Wno-unused-macros -Wno-float-equal -Wno-missing-prototypes" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: make -j32 CPPFLAGS="-Werror"
+      - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
 
   clang-asan:
     docker:
@@ -121,14 +121,13 @@ jobs:
       - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
       - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
-      - run: apt install -y clang lld binutils libtool autoconf automake automake1.11 gtk-doc-tools gettext make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y clang lld binutils libtool autoconf automake gtk-doc-tools gettext make pkg-config ragel libcairo2-dev libicu-dev libmount-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
       - run: update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.lld" 10
-      - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.0.tar.bz2 && tar xf glib-2.28.0.tar.bz2 && cd glib-2.28.0 && ./autogen.sh || true && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
+      - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.58/glib-2.58.1.tar.xz && tar xf glib-2.58.1.tar.xz && cd glib-2.58.1 && ./autogen.sh --with-pcre CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --without-icu
-      - run: make -j32
-      - run: MSAN_OPTIONS=exitcode=42 SKIPCHECKSYMBOLS=1 SKIPFUZZERTESTS=1 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: make -j32 && MSAN_OPTIONS=exitcode=42 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
