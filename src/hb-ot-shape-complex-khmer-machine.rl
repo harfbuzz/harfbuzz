@@ -40,28 +40,34 @@
 # Same order as enum khmer_category_t.  Not sure how to avoid duplication.
 C    = 1;
 V    = 2;
-N    = 3;
 ZWNJ = 5;
 ZWJ  = 6;
-M    = 7;
-SM   = 8;
 PLACEHOLDER = 11;
 DOTTEDCIRCLE = 12;
-RS    = 13;
-Coeng = 14;
-Ra    = 16;
+Coeng= 14;
+Ra   = 16;
+Robatic = 20;
+Xgroup  = 21;
+Ygroup  = 22;
+VAbv = 26;
+VBlw = 27;
+VPre = 28;
+VPst = 29;
 
-c = (C | Ra | V);		# is_consonant
-n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
-z = ZWJ|ZWNJ;			# is_joiner
+c = (C | Ra | V);
+cn = c.((ZWJ|ZWNJ)?.Robatic)?;
+joiner = (ZWJ | ZWNJ);
+xgroup = (joiner*.Xgroup)*;
+ygroup = Ygroup*;
 
-cn = c.n?;
-matra_group = z?.M.N?;
-syllable_tail = (SM.SM?)?;
+# This grammar was experimentally extracted from what Uniscribe allows.
+
+matra_group = VPre? xgroup VBlw? xgroup (joiner?.VAbv)? xgroup VPst?;
+syllable_tail = xgroup matra_group xgroup (Coeng.c)? ygroup;
 
 
-broken_cluster =	n? (Coeng.cn)* matra_group* (Coeng.cn)? syllable_tail;
-consonant_syllable =	(c|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
+broken_cluster =	(Coeng.cn)* syllable_tail;
+consonant_syllable =	(cn|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
 other =			any;
 
 main := |*
