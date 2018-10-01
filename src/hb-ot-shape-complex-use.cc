@@ -132,7 +132,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->enable_feature (HB_TAG('l','o','c','l'));
   map->enable_feature (HB_TAG('c','c','m','p'));
   map->enable_feature (HB_TAG('n','u','k','t'));
-  map->enable_feature (HB_TAG('a','k','h','n'));
+  map->add_feature (HB_TAG('a','k','h','n'), F_GLOBAL | F_MANUAL_ZWJ);
 
   /* "Reordering group" */
   map->add_gsub_pause (clear_substitution_flags);
