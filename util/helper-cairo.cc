@@ -64,11 +64,13 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 
 static FT_Library ft_library;
 
+#ifdef HAVE_ATEXIT
 static inline
 void free_ft_library (void)
 {
   FT_Done_FreeType (ft_library);
 }
+#endif
 
 cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts)
