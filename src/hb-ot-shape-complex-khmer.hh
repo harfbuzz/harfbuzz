@@ -59,18 +59,6 @@ matra_position_khmer (khmer_position_t side)
   };
 }
 
-static inline bool
-is_consonant_or_vowel (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, CONSONANT_FLAGS | FLAG (OT_V));
-}
-
-static inline bool
-is_coeng (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, FLAG (OT_Coeng));
-}
-
 static inline void
 set_khmer_properties (hb_glyph_info_t &info)
 {
