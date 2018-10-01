@@ -4,6 +4,10 @@ from __future__ import print_function, division, absolute_import
 
 import sys, os, re, difflib, unicodedata, errno, cgi
 from itertools import *
+try:
+	import unicodedata2 as unicodedata
+except Exception:
+	pass
 
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
