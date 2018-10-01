@@ -37,7 +37,7 @@ struct hb_cache_t
 {
   static_assert ((key_bits >= cache_bits), "");
   static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (hb_atomic_int_t)), "");
-  static_assert (sizeof (hb_atomic_int_t) == sizeof (unsigned int));
+  static_assert (sizeof (hb_atomic_int_t) == sizeof (unsigned int), "");
 
   inline void init (void) { clear (); }
   inline void fini (void) {}
