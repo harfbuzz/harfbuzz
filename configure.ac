@@ -208,10 +208,12 @@ dnl ===========================================================================
 # Gobject-Introspection
 have_introspection=false
 m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
-	if $have_gobject; then
-		GOBJECT_INTROSPECTION_CHECK([1.34.0])
-		if test "x$found_introspection" = xyes; then
+	GOBJECT_INTROSPECTION_CHECK([1.34.0])
+	if test "x$found_introspection" = xyes; then
+		if test $have_gobject; then
 			have_introspection=true
+		else
+			AC_MSG_ERROR([Gobject-Introspection requires Gobject.])
 		fi
 	else
 		AM_CONDITIONAL([HAVE_INTROSPECTION], false)
