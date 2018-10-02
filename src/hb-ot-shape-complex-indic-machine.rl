@@ -70,7 +70,7 @@ final_halant_group = halant_group | H.ZWNJ;
 halant_or_matra_group = (final_halant_group | matra_group{0,4});
 
 
-consonant_syllable =	(Repha|CS)? (cn.halant_group){0,4} cn halant_or_matra_group syllable_tail;
+consonant_syllable =	(Repha|CS)? cn (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group syllable_tail);
 standalone_cluster =	((Repha|CS)? PLACEHOLDER | reph? DOTTEDCIRCLE).n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 symbol_cluster = 	symbol syllable_tail;
