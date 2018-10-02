@@ -129,7 +129,10 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     planner->shaper->collect_features (planner);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
-    map->enable_feature (common_features[i]);
+    map->add_feature (common_features[i], F_GLOBAL |
+		      (common_features[i] == HB_TAG('m','a','r','k') ||
+		       common_features[i] == HB_TAG('m','k','m','k') ?
+		       F_MANUAL_JOINERS : F_NONE));
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
