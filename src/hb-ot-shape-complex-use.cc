@@ -132,19 +132,19 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->enable_feature (HB_TAG('l','o','c','l'));
   map->enable_feature (HB_TAG('c','c','m','p'));
   map->enable_feature (HB_TAG('n','u','k','t'));
-  map->add_feature (HB_TAG('a','k','h','n'), F_GLOBAL | F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('a','k','h','n'), F_MANUAL_ZWJ);
 
   /* "Reordering group" */
   map->add_gsub_pause (clear_substitution_flags);
   map->add_feature (HB_TAG('r','p','h','f'), F_MANUAL_ZWJ);
   map->add_gsub_pause (record_rphf);
   map->add_gsub_pause (clear_substitution_flags);
-  map->add_feature (HB_TAG('p','r','e','f'), F_GLOBAL | F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('p','r','e','f'), F_MANUAL_ZWJ);
   map->add_gsub_pause (record_pref);
 
   /* "Orthographic unit shaping group" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
-    map->add_feature (basic_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
 
   map->add_gsub_pause (reorder);
 
@@ -155,7 +155,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
 
   /* "Standard typographic presentation" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->add_feature (other_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
 
   /* "Positional feature application" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)

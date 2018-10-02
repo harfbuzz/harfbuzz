@@ -215,14 +215,14 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    * however, it says a ZWJ should also mean "don't ligate".  So we run
    * the main ligating features as MANUAL_ZWJ. */
 
-  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL | F_MANUAL_ZWJ | F_HAS_FALLBACK);
+  map->enable_feature (HB_TAG('r','l','i','g'), F_MANUAL_ZWJ | F_HAS_FALLBACK);
 
   if (plan->props.script == HB_SCRIPT_ARABIC)
     map->add_gsub_pause (arabic_fallback_shape);
 
   /* No pause after rclt.  See 98460779bae19e4d64d29461ff154b3527bf8420. */
-  map->add_feature (HB_TAG('r','c','l','t'), F_GLOBAL | F_MANUAL_ZWJ);
-  map->add_feature (HB_TAG('c','a','l','t'), F_GLOBAL | F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('r','c','l','t'), F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('c','a','l','t'), F_MANUAL_ZWJ);
   map->add_gsub_pause (nullptr);
 
   /* And undo here. */

@@ -125,7 +125,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   map->add_feature (HB_TAG ('d','n','o','m'));
 
   /* Random! */
-  map->add_feature (HB_TAG ('r','a','n','d'), F_GLOBAL | F_RANDOM, HB_OT_MAP_MAX_VALUE);
+  map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
@@ -142,7 +142,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
      * matter which script/langsys it is listed (or not) under.
      * See various bugs referenced from:
      * https://github.com/harfbuzz/harfbuzz/issues/63 */
-    map->add_feature (HB_TAG ('v','e','r','t'), F_GLOBAL | F_GLOBAL_SEARCH);
+    map->enable_feature (HB_TAG ('v','e','r','t'), F_GLOBAL_SEARCH);
   }
 
   if (planner->shaper->override_features)

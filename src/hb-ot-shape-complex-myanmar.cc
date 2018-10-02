@@ -106,14 +106,14 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
   {
-    map->add_feature (basic_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
     map->add_gsub_pause (nullptr);
   }
 
   map->add_gsub_pause (final_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->add_feature (other_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
     map->enable_feature (positioning_features[i]);

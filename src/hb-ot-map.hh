@@ -205,8 +205,10 @@ struct hb_ot_map_builder_t
   inline void add_feature (const hb_ot_map_feature_t &feat)
   { add_feature (feat.tag, feat.flags); }
 
-  inline void enable_feature (hb_tag_t tag)
-  { add_feature (tag, F_GLOBAL); }
+  inline void enable_feature (hb_tag_t tag,
+			      hb_ot_map_feature_flags_t flags=F_NONE,
+			      unsigned int value=1)
+  { add_feature (tag, F_GLOBAL | flags, value); }
 
   inline void disable_feature (hb_tag_t tag)
   { add_feature (tag, F_GLOBAL, 0); }
