@@ -34,7 +34,6 @@
 
 /* buffer var allocations */
 #define khmer_category() indic_category() /* khmer_category_t */
-#define khmer_position() indic_position() /* indic_position_t */
 
 
 /* Note: This enum is duplicated in the -machine.rl source file.
