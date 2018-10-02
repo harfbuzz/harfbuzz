@@ -376,7 +376,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   nullptr, /* decompose */
   nullptr, /* compose */
   nullptr, /* setup_masks */
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   false,/* fallback_position */

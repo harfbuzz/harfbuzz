@@ -106,14 +106,14 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
   {
-    map->add_feature (basic_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
     map->add_gsub_pause (nullptr);
   }
 
   map->add_gsub_pause (final_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->add_feature (other_features[i], F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
     map->enable_feature (positioning_features[i]);
@@ -389,7 +389,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar_old =
   nullptr, /* decompose */
   nullptr, /* compose */
   nullptr, /* setup_masks */
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   true, /* fallback_position */
@@ -407,7 +407,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
   nullptr, /* decompose */
   nullptr, /* compose */
   setup_masks_myanmar,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
   false, /* fallback_position */

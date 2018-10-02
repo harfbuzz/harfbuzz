@@ -49,7 +49,7 @@ static int num_iters = 200;
 static hb_font_t *font;
 static hb_buffer_t *ref_buffer;
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void
 fill_the_buffer (hb_buffer_t *buffer)
@@ -105,7 +105,6 @@ static void
 test_body (void)
 {
   int i;
-  int num_threads = 30;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
 

@@ -296,7 +296,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference;
   if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
   {
-    if (plan->has_mark)
+    if (plan->has_gpos_mark)
       // https://github.com/harfbuzz/harfbuzz/issues/653#issuecomment-423905920
       //mode = HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;
       mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;

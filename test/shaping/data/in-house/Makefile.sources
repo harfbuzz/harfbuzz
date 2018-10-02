@@ -2,6 +2,7 @@ TESTS = \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/arabic-like-joining.tests \
+	tests/arabic-mark-attach.tests \
 	tests/arabic-mark-order.tests \
 	tests/arabic-stch.tests \
 	tests/automatic-fractions.tests \
@@ -26,6 +27,8 @@ TESTS = \
 	tests/indic-script-extensions.tests \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
+	tests/khmer-mark-order.tests \
+	tests/khmer-misc.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
 	tests/mark-attachment.tests \

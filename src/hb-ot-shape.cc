@@ -36,32 +36,61 @@
 #include "hb-ot-shape-normalize.hh"
 
 #include "hb-ot-face.hh"
-#include "hb-ot-layout.hh"
-#include "hb-unicode.hh"
+
 #include "hb-set.hh"
 
-#include "hb-ot-layout-gsubgpos.hh"
 #include "hb-aat-layout.hh"
 
-static hb_tag_t common_features[] = {
-  HB_TAG('c','c','m','p'),
-  HB_TAG('l','o','c','l'),
-  HB_TAG('m','a','r','k'),
-  HB_TAG('m','k','m','k'),
-  HB_TAG('r','l','i','g'),
+
+void
+hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
+				const int          *coords,
+				unsigned int        num_coords)
+{
+  plan.props = props;
+  plan.shaper = shaper;
+  map.compile (plan.map, coords, num_coords);
+
+  plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
+  plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
+  plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
+  plan.dnom_mask = plan.map.get_1_mask (HB_TAG ('d','n','o','m'));
+
+  plan.kern_mask = plan.map.get_mask (HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
+				      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n'));
+
+  plan.has_frac = plan.frac_mask || (plan.numr_mask && plan.dnom_mask);
+  plan.kerning_requested = !!plan.kern_mask;
+  plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
+
+  bool disable_gpos = plan.shaper->gpos_tag &&
+		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
+  plan.fallback_positioning = disable_gpos || !hb_ot_layout_has_positioning (face);
+  plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
+}
+
+
+static const hb_ot_map_feature_t
+common_features[] =
+{
+  {HB_TAG('c','c','m','p'), F_GLOBAL},
+  {HB_TAG('l','o','c','l'), F_GLOBAL},
+  {HB_TAG('m','a','r','k'), F_GLOBAL_MANUAL_JOINERS},
+  {HB_TAG('m','k','m','k'), F_GLOBAL_MANUAL_JOINERS},
+  {HB_TAG('r','l','i','g'), F_GLOBAL},
 };
 
 
-static hb_tag_t horizontal_features[] = {
-  HB_TAG('c','a','l','t'),
-  HB_TAG('c','l','i','g'),
-  HB_TAG('c','u','r','s'),
-  HB_TAG('k','e','r','n'),
-  HB_TAG('l','i','g','a'),
-  HB_TAG('r','c','l','t'),
+static const hb_ot_map_feature_t
+horizontal_features[] =
+{
+  {HB_TAG('c','a','l','t'), F_GLOBAL},
+  {HB_TAG('c','l','i','g'), F_GLOBAL},
+  {HB_TAG('c','u','r','s'), F_GLOBAL},
+  {HB_TAG('k','e','r','n'), F_GLOBAL_HAS_FALLBACK},
+  {HB_TAG('l','i','g','a'), F_GLOBAL},
+  {HB_TAG('r','c','l','t'), F_GLOBAL},
 };
-
-
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
@@ -96,26 +125,24 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   map->add_feature (HB_TAG ('d','n','o','m'));
 
   /* Random! */
-  map->add_feature (HB_TAG ('r','a','n','d'), F_GLOBAL | F_RANDOM, HB_OT_MAP_MAX_VALUE);
+  map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
-    map->enable_feature (common_features[i]);
+    map->add_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
-      map->add_feature (horizontal_features[i], F_GLOBAL |
-			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
-			 F_HAS_FALLBACK : F_NONE));
+      map->add_feature (horizontal_features[i]);
   else
   {
     /* We really want to find a 'vert' feature if there's any in the font, no
      * matter which script/langsys it is listed (or not) under.
      * See various bugs referenced from:
      * https://github.com/harfbuzz/harfbuzz/issues/63 */
-    map->add_feature (HB_TAG ('v','e','r','t'), F_GLOBAL | F_GLOBAL_SEARCH);
+    map->enable_feature (HB_TAG ('v','e','r','t'), F_GLOBAL_SEARCH);
   }
 
   if (planner->shaper->override_features)
@@ -235,8 +262,6 @@ struct hb_ot_shape_context_t
   unsigned int        num_user_features;
 
   /* Transient stuff */
-  bool fallback_positioning;
-  bool fallback_glyph_classes;
   hb_direction_t target_direction;
 };
 
@@ -612,7 +637,7 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
   hb_ot_shape_setup_masks (c);
 
   /* This is unfortunate to go here, but necessary... */
-  if (c->fallback_positioning)
+  if (c->plan->fallback_positioning)
     _hb_ot_shape_fallback_position_recategorize_marks (c->plan, c->font, buffer);
 
   hb_ot_map_glyphs_fast (buffer);
@@ -627,7 +652,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   hb_ot_layout_substitute_start (c->font, buffer);
 
-  if (!hb_ot_layout_has_glyph_classes (c->face))
+  if (c->plan->fallback_glyph_classes)
     hb_synthesize_glyph_classes (c);
 
   c->plan->substitute (c->font, buffer);
@@ -726,7 +751,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
    * If fallback positinoing happens or GPOS is present, we don't
    * care.
    */
-  bool adjust_offsets_when_zeroing = c->fallback_positioning &&
+  bool adjust_offsets_when_zeroing = c->plan->fallback_positioning &&
 				     !c->plan->shaper->fallback_position &&
 				     HB_DIRECTION_IS_FORWARD (c->buffer->props.direction);
 
@@ -753,7 +778,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
       break;
   }
 
-  if (likely (!c->fallback_positioning))
+  if (likely (!c->plan->fallback_positioning))
     c->plan->position (c->font, c->buffer);
 
   switch (c->plan->shaper->zero_width_marks)
@@ -790,7 +815,7 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   hb_ot_position_complex (c);
 
-  if (c->fallback_positioning && c->plan->shaper->fallback_position)
+  if (c->plan->fallback_positioning && c->plan->shaper->fallback_position)
     _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
@@ -798,7 +823,7 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   /* Visual fallback goes here. */
 
-  if (c->fallback_positioning)
+  if (c->plan->fallback_positioning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
@@ -849,11 +874,6 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
     c->buffer->max_ops = MAX (c->buffer->len * HB_BUFFER_MAX_OPS_FACTOR,
 			      (unsigned) HB_BUFFER_MAX_OPS_MIN);
   }
-
-  bool disable_otl = c->plan->shaper->disable_otl && c->plan->shaper->disable_otl (c->plan);
-  //c->fallback_substitute     = disable_otl || !hb_ot_layout_has_substitution (c->face);
-  c->fallback_positioning    = disable_otl || !hb_ot_layout_has_positioning (c->face);
-  c->fallback_glyph_classes  = disable_otl || !hb_ot_layout_has_glyph_classes (c->face);
 
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;

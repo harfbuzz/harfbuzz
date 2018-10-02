@@ -241,7 +241,6 @@ setup_masks_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		   hb_font_t                *font HB_UNUSED)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, khmer_category);
-  HB_BUFFER_ALLOCATE_VAR (buffer, khmer_position);
 
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
@@ -330,7 +329,7 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
     }
 
     /* Reorder left matra piece. */
-    else if (info[i].khmer_position() == POS_PRE_M)
+    else if (info[i].khmer_category() == OT_VPre)
     {
       /* Move to the start. */
       buffer->merge_clusters (start, i + 1);
@@ -432,7 +431,6 @@ reorder (const hb_ot_shape_plan_t *plan,
     initial_reordering_syllable (plan, font->face, buffer, start, end);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, khmer_category);
-  HB_BUFFER_DEALLOCATE_VAR (buffer, khmer_position);
 }
 
 static void
@@ -498,7 +496,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_khmer =
   decompose_khmer,
   compose_khmer,
   setup_masks_khmer,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */

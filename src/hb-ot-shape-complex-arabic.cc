@@ -159,11 +159,6 @@ static const struct arabic_state_table_entry {
 
 
 static void
-flip_joiners (const hb_ot_shape_plan_t *plan,
-	      hb_font_t *font,
-	      hb_buffer_t *buffer);
-
-static void
 arabic_fallback_shape (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer);
@@ -217,28 +212,20 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   }
 
   /* Normally, Unicode says a ZWNJ means "don't ligate".  In Arabic script
-   * however, it says a ZWJ should also mean "don't ligate".  So we convert
-   * a ZWJ to a ZWNJ for GSUB.  We want to revert it back to ZWJ before
-   * GPOS processing though.  So we just flip their roles, and flip back
-   * later.  Note that this makes a ZWNJ into ZWJ for GSUB stage, which
-   * means it would *not* break ligatures.  But since ligatures around
-   * ZWNJ are rare, we don't care.
-   *
-   * Since we don't currently have a way to apply a pause before GPOS
-   * starts, let's just do this dance around a few required GUSB features. */
-  map->add_gsub_pause (flip_joiners);
+   * however, it says a ZWJ should also mean "don't ligate".  So we run
+   * the main ligating features as MANUAL_ZWJ. */
 
-  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL | F_HAS_FALLBACK);
+  map->enable_feature (HB_TAG('r','l','i','g'), F_MANUAL_ZWJ | F_HAS_FALLBACK);
 
   if (plan->props.script == HB_SCRIPT_ARABIC)
     map->add_gsub_pause (arabic_fallback_shape);
 
   /* No pause after rclt.  See 98460779bae19e4d64d29461ff154b3527bf8420. */
-  map->enable_feature (HB_TAG('r','c','l','t'));
-  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('r','c','l','t'), F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('c','a','l','t'), F_MANUAL_ZWJ);
+  map->add_gsub_pause (nullptr);
 
   /* And undo here. */
-  map->add_gsub_pause (flip_joiners);
 
   /* The spec includes 'cswh'.  Earlier versions of Windows
    * used to enable this by default, but testing suggests
@@ -391,22 +378,6 @@ setup_masks_arabic (const hb_ot_shape_plan_t *plan,
 {
   const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
   setup_masks_arabic_plan (arabic_plan, buffer, plan->props.script);
-}
-
-
-static void
-flip_joiners (const hb_ot_shape_plan_t *plan HB_UNUSED,
-	      hb_font_t *font HB_UNUSED,
-	      hb_buffer_t *buffer)
-{
-  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_JOINERS))
-    return;
-
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_is_joiner (&info[i]))
-      _hb_glyph_info_flip_joiners (&info[i]);
 }
 
 static void
@@ -731,7 +702,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   nullptr, /* decompose */
   nullptr, /* compose */
   setup_masks_arabic,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   reorder_marks_arabic,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   true, /* fallback_position */

@@ -762,7 +762,6 @@ struct Ligature
       return_trace (true);
     }
 
-    bool is_mark_ligature = false;
     unsigned int total_component_count = 0;
 
     unsigned int match_length = 0;
@@ -774,7 +773,6 @@ struct Ligature
 			      nullptr,
 			      &match_length,
 			      match_positions,
-			      &is_mark_ligature,
 			      &total_component_count)))
       return_trace (false);
 
@@ -783,7 +781,6 @@ struct Ligature
 		  match_positions,
 		  match_length,
 		  ligGlyph,
-		  is_mark_ligature,
 		  total_component_count);
 
     return_trace (true);

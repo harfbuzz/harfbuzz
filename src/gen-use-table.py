@@ -8,7 +8,7 @@ if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
 	sys.exit (1)
 
-BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
+BLACKLISTED_BLOCKS = ["Thai", "Lao"]
 
 files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
@@ -307,10 +307,27 @@ def map_to_use(data):
 
 		# Resolve Indic_Syllabic_Category
 
-		# TODO: These don't have UISC assigned in Unicode 8.0, but
-		# have UIPC
+		# TODO: These don't have UISC assigned in Unicode 8.0, but have UIPC
 		if U == 0x17DD: UISC = Vowel_Dependent
 		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
+
+		# Tibetan:
+		# TODO: These don't have UISC assigned in Unicode 11.0, but have UIPC
+		if 0x0F18 <= U <= 0x0F19 or 0x0F3E <= U <= 0x0F3F: UISC = Vowel_Dependent
+		if 0x0F86 <= U <= 0x0F87: UISC = Tone_Mark
+		# Overrides to allow NFC order matching syllable
+		# https://github.com/harfbuzz/harfbuzz/issues/1012
+		if UBlock == 'Tibetan' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
+		# also  https://github.com/harfbuzz/harfbuzz/issues/1012
+		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+			elif UIPC == Bottom:
+				UIPC = Top
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/627
 		if 0x1BF2 <= U <= 0x1BF3: UISC = Nukta; UIPC = Bottom
@@ -358,13 +375,6 @@ def map_to_use(data):
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
 		# https://github.com/roozbehp/unicode-data/issues/8
 		if U == 0x0A51: UIPC = Bottom
-
-		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
-		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
-			if UIPC == Top:
-				UIPC = Bottom
-			elif UIPC == Bottom:
-				UIPC = Top
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
