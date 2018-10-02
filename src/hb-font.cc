@@ -1005,7 +1005,7 @@ hb_font_get_glyph_from_name (hb_font_t *font,
  * hb_font_get_extents_for_direction:
  * @font: a font.
  * @direction:
- * @extents:
+ * @extents: (out):
  *
  *
  *
