@@ -145,8 +145,9 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
         }
         break;
       case OpCode_random:
-          if (unlikely (!env.argStack.check_overflow (1))) return false;
-          env.argStack.push_int (1);  /* we can't deal with random behavior; make it constant */
+        if (unlikely (!env.argStack.check_overflow (1))) return false;
+        env.argStack.push_int (1);  /* we can't deal with random behavior; make it constant */
+        break;
       case OpCode_mul:
         if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
         env.argStack.push_real (n1.to_real() * n2.to_real());
@@ -170,7 +171,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
           if (unlikely (!env.argStack.check_pop_num (n1))) return false;
           int i = n1.to_int ();
           if (i < 0) i = 0;
-          if (unlikely (i >= env.argStack.get_count () || !env.argStack.check_overflow (1))) return false;
+          if (unlikely ((unsigned int)i >= env.argStack.get_count () || !env.argStack.check_overflow (1))) return false;
           env.argStack.push (env.argStack[env.argStack.get_count () - i - 1]);
         }
         break;
@@ -179,7 +180,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
           if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
           int n = n1.to_int ();
           int j = n2.to_int ();
-          if (unlikely (n < 0 || n > env.argStack.get_count ())) return false;
+          if (unlikely (n < 0 || (unsigned int)n > env.argStack.get_count ())) return false;
           if (likely (n > 0))
           {
             if (j < 0)

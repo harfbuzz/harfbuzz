@@ -101,8 +101,8 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
           env.clear_args ();
           return;
         }
-        /* NO BREAK */
-
+        HB_FALLTHROUGH;
+        
       default:
         SUPER::flush_args_and_op (op, env, param, start_arg);
         break;

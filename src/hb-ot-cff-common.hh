@@ -138,7 +138,7 @@ struct CFFIndex
     }
   }
 
-  inline const unsigned int offset_at (unsigned int index) const
+  inline unsigned int offset_at (unsigned int index) const
   {
     assert (index <= count);
     const HBUINT8 *p = offsets + offSize * index;
@@ -149,7 +149,7 @@ struct CFFIndex
     return offset;
   }
 
-  inline const unsigned int length_at (unsigned int index) const
+  inline unsigned int length_at (unsigned int index) const
   { return offset_at (index + 1) - offset_at (index); }
 
   inline const char *data_base (void) const

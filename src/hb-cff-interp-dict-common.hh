@@ -210,7 +210,8 @@ struct DictOpSet : OpSet<Number>
 
         case EXP_NEG:
           exp_neg = true;
-          /* NO BREAK */
+          HB_FALLTHROUGH;
+          
         case EXP_POS:
           if (part == EXP_PART) return false;
           part = EXP_PART;
