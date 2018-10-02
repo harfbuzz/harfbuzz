@@ -315,7 +315,7 @@ static const int use_syllable_machine_en_main = 4;
 
 
 
-#line 141 "hb-ot-shape-complex-use-machine.rl"
+#line 140 "hb-ot-shape-complex-use-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -342,7 +342,7 @@ find_syllables (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 161 "hb-ot-shape-complex-use-machine.rl"
+#line 160 "hb-ot-shape-complex-use-machine.rl"
 
 
   p = 0;
@@ -387,59 +387,59 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 12:
-#line 130 "hb-ot-shape-complex-use-machine.rl"
+#line 129 "hb-ot-shape-complex-use-machine.rl"
 	{te = p+1;{ found_syllable (independent_cluster); }}
 	break;
 	case 14:
-#line 132 "hb-ot-shape-complex-use-machine.rl"
+#line 131 "hb-ot-shape-complex-use-machine.rl"
 	{te = p+1;{ found_syllable (standard_cluster); }}
 	break;
 	case 9:
-#line 136 "hb-ot-shape-complex-use-machine.rl"
+#line 135 "hb-ot-shape-complex-use-machine.rl"
 	{te = p+1;{ found_syllable (broken_cluster); }}
 	break;
 	case 8:
-#line 137 "hb-ot-shape-complex-use-machine.rl"
+#line 136 "hb-ot-shape-complex-use-machine.rl"
 	{te = p+1;{ found_syllable (non_cluster); }}
 	break;
 	case 11:
-#line 130 "hb-ot-shape-complex-use-machine.rl"
+#line 129 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (independent_cluster); }}
 	break;
 	case 15:
-#line 131 "hb-ot-shape-complex-use-machine.rl"
+#line 130 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (virama_terminated_cluster); }}
 	break;
 	case 13:
-#line 132 "hb-ot-shape-complex-use-machine.rl"
+#line 131 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (standard_cluster); }}
 	break;
 	case 17:
-#line 133 "hb-ot-shape-complex-use-machine.rl"
+#line 132 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (number_joiner_terminated_cluster); }}
 	break;
 	case 16:
-#line 134 "hb-ot-shape-complex-use-machine.rl"
+#line 133 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (numeral_cluster); }}
 	break;
 	case 20:
-#line 135 "hb-ot-shape-complex-use-machine.rl"
+#line 134 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (symbol_cluster); }}
 	break;
 	case 18:
-#line 136 "hb-ot-shape-complex-use-machine.rl"
+#line 135 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (broken_cluster); }}
 	break;
 	case 19:
-#line 137 "hb-ot-shape-complex-use-machine.rl"
+#line 136 "hb-ot-shape-complex-use-machine.rl"
 	{te = p;p--;{ found_syllable (non_cluster); }}
 	break;
 	case 1:
-#line 132 "hb-ot-shape-complex-use-machine.rl"
+#line 131 "hb-ot-shape-complex-use-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (standard_cluster); }}
 	break;
 	case 4:
-#line 136 "hb-ot-shape-complex-use-machine.rl"
+#line 135 "hb-ot-shape-complex-use-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (broken_cluster); }}
 	break;
 	case 2:
@@ -457,13 +457,13 @@ _eof_trans:
 	case 3:
 #line 1 "NONE"
 	{te = p+1;}
-#line 136 "hb-ot-shape-complex-use-machine.rl"
+#line 135 "hb-ot-shape-complex-use-machine.rl"
 	{act = 7;}
 	break;
 	case 10:
 #line 1 "NONE"
 	{te = p+1;}
-#line 137 "hb-ot-shape-complex-use-machine.rl"
+#line 136 "hb-ot-shape-complex-use-machine.rl"
 	{act = 8;}
 	break;
 #line 470 "hb-ot-shape-complex-use-machine.hh"
@@ -491,7 +491,7 @@ _again:
 
 	}
 
-#line 169 "hb-ot-shape-complex-use-machine.rl"
+#line 168 "hb-ot-shape-complex-use-machine.rl"
 
 }
 

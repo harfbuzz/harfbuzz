@@ -911,7 +911,7 @@ static const int indic_syllable_machine_en_main = 138;
 
 
 
-#line 90 "hb-ot-shape-complex-indic-machine.rl"
+#line 92 "hb-ot-shape-complex-indic-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -938,7 +938,7 @@ find_syllables (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 110 "hb-ot-shape-complex-indic-machine.rl"
+#line 112 "hb-ot-shape-complex-indic-machine.rl"
 
 
   p = 0;
@@ -983,71 +983,71 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 14:
-#line 81 "hb-ot-shape-complex-indic-machine.rl"
+#line 83 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (consonant_syllable); }}
 	break;
 	case 16:
-#line 82 "hb-ot-shape-complex-indic-machine.rl"
+#line 84 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (vowel_syllable); }}
 	break;
 	case 21:
-#line 83 "hb-ot-shape-complex-indic-machine.rl"
+#line 85 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (standalone_cluster); }}
 	break;
 	case 24:
-#line 84 "hb-ot-shape-complex-indic-machine.rl"
+#line 86 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (symbol_cluster); }}
 	break;
 	case 18:
-#line 85 "hb-ot-shape-complex-indic-machine.rl"
+#line 87 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (broken_cluster); }}
 	break;
 	case 11:
-#line 86 "hb-ot-shape-complex-indic-machine.rl"
+#line 88 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p+1;{ found_syllable (non_indic_cluster); }}
 	break;
 	case 13:
-#line 81 "hb-ot-shape-complex-indic-machine.rl"
+#line 83 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (consonant_syllable); }}
 	break;
 	case 15:
-#line 82 "hb-ot-shape-complex-indic-machine.rl"
+#line 84 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (vowel_syllable); }}
 	break;
 	case 20:
-#line 83 "hb-ot-shape-complex-indic-machine.rl"
+#line 85 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (standalone_cluster); }}
 	break;
 	case 23:
-#line 84 "hb-ot-shape-complex-indic-machine.rl"
+#line 86 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (symbol_cluster); }}
 	break;
 	case 17:
-#line 85 "hb-ot-shape-complex-indic-machine.rl"
+#line 87 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (broken_cluster); }}
 	break;
 	case 19:
-#line 86 "hb-ot-shape-complex-indic-machine.rl"
+#line 88 "hb-ot-shape-complex-indic-machine.rl"
 	{te = p;p--;{ found_syllable (non_indic_cluster); }}
 	break;
 	case 1:
-#line 81 "hb-ot-shape-complex-indic-machine.rl"
+#line 83 "hb-ot-shape-complex-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (consonant_syllable); }}
 	break;
 	case 3:
-#line 82 "hb-ot-shape-complex-indic-machine.rl"
+#line 84 "hb-ot-shape-complex-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (vowel_syllable); }}
 	break;
 	case 7:
-#line 83 "hb-ot-shape-complex-indic-machine.rl"
+#line 85 "hb-ot-shape-complex-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (standalone_cluster); }}
 	break;
 	case 8:
-#line 84 "hb-ot-shape-complex-indic-machine.rl"
+#line 86 "hb-ot-shape-complex-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (symbol_cluster); }}
 	break;
 	case 4:
-#line 85 "hb-ot-shape-complex-indic-machine.rl"
+#line 87 "hb-ot-shape-complex-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (broken_cluster); }}
 	break;
 	case 5:
@@ -1068,19 +1068,19 @@ _eof_trans:
 	case 22:
 #line 1 "NONE"
 	{te = p+1;}
-#line 81 "hb-ot-shape-complex-indic-machine.rl"
+#line 83 "hb-ot-shape-complex-indic-machine.rl"
 	{act = 1;}
 	break;
 	case 6:
 #line 1 "NONE"
 	{te = p+1;}
-#line 85 "hb-ot-shape-complex-indic-machine.rl"
+#line 87 "hb-ot-shape-complex-indic-machine.rl"
 	{act = 5;}
 	break;
 	case 12:
 #line 1 "NONE"
 	{te = p+1;}
-#line 86 "hb-ot-shape-complex-indic-machine.rl"
+#line 88 "hb-ot-shape-complex-indic-machine.rl"
 	{act = 6;}
 	break;
 #line 1087 "hb-ot-shape-complex-indic-machine.hh"
@@ -1108,7 +1108,7 @@ _again:
 
 	}
 
-#line 118 "hb-ot-shape-complex-indic-machine.rl"
+#line 120 "hb-ot-shape-complex-indic-machine.rl"
 
 }
 

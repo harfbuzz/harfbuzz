@@ -97,6 +97,14 @@ dependent_vowels = VPre* VAbv* VBlw* VPst*;
 vowel_modifiers = VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst* FM?;
 
+complex_syllable_tail =
+	consonant_modifiers
+	medial_consonants
+	dependent_vowels
+	vowel_modifiers
+	final_consonants
+;
+
 virama_terminated_cluster =
 	(R|CS)? (B | GB) VS?
 	consonant_modifiers
@@ -104,19 +112,11 @@ virama_terminated_cluster =
 ;
 standard_cluster =
 	(R|CS)? (B | GB) VS?
-	consonant_modifiers
-	medial_consonants
-	dependent_vowels
-	vowel_modifiers
-	final_consonants
+	complex_syllable_tail
 ;
 broken_cluster =
 	R?
-	consonant_modifiers
-	medial_consonants
-	dependent_vowels
-	vowel_modifiers
-	final_consonants
+	complex_syllable_tail
 ;
 
 number_joiner_terminated_cluster = N VS? (HN N VS?)* HN;
