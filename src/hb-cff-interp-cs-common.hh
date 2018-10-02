@@ -105,7 +105,7 @@ struct CSInterpEnv : InterpEnv<ARG>
                    !SUPER::argStack.check_pop_int (n))))
       return false;
     n += biasedSubrs.bias;
-    if (unlikely ((n < 0) || (n >= biasedSubrs.subrs->count)))
+    if (unlikely ((n < 0) || ((unsigned int)n >= biasedSubrs.subrs->count)))
       return false;
 
     subr_num = (unsigned int)n;

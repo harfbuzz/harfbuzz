@@ -351,8 +351,8 @@ struct cff_subset_plan {
     : final_size (0),
       orig_fdcount (0),
       subset_fdcount (1),
-      subset_fdselect_format (0),
       offsets (),
+      subset_fdselect_format (0),
       drop_hints (false)
   {
     topdict_sizes.init ();
