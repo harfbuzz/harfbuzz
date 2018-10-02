@@ -224,16 +224,8 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
     {
       buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
       props |=  UPROPS_MASK_IGNORABLE;
-      if (u == 0x200Cu)
-      {
-	props |= UPROPS_MASK_Cf_ZWNJ;
-	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_JOINERS;
-      }
-      else if (u == 0x200Du)
-      {
-	props |= UPROPS_MASK_Cf_ZWJ;
-	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_JOINERS;
-      }
+      if (u == 0x200Cu) props |= UPROPS_MASK_Cf_ZWNJ;
+      else if (u == 0x200Du) props |= UPROPS_MASK_Cf_ZWJ;
       /* Mongolian Free Variation Selectors need to be remembered
        * because although we need to hide them like default-ignorables,
        * they need to non-ignorable during shaping.  This is similar to
