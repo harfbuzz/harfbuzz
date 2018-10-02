@@ -42,9 +42,12 @@ struct hb_ot_shape_plan_t
   const void *data;
   hb_mask_t rtlm_mask, frac_mask, numr_mask, dnom_mask;
   hb_mask_t kern_mask;
+
   bool has_frac : 1;
   bool kerning_requested : 1;
   bool has_gpos_mark : 1;
+  bool fallback_positioning : 1;
+  bool fallback_glyph_classes : 1;
 
   inline void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
   {
