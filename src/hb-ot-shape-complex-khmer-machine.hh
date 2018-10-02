@@ -232,10 +232,9 @@ static const int khmer_syllable_machine_en_main = 22;
 
 #define found_syllable(syllable_type) \
   HB_STMT_START { \
-    if (0) fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #syllable_type); \
-    for (unsigned int i = last; i < p+1; i++) \
+    if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
+    for (unsigned int i = ts; i < te; i++) \
       info[i].syllable() = (syllable_serial << 4) | syllable_type; \
-    last = p+1; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
@@ -243,11 +242,11 @@ static const int khmer_syllable_machine_en_main = 22;
 static void
 find_syllables (hb_buffer_t *buffer)
 {
-  unsigned int p, pe, eof, ts HB_UNUSED, te, act HB_UNUSED;
+  unsigned int p, pe, eof, ts, te, act HB_UNUSED;
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 251 "hb-ot-shape-complex-khmer-machine.hh"
+#line 250 "hb-ot-shape-complex-khmer-machine.hh"
 	{
 	cs = khmer_syllable_machine_start;
 	ts = 0;
@@ -255,16 +254,15 @@ find_syllables (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 101 "hb-ot-shape-complex-khmer-machine.rl"
+#line 100 "hb-ot-shape-complex-khmer-machine.rl"
 
 
   p = 0;
   pe = eof = buffer->len;
 
-  unsigned int last = 0;
   unsigned int syllable_serial = 1;
   
-#line 268 "hb-ot-shape-complex-khmer-machine.hh"
+#line 266 "hb-ot-shape-complex-khmer-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -278,7 +276,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 282 "hb-ot-shape-complex-khmer-machine.hh"
+#line 280 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 	_keys = _khmer_syllable_machine_trans_keys + (cs<<1);
@@ -348,7 +346,7 @@ _eof_trans:
 #line 76 "hb-ot-shape-complex-khmer-machine.rl"
 	{act = 3;}
 	break;
-#line 352 "hb-ot-shape-complex-khmer-machine.hh"
+#line 350 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 _again:
@@ -357,7 +355,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 361 "hb-ot-shape-complex-khmer-machine.hh"
+#line 359 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 	if ( ++p != pe )
@@ -373,7 +371,7 @@ _again:
 
 	}
 
-#line 110 "hb-ot-shape-complex-khmer-machine.rl"
+#line 108 "hb-ot-shape-complex-khmer-machine.rl"
 
 }
 
