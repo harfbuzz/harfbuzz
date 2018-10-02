@@ -424,7 +424,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_hangul =
   nullptr, /* decompose */
   nullptr, /* compose */
   setup_masks_hangul,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */

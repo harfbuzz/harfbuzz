@@ -63,10 +63,10 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.kerning_requested = !!plan.kern_mask;
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
-  bool disable_otl = plan.shaper->disable_otl && plan.shaper->disable_otl (&plan);
-  //plan.fallback_substitute     = disable_otl || !hb_ot_layout_has_substitution (face);
-  plan.fallback_positioning    = disable_otl || !hb_ot_layout_has_positioning (face);
-  plan.fallback_glyph_classes  = !hb_ot_layout_has_glyph_classes (face);
+  bool disable_gpos = plan.shaper->gpos_tag &&
+		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
+  plan.fallback_positioning = disable_gpos || !hb_ot_layout_has_positioning (face);
+  plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
 }
 
 

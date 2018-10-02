@@ -597,7 +597,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   nullptr, /* decompose */
   compose_use,
   setup_masks_use,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
   false, /* fallback_position */

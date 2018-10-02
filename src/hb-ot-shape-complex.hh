@@ -34,7 +34,6 @@
 #include "hb-ot-shape-normalize.hh"
 
 
-
 /* buffer var allocations, used by complex shapers */
 #define complex_var_u8_0()	var2.u8[2]
 #define complex_var_u8_1()	var2.u8[3]
@@ -148,13 +147,11 @@ struct hb_ot_complex_shaper_t
 		       hb_buffer_t              *buffer,
 		       hb_font_t                *font);
 
-  /* disable_otl()
-   * Called during shape().
-   * If set and returns true, GDEF/GSUB/GPOS of the font are ignored
-   * and fallback operations used.
-   * May be nullptr.
+  /* gpos_tag()
+   * If not HB_TAG_NONE, then must match found GPOS script tag for
+   * GPOS to be applied.  Otherwise, fallback positioning will be used.
    */
-  bool (*disable_otl) (const hb_ot_shape_plan_t *plan);
+  hb_tag_t gpos_tag;
 
   /* reorder_marks()
    * Called during shape().

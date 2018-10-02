@@ -29,9 +29,7 @@
 
 #include "hb.hh"
 
-
 #include "hb-ot-shape-complex.hh"
-#include "hb-ot-shape.hh" /* XXX Remove */
 
 
 /* buffer var allocations */

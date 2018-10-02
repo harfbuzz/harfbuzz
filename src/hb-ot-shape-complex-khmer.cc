@@ -496,7 +496,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_khmer =
   decompose_khmer,
   compose_khmer,
   setup_masks_khmer,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
