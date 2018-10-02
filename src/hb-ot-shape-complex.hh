@@ -232,12 +232,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       return &_hb_ot_complex_shaper_hangul;
 
 
-    /* Unicode-2.0 additions */
-    case HB_SCRIPT_TIBETAN:
-
-      return &_hb_ot_complex_shaper_tibetan;
-
-
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HEBREW:
 
@@ -289,7 +283,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
 
     /* Unicode-2.0 additions */
-    //case HB_SCRIPT_TIBETAN:
+    case HB_SCRIPT_TIBETAN:
 
     /* Unicode-3.0 additions */
     //case HB_SCRIPT_MONGOLIAN:
