@@ -45,8 +45,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void cbdt_callback (const uint8_t* data, unsigned int length,
-                    unsigned int group, unsigned int gid)
+static void cbdt_callback (const uint8_t* data, unsigned int length,
+			   unsigned int group, unsigned int gid)
 {
   char output_path[255];
   sprintf (output_path, "out/cbdt-%d-%d.png", group, gid);
@@ -55,8 +55,8 @@ void cbdt_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-void sbix_callback (const uint8_t* data, unsigned int length,
-                    unsigned int group, unsigned int gid)
+static void sbix_callback (const uint8_t* data, unsigned int length,
+			   unsigned int group, unsigned int gid)
 {
   char output_path[255];
   sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
@@ -65,8 +65,8 @@ void sbix_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-void svg_callback (const uint8_t* data, unsigned int length,
-                   unsigned int start_glyph, unsigned int end_glyph)
+static void svg_callback (const uint8_t* data, unsigned int length,
+			  unsigned int start_glyph, unsigned int end_glyph)
 {
   char output_path[255];
   if (start_glyph == end_glyph)
@@ -83,8 +83,8 @@ void svg_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsigned int num_glyphs,
-			  const OT::COLR *colr, const OT::CPAL *cpal)
+static void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsigned int num_glyphs,
+				 const OT::COLR *colr, const OT::CPAL *cpal)
 {
   for (unsigned int i = 0; i < num_glyphs; ++i)
   {
@@ -162,7 +162,8 @@ void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upem, unsi
   }
 }
 
-void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem, unsigned int num_glyphs)
+static void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
+			 unsigned int num_glyphs)
 {
   // Dump every glyph available on the font
   return; // disabled for now
