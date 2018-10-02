@@ -856,7 +856,11 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 
   buffer->merge_clusters (buffer->idx, buffer->idx + match_length);
 
-  /* - If all components of the ligature were marks, we call this a mark ligature.
+  /* - If a base and one or more marks ligate, consider that as a base, NOT
+   *   ligature, such that all following marks can still attach to it.
+   *   https://github.com/harfbuzz/harfbuzz/issues/1109
+   *
+   * - If all components of the ligature were marks, we call this a mark ligature.
    *   If it *is* a mark ligature, we don't allocate a new ligature id, and leave
    *   the ligature to keep its old ligature id.  This will allow it to attach to
    *   a base ligature in GPOS.  Eg. if the sequence is: LAM,LAM,SHADDA,FATHA,HEH,
@@ -884,21 +888,24 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
    *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
    */
 
-  bool is_mark_ligature =  true;
-  for (unsigned int i = 0; i < count; i++)
+  bool is_base_ligature = _hb_glyph_info_is_base_glyph (&buffer->info[match_positions[0]]);
+  bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->info[match_positions[0]]);
+  for (unsigned int i = 1; i < count; i++)
     if (!_hb_glyph_info_is_mark (&buffer->info[match_positions[i]]))
     {
+      is_base_ligature = false;
       is_mark_ligature = false;
       break;
     }
+  bool is_ligature = !is_base_ligature && !is_mark_ligature;
 
-  unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE;
-  unsigned int lig_id = is_mark_ligature ? 0 : _hb_allocate_lig_id (buffer);
+  unsigned int klass = is_ligature ? HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE : 0;
+  unsigned int lig_id = is_ligature ? _hb_allocate_lig_id (buffer) : 0;
   unsigned int last_lig_id = _hb_glyph_info_get_lig_id (&buffer->cur());
   unsigned int last_num_components = _hb_glyph_info_get_lig_num_comps (&buffer->cur());
   unsigned int components_so_far = last_num_components;
 
-  if (!is_mark_ligature)
+  if (is_ligature)
   {
     _hb_glyph_info_set_lig_props_for_ligature (&buffer->cur(), lig_id, total_component_count);
     if (_hb_glyph_info_get_general_category (&buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
@@ -912,7 +919,8 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
   {
     while (buffer->idx < match_positions[i] && buffer->successful)
     {
-      if (!is_mark_ligature) {
+      if (is_ligature)
+      {
         unsigned int this_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
 	if (this_comp == 0)
 	  this_comp = last_num_components;
