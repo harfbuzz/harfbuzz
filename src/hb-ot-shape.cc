@@ -70,24 +70,26 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 }
 
 
-static hb_tag_t common_features[] =
+static const hb_ot_map_feature_t
+common_features[] =
 {
-  HB_TAG('c','c','m','p'),
-  HB_TAG('l','o','c','l'),
-  HB_TAG('m','a','r','k'),
-  HB_TAG('m','k','m','k'),
-  HB_TAG('r','l','i','g'),
+  {HB_TAG('c','c','m','p'), F_GLOBAL},
+  {HB_TAG('l','o','c','l'), F_GLOBAL},
+  {HB_TAG('m','a','r','k'), F_GLOBAL_MANUAL_JOINERS},
+  {HB_TAG('m','k','m','k'), F_GLOBAL_MANUAL_JOINERS},
+  {HB_TAG('r','l','i','g'), F_GLOBAL},
 };
 
 
-static hb_tag_t horizontal_features[] =
+static const hb_ot_map_feature_t
+horizontal_features[] =
 {
-  HB_TAG('c','a','l','t'),
-  HB_TAG('c','l','i','g'),
-  HB_TAG('c','u','r','s'),
-  HB_TAG('k','e','r','n'),
-  HB_TAG('l','i','g','a'),
-  HB_TAG('r','c','l','t'),
+  {HB_TAG('c','a','l','t'), F_GLOBAL},
+  {HB_TAG('c','l','i','g'), F_GLOBAL},
+  {HB_TAG('c','u','r','s'), F_GLOBAL},
+  {HB_TAG('k','e','r','n'), F_GLOBAL_HAS_FALLBACK},
+  {HB_TAG('l','i','g','a'), F_GLOBAL},
+  {HB_TAG('r','c','l','t'), F_GLOBAL},
 };
 
 static void
@@ -129,16 +131,11 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     planner->shaper->collect_features (planner);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
-    map->add_feature (common_features[i], F_GLOBAL |
-		      (common_features[i] == HB_TAG('m','a','r','k') ||
-		       common_features[i] == HB_TAG('m','k','m','k') ?
-		       F_MANUAL_JOINERS : F_NONE));
+    map->add_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
-      map->add_feature (horizontal_features[i], F_GLOBAL |
-			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
-			 F_HAS_FALLBACK : F_NONE));
+      map->add_feature (horizontal_features[i]);
   else
   {
     /* We really want to find a 'vert' feature if there's any in the font, no
