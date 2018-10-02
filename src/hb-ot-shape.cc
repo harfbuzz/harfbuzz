@@ -66,7 +66,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   bool disable_otl = plan.shaper->disable_otl && plan.shaper->disable_otl (&plan);
   //plan.fallback_substitute     = disable_otl || !hb_ot_layout_has_substitution (face);
   plan.fallback_positioning    = disable_otl || !hb_ot_layout_has_positioning (face);
-  plan.fallback_glyph_classes  = disable_otl || !hb_ot_layout_has_glyph_classes (face);
+  plan.fallback_glyph_classes  = !hb_ot_layout_has_glyph_classes (face);
 }
 
 
@@ -652,7 +652,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   hb_ot_layout_substitute_start (c->font, buffer);
 
-  if (!hb_ot_layout_has_glyph_classes (c->face))
+  if (c->plan->fallback_glyph_classes)
     hb_synthesize_glyph_classes (c);
 
   c->plan->substitute (c->font, buffer);
