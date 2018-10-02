@@ -40,19 +40,19 @@
 void hb_ot_face_data_t::init0 (hb_face_t *face)
 {
   this->face = face;
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.init0 ();
-#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
-  HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_ACCELERATOR
-#undef HB_OT_LAYOUT_TABLE
+#define HB_OT_TABLE(Namespace, Type) Type.init0 ();
+#define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)
+  HB_OT_TABLES
+#undef HB_OT_ACCELERATOR
+#undef HB_OT_TABLE
 }
 void hb_ot_face_data_t::fini (void)
 {
-#define HB_OT_LAYOUT_TABLE(Namespace, Type) Type.fini ();
-#define HB_OT_LAYOUT_ACCELERATOR(Namespace, Type) HB_OT_LAYOUT_TABLE (Namespace, Type)
-  HB_OT_LAYOUT_TABLES
-#undef HB_OT_LAYOUT_ACCELERATOR
-#undef HB_OT_LAYOUT_TABLE
+#define HB_OT_TABLE(Namespace, Type) Type.fini ();
+#define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)
+  HB_OT_TABLES
+#undef HB_OT_ACCELERATOR
+#undef HB_OT_TABLE
 }
 
 hb_ot_face_data_t *
