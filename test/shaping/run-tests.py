@@ -84,7 +84,7 @@ for filename in args:
 			print (":".join ([fontfile, options, unicodes, glyphs1]))
 			continue
 
-		if glyphs1.strip() != glyphs_expected.strip():
+		if glyphs1.strip() != glyphs_expected.strip() and glyphs_expected.strip() != '*':
 			print ("Actual:   " + glyphs1) # file=sys.stderr
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
 			fails = fails + 1
