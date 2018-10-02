@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
 #include "hb-ot-shape.hh"
 #include "hb-ot-shape-normalize.hh"
 

@@ -36,11 +36,9 @@
 #include "hb-ot-shape-normalize.hh"
 
 #include "hb-ot-face.hh"
-#include "hb-ot-layout.hh"
-#include "hb-unicode.hh"
+
 #include "hb-set.hh"
 
-#include "hb-ot-layout-gsubgpos.hh"
 #include "hb-aat-layout.hh"
 
 

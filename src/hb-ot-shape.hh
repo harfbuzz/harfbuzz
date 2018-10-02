@@ -30,7 +30,7 @@
 #include "hb.hh"
 
 #include "hb-ot-map.hh"
-#include "hb-ot-layout.hh"
+#include "hb-shape-plan.hh"
 
 
 
