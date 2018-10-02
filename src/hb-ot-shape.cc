@@ -43,7 +43,32 @@
 #include "hb-ot-layout-gsubgpos.hh"
 #include "hb-aat-layout.hh"
 
-static hb_tag_t common_features[] = {
+
+void
+hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
+				const int          *coords,
+				unsigned int        num_coords)
+{
+  plan.props = props;
+  plan.shaper = shaper;
+  map.compile (plan.map, coords, num_coords);
+
+  plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
+  plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
+  plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
+  plan.dnom_mask = plan.map.get_1_mask (HB_TAG ('d','n','o','m'));
+
+  plan.kern_mask = plan.map.get_mask (HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
+				      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n'));
+
+  plan.has_frac = plan.frac_mask || (plan.numr_mask && plan.dnom_mask);
+  plan.kerning_requested = !!plan.kern_mask;
+  plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
+}
+
+
+static hb_tag_t common_features[] =
+{
   HB_TAG('c','c','m','p'),
   HB_TAG('l','o','c','l'),
   HB_TAG('m','a','r','k'),
@@ -52,7 +77,8 @@ static hb_tag_t common_features[] = {
 };
 
 
-static hb_tag_t horizontal_features[] = {
+static hb_tag_t horizontal_features[] =
+{
   HB_TAG('c','a','l','t'),
   HB_TAG('c','l','i','g'),
   HB_TAG('c','u','r','s'),
@@ -60,8 +86,6 @@ static hb_tag_t horizontal_features[] = {
   HB_TAG('l','i','g','a'),
   HB_TAG('r','c','l','t'),
 };
-
-
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
