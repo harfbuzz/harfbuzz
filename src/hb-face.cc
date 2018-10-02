@@ -688,7 +688,7 @@ _hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data
  * After tables are added to the face, it can be compiled to a binary
  * font file by calling hb_face_reference_blob().
  *
- * Return value: (transfer full) New face.
+ * Return value: (transfer full): New face.
  *
  * Since: 1.9.0
  **/
