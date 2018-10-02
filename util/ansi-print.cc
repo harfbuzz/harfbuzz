@@ -71,7 +71,7 @@ struct color_t
 {
   static color_t from_ansi (unsigned int x)
   {
-    color_t c = {(0xFF<<24) | ((0xFF*(x&1))<<16) | ((0xFF*((x >> 1)&1))<<8) | (0xFF*((x >> 2)&1))};
+    color_t c = {(0xFFu<<24) | ((0xFFu*(x&1))<<16) | ((0xFFu*((x >> 1)&1))<<8) | (0xFFu*((x >> 2)&1))};
     return c;
   }
   unsigned int to_ansi (void)
@@ -223,7 +223,7 @@ struct biimage_t
   uint8_t * const data;
 };
 
-const char *
+static const char *
 block_best (const biimage_t &bi, bool *inverse)
 {
   assert (bi.width  <= CELL_W);
