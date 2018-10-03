@@ -101,26 +101,6 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return ret;
   }
 
-
-  inline hb_unicode_general_category_t
-  modified_general_category (hb_codepoint_t u)
-  {
-    hb_unicode_general_category_t cat = general_category (u);
-
-    if (unlikely (cat == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL))
-    {
-      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
-       * behave correctly in non-native directionality.  They originally
-       * are MODIFIER_SYMBOL.  Fixes:
-       * https://github.com/harfbuzz/harfbuzz/issues/169
-       */
-      if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1F3FBu, 0x1F3FFu)))
-	cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
-    }
-
-    return cat;
-  }
-
   inline unsigned int
   modified_combining_class (hb_codepoint_t u)
   {
