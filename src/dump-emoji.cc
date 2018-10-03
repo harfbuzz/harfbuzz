@@ -146,7 +146,7 @@ static void colr_cpal_rendering (cairo_font_face_t *cairo_face, unsigned int upe
 	  int r = (color >> 8) & 0xFF;
 	  int g = (color >> 16) & 0xFF;
 	  int b = (color >> 24) & 0xFF;
-	  cairo_set_source_rgba (cr, r / 255.f, g / 255.f, b / 255.f, alpha);
+	  cairo_set_source_rgba (cr, r / 255., g / 255., b / 255., alpha);
 
 	  cairo_glyph_t glyph;
 	  glyph.index = glyph_id;
