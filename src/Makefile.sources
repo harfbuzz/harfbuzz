@@ -53,6 +53,7 @@ HB_BASE_sources = \
 	hb-static.cc \
 	hb-string-array.hh \
 	hb-unicode.hh \
+	hb-unicode-emoji-table.hh \
 	hb-unicode.cc \
 	hb-vector.hh \
 	hb-utf.hh \
