@@ -334,7 +334,9 @@ data_destroy_indic (void *data)
 static void
 _output_with_dotted_circle (hb_buffer_t *buffer)
 {
-  buffer->output_glyph (0x25CCu);
+  hb_glyph_info_t &dottedcircle = buffer->output_glyph (0x25CCu);
+  _hb_glyph_info_reset_continuation (&dottedcircle);
+
   buffer->next_glyph ();
 }
 
