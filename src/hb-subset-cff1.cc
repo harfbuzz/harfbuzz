@@ -349,8 +349,8 @@ struct RangeList : hb_vector_t<code_pair>
 struct cff_subset_plan {
   inline cff_subset_plan (void)
     : final_size (0),
-      orig_fdcount (0),
       offsets (),
+      orig_fdcount (0),
       subset_fdcount (1),
       subset_fdselect_format (0),
       drop_hints (false)
