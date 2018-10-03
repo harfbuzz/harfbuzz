@@ -53,7 +53,7 @@ struct OS2Range
 };
 
 /* Note: The contents of this array was generated using gen-os2-unicode-ranges.py. */
-static OS2Range _hb_os2_unicode_ranges[] =
+static const OS2Range _hb_os2_unicode_ranges[] =
 {
   {     0x0,     0x7F,   0}, // Basic Latin
   {    0x80,     0xFF,   1}, // Latin-1 Supplement
