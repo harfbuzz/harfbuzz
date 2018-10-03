@@ -1,0 +1,10 @@
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+steps:
+- script: |
+    apt install -y gcc binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+    ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
+    make -j32
+    make check
+  displayName: 'make'
