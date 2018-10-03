@@ -332,6 +332,13 @@ data_destroy_indic (void *data)
 }
 
 static void
+_output_with_dotted_circle (hb_buffer_t *buffer)
+{
+  buffer->output_glyph (0x25CCu);
+  buffer->next_glyph ();
+}
+
+static void
 preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 		       hb_buffer_t              *buffer,
 		       hb_font_t                *font)
@@ -401,7 +408,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -423,7 +430,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -460,7 +467,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -485,7 +492,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -504,7 +511,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -528,7 +535,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -547,7 +554,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
@@ -574,7 +581,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    break;
 	}
 	buffer->next_glyph ();
-	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
+	if (matched) _output_with_dotted_circle (buffer);
       }
       processed = true;
       break;
