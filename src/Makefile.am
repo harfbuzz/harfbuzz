@@ -289,13 +289,15 @@ harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 
 GENERATORS = \
 	gen-arabic-table.py \
-	gen-indic-table.py \
-	gen-use-table.py \
 	gen-def.py \
+	gen-emoji-table.py \
+	gen-indic-table.py \
+	gen-os2-unicode-ranges.py \
+	gen-use-table.py \
 	$(NULL)
 EXTRA_DIST += $(GENERATORS)
 
-unicode-tables: arabic-table indic-table use-table
+unicode-tables: arabic-table indic-table use-table emoji-table
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-arabic-table.hh \
@@ -309,9 +311,13 @@ use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.tx
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
 
+emoji-table: gen-emoji-table.py emoji-data.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-unicode-emoji-table.hh \
+	|| ($(RM) $(srcdir)/hb-unicode-emoji-table.hh; false)
+
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table use-table built-sources
+.PHONY: unicode-tables arabic-table indic-table use-table emoji-table built-sources
 
 RAGEL_GENERATED = \
 	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \

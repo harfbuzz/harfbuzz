@@ -81,7 +81,7 @@ struct os2
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (codepoints->next (&cp)) {
-      unsigned int bit = hb_get_unicode_range_bit (cp);
+      unsigned int bit = _hb_ot_os2_get_unicode_range_bit (cp);
       if (bit < 128)
       {
         unsigned int block = bit / 32;

@@ -44,7 +44,7 @@ struct OS2Range
     else if (cp <= range->end)
       return 0;
     else
-      return 1;
+      return +1;
   }
 
   hb_codepoint_t start;
@@ -227,11 +227,11 @@ static OS2Range _hb_os2_unicode_ranges[] =
 };
 
 /**
- * hb_get_unicode_range_bit:
+ * _hb_ot_os2_get_unicode_range_bit:
  * Returns the bit to be set in os/2 ulUnicodeOS2Range for a given codepoint.
  **/
 static unsigned int
-hb_get_unicode_range_bit (hb_codepoint_t cp)
+_hb_ot_os2_get_unicode_range_bit (hb_codepoint_t cp)
 {
   OS2Range *range = (OS2Range*) hb_bsearch_r (&cp, _hb_os2_unicode_ranges,
 					      ARRAY_LENGTH (_hb_os2_unicode_ranges),
