@@ -339,26 +339,12 @@ hb_form_clusters (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
     return;
 
-  /* Loop duplicated in hb_ensure_native_direction(), and in _hb-coretext.cc */
-  unsigned int base = 0;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 1; i < count; i++)
-  {
-    if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i])) &&
-		!_hb_glyph_info_is_joiner (&info[i])))
-    {
-      if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
-	buffer->merge_clusters (base, i);
-      else
-	buffer->unsafe_to_break (base, i);
-      base = i;
-    }
-  }
   if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
-    buffer->merge_clusters (base, count);
+    foreach_grapheme (buffer, start, end)
+      buffer->merge_clusters (start, end);
   else
-    buffer->unsafe_to_break (base, count);
+    foreach_grapheme (buffer, start, end)
+      buffer->unsafe_to_break (start, end);
 }
 
 static void
@@ -376,25 +362,17 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
       (HB_DIRECTION_IS_VERTICAL   (direction) &&
        direction != HB_DIRECTION_TTB))
   {
-    /* Same loop as hb_form_clusters().
-     * Since form_clusters() merged clusters already, we don't merge. */
-    unsigned int base = 0;
-    unsigned int count = buffer->len;
-    hb_glyph_info_t *info = buffer->info;
-    for (unsigned int i = 1; i < count; i++)
-    {
-      if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i]))))
-      {
-	if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-	  buffer->merge_clusters (base, i);
-	buffer->reverse_range (base, i);
 
-	base = i;
-      }
-    }
     if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-      buffer->merge_clusters (base, count);
-    buffer->reverse_range (base, count);
+      foreach_grapheme (buffer, start, end)
+      {
+	buffer->merge_clusters (start, end);
+	buffer->reverse_range (start, end);
+      }
+    else
+      foreach_grapheme (buffer, start, end)
+	/* form_clusters() merged clusters already, we don't merge. */
+	buffer->reverse_range (start, end);
 
     buffer->reverse ();
 
