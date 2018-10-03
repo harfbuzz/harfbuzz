@@ -275,10 +275,34 @@ struct hb_ot_shape_context_t
 static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
+  /* Implement enough of Unicode Graphemes here that shaping
+   * in reverse-direction wouldn't break graphemes.  Namely,
+   * we mark all marks and ZWJ and ZWJ,Extended_Pictographic
+   * sequences as continuations.  The foreach_grapheme()
+   * macro uses this bit.
+   *
+   * https://www.unicode.org/reports/tr29/#Regex_Definitions
+   */
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
+  {
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
+
+    /* Marks are already set as continuation by the above line.
+     * Handle ZWJ-continuation. */
+    if (unlikely (_hb_glyph_info_is_zwj (&info[i])))
+    {
+      _hb_glyph_info_set_continuation (&info[i]);
+      if (i + 1 < count &&
+	  _hb_unicode_is_emoji_Extended_Pictographic (info[i + 1].codepoint))
+      {
+        i++;
+	_hb_glyph_info_set_unicode_props (&info[i], buffer);
+	_hb_glyph_info_set_continuation (&info[i]);
+      }
+    }
+  }
 }
 
 static void

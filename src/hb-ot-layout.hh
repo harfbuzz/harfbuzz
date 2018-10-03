@@ -160,12 +160,12 @@ hb_ot_layout_position_finish_offsets (hb_font_t    *font,
 #define foreach_syllable(buffer, start, end) \
   for (unsigned int \
        _count = buffer->len, \
-       start = 0, end = _count ? _next_syllable (buffer, 0) : 0; \
+       start = 0, end = _count ? _hb_next_syllable (buffer, 0) : 0; \
        start < _count; \
-       start = end, end = _next_syllable (buffer, start))
+       start = end, end = _hb_next_syllable (buffer, start))
 
 static inline unsigned int
-_next_syllable (hb_buffer_t *buffer, unsigned int start)
+_hb_next_syllable (hb_buffer_t *buffer, unsigned int start)
 {
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
@@ -188,7 +188,7 @@ _next_syllable (hb_buffer_t *buffer, unsigned int start)
  *   * Whether it's one of the three Mongolian Free Variation Selectors,
  *     CGJ, or other characters that are hidden but should not be ignored
  *     like most other Default_Ignorable()s do during matching.
- *   * One free bit right now.
+ *   * Whether it's a grapheme continuation.
  *
  * The high-byte has different meanings, switched by the Gen-Cat:
  * - For Mn,Mc,Me: the modified Combining_Class.
@@ -202,6 +202,7 @@ enum hb_unicode_props_flags_t {
   UPROPS_MASK_IGNORABLE	= 0x0020u,
   UPROPS_MASK_HIDDEN	= 0x0040u, /* MONGOLIAN FREE VARIATION SELECTOR 1..3,
                                     * or TAG characters */
+  UPROPS_MASK_CONTINUATION=0x0080u,
 
   /* If GEN_CAT=FORMAT, top byte masks: */
   UPROPS_MASK_Cf_ZWJ	= 0x0100u,
@@ -220,6 +221,7 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
   if (u >= 0x80)
   {
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII;
+
     if (unlikely (unicode->is_default_ignorable (u)))
     {
       buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
@@ -245,24 +247,10 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
 	props |= UPROPS_MASK_HIDDEN;
       }
     }
-    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK (gen_cat)))
-    {
-      /* The above check is just an optimization to let in only things we need further
-       * processing on. */
 
-      /* Only Mn and Mc can have non-zero ccc:
-       * https://unicode.org/policies/stability_policy.html#Property_Value
-       * """
-       * Canonical_Combining_Class, General_Category
-       * All characters other than those with General_Category property values
-       * Spacing_Mark (Mc) and Nonspacing_Mark (Mn) have the Canonical_Combining_Class
-       * property value 0.
-       * 1.1.5+
-       * """
-       *
-       * Also, all Mn's that are Default_Ignorable, have ccc=0, hence
-       * the "else if".
-       */
+    if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (gen_cat)))
+    {
+      props |= UPROPS_MASK_CONTINUATION;
       props |= unicode->modified_combining_class (u)<<8;
     }
   }
@@ -302,29 +290,6 @@ _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
 {
   return _hb_glyph_info_is_unicode_mark (info) ? info->unicode_props()>>8 : 0;
 }
-
-
-/* Loop over grapheme. Based on foreach_cluster(). */
-#define foreach_grapheme(buffer, start, end) \
-  for (unsigned int \
-       _count = buffer->len, \
-       start = 0, end = _count ? _next_grapheme (buffer, 0) : 0; \
-       start < _count; \
-       start = end, end = _next_grapheme (buffer, start))
-
-static inline unsigned int
-_next_grapheme (hb_buffer_t *buffer, unsigned int start)
-{
-  hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-
-  while (++start < count && _hb_glyph_info_is_unicode_mark (&info[start]))
-    ;
-
-  return start;
-}
-
-
 #define info_cc(info) (_hb_glyph_info_get_modified_combining_class (&(info)))
 
 static inline bool
@@ -367,6 +332,36 @@ static inline void
 _hb_glyph_info_unhide (hb_glyph_info_t *info)
 {
   info->unicode_props() &= ~ UPROPS_MASK_HIDDEN;
+}
+
+static inline void
+_hb_glyph_info_set_continuation (hb_glyph_info_t *info)
+{
+  info->unicode_props() |= UPROPS_MASK_CONTINUATION;
+}
+static inline bool
+_hb_glyph_info_is_continuation (const hb_glyph_info_t *info)
+{
+  return info->unicode_props() & UPROPS_MASK_CONTINUATION;
+}
+/* Loop over grapheme. Based on foreach_cluster(). */
+#define foreach_grapheme(buffer, start, end) \
+  for (unsigned int \
+       _count = buffer->len, \
+       start = 0, end = _count ? _hb_next_grapheme (buffer, 0) : 0; \
+       start < _count; \
+       start = end, end = _hb_next_grapheme (buffer, start))
+
+static inline unsigned int
+_hb_next_grapheme (hb_buffer_t *buffer, unsigned int start)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+
+  while (++start < count && _hb_glyph_info_is_continuation (&info[start]))
+    ;
+
+  return start;
 }
 
 static inline bool
