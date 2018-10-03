@@ -27,6 +27,7 @@ TESTS = \
 	tests/indic-script-extensions.tests \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
+	tests/indic-vowel-letter-spoofing.tests \
 	tests/khmer-mark-order.tests \
 	tests/khmer-misc.tests \
 	tests/language-tags.tests \
