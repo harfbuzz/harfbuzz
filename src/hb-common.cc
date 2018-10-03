@@ -1072,7 +1072,7 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
-  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", variation->value));
+  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
 
   assert (len < ARRAY_LENGTH (s));
   len = MIN (len, size - 1);

@@ -177,7 +177,7 @@ struct fvar
       v = (v - axis.default_value) / (axis.default_value - axis.min_value);
     else
       v = (v - axis.default_value) / (axis.max_value - axis.default_value);
-    return (int) (v * 16384. + (v >= 0. ? .5 : -.5));
+    return (int) (v * 16384.f + (v >= 0.f ? .5f : -.5f));
   }
 
   protected:
