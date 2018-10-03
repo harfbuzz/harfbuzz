@@ -324,9 +324,9 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     }
 
     /* Is SARA AM. Decompose and reorder. */
-    hb_codepoint_t decomposed[2] = {hb_codepoint_t (NIKHAHIT_FROM_SARA_AM (u)),
-				    hb_codepoint_t (SARA_AA_FROM_SARA_AM (u))};
-    buffer->replace_glyphs (1, 2, decomposed);
+    hb_glyph_info_t &nikhahit = buffer->output_glyph (NIKHAHIT_FROM_SARA_AM (u));
+    _hb_glyph_info_set_continuation (&nikhahit);
+    buffer->replace_glyph (SARA_AA_FROM_SARA_AM (u));
     if (unlikely (!buffer->successful))
       return;
 
