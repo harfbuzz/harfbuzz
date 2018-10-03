@@ -37,6 +37,8 @@ static const char *text = "طرح‌نَما";
 static const char *path =
 #if defined(__linux__)
 		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+#elif defined(__FreeBSD__)
+		"/usr/local/share/fonts/dejavu/DejaVuSans.ttf";
 #elif defined(_WIN32) || defined(_WIN64)
 		"C:\\Windows\\Fonts\\tahoma.ttf";
 #elif __APPLE__
