@@ -339,6 +339,11 @@ _hb_glyph_info_set_continuation (hb_glyph_info_t *info)
 {
   info->unicode_props() |= UPROPS_MASK_CONTINUATION;
 }
+static inline void
+_hb_glyph_info_reset_continuation (hb_glyph_info_t *info)
+{
+  info->unicode_props() &= ~ UPROPS_MASK_CONTINUATION;
+}
 static inline bool
 _hb_glyph_info_is_continuation (const hb_glyph_info_t *info)
 {
