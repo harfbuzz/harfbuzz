@@ -369,37 +369,6 @@ hb_buffer_t::replace_glyphs (unsigned int num_in,
   out_len += num_out;
 }
 
-void
-hb_buffer_t::output_glyph (hb_codepoint_t glyph_index)
-{
-  if (unlikely (!make_room_for (0, 1))) return;
-
-  out_info[out_len] = info[idx];
-  out_info[out_len].codepoint = glyph_index;
-
-  out_len++;
-}
-
-void
-hb_buffer_t::output_info (const hb_glyph_info_t &glyph_info)
-{
-  if (unlikely (!make_room_for (0, 1))) return;
-
-  out_info[out_len] = glyph_info;
-
-  out_len++;
-}
-
-void
-hb_buffer_t::copy_glyph (void)
-{
-  if (unlikely (!make_room_for (0, 1))) return;
-
-  out_info[out_len] = info[idx];
-
-  out_len++;
-}
-
 bool
 hb_buffer_t::move_to (unsigned int i)
 {
@@ -440,19 +409,6 @@ hb_buffer_t::move_to (unsigned int i)
   }
 
   return true;
-}
-
-void
-hb_buffer_t::replace_glyph (hb_codepoint_t glyph_index)
-{
-  if (unlikely (out_info != info || out_len != idx)) {
-    if (unlikely (!make_room_for (1, 1))) return;
-    out_info[out_len] = info[idx];
-  }
-  out_info[out_len].codepoint = glyph_index;
-
-  idx++;
-  out_len++;
 }
 
 
