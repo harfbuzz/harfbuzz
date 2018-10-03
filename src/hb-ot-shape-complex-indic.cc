@@ -412,9 +412,15 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	bool matched = false;
 	switch (buffer->cur().codepoint)
 	{
-	  case 0x0985u: matched = 0x09BE == buffer->cur(1).codepoint; break;
-	  case 0x098Bu: matched = 0x09C3 == buffer->cur(1).codepoint; break;
-	  case 0x098Cu: matched = 0x09E2 == buffer->cur(1).codepoint; break;
+	  case 0x0985u:
+	    matched = 0x09BE == buffer->cur(1).codepoint;
+	    break;
+	  case 0x098Bu:
+	    matched = 0x09C3 == buffer->cur(1).codepoint;
+	    break;
+	  case 0x098Cu:
+	    matched = 0x09E2 == buffer->cur(1).codepoint;
+	    break;
 	}
 	buffer->next_glyph ();
 	if (matched) { buffer->output_glyph (0x25CCu); buffer->next_glyph (); }
@@ -475,7 +481,7 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 	    }
 	    break;
 	  case 0x0AC5u:
-	    matched = 0x0ABE == buffer->cur(1).codepoint; break;
+	    matched = 0x0ABE == buffer->cur(1).codepoint;
 	    break;
 	}
 	buffer->next_glyph ();
