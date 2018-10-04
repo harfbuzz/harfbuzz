@@ -33,7 +33,7 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 	name = elt.get(ns('ft:id'))
 	text = elt.get(ns('ft:render'))
 	font = elt.get(ns('ft:font'))
-	vars = elt.get(ns('ft:var'), '').replace(':', '=').replace(';', ',')
+	variations = elt.get(ns('ft:var'), '').replace(':', '=').replace(';', ',')
 	glyphs = []
 	for use in elt.findall(".//use"):
 		x = int(use.get('x'))
@@ -43,8 +43,8 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 		glyphname = '.'.join(href[1:].split('/')[1].split('.')[1:])
 		glyphs.append((glyphname, x, y))
 	opts = '--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft'
-	if vars:
-		opts = opts + ' --variations=%s' % vars
+	if variations:
+		opts = opts + ' --variations=%s' % variations
 	print ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
 
 sys.exit(0 if found else 1)
