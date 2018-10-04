@@ -78,6 +78,7 @@ if HAVE_OT
 TEST_PROGS += \
 	test-ot-color \
 	test-ot-tag \
+	test-ot-extents-cff \
 	$(NULL)
 
 if HAVE_PTHREAD
