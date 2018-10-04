@@ -15,6 +15,7 @@ TESTS = \
 	tests/GPOS-5.tests \
 	tests/GSUB-1.tests \
 	tests/GSUB-2.tests \
+	tests/GSUB-3.tests \
 	tests/GVAR-1.tests \
 	tests/GVAR-2.tests \
 	tests/GVAR-3.tests \
@@ -42,6 +43,7 @@ TESTS = \
 	tests/MORX-21.tests \
 	tests/MORX-22.tests \
 	tests/MORX-23.tests \
+	tests/MORX-24.tests \
 	tests/MORX-25.tests \
 	tests/MORX-26.tests \
 	tests/MORX-27.tests \
@@ -50,6 +52,9 @@ TESTS = \
 	tests/MORX-2.tests \
 	tests/MORX-30.tests \
 	tests/MORX-31.tests \
+	tests/MORX-32.tests \
+	tests/MORX-33.tests \
+	tests/MORX-34.tests \
 	tests/MORX-3.tests \
 	tests/MORX-4.tests \
 	tests/MORX-5.tests \
@@ -68,5 +73,4 @@ DISBALED_TESTS = \
 	tests/SHBALI-2.tests \
 	tests/SHKNDA-2.tests \
 	tests/SHKNDA-3.tests \
-	tests/MORX-32.tests \
 	$(NULL)

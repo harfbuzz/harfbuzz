@@ -28,6 +28,7 @@ def glyphstr(glyphs):
 
 html = ET.fromstring(sys.stdin.read())
 found = False
+
 for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 	found = True
 	name = elt.get(ns('ft:id'))
@@ -46,5 +47,16 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 	if variations:
 		opts = opts + ' --variations=%s' % variations
 	print ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
+
+for elt in html.findall(".//*[@class='should-not-crash'][@ft:id]", namespaces):
+	found = True
+	name = elt.get(ns('ft:id'))
+	text = elt.get(ns('ft:render'))
+	font = elt.get(ns('ft:font'))
+	variations = elt.get(ns('ft:var'), '').replace(':', '=').replace(';', ',')
+	opts = ''
+	if variations:
+		opts = '--variations=%s' % variations
+	print ("../fonts/%s:%s:%s:*" % (font, opts, unistr(text)))
 
 sys.exit(0 if found else 1)
