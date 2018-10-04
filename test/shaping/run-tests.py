@@ -65,7 +65,7 @@ for filename in args:
 			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
-			print ("hb-shape --font-funcs=ft failed.") # file=sys.stderr
+			print ("ERROR: hb-shape --font-funcs=ft failed.") # file=sys.stderr
 			fails = fails + 1
 			#continue
 
@@ -78,7 +78,7 @@ for filename in args:
 			fails = fails + 1
 			#continue
 
-		if glyphs1 != glyphs2:
+		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr
 			print ("OT funcs: " + glyphs2) # file=sys.stderr
 			fails = fails + 1
