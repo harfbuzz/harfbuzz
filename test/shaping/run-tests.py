@@ -46,7 +46,7 @@ for filename in args:
 		cwd = os.path.dirname(filename)
 		fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
-		extra_options = []
+		extra_options = ["--shaper=ot"]
 		glyphs_expected = glyphs_expected.strip()
 		if glyphs_expected != '*':
 			extra_options.append("--verify")
