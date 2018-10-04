@@ -223,7 +223,7 @@ struct Number
     if (is_fixed ())
       return u.fixed_val;
     else if (is_real ())
-      return (int32_t)((double)u.real_val * 65536.0);
+      return (int32_t)(u.real_val * 65536.0f);
     else
       return (int32_t)(u.int_val << 16);
   }
@@ -233,7 +233,7 @@ struct Number
     if (is_real ())
       return u.real_val;
     if (is_fixed ())
-      return (float)((double)u.fixed_val / 65536.0);
+      return u.fixed_val / 65536.0f;
     else
       return (float)u.int_val;
   }
