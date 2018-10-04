@@ -564,3 +564,19 @@ _hb_modified_combining_class[256] =
   241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
   255, /* HB_UNICODE_COMBINING_CLASS_INVALID */
 };
+
+
+/*
+ * Emoji
+ */
+
+#include "hb-unicode-emoji-table.hh"
+
+bool
+_hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp)
+{
+  return hb_bsearch_r (&cp, _hb_unicode_emoji_Extended_Pictographic_table,
+		       ARRAY_LENGTH (_hb_unicode_emoji_Extended_Pictographic_table),
+		       sizeof (hb_unicode_range_t),
+		       hb_unicode_range_t::cmp, nullptr);
+}

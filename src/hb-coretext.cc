@@ -626,7 +626,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
 
   /* Attach marks to their bases, to match the 'ot' shaper.
-   * Adapted from hb-ot-shape:hb_form_clusters().
+   * Adapted from a very old version of hb-ot-shape:hb_form_clusters().
    * Note that this only makes us be closer to the 'ot' shaper,
    * but by no means the same.  For example, if there's
    * B1 M1 B2 M2, and B1-B2 form a ligature, M2's cluster will

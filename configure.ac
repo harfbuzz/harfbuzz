@@ -330,7 +330,7 @@ AC_ARG_WITH(graphite2,
 			[Use the graphite2 library @<:@default=no@:>@])],,
 	[with_graphite2=no])
 have_graphite2=false
-GRAPHITE2_DEPS="graphite2"
+GRAPHITE2_DEPS="graphite2 >= 1.2.0"
 AC_SUBST(GRAPHITE2_DEPS)
 if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
 	PKG_CHECK_MODULES(GRAPHITE2, $GRAPHITE2_DEPS, have_graphite2=true, :)

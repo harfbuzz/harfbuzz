@@ -197,7 +197,10 @@ def is_CONS_SUB(U, UISC, UGC):
 def is_CONS_WITH_STACKER(U, UISC, UGC):
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
-	return UISC in [Virama, Invisible_Stacker]
+	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
+def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
+	# https://github.com/harfbuzz/harfbuzz/issues/1102
+	return U == 0x11046
 def is_HALANT_NUM(U, UISC, UGC):
 	return UISC == Number_Joiner
 def is_ZWNJ(U, UISC, UGC):
@@ -248,6 +251,7 @@ use_mapping = {
 	'SUB':	is_CONS_SUB,
 	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
+	'HVM':	is_HALANT_OR_VOWEL_MODIFIER,
 	'HN':	is_HALANT_NUM,
 	'ZWNJ':	is_ZWNJ,
 	'ZWJ':	is_ZWJ,
@@ -295,6 +299,7 @@ use_positions = {
 		'Blw': [Bottom],
 	},
 	'H': None,
+	'HVM': None,
 	'B': None,
 	'FM': None,
 	'SUB': None,

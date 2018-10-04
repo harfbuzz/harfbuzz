@@ -12,7 +12,7 @@ TESTS = \
 	tests/context-matching.tests \
 	tests/cursive-positioning.tests \
 	tests/default-ignorables.tests \
-	tests/emoji-flag-tags.tests \
+	tests/emoji.tests \
 	tests/fallback-positioning.tests \
 	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
@@ -27,6 +27,7 @@ TESTS = \
 	tests/indic-script-extensions.tests \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
+	tests/indic-vowel-letter-spoofing.tests \
 	tests/khmer-mark-order.tests \
 	tests/khmer-misc.tests \
 	tests/language-tags.tests \

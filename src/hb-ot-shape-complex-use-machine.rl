@@ -88,13 +88,16 @@ SMAbv	= 41; # SYM_MOD_ABOVE
 SMBlw	= 42; # SYM_MOD_BELOW
 CS	= 43; # CONS_WITH_STACKER
 
+HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
+
+h = H | HVM; # https://github.com/harfbuzz/harfbuzz/issues/1102
 
 # Override: Adhoc ZWJ placement. https://github.com/harfbuzz/harfbuzz/issues/542#issuecomment-353169729
-consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.H.ZWJ? B | SUB) VS? CMAbv? CMBlw*)*;
+consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) VS? CMAbv? CMBlw*)*;
 # Override: Allow two MBlw. https://github.com/harfbuzz/harfbuzz/issues/376
 medial_consonants = MPre? MAbv? MBlw?.MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
-vowel_modifiers = VMPre* VMAbv* VMBlw* VMPst*;
+vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst* FM?;
 
 complex_syllable_tail =
@@ -108,7 +111,7 @@ complex_syllable_tail =
 virama_terminated_cluster =
 	(R|CS)? (B | GB) VS?
 	consonant_modifiers
-	ZWJ?.H.ZWJ?
+	ZWJ?.h.ZWJ?
 ;
 standard_cluster =
 	(R|CS)? (B | GB) VS?

@@ -32,16 +32,10 @@
 #include <hb.h>
 #include <hb-ft.h>
 #include <hb-ot.h>
+#include <glib.h>
 
-static const char *text = "طرح‌نَما";
-static const char *path =
-#if defined(__linux__)
-		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
-#elif defined(_WIN32) || defined(_WIN64)
-		"C:\\Windows\\Fonts\\tahoma.ttf";
-#elif __APPLE__
-		"/Library/Fonts/Tahoma.ttf";
-#endif
+static char *font_path = "fonts/Inconsolata-Regular.abc.ttf";
+static char *text = "abc";
 
 static int num_threads = 30;
 static int num_iters = 200;
@@ -54,7 +48,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static void
 fill_the_buffer (hb_buffer_t *buffer)
 {
-  hb_buffer_add_utf8 (buffer, text, sizeof (text), 0, sizeof (text));
+  hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, NULL, 0);
 }
@@ -133,16 +127,33 @@ test_body (void)
 int
 main (int argc, char **argv)
 {
-  if (argc > 1)
-    num_threads = atoi (argv[1]);
+  g_test_init (&argc, &argv, NULL);
+
+#if GLIB_CHECK_VERSION(2,37,2)
+  gchar *default_path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
+#else
+  gchar *default_path = g_strdup (font_path);
+#endif
+
+  char *path = argc > 1 ? argv[1] : (char *) default_path;
   if (argc > 2)
-    num_iters = atoi (argv[2]);
+    num_threads = atoi (argv[2]);
+  if (argc > 3)
+    num_iters = atoi (argv[3]);
+  if (argc > 4)
+    text = argv[4];
 
   // Dummy call to alleviate _guess_segment_properties thread safety-ness
   // https://github.com/harfbuzz/harfbuzz/issues/1191
   hb_language_get_default ();
 
   hb_blob_t *blob = hb_blob_create_from_file (path);
+  if (hb_blob_get_length (blob) == 0)
+  {
+    printf ("The test font is not found.");
+    return 1;
+  }
+
   hb_face_t *face = hb_face_create (blob, 0);
   font = hb_font_create (face);
 
@@ -164,6 +175,8 @@ main (int argc, char **argv)
   hb_font_destroy (font);
   hb_face_destroy (face);
   hb_blob_destroy (blob);
+
+  g_free (default_path);
 
   return 0;
 }

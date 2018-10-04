@@ -24,6 +24,7 @@
 #define GB	USE_GB	/* BASE_OTHER */
 #define H	USE_H	/* HALANT */
 #define HN	USE_HN	/* HALANT_NUM */
+#define HVM	USE_HVM	/* HALANT_OR_VOWEL_MODIFIER */
 #define IND	USE_IND	/* BASE_IND */
 #define N	USE_N	/* BASE_NUM */
 #define O	USE_O	/* OTHER */
@@ -508,7 +509,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11030 */     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,
-  /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,   HVM,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11050 */     O,     O,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,
   /* 11060 */     N,     N,     N,     N,     N,     N,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11070 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,    HN,
@@ -800,6 +801,7 @@ hb_use_get_category (hb_codepoint_t u)
 #undef GB
 #undef H
 #undef HN
+#undef HVM
 #undef IND
 #undef N
 #undef O

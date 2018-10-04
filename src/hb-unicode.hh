@@ -101,26 +101,6 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return ret;
   }
 
-
-  inline hb_unicode_general_category_t
-  modified_general_category (hb_codepoint_t u)
-  {
-    hb_unicode_general_category_t cat = general_category (u);
-
-    if (unlikely (cat == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL))
-    {
-      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
-       * behave correctly in non-native directionality.  They originally
-       * are MODIFIER_SYMBOL.  Fixes:
-       * https://github.com/harfbuzz/harfbuzz/issues/169
-       */
-      if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1F3FBu, 0x1F3FFu)))
-	cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
-    }
-
-    return cat;
-  }
-
   inline unsigned int
   modified_combining_class (hb_codepoint_t u)
   {
@@ -286,7 +266,9 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 
 
-/* Modified combining marks */
+/*
+ * Modified combining marks
+ */
 
 /* Hebrew
  *
@@ -379,9 +361,37 @@ DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
 
-#define HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK(gen_cat) \
-	(FLAG_UNSAFE (gen_cat) & \
-	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
-	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+
+/*
+ * Ranges, used for bsearch tables.
+ */
+
+struct hb_unicode_range_t
+{
+  static int
+  cmp (const void *_key, const void *_item, void *_arg)
+  {
+    hb_codepoint_t cp = *((hb_codepoint_t *) _key);
+    const hb_unicode_range_t *range = (hb_unicode_range_t *) _item;
+
+    if (cp < range->start)
+      return -1;
+    else if (cp <= range->end)
+      return 0;
+    else
+      return +1;
+  }
+
+  hb_codepoint_t start;
+  hb_codepoint_t end;
+};
+
+/*
+ * Emoji.
+ */
+
+HB_INTERNAL bool
+_hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp);
+
 
 #endif /* HB_UNICODE_HH */

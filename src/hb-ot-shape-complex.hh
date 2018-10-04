@@ -237,13 +237,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       return &_hb_ot_complex_shaper_hebrew;
 
 
-    /* ^--- Add new shapers here */
-
-#if 0
-    /* Unicode-4.1 additions */
-    case HB_SCRIPT_NEW_TAI_LUE:
-#endif
-
     /* Unicode-1.1 additions */
     case HB_SCRIPT_BENGALI:
     case HB_SCRIPT_DEVANAGARI:
@@ -350,9 +343,9 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
     /* Unicode-8.0 additions */
     case HB_SCRIPT_AHOM:
-    //case HB_SCRIPT_MULTANI:
 
     /* Unicode-9.0 additions */
+    //case HB_SCRIPT_ADLAM:
     case HB_SCRIPT_BHAIKSUKI:
     case HB_SCRIPT_MARCHEN:
     case HB_SCRIPT_NEWA:
@@ -365,7 +358,9 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* Unicode-11.0 additions */
     case HB_SCRIPT_DOGRA:
     case HB_SCRIPT_GUNJALA_GONDI:
+    //case HB_SCRIPT_HANIFI_ROHINGYA:
     case HB_SCRIPT_MAKASAR:
+    //case HB_SCRIPT_SOGDIAN:
 
       /* If the designer designed the font for the 'DFLT' script,
        * (or we ended up arbitrarily pick 'latn'), use the default shaper.

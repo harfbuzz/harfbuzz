@@ -275,10 +275,39 @@ struct hb_ot_shape_context_t
 static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
+  /* Implement enough of Unicode Graphemes here that shaping
+   * in reverse-direction wouldn't break graphemes.  Namely,
+   * we mark all marks and ZWJ and ZWJ,Extended_Pictographic
+   * sequences as continuations.  The foreach_grapheme()
+   * macro uses this bit.
+   *
+   * https://www.unicode.org/reports/tr29/#Regex_Definitions
+   */
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
+  {
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
+
+    /* Marks are already set as continuation by the above line.
+     * Handle Emoji_Modifier and ZWJ-continuation. */
+    if (unlikely (_hb_glyph_info_get_general_category (&info[i]) == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL &&
+		  hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F3FBu, 0x1F3FFu)))
+    {
+	_hb_glyph_info_set_continuation (&info[i]);
+    }
+    else if (unlikely (_hb_glyph_info_is_zwj (&info[i])))
+    {
+      _hb_glyph_info_set_continuation (&info[i]);
+      if (i + 1 < count &&
+	  _hb_unicode_is_emoji_Extended_Pictographic (info[i + 1].codepoint))
+      {
+        i++;
+	_hb_glyph_info_set_unicode_props (&info[i], buffer);
+	_hb_glyph_info_set_continuation (&info[i]);
+      }
+    }
+  }
 }
 
 static void
@@ -286,8 +315,7 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
 {
   if (!(buffer->flags & HB_BUFFER_FLAG_BOT) ||
       buffer->context_len[0] ||
-      _hb_glyph_info_get_general_category (&buffer->info[0]) !=
-      HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+      !_hb_glyph_info_is_unicode_mark (&buffer->info[0]))
     return;
 
   if (!font->has_glyph (0x25CCu))
@@ -316,26 +344,12 @@ hb_form_clusters (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
     return;
 
-  /* Loop duplicated in hb_ensure_native_direction(), and in _hb-coretext.cc */
-  unsigned int base = 0;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 1; i < count; i++)
-  {
-    if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i])) &&
-		!_hb_glyph_info_is_joiner (&info[i])))
-    {
-      if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
-	buffer->merge_clusters (base, i);
-      else
-	buffer->unsafe_to_break (base, i);
-      base = i;
-    }
-  }
   if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
-    buffer->merge_clusters (base, count);
+    foreach_grapheme (buffer, start, end)
+      buffer->merge_clusters (start, end);
   else
-    buffer->unsafe_to_break (base, count);
+    foreach_grapheme (buffer, start, end)
+      buffer->unsafe_to_break (start, end);
 }
 
 static void
@@ -353,25 +367,17 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
       (HB_DIRECTION_IS_VERTICAL   (direction) &&
        direction != HB_DIRECTION_TTB))
   {
-    /* Same loop as hb_form_clusters().
-     * Since form_clusters() merged clusters already, we don't merge. */
-    unsigned int base = 0;
-    unsigned int count = buffer->len;
-    hb_glyph_info_t *info = buffer->info;
-    for (unsigned int i = 1; i < count; i++)
-    {
-      if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i]))))
-      {
-	if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-	  buffer->merge_clusters (base, i);
-	buffer->reverse_range (base, i);
 
-	base = i;
-      }
-    }
     if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-      buffer->merge_clusters (base, count);
-    buffer->reverse_range (base, count);
+      foreach_grapheme (buffer, start, end)
+      {
+	buffer->merge_clusters (start, end);
+	buffer->reverse_range (start, end);
+      }
+    else
+      foreach_grapheme (buffer, start, end)
+	/* form_clusters() merged clusters already, we don't merge. */
+	buffer->reverse_range (start, end);
 
     buffer->reverse ();
 
