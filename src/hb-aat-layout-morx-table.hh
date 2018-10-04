@@ -947,6 +947,8 @@ struct morx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_morx;
 
+  inline bool has_data (void) const { return version != 0; }
+
   inline void apply (hb_aat_apply_context_t *c) const
   {
     if (unlikely (!c->buffer->successful)) return;

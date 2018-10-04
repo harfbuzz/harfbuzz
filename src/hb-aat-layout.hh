@@ -33,6 +33,8 @@
 #include "hb-buffer.hh"
 #include "hb-open-type.hh"
 
+HB_INTERNAL hb_bool_t
+hb_aat_layout_has_substitution (hb_face_t *face);
 
 HB_INTERNAL void
 hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer);
