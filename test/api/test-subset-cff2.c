@@ -71,8 +71,8 @@ test_subset_cff2 (void)
 static void
 test_subset_cff2_strip_hints (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/AdobeVFPrototype.ac.nohints.ttf");
+  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/AdobeVFPrototype.ac.nohints.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_subset_input_t *input;
