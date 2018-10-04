@@ -46,7 +46,7 @@ struct view_cairo_t
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
-    scale_bits = -font_opts->subpixel_bits;
+    scale_bits = - (int) font_opts->subpixel_bits;
   }
   void new_line (void)
   {
