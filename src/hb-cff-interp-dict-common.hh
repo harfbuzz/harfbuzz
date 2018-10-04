@@ -64,6 +64,10 @@ struct DictValues
 
   inline void fini (void)
   {
+    for (unsigned int i = 0; i < values.len; i++)
+    {
+      values[i].fini ();
+    }
     values.fini ();
   }
 

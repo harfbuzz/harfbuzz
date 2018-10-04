@@ -627,6 +627,9 @@ struct ArgStack : Stack<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct OpStr
 {
+  inline void init (void) {}
+  inline void fini (void) {}
+
   OpCode  op;
   ByteStr str;
 };
