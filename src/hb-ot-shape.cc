@@ -132,12 +132,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
-  map->enable_feature (HB_TAG('H','a','r','f'));
+  map->enable_feature (HB_TAG('H','A','R','F'));
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
-  map->enable_feature (HB_TAG('B','u','z','z'));
+  map->enable_feature (HB_TAG('B','U','Z','Z'));
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);
