@@ -368,8 +368,8 @@ struct hb_set_t
     if (!resize (count))
       return;
     population = other->population;
-    memcpy (pages.arrayZ, other->pages.arrayZ, count * sizeof (pages.arrayZ[0]));
-    memcpy (page_map.arrayZ, other->page_map.arrayZ, count * sizeof (page_map.arrayZ[0]));
+    memcpy (pages.arrayZ(), other->pages.arrayZ(), count * sizeof (pages.arrayZ()[0]));
+    memcpy (page_map.arrayZ(), other->page_map.arrayZ(), count * sizeof (page_map.arrayZ()[0]));
   }
 
   inline bool is_equal (const hb_set_t *other) const
