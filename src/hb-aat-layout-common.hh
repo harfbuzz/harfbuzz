@@ -546,8 +546,6 @@ struct StateTableDriver
   template <typename context_t>
   inline void drive (context_t *c)
   {
-    hb_glyph_info_t *info = buffer->info;
-
     if (!c->in_place)
       buffer->clear_output ();
 
@@ -556,7 +554,7 @@ struct StateTableDriver
     for (buffer->idx = 0;;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
-			   machine.get_class (info[buffer->idx].codepoint, num_glyphs) :
+			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTable<EntryData>::CLASS_END_OF_TEXT;
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
