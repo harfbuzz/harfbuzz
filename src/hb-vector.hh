@@ -227,6 +227,14 @@ struct hb_vector_t
     return false;
   }
 
+  inline void fini_deep (void)
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      arrayZ[i].fini ();
+    fini ();
+  }
+
   inline void fini (void)
   {
     if (arrayZ != static_array)
