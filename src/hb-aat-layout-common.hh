@@ -561,15 +561,17 @@ struct StateTableDriver
 	break;
 
       /* Unsafe-to-break before this if not in state 0, as things might
-       * go differently if we start from state 0 here. */
-      if (state && buffer->idx)
+       * go differently if we start from state 0 here.
+       *
+       * Ugh.  The indexing here is ugly... */
+      if (state && buffer->backtrack_len () && buffer->idx < buffer->len)
       {
 	/* If there's no action and we're just epsilon-transitioning to state 0,
 	 * safe to break. */
 	if (c->is_actionable (this, entry) ||
 	    !(entry->newState == StateTable<EntryData>::STATE_START_OF_TEXT &&
 	      entry->flags == context_t::DontAdvance))
-	  buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
+	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
 
       /* Unsafe-to-break if end-of-text would kick in here. */
