@@ -19,8 +19,6 @@ if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.arg
 	sys.exit (1)
 hb_shape, args = args[0], args[1:]
 
-extra_options = "--verify"
-
 fails = 0
 
 reference = False
@@ -48,6 +46,11 @@ for filename in args:
 		cwd = os.path.dirname(filename)
 		fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
+		extra_options = ["--shaper=ot"]
+		glyphs_expected = glyphs_expected.strip()
+		if glyphs_expected != '*':
+			extra_options.append("--verify")
+
 		if line.startswith ("#"):
 			if not reference:
 				print ("# %s %s --unicodes %s" % (hb_shape, fontfile, unicodes))
@@ -55,19 +58,19 @@ for filename in args:
 
 		if not reference:
 			print ("%s %s %s %s --unicodes %s" %
-					 (hb_shape, fontfile, extra_options, options, unicodes))
+					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
 
 		glyphs1, returncode = cmd ([hb_shape, "--font-funcs=ft",
-			fontfile, extra_options, "--unicodes",
+			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
-			print ("hb-shape --font-funcs=ft failed.") # file=sys.stderr
+			print ("ERROR: hb-shape --font-funcs=ft failed.") # file=sys.stderr
 			fails = fails + 1
 			#continue
 
 		glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
-			fontfile, extra_options, "--unicodes",
+			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
 		if returncode:
@@ -75,7 +78,7 @@ for filename in args:
 			fails = fails + 1
 			#continue
 
-		if glyphs1 != glyphs2:
+		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr
 			print ("OT funcs: " + glyphs2) # file=sys.stderr
 			fails = fails + 1
@@ -84,7 +87,7 @@ for filename in args:
 			print (":".join ([fontfile, options, unicodes, glyphs1]))
 			continue
 
-		if glyphs1.strip() != glyphs_expected.strip() and glyphs_expected.strip() != '*':
+		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
 			print ("Actual:   " + glyphs1) # file=sys.stderr
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
 			fails = fails + 1

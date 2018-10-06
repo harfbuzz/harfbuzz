@@ -634,7 +634,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   unsigned int face_length = table_count * 16 + 12;
 
   for (unsigned int i = 0; i < table_count; i++)
-    face_length += hb_ceil_to_4 (hb_blob_get_length (data->tables.arrayZ[i].blob));
+    face_length += hb_ceil_to_4 (hb_blob_get_length (data->tables[i].blob));
 
   char *buf = (char *) malloc (face_length);
   if (unlikely (!buf))

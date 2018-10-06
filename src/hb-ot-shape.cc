@@ -63,9 +63,14 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.kerning_requested = !!plan.kern_mask;
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
+  plan.apply_morx = !hb_ot_layout_has_substitution (face) &&
+		     hb_aat_layout_has_substitution (face);
+
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
-  plan.fallback_positioning = disable_gpos || !hb_ot_layout_has_positioning (face);
+  plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
+
+  plan.fallback_positioning = !plan.apply_gpos;
   plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
 }
 
@@ -127,8 +132,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
+  map->enable_feature (HB_TAG('H','A','R','F'));
+
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
+
+  map->enable_feature (HB_TAG('B','U','Z','Z'));
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);
@@ -217,7 +226,13 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   hb_ot_shape_planner_t planner (shape_plan);
 
-  planner.shaper = hb_ot_shape_complex_categorize (&planner);
+  /* Ugly that we have to do this here...
+   * If we are going to apply morx, choose default shaper. */
+  if (!hb_ot_layout_has_substitution (planner.face) &&
+       hb_aat_layout_has_substitution (planner.face))
+    planner.shaper = &_hb_ot_complex_shaper_default;
+  else
+    planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props,
 				user_features, num_user_features);
@@ -661,10 +676,10 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
   if (c->plan->fallback_glyph_classes)
     hb_synthesize_glyph_classes (c);
 
-  c->plan->substitute (c->font, buffer);
-
-  if (0) /* XXX Call morx instead. */
+  if (unlikely (c->plan->apply_morx))
     hb_aat_layout_substitute (c->font, c->buffer);
+  else
+    c->plan->substitute (c->font, buffer);
 }
 
 static inline void
@@ -784,7 +799,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
       break;
   }
 
-  if (likely (!c->plan->fallback_positioning))
+  if (c->plan->apply_gpos)
     c->plan->position (c->font, c->buffer);
 
   switch (c->plan->shaper->zero_width_marks)

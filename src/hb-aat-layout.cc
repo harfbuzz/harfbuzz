@@ -55,6 +55,12 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
   return morx;
 }
 
+hb_bool_t
+hb_aat_layout_has_substitution (hb_face_t *face)
+{
+  return _get_morx (face).has_data ();
+}
+
 void
 hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
 {

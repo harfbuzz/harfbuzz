@@ -49,6 +49,11 @@ struct hb_ot_shape_plan_t
   bool fallback_positioning : 1;
   bool fallback_glyph_classes : 1;
 
+  bool apply_morx : 1;
+
+  bool apply_gpos : 1;
+
+
   inline void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
   {
     unsigned int table_index;

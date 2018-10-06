@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.13.0 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
 AX_CODE_COVERAGE
+AC_USE_SYSTEM_EXTENSIONS
 
 # Initialize libtool
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -19,7 +20,6 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 # Check for programs
-AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O

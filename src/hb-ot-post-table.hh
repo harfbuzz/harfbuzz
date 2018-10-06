@@ -242,7 +242,7 @@ struct post
 
       if (index >= index_to_offset.len)
 	return hb_bytes_t ();
-      unsigned int offset = index_to_offset.arrayZ[index];
+      unsigned int offset = index_to_offset[index];
 
       const uint8_t *data = pool + offset;
       unsigned int name_length = *data;

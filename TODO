@@ -1,9 +1,3 @@
-General fixes:
-=============
-
-- Implement 'rand' feature.
-
-
 API issues:
 ===========
 
@@ -19,11 +13,9 @@ API additions
 
 - Add hb-cairo glue
 
-- Add sanitize API (and a cached version, that saves result on blob user-data)
+- Add sanitize API.
 
 - BCP 47 language handling / API (language_matches?)
-
-- Add hb_font_create_unscaled()?
 
 - Add query / enumeration API for aalt-like features?
 
