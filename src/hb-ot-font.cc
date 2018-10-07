@@ -187,7 +187,7 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 static void free_static_ot_funcs (void);
 #endif
 
-static struct hb_ot_face_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_face_funcs_lazy_loader_t>
+static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_font_funcs_lazy_loader_t>
 {
   static inline hb_font_funcs_t *create (void)
   {
