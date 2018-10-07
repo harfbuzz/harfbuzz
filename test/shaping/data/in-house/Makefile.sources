@@ -44,6 +44,7 @@ TESTS = \
 	tests/tibetan-contractions-1.tests \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
+	tests/trak.tests \
 	tests/use.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \

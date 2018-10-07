@@ -849,7 +849,7 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
 
-  //hb_aat_layout_position (c->font, c->buffer);
+  hb_aat_layout_position (c->font, c->buffer);
 }
 
 static inline void
