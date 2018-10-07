@@ -548,15 +548,15 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
   if (i == count)
     return;
 
-  hb_codepoint_t space;
+  hb_codepoint_t invisible = c->buffer->invisible;
   if (!(buffer->flags & HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES) &&
-      c->font->get_nominal_glyph (' ', &space))
+      (invisible || c->font->get_nominal_glyph (' ', &invisible)))
   {
-    /* Replace default-ignorables with a zero-advance space glyph. */
+    /* Replace default-ignorables with a zero-advance invisible glyph. */
     for (/*continue*/; i < count; i++)
     {
       if (_hb_glyph_info_is_default_ignorable (&info[i]))
-	info[i].codepoint = space;
+	info[i].codepoint = invisible;
     }
   }
   else

@@ -219,6 +219,7 @@ hb_buffer_t::reset (void)
   unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
   replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
+  invisible = 0;
 
   clear ();
 }
@@ -665,6 +666,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
   HB_BUFFER_FLAG_DEFAULT,
   HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
   HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
+  0, /* invisible */
   HB_BUFFER_SCRATCH_FLAG_DEFAULT,
   HB_BUFFER_MAX_LEN_DEFAULT,
   HB_BUFFER_MAX_OPS_DEFAULT,
@@ -1163,6 +1165,46 @@ hb_codepoint_t
 hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
 {
   return buffer->replacement;
+}
+
+
+/**
+ * hb_buffer_set_invisible_codepoint:
+ * @buffer: an #hb_buffer_t.
+ * @invisible: the invisible #hb_codepoint_t
+ *
+ * Sets the #hb_codepoint_t that replaces invisible characters in
+ * the shaping result.  If set to zero (default), the glyph for the
+ * U+0020 SPACE character is used.  Otherwise, this value is used
+ * verbatim.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_buffer_set_invisible_codepoint (hb_buffer_t    *buffer,
+				   hb_codepoint_t  invisible)
+{
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
+  buffer->invisible = invisible;
+}
+
+/**
+ * hb_buffer_get_invisible_codepoint:
+ * @buffer: an #hb_buffer_t.
+ *
+ * See hb_buffer_set_invisible_codepoint().
+ *
+ * Return value: 
+ * The @buffer invisible #hb_codepoint_t.
+ *
+ * Since: REPLACEME
+ **/
+hb_codepoint_t
+hb_buffer_get_invisible_codepoint (hb_buffer_t    *buffer)
+{
+  return buffer->invisible;
 }
 
 
