@@ -940,7 +940,7 @@ struct Chain
 
 
 /*
- * The 'mort'/'morx' Tables
+ * The 'morx' Table
  */
 
 struct morx
