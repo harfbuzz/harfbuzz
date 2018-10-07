@@ -73,7 +73,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx.get_relaxed ();
+  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx.get ();
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -93,7 +93,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get_relaxed ();
+  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -162,11 +162,12 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  metrics->ascender = font->em_scale_y (ot_face->hmtx.get_relaxed ()->ascender);
-  metrics->descender = font->em_scale_y (ot_face->hmtx.get_relaxed ()->descender);
-  metrics->line_gap = font->em_scale_y (ot_face->hmtx.get_relaxed ()->line_gap);
+  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx.get ();
+  metrics->ascender = font->em_scale_y (hmtx.ascender);
+  metrics->descender = font->em_scale_y (hmtx.descender);
+  metrics->line_gap = font->em_scale_y (hmtx.line_gap);
   // TODO Hook up variations.
-  return ot_face->hmtx.get_relaxed ()->has_font_extents;
+  return hmtx.has_font_extents;
 }
 
 static hb_bool_t
@@ -176,11 +177,12 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  metrics->ascender = font->em_scale_x (ot_face->vmtx.get_relaxed ()->ascender);
-  metrics->descender = font->em_scale_x (ot_face->vmtx.get_relaxed ()->descender);
-  metrics->line_gap = font->em_scale_x (ot_face->vmtx.get_relaxed ()->line_gap);
+  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
+  metrics->ascender = font->em_scale_x (vmtx.ascender);
+  metrics->descender = font->em_scale_x (vmtx.descender);
+  metrics->line_gap = font->em_scale_x (vmtx.line_gap);
   // TODO Hook up variations.
-  return ot_face->vmtx.get_relaxed ()->has_font_extents;
+  return vmtx.has_font_extents;
 }
 
 #ifdef HB_USE_ATEXIT
@@ -244,10 +246,8 @@ hb_ot_font_set_funcs (hb_font_t *font)
   if (unlikely (!hb_ot_shaper_face_data_ensure (font->face))) return;
   hb_ot_face_data_t *ot_face = hb_ot_face_data (font->face);
 
-  /* Load them lazies.  We access them with get_relaxed() for performance. */
+  /* Load them lazy.  We access it with get_relaxed() for performance. */
   ot_face->cmap.get ();
-  ot_face->hmtx.get ();
-  ot_face->vmtx.get ();
 
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
