@@ -1179,7 +1179,7 @@ hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
 
 
 /**
- * hb_buffer_set_invisible_codepoint:
+ * hb_buffer_set_invisible_glyph:
  * @buffer: an #hb_buffer_t.
  * @invisible: the invisible #hb_codepoint_t
  *
@@ -1191,8 +1191,8 @@ hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
  * Since: REPLACEME
  **/
 void
-hb_buffer_set_invisible_codepoint (hb_buffer_t    *buffer,
-				   hb_codepoint_t  invisible)
+hb_buffer_set_invisible_glyph (hb_buffer_t    *buffer,
+			       hb_codepoint_t  invisible)
 {
   if (unlikely (hb_object_is_inert (buffer)))
     return;
@@ -1201,10 +1201,10 @@ hb_buffer_set_invisible_codepoint (hb_buffer_t    *buffer,
 }
 
 /**
- * hb_buffer_get_invisible_codepoint:
+ * hb_buffer_get_invisible_glyph:
  * @buffer: an #hb_buffer_t.
  *
- * See hb_buffer_set_invisible_codepoint().
+ * See hb_buffer_set_invisible_glyph().
  *
  * Return value: 
  * The @buffer invisible #hb_codepoint_t.
@@ -1212,7 +1212,7 @@ hb_buffer_set_invisible_codepoint (hb_buffer_t    *buffer,
  * Since: REPLACEME
  **/
 hb_codepoint_t
-hb_buffer_get_invisible_codepoint (hb_buffer_t    *buffer)
+hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
 {
   return buffer->invisible;
 }
