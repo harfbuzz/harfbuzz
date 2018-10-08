@@ -104,9 +104,9 @@ struct KerxSubTableFormat1
 
 struct KerxSubTableFormat2
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+			  const char *end, unsigned int num_glyphs) const
   {
-    unsigned int num_glyphs = 0; /* XXX */
     unsigned int l = *(this+leftClassTable).get_value (left, num_glyphs);
     unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
     unsigned int offset = l + r;
