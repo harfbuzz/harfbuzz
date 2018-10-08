@@ -102,31 +102,13 @@ struct KerxSubTableFormat1
   DEFINE_SIZE_STATIC (20);
 };
 
-// TODO(ebraminio): Maybe this can be replaced with Lookup<HBUINT16>?
-struct KerxClassTable
-{
-  inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (firstGlyph.sanitize (c) &&
-			  classes.sanitize (c)));
-  }
-
-  protected:
-  HBUINT16		firstGlyph;	/* First glyph in class range. */
-  ArrayOf<HBUINT16>	classes;	/* Glyph classes. */
-  public:
-  DEFINE_SIZE_ARRAY (4, classes);
-};
-
 struct KerxSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   {
-    unsigned int l = (this+leftClassTable).get_class (left);
-    unsigned int r = (this+leftClassTable).get_class (left);
+    unsigned int num_glyphs = 0; /* XXX */
+    unsigned int l = *(this+leftClassTable).get_value (left, num_glyphs);
+    unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
     unsigned int offset = l + r;
     const FWORD *arr = &(this+array);
     if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
@@ -158,10 +140,10 @@ struct KerxSubTableFormat2
 
   protected:
   HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<KerxClassTable>
+  LOffsetTo<Lookup<HBUINT16> >
 		leftClassTable;	/* Offset from beginning of this subtable to
 				 * left-hand class table. */
-  LOffsetTo<KerxClassTable>
+  LOffsetTo<Lookup<HBUINT16> >
 		rightClassTable;/* Offset from beginning of this subtable to
 				 * right-hand class table. */
   LOffsetTo<FWORD>
@@ -185,26 +167,14 @@ struct KerxSubTableFormat4
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  rowWidth.sanitize (c) &&
-			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this) &&
-			  array.sanitize (c, this)));
+
+    /* TODO */
+    return_trace (likely (c->check_struct (this)));
   }
 
   protected:
-  HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<KerxClassTable>
-		leftClassTable;	/* Offset from beginning of this subtable to
-				 * left-hand class table. */
-  LOffsetTo<KerxClassTable>
-		rightClassTable;/* Offset from beginning of this subtable to
-				 * right-hand class table. */
-  LOffsetTo<FWORD>
-		array;		/* Offset from beginning of this subtable to
-				 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_STATIC (1);
 };
 
 struct KerxSubTableFormat6
