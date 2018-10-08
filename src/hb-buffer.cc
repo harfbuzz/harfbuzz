@@ -182,7 +182,11 @@ hb_buffer_t::shift_forward (unsigned int count)
   if (idx + count > len)
   {
     /* Under memory failure we might expose this area.  At least
-     * clean it up.  Oh well... */
+     * clean it up.  Oh well...
+     *
+     * Ideally, we should at least set Default_Ignorable bits on
+     * these, as well as consistent cluster values.  But the former
+     * is layering violation... */
     memset (info + len, 0, (idx + count - len) * sizeof (info[0]));
   }
   len += count;
@@ -399,8 +403,14 @@ hb_buffer_t::move_to (unsigned int i)
     unsigned int count = out_len - i;
 
     /* This will blow in our face if memory allocation fails later
-     * in this same lookup... */
-    if (unlikely (idx < count && !shift_forward (count + 32))) return false;
+     * in this same lookup...
+     *
+     * We used to shift with extra 32 items, instead of the 0 below.
+     * But that would leave empty slots in the buffer in case of allocation
+     * failures.  Setting to zero for now to avoid other problems (see
+     * comments in shift_forward().  This can cause O(N^2) behavior more
+     * severely than adding 32 empty slots can... */
+    if (unlikely (idx < count && !shift_forward (count + 0))) return false;
 
     assert (idx >= count);
 
