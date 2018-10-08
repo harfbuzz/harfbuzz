@@ -39,7 +39,7 @@ using namespace OT;
  * Binary Searching Tables
  */
 
-struct BinSearchHeader
+struct VarSizedBinSearchHeader
 {
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -62,7 +62,7 @@ struct BinSearchHeader
 };
 
 template <typename Type>
-struct BinSearchArrayOf
+struct VarSizedBinSearchArrayOf
 {
   inline const Type& operator [] (unsigned int i) const
   {
@@ -133,7 +133,7 @@ struct BinSearchArrayOf
   }
 
   protected:
-  BinSearchHeader		header;
+  VarSizedBinSearchHeader	header;
   UnsizedArrayOf<HBUINT8>	bytesZ;
   public:
   DEFINE_SIZE_ARRAY (10, bytesZ);
@@ -213,7 +213,7 @@ struct LookupFormat2
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 2 */
-  BinSearchArrayOf<LookupSegmentSingle<T> >
+  VarSizedBinSearchArrayOf<LookupSegmentSingle<T> >
 		segments;	/* The actual segments. These must already be sorted,
 				 * according to the first word in each one (the last
 				 * glyph in each segment). */
@@ -270,7 +270,7 @@ struct LookupFormat4
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 2 */
-  BinSearchArrayOf<LookupSegmentArray<T> >
+  VarSizedBinSearchArrayOf<LookupSegmentArray<T> >
 		segments;	/* The actual segments. These must already be sorted,
 				 * according to the first word in each one (the last
 				 * glyph in each segment). */
@@ -315,7 +315,7 @@ struct LookupFormat6
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 6 */
-  BinSearchArrayOf<LookupSingle<T> >
+  VarSizedBinSearchArrayOf<LookupSingle<T> >
 		entries;	/* The actual entries, sorted by glyph index. */
   public:
   DEFINE_SIZE_ARRAY (8, entries);
