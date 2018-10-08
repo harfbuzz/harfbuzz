@@ -54,12 +54,48 @@ test_extents_cff1 (void)
   hb_font_destroy (font);
 }
 
+static void
+test_extents_cff2 (void)
+{
+  hb_blob_t *blob = hb_blob_create_from_file ("fonts/AdobeVFPrototype.abc.otf");
+  g_assert (blob);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 46);
+  g_assert_cmpint (extents.y_bearing, ==, 487);
+  g_assert_cmpint (extents.width, ==, 455);
+  g_assert_cmpint (extents.height, ==, -500);
+
+  float coords[2] = { 600.0f, 50.0f };
+  hb_font_set_var_coords_design (font, coords, 2);
+  result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 38);
+  g_assert_cmpint (extents.y_bearing, ==, 493);
+  g_assert_cmpint (extents.width, ==, 481);
+  g_assert_cmpint (extents.height, ==, -508);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_extents_cff1);
+  hb_test_add (test_extents_cff2);
 
   return hb_test_run ();
 }

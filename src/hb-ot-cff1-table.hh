@@ -1093,9 +1093,7 @@ struct cff1
       sc.end_processing ();
       topDict.fini ();
       fontDicts.fini ();
-      for (unsigned int i = 0; i < privateDicts.len; i++)
-        privateDicts[i].fini ();
-      privateDicts.fini ();
+      privateDicts.fini_deep ();
       hb_blob_destroy (blob);
       blob = nullptr;
     }

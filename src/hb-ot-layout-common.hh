@@ -1502,6 +1502,9 @@ struct VarRegionList
 
 struct VarData
 {
+  inline unsigned int get_region_index_count (void) const
+  { return regionIndices.len; }
+
   inline unsigned int get_row_size (void) const
   { return shortCount + regionIndices.len; }
 
@@ -1540,6 +1543,18 @@ struct VarData
    return delta;
   }
 
+  inline void get_scalars (int *coords, unsigned int coord_count,
+                    const VarRegionList &regions,
+                    float *scalars /*OUT */,
+                    unsigned int num_scalars) const
+  {
+    assert (num_scalars == regionIndices.len);
+   for (unsigned int i = 0; i < num_scalars; i++)
+   {
+     scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
+   }
+  }
+  
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1589,8 +1604,17 @@ struct VariationStore
 		  dataSets.sanitize (c, this));
   }
 
-  inline unsigned int get_region_count (void) const
-  { return (this+regions).get_region_count (); }
+  inline unsigned int get_region_index_count (unsigned int ivs) const
+  { return (this+dataSets[ivs]).get_region_index_count (); }
+
+  inline void get_scalars (unsigned int ivs,
+            int *coords, unsigned int coord_count,
+            float *scalars /*OUT*/,
+            unsigned int num_scalars) const
+  {
+    (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
+                                      &scalars[0], num_scalars);
+  }
 
   protected:
   HBUINT16				format;

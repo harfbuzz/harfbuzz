@@ -154,19 +154,19 @@ struct CSInterpEnv : InterpEnv<ARG>
 
   inline unsigned int move_x_with_arg (unsigned int i)
   {
-    pt.move_x (SUPER::argStack[i]);
+    pt.move_x (SUPER::eval_arg (i));
     return i + 1;
   }
 
   inline unsigned int move_y_with_arg (unsigned int i)
   {
-    pt.move_y (SUPER::argStack[i]);
+    pt.move_y (SUPER::eval_arg (i));
     return i + 1;
   }
 
   inline unsigned int move_xy_with_arg (unsigned int i)
   {
-    pt.move (SUPER::argStack[i], SUPER::argStack[i+1]);
+    pt.move (SUPER::eval_arg (i), SUPER::eval_arg (i+1));
     return i + 2;
   }
 
@@ -382,8 +382,8 @@ struct PathProcs
   static inline void rmoveto (ENV &env, PARAM& param)
   {
     Point pt1 = env.get_pt ();
-    const Number &dy = env.argStack.pop ();
-    const Number &dx = env.argStack.pop ();
+    const Number &dy = env.pop_arg ();
+    const Number &dx = env.pop_arg ();
     pt1.move (dx, dy);
     PATH::moveto (env, param, pt1);
   }
@@ -391,14 +391,14 @@ struct PathProcs
   static inline void hmoveto (ENV &env, PARAM& param)
   {
     Point pt1 = env.get_pt ();
-    pt1.move_x (env.argStack.pop ());
+    pt1.move_x (env.pop_arg ());
     PATH::moveto (env, param, pt1);
   }
 
   static inline void vmoveto (ENV &env, PARAM& param)
   {
     Point pt1 = env.get_pt ();
-    pt1.move_y (env.argStack.pop ());
+    pt1.move_y (env.pop_arg ());
     PATH::moveto (env, param, pt1);
   }
 
@@ -407,7 +407,7 @@ struct PathProcs
     for (unsigned int i = 0; i + 2 <= env.argStack.get_count (); i += 2)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
   }
@@ -419,15 +419,15 @@ struct PathProcs
     for (; i + 2 <= env.argStack.get_count (); i += 2)
     {
       pt1 = env.get_pt ();
-      pt1.move_x (env.argStack[i]);
+      pt1.move_x (env.eval_arg (i));
       PATH::line (env, param, pt1);
-      pt1.move_y (env.argStack[i+1]);
+      pt1.move_y (env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
     if (i < env.argStack.get_count ())
     {
       pt1 = env.get_pt ();
-      pt1.move_x (env.argStack[i]);
+      pt1.move_x (env.eval_arg (i));
       PATH::line (env, param, pt1);
     }
   }
@@ -439,15 +439,15 @@ struct PathProcs
     for (; i + 2 <= env.argStack.get_count (); i += 2)
     {
       pt1 = env.get_pt ();
-      pt1.move_y (env.argStack[i]);
+      pt1.move_y (env.eval_arg (i));
       PATH::line (env, param, pt1);
-      pt1.move_x (env.argStack[i+1]);
+      pt1.move_x (env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
     if (i < env.argStack.get_count ())
     {
       pt1 = env.get_pt ();
-      pt1.move_y (env.argStack[i]);
+      pt1.move_y (env.eval_arg (i));
       PATH::line (env, param, pt1);
     }
   }
@@ -457,11 +457,11 @@ struct PathProcs
     for (unsigned int i = 0; i + 6 <= env.argStack.get_count (); i += 6)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      pt2.move (env.eval_arg (i+2), env.eval_arg (i+3));
       Point pt3 = pt2;
-      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
   }
@@ -472,17 +472,17 @@ struct PathProcs
     for (; i + 6 <= env.argStack.get_count (); i += 6)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      pt2.move (env.eval_arg (i+2), env.eval_arg (i+3));
       Point pt3 = pt2;
-      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
     for (; i + 2 <= env.argStack.get_count (); i += 2)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
   }
@@ -494,17 +494,17 @@ struct PathProcs
     for (; i + 2 <= line_limit; i += 2)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
     for (; i + 6 <= env.argStack.get_count (); i += 6)
     {
       Point pt1 = env.get_pt ();
-      pt1.move (env.argStack[i], env.argStack[i+1]);
+      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+2], env.argStack[i+3]);
+      pt2.move (env.eval_arg (i+2), env.eval_arg (i+3));
       Point pt3 = pt2;
-      pt3.move (env.argStack[i+4], env.argStack[i+5]);
+      pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
   }
@@ -514,14 +514,14 @@ struct PathProcs
     unsigned int i = 0;
     Point pt1 = env.get_pt ();
     if ((env.argStack.get_count () & 1) != 0)
-      pt1.move_x (env.argStack[i++]);
+      pt1.move_x (env.eval_arg (i++));
     for (; i + 4 <= env.argStack.get_count (); i += 4)
     {
-      pt1.move_y (env.argStack[i]);
+      pt1.move_y (env.eval_arg (i));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
       Point pt3 = pt2;
-      pt3.move_y (env.argStack[i+3]);
+      pt3.move_y (env.eval_arg (i+3));
       PATH::curve (env, param, pt1, pt2, pt3);
       pt1 = env.get_pt ();
     }
@@ -532,14 +532,14 @@ struct PathProcs
     unsigned int i = 0;
     Point pt1 = env.get_pt ();
     if ((env.argStack.get_count () & 1) != 0)
-      pt1.move_y (env.argStack[i++]);
+      pt1.move_y (env.eval_arg (i++));
     for (; i + 4 <= env.argStack.get_count (); i += 4)
     {
-      pt1.move_x (env.argStack[i]);
+      pt1.move_x (env.eval_arg (i));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
       Point pt3 = pt2;
-      pt3.move_x (env.argStack[i+3]);
+      pt3.move_x (env.eval_arg (i+3));
       PATH::curve (env, param, pt1, pt2, pt3);
       pt1 = env.get_pt ();
     }
@@ -552,33 +552,33 @@ struct PathProcs
     if ((env.argStack.get_count () % 8) >= 4)
     {
       Point pt1 = env.get_pt ();
-      pt1.move_y (env.argStack[i]);
+      pt1.move_y (env.eval_arg (i));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
       Point pt3 = pt2;
-      pt3.move_x (env.argStack[i+3]);
+      pt3.move_x (env.eval_arg (i+3));
       i += 4;
 
       for (; i + 8 <= env.argStack.get_count (); i += 8)
       {
         PATH::curve (env, param, pt1, pt2, pt3);
         pt1 = env.get_pt ();
-        pt1.move_x (env.argStack[i]);
+        pt1.move_x (env.eval_arg (i));
         pt2 = pt1;
-        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
         pt3 = pt2;
-        pt3.move_y (env.argStack[i+3]);
+        pt3.move_y (env.eval_arg (i+3));
         PATH::curve (env, param, pt1, pt2, pt3);
 
         pt1 = pt3;
-        pt1.move_y (env.argStack[i+4]);
+        pt1.move_y (env.eval_arg (i+4));
         pt2 = pt1;
-        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt2.move (env.eval_arg (i+5), env.eval_arg (i+6));
         pt3 = pt2;
-        pt3.move_x (env.argStack[i+7]);
+        pt3.move_x (env.eval_arg (i+7));
       }
       if (i < env.argStack.get_count ())
-        pt3.move_y (env.argStack[i]);
+        pt3.move_y (env.eval_arg (i));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
     else
@@ -586,21 +586,21 @@ struct PathProcs
       for (; i + 8 <= env.argStack.get_count (); i += 8)
       {
         pt1 = env.get_pt ();
-        pt1.move_y (env.argStack[i]);
+        pt1.move_y (env.eval_arg (i));
         pt2 = pt1;
-        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
         pt3 = pt2;
-        pt3.move_x (env.argStack[i+3]);
+        pt3.move_x (env.eval_arg (i+3));
         PATH::curve (env, param, pt1, pt2, pt3);
 
         pt1 = pt3;
-        pt1.move_x (env.argStack[i+4]);
+        pt1.move_x (env.eval_arg (i+4));
         pt2 = pt1;
-        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt2.move (env.eval_arg (i+5), env.eval_arg (i+6));
         pt3 = pt2;
-        pt3.move_y (env.argStack[i+7]);
+        pt3.move_y (env.eval_arg (i+7));
         if ((env.argStack.get_count () - i < 16) && ((env.argStack.get_count () & 1) != 0))
-          pt3.move_x (env.argStack[i+8]);
+          pt3.move_x (env.eval_arg (i+8));
         PATH::curve (env, param, pt1, pt2, pt3);
       }
     }
@@ -613,33 +613,33 @@ struct PathProcs
     if ((env.argStack.get_count () % 8) >= 4)
     {
       Point pt1 = env.get_pt ();
-      pt1.move_x (env.argStack[i]);
+      pt1.move_x (env.eval_arg (i));
       Point pt2 = pt1;
-      pt2.move (env.argStack[i+1], env.argStack[i+2]);
+      pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
       Point pt3 = pt2;
-      pt3.move_y (env.argStack[i+3]);
+      pt3.move_y (env.eval_arg (i+3));
       i += 4;
 
       for (; i + 8 <= env.argStack.get_count (); i += 8)
       {
         PATH::curve (env, param, pt1, pt2, pt3);
         pt1 = env.get_pt ();
-        pt1.move_y (env.argStack[i]);
+        pt1.move_y (env.eval_arg (i));
         pt2 = pt1;
-        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
         pt3 = pt2;
-        pt3.move_x (env.argStack[i+3]);
+        pt3.move_x (env.eval_arg (i+3));
         PATH::curve (env, param, pt1, pt2, pt3);
 
         pt1 = pt3;
-        pt1.move_x (env.argStack[i+4]);
+        pt1.move_x (env.eval_arg (i+4));
         pt2 = pt1;
-        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt2.move (env.eval_arg (i+5), env.eval_arg (i+6));
         pt3 = pt2;
-        pt3.move_y (env.argStack[i+7]);
+        pt3.move_y (env.eval_arg (i+7));
       }
       if (i < env.argStack.get_count ())
-        pt3.move_x (env.argStack[i]);
+        pt3.move_x (env.eval_arg (i));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
     else
@@ -647,21 +647,21 @@ struct PathProcs
       for (; i + 8 <= env.argStack.get_count (); i += 8)
       {
         pt1 = env.get_pt ();
-        pt1.move_x (env.argStack[i]);
+        pt1.move_x (env.eval_arg (i));
         pt2 = pt1;
-        pt2.move (env.argStack[i+1], env.argStack[i+2]);
+        pt2.move (env.eval_arg (i+1), env.eval_arg (i+2));
         pt3 = pt2;
-        pt3.move_y (env.argStack[i+3]);
+        pt3.move_y (env.eval_arg (i+3));
         PATH::curve (env, param, pt1, pt2, pt3);
 
         pt1 = pt3;
-        pt1.move_y (env.argStack[i+4]);
+        pt1.move_y (env.eval_arg (i+4));
         pt2 = pt1;
-        pt2.move (env.argStack[i+5], env.argStack[i+6]);
+        pt2.move (env.eval_arg (i+5), env.eval_arg (i+6));
         pt3 = pt2;
-        pt3.move_x (env.argStack[i+7]);
+        pt3.move_x (env.eval_arg (i+7));
         if ((env.argStack.get_count () - i < 16) && ((env.argStack.get_count () & 1) != 0))
-          pt3.move_y (env.argStack[i+8]);
+          pt3.move_y (env.eval_arg (i+8));
         PATH::curve (env, param, pt1, pt2, pt3);
       }
     }

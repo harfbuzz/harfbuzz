@@ -114,7 +114,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     for (unsigned int i = start_arg; i < env.argStack.get_count ();)
     {
       const BlendArg &arg = env.argStack[i];
-      if (arg.blended ())
+      if (arg.blending ())
       {
         assert ((arg.numValues > 0) && (env.argStack.get_count () - start_arg >= arg.numValues));
         flatten_blends (arg, i, env, param);
@@ -135,7 +135,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const BlendArg &arg1 = env.argStack[i + j];
-      assert (arg1.blended () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
+      assert (arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
               (arg1.deltas.len == env.get_region_count ()));
       param.flatStr.encode_num (arg1);
     }

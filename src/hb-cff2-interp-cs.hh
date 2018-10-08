@@ -44,10 +44,7 @@ struct BlendArg : Number
   inline void fini (void)
   {
     Number::fini ();
-
-    for (unsigned int i = 0; i < deltas.len; i++)
-      deltas[i].fini ();
-    deltas.fini ();
+    deltas.fini_deep ();
   }
 
   inline void set_int (int v) { reset_blends (); Number::set_int (v); }
@@ -64,7 +61,7 @@ struct BlendArg : Number
       deltas[i] = blends_[i];
   }
 
-  inline bool blended (void) const { return deltas.len > 0; }
+  inline bool blending (void) const { return deltas.len > 0; }
   inline void reset_blends (void)
   {
     numValues = valueIndex = 0;
@@ -81,11 +78,26 @@ typedef InterpEnv<BlendArg> BlendInterpEnv;
 struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
   template <typename ACC>
-  inline void init (const ByteStr &str, ACC &acc, unsigned int fd)
+  inline void init (const ByteStr &str, ACC &acc, unsigned int fd,
+                    const int *coords_=nullptr, unsigned int coords_count_=0,
+                    const CFF2VariationStore *varStore_=nullptr)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
-    set_region_count (acc.region_count);
-    set_vsindex (acc.privateDicts[fd].vsindex);
+    
+    coords = coords_;
+    num_coords = coords_count_;
+    varStore = varStore_;
+    seen_blend = false;
+    seen_vsindex = false;
+    scalars.init ();
+    do_blend = (coords != nullptr) && num_coords && (varStore != &Null(CFF2VariationStore));
+    set_ivs (acc.privateDicts[fd].ivs);
+  }
+
+  inline void fini (void)
+  {
+    scalars.fini ();
+    SUPER::fini ();
   }
 
   inline bool fetch_op (OpCode &op)
@@ -101,25 +113,80 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     return true;
   }
 
+  inline const BlendArg& eval_arg (unsigned int i)
+  {
+    return blend_arg (argStack[i]);
+  }
+
+  inline const BlendArg& pop_arg (void)
+  {
+    return blend_arg (argStack.pop ());
+  }
+
+  inline void process_blend (void)
+  {
+    if (!seen_blend)
+    {
+      region_count = varStore->varStore.get_region_index_count (get_ivs ());
+      if (do_blend)
+      {
+        scalars.resize (region_count);
+        varStore->varStore.get_scalars (get_ivs (),
+                                        (int *)coords, num_coords,
+                                        &scalars[0], region_count);
+      }
+      seen_blend = true;
+    }
+  }
+
   inline void process_vsindex (void)
   {
-    unsigned int  index;
-    if (likely (argStack.check_pop_uint (index)))
-      set_vsindex (argStack.check_pop_uint (index));
+    if (do_blend)
+    {
+      unsigned int  index;
+      if (likely (!seen_vsindex && !seen_blend && argStack.check_pop_uint (index)))
+        set_ivs (argStack.check_pop_uint (index));
+    }
+    seen_vsindex = true;
   }
 
   inline unsigned int get_region_count (void) const { return region_count; }
   inline void         set_region_count (unsigned int region_count_) { region_count = region_count_; }
-  inline unsigned int get_vsindex (void) const { return vsindex; }
-  inline void         set_vsindex (unsigned int vsindex_) { vsindex = vsindex_; }
+  inline unsigned int get_ivs (void) const { return ivs; }
+  inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
 
   protected:
+  inline BlendArg& blend_arg (BlendArg &arg)
+  {
+    if (do_blend && arg.blending ())
+    {
+      if (likely (scalars.len == arg.deltas.len))
+      {
+        float v = arg.to_real ();
+        for (unsigned int i = 0; i < scalars.len; i++)
+        {
+          v += scalars[i] * arg.deltas[i].to_real ();
+        }
+        arg.set_real (v);
+        arg.deltas.resize (0);
+      }
+    }
+    return arg;
+  }
+
+  protected:
+  const int     *coords;
+  unsigned int  num_coords;
+  const         CFF2VariationStore *varStore;
   unsigned int  region_count;
-  unsigned int  vsindex;
+  unsigned int  ivs;
+  hb_vector_t<float>  scalars;
+  bool          do_blend;
+  bool          seen_vsindex;
+  bool          seen_blend;
 
   typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;
 };
-
 template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF2CSInterpEnv, PARAM> >
 struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
 {
@@ -129,7 +196,7 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
       case OpCode_callsubr:
       case OpCode_callgsubr:
         /* a subroutine number shoudln't be a blended value */
-        if (unlikely (env.argStack.peek ().blended ()))
+        if (unlikely (env.argStack.peek ().blending ()))
           return false;
         return SUPER::process_op (op, env, param);
 
@@ -137,7 +204,7 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
         return OPSET::process_blend (env, param);
 
       case OpCode_vsindexcs:
-        if (unlikely (env.argStack.peek ().blended ()))
+        if (unlikely (env.argStack.peek ().blending ()))
           return false;
         OPSET::process_vsindex (env, param);
         break;
@@ -152,6 +219,7 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
   {
     unsigned int n, k;
 
+    env.process_blend ();
     k = env.get_region_count ();
     if (unlikely (!env.argStack.check_pop_uint (n) ||
                   (k+1) * n > env.argStack.get_count ()))

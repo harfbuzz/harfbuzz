@@ -64,11 +64,7 @@ struct DictValues
 
   inline void fini (void)
   {
-    for (unsigned int i = 0; i < values.len; i++)
-    {
-      values[i].fini ();
-    }
-    values.fini ();
+    values.fini_deep ();
   }
 
   inline void addOp (OpCode op, const SubByteStr& substr = SubByteStr ())

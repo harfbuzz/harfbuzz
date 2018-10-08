@@ -124,9 +124,13 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
+  unsigned int num_coords;
+  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   bool ret = ot_face->glyf->get_extents (glyph, extents);
   if (!ret)
     ret = ot_face->cff1->get_extents (glyph, extents);
+  if (!ret)
+    ret = ot_face->cff2->get_extents (glyph, extents, coords, num_coords);
   if (!ret)
     ret = ot_face->CBDT->get_extents (glyph, extents);
   // TODO Hook up side-bearings variations.

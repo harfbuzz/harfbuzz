@@ -298,19 +298,13 @@ struct Number
 
   inline const Number &operator += (const Number &n)
   {
-    switch (format)
-    {
-      default:
-      case NumInt:
-        u.int_val += n.to_int ();
-        break;
-      case NumFixed:
-        u.fixed_val += n.to_fixed ();
-        break;
-      case NumReal:
-        u.real_val += n.to_real ();
-        break;
-    }
+    if (format == NumReal || n.format == NumReal)
+      set_real (to_real () + n.to_real ());
+    else if (format == NumFixed || n.format == NumFixed)
+      set_fixed (to_fixed () + n.to_fixed ());
+    else
+      set_int (to_int () + n.to_int ());
+
     return *this;
   }
 
@@ -453,8 +447,7 @@ struct Stack
 
   inline void fini (void)
   {
-    for (unsigned int i = 0; i < elements.len; i++)
-      elements[i].fini ();
+    elements.fini_deep ();
   }
 
   inline const ELEM& operator [] (unsigned int i) const
@@ -477,12 +470,12 @@ struct Stack
       return Crap(ELEM);
   }
 
-  inline const ELEM& pop (void)
+  inline ELEM& pop (void)
   {
     if (likely (count > 0))
       return elements[--count];
     else
-      return Null(ELEM);
+      return Crap(ELEM);
   }
 
   inline void pop (unsigned int n)
@@ -676,6 +669,16 @@ struct InterpEnv
     }
     substr.inc ();
     return true;
+  }
+
+  inline const ARG& eval_arg (unsigned int i)
+  {
+    return argStack[i];
+  }
+
+  inline ARG& pop_arg (void)
+  {
+    return argStack.pop ();
   }
 
   inline void pop_n_args (unsigned int n)

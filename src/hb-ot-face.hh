@@ -69,6 +69,7 @@
     HB_OT_ACCELERATOR(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
     HB_OT_ACCELERATOR(OT, cff1) \
+    HB_OT_ACCELERATOR(OT, cff2) \
     HB_OT_ACCELERATOR(OT, CBDT) \
     /* */
 

@@ -265,7 +265,7 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
     DictValues<VAL>::init ();
     subrsOffset = 0;
     localSubrs = &Null(CFF2Subrs);
-    vsindex = 0;
+    ivs = 0;
   }
 
   inline void fini (void)
@@ -286,15 +286,42 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
 
   unsigned int      subrsOffset;
   const CFF2Subrs   *localSubrs;
-  unsigned int      vsindex;
+  unsigned int      ivs;
 };
 
 typedef CFF2PrivateDictValues_Base<OpStr> CFF2PrivateDictValues_Subset;
 typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
+struct CFF2PrivDictInterpEnv : NumInterpEnv
+{
+  inline void init (const ByteStr &str)
+  {
+    NumInterpEnv::init (str);
+    ivs = 0;
+    seen_vsindex = false;
+  }
+
+  inline void process_vsindex (void)
+  {
+    unsigned int  index;
+    if (likely (!seen_vsindex && argStack.check_pop_uint (index)))
+    {
+      set_ivs (argStack.check_pop_uint (index));
+    }
+    seen_vsindex = true;
+  }
+
+  inline unsigned int get_ivs (void) const { return ivs; }
+  inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
+
+  protected:
+  unsigned int  ivs;
+  bool          seen_vsindex;
+};
+
 struct CFF2PrivateDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues& dictval)
+  static inline bool process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues& dictval)
   {
     NumDictVal val;
     val.init ();
@@ -327,8 +354,8 @@ struct CFF2PrivateDictOpSet : DictOpSet
         env.clear_args ();
         break;
       case OpCode_vsindexdict:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.vsindex)))
-          return false;
+        env.process_vsindex ();
+        dictval.ivs = env.get_ivs ();
         break;
       case OpCode_blenddict:
         break;
@@ -347,7 +374,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
 
 struct CFF2PrivateDictOpSet_Subset : DictOpSet
 {
-  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
+  static inline bool process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -455,11 +482,6 @@ struct cff2
       if (num_glyphs != sc.get_num_glyphs ())
       { fini (); return; }
 
-      if (varStore != &Null(CFF2VariationStore))
-        region_count = varStore->varStore.get_region_count ();
-      else
-        region_count = 0;
-
       fdCount = fdArray->count;
       privateDicts.resize (fdCount);
 
@@ -476,7 +498,7 @@ struct cff2
 
         const ByteStr privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
-        DictInterpreter<PRIVOPSET, PRIVDICTVAL>  priv_interp;
+        DictInterpreter<PRIVOPSET, PRIVDICTVAL, CFF2PrivDictInterpEnv>  priv_interp;
         priv_interp.env.init(privDictStr);
         if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
@@ -491,24 +513,12 @@ struct cff2
     {
       sc.end_processing ();
       fontDicts.fini ();
-      for (unsigned int i = 0; i < privateDicts.len; i++)
-        privateDicts[i].fini ();
-      privateDicts.fini ();
+      privateDicts.fini_deep ();
       hb_blob_destroy (blob);
       blob = nullptr;
     }
 
     inline bool is_valid (void) const { return blob != nullptr; }
-
-    inline bool get_extents (hb_codepoint_t glyph,
-           hb_glyph_extents_t *extents) const
-    {
-      // XXX: TODO
-      if (glyph >= num_glyphs)
-        return false;
-      
-      return true;
-    }
 
     protected:
     hb_blob_t               *blob;
@@ -527,10 +537,16 @@ struct cff2
     hb_vector_t<PRIVDICTVAL>  privateDicts;
 
     unsigned int            num_glyphs;
-    unsigned int            region_count;
   };
 
-  typedef accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues> accelerator_t;
+  struct accelerator_t : accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues>
+  {
+    HB_INTERNAL bool get_extents (hb_codepoint_t glyph,
+                                  hb_glyph_extents_t *extents,
+                                  const int *coords,
+                                  unsigned int num_coords) const;
+  };
+
   typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Subset> accelerator_subset_t;
 
   inline bool subset (hb_subset_plan_t *plan) const
@@ -560,6 +576,7 @@ struct cff2
   DEFINE_SIZE_STATIC (5);
 };
 
+struct cff2_accelerator_t : cff2::accelerator_t {};
 } /* namespace OT */
 
 #endif /* HB_OT_CFF2_TABLE_HH */
