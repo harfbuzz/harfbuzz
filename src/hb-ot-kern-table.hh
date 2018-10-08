@@ -190,10 +190,10 @@ struct KernSubTableWrapper
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
   inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::COVERAGE_CHECK_FLAGS) == T::COVERAGE_CHECK_HORIZONTAL; }
+  { return (thiz()->coverage & T::CheckFlags) == T::CheckHorizontal; }
 
   inline bool is_override (void) const
-  { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
+  { return bool (thiz()->coverage & T::Override); }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
@@ -264,16 +264,17 @@ struct KernOT : KernTable<KernOT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x01u,
-      COVERAGE_MINIMUM_FLAG	= 0x02u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x04u,
-      COVERAGE_OVERRIDE_FLAG	= 0x08u,
+    enum Coverage
+    {
+      Direction		= 0x01u,
+      Minimum		= 0x02u,
+      CrossStream	= 0x04u,
+      Override		= 0x08u,
 
-      COVERAGE_VARIATION_FLAG	= 0x00u, /* Not supported. */
+      Variation		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0x07u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x01u
+      CheckFlags	= 0x07u,
+      CheckHorizontal	= 0x01u
     };
 
     protected:
@@ -304,15 +305,16 @@ struct KernAAT : KernTable<KernAAT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x80u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
-      COVERAGE_VARIATION_FLAG	= 0x20u,
+    enum Coverage
+    {
+      Direction		= 0x80u,
+      CrossStream	= 0x40u,
+      Variation		= 0x20u,
 
-      COVERAGE_OVERRIDE_FLAG	= 0x00u, /* Not supported. */
+      Override		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0xE0u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x00u
+      CheckFlags	= 0xE0u,
+      CheckHorizontal	= 0x00u
     };
 
     protected:
