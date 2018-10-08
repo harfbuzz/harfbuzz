@@ -706,6 +706,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
  * Binary-search arrays
  */
 
+template <typename LenType=HBUINT16>
 struct BinSearchHeader
 {
   inline operator uint32_t (void) const { return len; }
@@ -728,17 +729,17 @@ struct BinSearchHeader
   }
 
   protected:
-  HBUINT16	len;
-  HBUINT16	searchRange;
-  HBUINT16	entrySelector;
-  HBUINT16	rangeShift;
+  LenType	len;
+  LenType	searchRange;
+  LenType	entrySelector;
+  LenType	rangeShift;
 
   public:
   DEFINE_SIZE_STATIC (8);
 };
 
-template <typename Type>
-struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader> {};
+template <typename Type, typename LenType=HBUINT16>
+struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader<LenType> > {};
 
 struct VarSizedBinSearchHeader
 {
