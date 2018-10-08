@@ -661,17 +661,13 @@ struct InsertionSubtable
 	 * current glyph, the next glyph processed would in fact be the first
 	 * one inserted."
 	 *
-	 * So, if DontAdvance *is* set, we move to "end", such that newly
-	 * inserted glyphs are visible.
+	 * This suggests that if DontAdvance is NOT set, we should move to
+	 * end+count.  If it *was*, then move to end, such that newly inserted
+	 * glyphs are now visible.
 	 *
-	 * If DontAdvance is *not* set, if inserted before, move past them,
-	 * such that original current glyph will be skipped over by the driver.
-	 * Otherwise, again, just move to "end" such that current glyph will
-	 * be skipped over by driver.
-	 *
-	 * https://github.com/harfbuzz/harfbuzz/issues/1224
+	 * https://github.com/harfbuzz/harfbuzz/issues/1224#issuecomment-427691417
 	 */
-	buffer->move_to ((flags & DontAdvance) || !before ? end : end + count);
+	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
 
       if (flags & SetMark)

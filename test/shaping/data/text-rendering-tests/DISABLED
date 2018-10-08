@@ -1,3 +1,6 @@
+# https://github.com/harfbuzz/harfbuzz/issues/1224
+tests/MORX-35.tests
+
 # Non-Unicode cmap
 tests/CMAP-3.tests
 
