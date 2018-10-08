@@ -118,7 +118,7 @@ struct KernSubTableFormat2
   {
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
-    unsigned int offset = l * rowWidth + r * sizeof (FWORD);
+    unsigned int offset = l + r;
     const FWORD *arr = &(this+array);
     if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
       return 0;
