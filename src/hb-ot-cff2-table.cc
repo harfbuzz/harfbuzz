@@ -105,7 +105,7 @@ bool OT::cff2::accelerator_t::get_extents (hb_codepoint_t glyph,
   unsigned int fd = fdSelect->get_fd (glyph);
   CFF2CSInterpreter<CFF2CSOpSet_Extents, ExtentsParam> interp;
   const ByteStr str = (*charStrings)[glyph];
-  interp.env.init (str, *this, fd, coords, num_coords, varStore);
+  interp.env.init (str, *this, fd, coords, num_coords);
   ExtentsParam  param;
   param.init ();
   if (unlikely (!interp.interpret (param))) return false;

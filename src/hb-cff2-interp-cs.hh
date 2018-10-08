@@ -79,14 +79,13 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
   template <typename ACC>
   inline void init (const ByteStr &str, ACC &acc, unsigned int fd,
-                    const int *coords_=nullptr, unsigned int coords_count_=0,
-                    const CFF2VariationStore *varStore_=nullptr)
+                    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     
     coords = coords_;
-    num_coords = coords_count_;
-    varStore = varStore_;
+    num_coords = num_coords_;
+    varStore = acc.varStore;
     seen_blend = false;
     seen_vsindex = false;
     scalars.init ();
