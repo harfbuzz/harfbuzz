@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
+#include "hb-ot-kern-table.hh"
 
 /*
  * kerx -- Extended Kerning
@@ -43,33 +44,17 @@ namespace AAT {
 using namespace OT;
 
 
-struct KerxFormat0Records
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  protected:
-  GlyphID	left;
-  GlyphID	right;
-  FWORD		value;
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-
 struct KerxSubTableFormat0
 {
-  // TODO(ebraminio) Enable when we got suitable BinSearchArrayOf
-  // inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  // {
-  //   hb_glyph_pair_t pair = {left, right};
-  //   int i = pairs.bsearch (pair);
-  //   if (i == -1)
-  //     return 0;
-  //   return pairs[i].get_kerning ();
-  // }
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    hb_glyph_pair_t pair = {left, right};
+    int i = pairs.bsearch (pair);
+    if (i == -1)
+      return 0;
+    return pairs[i].get_kerning ();
+  }
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -82,23 +67,14 @@ struct KerxSubTableFormat0
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  recordsZ.sanitize (c, nPairs)));
+    return_trace (likely (pairs.sanitize (c)));
   }
 
   protected:
-  // TODO(ebraminio): A custom version of "BinSearchArrayOf<KerxPair> pairs;" is
-  // needed here to use HBUINT32 instead
-  HBUINT32	nPairs;		/* The number of kerning pairs in this subtable */
-  HBUINT32	searchRange;	/* The largest power of two less than or equal to the value of nPairs,
-				 * multiplied by the size in bytes of an entry in the subtable. */
-  HBUINT32	entrySelector;	/* This is calculated as log2 of the largest power of two less
-				 * than or equal to the value of nPairs. */
-  HBUINT32	rangeShift;	/* The value of nPairs minus the largest power of two less than or equal to nPairs. */
-  UnsizedArrayOf<KerxFormat0Records>
-		recordsZ;	/* VAR=nPairs */
+  BinSearchArrayOf<KernPair, HBUINT32>
+		pairs;	/* Sorted kern records. */
   public:
-  DEFINE_SIZE_ARRAY (16, recordsZ);
+  DEFINE_SIZE_ARRAY (16, pairs);
 };
 
 struct KerxSubTableFormat1
