@@ -182,7 +182,11 @@ hb_buffer_t::shift_forward (unsigned int count)
   if (idx + count > len)
   {
     /* Under memory failure we might expose this area.  At least
-     * clean it up.  Oh well... */
+     * clean it up.  Oh well...
+     *
+     * Ideally, we should at least set Default_Ignorable bits on
+     * these, as well as consistent cluster values.  But the former
+     * is layering violation... */
     memset (info + len, 0, (idx + count - len) * sizeof (info[0]));
   }
   len += count;
@@ -219,6 +223,7 @@ hb_buffer_t::reset (void)
   unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
   replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
+  invisible = 0;
 
   clear ();
 }
@@ -398,8 +403,14 @@ hb_buffer_t::move_to (unsigned int i)
     unsigned int count = out_len - i;
 
     /* This will blow in our face if memory allocation fails later
-     * in this same lookup... */
-    if (unlikely (idx < count && !shift_forward (count + 32))) return false;
+     * in this same lookup...
+     *
+     * We used to shift with extra 32 items, instead of the 0 below.
+     * But that would leave empty slots in the buffer in case of allocation
+     * failures.  Setting to zero for now to avoid other problems (see
+     * comments in shift_forward().  This can cause O(N^2) behavior more
+     * severely than adding 32 empty slots can... */
+    if (unlikely (idx < count && !shift_forward (count + 0))) return false;
 
     assert (idx >= count);
 
@@ -665,6 +676,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
   HB_BUFFER_FLAG_DEFAULT,
   HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
   HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
+  0, /* invisible */
   HB_BUFFER_SCRATCH_FLAG_DEFAULT,
   HB_BUFFER_MAX_LEN_DEFAULT,
   HB_BUFFER_MAX_OPS_DEFAULT,
@@ -1163,6 +1175,46 @@ hb_codepoint_t
 hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
 {
   return buffer->replacement;
+}
+
+
+/**
+ * hb_buffer_set_invisible_glyph:
+ * @buffer: an #hb_buffer_t.
+ * @invisible: the invisible #hb_codepoint_t
+ *
+ * Sets the #hb_codepoint_t that replaces invisible characters in
+ * the shaping result.  If set to zero (default), the glyph for the
+ * U+0020 SPACE character is used.  Otherwise, this value is used
+ * verbatim.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_buffer_set_invisible_glyph (hb_buffer_t    *buffer,
+			       hb_codepoint_t  invisible)
+{
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
+  buffer->invisible = invisible;
+}
+
+/**
+ * hb_buffer_get_invisible_glyph:
+ * @buffer: an #hb_buffer_t.
+ *
+ * See hb_buffer_set_invisible_glyph().
+ *
+ * Return value: 
+ * The @buffer invisible #hb_codepoint_t.
+ *
+ * Since: REPLACEME
+ **/
+hb_codepoint_t
+hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
+{
+  return buffer->invisible;
 }
 
 

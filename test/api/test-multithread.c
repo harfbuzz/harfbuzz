@@ -135,7 +135,7 @@ main (int argc, char **argv)
   gchar *default_path = g_strdup (font_path);
 #endif
 
-  char *path = argc > 1 ? argv[1] : (char *) default_path;
+  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) default_path;
   if (argc > 2)
     num_threads = atoi (argv[2]);
   if (argc > 3)
@@ -143,8 +143,8 @@ main (int argc, char **argv)
   if (argc > 4)
     text = argv[4];
 
-  // Dummy call to alleviate _guess_segment_properties thread safety-ness
-  // https://github.com/harfbuzz/harfbuzz/issues/1191
+  /* Dummy call to alleviate _guess_segment_properties thread safety-ness
+   * https://github.com/harfbuzz/harfbuzz/issues/1191 */
   hb_language_get_default ();
 
   hb_blob_t *blob = hb_blob_create_from_file (path);

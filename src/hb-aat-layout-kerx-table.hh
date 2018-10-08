@@ -30,7 +30,6 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
-#include "hb-aat-layout-ankr-table.hh"
 
 /*
  * kerx -- Extended Kerning
@@ -71,6 +70,14 @@ struct KerxSubTableFormat0
   //     return 0;
   //   return pairs[i].get_kerning ();
   // }
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    /* TODO */
+
+    return_trace (true);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -96,6 +103,15 @@ struct KerxSubTableFormat0
 
 struct KerxSubTableFormat1
 {
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    /* TODO */
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -145,6 +161,15 @@ struct KerxSubTableFormat2
     return *v;
   }
 
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    /* TODO */
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -172,6 +197,15 @@ struct KerxSubTableFormat2
 
 struct KerxSubTableFormat4
 {
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    /* TODO */
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -199,6 +233,15 @@ struct KerxSubTableFormat4
 
 struct KerxSubTableFormat6
 {
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    /* TODO */
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -221,47 +264,55 @@ struct KerxSubTableFormat6
   DEFINE_SIZE_STATIC (24);
 };
 
-enum coverage_flags_t
-{
-  COVERAGE_VERTICAL_FLAG	= 0x80u,
-  COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
-  COVERAGE_VARIATION_FLAG	= 0x20u,
-  COVERAGE_PROCESS_DIRECTION	= 0x10u,
-};
-
 struct KerxTable
 {
-  inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
-  {
-    TRACE_APPLY (this);
-    /* TODO */
-    return_trace (false);
-  }
-
   inline unsigned int get_size (void) const { return length; }
+  inline unsigned int get_type (void) const { return coverage & SubtableType; }
+
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
+    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
+    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
+    ProcessDirection	= 0x10000000,	/* If clear, process the glyphs forwards, that
+					 * is, from first to last in the glyph stream.
+					 * If we, process them from last to first.
+					 * This flag only applies to state-table based
+					 * 'kerx' subtables (types 1 and 4). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type. */
+  };
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    unsigned int subtable_type = get_type ();
+    TRACE_DISPATCH (this, subtable_type);
+    switch (subtable_type) {
+    case 0	:		return_trace (c->dispatch (u.format0));
+    case 1	:		return_trace (c->dispatch (u.format1));
+    case 2	:		return_trace (c->dispatch (u.format2));
+    case 4	:		return_trace (c->dispatch (u.format4));
+    case 6	:		return_trace (c->dispatch (u.format6));
+    default:			return_trace (c->default_return_value ());
+    }
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this)))
+    if (!length.sanitize (c) ||
+	length < min_size ||
+	!c->check_range (this, length))
       return_trace (false);
 
-    switch (format) {
-    case 0: return u.format0.sanitize (c);
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    case 4: return u.format4.sanitize (c);
-    case 6: return u.format6.sanitize (c);
-    default:return_trace (false);
-    }
+    return_trace (dispatch (c));
   }
 
 protected:
   HBUINT32	length;
-  HBUINT8	coverage;
-  HBUINT16	unused;
-  HBUINT8	format;
-  HBUINT32	tupleIndex;
+  HBUINT32	coverage;
+  HBUINT32	tupleCount;
   union {
   KerxSubTableFormat0	format0;
   KerxSubTableFormat1	format1;
@@ -273,7 +324,7 @@ public:
   DEFINE_SIZE_MIN (12);
 };
 
-struct SubtableGlyphCoverageArray
+struct SubtableXXX
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -289,55 +340,59 @@ struct SubtableGlyphCoverageArray
   DEFINE_SIZE_STATIC (12);
 };
 
+
+/*
+ * The 'kerx' Table
+ */
+
 struct kerx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
 
-  inline bool apply (hb_aat_apply_context_t *c, const AAT::ankr *ankr) const
+  inline bool has_data (void) const { return version != 0; }
+
+  inline void apply (hb_aat_apply_context_t *c) const
   {
-    TRACE_APPLY (this);
-    const KerxTable &table = StructAfter<KerxTable> (*this);
-    return_trace (table.apply (c, ankr));
+    c->set_lookup_index (0);
+    const KerxTable *table = &firstTable;
+    unsigned int count = tableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      table->dispatch (c);
+      table = &StructAfter<KerxTable> (*table);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this))))
-     return_trace (false);
-
-    /* TODO: Something like `morx`s ChainSubtable should be done here instead */
-    const KerxTable *table = &StructAfter<KerxTable> (*this);
-    if (unlikely (!(table->sanitize (c))))
+    if (!version.sanitize (c) || version < 2 ||
+	!tableCount.sanitize (c))
       return_trace (false);
 
-    for (unsigned int i = 0; i < nTables - 1; ++i)
+    const KerxTable *table = &firstTable;
+    unsigned int count = tableCount;
+    for (unsigned int i = 0; i < count; i++)
     {
+      if (!table->sanitize (c))
+	return_trace (false);
       table = &StructAfter<KerxTable> (*table);
-      if (unlikely (!(table->sanitize (c))))
-        return_trace (false);
     }
-
-    // If version is less than 3, we are done here; otherwise better to check footer also
-    if (version < 3)
-      return_trace (true);
-
-    // TODO: Investigate why this just work on some fonts no matter of version
-    // const SubtableGlyphCoverageArray &footer =
-    //   StructAfter<SubtableGlyphCoverageArray> (*table);
-    // return_trace (footer.sanitize (c));
 
     return_trace (true);
   }
 
   protected:
-  HBUINT16		version;
-  HBUINT16		padding;
-  HBUINT32		nTables;
-/*KerxTable tablesZ[VAR]; XXX ArrayOf??? */
-/*SubtableGlyphCoverageArray coverage_array;*/
+  HBUINT16	version;	/* The version number of the extended kerning table
+				 * (currently 2, 3, or 4). */
+  HBUINT16	unused;		/* Set to 0. */
+  HBUINT32	tableCount;	/* The number of subtables included in the extended kerning
+				 * table. */
+  KerxTable	firstTable;	/* Subtables. */
+/*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
+
   public:
-  DEFINE_SIZE_STATIC (8);
+  DEFINE_SIZE_MIN (8);
 };
 
 } /* namespace AAT */

@@ -664,6 +664,8 @@ struct InsertionSubtable
 	 * This suggests that if DontAdvance is NOT set, we should move to
 	 * end+count.  If it *was*, then move to end, such that newly inserted
 	 * glyphs are now visible.
+	 *
+	 * https://github.com/harfbuzz/harfbuzz/issues/1224#issuecomment-427691417
 	 */
 	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
@@ -940,7 +942,7 @@ struct Chain
 
 
 /*
- * The 'mort'/'morx' Tables
+ * The 'morx' Table
  */
 
 struct morx

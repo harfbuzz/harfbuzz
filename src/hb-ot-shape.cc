@@ -537,34 +537,24 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   hb_glyph_position_t *pos = buffer->pos;
-  unsigned int i = 0;
-  for (i = 0; i < count; i++)
-  {
-    if (unlikely (_hb_glyph_info_is_default_ignorable (&info[i])))
-      break;
-  }
 
-  /* No default-ignorables found; return. */
-  if (i == count)
-    return;
-
-  hb_codepoint_t space;
+  hb_codepoint_t invisible = c->buffer->invisible;
   if (!(buffer->flags & HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES) &&
-      c->font->get_nominal_glyph (' ', &space))
+      (invisible || c->font->get_nominal_glyph (' ', &invisible)))
   {
-    /* Replace default-ignorables with a zero-advance space glyph. */
-    for (/*continue*/; i < count; i++)
+    /* Replace default-ignorables with a zero-advance invisible glyph. */
+    for (unsigned int i = 0; i < count; i++)
     {
       if (_hb_glyph_info_is_default_ignorable (&info[i]))
-	info[i].codepoint = space;
+	info[i].codepoint = invisible;
     }
   }
   else
   {
     /* Merge clusters and delete default-ignorables.
      * NOTE! We can't use out-buffer as we have positioning data. */
-    unsigned int j = i;
-    for (; i < count; i++)
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < count; i++)
     {
       if (_hb_glyph_info_is_default_ignorable (&info[i]))
       {

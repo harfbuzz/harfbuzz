@@ -2,16 +2,16 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys, os, subprocess
+import sys, os, subprocess, tempfile
 
 
 def cmd(command):
-	p = subprocess.Popen (
-		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	p.wait ()
-	print (p.stderr.read ().decode ("utf-8").strip ()) # file=sys.stderr
-	return p.stdout.read ().decode ("utf-8").strip (), p.returncode
-
+	# https://stackoverflow.com/a/4408409
+	with tempfile.TemporaryFile() as tempf:
+		p = subprocess.Popen (command, stdout=tempf, stderr=sys.stdout)
+		p.wait ()
+		tempf.seek(0)
+		return tempf.read().decode ("utf-8").strip (), p.returncode
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
