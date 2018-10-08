@@ -404,7 +404,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 /* Substitute */
 
 static inline void
-hb_ot_mirror_chars (hb_ot_shape_context_t *c)
+hb_ot_mirror_chars (const hb_ot_shape_context_t *c)
 {
   if (HB_DIRECTION_IS_FORWARD (c->target_direction))
     return;
@@ -425,7 +425,7 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
+hb_ot_shape_setup_masks_fraction (const hb_ot_shape_context_t *c)
 {
   if (!(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII) ||
       !c->plan->has_frac)
@@ -475,7 +475,7 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_shape_initialize_masks (hb_ot_shape_context_t *c)
+hb_ot_shape_initialize_masks (const hb_ot_shape_context_t *c)
 {
   hb_ot_map_t *map = &c->plan->map;
   hb_buffer_t *buffer = c->buffer;
@@ -485,7 +485,7 @@ hb_ot_shape_initialize_masks (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
+hb_ot_shape_setup_masks (const hb_ot_shape_context_t *c)
 {
   hb_ot_map_t *map = &c->plan->map;
   hb_buffer_t *buffer = c->buffer;
@@ -507,7 +507,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 }
 
 static void
-hb_ot_zero_width_default_ignorables (hb_ot_shape_context_t *c)
+hb_ot_zero_width_default_ignorables (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -526,7 +526,7 @@ hb_ot_zero_width_default_ignorables (hb_ot_shape_context_t *c)
 }
 
 static void
-hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
+hb_ot_hide_default_ignorables (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -609,7 +609,7 @@ hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 }
 
 static inline void
-hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
+hb_synthesize_glyph_classes (const hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   hb_glyph_info_t *info = c->buffer->info;
@@ -635,7 +635,7 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_substitute_default (hb_ot_shape_context_t *c)
+hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -657,7 +657,7 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_substitute_complex (hb_ot_shape_context_t *c)
+hb_ot_substitute_complex (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -673,7 +673,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_substitute (hb_ot_shape_context_t *c)
+hb_ot_substitute (const hb_ot_shape_context_t *c)
 {
   hb_ot_substitute_default (c);
 
@@ -713,7 +713,7 @@ zero_mark_widths_by_gdef (hb_buffer_t *buffer, bool adjust_offsets)
 }
 
 static inline void
-hb_ot_position_default (hb_ot_shape_context_t *c)
+hb_ot_position_default (const hb_ot_shape_context_t *c)
 {
   hb_direction_t direction = c->buffer->props.direction;
   unsigned int count = c->buffer->len;
@@ -747,7 +747,7 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_position_complex (hb_ot_shape_context_t *c)
+hb_ot_position_complex (const hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   hb_glyph_info_t *info = c->buffer->info;
@@ -818,7 +818,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_position (hb_ot_shape_context_t *c)
+hb_ot_position (const hb_ot_shape_context_t *c)
 {
   c->buffer->clear_positions ();
 
