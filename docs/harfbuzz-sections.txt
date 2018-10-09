@@ -159,6 +159,10 @@ hb_set_invert
 hb_unicode_eastasian_width_func_t
 hb_unicode_eastasian_width
 hb_unicode_funcs_set_eastasian_width_func
+HB_UNICODE_MAX_DECOMPOSITION_LEN
+hb_unicode_decompose_compatibility_func_t
+hb_unicode_decompose_compatibility
+hb_unicode_funcs_set_decompose_compatibility_func
 </SECTION>
 
 <SECTION>
@@ -616,14 +620,12 @@ hb_shape_plan_t
 <SECTION>
 <FILE>hb-unicode</FILE>
 HB_UNICODE_MAX
-HB_UNICODE_MAX_DECOMPOSITION_LEN
 hb_unicode_combining_class
 hb_unicode_combining_class_func_t
 hb_unicode_combining_class_t
 hb_unicode_compose
 hb_unicode_compose_func_t
 hb_unicode_decompose
-hb_unicode_decompose_compatibility
 hb_unicode_decompose_func_t
 hb_unicode_funcs_create
 hb_unicode_funcs_destroy
@@ -636,7 +638,6 @@ hb_unicode_funcs_make_immutable
 hb_unicode_funcs_reference
 hb_unicode_funcs_set_combining_class_func
 hb_unicode_funcs_set_compose_func
-hb_unicode_funcs_set_decompose_compatibility_func
 hb_unicode_funcs_set_decompose_func
 hb_unicode_funcs_set_general_category_func
 hb_unicode_funcs_set_mirroring_func
