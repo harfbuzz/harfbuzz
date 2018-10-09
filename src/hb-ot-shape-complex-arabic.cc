@@ -599,7 +599,7 @@ postprocess_glyphs_arabic (const hb_ot_shape_plan_t *plan,
   HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
-/* https://unicode.org/reports/tr53/tr53-1.pdf */
+/* http://www.unicode.org/reports/tr53/ */
 
 static hb_codepoint_t
 modifier_combining_marks[] =
