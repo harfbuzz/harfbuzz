@@ -213,7 +213,7 @@ struct hb_font_t
 				       unicode, glyph,
 				       klass->user_data.nominal_glyph);
   }
-  inline unsigned int get_nominal_glyphs ( unsigned int count,
+  inline unsigned int get_nominal_glyphs (unsigned int count,
 					  const hb_codepoint_t *first_unicode,
 					  unsigned int unicode_stride,
 					  hb_codepoint_t *first_glyph,

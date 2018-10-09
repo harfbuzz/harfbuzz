@@ -320,40 +320,44 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   /* First round, decompose */
 
   bool all_simple = true;
-  buffer->clear_output ();
-  count = buffer->len;
-  buffer->idx = 0;
-  do
   {
-    unsigned int end;
-    for (end = buffer->idx + 1; end < count; end++)
-      if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end]))))
-        break;
+    buffer->clear_output ();
+    count = buffer->len;
+    buffer->idx = 0;
+    do
+    {
+      unsigned int end;
+      for (end = buffer->idx + 1; end < count; end++)
+	if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end]))))
+	  break;
 
-    if (end < count)
-      end--; /* Leave one base for the marks to cluster with. */
+      if (end < count)
+	end--; /* Leave one base for the marks to cluster with. */
 
-    /* From idx to end are simple clusters. */
-    while (buffer->idx < end && buffer->successful)
-      decompose_current_character (&c, might_short_circuit);
+      /* From idx to end are simple clusters. */
+      while (buffer->idx < end && buffer->successful)
+	decompose_current_character (&c, might_short_circuit);
 
-    if (buffer->idx == count || !buffer->successful)
-      break;
+      if (buffer->idx == count || !buffer->successful)
+	break;
 
-    all_simple = false;
+      all_simple = false;
 
-    /* Find all the marks now. */
-    for (end = buffer->idx + 1; end < count; end++)
-      if (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end])))
-        break;
+      /* Find all the marks now. */
+      for (end = buffer->idx + 1; end < count; end++)
+	if (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end])))
+	  break;
 
-    /* idx to end is one non-simple cluster. */
-    decompose_multi_char_cluster (&c, end, always_short_circuit);
+      /* idx to end is one non-simple cluster. */
+      decompose_multi_char_cluster (&c, end, always_short_circuit);
+    }
+    while (buffer->idx < count && buffer->successful);
+    buffer->swap_buffers ();
   }
-  while (buffer->idx < count && buffer->successful);
-  buffer->swap_buffers ();
+
 
   /* Second round, reorder (inplace) */
+
   if (!all_simple)
   {
     count = buffer->len;
