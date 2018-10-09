@@ -45,21 +45,16 @@
  * In general, this file does a fine job of what it's supposed to do.
  * There are, however, things that need more work:
  *
- *   - I remember seeing FT_Get_Advance() without the NO_HINTING flag to be buggy.
- *     Have not investigated.
- *
  *   - FreeType works in 26.6 mode.  Clients can decide to use that mode, and everything
  *     would work fine.  However, we also abuse this API for performing in font-space,
  *     but don't pass the correct flags to FreeType.  We just abuse the no-hinting mode
  *     for that, such that no rounding etc happens.  As such, we don't set ppem, and
  *     pass NO_HINTING as load_flags.  Would be much better to use NO_SCALE, and scale
- *     ourselves, like we do in uniscribe, etc.
+ *     ourselves.
  *
  *   - We don't handle / allow for emboldening / obliqueing.
  *
  *   - In the future, we should add constructors to create fonts in font space?
- *
- *   - FT_Load_Glyph() is extremely costly.  Do something about it?
  */
 
 
