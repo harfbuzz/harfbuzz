@@ -335,6 +335,15 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 	end--; /* Leave one base for the marks to cluster with. */
 
       /* From idx to end are simple clusters. */
+      if (might_short_circuit)
+      {
+        unsigned int done = font->get_nominal_glyphs (end - buffer->idx,
+						      &buffer->cur().codepoint,
+						      sizeof (buffer->info[0]),
+						      &buffer->cur().glyph_index(),
+						      sizeof (buffer->info[0]));
+	buffer->next_glyphs (done);
+      }
       while (buffer->idx < end && buffer->successful)
 	decompose_current_character (&c, might_short_circuit);
 
