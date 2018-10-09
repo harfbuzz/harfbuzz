@@ -13,7 +13,7 @@ TESTS =
 check_PROGRAMS =
 
 # Convenience targets:
-lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
+lib: $(BUILT_SOURCES) libharfbuzz.la
 libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
 fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la libharfbuzz-subset-fuzzing.la
 
