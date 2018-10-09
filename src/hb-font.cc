@@ -31,6 +31,8 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 
+#include "hb-ot.h"
+
 
 /*
  * hb_font_funcs_t
@@ -1304,18 +1306,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 };
 
 
-/**
- * hb_font_create: (Xconstructor)
- * @face: a face.
- *
- * 
- *
- * Return value: (transfer full): 
- *
- * Since: 0.9.2
- **/
-hb_font_t *
-hb_font_create (hb_face_t *face)
+static hb_font_t *
+_hb_font_create (hb_face_t *face)
 {
   hb_font_t *font;
 
@@ -1330,6 +1322,27 @@ hb_font_create (hb_face_t *face)
   font->klass = hb_font_funcs_get_empty ();
 
   font->x_scale = font->y_scale = hb_face_get_upem (face);
+
+  return font;
+}
+
+/**
+ * hb_font_create: (Xconstructor)
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ *
+ * Since: 0.9.2
+ **/
+hb_font_t *
+hb_font_create (hb_face_t *face)
+{
+  hb_font_t *font = _hb_font_create (face);
+
+  /* Install our in-house, very lightweight, funcs. */
+  hb_ot_font_set_funcs (font);
 
   return font;
 }
@@ -1350,7 +1363,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   if (unlikely (!parent))
     parent = hb_font_get_empty ();
 
-  hb_font_t *font = hb_font_create (parent->face);
+  hb_font_t *font = _hb_font_create (parent->face);
 
   if (unlikely (hb_object_is_inert (font)))
     return font;
