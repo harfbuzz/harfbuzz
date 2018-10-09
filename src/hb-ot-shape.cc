@@ -70,7 +70,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
   plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
 
-  plan.fallback_positioning = !plan.apply_gpos;
+  plan.fallback_kerning = !plan.apply_gpos;
+  plan.fallback_mark_positioning = !plan.apply_gpos;
   plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
 }
 
@@ -648,8 +649,8 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
   hb_ot_shape_setup_masks (c);
 
   /* This is unfortunate to go here, but necessary... */
-  if (c->plan->fallback_positioning)
-    _hb_ot_shape_fallback_position_recategorize_marks (c->plan, c->font, buffer);
+  if (c->plan->fallback_mark_positioning)
+    _hb_ot_shape_fallback_mark_position_recategorize_marks (c->plan, c->font, buffer);
 
   hb_ot_map_glyphs_fast (buffer);
 
@@ -762,7 +763,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
    * If fallback positinoing happens or GPOS is present, we don't
    * care.
    */
-  bool adjust_offsets_when_zeroing = c->plan->fallback_positioning &&
+  bool adjust_offsets_when_zeroing = c->plan->fallback_mark_positioning &&
 				     !c->plan->shaper->fallback_position &&
 				     HB_DIRECTION_IS_FORWARD (c->buffer->props.direction);
 
@@ -826,15 +827,15 @@ hb_ot_position (const hb_ot_shape_context_t *c)
 
   hb_ot_position_complex (c);
 
-  if (c->plan->fallback_positioning && c->plan->shaper->fallback_position)
-    _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
+  if (c->plan->fallback_mark_positioning && c->plan->shaper->fallback_position)
+    _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
     hb_buffer_reverse (c->buffer);
 
   /* Visual fallback goes here. */
 
-  if (c->plan->fallback_positioning)
+  if (c->plan->fallback_kerning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);

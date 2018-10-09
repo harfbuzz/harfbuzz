@@ -162,9 +162,9 @@ recategorize_combining_class (hb_codepoint_t u,
 }
 
 void
-_hb_ot_shape_fallback_position_recategorize_marks (const hb_ot_shape_plan_t *plan HB_UNUSED,
-						   hb_font_t *font HB_UNUSED,
-						   hb_buffer_t  *buffer)
+_hb_ot_shape_fallback_mark_position_recategorize_marks (const hb_ot_shape_plan_t *plan HB_UNUSED,
+						        hb_font_t *font HB_UNUSED,
+						        hb_buffer_t  *buffer)
 {
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
@@ -417,9 +417,9 @@ position_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 void
-_hb_ot_shape_fallback_position (const hb_ot_shape_plan_t *plan,
-				hb_font_t *font,
-				hb_buffer_t  *buffer)
+_hb_ot_shape_fallback_mark_position (const hb_ot_shape_plan_t *plan,
+				     hb_font_t *font,
+				     hb_buffer_t  *buffer)
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
