@@ -58,6 +58,43 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 HB_EXTERN void
 hb_set_invert (hb_set_t *set);
 
+/**
+ * hb_unicode_eastasian_width_func_t:
+ *
+ * Deprecated: REPLACEME
+ */
+typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t *ufuncs,
+										 hb_codepoint_t      unicode,
+										 void               *user_data);
+
+/**
+ * hb_unicode_funcs_set_eastasian_width_func:
+ * @ufuncs: a Unicode function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 0.9.2
+ * Deprecated: REPLACEME
+ **/
+HB_EXTERN void
+hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
+					   hb_unicode_eastasian_width_func_t func,
+					   void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_unicode_eastasian_width:
+ *
+ * Since: 0.9.2
+ * Deprecated: REPLACEME
+ **/
+HB_EXTERN unsigned int
+hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
+			    hb_codepoint_t unicode);
+
+
 #endif
 
 HB_END_DECLS

@@ -156,6 +156,9 @@ HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
 hb_set_invert
+hb_unicode_eastasian_width_func_t
+hb_unicode_eastasian_width
+hb_unicode_funcs_set_eastasian_width_func
 </SECTION>
 
 <SECTION>
@@ -622,7 +625,6 @@ hb_unicode_compose_func_t
 hb_unicode_decompose
 hb_unicode_decompose_compatibility
 hb_unicode_decompose_func_t
-hb_unicode_eastasian_width
 hb_unicode_funcs_create
 hb_unicode_funcs_destroy
 hb_unicode_funcs_get_default
@@ -636,7 +638,6 @@ hb_unicode_funcs_set_combining_class_func
 hb_unicode_funcs_set_compose_func
 hb_unicode_funcs_set_decompose_compatibility_func
 hb_unicode_funcs_set_decompose_func
-hb_unicode_funcs_set_eastasian_width_func
 hb_unicode_funcs_set_general_category_func
 hb_unicode_funcs_set_mirroring_func
 hb_unicode_funcs_set_script_func
