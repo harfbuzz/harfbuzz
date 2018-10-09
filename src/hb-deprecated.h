@@ -50,12 +50,12 @@ typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
 					       hb_codepoint_t *glyph,
 					       void *user_data);
 
-HB_EXTERN void
+HB_EXTERN HB_DEPRECATED void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 			      hb_font_get_glyph_func_t func,
 			      void *user_data, hb_destroy_func_t destroy);
 
-HB_EXTERN void
+HB_EXTERN HB_DEPRECATED void
 hb_set_invert (hb_set_t *set);
 
 /**
@@ -79,7 +79,7 @@ typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t 
  * Since: 0.9.2
  * Deprecated: REPLACEME
  **/
-HB_EXTERN void
+HB_EXTERN HB_DEPRECATED void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_eastasian_width_func_t func,
 					   void *user_data, hb_destroy_func_t destroy);
@@ -90,7 +90,7 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
  * Since: 0.9.2
  * Deprecated: REPLACEME
  **/
-HB_EXTERN unsigned int
+HB_EXTERN HB_DEPRECATED unsigned int
 hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
 			    hb_codepoint_t unicode);
 
@@ -141,7 +141,7 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
  * Since: 0.9.2
  * Deprecated: REPLACEME
  **/
-HB_EXTERN void
+HB_EXTERN HB_DEPRECATED void
 hb_unicode_funcs_set_decompose_compatibility_func (hb_unicode_funcs_t *ufuncs,
 						   hb_unicode_decompose_compatibility_func_t func,
 						   void *user_data, hb_destroy_func_t destroy);
@@ -152,7 +152,7 @@ hb_unicode_funcs_set_decompose_compatibility_func (hb_unicode_funcs_t *ufuncs,
  *
  * Deprecated: REPLACEME
  **/
-HB_EXTERN unsigned int
+HB_EXTERN HB_DEPRECATED unsigned int
 hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 				    hb_codepoint_t      u,
 				    hb_codepoint_t     *decomposed);

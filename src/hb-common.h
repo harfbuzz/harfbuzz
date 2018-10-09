@@ -63,6 +63,15 @@ typedef unsigned __int64 uint64_t;
 #  include <stdint.h>
 #endif
 
+#if    __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#define HB_DEPRECATED __attribute__((__deprecated__))
+#elif defined(_MSC_VER) && (_MSC_VER >= 1300)
+#define HB_DEPRECATED __declspec(deprecated)
+#else
+#define HB_DEPRECATED
+#endif
+
+
 HB_BEGIN_DECLS
 
 
