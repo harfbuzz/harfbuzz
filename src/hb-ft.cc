@@ -221,7 +221,7 @@ hb_ft_get_variation_glyph (hb_font_t *font HB_UNUSED,
 static void
 hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    unsigned count,
-			    hb_codepoint_t *first_glyph,
+			    const hb_codepoint_t *first_glyph,
 			    unsigned glyph_stride,
 			    hb_position_t *first_advance,
 			    unsigned advance_stride,
