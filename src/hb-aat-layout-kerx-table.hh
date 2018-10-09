@@ -212,6 +212,8 @@ struct KerxSubTableFormat6
 
 struct KerxTable
 {
+  friend kerx;
+
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
@@ -304,7 +306,32 @@ struct kerx
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      bool reverse;
+
+      if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
+	  bool (table->coverage & KerxTable::Vertical))
+        goto skip;
+
+      if (table->coverage & KerxTable::CrossStream)
+        goto skip; /* We do NOT handle cross-stream kerning. */
+
+      reverse = bool (table->coverage & KerxTable::ProcessDirection) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+
+      if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
+        goto skip;
+
+      if (reverse)
+        c->buffer->reverse ();
+
       table->dispatch (c);
+
+      if (reverse)
+        c->buffer->reverse ();
+
+      (void) c->buffer->message (c->font, "end kerx subtable %d", c->lookup_index);
+
+    skip:
       table = &StructAfter<KerxTable> (*table);
     }
   }
