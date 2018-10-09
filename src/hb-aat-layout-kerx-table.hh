@@ -324,6 +324,7 @@ struct kerx
       if (reverse)
         c->buffer->reverse ();
 
+      /* XXX Reverse-kern is not working yet... */
       table->dispatch (c);
 
       if (reverse)
