@@ -722,7 +722,6 @@ test_unicode_normalization (gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf = (hb_unicode_funcs_t *) user_data;
   gunichar a, b, ab;
-  hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
 
 
   /* Test compose() */
@@ -785,56 +784,6 @@ test_unicode_normalization (gconstpointer user_data)
   g_assert (hb_unicode_decompose (uf, 0xD4CC, &a, &b) && a == 0x1111 && b == 0x1171);
   g_assert (hb_unicode_decompose (uf, 0xCE31, &a, &b) && a == 0xCE20 && b == 0x11B8);
   g_assert (hb_unicode_decompose (uf, 0xCE20, &a, &b) && a == 0x110E && b == 0x1173);
-
-
-  /* Test decompose_compatibility() */
-
-  /* Not decomposable */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x0041, decomposed) == 0);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x1F632, decomposed) == 0);
-
-  /* Singletons */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x00B5, decomposed) == 1 && decomposed[0] == 0x03BC);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x03D6, decomposed) == 1 && decomposed[0] == 0x03C0);
-
-  /* Arabic compatibility */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0xFB54, decomposed) == 1 && decomposed[0] == 0x067B);
-
-  /* Longest decomposition ever */
-  g_assert (18 <= HB_UNICODE_MAX_DECOMPOSITION_LEN);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0xFDFA, decomposed) == 18 && decomposed[17] == 0x0645);
-
-  /* Note: we deliberately don't test characters that have canonical decompositions but no
-   * compatibility decomposition against the decompose_compatibility() function as that we
-   * leave up to implementations (for now). */
-
-  /* Spaces */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2002, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2003, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2004, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2005, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2006, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2008, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2009, decomposed) == 1 && decomposed[0] == 0x0020);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x200A, decomposed) == 1 && decomposed[0] == 0x0020);
-
-  /* Pairs */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x0587, decomposed) == 2 &&
-            decomposed[0] == 0x0565 && decomposed[1] == 0x0582);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2017, decomposed) == 2 &&
-            decomposed[0] == 0x0020 && decomposed[1] == 0x0333);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2025, decomposed) == 2 &&
-            decomposed[0] == 0x002E && decomposed[1] == 0x002E);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2033, decomposed) == 2 &&
-            decomposed[0] == 0x2032 && decomposed[1] == 0x2032);
-
-  /* Triples */
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2026, decomposed) == 3 &&
-            decomposed[0] == 0x002E && decomposed[1] == 0x002E && decomposed[2] == 0x002E);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x2034, decomposed) == 3 &&
-            decomposed[0] == 0x2032 && decomposed[1] == 0x2032 && decomposed[2] == 0x2032);
-  g_assert (hb_unicode_decompose_compatibility (uf, 0x213B, decomposed) == 3 &&
-            decomposed[0] == 0x0046 && decomposed[1] == 0x0041 && decomposed[2] == 0x0058);
 }
 
 

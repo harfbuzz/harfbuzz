@@ -224,13 +224,7 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return ucdn_decompose(ab, a, b);
 }
 
-static unsigned int
-hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t u, hb_codepoint_t *decomposed,
-				void *user_data HB_UNUSED)
-{
-    return ucdn_compat_decompose(u, decomposed);
-}
+#define hb_ucdn_decompose_compatibility nullptr
 
 
 #ifdef HB_USE_ATEXIT
