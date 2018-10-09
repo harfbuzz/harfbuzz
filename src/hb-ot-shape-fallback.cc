@@ -447,7 +447,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 	      hb_buffer_t *buffer) :
       font (font_), direction (buffer->props.direction) {}
 
-    hb_position_t get_kerning (hb_codepoint_t first, hb_codepoint_t second)
+    hb_position_t get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
     {
       hb_position_t kern = 0;
       font->get_glyph_kerning_for_direction (first, second,

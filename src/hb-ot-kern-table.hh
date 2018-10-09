@@ -35,7 +35,7 @@
 template <typename Driver>
 struct hb_kern_machine_t
 {
-  hb_kern_machine_t (Driver &driver_) : driver (driver_) {}
+  hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
 
   inline void kern (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
@@ -96,7 +96,7 @@ struct hb_kern_machine_t
     }
   }
 
-  Driver &driver;
+  const Driver &driver;
 };
 
 
@@ -446,6 +446,21 @@ struct kern
 
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table->get_h_kerning (left, right, table_length); }
+
+    inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
+    { return get_h_kerning (first, second); }
+
+    inline void apply (hb_ot_shape_plan_t *plan,
+		       hb_font_t *font,
+		       hb_buffer_t  *buffer) const
+    {
+      if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+        return;
+
+      hb_kern_machine_t<accelerator_t> machine (*this);
+
+      machine.kern (plan, font, buffer);
+    }
 
     private:
     hb_blob_t *blob;
