@@ -133,7 +133,7 @@ typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_h_advance_func_t;
 typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_v_advance_func_t;
 
 typedef void (*hb_font_get_glyph_advances_func_t) (hb_font_t* font, void* font_data,
-						   unsigned count,
+						   unsigned int count,
 						   const hb_codepoint_t *first_glyph,
 						   unsigned glyph_stride,
 						   hb_position_t *first_advance,
@@ -423,14 +423,14 @@ hb_font_get_glyph_v_advance (hb_font_t *font,
 
 HB_EXTERN void
 hb_font_get_glyph_h_advances (hb_font_t* font,
-			      unsigned count,
+			      unsigned int count,
 			      const hb_codepoint_t *first_glyph,
 			      unsigned glyph_stride,
 			      hb_position_t *first_advance,
 			      unsigned advance_stride);
 HB_EXTERN void
 hb_font_get_glyph_v_advances (hb_font_t* font,
-			      unsigned count,
+			      unsigned int count,
 			      const hb_codepoint_t *first_glyph,
 			      unsigned glyph_stride,
 			      hb_position_t *first_advance,
@@ -486,7 +486,7 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
 HB_EXTERN void
 hb_font_get_glyph_advances_for_direction (hb_font_t* font,
 					  hb_direction_t direction,
-					  unsigned count,
+					  unsigned int count,
 					  const hb_codepoint_t *first_glyph,
 					  unsigned glyph_stride,
 					  hb_position_t *first_advance,
