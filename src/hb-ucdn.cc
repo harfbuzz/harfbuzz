@@ -182,14 +182,7 @@ hb_ucdn_combining_class(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return (hb_unicode_combining_class_t) ucdn_get_combining_class(unicode);
 }
 
-static unsigned int
-hb_ucdn_eastasian_width(hb_unicode_funcs_t *ufuncs HB_UNUSED,
-			hb_codepoint_t unicode,
-			void *user_data HB_UNUSED)
-{
-    int w = ucdn_get_east_asian_width(unicode);
-    return (w == UCDN_EAST_ASIAN_F || w == UCDN_EAST_ASIAN_W) ? 2 : 1;
-}
+#define hb_ucdn_eastasian_width nullptr
 
 static hb_unicode_general_category_t
 hb_ucdn_general_category(hb_unicode_funcs_t *ufuncs HB_UNUSED,
@@ -231,13 +224,7 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return ucdn_decompose(ab, a, b);
 }
 
-static unsigned int
-hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t u, hb_codepoint_t *decomposed,
-				void *user_data HB_UNUSED)
-{
-    return ucdn_compat_decompose(u, decomposed);
-}
+#define hb_ucdn_decompose_compatibility nullptr
 
 
 #ifdef HB_USE_ATEXIT

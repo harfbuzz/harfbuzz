@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
+#include "hb-ot-kern-table.hh"
 
 /*
  * kerx -- Extended Kerning
@@ -43,33 +44,17 @@ namespace AAT {
 using namespace OT;
 
 
-struct KerxFormat0Records
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  protected:
-  GlyphID	left;
-  GlyphID	right;
-  FWORD		value;
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-
 struct KerxSubTableFormat0
 {
-  // TODO(ebraminio) Enable when we got suitable BinSearchArrayOf
-  // inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  // {
-  //   hb_glyph_pair_t pair = {left, right};
-  //   int i = pairs.bsearch (pair);
-  //   if (i == -1)
-  //     return 0;
-  //   return pairs[i].get_kerning ();
-  // }
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    hb_glyph_pair_t pair = {left, right};
+    int i = pairs.bsearch (pair);
+    if (i == -1)
+      return 0;
+    return pairs[i].get_kerning ();
+  }
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -82,23 +67,14 @@ struct KerxSubTableFormat0
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  recordsZ.sanitize (c, nPairs)));
+    return_trace (likely (pairs.sanitize (c)));
   }
 
   protected:
-  // TODO(ebraminio): A custom version of "BinSearchArrayOf<KerxPair> pairs;" is
-  // needed here to use HBUINT32 instead
-  HBUINT32	nPairs;		/* The number of kerning pairs in this subtable */
-  HBUINT32	searchRange;	/* The largest power of two less than or equal to the value of nPairs,
-				 * multiplied by the size in bytes of an entry in the subtable. */
-  HBUINT32	entrySelector;	/* This is calculated as log2 of the largest power of two less
-				 * than or equal to the value of nPairs. */
-  HBUINT32	rangeShift;	/* The value of nPairs minus the largest power of two less than or equal to nPairs. */
-  UnsizedArrayOf<KerxFormat0Records>
-		recordsZ;	/* VAR=nPairs */
+  BinSearchArrayOf<KernPair, HBUINT32>
+		pairs;	/* Sorted kern records. */
   public:
-  DEFINE_SIZE_ARRAY (16, recordsZ);
+  DEFINE_SIZE_ARRAY (16, pairs);
 };
 
 struct KerxSubTableFormat1
@@ -126,32 +102,14 @@ struct KerxSubTableFormat1
   DEFINE_SIZE_STATIC (20);
 };
 
-// TODO(ebraminio): Maybe this can be replaced with Lookup<HBUINT16>?
-struct KerxClassTable
-{
-  inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (firstGlyph.sanitize (c) &&
-			  classes.sanitize (c)));
-  }
-
-  protected:
-  HBUINT16		firstGlyph;	/* First glyph in class range. */
-  ArrayOf<HBUINT16>	classes;	/* Glyph classes. */
-  public:
-  DEFINE_SIZE_ARRAY (4, classes);
-};
-
 struct KerxSubTableFormat2
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+			  const char *end, unsigned int num_glyphs) const
   {
-    unsigned int l = (this+leftClassTable).get_class (left);
-    unsigned int r = (this+leftClassTable).get_class (left);
-    unsigned int offset = l * rowWidth + r * sizeof (FWORD);
+    unsigned int l = *(this+leftClassTable).get_value (left, num_glyphs);
+    unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
+    unsigned int offset = l + r;
     const FWORD *arr = &(this+array);
     if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
       return 0;
@@ -182,10 +140,10 @@ struct KerxSubTableFormat2
 
   protected:
   HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<KerxClassTable>
+  LOffsetTo<Lookup<HBUINT16> >
 		leftClassTable;	/* Offset from beginning of this subtable to
 				 * left-hand class table. */
-  LOffsetTo<KerxClassTable>
+  LOffsetTo<Lookup<HBUINT16> >
 		rightClassTable;/* Offset from beginning of this subtable to
 				 * right-hand class table. */
   LOffsetTo<FWORD>
@@ -209,26 +167,14 @@ struct KerxSubTableFormat4
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  rowWidth.sanitize (c) &&
-			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this) &&
-			  array.sanitize (c, this)));
+
+    /* TODO */
+    return_trace (likely (c->check_struct (this)));
   }
 
   protected:
-  HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<KerxClassTable>
-		leftClassTable;	/* Offset from beginning of this subtable to
-				 * left-hand class table. */
-  LOffsetTo<KerxClassTable>
-		rightClassTable;/* Offset from beginning of this subtable to
-				 * right-hand class table. */
-  LOffsetTo<FWORD>
-		array;		/* Offset from beginning of this subtable to
-				 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_STATIC (1);
 };
 
 struct KerxSubTableFormat6
@@ -266,6 +212,8 @@ struct KerxSubTableFormat6
 
 struct KerxTable
 {
+  friend kerx;
+
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
@@ -358,7 +306,33 @@ struct kerx
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      bool reverse;
+
+      if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
+	  bool (table->coverage & KerxTable::Vertical))
+        goto skip;
+
+      if (table->coverage & KerxTable::CrossStream)
+        goto skip; /* We do NOT handle cross-stream kerning. */
+
+      reverse = bool (table->coverage & KerxTable::ProcessDirection) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+
+      if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
+        goto skip;
+
+      if (reverse)
+        c->buffer->reverse ();
+
+      /* XXX Reverse-kern is not working yet... */
       table->dispatch (c);
+
+      if (reverse)
+        c->buffer->reverse ();
+
+      (void) c->buffer->message (c->font, "end kerx subtable %d", c->lookup_index);
+
+    skip:
       table = &StructAfter<KerxTable> (*table);
     }
   }

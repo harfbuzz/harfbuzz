@@ -502,8 +502,8 @@ struct hb_font_t
 					       hb_position_t *x, hb_position_t *y)
   {
     if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
-      *x = get_glyph_h_kerning (first_glyph, second_glyph);
       *y = 0;
+      *x = get_glyph_h_kerning (first_glyph, second_glyph);
     } else {
       *x = 0;
       *y = get_glyph_v_kerning (first_glyph, second_glyph);

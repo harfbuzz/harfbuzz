@@ -73,24 +73,7 @@ hb_icu_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return (hb_unicode_combining_class_t) u_getCombiningClass (unicode);
 }
 
-static unsigned int
-hb_icu_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t      unicode,
-				void               *user_data HB_UNUSED)
-{
-  switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
-  {
-  case U_EA_WIDE:
-  case U_EA_FULLWIDTH:
-    return 2;
-  case U_EA_NEUTRAL:
-  case U_EA_AMBIGUOUS:
-  case U_EA_HALFWIDTH:
-  case U_EA_NARROW:
-    return 1;
-  }
-  return 1;
-}
+#define hb_icu_unicode_eastasian_width nullptr
 
 static hb_unicode_general_category_t
 hb_icu_unicode_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
@@ -309,39 +292,8 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return ret;
 }
 
-static unsigned int
-hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-					hb_codepoint_t      u,
-					hb_codepoint_t     *decomposed,
-					void               *user_data HB_UNUSED)
-{
-  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
-  unsigned int len;
-  int32_t utf32_len;
-  hb_bool_t err;
-  UErrorCode icu_err;
+#define hb_icu_unicode_decompose_compatibility nullptr
 
-  /* Copy @u into a UTF-16 array to be passed to ICU. */
-  len = 0;
-  err = false;
-  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), u, err);
-  if (err)
-    return 0;
-
-  /* Normalise the codepoint using NFKD mode. */
-  icu_err = U_ZERO_ERROR;
-  len = unorm2_normalize (unorm2_getNFKDInstance (&icu_err), utf16, len, normalized, ARRAY_LENGTH (normalized), &icu_err);
-  if (U_FAILURE (icu_err))
-    return 0;
-
-  /* Convert the decomposed form from UTF-16 to UTF-32. */
-  icu_err = U_ZERO_ERROR;
-  u_strToUTF32 ((UChar32*) decomposed, HB_UNICODE_MAX_DECOMPOSITION_LEN, &utf32_len, normalized, len, &icu_err);
-  if (U_FAILURE (icu_err))
-    return 0;
-
-  return utf32_len;
-}
 
 #ifdef HB_USE_ATEXIT
 static void free_static_icu_funcs (void);

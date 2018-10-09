@@ -702,7 +702,11 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   }
 };
 
-/* Binary-search arrays */
+/*
+ * Binary-search arrays
+ */
+
+template <typename LenType=HBUINT16>
 struct BinSearchHeader
 {
   inline operator uint32_t (void) const { return len; }
@@ -725,17 +729,117 @@ struct BinSearchHeader
   }
 
   protected:
-  HBUINT16	len;
-  HBUINT16	searchRange;
-  HBUINT16	entrySelector;
-  HBUINT16	rangeShift;
+  LenType	len;
+  LenType	searchRange;
+  LenType	entrySelector;
+  LenType	rangeShift;
 
   public:
   DEFINE_SIZE_STATIC (8);
 };
 
+template <typename Type, typename LenType=HBUINT16>
+struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader<LenType> > {};
+
+struct VarSizedBinSearchHeader
+{
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  HBUINT16	unitSize;	/* Size of a lookup unit for this search in bytes. */
+  HBUINT16	nUnits;		/* Number of units of the preceding size to be searched. */
+  HBUINT16	searchRange;	/* The value of unitSize times the largest power of 2
+				 * that is less than or equal to the value of nUnits. */
+  HBUINT16	entrySelector;	/* The log base 2 of the largest power of 2 less than
+				 * or equal to the value of nUnits. */
+  HBUINT16	rangeShift;	/* The value of unitSize times the difference of the
+				 * value of nUnits minus the largest power of 2 less
+				 * than or equal to the value of nUnits. */
+  public:
+  DEFINE_SIZE_STATIC (10);
+};
+
 template <typename Type>
-struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader> {};
+struct VarSizedBinSearchArrayOf
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= header.nUnits)) return Null(Type);
+    return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
+  }
+  inline Type& operator [] (unsigned int i)
+  {
+    return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
+  }
+  inline unsigned int get_size (void) const
+  { return header.static_size + header.nUnits * header.unitSize; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
+
+    /* Note: for structs that do not reference other structs,
+     * we do not need to call their sanitize() as we already did
+     * a bound check on the aggregate array size.  We just include
+     * a small unreachable expression to make sure the structs
+     * pointed to do have a simple sanitize(), ie. they do not
+     * reference other structs via offsets.
+     */
+    (void) (false && StructAtOffset<Type> (&bytesZ, 0).sanitize (c));
+
+    return_trace (true);
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    unsigned int count = header.nUnits;
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!(*this)[i].sanitize (c, base)))
+        return_trace (false);
+    return_trace (true);
+  }
+
+  template <typename T>
+  inline const Type *bsearch (const T &key) const
+  {
+    unsigned int size = header.unitSize;
+    int min = 0, max = (int) header.nUnits - 1;
+    while (min <= max)
+    {
+      int mid = (min + max) / 2;
+      const Type *p = (const Type *) (((const char *) &bytesZ) + (mid * size));
+      int c = p->cmp (key);
+      if (c < 0)
+	max = mid - 1;
+      else if (c > 0)
+	min = mid + 1;
+      else
+	return p;
+    }
+    return nullptr;
+  }
+
+  private:
+  inline bool sanitize_shallow (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (header.sanitize (c) &&
+		  Type::static_size >= header.unitSize &&
+		  c->check_array (bytesZ.arrayZ, header.nUnits, header.unitSize));
+  }
+
+  protected:
+  VarSizedBinSearchHeader	header;
+  UnsizedArrayOf<HBUINT8>	bytesZ;
+  public:
+  DEFINE_SIZE_ARRAY (10, bytesZ);
+};
 
 
 } /* namespace OT */

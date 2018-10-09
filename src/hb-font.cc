@@ -887,6 +887,7 @@ hb_font_get_glyph_v_origin (hb_font_t *font,
  * Return value: 
  *
  * Since: 0.9.2
+ * Deprecated: REPLACEME
  **/
 hb_position_t
 hb_font_get_glyph_h_kerning (hb_font_t *font,
@@ -906,6 +907,7 @@ hb_font_get_glyph_h_kerning (hb_font_t *font,
  * Return value: 
  *
  * Since: 0.9.2
+ * Deprecated: REPLACEME
  **/
 hb_position_t
 hb_font_get_glyph_v_kerning (hb_font_t *font,
@@ -1134,6 +1136,7 @@ hb_font_subtract_glyph_origin_for_direction (hb_font_t *font,
  * 
  *
  * Since: 0.9.2
+ * Deprecated: REPLACEME
  **/
 void
 hb_font_get_glyph_kerning_for_direction (hb_font_t *font,

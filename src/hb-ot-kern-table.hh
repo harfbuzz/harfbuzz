@@ -28,6 +28,81 @@
 #define HB_OT_KERN_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-shape.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+
+
+template <typename Driver>
+struct hb_kern_machine_t
+{
+  hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
+
+  inline void kern (hb_font_t *font,
+		    hb_buffer_t  *buffer,
+		    hb_mask_t kern_mask) const
+  {
+    OT::hb_ot_apply_context_t c (1, font, buffer);
+    c.set_lookup_mask (kern_mask);
+    c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
+    OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
+    skippy_iter.init (&c);
+
+    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction);
+    unsigned int count = buffer->len;
+    hb_glyph_info_t *info = buffer->info;
+    hb_glyph_position_t *pos = buffer->pos;
+    for (unsigned int idx = 0; idx < count;)
+    {
+      if (!(info[idx].mask & kern_mask))
+      {
+	idx++;
+	continue;
+      }
+
+      skippy_iter.reset (idx, 1);
+      if (!skippy_iter.next ())
+      {
+	idx++;
+	continue;
+      }
+
+      unsigned int i = idx;
+      unsigned int j = skippy_iter.idx;
+      hb_position_t kern1, kern2;
+
+      hb_position_t kern = driver.get_kerning (info[i].codepoint,
+					       info[j].codepoint);
+
+
+      if (likely (!kern))
+        goto skip;
+
+      kern1 = kern >> 1;
+      kern2 = kern - kern1;
+
+      if (horizontal)
+      {
+	pos[i].x_advance += kern1;
+	pos[j].x_advance += kern2;
+	pos[j].x_offset += kern2;
+      }
+      else
+      {
+	pos[i].y_advance += kern1;
+	pos[j].y_advance += kern2;
+	pos[j].y_offset += kern2;
+      }
+
+      buffer->unsafe_to_break (i, j + 1);
+
+    skip:
+      idx = skippy_iter.idx;
+    }
+  }
+
+  const Driver &driver;
+};
+
 
 /*
  * kern -- Kerning
@@ -118,7 +193,7 @@ struct KernSubTableFormat2
   {
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
-    unsigned int offset = l * rowWidth + r * sizeof (FWORD);
+    unsigned int offset = l + r;
     const FWORD *arr = &(this+array);
     if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
       return 0;
@@ -190,10 +265,10 @@ struct KernSubTableWrapper
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
   inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::COVERAGE_CHECK_FLAGS) == T::COVERAGE_CHECK_HORIZONTAL; }
+  { return (thiz()->coverage & T::CheckFlags) == T::CheckHorizontal; }
 
   inline bool is_override (void) const
-  { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
+  { return bool (thiz()->coverage & T::Override); }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
@@ -264,16 +339,17 @@ struct KernOT : KernTable<KernOT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x01u,
-      COVERAGE_MINIMUM_FLAG	= 0x02u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x04u,
-      COVERAGE_OVERRIDE_FLAG	= 0x08u,
+    enum Coverage
+    {
+      Direction		= 0x01u,
+      Minimum		= 0x02u,
+      CrossStream	= 0x04u,
+      Override		= 0x08u,
 
-      COVERAGE_VARIATION_FLAG	= 0x00u, /* Not supported. */
+      Variation		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0x07u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x01u
+      CheckFlags	= 0x07u,
+      CheckHorizontal	= 0x01u
     };
 
     protected:
@@ -304,15 +380,16 @@ struct KernAAT : KernTable<KernAAT>
   {
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x80u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
-      COVERAGE_VARIATION_FLAG	= 0x20u,
+    enum Coverage
+    {
+      Direction		= 0x80u,
+      CrossStream	= 0x40u,
+      Variation		= 0x20u,
 
-      COVERAGE_OVERRIDE_FLAG	= 0x00u, /* Not supported. */
+      Override		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0xE0u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x00u
+      CheckFlags	= 0xE0u,
+      CheckHorizontal	= 0x00u
     };
 
     protected:
@@ -337,6 +414,9 @@ struct KernAAT : KernTable<KernAAT>
 struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
+
+  inline bool has_data (void) const
+  { return u.version32 != 0; }
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
   {
@@ -371,8 +451,26 @@ struct kern
       hb_blob_destroy (blob);
     }
 
+    inline bool has_data (void) const
+    { return table->has_data (); }
+
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table->get_h_kerning (left, right, table_length); }
+
+    inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
+    { return get_h_kerning (first, second); }
+
+    inline void apply (hb_font_t *font,
+		       hb_buffer_t  *buffer,
+		       hb_mask_t kern_mask) const
+    {
+      if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+        return;
+
+      hb_kern_machine_t<accelerator_t> machine (*this);
+
+      machine.kern (font, buffer, kern_mask);
+    }
 
     private:
     hb_blob_t *blob;
@@ -383,6 +481,7 @@ struct kern
   protected:
   union {
   HBUINT16		major;
+  HBUINT32		version32;
   KernOT		ot;
   KernAAT		aat;
   } u;
