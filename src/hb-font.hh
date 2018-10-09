@@ -237,7 +237,7 @@ struct hb_font_t
   }
 
   inline void get_glyph_h_advances (unsigned int count,
-				    hb_codepoint_t *first_glyph,
+				    const hb_codepoint_t *first_glyph,
 				    unsigned int glyph_stride,
 				    hb_position_t *first_advance,
 				    unsigned int advance_stride)
@@ -250,7 +250,7 @@ struct hb_font_t
   }
 
   inline void get_glyph_v_advances (unsigned int count,
-				    hb_codepoint_t *first_glyph,
+				    const hb_codepoint_t *first_glyph,
 				    unsigned int glyph_stride,
 				    hb_position_t *first_advance,
 				    unsigned int advance_stride)
@@ -378,7 +378,7 @@ struct hb_font_t
   }
   inline void get_glyph_advances_for_direction (hb_direction_t direction,
 						unsigned count,
-						hb_codepoint_t *first_glyph,
+						const hb_codepoint_t *first_glyph,
 						unsigned glyph_stride,
 						hb_position_t *first_advance,
 						unsigned advance_stride)

@@ -212,7 +212,7 @@ struct KerxSubTableFormat6
 
 struct KerxTable
 {
-  friend kerx;
+  friend struct kerx;
 
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & SubtableType; }

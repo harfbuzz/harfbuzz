@@ -435,33 +435,33 @@ _hb_ot_shape_fallback_mark_position (const hb_ot_shape_plan_t *plan,
 }
 
 
+struct hb_ot_shape_fallback_kern_driver_t
+{
+  hb_ot_shape_fallback_kern_driver_t (hb_font_t   *font_,
+				      hb_buffer_t *buffer) :
+    font (font_), direction (buffer->props.direction) {}
+
+  hb_position_t get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
+  {
+    hb_position_t kern = 0;
+    font->get_glyph_kerning_for_direction (first, second,
+					   direction,
+					   &kern, &kern);
+    return kern;
+  }
+
+  hb_font_t *font;
+  hb_direction_t direction;
+};
+
 /* Performs font-assisted kerning. */
 void
 _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 			    hb_font_t *font,
 			    hb_buffer_t *buffer)
 {
-  struct driver_t
-  {
-    driver_t (hb_font_t   *font_,
-	      hb_buffer_t *buffer) :
-      font (font_), direction (buffer->props.direction) {}
-
-    hb_position_t get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
-    {
-      hb_position_t kern = 0;
-      font->get_glyph_kerning_for_direction (first, second,
-					     direction,
-					     &kern, &kern);
-      return kern;
-    }
-
-    hb_font_t *font;
-    hb_direction_t direction;
-  } driver (font, buffer);
-
-  hb_kern_machine_t<driver_t> machine (driver);
-
+  hb_ot_shape_fallback_kern_driver_t driver (font, buffer);
+  hb_kern_machine_t<hb_ot_shape_fallback_kern_driver_t> machine (driver);
   machine.kern (font, buffer, plan->kern_mask);
 }
 

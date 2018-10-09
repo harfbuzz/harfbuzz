@@ -8,6 +8,8 @@ SUBDIRS = data
 # Convenience targets:
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+libs:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
 
 EXTRA_DIST += \
 	README.md \

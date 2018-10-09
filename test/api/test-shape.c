@@ -55,7 +55,7 @@ glyph_h_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 
 static hb_bool_t
 glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
-	    hb_codepoint_t unicode, hb_codepoint_t variation_selector HB_UNUSED,
+	    hb_codepoint_t unicode,
 	    hb_codepoint_t *glyph,
 	    void *user_data HB_UNUSED)
 {
@@ -101,7 +101,7 @@ test_shape (void)
 
   ffuncs = hb_font_funcs_create ();
   hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
-  hb_font_funcs_set_glyph_func (ffuncs, glyph_func, malloc (10), free);
+  hb_font_funcs_set_nominal_glyph_func (ffuncs, glyph_func, malloc (10), free);
   hb_font_funcs_set_glyph_h_kerning_func (ffuncs, glyph_h_kerning_func, NULL, NULL);
   hb_font_set_funcs (font, ffuncs, NULL, NULL);
   hb_font_funcs_destroy (ffuncs);

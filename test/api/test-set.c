@@ -381,10 +381,6 @@ test_set_empty (void)
 
   test_empty (b);
 
-  hb_set_invert (b);
-
-  test_empty (b);
-
   g_assert (!hb_set_allocation_successful (b));
 
   hb_set_clear (b);
