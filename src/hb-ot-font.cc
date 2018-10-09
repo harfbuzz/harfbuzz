@@ -48,7 +48,7 @@ hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  return ot_face->cmap.get_relaxed()->get_nominal_glyph (unicode, glyph);
+  return ot_face->cmap.get ()->get_nominal_glyph (unicode, glyph);
 }
 
 static unsigned int
@@ -62,7 +62,7 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::cmap_accelerator_t &cmap = *ot_face->cmap.get_relaxed ();
+  const OT::cmap_accelerator_t &cmap = *ot_face->cmap.get ();
   unsigned int done;
   for (done = 0;
        done < count && cmap.get_nominal_glyph (*first_unicode, first_glyph);
@@ -83,7 +83,7 @@ hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  return ot_face->cmap.get_relaxed ()->get_variation_glyph (unicode, variation_selector, glyph);
+  return ot_face->cmap.get ()->get_variation_glyph (unicode, variation_selector, glyph);
 }
 
 static void
@@ -256,9 +256,6 @@ hb_ot_font_set_funcs (hb_font_t *font)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (font->face))) return;
   hb_ot_face_data_t *ot_face = hb_ot_face_data (font->face);
-
-  /* Load them lazy.  We access it with get_relaxed() for performance. */
-  ot_face->cmap.get ();
 
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
