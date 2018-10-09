@@ -164,11 +164,8 @@ main (int argc, char **argv)
 
   test_body ();
 
-  /* hb-font backed by FreeType functions can only be used from
-   * one thread at a time, because that's FT_Face's MT guarantee.
-   * So, disable this, even though it works "most of the time". */
-  //hb_ft_font_set_funcs (font);
-  //test_body ();
+  hb_ft_font_set_funcs (font);
+  test_body ();
 
   hb_buffer_destroy (ref_buffer);
 

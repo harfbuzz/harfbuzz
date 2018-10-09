@@ -60,6 +60,7 @@
 
 struct hb_ft_font_t
 {
+  mutable hb_mutex_t lock;
   FT_Face ft_face;
   int load_flags;
   bool symbol; /* Whether selected cmap is symbol cmap. */
@@ -77,6 +78,7 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
   if (unlikely (!ft_font))
     return nullptr;
 
+  ft_font->lock.init ();
   ft_font->ft_face = ft_face;
   ft_font->symbol = symbol;
   ft_font->unref = unref;
@@ -104,6 +106,8 @@ _hb_ft_font_destroy (void *data)
 
   if (ft_font->unref)
     _hb_ft_face_destroy (ft_font->ft_face);
+
+  ft_font->lock.fini ();
 
   free (ft_font);
 }
@@ -172,6 +176,7 @@ hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   unsigned int g = FT_Get_Char_Index (ft_font->ft_face, unicode);
 
   if (unlikely (!g))
@@ -206,6 +211,7 @@ hb_ft_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   unsigned int done;
   for (done = 0;
        done < count && (*first_glyph = FT_Get_Char_Index (ft_font->ft_face, *first_unicode));
@@ -229,6 +235,7 @@ hb_ft_get_variation_glyph (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   unsigned int g = FT_Face_GetCharVariantIndex (ft_font->ft_face, unicode, variation_selector);
 
   if (unlikely (!g))
@@ -248,6 +255,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   int load_flags = ft_font->load_flags;
   int mult = font->x_scale < 0 ? -1 : +1;
@@ -285,6 +293,7 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
 			   void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Fixed v;
 
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags | FT_LOAD_VERTICAL_LAYOUT, &v)))
@@ -307,6 +316,7 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
@@ -333,6 +343,7 @@ hb_ft_get_glyph_extents (hb_font_t *font,
 			 void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
@@ -365,6 +376,7 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
@@ -390,8 +402,10 @@ hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
 		      void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
+  FT_Face ft_face = ft_font->ft_face;
 
-  hb_bool_t ret = !FT_Get_Glyph_Name (ft_font->ft_face, glyph, name, size);
+  hb_bool_t ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
   if (ret && (size && !*name))
     ret = false;
 
@@ -406,6 +420,7 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
   if (len < 0)
@@ -438,6 +453,7 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   metrics->ascender = ft_face->size->metrics.ascender;
   metrics->descender = ft_face->size->metrics.descender;
