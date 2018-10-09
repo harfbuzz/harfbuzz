@@ -28,6 +28,77 @@
 #define HB_OT_KERN_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-shape.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+
+
+template <typename Driver>
+struct hb_kern_machine_t
+{
+  hb_kern_machine_t (Driver &driver_) : driver (driver_) {}
+
+  inline void kern (const hb_ot_shape_plan_t *plan,
+		    hb_font_t *font,
+		    hb_buffer_t  *buffer) const
+  {
+    if (!plan->kerning_requested) return;
+
+    OT::hb_ot_apply_context_t c (1, font, buffer);
+    hb_mask_t kern_mask = plan->kern_mask;
+    c.set_lookup_mask (kern_mask);
+    c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
+    OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
+    skippy_iter.init (&c);
+
+    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction);
+    unsigned int count = buffer->len;
+    hb_glyph_info_t *info = buffer->info;
+    hb_glyph_position_t *pos = buffer->pos;
+    for (unsigned int idx = 0; idx < count;)
+    {
+      if (!(info[idx].mask & kern_mask))
+      {
+	idx++;
+	continue;
+      }
+
+      skippy_iter.reset (idx, 1);
+      if (!skippy_iter.next ())
+      {
+	idx++;
+	continue;
+      }
+
+      unsigned int i = idx;
+      unsigned int j = skippy_iter.idx;
+      hb_position_t kern = driver.get_kerning (info[i].codepoint,
+					       info[j].codepoint);
+
+      hb_position_t kern1 = kern >> 1;
+      hb_position_t kern2 = kern - kern1;
+
+      if (horizontal)
+      {
+	pos[i].x_advance += kern1;
+	pos[j].x_advance += kern2;
+	pos[j].x_offset += kern2;
+      }
+      else
+      {
+	pos[i].y_advance += kern1;
+	pos[j].y_advance += kern2;
+	pos[j].y_offset += kern2;
+      }
+
+      buffer->unsafe_to_break (i, j + 1);
+
+      idx = skippy_iter.idx;
+    }
+  }
+
+  Driver &driver;
+};
+
 
 /*
  * kern -- Kerning
