@@ -34,8 +34,8 @@
 #include <hb-ot.h>
 #include <glib.h>
 
-static char *font_path = "fonts/Inconsolata-Regular.abc.ttf";
-static char *text = "abc";
+static const char *font_path = "fonts/Inconsolata-Regular.abc.ttf";
+static const char *text = "abc";
 
 static int num_threads = 30;
 static int num_iters = 200;
