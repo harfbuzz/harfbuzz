@@ -25,6 +25,7 @@
  */
 
 #include "hb-test.h"
+#include "hb-subset-test.h" // for hb_subset_test_open_font
 #include <hb-ot.h>
 
 /* Unit tests for CFF/CFF2 glyph extents */
@@ -32,10 +33,7 @@
 static void
 test_extents_cff1 (void)
 {
-  hb_blob_t *blob = hb_blob_create_from_file ("fonts/SourceSansPro-Regular.abc.otf");
-  g_assert (blob);
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_blob_destroy (blob);
+  hb_face_t *face = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.abc.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -57,10 +55,7 @@ test_extents_cff1 (void)
 static void
 test_extents_cff2 (void)
 {
-  hb_blob_t *blob = hb_blob_create_from_file ("fonts/AdobeVFPrototype.abc.otf");
-  g_assert (blob);
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_blob_destroy (blob);
+  hb_face_t *face = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
