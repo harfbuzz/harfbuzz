@@ -125,6 +125,14 @@ typedef hb_bool_t (*hb_font_get_variation_glyph_func_t) (hb_font_t *font, void *
 							 hb_codepoint_t *glyph,
 							 void *user_data);
 
+typedef unsigned int (*hb_font_get_nominal_glyphs_func_t) (hb_font_t *font, void *font_data,
+							   unsigned int count,
+							   const hb_codepoint_t *first_unicode,
+							   unsigned int unicode_stride,
+							   hb_codepoint_t *first_glyph,
+							   unsigned int glyph_stride,
+							   void *user_data);
+
 
 typedef hb_position_t (*hb_font_get_glyph_advance_func_t) (hb_font_t *font, void *font_data,
 							   hb_codepoint_t glyph,
@@ -219,6 +227,22 @@ HB_EXTERN void
 hb_font_funcs_set_nominal_glyph_func (hb_font_funcs_t *ffuncs,
 				      hb_font_get_nominal_glyph_func_t func,
 				      void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_nominal_glyphs_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ *
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_font_funcs_set_nominal_glyphs_func (hb_font_funcs_t *ffuncs,
+				       hb_font_get_nominal_glyphs_func_t func,
+				       void *user_data, hb_destroy_func_t destroy);
 
 /**
  * hb_font_funcs_set_variation_glyph_func:

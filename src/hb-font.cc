@@ -101,7 +101,40 @@ hb_font_get_nominal_glyph_default (hb_font_t *font,
 				   hb_codepoint_t *glyph,
 				   void *user_data HB_UNUSED)
 {
+  if (font->has_nominal_glyphs_func ())
+  {
+    return font->get_nominal_glyphs (1, &unicode, 0, glyph, 0);
+  }
   return font->parent->get_nominal_glyph (unicode, glyph);
+}
+
+#define hb_font_get_nominal_glyphs_nil hb_font_get_nominal_glyphs_default
+static unsigned int
+hb_font_get_nominal_glyphs_default (hb_font_t *font,
+				    void *font_data HB_UNUSED,
+				    unsigned int count,
+				    const hb_codepoint_t *first_unicode,
+				    unsigned int unicode_stride,
+				    hb_codepoint_t *first_glyph,
+				    unsigned int glyph_stride,
+				    void *user_data HB_UNUSED)
+{
+  if (font->has_nominal_glyph_func ())
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (!font->get_nominal_glyph (*first_unicode, first_glyph))
+        return i;
+
+      first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    return count;
+  }
+
+  return font->parent->get_nominal_glyphs (count,
+					   first_unicode, unicode_stride,
+					   first_glyph, glyph_stride);
 }
 
 static hb_bool_t
