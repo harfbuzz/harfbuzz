@@ -68,11 +68,17 @@ struct hb_kern_machine_t
 
       unsigned int i = idx;
       unsigned int j = skippy_iter.idx;
+      hb_position_t kern1, kern2;
+
       hb_position_t kern = driver.get_kerning (info[i].codepoint,
 					       info[j].codepoint);
 
-      hb_position_t kern1 = kern >> 1;
-      hb_position_t kern2 = kern - kern1;
+
+      if (likely (!kern))
+        goto skip;
+
+      kern1 = kern >> 1;
+      kern2 = kern - kern1;
 
       if (horizontal)
       {
@@ -89,6 +95,7 @@ struct hb_kern_machine_t
 
       buffer->unsafe_to_break (i, j + 1);
 
+    skip:
       idx = skippy_iter.idx;
     }
   }
