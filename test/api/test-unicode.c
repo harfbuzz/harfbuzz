@@ -160,69 +160,6 @@ static const test_pair_t combining_class_tests_more[] =
   { 0x111111, 0 }
 };
 
-static const test_pair_t eastasian_width_tests[] =
-{
-  /* Neutral */
-  {   0x0000, 1 },
-  {   0x0483, 1 },
-  {   0x0641, 1 },
-  {   0xFFFC, 1 },
-  {  0x10000, 1 },
-  {  0xE0001, 1 },
-
-  /* Narrow */
-  {   0x0020, 1 },
-  {   0x0041, 1 },
-  {   0x27E6, 1 },
-
-  /* Halfwidth */
-  {   0x20A9, 1 },
-  {   0xFF61, 1 },
-  {   0xFF69, 1 },
-  {   0xFFEE, 1 },
-
-  /* Ambiguous */
-  {   0x00A1, 1 },
-  {   0x00D8, 1 },
-  {   0x02DD, 1 },
-  {  0xE0100, 1 },
-  { 0x100000, 1 },
-
-  /* Fullwidth */
-  {   0x3000, 2 },
-  {   0xFF60, 2 },
-
-  /* Wide */
-  {   0x2329, 2 },
-  {   0x3001, 2 },
-  {   0xFE69, 2 },
-  {  0x30000, 2 },
-  {  0x3FFFD, 2 },
-
-  { 0x111111, 1 }
-};
-static const test_pair_t eastasian_width_tests_more[] =
-{
-  /* Default Wide blocks */
-  {   0x4DBF, 2 },
-  {   0x9FFF, 2 },
-  {   0xFAFF, 2 },
-  {  0x2A6DF, 2 },
-  {  0x2B73F, 2 },
-  {  0x2B81F, 2 },
-  {  0x2FA1F, 2 },
-
-  /* Uniode-5.2 character additions */
-  /* Wide */
-  {   0x115F, 2 },
-
-  /* Uniode-6.0 character additions */
-  /* Wide */
-  {  0x2B740, 2 },
-  {  0x1B000, 2 },
-
-  { 0x111111, 1 }
-};
 
 static const test_pair_t general_category_tests[] =
 {
@@ -469,7 +406,6 @@ typedef struct {
 static const property_t properties[] =
 {
   PROPERTY (combining_class, 0),
-  PROPERTY (eastasian_width, 1),
   PROPERTY (general_category, (unsigned int) HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER),
   PROPERTY (mirroring, RETURNS_UNICODE_ITSELF),
   PROPERTY (script, (unsigned int) HB_SCRIPT_UNKNOWN)

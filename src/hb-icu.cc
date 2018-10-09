@@ -73,24 +73,7 @@ hb_icu_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return (hb_unicode_combining_class_t) u_getCombiningClass (unicode);
 }
 
-static unsigned int
-hb_icu_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t      unicode,
-				void               *user_data HB_UNUSED)
-{
-  switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
-  {
-  case U_EA_WIDE:
-  case U_EA_FULLWIDTH:
-    return 2;
-  case U_EA_NEUTRAL:
-  case U_EA_AMBIGUOUS:
-  case U_EA_HALFWIDTH:
-  case U_EA_NARROW:
-    return 1;
-  }
-  return 1;
-}
+#define hb_icu_unicode_eastasian_width nullptr
 
 static hb_unicode_general_category_t
 hb_icu_unicode_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
