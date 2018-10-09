@@ -264,15 +264,6 @@ decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned
     decompose_current_character (c, short_circuit);
 }
 
-static inline void
-decompose_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool might_short_circuit, bool always_short_circuit)
-{
-  if (likely (c->buffer->idx + 1 == end))
-    decompose_current_character (c, might_short_circuit);
-  else
-    decompose_multi_char_cluster (c, end, always_short_circuit);
-}
-
 
 static int
 compare_combining_class (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
@@ -337,7 +328,10 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end]))))
         break;
 
-    decompose_cluster (&c, end, might_short_circuit, always_short_circuit);
+    if (likely (c.buffer->idx + 1 == end))
+      decompose_current_character (&c, might_short_circuit);
+    else
+      decompose_multi_char_cluster (&c, end, always_short_circuit);
   }
   buffer->swap_buffers ();
 
