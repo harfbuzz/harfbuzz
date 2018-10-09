@@ -49,6 +49,19 @@ HB_INTERNAL const OT::GSUB& _get_gsub_relaxed (hb_face_t *face);
 HB_INTERNAL const OT::GPOS& _get_gpos_relaxed (hb_face_t *face);
 
 
+/*
+ * kern
+ */
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_has_kerning (hb_face_t *face);
+
+HB_INTERNAL void
+hb_ot_layout_kern (hb_font_t *font,
+		   hb_buffer_t  *buffer,
+		   hb_mask_t kern_mask);
+
+
 /* Private API corresponding to hb-ot-layout.h: */
 
 HB_INTERNAL hb_bool_t

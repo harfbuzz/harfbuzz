@@ -69,8 +69,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
   plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
-
-  plan.fallback_kerning = !plan.apply_gpos;
+  plan.apply_kern = !plan.apply_gpos && hb_ot_layout_has_kerning (face);
+  plan.fallback_kerning = !plan.apply_gpos && !plan.apply_kern;
   plan.fallback_mark_positioning = !plan.apply_gpos;
   plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
 }
@@ -835,7 +835,11 @@ hb_ot_position (const hb_ot_shape_context_t *c)
 
   /* Visual fallback goes here. */
 
-  if (c->plan->fallback_kerning)
+  if (!c->plan->kerning_requested)
+    ;
+  else if (c->plan->apply_kern)
+    hb_ot_layout_kern (c->font, c->buffer, c->plan->kern_mask);
+  else if (c->plan->fallback_kerning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);

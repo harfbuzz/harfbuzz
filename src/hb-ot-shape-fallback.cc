@@ -439,7 +439,7 @@ _hb_ot_shape_fallback_mark_position (const hb_ot_shape_plan_t *plan,
 void
 _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 			    hb_font_t *font,
-			    hb_buffer_t  *buffer)
+			    hb_buffer_t *buffer)
 {
   struct driver_t
   {
@@ -462,7 +462,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 
   hb_kern_machine_t<driver_t> machine (driver);
 
-  machine.kern (plan, font, buffer);
+  machine.kern (font, buffer, plan->kern_mask);
 }
 
 

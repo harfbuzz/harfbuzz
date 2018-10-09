@@ -45,17 +45,15 @@
 #include "hb-ot-color-cpal-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-svg-table.hh"
+#include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 
 
-// static inline const OT::BASE&
-// _get_base (hb_face_t *face)
-// {
-//   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
-//   hb_ot_face_data_t *data = hb_ot_face_data (face);
-//   return *(data->base.get ());
-// }
-
+static const OT::kern::accelerator_t& _get_kern (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::kern::accelerator_t);
+  return *hb_ot_face_data (face)->kern;
+}
 const OT::GDEF& _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
@@ -88,6 +86,25 @@ static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 {
   return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
+}
+
+
+/*
+ * kern
+ */
+
+hb_bool_t
+hb_ot_layout_has_kerning (hb_face_t *face)
+{
+  return _get_kern (face).has_data ();
+}
+
+void
+hb_ot_layout_kern (hb_font_t *font,
+		   hb_buffer_t  *buffer,
+		   hb_mask_t kern_mask)
+{
+  _get_kern (font->face).apply (font, buffer, kern_mask);
 }
 
 
@@ -1306,27 +1323,3 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 {
   apply_string<GSUBProxy> (c, lookup, accel);
 }
-
-
-
-
-/*
- * OT::BASE
- */
-
-// /**
-//  * hb_ot_base_has_data:
-//  * @face: #hb_face_t to test
-//  *
-//  * This function allows to verify the presence of an OpenType BASE table on the
-//  * face.
-//  *
-//  * Return value: true if face has a BASE table, false otherwise
-//  *
-//  * Since: XXX
-//  **/
-// hb_bool_t
-// hb_ot_base_has_data (hb_face_t *face)
-// {
-//   return _get_base (face).has_data ();
-// }

@@ -37,14 +37,11 @@ struct hb_kern_machine_t
 {
   hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
 
-  inline void kern (const hb_ot_shape_plan_t *plan,
-		    hb_font_t *font,
-		    hb_buffer_t  *buffer) const
+  inline void kern (hb_font_t *font,
+		    hb_buffer_t  *buffer,
+		    hb_mask_t kern_mask) const
   {
-    if (!plan->kerning_requested) return;
-
     OT::hb_ot_apply_context_t c (1, font, buffer);
-    hb_mask_t kern_mask = plan->kern_mask;
     c.set_lookup_mask (kern_mask);
     c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
     OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
@@ -411,6 +408,9 @@ struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
+  inline bool has_data (void) const
+  { return u.version32 != 0; }
+
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
   {
     switch (u.major) {
@@ -444,22 +444,25 @@ struct kern
       hb_blob_destroy (blob);
     }
 
+    inline bool has_data (void) const
+    { return table->has_data (); }
+
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table->get_h_kerning (left, right, table_length); }
 
     inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
     { return get_h_kerning (first, second); }
 
-    inline void apply (hb_ot_shape_plan_t *plan,
-		       hb_font_t *font,
-		       hb_buffer_t  *buffer) const
+    inline void apply (hb_font_t *font,
+		       hb_buffer_t  *buffer,
+		       hb_mask_t kern_mask) const
     {
       if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
         return;
 
       hb_kern_machine_t<accelerator_t> machine (*this);
 
-      machine.kern (plan, font, buffer);
+      machine.kern (font, buffer, kern_mask);
     }
 
     private:
@@ -471,6 +474,7 @@ struct kern
   protected:
   union {
   HBUINT16		major;
+  HBUINT32		version32;
   KernOT		ot;
   KernAAT		aat;
   } u;
