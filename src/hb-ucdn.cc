@@ -16,7 +16,6 @@
 
 #include "hb.hh"
 
-#include "hb-unicode.hh"
 #include "hb-machinery.hh"
 
 #include "ucdn.h"
@@ -182,8 +181,6 @@ hb_ucdn_combining_class(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return (hb_unicode_combining_class_t) ucdn_get_combining_class(unicode);
 }
 
-#define hb_ucdn_eastasian_width nullptr
-
 static hb_unicode_general_category_t
 hb_ucdn_general_category(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			 hb_codepoint_t unicode,
@@ -224,8 +221,6 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return ucdn_decompose(ab, a, b);
 }
 
-#define hb_ucdn_decompose_compatibility nullptr
-
 
 #ifdef HB_USE_ATEXIT
 static void free_static_ucdn_funcs (void);
@@ -237,10 +232,12 @@ static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
   {
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
-#define HB_UNICODE_FUNC_IMPLEMENT(name) \
-    hb_unicode_funcs_set_##name##_func (funcs, hb_ucdn_##name, nullptr, nullptr);
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
+    hb_unicode_funcs_set_combining_class_func (funcs, hb_ucdn_combining_class, nullptr, nullptr);
+    hb_unicode_funcs_set_general_category_func (funcs, hb_ucdn_general_category, nullptr, nullptr);
+    hb_unicode_funcs_set_mirroring_func (funcs, hb_ucdn_mirroring, nullptr, nullptr);
+    hb_unicode_funcs_set_script_func (funcs, hb_ucdn_script, nullptr, nullptr);
+    hb_unicode_funcs_set_compose_func (funcs, hb_ucdn_compose, nullptr, nullptr);
+    hb_unicode_funcs_set_decompose_func (funcs, hb_ucdn_decompose, nullptr, nullptr);
 
     hb_unicode_funcs_make_immutable (funcs);
 
