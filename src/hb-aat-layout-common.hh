@@ -538,6 +538,7 @@ struct hb_aat_apply_context_t :
     sanitizer.init (table);
     sanitizer.set_num_glyphs (face->get_num_glyphs ());
     sanitizer.start_processing ();
+    sanitizer.set_max_ops ((unsigned int) -1);
   }
 
   inline void set_lookup_index (unsigned int i) { lookup_index = i; }

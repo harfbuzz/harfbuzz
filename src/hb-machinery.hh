@@ -252,6 +252,8 @@ struct hb_sanitize_context_t :
   }
   inline unsigned int get_num_glyphs (void) { return num_glyphs; }
 
+  inline void set_max_ops (unsigned int max_ops_) { max_ops = max_ops_; }
+
   inline void start_processing (void)
   {
     this->start = this->blob->data;
