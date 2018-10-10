@@ -59,6 +59,9 @@ struct KerxSubTableFormat0
   {
     TRACE_APPLY (this);
 
+    if (!c->plan->requested_kerning)
+      return false;
+
     hb_kern_machine_t<KerxSubTableFormat0> machine (*this);
 
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -84,6 +87,9 @@ struct KerxSubTableFormat1
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
 
     /* TODO */
 
@@ -122,6 +128,9 @@ struct KerxSubTableFormat2
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
 
     accelerator_t accel (*this,
 			 c->sanitizer.end,
@@ -202,6 +211,9 @@ struct KerxSubTableFormat6
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
 
     /* TODO */
 

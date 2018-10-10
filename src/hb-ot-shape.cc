@@ -71,7 +71,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
   plan.kern_mask = plan.map.get_mask (kern_tag);
 
-  bool kerning_requested = !!plan.kern_mask;
+  plan.requested_kerning = !!plan.kern_mask;
   bool has_gpos_kern = plan.map.get_feature_index (1, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
@@ -100,7 +100,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 
-  if (kerning_requested)
+  if (plan.requested_kerning)
   {
     if (plan.apply_kerx)
       ;/* kerx supercedes kern. */
