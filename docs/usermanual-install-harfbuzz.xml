@@ -51,7 +51,8 @@
     <para>
       For example, on an Ubuntu or Debian system, you would run:
       <programlisting>
-	<command>sudo apt install</command> <package>gcc g++ libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
+	<command>sudo apt install</command> <package>gcc g++
+	libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
       </programlisting>
       On Fedora, RHEL, CentOS, or other Red-Hat&ndash;based systems, you would run:
       <programlisting>
@@ -212,6 +213,135 @@
 	
     </section>
 
+    <section id="configuration">
+      <title>Configuration options</title>
+
+      <para>
+	The instructions in the "Building HarfBuzz" section will build
+	the source code under its default configuration. If needed,
+	the following additional configuration options are available.
+      </para>
+
+      <variablelist>
+	<varlistentry>
+	  <term>--with-libstdc++</term>
+	  <listitem>
+	    <para>
+	      Allow linking with libstdc++. <emphasis>(Default = no)</emphasis>
+	    </para>
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-glib</term>
+	  <listitem>
+	    <para>
+	     Use GLib. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-gobject</term>
+	  <listitem>
+	    <para>
+	      Use GObject. <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-cairo</term>
+	  <listitem>
+	    <para>
+	      Use Cairo. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-fontconfig</term>
+	  <listitem>
+	    <para>
+	      Use Fontconfig. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-icu</term>
+	  <listitem>
+	    <para>
+	      Use the ICU library. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-ucdn</term>
+	  <listitem>
+	    <para>
+	      Use the built-in UCDN library. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-graphite2</term>
+	  <listitem>
+	    <para>
+	      Use the graphite2 library. <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-freetype</term>
+	  <listitem>
+	    <para>
+	      Use the FreeType library. <emphasis>(Default = auto)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-uniscribe</term>
+	  <listitem>
+	    <para>
+	      Use the Uniscribe library. <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-directwrite</term>
+	  <listitem>
+	    <para>
+	      se the DirectWrite library (experimental). <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>--with-coretext</term>
+	  <listitem>
+	    <para>
+	      Use the CoreText library. <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term></term>
+	  <listitem>
+	    <para>
+	      <emphasis>(Default = no)</emphasis>
+	    </para>	    
+	  </listitem>
+	</varlistentry>
+	
+      </variablelist>
+    </section>
     
   </section>
 </chapter>
