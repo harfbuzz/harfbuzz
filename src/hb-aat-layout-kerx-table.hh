@@ -242,7 +242,7 @@ struct KerxTable
     Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
     CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
     Variation		= 0x20000000,	/* Set if table has variation kerning values. */
-    ProcessDirection	= 0x10000000,	/* If clear, process the glyphs forwards, that
+    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
 					 * is, from first to last in the glyph stream.
 					 * If we, process them from last to first.
 					 * This flag only applies to state-table based
@@ -319,7 +319,7 @@ struct kerx
       if (table->coverage & KerxTable::CrossStream)
         goto skip; /* We do NOT handle cross-stream kerning. */
 
-      reverse = bool (table->coverage & KerxTable::ProcessDirection) !=
+      reverse = bool (table->coverage & KerxTable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
