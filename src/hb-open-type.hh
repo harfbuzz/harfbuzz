@@ -92,6 +92,9 @@ typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;
 
+/* 32-bit signed integer (HBINT32) that describes a quantity in FUnits. */
+typedef HBINT32 FWORD32;
+
 /* 16-bit unsigned integer (HBUINT16) that describes a quantity in FUnits. */
 typedef HBUINT16 UFWORD;
 

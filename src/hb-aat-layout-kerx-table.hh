@@ -225,6 +225,13 @@ struct KerxSubTableFormat4
 
 struct KerxSubTableFormat6
 {
+  enum Flags
+  {
+    ValuesAreLong	= 0x00000001,
+  };
+
+  inline bool is_long (void) const { return flags & ValuesAreLong; }
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -241,10 +248,16 @@ struct KerxSubTableFormat6
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
-			  rowIndexTable.sanitize (c, this) &&
-			  columnIndexTable.sanitize (c, this) &&
-			  kerningArray.sanitize (c, this) &&
-			  kerningVector.sanitize (c, this)));
+			  is_long () ?
+			  (
+			    u.l.rowIndexTable.sanitize (c, this) &&
+			    u.l.columnIndexTable.sanitize (c, this) &&
+			    u.l.kerningArray.sanitize (c, this)
+			  ) : (
+			    u.s.rowIndexTable.sanitize (c, this) &&
+			    u.s.columnIndexTable.sanitize (c, this) &&
+			    u.s.kerningArray.sanitize (c, this)
+			  )));
   }
 
   protected:
@@ -252,12 +265,23 @@ struct KerxSubTableFormat6
   HBUINT32			flags;
   HBUINT16			rowCount;
   HBUINT16			columnCount;
-  LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
-  LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
-  LOffsetTo<Lookup<HBUINT16> >	kerningArray;
-  LOffsetTo<Lookup<HBUINT16> >	kerningVector;
+  union
+  {
+    struct
+    {
+      LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
+      LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
+      LOffsetTo<FWORD>			kerningArray;
+    } s;
+    struct
+    {
+      LOffsetTo<Lookup<HBUINT32> >	rowIndexTable;
+      LOffsetTo<Lookup<HBUINT32> >	columnIndexTable;
+      LOffsetTo<FWORD32>		kerningArray;
+    } l;
+  } u;
   public:
-  DEFINE_SIZE_STATIC (36);
+  DEFINE_SIZE_STATIC (32);
 };
 
 struct KerxTable
