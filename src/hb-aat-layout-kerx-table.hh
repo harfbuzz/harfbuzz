@@ -66,9 +66,7 @@ struct KerxSubTableFormat0
   {
     hb_glyph_pair_t pair = {left, right};
     int i = pairs.bsearch (pair);
-    if (i == -1)
-      return 0;
-    return pairs[i].get_kerning ();
+    return i == -1 ? 0 : pairs[i].get_kerning ();
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
