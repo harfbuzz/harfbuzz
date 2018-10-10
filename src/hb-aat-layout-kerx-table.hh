@@ -125,14 +125,11 @@ struct KerxSubTableFormat2
   {
     TRACE_APPLY (this);
 
-    /* TODO */
-#if 0
     accelerator_t accel (*this,
-			 c->blob->data + c->blob->len,
+			 c->sanitizer.end, /* XXX Use SubTable length? */
 			 c->face->get_num_glyphs ());
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
-#endif
 
     return_trace (true);
   }
