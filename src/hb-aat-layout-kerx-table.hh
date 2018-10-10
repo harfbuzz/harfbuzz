@@ -124,7 +124,7 @@ struct KerxSubTableFormat2
     TRACE_APPLY (this);
 
     accelerator_t accel (*this,
-			 c->sanitizer.end, /* XXX Use SubTable length? */
+			 c->sanitizer.end,
 			 c->face->get_num_glyphs ());
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -327,6 +327,8 @@ struct kerx
 
       if (reverse)
         c->buffer->reverse ();
+
+      c->sanitizer.set_object (*table);
 
       /* XXX Reverse-kern is not working yet...
        * hb_kern_machine_t would need to know that it's reverse-kerning.

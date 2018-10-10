@@ -254,6 +254,14 @@ struct hb_sanitize_context_t :
 
   inline void set_max_ops (unsigned int max_ops_) { max_ops = max_ops_; }
 
+  template <typename T>
+  inline void set_object (const T& obj)
+  {
+    this->start = (const char *) &obj;
+    this->end = (const char *) &obj + obj.get_size ();
+    assert (this->start <= this->end); /* Must not overflow. */
+  }
+
   inline void start_processing (void)
   {
     this->start = this->blob->data;
