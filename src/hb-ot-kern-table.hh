@@ -430,7 +430,7 @@ struct kern
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.major.sanitize (c)) return_trace (false);
+    if (!u.version32.sanitize (c)) return_trace (false);
     switch (u.major) {
     case 0: return_trace (u.ot.sanitize (c));
     case 1: return_trace (u.aat.sanitize (c));
@@ -480,13 +480,13 @@ struct kern
 
   protected:
   union {
-  HBUINT16		major;
   HBUINT32		version32;
+  HBUINT16		major;
   KernOT		ot;
   KernAAT		aat;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, major);
+  DEFINE_SIZE_UNION (4, version32);
 };
 
 struct kern_accelerator_t : kern::accelerator_t {};
