@@ -217,6 +217,9 @@ struct hb_dispatch_context_t
 #ifndef HB_SANITIZE_MAX_OPS_MIN
 #define HB_SANITIZE_MAX_OPS_MIN 16384
 #endif
+#ifndef HB_SANITIZE_MAX_OPS_MAX
+#define HB_SANITIZE_MAX_OPS_MAX 0x3FFFFFFF
+#endif
 
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
@@ -252,7 +255,7 @@ struct hb_sanitize_context_t :
   }
   inline unsigned int get_num_glyphs (void) { return num_glyphs; }
 
-  inline void set_max_ops (unsigned int max_ops_) { max_ops = max_ops_; }
+  inline void set_max_ops (int max_ops_) { max_ops = max_ops_; }
 
   template <typename T>
   inline void set_object (const T& obj)
