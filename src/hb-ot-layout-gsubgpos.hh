@@ -259,56 +259,6 @@ struct hb_add_coverage_context_t :
 };
 
 
-struct hb_get_subtables_context_t :
-       hb_dispatch_context_t<hb_get_subtables_context_t, hb_void_t, HB_DEBUG_APPLY>
-{
-  template <typename Type>
-  static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
-  {
-    const Type *typed_obj = (const Type *) obj;
-    return typed_obj->apply (c);
-  }
-
-  typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
-
-  struct hb_applicable_t
-  {
-    inline void init (const void *obj_, hb_apply_func_t apply_func_)
-    {
-      obj = obj_;
-      apply_func = apply_func_;
-    }
-
-    inline bool apply (OT::hb_ot_apply_context_t *c) const { return apply_func (obj, c); }
-
-    private:
-    const void *obj;
-    hb_apply_func_t apply_func;
-  };
-
-  typedef hb_vector_t<hb_applicable_t, 2> array_t;
-
-  /* Dispatch interface. */
-  inline const char *get_name (void) { return "GET_SUBTABLES"; }
-  template <typename T>
-  inline return_t dispatch (const T &obj)
-  {
-    hb_applicable_t *entry = array.push();
-    entry->init (&obj, apply_to<T>);
-    return HB_VOID;
-  }
-  static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
-
-  hb_get_subtables_context_t (array_t &array_) :
-			      array (array_),
-			      debug_depth (0) {}
-
-  array_t &array;
-  unsigned int debug_depth;
-};
-
-
 struct hb_ot_apply_context_t :
        hb_dispatch_context_t<hb_ot_apply_context_t, bool, HB_DEBUG_APPLY>
 {
@@ -669,6 +619,64 @@ struct hb_ot_apply_context_t :
     buffer->output_glyph (glyph_index);
   }
 };
+
+
+struct hb_get_subtables_context_t :
+       hb_dispatch_context_t<hb_get_subtables_context_t, hb_void_t, HB_DEBUG_APPLY>
+{
+  template <typename Type>
+  static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  {
+    const Type *typed_obj = (const Type *) obj;
+    return typed_obj->apply (c);
+  }
+
+  typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
+
+  struct hb_applicable_t
+  {
+    template <typename T>
+    inline void init (const T &obj_, hb_apply_func_t apply_func_)
+    {
+      obj = &obj_;
+      apply_func = apply_func_;
+      digest.init ();
+      obj_.get_coverage ().add_coverage (&digest);
+    }
+
+    inline bool apply (OT::hb_ot_apply_context_t *c) const
+    {
+      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
+    }
+
+    private:
+    const void *obj;
+    hb_apply_func_t apply_func;
+    hb_set_digest_t digest;
+  };
+
+  typedef hb_vector_t<hb_applicable_t, 2> array_t;
+
+  /* Dispatch interface. */
+  inline const char *get_name (void) { return "GET_SUBTABLES"; }
+  template <typename T>
+  inline return_t dispatch (const T &obj)
+  {
+    hb_applicable_t *entry = array.push();
+    entry->init (obj, apply_to<T>);
+    return HB_VOID;
+  }
+  static return_t default_return_value (void) { return HB_VOID; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
+
+  hb_get_subtables_context_t (array_t &array_) :
+			      array (array_),
+			      debug_depth (0) {}
+
+  array_t &array;
+  unsigned int debug_depth;
+};
+
 
 
 
