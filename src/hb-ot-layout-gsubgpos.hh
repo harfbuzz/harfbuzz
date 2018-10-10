@@ -2612,6 +2612,23 @@ struct Extension
  * GSUB/GPOS Common
  */
 
+struct hb_ot_layout_lookup_accelerator_t
+{
+  template <typename TLookup>
+  inline void init (const TLookup &lookup)
+  {
+    digest.init ();
+    lookup.add_coverage (&digest);
+  }
+  inline void fini (void) {}
+
+  inline bool may_have (hb_codepoint_t g) const
+  { return digest.may_have (g); }
+
+  private:
+  hb_set_digest_t digest;
+};
+
 struct GSUBGPOS
 {
   inline bool has_data (void) const { return version.to_int () != 0; }

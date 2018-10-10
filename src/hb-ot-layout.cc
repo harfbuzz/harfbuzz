@@ -1094,7 +1094,7 @@ struct GSUBProxy
     accels (hb_ot_face_data (face)->GSUB->accels) {}
 
   const OT::GSUB &table;
-  const hb_ot_layout_lookup_accelerator_t *accels;
+  const OT::hb_ot_layout_lookup_accelerator_t *accels;
 };
 
 struct GPOSProxy
@@ -1108,13 +1108,13 @@ struct GPOSProxy
     accels (hb_ot_face_data (face)->GPOS->accels) {}
 
   const OT::GPOS &table;
-  const hb_ot_layout_lookup_accelerator_t *accels;
+  const OT::hb_ot_layout_lookup_accelerator_t *accels;
 };
 
 
 static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
-	       const hb_ot_layout_lookup_accelerator_t &accel,
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
 	       const OT::hb_get_subtables_context_t::array_t &subtables)
 {
   bool ret = false;
@@ -1144,7 +1144,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
 static inline bool
 apply_backward (OT::hb_ot_apply_context_t *c,
-	       const hb_ot_layout_lookup_accelerator_t &accel,
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
 	       const OT::hb_get_subtables_context_t::array_t &subtables)
 {
   bool ret = false;
@@ -1174,7 +1174,7 @@ template <typename Proxy>
 static inline void
 apply_string (OT::hb_ot_apply_context_t *c,
 	      const typename Proxy::Lookup &lookup,
-	      const hb_ot_layout_lookup_accelerator_t &accel)
+	      const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -1270,7 +1270,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
 void
 hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 				const OT::SubstLookup &lookup,
-				const hb_ot_layout_lookup_accelerator_t &accel)
+				const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   apply_string<GSUBProxy> (c, lookup, accel);
 }
