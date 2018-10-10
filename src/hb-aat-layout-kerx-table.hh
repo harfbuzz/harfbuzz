@@ -312,21 +312,21 @@ struct kerx
     {
       bool reverse;
 
+      if (table->coverage & (KerxTable::CrossStream | KerxTable::Variation))
+	goto skip; /* We do NOT handle cross-stream or variation kerning. */
+
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
 	  bool (table->coverage & KerxTable::Vertical))
-        goto skip;
-
-      if (table->coverage & KerxTable::CrossStream)
-        goto skip; /* We do NOT handle cross-stream kerning.  None of Apple fonts use it. */
+	goto skip;
 
       reverse = bool (table->coverage & KerxTable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
-        goto skip;
+	goto skip;
 
       if (reverse)
-        c->buffer->reverse ();
+	c->buffer->reverse ();
 
       c->sanitizer.set_object (*table);
 
@@ -337,7 +337,7 @@ struct kerx
       table->dispatch (c);
 
       if (reverse)
-        c->buffer->reverse ();
+	c->buffer->reverse ();
 
       (void) c->buffer->message (c->font, "end kerx subtable %d", c->lookup_index);
 
