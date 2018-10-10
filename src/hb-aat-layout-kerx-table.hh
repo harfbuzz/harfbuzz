@@ -292,22 +292,6 @@ public:
   DEFINE_SIZE_MIN (12);
 };
 
-struct SubtableXXX
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  protected:
-  HBUINT32	length;
-  HBUINT32	coverage;
-  HBUINT32	tupleCount;
-  public:
-  DEFINE_SIZE_STATIC (12);
-};
-
 
 /*
  * The 'kerx' Table
