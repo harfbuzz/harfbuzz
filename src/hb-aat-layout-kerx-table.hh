@@ -328,7 +328,10 @@ struct kerx
       if (reverse)
         c->buffer->reverse ();
 
-      /* XXX Reverse-kern is not working yet... */
+      /* XXX Reverse-kern is not working yet...
+       * hb_kern_machine_t would need to know that it's reverse-kerning.
+       * Or better yet, make it work in reverse as well, so we don't have
+       * to reverse and reverse back? */
       table->dispatch (c);
 
       if (reverse)
