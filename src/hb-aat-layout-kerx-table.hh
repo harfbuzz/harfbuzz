@@ -44,6 +44,22 @@ namespace AAT {
 using namespace OT;
 
 
+struct KerxSubTableHeader
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this)));
+  }
+
+  public:
+  HBUINT32	length;
+  HBUINT32	coverage;
+  HBUINT32	tupleCount;
+  public:
+  DEFINE_SIZE_STATIC (12);
+};
+
 struct KerxSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
@@ -76,10 +92,11 @@ struct KerxSubTableFormat0
   }
 
   protected:
+  KerxSubTableHeader	header;
   BinSearchArrayOf<KernPair, HBUINT32>
-		pairs;	/* Sorted kern records. */
+			pairs;	/* Sorted kern records. */
   public:
-  DEFINE_SIZE_ARRAY (16, pairs);
+  DEFINE_SIZE_ARRAY (28, pairs);
 };
 
 struct KerxSubTableFormat1
@@ -104,10 +121,11 @@ struct KerxSubTableFormat1
   }
 
   protected:
+  KerxSubTableHeader		header;
   StateTable<HBUINT16>		stateHeader;
   LOffsetTo<ArrayOf<HBUINT16> >	valueTable;
   public:
-  DEFINE_SIZE_STATIC (20);
+  DEFINE_SIZE_STATIC (32);
 };
 
 struct KerxSubTableFormat2
@@ -168,18 +186,18 @@ struct KerxSubTableFormat2
   };
 
   protected:
-  HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
+  KerxSubTableHeader	header;
+  HBUINT32		rowWidth;	/* The width, in bytes, of a row in the table. */
   LOffsetTo<Lookup<HBUINT16> >
-		leftClassTable;	/* Offset from beginning of this subtable to
-				 * left-hand class table. */
+			leftClassTable;	/* Offset from beginning of this subtable to
+					 * left-hand class table. */
   LOffsetTo<Lookup<HBUINT16> >
-		rightClassTable;/* Offset from beginning of this subtable to
-				 * right-hand class table. */
-  LOffsetTo<FWORD>
-		array;		/* Offset from beginning of this subtable to
-				 * the start of the kerning array. */
+			rightClassTable;/* Offset from beginning of this subtable to
+					 * right-hand class table. */
+  LOffsetTo<FWORD>	array;		/* Offset from beginning of this subtable to
+					 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_STATIC (28);
 };
 
 struct KerxSubTableFormat4
@@ -202,8 +220,9 @@ struct KerxSubTableFormat4
   }
 
   protected:
+  KerxSubTableHeader	header;
   public:
-  DEFINE_SIZE_STATIC (1);
+  DEFINE_SIZE_STATIC (12);
 };
 
 struct KerxSubTableFormat6
@@ -231,23 +250,24 @@ struct KerxSubTableFormat6
   }
 
   protected:
-  HBUINT32	flags;
-  HBUINT16	rowCount;
-  HBUINT16	columnCount;
+  KerxSubTableHeader		header;
+  HBUINT32			flags;
+  HBUINT16			rowCount;
+  HBUINT16			columnCount;
   LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
   LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
   LOffsetTo<Lookup<HBUINT16> >	kerningArray;
   LOffsetTo<Lookup<HBUINT16> >	kerningVector;
   public:
-  DEFINE_SIZE_STATIC (24);
+  DEFINE_SIZE_STATIC (36);
 };
 
 struct KerxTable
 {
   friend struct kerx;
 
-  inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & SubtableType; }
+  inline unsigned int get_size (void) const { return u.header.length; }
+  inline unsigned int get_type (void) const { return u.header.coverage & SubtableType; }
 
   enum Coverage
   {
@@ -281,19 +301,16 @@ struct KerxTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!length.sanitize (c) ||
-	length < min_size ||
-	!c->check_range (this, length))
+    if (!u.header.sanitize (c) ||
+	!c->check_range (this, u.header.length))
       return_trace (false);
 
     return_trace (dispatch (c));
   }
 
 protected:
-  HBUINT32	length;
-  HBUINT32	coverage;
-  HBUINT32	tupleCount;
   union {
+  KerxSubTableHeader	header;
   KerxSubTableFormat0	format0;
   KerxSubTableFormat1	format1;
   KerxSubTableFormat2	format2;
@@ -324,14 +341,14 @@ struct kerx
     {
       bool reverse;
 
-      if (table->coverage & (KerxTable::CrossStream | KerxTable::Variation))
+      if (table->u.header.coverage & (KerxTable::CrossStream | KerxTable::Variation))
 	goto skip; /* We do NOT handle cross-stream or variation kerning. */
 
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (table->coverage & KerxTable::Vertical))
+	  bool (table->u.header.coverage & KerxTable::Vertical))
 	goto skip;
 
-      reverse = bool (table->coverage & KerxTable::Backwards) !=
+      reverse = bool (table->u.header.coverage & KerxTable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
