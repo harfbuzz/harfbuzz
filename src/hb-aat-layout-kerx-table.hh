@@ -339,7 +339,8 @@ struct kerx
     {
       bool reverse;
 
-      if (table->u.header.coverage & (KerxTable::CrossStream | KerxTable::Variation))
+      if (table->u.header.coverage & (KerxTable::CrossStream | KerxTable::Variation) ||
+	  table->u.header.tupleCount)
 	goto skip; /* We do NOT handle cross-stream or variation kerning. */
 
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
