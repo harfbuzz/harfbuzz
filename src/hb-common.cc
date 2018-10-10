@@ -57,7 +57,7 @@ _hb_options_init (void)
         p = c + strlen (c);
 
 #define OPTION(name, symbol) \
-	if (0 == strncmp (c, name, p - c)) u.opts.symbol = true;
+	if (0 == strncmp (c, name, p - c) && strlen (name) == p - c) u.opts.symbol = true;
 
       OPTION ("uniscribe-bug-compatible", uniscribe_bug_compatible);
       OPTION ("aat", aat);
