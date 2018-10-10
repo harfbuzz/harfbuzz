@@ -59,29 +59,54 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
   plan.kern_mask = plan.map.get_mask (kern_tag);
-  plan.kerning_requested = !!plan.kern_mask;
 
+  bool kerning_requested = !!plan.kern_mask;
   bool has_gpos_kern = plan.map.get_feature_index (0, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
 
-  /* Decide who provides glyph classes. GDEF or Unicode. */
-  plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
+  /*
+   * Decide who provides glyph classes. GDEF or Unicode.
+   */
 
-  /* Decide who does substitutions. GSUB, morx, or fallback. */
-  plan.apply_morx = !hb_ot_layout_has_substitution (face) &&
-		     hb_aat_layout_has_substitution (face);
+  if (!hb_ot_layout_has_glyph_classes (face))
+    plan.fallback_glyph_classes = true;
 
-  /* Decide who does positioning. GPOS, kerx, kern, or fallback. */
-  plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
-  plan.apply_kerx = !plan.apply_gpos &&
-		     hb_aat_layout_has_positioning (face);
+  /*
+   * Decide who does substitutions. GSUB, morx, or fallback.
+   */
 
-  plan.apply_kern = !has_gpos_kern && !plan.apply_kerx && hb_ot_layout_has_kerning (face);
-  plan.fallback_kerning = !has_gpos_kern && !plan.apply_kerx && !plan.apply_kern;
+  if (!hb_ot_layout_has_substitution (face))
+  { /* No GSUB. */
+    if (hb_aat_layout_has_substitution (face))
+      plan.apply_morx = true;
+  }
+
+  /*
+   * Decide who does positioning. GPOS, kerx, kern, or fallback.
+   */
+
+  if (!disable_gpos && hb_ot_layout_has_positioning (face))
+    plan.apply_gpos = true;
+  else if (hb_aat_layout_has_positioning (face))
+    plan.apply_kerx = true;
+
+  if (kerning_requested)
+  {
+    if (plan.apply_kerx)
+      ;/* kerx supercedes kern. */
+    else if (!has_gpos_kern)
+    {
+      if (hb_ot_layout_has_kerning (face))
+        plan.apply_kern = true;
+      else
+	plan.fallback_kerning = true;
+    }
+  }
 
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
-  plan.fallback_mark_positioning = !plan.apply_gpos;
+  if (!plan.apply_gpos)
+    plan.fallback_mark_positioning = true;
 }
 
 
@@ -844,9 +869,7 @@ hb_ot_position (const hb_ot_shape_context_t *c)
 
   /* Visual fallback goes here. */
 
-  if (!c->plan->kerning_requested)
-    ;
-  else if (c->plan->apply_kern)
+  if (c->plan->apply_kern)
     hb_ot_layout_kern (c->font, c->buffer, c->plan->kern_mask);
   else if (c->plan->fallback_kerning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
