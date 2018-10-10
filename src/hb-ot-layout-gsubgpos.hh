@@ -286,7 +286,7 @@ struct hb_get_subtables_context_t :
     hb_apply_func_t apply_func;
   };
 
-  typedef hb_auto_t<hb_vector_t<hb_applicable_t> > array_t;
+  typedef hb_vector_t<hb_applicable_t, 2> array_t;
 
   /* Dispatch interface. */
   inline const char *get_name (void) { return "GET_SUBTABLES"; }
@@ -2619,14 +2619,22 @@ struct hb_ot_layout_lookup_accelerator_t
   {
     digest.init ();
     lookup.add_coverage (&digest);
+
+    subtables.init ();
+    OT::hb_get_subtables_context_t c_get_subtables (subtables);
+    lookup.dispatch (&c_get_subtables);
   }
-  inline void fini (void) {}
+  inline void fini (void)
+  {
+    subtables.fini ();
+  }
 
   inline bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
 
-  private:
+  public:
   hb_set_digest_t digest;
+  hb_get_subtables_context_t::array_t subtables;
 };
 
 struct GSUBGPOS

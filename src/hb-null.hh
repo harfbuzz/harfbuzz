@@ -36,7 +36,7 @@
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
-#define HB_NULL_POOL_SIZE 264
+#define HB_NULL_POOL_SIZE 512
 
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];

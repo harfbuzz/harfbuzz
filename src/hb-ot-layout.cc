@@ -1114,11 +1114,11 @@ struct GPOSProxy
 
 static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
-	       const OT::hb_get_subtables_context_t::array_t &subtables)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
+  const OT::hb_get_subtables_context_t::array_t &subtables = accel.subtables;
   while (buffer->idx < buffer->len && buffer->successful)
   {
     bool applied = false;
@@ -1144,11 +1144,11 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
 static inline bool
 apply_backward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
-	       const OT::hb_get_subtables_context_t::array_t &subtables)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
+  const OT::hb_get_subtables_context_t::array_t &subtables = accel.subtables;
   do
   {
     if (accel.may_have (buffer->cur().codepoint) &&
@@ -1183,10 +1183,6 @@ apply_string (OT::hb_ot_apply_context_t *c,
 
   c->set_lookup_props (lookup.get_props ());
 
-  OT::hb_get_subtables_context_t::array_t subtables;
-  OT::hb_get_subtables_context_t c_get_subtables (subtables);
-  lookup.dispatch (&c_get_subtables);
-
   if (likely (!lookup.is_reverse ()))
   {
     /* in/out forward substitution/positioning */
@@ -1195,7 +1191,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
     buffer->idx = 0;
 
     bool ret;
-    ret = apply_forward (c, accel, subtables);
+    ret = apply_forward (c, accel);
     if (ret)
     {
       if (!Proxy::inplace)
@@ -1211,7 +1207,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
       buffer->remove_output ();
     buffer->idx = buffer->len - 1;
 
-    apply_backward (c, accel, subtables);
+    apply_backward (c, accel);
   }
 }
 
