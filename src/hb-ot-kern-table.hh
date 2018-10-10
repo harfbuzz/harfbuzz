@@ -294,7 +294,7 @@ struct KernTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     int v = 0;
     const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
@@ -303,7 +303,7 @@ struct KernTable
     {
       if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right, table_length + (const char *) this);
+      v += st->get_h_kerning (left, right, st->length + (const char *) st);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
@@ -337,6 +337,7 @@ struct KernOT : KernTable<KernOT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernOT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
     enum Coverage
@@ -378,6 +379,7 @@ struct KernAAT : KernTable<KernAAT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernAAT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
     enum Coverage
@@ -418,11 +420,11 @@ struct kern
   inline bool has_data (void) const
   { return u.version32 != 0; }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (u.major) {
-    case 0: return u.ot.get_h_kerning (left, right, table_length);
-    case 1: return u.aat.get_h_kerning (left, right, table_length);
+    case 0: return u.ot.get_h_kerning (left, right);
+    case 1: return u.aat.get_h_kerning (left, right);
     default:return 0;
     }
   }
@@ -444,7 +446,6 @@ struct kern
     {
       blob = hb_sanitize_context_t().reference_table<kern> (face);
       table = blob->as<kern> ();
-      table_length = blob->length;
     }
     inline void fini (void)
     {
@@ -455,7 +456,7 @@ struct kern
     { return table->has_data (); }
 
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table->get_h_kerning (left, right, table_length); }
+    { return table->get_h_kerning (left, right); }
 
     inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
     { return get_h_kerning (first, second); }
@@ -475,7 +476,6 @@ struct kern
     private:
     hb_blob_t *blob;
     const kern *table;
-    unsigned int table_length;
   };
 
   protected:
