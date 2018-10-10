@@ -61,7 +61,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.kern_mask = plan.map.get_mask (kern_tag);
 
   bool kerning_requested = !!plan.kern_mask;
-  bool has_gpos_kern = plan.map.get_feature_index (0, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
+  bool has_gpos_kern = plan.map.get_feature_index (1, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
 
