@@ -42,6 +42,17 @@
 #include "hb-aat-layout.hh"
 
 
+static bool
+_hb_apply_morx (hb_face_t *face)
+{
+  if (hb_options ().aat &&
+      hb_aat_layout_has_substitution (face))
+    return true;
+
+  return !hb_ot_layout_has_substitution (face) &&
+	 hb_aat_layout_has_substitution (face);
+}
+
 void
 hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 				const int          *coords,
@@ -76,17 +87,15 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
    * Decide who does substitutions. GSUB, morx, or fallback.
    */
 
-  if (!hb_ot_layout_has_substitution (face))
-  { /* No GSUB. */
-    if (hb_aat_layout_has_substitution (face))
-      plan.apply_morx = true;
-  }
+  plan.apply_morx = _hb_apply_morx (face);
 
   /*
    * Decide who does positioning. GPOS, kerx, kern, or fallback.
    */
 
-  if (!disable_gpos && hb_ot_layout_has_positioning (face))
+  if (hb_options ().aat && hb_aat_layout_has_positioning (face))
+    plan.apply_kerx = true;
+  else if (!disable_gpos && hb_ot_layout_has_positioning (face))
     plan.apply_gpos = true;
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
@@ -263,8 +272,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   /* Ugly that we have to do this here...
    * If we are going to apply morx, choose default shaper. */
-  if (!hb_ot_layout_has_substitution (planner.face) &&
-       hb_aat_layout_has_substitution (planner.face))
+  if (_hb_apply_morx (planner.face))
     planner.shaper = &_hb_ot_complex_shaper_default;
   else
     planner.shaper = hb_ot_shape_complex_categorize (&planner);
