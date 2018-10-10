@@ -46,9 +46,7 @@
 #endif
 
 #include <hb.h>
-#ifdef HAVE_OT
 #include <hb-ot.h>
-#endif
 #include <glib.h>
 #include <glib/gprintf.h>
 

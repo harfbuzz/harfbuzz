@@ -29,9 +29,7 @@
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
-#ifdef HAVE_OT
 #include <hb-ot.h>
-#endif
 
 static struct supported_font_funcs_t {
 	char name[4];
@@ -41,9 +39,7 @@ static struct supported_font_funcs_t {
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
 #endif
-#ifdef HAVE_OT
   {"ot",	hb_ot_font_set_funcs},
-#endif
 };
 
 
