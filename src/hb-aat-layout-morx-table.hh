@@ -886,6 +886,8 @@ struct Chain
       if (reverse)
         c->buffer->reverse ();
 
+      c->sanitizer.set_object (*subtable);
+
       subtable->dispatch (c);
 
       if (reverse)
