@@ -826,6 +826,8 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 
   if (c->plan->apply_gpos)
     c->plan->position (c->font, c->buffer);
+  else if (c->plan->apply_kerx)
+    hb_aat_layout_position (c->plan, c->font, c->buffer);
 
   switch (c->plan->shaper->zero_width_marks)
   {
@@ -875,8 +877,6 @@ hb_ot_position (const hb_ot_shape_context_t *c)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
-
-  //hb_aat_layout_position (c->font, c->buffer);
 }
 
 static inline void

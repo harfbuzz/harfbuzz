@@ -109,8 +109,8 @@ struct KerxSubTableFormat2
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  const char *end, unsigned int num_glyphs) const
   {
-    unsigned int l = *(this+leftClassTable).get_value (left, num_glyphs);
-    unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
+    unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
+    unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely ((const char *) v < (const char *) &array ||
