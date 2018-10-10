@@ -52,11 +52,18 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   map.compile (plan.map, coords, num_coords);
 
   plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
-
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
   plan.dnom_mask = plan.map.get_1_mask (HB_TAG ('d','n','o','m'));
   plan.has_frac = plan.frac_mask || (plan.numr_mask && plan.dnom_mask);
+  hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
+		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
+  plan.kern_mask = plan.map.get_mask (kern_tag);
+  plan.kerning_requested = !!plan.kern_mask;
+
+  bool has_gpos_kern = plan.map.get_feature_index (0, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
+  bool disable_gpos = plan.shaper->gpos_tag &&
+		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
 
   /* Decide who provides glyph classes. GDEF or Unicode. */
   plan.fallback_glyph_classes = !hb_ot_layout_has_glyph_classes (face);
@@ -66,17 +73,10 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 		     hb_aat_layout_has_substitution (face);
 
   /* Decide who does positioning. GPOS, kerx, kern, or fallback. */
-  bool disable_gpos = plan.shaper->gpos_tag &&
-		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
   plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
   plan.apply_kerx = !plan.apply_gpos &&
 		     hb_aat_layout_has_positioning (face);
 
-  hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
-		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
-  plan.kern_mask = plan.map.get_mask (kern_tag);
-  plan.kerning_requested = !!plan.kern_mask;
-  bool has_gpos_kern = plan.map.get_feature_index (0, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   plan.apply_kern = !has_gpos_kern && !plan.apply_kerx && hb_ot_layout_has_kerning (face);
   plan.fallback_kerning = !has_gpos_kern && !plan.apply_kerx && !plan.apply_kern;
 
