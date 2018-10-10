@@ -317,7 +317,7 @@ struct kerx
         goto skip;
 
       if (table->coverage & KerxTable::CrossStream)
-        goto skip; /* We do NOT handle cross-stream kerning. */
+        goto skip; /* We do NOT handle cross-stream kerning.  None of Apple fonts use it. */
 
       reverse = bool (table->coverage & KerxTable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);

@@ -463,6 +463,7 @@ struct kern
 		       hb_buffer_t  *buffer,
 		       hb_mask_t kern_mask) const
     {
+      /* We only apply horizontal kerning in this table. */
       if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
         return;
 
