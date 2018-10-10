@@ -11,8 +11,8 @@
   </para>
   <para>
     HarfBuzz can properly shape all of the world's major writing
-    systems. It runs on virtually all operating systems and software
-    platforms, and it supports all of the standard font formats in use
+    systems. It runs on all major operating systems and software
+    platforms, and it supports all of the modern font formats in use
     today.
   </para>
   <section id="what-is-text-shaping">
@@ -41,9 +41,7 @@
     <para>The dominant format is <ulink
       url="http://www.microsoft.com/typography/otspec/">OpenType</ulink>. The
     OpenType specification defines a series of <ulink url="https://github.com/n8willis/opentype-shaping-documents">shaping models</ulink> for
-    various scripts (including Indic, Arabic, Hangul, Hebrew, Khmer,
-    Myanmar, Thai and Lao, Tibetan, and a Universal Shaping Engine
-    designed to cover other scripts). These shaping models depend on
+    various scripts from around the world. These shaping models depend on
     the font including certain features in its <literal>GSUB</literal>
     and <literal>GPOS</literal> tables.
     </para>
@@ -55,12 +53,13 @@
       TrueType fonts can also include OpenType shaping
       features. Alternatively, TrueType fonts can also include <ulink url="https://developer.apple.com/fonts/TrueType-Reference-Manual/RM09/AppendixF.html">Apple
       Advanced Typography</ulink> (AAT) tables to implement shaping
-      support. AAT fonts are generally only found on macOS systems.
+      support. AAT fonts are generally only found on macOS and iOS systems.
     </para>
     <para>
       Text strings will usually be tagged with a script and language
-      tag that provide the context for text shaping.  <ulink
-      url="https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags">Script</ulink>
+      tag that provide the context needed to perform text shaping
+      correctly.  The necessary <ulink
+      url="https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags">Script</ulink> 
       and <ulink
       url="https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags">language</ulink>
       tags are defined by OpenType.
@@ -72,24 +71,25 @@
     <para>
       Text shaping is an integral part of preparing text for
       display. Before a Unicode sequence can be rendered, the
-      codepoints in the sequence must be mapped to the glyphs
-      provided in the font, and the glyphs must be positioned
+      codepoints in the sequence must be mapped to the corresponding
+      glyphs provided in the font, and those glyphs must be positioned
       correctly relative to each other. For many of the scripts
       supported in Unicode, these steps involve script-specific layout
-      rules.
+      rules, including complex joining, reordering, and positioning
+      behavior. Implementing these rules is the job of the shaping engine.
     </para>
     <para>
       Text shaping is a fairly low-level operation. HarfBuzz is
-      used directly by graphic rendering libraries such as Pango, as
-      well as by the layout engines in Firefox, LibreOffice, and
-      Chromium. Unless you are <emphasis>writing</emphasis> one of
-      these layout engines yourself, you will probably not need to use
-      HarfBuzz: normally, lower-level libraries will turn text into
-      glyphs for you.
+      used directly by graphical rendering libraries like <ulink
+      url="https://www.pango.org/">Pango</a>, as well as by the layout
+      engines in Firefox, LibreOffice, and Chromium. Unless you are
+      <emphasis>writing</emphasis> one of these layout engines
+      yourself, you will probably not need to use HarfBuzz: normally,
+      lower-level libraries will turn text into glyphs for you.
     </para>
     <para>
       However, if you <emphasis>are</emphasis> writing a layout engine
-      or graphics library yourself, you will need to perform text
+      or graphics library yourself, then you will need to perform text
       shaping, and this is where HarfBuzz can help you.
     </para>
     <para>
@@ -104,14 +104,15 @@
 	  all other symbols), which are indexed by a <literal>glyph ID</literal>.
 	</para>
 	<para>
-          The glyph ID within the font does not necessarily correlate
-	  to a predictable Unicode codepoint. For instance, some fonts
-	  have the letter &quot;a&quot; as glyph ID 1, but many others do
-	  not. To pull the right glyph out of the font in order to
-	  display &quot;a&quot;, you need to consult the table inside
-	  the font (the <literal>cmap</literal> table) that maps Unicode
-	  codepoints to glyph IDs. In other words, <emphasis>text shaping turns
-	  codepoints into glyph IDs</emphasis>.
+          A particular glyph ID within the font does not necessarily
+	  correlate to a predictable Unicode codepoint. For instance,
+	  some fonts have the letter &quot;a&quot; as glyph ID 1, but
+	  many others do not. In order to retrieve the right glyph
+	  from the font to display &quot;a&quot;, you need to consult
+	  the table inside the font (the <literal>cmap</literal>
+	  table) that maps Unicode codepoints to glyph IDs. In other
+	  words, <emphasis>text shaping turns codepoints into glyph
+	  IDs</emphasis>.
         </para>
       </listitem>
       <listitem>
@@ -125,7 +126,7 @@
 	<para>
 	  Whether you should render an &quot;f, i&quot; sequence
 	  as <literal>fi</literal> or as &quot;ﬁ&quot; does not
-          depend on the input text. Rather, it depends on the whether
+          depend on the input text. Instead, it depends on the whether
 	  or not the font includes an &quot;ﬁ&quot; glyph and on the
 	  level of ligature application you wish to perform. The font
 	  and the amount of ligature application used are under your
@@ -195,26 +196,148 @@
 	  right position, you need to consult the table inside
 	  the font (the <literal>GPOS</literal> table) that contains
 	  positioning information.
-          In other words, <emphasis>text shaping tells you whether you have a
-          precomposed glyph within your font or if you need to compose a
-          glyph yourself out of combining marks&mdash;and, if so, where to
-          position those marks.</emphasis>
+          In other words, <emphasis>text shaping tells you whether you
+	  have a precomposed glyph within your font or if you need to
+	  compose a glyph yourself out of combining marks&mdash;and,
+	  if so, where to position those marks.</emphasis>
         </para>
       </listitem>
     </itemizedlist>
     <para>
-      If tasks like these are something that you need to do, then you need a text
-      shaping engine. You could use Uniscribe if you are writing
-      Windows software; you could use CoreText on macOS; or you could
-      use HarfBuzz.
+      If tasks like these are something that you need to do, then you
+      need a text shaping engine. You could use Uniscribe if you are
+      writing Windows software; you could use CoreText on macOS; or
+      you could use HarfBuzz.
     </para>
-    <para>
-      In the rest of this manual, we are going to assume that you are the
-      implementor of a text-layout engine.
-    </para>
+    <note>
+      <para>
+	In the rest of this manual, the text will assume that the reader
+	is that implementor of a text-layout engine.
+      </para>
+    </note>
   </section>
   
-    <section id="what-harfbuzz-doesnt-do">
+
+  <section>
+    <title>What does HarfBuzz do?</title>
+    <para>
+      HarfBuzz provides OpenType text shaping through a cross-platform
+      C API that accepts sequences of Unicode input text. Currently,
+      the following OpenType shaping models are supported:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Indic (covering Devanagari, Bengali, Gujarati,
+	  Gurmukhi, Kannada, Malayalam, Oriya, Tamil, Telugu, and
+	  Sinhala)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Arabic (covering Arabic, N'Ko, Syriac, and Mongolian)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Thai and Lao
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Khmer
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Myanmar
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Tibetan
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Hangul
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Hebrew
+	</para>
+      </listitem>      
+      <listitem>
+	<para>
+	  The Universal Shaping Engine or <emphasis>USE</emphasis>
+	  (covering complex scripts not covered by the above shaping
+	  models)
+	</para>
+      </listitem>      
+      <listitem>
+	<para>
+	  A default shaping model for non-complex scripts
+	  (covering Latin, Cyrillic, Greek, Armenian, Georgian, Tifinagh,
+	  and many others)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Emoji (including emoji modifier sequences, flag sequences,
+	  and ZWJ sequences)
+	</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      In addition to OpenType shaping, HarfBuzz supports the latest
+      version of Graphite shaping. HarfBuzz currently supports AAT
+      shaping only on macOS and iOS systems, and in a pass-through
+      fashion: HarfBuzz hands off AAT support to the system CoreText
+      library. However, full, built-in AAT support within HarfBuzz is
+      under development.
+    </para>
+    
+    <para>
+      HarfBuzz can read and understand TrueType fonts (.ttf), TrueType
+      collections (.ttc), and OpenType fonts (.otf, including those
+      fonts that contain TrueType-style outlines and those that
+      contain PostScript CFF or CFF2 outlines).
+    </para>
+
+    <para>
+      HarfBuzz can run on top of the FreeType, CoreText, DirectWrite,
+      or Uniscribe font renderers.
+    </para>
+    
+    <para>
+      In addition to its core shaping functionality, HarfBuzz provides
+      functions for accessing other font features, including optional
+      GSUB and GPOS OpenType features, as well as
+      all color-font formats (<literal>CBDT</literal>,
+      <literal>sbix</literal>, <literal>COLR/CPAL</literal>, and
+      <literal>SVG-OT</literal>) and OpenType variable fonts. HarfBuzz
+      also includes a font-subsetting feature.
+    </para>
+
+    <para>
+      HarfBuzz can perform some low-level math-shaping operations, 
+      although it does not currently perform full shaping for
+      mathematical typesetting.
+    </para>
+    
+    <para>
+      A suite of command-line utilities is also provided in the
+      source-code tree, designed to help users test and debug
+      HarfBuzz's features on real-world fonts and input.
+    </para>
+  </section>
+
+  <section id="what-harfbuzz-doesnt-do">
     <title>What HarfBuzz doesn't do</title>
     <para>
       HarfBuzz will take a Unicode string, shape it, and give you the
@@ -223,7 +346,7 @@
       extent of HarfBuzz's responsibility.
     </para>
     <para>
-      It is important to note that if you are implementing a
+      It is important to note that if you are implementing a complete
       text-layout engine you may have other responsibilities that
       HarfBuzz will <emphasis>not</emphasis> help you with. For example:
     </para>
@@ -239,13 +362,13 @@
           sequence:
         </para>
         <programlisting>
-A B C [space] ג ב א [space] D E F
+	  A B C [space] ג ב א [space] D E F
         </programlisting>
         <para>
           but will expect to see in the output:
         </para>
         <programlisting>
-ABC אבג DEF
+	  ABC אבג DEF
         </programlisting>
         <para>
           This reordering is called <emphasis>bidi processing</emphasis>
@@ -253,8 +376,9 @@ ABC אבג DEF
           algorithm as an annex to the Unicode Standard which tells you how
           to reorder a string from logical order into presentation order.
           Before sending your string to HarfBuzz, you may need to apply the
-          bidi algorithm to it. Libraries such as ICU and fribidi can do
-          this for you.
+          bidi algorithm to it. Libraries such as <ulink
+	  url="http://icu-project.org/">ICU</ulink> and <ulink
+	  url="http://fribidi.org/">fribidi</a> can do this for you.
         </para>
       </listitem>
       <listitem>
@@ -304,7 +428,7 @@ ABC אבג DEF
       returns is up to you. 
     </para>
   </section>
-
+    
   <section id="why-is-it-called-harfbuzz">
     <title>Why is it called HarfBuzz?</title>
     <para>
@@ -312,9 +436,9 @@ ABC אבג DEF
       project (and you will see references to the FreeType authors
       within the source code copyright declarations), but was then
       extracted out to its own project. This project is maintained by
-      Behdad Esfahbod, and named HarfBuzz. Originally, it was a shaping
-      engine for OpenType fonts&mdash;&quot;HarfBuzz&quot; is the Persian
-      for &quot;open type&quot;.
+      Behdad Esfahbod, who named it HarfBuzz. Originally, it was a
+      shaping engine for OpenType fonts&mdash;&quot;HarfBuzz&quot; is
+      the Persian for &quot;open type&quot;.
     </para>
   </section>
 </chapter>
