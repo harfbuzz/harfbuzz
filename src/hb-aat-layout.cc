@@ -62,12 +62,14 @@ hb_aat_layout_has_substitution (hb_face_t *face)
 }
 
 void
-hb_aat_layout_substitute (hb_font_t *font, hb_buffer_t *buffer)
+hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
+			  hb_font_t *font,
+			  hb_buffer_t *buffer)
 {
   hb_blob_t *blob;
   const AAT::morx& morx = _get_morx (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (font, buffer, blob);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
   morx.apply (&c);
 }
 

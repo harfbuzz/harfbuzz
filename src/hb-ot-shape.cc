@@ -668,7 +668,7 @@ hb_ot_substitute_complex (const hb_ot_shape_context_t *c)
     hb_synthesize_glyph_classes (c);
 
   if (unlikely (c->plan->apply_morx))
-    hb_aat_layout_substitute (c->font, c->buffer);
+    hb_aat_layout_substitute (c->plan, c->font, c->buffer);
   else
     c->plan->substitute (c->font, buffer);
 }

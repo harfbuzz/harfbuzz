@@ -59,7 +59,9 @@ struct KerxSubTableFormat0
   {
     TRACE_APPLY (this);
 
-    /* TODO */
+    hb_kern_machine_t<KerxSubTableFormat0> machine (*this);
+
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
     return_trace (true);
   }
@@ -111,8 +113,6 @@ struct KerxSubTableFormat2
     unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
     unsigned int offset = l + r;
     const FWORD *arr = &(this+array);
-    if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
-      return 0;
     const FWORD *v = &StructAtOffset<FWORD> (arr, offset);
     if (unlikely ((const void *) v < (const void *) arr || (const void *) (v + 1) > (const void *) end))
       return 0;
@@ -124,6 +124,13 @@ struct KerxSubTableFormat2
     TRACE_APPLY (this);
 
     /* TODO */
+#if 0
+    accelerator_t accel (*this,
+			 c->blob->data + c->blob->len,
+			 c->face->get_num_glyphs ());
+    hb_kern_machine_t<accelerator_t> machine (accel);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+#endif
 
     return_trace (true);
   }
@@ -137,6 +144,22 @@ struct KerxSubTableFormat2
 			  rightClassTable.sanitize (c, this) &&
 			  array.sanitize (c, this)));
   }
+
+  struct accelerator_t
+  {
+    const KerxSubTableFormat2 &table;
+    const char *end;
+    unsigned int num_glyphs;
+
+    inline accelerator_t (const KerxSubTableFormat2 &table_,
+			  const char *end_, unsigned int num_glyphs_)
+			  : table (table_), end (end_), num_glyphs (num_glyphs_) {}
+
+    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    {
+      return table.get_kerning (left, right, end, num_glyphs);
+    }
+  };
 
   protected:
   HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
