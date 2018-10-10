@@ -460,7 +460,9 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 			    hb_font_t *font,
 			    hb_buffer_t *buffer)
 {
-  if (!font->has_glyph_h_kerning_func () && !font->has_glyph_v_kerning_func ())
+  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction) ?
+      !font->has_glyph_h_kerning_func () :
+      !font->has_glyph_v_kerning_func ())
     return;
   hb_ot_shape_fallback_kern_driver_t driver (font, buffer);
   hb_kern_machine_t<hb_ot_shape_fallback_kern_driver_t> machine (driver);
