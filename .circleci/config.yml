@@ -27,6 +27,17 @@ jobs:
       # Ignoring assembler complains, https://stackoverflow.com/a/39867021
       - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
 
+  macos-notest-ios:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - checkout
+      - run: brew update-reset
+      - run: brew install cmake
+      # not needed to be a framework but we like to test that also
+      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_IOS=ON
+      - run: cd build && xcodebuild -sdk iphoneos12.0 -configuration Release build -arch arm64
+
   distcheck:
     docker:
       - image: ubuntu:17.10
@@ -274,6 +285,7 @@ workflows:
       # macOS
       - macos-llvm-gcc-4.2
       - macos-notest-apple-gcc-i686-4.2
+      - macos-notest-ios
 
       # both autotools and cmake
       - distcheck
