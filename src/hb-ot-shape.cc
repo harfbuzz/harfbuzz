@@ -69,14 +69,16 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
   plan.apply_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
+  plan.apply_kerx = !plan.apply_gpos &&
+		     hb_aat_layout_has_positioning (face);
 
   hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
   plan.kern_mask = plan.map.get_mask (kern_tag);
   plan.kerning_requested = !!plan.kern_mask;
   bool has_gpos_kern = plan.map.get_feature_index (0, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
-  plan.apply_kern = !has_gpos_kern && hb_ot_layout_has_kerning (face);
-  plan.fallback_kerning = !has_gpos_kern && !plan.apply_kern;
+  plan.apply_kern = !has_gpos_kern && !plan.apply_kerx && hb_ot_layout_has_kerning (face);
+  plan.fallback_kerning = !has_gpos_kern && !plan.apply_kerx && !plan.apply_kern;
 
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
   plan.fallback_mark_positioning = !plan.apply_gpos;

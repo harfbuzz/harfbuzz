@@ -51,6 +51,7 @@ struct hb_ot_shape_plan_t
   bool fallback_mark_positioning : 1;
 
   bool apply_morx : 1;
+  bool apply_kerx : 1;
   bool apply_kern : 1;
   bool apply_gpos : 1;
 
