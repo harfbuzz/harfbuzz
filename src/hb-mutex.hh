@@ -137,5 +137,13 @@ struct hb_mutex_t
   inline void fini (void) { hb_mutex_impl_finish (&m); }
 };
 
+struct hb_lock_t
+{
+  inline hb_lock_t (hb_mutex_t &mutex_) : mutex (mutex_) { mutex.lock (); }
+  inline ~hb_lock_t (void) { mutex.unlock (); }
+  private:
+  hb_mutex_t &mutex;
+};
+
 
 #endif /* HB_MUTEX_HH */

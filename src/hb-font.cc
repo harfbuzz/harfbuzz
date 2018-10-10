@@ -31,6 +31,8 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 
+#include "hb-ot.h"
+
 
 /*
  * hb_font_funcs_t
@@ -101,7 +103,40 @@ hb_font_get_nominal_glyph_default (hb_font_t *font,
 				   hb_codepoint_t *glyph,
 				   void *user_data HB_UNUSED)
 {
+  if (font->has_nominal_glyphs_func ())
+  {
+    return font->get_nominal_glyphs (1, &unicode, 0, glyph, 0);
+  }
   return font->parent->get_nominal_glyph (unicode, glyph);
+}
+
+#define hb_font_get_nominal_glyphs_nil hb_font_get_nominal_glyphs_default
+static unsigned int
+hb_font_get_nominal_glyphs_default (hb_font_t *font,
+				    void *font_data HB_UNUSED,
+				    unsigned int count,
+				    const hb_codepoint_t *first_unicode,
+				    unsigned int unicode_stride,
+				    hb_codepoint_t *first_glyph,
+				    unsigned int glyph_stride,
+				    void *user_data HB_UNUSED)
+{
+  if (font->has_nominal_glyph_func ())
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (!font->get_nominal_glyph (*first_unicode, first_glyph))
+        return i;
+
+      first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    return count;
+  }
+
+  return font->parent->get_nominal_glyphs (count,
+					   first_unicode, unicode_stride,
+					   first_glyph, glyph_stride);
 }
 
 static hb_bool_t
@@ -807,7 +842,7 @@ hb_font_get_glyph_v_advance (hb_font_t *font,
  **/
 void
 hb_font_get_glyph_h_advances (hb_font_t* font,
-			      unsigned count,
+			      unsigned int count,
 			      const hb_codepoint_t *first_glyph,
 			      unsigned glyph_stride,
 			      hb_position_t *first_advance,
@@ -825,7 +860,7 @@ hb_font_get_glyph_h_advances (hb_font_t* font,
  **/
 void
 hb_font_get_glyph_v_advances (hb_font_t* font,
-			      unsigned count,
+			      unsigned int count,
 			      const hb_codepoint_t *first_glyph,
 			      unsigned glyph_stride,
 			      hb_position_t *first_advance,
@@ -1052,7 +1087,7 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
 HB_EXTERN void
 hb_font_get_glyph_advances_for_direction (hb_font_t* font,
 					  hb_direction_t direction,
-					  unsigned count,
+					  unsigned int count,
 					  const hb_codepoint_t *first_glyph,
 					  unsigned glyph_stride,
 					  hb_position_t *first_advance,
@@ -1271,18 +1306,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 };
 
 
-/**
- * hb_font_create: (Xconstructor)
- * @face: a face.
- *
- * 
- *
- * Return value: (transfer full): 
- *
- * Since: 0.9.2
- **/
-hb_font_t *
-hb_font_create (hb_face_t *face)
+static hb_font_t *
+_hb_font_create (hb_face_t *face)
 {
   hb_font_t *font;
 
@@ -1297,6 +1322,27 @@ hb_font_create (hb_face_t *face)
   font->klass = hb_font_funcs_get_empty ();
 
   font->x_scale = font->y_scale = hb_face_get_upem (face);
+
+  return font;
+}
+
+/**
+ * hb_font_create: (Xconstructor)
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ *
+ * Since: 0.9.2
+ **/
+hb_font_t *
+hb_font_create (hb_face_t *face)
+{
+  hb_font_t *font = _hb_font_create (face);
+
+  /* Install our in-house, very lightweight, funcs. */
+  hb_ot_font_set_funcs (font);
 
   return font;
 }
@@ -1317,7 +1363,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   if (unlikely (!parent))
     parent = hb_font_get_empty ();
 
-  hb_font_t *font = hb_font_create (parent->face);
+  hb_font_t *font = _hb_font_create (parent->face);
 
   if (unlikely (hb_object_is_inert (font)))
     return font;

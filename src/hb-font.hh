@@ -43,6 +43,7 @@
   HB_FONT_FUNC_IMPLEMENT (font_h_extents) \
   HB_FONT_FUNC_IMPLEMENT (font_v_extents) \
   HB_FONT_FUNC_IMPLEMENT (nominal_glyph) \
+  HB_FONT_FUNC_IMPLEMENT (nominal_glyphs) \
   HB_FONT_FUNC_IMPLEMENT (variation_glyph) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_advance) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_advance) \
@@ -212,6 +213,18 @@ struct hb_font_t
 				       unicode, glyph,
 				       klass->user_data.nominal_glyph);
   }
+  inline unsigned int get_nominal_glyphs (unsigned int count,
+					  const hb_codepoint_t *first_unicode,
+					  unsigned int unicode_stride,
+					  hb_codepoint_t *first_glyph,
+					  unsigned int glyph_stride)
+  {
+    return klass->get.f.nominal_glyphs (this, user_data,
+					count,
+					first_unicode, unicode_stride,
+					first_glyph, glyph_stride,
+					klass->user_data.nominal_glyphs);
+  }
 
   inline hb_bool_t get_variation_glyph (hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 					hb_codepoint_t *glyph)
@@ -377,7 +390,7 @@ struct hb_font_t
       *y = get_glyph_v_advance (glyph);
   }
   inline void get_glyph_advances_for_direction (hb_direction_t direction,
-						unsigned count,
+						unsigned int count,
 						const hb_codepoint_t *first_glyph,
 						unsigned glyph_stride,
 						hb_position_t *first_advance,

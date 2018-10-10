@@ -194,11 +194,9 @@ struct KernSubTableFormat2
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l + r;
-    const FWORD *arr = &(this+array);
-    if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
-      return 0;
-    const FWORD *v = &StructAtOffset<FWORD> (arr, offset);
-    if (unlikely ((const void *) v < (const void *) arr || (const void *) (v + 1) > (const void *) end))
+    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+    if (unlikely ((const char *) v < (const char *) &array ||
+		  (const char *) v > (const char *) end - 2))
       return 0;
     return *v;
   }
@@ -283,7 +281,7 @@ struct KernSubTableWrapper
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (thiz()) &&
 		  thiz()->length >= T::min_size &&
-		  c->check_array (thiz(), thiz()->length, 1) &&
+		  c->check_range (thiz(), thiz()->length) &&
 		  thiz()->subtable.sanitize (c, thiz()->format));
   }
 };
@@ -294,7 +292,7 @@ struct KernTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     int v = 0;
     const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
@@ -303,7 +301,7 @@ struct KernTable
     {
       if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right, table_length + (const char *) this);
+      v += st->get_h_kerning (left, right, st->length + (const char *) st);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
@@ -337,6 +335,7 @@ struct KernOT : KernTable<KernOT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernOT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
     enum Coverage
@@ -378,6 +377,7 @@ struct KernAAT : KernTable<KernAAT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernAAT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
     enum Coverage
@@ -418,11 +418,11 @@ struct kern
   inline bool has_data (void) const
   { return u.version32 != 0; }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (u.major) {
-    case 0: return u.ot.get_h_kerning (left, right, table_length);
-    case 1: return u.aat.get_h_kerning (left, right, table_length);
+    case 0: return u.ot.get_h_kerning (left, right);
+    case 1: return u.aat.get_h_kerning (left, right);
     default:return 0;
     }
   }
@@ -430,7 +430,7 @@ struct kern
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.major.sanitize (c)) return_trace (false);
+    if (!u.version32.sanitize (c)) return_trace (false);
     switch (u.major) {
     case 0: return_trace (u.ot.sanitize (c));
     case 1: return_trace (u.aat.sanitize (c));
@@ -444,7 +444,6 @@ struct kern
     {
       blob = hb_sanitize_context_t().reference_table<kern> (face);
       table = blob->as<kern> ();
-      table_length = blob->length;
     }
     inline void fini (void)
     {
@@ -455,7 +454,7 @@ struct kern
     { return table->has_data (); }
 
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table->get_h_kerning (left, right, table_length); }
+    { return table->get_h_kerning (left, right); }
 
     inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
     { return get_h_kerning (first, second); }
@@ -464,6 +463,7 @@ struct kern
 		       hb_buffer_t  *buffer,
 		       hb_mask_t kern_mask) const
     {
+      /* We only apply horizontal kerning in this table. */
       if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
         return;
 
@@ -475,18 +475,17 @@ struct kern
     private:
     hb_blob_t *blob;
     const kern *table;
-    unsigned int table_length;
   };
 
   protected:
   union {
-  HBUINT16		major;
   HBUINT32		version32;
+  HBUINT16		major;
   KernOT		ot;
   KernAAT		aat;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, major);
+  DEFINE_SIZE_UNION (4, version32);
 };
 
 struct kern_accelerator_t : kern::accelerator_t {};

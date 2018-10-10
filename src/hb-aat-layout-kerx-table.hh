@@ -59,7 +59,9 @@ struct KerxSubTableFormat0
   {
     TRACE_APPLY (this);
 
-    /* TODO */
+    hb_kern_machine_t<KerxSubTableFormat0> machine (*this);
+
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
     return_trace (true);
   }
@@ -110,11 +112,9 @@ struct KerxSubTableFormat2
     unsigned int l = *(this+leftClassTable).get_value (left, num_glyphs);
     unsigned int r = *(this+rightClassTable).get_value (right, num_glyphs);
     unsigned int offset = l + r;
-    const FWORD *arr = &(this+array);
-    if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
-      return 0;
-    const FWORD *v = &StructAtOffset<FWORD> (arr, offset);
-    if (unlikely ((const void *) v < (const void *) arr || (const void *) (v + 1) > (const void *) end))
+    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+    if (unlikely ((const char *) v < (const char *) &array ||
+		  (const char *) v > (const char *) end - 2))
       return 0;
     return *v;
   }
@@ -123,7 +123,11 @@ struct KerxSubTableFormat2
   {
     TRACE_APPLY (this);
 
-    /* TODO */
+    accelerator_t accel (*this,
+			 c->sanitizer.end,
+			 c->face->get_num_glyphs ());
+    hb_kern_machine_t<accelerator_t> machine (accel);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
     return_trace (true);
   }
@@ -137,6 +141,22 @@ struct KerxSubTableFormat2
 			  rightClassTable.sanitize (c, this) &&
 			  array.sanitize (c, this)));
   }
+
+  struct accelerator_t
+  {
+    const KerxSubTableFormat2 &table;
+    const char *end;
+    unsigned int num_glyphs;
+
+    inline accelerator_t (const KerxSubTableFormat2 &table_,
+			  const char *end_, unsigned int num_glyphs_)
+			  : table (table_), end (end_), num_glyphs (num_glyphs_) {}
+
+    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    {
+      return table.get_kerning (left, right, end, num_glyphs);
+    }
+  };
 
   protected:
   HBUINT32	rowWidth;	/* The width, in bytes, of a row in the table. */
@@ -222,7 +242,7 @@ struct KerxTable
     Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
     CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
     Variation		= 0x20000000,	/* Set if table has variation kerning values. */
-    ProcessDirection	= 0x10000000,	/* If clear, process the glyphs forwards, that
+    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
 					 * is, from first to last in the glyph stream.
 					 * If we, process them from last to first.
 					 * This flag only applies to state-table based
@@ -272,22 +292,6 @@ public:
   DEFINE_SIZE_MIN (12);
 };
 
-struct SubtableXXX
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  protected:
-  HBUINT32	length;
-  HBUINT32	coverage;
-  HBUINT32	tupleCount;
-  public:
-  DEFINE_SIZE_STATIC (12);
-};
-
 
 /*
  * The 'kerx' Table
@@ -313,9 +317,9 @@ struct kerx
         goto skip;
 
       if (table->coverage & KerxTable::CrossStream)
-        goto skip; /* We do NOT handle cross-stream kerning. */
+        goto skip; /* We do NOT handle cross-stream kerning.  None of Apple fonts use it. */
 
-      reverse = bool (table->coverage & KerxTable::ProcessDirection) !=
+      reverse = bool (table->coverage & KerxTable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
@@ -324,7 +328,12 @@ struct kerx
       if (reverse)
         c->buffer->reverse ();
 
-      /* XXX Reverse-kern is not working yet... */
+      c->sanitizer.set_object (*table);
+
+      /* XXX Reverse-kern is not working yet...
+       * hb_kern_machine_t would need to know that it's reverse-kerning.
+       * Or better yet, make it work in reverse as well, so we don't have
+       * to reverse and reverse back? */
       table->dispatch (c);
 
       if (reverse)

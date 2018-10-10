@@ -260,7 +260,8 @@ struct hb_buffer_t
   {
     if (have_output)
     {
-      if (unlikely (out_info != info || out_len != idx)) {
+      if (out_info != info || out_len != idx)
+      {
 	if (unlikely (!make_room_for (1, 1))) return;
 	out_info[out_len] = info[idx];
       }
@@ -268,6 +269,23 @@ struct hb_buffer_t
     }
 
     idx++;
+  }
+  /* Copies n glyphs at idx to output and advance idx.
+   * If there's no output, just advance idx. */
+  inline void
+  next_glyphs (unsigned int n)
+  {
+    if (have_output)
+    {
+      if (out_info != info || out_len != idx)
+      {
+	if (unlikely (!make_room_for (n, n))) return;
+	memmove (out_info + out_len, info + idx, n * sizeof (out_info[0]));
+      }
+      out_len += n;
+    }
+
+    idx += n;
   }
   /* Advance idx without copying to output. */
   inline void skip_glyph (void)

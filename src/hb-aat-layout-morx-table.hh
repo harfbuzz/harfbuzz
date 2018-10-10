@@ -752,7 +752,7 @@ struct ChainSubtable
     Vertical		= 0x80000000,	/* If set, this subtable will only be applied
 					 * to vertical text. If clear, this subtable
 					 * will only be applied to horizontal text. */
-    Descending		= 0x40000000,	/* If set, this subtable will process glyphs
+    Backwards		= 0x40000000,	/* If set, this subtable will process glyphs
 					 * in descending order. If clear, it will
 					 * process the glyphs in ascending order. */
     AllDirections	= 0x20000000,	/* If set, this subtable will be applied to
@@ -876,8 +876,8 @@ struct Chain
 				may be right-to-left or left-to-right).
        */
       reverse = subtable->coverage & ChainSubtable::Logical ?
-		bool (subtable->coverage & ChainSubtable::Descending) :
-		bool (subtable->coverage & ChainSubtable::Descending) !=
+		bool (subtable->coverage & ChainSubtable::Backwards) :
+		bool (subtable->coverage & ChainSubtable::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
@@ -885,6 +885,8 @@ struct Chain
 
       if (reverse)
         c->buffer->reverse ();
+
+      c->sanitizer.set_object (*subtable);
 
       subtable->dispatch (c);
 
