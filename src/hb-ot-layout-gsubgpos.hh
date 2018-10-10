@@ -2632,7 +2632,15 @@ struct hb_ot_layout_lookup_accelerator_t
   inline bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
 
-  public:
+  inline bool apply (hb_ot_apply_context_t *c) const
+  {
+     for (unsigned int i = 0; i < subtables.len; i++)
+       if (subtables[i].apply (c))
+         return true;
+     return false;
+  }
+
+  private:
   hb_set_digest_t digest;
   hb_get_subtables_context_t::array_t subtables;
 };
