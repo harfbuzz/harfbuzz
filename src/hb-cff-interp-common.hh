@@ -603,13 +603,13 @@ struct ArgStack : Stack<ARG, 513>
 
   inline void reverse_range (int i, int j)
   {
-    assert (i >= 0 && i < j);
+    assert (i >= 0 && i <= j);
     ARG  tmp;
     while (i < j)
     {
       tmp = S::elements[i];
       S::elements[i++] = S::elements[j];
-      S::elements[j++] = tmp;
+      S::elements[j--] = tmp;
     }
   }
 
