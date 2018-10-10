@@ -139,8 +139,8 @@ struct hb_mutex_t
 
 struct hb_lock_t
 {
-  hb_lock_t (hb_mutex_t &mutex_) : mutex (mutex_) { mutex.lock (); }
-  ~hb_lock_t (void) { mutex.unlock (); }
+  inline hb_lock_t (hb_mutex_t &mutex_) : mutex (mutex_) { mutex.lock (); }
+  inline ~hb_lock_t (void) { mutex.unlock (); }
   private:
   hb_mutex_t &mutex;
 };
