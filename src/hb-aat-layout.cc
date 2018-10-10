@@ -74,7 +74,9 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
 }
 
 void
-hb_aat_layout_position (hb_font_t *font, hb_buffer_t *buffer)
+hb_aat_layout_position (hb_ot_shape_plan_t *plan,
+			hb_font_t *font,
+			hb_buffer_t *buffer)
 {
 #if 0
   hb_blob_t *blob;
