@@ -164,7 +164,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<void> driver (machine, c->buffer, c->face);
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -365,7 +365,7 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
-      return !!(entry->flags & PerformAction);
+      return entry->flags & PerformAction;
     }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)

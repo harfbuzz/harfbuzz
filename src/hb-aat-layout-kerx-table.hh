@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
+#include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-kern-table.hh"
 
 /*
@@ -99,6 +100,100 @@ struct KerxSubTableFormat0
 
 struct KerxSubTableFormat1
 {
+  struct EntryData
+  {
+    HBUINT16	kernActionIndex;/* Index into the kerning value array. If
+				 * this index is 0xFFFF, then no kerning
+				 * is to be performed. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+      Reset		= 0x2000,	/* If set, reset the kerning data (clear the stack) */
+      Reserved		= 0x1FFF,	/* Not used; set to 0. */
+    };
+
+    inline driver_context_t (const KerxSubTableFormat1 *table,
+			     hb_aat_apply_context_t *c_) :
+	c (c_),
+	/* Apparently the offset kernAction is from the beginning of the state-machine,
+	 * similar to offsets in morx table, NOT from beginning of this table, like
+	 * other subtables in kerx.  Discovered via testing. */
+	kernAction (&table->machine + table->kernAction),
+	depth (0) {}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return entry->data.kernActionIndex != 0xFFFF;
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (flags & Reset)
+      {
+        depth = 0;
+      }
+
+      if (flags & Push)
+      {
+        if (likely (depth < ARRAY_LENGTH (stack)))
+	  stack[depth++] = buffer->idx;
+	else
+	  depth = 0; /* Probably not what CoreText does, but better? */
+      }
+
+      if (entry->data.kernActionIndex != 0xFFFF)
+      {
+	const FWORD *actions = &kernAction[entry->data.kernActionIndex];
+        if (!c->sanitizer.check_array (actions, depth))
+	{
+	  depth = 0;
+	  return false;
+	}
+
+	hb_mask_t kern_mask = c->plan->kern_mask;
+        for (unsigned int i = 0; i < depth; i++)
+	{
+	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
+	   * and applies the kerning value to it.", it doesn't mean it in that order.
+	   * The deepest item in the stack corresponds to the first item in the action
+	   * list.  Discovered by testing. */
+	  unsigned int idx = stack[i];
+	  int v = *actions++;
+	  if (buffer->info[idx].mask & kern_mask)
+	  {
+	    /* XXX Non-forward direction... */
+	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+	    else
+	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	  }
+	}
+	depth = 0;
+      }
+
+      return true;
+    }
+
+    private:
+    hb_aat_apply_context_t *c;
+    const UnsizedArrayOf<FWORD> &kernAction;
+    unsigned int stack[8];
+    unsigned int depth;
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -106,7 +201,10 @@ struct KerxSubTableFormat1
     if (!c->plan->requested_kerning)
       return false;
 
-    /* TODO */
+    driver_context_t dc (this, c);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
 
     return_trace (true);
   }
@@ -114,14 +212,13 @@ struct KerxSubTableFormat1
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  stateHeader.sanitize (c)));
+    return_trace (likely (machine.sanitize (c)));
   }
 
   protected:
-  KerxSubTableHeader		header;
-  StateTable<HBUINT16>		stateHeader;
-  LOffsetTo<ArrayOf<HBUINT16> >	valueTable;
+  KerxSubTableHeader				header;
+  StateTable<EntryData>				machine;
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
   public:
   DEFINE_SIZE_STATIC (32);
 };
@@ -136,7 +233,7 @@ struct KerxSubTableFormat2
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v + v->static_size - (const char *) this <= header.length))
+		  (const char *) v + v->static_size - (const char *) this > header.length))
       return 0;
     return *v;
   }
@@ -159,11 +256,9 @@ struct KerxSubTableFormat2
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  rowWidth.sanitize (c) &&
+    return_trace (likely (rowWidth.sanitize (c) &&
 			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this) &&
-			  array.sanitize (c, this)));
+			  rightClassTable.sanitize (c, this)));
   }
 
   struct accelerator_t
@@ -190,7 +285,8 @@ struct KerxSubTableFormat2
   LOffsetTo<Lookup<HBUINT16> >
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
-  LOffsetTo<FWORD>	array;		/* Offset from beginning of this subtable to
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>
+			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
   DEFINE_SIZE_STATIC (28);
@@ -198,11 +294,152 @@ struct KerxSubTableFormat2
 
 struct KerxSubTableFormat4
 {
+  struct EntryData
+  {
+    HBUINT16	ankrActionIndex;/* Either 0xFFFF (for no action) or the index of
+				 * the action to perform. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state. */
+      Reserved		= 0x3FFF,	/* Not used; set to 0. */
+    };
+
+    enum SubTableFlags
+    {
+      ActionType	= 0xC0000000,	/* A two-bit field containing the action type. */
+      Unused		= 0x3F000000,	/* Unused - must be zero. */
+      Offset		= 0x00FFFFFF,	/* Masks the offset in bytes from the beginning
+					 * of the subtable to the beginning of the control
+					 * point table. */
+    };
+
+    inline driver_context_t (const KerxSubTableFormat4 *table,
+			     hb_aat_apply_context_t *c_) :
+	c (c_),
+	action_type ((table->flags & ActionType) >> 30),
+	ankrData ((HBUINT16 *) ((const char *) &table->machine + (table->flags & Offset))),
+	mark_set (false),
+	mark (0) {}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return entry->data.ankrActionIndex != 0xFFFF;
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (mark_set && entry->data.ankrActionIndex != 0xFFFF)
+      {
+	hb_glyph_position_t &o = buffer->cur_pos();
+	switch (action_type)
+	{
+	  case 0: /* Control Point Actions.*/
+	  {
+	    /* indexed into glyph outline. */
+	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2))
+	      return false;
+	    HB_UNUSED unsigned int markControlPoint = *data++;
+	    HB_UNUSED unsigned int currControlPoint = *data++;
+	    hb_position_t markX = 0;
+	    hb_position_t markY = 0;
+	    hb_position_t currX = 0;
+	    hb_position_t currY = 0;
+	    if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
+							      markControlPoint,
+							      HB_DIRECTION_LTR /*XXX*/,
+							      &markX, &markY) ||
+		!c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
+							      currControlPoint,
+							      HB_DIRECTION_LTR /*XXX*/,
+							      &currX, &currY))
+	      return true; /* True, such that the machine continues. */
+
+	    o.x_offset = markX - currX;
+	    o.y_offset = markY - currY;
+	  }
+	  break;
+
+	  case 1: /* Anchor Point Actions. */
+	  {
+	   /* Indexed into 'ankr' table. */
+	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2))
+	      return false;
+	    unsigned int markAnchorPoint = *data++;
+	    unsigned int currAnchorPoint = *data++;
+	    const Anchor markAnchor = c->ankr_table.get_anchor (c->buffer->info[mark].codepoint,
+								markAnchorPoint,
+								c->face->get_num_glyphs (),
+								c->ankr_end);
+	    const Anchor currAnchor = c->ankr_table.get_anchor (c->buffer->cur ().codepoint,
+								currAnchorPoint,
+								c->face->get_num_glyphs (),
+								c->ankr_end);
+
+	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
+	    o.y_offset = c->font->em_scale_y (markAnchor.yCoordinate) - c->font->em_scale_y (currAnchor.yCoordinate);
+	  }
+	  break;
+
+	  case 2: /* Control Point Coordinate Actions. */
+	  {
+	    const FWORD *data = (const FWORD *) &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 4))
+	      return false;
+	    int markX = *data++;
+	    int markY = *data++;
+	    int currX = *data++;
+	    int currY = *data++;
+
+	    o.x_offset = c->font->em_scale_x (markX) - c->font->em_scale_x (currX);
+	    o.y_offset = c->font->em_scale_y (markY) - c->font->em_scale_y (currY);
+	  }
+	  break;
+	}
+	o.attach_type() = ATTACH_TYPE_MARK;
+	o.attach_chain() = (int) mark - (int) buffer->idx;
+	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+      }
+
+      if (flags & Mark)
+      {
+	mark_set = true;
+	mark = buffer->idx;
+      }
+
+      return true;
+    }
+
+    private:
+    hb_aat_apply_context_t *c;
+    unsigned int action_type;
+    const HBUINT16 *ankrData;
+    bool mark_set;
+    unsigned int mark;
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
-    /* TODO */
+    driver_context_t dc (this, c);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
 
     return_trace (true);
   }
@@ -211,14 +448,18 @@ struct KerxSubTableFormat4
   {
     TRACE_SANITIZE (this);
 
-    /* TODO */
-    return_trace (likely (c->check_struct (this)));
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (c->check_struct (this) &&
+		  machine.sanitize (c) &&
+		  flags.sanitize (c));
   }
 
   protected:
   KerxSubTableHeader	header;
+  StateTable<EntryData>	machine;
+  HBUINT32		flags;
   public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_STATIC (32);
 };
 
 struct KerxSubTableFormat6
@@ -241,7 +482,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
       if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this <= header.length))
+		    (const char *) v + v->static_size - (const char *) this > header.length))
 	return 0;
       return *v;
     }
@@ -253,7 +494,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
       if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this <= header.length))
+		    (const char *) v + v->static_size - (const char *) this > header.length))
 	return 0;
       return *v;
     }
@@ -281,12 +522,10 @@ struct KerxSubTableFormat6
 			  is_long () ?
 			  (
 			    u.l.rowIndexTable.sanitize (c, this) &&
-			    u.l.columnIndexTable.sanitize (c, this) &&
-			    u.l.array.sanitize (c, this)
+			    u.l.columnIndexTable.sanitize (c, this)
 			  ) : (
 			    u.s.rowIndexTable.sanitize (c, this) &&
-			    u.s.columnIndexTable.sanitize (c, this) &&
-			    u.s.array.sanitize (c, this)
+			    u.s.columnIndexTable.sanitize (c, this)
 			  )));
   }
 
@@ -316,13 +555,15 @@ struct KerxSubTableFormat6
     {
       LOffsetTo<Lookup<HBUINT32> >	rowIndexTable;
       LOffsetTo<Lookup<HBUINT32> >	columnIndexTable;
-      LOffsetTo<FWORD32>		array;
+      LOffsetTo<UnsizedArrayOf<FWORD32>, false>
+					array;
     } l;
     struct Short
     {
       LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
       LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
-      LOffsetTo<FWORD>			array;
+      LOffsetTo<UnsizedArrayOf<FWORD>, false>
+					array;
     } s;
   } u;
   public:

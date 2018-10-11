@@ -37,7 +37,7 @@
 #include "hb-aat-ltag-table.hh" // Just so we compile it; unused otherwise.
 
 /*
- * morx/kerx/trak/ankr
+ * morx/kerx/trak
  */
 
 static inline const AAT::morx&
@@ -67,6 +67,26 @@ _get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
   if (blob)
     *blob = hb_ot_face_data (face)->kerx.get_blob ();
   return kerx;
+}
+static inline const AAT::ankr&
+_get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return Null(AAT::ankr);
+  }
+  const AAT::ankr& ankr = *(hb_ot_face_data (face)->ankr.get ());
+  if (blob)
+    *blob = hb_ot_face_data (face)->ankr.get_blob ();
+  return ankr;
+}
+static inline const AAT::trak&
+_get_trak (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::trak);
+  return *(hb_ot_face_data (face)->trak.get ());
 }
 
 
@@ -103,6 +123,27 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
   hb_blob_t *blob;
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  hb_blob_t *ankr_blob;
+  const AAT::ankr& ankr = _get_ankr (font->face, &ankr_blob);
+
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob,
+				 ankr, ankr_blob->data + ankr_blob->length);
   kerx.apply (&c);
+}
+
+hb_bool_t
+hb_aat_layout_has_tracking (hb_face_t *face)
+{
+  return _get_trak (face).has_data ();
+}
+
+void
+hb_aat_layout_track (hb_ot_shape_plan_t *plan,
+		     hb_font_t *font,
+		     hb_buffer_t *buffer)
+{
+  const AAT::trak& trak = _get_trak (font->face);
+
+  AAT::hb_aat_apply_context_t c (plan, font, buffer);
+  trak.apply (&c);
 }
