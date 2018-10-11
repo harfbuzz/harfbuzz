@@ -834,7 +834,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
     }
 
   if (c->plan->apply_gpos)
-    ;//c->plan->position (c->font, c->buffer);
+    c->plan->position (c->font, c->buffer);
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
 
