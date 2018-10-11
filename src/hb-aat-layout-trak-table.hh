@@ -125,9 +125,9 @@ struct TrackData
 
     /* TODO bfind() */
     unsigned int size_index;
-    UnsizedArrayOf<Fixed> size_table = base+sizeTable;
+    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     for (size_index = 0; size_index < sizes; size_index++)
-      if (size_table[size_index] >= fixed_size)
+      if ((int) size_table[size_index] >= (int) fixed_size)
         break;
 
     // TODO(ebraminio): We don't attempt to extrapolate to larger or
@@ -168,6 +168,8 @@ struct TrackData
 struct trak
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_trak;
+
+  inline bool has_data (void) const { return version.to_int () != 0; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

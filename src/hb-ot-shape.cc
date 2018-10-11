@@ -838,6 +838,8 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
 
+  hb_aat_layout_track (c->plan, c->font, c->buffer);
+
   if (!c->plan->apply_kerx)
     switch (c->plan->shaper->zero_width_marks)
     {
