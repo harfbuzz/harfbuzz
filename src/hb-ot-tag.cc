@@ -348,7 +348,9 @@ hb_ot_tags_from_script_and_language (hb_script_t   script,
   {
     if (language_count && language_tags && *language_count)
       *language_count = 0;
-  } else {
+  }
+  else
+  {
     const char *lang_str, *s, *limit, *private_use_subtag;
     bool needs_language;
 
