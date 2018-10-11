@@ -180,7 +180,7 @@ struct KerxSubTableFormat2
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v + v->static_size - (const char *) this <= header.length))
+		  (const char *) v + v->static_size - (const char *) this > header.length))
       return 0;
     return *v;
   }
@@ -284,7 +284,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
       if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this <= header.length))
+		    (const char *) v + v->static_size - (const char *) this > header.length))
 	return 0;
       return *v;
     }
@@ -296,7 +296,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
       if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this <= header.length))
+		    (const char *) v + v->static_size - (const char *) this > header.length))
 	return 0;
       return *v;
     }
