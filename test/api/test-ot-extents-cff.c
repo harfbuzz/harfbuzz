@@ -49,6 +49,21 @@ test_extents_cff1 (void)
   g_assert_cmpint (extents.width, ==, 381);
   g_assert_cmpint (extents.height, ==, -510);
 
+  hb_face_t *face_j = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  g_assert (face_j);
+  hb_font_t *font_j = hb_font_create (face_j);
+  hb_face_destroy (face_j);
+  g_assert (font_j);
+  hb_ot_font_set_funcs (font_j);
+
+  hb_bool_t result_j = hb_font_get_glyph_extents (font_j, 3, &extents);
+  g_assert (result_j);
+
+  g_assert_cmpint (extents.x_bearing, ==, 34);
+  g_assert_cmpint (extents.y_bearing, ==, 840);
+  g_assert_cmpint (extents.width, ==, 920);
+  g_assert_cmpint (extents.height, ==, -907);
+
   hb_font_destroy (font);
 }
 

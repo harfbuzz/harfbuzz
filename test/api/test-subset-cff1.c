@@ -94,21 +94,21 @@ test_subset_cff1_strip_hints (void)
 static void
 test_subset_cff1_j (void)
 {
-  hb_face_t *face_41_3041_4e9d = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4E9D.otf");
-  hb_face_t *face_41_4e9d = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,4E9D.otf");
+  hb_face_t *face_41_3041_4c2e = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_face_t *face_41_4c2e = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,4C2E.otf");
 
   hb_set_t *codepoints = hb_set_create ();
-  hb_face_t *face_41_3041_4e9d_subset;
+  hb_face_t *face_41_3041_4c2e_subset;
   hb_set_add (codepoints, 0x41);
-  hb_set_add (codepoints, 0x4E9D);
-  face_41_3041_4e9d_subset = hb_subset_test_create_subset (face_41_3041_4e9d, hb_subset_test_create_input (codepoints));
+  hb_set_add (codepoints, 0x4C2E);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_41_4e9d, face_41_3041_4e9d_subset, HB_TAG ('C','F','F',' '));
+  hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
 
-  hb_face_destroy (face_41_3041_4e9d_subset);
-  hb_face_destroy (face_41_3041_4e9d);
-  hb_face_destroy (face_41_4e9d);
+  hb_face_destroy (face_41_3041_4c2e_subset);
+  hb_face_destroy (face_41_3041_4c2e);
+  hb_face_destroy (face_41_4c2e);
 }
 
 int
