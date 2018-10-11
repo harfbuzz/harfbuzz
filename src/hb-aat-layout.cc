@@ -68,6 +68,12 @@ _get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
     *blob = hb_ot_face_data (face)->kerx.get_blob ();
   return kerx;
 }
+static inline const AAT::ankr&
+_get_ankr (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::ankr);
+  return *(hb_ot_face_data (face)->ankr.get ());
+}
 
 
 hb_bool_t
@@ -103,6 +109,6 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
   hb_blob_t *blob;
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob, _get_ankr (font->face));
   kerx.apply (&c);
 }
