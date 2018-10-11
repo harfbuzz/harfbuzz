@@ -386,6 +386,8 @@ struct StateTable
     const HBUINT16 *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
+    unsigned int num_classes = nClasses;
+
     unsigned int num_states = 1;
     unsigned int num_entries = 0;
 
@@ -393,13 +395,16 @@ struct StateTable
     unsigned int entry = 0;
     while (state < num_states)
     {
+      if (unlikely (hb_unsigned_mul_overflows (num_classes, states[0].static_size)))
+	return_trace (false);
+
       if (unlikely (!c->check_array (states,
 				     num_states,
-				     states[0].static_size * nClasses)))
+				     num_classes * states[0].static_size)))
 	return_trace (false);
       { /* Sweep new states. */
-	const HBUINT16 *stop = &states[num_states * nClasses];
-	for (const HBUINT16 *p = &states[state * nClasses]; p < stop; p++)
+	const HBUINT16 *stop = &states[num_states * num_classes];
+	for (const HBUINT16 *p = &states[state * num_classes]; p < stop; p++)
 	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
 	state = num_states;
       }
