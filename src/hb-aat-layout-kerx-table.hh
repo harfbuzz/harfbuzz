@@ -162,6 +162,7 @@ struct KerxSubTableFormat1
 	  return false;
 	}
 
+	hb_mask_t kern_mask = c->plan->kern_mask;
         for (unsigned int i = 0; i < depth; i++)
 	{
 	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
@@ -170,11 +171,14 @@ struct KerxSubTableFormat1
 	   * list.  Discovered by testing. */
 	  unsigned int idx = stack[i];
 	  int v = *actions++;
-	  /* XXX Non-forward direction... */
-	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-	    buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-	  else
-	    buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	  if (buffer->info[idx].mask & kern_mask)
+	  {
+	    /* XXX Non-forward direction... */
+	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+	    else
+	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	  }
 	}
 	depth = 0;
       }
