@@ -36,7 +36,8 @@ hb_ot_old_tag_from_script (hb_script_t script)
 {
   /* This seems to be accurate as of end of 2012. */
 
-  switch ((hb_tag_t) script) {
+  switch ((hb_tag_t) script)
+  {
     case HB_SCRIPT_INVALID:		return HB_OT_TAG_DEFAULT_SCRIPT;
 
     /* KATAKANA and HIRAGANA both map to 'kana' */
@@ -49,8 +50,6 @@ hb_ot_old_tag_from_script (hb_script_t script)
     case HB_SCRIPT_NKO:			return HB_TAG('n','k','o',' ');
     /* Unicode-5.1 additions */
     case HB_SCRIPT_VAI:			return HB_TAG('v','a','i',' ');
-    /* Unicode-5.2 additions */
-    /* Unicode-6.0 additions */
   }
 
   /* Else, just change first char to lowercase and return */
