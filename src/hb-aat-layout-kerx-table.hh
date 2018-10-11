@@ -101,9 +101,9 @@ struct KerxSubTableFormat1
 {
   struct EntryData
   {
-    HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
-				 * for processing this group, if indicated
-				 * by the flags. */
+    HBUINT16	kernActionIndex;/* Index into the kerning value array. If
+				 * this index is 0xFFFF, then no kerning
+				 * is to be performed. */
     public:
     DEFINE_SIZE_STATIC (2);
   };
@@ -120,25 +120,65 @@ struct KerxSubTableFormat1
       Reserved		= 0x1FFF,	/* Not used; set to 0. */
     };
 
-    inline driver_context_t (const KerxSubTableFormat1 *table)
-	{}
+    inline driver_context_t (const KerxSubTableFormat1 *table,
+			     hb_aat_apply_context_t *c_) :
+	c (c_),
+	kernAction (table+table->kernAction),
+	depth (0) {}
 
     inline bool is_actionable (StateTableDriver<EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
-      return false; // XXX return (entry->flags & Verb) && start < end;
+      return entry->data.kernActionIndex != 0xFFFF;
     }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
-      //hb_buffer_t *buffer = driver->buffer;
-      //unsigned int flags = entry->flags;
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (flags & Reset)
+      {
+        depth = 0;
+      }
+
+      if (flags & Push)
+      {
+        if (likely (depth < ARRAY_LENGTH (stack)))
+	  stack[depth++] = buffer->idx;
+	else
+	  depth = 0; /* Probably not what CoreText does, but better? */
+      }
+
+      if (entry->data.kernActionIndex != 0xFFFF)
+      {
+	const FWORD *actions = &kernAction[entry->data.kernActionIndex];
+        if (!c->sanitizer.check_array (actions, depth))
+	{
+	  depth = 0;
+	  return false;
+	}
+
+        for (; depth; depth--)
+	{
+	  unsigned int idx = stack[depth - 1];
+	  int v = *actions++;
+	  /* XXX Non-forward direction... */
+	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	    buffer->pos[idx].x_advance += v;
+	  else
+	    buffer->pos[idx].y_advance += v;
+	}
+      }
 
       return true;
     }
 
-    public:
     private:
+    hb_aat_apply_context_t *c;
+    const UnsizedArrayOf<FWORD> &kernAction;
+    unsigned int stack[8];
+    unsigned int depth;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -148,7 +188,7 @@ struct KerxSubTableFormat1
     if (!c->plan->requested_kerning)
       return false;
 
-    driver_context_t dc (this);
+    driver_context_t dc (this, c);
 
     StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
     driver.drive (&dc);
@@ -165,7 +205,7 @@ struct KerxSubTableFormat1
   protected:
   KerxSubTableHeader				header;
   StateTable<EntryData>				machine;
-  LOffsetTo<UnsizedArrayOf<FWORD>, false>	values;
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
   public:
   DEFINE_SIZE_STATIC (32);
 };

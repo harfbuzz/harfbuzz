@@ -365,7 +365,7 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
-      return !!(entry->flags & PerformAction);
+      return entry->flags & PerformAction;
     }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
