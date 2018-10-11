@@ -164,7 +164,7 @@ struct LookupFormat4
   }
 
   protected:
-  HBUINT16	format;		/* Format identifier--format = 2 */
+  HBUINT16	format;		/* Format identifier--format = 4 */
   VarSizedBinSearchArrayOf<LookupSegmentArray<T> >
 		segments;	/* The actual segments. These must already be sorted,
 				 * according to the first word in each one (the last
@@ -187,7 +187,7 @@ struct LookupSingle
   GlyphID	glyph;		/* Last GlyphID */
   T		value;		/* The lookup value (only one) */
   public:
-  DEFINE_SIZE_STATIC (4 + T::static_size);
+  DEFINE_SIZE_STATIC (2 + T::static_size);
 };
 
 template <typename T>
