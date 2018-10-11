@@ -123,6 +123,9 @@ struct KerxSubTableFormat1
     inline driver_context_t (const KerxSubTableFormat1 *table,
 			     hb_aat_apply_context_t *c_) :
 	c (c_),
+	/* Apparently the offset kernAction is from the beginning of the state-machine,
+	 * similar to offsets in morx table, NOT from beginning of this table, like
+	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
 	depth (0) {}
 
