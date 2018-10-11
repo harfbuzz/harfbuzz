@@ -95,10 +95,9 @@ struct TrackData
 
     /* XXX Clean this up. Make it work with nSizes==1 and 0. */
 
-    unsigned int sizes = nSizes;
-
     const TrackTableEntry *trackTableEntry = nullptr;
-    for (unsigned int i = 0; i < sizes; i++)
+    unsigned int count = nTracks;
+    for (unsigned int i = 0; i < count; i++)
     {
       /* Note: Seems like the track entries are sorted by values.  But the
        * spec doesn't explicitly say that.  It just mentions it in the example. */
@@ -111,8 +110,9 @@ struct TrackData
 	break;
       }
     }
-
     if (!trackTableEntry) return 0.;
+
+    unsigned int sizes = nSizes;
 
     /* TODO bfind() */
     unsigned int size_index;
