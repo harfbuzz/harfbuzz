@@ -332,6 +332,7 @@ parse_private_use_subtag (const char     *private_use_subtag,
  *
  * Converts an #hb_script_t and an #hb_language_t to script and language tags.
  *
+ * Since: REPLACEME
  **/
 void
 hb_ot_tags_from_script_and_language (hb_script_t   script,
@@ -441,6 +442,7 @@ hb_ot_tag_to_language (hb_tag_t tag)
  * Converts a script tag and a language tag to an #hb_script_t and an
  * #hb_language_t.
  *
+ * Since: REPLACEME
  **/
 void
 hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
@@ -451,19 +453,28 @@ hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
   hb_script_t script_out = hb_ot_tag_to_script (script_tag);
   if (script)
     *script = script_out;
-  if (language) {
+  if (language)
+  {
     unsigned int script_count = 1;
     hb_tag_t primary_script_tag[1];
-    hb_ot_tags_from_script_and_language (script_out, HB_LANGUAGE_INVALID, &script_count, primary_script_tag, nullptr, nullptr);
+    hb_ot_tags_from_script_and_language (script_out,
+					 HB_LANGUAGE_INVALID,
+					 &script_count,
+					 primary_script_tag,
+					 nullptr, nullptr);
     *language = hb_ot_tag_to_language (language_tag);
-    if (script_count == 0 || primary_script_tag[0] != script_tag) {
+    if (script_count == 0 || primary_script_tag[0] != script_tag)
+    {
       unsigned char *buf;
       const char *lang_str = hb_language_to_string (*language);
       size_t len = strlen (lang_str);
       buf = (unsigned char *) malloc (len + 11);
-      if (unlikely (!buf)) {
+      if (unlikely (!buf))
+      {
 	*language = nullptr;
-      } else {
+      }
+      else
+      {
 	memcpy (buf, lang_str, len);
 	if (lang_str[0] != 'x' || lang_str[1] != '-') {
 	  buf[len++] = '-';

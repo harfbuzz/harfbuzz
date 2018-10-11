@@ -373,6 +373,11 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   return hb_ot_layout_table_select_script (face, table_tag, t - script_tags, script_tags, script_index, chosen_script);
 }
 
+/**
+ * hb_ot_layout_table_select_script:
+ *
+ * Since: REPLACEME
+ **/
 hb_bool_t
 hb_ot_layout_table_select_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
@@ -481,6 +486,11 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
   return hb_ot_layout_script_select_language (face, table_tag, script_index, 1, &language_tag, language_index);
 }
 
+/**
+ * hb_ot_layout_script_select_language:
+ *
+ * Since: REPLACEME
+ **/
 hb_bool_t
 hb_ot_layout_script_select_language (hb_face_t      *face,
 				     hb_tag_t        table_tag,
