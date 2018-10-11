@@ -93,7 +93,9 @@ struct TrackData
     Fixed fixed_size;
     fixed_size.set_float (csspx);
 
-    /* XXX Clean this up. Make it work with nSizes==1 and 0. */
+    /*
+     * Choose track.
+     */
 
     const TrackTableEntry *trackTableEntry = nullptr;
     unsigned int count = nTracks;
@@ -112,7 +114,14 @@ struct TrackData
     }
     if (!trackTableEntry) return 0.;
 
+    /*
+     * Choose size.
+     */
+
     unsigned int sizes = nSizes;
+
+    if (!sizes) return 0.;
+    if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
     /* TODO bfind() */
     unsigned int size_index;
