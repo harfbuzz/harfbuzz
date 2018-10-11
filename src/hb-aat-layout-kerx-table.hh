@@ -123,7 +123,7 @@ struct KerxSubTableFormat1
     inline driver_context_t (const KerxSubTableFormat1 *table,
 			     hb_aat_apply_context_t *c_) :
 	c (c_),
-	kernAction (table+table->kernAction),
+	kernAction (&table->machine + table->kernAction),
 	depth (0) {}
 
     inline bool is_actionable (StateTableDriver<EntryData> *driver,
@@ -159,16 +159,21 @@ struct KerxSubTableFormat1
 	  return false;
 	}
 
-        for (; depth; depth--)
+        for (unsigned int i = 0; i < depth; i++)
 	{
-	  unsigned int idx = stack[depth - 1];
+	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
+	   * and applies the kerning value to it.", it doesn't mean it in that order.
+	   * The deepest item in the stack corresponds to the first item in the action
+	   * list.  Discovered by testing. */
+	  unsigned int idx = stack[i];
 	  int v = *actions++;
 	  /* XXX Non-forward direction... */
 	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-	    buffer->pos[idx].x_advance += v;
+	    buffer->pos[idx].x_advance += c->font->em_scale_x (v);
 	  else
-	    buffer->pos[idx].y_advance += v;
+	    buffer->pos[idx].y_advance += c->font->em_scale_y (v);
 	}
+	depth = 0;
       }
 
       return true;
