@@ -136,7 +136,7 @@ struct KerxSubTableFormat2
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v + 2 - (const char *) this <= header.length))
+		  (const char *) v + v->static_size - (const char *) this <= header.length))
       return 0;
     return *v;
   }
@@ -230,6 +230,35 @@ struct KerxSubTableFormat6
 
   inline bool is_long (void) const { return flags & ValuesAreLong; }
 
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+			  unsigned int num_glyphs) const
+  {
+    if (is_long ())
+    {
+      const U::Long &t = u.l;
+      unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
+      unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
+      unsigned int offset = l + r;
+      const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
+      if (unlikely ((const char *) v < (const char *) &t.array ||
+		    (const char *) v + v->static_size - (const char *) this <= header.length))
+	return 0;
+      return *v;
+    }
+    else
+    {
+      const U::Short &t = u.s;
+      unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
+      unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
+      unsigned int offset = l + r;
+      const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
+      if (unlikely ((const char *) v < (const char *) &t.array ||
+		    (const char *) v + v->static_size - (const char *) this <= header.length))
+	return 0;
+      return *v;
+    }
+  }
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -237,7 +266,10 @@ struct KerxSubTableFormat6
     if (!c->plan->requested_kerning)
       return false;
 
-    /* TODO */
+    accelerator_t accel (*this,
+			 c->face->get_num_glyphs ());
+    hb_kern_machine_t<accelerator_t> machine (accel);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
     return_trace (true);
   }
@@ -250,33 +282,48 @@ struct KerxSubTableFormat6
 			  (
 			    u.l.rowIndexTable.sanitize (c, this) &&
 			    u.l.columnIndexTable.sanitize (c, this) &&
-			    u.l.kerningArray.sanitize (c, this)
+			    u.l.array.sanitize (c, this)
 			  ) : (
 			    u.s.rowIndexTable.sanitize (c, this) &&
 			    u.s.columnIndexTable.sanitize (c, this) &&
-			    u.s.kerningArray.sanitize (c, this)
+			    u.s.array.sanitize (c, this)
 			  )));
   }
+
+  struct accelerator_t
+  {
+    const KerxSubTableFormat6 &table;
+    unsigned int num_glyphs;
+
+    inline accelerator_t (const KerxSubTableFormat6 &table_,
+			  unsigned int num_glyphs_)
+			  : table (table_), num_glyphs (num_glyphs_) {}
+
+    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    {
+      return table.get_kerning (left, right, num_glyphs);
+    }
+  };
 
   protected:
   KerxSubTableHeader		header;
   HBUINT32			flags;
   HBUINT16			rowCount;
   HBUINT16			columnCount;
-  union
+  union U
   {
-    struct
-    {
-      LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
-      LOffsetTo<FWORD>			kerningArray;
-    } s;
-    struct
+    struct Long
     {
       LOffsetTo<Lookup<HBUINT32> >	rowIndexTable;
       LOffsetTo<Lookup<HBUINT32> >	columnIndexTable;
-      LOffsetTo<FWORD32>		kerningArray;
+      LOffsetTo<FWORD32>		array;
     } l;
+    struct Short
+    {
+      LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
+      LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
+      LOffsetTo<FWORD>			array;
+    } s;
   } u;
   public:
   DEFINE_SIZE_STATIC (32);
