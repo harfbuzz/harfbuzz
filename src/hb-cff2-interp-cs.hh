@@ -140,11 +140,14 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 
   inline void process_vsindex (void)
   {
-    if (do_blend)
+    unsigned int  index;
+    if (likely (argStack.check_pop_uint (index)))
     {
-      unsigned int  index;
-      if (likely (!seen_vsindex && !seen_blend && argStack.check_pop_uint (index)))
-        set_ivs (argStack.check_pop_uint (index));
+      if (do_blend)
+      {
+        if (likely (!seen_vsindex && !seen_blend))
+          set_ivs (index);
+      }
     }
     seen_vsindex = true;
   }
@@ -236,7 +239,6 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
   static inline void process_vsindex (CFF2CSInterpEnv &env, PARAM& param)
   {
     env.process_vsindex ();
-    OPSET::flush_args_and_op (OpCode_vsindexcs, env, param, env.argStack.get_count ()-1);
   }
 
   private:

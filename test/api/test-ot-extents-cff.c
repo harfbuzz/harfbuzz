@@ -106,6 +106,38 @@ test_extents_cff2 (void)
   hb_font_destroy (font);
 }
 
+static void
+test_extents_cff2_vsindex (void)
+{
+  hb_face_t *face = hb_subset_test_open_font ("fonts/AdobeVFPrototype_vsindex.otf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  float coords[2] = { 800.0f, 50.0f };
+  hb_font_set_var_coords_design (font, coords, 2);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 11);
+  g_assert_cmpint (extents.y_bearing, ==, 656);
+  g_assert_cmpint (extents.width, ==, 653);
+  g_assert_cmpint (extents.height, ==, -656);
+
+  result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 7);
+  g_assert_cmpint (extents.y_bearing, ==, 669);
+  g_assert_cmpint (extents.width, ==, 650);
+  g_assert_cmpint (extents.height, ==, -669);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -114,6 +146,7 @@ main (int argc, char **argv)
   hb_test_add (test_extents_cff1);
   hb_test_add (test_extents_cff1_legacyops);
   hb_test_add (test_extents_cff2);
+  hb_test_add (test_extents_cff2_vsindex);
 
   return hb_test_run ();
 }
