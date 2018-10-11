@@ -49,6 +49,8 @@ test_extents_cff1 (void)
   g_assert_cmpint (extents.width, ==, 381);
   g_assert_cmpint (extents.height, ==, -510);
 
+  hb_font_destroy (font);
+
   hb_face_t *face_j = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
   g_assert (face_j);
   hb_font_t *font_j = hb_font_create (face_j);
@@ -64,7 +66,7 @@ test_extents_cff1 (void)
   g_assert_cmpint (extents.width, ==, 920);
   g_assert_cmpint (extents.height, ==, -907);
 
-  hb_font_destroy (font);
+  hb_font_destroy (font_j);
 }
 
 static void
