@@ -75,26 +75,29 @@ test_script_tags_from_language (const char *s, const char *lang_s, hb_script_t s
 }
 
 static void
-test_indic_tags (const char *s1, const char *s2, hb_script_t script)
+test_indic_tags (const char *s1, const char *s2, const char *s3, hb_script_t script)
 {
-  hb_script_t tag1, tag2;
-  hb_script_t t[2];
-  unsigned int count = 2;
+  hb_script_t tag1, tag2, tag3;
+  hb_script_t t[3];
+  unsigned int count = 3;
 
-  g_test_message ("Testing script %c%c%c%c: new tag %s, old tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s1, s2);
+  g_test_message ("Testing script %c%c%c%c: USE tag %s, new tag %s, old tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s1, s2, s3);
   tag1 = hb_tag_from_string (s1, -1);
   tag2 = hb_tag_from_string (s2, -1);
+  tag3 = hb_tag_from_string (s3, -1);
 
   hb_ot_tags_from_script_and_language (script,
 				       HB_LANGUAGE_INVALID,
 				       &count, t, NULL, NULL);
 
-  g_assert_cmpuint (count, ==, 2);
+  g_assert_cmpuint (count, ==, 3);
   g_assert_cmphex (t[0], ==, tag1);
   g_assert_cmphex (t[1], ==, tag2);
+  g_assert_cmphex (t[2], ==, tag3);
 
   g_assert_cmphex (hb_ot_tag_to_script (tag1), ==, script);
   g_assert_cmphex (hb_ot_tag_to_script (tag2), ==, script);
+  g_assert_cmphex (hb_ot_tag_to_script (tag3), ==, script);
 }
 
 static void
@@ -164,28 +167,30 @@ test_ot_tag_script_from_language (void)
   test_script_tags_from_language ("abc ", "x-hbscabc", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("deva", "x-hbscdeva", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("dev2", "x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev3", "x-hbscdev3", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("copt", "x-hbotpap0-hbsccopt", HB_SCRIPT_INVALID);
   test_script_tags_from_language (NULL, "en-x-hbsc", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("copt", "en-x-hbsc", HB_SCRIPT_COPTIC);
   test_script_tags_from_language ("abc ", "en-x-hbscabc", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("deva", "en-x-hbscdeva", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("dev2", "en-x-hbscdev2", HB_SCRIPT_INVALID);
+  test_script_tags_from_language ("dev3", "en-x-hbscdev3", HB_SCRIPT_INVALID);
   test_script_tags_from_language ("copt", "en-x-hbotpap0-hbsccopt", HB_SCRIPT_INVALID);
 }
 
 static void
 test_ot_tag_script_indic (void)
 {
-  test_indic_tags ("bng2", "beng", HB_SCRIPT_BENGALI);
-  test_indic_tags ("dev2", "deva", HB_SCRIPT_DEVANAGARI);
-  test_indic_tags ("gjr2", "gujr", HB_SCRIPT_GUJARATI);
-  test_indic_tags ("gur2", "guru", HB_SCRIPT_GURMUKHI);
-  test_indic_tags ("knd2", "knda", HB_SCRIPT_KANNADA);
-  test_indic_tags ("mlm2", "mlym", HB_SCRIPT_MALAYALAM);
-  test_indic_tags ("ory2", "orya", HB_SCRIPT_ORIYA);
-  test_indic_tags ("tml2", "taml", HB_SCRIPT_TAMIL);
-  test_indic_tags ("tel2", "telu", HB_SCRIPT_TELUGU);
-  test_indic_tags ("mym2", "mymr", HB_SCRIPT_MYANMAR);
+  test_indic_tags ("bng3", "bng2", "beng", HB_SCRIPT_BENGALI);
+  test_indic_tags ("dev3", "dev2", "deva", HB_SCRIPT_DEVANAGARI);
+  test_indic_tags ("gjr3", "gjr2", "gujr", HB_SCRIPT_GUJARATI);
+  test_indic_tags ("gur3", "gur2", "guru", HB_SCRIPT_GURMUKHI);
+  test_indic_tags ("knd3", "knd2", "knda", HB_SCRIPT_KANNADA);
+  test_indic_tags ("mlm3", "mlm2", "mlym", HB_SCRIPT_MALAYALAM);
+  test_indic_tags ("ory3", "ory2", "orya", HB_SCRIPT_ORIYA);
+  test_indic_tags ("tml3", "tml2", "taml", HB_SCRIPT_TAMIL);
+  test_indic_tags ("tel3", "tel2", "telu", HB_SCRIPT_TELUGU);
+  test_indic_tags ("mym3", "mym2", "mymr", HB_SCRIPT_MYANMAR);
 }
 
 
@@ -265,7 +270,8 @@ test_ot_tags_to_script_and_language (void)
   test_tags_to_script_and_language ("DFLT", "ENG", "", "en-x-hbscdflt");
   test_tags_to_script_and_language ("latn", "ENG", "Latn", "en");
   test_tags_to_script_and_language ("deva", "MAR", "Deva", "mr-x-hbscdeva");
-  test_tags_to_script_and_language ("dev2", "MAR", "Deva", "mr");
+  test_tags_to_script_and_language ("dev2", "MAR", "Deva", "mr-x-hbscdev2");
+  test_tags_to_script_and_language ("dev3", "MAR", "Deva", "mr");
   test_tags_to_script_and_language ("qaa", "QTZ0", "Qaaa", "x-hbotqtz0-hbscqaa");
 }
 
@@ -491,8 +497,8 @@ test_ot_tag_full (void)
   test_tags (HB_SCRIPT_INVALID, "en-fonnapa", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "APPH");
   test_tags (HB_SCRIPT_INVALID, "x-hbot1234-hbsc5678", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "5678", "1234");
   test_tags (HB_SCRIPT_INVALID, "x-hbsc5678-hbot1234", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "5678", "1234");
-  test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 2, 2, "mlm2", "mlym", "MAL", "MLR");
-  test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm2", "MAL");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 3, 2, "mlm3", "mlm2", "mlym", "MAL", "MLR");
+  test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm3", "MAL");
   test_tags (HB_SCRIPT_INVALID, "xyz", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "XYZ");
   test_tags (HB_SCRIPT_INVALID, "xy", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 0);
 }
