@@ -174,24 +174,24 @@ struct trak
     {
       const TrackData &trackData = this+horizData;
       float tracking = trackData.get_tracking (this, ptem);
-      hb_position_t advance_to_add = c->font->em_scalef_x (tracking / 2);
+      hb_position_t offset_to_add = c->font->em_scalef_x (tracking / 2);
+      hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
-	buffer->pos[start].x_offset += advance_to_add;
 	buffer->pos[start].x_advance += advance_to_add;
-	buffer->pos[end].x_advance += advance_to_add;
+	buffer->pos[start].x_offset += offset_to_add;
       }
     }
     else
     {
       const TrackData &trackData = this+vertData;
       float tracking = trackData.get_tracking (this, ptem);
-      hb_position_t advance_to_add = c->font->em_scalef_y (tracking / 2);
+      hb_position_t offset_to_add = c->font->em_scalef_y (tracking / 2);
+      hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
-	buffer->pos[start].y_offset += advance_to_add;
 	buffer->pos[start].y_advance += advance_to_add;
-	buffer->pos[end].y_advance += advance_to_add;
+	buffer->pos[start].y_offset += offset_to_add;
       }
     }
 
