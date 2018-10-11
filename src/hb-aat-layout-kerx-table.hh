@@ -205,8 +205,7 @@ struct KerxSubTableFormat2
     TRACE_SANITIZE (this);
     return_trace (likely (rowWidth.sanitize (c) &&
 			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this) &&
-			  array.sanitize (c, this)));
+			  rightClassTable.sanitize (c, this)));
   }
 
   struct accelerator_t
@@ -233,7 +232,8 @@ struct KerxSubTableFormat2
   LOffsetTo<Lookup<HBUINT16> >
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
-  LOffsetTo<FWORD>	array;		/* Offset from beginning of this subtable to
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>
+			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
   DEFINE_SIZE_STATIC (28);
@@ -324,12 +324,10 @@ struct KerxSubTableFormat6
 			  is_long () ?
 			  (
 			    u.l.rowIndexTable.sanitize (c, this) &&
-			    u.l.columnIndexTable.sanitize (c, this) &&
-			    u.l.array.sanitize (c, this)
+			    u.l.columnIndexTable.sanitize (c, this)
 			  ) : (
 			    u.s.rowIndexTable.sanitize (c, this) &&
-			    u.s.columnIndexTable.sanitize (c, this) &&
-			    u.s.array.sanitize (c, this)
+			    u.s.columnIndexTable.sanitize (c, this)
 			  )));
   }
 
@@ -359,13 +357,15 @@ struct KerxSubTableFormat6
     {
       LOffsetTo<Lookup<HBUINT32> >	rowIndexTable;
       LOffsetTo<Lookup<HBUINT32> >	columnIndexTable;
-      LOffsetTo<FWORD32>		array;
+      LOffsetTo<UnsizedArrayOf<FWORD32>, false>
+					array;
     } l;
     struct Short
     {
       LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
       LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
-      LOffsetTo<FWORD>			array;
+      LOffsetTo<UnsizedArrayOf<FWORD>, false>
+					array;
     } s;
   } u;
   public:
