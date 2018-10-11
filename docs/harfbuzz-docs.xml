@@ -12,29 +12,20 @@
       <graphic fileref="HarfBuzz.png" format="PNG" align="center"/>
       <para>
         HarfBuzz is an <ulink url="http://www.microsoft.com/typography/otspec/">OpenType</ulink>
-        text shaping engine.
+        text shaping engine. Using the HarfBuzz library allows
+	programs to convert a sequence of Unicode input text into
+	properly formatted and positioned output&mdash;for any writing
+	system and language.
       </para>
+
       <para>
-        The current HarfBuzz codebase, formerly known as harfbuzz-ng, is
-        versioned 1.x.x and is stable and under active maintenance. This is
-        what is used in latest versions of Firefox, GNOME, ChromeOS, Chrome,
-        LibreOffice, XeTeX, Android, and KDE, among other places. The canonical
-        source tree is available
-        <ulink url="http://cgit.freedesktop.org/harfbuzz/">here</ulink>.
-        Also available on
-        <ulink url="https://github.com/harfbuzz/harfbuzz">github</ulink>.
+	The canonical source-code tree is available at
+        <ulink
+	    url="http://cgit.freedesktop.org/harfbuzz/">cgit.freedesktop.org/harfbuzz</ulink>
+	and at
+        <ulink
+	    url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>. 
         See <xref linkend="download" endterm="download.title"/> for release tarballs.
-      </para>
-      <para>
-        The old HarfBuzz codebase, these days known as harfbuzz-old, was
-        derived from <ulink url="http://freetype.org/">FreeType</ulink>,
-        <ulink url="http://pango.org/">Pango</ulink>, and
-        <ulink url="http://qt-project.org/">Qt</ulink> and is available
-        <ulink url="http://cgit.freedesktop.org/harfbuzz.old/">here</ulink>.
-        It is not actively developed or maintained, and is extremely buggy. All
-        users are encouraged to switch over to the new HarfBuzz as soon as
-        possible.  There are no release tarballs of old HarfBuzz whatsoever.
-      </para>
     </abstract>
   </bookinfo>
 
@@ -58,6 +49,38 @@
         <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
       </releaseinfo>
     </partinfo>
+
+    <note>
+      <para>
+        The current HarfBuzz codebase is versioned 1.x.x and is stable
+	and under active maintenance. This is what is used in latest
+	versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice,
+	XeTeX, Android, and KDE, among other places. 
+      </para>
+      <para>
+        Prior to 2012, the original HarfBuzz codebase (which, these
+	days, is referred to as <emphasis>harfbuzz-old</emphasis>) was 
+        derived from code in <ulink
+	url="http://freetype.org/">FreeType</ulink>, <ulink
+	url="http://pango.org/">Pango</ulink>, and 
+        <ulink url="http://qt-project.org/">Qt</ulink>.
+        It is <emphasis>not</emphasis> actively developed or
+	maintained, and is extremely buggy. All users of harfbuzz-old
+	are encouraged to switch over to the new HarfBuzz as soon as possible.
+      </para>
+      <para>
+	To make this distinction clearer in discussions, the current
+	HarfBuzz codebase is sometimes referred to as
+	<emphasis>harfbuzz-ng</emphasis>.
+      </para>
+      <para>
+	For reference purposes, the harfbuzz-old source tree is archived 
+        <ulink
+	    url="http://cgit.freedesktop.org/harfbuzz.old/">here</ulink>. There
+	are no release tarballs of harfbuzz-old whatsoever.
+      </para>
+    </note>
+      
     <title>Reference manual</title>
       <chapter>
         <title>HarfBuzz API</title>
