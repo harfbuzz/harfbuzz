@@ -45,15 +45,31 @@ struct Anchor
     return_trace (c->check_struct (this));
   }
 
+  public:
   FWORD		xCoordinate;
   FWORD		yCoordinate;
   public:
   DEFINE_SIZE_STATIC (4);
 };
 
+typedef LArrayOf<Anchor> GlyphAnchors;
+
 struct ankr
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_ankr;
+
+  inline const Anchor &get_anchor (hb_codepoint_t glyph_id,
+				   unsigned int i,
+				   unsigned int num_glyphs,
+				   const char *end) const
+  {
+    unsigned int offset = (this+lookupTable).get_value_or_null (glyph_id, num_glyphs);
+    const GlyphAnchors &anchors = StructAtOffset<GlyphAnchors> (&(this+anchorData), offset);
+    /* TODO Use sanitizer; to avoid overflows and more. */
+    if (unlikely ((const char *) &anchors + anchors.get_size () > end))
+      return Null(Anchor);
+    return anchors[i];
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
