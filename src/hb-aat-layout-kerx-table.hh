@@ -129,14 +129,14 @@ struct KerxSubTableFormat1
 struct KerxSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  const char *end, unsigned int num_glyphs) const
+			  unsigned int num_glyphs) const
   {
     unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
     unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v > (const char *) end - 2))
+		  (const char *) v + 2 - (const char *) this <= header.length))
       return 0;
     return *v;
   }
@@ -149,7 +149,6 @@ struct KerxSubTableFormat2
       return false;
 
     accelerator_t accel (*this,
-			 c->sanitizer.end,
 			 c->face->get_num_glyphs ());
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -170,16 +169,15 @@ struct KerxSubTableFormat2
   struct accelerator_t
   {
     const KerxSubTableFormat2 &table;
-    const char *end;
     unsigned int num_glyphs;
 
     inline accelerator_t (const KerxSubTableFormat2 &table_,
-			  const char *end_, unsigned int num_glyphs_)
-			  : table (table_), end (end_), num_glyphs (num_glyphs_) {}
+			  unsigned int num_glyphs_)
+			  : table (table_), num_glyphs (num_glyphs_) {}
 
     inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      return table.get_kerning (left, right, end, num_glyphs);
+      return table.get_kerning (left, right, num_glyphs);
     }
   };
 
