@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   const char *font_data = hb_blob_get_data (blob, &len);
   if (len == 0)
   {
-    printf ("The test font is not found.");
+    printf ("Font not found.\n");
     exit (1);
   }
 

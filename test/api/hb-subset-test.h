@@ -58,10 +58,8 @@ hb_subset_test_open_font (const char *font_path)
 
   hb_blob_t *blob = hb_blob_create_from_file (path);
   if (hb_blob_get_length (blob) == 0)
-  {
-    printf ("The test font is not found.");
-    exit (1);
-  }
+    g_error ("Font not found.");
+
   hb_face_t *face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
 
