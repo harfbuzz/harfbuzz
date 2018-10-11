@@ -482,12 +482,12 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 }
 
 hb_bool_t
-hb_ot_layout_script_select_language (hb_face_t    *face,
-				     hb_tag_t      table_tag,
-				     unsigned int  script_index,
-				     unsigned int  language_count,
-				     hb_tag_t     *language_tags,
-				     unsigned int *language_index /* OUT */)
+hb_ot_layout_script_select_language (hb_face_t      *face,
+				     hb_tag_t        table_tag,
+				     unsigned int    script_index,
+				     unsigned int    language_count,
+				     const hb_tag_t *language_tags,
+				     unsigned int   *language_index /* OUT */)
 {
   static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX), "");
   const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
@@ -772,11 +772,12 @@ _hb_ot_layout_collect_features_languages (hb_face_t      *face,
     for (; *languages; languages++)
     {
       unsigned int language_index;
-      if (hb_ot_layout_script_find_language (face,
-					     table_tag,
-					     script_index,
-					     *languages,
-					     &language_index))
+      if (hb_ot_layout_script_select_language (face,
+					       table_tag,
+					       script_index,
+					       1,
+					       languages,
+					       &language_index))
         _hb_ot_layout_collect_features_features (face,
                                                  table_tag,
                                                  script_index,
