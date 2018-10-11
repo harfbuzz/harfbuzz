@@ -191,6 +191,12 @@ struct KernSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   {
+    /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
+     * based from.  I *think* they should be based from beginning of kern subtable wrapper,
+     * *NOT* "this".  Since we know of no fonts that use this subtable, we are disabling
+     * it.  Someday fix it and re-enable.  Better yet, find fonts that use it... Meh,
+     * Windows doesn't implement it.  Maybe just remove... */
+    return 0;
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l + r;
@@ -204,6 +210,7 @@ struct KernSubTableFormat2
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    return_trace (true); /* Disabled.  See above. */
     return_trace (rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&

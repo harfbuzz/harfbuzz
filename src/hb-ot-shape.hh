@@ -43,14 +43,15 @@ struct hb_ot_shape_plan_t
   hb_mask_t rtlm_mask, frac_mask, numr_mask, dnom_mask;
   hb_mask_t kern_mask;
 
+  bool requested_kerning : 1;
   bool has_frac : 1;
-  bool kerning_requested : 1;
   bool has_gpos_mark : 1;
   bool fallback_glyph_classes : 1;
   bool fallback_kerning : 1;
   bool fallback_mark_positioning : 1;
 
   bool apply_morx : 1;
+  bool apply_kerx : 1;
   bool apply_kern : 1;
   bool apply_gpos : 1;
 

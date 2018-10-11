@@ -32,6 +32,7 @@
 #endif
 
 #include <hb.h>
+#include <hb-ot.h>
 
 #ifdef HAVE_GLIB
 #include <hb-glib.h>
@@ -43,10 +44,6 @@
 
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
-#endif
-
-#ifdef HAVE_OT
-#include <hb-ot.h>
 #endif
 
 #ifdef HAVE_UNISCRIBE

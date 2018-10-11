@@ -148,12 +148,6 @@ AM_CONDITIONAL(HAVE_PTHREAD, $have_pthread)
 
 dnl ==========================================================================
 
-have_ot=true
-if $have_ot; then
-	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
-fi
-AM_CONDITIONAL(HAVE_OT, $have_ot)
-
 have_fallback=true
 if $have_fallback; then
 	AC_DEFINE(HAVE_FALLBACK, 1, [Have simple TrueType Layout backend])

@@ -257,6 +257,13 @@ struct hb_sanitize_context_t :
 
   inline void set_max_ops (int max_ops_) { max_ops = max_ops_; }
 
+  /* TODO
+   * This set_object() thing is to use sanitize at runtime lookup
+   * application time.  This is very distinct from the regular
+   * sanitizer operation, so, eventually, separate into another
+   * type and make hb_aat_apply_context_t use that one instead
+   * of abusing this one.
+   */
   template <typename T>
   inline void set_object (const T& obj)
   {

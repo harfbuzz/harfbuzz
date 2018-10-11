@@ -260,6 +260,12 @@ struct Lookup
     }
   }
 
+  inline const T& get_value_or_null (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+  {
+    const T *v = get_value (glyph_id, num_glyphs);
+    return v ? *v : Null(T);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

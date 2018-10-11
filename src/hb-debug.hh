@@ -43,9 +43,10 @@
 
 struct hb_options_t
 {
-  unsigned int unused : 1; /* In-case sign bit is here. */
-  unsigned int initialized : 1;
-  unsigned int uniscribe_bug_compatible : 1;
+  bool unused : 1; /* In-case sign bit is here. */
+  bool initialized : 1;
+  bool uniscribe_bug_compatible : 1;
+  bool aat : 1;
 };
 
 union hb_options_union_t {

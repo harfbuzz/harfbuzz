@@ -54,6 +54,21 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
     *blob = hb_ot_face_data (face)->morx.get_blob ();
   return morx;
 }
+static inline const AAT::kerx&
+_get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return Null(AAT::kerx);
+  }
+  const AAT::kerx& kerx = *(hb_ot_face_data (face)->kerx.get ());
+  if (blob)
+    *blob = hb_ot_face_data (face)->kerx.get_blob ();
+  return kerx;
+}
+
 
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
@@ -73,19 +88,21 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
   morx.apply (&c);
 }
 
+
+hb_bool_t
+hb_aat_layout_has_positioning (hb_face_t *face)
+{
+  return _get_kerx (face).has_data ();
+}
+
 void
 hb_aat_layout_position (hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer)
 {
-#if 0
   hb_blob_t *blob;
-  const AAT::ankr& ankr = _get_ankr (font->face, &blob);
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
-  const AAT::trak& trak = _get_trak (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (font, buffer, blob);
-  kerx.apply (&c, &ankr);
-  trak.apply (&c);
-#endif
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  kerx.apply (&c);
 }

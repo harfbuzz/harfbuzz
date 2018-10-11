@@ -621,6 +621,64 @@ struct hb_ot_apply_context_t :
 };
 
 
+struct hb_get_subtables_context_t :
+       hb_dispatch_context_t<hb_get_subtables_context_t, hb_void_t, HB_DEBUG_APPLY>
+{
+  template <typename Type>
+  static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  {
+    const Type *typed_obj = (const Type *) obj;
+    return typed_obj->apply (c);
+  }
+
+  typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
+
+  struct hb_applicable_t
+  {
+    template <typename T>
+    inline void init (const T &obj_, hb_apply_func_t apply_func_)
+    {
+      obj = &obj_;
+      apply_func = apply_func_;
+      digest.init ();
+      obj_.get_coverage ().add_coverage (&digest);
+    }
+
+    inline bool apply (OT::hb_ot_apply_context_t *c) const
+    {
+      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
+    }
+
+    private:
+    const void *obj;
+    hb_apply_func_t apply_func;
+    hb_set_digest_t digest;
+  };
+
+  typedef hb_vector_t<hb_applicable_t, 2> array_t;
+
+  /* Dispatch interface. */
+  inline const char *get_name (void) { return "GET_SUBTABLES"; }
+  template <typename T>
+  inline return_t dispatch (const T &obj)
+  {
+    hb_applicable_t *entry = array.push();
+    entry->init (obj, apply_to<T>);
+    return HB_VOID;
+  }
+  static return_t default_return_value (void) { return HB_VOID; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
+
+  hb_get_subtables_context_t (array_t &array_) :
+			      array (array_),
+			      debug_depth (0) {}
+
+  array_t &array;
+  unsigned int debug_depth;
+};
+
+
+
 
 typedef bool (*intersects_func_t) (const hb_set_t *glyphs, const HBUINT16 &value, const void *data);
 typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, const HBUINT16 &value, const void *data);
@@ -2561,6 +2619,39 @@ struct Extension
 /*
  * GSUB/GPOS Common
  */
+
+struct hb_ot_layout_lookup_accelerator_t
+{
+  template <typename TLookup>
+  inline void init (const TLookup &lookup)
+  {
+    digest.init ();
+    lookup.add_coverage (&digest);
+
+    subtables.init ();
+    OT::hb_get_subtables_context_t c_get_subtables (subtables);
+    lookup.dispatch (&c_get_subtables);
+  }
+  inline void fini (void)
+  {
+    subtables.fini ();
+  }
+
+  inline bool may_have (hb_codepoint_t g) const
+  { return digest.may_have (g); }
+
+  inline bool apply (hb_ot_apply_context_t *c) const
+  {
+     for (unsigned int i = 0; i < subtables.len; i++)
+       if (subtables[i].apply (c))
+         return true;
+     return false;
+  }
+
+  private:
+  hb_set_digest_t digest;
+  hb_get_subtables_context_t::array_t subtables;
+};
 
 struct GSUBGPOS
 {

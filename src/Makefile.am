@@ -29,11 +29,9 @@ HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 
-if HAVE_OT
 HBSOURCES += $(HB_OT_sources)
 HBSOURCES += $(HB_OT_RAGEL_GENERATED_sources)
 HBHEADERS += $(HB_OT_headers)
-endif
 
 if HAVE_FALLBACK
 HBSOURCES += $(HB_FALLBACK_sources)

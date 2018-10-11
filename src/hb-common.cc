@@ -47,8 +47,27 @@ _hb_options_init (void)
   u.i = 0;
   u.opts.initialized = 1;
 
-  char *c = getenv ("HB_OPTIONS");
-  u.opts.uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
+  const char *c = getenv ("HB_OPTIONS");
+  if (c)
+  {
+    while (*c)
+    {
+      const char *p = strchr (c, ':');
+      if (!p)
+        p = c + strlen (c);
+
+#define OPTION(name, symbol) \
+	if (0 == strncmp (c, name, p - c) && strlen (name) == p - c) u.opts.symbol = true;
+
+      OPTION ("uniscribe-bug-compatible", uniscribe_bug_compatible);
+      OPTION ("aat", aat);
+
+#undef OPTION
+
+      c = *p ? p + 1 : p;
+    }
+
+  }
 
   /* This is idempotent and threadsafe. */
   _hb_options.set_relaxed (u.i);
