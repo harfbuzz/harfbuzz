@@ -254,11 +254,13 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       /* If the designer designed the font for the 'DFLT' script,
        * (or we ended up arbitrarily pick 'latn'), use the default shaper.
        * Otherwise, use the specific shaper.
-       * Note that for some simple scripts, there may not be *any*
-       * GSUB/GPOS needed, so there may be no scripts found! */
+       *
+       * If it's indy3 tag, send to USE. */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
 	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n'))
 	return &_hb_ot_complex_shaper_default;
+      else if ((planner->map.chosen_script[0] & 0x000000FF) == '3')
+	return &_hb_ot_complex_shaper_use;
       else
 	return &_hb_ot_complex_shaper_indic;
 
