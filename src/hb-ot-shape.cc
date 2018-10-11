@@ -116,6 +116,9 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
   if (!plan.apply_gpos && !plan.apply_kerx)
     plan.fallback_mark_positioning = true;
+
+  /* Currently we always apply trak. */
+  plan.apply_trak = hb_aat_layout_has_tracking (face);
 }
 
 
@@ -838,7 +841,8 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
 
-  hb_aat_layout_track (c->plan, c->font, c->buffer);
+  if (c->plan->apply_trak)
+    hb_aat_layout_track (c->plan, c->font, c->buffer);
 
   if (!c->plan->apply_kerx)
     switch (c->plan->shaper->zero_width_marks)
