@@ -100,17 +100,15 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 
-  if (plan.requested_kerning)
+  if (plan.requested_kerning && !plan.apply_kerx && !has_gpos_kern)
   {
-    if (plan.apply_kerx)
-      ;/* kerx supercedes kern. */
-    else if (!has_gpos_kern)
-    {
-      if (hb_ot_layout_has_kerning (face))
-        plan.apply_kern = true;
-      else
-	plan.fallback_kerning = true;
-    }
+    /* Apparently Apple applies kerx if GPOS kern was not applied. */
+    if (hb_aat_layout_has_positioning (face))
+      plan.apply_kerx = true;
+    if (hb_ot_layout_has_kerning (face))
+      plan.apply_kern = true;
+    else
+      plan.fallback_kerning = true;
   }
 
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
