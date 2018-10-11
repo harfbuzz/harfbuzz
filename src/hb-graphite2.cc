@@ -281,7 +281,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
 
   seg = gr_make_seg (nullptr, grface,
-		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
+		     script_tag[1] == HB_OT_TAG_DEFAULT_SCRIPT ? script_tag[0] : script_tag[1],
 		     feats,
 		     gr_utf32, chars, buffer->len,
 		     2 | (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL ? 1 : 0));
