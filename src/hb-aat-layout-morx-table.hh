@@ -164,7 +164,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<void> driver (machine, c->buffer, c->face);
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);

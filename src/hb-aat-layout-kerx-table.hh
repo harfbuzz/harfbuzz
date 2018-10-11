@@ -99,6 +99,48 @@ struct KerxSubTableFormat0
 
 struct KerxSubTableFormat1
 {
+  struct EntryData
+  {
+    HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
+				 * for processing this group, if indicated
+				 * by the flags. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+      Reset		= 0x2000,	/* If set, reset the kerning data (clear the stack) */
+      Reserved		= 0x1FFF,	/* Not used; set to 0. */
+    };
+
+    inline driver_context_t (const KerxSubTableFormat1 *table)
+	{}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return false; // XXX return (entry->flags & Verb) && start < end;
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      //hb_buffer_t *buffer = driver->buffer;
+      //unsigned int flags = entry->flags;
+
+      return true;
+    }
+
+    public:
+    private:
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -106,7 +148,10 @@ struct KerxSubTableFormat1
     if (!c->plan->requested_kerning)
       return false;
 
-    /* TODO */
+    driver_context_t dc (this);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
 
     return_trace (true);
   }
@@ -114,14 +159,13 @@ struct KerxSubTableFormat1
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  stateHeader.sanitize (c)));
+    return_trace (likely (machine.sanitize (c)));
   }
 
   protected:
-  KerxSubTableHeader		header;
-  StateTable<HBUINT16>		stateHeader;
-  LOffsetTo<ArrayOf<HBUINT16> >	valueTable;
+  KerxSubTableHeader				header;
+  StateTable<EntryData>				machine;
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>	values;
   public:
   DEFINE_SIZE_STATIC (32);
 };
@@ -159,8 +203,7 @@ struct KerxSubTableFormat2
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  rowWidth.sanitize (c) &&
+    return_trace (likely (rowWidth.sanitize (c) &&
 			  leftClassTable.sanitize (c, this) &&
 			  rightClassTable.sanitize (c, this) &&
 			  array.sanitize (c, this)));
