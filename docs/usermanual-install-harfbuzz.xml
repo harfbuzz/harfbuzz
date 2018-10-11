@@ -229,6 +229,10 @@
 	    <para>
 	      Allow linking with libstdc++. <emphasis>(Default = no)</emphasis>
 	    </para>
+	    <para>
+	      This option enables or disables linking HarfBuzz to the
+	      system's libstdc++ library.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -236,8 +240,15 @@
 	  <term>--with-glib</term>
 	  <listitem>
 	    <para>
-	     Use GLib. <emphasis>(Default = auto)</emphasis>
+	     Use <ulink url="https://developer.gnome.org/glib/">GLib</ulink>. <emphasis>(Default = auto)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the GLib
+	      library.  The default setting is to check for the
+	      presence of GLib and, if it is found, build with
+	      GLib support. GLib is native to GNU/Linux systems but is
+	      available on other operating system as well.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -245,8 +256,15 @@
 	  <term>--with-gobject</term>
 	  <listitem>
 	    <para>
-	      Use GObject. <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	      Use <ulink url="https://developer.gnome.org/gobject/stable/">GObject</ulink>. <emphasis>(Default = no)</emphasis>
+	    </para>	   
+	    <para>
+	      This option enables or disables usage of the GObject
+	      library. The default setting is to check for the
+	      presence of GObject and, if it is found, build with
+	      GObject support. GObject is native to GNU/Linux systems but is
+	      available on other operating system as well.
+	    </para> 
 	  </listitem>
 	</varlistentry>
 	
@@ -254,8 +272,14 @@
 	  <term>--with-cairo</term>
 	  <listitem>
 	    <para>
-	      Use Cairo. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	      Use <ulink url="https://cairographics.org/">Cairo</ulink>. <emphasis>(Default = auto)</emphasis>
+	    </para>	   
+	    <para>
+	      This option enables or disables usage of the Cairo
+	      graphics-rendering library. The default setting is to
+	      check for the presence of Cairo and, if it is found,
+	      build with Cairo support.
+	    </para> 
 	  </listitem>
 	</varlistentry>
 	
@@ -263,8 +287,15 @@
 	  <term>--with-fontconfig</term>
 	  <listitem>
 	    <para>
-	      Use Fontconfig. <emphasis>(Default = auto)</emphasis>
+	      Use <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">Fontconfig</ulink>. <emphasis>(Default = auto)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the Fontconfig
+	      library, which provides font-matching functions and
+	      provides access to font properties. The default setting
+	      is to check for the presence of Fontconfig and, if it is
+	      found, build with Fontconfig support.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -272,8 +303,17 @@
 	  <term>--with-icu</term>
 	  <listitem>
 	    <para>
-	      Use the ICU library. <emphasis>(Default = auto)</emphasis>
+	      Use the <ulink url="http://site.icu-project.org/home">ICU</ulink> library. <emphasis>(Default = auto)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the
+	      <emphasis>International Components for
+	      Unicode</emphasis> (ICU) library, which provides access
+	      to Unicode Character Database (UCD) properties as well
+	      as normalization and conversion functions. The default
+	      setting is to check for the presence of ICU and, if it
+	      is found, build with ICU support.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -281,8 +321,17 @@
 	  <term>--with-ucdn</term>
 	  <listitem>
 	    <para>
-	      Use the built-in UCDN library. <emphasis>(Default = auto)</emphasis>
+	      Use HarfBuzz's <ulink url="https://github.com/harfbuzz/harfbuzz/tree/master/src/hb-ucdn">built-in UCDN library</ulink>. <emphasis>(Default = auto)</emphasis>
 	    </para>	    
+	    <para>
+	      The HarfBuzz source tree includes a <emphasis>Unicode
+	      Database and Normalization</emphasis> (UCDN) library
+	      that provides access to basic character properties in
+	      the Unicode Character Database (UCD) as well as low-level
+	      normalization functions. HarfBuzz can be built without
+	      this UCDN support if the usage of a different UCDN
+	      library is desired.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -290,8 +339,13 @@
 	  <term>--with-graphite2</term>
 	  <listitem>
 	    <para>
-	      Use the graphite2 library. <emphasis>(Default = no)</emphasis>
+	      Use the <ulink url="http://graphite.sil.org/">Graphite2</ulink> library. <emphasis>(Default = no)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the Graphite2
+	      library, which provides support for the Graphite shaping
+	      model. 
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -299,8 +353,14 @@
 	  <term>--with-freetype</term>
 	  <listitem>
 	    <para>
-	      Use the FreeType library. <emphasis>(Default = auto)</emphasis>
+	      Use the <ulink url="https://www.freetype.org/">FreeType</ulink> library. <emphasis>(Default = auto)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the FreeType
+	      font-rendering library. The default setting is to check for the
+	      presence of FreeType and, if it is found, build with
+	      FreeType support.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -308,8 +368,12 @@
 	  <term>--with-uniscribe</term>
 	  <listitem>
 	    <para>
-	      Use the Uniscribe library. <emphasis>(Default = no)</emphasis>
+	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/intl/uniscribe">Uniscribe</ulink> library. <emphasis>(Default = no)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the Uniscribe
+	      font-rendering library. Uniscribe is available on Windows systems.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -317,8 +381,12 @@
 	  <term>--with-directwrite</term>
 	  <listitem>
 	    <para>
-	      se the DirectWrite library (experimental). <emphasis>(Default = no)</emphasis>
+	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/directwrite/direct-write-portal">DirectWrite</ulink> library (experimental). <emphasis>(Default = no)</emphasis>
 	    </para>	    
+	    <para>
+	      This option enables or disables usage of the DirectWrite
+	      font-rendering library. DirectWrite is available on Windows systems.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -326,20 +394,14 @@
 	  <term>--with-coretext</term>
 	  <listitem>
 	    <para>
-	      Use the CoreText library. <emphasis>(Default = no)</emphasis>
+	      Use the <ulink url="https://developer.apple.com/documentation/coretext">CoreText</ulink> library. <emphasis>(Default = no)</emphasis>
 	    </para>	    
-	  </listitem>
-	</varlistentry>
-	
-	<varlistentry>
-	  <term></term>
-	  <listitem>
 	    <para>
-	      <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	      This option enables or disables usage of the CoreText
+	      library. CoreText is available on macOS and iOS systems.
+	    </para>
 	  </listitem>
-	</varlistentry>
-	
+	</varlistentry>	
       </variablelist>
     </section>
     
