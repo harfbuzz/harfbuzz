@@ -60,17 +60,16 @@ struct ankr
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  version == 0 &&
-			  lookupTable.sanitize (c, this) &&
-			  anchors.sanitize (c, this)));
+			  lookupTable.sanitize (c, this)));
   }
 
   protected:
   HBUINT16	version; 	/* Version number (set to zero) */
   HBUINT16	flags;		/* Flags (currently unused; set to zero) */
-  LOffsetTo<Lookup<HBUINT16> >
+  LOffsetTo<Lookup<Offset<HBUINT16, false> > >
 		lookupTable;	/* Offset to the table's lookup table */
-  LOffsetTo<LArrayOf<Anchor> >
-		anchors;	/* Offset to the glyph data table */
+  LOffsetTo<HBUINT8>
+		anchorData;	/* Offset to the glyph data table */
 
   public:
   DEFINE_SIZE_STATIC (12);
