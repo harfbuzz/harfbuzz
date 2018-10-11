@@ -82,6 +82,22 @@ struct TrackTableEntry
 
 struct TrackData
 {
+  inline float interpolate_at (unsigned int idx,
+			       float target_size,
+			       const TrackTableEntry &trackTableEntry,
+			       const void *base) const
+  {
+    unsigned int sizes = nSizes;
+    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+
+    float s0 = size_table[idx].to_float ();
+    float s1 = size_table[idx + 1].to_float ();
+    float t = unlikely (s0 == s1) ? 0.f : (target_size - s0) / (s1 - s0);
+    return (float) t * trackTableEntry.get_value (base, idx + 1, sizes) +
+	   ((float) 1.0 - t) * trackTableEntry.get_value (base, idx, sizes);
+    return 0;
+  }
+
   inline float get_tracking (const void *base, float ptem) const
   {
     /* CoreText points are CSS pixels (96 per inch),
@@ -90,13 +106,10 @@ struct TrackData
      * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
      */
     float csspx = ptem * 96.f / 72.f;
-    Fixed fixed_size;
-    fixed_size.set_float (csspx);
 
     /*
      * Choose track.
      */
-
     const TrackTableEntry *trackTableEntry = nullptr;
     unsigned int count = nTracks;
     for (unsigned int i = 0; i < count; i++)
@@ -117,31 +130,19 @@ struct TrackData
     /*
      * Choose size.
      */
-
     unsigned int sizes = nSizes;
-
     if (!sizes) return 0.;
     if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
     /* TODO bfind() */
-    unsigned int size_index;
     hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    unsigned int size_index;
     for (size_index = 0; size_index < sizes; size_index++)
-      if ((int) size_table[size_index] >= (int) fixed_size)
+      if (size_table[size_index].to_float () >= csspx)
         break;
 
-    // TODO(ebraminio): We don't attempt to extrapolate to larger or
-    // smaller values for now but we should do, per spec
-    if (size_index == sizes)
-      return trackTableEntry->get_value (base, sizes - 1, sizes);
-    if (size_index == 0 || size_table[size_index] == fixed_size)
-      return trackTableEntry->get_value (base, size_index, sizes);
-
-    float s0 = size_table[size_index - 1].to_float ();
-    float s1 = size_table[size_index].to_float ();
-    float t = (csspx - s0) / (s1 - s0);
-    return (float) t * trackTableEntry->get_value (base, size_index, sizes) +
-	   ((float) 1.0 - t) * trackTableEntry->get_value (base, size_index - 1, sizes);
+    return interpolate_at (size_index ? size_index - 1 : 0, csspx,
+			   *trackTableEntry, base);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
