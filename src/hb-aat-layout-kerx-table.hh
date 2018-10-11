@@ -293,11 +293,121 @@ struct KerxSubTableFormat2
 
 struct KerxSubTableFormat4
 {
+  struct EntryData
+  {
+    HBUINT16	ankrActionIndex;/* Either 0xFFFF (for no action) or the index of
+				 * the action to perform. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state. */
+      Reserved		= 0x3FFF,	/* Not used; set to 0. */
+    };
+
+    enum SubTableFlags
+    {
+      ActionType	= 0xC0000000,	/* A two-bit field containing the action type. */
+      Unused		= 0x3F000000,	/* Unused - must be zero. */
+      Offset		= 0x00FFFFFF,	/* Masks the offset in bytes from the beginning
+					 * of the subtable to the beginning of the control
+					 * point table. */
+    };
+
+    inline driver_context_t (const KerxSubTableFormat4 *table,
+			     hb_aat_apply_context_t *c_) :
+	c (c_),
+	action_type ((table->flags & ActionType) >> 30),
+	ankrData ((HBUINT16 *) ((const char *) &table->machine + (table->flags & Offset))),
+	mark_set (false),
+	mark (0) {}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return entry->data.ankrActionIndex != 0xFFFF;
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (mark_set && entry->data.ankrActionIndex != 0xFFFF)
+      {
+	switch (action_type)
+	{
+	  case 0: /* Control Point Actions.*/
+	  {
+	    /* indexed into glyph outline. */
+	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2))
+	      return false;
+	    HB_UNUSED unsigned int markControlPoint = *data++;
+	    HB_UNUSED unsigned int currControlPoint = *data++;
+	    /* TODO */
+	  }
+	  break;
+
+	  case 1: /* Anchor Point Actions. */
+	  {
+	   /* Indexed into 'ankr' table. */
+	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2))
+	      return false;
+	    HB_UNUSED unsigned int markAnchorPoint = *data++;
+	    HB_UNUSED unsigned int currAnchorPoint = *data++;
+	    /* TODO */
+	  }
+	  break;
+
+	  case 2: /* Control Point Coordinate Actions. */
+	  {
+	    const FWORD *data = (const FWORD *) &ankrData[entry->data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 4))
+	      return false;
+	    HB_UNUSED int markX = *data++;
+	    HB_UNUSED int markY = *data++;
+	    HB_UNUSED int currX = *data++;
+	    HB_UNUSED int currY = *data++;
+	    /* TODO */
+	  }
+	  break;
+	}
+      }
+
+      if (flags & Mark)
+      {
+	mark_set = true;
+	mark = buffer->idx;
+      }
+
+      return true;
+    }
+
+    private:
+    hb_aat_apply_context_t *c;
+    unsigned int action_type;
+    const HBUINT16 *ankrData;
+    bool mark_set;
+    unsigned int mark;
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
-    /* TODO */
+    driver_context_t dc (this, c);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
 
     return_trace (true);
   }
@@ -306,14 +416,18 @@ struct KerxSubTableFormat4
   {
     TRACE_SANITIZE (this);
 
-    /* TODO */
-    return_trace (likely (c->check_struct (this)));
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (c->check_struct (this) &&
+		  machine.sanitize (c) &&
+		  flags.sanitize (c));
   }
 
   protected:
   KerxSubTableHeader	header;
+  StateTable<EntryData>	machine;
+  HBUINT32		flags;
   public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_STATIC (32);
 };
 
 struct KerxSubTableFormat6
