@@ -69,10 +69,18 @@ _get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
   return kerx;
 }
 static inline const AAT::ankr&
-_get_ankr (hb_face_t *face)
+_get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::ankr);
-  return *(hb_ot_face_data (face)->ankr.get ());
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return Null(AAT::ankr);
+  }
+  const AAT::ankr& ankr = *(hb_ot_face_data (face)->ankr.get ());
+  if (blob)
+    *blob = hb_ot_face_data (face)->ankr.get_blob ();
+  return ankr;
 }
 
 
@@ -109,6 +117,10 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
   hb_blob_t *blob;
   const AAT::kerx& kerx = _get_kerx (font->face, &blob);
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob, _get_ankr (font->face));
+  hb_blob_t *ankr_blob;
+  const AAT::ankr& ankr = _get_ankr (font->face, &ankr_blob);
+
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob,
+				 ankr, ankr_blob->data + ankr_blob->length);
   kerx.apply (&c);
 }

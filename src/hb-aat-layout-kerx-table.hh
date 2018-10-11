@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
+#include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-kern-table.hh"
 
 /*
@@ -362,9 +363,22 @@ struct KerxSubTableFormat4
 	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
 	    if (!c->sanitizer.check_array (data, 2))
 	      return false;
-	    HB_UNUSED unsigned int markAnchorPoint = *data++;
-	    HB_UNUSED unsigned int currAnchorPoint = *data++;
-	    /* TODO */
+	    unsigned int markAnchorPoint = *data++;
+	    unsigned int currAnchorPoint = *data++;
+	    const Anchor markAnchor = c->ankr_table.get_anchor (c->buffer->info[mark].codepoint,
+								markAnchorPoint,
+								c->face->get_num_glyphs (),
+								c->ankr_end);
+	    const Anchor currAnchor = c->ankr_table.get_anchor (c->buffer->cur ().codepoint,
+								currAnchorPoint,
+								c->face->get_num_glyphs (),
+								c->ankr_end);
+	    hb_glyph_position_t &o = buffer->cur_pos();
+	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
+	    o.y_offset = c->font->em_scale_y (markAnchor.yCoordinate) - c->font->em_scale_y (currAnchor.yCoordinate);
+	    o.attach_type() = ATTACH_TYPE_MARK;
+	    o.attach_chain() = (int) mark - (int) buffer->idx;
+	    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 	  }
 	  break;
 

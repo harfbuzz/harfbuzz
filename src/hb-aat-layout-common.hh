@@ -531,6 +531,7 @@ struct hb_aat_apply_context_t :
   hb_buffer_t *buffer;
   hb_sanitize_context_t sanitizer;
   const ankr &ankr_table;
+  const char *ankr_end;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
@@ -540,9 +541,12 @@ struct hb_aat_apply_context_t :
 				 hb_font_t *font_,
 				 hb_buffer_t *buffer_,
 				 hb_blob_t *table,
-				 const ankr &ankr_table_ = Null(ankr)) :
+				 const ankr &ankr_table_ = Null(ankr),
+				 const char *ankr_end_ = nullptr) :
 		plan (plan_), font (font_), face (font->face), buffer (buffer_),
-		sanitizer (), ankr_table (ankr_table_), lookup_index (0), debug_depth (0)
+		sanitizer (),
+		ankr_table (ankr_table_), ankr_end (ankr_end_),
+		lookup_index (0), debug_depth (0)
   {
     sanitizer.init (table);
     sanitizer.set_num_glyphs (face->get_num_glyphs ());
