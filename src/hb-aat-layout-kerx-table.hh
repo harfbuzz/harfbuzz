@@ -354,7 +354,22 @@ struct KerxSubTableFormat4
 	      return false;
 	    HB_UNUSED unsigned int markControlPoint = *data++;
 	    HB_UNUSED unsigned int currControlPoint = *data++;
-	    /* TODO */
+	    hb_position_t markX = 0;
+	    hb_position_t markY = 0;
+	    hb_position_t currX = 0;
+	    hb_position_t currY = 0;
+	    if (!c->font->get_glyph_contour_point_for_origin (c->buffer->info[mark].codepoint,
+							      markControlPoint,
+							      HB_DIRECTION_LTR /*XXX*/,
+							      &markX, &markY) ||
+		!c->font->get_glyph_contour_point_for_origin (c->buffer->cur ().codepoint,
+							      currControlPoint,
+							      HB_DIRECTION_LTR /*XXX*/,
+							      &currX, &currY))
+	      return true; /* True, such that the machine continues. */
+
+	    o.x_offset = markX - currX;
+	    o.y_offset = markY - currY;
 	  }
 	  break;
 
