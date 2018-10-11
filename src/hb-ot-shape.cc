@@ -114,7 +114,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   }
 
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
-  if (!plan.apply_gpos)
+  if (!plan.apply_gpos && !plan.apply_kerx)
     plan.fallback_mark_positioning = true;
 }
 
@@ -820,34 +820,36 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 
   hb_ot_layout_position_start (c->font, c->buffer);
 
-  switch (c->plan->shaper->zero_width_marks)
-  {
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
-      zero_mark_widths_by_gdef (c->buffer, adjust_offsets_when_zeroing);
-      break;
+  if (!c->plan->apply_kerx)
+    switch (c->plan->shaper->zero_width_marks)
+    {
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
+	zero_mark_widths_by_gdef (c->buffer, adjust_offsets_when_zeroing);
+	break;
 
-    default:
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE:
-      break;
-  }
+      default:
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE:
+	break;
+    }
 
   if (c->plan->apply_gpos)
-    c->plan->position (c->font, c->buffer);
+    ;//c->plan->position (c->font, c->buffer);
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
 
-  switch (c->plan->shaper->zero_width_marks)
-  {
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE:
-      zero_mark_widths_by_gdef (c->buffer, adjust_offsets_when_zeroing);
-      break;
+  if (!c->plan->apply_kerx)
+    switch (c->plan->shaper->zero_width_marks)
+    {
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE:
+	zero_mark_widths_by_gdef (c->buffer, adjust_offsets_when_zeroing);
+	break;
 
-    default:
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
-      break;
-  }
+      default:
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+      case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
+	break;
+    }
 
   /* Finishing off GPOS has to follow a certain order. */
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
