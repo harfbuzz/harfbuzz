@@ -278,10 +278,16 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   /* TODO ensure_native_direction. */
 
   hb_tag_t script_tag[2];
-  hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
+  unsigned int count = 2;
+  hb_ot_tags_from_script_and_language (hb_buffer_get_script (buffer),
+				       HB_LANGUAGE_INVALID,
+				       &count,
+				       script_tag,
+				       nullptr, nullptr);
+  assert (count);
 
   seg = gr_make_seg (nullptr, grface,
-		     script_tag[1] == HB_OT_TAG_DEFAULT_SCRIPT ? script_tag[0] : script_tag[1],
+		     script_tag[count - 1],
 		     feats,
 		     gr_utf32, chars, buffer->len,
 		     2 | (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL ? 1 : 0));
