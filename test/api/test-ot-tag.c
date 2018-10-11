@@ -37,15 +37,20 @@ static void
 test_simple_tags (const char *s, hb_script_t script)
 {
   hb_script_t tag;
-  hb_tag_t t1, t2;
+  unsigned int count = 2;
+  hb_tag_t t[2];
 
   g_test_message ("Testing script %c%c%c%c: tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s);
   tag = hb_tag_from_string (s, -1);
 
-  hb_ot_tags_from_script (script, &t1, &t2);
+  hb_ot_tags_from_script_and_language (script,
+				       HB_LANGUAGE_INVALID,
+				       &count, t, NULL, NULL);
 
-  g_assert_cmphex (t1, ==, tag);
-  g_assert_cmphex (t2, ==, HB_OT_TAG_DEFAULT_SCRIPT);
+  if (count)
+    g_assert_cmphex (t[0], ==, tag);
+  else
+    g_assert_cmphex (HB_TAG_CHAR4 ("DFLT"), ==, tag);
 
   g_assert_cmphex (hb_ot_tag_to_script (tag), ==, script);
 }
@@ -73,16 +78,20 @@ static void
 test_indic_tags (const char *s1, const char *s2, hb_script_t script)
 {
   hb_script_t tag1, tag2;
-  hb_script_t t1, t2;
+  hb_script_t t[2];
+  unsigned int count = 2;
 
   g_test_message ("Testing script %c%c%c%c: new tag %s, old tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s1, s2);
   tag1 = hb_tag_from_string (s1, -1);
   tag2 = hb_tag_from_string (s2, -1);
 
-  hb_ot_tags_from_script (script, &t1, &t2);
+  hb_ot_tags_from_script_and_language (script,
+				       HB_LANGUAGE_INVALID,
+				       &count, t, NULL, NULL);
 
-  g_assert_cmphex (t1, ==, tag1);
-  g_assert_cmphex (t2, ==, tag2);
+  g_assert_cmpuint (count, ==, 2);
+  g_assert_cmphex (t[0], ==, tag1);
+  g_assert_cmphex (t[1], ==, tag2);
 
   g_assert_cmphex (hb_ot_tag_to_script (tag1), ==, script);
   g_assert_cmphex (hb_ot_tag_to_script (tag2), ==, script);
@@ -91,15 +100,20 @@ test_indic_tags (const char *s1, const char *s2, hb_script_t script)
 static void
 test_ot_tag_script_degenerate (void)
 {
-  hb_tag_t t1, t2;
+  hb_script_t t[2];
+  unsigned int count = 2;
 
   g_assert_cmphex (HB_TAG_CHAR4 ("DFLT"), ==, HB_OT_TAG_DEFAULT_SCRIPT);
 
   /* HIRAGANA and KATAKANA both map to 'kana' */
   test_simple_tags ("kana", HB_SCRIPT_KATAKANA);
-  hb_ot_tags_from_script (HB_SCRIPT_HIRAGANA, &t1, &t2);
-  g_assert_cmphex (t1, ==, HB_TAG_CHAR4 ("kana"));
-  g_assert_cmphex (t2, ==, HB_OT_TAG_DEFAULT_SCRIPT);
+
+  hb_ot_tags_from_script_and_language (HB_SCRIPT_HIRAGANA,
+				       HB_LANGUAGE_INVALID,
+				       &count, t, NULL, NULL);
+
+  g_assert_cmpuint (count, ==, 1);
+  g_assert_cmphex (t[0], ==, HB_TAG_CHAR4 ("kana"));
 
   test_simple_tags ("DFLT", HB_SCRIPT_INVALID);
 
@@ -186,7 +200,16 @@ test_language_two_way (const char *tag_s, const char *lang_s)
 
   g_test_message ("Testing language %s <-> tag %s", lang_s, tag_s);
 
-  g_assert_cmphex (tag, ==, hb_ot_tag_from_language (lang));
+  hb_tag_t tag2;
+  unsigned int count = 1;
+  hb_ot_tags_from_script_and_language (HB_SCRIPT_INVALID,
+				       lang,
+				       NULL, NULL, &count, &tag2);
+
+  if (count)
+    g_assert_cmphex (tag, ==, tag2);
+  else
+    g_assert_cmphex (tag, ==, HB_TAG_CHAR4 ("dflt"));
   g_assert (lang == hb_ot_tag_to_language (tag));
 }
 
@@ -198,7 +221,16 @@ test_tag_from_language (const char *tag_s, const char *lang_s)
 
   g_test_message ("Testing language %s -> tag %s", lang_s, tag_s);
 
-  g_assert_cmphex (tag, ==, hb_ot_tag_from_language (lang));
+  hb_tag_t tag2;
+  unsigned int count = 1;
+  hb_ot_tags_from_script_and_language (HB_SCRIPT_INVALID,
+				       lang,
+				       NULL, NULL, &count, &tag2);
+
+  if (count)
+    g_assert_cmphex (tag, ==, tag2);
+  else
+    g_assert_cmphex (tag, ==, HB_TAG_CHAR4 ("dflt"));
 }
 
 static void
