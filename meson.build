@@ -26,15 +26,31 @@ check_funcs = [
   ['round'],
 ]
 
-freetype_dep = dependency('freetype2', required: false, fallback: ['freetype2', 'freetype_dep'])
-glib_dep = dependency('glib-2.0', required: false, fallback: ['glib', 'libglib_dep'])
-gobject_dep = dependency('gobject-2.0', required: false, fallback: ['glib', 'libgobject_dep'])
-cairo_dep = dependency('cairo', required: false)
-cairo_ft_dep = dependency('cairo-ft', required: false)
-fontconfig_dep = dependency('fontconfig', required: false, fallback: ['fontconfig', 'fontconfig_dep'])
+freetype_dep = dependency('freetype2', required: false,
+                          fallback: ['freetype2', 'freetype_dep'])
+glib_dep = dependency('glib-2.0', required: false,
+                      fallback: ['glib', 'libglib_dep'])
+gobject_dep = dependency('gobject-2.0', required: false,
+                         fallback: ['glib', 'libgobject_dep'])
+cairo_dep = dependency('cairo', required: false,
+                       fallback: ['cairo', 'libcairo_dep'])
+fontconfig_dep = dependency('fontconfig', required: false,
+                            fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: false)
 icu_dep = dependency('icu-uc', required: false)
 m_dep = cpp.find_library('m', required: false)
+
+# Ensure that cairo-ft is fetched from the same library as cairo itself
+if cairo_dep.found()
+  if cairo_dep.type_name() == 'pkgconfig'
+    cairo_ft_dep = dependency('cairo-ft', required: false)
+  else
+    cairo_ft_dep = cairo_dep
+  endif
+else
+  # Not-found dependency
+  cairo_ft_dep = dependency('', required: false)
+endif
 
 deps = []
 

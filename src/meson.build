@@ -192,6 +192,11 @@ libharfbuzz = library('harfbuzz', hb_sources,
   install: true,
   name_prefix: 'lib')
 
+libharfbuzz_dep = declare_dependency(
+  link_with: libharfbuzz,
+  include_directories: [incbase, incucdn],
+  dependencies: deps)
+
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incbase,
   link_with: [libharfbuzz],
@@ -201,6 +206,11 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   version: version,
   install: true,
   name_prefix: 'lib')
+
+libharfbuzz_subset_dep = declare_dependency(
+  link_with: libharfbuzz_subset,
+  include_directories: incbase,
+  dependencies: deps)
 
 pkgmod.generate(libharfbuzz,
   description: 'HarfBuzz text shaping library',
@@ -264,11 +274,18 @@ if conf.get('HAVE_GOBJECT', 0) == 1
     install: true,
     name_prefix: 'lib')
 
+  libharfbuzz_gobject_dep = declare_dependency(
+    link_with: libharfbuzz_gobject,
+    include_directories: incbase,
+    dependencies: deps)
+
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
     subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
+else
+  libharfbuzz_gobject_dep = dependency('', required: false)
 endif
 
 install_headers(hb_headers + hb_gobject_headers + hb_subset_headers, subdir: meson.project_name())
