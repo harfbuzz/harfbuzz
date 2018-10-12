@@ -58,6 +58,7 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (khmer) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_old) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_zawgyi) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   HB_COMPLEX_SHAPER_IMPLEMENT (use) \
   /* ^--- Add new shapers here */
@@ -374,6 +375,10 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_default;
       else
 	return &_hb_ot_complex_shaper_use;
+
+    /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
+    case HB_SCRIPT_MYANMAR_ZAWGYI:
+      return &_hb_ot_complex_shaper_myanmar_zawgyi;
   }
 }
 

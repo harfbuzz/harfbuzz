@@ -478,6 +478,14 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #endif
 
 
+/*
+ * For lack of a better place, put Zawgyi script hack here.
+ * https://github.com/harfbuzz/harfbuzz/issues/1162
+ */
+
+#define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
+
+
 /* Headers we include for everyone.  Keep sorted.  They express dependency amongst
  * themselves, but no other file should include them.*/
 #include "hb-atomic.hh"
