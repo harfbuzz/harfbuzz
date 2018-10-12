@@ -53,10 +53,14 @@ main (int argc, char **argv)
   font = hb_font_create (face);
 
   hb_tag_t cv01 = HB_TAG ('c','v','0','1');
-  unsigned int feature_index = 0;
-  // FIXME: See why below doesn't work
-  // if (!hb_ot_layout_language_find_feature (face, HB_OT_TAG_GSUB, 0, 0, cv01, &feature_index))
-  //   g_error ("Failed to find feature index");
+  unsigned int feature_index;
+  if (!hb_ot_layout_language_find_feature (face,
+					   HB_OT_TAG_GSUB,
+					   0,
+					   HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+					   cv01,
+					   &feature_index))
+     g_error ("Failed to find feature index");
 
   hb_name_id_t label_id;
   hb_name_id_t tooltip_id;
@@ -64,7 +68,7 @@ main (int argc, char **argv)
   unsigned int num_named_parameters;
   hb_name_id_t first_param_id;
   if (!hb_ot_layout_feature_get_name_ids (face, HB_OT_TAG_GSUB, feature_index,
-					  cv01, &label_id, &tooltip_id, &sample_id,
+					  &label_id, &tooltip_id, &sample_id,
 					  &num_named_parameters, &first_param_id))
     g_error ("Failed to get name ids");
 
@@ -79,7 +83,7 @@ main (int argc, char **argv)
 
   unsigned int all_chars;
   all_chars = hb_ot_layout_feature_get_characters (face, HB_OT_TAG_GSUB, feature_index,
-						   cv01, 0, &char_count, characters);
+						   0, &char_count, characters);
 
   g_assert (all_chars == 2);
   g_assert (char_count == 2);

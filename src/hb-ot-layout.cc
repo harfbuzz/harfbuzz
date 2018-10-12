@@ -1121,7 +1121,6 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag:
  * @feature_index:
- * @feature_tag: ssXX and cvXX tag
  * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
  *            for a user-interface label for this feature. (May be NULL.)
  * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
@@ -1134,7 +1133,10 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
  *                  strings for user-interface labels for the feature
  *                  parameters. (Must be zero if numParameters is zero.)
  *
- * Return value: true if could find any feature with the tag, false otherwise
+ * Fetches name indices from feature parameters for "Stylistic Set" ('ssXX') or
+ * "Character Variant" ('cvXX') features.
+ *
+ * Return value: true if data found, false otherwise
  *
  * Since: REPLACEME
  **/
@@ -1142,16 +1144,15 @@ hb_bool_t
 hb_ot_layout_feature_get_name_ids (hb_face_t      *face,
 				   hb_tag_t        table_tag,
 				   unsigned int    feature_index,
-				   hb_tag_t        feature_tag,
 				   hb_name_id_t   *label_id,             /* OUT.  May be NULL */
 				   hb_name_id_t   *tooltip_id,           /* OUT.  May be NULL */
 				   hb_name_id_t   *sample_id,            /* OUT.  May be NULL */
 				   unsigned int   *num_named_parameters, /* OUT.  May be NULL */
 				   hb_name_id_t   *first_param_id        /* OUT.  May be NULL */)
 {
-  static_assert ((OT::FeatureVariations::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_VARIATIONS_INDEX), "");
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
+  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
   const OT::Feature &f = g.get_feature (feature_index);
 
   const OT::FeatureParams &feature_params = f.get_feature_params ();
@@ -1195,7 +1196,6 @@ hb_ot_layout_feature_get_name_ids (hb_face_t      *face,
 /**
  * hb_ot_layout_feature_get_characters::
  * @face: #hb_face_t to work upon
- * @feature_tag: cvXX tag
  * @table_tag:
  * @feature_index:
  * @start_offset: In case the resulting char_count was equal to its input value, there
@@ -1208,6 +1208,9 @@ hb_ot_layout_feature_get_name_ids (hb_face_t      *face,
  * @characters: (out) (allow-none): A buffer pointer. The Unicode Scalar Value
  *              of the characters for which this feature provides glyph variants.
  *
+ * Fetches characters listed by designer under feature parameters for "Character
+ * Variant" ("cvXX") features.
+ *
  * Return value: Number of total sample characters in the cvXX feature.
  *
  * Since: REPLACEME
@@ -1216,14 +1219,13 @@ unsigned int
 hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     hb_tag_t        table_tag,
 				     unsigned int    feature_index,
-				     hb_tag_t        feature_tag,
 				     unsigned int    start_offset,
 				     unsigned int   *char_count, /* IN/OUT.  May be NULL */
 				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
 {
-  static_assert ((OT::FeatureVariations::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_VARIATIONS_INDEX), "");
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
+  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
   const OT::Feature &f = g.get_feature (feature_index);
 
   const OT::FeatureParams &feature_params = f.get_feature_params ();
