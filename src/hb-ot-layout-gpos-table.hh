@@ -973,22 +973,22 @@ struct CursivePosFormat1
     hb_buffer_t *buffer = c->buffer;
 
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
-    if (!this_record.exitAnchor) return_trace (false);
+    if (!this_record.entryAnchor) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (buffer->idx, 1);
-    if (!skippy_iter.next ()) return_trace (false);
+    if (!skippy_iter.prev ()) return_trace (false);
 
-    const EntryExitRecord &next_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
-    if (!next_record.entryAnchor) return_trace (false);
+    const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
+    if (!prev_record.exitAnchor) return_trace (false);
 
-    unsigned int i = buffer->idx;
-    unsigned int j = skippy_iter.idx;
+    unsigned int i = skippy_iter.idx;
+    unsigned int j = buffer->idx;
 
     buffer->unsafe_to_break (i, j);
     float entry_x, entry_y, exit_x, exit_y;
-    (this+this_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
-    (this+next_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
+    (this+prev_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
+    (this+this_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
 
     hb_glyph_position_t *pos = buffer->pos;
 
@@ -1035,7 +1035,7 @@ struct CursivePosFormat1
      * parent.
      *
      * Optimize things for the case of RightToLeft, as that's most common in
-     * Arabinc. */
+     * Arabic. */
     unsigned int child  = i;
     unsigned int parent = j;
     hb_position_t x_offset = entry_x - exit_x;
@@ -1064,7 +1064,7 @@ struct CursivePosFormat1
     else
       pos[child].x_offset = x_offset;
 
-    buffer->idx = j;
+    buffer->idx++;
     return_trace (true);
   }
 
