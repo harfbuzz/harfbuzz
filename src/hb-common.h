@@ -71,6 +71,14 @@ typedef unsigned __int64 uint64_t;
 #define HB_DEPRECATED
 #endif
 
+#if    __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#define HB_DEPRECATED_FOR(f) __attribute__((__deprecated__("Use '" #f "' instead")))
+#elif defined(_MSC_FULL_VER) && (_MSC_FULL_VER > 140050320)
+#define HB_DEPRECATED_FOR(f) __declspec(deprecated("is deprecated. Use '" #f "' instead"))
+#else
+#define HB_DEPRECATED_FOR(f) HB_DEPRECATED
+#endif
+
 
 HB_BEGIN_DECLS
 
