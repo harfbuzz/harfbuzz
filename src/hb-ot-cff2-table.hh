@@ -176,7 +176,7 @@ struct CFF2TopDictValues : TopDictValues<>
 
 struct CFF2TopDictOpSet : TopDictOpSet<>
 {
-  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
+  static inline void process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
@@ -189,25 +189,23 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
         break;
 
       case OpCode_vstore:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.vstoreOffset)))
-          return false;
+        dictval.vstoreOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
       case OpCode_FDSelect:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.FDSelectOffset)))
-          return false;
+        dictval.FDSelectOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
     
       default:
-        if (unlikely (!SUPER::process_op (op, env, dictval)))
-          return false;
+        SUPER::process_op (op, env, dictval);
         /* Record this operand below if stack is empty, otherwise done */
-        if (!env.argStack.is_empty ()) return true;
+        if (!env.argStack.is_empty ()) return;
     }
 
+    if (unlikely (env.in_error ())) return;
+
     dictval.addOp (op, env.substr);
-    return true;
   }
 
   typedef TopDictOpSet<> SUPER;
@@ -231,26 +229,24 @@ struct CFF2FontDictValues : DictValues<OpStr>
 
 struct CFF2FontDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
+  static inline void process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_Private:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.offset)))
-          return false;
-        if (unlikely (!env.argStack.check_pop_uint (dictval.privateDictInfo.size)))
-          return false;
+        dictval.privateDictInfo.offset = env.argStack.pop_uint ();
+        dictval.privateDictInfo.size = env.argStack.pop_uint ();
         env.clear_args ();
         break;
     
       default:
-        if (unlikely (!SUPER::process_op (op, env)))
-          return false;
+        SUPER::process_op (op, env);
         if (!env.argStack.is_empty ())
-          return true;
+          return;
     }
 
+    if (unlikely (env.in_error ())) return;
+
     dictval.addOp (op, env.substr);
-    return true;
   }
 
   private:
@@ -303,10 +299,9 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
 
   inline void process_vsindex (void)
   {
-    unsigned int  index;
-    if (likely (!seen_vsindex && argStack.check_pop_uint (index)))
+    if (likely (!seen_vsindex))
     {
-      set_ivs (argStack.check_pop_uint (index));
+      set_ivs (argStack.pop_uint ());
     }
     seen_vsindex = true;
   }
@@ -321,7 +316,7 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
 
 struct CFF2PrivateDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues& dictval)
+  static inline void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues& dictval)
   {
     NumDictVal val;
     val.init ();
@@ -334,8 +329,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_BlueFuzz:
       case OpCode_ExpansionFactor:
       case OpCode_LanguageGroup:
-        if (unlikely (!env.argStack.check_pop_num (val.single_val)))
-          return false;
+        val.single_val = env.argStack.pop_num ();
         env.clear_args ();
         break;
       case OpCode_BlueValues:
@@ -344,13 +338,11 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_FamilyOtherBlues:
       case OpCode_StemSnapH:
       case OpCode_StemSnapV:
-        if (unlikely (!env.argStack.check_pop_delta (val.multi_val)))
-          return false;
+        env.argStack.pop_delta (val.multi_val);
         env.clear_args ();
         break;
       case OpCode_Subrs:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
-          return false;
+        dictval.subrsOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
       case OpCode_vsindexdict:
@@ -361,20 +353,20 @@ struct CFF2PrivateDictOpSet : DictOpSet
         break;
 
       default:
-        if (unlikely (!DictOpSet::process_op (op, env)))
-          return false;
-        if (!env.argStack.is_empty ()) return true;
+        DictOpSet::process_op (op, env);
+        if (!env.argStack.is_empty ()) return;
         break;
     }
 
+    if (unlikely (env.in_error ())) return;
+
     dictval.addOp (op, env.substr, val);
-    return true;
   }
 };
 
 struct CFF2PrivateDictOpSet_Subset : DictOpSet
 {
-  static inline bool process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
+  static inline void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -395,23 +387,22 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
 
       case OpCode_blenddict:
         env.clear_args ();
-        return true;
+        return;
 
       case OpCode_Subrs:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.subrsOffset)))
-          return false;
+        dictval.subrsOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
 
       default:
-        if (unlikely (!SUPER::process_op (op, env)))
-          return false;
-        if (!env.argStack.is_empty ()) return true;
+        SUPER::process_op (op, env);
+        if (!env.argStack.is_empty ()) return;
         break;
     }
 
+    if (unlikely (env.in_error ())) return;
+
     dictval.addOp (op, env.substr);
-    return true;
   }
 
   private:

@@ -132,28 +132,26 @@ struct TopDictValues : DictValues<OPSTR>
 
 struct DictOpSet : OpSet<Number>
 {
-  static inline bool process_op (OpCode op, InterpEnv<Number>& env)
+  static inline void process_op (OpCode op, InterpEnv<Number>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
-        return env.argStack.push_longint_from_substr (env.substr);
+        env.argStack.push_longint_from_substr (env.substr);
+        break;
+
       case OpCode_BCD:  /* real number */
-        float v;
-        if (unlikely (!env.argStack.check_overflow (1) || !parse_bcd (env.substr, v)))
-          return false;
-        env.argStack.push_real (v);
-        return true;
+        env.argStack.push_real (parse_bcd (env.substr));
+        break;
 
       default:
-        return OpSet<Number>::process_op (op, env);
+        OpSet<Number>::process_op (op, env);
+        break;
     }
-
-    return true;
   }
 
-  static inline bool parse_bcd (SubByteStr& substr, float& v)
+  static inline float parse_bcd (SubByteStr& substr)
   {
-    v = 0.0f;
+    float v = 0.0f;
 
     bool    neg = false;
     double  int_part = 0;
@@ -171,7 +169,11 @@ struct DictOpSet : OpSet<Number>
       char d;
       if ((i & 1) == 0)
       {
-        if (!substr.avail ()) return false;
+        if (!substr.avail ())
+        {
+          substr.set_error ();
+          return 0.0f;
+        }
         byte = substr[0];
         substr.inc ();
         d = byte >> 4;
@@ -182,7 +184,8 @@ struct DictOpSet : OpSet<Number>
       switch (d)
       {
         case RESERVED:
-          return false;
+          substr.set_error ();
+          return v;
 
         case END:
           value = (double)(neg? -int_part: int_part);
@@ -195,16 +198,23 @@ struct DictOpSet : OpSet<Number>
             else
               value *= pow (10.0, (double)exp_part);
           }
-          v = (float)value;
-          return true;
+          return (float)value;
 
         case NEG:
-          if (i != 0) return false;
+          if (i != 0)
+          {
+            substr.set_error ();
+            return 0.0f;
+          }
           neg = true;
           break;
 
         case DECIMAL:
-          if (part != INT_PART) return false;
+          if (part != INT_PART)
+          {
+            substr.set_error ();
+            return v;
+          }
           part = FRAC_PART;
           break;
 
@@ -213,7 +223,11 @@ struct DictOpSet : OpSet<Number>
           HB_FALLTHROUGH;
           
         case EXP_POS:
-          if (part == EXP_PART) return false;
+          if (part == EXP_PART)
+          {
+            substr.set_error ();
+            return v;
+          }
           part = EXP_PART;
           break;
 
@@ -236,7 +250,7 @@ struct DictOpSet : OpSet<Number>
       }
     }
 
-    return false;
+    return v;
   }
 
   static inline bool is_hint_op (OpCode op)
@@ -267,27 +281,24 @@ struct DictOpSet : OpSet<Number>
 template <typename VAL=OpStr>
 struct TopDictOpSet : DictOpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv<Number>& env, TopDictValues<VAL> & dictval)
+  static inline void process_op (OpCode op, InterpEnv<Number>& env, TopDictValues<VAL> & dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.charStringsOffset)))
-          return false;
+        dictval.charStringsOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
       case OpCode_FDArray:
-        if (unlikely (!env.argStack.check_pop_uint (dictval.FDArrayOffset)))
-          return false;
+        dictval.FDArrayOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
       case OpCode_FontMatrix:
         env.clear_args ();
         break;
       default:
-        return DictOpSet::process_op (op, env);
+        DictOpSet::process_op (op, env);
+        break;
     }
-
-    return true;
   }
 };
 
@@ -299,9 +310,8 @@ struct DictInterpreter : Interpreter<ENV>
     param.init ();
     do
     {
-      OpCode op;
-      if (unlikely (!SUPER::env.fetch_op (op) ||
-                    !OPSET::process_op (op, SUPER::env, param)))
+      OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
+      if (unlikely (SUPER::env.in_error ()))
         return false;
     } while (SUPER::env.substr.avail ());
     

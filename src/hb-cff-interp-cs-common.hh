@@ -98,12 +98,14 @@ struct CSInterpEnv : InterpEnv<ARG>
     localSubrs.fini ();
   }
 
+  inline bool in_error (void) const
+  {
+    return callStack.in_error () || SUPER::in_error ();
+  }
+
   inline bool popSubrNum (const BiasedSubrs<SUBRS>& biasedSubrs, unsigned int &subr_num)
   {
-    int n;
-    if (unlikely ((!callStack.check_overflow (1) ||
-                   !SUPER::argStack.check_pop_int (n))))
-      return false;
+    int n = SUPER::argStack.pop_int ();
     n += biasedSubrs.bias;
     if (unlikely ((n < 0) || ((unsigned int)n >= biasedSubrs.subrs->count)))
       return false;
@@ -124,13 +126,11 @@ struct CSInterpEnv : InterpEnv<ARG>
     return true;
   }
 
-  inline bool returnFromSubr (void)
+  inline void returnFromSubr (void)
   {
-    if (unlikely (!callStack.check_underflow ()))
-      return false;
-
+    if (unlikely (SUPER::substr.in_error ()))
+      SUPER::set_error ();
     SUPER::substr = callStack.pop ();
-    return true;
   }
 
   inline void determine_hintmask_size (void)
@@ -212,25 +212,29 @@ struct PathProcsNull
 template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=PathProcsNull<ENV, PARAM> >
 struct CSOpSet : OpSet<ARG>
 {
-  static inline bool process_op (OpCode op, ENV &env, PARAM& param)
+  static inline void process_op (OpCode op, ENV &env, PARAM& param)
   {  
     switch (op) {
 
       case OpCode_return:
-        return env.returnFromSubr ();
+        env.returnFromSubr ();
+        break;
       case OpCode_endchar:
         env.set_endchar (true);
         OPSET::flush_args_and_op (op, env, param);
         break;
 
       case OpCode_fixedcs:
-        return env.argStack.push_fixed_from_substr (env.substr);
+        env.argStack.push_fixed_from_substr (env.substr);
+        break;
 
       case OpCode_callsubr:
-        return env.callSubr (env.localSubrs);
-      
+        env.callSubr (env.localSubrs);
+        break;
+
       case OpCode_callgsubr:
-        return env.callSubr (env.globalSubrs);
+        env.callSubr (env.globalSubrs);
+        break;
 
       case OpCode_hstem:
       case OpCode_hstemhm:
@@ -305,9 +309,9 @@ struct CSOpSet : OpSet<ARG>
         break;
 
       default:
-        return SUPER::process_op (op, env);
+        SUPER::process_op (op, env);
+        break;
     }
-    return true;
   }
 
   static inline void process_hstem (OpCode op, ENV &env, PARAM& param)
@@ -686,9 +690,8 @@ struct CSInterpreter : Interpreter<ENV>
     SUPER::env.set_endchar (false);
 
     for (;;) {
-      OpCode op;
-      if (unlikely (!SUPER::env.fetch_op (op) ||
-                    !OPSET::process_op (op, SUPER::env, param)))
+      OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
+      if (unlikely (SUPER::env.in_error ()))
         return false;
       if (SUPER::env.is_endchar ())
         break;

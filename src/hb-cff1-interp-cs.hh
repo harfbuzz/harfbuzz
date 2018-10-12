@@ -41,12 +41,17 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
     has_width = false;
+    transient_array.init ();
+    transient_array.resize (kTransientArraySize);
     for (unsigned int i = 0; i < kTransientArraySize; i++)
       transient_array[i].set_int (0);
   }
 
-  bool check_transient_array_index (unsigned int i) const
-  { return i < kTransientArraySize; }
+  inline void fini (void)
+  {
+    transient_array.fini ();
+    SUPER::fini ();
+  }
 
   inline unsigned int check_width (void)
   {
@@ -69,7 +74,7 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
   Number        width;
 
   static const unsigned int kTransientArraySize = 32;
-  Number  transient_array[kTransientArraySize];
+  hb_vector_t<Number, kTransientArraySize>  transient_array;
 
   private:
   typedef CSInterpEnv<Number, CFF1Subrs> SUPER;
@@ -78,109 +83,114 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF1CSInterpEnv, PARAM> >
 struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
 {
-  static inline bool process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
+  static inline void process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
     Number  n1, n2;
 
     switch (op) {
 
       case OpCode_and:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_int ((n1.to_real() != 0.0f) && (n2.to_real() != 0.0f));
         break;
       case OpCode_or:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_int ((n1.to_real() != 0.0f) || (n2.to_real() != 0.0f));
         break;
       case OpCode_not:
-        if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push_int (n1.to_real() == 0.0f);
         break;
       case OpCode_abs:
-        if (unlikely (!env.argStack.check_pop_num (n1)))  return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push_real (fabs(n1.to_real ()));
         break;
       case OpCode_add:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_real (n1.to_real() + n2.to_real());
         break;
       case OpCode_sub:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_real (n1.to_real() - n2.to_real());
         break;
       case OpCode_div:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         if (unlikely (n2.to_real() == 0.0f))
           env.argStack.push_int (0);
         else
           env.argStack.push_real (n1.to_real() / n2.to_real());
         break;
       case OpCode_neg:
-        if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push_real (-n1.to_real ());
         break;
       case OpCode_eq:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_int (n1.to_real() == n2.to_real());
         break;
       case OpCode_drop:
-        if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+        n1 = env.argStack.pop_num ();
         break;
       case OpCode_put:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2) ||
-                      !env.check_transient_array_index (n2.to_int ()))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.transient_array[n2.to_int ()] = n1;
         break;
       case OpCode_get:
-        if (unlikely (!env.argStack.check_pop_num (n1) ||
-                      !env.check_transient_array_index (n1.to_int ()))) return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push (env.transient_array[n1.to_int ()]);
         break;
       case OpCode_ifelse:
         {
-          if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+          env.argStack.pop_num2 (n1, n2);
           bool  test = n1.to_real () <= n2.to_real ();
-          if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+          env.argStack.pop_num2 (n1, n2);
           env.argStack.push (test? n1: n2);
         }
         break;
       case OpCode_random:
-        if (unlikely (!env.argStack.check_overflow (1))) return false;
         env.argStack.push_int (1);  /* we can't deal with random behavior; make it constant */
         break;
       case OpCode_mul:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push_real (n1.to_real() * n2.to_real());
         break;
       case OpCode_sqrt:
-        if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push_real ((float)sqrt (n1.to_real ()));
         break;
       case OpCode_dup:
-        if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+        n1 = env.argStack.pop_num ();
         env.argStack.push (n1);
         env.argStack.push (n1);
         break;
       case OpCode_exch:
-        if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+        env.argStack.pop_num2 (n1, n2);
         env.argStack.push (n2);
         env.argStack.push (n1);
         break;
       case OpCode_index:
         {
-          if (unlikely (!env.argStack.check_pop_num (n1))) return false;
+          n1 = env.argStack.pop_num ();
           int i = n1.to_int ();
           if (i < 0) i = 0;
-          if (unlikely ((unsigned int)i >= env.argStack.get_count () || !env.argStack.check_overflow (1))) return false;
+          if (unlikely ((unsigned int)i >= env.argStack.get_count ()))
+          {
+            env.set_error ();
+            return;
+          }
           env.argStack.push (env.argStack[env.argStack.get_count () - i - 1]);
         }
         break;
       case OpCode_roll:
         {
-          if (unlikely (!env.argStack.check_pop_num2 (n1, n2))) return false;
+          env.argStack.pop_num2 (n1, n2);
           int n = n1.to_int ();
           int j = n2.to_int ();
-          if (unlikely (n < 0 || (unsigned int)n > env.argStack.get_count ())) return false;
+          if (unlikely (n < 0 || (unsigned int)n > env.argStack.get_count ()))
+          {
+            env.set_error ();
+            return;
+          }
           if (likely (n > 0))
           {
             if (j < 0)
@@ -195,11 +205,9 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
         }
         break;
       default:
-        if (unlikely (!SUPER::process_op (op, env, param)))
-          return false;
+        SUPER::process_op (op, env, param);
         break;
     }
-    return true;
   }
 
   static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param, unsigned int start_arg = 0)

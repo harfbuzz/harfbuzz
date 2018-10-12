@@ -208,6 +208,8 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op)? 2: 1; }
 #define OpCode_hflex1                  Make_OpCode_ESC(36) /* CFF, CFF2 */
 #define OpCode_flex1                   Make_OpCode_ESC(37) /* CFF, CFF2 */
 
+#define OpCode_Invalid                 65535
+
 struct Number
 {
   inline void init (void)
@@ -406,21 +408,29 @@ struct SubByteStr
   {
     str = ByteStr (0);
     offset = 0;
+    error = false;
   }
 
   inline void fini (void) {}
 
   inline SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
-    : str (str_), offset (offset_) {}
+    : str (str_), offset (offset_), error (false) {}
 
   inline void reset (const ByteStr &str_, unsigned int offset_ = 0)
   {
     str = str_;
     offset = offset_;
+    error = false;
   }
 
-  inline const HBUINT8& operator [] (int i) const {
-    return str[offset + i];
+  inline const HBUINT8& operator [] (int i) {
+    if (unlikely ((unsigned int)(offset + i) >= str.len))
+    {
+      set_error ();
+      return Null(HBUINT8);
+    }
+    else
+      return str[offset + i];
   }
 
   inline operator ByteStr (void) const { return ByteStr (str, offset, str.len - offset); }
@@ -428,8 +438,14 @@ struct SubByteStr
   inline bool avail (unsigned int count=1) const { return str.check_limit (offset, count); }
   inline void inc (unsigned int count=1) { offset += count; assert (count <= str.len); }
 
+  inline void set_error (void) { error = true; }
+  inline bool in_error (void) const { return error; }
+
   ByteStr       str;
   unsigned int  offset; /* beginning of the sub-string within str */
+
+  protected:
+  bool          error;
 };
 
 /* stack */
@@ -438,6 +454,7 @@ struct Stack
 {
   inline void init (void)
   {
+    error = false;
     count = 0;
     elements.init ();
     elements.resize (kSizeLimit);
@@ -450,16 +467,18 @@ struct Stack
     elements.fini_deep ();
   }
 
-  inline const ELEM& operator [] (unsigned int i) const
-  { return elements[i]; }
-
   inline ELEM& operator [] (unsigned int i)
-  { return elements[i]; }
+  {
+    if (unlikely (i >= count)) set_error ();
+    return elements[i];
+  }
 
   inline void push (const ELEM &v)
   {
     if (likely (count < elements.len))
       elements[count++] = v;
+    else
+      set_error ();
   }
 
   inline ELEM &push (void)
@@ -467,7 +486,10 @@ struct Stack
     if (likely (count < elements.len))
       return elements[count++];
     else
+    {
+      set_error ();
       return Crap(ELEM);
+    }
   }
 
   inline ELEM& pop (void)
@@ -475,13 +497,18 @@ struct Stack
     if (likely (count > 0))
       return elements[--count];
     else
+    {
+      set_error ();
       return Crap(ELEM);
+    }
   }
 
   inline void pop (unsigned int n)
   {
     if (likely (count >= n))
       count -= n;
+    else
+      set_error ();
   }
 
   inline const ELEM& peek (void)
@@ -489,19 +516,24 @@ struct Stack
     if (likely (count > 0))
       return elements[count-1];
     else
+    {
+      set_error ();
       return Null(ELEM);
+    }
   }
 
   inline void unpop (void)
   {
     if (likely (count < elements.len))
       count++;
+    else
+      set_error ();
   }
 
   inline void clear (void) { count = 0; }
 
-  inline bool check_overflow (unsigned int n=1) const { return (n <= kSizeLimit) && (n + count <= kSizeLimit); }
-  inline bool check_underflow (unsigned int n=1) const { return (n <= count); }
+  inline bool in_error (void) const { return (error || elements.in_error ()); }
+  inline void set_error (void) { error = true; }
 
   inline unsigned int get_count (void) const { return count; }
   inline bool is_empty (void) const { return count == 0; }
@@ -509,6 +541,7 @@ struct Stack
   static const unsigned int kSizeLimit = LIMIT;
 
   protected:
+  bool error;
   unsigned int count;
   hb_vector_t<ELEM, kSizeLimit> elements;
 };
@@ -535,44 +568,41 @@ struct ArgStack : Stack<ARG, 513>
     n.set_real (v);
   }
 
-  inline bool check_pop_num (ARG& n)
+  inline ARG& pop_num (void)
   {
-    if (unlikely (!this->check_underflow ()))
-      return false;
-    n = this->pop ();
-    return true;
+    return this->pop ();
   }
 
-  inline bool check_pop_num2 (ARG& n1, ARG& n2)
+  inline void pop_num2 (ARG& n1, ARG& n2)
   {
-    if (unlikely (!this->check_underflow (2)))
-      return false;
     n2 = this->pop ();
     n1 = this->pop ();
-    return true;
   }
 
-  inline bool check_pop_int (int& v)
+  inline int pop_int (void)
   {
-    if (unlikely (!this->check_underflow ()))
-      return false;
-    v = this->pop ().to_int ();
-    return true;
+    return this->pop ().to_int ();
   }
 
-  inline bool check_pop_uint (unsigned int& v)
+  inline unsigned int pop_uint (void)
   {
-    int  i;
-    if (unlikely (!check_pop_int (i) || i < 0))
-      return false;
-    v = (unsigned int)i;
-    return true;
+    
+    int  i = pop_int ();
+    if (unlikely (i < 0))
+    {
+      i = 0;
+      S::set_error ();
+    }
+    return (unsigned)i;
   }
 
-  inline bool check_pop_delta (hb_vector_t<ARG>& vec, bool even=false)
+  inline void pop_delta (hb_vector_t<ARG>& vec, bool even=false)
   {
     if (even && unlikely ((this->count & 1) != 0))
-      return false;
+    {
+      S::set_error ();
+      return;
+    }
 
     float val = 0.0f;
     for (unsigned int i = 0; i < S::count; i++) {
@@ -580,21 +610,17 @@ struct ArgStack : Stack<ARG, 513>
       ARG *n = vec.push ();
       n->set_real (val);
     }
-    return true;
   }
 
-  inline bool push_longint_from_substr (SubByteStr& substr)
+  inline void push_longint_from_substr (SubByteStr& substr)
   {
-    if (unlikely (!substr.avail (4) || !S::check_overflow (1)))
-      return false;
-    push_int ((int32_t)*(const HBUINT32*)&substr[0]);
+    push_int ((substr[0] << 24) | (substr[1] << 16) | (substr[2] << 8) | (substr[3]));
     substr.inc (4);
-    return true;
   }
 
   inline bool push_fixed_from_substr (SubByteStr& substr)
   {
-    if (unlikely (!substr.avail (4) || !S::check_overflow (1)))
+    if (unlikely (!substr.avail (4)))
       return false;
     push_fixed ((int32_t)*(const HBUINT32*)&substr[0]);
     substr.inc (4);
@@ -649,6 +675,7 @@ struct InterpEnv
   {
     substr.reset (str_);
     argStack.init ();
+    error = false;
   }
 
   inline void fini (void)
@@ -656,19 +683,27 @@ struct InterpEnv
     argStack.fini ();
   }
 
-  inline bool fetch_op (OpCode &op)
+  inline bool in_error (void) const
   {
+    return error || substr.in_error () || argStack.in_error ();
+  }
+
+  inline void set_error (void) { error = true; }
+
+  inline OpCode fetch_op (void)
+  {
+    OpCode  op = OpCode_Reserved2;
     if (unlikely (!substr.avail ()))
-      return false;
+      return OpCode_Invalid;
     op = (OpCode)(unsigned char)substr[0];
     if (op == OpCode_escape) {
       if (unlikely (!substr.avail ()))
-        return false;
+        return OpCode_Invalid;
       op = Make_OpCode_ESC(substr[1]);
       substr.inc ();
     }
     substr.inc ();
-    return true;
+    return op;
   }
 
   inline const ARG& eval_arg (unsigned int i)
@@ -694,6 +729,8 @@ struct InterpEnv
 
   SubByteStr    substr;
   ArgStack<ARG> argStack;
+  protected:
+  bool          error;
 };
 
 typedef InterpEnv<> NumInterpEnv;
@@ -701,47 +738,38 @@ typedef InterpEnv<> NumInterpEnv;
 template <typename ARG=Number>
 struct OpSet
 {
-  static inline bool process_op (OpCode op, InterpEnv<ARG>& env)
+  static inline void process_op (OpCode op, InterpEnv<ARG>& env)
   {
     switch (op) {
       case OpCode_shortint:
-        if (unlikely (!env.substr.avail (2) || !env.argStack.check_overflow (1)))
-          return false;
-        env.argStack.push_int ((int16_t)*(const HBUINT16*)&env.substr[0]);
+        env.argStack.push_int ((env.substr[0] << 8) | env.substr[1]);
         env.substr.inc (2);
         break;
 
       case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
       case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-        if (unlikely (!env.substr.avail () || !env.argStack.check_overflow (1)))
-          return false;
         env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.substr[0] + 108));
         env.substr.inc ();
         break;
       
       case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-        if (unlikely (!env.substr.avail () || !env.argStack.check_overflow (1)))
-          return false;
         env.argStack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - env.substr[0] - 108));
         env.substr.inc ();
         break;
 
       default:
         /* 1-byte integer */
-        if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)) &&
-            likely (env.argStack.check_overflow (1)))
+        if (likely ((OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast)))
         {
           env.argStack.push_int ((int)op - 139);
         } else {
           /* invalid unknown operator */
           env.clear_args ();
-          return false;
+          env.set_error ();
         }
         break;
     }
-
-    return true;
   }
 };
 

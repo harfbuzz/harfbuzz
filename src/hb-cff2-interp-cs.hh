@@ -99,17 +99,16 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     SUPER::fini ();
   }
 
-  inline bool fetch_op (OpCode &op)
+  inline OpCode fetch_op (void)
   {
     if (this->substr.avail ())
-      return SUPER::fetch_op (op);
+      return SUPER::fetch_op ();
 
     /* make up return or endchar op */
-    if (this->callStack.check_underflow ())
-      op = OpCode_return;
+    if (this->callStack.is_empty ())
+      return OpCode_endchar;
     else
-      op = OpCode_endchar;
-    return true;
+      return OpCode_return;
   }
 
   inline const BlendArg& eval_arg (unsigned int i)
@@ -140,14 +139,11 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 
   inline void process_vsindex (void)
   {
-    unsigned int  index;
-    if (likely (argStack.check_pop_uint (index)))
+    unsigned int  index = argStack.pop_uint ();
+    if (do_blend)
     {
-      if (do_blend)
-      {
-        if (likely (!seen_vsindex && !seen_blend))
-          set_ivs (index);
-      }
+      if (likely (!seen_vsindex && !seen_blend))
+        set_ivs (index);
     }
     seen_vsindex = true;
   }
@@ -192,40 +188,45 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF2CSInterpEnv, PARAM> >
 struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
 {
-  static inline bool process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
+  static inline void process_op (OpCode op, CFF2CSInterpEnv &env, PARAM& param)
   {
     switch (op) {
       case OpCode_callsubr:
       case OpCode_callgsubr:
         /* a subroutine number shoudln't be a blended value */
         if (unlikely (env.argStack.peek ().blending ()))
-          return false;
-        return SUPER::process_op (op, env, param);
+        {
+          env.set_error ();
+          break;
+        }
+        SUPER::process_op (op, env, param);
+        break;
 
       case OpCode_blendcs:
-        return OPSET::process_blend (env, param);
+        OPSET::process_blend (env, param);
+        break;
 
       case OpCode_vsindexcs:
         if (unlikely (env.argStack.peek ().blending ()))
-          return false;
+        {
+          env.set_error ();
+          break;
+        }
         OPSET::process_vsindex (env, param);
         break;
 
       default:
-        return SUPER::process_op (op, env, param);
+        SUPER::process_op (op, env, param);
     }
-    return true;
   }
 
-  static inline bool process_blend (CFF2CSInterpEnv &env, PARAM& param)
+  static inline void process_blend (CFF2CSInterpEnv &env, PARAM& param)
   {
     unsigned int n, k;
 
     env.process_blend ();
     k = env.get_region_count ();
-    if (unlikely (!env.argStack.check_pop_uint (n) ||
-                  (k+1) * n > env.argStack.get_count ()))
-      return false;
+    n = env.argStack.pop_uint ();
     /* copy the blend values into blend array of the default values */
     unsigned int start = env.argStack.get_count () - ((k+1) * n);
     for (unsigned int i = 0; i < n; i++)
@@ -233,7 +234,6 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
 
     /* pop off blend values leaving default values now adorned with blend values */
     env.argStack.pop (k * n);
-    return true;
   }
 
   static inline void process_vsindex (CFF2CSInterpEnv &env, PARAM& param)
