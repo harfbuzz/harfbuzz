@@ -80,8 +80,8 @@
     </para>
     <para>
       Text shaping is a fairly low-level operation. HarfBuzz is
-      used directly by graphical rendering libraries like <ulink
-      url="https://www.pango.org/">Pango</a>, as well as by the layout
+      used directly by text-handling libraries like <ulink
+      url="https://www.pango.org/">Pango</ulink>, as well as by the layout
       engines in Firefox, LibreOffice, and Chromium. Unless you are
       <emphasis>writing</emphasis> one of these layout engines
       yourself, you will probably not need to use HarfBuzz: normally,
@@ -222,7 +222,7 @@
     <title>What does HarfBuzz do?</title>
     <para>
       HarfBuzz provides OpenType text shaping through a cross-platform
-      C API that accepts sequences of Unicode input text. Currently,
+      C API that accepts sequences of Unicode codepoints as input. Currently,
       the following OpenType shaping models are supported:
     </para>
     <itemizedlist>
