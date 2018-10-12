@@ -302,10 +302,10 @@ struct hb_sanitize_context_t :
   inline bool check_range (const void *base, unsigned int len) const
   {
     const char *p = (const char *) base;
-    bool ok = this->max_ops-- > 0 &&
-	      this->start <= p &&
+    bool ok = this->start <= p &&
 	      p <= this->end &&
-	      (unsigned int) (this->end - p) >= len;
+	      (unsigned int) (this->end - p) >= len &&
+	      this->max_ops-- > 0;
 
     DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
        "check_range [%p..%p] (%d bytes) in [%p..%p] -> %s",
