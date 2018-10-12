@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Ebrahim Byagowi.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,27 +20,35 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
+#ifndef HB_OT_NAME_H
+#define HB_OT_NAME_H
 
 #include "hb.h"
 
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-name.h"
-#include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
-
 HB_BEGIN_DECLS
+
+
+/**
+ * hb_name_id_t:
+ *
+ * Since: REPLACEME
+ */
+typedef unsigned int hb_name_id_t;
+
+/**
+ * HB_NAME_ID_INVALID
+ *
+ * Since: REPLACEME
+ **/
+#define HB_NAME_ID_INVALID 0xFFFF
+
 
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_OT_NAME_H */

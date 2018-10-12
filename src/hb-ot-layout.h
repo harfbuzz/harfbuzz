@@ -34,6 +34,7 @@
 #include "hb.h"
 
 #include "hb-ot-tag.h"
+#include "hb-ot-name.h"
 
 HB_BEGIN_DECLS
 
@@ -326,18 +327,9 @@ HB_EXTERN hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *design_size,       /* OUT.  May be NULL */
 			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      hb_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
-
-/**
- * hb_name_id_t:
- *
- * Since: REPLACEME
- */
-typedef unsigned int hb_name_id_t;
-
-#define HB_NAME_ID_INVALID 0xFFFF
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_feature_get_name_ids (hb_face_t      *face,

@@ -400,7 +400,7 @@ struct FeatureParamsSize
 				 * same subfamily value. If this value is
 				 * zero, the remaining fields in the array
 				 * will be ignored. */
-  HBUINT16	subfamilyNameID;/* If the preceding value is non-zero, this
+  NameID	subfamilyNameID;/* If the preceding value is non-zero, this
 				 * value must be set in the range 256 - 32767
 				 * (inclusive). It records the value of a
 				 * field in the name table, which must
