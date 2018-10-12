@@ -441,8 +441,8 @@ hb_ot_tag_to_language (hb_tag_t tag)
  * hb_ot_tags_to_script_and_language:
  * @script_tag: a script tag
  * @language_tag: a language tag
- * @script (allow-none): the #hb_script_t corresponding to @script_tag (OUT).
- * @language (allow-none): the #hb_language_t corresponding to @script_tag and
+ * @script: (allow-none): the #hb_script_t corresponding to @script_tag (OUT).
+ * @language: (allow-none): the #hb_language_t corresponding to @script_tag and
  * @language_tag (OUT).
  *
  * Converts a script tag and a language tag to an #hb_script_t and an
