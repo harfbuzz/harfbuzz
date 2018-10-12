@@ -13,8 +13,8 @@
       <para>
         HarfBuzz is an <ulink url="http://www.microsoft.com/typography/otspec/">OpenType</ulink>
         text shaping engine. Using the HarfBuzz library allows
-	programs to convert a sequence of Unicode input text into
-	properly formatted and positioned output&mdash;for any writing
+	programs to convert a sequence of Unicode input into
+	properly formatted and positioned text output&mdash;for any writing
 	system and language.
       </para>
 
@@ -34,6 +34,7 @@
       <xi:include href="usermanual-what-is-harfbuzz.xml"/>
       <xi:include href="usermanual-install-harfbuzz.xml"/>
       <xi:include href="usermanual-hello-harfbuzz.xml"/>
+      <xi:include href="usermanual-shaping-concepts.xml"/>
       <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
       <xi:include href="usermanual-fonts-and-faces.xml"/>
       <xi:include href="usermanual-clusters.xml"/>
