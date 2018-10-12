@@ -375,6 +375,25 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 }
 
 
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
+{
+  collect_features_myanmar,
+  override_features_myanmar,
+  nullptr, /* data_create */
+  nullptr, /* data_destroy */
+  nullptr, /* preprocess_text */
+  nullptr, /* postprocess_glyphs */
+  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
+  nullptr, /* decompose */
+  nullptr, /* compose */
+  setup_masks_myanmar,
+  HB_TAG_NONE, /* gpos_tag */
+  nullptr, /* reorder_marks */
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
+  false, /* fallback_position */
+};
+
+
 /* Uniscribe seems to have a shaper for 'mymr' that is like the
  * generic shaper, except that it zeros mark advances GDEF_LATE. */
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar_old =
@@ -395,20 +414,24 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar_old =
   true, /* fallback_position */
 };
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
+
+/* Ugly Zawgyi encoding.
+ * Disable all auto processing.
+ * https://github.com/harfbuzz/harfbuzz/issues/1162 */
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar_zawgyi =
 {
-  collect_features_myanmar,
-  override_features_myanmar,
+  nullptr, /* collect_features */
+  nullptr, /* override_features */
   nullptr, /* data_create */
   nullptr, /* data_destroy */
   nullptr, /* preprocess_text */
   nullptr, /* postprocess_glyphs */
-  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
+  HB_OT_SHAPE_NORMALIZATION_MODE_NONE,
   nullptr, /* decompose */
   nullptr, /* compose */
-  setup_masks_myanmar,
+  nullptr, /* setup_masks */
   HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
 };

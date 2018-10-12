@@ -43,6 +43,7 @@ HB_BASE_sources = \
 	hb-ot-os2-unicode-ranges.hh \
 	hb-ot-post-macroman.hh \
 	hb-ot-post-table.hh \
+	hb-ot-tag-table.hh \
 	hb-ot-tag.cc \
 	hb.hh \
 	hb-set-digest.hh \

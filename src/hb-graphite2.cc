@@ -33,6 +33,8 @@
 
 #include <graphite2/Segment.h>
 
+#include "hb-ot-tag.h"
+
 
 HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face)
 HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font)
@@ -277,11 +279,16 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
 
   /* TODO ensure_native_direction. */
 
-  hb_tag_t script_tag[2];
-  hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
+  hb_tag_t script_tag[HB_OT_MAX_TAGS_PER_SCRIPT];
+  unsigned int count = HB_OT_MAX_TAGS_PER_SCRIPT;
+  hb_ot_tags_from_script_and_language (hb_buffer_get_script (buffer),
+				       HB_LANGUAGE_INVALID,
+				       &count,
+				       script_tag,
+				       nullptr, nullptr);
 
   seg = gr_make_seg (nullptr, grface,
-		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
+		     count ? script_tag[count - 1] : HB_OT_TAG_DEFAULT_SCRIPT,
 		     feats,
 		     gr_utf32, chars, buffer->len,
 		     2 | (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL ? 1 : 0));

@@ -37,6 +37,7 @@ TESTS = \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
 	tests/myanmar-syllable.tests \
+	tests/myanmar-zawgyi.tests \
 	tests/none-directional.tests \
 	tests/rand.tests \
 	tests/spaces.tests \
@@ -46,6 +47,7 @@ TESTS = \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
 	tests/use.tests \
+	tests/use-indic3.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
 	tests/variations-rvrn.tests \
