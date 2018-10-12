@@ -71,6 +71,7 @@ endif
 
 TEST_PROGS += \
 	test-ot-color \
+	test-ot-nameid \
 	test-ot-tag \
 	$(NULL)
 
