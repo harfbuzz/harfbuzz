@@ -25,10 +25,10 @@ what this does is:
   * If the outputs differ, recording fails.  Otherwise, it will move the
     subset font file into `data/in-house/fonts` and name it after its
     hash, and print out the test case input, which you can then redirect
-    to an existing or new test file in `data/in-house/tests` using `-o=`,
+    to an existing or new test file in `data/in-house/tests` using `-o`,
     e.g.:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o=data/in-house/tests/test-name.test ../../util/hb-shape font.ttf
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.test ../../util/hb-shape font.ttf
 ```
 
 If you created a new test file, add it to `data/in-house/Makefile.sources`
