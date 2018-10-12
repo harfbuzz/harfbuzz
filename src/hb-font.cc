@@ -1910,8 +1910,6 @@ hb_font_get_var_coords_normalized (hb_font_t *font,
 }
 
 
-#ifndef HB_DISABLE_DEPRECATED
-
 /*
  * Deprecated get_glyph_func():
  */
@@ -2034,5 +2032,3 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 					  trampoline,
 					  trampoline_destroy);
 }
-
-#endif /* HB_DISABLE_DEPRECATED */
