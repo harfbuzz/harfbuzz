@@ -279,8 +279,8 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
 
   /* TODO ensure_native_direction. */
 
-  hb_tag_t script_tag[2];
-  unsigned int count = 2;
+  hb_tag_t script_tag[HB_OT_MAX_TAGS_PER_SCRIPT];
+  unsigned int count = HB_OT_MAX_TAGS_PER_SCRIPT;
   hb_ot_tags_from_script_and_language (hb_buffer_get_script (buffer),
 				       HB_LANGUAGE_INVALID,
 				       &count,
