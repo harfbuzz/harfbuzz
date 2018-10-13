@@ -246,7 +246,7 @@ struct KerxSubTableFormat2
       return false;
 
     accelerator_t accel (*this,
-			 c->face->get_num_glyphs ());
+			 c->sanitizer.get_num_glyphs ());
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -383,11 +383,11 @@ struct KerxSubTableFormat4
 	    unsigned int currAnchorPoint = *data++;
 	    const Anchor markAnchor = c->ankr_table.get_anchor (c->buffer->info[mark].codepoint,
 								markAnchorPoint,
-								c->face->get_num_glyphs (),
+								c->sanitizer.get_num_glyphs (),
 								c->ankr_end);
 	    const Anchor currAnchor = c->ankr_table.get_anchor (c->buffer->cur ().codepoint,
 								currAnchorPoint,
-								c->face->get_num_glyphs (),
+								c->sanitizer.get_num_glyphs (),
 								c->ankr_end);
 
 	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
@@ -510,7 +510,7 @@ struct KerxSubTableFormat6
       return false;
 
     accelerator_t accel (*this,
-			 c->face->get_num_glyphs ());
+			 c->sanitizer.get_num_glyphs ());
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
