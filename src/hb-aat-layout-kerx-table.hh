@@ -232,11 +232,9 @@ struct KerxSubTableFormat2
     unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
     unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
     unsigned int offset = l + r;
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
-    if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v - (const char *) this > header.length - v->static_size))
-      return 0;
-    return *v;
+    const FWORD v = StructAtOffset<FWORD> (&(this+array), offset);
+    if (unlikely (!v.sanitize (&c->sanitizer))) return 0;
+    return v;
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -481,11 +479,9 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       if (unlikely (offset < l)) return 0; /* Addition overflow. */
       if (unlikely (hb_unsigned_mul_overflows (offset, sizeof (FWORD32)))) return 0;
-      const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
-      if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v - (const char *) this > header.length - v->static_size))
-	return 0;
-      return *v;
+      const FWORD32 &v = StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
+      if (unlikely (!v.sanitize (&c->sanitizer))) return 0;
+      return v;
     }
     else
     {
@@ -493,11 +489,9 @@ struct KerxSubTableFormat6
       unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
       unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
       unsigned int offset = l + r;
-      const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
-      if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v - (const char *) this > header.length - v->static_size))
-	return 0;
-      return *v;
+      const FWORD &v = StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
+      if (unlikely (!v.sanitize (&c->sanitizer))) return 0;
+      return v;
     }
   }
 
