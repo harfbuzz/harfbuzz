@@ -31,6 +31,28 @@
 
 #include "hb-ot-shape.hh"
 
+
+struct hb_aat_feature_mapping_t
+{
+  hb_tag_t otFeatureTag;
+  uint16_t aatFeatureType;
+  uint16_t selectorToEnable;
+  uint16_t selectorToDisable;
+
+  static inline int cmp (const void *key_, const void *entry_)
+  {
+    hb_tag_t key = * (unsigned int *) key_;
+    const hb_aat_feature_mapping_t * entry = (const hb_aat_feature_mapping_t *) entry_;
+    return key < entry->otFeatureTag ? -1 :
+	   key > entry->otFeatureTag ? 1 :
+	   0;
+  }
+};
+
+HB_INTERNAL const hb_aat_feature_mapping_t *
+hb_aat_layout_find_feature_mapping (hb_tag_t tag);
+
+
 HB_INTERNAL hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face);
 

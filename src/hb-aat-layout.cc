@@ -36,6 +36,100 @@
 #include "hb-aat-layout-trak-table.hh"
 #include "hb-aat-ltag-table.hh" // Just so we compile it; unused otherwise.
 
+
+/* Table data courtesy of Apple.  Converted from mnemonics to integers
+ * when moving to this file.  See hb-coretext.cc before 2018-10-13 for
+ * more verbose version. */
+static const hb_aat_feature_mapping_t feature_mappings[] =
+{
+    { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
+    { 'c2sc',   kUpperCaseType,             kUpperCaseSmallCapsSelector,            kDefaultUpperCaseSelector },
+    { 'calt',   kContextualAlternatesType,  kContextualAlternatesOnSelector,        kContextualAlternatesOffSelector },
+    { 'case',   kCaseSensitiveLayoutType,   kCaseSensitiveLayoutOnSelector,         kCaseSensitiveLayoutOffSelector },
+    { 'clig',   kLigaturesType,             kContextualLigaturesOnSelector,         kContextualLigaturesOffSelector },
+    { 'cpsp',   kCaseSensitiveLayoutType,   kCaseSensitiveSpacingOnSelector,        kCaseSensitiveSpacingOffSelector },
+    { 'cswh',   kContextualAlternatesType,  kContextualSwashAlternatesOnSelector,   kContextualSwashAlternatesOffSelector },
+    { 'dlig',   kLigaturesType,             kRareLigaturesOnSelector,               kRareLigaturesOffSelector },
+    { 'expt',   kCharacterShapeType,        kExpertCharactersSelector,              16 },
+    { 'frac',   kFractionsType,             kDiagonalFractionsSelector,             kNoFractionsSelector },
+    { 'fwid',   kTextSpacingType,           kMonospacedTextSelector,                7 },
+    { 'halt',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
+    { 'hist',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
+    { 'hkna',   kAlternateKanaType,         kAlternateHorizKanaOnSelector,          kAlternateHorizKanaOffSelector, },
+    { 'hlig',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
+    { 'hngl',   kTransliterationType,       kHanjaToHangulSelector,                 kNoTransliterationSelector },
+    { 'hojo',   kCharacterShapeType,        kHojoCharactersSelector,                16 },
+    { 'hwid',   kTextSpacingType,           kHalfWidthTextSelector,                 7 },
+    { 'ital',   kItalicCJKRomanType,        kCJKItalicRomanOnSelector,              kCJKItalicRomanOffSelector },
+    { 'jp04',   kCharacterShapeType,        kJIS2004CharactersSelector,             16 },
+    { 'jp78',   kCharacterShapeType,        kJIS1978CharactersSelector,             16 },
+    { 'jp83',   kCharacterShapeType,        kJIS1983CharactersSelector,             16 },
+    { 'jp90',   kCharacterShapeType,        kJIS1990CharactersSelector,             16 },
+    { 'liga',   kLigaturesType,             kCommonLigaturesOnSelector,             kCommonLigaturesOffSelector },
+    { 'lnum',   kNumberCaseType,            kUpperCaseNumbersSelector,              2 },
+    { 'mgrk',   kMathematicalExtrasType,    kMathematicalGreekOnSelector,           kMathematicalGreekOffSelector },
+    { 'nlck',   kCharacterShapeType,        kNLCCharactersSelector,                 16 },
+    { 'onum',   kNumberCaseType,            kLowerCaseNumbersSelector,              2 },
+    { 'ordn',   kVerticalPositionType,      kOrdinalsSelector,                      kNormalPositionSelector },
+    { 'palt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'pcap',   kLowerCaseType,             kLowerCasePetiteCapsSelector,           kDefaultLowerCaseSelector },
+    { 'pkna',   kTextSpacingType,           kProportionalTextSelector,              7 },
+    { 'pnum',   kNumberSpacingType,         kProportionalNumbersSelector,           4 },
+    { 'pwid',   kTextSpacingType,           kProportionalTextSelector,              7 },
+    { 'qwid',   kTextSpacingType,           kQuarterWidthTextSelector,              7 },
+    { 'ruby',   kRubyKanaType,              kRubyKanaOnSelector,                    kRubyKanaOffSelector },
+    { 'sinf',   kVerticalPositionType,      kScientificInferiorsSelector,           kNormalPositionSelector },
+    { 'smcp',   kLowerCaseType,             kLowerCaseSmallCapsSelector,            kDefaultLowerCaseSelector },
+    { 'smpl',   kCharacterShapeType,        kSimplifiedCharactersSelector,          16 },
+    { 'ss01',   kStylisticAlternativesType, kStylisticAltOneOnSelector,             kStylisticAltOneOffSelector },
+    { 'ss02',   kStylisticAlternativesType, kStylisticAltTwoOnSelector,             kStylisticAltTwoOffSelector },
+    { 'ss03',   kStylisticAlternativesType, kStylisticAltThreeOnSelector,           kStylisticAltThreeOffSelector },
+    { 'ss04',   kStylisticAlternativesType, kStylisticAltFourOnSelector,            kStylisticAltFourOffSelector },
+    { 'ss05',   kStylisticAlternativesType, kStylisticAltFiveOnSelector,            kStylisticAltFiveOffSelector },
+    { 'ss06',   kStylisticAlternativesType, kStylisticAltSixOnSelector,             kStylisticAltSixOffSelector },
+    { 'ss07',   kStylisticAlternativesType, kStylisticAltSevenOnSelector,           kStylisticAltSevenOffSelector },
+    { 'ss08',   kStylisticAlternativesType, kStylisticAltEightOnSelector,           kStylisticAltEightOffSelector },
+    { 'ss09',   kStylisticAlternativesType, kStylisticAltNineOnSelector,            kStylisticAltNineOffSelector },
+    { 'ss10',   kStylisticAlternativesType, kStylisticAltTenOnSelector,             kStylisticAltTenOffSelector },
+    { 'ss11',   kStylisticAlternativesType, kStylisticAltElevenOnSelector,          kStylisticAltElevenOffSelector },
+    { 'ss12',   kStylisticAlternativesType, kStylisticAltTwelveOnSelector,          kStylisticAltTwelveOffSelector },
+    { 'ss13',   kStylisticAlternativesType, kStylisticAltThirteenOnSelector,        kStylisticAltThirteenOffSelector },
+    { 'ss14',   kStylisticAlternativesType, kStylisticAltFourteenOnSelector,        kStylisticAltFourteenOffSelector },
+    { 'ss15',   kStylisticAlternativesType, kStylisticAltFifteenOnSelector,         kStylisticAltFifteenOffSelector },
+    { 'ss16',   kStylisticAlternativesType, kStylisticAltSixteenOnSelector,         kStylisticAltSixteenOffSelector },
+    { 'ss17',   kStylisticAlternativesType, kStylisticAltSeventeenOnSelector,       kStylisticAltSeventeenOffSelector },
+    { 'ss18',   kStylisticAlternativesType, kStylisticAltEighteenOnSelector,        kStylisticAltEighteenOffSelector },
+    { 'ss19',   kStylisticAlternativesType, kStylisticAltNineteenOnSelector,        kStylisticAltNineteenOffSelector },
+    { 'ss20',   kStylisticAlternativesType, kStylisticAltTwentyOnSelector,          kStylisticAltTwentyOffSelector },
+    { 'subs',   kVerticalPositionType,      kInferiorsSelector,                     kNormalPositionSelector },
+    { 'sups',   kVerticalPositionType,      kSuperiorsSelector,                     kNormalPositionSelector },
+    { 'swsh',   kContextualAlternatesType,  kSwashAlternatesOnSelector,             kSwashAlternatesOffSelector },
+    { 'titl',   kStyleOptionsType,          kTitlingCapsSelector,                   kNoStyleOptionsSelector },
+    { 'tnam',   kCharacterShapeType,        kTraditionalNamesCharactersSelector,    16 },
+    { 'tnum',   kNumberSpacingType,         kMonospacedNumbersSelector,             4 },
+    { 'trad',   kCharacterShapeType,        kTraditionalCharactersSelector,         16 },
+    { 'twid',   kTextSpacingType,           kThirdWidthTextSelector,                7 },
+    { 'unic',   kLetterCaseType,            14,                                     15 },
+    { 'valt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'vert',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
+    { 'vhal',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
+    { 'vkna',   kAlternateKanaType,         kAlternateVertKanaOnSelector,           kAlternateVertKanaOffSelector },
+    { 'vpal',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'vrt2',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
+    { 'zero',   kTypographicExtrasType,     kSlashedZeroOnSelector,                 kSlashedZeroOffSelector },
+};
+
+const hb_aat_feature_mapping_t *
+hb_aat_layout_find_feature_mapping (hb_tag_t tag)
+{
+  return bsearch (&tag,
+		  feature_mappings,
+		  ARRAY_LENGTH (feature_mappings),
+		  sizeof (feature_mappings[0]),
+		  hb_aat_feature_mapping_t::cmp);
+}
+
+
 /*
  * morx/kerx/trak
  */
