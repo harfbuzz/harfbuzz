@@ -226,8 +226,9 @@ struct KerxSubTableFormat1
 struct KerxSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  unsigned int num_glyphs) const
+			  hb_aat_apply_context_t *c) const
   {
+    unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
     unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
     unsigned int offset = l + r;
@@ -245,8 +246,7 @@ struct KerxSubTableFormat2
     if (!c->plan->requested_kerning)
       return false;
 
-    accelerator_t accel (*this,
-			 c->sanitizer.get_num_glyphs ());
+    accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -264,16 +264,14 @@ struct KerxSubTableFormat2
   struct accelerator_t
   {
     const KerxSubTableFormat2 &table;
-    unsigned int num_glyphs;
+    hb_aat_apply_context_t *c;
 
     inline accelerator_t (const KerxSubTableFormat2 &table_,
-			  unsigned int num_glyphs_)
-			  : table (table_), num_glyphs (num_glyphs_) {}
+			  hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
 
     inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    {
-      return table.get_kerning (left, right, num_glyphs);
-    }
+    { return table.get_kerning (left, right, c); }
   };
 
   protected:
@@ -472,8 +470,9 @@ struct KerxSubTableFormat6
   inline bool is_long (void) const { return flags & ValuesAreLong; }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  unsigned int num_glyphs) const
+			  hb_aat_apply_context_t *c) const
   {
+    unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     if (is_long ())
     {
       const U::Long &t = u.l;
@@ -509,8 +508,7 @@ struct KerxSubTableFormat6
     if (!c->plan->requested_kerning)
       return false;
 
-    accelerator_t accel (*this,
-			 c->sanitizer.get_num_glyphs ());
+    accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -534,16 +532,14 @@ struct KerxSubTableFormat6
   struct accelerator_t
   {
     const KerxSubTableFormat6 &table;
-    unsigned int num_glyphs;
+    hb_aat_apply_context_t *c;
 
     inline accelerator_t (const KerxSubTableFormat6 &table_,
-			  unsigned int num_glyphs_)
-			  : table (table_), num_glyphs (num_glyphs_) {}
+			  hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
 
     inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    {
-      return table.get_kerning (left, right, num_glyphs);
-    }
+    { return table.get_kerning (left, right, c); }
   };
 
   protected:
