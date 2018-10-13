@@ -473,7 +473,7 @@ struct FeatureParamsCharacterVariants
 					 * specifies a string (or strings,
 					 * for multiple languages) for a
 					 * user-interface label for this
-					 * feature. (May be nullptr.) */
+					 * feature. (May be NULL.) */
   NameID	featUITooltipTextNameID;/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) that an
@@ -483,7 +483,7 @@ struct FeatureParamsCharacterVariants
   NameID	sampleTextNameID;	/* The ‘name’ table name ID that
 					 * specifies sample text that
 					 * illustrates the effect of this
-					 * feature. (May be nullptr.) */
+					 * feature. (May be NULL.) */
   HBUINT16	numNamedParameters;	/* Number of named parameters. (May
 					 * be zero.) */
   NameID	firstParamUILabelNameID;/* The first ‘name’ table name ID
