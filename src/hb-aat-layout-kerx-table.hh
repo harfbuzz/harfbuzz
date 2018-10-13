@@ -256,7 +256,8 @@ struct KerxSubTableFormat2
     TRACE_SANITIZE (this);
     return_trace (likely (rowWidth.sanitize (c) &&
 			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this)));
+			  rightClassTable.sanitize (c, this) &&
+			  c->check_range (this, array)));
   }
 
   struct accelerator_t
@@ -516,10 +517,12 @@ struct KerxSubTableFormat6
 			  is_long () ?
 			  (
 			    u.l.rowIndexTable.sanitize (c, this) &&
-			    u.l.columnIndexTable.sanitize (c, this)
+			    u.l.columnIndexTable.sanitize (c, this) &&
+			    c->check_range (this, u.l.array)
 			  ) : (
 			    u.s.rowIndexTable.sanitize (c, this) &&
-			    u.s.columnIndexTable.sanitize (c, this)
+			    u.s.columnIndexTable.sanitize (c, this) &&
+			    c->check_range (this, u.s.array)
 			  )));
   }
 
