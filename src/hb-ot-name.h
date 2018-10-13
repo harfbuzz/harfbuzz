@@ -48,6 +48,16 @@ typedef unsigned int hb_name_id_t;
  **/
 #define HB_NAME_ID_INVALID 0xFFFF
 
+HB_EXTERN unsigned int
+hb_ot_name_get_string (hb_face_t     *face,
+		       unsigned int   name_id,
+		       hb_language_t *languages,
+		       unsigned int   languages_count,
+		       unsigned int   start_offset,
+		       unsigned int  *buffer_length /* IN/OUT.  May be NULL */,
+		       char          *buffer        /* OUT.     May be NULL */);
+
+
 HB_END_DECLS
 
 #endif /* HB_OT_NAME_H */

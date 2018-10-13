@@ -79,12 +79,12 @@ struct name
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_name;
 
-  inline unsigned int get_name (unsigned int platform_id,
-				unsigned int encoding_id,
-				unsigned int language_id,
-				unsigned int name_id,
-				void *buffer,
-				unsigned int buffer_length) const
+  inline unsigned int get_name (unsigned int  platform_id,
+				unsigned int  encoding_id,
+				unsigned int  language_id,
+				unsigned int  name_id,
+				void         *buffer,
+				unsigned int  buffer_length) const
   {
     NameRecord key;
     key.platformID.set (platform_id);
@@ -104,13 +104,27 @@ struct name
   inline unsigned int get_size (void) const
   { return min_size + count * nameRecordZ[0].min_size; }
 
-  inline bool sanitize_records (hb_sanitize_context_t *c) const {
+  inline bool sanitize_records (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     char *string_pool = (char *) this + stringOffset;
     unsigned int _count = count;
     for (unsigned int i = 0; i < _count; i++)
       if (!nameRecordZ[i].sanitize (c, string_pool)) return_trace (false);
     return_trace (true);
+  }
+
+  inline unsigned int get_count (void) const
+  { return count; }
+
+  inline const NameRecord& get_record(unsigned int index) const
+  { return hb_array_t<NameRecord> (nameRecordZ.arrayZ, count)[index]; }
+
+  inline hb_bytes_t get_record_string(unsigned int index) const
+  {
+    const NameRecord& record = get_record (index);
+    if (!record.length) return hb_bytes_t ();
+    return hb_bytes_t ((char *) this + stringOffset + record.offset, record.length);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

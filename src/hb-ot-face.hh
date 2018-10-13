@@ -44,6 +44,7 @@
 /* Most of these tables are NOT needed for shaping.  But we need to hook them *somewhere*.
  * This is as good as any place. */
 #define HB_OT_TABLES \
+    HB_OT_TABLE(OT, name) \
     /* OpenType shaping. */ \
     HB_OT_TABLE(OT, JSTF) \
     HB_OT_TABLE(OT, BASE) \
