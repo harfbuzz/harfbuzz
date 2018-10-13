@@ -515,12 +515,21 @@ struct range_record_t {
 #define kUpperCaseType				38
 
 /* Table data courtesy of Apple. */
-static const struct feature_mapping_t
+static const struct hb_aat_feature_mapping_t
 {
-    hb_tag_t otFeatureTag;
-    uint16_t aatFeatureType;
-    uint16_t selectorToEnable;
-    uint16_t selectorToDisable;
+  hb_tag_t otFeatureTag;
+  uint16_t aatFeatureType;
+  uint16_t selectorToEnable;
+  uint16_t selectorToDisable;
+
+  static inline int cmp (const void *key_, const void *entry_)
+  {
+    hb_tag_t key = * (unsigned int *) key_;
+    const hb_aat_feature_mapping_t * entry = (const hb_aat_feature_mapping_t *) entry_;
+    return key < entry->otFeatureTag ? -1 :
+	   key > entry->otFeatureTag ? 1 :
+	   0;
+  }
 } feature_mappings[] =
 {
     { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
@@ -600,14 +609,14 @@ static const struct feature_mapping_t
     { 'zero',   kTypographicExtrasType,     kSlashedZeroOnSelector,                 kSlashedZeroOffSelector },
 };
 
-static int
-_hb_feature_mapping_cmp (const void *key_, const void *entry_)
+HB_INTERNAL const hb_aat_feature_mapping_t *
+hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 {
-  hb_tag_t key = * (unsigned int *) key_;
-  const feature_mapping_t * entry = (const feature_mapping_t *) entry_;
-  return key < entry->otFeatureTag ? -1 :
-	 key > entry->otFeatureTag ? 1 :
-	 0;
+  return bsearch (&tag,
+		  feature_mappings,
+		  ARRAY_LENGTH (feature_mappings),
+		  sizeof (feature_mappings[0]),
+		  hb_aat_feature_mapping_t::cmp);
 }
 
 hb_bool_t
@@ -655,11 +664,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     hb_auto_t<hb_vector_t<feature_event_t> > feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
-      const feature_mapping_t * mapping = (const feature_mapping_t *) bsearch (&features[i].tag,
-									       feature_mappings,
-									       ARRAY_LENGTH (feature_mappings),
-									       sizeof (feature_mappings[0]),
-									       _hb_feature_mapping_cmp);
+      const hb_aat_feature_mapping_t * mapping = hb_aat_layout_find_feature_mapping (features[i].tag);
       if (!mapping)
         continue;
 
