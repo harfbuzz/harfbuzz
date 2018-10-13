@@ -48,7 +48,6 @@ typedef unsigned int hb_name_id_t;
  **/
 #define HB_NAME_ID_INVALID 0xFFFF
 
-
 HB_END_DECLS
 
 #endif /* HB_OT_NAME_H */

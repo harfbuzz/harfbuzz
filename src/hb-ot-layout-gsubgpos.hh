@@ -214,10 +214,10 @@ struct hb_collect_glyphs_context_t :
   unsigned int debug_depth;
 
   hb_collect_glyphs_context_t (hb_face_t *face_,
-			       hb_set_t  *glyphs_before, /* OUT. May be nullptr */
-			       hb_set_t  *glyphs_input,  /* OUT. May be nullptr */
-			       hb_set_t  *glyphs_after,  /* OUT. May be nullptr */
-			       hb_set_t  *glyphs_output, /* OUT. May be nullptr */
+			       hb_set_t  *glyphs_before, /* OUT.  May be NULL */
+			       hb_set_t  *glyphs_input,  /* OUT.  May be NULL */
+			       hb_set_t  *glyphs_after,  /* OUT.  May be NULL */
+			       hb_set_t  *glyphs_output, /* OUT.  May be NULL */
 			       unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			      face (face_),
 			      before (glyphs_before ? glyphs_before : hb_set_get_empty ()),
