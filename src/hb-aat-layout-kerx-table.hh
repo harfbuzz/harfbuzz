@@ -212,7 +212,9 @@ struct KerxSubTableFormat1
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (machine.sanitize (c)));
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
   }
 
   protected:
@@ -444,11 +446,9 @@ struct KerxSubTableFormat4
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-
     /* The rest of array sanitizations are done at run-time. */
-    return_trace (c->check_struct (this) &&
-		  machine.sanitize (c) &&
-		  flags.sanitize (c));
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
   }
 
   protected:
