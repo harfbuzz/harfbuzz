@@ -69,7 +69,7 @@ struct hb_ot_complex_shaper_t
   /* collect_features()
    * Called during shape_plan().
    * Shapers should use plan->map to add their features and callbacks.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*collect_features) (hb_ot_shape_planner_t *plan);
 
@@ -77,7 +77,7 @@ struct hb_ot_complex_shaper_t
    * Called during shape_plan().
    * Shapers should use plan->map to override features and add callbacks after
    * common features are added.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*override_features) (hb_ot_shape_planner_t *plan);
 
@@ -93,7 +93,7 @@ struct hb_ot_complex_shaper_t
    * Called when the shape_plan is being destroyed.
    * plan->data is passed here for destruction.
    * If nullptr is returned, means a plan failure.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*data_destroy) (void *data);
 
@@ -101,7 +101,7 @@ struct hb_ot_complex_shaper_t
   /* preprocess_text()
    * Called during shape().
    * Shapers can use to modify text before shaping starts.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*preprocess_text) (const hb_ot_shape_plan_t *plan,
 			   hb_buffer_t              *buffer,
@@ -110,7 +110,7 @@ struct hb_ot_complex_shaper_t
   /* postprocess_glyphs()
    * Called during shape().
    * Shapers can use to modify glyphs after shaping ends.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*postprocess_glyphs) (const hb_ot_shape_plan_t *plan,
 			      hb_buffer_t              *buffer,
@@ -121,7 +121,7 @@ struct hb_ot_complex_shaper_t
 
   /* decompose()
    * Called during shape()'s normalization.
-   * May be nullptr.
+   * May be NULL.
    */
   bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
 		     hb_codepoint_t  ab,
@@ -130,7 +130,7 @@ struct hb_ot_complex_shaper_t
 
   /* compose()
    * Called during shape()'s normalization.
-   * May be nullptr.
+   * May be NULL.
    */
   bool (*compose) (const hb_ot_shape_normalize_context_t *c,
 		   hb_codepoint_t  a,
@@ -141,7 +141,7 @@ struct hb_ot_complex_shaper_t
    * Called during shape().
    * Shapers should use map to get feature masks and set on buffer.
    * Shapers may NOT modify characters.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*setup_masks) (const hb_ot_shape_plan_t *plan,
 		       hb_buffer_t              *buffer,
@@ -156,7 +156,7 @@ struct hb_ot_complex_shaper_t
   /* reorder_marks()
    * Called during shape().
    * Shapers can use to modify ordering of combining marks.
-   * May be nullptr.
+   * May be NULL.
    */
   void (*reorder_marks) (const hb_ot_shape_plan_t *plan,
 			 hb_buffer_t              *buffer,

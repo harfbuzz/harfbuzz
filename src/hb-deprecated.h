@@ -50,7 +50,7 @@ typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
 					       hb_codepoint_t *glyph,
 					       void *user_data);
 
-HB_EXTERN HB_DEPRECATED void
+HB_EXTERN HB_DEPRECATED_FOR(hb_font_funcs_set_nominal_glyph_func or hb_font_funcs_set_variation_glyph_func) void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 			      hb_font_get_glyph_func_t func,
 			      void *user_data, hb_destroy_func_t destroy);
@@ -212,26 +212,26 @@ hb_font_get_glyph_kerning_for_direction (hb_font_t *font,
 					 hb_position_t *x, hb_position_t *y);
 
 /* Like hb_ot_layout_table_find_script, but takes zero-terminated array of scripts to test */
-HB_EXTERN HB_DEPRECATED hb_bool_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_table_select_script) hb_bool_t
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
 				  unsigned int   *script_index,
 				  hb_tag_t       *chosen_script);
 
-HB_EXTERN HB_DEPRECATED hb_bool_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_script_select_language) hb_bool_t
 hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      table_tag,
 				   unsigned int  script_index,
 				   hb_tag_t      language_tag,
 				   unsigned int *language_index);
 
-HB_EXTERN HB_DEPRECATED void
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_tags_from_script_and_language) void
 hb_ot_tags_from_script (hb_script_t  script,
 			hb_tag_t    *script_tag_1,
 			hb_tag_t    *script_tag_2);
 
-HB_EXTERN HB_DEPRECATED hb_tag_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_tags_from_script_and_language) hb_tag_t
 hb_ot_tag_from_language (hb_language_t language);
 
 

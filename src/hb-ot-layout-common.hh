@@ -400,7 +400,7 @@ struct FeatureParamsSize
 				 * same subfamily value. If this value is
 				 * zero, the remaining fields in the array
 				 * will be ignored. */
-  HBUINT16	subfamilyNameID;/* If the preceding value is non-zero, this
+  NameID	subfamilyNameID;/* If the preceding value is non-zero, this
 				 * value must be set in the range 256 - 32767
 				 * (inclusive). It records the value of a
 				 * field in the name table, which must
@@ -473,7 +473,7 @@ struct FeatureParamsCharacterVariants
 					 * specifies a string (or strings,
 					 * for multiple languages) for a
 					 * user-interface label for this
-					 * feature. (May be nullptr.) */
+					 * feature. (May be NULL.) */
   NameID	featUITooltipTextNameID;/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
 					 * for multiple languages) that an
@@ -483,7 +483,7 @@ struct FeatureParamsCharacterVariants
   NameID	sampleTextNameID;	/* The ‘name’ table name ID that
 					 * specifies sample text that
 					 * illustrates the effect of this
-					 * feature. (May be nullptr.) */
+					 * feature. (May be NULL.) */
   HBUINT16	numNamedParameters;	/* Number of named parameters. (May
 					 * be zero.) */
   NameID	firstParamUILabelNameID;/* The first ‘name’ table name ID
@@ -519,6 +519,20 @@ struct FeatureParams
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null(FeatureParamsSize);
+  }
+
+  inline const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
+  {
+    if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
+      return u.stylisticSet;
+    return Null(FeatureParamsStylisticSet);
+  }
+
+  inline const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
+  {
+    if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
+      return u.characterVariants;
+    return Null(FeatureParamsCharacterVariants);
   }
 
   private:

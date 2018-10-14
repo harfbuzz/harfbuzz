@@ -32,6 +32,7 @@
 #include "hb-shaper-impl.hh"
 
 #include "hb-coretext.h"
+#include "hb-aat-layout.hh"
 #include <math.h>
 
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
@@ -431,185 +432,6 @@ struct range_record_t {
 };
 
 
-/* The following enum members are added in OS X 10.8. */
-#define kAltHalfWidthTextSelector		6
-#define kAltProportionalTextSelector		5
-#define kAlternateHorizKanaOffSelector		1
-#define kAlternateHorizKanaOnSelector		0
-#define kAlternateKanaType			34
-#define kAlternateVertKanaOffSelector		3
-#define kAlternateVertKanaOnSelector		2
-#define kCaseSensitiveLayoutOffSelector		1
-#define kCaseSensitiveLayoutOnSelector		0
-#define kCaseSensitiveLayoutType		33
-#define kCaseSensitiveSpacingOffSelector	3
-#define kCaseSensitiveSpacingOnSelector		2
-#define kContextualAlternatesOffSelector	1
-#define kContextualAlternatesOnSelector		0
-#define kContextualAlternatesType		36
-#define kContextualLigaturesOffSelector		19
-#define kContextualLigaturesOnSelector		18
-#define kContextualSwashAlternatesOffSelector	5
-#define kContextualSwashAlternatesOnSelector	4
-#define kDefaultLowerCaseSelector		0
-#define kDefaultUpperCaseSelector		0
-#define kHistoricalLigaturesOffSelector		21
-#define kHistoricalLigaturesOnSelector		20
-#define kHojoCharactersSelector			12
-#define kJIS2004CharactersSelector		11
-#define kLowerCasePetiteCapsSelector		2
-#define kLowerCaseSmallCapsSelector		1
-#define kLowerCaseType				37
-#define kMathematicalGreekOffSelector		11
-#define kMathematicalGreekOnSelector		10
-#define kNLCCharactersSelector			13
-#define kQuarterWidthTextSelector		4
-#define kScientificInferiorsSelector		4
-#define kStylisticAltEightOffSelector		17
-#define kStylisticAltEightOnSelector		16
-#define kStylisticAltEighteenOffSelector	37
-#define kStylisticAltEighteenOnSelector		36
-#define kStylisticAltElevenOffSelector		23
-#define kStylisticAltElevenOnSelector		22
-#define kStylisticAltFifteenOffSelector		31
-#define kStylisticAltFifteenOnSelector		30
-#define kStylisticAltFiveOffSelector		11
-#define kStylisticAltFiveOnSelector		10
-#define kStylisticAltFourOffSelector		9
-#define kStylisticAltFourOnSelector		8
-#define kStylisticAltFourteenOffSelector	29
-#define kStylisticAltFourteenOnSelector		28
-#define kStylisticAltNineOffSelector		19
-#define kStylisticAltNineOnSelector		18
-#define kStylisticAltNineteenOffSelector	39
-#define kStylisticAltNineteenOnSelector		38
-#define kStylisticAltOneOffSelector		3
-#define kStylisticAltOneOnSelector		2
-#define kStylisticAltSevenOffSelector		15
-#define kStylisticAltSevenOnSelector		14
-#define kStylisticAltSeventeenOffSelector	35
-#define kStylisticAltSeventeenOnSelector	34
-#define kStylisticAltSixOffSelector		13
-#define kStylisticAltSixOnSelector		12
-#define kStylisticAltSixteenOffSelector		33
-#define kStylisticAltSixteenOnSelector		32
-#define kStylisticAltTenOffSelector		21
-#define kStylisticAltTenOnSelector		20
-#define kStylisticAltThirteenOffSelector	27
-#define kStylisticAltThirteenOnSelector		26
-#define kStylisticAltThreeOffSelector		7
-#define kStylisticAltThreeOnSelector		6
-#define kStylisticAltTwelveOffSelector		25
-#define kStylisticAltTwelveOnSelector		24
-#define kStylisticAltTwentyOffSelector		41
-#define kStylisticAltTwentyOnSelector		40
-#define kStylisticAltTwoOffSelector		5
-#define kStylisticAltTwoOnSelector		4
-#define kStylisticAlternativesType		35
-#define kSwashAlternatesOffSelector		3
-#define kSwashAlternatesOnSelector		2
-#define kThirdWidthTextSelector			3
-#define kTraditionalNamesCharactersSelector	14
-#define kUpperCasePetiteCapsSelector		2
-#define kUpperCaseSmallCapsSelector		1
-#define kUpperCaseType				38
-
-/* Table data courtesy of Apple. */
-static const struct feature_mapping_t
-{
-    hb_tag_t otFeatureTag;
-    uint16_t aatFeatureType;
-    uint16_t selectorToEnable;
-    uint16_t selectorToDisable;
-} feature_mappings[] =
-{
-    { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
-    { 'c2sc',   kUpperCaseType,             kUpperCaseSmallCapsSelector,            kDefaultUpperCaseSelector },
-    { 'calt',   kContextualAlternatesType,  kContextualAlternatesOnSelector,        kContextualAlternatesOffSelector },
-    { 'case',   kCaseSensitiveLayoutType,   kCaseSensitiveLayoutOnSelector,         kCaseSensitiveLayoutOffSelector },
-    { 'clig',   kLigaturesType,             kContextualLigaturesOnSelector,         kContextualLigaturesOffSelector },
-    { 'cpsp',   kCaseSensitiveLayoutType,   kCaseSensitiveSpacingOnSelector,        kCaseSensitiveSpacingOffSelector },
-    { 'cswh',   kContextualAlternatesType,  kContextualSwashAlternatesOnSelector,   kContextualSwashAlternatesOffSelector },
-    { 'dlig',   kLigaturesType,             kRareLigaturesOnSelector,               kRareLigaturesOffSelector },
-    { 'expt',   kCharacterShapeType,        kExpertCharactersSelector,              16 },
-    { 'frac',   kFractionsType,             kDiagonalFractionsSelector,             kNoFractionsSelector },
-    { 'fwid',   kTextSpacingType,           kMonospacedTextSelector,                7 },
-    { 'halt',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
-    { 'hist',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
-    { 'hkna',   kAlternateKanaType,         kAlternateHorizKanaOnSelector,          kAlternateHorizKanaOffSelector, },
-    { 'hlig',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
-    { 'hngl',   kTransliterationType,       kHanjaToHangulSelector,                 kNoTransliterationSelector },
-    { 'hojo',   kCharacterShapeType,        kHojoCharactersSelector,                16 },
-    { 'hwid',   kTextSpacingType,           kHalfWidthTextSelector,                 7 },
-    { 'ital',   kItalicCJKRomanType,        kCJKItalicRomanOnSelector,              kCJKItalicRomanOffSelector },
-    { 'jp04',   kCharacterShapeType,        kJIS2004CharactersSelector,             16 },
-    { 'jp78',   kCharacterShapeType,        kJIS1978CharactersSelector,             16 },
-    { 'jp83',   kCharacterShapeType,        kJIS1983CharactersSelector,             16 },
-    { 'jp90',   kCharacterShapeType,        kJIS1990CharactersSelector,             16 },
-    { 'liga',   kLigaturesType,             kCommonLigaturesOnSelector,             kCommonLigaturesOffSelector },
-    { 'lnum',   kNumberCaseType,            kUpperCaseNumbersSelector,              2 },
-    { 'mgrk',   kMathematicalExtrasType,    kMathematicalGreekOnSelector,           kMathematicalGreekOffSelector },
-    { 'nlck',   kCharacterShapeType,        kNLCCharactersSelector,                 16 },
-    { 'onum',   kNumberCaseType,            kLowerCaseNumbersSelector,              2 },
-    { 'ordn',   kVerticalPositionType,      kOrdinalsSelector,                      kNormalPositionSelector },
-    { 'palt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
-    { 'pcap',   kLowerCaseType,             kLowerCasePetiteCapsSelector,           kDefaultLowerCaseSelector },
-    { 'pkna',   kTextSpacingType,           kProportionalTextSelector,              7 },
-    { 'pnum',   kNumberSpacingType,         kProportionalNumbersSelector,           4 },
-    { 'pwid',   kTextSpacingType,           kProportionalTextSelector,              7 },
-    { 'qwid',   kTextSpacingType,           kQuarterWidthTextSelector,              7 },
-    { 'ruby',   kRubyKanaType,              kRubyKanaOnSelector,                    kRubyKanaOffSelector },
-    { 'sinf',   kVerticalPositionType,      kScientificInferiorsSelector,           kNormalPositionSelector },
-    { 'smcp',   kLowerCaseType,             kLowerCaseSmallCapsSelector,            kDefaultLowerCaseSelector },
-    { 'smpl',   kCharacterShapeType,        kSimplifiedCharactersSelector,          16 },
-    { 'ss01',   kStylisticAlternativesType, kStylisticAltOneOnSelector,             kStylisticAltOneOffSelector },
-    { 'ss02',   kStylisticAlternativesType, kStylisticAltTwoOnSelector,             kStylisticAltTwoOffSelector },
-    { 'ss03',   kStylisticAlternativesType, kStylisticAltThreeOnSelector,           kStylisticAltThreeOffSelector },
-    { 'ss04',   kStylisticAlternativesType, kStylisticAltFourOnSelector,            kStylisticAltFourOffSelector },
-    { 'ss05',   kStylisticAlternativesType, kStylisticAltFiveOnSelector,            kStylisticAltFiveOffSelector },
-    { 'ss06',   kStylisticAlternativesType, kStylisticAltSixOnSelector,             kStylisticAltSixOffSelector },
-    { 'ss07',   kStylisticAlternativesType, kStylisticAltSevenOnSelector,           kStylisticAltSevenOffSelector },
-    { 'ss08',   kStylisticAlternativesType, kStylisticAltEightOnSelector,           kStylisticAltEightOffSelector },
-    { 'ss09',   kStylisticAlternativesType, kStylisticAltNineOnSelector,            kStylisticAltNineOffSelector },
-    { 'ss10',   kStylisticAlternativesType, kStylisticAltTenOnSelector,             kStylisticAltTenOffSelector },
-    { 'ss11',   kStylisticAlternativesType, kStylisticAltElevenOnSelector,          kStylisticAltElevenOffSelector },
-    { 'ss12',   kStylisticAlternativesType, kStylisticAltTwelveOnSelector,          kStylisticAltTwelveOffSelector },
-    { 'ss13',   kStylisticAlternativesType, kStylisticAltThirteenOnSelector,        kStylisticAltThirteenOffSelector },
-    { 'ss14',   kStylisticAlternativesType, kStylisticAltFourteenOnSelector,        kStylisticAltFourteenOffSelector },
-    { 'ss15',   kStylisticAlternativesType, kStylisticAltFifteenOnSelector,         kStylisticAltFifteenOffSelector },
-    { 'ss16',   kStylisticAlternativesType, kStylisticAltSixteenOnSelector,         kStylisticAltSixteenOffSelector },
-    { 'ss17',   kStylisticAlternativesType, kStylisticAltSeventeenOnSelector,       kStylisticAltSeventeenOffSelector },
-    { 'ss18',   kStylisticAlternativesType, kStylisticAltEighteenOnSelector,        kStylisticAltEighteenOffSelector },
-    { 'ss19',   kStylisticAlternativesType, kStylisticAltNineteenOnSelector,        kStylisticAltNineteenOffSelector },
-    { 'ss20',   kStylisticAlternativesType, kStylisticAltTwentyOnSelector,          kStylisticAltTwentyOffSelector },
-    { 'subs',   kVerticalPositionType,      kInferiorsSelector,                     kNormalPositionSelector },
-    { 'sups',   kVerticalPositionType,      kSuperiorsSelector,                     kNormalPositionSelector },
-    { 'swsh',   kContextualAlternatesType,  kSwashAlternatesOnSelector,             kSwashAlternatesOffSelector },
-    { 'titl',   kStyleOptionsType,          kTitlingCapsSelector,                   kNoStyleOptionsSelector },
-    { 'tnam',   kCharacterShapeType,        kTraditionalNamesCharactersSelector,    16 },
-    { 'tnum',   kNumberSpacingType,         kMonospacedNumbersSelector,             4 },
-    { 'trad',   kCharacterShapeType,        kTraditionalCharactersSelector,         16 },
-    { 'twid',   kTextSpacingType,           kThirdWidthTextSelector,                7 },
-    { 'unic',   kLetterCaseType,            14,                                     15 },
-    { 'valt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
-    { 'vert',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
-    { 'vhal',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
-    { 'vkna',   kAlternateKanaType,         kAlternateVertKanaOnSelector,           kAlternateVertKanaOffSelector },
-    { 'vpal',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
-    { 'vrt2',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
-    { 'zero',   kTypographicExtrasType,     kSlashedZeroOnSelector,                 kSlashedZeroOffSelector },
-};
-
-static int
-_hb_feature_mapping_cmp (const void *key_, const void *entry_)
-{
-  hb_tag_t key = * (unsigned int *) key_;
-  const feature_mapping_t * entry = (const feature_mapping_t *) entry_;
-  return key < entry->otFeatureTag ? -1 :
-	 key > entry->otFeatureTag ? 1 :
-	 0;
-}
-
 hb_bool_t
 _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 		    hb_font_t          *font,
@@ -655,11 +477,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     hb_auto_t<hb_vector_t<feature_event_t> > feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
-      const feature_mapping_t * mapping = (const feature_mapping_t *) bsearch (&features[i].tag,
-									       feature_mappings,
-									       ARRAY_LENGTH (feature_mappings),
-									       sizeof (feature_mappings[0]),
-									       _hb_feature_mapping_cmp);
+      const hb_aat_feature_mapping_t * mapping = hb_aat_layout_find_feature_mapping (features[i].tag);
       if (!mapping)
         continue;
 

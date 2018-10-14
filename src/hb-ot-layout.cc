@@ -322,7 +322,7 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  start_offset,
 				    unsigned int *script_count /* IN/OUT */,
-				    hb_tag_t     *script_tags /* OUT */)
+				    hb_tag_t     *script_tags  /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
@@ -383,7 +383,7 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  unsigned int    script_count,
 				  const hb_tag_t *script_tags,
-				  unsigned int   *script_index /* OUT */,
+				  unsigned int   *script_index  /* OUT */,
 				  hb_tag_t       *chosen_script /* OUT */)
 {
   static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX), "");
@@ -433,7 +433,7 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     hb_tag_t      table_tag,
 				     unsigned int  start_offset,
 				     unsigned int *feature_count /* IN/OUT */,
-				     hb_tag_t     *feature_tags /* OUT */)
+				     hb_tag_t     *feature_tags  /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
@@ -469,7 +469,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 				       unsigned int  script_index,
 				       unsigned int  start_offset,
 				       unsigned int *language_count /* IN/OUT */,
-				       hb_tag_t     *language_tags /* OUT */)
+				       hb_tag_t     *language_tags  /* OUT */)
 {
   const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
 
@@ -574,7 +574,7 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 					   unsigned int  script_index,
 					   unsigned int  language_index,
 					   unsigned int  start_offset,
-					   unsigned int *feature_count /* IN/OUT */,
+					   unsigned int *feature_count   /* IN/OUT */,
 					   unsigned int *feature_indexes /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
@@ -590,7 +590,7 @@ hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
 					unsigned int  language_index,
 					unsigned int  start_offset,
 					unsigned int *feature_count /* IN/OUT */,
-					hb_tag_t     *feature_tags /* OUT */)
+					hb_tag_t     *feature_tags  /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
@@ -644,7 +644,7 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 				  hb_tag_t      table_tag,
 				  unsigned int  feature_index,
 				  unsigned int  start_offset,
-				  unsigned int *lookup_count /* IN/OUT */,
+				  unsigned int *lookup_count   /* IN/OUT */,
 				  unsigned int *lookup_indexes /* OUT */)
 {
   return hb_ot_layout_feature_with_variations_get_lookups (face,
@@ -872,10 +872,10 @@ void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
-				    hb_set_t     *glyphs_before, /* OUT. May be nullptr */
-				    hb_set_t     *glyphs_input,  /* OUT. May be nullptr */
-				    hb_set_t     *glyphs_after,  /* OUT. May be nullptr */
-				    hb_set_t     *glyphs_output  /* OUT. May be nullptr */)
+				    hb_set_t     *glyphs_before, /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_input,  /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_after,  /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_output  /* OUT.  May be NULL */)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
 
@@ -1073,11 +1073,11 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  **/
 hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
-			      unsigned int *design_size,       /* OUT.  May be nullptr */
-			      unsigned int *subfamily_id,      /* OUT.  May be nullptr */
-			      unsigned int *subfamily_name_id, /* OUT.  May be nullptr */
-			      unsigned int *range_start,       /* OUT.  May be nullptr */
-			      unsigned int *range_end          /* OUT.  May be nullptr */)
+			      unsigned int *design_size,       /* OUT.  May be NULL */
+			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
+			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int *range_start,       /* OUT.  May be NULL */
+			      unsigned int *range_end          /* OUT.  May be NULL */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
   const hb_tag_t tag = HB_TAG ('s','i','z','e');
@@ -1092,28 +1092,150 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
       if (params.designSize)
       {
-#define PARAM(a, A) if (a) *a = params.A
-	PARAM (design_size, designSize);
-	PARAM (subfamily_id, subfamilyID);
-	PARAM (subfamily_name_id, subfamilyNameID);
-	PARAM (range_start, rangeStart);
-	PARAM (range_end, rangeEnd);
-#undef PARAM
+	if (design_size) *design_size = params.designSize;
+	if (subfamily_id) *subfamily_id = params.subfamilyID;
+	if (subfamily_name_id) *subfamily_name_id = params.subfamilyNameID;
+	if (range_start) *range_start = params.rangeStart;
+	if (range_end) *range_end = params.rangeEnd;
 
 	return true;
       }
     }
   }
 
-#define PARAM(a, A) if (a) *a = 0
-  PARAM (design_size, designSize);
-  PARAM (subfamily_id, subfamilyID);
-  PARAM (subfamily_name_id, subfamilyNameID);
-  PARAM (range_start, rangeStart);
-  PARAM (range_end, rangeEnd);
-#undef PARAM
+  if (design_size) *design_size = 0;
+  if (subfamily_id) *subfamily_id = 0;
+  if (subfamily_name_id) *subfamily_name_id = 0;
+  if (range_start) *range_start = 0;
+  if (range_end) *range_end = 0;
 
   return false;
+}
+
+/**
+ * hb_ot_layout_feature_get_name_ids:
+ * @face: #hb_face_t to work upon
+ * @table_tag:
+ * @feature_index:
+ * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *            for a user-interface label for this feature. (May be NULL.)
+ * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
+ *              that an application can use for tooltip text for this
+ *              feature. (May be NULL.)
+ * @sample_id: (out) (allow-none): The ‘name’ table name ID that specifies sample text
+ *             that illustrates the effect of this feature. (May be NULL.)
+ * @num_named_parameters: (out) (allow-none):  Number of named parameters. (May be zero.)
+ * @first_param_id: (out) (allow-none): The first ‘name’ table name ID used to specify
+ *                  strings for user-interface labels for the feature
+ *                  parameters. (Must be zero if numParameters is zero.)
+ *
+ * Fetches name indices from feature parameters for "Stylistic Set" ('ssXX') or
+ * "Character Variant" ('cvXX') features.
+ *
+ * Return value: true if data found, false otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  feature_index,
+				   hb_name_id_t *label_id,             /* OUT.  May be NULL */
+				   hb_name_id_t *tooltip_id,           /* OUT.  May be NULL */
+				   hb_name_id_t *sample_id,            /* OUT.  May be NULL */
+				   unsigned int *num_named_parameters, /* OUT.  May be NULL */
+				   hb_name_id_t *first_param_id        /* OUT.  May be NULL */)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
+  const OT::Feature &f = g.get_feature (feature_index);
+
+  const OT::FeatureParams &feature_params = f.get_feature_params ();
+  if (&feature_params != &Null (OT::FeatureParams))
+  {
+    const OT::FeatureParamsStylisticSet& ss_params =
+      feature_params.get_stylistic_set_params (feature_tag);
+    if (&ss_params != &Null (OT::FeatureParamsStylisticSet)) /* ssXX */
+    {
+      if (label_id) *label_id = ss_params.uiNameID;
+      // ssXX features don't have the rest
+      if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
+      if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+      if (num_named_parameters) *num_named_parameters = 0;
+      if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+      return true;
+    }
+    const OT::FeatureParamsCharacterVariants& cv_params =
+      feature_params.get_character_variants_params (feature_tag);
+    if (&cv_params != &Null (OT::FeatureParamsCharacterVariants)) /* cvXX */
+    {
+      if (label_id) *label_id = cv_params.featUILableNameID;
+      if (tooltip_id) *tooltip_id = cv_params.featUITooltipTextNameID;
+      if (sample_id) *sample_id = cv_params.sampleTextNameID;
+      if (num_named_parameters) *num_named_parameters = cv_params.numNamedParameters;
+      if (first_param_id) *first_param_id = cv_params.firstParamUILabelNameID;
+      return true;
+    }
+  }
+
+  if (label_id) *label_id = HB_NAME_ID_INVALID;
+  if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
+  if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+  if (num_named_parameters) *num_named_parameters = 0;
+  if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+  return false;
+}
+
+/**
+ * hb_ot_layout_feature_get_characters::
+ * @face: #hb_face_t to work upon
+ * @table_tag:
+ * @feature_index:
+ * @start_offset: In case the resulting char_count was equal to its input value, there
+ *                is a chance there were more characters on the tag so this API can be
+ *                called with an offset till resulting char_count gets to a number
+ *                lower than input buffer (or consider using just a bigger buffer for
+ *                one shot copying).
+ * @char_count: (in/out) (allow-none): The count of characters for which this feature
+ *              provides glyph variants. (May be zero.)
+ * @characters: (out) (allow-none): A buffer pointer. The Unicode Scalar Value
+ *              of the characters for which this feature provides glyph variants.
+ *
+ * Fetches characters listed by designer under feature parameters for "Character
+ * Variant" ("cvXX") features.
+ *
+ * Return value: Number of total sample characters in the cvXX feature.
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_ot_layout_feature_get_characters (hb_face_t      *face,
+				     hb_tag_t        table_tag,
+				     unsigned int    feature_index,
+				     unsigned int    start_offset,
+				     unsigned int   *char_count, /* IN/OUT.  May be NULL */
+				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
+  const OT::Feature &f = g.get_feature (feature_index);
+
+  const OT::FeatureParams &feature_params = f.get_feature_params ();
+
+  const OT::FeatureParamsCharacterVariants& cv_params =
+    feature_params.get_character_variants_params(feature_tag);
+
+  unsigned int len = 0;
+  if (char_count && characters && start_offset < cv_params.characters.len)
+  {
+    len = MIN (cv_params.characters.len - start_offset, *char_count);
+    for (unsigned int i = 0; i < len; ++i)
+      characters[i] = cv_params.characters[start_offset + i];
+  }
+  if (char_count) *char_count = len;
+  return cv_params.characters.len;
 }
 
 

@@ -184,6 +184,7 @@ HB_OT_headers = \
 	hb-ot-font.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
+	hb-ot-name.h \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
 	hb-ot-var.h \

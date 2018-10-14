@@ -709,9 +709,9 @@ struct VariationSelectorRecord
 
   HBUINT24	varSelector;	/* Variation selector. */
   LOffsetTo<DefaultUVS>
-		defaultUVS;	/* Offset to Default UVS Table. May be 0. */
+		defaultUVS;	/* Offset to Default UVS Table.  May be 0. */
   LOffsetTo<NonDefaultUVS>
-		nonDefaultUVS;	/* Offset to Non-Default UVS Table. May be 0. */
+		nonDefaultUVS;	/* Offset to Non-Default UVS Table.  May be 0. */
   public:
   DEFINE_SIZE_STATIC (11);
 };

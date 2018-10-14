@@ -226,15 +226,14 @@ struct KerxSubTableFormat1
 struct KerxSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  unsigned int num_glyphs) const
+			  hb_aat_apply_context_t *c) const
   {
+    unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
     unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
-    if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v + v->static_size - (const char *) this > header.length))
-      return 0;
+    if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
     return *v;
   }
 
@@ -245,8 +244,7 @@ struct KerxSubTableFormat2
     if (!c->plan->requested_kerning)
       return false;
 
-    accelerator_t accel (*this,
-			 c->face->get_num_glyphs ());
+    accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -258,22 +256,21 @@ struct KerxSubTableFormat2
     TRACE_SANITIZE (this);
     return_trace (likely (rowWidth.sanitize (c) &&
 			  leftClassTable.sanitize (c, this) &&
-			  rightClassTable.sanitize (c, this)));
+			  rightClassTable.sanitize (c, this) &&
+			  c->check_range (this, array)));
   }
 
   struct accelerator_t
   {
     const KerxSubTableFormat2 &table;
-    unsigned int num_glyphs;
+    hb_aat_apply_context_t *c;
 
     inline accelerator_t (const KerxSubTableFormat2 &table_,
-			  unsigned int num_glyphs_)
-			  : table (table_), num_glyphs (num_glyphs_) {}
+			  hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
 
     inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    {
-      return table.get_kerning (left, right, num_glyphs);
-    }
+    { return table.get_kerning (left, right, c); }
   };
 
   protected:
@@ -383,11 +380,11 @@ struct KerxSubTableFormat4
 	    unsigned int currAnchorPoint = *data++;
 	    const Anchor markAnchor = c->ankr_table.get_anchor (c->buffer->info[mark].codepoint,
 								markAnchorPoint,
-								c->face->get_num_glyphs (),
+								c->sanitizer.get_num_glyphs (),
 								c->ankr_end);
 	    const Anchor currAnchor = c->ankr_table.get_anchor (c->buffer->cur ().codepoint,
 								currAnchorPoint,
-								c->face->get_num_glyphs (),
+								c->sanitizer.get_num_glyphs (),
 								c->ankr_end);
 
 	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
@@ -472,18 +469,19 @@ struct KerxSubTableFormat6
   inline bool is_long (void) const { return flags & ValuesAreLong; }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  unsigned int num_glyphs) const
+			  hb_aat_apply_context_t *c) const
   {
+    unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     if (is_long ())
     {
       const U::Long &t = u.l;
       unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
       unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
       unsigned int offset = l + r;
+      if (unlikely (offset < l)) return 0; /* Addition overflow. */
+      if (unlikely (hb_unsigned_mul_overflows (offset, sizeof (FWORD32)))) return 0;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
-      if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this > header.length))
-	return 0;
+      if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
       return *v;
     }
     else
@@ -493,9 +491,7 @@ struct KerxSubTableFormat6
       unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
-      if (unlikely ((const char *) v < (const char *) &t.array ||
-		    (const char *) v + v->static_size - (const char *) this > header.length))
-	return 0;
+      if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
       return *v;
     }
   }
@@ -507,8 +503,7 @@ struct KerxSubTableFormat6
     if (!c->plan->requested_kerning)
       return false;
 
-    accelerator_t accel (*this,
-			 c->face->get_num_glyphs ());
+    accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -522,26 +517,26 @@ struct KerxSubTableFormat6
 			  is_long () ?
 			  (
 			    u.l.rowIndexTable.sanitize (c, this) &&
-			    u.l.columnIndexTable.sanitize (c, this)
+			    u.l.columnIndexTable.sanitize (c, this) &&
+			    c->check_range (this, u.l.array)
 			  ) : (
 			    u.s.rowIndexTable.sanitize (c, this) &&
-			    u.s.columnIndexTable.sanitize (c, this)
+			    u.s.columnIndexTable.sanitize (c, this) &&
+			    c->check_range (this, u.s.array)
 			  )));
   }
 
   struct accelerator_t
   {
     const KerxSubTableFormat6 &table;
-    unsigned int num_glyphs;
+    hb_aat_apply_context_t *c;
 
     inline accelerator_t (const KerxSubTableFormat6 &table_,
-			  unsigned int num_glyphs_)
-			  : table (table_), num_glyphs (num_glyphs_) {}
+			  hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
 
     inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    {
-      return table.get_kerning (left, right, num_glyphs);
-    }
+    { return table.get_kerning (left, right, c); }
   };
 
   protected:

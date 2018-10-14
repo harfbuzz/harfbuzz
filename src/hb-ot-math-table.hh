@@ -50,7 +50,7 @@ struct MathValueRecord
   protected:
   HBINT16			value;		/* The X or Y value in design units */
   OffsetTo<Device>	deviceTable;	/* Offset to the device table - from the
-					 * beginning of parent table. May be nullptr.
+					 * beginning of parent table.  May be NULL.
 					 * Suggested format for device table is 1. */
 
   public:
@@ -318,7 +318,7 @@ struct MathKernInfoRecord
 
   protected:
   /* Offset to MathKern table for each corner -
-   * from the beginning of MathKernInfo table. May be nullptr. */
+   * from the beginning of MathKernInfo table.  May be NULL. */
   OffsetTo<MathKern> mathKern[4];
 
   public:
@@ -401,7 +401,7 @@ struct MathGlyphInfo
    * from the beginning of MathGlyphInfo table. When the left or right glyph of
    * a box is an extended shape variant, the (ink) box (and not the default
    * position defined by values in MathConstants table) should be used for
-   * vertical positioning purposes. May be nullptr.. */
+   * vertical positioning purposes.  May be NULL.. */
   OffsetTo<Coverage> extendedShapeCoverage;
 
    /* Offset to MathKernInfo table -
@@ -570,7 +570,7 @@ struct MathGlyphConstruction
 
   protected:
   /* Offset to MathGlyphAssembly table for this shape - from the beginning of
-     MathGlyphConstruction table. May be nullptr. */
+     MathGlyphConstruction table.  May be NULL. */
   OffsetTo<MathGlyphAssembly>	  glyphAssembly;
 
   /* MathGlyphVariantRecords for alternative variants of the glyphs. */

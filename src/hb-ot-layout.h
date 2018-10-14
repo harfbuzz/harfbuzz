@@ -34,6 +34,7 @@
 #include "hb.h"
 
 #include "hb-ot-tag.h"
+#include "hb-ot-name.h"
 
 HB_BEGIN_DECLS
 
@@ -215,10 +216,10 @@ HB_EXTERN void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
-				    hb_set_t     *glyphs_before, /* OUT. May be NULL */
-				    hb_set_t     *glyphs_input,  /* OUT. May be NULL */
-				    hb_set_t     *glyphs_after,  /* OUT. May be NULL */
-				    hb_set_t     *glyphs_output  /* OUT. May be NULL */);
+				    hb_set_t     *glyphs_before, /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_input,  /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_after,  /* OUT.  May be NULL */
+				    hb_set_t     *glyphs_output  /* OUT.  May be NULL */);
 
 #ifdef HB_NOT_IMPLEMENTED
 typedef struct
@@ -326,10 +327,29 @@ HB_EXTERN hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *design_size,       /* OUT.  May be NULL */
 			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      hb_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
 
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  feature_index,
+				   hb_name_id_t *label_id             /* OUT.  May be NULL */,
+				   hb_name_id_t *tooltip_id           /* OUT.  May be NULL */,
+				   hb_name_id_t *sample_id            /* OUT.  May be NULL */,
+				   unsigned int *num_named_parameters /* OUT.  May be NULL */,
+				   hb_name_id_t *first_param_id       /* OUT.  May be NULL */);
+
+
+HB_EXTERN unsigned int
+hb_ot_layout_feature_get_characters (hb_face_t      *face,
+				     hb_tag_t        table_tag,
+				     unsigned int    feature_index,
+				     unsigned int    start_offset,
+				     unsigned int   *char_count    /* IN/OUT.  May be NULL */,
+				     hb_codepoint_t *characters    /* OUT.     May be NULL */);
 
 /*
  * BASE
