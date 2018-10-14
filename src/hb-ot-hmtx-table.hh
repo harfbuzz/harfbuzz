@@ -249,7 +249,7 @@ struct hmtxvmtx
       hb_blob_destroy (var_blob);
     }
 
-    inline unsigned int get_advance (hb_codepoint_t  glyph) const
+    inline unsigned int get_advance (hb_codepoint_t glyph) const
     {
       if (unlikely (glyph >= num_metrics))
       {
