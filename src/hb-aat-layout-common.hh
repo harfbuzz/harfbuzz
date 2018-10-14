@@ -224,7 +224,8 @@ struct LookupFormat8
   private:
   inline const T* get_value (hb_codepoint_t glyph_id) const
   {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? &valueArrayZ[glyph_id - firstGlyph] : nullptr;
+    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ?
+	   &valueArrayZ[glyph_id - firstGlyph] : nullptr;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -234,7 +235,7 @@ struct LookupFormat8
   }
 
   protected:
-  HBUINT16	format;		/* Format identifier--format = 6 */
+  HBUINT16	format;		/* Format identifier--format = 8 */
   GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
   HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
 				 * glyph minus the value of firstGlyph plus 1). */
