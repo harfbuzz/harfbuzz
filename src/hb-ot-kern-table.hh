@@ -37,6 +37,7 @@ struct hb_kern_machine_t
 {
   hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
 
+  HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
   inline void kern (hb_font_t *font,
 		    hb_buffer_t  *buffer,
 		    hb_mask_t kern_mask) const
