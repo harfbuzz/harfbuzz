@@ -111,6 +111,26 @@ test_subset_cff1_j (void)
   hb_face_destroy (face_41_4c2e);
 }
 
+static void
+test_subset_cff1_expert (void)
+{
+  hb_face_t *face = hb_subset_test_open_font ("fonts/cff1_expert.otf");
+  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/cff1_expert.2D,F6E9,FB00.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 0x2D);
+  hb_set_add (codepoints, 0xF6E9);
+  hb_set_add (codepoints, 0xFB00);
+  hb_face_t *face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_test);
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -120,6 +140,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1);
   hb_test_add (test_subset_cff1_strip_hints);
   hb_test_add (test_subset_cff1_j);
+  hb_test_add (test_subset_cff1_expert);
 
   return hb_test_run ();
 }

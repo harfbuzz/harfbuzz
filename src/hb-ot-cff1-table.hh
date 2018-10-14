@@ -1121,7 +1121,13 @@ struct cff1
     
       const OT::cff1 *cff = this->blob->as<OT::cff1> ();
       encoding = &Null(Encoding);
-      charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
+      if (is_predef_charset ())
+        charset = &Null(Charset);
+      else
+      {
+        charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
+        if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc))) { fini (); return; }
+      }
       if (is_CID ())
       {
         if (unlikely (charset == &Null(Charset))) { fini (); return; }
