@@ -206,7 +206,7 @@ struct IndexSubtableRecord
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  firstGlyphIndex <= lastGlyphIndex &&
-		  offsetToSubtable.sanitize (c, this, lastGlyphIndex - firstGlyphIndex + 1));
+		  offsetToSubtable.sanitize (c, base, lastGlyphIndex - firstGlyphIndex + 1));
   }
 
   inline bool get_extents (hb_glyph_extents_t *extents) const
