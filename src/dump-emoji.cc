@@ -212,8 +212,8 @@ int main (int argc, char **argv)
 {
   if (argc != 2) {
     fprintf (stderr, "usage: %s font-file.ttf\n"
-		     "run it like `rm -rf out && mkdir out && src/dump-emoji font-file.ttf`\n",
-		     argv[0]);
+		     "run it like `rm -rf out && mkdir out && %s font-file.ttf`\n",
+		     argv[0], argv[0]);
     exit (1);
   }
 
@@ -231,7 +231,7 @@ int main (int argc, char **argv)
     fprintf (stderr, "./out is not accessible, create it please\n");
     exit (1);
   }
-  fwrite (argv[0], 1, strlen (argv[1]), font_name_file);
+  fwrite (argv[1], 1, strlen (argv[1]), font_name_file);
   fclose (font_name_file);
 
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
