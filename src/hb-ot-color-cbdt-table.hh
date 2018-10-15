@@ -128,7 +128,7 @@ struct IndexSubtableFormat1Or3
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (offsetArrayZ.arrayZ, glyph_count + 1));
+		  offsetArrayZ.sanitize (c, glyph_count + 1));
   }
 
   bool get_image_data (unsigned int idx,
