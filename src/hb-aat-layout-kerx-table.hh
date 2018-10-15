@@ -172,7 +172,7 @@ struct KerxSubTableFormat1
 	   * list.  Discovered by testing. */
 	  unsigned int idx = stack[i];
 	  int v = *actions++;
-	  if (buffer->info[idx].mask & kern_mask)
+	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
 	    /* XXX Non-forward direction... */
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
@@ -340,7 +340,7 @@ struct KerxSubTableFormat4
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (mark_set && entry->data.ankrActionIndex != 0xFFFF)
+      if (mark_set && entry->data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
       {
 	hb_glyph_position_t &o = buffer->cur_pos();
 	switch (action_type)
