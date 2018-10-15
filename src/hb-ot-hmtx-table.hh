@@ -48,7 +48,7 @@ namespace OT {
 struct LongMetric
 {
   UFWORD	advance; /* Advance width/height. */
-  FWORD		lsb; /* Leading (left/top) side bearing. */
+  FWORD		sb; /* Leading (left/top) side bearing. */
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -134,8 +134,8 @@ struct hmtxvmtx
         }
         else
         {
-          /* dest just lsb */
-          *((FWORD *) dest_pos) = src_metric->lsb;
+          /* dest just sb */
+          *((FWORD *) dest_pos) = src_metric->sb;
         }
       }
       else
@@ -147,18 +147,18 @@ struct hmtxvmtx
 	  failed = true;
 	  break;
 	}
-	FWORD src_lsb = *(lsbs + gids[i] - _mtx.num_advances);
+	FWORD src_sb = *(lsbs + gids[i] - _mtx.num_advances);
         if (i < num_advances)
         {
           /* dest needs a full LongMetric */
           LongMetric *metric = (LongMetric *)dest_pos;
           metric->advance = src_metric->advance;
-          metric->lsb = src_lsb;
+          metric->sb = src_sb;
         }
         else
         {
-          /* dest just needs an lsb */
-          *((FWORD *) dest_pos) = src_lsb;
+          /* dest just needs an sb */
+          *((FWORD *) dest_pos) = src_sb;
         }
       }
       dest_pos += (i < num_advances ? 4 : 2);
@@ -249,17 +249,30 @@ struct hmtxvmtx
       hb_blob_destroy (var_blob);
     }
 
+    /* TODO Add variations version. */
+    inline unsigned int get_side_bearing (hb_codepoint_t glyph) const
+    {
+      if (glyph < num_advances)
+        return table->longMetricZ[glyph].sb;
+
+      if (unlikely (glyph > num_metrics))
+        return 0;
+
+      const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_advances];
+      return bearings[glyph - num_advances];
+    }
+
     inline unsigned int get_advance (hb_codepoint_t glyph) const
     {
       if (unlikely (glyph >= num_metrics))
       {
-        /* If num_metrics is zero, it means we don't have the metrics table
-         * for this direction: return default advance.  Otherwise, it means that the
-         * glyph index is out of bound: return zero. */
-        if (num_metrics)
-          return 0;
-        else
-          return default_advance;
+	/* If num_metrics is zero, it means we don't have the metrics table
+	 * for this direction: return default advance.  Otherwise, it means that the
+	 * glyph index is out of bound: return zero. */
+	if (num_metrics)
+	  return 0;
+	else
+	  return default_advance;
       }
 
       return table->longMetricZ[MIN (glyph, (uint32_t) num_advances - 1)].advance;
@@ -271,7 +284,7 @@ struct hmtxvmtx
       unsigned int advance = get_advance (glyph);
       if (likely(glyph < num_metrics))
       {
-        advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
+	advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
       }
       return advance;
     }
