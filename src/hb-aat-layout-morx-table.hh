@@ -620,12 +620,12 @@ struct InsertionSubtable
 	unsigned int end = buffer->out_len;
 	buffer->move_to (mark);
 
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->copy_glyph ();
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
 	buffer->move_to (end + count);
@@ -644,12 +644,12 @@ struct InsertionSubtable
 
 	unsigned int end = buffer->out_len;
 
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->copy_glyph ();
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
 	/* Humm. Not sure where to move to.  There's this wording under
