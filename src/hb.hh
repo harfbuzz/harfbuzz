@@ -237,6 +237,15 @@ struct _hb_alignof
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
+#if defined(__clang__)
+/* Disable certain sanitizer errors. */
+/* https://github.com/harfbuzz/harfbuzz/issues/1247 */
+#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
+#else
+#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+#endif
+
+
 #if defined(_WIN32) || defined(__CYGWIN__)
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,

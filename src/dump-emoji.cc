@@ -211,9 +211,28 @@ static void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
 int main (int argc, char **argv)
 {
   if (argc != 2) {
-    fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
+    fprintf (stderr, "usage: %s font-file.ttf\n"
+		     "run it like `rm -rf out && mkdir out && %s font-file.ttf`\n",
+		     argv[0], argv[0]);
     exit (1);
   }
+
+
+  FILE *font_name_file = fopen ("out/_font_name_file.txt", "r");
+  if (font_name_file != nullptr)
+  {
+    fprintf (stderr, "Purge or move ./out folder in order to run a new dump\n");
+    exit (1);
+  }
+
+  font_name_file = fopen ("out/_font_name_file.txt", "w");
+  if (font_name_file == nullptr)
+  {
+    fprintf (stderr, "./out is not accessible, create it please\n");
+    exit (1);
+  }
+  fwrite (argv[1], 1, strlen (argv[1]), font_name_file);
+  fclose (font_name_file);
 
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   hb_face_t *face = hb_face_create (blob, 0);

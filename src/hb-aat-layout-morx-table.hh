@@ -391,6 +391,12 @@ struct LigatureSubtable
 	unsigned int action_idx = entry->data.ligActionIndex;
 	unsigned int action;
 	unsigned int ligature_idx = 0;
+
+	if (unlikely (!match_length))
+	  return false;
+
+	buffer->merge_out_clusters (match_positions[0], buffer->out_len);
+
         do
 	{
 	  if (unlikely (!match_length))
@@ -406,6 +412,8 @@ struct LigatureSubtable
 	  if (uoffset & 0x20000000)
 	    uoffset += 0xC0000000;
 	  int32_t offset = (int32_t) uoffset;
+	  if (buffer->idx >= buffer->len)
+	    return false; // TODO Work on previous instead?
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
 
 	  const HBUINT16 &componentData = component[component_idx];
@@ -428,7 +436,6 @@ struct LigatureSubtable
 	    buffer->skip_glyph ();
 	    end--;
 	  }
-	  /* TODO merge_clusters / unsafe_to_break */
 
 	  action_idx++;
 	}
@@ -620,12 +627,12 @@ struct InsertionSubtable
 	unsigned int end = buffer->out_len;
 	buffer->move_to (mark);
 
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->copy_glyph ();
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
 	buffer->move_to (end + count);
@@ -644,12 +651,12 @@ struct InsertionSubtable
 
 	unsigned int end = buffer->out_len;
 
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->copy_glyph ();
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);
-	if (!before)
+	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
 	/* Humm. Not sure where to move to.  There's this wording under

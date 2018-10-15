@@ -172,7 +172,7 @@ struct KerxSubTableFormat1
 	   * list.  Discovered by testing. */
 	  unsigned int idx = stack[i];
 	  int v = *actions++;
-	  if (buffer->info[idx].mask & kern_mask)
+	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
 	    /* XXX Non-forward direction... */
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
@@ -212,7 +212,9 @@ struct KerxSubTableFormat1
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (machine.sanitize (c)));
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
   }
 
   protected:
@@ -338,7 +340,7 @@ struct KerxSubTableFormat4
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (mark_set && entry->data.ankrActionIndex != 0xFFFF)
+      if (mark_set && entry->data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
       {
 	hb_glyph_position_t &o = buffer->cur_pos();
 	switch (action_type)
@@ -444,11 +446,9 @@ struct KerxSubTableFormat4
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-
     /* The rest of array sanitizations are done at run-time. */
-    return_trace (c->check_struct (this) &&
-		  machine.sanitize (c) &&
-		  flags.sanitize (c));
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
   }
 
   protected:

@@ -129,6 +129,35 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 }
 
 static hb_bool_t
+hb_ot_get_glyph_v_origin (hb_font_t *font,
+			  void *font_data,
+			  hb_codepoint_t glyph,
+			  hb_position_t *x,
+			  hb_position_t *y,
+			  void *user_data HB_UNUSED)
+{
+  const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
+
+  *x = font->get_glyph_h_advance (glyph) / 2;
+
+  hb_glyph_extents_t extents = {0};
+  bool ret = ot_face->glyf->get_extents (glyph, &extents);
+  if (ret)
+  {
+    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
+    hb_position_t tsb = vmtx.get_side_bearing (glyph);
+    *y = font->em_scale_y (extents.y_bearing + tsb);
+    return true;
+  }
+
+  hb_font_extents_t font_extents;
+  font->get_h_extents_with_fallback (&font_extents);
+  *y = font_extents.ascender;
+
+  return true;
+}
+
+static hb_bool_t
 hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *font_data,
 			 hb_codepoint_t glyph,
@@ -223,7 +252,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
     hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ot_get_glyph_h_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advances_func (funcs, hb_ot_get_glyph_v_advances, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);
     //hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, nullptr, nullptr);
     hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr);

@@ -128,7 +128,7 @@ struct IndexSubtableFormat1Or3
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (offsetArrayZ.arrayZ, glyph_count + 1));
+		  offsetArrayZ.sanitize (c, glyph_count + 1));
   }
 
   bool get_image_data (unsigned int idx,
@@ -206,7 +206,7 @@ struct IndexSubtableRecord
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  firstGlyphIndex <= lastGlyphIndex &&
-		  offsetToSubtable.sanitize (c, this, lastGlyphIndex - firstGlyphIndex + 1));
+		  offsetToSubtable.sanitize (c, base, lastGlyphIndex - firstGlyphIndex + 1));
   }
 
   inline bool get_extents (hb_glyph_extents_t *extents) const
@@ -214,16 +214,14 @@ struct IndexSubtableRecord
     return (this+offsetToSubtable).get_extents (extents);
   }
 
-  bool get_image_data (unsigned int gid,
+  bool get_image_data (unsigned int  gid,
+		       const void   *base,
 		       unsigned int *offset,
 		       unsigned int *length,
 		       unsigned int *format) const
   {
-    if (gid < firstGlyphIndex || gid > lastGlyphIndex)
-    {
-      return false;
-    }
-    return (this+offsetToSubtable).get_image_data (gid - firstGlyphIndex,
+    if (gid < firstGlyphIndex || gid > lastGlyphIndex) return false;
+    return (base+offsetToSubtable).get_image_data (gid - firstGlyphIndex,
 						   offset, length, format);
   }
 
@@ -241,12 +239,7 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_array (indexSubtablesZ.arrayZ, count)))
-      return_trace (false);
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))
-	return_trace (false);
-    return_trace (true);
+    return_trace (indexSubtablesZ.sanitize (c, count, this));
   }
 
   public:
@@ -276,13 +269,15 @@ struct BitmapSizeTable
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  indexSubtableArrayOffset.sanitize (c, base, numberOfIndexSubtables) &&
-		  c->check_range (&(base+indexSubtableArrayOffset), indexTablesSize) &&
 		  horizontal.sanitize (c) &&
 		  vertical.sanitize (c));
   }
 
-  const IndexSubtableRecord *find_table (hb_codepoint_t glyph, const void *base) const
+  const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
+					 const void *base,
+					 const void **out_base) const
   {
+    *out_base = &(base+indexSubtableArrayOffset);
     return (base+indexSubtableArrayOffset).find_table (glyph, numberOfIndexSubtables);
   }
 
@@ -348,7 +343,8 @@ struct CBLC
 
   protected:
   const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
-					 unsigned int *x_ppem, unsigned int *y_ppem) const
+					 unsigned int *x_ppem, unsigned int *y_ppem,
+					 const void **base) const
   {
     /* TODO: Make it possible to select strike. */
 
@@ -361,7 +357,7 @@ struct CBLC
       {
 	*x_ppem = sizeTables[i].ppemX;
 	*y_ppem = sizeTables[i].ppemY;
-	return sizeTables[i].find_table (glyph, this);
+	return sizeTables[i].find_table (glyph, this, base);
       }
     }
 
@@ -419,7 +415,8 @@ struct CBDT
       if (!cblc)
 	return false;  // Not a color bitmap font.
 
-      const IndexSubtableRecord *subtable_record = this->cblc->find_table(glyph, &x_ppem, &y_ppem);
+      const void *base;
+      const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph, &x_ppem, &y_ppem, &base);
       if (!subtable_record || !x_ppem || !y_ppem)
 	return false;
 
@@ -427,7 +424,7 @@ struct CBDT
 	return true;
 
       unsigned int image_offset = 0, image_length = 0, image_format = 0;
-      if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
+      if (!subtable_record->get_image_data (glyph, base, &image_offset, &image_length, &image_format))
 	return false;
 
       {
@@ -478,7 +475,7 @@ struct CBDT
           {
             unsigned int image_offset = 0, image_length = 0, image_format = 0;
 
-            if (!subtable_record.get_image_data (gid,
+            if (!subtable_record.get_image_data (gid, &subtable_array,
                   &image_offset, &image_length, &image_format))
               continue;
 
