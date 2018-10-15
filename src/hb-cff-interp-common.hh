@@ -692,7 +692,7 @@ struct InterpEnv
 
   inline OpCode fetch_op (void)
   {
-    OpCode  op = OpCode_Reserved2;
+    OpCode  op = OpCode_Invalid;
     if (unlikely (!substr.avail ()))
       return OpCode_Invalid;
     op = (OpCode)(unsigned char)substr[0];
@@ -742,7 +742,7 @@ struct OpSet
   {
     switch (op) {
       case OpCode_shortint:
-        env.argStack.push_int ((env.substr[0] << 8) | env.substr[1]);
+        env.argStack.push_int ((int16_t)((env.substr[0] << 8) | env.substr[1]));
         env.substr.inc (2);
         break;
 
