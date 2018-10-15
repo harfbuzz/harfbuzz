@@ -391,6 +391,12 @@ struct LigatureSubtable
 	unsigned int action_idx = entry->data.ligActionIndex;
 	unsigned int action;
 	unsigned int ligature_idx = 0;
+
+	if (unlikely (!match_length))
+	  return false;
+
+	buffer->merge_out_clusters (match_positions[0], buffer->out_len);
+
         do
 	{
 	  if (unlikely (!match_length))
@@ -428,7 +434,6 @@ struct LigatureSubtable
 	    buffer->skip_glyph ();
 	    end--;
 	  }
-	  /* TODO merge_clusters / unsafe_to_break */
 
 	  action_idx++;
 	}
