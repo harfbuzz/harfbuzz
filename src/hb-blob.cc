@@ -507,8 +507,9 @@ struct hb_mapped_file_t
 
 #if (defined(HAVE_MMAP) || defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
 static void
-_hb_mapped_file_destroy (hb_mapped_file_t *file)
+_hb_mapped_file_destroy (void *file_)
 {
+  hb_mapped_file_t *file = (hb_mapped_file_t *) file_;
 #ifdef HAVE_MMAP
   munmap (file->contents, file->length);
 #elif defined(_WIN32) || defined(__CYGWIN__)
