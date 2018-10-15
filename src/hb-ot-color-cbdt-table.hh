@@ -241,12 +241,7 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_array (indexSubtablesZ.arrayZ, count)))
-      return_trace (false);
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))
-	return_trace (false);
-    return_trace (true);
+    return_trace (indexSubtablesZ.sanitize (c, count, this));
   }
 
   public:
