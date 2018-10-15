@@ -113,6 +113,7 @@ HB_OT_sources = \
 	hb-ot-layout-gsub-table.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.hh \
+	hb-ot-name.cc \
 	hb-ot-color.cc \
 	hb-ot-color-colr-table.hh \
 	hb-ot-color-cpal-table.hh \

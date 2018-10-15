@@ -4,7 +4,7 @@ if (HB_HAVE_GLIB)
 
   list (APPEND TEST_PROGS
     test-ot-color
-    test-ot-nameid
+    test-ot-name
     test-ot-tag
     test-c
     test-cplusplus
