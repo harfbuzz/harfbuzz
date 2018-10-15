@@ -229,7 +229,10 @@ struct hb_buffer_t
   {
     if (unlikely (!make_room_for (0, 1))) return Crap(hb_glyph_info_t);
 
-    out_info[out_len] = info[idx];
+    if (unlikely (idx == len && !out_len))
+      return Crap(hb_glyph_info_t);
+
+    out_info[out_len] = idx < len ? info[idx] : out_info[out_len - 1];
     out_info[out_len].codepoint = glyph_index;
 
     out_len++;
