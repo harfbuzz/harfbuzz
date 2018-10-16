@@ -170,6 +170,7 @@ struct name
 									this->table->count);
 
       this->names.init ();
+      this->names.alloc (all_names.len);
 
       for (uint16_t i = 0; i < all_names.len; i++)
       {
