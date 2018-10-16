@@ -45,6 +45,9 @@
  * This is as good as any place. */
 #define HB_OT_TABLES \
     /* OpenType shaping. */ \
+    HB_OT_ACCELERATOR(OT, GDEF) \
+    HB_OT_ACCELERATOR(OT, GSUB) \
+    HB_OT_ACCELERATOR(OT, GPOS) \
     HB_OT_TABLE(OT, JSTF) \
     HB_OT_TABLE(OT, BASE) \
     /* AAT shaping. */ \
@@ -59,13 +62,11 @@
     /* OpenType math. */ \
     HB_OT_TABLE(OT, MATH) \
     /* OpenType fundamentals. */ \
-    HB_OT_ACCELERATOR(OT, GDEF) \
-    HB_OT_ACCELERATOR(OT, GSUB) \
-    HB_OT_ACCELERATOR(OT, GPOS) \
     HB_OT_ACCELERATOR(OT, cmap) \
     HB_OT_ACCELERATOR(OT, hmtx) \
     HB_OT_ACCELERATOR(OT, vmtx) \
     HB_OT_ACCELERATOR(OT, post) \
+    HB_OT_ACCELERATOR(OT, name) \
     HB_OT_ACCELERATOR(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
     HB_OT_TABLE(OT, VORG) \
