@@ -33,6 +33,10 @@
 namespace OT {
 
 
+#define entry_score var.u16[0]
+#define entry_index var.u16[1]
+
+
 /*
  * name -- Naming
  * https://docs.microsoft.com/en-us/typography/opentype/spec/name
@@ -118,11 +122,11 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
   if (e)
     return e;
 
-  if (a->score != b->score)
-    return a->score < b->score ? -1 : +1;
+  if (a->entry_score != b->entry_score)
+    return a->entry_score < b->entry_score ? -1 : +1;
 
-  if (a->index != b->index)
-    return a->index < b->index ? -1 : +1;
+  if (a->entry_index != b->entry_index)
+    return a->entry_index < b->entry_index ? -1 : +1;
 
   return 0;
 }
@@ -174,13 +178,12 @@ struct name
 
       for (uint16_t i = 0; i < all_names.len; i++)
       {
-	unsigned int name_id = all_names[i].nameID;
-	uint16_t score = all_names[i].score ();
-	hb_language_t language = HB_LANGUAGE_INVALID; /* XXX */
+	hb_ot_name_entry_t *entry = this->names.push ();
 
-	hb_ot_name_entry_t entry = {name_id, score, i, language};
-
-	this->names.push (entry);
+	entry->name_id = all_names[i].nameID;
+	entry->language = HB_LANGUAGE_INVALID; /* XXX */
+	entry->entry_score =  all_names[i].score ();
+	entry->entry_index = i;
       }
 
       this->names.qsort (_hb_ot_name_entry_cmp);
