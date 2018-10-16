@@ -327,11 +327,11 @@ parse_private_use_subtag (const char     *private_use_subtag,
  * @language: an #hb_language_t to convert.
  * @script_count: (allow-none): maximum number of script tags to retrieve (IN)
  * and actual number of script tags retrieved (OUT)
- * @script_tags: (allow-none): array of size at least @script_count to store the
+ * @script_tags: (out) (allow-none): array of size at least @script_count to store the
  * script tag results
  * @language_count: (allow-none): maximum number of language tags to retrieve
  * (IN) and actual number of language tags retrieved (OUT)
- * @language_tags: (allow-none): array of size at least @language_count to store
+ * @language_tags: (out) (allow-none): array of size at least @language_count to store
  * the language tag results
  *
  * Converts an #hb_script_t and an #hb_language_t to script and language tags.
