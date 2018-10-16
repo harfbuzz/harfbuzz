@@ -62,6 +62,7 @@ TESTS = \
 	tests/MORX-39.tests \
 	tests/MORX-3.tests \
 	tests/MORX-40.tests \
+	tests/MORX-41.tests \
 	tests/MORX-4.tests \
 	tests/MORX-5.tests \
 	tests/MORX-6.tests \
