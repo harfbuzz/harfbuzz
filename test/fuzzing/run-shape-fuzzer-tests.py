@@ -23,11 +23,15 @@ fails = 0
 parent_path = os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests")
 for line in open (os.path.join (parent_path, "fuzzed.tests")):
 	font = line.split (":")[0]
+	if font.startswith('#'):
+		continue
+
 	font_path = os.path.join (parent_path, font)
 
 	p = subprocess.Popen ([hb_shape_fuzzer, font_path])
 
 	if p.wait () != 0:
+		print ('failure on %s', font)
 		fails = fails + 1
 
 if fails:
