@@ -1658,7 +1658,10 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
   pos[j].attach_type() = type;
 }
 static void
-propagate_attachment_offsets (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
+propagate_attachment_offsets (hb_glyph_position_t *pos,
+			      unsigned int len,
+			      unsigned int i,
+			      hb_direction_t direction)
 {
   /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
    * offset of glyph they are attached to. */
@@ -1666,11 +1669,14 @@ propagate_attachment_offsets (hb_glyph_position_t *pos, unsigned int i, hb_direc
   if (likely (!chain))
     return;
 
-  unsigned int j = (int) i + chain;
-
   pos[i].attach_chain() = 0;
 
-  propagate_attachment_offsets (pos, j, direction);
+  unsigned int j = (int) i + chain;
+
+  if (unlikely (j >= len))
+    return;
+
+  propagate_attachment_offsets (pos, len, j, direction);
 
   assert (!!(type & ATTACH_TYPE_MARK) ^ !!(type & ATTACH_TYPE_CURSIVE));
 
@@ -1726,7 +1732,7 @@ GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
   /* Handle attachments */
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
     for (unsigned int i = 0; i < len; i++)
-      propagate_attachment_offsets (pos, i, direction);
+      propagate_attachment_offsets (pos, len, i, direction);
 }
 
 
