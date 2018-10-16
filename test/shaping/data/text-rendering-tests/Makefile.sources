@@ -62,7 +62,6 @@ TESTS = \
 	tests/MORX-39.tests \
 	tests/MORX-3.tests \
 	tests/MORX-40.tests \
-	tests/MORX-41.tests \
 	tests/MORX-4.tests \
 	tests/MORX-5.tests \
 	tests/MORX-6.tests \
@@ -74,6 +73,7 @@ TESTS = \
 	$(NULL)
 
 DISBALED_TESTS = \
+	tests/MORX-41.tests \
 	tests/CMAP-3.tests \
 	tests/SHARAN-1.tests \
 	tests/SHBALI-1.tests \
