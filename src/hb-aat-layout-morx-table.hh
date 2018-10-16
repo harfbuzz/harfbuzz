@@ -410,7 +410,7 @@ struct LigatureSubtable
 
 	  uint32_t uoffset = action & LigActionOffset;
 	  if (uoffset & 0x20000000)
-	    uoffset += 0xC0000000;
+	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
 	  if (buffer->idx >= buffer->len)
 	    return false; // TODO Work on previous instead?
