@@ -62,13 +62,14 @@ hb_ot_name_get_utf (hb_face_t     *face,
   const OT::name_accelerator_t &name = _get_name (face);
   unsigned int idx = 0; //XXX
   hb_bytes_t bytes = name.table->get_name (idx);
-  if (*text_size)
+  if (text_size && *text_size)
   {
     /* TODO Switch to walking string and validating. */
     memcpy (text, bytes.arrayZ, MIN (*text_size * 2, bytes.len));
   }
   /* XXX Null-terminate. */
-  *text_size = bytes.len / 2; //TODO
+  if (text_size)
+    *text_size = bytes.len / 2; //TODO
   /* TODO Fallback? */
   return true; //XXX
 }
