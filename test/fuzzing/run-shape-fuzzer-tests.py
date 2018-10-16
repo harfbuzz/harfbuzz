@@ -20,15 +20,11 @@ please provide it as the first argument to the tool""")
 print ('hb_shape_fuzzer:', hb_shape_fuzzer)
 fails = 0
 
-parent_path = os.path.join (srcdir, "..", "shaping", "data", "in-house", "tests")
-for line in open (os.path.join (parent_path, "fuzzed.tests")):
-	font = line.split (":")[0]
-	if font.startswith('#'):
-		continue
+parent_path = os.path.join (srcdir, "fonts")
+for file in os.listdir (parent_path):
+        path = os.path.join(parent_path, file)
 
-	font_path = os.path.join (parent_path, font)
-
-	p = subprocess.Popen ([hb_shape_fuzzer, font_path])
+	p = subprocess.Popen ([hb_shape_fuzzer, path])
 
 	if p.wait () != 0:
 		print ('failure on %s', font)
