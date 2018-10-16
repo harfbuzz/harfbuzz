@@ -513,17 +513,18 @@ struct KerxSubTableFormat6
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    printf ("%d\n", c->check_struct (this));
     return_trace (likely (c->check_struct (this) &&
-			  is_long () ?
-			  (
-			    u.l.rowIndexTable.sanitize (c, this) &&
-			    u.l.columnIndexTable.sanitize (c, this) &&
-			    c->check_range (this, u.l.array)
-			  ) : (
-			    u.s.rowIndexTable.sanitize (c, this) &&
-			    u.s.columnIndexTable.sanitize (c, this) &&
-			    c->check_range (this, u.s.array)
-			  )));
+			  (is_long () ?
+			   (
+			     u.l.rowIndexTable.sanitize (c, this) &&
+			     u.l.columnIndexTable.sanitize (c, this) &&
+			     c->check_range (this, u.l.array)
+			   ) : (
+			     u.s.rowIndexTable.sanitize (c, this) &&
+			     u.s.columnIndexTable.sanitize (c, this) &&
+			     c->check_range (this, u.s.array)
+			   ))));
   }
 
   struct accelerator_t
