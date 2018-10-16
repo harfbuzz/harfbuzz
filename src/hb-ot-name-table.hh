@@ -39,6 +39,7 @@ namespace OT {
  */
 #define HB_OT_TAG_name HB_TAG('n','a','m','e')
 
+#define UNSUPPORTED	42
 
 struct NameRecord
 {
@@ -58,11 +59,30 @@ struct NameRecord
     return 0;
   }
 
-  inline bool supported (void) const
+  inline uint16_t score (void) const
   {
-    return platformID == 0 ||
-           platformID == 3;
-    /* TODO Add Apple MacRoman (0:1). */
+    /* Same order as in cmap::find_best_subtable(). */
+    unsigned int p = platformID;
+    unsigned int e = encodingID;
+
+    /* 32-bit. */
+    if (p == 3 && e == 10) return 0;
+    if (p == 0 && e ==  6) return 1;
+    if (p == 0 && e ==  4) return 2;
+
+    /* 16-bit. */
+    if (p == 3 && e ==  1) return 3;
+    if (p == 0 && e ==  3) return 4;
+    if (p == 0 && e ==  2) return 5;
+    if (p == 0 && e ==  1) return 6;
+    if (p == 0 && e ==  0) return 7;
+
+    /* Symbol. */
+    if (p == 3 && e ==  0) return 8;
+
+    /* TODO Apple MacRoman (0:1). */
+
+    return UNSUPPORTED;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -87,10 +107,23 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
 {
   const hb_ot_name_entry_t *a = (const hb_ot_name_entry_t *) pa;
   const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
+
+  /* Sort by name_id, then language, then score, then index. */
+
   if (a->name_id != b->name_id)
     return a->name_id < b->name_id ? -1 : +1;
+
+  int e = strcmp (hb_language_to_string (a->language),
+		  hb_language_to_string (b->language));
+  if (e)
+    return e;
+
+  if (a->score != b->score)
+    return a->score < b->score ? -1 : +1;
+
   if (a->index != b->index)
     return a->index < b->index ? -1 : +1;
+
   return 0;
 }
 
@@ -151,22 +184,30 @@ struct name
 
       this->names.init ();
 
-      for (unsigned int i = 0; i < all_names.len; i++)
+      for (uint16_t i = 0; i < all_names.len; i++)
       {
-	if (!all_names[i].supported ()) continue;
-
 	unsigned int name_id = all_names[i].nameID;
+	uint16_t score = all_names[i].score ();
 	hb_language_t language = HB_LANGUAGE_INVALID; /* XXX */
 
-	hb_ot_name_entry_t entry = {name_id, i, language};
+	hb_ot_name_entry_t entry = {name_id, score, i, language};
 
 	this->names.push (entry);
       }
 
       this->names.qsort (_hb_ot_name_entry_cmp);
-
-      /* Walk and pick best... */
+      /* Walk and pick best only for each name_id,language pair... */
+      unsigned int j = 0;
+      for (unsigned int i = 1; i < this->names.len; i++)
+      {
+        if (this->names[i - 1].name_id  == this->names[i].name_id &&
+	    this->names[i - 1].language == this->names[i].language)
+	  continue;
+	this->names[j++] = this->names[i];
+      }
+      this->names.resize (j);
     }
+
 
     inline void fini (void)
     {
