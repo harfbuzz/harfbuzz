@@ -49,12 +49,14 @@ typedef unsigned int hb_name_id_t;
 #define HB_NAME_ID_INVALID 0xFFFF
 
 
+#if 0
 HB_EXTERN hb_bool_t
-hb_ot_name_get_utf8 (hb_face_t     *face,
+Xhb_ot_name_get_utf8 (hb_face_t     *face,
 		     hb_name_id_t   name_id,
 		     hb_language_t  language,
 		     unsigned int  *text_size /* IN/OUT */,
 		     char          *text      /* OUT */);
+#endif
 
 HB_EXTERN hb_bool_t
 hb_ot_name_get_utf16 (hb_face_t     *face,
@@ -63,12 +65,14 @@ hb_ot_name_get_utf16 (hb_face_t     *face,
 		      unsigned int  *text_size /* IN/OUT */,
 		      uint16_t      *text      /* OUT */);
 
+#if 0
 HB_EXTERN hb_bool_t
-hb_ot_name_get_utf32 (hb_face_t     *face,
+Xhb_ot_name_get_utf32 (hb_face_t     *face,
 		      hb_name_id_t   name_id,
 		      hb_language_t  language,
 		      unsigned int  *text_size /* IN/OUT */,
 		      uint32_t      *text      /* OUT */);
+#endif
 
 
 typedef struct hb_ot_name_entry_t
