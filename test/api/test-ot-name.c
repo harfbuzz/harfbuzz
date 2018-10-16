@@ -23,35 +23,16 @@
  *
  */
 
-#include <hb.h>
+#include "hb-test.h"
+
 #include <hb-ot.h>
-#include <glib.h>
 
 static const char *font_path = "fonts/cv01.otf";
+static hb_face_t *face;
 
-int
-main (int argc, char **argv)
+static void
+test_ot_layout_feature_get_name_ids_and_characters ()
 {
-  g_test_init (&argc, &argv, NULL);
-
-#if GLIB_CHECK_VERSION(2,37,2)
-  gchar *default_path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
-#else
-  gchar *default_path = g_strdup (font_path);
-#endif
-
-  hb_blob_t *blob;
-  hb_face_t *face;
-  hb_font_t *font;
-
-  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) default_path;
-  blob = hb_blob_create_from_file (path);
-  if (hb_blob_get_length (blob) == 0)
-    g_error ("Font not found.");
-
-  face = hb_face_create (blob, 0);
-  font = hb_font_create (face);
-
   hb_tag_t cv01 = HB_TAG ('c','v','0','1');
   unsigned int feature_index;
   if (!hb_ot_layout_language_find_feature (face,
@@ -89,12 +70,33 @@ main (int argc, char **argv)
   g_assert (char_count == 2);
   g_assert (characters[0] == 10);
   g_assert (characters[1] == 24030);
+}
 
-  hb_font_destroy (font);
+int
+main (int argc, char **argv)
+{
+  g_test_init (&argc, &argv, NULL);
+
+#if GLIB_CHECK_VERSION(2,37,2)
+  gchar *default_path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
+#else
+  gchar *default_path = g_strdup (font_path);
+#endif
+
+  hb_blob_t *blob;
+
+  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) default_path;
+  blob = hb_blob_create_from_file (path);
+  if (hb_blob_get_length (blob) == 0)
+    g_error ("Font not found.");
+
+  face = hb_face_create (blob, 0);
+
+  hb_test_add (test_ot_layout_feature_get_name_ids_and_characters);
+
+  unsigned int result = hb_test_run ();
   hb_face_destroy (face);
   hb_blob_destroy (blob);
-
   g_free (default_path);
-
-  return 0;
+  return result;
 }
