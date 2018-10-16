@@ -33,7 +33,7 @@
     <title>User's manual</title>
       <xi:include href="usermanual-what-is-harfbuzz.xml"/>
       <xi:include href="usermanual-install-harfbuzz.xml"/>
-      <xi:include href="usermanual-hello-harfbuzz.xml"/>
+      <xi:include href="usermanual-getting-started.xml"/>
       <xi:include href="usermanual-shaping-concepts.xml"/>
       <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
       <xi:include href="usermanual-fonts-and-faces.xml"/>
