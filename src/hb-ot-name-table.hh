@@ -217,9 +217,8 @@ struct name
 
     private:
     hb_blob_t *blob;
+    public:
     hb_vector_t<hb_ot_name_entry_t> names;
-
-    unsigned int names_count;
   };
 
   /* We only implement format 0 for now. */

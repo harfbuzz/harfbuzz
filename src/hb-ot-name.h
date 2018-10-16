@@ -82,8 +82,8 @@ typedef struct hb_ot_name_entry_t
 } hb_ot_name_entry_t;
 
 HB_EXTERN unsigned int
-hb_ot_name_get_names (hb_face_t           *face,
-		      hb_ot_name_entry_t **entries /* OUT */);
+hb_ot_name_get_names (hb_face_t                 *face,
+		      const hb_ot_name_entry_t **entries /* OUT */);
 
 
 HB_END_DECLS
