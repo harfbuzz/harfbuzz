@@ -58,6 +58,13 @@ struct NameRecord
     return 0;
   }
 
+  inline bool supported (void) const
+  {
+    return platformID == 0 ||
+           platformID == 3;
+    /* TODO Add Apple MacRoman (0:1). */
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -74,6 +81,18 @@ struct NameRecord
   public:
   DEFINE_SIZE_STATIC (12);
 };
+
+static int
+_hb_ot_name_entry_cmp (const void *pa, const void *pb)
+{
+  const hb_ot_name_entry_t *a = (const hb_ot_name_entry_t *) pa;
+  const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
+  if (a->name_id != b->name_id)
+    return a->name_id < b->name_id ? -1 : +1;
+  if (a->index != b->index)
+    return a->index < b->index ? -1 : +1;
+  return 0;
+}
 
 struct name
 {
@@ -122,6 +141,46 @@ struct name
 		  sanitize_records (c));
   }
 
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      this->blob = hb_sanitize_context_t().reference_table<name> (face);
+      const name *table = this->blob->as<name> ();
+      const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (table->nameRecordZ.arrayZ, table->count);
+
+      this->names.init ();
+
+      for (unsigned int i = 0; i < all_names.len; i++)
+      {
+	if (!all_names[i].supported ()) continue;
+
+	unsigned int name_id = all_names[i].nameID;
+	hb_language_t language = HB_LANGUAGE_INVALID; /* XXX */
+
+	hb_ot_name_entry_t entry = {name_id, i, language};
+
+	this->names.push (entry);
+      }
+
+      this->names.qsort (_hb_ot_name_entry_cmp);
+
+      /* Walk and pick best... */
+    }
+
+    inline void fini (void)
+    {
+      this->names.fini ();
+      hb_blob_destroy (this->blob);
+    }
+
+    private:
+    hb_blob_t *blob;
+    hb_vector_t<hb_ot_name_entry_t> names;
+
+    unsigned int names_count;
+  };
+
   /* We only implement format 0 for now. */
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
@@ -132,6 +191,7 @@ struct name
   DEFINE_SIZE_ARRAY (6, nameRecordZ);
 };
 
+struct name_accelerator_t : name::accelerator_t {};
 
 } /* namespace OT */
 

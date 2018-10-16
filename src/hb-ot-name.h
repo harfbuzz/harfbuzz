@@ -74,6 +74,9 @@ hb_ot_name_get_utf32 (hb_face_t     *face,
 typedef struct hb_ot_name_entry_t
 {
   hb_name_id_t  name_id;
+  /*< private >*/
+  unsigned int  index;
+  /*< public >*/
   hb_language_t language;
 } hb_ot_name_entry_t;
 
