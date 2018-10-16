@@ -179,14 +179,19 @@ struct hb_vector_t
     return nullptr;
   }
 
-  inline void qsort (int (*cmp)(const void*, const void*) = Type::cmp)
+  inline void qsort (int (*cmp)(const void*, const void*))
   {
     ::qsort (arrayZ(), len, sizeof (Type), cmp);
   }
 
-  inline void qsort (unsigned int start, unsigned int end, int (*cmp)(const void*, const void*) = Type::cmp)
+  inline void qsort (void)
   {
-    ::qsort (arrayZ() + start, end - start, sizeof (Type), cmp);
+    ::qsort (arrayZ(), len, sizeof (Type), Type::cmp);
+  }
+
+  inline void qsort (unsigned int start, unsigned int end)
+  {
+    ::qsort (arrayZ() + start, end - start, sizeof (Type), Type::cmp);
   }
 
   template <typename T>
