@@ -84,7 +84,7 @@ struct ankr
   HBUINT16	flags;		/* Flags (currently unused; set to zero) */
   LOffsetTo<Lookup<Offset<HBUINT16, false> >, false>
 		lookupTable;	/* Offset to the table's lookup table */
-  LOffsetTo<HBUINT8>
+  LOffsetTo<HBUINT8, false>
 		anchorData;	/* Offset to the glyph data table */
 
   public:
