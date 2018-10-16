@@ -131,26 +131,11 @@ struct name
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_name;
 
-  inline unsigned int get_name (unsigned int platform_id,
-				unsigned int encoding_id,
-				unsigned int language_id,
-				unsigned int name_id,
-				void *buffer,
-				unsigned int buffer_length) const
+  inline hb_bytes_t get_name (unsigned int idx) const
   {
-    NameRecord key;
-    key.platformID.set (platform_id);
-    key.encodingID.set (encoding_id);
-    key.languageID.set (language_id);
-    key.nameID.set (name_id);
-    NameRecord *match = (NameRecord *) bsearch (&key, nameRecordZ.arrayZ, count, sizeof (nameRecordZ[0]), NameRecord::cmp);
-
-    if (!match)
-      return 0;
-
-    unsigned int length = MIN (buffer_length, (unsigned int) match->length);
-    memcpy (buffer, (char *) this + stringOffset + match->offset, length);
-    return length;
+    const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (nameRecordZ.arrayZ, count);
+    const NameRecord &record = all_names[idx];
+    return hb_bytes_t ((char *) this + stringOffset + record.offset, record.length);
   }
 
   inline unsigned int get_size (void) const
@@ -160,6 +145,7 @@ struct name
     TRACE_SANITIZE (this);
     char *string_pool = (char *) this + stringOffset;
     unsigned int _count = count;
+    /* Move to run-time?! */
     for (unsigned int i = 0; i < _count; i++)
       if (!nameRecordZ[i].sanitize (c, string_pool)) return_trace (false);
     return_trace (true);
