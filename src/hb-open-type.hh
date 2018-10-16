@@ -385,12 +385,12 @@ struct UnsizedArrayOf
 };
 
 /* Unsized array of offset's */
-template <typename Type, typename OffsetType>
-struct UnsizedOffsetArrayOf : UnsizedArrayOf<OffsetTo<Type, OffsetType> > {};
+template <typename Type, typename OffsetType, bool has_null=true>
+struct UnsizedOffsetArrayOf : UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null> > {};
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
-template <typename Type, typename OffsetType>
-struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType>
+template <typename Type, typename OffsetType, bool has_null=true>
+struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 {
   inline const Type& operator [] (unsigned int i) const
   {
@@ -400,13 +400,13 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType>
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType>::sanitize (c, count, this)));
+    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>::sanitize (c, count, this)));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count, T user_data) const
   {
     TRACE_SANITIZE (this);
-    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType>::sanitize (c, count, this, user_data)));
+    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>::sanitize (c, count, this, user_data)));
   }
 };
 

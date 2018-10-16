@@ -278,10 +278,10 @@ struct KerxSubTableFormat2
   protected:
   KerxSubTableHeader	header;
   HBUINT32		rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<Lookup<HBUINT16> >
+  LOffsetTo<Lookup<HBUINT16>, false>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  LOffsetTo<Lookup<HBUINT16> >
+  LOffsetTo<Lookup<HBUINT16>, false>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
   LOffsetTo<UnsizedArrayOf<FWORD>, false>
@@ -548,17 +548,15 @@ struct KerxSubTableFormat6
   {
     struct Long
     {
-      LOffsetTo<Lookup<HBUINT32> >	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT32> >	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD32>, false>
-					array;
+      LOffsetTo<Lookup<HBUINT32>, false>	rowIndexTable;
+      LOffsetTo<Lookup<HBUINT32>, false>	columnIndexTable;
+      LOffsetTo<UnsizedArrayOf<FWORD32>, false>	array;
     } l;
     struct Short
     {
-      LOffsetTo<Lookup<HBUINT16> >	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT16> >	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD>, false>
-					array;
+      LOffsetTo<Lookup<HBUINT16>, false>	rowIndexTable;
+      LOffsetTo<Lookup<HBUINT16>, false>	columnIndexTable;
+      LOffsetTo<UnsizedArrayOf<FWORD>, false>	array;
     } s;
   } u;
   public:

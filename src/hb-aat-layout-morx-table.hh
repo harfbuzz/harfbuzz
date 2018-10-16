@@ -270,7 +270,7 @@ struct ContextualSubtable
     private:
     bool mark_set;
     unsigned int mark;
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false> &subs;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -311,7 +311,7 @@ struct ContextualSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, false>
+  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false>, false>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
