@@ -1197,7 +1197,7 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
  *                called with an offset till resulting char_count gets to a number
  *                lower than input buffer (or consider using just a bigger buffer for
  *                one shot copying).
- * @char_count: (in/out) (allow-none): The count of characters for which this feature
+ * @char_count: (inout) (allow-none): The count of characters for which this feature
  *              provides glyph variants. (May be zero.)
  * @characters: (out) (allow-none): A buffer pointer. The Unicode Scalar Value
  *              of the characters for which this feature provides glyph variants.
