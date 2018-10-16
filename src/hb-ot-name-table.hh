@@ -165,8 +165,9 @@ struct name
     inline void init (hb_face_t *face)
     {
       this->blob = hb_sanitize_context_t().reference_table<name> (face);
-      const name *table = this->blob->as<name> ();
-      const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (table->nameRecordZ.arrayZ, table->count);
+      this->table = this->blob->as<name> ();
+      const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (this->table->nameRecordZ.arrayZ,
+									this->table->count);
 
       this->names.init ();
 
@@ -204,6 +205,7 @@ struct name
     private:
     hb_blob_t *blob;
     public:
+    const name *table;
     hb_vector_t<hb_ot_name_entry_t> names;
   };
 
