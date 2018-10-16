@@ -79,8 +79,7 @@ typedef struct hb_ot_name_entry_t
 {
   hb_name_id_t  name_id;
   /*< private >*/
-  uint16_t      score;
-  uint16_t      index;
+  hb_var_int_t  var;
   /*< public >*/
   hb_language_t language;
 } hb_ot_name_entry_t;
