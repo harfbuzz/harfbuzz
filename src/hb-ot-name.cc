@@ -29,6 +29,7 @@
 #include "hb-ot-name-table.hh"
 
 #include "hb-ot-face.hh"
+#include "hb-utf.hh"
 
 
 static inline const OT::name_accelerator_t&
@@ -50,12 +51,13 @@ hb_ot_name_get_names (hb_face_t                 *face,
 }
 
 
-hb_bool_t
-hb_ot_name_get_utf16 (hb_face_t     *face,
-		      hb_name_id_t   name_id,
-		      hb_language_t  language,
-		      unsigned int  *text_size /* IN/OUT */,
-		      uint16_t      *text      /* OUT */)
+template <typename utf_t>
+static inline hb_bool_t
+hb_ot_name_get_utf (hb_face_t     *face,
+		    hb_name_id_t   name_id,
+		    hb_language_t  language,
+		    unsigned int  *text_size /* IN/OUT */,
+		    typename utf_t::codepoint_t *text /* OUT */)
 {
   const OT::name_accelerator_t &name = _get_name (face);
   unsigned int idx = 0; //XXX
@@ -69,4 +71,14 @@ hb_ot_name_get_utf16 (hb_face_t     *face,
   *text_size = bytes.len / 2; //TODO
   /* TODO Fallback? */
   return true; //XXX
+}
+
+hb_bool_t
+hb_ot_name_get_utf16 (hb_face_t     *face,
+		      hb_name_id_t   name_id,
+		      hb_language_t  language,
+		      unsigned int  *text_size /* IN/OUT */,
+		      uint16_t      *text      /* OUT */)
+{
+  return hb_ot_name_get_utf<hb_utf16_t> (face, name_id, language, text_size, text);
 }
