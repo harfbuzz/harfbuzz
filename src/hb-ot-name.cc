@@ -52,7 +52,7 @@ hb_ot_name_get_names (hb_face_t                 *face,
 
 
 template <typename utf_t>
-static inline hb_bool_t
+static inline unsigned int
 hb_ot_name_get_utf (hb_face_t     *face,
 		    hb_name_id_t   name_id,
 		    hb_language_t  language,
@@ -71,10 +71,10 @@ hb_ot_name_get_utf (hb_face_t     *face,
   if (text_size)
     *text_size = bytes.len / 2; //TODO
   /* TODO Fallback? */
-  return true; //XXX
+  return *text_size; //XXX
 }
 
-hb_bool_t
+unsigned int
 hb_ot_name_get_utf16 (hb_face_t     *face,
 		      hb_name_id_t   name_id,
 		      hb_language_t  language,
