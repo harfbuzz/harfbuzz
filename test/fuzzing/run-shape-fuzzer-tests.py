@@ -22,7 +22,7 @@ fails = 0
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
-        path = os.path.join(parent_path, file)
+	path = os.path.join(parent_path, file)
 
 	p = subprocess.Popen ([hb_shape_fuzzer, path])
 
