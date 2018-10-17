@@ -292,7 +292,8 @@ struct Lookup
   } u;
   public:
   DEFINE_SIZE_MIN (0); /* 0 min size, makes sure this cannot be used on null pool,
-			  because Format0 has unbounded size depending on num_glyphs. */
+			* because Format0 has unbounded size depending on num_glyphs.
+			* We cannot define custom null bytes for a template :(. */
 };
 
 
