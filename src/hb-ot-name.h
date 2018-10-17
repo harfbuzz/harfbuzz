@@ -50,7 +50,7 @@ typedef unsigned int hb_name_id_t;
 
 
 #if 0
-HB_EXTERN hb_bool_t
+HB_EXTERN unsigned int
 Xhb_ot_name_get_utf8 (hb_face_t     *face,
 		     hb_name_id_t   name_id,
 		     hb_language_t  language,
@@ -58,7 +58,7 @@ Xhb_ot_name_get_utf8 (hb_face_t     *face,
 		     char          *text      /* OUT */);
 #endif
 
-HB_EXTERN hb_bool_t
+HB_EXTERN unsigned int
 hb_ot_name_get_utf16 (hb_face_t     *face,
 		      hb_name_id_t   name_id,
 		      hb_language_t  language,
@@ -66,7 +66,7 @@ hb_ot_name_get_utf16 (hb_face_t     *face,
 		      uint16_t      *text      /* OUT */);
 
 #if 0
-HB_EXTERN hb_bool_t
+HB_EXTERN unsigned int
 Xhb_ot_name_get_utf32 (hb_face_t     *face,
 		      hb_name_id_t   name_id,
 		      hb_language_t  language,
