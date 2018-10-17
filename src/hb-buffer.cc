@@ -359,6 +359,8 @@ hb_buffer_t::replace_glyphs (unsigned int num_in,
 {
   if (unlikely (!make_room_for (num_in, num_out))) return;
 
+  assert (idx + num_in <= len);
+
   merge_clusters (idx, idx + num_in);
 
   hb_glyph_info_t orig_info = info[idx];

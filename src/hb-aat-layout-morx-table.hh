@@ -270,7 +270,7 @@ struct ContextualSubtable
     private:
     bool mark_set;
     unsigned int mark;
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false> &subs;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -311,7 +311,7 @@ struct ContextualSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32>, false>
+  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false>, false>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
@@ -393,16 +393,18 @@ struct LigatureSubtable
 	unsigned int ligature_idx = 0;
 
 	if (unlikely (!match_length))
-	  return false;
+	  return true;
 
+	/* TODO Only when ligation happens? */
 	buffer->merge_out_clusters (match_positions[0], buffer->out_len);
 
+	unsigned int cursor = match_length;
         do
 	{
-	  if (unlikely (!match_length))
-	    return false;
+	  if (unlikely (!cursor))
+	    break;
 
-	  buffer->move_to (match_positions[--match_length]);
+	  buffer->move_to (match_positions[--cursor]);
 
 	  const HBUINT32 &actionData = ligAction[action_idx];
 	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
@@ -410,7 +412,7 @@ struct LigatureSubtable
 
 	  uint32_t uoffset = action & LigActionOffset;
 	  if (uoffset & 0x20000000)
-	    uoffset += 0xC0000000;
+	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
 	  if (buffer->idx >= buffer->len)
 	    return false; // TODO Work on previous instead?
@@ -426,20 +428,21 @@ struct LigatureSubtable
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
-	    match_positions[match_length++] = buffer->out_len;
 	    buffer->replace_glyph (lig);
 
-	    //ligature_idx = 0; // XXX Yes or no?
-	  }
-	  else
-	  {
-	    buffer->skip_glyph ();
-	    end--;
+	    /* Now go and delete all subsequent components. */
+	    while (match_length - 1 > cursor)
+	    {
+	      buffer->move_to (match_positions[--match_length]);
+	      buffer->skip_glyph ();
+	      end--;
+	    }
 	  }
 
 	  action_idx++;
 	}
 	while (!(action & LigActionLast));
+	match_length = 0;
 	buffer->move_to (end);
       }
 

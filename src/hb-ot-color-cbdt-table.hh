@@ -209,9 +209,10 @@ struct IndexSubtableRecord
 		  offsetToSubtable.sanitize (c, base, lastGlyphIndex - firstGlyphIndex + 1));
   }
 
-  inline bool get_extents (hb_glyph_extents_t *extents) const
+  inline bool get_extents (hb_glyph_extents_t *extents,
+			   const void *base) const
   {
-    return (this+offsetToSubtable).get_extents (extents);
+    return (base+offsetToSubtable).get_extents (extents);
   }
 
   bool get_image_data (unsigned int  gid,
@@ -420,7 +421,7 @@ struct CBDT
       if (!subtable_record || !x_ppem || !y_ppem)
 	return false;
 
-      if (subtable_record->get_extents (extents))
+      if (subtable_record->get_extents (extents, base))
 	return true;
 
       unsigned int image_offset = 0, image_length = 0, image_format = 0;

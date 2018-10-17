@@ -154,13 +154,15 @@ main (int argc, char **argv)
   hb_face_t *face = hb_face_create (blob, 0);
   font = hb_font_create (face);
 
-  hb_ot_font_set_funcs (font);
-
+  /* Fill the reference */
   ref_buffer = hb_buffer_create ();
   fill_the_buffer (ref_buffer);
 
+  /* Unnecessary, since version 2 it is ot-font by default */
+  hb_ot_font_set_funcs (font);
   test_body ();
 
+  /* Test hb-ft in multithread */
   hb_ft_font_set_funcs (font);
   test_body ();
 

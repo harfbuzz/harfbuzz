@@ -75,7 +75,7 @@ endif
 
 TEST_PROGS += \
 	test-ot-color \
-	test-ot-nameid \
+	test-ot-name \
 	test-ot-tag \
 	test-ot-extents-cff \
 	$(NULL)

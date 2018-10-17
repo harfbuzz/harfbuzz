@@ -38,9 +38,10 @@ struct hb_kern_machine_t
   hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
 
   HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
-  inline void kern (hb_font_t *font,
-		    hb_buffer_t  *buffer,
-		    hb_mask_t kern_mask) const
+  inline void kern (hb_font_t   *font,
+		    hb_buffer_t *buffer,
+		    hb_mask_t    kern_mask,
+		    bool         scale = true) const
   {
     OT::hb_ot_apply_context_t c (1, font, buffer);
     c.set_lookup_mask (kern_mask);
@@ -69,7 +70,6 @@ struct hb_kern_machine_t
 
       unsigned int i = idx;
       unsigned int j = skippy_iter.idx;
-      hb_position_t kern1, kern2;
 
       hb_position_t kern = driver.get_kerning (info[i].codepoint,
 					       info[j].codepoint);
@@ -78,17 +78,23 @@ struct hb_kern_machine_t
       if (likely (!kern))
         goto skip;
 
-      kern1 = kern >> 1;
-      kern2 = kern - kern1;
 
       if (horizontal)
       {
+        if (scale)
+	  kern = font->em_scale_x (kern);
+	hb_position_t kern1 = kern >> 1;
+	hb_position_t kern2 = kern - kern1;
 	pos[i].x_advance += kern1;
 	pos[j].x_advance += kern2;
 	pos[j].x_offset += kern2;
       }
       else
       {
+        if (scale)
+	  kern = font->em_scale_y (kern);
+	hb_position_t kern1 = kern >> 1;
+	hb_position_t kern2 = kern - kern1;
 	pos[i].y_advance += kern1;
 	pos[j].y_advance += kern2;
 	pos[j].y_offset += kern2;

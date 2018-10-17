@@ -73,6 +73,7 @@ TESTS = \
 	$(NULL)
 
 DISBALED_TESTS = \
+	tests/MORX-41.tests \
 	tests/CMAP-3.tests \
 	tests/SHARAN-1.tests \
 	tests/SHBALI-1.tests \

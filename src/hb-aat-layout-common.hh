@@ -291,7 +291,9 @@ struct Lookup
   LookupFormat8<T>	format8;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_MIN (0); /* 0 min size, makes sure this cannot be used on null pool,
+			* because Format0 has unbounded size depending on num_glyphs.
+			* We cannot define custom null bytes for a template :(. */
 };
 
 

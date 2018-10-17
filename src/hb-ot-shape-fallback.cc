@@ -466,7 +466,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
     return;
   hb_ot_shape_fallback_kern_driver_t driver (font, buffer);
   hb_kern_machine_t<hb_ot_shape_fallback_kern_driver_t> machine (driver);
-  machine.kern (font, buffer, plan->kern_mask);
+  machine.kern (font, buffer, plan->kern_mask, false);
 }
 
 

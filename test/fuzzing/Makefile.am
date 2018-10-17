@@ -18,6 +18,7 @@ EXTRA_DIST += \
 	run-shape-fuzzer-tests.py \
 	run-subset-fuzzer-tests.py \
 	CMakeLists.txt \
+	fonts \
 	$(NULL)
 
 check_PROGRAMS = \

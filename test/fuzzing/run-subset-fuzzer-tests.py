@@ -20,21 +20,26 @@ please provide it as the first argument to the tool""")
 print ('hb_subset_fuzzer:', hb_subset_fuzzer)
 fails = 0
 
-parent_path = os.path.join (srcdir, "..", "subset", "data", "fonts")
-print ("running subset fuzzer against fonts in %s" % parent_path)
-for file in os.listdir (parent_path):
-        path = os.path.join(parent_path, file)
+def run_dir (parent_path):
+	global fails
+	print ("running subset fuzzer against fonts in %s" % parent_path)
+	for file in os.listdir (parent_path):
+		path = os.path.join(parent_path, file)
 
-        print ("running subset fuzzer against %s" % path)
-        p = subprocess.Popen ([hb_subset_fuzzer, path])
+		print ("running subset fuzzer against %s" % path)
+		p = subprocess.Popen ([hb_subset_fuzzer, path])
 
-        if p.wait () != 0:
-                print ("failed for %s" % path)
-                fails = fails + 1
+		if p.wait () != 0:
+			print ("failed for %s" % path)
+			fails = fails + 1
 
-        if p.wait () != 0:
-                print ("failed for %s" % path)
-                fails = fails + 1
+		if p.wait () != 0:
+			print ("failed for %s" % path)
+			fails = fails + 1
+
+run_dir (os.path.join (srcdir, "..", "subset", "data", "fonts"))
+# TODO running these tests very slow tests.  Fix and re-enable
+#run_dir (os.path.join (srcdir, "fonts"))
 
 if fails:
         print ("%i subset fuzzer related tests failed." % fails)
