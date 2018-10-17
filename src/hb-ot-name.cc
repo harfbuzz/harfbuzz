@@ -60,17 +60,24 @@ hb_ot_name_get_utf (hb_face_t     *face,
 		    typename utf_t::codepoint_t *text /* OUT */)
 {
   const OT::name_accelerator_t &name = _get_name (face);
-  unsigned int idx = 0; //XXX
+  unsigned int idx = 0; // XXX bsearch and find
   hb_bytes_t bytes = name.table->get_name (idx);
+
+  unsigned int full_length = 0;
+  const typename utf_t::codepoint_t *src = (const typename utf_t::codepoint_t *) bytes.arrayZ;
+  unsigned int src_len = bytes.len / sizeof (typename utf_t::codepoint_t);
+
   if (text_size && *text_size)
   {
+    *text_size--; /* Leave room for nul-termination. */
     /* TODO Switch to walking string and validating. */
-    memcpy (text, bytes.arrayZ, MIN (*text_size * 2, bytes.len));
+    memcpy (text,
+	    src,
+	    MIN (*text_size, src_len) * sizeof (typename utf_t::codepoint_t));
   }
-  /* XXX Null-terminate. */
-  if (text_size)
-    *text_size = bytes.len / 2; //TODO
-  /* TODO Fallback? */
+
+  /* Walk the rest, accumulate the full length. */
+
   return *text_size; //XXX
 }
 
