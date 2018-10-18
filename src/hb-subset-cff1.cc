@@ -284,10 +284,6 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
       case OpCode_vstemhm:
       case OpCode_hintmask:
       case OpCode_cntrmask:
-      case OpCode_hflex:
-      case OpCode_flex:
-      case OpCode_hflex1:
-      case OpCode_flex1:
         if (param.drop_hints)
         {
           env.clear_args ();

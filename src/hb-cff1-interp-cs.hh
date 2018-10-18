@@ -214,6 +214,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
   {
     start_arg = env.check_width ();
     SUPER::flush_args (env, param, start_arg);
+    env.clear_args ();  /* pop off width */
   }
 
   private:

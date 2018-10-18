@@ -152,24 +152,6 @@ struct CSInterpEnv : InterpEnv<ARG>
 
   inline void moveto (const Point &pt_ ) { pt = pt_; }
 
-  inline unsigned int move_x_with_arg (unsigned int i)
-  {
-    pt.move_x (SUPER::eval_arg (i));
-    return i + 1;
-  }
-
-  inline unsigned int move_y_with_arg (unsigned int i)
-  {
-    pt.move_y (SUPER::eval_arg (i));
-    return i + 1;
-  }
-
-  inline unsigned int move_xy_with_arg (unsigned int i)
-  {
-    pt.move (SUPER::eval_arg (i), SUPER::eval_arg (i+1));
-    return i + 2;
-  }
-
   public:
   bool          endchar_flag;
   bool          seen_moveto;
@@ -207,6 +189,10 @@ struct PathProcsNull
   static inline void moveto (ENV &env, PARAM& param, const Point &pt) {}
   static inline void line (ENV &env, PARAM& param, const Point &pt1) {}
   static inline void curve (ENV &env, PARAM& param, const Point &pt1, const Point &pt2, const Point &pt3) {}
+  static inline void hflex (ENV &env, PARAM& param) {}
+  static inline void flex (ENV &env, PARAM& param) {}
+  static inline void hflex1 (ENV &env, PARAM& param) {}
+  static inline void flex1 (ENV &env, PARAM& param) {}
 };
 
 template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=PathProcsNull<ENV, PARAM> >
@@ -302,10 +288,23 @@ struct CSOpSet : OpSet<ARG>
         break;
 
       case OpCode_hflex:
+        PATH::hflex (env, param);
+        OPSET::process_post_flex (op, env, param);
+        break;
+
       case OpCode_flex:
+        PATH::flex (env, param);
+        OPSET::process_post_flex (op, env, param);
+        break;
+
       case OpCode_hflex1:
+        PATH::hflex1 (env, param);
+        OPSET::process_post_flex (op, env, param);
+        break;
+
       case OpCode_flex1:
-        OPSET::process_flex (op, env, param);
+        PATH::flex1 (env, param);
+        OPSET::process_post_flex (op, env, param);
         break;
 
       default:
@@ -336,7 +335,7 @@ struct CSOpSet : OpSet<ARG>
     }
   }
 
-  static inline void process_flex (OpCode op, ENV &env, PARAM& param)
+  static inline void process_post_flex (OpCode op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
@@ -680,6 +679,124 @@ struct PathProcs
 
   static inline void curve (ENV &env, PARAM& param, const Point &pt1, const Point &pt2, const Point &pt3)
   { PATH::moveto (env, param, pt3); }
+
+  static inline void hflex (ENV &env, PARAM& param)
+  {
+    if (likely (env.argStack.get_count () == 7))
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move_x (env.eval_arg (0));
+      Point pt2 = pt1;
+      pt2.move (env.eval_arg (1), env.eval_arg (2));
+      Point pt3 = pt2;
+      pt3.move_x (env.eval_arg (3));
+      Point pt4 = pt3;
+      pt4.move_x (env.eval_arg (4));
+      Point pt5 = pt4;
+      pt5.move_x (env.eval_arg (5));
+      pt5.y = pt1.y;
+      Point pt6 = pt5;
+      pt6.move_x (env.eval_arg (6));
+
+      curve2 (env, param, pt1, pt2, pt3, pt4, pt5, pt6);
+    }
+    else
+      env.set_error ();
+  }
+
+  static inline void flex (ENV &env, PARAM& param)
+  {
+    if (likely (env.argStack.get_count () == 13))
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.eval_arg (0), env.eval_arg (1));
+      Point pt2 = pt1;
+      pt2.move (env.eval_arg (2), env.eval_arg (3));
+      Point pt3 = pt2;
+      pt3.move (env.eval_arg (4), env.eval_arg (5));
+      Point pt4 = pt3;
+      pt4.move (env.eval_arg (6), env.eval_arg (7));
+      Point pt5 = pt4;
+      pt5.move (env.eval_arg (8), env.eval_arg (9));
+      Point pt6 = pt5;
+      pt6.move (env.eval_arg (10), env.eval_arg (11));
+
+      curve2 (env, param, pt1, pt2, pt3, pt4, pt5, pt6);
+    }
+    else
+      env.set_error ();
+  }
+
+  static inline void hflex1 (ENV &env, PARAM& param)
+  {
+    if (likely (env.argStack.get_count () == 9))
+    {
+      Point pt1 = env.get_pt ();
+      pt1.move (env.eval_arg (0), env.eval_arg (1));
+      Point pt2 = pt1;
+      pt2.move (env.eval_arg (2), env.eval_arg (3));
+      Point pt3 = pt2;
+      pt3.move_x (env.eval_arg (4));
+      Point pt4 = pt3;
+      pt4.move_x (env.eval_arg (5));
+      Point pt5 = pt4;
+      pt5.move (env.eval_arg (6), env.eval_arg (7));
+      Point pt6 = pt5;
+      pt6.move_x (env.eval_arg (8));
+      pt6.y = env.get_pt ().y;
+
+      curve2 (env, param, pt1, pt2, pt3, pt4, pt5, pt6);
+    }
+    else
+      env.set_error ();
+  }
+
+  static inline void flex1 (ENV &env, PARAM& param)
+  {
+    if (likely (env.argStack.get_count () == 11))
+    {
+      Point d;
+      d.init ();
+      for (unsigned int i = 0; i < 10; i += 2)
+        d.move (env.eval_arg (i), env.eval_arg (i+1));
+
+      Point pt1 = env.get_pt ();
+      pt1.move (env.eval_arg (0), env.eval_arg (1));
+      Point pt2 = pt1;
+      pt2.move (env.eval_arg (2), env.eval_arg (3));
+      Point pt3 = pt2;
+      pt3.move (env.eval_arg (4), env.eval_arg (5));
+      Point pt4 = pt3;
+      pt4.move (env.eval_arg (6), env.eval_arg (7));
+      Point pt5 = pt4;
+      pt5.move (env.eval_arg (8), env.eval_arg (9));
+      Point pt6 = pt5;
+
+      if (fabs (d.x.to_real ()) > fabs (d.y.to_real ()))
+      {
+        pt6.move_x (env.eval_arg (10));
+        pt6.y = env.get_pt ().y;
+      }
+      else
+      {
+        pt6.x = env.get_pt ().x;
+        pt6.move_y (env.eval_arg (10));
+      }
+
+      curve2 (env, param, pt1, pt2, pt3, pt4, pt5, pt6);
+    }
+    else
+      env.set_error ();
+  }
+
+  protected:
+  static inline void curve2 (ENV &env, PARAM& param,
+                             const Point &pt1, const Point &pt2, const Point &pt3,
+                             const Point &pt4, const Point &pt5, const Point &pt6)
+  {
+    PATH::curve (env, param, pt1, pt2, pt3);
+    PATH::curve (env, param, pt4, pt5, pt6);
+  }
 };
 
 template <typename ENV, typename OPSET, typename PARAM>
