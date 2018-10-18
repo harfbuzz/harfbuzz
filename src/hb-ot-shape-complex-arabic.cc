@@ -458,9 +458,9 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 
   int sign = font->x_scale < 0 ? -1 : +1;
   unsigned int extra_glyphs_needed = 0; // Set during MEASURE, used during CUT
-  typedef enum { MEASURE, CUT } step_t;
+  enum { MEASURE, CUT } /* step_t */;
 
-  for (step_t step = MEASURE; step <= CUT; step = (step_t) (step + 1))
+  for (unsigned int step = MEASURE; step <= CUT; step = step + 1)
   {
     unsigned int count = buffer->len;
     hb_glyph_info_t *info = buffer->info;
