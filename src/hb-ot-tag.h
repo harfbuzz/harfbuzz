@@ -42,13 +42,13 @@ HB_BEGIN_DECLS
 /**
  * HB_OT_MAX_TAGS_PER_SCRIPT:
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 #define HB_OT_MAX_TAGS_PER_SCRIPT	3u
 /**
  * HB_OT_MAX_TAGS_PER_LANGUAGE:
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 #define HB_OT_MAX_TAGS_PER_LANGUAGE	3u
 

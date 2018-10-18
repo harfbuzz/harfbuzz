@@ -153,7 +153,7 @@ test_subset_hmtx_noop (void)
 static void
 test_subset_invalid_hmtx (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
+  hb_face_t *face = hb_subset_test_open_font("../fuzzing/fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
   hb_face_t *subset;
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();

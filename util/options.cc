@@ -660,7 +660,7 @@ font_options_t::get_font (void) const
   blob = hb_blob_create_from_file (font_path);
 
   if (blob == hb_blob_get_empty ())
-    fail (false, "No such file or directory");
+    fail (false, "Couldn't read or find %s, or it was empty.", font_path);
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, face_index);

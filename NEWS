@@ -1,3 +1,71 @@
+Overview of changes leading to 2.0.0
+Wednesday, October 17, 2018
+====================================
+- Added AAT shaping support (morx/kerx/trak).
+  Automatically used if GSUB/GPOS are not available respectively.
+  Set HB_OPTIONS=aat env var to have morx/kerx preferred over
+  GSUB/GPOS.
+- Apply TrueType kern table internally, instead of relying on
+  hb_font_t callbacks.
+- Khmer shaper significantly rewritten to better match Uniscribe.
+- Indic3 tags ('dev3', etc) are passed to USE shaper.
+- .dfont Mac font containers implemented.
+- Script- and language-mapping revamped to better use BCP 47.
+- Misc USE and Indic fixes.
+- Misc everything fixes.
+- Too many things to list.  Biggest release since 0.9.1, with
+  over 500 commits in just over 5 weeks!  Didn't intend it to
+  be a big release.  Just happened to become.
+- hb-ft now locks underlying FT_Face during use.
+
+API changes:
+
+- Newly-created hb_font_t's now have our internal "hb-ot-font"
+  callbacks set on them, so they should work out of the box
+  without any callbacks set.  If callbacks are set, everything
+  is back to what it was before, the fallback callbacks are
+  null.  If you to get the internal implementation modified,
+  sub_font it.
+
+- New hb_font_funcs_set_nominal_glyphs_func() allows speeding
+  up character to glyph mapping.
+
+New API:
++HB_FEATURE_GLOBAL_START
++HB_FEATURE_GLOBAL_END
++hb_buffer_set_invisible_glyph()
++hb_buffer_get_invisible_glyph()
++hb_font_funcs_set_nominal_glyphs_func()
++hb_ot_layout_table_select_script()
++hb_ot_layout_script_select_language()
++hb_ot_layout_feature_get_name_ids()
++hb_ot_layout_feature_get_characters()
++hb_name_id_t
++HB_NAME_ID_INVALID
++HB_OT_MAX_TAGS_PER_SCRIPT
++hb_ot_tags_from_script_and_language()
++hb_ot_tags_to_script_and_language()
+
+Deprecated API:
+-hb_font_funcs_set_glyph_func()
+-hb_unicode_eastasian_width_func_t
+-hb_unicode_funcs_set_eastasian_width_func()
+-hb_unicode_eastasian_width()
+-hb_unicode_decompose_compatibility_func_t
+-HB_UNICODE_MAX_DECOMPOSITION_LEN
+-hb_unicode_funcs_set_decompose_compatibility_func()
+-hb_unicode_decompose_compatibility()
+-hb_font_funcs_set_glyph_h_kerning_func()
+-hb_font_funcs_set_glyph_v_kerning_func()
+-hb_font_get_glyph_h_kerning()
+-hb_font_get_glyph_v_kerning()
+-hb_font_get_glyph_kerning_for_direction()
+-hb_ot_layout_table_choose_script()
+-hb_ot_layout_script_find_language()
+-hb_ot_tags_from_script()
+-hb_ot_tag_from_language()
+
+
 Overview of changes leading to 1.9.0
 Monday, September 10, 2018
 ====================================

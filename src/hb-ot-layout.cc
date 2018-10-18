@@ -376,7 +376,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 /**
  * hb_ot_layout_table_select_script:
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 hb_bool_t
 hb_ot_layout_table_select_script (hb_face_t      *face,
@@ -489,7 +489,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 /**
  * hb_ot_layout_script_select_language:
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 hb_bool_t
 hb_ot_layout_script_select_language (hb_face_t      *face,
@@ -1134,7 +1134,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
  *
  * Return value: true if data found, false otherwise
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 hb_bool_t
 hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
@@ -1207,7 +1207,7 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
  *
  * Return value: Number of total sample characters in the cvXX feature.
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 unsigned int
 hb_ot_layout_feature_get_characters (hb_face_t      *face,

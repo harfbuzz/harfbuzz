@@ -228,7 +228,7 @@ test_subset_glyf_strip_hints_composite (void)
 static void
 test_subset_glyf_strip_hints_invalid (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/oom-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
+  hb_face_t *face = hb_subset_test_open_font ("../fuzzing/fonts/oom-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
 
   hb_set_t *codepoints = hb_set_create();
   const hb_codepoint_t text[] =

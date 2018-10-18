@@ -61,7 +61,7 @@ hb_set_invert (hb_set_t *set);
 /**
  * hb_unicode_eastasian_width_func_t:
  *
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  */
 typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t *ufuncs,
 										 hb_codepoint_t      unicode,
@@ -77,7 +77,7 @@ typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t 
  * 
  *
  * Since: 0.9.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN HB_DEPRECATED void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
@@ -88,7 +88,7 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
  * hb_unicode_eastasian_width:
  *
  * Since: 0.9.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN HB_DEPRECATED unsigned int
 hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
@@ -113,7 +113,7 @@ hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
  *
  * Return value: number of codepoints in the full compatibility decomposition of @u, or 0 if no decomposition available.
  *
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  */
 typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_funcs_t *ufuncs,
 											 hb_codepoint_t      u,
@@ -125,7 +125,7 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
  *
  * See Unicode 6.1 for details on the maximum decomposition length.
  *
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  */
 #define HB_UNICODE_MAX_DECOMPOSITION_LEN (18+1) /* codepoints */
 
@@ -139,7 +139,7 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
  * 
  *
  * Since: 0.9.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN HB_DEPRECATED void
 hb_unicode_funcs_set_decompose_compatibility_func (hb_unicode_funcs_t *ufuncs,
@@ -150,7 +150,7 @@ hb_unicode_funcs_set_decompose_compatibility_func (hb_unicode_funcs_t *ufuncs,
  * hb_unicode_decompose_compatibility:
  * 
  *
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN HB_DEPRECATED unsigned int
 hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
@@ -174,7 +174,7 @@ typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
  * 
  *
  * Since: 0.9.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_h_kerning_func (hb_font_funcs_t *ffuncs,
@@ -191,7 +191,7 @@ hb_font_funcs_set_glyph_h_kerning_func (hb_font_funcs_t *ffuncs,
  * 
  *
  * Since: 0.9.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.0.0
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_v_kerning_func (hb_font_funcs_t *ffuncs,

@@ -93,12 +93,11 @@ struct TrackData
     float s0 = size_table[idx].to_float ();
     float s1 = size_table[idx + 1].to_float ();
     float t = unlikely (s0 == s1) ? 0.f : (target_size - s0) / (s1 - s0);
-    return (float) t * trackTableEntry.get_value (base, idx + 1, sizes) +
-	   ((float) 1.0 - t) * trackTableEntry.get_value (base, idx, sizes);
-    return 0;
+    return t * trackTableEntry.get_value (base, idx + 1, sizes) +
+	   (1.f - t) * trackTableEntry.get_value (base, idx, sizes);
   }
 
-  inline float get_tracking (const void *base, float ptem) const
+  inline int get_tracking (const void *base, float ptem) const
   {
     /* CoreText points are CSS pixels (96 per inch),
      * NOT typographic points (72 per inch).
@@ -121,7 +120,7 @@ struct TrackData
 
       if (trackTable[i].get_track_value () == 0.f)
       {
-	trackTableEntry = &trackTable[0];
+	trackTableEntry = &trackTable[i];
 	break;
       }
     }
@@ -141,8 +140,8 @@ struct TrackData
       if (size_table[size_index].to_float () >= csspx)
         break;
 
-    return interpolate_at (size_index ? size_index - 1 : 0, csspx,
-			   *trackTableEntry, base);
+    return round (interpolate_at (size_index ? size_index - 1 : 0, csspx,
+				  *trackTableEntry, base));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -193,7 +192,7 @@ struct trak
     if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
     {
       const TrackData &trackData = this+horizData;
-      float tracking = trackData.get_tracking (this, ptem);
+      int tracking = trackData.get_tracking (this, ptem);
       hb_position_t offset_to_add = c->font->em_scalef_x (tracking / 2);
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
@@ -205,7 +204,7 @@ struct trak
     else
     {
       const TrackData &trackData = this+vertData;
-      float tracking = trackData.get_tracking (this, ptem);
+      int tracking = trackData.get_tracking (this, ptem);
       hb_position_t offset_to_add = c->font->em_scalef_y (tracking / 2);
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)

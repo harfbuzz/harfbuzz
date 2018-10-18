@@ -291,10 +291,27 @@ struct Lookup
   LookupFormat8<T>	format8;
   } u;
   public:
-  DEFINE_SIZE_MIN (0); /* 0 min size, makes sure this cannot be used on null pool,
-			* because Format0 has unbounded size depending on num_glyphs.
-			* We cannot define custom null bytes for a template :(. */
+  DEFINE_SIZE_UNION (2, format);
 };
+/* Lookup 0 has unbounded size (dependant on num_glyphs).  So we need to defined
+ * special NULL objects for Lookup<> objects, but since it's template our macros
+ * don't work.  So we have to hand-code them here.  UGLY. */
+} /* Close namespace. */
+/* Ugly hand-coded null objects for template Lookup<> :(. */
+extern HB_INTERNAL const unsigned char _hb_Null_AAT_Lookup[2];
+template <>
+/*static*/ inline const AAT::Lookup<OT::HBUINT16>& Null<AAT::Lookup<OT::HBUINT16> > (void) {
+  return *reinterpret_cast<const AAT::Lookup<OT::HBUINT16> *> (_hb_Null_AAT_Lookup);
+}
+template <>
+/*static*/ inline const AAT::Lookup<OT::HBUINT32>& Null<AAT::Lookup<OT::HBUINT32> > (void) {
+  return *reinterpret_cast<const AAT::Lookup<OT::HBUINT32> *> (_hb_Null_AAT_Lookup);
+}
+template <>
+/*static*/ inline const AAT::Lookup<OT::Offset<OT::HBUINT16, false> >& Null<AAT::Lookup<OT::Offset<OT::HBUINT16, false> > > (void) {
+  return *reinterpret_cast<const AAT::Lookup<OT::Offset<OT::HBUINT16, false> > *> (_hb_Null_AAT_Lookup);
+}
+namespace AAT {
 
 
 /*
@@ -405,6 +422,8 @@ struct StateTable
 				     num_states,
 				     num_classes * states[0].static_size)))
 	return_trace (false);
+      if ((c->max_ops -= num_states - state) < 0)
+	return_trace (false);
       { /* Sweep new states. */
 	const HBUINT16 *stop = &states[num_states * num_classes];
 	for (const HBUINT16 *p = &states[state * num_classes]; p < stop; p++)
@@ -413,6 +432,8 @@ struct StateTable
       }
 
       if (unlikely (!c->check_array (entries, num_entries)))
+	return_trace (false);
+      if ((c->max_ops -= num_entries - entry) < 0)
 	return_trace (false);
       { /* Sweep new entries. */
 	const Entry<Extra> *stop = &entries[num_entries];

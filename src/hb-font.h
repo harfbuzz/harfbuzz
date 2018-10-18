@@ -237,7 +237,7 @@ hb_font_funcs_set_nominal_glyph_func (hb_font_funcs_t *ffuncs,
  *
  *
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 HB_EXTERN void
 hb_font_funcs_set_nominal_glyphs_func (hb_font_funcs_t *ffuncs,
