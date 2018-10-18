@@ -45,7 +45,7 @@ _hb_options_init (void)
 {
   hb_options_union_t u;
   u.i = 0;
-  u.opts.initialized = 1;
+  u.opts.initialized = true;
 
   const char *c = getenv ("HB_OPTIONS");
   if (c)
