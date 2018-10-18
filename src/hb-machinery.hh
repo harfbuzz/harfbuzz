@@ -443,10 +443,10 @@ struct hb_sanitize_context_t :
 
   mutable unsigned int debug_depth;
   const char *start, *end;
+  mutable int max_ops;
   private:
   bool writable;
   unsigned int edit_count;
-  mutable int max_ops;
   hb_blob_t *blob;
   unsigned int num_glyphs;
   bool  num_glyphs_set;

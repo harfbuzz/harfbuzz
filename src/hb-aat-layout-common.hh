@@ -422,6 +422,8 @@ struct StateTable
 				     num_states,
 				     num_classes * states[0].static_size)))
 	return_trace (false);
+      if ((c->max_ops -= num_states - state) < 0)
+	return_trace (false);
       { /* Sweep new states. */
 	const HBUINT16 *stop = &states[num_states * num_classes];
 	for (const HBUINT16 *p = &states[state * num_classes]; p < stop; p++)
@@ -430,6 +432,8 @@ struct StateTable
       }
 
       if (unlikely (!c->check_array (entries, num_entries)))
+	return_trace (false);
+      if ((c->max_ops -= num_entries - entry) < 0)
 	return_trace (false);
       { /* Sweep new entries. */
 	const Entry<Extra> *stop = &entries[num_entries];
