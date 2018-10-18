@@ -308,8 +308,8 @@ template <>
   return *reinterpret_cast<const AAT::Lookup<OT::HBUINT32> *> (_hb_Null_AAT_Lookup);
 }
 template <>
-/*static*/ inline const AAT::Lookup<OT::Offset<OT::HBUINT16, false>>& Null<AAT::Lookup<OT::Offset<OT::HBUINT16, false>> > (void) {
-  return *reinterpret_cast<const AAT::Lookup<OT::Offset<OT::HBUINT16, false>> *> (_hb_Null_AAT_Lookup);
+/*static*/ inline const AAT::Lookup<OT::Offset<OT::HBUINT16, false> >& Null<AAT::Lookup<OT::Offset<OT::HBUINT16, false> > > (void) {
+  return *reinterpret_cast<const AAT::Lookup<OT::Offset<OT::HBUINT16, false> > *> (_hb_Null_AAT_Lookup);
 }
 namespace AAT {
 
