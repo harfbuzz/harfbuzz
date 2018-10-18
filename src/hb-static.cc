@@ -41,6 +41,10 @@ hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_
 DEFINE_NULL_NAMESPACE_BYTES (OT, Index) =  {0xFF,0xFF};
 DEFINE_NULL_NAMESPACE_BYTES (OT, LangSys) = {0x00,0x00, 0xFF,0xFF, 0x00,0x00};
 DEFINE_NULL_NAMESPACE_BYTES (OT, RangeRecord) = {0x00,0x01, 0x00,0x00, 0x00, 0x00};
+/* Hand-coded because Lookup is a template.
+ * Not sure why I need the extern "C" :(.
+ * Sad. */
+extern "C" HB_INTERNAL const unsigned char _hb_Null_AAT_Lookup[2] = {0xFF, 0xFF};
 
 
 void
