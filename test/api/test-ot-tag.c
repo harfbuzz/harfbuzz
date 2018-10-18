@@ -464,8 +464,8 @@ test_tags (hb_script_t  script,
   unsigned int i;
   hb_tag_t *script_tags = malloc (script_count * sizeof (hb_tag_t));
   hb_tag_t *language_tags = malloc (language_count * sizeof (hb_tag_t));
-  g_assert_nonnull (script_tags);
-  g_assert_nonnull (language_tags);
+  g_assert (script_tags);
+  g_assert (language_tags);
   hb_language_t lang = hb_language_from_string (lang_s, -1);
   va_start (expected_tags, expected_language_count);
 
