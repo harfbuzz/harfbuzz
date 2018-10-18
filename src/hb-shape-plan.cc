@@ -64,7 +64,7 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 
   if (likely (!shaper_list)) {
     for (unsigned int i = 0; i < HB_SHAPERS_COUNT; i++)
-      if (0)
+      if (false)
 	;
 #define HB_SHAPER_IMPLEMENT(shaper) \
       else if (shapers[i].func == _hb_##shaper##_shape) \
@@ -73,7 +73,7 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 #undef HB_SHAPER_IMPLEMENT
   } else {
     for (; *shaper_list; shaper_list++)
-      if (0)
+      if (false)
 	;
 #define HB_SHAPER_IMPLEMENT(shaper) \
       else if (0 == strcmp (*shaper_list, #shaper)) \
@@ -346,7 +346,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
 
-  if (0)
+  if (false)
     ;
 #define HB_SHAPER_IMPLEMENT(shaper) \
   else if (shape_plan->shaper_func == _hb_##shaper##_shape) \
@@ -501,7 +501,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
     /* Choose shaper.  Adapted from hb_shape_plan_plan().
      * Must choose shaper exactly the same way as that function. */
     for (const char * const *shaper_item = shaper_list; *shaper_item; shaper_item++)
-      if (0)
+      if (false)
 	;
 #define HB_SHAPER_IMPLEMENT(shaper) \
       else if (0 == strcmp (*shaper_item, #shaper) && \
