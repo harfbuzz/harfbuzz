@@ -227,7 +227,8 @@ struct hb_sanitize_context_t :
   inline hb_sanitize_context_t (void) :
 	debug_depth (0),
 	start (nullptr), end (nullptr),
-	writable (false), edit_count (0), max_ops (0),
+	max_ops (0),
+	writable (false), edit_count (0),
 	blob (nullptr),
 	num_glyphs (65536),
 	num_glyphs_set (false) {}
