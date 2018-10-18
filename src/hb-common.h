@@ -401,13 +401,13 @@ typedef void (*hb_destroy_func_t) (void *user_data);
 /**
  * HB_FEATURE_GLOBAL_START
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  */
 #define HB_FEATURE_GLOBAL_START	0
 /**
  * HB_FEATURE_GLOBAL_END
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  */
 #define HB_FEATURE_GLOBAL_END	((unsigned int) -1)
 

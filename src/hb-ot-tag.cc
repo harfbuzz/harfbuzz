@@ -336,7 +336,7 @@ parse_private_use_subtag (const char     *private_use_subtag,
  *
  * Converts an #hb_script_t and an #hb_language_t to script and language tags.
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 void
 hb_ot_tags_from_script_and_language (hb_script_t   script,
@@ -448,7 +448,7 @@ hb_ot_tag_to_language (hb_tag_t tag)
  * Converts a script tag and a language tag to an #hb_script_t and an
  * #hb_language_t.
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 void
 hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,

@@ -37,14 +37,14 @@ HB_BEGIN_DECLS
 /**
  * hb_name_id_t:
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  */
 typedef unsigned int hb_name_id_t;
 
 /**
  * HB_NAME_ID_INVALID
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 #define HB_NAME_ID_INVALID 0xFFFF
 

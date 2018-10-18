@@ -1190,7 +1190,7 @@ hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
  * U+0020 SPACE character is used.  Otherwise, this value is used
  * verbatim.
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 void
 hb_buffer_set_invisible_glyph (hb_buffer_t    *buffer,
@@ -1211,7 +1211,7 @@ hb_buffer_set_invisible_glyph (hb_buffer_t    *buffer,
  * Return value: 
  * The @buffer invisible #hb_codepoint_t.
  *
- * Since: REPLACEME
+ * Since: 2.0.0
  **/
 hb_codepoint_t
 hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
