@@ -31,20 +31,20 @@ static void
 test_map_basic (void)
 {
   hb_map_t *empty = hb_map_get_empty ();
-  g_assert (!hb_map_is_empty (empty)); /* this feels wrong */
+  g_assert (hb_map_is_empty (empty));
   g_assert (!hb_map_allocation_successful (empty));
   hb_map_destroy (empty);
 
   hb_map_t *m = hb_map_create ();
   g_assert (hb_map_allocation_successful (m));
-  g_assert (!hb_map_is_empty (m)); /* this as well */
+  g_assert (hb_map_is_empty (m));
 
   hb_map_set (m, 213, 223);
   hb_map_set (m, 643, 675);
   g_assert_cmpint (hb_map_get_population (m), ==, 2);
 
   g_assert_cmpint (hb_map_get (m, 213), ==, 223);
-  g_assert (hb_map_get (m, 123) == -1);
+  g_assert (!hb_map_has (m, 123));
   g_assert (hb_map_has (m, 213));
 
   hb_map_del (m, 213);
@@ -94,12 +94,14 @@ test_map_refcount ()
 
   hb_map_t *m2 = hb_map_reference (m);
   hb_map_destroy (m);
+
+  /* We copied its reference so it is still usable after one destroy */
   g_assert (hb_map_has (m, 213));
   g_assert (hb_map_has (m2, 213));
 
   hb_map_destroy (m2);
-  g_assert (hb_map_has (m, 213)); /* shouldn't these return false? */
-  g_assert (hb_map_has (m2, 213));
+
+  /* Now you can't access them anymore */
 }
 
 int
@@ -109,6 +111,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_map_basic);
   hb_test_add (test_map_userdata);
+  hb_test_add (test_map_refcount);
 
   return hb_test_run();
 }
