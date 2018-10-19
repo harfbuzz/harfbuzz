@@ -201,7 +201,6 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
     if (count)
     {
       unsigned int layer_count = MIN<unsigned int>(*count, num_layers - start_offset);
-      printf ("%d ", *count);
       for (unsigned int i = 0; i < layer_count; i++)
       {
 	if (colr.get_layer_record (start_layer_index + start_offset + i,
