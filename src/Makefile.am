@@ -283,6 +283,8 @@ harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
+harfbuzz-deprecated.def: $(srcdir)/hb-deprecated.h
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 
 
 GENERATORS = \
