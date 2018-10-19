@@ -160,7 +160,7 @@ typedef struct OffsetTable
 
       memcpy (start, hb_blob_get_data (blob, nullptr), rec.length);
 
-      /* 4-byte allignment. */
+      /* 4-byte alignment. */
       c->align (4);
       const char *end = (const char *) c->head;
 

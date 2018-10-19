@@ -718,7 +718,7 @@ struct Lookup
     return_trace (true);
   }
 
-  /* Older compileres need this to NOT be locally defined in a function. */
+  /* Older compilers need this to NOT be locally defined in a function. */
   template <typename TSubTable>
   struct SubTableSubsetWrapper
   {
