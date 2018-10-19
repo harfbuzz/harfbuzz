@@ -28,9 +28,19 @@ environment:
       MINGW_CHOST: i686-w64-mingw32
       MSYS2_ARCH: i686
 
+    - compiler: cygwin
+      CYGWIN_PREFIX: C:\Cygwin64
+      CYGWIN_ARCH: x86_64
+   # Lots of test failures here!
+   #- compiler: cygwin
+   #  CYGWIN_PREFIX: C:\Cygwin
+   #  CYGWIN_ARCH: x86
+
+
 install:
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --force --noconfirm -Sy && pacman --noconfirm --force -S pacman-mirrors && pacman --force -Syu --noconfirm"'
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
+  - 'if "%compiler%"=="cygwin" %CYGWIN_PREFIX%\setup-%CYGWIN_ARCH%.exe -g -q -P cygwin-devel,libfreetype-devel,libcairo-devel,libicu-devel,gcc,gcc-g++,gobject-introspection,libglib2.0-devel,libgraphite2-devel,pkg-config,python2'
 
 build_script:
   - 'if "%compiler%"=="msvc" if not "%platform%"=="ARM" vcpkg install glib:%triplet% freetype:%triplet% cairo:%triplet%'
@@ -49,8 +59,13 @@ build_script:
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "curl https://raw.githubusercontent.com/mirror/mingw-w64/023eb04c396d4e8d8fcf604cfababc53dae13398/mingw-w64-headers/include/dwrite_1.h > %MINGW_PREFIX%/%MINGW_CHOST%/include/dwrite_1.h"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --with-directwrite --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make; make check || .ci/fail.sh"'
 
+  - 'if "%compiler%"=="cygwin" set PATH=%PATH%;c:\msys64\mingw64\bin' # msys2 is added just for having "ragel" on PATH
+  - 'if "%compiler%"=="cygwin" curl https://raw.githubusercontent.com/mirror/mingw-w64/023eb04c396d4e8d8fcf604cfababc53dae13398/mingw-w64-headers/include/dwrite_1.h -o %CYGWIN_PREFIX%\usr\include\dwrite_1.h'
+  - 'if "%compiler%"=="cygwin" %CYGWIN_PREFIX%\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --with-directwrite; make; make check || .ci/fail.sh"'
+
 cache:
   - c:\tools\vcpkg\installed\
+  - '%CYGWIN_PREFIX%\var\cache\setup'
 
 notifications:
   - provider: Email
