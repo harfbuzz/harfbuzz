@@ -5,6 +5,24 @@ from __future__ import print_function, division, absolute_import
 import sys, os, subprocess, tempfile, threading
 
 
+def which(program):
+	# https://stackoverflow.com/a/377028
+	def is_exe(fpath):
+		return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+	fpath, _ = os.path.split(program)
+	if fpath:
+		if is_exe(program):
+			return program
+	else:
+		for path in os.environ["PATH"].split(os.pathsep):
+			exe_file = os.path.join(path, program)
+			if is_exe(exe_file):
+				return exe_file
+
+	return None
+
+
 def cmd(command):
 	# https://stackoverflow.com/a/4408409
 	# https://stackoverflow.com/a/10012262
@@ -49,6 +67,8 @@ please provide it as the first argument to the tool""")
 print ('hb_shape_fuzzer:', hb_shape_fuzzer)
 fails = 0
 
+valgrind = which ('valgrind')
+
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
 	path = os.path.join(parent_path, file)
@@ -56,8 +76,19 @@ for file in os.listdir (parent_path):
 	text, returncode = cmd ([hb_shape_fuzzer, path])
 	print (text)
 
+	failed = False
 	if returncode != 0 or 'error' in text:
 		print ('failure on %s' % file)
+		failed = True
+
+	if valgrind:
+		text, returncode = cmd ([valgrind, '--error-exitcode=1', hb_shape_fuzzer, path])
+		if returncode:
+			print (text)
+			print ('failure on %s' % file)
+			failed = True
+
+	if failed:
 		fails = fails + 1
 
 if fails:
