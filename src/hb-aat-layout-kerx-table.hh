@@ -143,12 +143,12 @@ struct KerxSubTableFormat1
 
       if (flags & Reset)
       {
-        depth = 0;
+	depth = 0;
       }
 
       if (flags & Push)
       {
-        if (likely (depth < ARRAY_LENGTH (stack)))
+	if (likely (depth < ARRAY_LENGTH (stack)))
 	  stack[depth++] = buffer->idx;
 	else
 	  depth = 0; /* Probably not what CoreText does, but better? */
@@ -157,14 +157,14 @@ struct KerxSubTableFormat1
       if (entry->data.kernActionIndex != 0xFFFF)
       {
 	const FWORD *actions = &kernAction[entry->data.kernActionIndex];
-        if (!c->sanitizer.check_array (actions, depth))
+	if (!c->sanitizer.check_array (actions, depth))
 	{
 	  depth = 0;
 	  return false;
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
-        for (unsigned int i = 0; i < depth; i++)
+	for (unsigned int i = 0; i < depth; i++)
 	{
 	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
 	   * and applies the kerning value to it.", it doesn't mean it in that order.
