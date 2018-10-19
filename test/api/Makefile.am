@@ -33,6 +33,7 @@ TEST_PROGS = \
 	test-collect-unicodes \
 	test-common \
 	test-font \
+	test-map \
 	test-object \
 	test-set \
 	test-shape \
@@ -174,7 +175,10 @@ symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
 	| sort | uniq > $@.tmp && mv $@.tmp $@
 symbols-untested.txt: symbols-tested-or-deprecated.txt symbols-exported.txt
 	$(AM_V_GEN)diff $^ > $@.tmp; mv $@.tmp $@
-CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
+CLEANFILES += symbols-tested.txt \
+	symbols-exported.txt \
+	symbols-untested.txt \
+	symbols-tested-or-deprecated.txt
 check-symbols: symbols-untested.txt
 	@! cat $^ | grep .
 

@@ -269,7 +269,7 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-deprecated.def
 if HAVE_GOBJECT
 DEF_FILES += harfbuzz-gobject.def
 endif
