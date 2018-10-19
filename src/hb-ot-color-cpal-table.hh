@@ -28,8 +28,8 @@
 #ifndef HB_OT_COLOR_CPAL_TABLE_HH
 #define HB_OT_COLOR_CPAL_TABLE_HH
 
-#include "hb-ot-color.h"
 #include "hb-open-type.hh"
+#include "hb-ot-color.h"
 
 
 /*
