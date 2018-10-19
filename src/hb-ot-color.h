@@ -49,6 +49,11 @@ HB_BEGIN_DECLS
  */
 typedef uint32_t hb_ot_color_t;
 
+#define hb_ot_color_get_alpha(color) (color & 0xFF)
+#define hb_ot_color_get_red(color)   ((color >> 8) & 0xFF)
+#define hb_ot_color_get_green(color) ((color >> 16) & 0xFF)
+#define hb_ot_color_get_blue(color)  ((color >> 24) & 0xFF)
+
 HB_EXTERN hb_bool_t
 hb_ot_color_has_cpal_data (hb_face_t *face);
 
@@ -74,11 +79,11 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 
 HB_EXTERN unsigned int
 hb_ot_color_get_color_layers (hb_face_t       *face,
-                              hb_codepoint_t   gid,
-                              unsigned int     offset,
-                              unsigned int    *count, /* IN/OUT */
-                              hb_codepoint_t  *gids, /* OUT */
-                              unsigned int    *color_indices /* OUT */);
+			      hb_codepoint_t   gid,
+			      unsigned int     offset,
+			      unsigned int    *count, /* IN/OUT */
+			      hb_codepoint_t  *gids, /* OUT */
+			      unsigned int    *color_indices /* OUT */);
 
 HB_END_DECLS
 

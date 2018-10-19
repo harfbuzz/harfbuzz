@@ -151,10 +151,10 @@ static void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 	    uint32_t color = 0xFF;
             if (color_indices[layer] != 0xFFFF)
 	      color = colors[color_indices[layer]];
-	    int alpha = color & 0xFF;
-	    int r = (color >> 8) & 0xFF;
-	    int g = (color >> 16) & 0xFF;
-	    int b = (color >> 24) & 0xFF;
+	    int alpha = hb_ot_color_get_alpha (color);
+	    int r = hb_ot_color_get_red (color);
+	    int g = hb_ot_color_get_green (color);
+	    int b = hb_ot_color_get_blue (color);
 	    cairo_set_source_rgba (cr, r / 255., g / 255., b / 255., alpha);
 
 	    cairo_glyph_t glyph;
