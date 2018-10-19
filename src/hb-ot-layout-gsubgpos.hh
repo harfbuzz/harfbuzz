@@ -582,7 +582,7 @@ struct hb_ot_apply_context_t :
       add_in |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
       /* In the only place that the MULTIPLIED bit is used, Uniscribe
        * seems to only care about the "last" transformation between
-       * Ligature and Multiple substitions.  Ie. if you ligate, expand,
+       * Ligature and Multiple substitutions.  Ie. if you ligate, expand,
        * and ligate again, it forgives the multiplication and acts as
        * if only ligation happened.  As such, clear MULTIPLIED bit.
        */

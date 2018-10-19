@@ -388,7 +388,7 @@ struct GDEF
   { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
 
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
-   * glyph class and other bits, and high 8-bit gthe mark attachment type (if any).
+   * glyph class and other bits, and high 8-bit the mark attachment type (if any).
    * Not to be confused with lookup_props which is very similar. */
   inline unsigned int get_glyph_props (hb_codepoint_t glyph) const
   {
