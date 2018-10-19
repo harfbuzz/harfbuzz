@@ -45,8 +45,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void cbdt_callback (const uint8_t* data, unsigned int length,
-			   unsigned int group, unsigned int gid)
+static void
+cbdt_callback (const uint8_t* data, unsigned int length,
+	       unsigned int group, unsigned int gid)
 {
   char output_path[255];
   sprintf (output_path, "out/cbdt-%d-%d.png", group, gid);
@@ -55,8 +56,9 @@ static void cbdt_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-static void sbix_callback (const uint8_t* data, unsigned int length,
-			   unsigned int group, unsigned int gid)
+static void
+sbix_callback (const uint8_t* data, unsigned int length,
+	       unsigned int group, unsigned int gid)
 {
   char output_path[255];
   sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
@@ -65,8 +67,9 @@ static void sbix_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-static void svg_callback (const uint8_t* data, unsigned int length,
-			  unsigned int start_glyph, unsigned int end_glyph)
+static void
+svg_callback (const uint8_t* data, unsigned int length,
+	      unsigned int start_glyph, unsigned int end_glyph)
 {
   char output_path[255];
   if (start_glyph == end_glyph)
@@ -83,7 +86,8 @@ static void svg_callback (const uint8_t* data, unsigned int length,
   fclose (f);
 }
 
-void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
+static void
+colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 {
   unsigned int upem = hb_face_get_upem (face);
 
@@ -176,8 +180,9 @@ void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
   }
 }
 
-static void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
-			 unsigned int num_glyphs)
+static void
+dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
+	     unsigned int num_glyphs)
 {
   // Dump every glyph available on the font
   return; // disabled for now
@@ -222,7 +227,8 @@ static void dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
   }
 }
 
-int main (int argc, char **argv)
+int
+main (int argc, char **argv)
 {
   if (argc != 2) {
     fprintf (stderr, "usage: %s font-file.ttf\n"
