@@ -149,9 +149,9 @@ struct KerxSubTableFormat1
       if (flags & Push)
       {
         if (likely (depth < ARRAY_LENGTH (stack)))
-	  stack[depth++] = buffer->idx;
-	else
-	  depth = 0; /* Probably not what CoreText does, but better? */
+          stack[depth++] = buffer->idx;
+        else
+          depth = 0; /* Probably not what CoreText does, but better? */
       }
 
       if (entry->data.kernActionIndex != 0xFFFF)
