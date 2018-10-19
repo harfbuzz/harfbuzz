@@ -155,7 +155,7 @@ void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 	    int r = hb_ot_color_get_red (color);
 	    int g = hb_ot_color_get_green (color);
 	    int b = hb_ot_color_get_blue (color);
-	    cairo_set_source_rgba (cr, r / 255.f, g / 255.f, b / 255.f, alpha);
+	    cairo_set_source_rgba (cr, r / 255., g / 255., b / 255., alpha);
 
 	    cairo_glyph_t glyph;
 	    glyph.index = layer_gids[layer];

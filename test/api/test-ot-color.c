@@ -297,12 +297,21 @@ static inline hb_face_t *
 open_font (const char *font_path)
 {
 #if GLIB_CHECK_VERSION(2,37,2)
-  char* path = g_test_build_filename(G_TEST_DIST, font_path, NULL);
+  char *path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
 #else
-  char* path = g_strdup(font_path);
+  char *path = g_strdup (font_path);
 #endif
 
-  return hb_face_create (hb_blob_create_from_file (path), 0);
+  hb_blob_t *blob = hb_blob_create_from_file (path);
+  if (hb_blob_get_length (blob) == 0)
+    g_error ("Font not found.");
+
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  g_free (path);
+
+  return face;
 }
 
 int
