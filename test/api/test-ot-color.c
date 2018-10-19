@@ -293,26 +293,14 @@ test_hb_ot_color_get_palette_colors_v1 (void)
   assert_color_rgba (colors, 2, 0x77, 0x77, 0x77, 0x77);  /* untouched */
 }
 
-static inline hb_face_t *
-open_font (const char *font_path)
-{
-#if GLIB_CHECK_VERSION(2,37,2)
-  char* path = g_test_build_filename(G_TEST_DIST, font_path, NULL);
-#else
-  char* path = g_strdup(font_path);
-#endif
-
-  return hb_face_create (hb_blob_create_from_file (path), 0);
-}
-
 int
 main (int argc, char **argv)
 {
   int status = 0;
 
   hb_test_init (&argc, &argv);
-  cpal_v0 = open_font ("fonts/cpal-v0.ttf");
-  cpal_v1 = open_font ("fonts/cpal-v1.ttf");
+  cpal_v0 = hb_test_open_font_file ("fonts/cpal-v0.ttf");
+  cpal_v1 = hb_test_open_font_file ("fonts/cpal-v1.ttf");
   hb_test_add (test_hb_ot_color_get_palette_count);
   // hb_test_add (test_hb_ot_color_get_palette_name_id_empty);
   // hb_test_add (test_hb_ot_color_get_palette_name_id_v0);
