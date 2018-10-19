@@ -1,21 +1,23 @@
 #include "hb-fuzzer.hh"
 
-#include <iostream>
-#include <iterator>
-#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
-std::string FileToString(const std::string &Path) {
-  /* TODO This silently passes if file does not exist.  Fix it! */
-  std::ifstream T(Path.c_str());
-  return std::string((std::istreambuf_iterator<char>(T)),
-                     std::istreambuf_iterator<char>());
-}
-
 int main(int argc, char **argv) {
-  for (int i = 1; i < argc; i++) {
-    std::string s = FileToString(argv[i]);
-    std::cout << argv[i] << std::endl;
-    LLVMFuzzerTestOneInput((const unsigned char*)s.data(), s.size());
+  hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
+  unsigned int len;
+  const char *font_data = hb_blob_get_data (blob, &len);
+  if (len == 0)
+  {
+    printf ("Font not found.\n");
+    exit (1);
   }
+
+  for (int i = 1; i < argc; i++) {
+    printf ("%s\n", argv[i]);
+    LLVMFuzzerTestOneInput((const uint8_t *) font_data, len);
+  }
+
+  hb_blob_destroy (blob);
 }

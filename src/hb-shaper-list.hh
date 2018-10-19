@@ -39,9 +39,7 @@ HB_SHAPER_IMPLEMENT (graphite2)
 HB_SHAPER_IMPLEMENT (coretext_aat)
 #endif
 
-#ifdef HAVE_OT
 HB_SHAPER_IMPLEMENT (ot) /* <--- This is our main OpenType shaper. */
-#endif
 
 #ifdef HAVE_UNISCRIBE
 HB_SHAPER_IMPLEMENT (uniscribe)

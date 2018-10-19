@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-complex.hh"
 
 
 /* Thai / Lao shaper */
@@ -315,7 +315,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 
   buffer->clear_output ();
   unsigned int count = buffer->len;
-  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
+  for (buffer->idx = 0; buffer->idx < count && buffer->successful;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
     if (likely (!IS_SARA_AM (u))) {
@@ -324,10 +324,10 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     }
 
     /* Is SARA AM. Decompose and reorder. */
-    hb_codepoint_t decomposed[2] = {hb_codepoint_t (NIKHAHIT_FROM_SARA_AM (u)),
-				    hb_codepoint_t (SARA_AA_FROM_SARA_AM (u))};
-    buffer->replace_glyphs (1, 2, decomposed);
-    if (unlikely (buffer->in_error))
+    hb_glyph_info_t &nikhahit = buffer->output_glyph (NIKHAHIT_FROM_SARA_AM (u));
+    _hb_glyph_info_set_continuation (&nikhahit);
+    buffer->replace_glyph (SARA_AA_FROM_SARA_AM (u));
+    if (unlikely (!buffer->successful))
       return;
 
     /* Make Nikhahit be recognized as a ccc=0 mark when zeroing widths. */
@@ -357,7 +357,8 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 	buffer->merge_out_clusters (start - 1, end);
     }
   }
-  buffer->swap_buffers ();
+  if (likely (buffer->successful))
+    buffer->swap_buffers ();
 
   /* If font has Thai GSUB, we are done. */
   if (plan->props.script == HB_SCRIPT_THAI && !plan->map.found_script[0])
@@ -376,7 +377,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   nullptr, /* decompose */
   nullptr, /* compose */
   nullptr, /* setup_masks */
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   false,/* fallback_position */

@@ -42,6 +42,7 @@ HB_BEGIN_DECLS
 /* Just in case */
 #undef G_DISABLE_ASSERT
 
+#define HB_UNUSED	G_GNUC_UNUSED
 
 /* Misc */
 

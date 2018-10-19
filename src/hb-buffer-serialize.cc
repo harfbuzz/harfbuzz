@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-buffer-private.hh"
+#include "hb-buffer.hh"
 
 
 static const char *serialize_formats[] = {
@@ -440,8 +440,8 @@ hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len, /* -1 means nul-terminated */
-			      const char **end_ptr, /* May be nullptr */
-			      hb_font_t *font, /* May be nullptr */
+			      const char **end_ptr, /* May be NULL */
+			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format)
 {
   const char *end;

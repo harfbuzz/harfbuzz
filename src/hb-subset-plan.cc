@@ -24,79 +24,12 @@
  * Google Author(s): Garret Rieger, Roderick Sheeter
  */
 
-#include "hb-subset-private.hh"
-
 #include "hb-subset-plan.hh"
+#include "hb-map.hh"
+#include "hb-set.hh"
+
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
-
-static int
-_hb_codepoint_t_cmp (const void *pa, const void *pb)
-{
-  hb_codepoint_t a = * (hb_codepoint_t *) pa;
-  hb_codepoint_t b = * (hb_codepoint_t *) pb;
-
-  return a < b ? -1 : a > b ? +1 : 0;
-}
-
-hb_bool_t
-hb_subset_plan_new_gid_for_codepoint (const hb_subset_plan_t *plan,
-                                      hb_codepoint_t codepoint,
-                                      hb_codepoint_t *new_gid)
-{
-  // TODO actual map, delete this garbage.
-  for (unsigned int i = 0; i < plan->codepoints.len; i++)
-  {
-    if (plan->codepoints[i] != codepoint) continue;
-    if (!hb_subset_plan_new_gid_for_old_id(plan, plan->gids_to_retain[i], new_gid))
-    {
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-hb_bool_t
-hb_subset_plan_new_gid_for_old_id (const hb_subset_plan_t *plan,
-                                   hb_codepoint_t old_gid,
-                                   hb_codepoint_t *new_gid)
-{
-  // the index in old_gids is the new gid; only up to codepoints.len are valid
-  for (unsigned int i = 0; i < plan->gids_to_retain_sorted.len; i++)
-  {
-    if (plan->gids_to_retain_sorted[i] == old_gid)
-    {
-      *new_gid = i;
-      return true;
-    }
-  }
-  return false;
-}
-
-hb_bool_t
-hb_subset_plan_add_table (hb_subset_plan_t *plan,
-                          hb_tag_t tag,
-                          hb_blob_t *contents)
-{
-  hb_blob_t *source_blob = plan->source->reference_table (tag);
-  DEBUG_MSG(SUBSET, nullptr, "add table %c%c%c%c, dest %d bytes, source %d bytes", HB_UNTAG(tag), hb_blob_get_length (contents), hb_blob_get_length (source_blob));
-  hb_blob_destroy (source_blob);
-  return hb_subset_face_add_table(plan->dest, tag, contents);
-}
-
-static void
-_populate_codepoints (hb_set_t *input_codepoints,
-                      hb_vector_t<hb_codepoint_t>& plan_codepoints)
-{
-  plan_codepoints.alloc (hb_set_get_population (input_codepoints));
-  hb_codepoint_t cp = -1;
-  while (hb_set_next (input_codepoints, &cp)) {
-    hb_codepoint_t *wr = plan_codepoints.push();
-    *wr = cp;
-  }
-  plan_codepoints.qsort (_hb_codepoint_t_cmp);
-}
 
 static void
 _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
@@ -120,63 +53,89 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 }
 
 static void
+_gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
+{
+  hb_auto_t<hb_set_t> lookup_indices;
+  hb_ot_layout_collect_lookups (face,
+                                HB_OT_TAG_GSUB,
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                &lookup_indices);
+  hb_ot_layout_lookups_substitute_closure (face,
+                                           &lookup_indices,
+                                           gids_to_retain);
+}
+
+
+static hb_set_t *
 _populate_gids_to_retain (hb_face_t *face,
-                          hb_vector_t<hb_codepoint_t>& codepoints,
-                          hb_vector_t<hb_codepoint_t>& old_gids,
-                          hb_vector_t<hb_codepoint_t>& old_gids_sorted)
+                          const hb_set_t *unicodes,
+                          bool close_over_gsub,
+                          hb_set_t *unicodes_to_retain,
+                          hb_map_t *codepoint_to_glyph,
+                          hb_vector_t<hb_codepoint_t> *glyphs)
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
   cmap.init (face);
   glyf.init (face);
 
-  hb_auto_t<hb_vector_t<unsigned int> > bad_indices;
+  hb_set_t *initial_gids_to_retain = hb_set_create ();
+  initial_gids_to_retain->add (0); // Not-def
 
-  old_gids.alloc (codepoints.len);
-  for (unsigned int i = 0; i < codepoints.len; i++)
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  while (unicodes->next (&cp))
   {
     hb_codepoint_t gid;
-    if (!cmap.get_nominal_glyph (codepoints[i], &gid))
+    if (!cmap.get_nominal_glyph (cp, &gid))
     {
-      gid = -1;
-      *(bad_indices.push ()) = i;
+      DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
+      continue;
     }
-    *(old_gids.push ()) = gid;
+    unicodes_to_retain->add (cp);
+    codepoint_to_glyph->set (cp, gid);
+    initial_gids_to_retain->add (gid);
   }
 
-  /* Generally there shouldn't be any */
-  while (bad_indices.len > 0)
-  {
-    unsigned int i = bad_indices[bad_indices.len - 1];
-    bad_indices.pop ();
-    DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", codepoints[i]);
-    codepoints.remove (i);
-    old_gids.remove (i);
-  }
+  if (close_over_gsub)
+    // Add all glyphs needed for GSUB substitutions.
+    _gsub_closure (face, initial_gids_to_retain);
 
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
-  // TODO expand with glyphs reached by G*
-  hb_set_t * all_gids_to_retain = hb_set_create ();
-  _add_gid_and_children (glyf, 0, all_gids_to_retain);
-  for (unsigned int i = 0; i < old_gids.len; i++)
-    _add_gid_and_children (glyf, old_gids[i], all_gids_to_retain);
-
-  // Transfer to a sorted list.
-  old_gids_sorted.alloc (hb_set_get_population (all_gids_to_retain));
   hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-  while (hb_set_next (all_gids_to_retain, &gid))
-    *(old_gids_sorted.push ()) = gid;
+  hb_set_t *all_gids_to_retain = hb_set_create ();
+  while (initial_gids_to_retain->next (&gid))
+  {
+    _add_gid_and_children (glyf, gid, all_gids_to_retain);
+  }
+  hb_set_destroy (initial_gids_to_retain);
 
-  hb_set_destroy (all_gids_to_retain);
+  glyphs->alloc (all_gids_to_retain->get_population ());
+  gid = HB_SET_VALUE_INVALID;
+  while (all_gids_to_retain->next (&gid))
+    glyphs->push (gid);
+
   glyf.fini ();
   cmap.fini ();
+
+  return all_gids_to_retain;
+}
+
+static void
+_create_old_gid_to_new_gid_map (const hb_vector_t<hb_codepoint_t> &glyphs,
+                                hb_map_t *glyph_map)
+{
+  for (unsigned int i = 0; i < glyphs.len; i++) {
+    glyph_map->set (glyphs[i], i);
+  }
 }
 
 /**
  * hb_subset_plan_create:
  * Computes a plan for subsetting the supplied face according
- * to a provide profile and input. The plan describes
+ * to a provided input. The plan describes
  * which tables and glyphs should be retained.
  *
  * Return value: New subset plan.
@@ -185,23 +144,26 @@ _populate_gids_to_retain (hb_face_t *face,
  **/
 hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-                       hb_subset_profile_t *profile,
                        hb_subset_input_t   *input)
 {
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
 
-  plan->codepoints.init();
-  plan->gids_to_retain.init();
-  plan->gids_to_retain_sorted.init();
-  plan->source = hb_face_reference (face);
-  plan->dest = hb_subset_face_create ();
   plan->drop_hints = input->drop_hints;
-
-  _populate_codepoints (input->unicodes, plan->codepoints);
-  _populate_gids_to_retain (face,
-                            plan->codepoints,
-                            plan->gids_to_retain,
-                            plan->gids_to_retain_sorted);
+  plan->drop_layout = input->drop_layout;
+  plan->unicodes = hb_set_create();
+  plan->glyphs.init();
+  plan->source = hb_face_reference (face);
+  plan->dest = hb_face_builder_create ();
+  plan->codepoint_to_glyph = hb_map_create();
+  plan->glyph_map = hb_map_create();
+  plan->glyphset = _populate_gids_to_retain (face,
+					     input->unicodes,
+					     !plan->drop_layout,
+					     plan->unicodes,
+					     plan->codepoint_to_glyph,
+					     &plan->glyphs);
+  _create_old_gid_to_new_gid_map (plan->glyphs,
+                                  plan->glyph_map);
 
   return plan;
 }
@@ -216,12 +178,13 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 {
   if (!hb_object_destroy (plan)) return;
 
-  plan->codepoints.fini ();
-  plan->gids_to_retain.fini ();
-  plan->gids_to_retain_sorted.fini ();
-
+  hb_set_destroy (plan->unicodes);
+  plan->glyphs.fini();
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
+  hb_map_destroy (plan->codepoint_to_glyph);
+  hb_map_destroy (plan->glyph_map);
+  hb_set_destroy (plan->glyphset);
 
   free (plan);
 }

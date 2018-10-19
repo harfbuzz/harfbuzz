@@ -27,9 +27,9 @@
 #ifndef HB_AAT_LAYOUT_MORX_TABLE_HH
 #define HB_AAT_LAYOUT_MORX_TABLE_HH
 
-#include "hb-open-type-private.hh"
-#include "hb-aat-layout-common-private.hh"
-#include "hb-ot-layout-common-private.hh"
+#include "hb-open-type.hh"
+#include "hb-aat-layout-common.hh"
+#include "hb-ot-layout-common.hh"
 
 /*
  * morx -- Extended Glyph Metamorphosis
@@ -50,7 +50,8 @@ struct RearrangementSubtable
   struct driver_context_t
   {
     static const bool in_place = true;
-    enum Flags {
+    enum Flags
+    {
       MarkFirst		= 0x8000,	/* If set, make the current glyph the first
 					 * glyph to be rearranged. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
@@ -163,7 +164,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<void> driver (machine, c->buffer, c->face);
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -196,7 +197,8 @@ struct ContextualSubtable
   struct driver_context_t
   {
     static const bool in_place = true;
-    enum Flags {
+    enum Flags
+    {
       SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
       DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
 					 * going to the new state. */
@@ -268,7 +270,7 @@ struct ContextualSubtable
     private:
     bool mark_set;
     unsigned int mark;
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> &subs;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false> &subs;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -309,7 +311,7 @@ struct ContextualSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32> >
+  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false>, false>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
@@ -329,7 +331,8 @@ struct LigatureSubtable
   struct driver_context_t
   {
     static const bool in_place = false;
-    enum Flags {
+    enum Flags
+    {
       SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
 					 * eventual processing. */
       DontAdvance	= 0x4000,	/* Leave the glyph pointer at this glyph for the
@@ -338,7 +341,8 @@ struct LigatureSubtable
 					 * group. */
       Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
     };
-    enum LigActionFlags {
+    enum LigActionFlags
+    {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
 					 * implies storage. */
       LigActionStore	= 0x40000000,	/* Store the ligature at the current cumulated index
@@ -361,7 +365,7 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
-      return !!(entry->flags & PerformAction);
+      return entry->flags & PerformAction;
     }
     inline bool transition (StateTableDriver<EntryData> *driver,
 			    const Entry<EntryData> *entry)
@@ -387,12 +391,20 @@ struct LigatureSubtable
 	unsigned int action_idx = entry->data.ligActionIndex;
 	unsigned int action;
 	unsigned int ligature_idx = 0;
+
+	if (unlikely (!match_length))
+	  return true;
+
+	/* TODO Only when ligation happens? */
+	buffer->merge_out_clusters (match_positions[0], buffer->out_len);
+
+	unsigned int cursor = match_length;
         do
 	{
-	  if (unlikely (!match_length))
-	    return false;
+	  if (unlikely (!cursor))
+	    break;
 
-	  buffer->move_to (match_positions[--match_length]);
+	  buffer->move_to (match_positions[--cursor]);
 
 	  const HBUINT32 &actionData = ligAction[action_idx];
 	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
@@ -400,8 +412,10 @@ struct LigatureSubtable
 
 	  uint32_t uoffset = action & LigActionOffset;
 	  if (uoffset & 0x20000000)
-	    uoffset += 0xC0000000;
+	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
+	  if (buffer->idx >= buffer->len)
+	    return false; // TODO Work on previous instead?
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
 
 	  const HBUINT16 &componentData = component[component_idx];
@@ -414,21 +428,21 @@ struct LigatureSubtable
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
-	    match_positions[match_length++] = buffer->out_len;
 	    buffer->replace_glyph (lig);
 
-	    //ligature_idx = 0; // XXX Yes or no?
+	    /* Now go and delete all subsequent components. */
+	    while (match_length - 1 > cursor)
+	    {
+	      buffer->move_to (match_positions[--match_length]);
+	      buffer->skip_glyph ();
+	      end--;
+	    }
 	  }
-	  else
-	  {
-	    buffer->skip_glyph ();
-	    end--;
-	  }
-	  /* TODO merge_clusters / unsafe_to_break */
 
 	  action_idx++;
 	}
 	while (!(action & LigActionLast));
+	match_length = 0;
 	buffer->move_to (end);
       }
 
@@ -469,11 +483,11 @@ struct LigatureSubtable
   protected:
   StateTable<EntryData>
 		machine;
-  LOffsetTo<UnsizedArrayOf<HBUINT32> >
+  LOffsetTo<UnsizedArrayOf<HBUINT32>, false>
 		ligAction;	/* Offset to the ligature action table. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16> >
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
 		component;	/* Offset to the component table. */
-  LOffsetTo<UnsizedArrayOf<GlyphID> >
+  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
 		ligature;	/* Offset to the actual ligature lists. */
   public:
   DEFINE_SIZE_STATIC (28);
@@ -517,19 +531,201 @@ struct NoncontextualSubtable
 
 struct InsertionSubtable
 {
+  struct EntryData
+  {
+    HBUINT16	currentInsertIndex;	/* Zero-based index into the insertion glyph table.
+					 * The number of glyphs to be inserted is contained
+					 * in the currentInsertCount field in the flags.
+					 * A value of 0xFFFF indicates no insertion is to
+					 * be done. */
+    HBUINT16	markedInsertIndex;	/* Zero-based index into the insertion glyph table.
+					 * The number of glyphs to be inserted is contained
+					 * in the markedInsertCount field in the flags.
+					 * A value of 0xFFFF indicates no insertion is to
+					 * be done. */
+    public:
+    DEFINE_SIZE_STATIC (4);
+  };
+
+  struct driver_context_t
+  {
+    static const bool in_place = false;
+    enum Flags
+    {
+      SetMark		= 0x8000,	/* If set, mark the current glyph. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state.  This does not mean
+					 * that the glyph pointed to is the same one as
+					 * before. If you've made insertions immediately
+					 * downstream of the current glyph, the next glyph
+					 * processed would in fact be the first one
+					 * inserted. */
+      CurrentIsKashidaLike= 0x2000,	/* If set, and the currentInsertList is nonzero,
+					 * then the specified glyph list will be inserted
+					 * as a kashida-like insertion, either before or
+					 * after the current glyph (depending on the state
+					 * of the currentInsertBefore flag). If clear, and
+					 * the currentInsertList is nonzero, then the
+					 * specified glyph list will be inserted as a
+					 * split-vowel-like insertion, either before or
+					 * after the current glyph (depending on the state
+					 * of the currentInsertBefore flag). */
+      MarkedIsKashidaLike= 0x1000,	/* If set, and the markedInsertList is nonzero,
+					 * then the specified glyph list will be inserted
+					 * as a kashida-like insertion, either before or
+					 * after the marked glyph (depending on the state
+					 * of the markedInsertBefore flag). If clear, and
+					 * the markedInsertList is nonzero, then the
+					 * specified glyph list will be inserted as a
+					 * split-vowel-like insertion, either before or
+					 * after the marked glyph (depending on the state
+					 * of the markedInsertBefore flag). */
+      CurrentInsertBefore= 0x0800,	/* If set, specifies that insertions are to be made
+					 * to the left of the current glyph. If clear,
+					 * they're made to the right of the current glyph. */
+      MarkedInsertBefore= 0x0400,	/* If set, specifies that insertions are to be
+					 * made to the left of the marked glyph. If clear,
+					 * they're made to the right of the marked glyph. */
+      CurrentInsertCount= 0x3E0,	/* This 5-bit field is treated as a count of the
+					 * number of glyphs to insert at the current
+					 * position. Since zero means no insertions, the
+					 * largest number of insertions at any given
+					 * current location is 31 glyphs. */
+      MarkedInsertCount= 0x001F,	/* This 5-bit field is treated as a count of the
+					 * number of glyphs to insert at the marked
+					 * position. Since zero means no insertions, the
+					 * largest number of insertions at any given
+					 * marked location is 31 glyphs. */
+    };
+
+    inline driver_context_t (const InsertionSubtable *table,
+			     hb_aat_apply_context_t *c_) :
+	ret (false),
+	c (c_),
+	mark_set (false),
+	mark (0),
+	insertionAction (table+table->insertionAction) {}
+
+    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+			       const Entry<EntryData> *entry)
+    {
+      return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
+	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
+    }
+    inline bool transition (StateTableDriver<EntryData> *driver,
+			    const Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (entry->data.markedInsertIndex != 0xFFFF && mark_set)
+      {
+	unsigned int count = (flags & MarkedInsertCount);
+	unsigned int start = entry->data.markedInsertIndex;
+	const GlyphID *glyphs = &insertionAction[start];
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
+
+	bool before = flags & MarkedInsertBefore;
+
+	unsigned int end = buffer->out_len;
+	buffer->move_to (mark);
+
+	if (buffer->idx < buffer->len && !before)
+	  buffer->copy_glyph ();
+	/* TODO We ignore KashidaLike setting. */
+	for (unsigned int i = 0; i < count; i++)
+	  buffer->output_glyph (glyphs[i]);
+	if (buffer->idx < buffer->len && !before)
+	  buffer->skip_glyph ();
+
+	buffer->move_to (end + count);
+
+	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
+      }
+
+      if (entry->data.currentInsertIndex != 0xFFFF)
+      {
+	unsigned int count = (flags & CurrentInsertCount) >> 5;
+	unsigned int start = entry->data.currentInsertIndex;
+	const GlyphID *glyphs = &insertionAction[start];
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
+
+	bool before = flags & CurrentInsertBefore;
+
+	unsigned int end = buffer->out_len;
+
+	if (buffer->idx < buffer->len && !before)
+	  buffer->copy_glyph ();
+	/* TODO We ignore KashidaLike setting. */
+	for (unsigned int i = 0; i < count; i++)
+	  buffer->output_glyph (glyphs[i]);
+	if (buffer->idx < buffer->len && !before)
+	  buffer->skip_glyph ();
+
+	/* Humm. Not sure where to move to.  There's this wording under
+	 * DontAdvance flag:
+	 *
+	 * "If set, don't update the glyph index before going to the new state.
+	 * This does not mean that the glyph pointed to is the same one as
+	 * before. If you've made insertions immediately downstream of the
+	 * current glyph, the next glyph processed would in fact be the first
+	 * one inserted."
+	 *
+	 * This suggests that if DontAdvance is NOT set, we should move to
+	 * end+count.  If it *was*, then move to end, such that newly inserted
+	 * glyphs are now visible.
+	 *
+	 * https://github.com/harfbuzz/harfbuzz/issues/1224#issuecomment-427691417
+	 */
+	buffer->move_to ((flags & DontAdvance) ? end : end + count);
+      }
+
+      if (flags & SetMark)
+      {
+	mark_set = true;
+	mark = buffer->out_len;
+      }
+
+      return true;
+    }
+
+    public:
+    bool ret;
+    private:
+    hb_aat_apply_context_t *c;
+    bool mark_set;
+    unsigned int mark;
+    const UnsizedArrayOf<GlyphID> &insertionAction;
+  };
+
   inline bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    /* TODO */
-    return_trace (false);
+
+    driver_context_t dc (this, c);
+
+    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    driver.drive (&dc);
+
+    return_trace (dc.ret);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    /* TODO */
-    return_trace (true);
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (c->check_struct (this) && machine.sanitize (c) &&
+		  insertionAction);
   }
+
+  protected:
+  StateTable<EntryData>
+		machine;
+  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
+		insertionAction;	/* Byte offset from stateHeader to the start of
+					 * the insertion glyph table. */
+  public:
+  DEFINE_SIZE_STATIC (20);
 };
 
 
@@ -559,20 +755,33 @@ struct ChainSubtable
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & 0xFF; }
+  inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
-  enum Type {
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* If set, this subtable will only be applied
+					 * to vertical text. If clear, this subtable
+					 * will only be applied to horizontal text. */
+    Backwards		= 0x40000000,	/* If set, this subtable will process glyphs
+					 * in descending order. If clear, it will
+					 * process the glyphs in ascending order. */
+    AllDirections	= 0x20000000,	/* If set, this subtable will be applied to
+					 * both horizontal and vertical text (i.e.
+					 * the state of bit 0x80000000 is ignored). */
+    Logical		= 0x10000000,	/* If set, this subtable will process glyphs
+					 * in logical order (or reverse logical order,
+					 * depending on the value of bit 0x80000000). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type; see following table. */
+  };
+  enum Type
+  {
     Rearrangement	= 0,
     Contextual		= 1,
     Ligature		= 2,
     Noncontextual	= 4,
     Insertion		= 5
   };
-
-  inline void apply (hb_aat_apply_context_t *c) const
-  {
-    dispatch (c);
-  }
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
@@ -619,28 +828,94 @@ struct Chain
 {
   inline void apply (hb_aat_apply_context_t *c) const
   {
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
+    uint32_t flags = defaultFlags;
+    {
+      /* Compute applicable flags.  TODO Should move this to planning
+       * stage and take user-requested features into account. */
+      unsigned int count = featureCount;
+      for (unsigned i = 0; i < count; i++)
+      {
+        const Feature &feature = featureZ[i];
+	if (false) /* XXX Check if feature enabled... */
+	{
+	  flags &= feature.disableFlags;
+	  flags |= feature.enableFlags;
+	}
+      }
+    }
+
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
-      {
-	c->set_lookup_index (c->lookup_index + 1);
-	continue;
-      }
+      bool reverse;
 
-      subtable->apply (c);
-      subtable = &StructAfter<ChainSubtable> (*subtable);
+      if (!(subtable->subFeatureFlags & flags))
+        goto skip;
+
+      if (!(subtable->coverage & ChainSubtable::AllDirections) &&
+	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
+	  bool (subtable->coverage & ChainSubtable::Vertical))
+        goto skip;
+
+      /* Buffer contents is always in logical direction.  Determine if
+       * we need to reverse before applying this subtable.  We reverse
+       * back after if we did reverse indeed.
+       *
+       * Quoting the spac:
+       * """
+       * Bits 28 and 30 of the coverage field control the order in which
+       * glyphs are processed when the subtable is run by the layout engine.
+       * Bit 28 is used to indicate if the glyph processing direction is
+       * the same as logical order or layout order. Bit 30 is used to
+       * indicate whether glyphs are processed forwards or backwards within
+       * that order.
+
+		Bit 30	Bit 28	Interpretation for Horizontal Text
+		0	0	The subtable is processed in layout order
+				(the same order as the glyphs, which is
+				always left-to-right).
+		1	0	The subtable is processed in reverse layout order
+				(the order opposite that of the glyphs, which is
+				always right-to-left).
+		0	1	The subtable is processed in logical order
+				(the same order as the characters, which may be
+				left-to-right or right-to-left).
+		1	1	The subtable is processed in reverse logical order
+				(the order opposite that of the characters, which
+				may be right-to-left or left-to-right).
+       */
+      reverse = subtable->coverage & ChainSubtable::Logical ?
+		bool (subtable->coverage & ChainSubtable::Backwards) :
+		bool (subtable->coverage & ChainSubtable::Backwards) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+
+      if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
+        goto skip;
+
+      if (reverse)
+        c->buffer->reverse ();
+
+      c->sanitizer.set_object (*subtable);
+
+      subtable->dispatch (c);
+
+      if (reverse)
+        c->buffer->reverse ();
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 
+      if (unlikely (!c->buffer->successful)) return;
+
+    skip:
+      subtable = &StructAfter<ChainSubtable> (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
 
   inline unsigned int get_size (void) const { return length; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int major) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int version) const
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||
@@ -648,10 +923,10 @@ struct Chain
 	!c->check_range (this, length))
       return_trace (false);
 
-    if (!c->check_array (featureZ, featureZ[0].static_size, featureCount))
+    if (!c->check_array (featureZ.arrayZ, featureCount))
       return_trace (false);
 
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -669,9 +944,9 @@ struct Chain
   HBUINT32	featureCount;	/* Number of feature subtable entries. */
   HBUINT32	subtableCount;	/* The number of subtables in the chain. */
 
-  Feature	featureZ[VAR];	/* Features. */
-/*ChainSubtable	subtableX[VAR];*//* Subtables. */
-/*subtableGlyphCoverageArray*/	/* Only if major == 3. */
+  UnsizedArrayOf<Feature>	featureZ;	/* Features. */
+/*ChainSubtable	firstSubtable;*//* Subtables. */
+/*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
   DEFINE_SIZE_MIN (16);
@@ -679,21 +954,25 @@ struct Chain
 
 
 /*
- * The 'mort'/'morx' Tables
+ * The 'morx' Table
  */
 
 struct morx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_morx;
 
+  inline bool has_data (void) const { return version != 0; }
+
   inline void apply (hb_aat_apply_context_t *c) const
   {
+    if (unlikely (!c->buffer->successful)) return;
     c->set_lookup_index (0);
-    const Chain *chain = chains;
+    const Chain *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       chain->apply (c);
+      if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain> (*chain);
     }
   }
@@ -701,16 +980,15 @@ struct morx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) ||
-	(version.major >> (sizeof (HBUINT32) == 4 ? 1 : 0)) != 1 ||
+    if (!version.sanitize (c) || version < 2 ||
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain *chain = chains;
+    const Chain *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!chain->sanitize (c, version.major))
+      if (!chain->sanitize (c, version))
 	return_trace (false);
       chain = &StructAfter<Chain> (*chain);
     }
@@ -719,11 +997,12 @@ struct morx
   }
 
   protected:
-  FixedVersion<>version;	/* Version number of the glyph metamorphosis table.
-				 * 1 for mort, 2 or 3 for morx. */
+  HBUINT16	version;	/* Version number of the glyph metamorphosis table.
+				 * 2 or 3. */
+  HBUINT16	unused;		/* Set to 0. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain		chains[VAR];	/* Chains. */
+  Chain		firstChain;	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);

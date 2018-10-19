@@ -24,10 +24,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-#include "hb-debug.hh"
+#include "hb.hh"
 #define HB_SHAPER uniscribe
-#include "hb-shaper-impl-private.hh"
+#include "hb-shaper-impl.hh"
 
 #include <windows.h>
 #include <usp10.h>
@@ -35,7 +34,7 @@
 
 #include "hb-uniscribe.h"
 
-#include "hb-open-file-private.hh"
+#include "hb-open-file.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-tag.h"
 
@@ -191,7 +190,8 @@ hb_ScriptPlaceOpenType(
 }
 
 
-struct hb_uniscribe_shaper_funcs_t {
+struct hb_uniscribe_shaper_funcs_t
+{
   SIOT ScriptItemizeOpenType;
   SSOT ScriptShapeOpenType;
   SPOT ScriptPlaceOpenType;
@@ -221,47 +221,49 @@ struct hb_uniscribe_shaper_funcs_t {
     }
   }
 };
-static hb_uniscribe_shaper_funcs_t *uniscribe_funcs;
+
+
+static void free_static_uniscribe_shaper_funcs (void);
+
+static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
+									 hb_uniscribe_shaper_funcs_lazy_loader_t>
+{
+  static inline hb_uniscribe_shaper_funcs_t *create (void)
+  {
+    hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
+    if (unlikely (!funcs))
+      return nullptr;
+
+    funcs->init ();
 
 #ifdef HB_USE_ATEXIT
-static inline void
-free_uniscribe_funcs (void)
-{
-retry:
-  hb_uniscribe_shaper_funcs_t *local_uniscribe_funcs =
-    (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
-  if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, local_uniscribe_funcs, nullptr))
-    goto retry;
+    atexit (free_static_uniscribe_shaper_funcs);
+#endif
 
-  free (uniscribe_funcs);
+    return funcs;
+  }
+  static inline void destroy (hb_uniscribe_shaper_funcs_t *p)
+  {
+    free ((void *) p);
+  }
+  static inline hb_uniscribe_shaper_funcs_t *get_null (void)
+  {
+    return nullptr;
+  }
+} static_uniscribe_shaper_funcs;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_uniscribe_shaper_funcs (void)
+{
+  static_uniscribe_shaper_funcs.free_instance ();
 }
 #endif
 
 static hb_uniscribe_shaper_funcs_t *
 hb_uniscribe_shaper_get_funcs (void)
 {
-retry:
-  hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
-
-  if (unlikely (!funcs))
-  {
-    funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
-    if (unlikely (!funcs))
-      return nullptr;
-
-    funcs->init ();
-
-    if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, nullptr, funcs)) {
-      free (funcs);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_uniscribe_funcs); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return funcs;
+  return static_uniscribe_shaper_funcs.get_unconst ();
 }
 
 
@@ -310,7 +312,7 @@ HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, font)
  * shaper face data
  */
 
-struct hb_uniscribe_shaper_face_data_t {
+struct hb_uniscribe_face_data_t {
   HANDLE fh;
   hb_uniscribe_shaper_funcs_t *funcs;
   wchar_t face_name[LF_FACESIZE];
@@ -359,7 +361,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
    * full, PS. All of them point to the same name data with our unique name.
    */
 
-  blob = OT::Sanitizer<OT::OpenTypeFontFile>().sanitize (blob);
+  blob = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (blob);
 
   unsigned int length, new_length, name_str_len;
   const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
@@ -384,13 +386,13 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   memcpy(new_sfnt_data, orig_sfnt_data, length);
 
-  OT::name &name = OT::StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
+  OT::name &name = StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
   name.format.set (0);
   name.count.set (ARRAY_LENGTH (name_IDs));
   name.stringOffset.set (name.get_size ());
   for (unsigned int i = 0; i < ARRAY_LENGTH (name_IDs); i++)
   {
-    OT::NameRecord &record = name.nameRecord[i];
+    OT::NameRecord &record = name.nameRecordZ[i];
     record.platformID.set (3);
     record.encodingID.set (1);
     record.languageID.set (0x0409u); /* English */
@@ -400,7 +402,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   }
 
   /* Copy string data from new_name, converting wchar_t to UTF16BE. */
-  unsigned char *p = &OT::StructAfter<unsigned char> (name);
+  unsigned char *p = &StructAfter<unsigned char> (name);
   for (unsigned int i = 0; i < name_str_len; i++)
   {
     *p++ = new_name[i] >> 8;
@@ -440,10 +442,10 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 			 HB_MEMORY_MODE_WRITABLE, nullptr, free);
 }
 
-hb_uniscribe_shaper_face_data_t *
+hb_uniscribe_face_data_t *
 _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 {
-  hb_uniscribe_shaper_face_data_t *data = (hb_uniscribe_shaper_face_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_face_data_t));
+  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -480,7 +482,7 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 }
 
 void
-_hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_shaper_face_data_t *data)
+_hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_face_data_t *data)
 {
   RemoveFontMemResourceEx (data->fh);
   free (data);
@@ -491,7 +493,7 @@ _hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_shaper_face_data_t *data)
  * shaper font data
  */
 
-struct hb_uniscribe_shaper_font_data_t {
+struct hb_uniscribe_font_data_t {
   HDC hdc;
   LOGFONTW log_font;
   HFONT hfont;
@@ -509,19 +511,19 @@ populate_log_font (LOGFONTW  *lf,
   lf->lfCharSet = DEFAULT_CHARSET;
 
   hb_face_t *face = font->face;
-  hb_uniscribe_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  hb_uniscribe_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
   memcpy (lf->lfFaceName, face_data->face_name, sizeof (lf->lfFaceName));
 
   return true;
 }
 
-hb_uniscribe_shaper_font_data_t *
+hb_uniscribe_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
   if (unlikely (!hb_uniscribe_shaper_face_data_ensure (font->face))) return nullptr;
 
-  hb_uniscribe_shaper_font_data_t *data = (hb_uniscribe_shaper_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
+  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -560,7 +562,7 @@ _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 }
 
 void
-_hb_uniscribe_shaper_font_data_destroy (hb_uniscribe_shaper_font_data_t *data)
+_hb_uniscribe_shaper_font_data_destroy (hb_uniscribe_font_data_t *data)
 {
   if (data->hdc)
     ReleaseDC (nullptr, data->hdc);
@@ -575,7 +577,7 @@ LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
   if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return nullptr;
-  hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
+  hb_uniscribe_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return &font_data->log_font;
 }
 
@@ -583,7 +585,7 @@ HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)
 {
   if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return nullptr;
-  hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
+  hb_uniscribe_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return font_data->hfont;
 }
 
@@ -592,20 +594,20 @@ hb_uniscribe_font_get_hfont (hb_font_t *font)
  * shaper shape_plan data
  */
 
-struct hb_uniscribe_shaper_shape_plan_data_t {};
+struct hb_uniscribe_shape_plan_data_t {};
 
-hb_uniscribe_shaper_shape_plan_data_t *
+hb_uniscribe_shape_plan_data_t *
 _hb_uniscribe_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
 					     const hb_feature_t *user_features HB_UNUSED,
 					     unsigned int        num_user_features HB_UNUSED,
 					     const int          *coords HB_UNUSED,
 					     unsigned int        num_coords HB_UNUSED)
 {
-  return (hb_uniscribe_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_uniscribe_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shaper_shape_plan_data_t *data HB_UNUSED)
+_hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shape_plan_data_t *data HB_UNUSED)
 {
 }
 
@@ -623,8 +625,8 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 		     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  hb_uniscribe_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  hb_uniscribe_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+  hb_uniscribe_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  hb_uniscribe_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
   hb_uniscribe_shaper_funcs_t *funcs = face_data->funcs;
 
   /*
@@ -646,15 +648,11 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       feature_event_t *event;
 
       event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = features[i].start;
       event->start = true;
       event->feature = feature;
 
       event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = features[i].end;
       event->start = false;
       event->feature = feature;
@@ -668,8 +666,6 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       feature.order = num_features + 1;
 
       feature_event_t *event = feature_events.push ();
-      if (unlikely (!event))
-	goto fail_features;
       event->index = 0; /* This value does magic. */
       event->start = false;
       event->feature = feature;
@@ -686,8 +682,6 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         /* Save a snapshot of active features and the range. */
 	range_record_t *range = range_records.push ();
-	if (unlikely (!range))
-	  goto fail_features;
 
 	unsigned int offset = feature_records.len;
 
@@ -696,10 +690,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 	{
 	  if (!j || active_features[j].rec.tagFeature != feature_records[feature_records.len - 1].tagFeature)
 	  {
-	    OPENTYPE_FEATURE_RECORD *feature = feature_records.push ();
-	    if (unlikely (!feature))
-	      goto fail_features;
-	    *feature = active_features[j].rec;
+	    feature_records.push (active_features[j].rec);
 	  }
 	  else
 	  {
@@ -718,32 +709,27 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 	last_index = event->index;
       }
 
-      if (event->start) {
-        active_feature_t *feature = active_features.push ();
-	if (unlikely (!feature))
-	  goto fail_features;
-	*feature = event->feature;
-      } else {
+      if (event->start)
+      {
+	active_features.push (event->feature);
+      }
+      else
+      {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.array);
+	  active_features.remove (feature - active_features.arrayZ());
       }
     }
 
     if (!range_records.len) /* No active feature found. */
-      goto fail_features;
+      num_features = 0;
 
     /* Fixup the pointers. */
     for (unsigned int i = 0; i < range_records.len; i++)
     {
       range_record_t *range = &range_records[i];
-      range->props.potfRecords = feature_records.array + reinterpret_cast<uintptr_t> (range->props.potfRecords);
+      range->props.potfRecords = feature_records.arrayZ() + reinterpret_cast<uintptr_t> (range->props.potfRecords);
     }
-  }
-  else
-  {
-  fail_features:
-    num_features = 0;
   }
 
 #define FAIL(...) \
@@ -916,8 +902,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.array,
-				     range_properties.array,
+				     range_char_counts.arrayZ(),
+				     range_properties.arrayZ(),
 				     range_properties.len,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -957,8 +943,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.array,
-				     range_properties.array,
+				     range_char_counts.arrayZ(),
+				     range_properties.arrayZ(),
 				     range_properties.len,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,

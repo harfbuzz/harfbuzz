@@ -26,8 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-complex-use-private.hh"
-#include "hb-ot-shape-complex-arabic-private.hh"
+#include "hb-ot-shape-complex-use.hh"
+#include "hb-ot-shape-complex-arabic.hh"
 
 /* buffer var allocations */
 #define use_category() complex_var_u8_0()
@@ -86,7 +86,14 @@ other_features[] =
   HB_TAG('h','a','l','n'),
   HB_TAG('p','r','e','s'),
   HB_TAG('p','s','t','s'),
-  /* Positioning features, though we don't care about the types. */
+};
+static const hb_tag_t
+positioning_features[] =
+{
+  /*
+   * Positioning features.
+   * We don't care about the types.
+   */
   HB_TAG('d','i','s','t'),
   HB_TAG('a','b','v','m'),
   HB_TAG('b','l','w','m'),
@@ -122,33 +129,37 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (setup_syllables);
 
   /* "Default glyph pre-processing group" */
-  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
-  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
-  map->add_global_bool_feature (HB_TAG('n','u','k','t'));
-  map->add_global_bool_feature (HB_TAG('a','k','h','n'));
+  map->enable_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('c','c','m','p'));
+  map->enable_feature (HB_TAG('n','u','k','t'));
+  map->enable_feature (HB_TAG('a','k','h','n'), F_MANUAL_ZWJ);
 
   /* "Reordering group" */
   map->add_gsub_pause (clear_substitution_flags);
-  map->add_feature (HB_TAG('r','p','h','f'), 1, F_MANUAL_ZWJ);
+  map->add_feature (HB_TAG('r','p','h','f'), F_MANUAL_ZWJ);
   map->add_gsub_pause (record_rphf);
   map->add_gsub_pause (clear_substitution_flags);
-  map->add_feature (HB_TAG('p','r','e','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('p','r','e','f'), F_MANUAL_ZWJ);
   map->add_gsub_pause (record_pref);
 
   /* "Orthographic unit shaping group" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
-    map->add_feature (basic_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
 
   map->add_gsub_pause (reorder);
 
   /* "Topographical features" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (arabic_features); i++)
-    map->add_feature (arabic_features[i], 1, F_NONE);
+    map->add_feature (arabic_features[i]);
   map->add_gsub_pause (nullptr);
 
-  /* "Standard typographic presentation" and "Positional feature application" */
+  /* "Standard typographic presentation" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->add_feature (other_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
+    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
+
+  /* "Positional feature application" */
+  for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
+    map->enable_feature (positioning_features[i]);
 }
 
 struct use_shape_plan_t
@@ -511,7 +522,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
   buffer->idx = 0;
   unsigned int last_syllable = 0;
-  while (buffer->idx < buffer->len && !buffer->in_error)
+  while (buffer->idx < buffer->len && buffer->successful)
   {
     unsigned int syllable = buffer->cur().syllable();
     syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
@@ -526,7 +537,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
       /* TODO Set glyph_props? */
 
       /* Insert dottedcircle after possible Repha. */
-      while (buffer->idx < buffer->len && !buffer->in_error &&
+      while (buffer->idx < buffer->len && buffer->successful &&
 	     last_syllable == buffer->cur().syllable() &&
 	     buffer->cur().use_category() == USE_R)
         buffer->next_glyph ();
@@ -561,25 +572,6 @@ reorder (const hb_ot_shape_plan_t *plan,
 }
 
 static bool
-decompose_use (const hb_ot_shape_normalize_context_t *c,
-                hb_codepoint_t  ab,
-                hb_codepoint_t *a,
-                hb_codepoint_t *b)
-{
-  switch (ab)
-  {
-    /* Chakma:
-     * Special case where the Unicode decomp gives matras in the wrong order
-     * for cluster validation.
-     */
-    case 0x1112Eu : *a = 0x11127u; *b= 0x11131u; return true;
-    case 0x1112Fu : *a = 0x11127u; *b= 0x11132u; return true;
-  }
-
-  return (bool) c->unicode->decompose (ab, a, b);
-}
-
-static bool
 compose_use (const hb_ot_shape_normalize_context_t *c,
 	     hb_codepoint_t  a,
 	     hb_codepoint_t  b,
@@ -602,10 +594,10 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   nullptr, /* preprocess_text */
   nullptr, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
-  decompose_use,
+  nullptr, /* decompose */
   compose_use,
   setup_masks_use,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
   false, /* fallback_position */

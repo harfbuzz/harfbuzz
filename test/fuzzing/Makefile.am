@@ -18,12 +18,12 @@ EXTRA_DIST += \
 	run-shape-fuzzer-tests.py \
 	run-subset-fuzzer-tests.py \
 	CMakeLists.txt \
+	fonts \
 	$(NULL)
 
 check_PROGRAMS = \
 	hb-shape-fuzzer \
 	hb-subset-fuzzer \
-	hb-subset-get-codepoints-fuzzer \
 	$(NULL)
 
 AM_CPPFLAGS = \
@@ -62,21 +62,6 @@ hb_subset_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(NULL)
 hb_subset_fuzzer_DEPENDENCIES = \
-	lib \
-	$(NULL)
-
-hb_subset_get_codepoints_fuzzer_SOURCES = \
-	hb-fuzzer.hh \
-	hb-subset-get-codepoints-fuzzer.cc \
-	main.cc \
-	$(NULL)
-hb_subset_get_codepoints_fuzzer_LDADD = \
-	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la \
-	$(NULL)
-hb_subset_get_codepoints_fuzzer_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	$(NULL)
-hb_subset_get_codepoints_fuzzer_DEPENDENCIES = \
 	lib \
 	$(NULL)
 

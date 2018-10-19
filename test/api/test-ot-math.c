@@ -100,10 +100,14 @@ test_has_data (void)
   hb_face = hb_face_get_empty ();
   hb_font = hb_font_create (hb_face);
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
+  hb_font_destroy (hb_font);
+  hb_face_destroy (hb_face);
 
   hb_font = hb_font_get_empty ();
   hb_face = hb_font_get_face (hb_font);
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
+  hb_font_destroy (hb_font);
+  hb_face_destroy (hb_face);
 
   cleanupFreeType();
 }
@@ -396,8 +400,8 @@ test_get_min_connector_overlap (void)
   initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
-  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, FALSE), ==, 0); // MathVariants not available
-  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, TRUE), ==, 0); // MathVariants not available
+  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_LTR), ==, 0); // MathVariants not available
+  g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_TTB), ==, 0); // MathVariants not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");

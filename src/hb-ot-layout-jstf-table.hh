@@ -27,7 +27,7 @@
 #ifndef HB_OT_LAYOUT_JSTF_TABLE_HH
 #define HB_OT_LAYOUT_JSTF_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-layout-gpos-table.hh"
 
 
@@ -124,7 +124,7 @@ struct JstfPriority
 struct JstfLangSys : OffsetListOf<JstfPriority>
 {
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<JstfLangSys>::sanitize_closure_t * = nullptr) const
+			const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (OffsetListOf<JstfPriority>::sanitize (c));
@@ -165,7 +165,7 @@ struct JstfScript
   inline const JstfLangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<JstfScript>::sanitize_closure_t * = nullptr) const
+			const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (extenderGlyphs.sanitize (c, this) &&

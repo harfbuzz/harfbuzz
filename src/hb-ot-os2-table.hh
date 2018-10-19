@@ -27,9 +27,8 @@
 #ifndef HB_OT_OS2_TABLE_HH
 #define HB_OT_OS2_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
-#include "hb-subset-plan.hh"
 
 namespace OT {
 
@@ -51,39 +50,38 @@ struct os2
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_os2));
+    hb_blob_t *os2_blob = hb_sanitize_context_t().reference_table<os2> (plan->source);
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     // TODO(grieger): move to hb_blob_copy_writable_or_fail
     hb_blob_destroy (os2_blob);
 
-    OT::os2 *os2_prime = (OT::os2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
+    os2 *os2_prime = (os2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
     if (unlikely (!os2_prime)) {
       hb_blob_destroy (os2_prime_blob);
       return false;
     }
 
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (plan->codepoints, &min_cp, &max_cp);
+    find_min_and_max_codepoint (plan->unicodes, &min_cp, &max_cp);
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
-    _update_unicode_ranges (plan->codepoints, os2_prime->ulUnicodeRange);
-    bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_os2, os2_prime_blob);
+    _update_unicode_ranges (plan->unicodes, os2_prime->ulUnicodeRange);
+    bool result = plan->add_table (HB_OT_TAG_os2, os2_prime_blob);
 
     hb_blob_destroy (os2_prime_blob);
     return result;
   }
 
-  inline void _update_unicode_ranges (const hb_vector_t<hb_codepoint_t> &codepoints,
+  inline void _update_unicode_ranges (const hb_set_t *codepoints,
                                       HBUINT32 ulUnicodeRange[4]) const
   {
     for (unsigned int i = 0; i < 4; i++)
       ulUnicodeRange[i].set (0);
 
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      unsigned int bit = hb_get_unicode_range_bit (cp);
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (codepoints->next (&cp)) {
+      unsigned int bit = _hb_ot_os2_get_unicode_range_bit (cp);
       if (bit < 128)
       {
         unsigned int block = bit / 32;
@@ -101,28 +99,12 @@ struct os2
     }
   }
 
-  static inline void find_min_and_max_codepoint (const hb_vector_t<hb_codepoint_t> &codepoints,
+  static inline void find_min_and_max_codepoint (const hb_set_t *codepoints,
                                                  uint16_t *min_cp, /* OUT */
                                                  uint16_t *max_cp  /* OUT */)
   {
-    hb_codepoint_t min = -1, max = 0;
-
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      if (cp < min)
-        min = cp;
-      if (cp > max)
-        max = cp;
-    }
-
-    if (min > 0xFFFF)
-      min = 0xFFFF;
-    if (max > 0xFFFF)
-      max = 0xFFFF;
-
-    *min_cp = min;
-    *max_cp = max;
+    *min_cp = codepoints->get_min ();
+    *max_cp = codepoints->get_max ();
   }
 
   enum font_page_t {

@@ -14,9 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-unicode-private.hh"
+#include "hb-machinery.hh"
 
 #include "ucdn.h"
 
@@ -164,6 +164,13 @@ static const hb_script_t ucdn_script_translate[] =
     HB_SCRIPT_NUSHU,
     HB_SCRIPT_SOYOMBO,
     HB_SCRIPT_ZANABAZAR_SQUARE,
+    HB_SCRIPT_DOGRA,
+    HB_SCRIPT_GUNJALA_GONDI,
+    HB_SCRIPT_HANIFI_ROHINGYA,
+    HB_SCRIPT_MAKASAR,
+    HB_SCRIPT_MEDEFAIDRIN,
+    HB_SCRIPT_OLD_SOGDIAN,
+    HB_SCRIPT_SOGDIAN,
 };
 
 static hb_unicode_combining_class_t
@@ -172,15 +179,6 @@ hb_ucdn_combining_class(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			void *user_data HB_UNUSED)
 {
     return (hb_unicode_combining_class_t) ucdn_get_combining_class(unicode);
-}
-
-static unsigned int
-hb_ucdn_eastasian_width(hb_unicode_funcs_t *ufuncs HB_UNUSED,
-			hb_codepoint_t unicode,
-			void *user_data HB_UNUSED)
-{
-    int w = ucdn_get_east_asian_width(unicode);
-    return (w == UCDN_EAST_ASIAN_F || w == UCDN_EAST_ASIAN_W) ? 2 : 1;
 }
 
 static hb_unicode_general_category_t
@@ -223,56 +221,48 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return ucdn_decompose(ab, a, b);
 }
 
-static unsigned int
-hb_ucdn_decompose_compatibility(hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t u, hb_codepoint_t *decomposed,
-				void *user_data HB_UNUSED)
-{
-    return ucdn_compat_decompose(u, decomposed);
-}
 
-static hb_unicode_funcs_t *static_ucdn_funcs = nullptr;
+#ifdef HB_USE_ATEXIT
+static void free_static_ucdn_funcs (void);
+#endif
+
+static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_ucdn_unicode_funcs_lazy_loader_t>
+{
+  static inline hb_unicode_funcs_t *create (void)
+  {
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
+
+    hb_unicode_funcs_set_combining_class_func (funcs, hb_ucdn_combining_class, nullptr, nullptr);
+    hb_unicode_funcs_set_general_category_func (funcs, hb_ucdn_general_category, nullptr, nullptr);
+    hb_unicode_funcs_set_mirroring_func (funcs, hb_ucdn_mirroring, nullptr, nullptr);
+    hb_unicode_funcs_set_script_func (funcs, hb_ucdn_script, nullptr, nullptr);
+    hb_unicode_funcs_set_compose_func (funcs, hb_ucdn_compose, nullptr, nullptr);
+    hb_unicode_funcs_set_decompose_func (funcs, hb_ucdn_decompose, nullptr, nullptr);
+
+    hb_unicode_funcs_make_immutable (funcs);
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ucdn_funcs);
+#endif
+
+    return funcs;
+  }
+} static_ucdn_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_ucdn_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *ucdn_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_ucdn_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_ucdn_funcs, ucdn_funcs, nullptr))
-    goto retry;
-
-  hb_unicode_funcs_destroy (ucdn_funcs);
+  static_ucdn_funcs.free_instance ();
 }
 #endif
 
 extern "C" HB_INTERNAL
 hb_unicode_funcs_t *
+hb_ucdn_get_unicode_funcs (void);
+
+hb_unicode_funcs_t *
 hb_ucdn_get_unicode_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_ucdn_funcs);
-
-  if (unlikely (!funcs))
-  {
-    funcs = hb_unicode_funcs_create (nullptr);
-
-#define HB_UNICODE_FUNC_IMPLEMENT(name) \
-    hb_unicode_funcs_set_##name##_func (funcs, hb_ucdn_##name, nullptr, nullptr);
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-
-    hb_unicode_funcs_make_immutable (funcs);
-
-    if (!hb_atomic_ptr_cmpexch (&static_ucdn_funcs, nullptr, funcs)) {
-      hb_unicode_funcs_destroy (funcs);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_static_ucdn_funcs); /* First person registers atexit() callback. */
-#endif
-  };
-
-  return hb_unicode_funcs_reference (funcs);
+  return static_ucdn_funcs.get_unconst ();
 }

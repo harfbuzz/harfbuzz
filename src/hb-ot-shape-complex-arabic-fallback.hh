@@ -27,9 +27,9 @@
 #ifndef HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
 #define HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-ot-shape-private.hh"
+#include "hb-ot-shape.hh"
 #include "hb-ot-layout-gsub-table.hh"
 
 
@@ -79,12 +79,12 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
    * May not be good-enough for presidential candidate interviews, but good-enough for us... */
   hb_stable_sort (&glyphs[0], num_glyphs, (int(*)(const OT::GlyphID*, const OT::GlyphID *)) OT::GlyphID::cmp, &substitutes[0]);
 
-  OT::Supplier<OT::GlyphID> glyphs_supplier      (glyphs, num_glyphs);
-  OT::Supplier<OT::GlyphID> substitutes_supplier (substitutes, num_glyphs);
+  Supplier<OT::GlyphID> glyphs_supplier      (glyphs, num_glyphs);
+  Supplier<OT::GlyphID> substitutes_supplier (substitutes, num_glyphs);
 
   /* Each glyph takes four bytes max, and there's some overhead. */
   char buf[(SHAPING_TABLE_LAST - SHAPING_TABLE_FIRST + 1) * 4 + 128];
-  OT::hb_serialize_context_t c (buf, sizeof (buf));
+  hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_single (&c,
 				       OT::LookupFlag::IgnoreMarks,
@@ -155,15 +155,15 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   if (!num_ligatures)
     return nullptr;
 
-  OT::Supplier<OT::GlyphID>   first_glyphs_supplier                      (first_glyphs, num_first_glyphs);
-  OT::Supplier<unsigned int > ligature_per_first_glyph_count_supplier    (ligature_per_first_glyph_count_list, num_first_glyphs);
-  OT::Supplier<OT::GlyphID>   ligatures_supplier                         (ligature_list, num_ligatures);
-  OT::Supplier<unsigned int > component_count_supplier                   (component_count_list, num_ligatures);
-  OT::Supplier<OT::GlyphID>   component_supplier                         (component_list, num_ligatures);
+  Supplier<OT::GlyphID>   first_glyphs_supplier                      (first_glyphs, num_first_glyphs);
+  Supplier<unsigned int > ligature_per_first_glyph_count_supplier    (ligature_per_first_glyph_count_list, num_first_glyphs);
+  Supplier<OT::GlyphID>   ligatures_supplier                         (ligature_list, num_ligatures);
+  Supplier<unsigned int > component_count_supplier                   (component_count_list, num_ligatures);
+  Supplier<OT::GlyphID>   component_supplier                         (component_list, num_ligatures);
 
   /* 16 bytes per ligature ought to be enough... */
   char buf[ARRAY_LENGTH_CONST (ligature_list) * 16 + 128];
-  OT::hb_serialize_context_t c (buf, sizeof (buf));
+  hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
 					 OT::LookupFlag::IgnoreMarks,
@@ -173,7 +173,6 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					 ligatures_supplier,
 					 component_count_supplier,
 					 component_supplier);
-
   c.end_serialize ();
   /* TODO sanitize the results? */
 
@@ -202,10 +201,8 @@ struct arabic_fallback_plan_t
 
   hb_mask_t mask_array[ARABIC_FALLBACK_MAX_LOOKUPS];
   OT::SubstLookup *lookup_array[ARABIC_FALLBACK_MAX_LOOKUPS];
-  hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
+  OT::hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
 };
-
-static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
 
 #if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_WIN1256)
 #define HB_WITH_WIN1256
@@ -215,7 +212,8 @@ static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
 #include "hb-ot-shape-complex-arabic-win1256.hh"
 #endif
 
-struct ManifestLookup {
+struct ManifestLookup
+{
   OT::Tag tag;
   OT::OffsetTo<OT::SubstLookup> lookupOffset;
 };
@@ -299,7 +297,7 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
 {
   arabic_fallback_plan_t *fallback_plan = (arabic_fallback_plan_t *) calloc (1, sizeof (arabic_fallback_plan_t));
   if (unlikely (!fallback_plan))
-    return const_cast<arabic_fallback_plan_t *> (&arabic_fallback_plan_nil);
+    return const_cast<arabic_fallback_plan_t *> (&Null(arabic_fallback_plan_t));
 
   fallback_plan->num_lookups = 0;
   fallback_plan->free_lookups = false;
@@ -314,14 +312,15 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
   if (arabic_fallback_plan_init_win1256 (fallback_plan, plan, font))
     return fallback_plan;
 
+  assert (fallback_plan->num_lookups == 0);
   free (fallback_plan);
-  return const_cast<arabic_fallback_plan_t *> (&arabic_fallback_plan_nil);
+  return const_cast<arabic_fallback_plan_t *> (&Null(arabic_fallback_plan_t));
 }
 
 static void
 arabic_fallback_plan_destroy (arabic_fallback_plan_t *fallback_plan)
 {
-  if (!fallback_plan || fallback_plan == &arabic_fallback_plan_nil)
+  if (!fallback_plan || fallback_plan->num_lookups == 0)
     return;
 
   for (unsigned int i = 0; i < fallback_plan->num_lookups; i++)

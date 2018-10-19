@@ -83,7 +83,7 @@ free_up (void *user_data)
 }
 
 static hb_blob_t *
-get_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+get_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data HB_UNUSED)
 {
   if (tag == HB_TAG ('a','b','c','d'))
     return hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
@@ -210,10 +210,10 @@ test_fontfuncs_nil (void)
 }
 
 static hb_bool_t
-contour_point_func1 (hb_font_t *font, void *font_data,
-		     hb_codepoint_t glyph, unsigned int point_index,
+contour_point_func1 (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+		     hb_codepoint_t glyph, unsigned int point_index HB_UNUSED,
 		     hb_position_t *x, hb_position_t *y,
-		     void *user_data)
+		     void *user_data HB_UNUSED)
 {
   if (glyph == 1) {
     *x = 2;
@@ -230,10 +230,10 @@ contour_point_func1 (hb_font_t *font, void *font_data,
 }
 
 static hb_bool_t
-contour_point_func2 (hb_font_t *font, void *font_data,
+contour_point_func2 (hb_font_t *font, void *font_data HB_UNUSED,
 		     hb_codepoint_t glyph, unsigned int point_index,
 		     hb_position_t *x, hb_position_t *y,
-		     void *user_data)
+		     void *user_data HB_UNUSED)
 {
   if (glyph == 1) {
     *x = 6;
@@ -246,9 +246,9 @@ contour_point_func2 (hb_font_t *font, void *font_data,
 }
 
 static hb_position_t
-glyph_h_advance_func1 (hb_font_t *font, void *font_data,
+glyph_h_advance_func1 (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 		       hb_codepoint_t glyph,
-		       void *user_data)
+		       void *user_data HB_UNUSED)
 {
   if (glyph == 1)
     return 8;
@@ -361,6 +361,7 @@ test_fontfuncs_subclassing (void)
 
 
   hb_font_destroy (font3);
+  hb_font_destroy (font2);
 }
 
 

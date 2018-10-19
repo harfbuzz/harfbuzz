@@ -27,7 +27,89 @@
 #ifndef HB_OT_KERN_TABLE_HH
 #define HB_OT_KERN_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
+#include "hb-ot-shape.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+
+
+template <typename Driver>
+struct hb_kern_machine_t
+{
+  hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
+
+  HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+  inline void kern (hb_font_t   *font,
+		    hb_buffer_t *buffer,
+		    hb_mask_t    kern_mask,
+		    bool         scale = true) const
+  {
+    OT::hb_ot_apply_context_t c (1, font, buffer);
+    c.set_lookup_mask (kern_mask);
+    c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
+    OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
+    skippy_iter.init (&c);
+
+    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction);
+    unsigned int count = buffer->len;
+    hb_glyph_info_t *info = buffer->info;
+    hb_glyph_position_t *pos = buffer->pos;
+    for (unsigned int idx = 0; idx < count;)
+    {
+      if (!(info[idx].mask & kern_mask))
+      {
+	idx++;
+	continue;
+      }
+
+      skippy_iter.reset (idx, 1);
+      if (!skippy_iter.next ())
+      {
+	idx++;
+	continue;
+      }
+
+      unsigned int i = idx;
+      unsigned int j = skippy_iter.idx;
+
+      hb_position_t kern = driver.get_kerning (info[i].codepoint,
+					       info[j].codepoint);
+
+
+      if (likely (!kern))
+        goto skip;
+
+
+      if (horizontal)
+      {
+        if (scale)
+	  kern = font->em_scale_x (kern);
+	hb_position_t kern1 = kern >> 1;
+	hb_position_t kern2 = kern - kern1;
+	pos[i].x_advance += kern1;
+	pos[j].x_advance += kern2;
+	pos[j].x_offset += kern2;
+      }
+      else
+      {
+        if (scale)
+	  kern = font->em_scale_y (kern);
+	hb_position_t kern1 = kern >> 1;
+	hb_position_t kern2 = kern - kern1;
+	pos[i].y_advance += kern1;
+	pos[j].y_advance += kern2;
+	pos[j].y_offset += kern2;
+      }
+
+      buffer->unsafe_to_break (i, j + 1);
+
+    skip:
+      idx = skippy_iter.idx;
+    }
+  }
+
+  const Driver &driver;
+};
+
 
 /*
  * kern -- Kerning
@@ -116,14 +198,18 @@ struct KernSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   {
+    /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
+     * based from.  I *think* they should be based from beginning of kern subtable wrapper,
+     * *NOT* "this".  Since we know of no fonts that use this subtable, we are disabling
+     * it.  Someday fix it and re-enable.  Better yet, find fonts that use it... Meh,
+     * Windows doesn't implement it.  Maybe just remove... */
+    return 0;
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
-    unsigned int offset = l * rowWidth + r * sizeof (FWORD);
-    const FWORD *arr = &(this+array);
-    if (unlikely ((const void *) arr < (const void *) this || (const void *) arr >= (const void *) end))
-      return 0;
-    const FWORD *v = &StructAtOffset<FWORD> (arr, offset);
-    if (unlikely ((const void *) v < (const void *) arr || (const void *) (v + 1) > (const void *) end))
+    unsigned int offset = l + r;
+    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+    if (unlikely ((const char *) v < (const char *) &array ||
+		  (const char *) v > (const char *) end - 2))
       return 0;
     return *v;
   }
@@ -131,6 +217,7 @@ struct KernSubTableFormat2
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    return_trace (true); /* Disabled.  See above. */
     return_trace (rowWidth.sanitize (c) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
@@ -190,10 +277,10 @@ struct KernSubTableWrapper
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
   inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::COVERAGE_CHECK_FLAGS) == T::COVERAGE_CHECK_HORIZONTAL; }
+  { return (thiz()->coverage & T::CheckFlags) == T::CheckHorizontal; }
 
   inline bool is_override (void) const
-  { return bool (thiz()->coverage & T::COVERAGE_OVERRIDE_FLAG); }
+  { return bool (thiz()->coverage & T::Override); }
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
   { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
@@ -208,7 +295,7 @@ struct KernSubTableWrapper
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (thiz()) &&
 		  thiz()->length >= T::min_size &&
-		  c->check_array (thiz(), 1, thiz()->length) &&
+		  c->check_range (thiz(), thiz()->length) &&
 		  thiz()->subtable.sanitize (c, thiz()->format));
   }
 };
@@ -219,16 +306,16 @@ struct KernTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     int v = 0;
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right, table_length + (const char *) this);
+      v += st->get_h_kerning (left, right, st->length + (const char *) st);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
@@ -241,7 +328,7 @@ struct KernTable
 		  thiz()->version != T::VERSION))
       return_trace (false);
 
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (thiz()->data);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -262,18 +349,20 @@ struct KernOT : KernTable<KernOT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernOT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x01u,
-      COVERAGE_MINIMUM_FLAG	= 0x02u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x04u,
-      COVERAGE_OVERRIDE_FLAG	= 0x08u,
+    enum Coverage
+    {
+      Direction		= 0x01u,
+      Minimum		= 0x02u,
+      CrossStream	= 0x04u,
+      Override		= 0x08u,
 
-      COVERAGE_VARIATION_FLAG	= 0x00u, /* Not supported. */
+      Variation		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0x07u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x01u
+      CheckFlags	= 0x07u,
+      CheckHorizontal	= 0x01u
     };
 
     protected:
@@ -287,11 +376,11 @@ struct KernOT : KernTable<KernOT>
   };
 
   protected:
-  HBUINT16	version;	/* Version--0x0000u */
-  HBUINT16	nTables;	/* Number of subtables in the kerning table. */
-  HBUINT8		data[VAR];
+  HBUINT16			version;	/* Version--0x0000u */
+  HBUINT16			nTables;	/* Number of subtables in the kerning table. */
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
-  DEFINE_SIZE_ARRAY (4, data);
+  DEFINE_SIZE_ARRAY (4, dataZ);
 };
 
 struct KernAAT : KernTable<KernAAT>
@@ -302,17 +391,19 @@ struct KernAAT : KernTable<KernAAT>
 
   struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
   {
+    friend struct KernTable<KernAAT>;
     friend struct KernSubTableWrapper<SubTableWrapper>;
 
-    enum coverage_flags_t {
-      COVERAGE_DIRECTION_FLAG	= 0x80u,
-      COVERAGE_CROSSSTREAM_FLAG	= 0x40u,
-      COVERAGE_VARIATION_FLAG	= 0x20u,
+    enum Coverage
+    {
+      Direction		= 0x80u,
+      CrossStream	= 0x40u,
+      Variation		= 0x20u,
 
-      COVERAGE_OVERRIDE_FLAG	= 0x00u, /* Not supported. */
+      Override		= 0x00u, /* Not supported. */
 
-      COVERAGE_CHECK_FLAGS	= 0xE0u,
-      COVERAGE_CHECK_HORIZONTAL	= 0x00u
+      CheckFlags	= 0xE0u,
+      CheckHorizontal	= 0x00u
     };
 
     protected:
@@ -327,22 +418,25 @@ struct KernAAT : KernTable<KernAAT>
   };
 
   protected:
-  HBUINT32		version;	/* Version--0x00010000u */
-  HBUINT32		nTables;	/* Number of subtables in the kerning table. */
-  HBUINT8		data[VAR];
+  HBUINT32			version;	/* Version--0x00010000u */
+  HBUINT32			nTables;	/* Number of subtables in the kerning table. */
+  UnsizedArrayOf<HBUINT8>	dataZ;
   public:
-  DEFINE_SIZE_ARRAY (8, data);
+  DEFINE_SIZE_ARRAY (8, dataZ);
 };
 
 struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int table_length) const
+  inline bool has_data (void) const
+  { return u.version32 != 0; }
+
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (u.major) {
-    case 0: return u.ot.get_h_kerning (left, right, table_length);
-    case 1: return u.aat.get_h_kerning (left, right, table_length);
+    case 0: return u.ot.get_h_kerning (left, right);
+    case 1: return u.aat.get_h_kerning (left, right);
     default:return 0;
     }
   }
@@ -350,7 +444,7 @@ struct kern
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.major.sanitize (c)) return_trace (false);
+    if (!u.version32.sanitize (c)) return_trace (false);
     switch (u.major) {
     case 0: return_trace (u.ot.sanitize (c));
     case 1: return_trace (u.aat.sanitize (c));
@@ -362,33 +456,53 @@ struct kern
   {
     inline void init (hb_face_t *face)
     {
-      blob = Sanitizer<kern>().sanitize (face->reference_table (HB_OT_TAG_kern));
+      blob = hb_sanitize_context_t().reference_table<kern> (face);
       table = blob->as<kern> ();
-      table_length = blob->length;
     }
     inline void fini (void)
     {
       hb_blob_destroy (blob);
     }
 
+    inline bool has_data (void) const
+    { return table->has_data (); }
+
     inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table->get_h_kerning (left, right, table_length); }
+    { return table->get_h_kerning (left, right); }
+
+    inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
+    { return get_h_kerning (first, second); }
+
+    inline void apply (hb_font_t *font,
+		       hb_buffer_t  *buffer,
+		       hb_mask_t kern_mask) const
+    {
+      /* We only apply horizontal kerning in this table. */
+      if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+        return;
+
+      hb_kern_machine_t<accelerator_t> machine (*this);
+
+      machine.kern (font, buffer, kern_mask);
+    }
 
     private:
     hb_blob_t *blob;
     const kern *table;
-    unsigned int table_length;
   };
 
   protected:
   union {
+  HBUINT32		version32;
   HBUINT16		major;
   KernOT		ot;
   KernAAT		aat;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, major);
+  DEFINE_SIZE_UNION (4, version32);
 };
+
+struct kern_accelerator_t : kern::accelerator_t {};
 
 } /* namespace OT */
 
