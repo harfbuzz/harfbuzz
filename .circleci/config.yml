@@ -90,6 +90,18 @@ jobs:
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
 
+  gcc-valgrind:
+    docker:
+      - image: ubuntu:18.10
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y gcc binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip valgrind
+      - run: pip install fonttools
+      - run: ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
+      - run: make -j32
+      - run: make check || .ci/fail.sh
+
   clang-everything:
     docker:
       - image: ubuntu:18.10
@@ -293,6 +305,7 @@ workflows:
       # autotools based builds
       - alpine-O3-NOMMAP
       - archlinux-debug-O0-py3
+      - gcc-valgrind
       - clang-O3-O0
       - clang-everything
       - clang-asan
