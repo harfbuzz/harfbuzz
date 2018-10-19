@@ -96,7 +96,6 @@ void colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
     hb_codepoint_t *layer_gids = (hb_codepoint_t*) calloc (num_layers, sizeof (hb_codepoint_t));
     unsigned int *color_indices = (unsigned int*) calloc (num_layers, sizeof (unsigned int));
 
-    num_layers = 0;
     hb_ot_color_get_color_layers (face, gid, 0, &num_layers, layer_gids, color_indices);
     if (num_layers)
     {
@@ -243,7 +242,7 @@ int main (int argc, char **argv)
   font_name_file = fopen ("out/_font_name_file.txt", "w");
   if (font_name_file == nullptr)
   {
-    fprintf (stderr, "./out is not accessible, create it please\n");
+    fprintf (stderr, "./out is not accessible as a folder, create it please\n");
     exit (1);
   }
   fwrite (argv[1], 1, strlen (argv[1]), font_name_file);
