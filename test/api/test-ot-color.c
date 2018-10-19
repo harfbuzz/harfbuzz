@@ -102,19 +102,19 @@ static hb_face_t *cpal_v1 = NULL;
   const hb_ot_color_t *_colors = (colors); \
   const size_t _i = (i); \
   const uint8_t red = (r), green = (g), blue = (b), alpha = (a); \
-  if ((_colors[_i] >> 16 & 0xff) != red) { \
+  if (hb_ot_color_get_red (_colors[_i]) != red) { \
     g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
 				"colors[" #i "]", _colors[_i], "==", red, 'x'); \
   } \
-  if ((_colors[_i] >> 8 & 0xff) != green) { \
+  if (hb_ot_color_get_green (_colors[_i]) != green) { \
     g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
 				"colors[" #i "]", _colors[_i], "==", green, 'x'); \
   } \
-  if ((_colors[_i] & 0xff) != blue) { \
+  if (hb_ot_color_get_blue (_colors[_i]) != blue) { \
     g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
 				"colors[" #i "]", colors[_i], "==", blue, 'x'); \
   } \
-  if ((_colors[_i] >> 24 & 0xff) != alpha) { \
+  if (hb_ot_color_get_alpha (_colors[_i]) != alpha) { \
     g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
 				"colors[" #i "]", _colors[_i], "==", alpha, 'x'); \
   } \
@@ -285,7 +285,7 @@ test_hb_ot_color_get_palette_colors_v1 (void)
   // assert_color_rgba (colors, 2, 0x77, 0x77, 0x77, 0x77);  /* untouched */
 
   /* Palette #3 (out of bounds), start_index=0 */
-  memset(colors, 0x77, colors_size);
+  memset (colors, 0x77, colors_size);
   g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v1, 3, 0, &num_colors, colors), ==, 0);
   g_assert_cmpint (num_colors, ==, 0);
   assert_color_rgba (colors, 0, 0x77, 0x77, 0x77, 0x77);  /* untouched */
