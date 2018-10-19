@@ -45,6 +45,21 @@ namespace AAT {
 using namespace OT;
 
 
+static inline int
+kerxTupleKern (int value,
+	       unsigned int tupleCount,
+	       const void *base,
+	       hb_aat_apply_context_t *c)
+{
+  if (likely (!tupleCount)) return value;
+
+  unsigned int offset = value;
+  const FWORD *pv = &StructAtOffset<FWORD> (base, offset);
+  if (unlikely (!pv->sanitize (&c->sanitizer))) return 0;
+  return *pv;
+}
+
+
 struct KerxSubTableHeader
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -65,6 +80,7 @@ struct KerxSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
+    if (header.tupleCount) return 0; /* TODO kerxTupleKern */
     hb_glyph_pair_t pair = {left, right};
     int i = pairs.bsearch (pair);
     return i == -1 ? 0 : pairs[i].get_kerning ();
@@ -201,6 +217,9 @@ struct KerxSubTableFormat1
     if (!c->plan->requested_kerning)
       return false;
 
+    if (header.tupleCount)
+      return_trace (false); /* TODO kerxTupleKern */
+
     driver_context_t dc (this, c);
 
     StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
@@ -236,7 +255,7 @@ struct KerxSubTableFormat2
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-    return *v;
+    return kerxTupleKern (*v, header.tupleCount, this, c);
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -482,7 +501,7 @@ struct KerxSubTableFormat6
       if (unlikely (hb_unsigned_mul_overflows (offset, sizeof (FWORD32)))) return 0;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-      return *v;
+      return kerxTupleKern (*v, header.tupleCount, &(this+vector), c);
     }
     else
     {
@@ -492,7 +511,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-      return *v;
+      return kerxTupleKern (*v, header.tupleCount, &(this+vector), c);
     }
   }
 
@@ -523,7 +542,9 @@ struct KerxSubTableFormat6
 			     u.s.rowIndexTable.sanitize (c, this) &&
 			     u.s.columnIndexTable.sanitize (c, this) &&
 			     c->check_range (this, u.s.array)
-			   ))));
+			   )) &&
+			  (header.tupleCount == 0 ||
+			   c->check_range (this, vector))));
   }
 
   struct accelerator_t
@@ -559,8 +580,9 @@ struct KerxSubTableFormat6
       LOffsetTo<UnsizedArrayOf<FWORD>, false>	array;
     } s;
   } u;
+  LOffsetTo<UnsizedArrayOf<FWORD>, false>	vector;
   public:
-  DEFINE_SIZE_STATIC (32);
+  DEFINE_SIZE_STATIC (36);
 };
 
 struct KerxTable
@@ -642,9 +664,8 @@ struct kerx
     {
       bool reverse;
 
-      if (table->u.header.coverage & (KerxTable::CrossStream | KerxTable::Variation) ||
-	  table->u.header.tupleCount)
-	goto skip; /* We do NOT handle cross-stream or variation kerning. */
+      if (table->u.header.coverage & (KerxTable::CrossStream))
+	goto skip; /* We do NOT handle cross-stream. */
 
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
 	  bool (table->u.header.coverage & KerxTable::Vertical))
