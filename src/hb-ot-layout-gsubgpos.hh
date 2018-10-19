@@ -199,8 +199,6 @@ struct hb_collect_glyphs_context_t :
     after  = old_after;
 
     recursed_lookups->add (lookup_index);
-
-    return;
   }
 
   hb_face_t *face;
