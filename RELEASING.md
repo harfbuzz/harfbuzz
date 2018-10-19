@@ -27,7 +27,10 @@ HarfBuzz release walk-through checklist:
    Otherwise, fix things and commit them separately before making release,
    Note: Check src/hb-version.h and make sure the new version number is
    there.  Sometimes, it does not get updated.  If that's the case,
-   "touch configure.ac" and rebuild.  TODO: debug.
+   "touch configure.ac" and rebuild.  Also check that there is no hb-version.h
+   in your build/src file. Typically it will fail the distcheck if there is.
+   That's what happened to 2.0.0 going out with 1.8.0 hb-version.h...  So, that's
+   a clue.
 
 7. "make release-files".  Enter your GPG password.  This creates a sha256 hash
    and signs it.
