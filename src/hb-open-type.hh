@@ -56,6 +56,7 @@ namespace OT {
 template <typename Type, unsigned int Size>
 struct IntType
 {
+  typedef Type type;
   inline void set (Type i) { v.set (i); }
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
@@ -161,6 +162,8 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 template <typename Type, bool has_null=true>
 struct Offset : Type
 {
+  typedef Type type;
+
   inline bool is_null (void) const { return has_null && 0 == *this; }
 
   inline void *serialize (hb_serialize_context_t *c, const void *base)

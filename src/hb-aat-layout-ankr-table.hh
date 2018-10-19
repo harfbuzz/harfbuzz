@@ -63,8 +63,10 @@ struct ankr
 				   unsigned int num_glyphs,
 				   const char *end) const
   {
-    unsigned int offset = (this+lookupTable).get_value_or_null (glyph_id, num_glyphs);
-    const GlyphAnchors &anchors = StructAtOffset<GlyphAnchors> (&(this+anchorData), offset);
+    const Offset<HBUINT16, false> *offset = (this+lookupTable).get_value (glyph_id, num_glyphs);
+    if (!offset)
+      return Null(Anchor);
+    const GlyphAnchors &anchors = StructAtOffset<GlyphAnchors> (&(this+anchorData), *offset);
     /* TODO Use sanitizer; to avoid overflows and more. */
     if (unlikely ((const char *) &anchors + anchors.get_size () > end))
       return Null(Anchor);

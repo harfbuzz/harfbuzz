@@ -247,6 +247,48 @@ struct LookupFormat8
 };
 
 template <typename T>
+struct LookupFormat10
+{
+  friend struct Lookup<T>;
+
+  private:
+  inline const typename T::type get_value_or_null (hb_codepoint_t glyph_id) const
+  {
+    if (!(firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount))
+      return Null(T);
+
+    const HBUINT8 *p = &valueArrayZ[(glyph_id - firstGlyph) * valueSize];
+
+    unsigned int v = 0;
+    unsigned int count = valueSize;
+    for (unsigned int i = 0; i < count; i++)
+      v = (v << 8) | *p++;
+
+    return v;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  valueSize <= 4 &&
+		  valueArrayZ.sanitize (c, glyphCount * valueSize));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 8 */
+  HBUINT16	valueSize;	/* Byte size of each value. */
+  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
+				 * glyph minus the value of firstGlyph plus 1). */
+  UnsizedArrayOf<HBUINT8>
+		valueArrayZ;	/* The lookup values (indexed by the glyph index
+				 * minus the value of firstGlyph). */
+  public:
+  DEFINE_SIZE_ARRAY (6, valueArrayZ);
+};
+
+template <typename T>
 struct Lookup
 {
   inline const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
@@ -261,10 +303,15 @@ struct Lookup
     }
   }
 
-  inline const T& get_value_or_null (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+  inline const typename T::type get_value_or_null (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    const T *v = get_value (glyph_id, num_glyphs);
-    return v ? *v : Null(T);
+    switch (u.format) {
+      /* Format 10 cannot return a pointer. */
+      case 10: return u.format10.get_value_or_null (glyph_id);
+      default:
+      const T *v = get_value (glyph_id, num_glyphs);
+      return v ? *v : Null(T);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -277,6 +324,7 @@ struct Lookup
     case 4: return_trace (u.format4.sanitize (c));
     case 6: return_trace (u.format6.sanitize (c));
     case 8: return_trace (u.format8.sanitize (c));
+    case 10: return_trace (u.format10.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -289,6 +337,7 @@ struct Lookup
   LookupFormat4<T>	format4;
   LookupFormat6<T>	format6;
   LookupFormat8<T>	format8;
+  LookupFormat10<T>	format10;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
