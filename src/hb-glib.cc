@@ -26,11 +26,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-glib.h"
 
-#include "hb-unicode-private.hh"
+#include "hb-machinery.hh"
 
 
 #if !GLIB_CHECK_VERSION(2,29,14)
@@ -201,14 +201,6 @@ hb_glib_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return (hb_unicode_combining_class_t) g_unichar_combining_class (unicode);
 }
 
-static unsigned int
-hb_glib_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				 hb_codepoint_t      unicode,
-				 void               *user_data HB_UNUSED)
-{
-  return g_unichar_iswide (unicode) ? 2 : 1;
-}
-
 static hb_unicode_general_category_t
 hb_glib_unicode_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 				  hb_codepoint_t      unicode,
@@ -333,81 +325,49 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return ret;
 }
 
-static unsigned int
-hb_glib_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-					 hb_codepoint_t      u,
-					 hb_codepoint_t     *decomposed,
-					 void               *user_data HB_UNUSED)
-{
-#if GLIB_CHECK_VERSION(2,29,12)
-  return g_unichar_fully_decompose (u, true, decomposed, HB_UNICODE_MAX_DECOMPOSITION_LEN);
+
+#ifdef HB_USE_ATEXIT
+static void free_static_glib_funcs (void);
 #endif
 
-  /* If the user doesn't have GLib >= 2.29.12 we have to perform
-   * a round trip to UTF-8 and the associated memory management dance. */
-  gchar utf8[6];
-  gchar *utf8_decomposed, *c;
-  gsize utf8_len, utf8_decomposed_len, i;
+static struct hb_glib_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_glib_unicode_funcs_lazy_loader_t>
+{
+  static inline hb_unicode_funcs_t *create (void)
+  {
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
-  /* Convert @u to UTF-8 and normalise it in NFKD mode. This performs the compatibility decomposition. */
-  utf8_len = g_unichar_to_utf8 (u, utf8);
-  utf8_decomposed = g_utf8_normalize (utf8, utf8_len, G_NORMALIZE_NFKD);
-  utf8_decomposed_len = g_utf8_strlen (utf8_decomposed, -1);
+    hb_unicode_funcs_set_combining_class_func (funcs, hb_glib_unicode_combining_class, nullptr, nullptr);
+    hb_unicode_funcs_set_general_category_func (funcs, hb_glib_unicode_general_category, nullptr, nullptr);
+    hb_unicode_funcs_set_mirroring_func (funcs, hb_glib_unicode_mirroring, nullptr, nullptr);
+    hb_unicode_funcs_set_script_func (funcs, hb_glib_unicode_script, nullptr, nullptr);
+    hb_unicode_funcs_set_compose_func (funcs, hb_glib_unicode_compose, nullptr, nullptr);
+    hb_unicode_funcs_set_decompose_func (funcs, hb_glib_unicode_decompose, nullptr, nullptr);
 
-  assert (utf8_decomposed_len <= HB_UNICODE_MAX_DECOMPOSITION_LEN);
+    hb_unicode_funcs_make_immutable (funcs);
 
-  for (i = 0, c = utf8_decomposed; i < utf8_decomposed_len; i++, c = g_utf8_next_char (c))
-    *decomposed++ = g_utf8_get_char (c);
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_glib_funcs);
+#endif
 
-  g_free (utf8_decomposed);
-
-  return utf8_decomposed_len;
-}
-
-static hb_unicode_funcs_t *static_glib_funcs = nullptr;
+    return funcs;
+  }
+} static_glib_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_glib_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *glib_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_glib_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_glib_funcs, glib_funcs, nullptr))
-    goto retry;
-
-  hb_unicode_funcs_destroy (glib_funcs);
+  static_glib_funcs.free_instance ();
 }
 #endif
 
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_glib_funcs);
-
-  if (unlikely (!funcs))
-  {
-    funcs = hb_unicode_funcs_create (nullptr);
-
-#define HB_UNICODE_FUNC_IMPLEMENT(name) \
-    hb_unicode_funcs_set_##name##_func (funcs, hb_glib_unicode_##name, nullptr, nullptr);
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-
-    hb_unicode_funcs_make_immutable (funcs);
-
-    if (!hb_atomic_ptr_cmpexch (&static_glib_funcs, nullptr, funcs)) {
-      hb_unicode_funcs_destroy (funcs);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_static_glib_funcs); /* First person registers atexit() callback. */
-#endif
-  };
-
-  return hb_unicode_funcs_reference (funcs);
+  return static_glib_funcs.get_unconst ();
 }
+
+
 
 #if GLIB_CHECK_VERSION(2,31,10)
 

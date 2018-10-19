@@ -1,5 +1,6 @@
 /*
  * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,14 +25,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-/* http://www.oracle.com/technetwork/articles/servers-storage-dev/standardheaderfiles-453865.html */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-
-#include "hb-private.hh"
-#include "hb-debug.hh"
-#include "hb-blob-private.hh"
+#include "hb.hh"
+#include "hb-blob.hh"
 
 #ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
@@ -43,11 +38,21 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 
+DEFINE_NULL_INSTANCE (hb_blob_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  true, /* immutable */
+
+  nullptr, /* data */
+  0, /* length */
+  HB_MEMORY_MODE_READONLY, /* mode */
+
+  nullptr, /* user_data */
+  nullptr  /* destroy */
+};
 
 /**
  * hb_blob_create: (skip)
@@ -186,20 +191,7 @@ hb_blob_copy_writable_or_fail (hb_blob_t *blob)
 hb_blob_t *
 hb_blob_get_empty (void)
 {
-  static const hb_blob_t _hb_blob_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    true, /* immutable */
-
-    nullptr, /* data */
-    0, /* length */
-    HB_MEMORY_MODE_READONLY, /* mode */
-
-    nullptr, /* user_data */
-    nullptr  /* destroy */
-  };
-
-  return const_cast<hb_blob_t *> (&_hb_blob_nil);
+  return const_cast<hb_blob_t *> (&Null(hb_blob_t));
 }
 
 /**
@@ -295,6 +287,8 @@ void
 hb_blob_make_immutable (hb_blob_t *blob)
 {
   if (hb_object_is_inert (blob))
+    return;
+  if (blob->immutable)
     return;
 
   blob->immutable = true;
@@ -484,26 +478,22 @@ hb_blob_t::try_make_writable (void)
  * Mmap
  */
 
+#ifdef HAVE_MMAP
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+#endif
+
 #if defined(_WIN32) || defined(__CYGWIN__)
-#include <windows.h>
-#include <io.h>
-
-#undef fstat
-#define fstat(a,b) _fstati64(a,b)
-#undef stat
-#define stat _stati64
-
-#ifndef S_ISREG
-# define S_ISREG(m) (((m) & _S_IFMT) == _S_IFREG)
-#endif
-#endif // defined(_WIN32) || defined(__CYGWIN__)
-
-#ifndef _O_BINARY
-# define _O_BINARY 0
+# include <windows.h>
+#else
+# ifndef _O_BINARY
+#  define _O_BINARY 0
+# endif
 #endif
 
-#ifndef MAP_FAILED
-# define MAP_FAILED ((void *) -1)
+#ifndef MAP_NORESERVE
+# define MAP_NORESERVE 0
 #endif
 
 struct hb_mapped_file_t
@@ -515,20 +505,23 @@ struct hb_mapped_file_t
 #endif
 };
 
+#if (defined(HAVE_MMAP) || defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
 static void
-_hb_mapped_file_destroy (hb_mapped_file_t *file)
+_hb_mapped_file_destroy (void *file_)
 {
+  hb_mapped_file_t *file = (hb_mapped_file_t *) file_;
 #ifdef HAVE_MMAP
   munmap (file->contents, file->length);
 #elif defined(_WIN32) || defined(__CYGWIN__)
   UnmapViewOfFile (file->contents);
   CloseHandle (file->mapping);
 #else
-  free (file->contents);
+  assert (0); // If we don't have mmap we shouldn't reach here
 #endif
 
   free (file);
 }
+#endif
 
 /**
  * hb_blob_create_from_file:
@@ -536,62 +529,141 @@ _hb_mapped_file_destroy (hb_mapped_file_t *file)
  *
  * Returns: A hb_blob_t pointer with the content of the file
  *
- * Since: REPLACEME
+ * Since: 1.7.7
  **/
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
 {
-  // Adopted from glib's gmappedfile.c with Matthias Clasen and
-  // Allison Lortie permission but changed to suit our need.
-  bool writable = false;
-  hb_memory_mode_t mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
-
-  int fd = open (file_name, (writable ? O_RDWR : O_RDONLY) | _O_BINARY, 0);
-  if (unlikely (fd == -1)) return hb_blob_get_empty ();
-
+  /* Adopted from glib's gmappedfile.c with Matthias Clasen and
+     Allison Lortie permission but changed a lot to suit our need. */
+#if defined(HAVE_MMAP) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
+  if (unlikely (!file)) return hb_blob_get_empty ();
+
+  int fd = open (file_name, O_RDONLY | _O_BINARY, 0);
+  if (unlikely (fd == -1)) goto fail_without_close;
 
   struct stat st;
   if (unlikely (fstat (fd, &st) == -1)) goto fail;
 
-  // If the file size is 0 and is a regular file, give up
-  // See https://github.com/GNOME/glib/blob/f9faac7/glib/gmappedfile.c#L139-L142
-  if (unlikely (st.st_size == 0 && S_ISREG (st.st_mode))) goto fail;
-
   file->length = (unsigned long) st.st_size;
+  file->contents = (char *) mmap (nullptr, file->length, PROT_READ,
+				  MAP_PRIVATE | MAP_NORESERVE, fd, 0);
 
-#ifdef HAVE_MMAP
-  file->contents = (char *) mmap (nullptr, file->length,
-				  writable ? PROT_READ|PROT_WRITE : PROT_READ,
-				  MAP_PRIVATE, fd, 0);
   if (unlikely (file->contents == MAP_FAILED)) goto fail;
-#elif defined(_WIN32) || defined(__CYGWIN__)
-  file->mapping = CreateFileMapping ((HANDLE) _get_osfhandle (fd), nullptr,
-				     writable ? PAGE_WRITECOPY : PAGE_READONLY,
-				     0, 0, nullptr);
-  if (unlikely (file->mapping == nullptr)) goto fail;
-
-  file->contents = (char *) MapViewOfFile (file->mapping,
-					   writable ? FILE_MAP_COPY : FILE_MAP_READ,
-					   0, 0, 0);
-  if (unlikely (file->contents == nullptr))
-  {
-    CloseHandle (file->mapping);
-    goto fail;
-  }
-#else
-  file->contents = (char *) malloc (file->length);
-  if (unlikely (!file->contents)) goto fail;
-  read (fd, file->contents, file->length);
-  mm = HB_MEMORY_MODE_WRITABLE;
-#endif
 
   close (fd);
-  return hb_blob_create (file->contents, file->length, mm, (void *) file,
+
+  return hb_blob_create (file->contents, file->length,
+			 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
 			 (hb_destroy_func_t) _hb_mapped_file_destroy);
 
 fail:
   close (fd);
+fail_without_close:
   free (file);
+
+#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
+  hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
+  if (unlikely (!file)) return hb_blob_get_empty ();
+
+  HANDLE fd;
+  unsigned int size = strlen (file_name) + 1;
+  wchar_t * wchar_file_name = (wchar_t *) malloc (sizeof (wchar_t) * size);
+  if (unlikely (wchar_file_name == nullptr)) goto fail_without_close;
+  mbstowcs (wchar_file_name, file_name, size);
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  {
+    CREATEFILE2_EXTENDED_PARAMETERS ceparams = { 0 };
+    ceparams.dwSize = sizeof(CREATEFILE2_EXTENDED_PARAMETERS);
+    ceparams.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0xFFFF;
+    ceparams.dwFileFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0xFFF00000;
+    ceparams.dwSecurityQosFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED & 0x000F0000;
+    ceparams.lpSecurityAttributes = nullptr;
+    ceparams.hTemplateFile = nullptr;
+    fd = CreateFile2 (wchar_file_name, GENERIC_READ, FILE_SHARE_READ,
+                      OPEN_EXISTING, &ceparams);
+  }
+#else
+  fd = CreateFileW (wchar_file_name, GENERIC_READ, FILE_SHARE_READ, nullptr,
+		    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
+		    nullptr);
+#endif
+  free (wchar_file_name);
+
+  if (unlikely (fd == INVALID_HANDLE_VALUE)) goto fail_without_close;
+
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  {
+    LARGE_INTEGER length;
+    GetFileSizeEx (fd, &length);
+    file->length = length.LowPart;
+    file->mapping = CreateFileMappingFromApp (fd, nullptr, PAGE_READONLY, length.QuadPart, nullptr);
+  }
+#else
+  file->length = (unsigned long) GetFileSize (fd, nullptr);
+  file->mapping = CreateFileMapping (fd, nullptr, PAGE_READONLY, 0, 0, nullptr);
+#endif
+  if (unlikely (file->mapping == nullptr)) goto fail;
+
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+  file->contents = (char *) MapViewOfFileFromApp (file->mapping, FILE_MAP_READ, 0, 0);
+#else
+  file->contents = (char *) MapViewOfFile (file->mapping, FILE_MAP_READ, 0, 0, 0);
+#endif
+  if (unlikely (file->contents == nullptr)) goto fail;
+
+  CloseHandle (fd);
+  return hb_blob_create (file->contents, file->length,
+			 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
+			 (hb_destroy_func_t) _hb_mapped_file_destroy);
+
+fail:
+  CloseHandle (fd);
+fail_without_close:
+  free (file);
+
+#endif
+
+  /* The following tries to read a file without knowing its size beforehand
+     It's used as a fallback for systems without mmap or to read from pipes */
+  unsigned long len = 0, allocated = BUFSIZ * 16;
+  char *data = (char *) malloc (allocated);
+  if (unlikely (data == nullptr)) return hb_blob_get_empty ();
+
+  FILE *fp = fopen (file_name, "rb");
+  if (unlikely (fp == nullptr)) goto fread_fail_without_close;
+
+  while (!feof (fp))
+  {
+    if (allocated - len < BUFSIZ)
+    {
+      allocated *= 2;
+      /* Don't allocate and go more than ~536MB, our mmap reader still
+	 can cover files like that but lets limit our fallback reader */
+      if (unlikely (allocated > (2 << 28))) goto fread_fail;
+      char *new_data = (char *) realloc (data, allocated);
+      if (unlikely (new_data == nullptr)) goto fread_fail;
+      data = new_data;
+    }
+
+    unsigned long addition = fread (data + len, 1, allocated - len, fp);
+
+    int err = ferror (fp);
+#ifdef EINTR // armcc doesn't have it
+    if (unlikely (err == EINTR)) continue;
+#endif
+    if (unlikely (err)) goto fread_fail;
+
+    len += addition;
+  }
+
+  return hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, data,
+                         (hb_destroy_func_t) free);
+
+fread_fail:
+  fclose (fp);
+fread_fail_without_close:
+  free (data);
   return hb_blob_get_empty ();
 }

@@ -27,7 +27,7 @@
 #ifndef HB_OT_NAME_TABLE_HH
 #define HB_OT_NAME_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 
 
 namespace OT {
@@ -91,7 +91,7 @@ struct name
     key.encodingID.set (encoding_id);
     key.languageID.set (language_id);
     key.nameID.set (name_id);
-    NameRecord *match = (NameRecord *) bsearch (&key, nameRecord, count, sizeof (nameRecord[0]), NameRecord::cmp);
+    NameRecord *match = (NameRecord *) bsearch (&key, nameRecordZ.arrayZ, count, sizeof (nameRecordZ[0]), NameRecord::cmp);
 
     if (!match)
       return 0;
@@ -102,14 +102,14 @@ struct name
   }
 
   inline unsigned int get_size (void) const
-  { return min_size + count * nameRecord[0].min_size; }
+  { return min_size + count * nameRecordZ[0].min_size; }
 
   inline bool sanitize_records (hb_sanitize_context_t *c) const {
     TRACE_SANITIZE (this);
     char *string_pool = (char *) this + stringOffset;
     unsigned int _count = count;
     for (unsigned int i = 0; i < _count; i++)
-      if (!nameRecord[i].sanitize (c, string_pool)) return_trace (false);
+      if (!nameRecordZ[i].sanitize (c, string_pool)) return_trace (false);
     return_trace (true);
   }
 
@@ -118,7 +118,7 @@ struct name
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  likely (format == 0 || format == 1) &&
-		  c->check_array (nameRecord, nameRecord[0].static_size, count) &&
+		  c->check_array (nameRecordZ.arrayZ, count) &&
 		  sanitize_records (c));
   }
 
@@ -126,9 +126,10 @@ struct name
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
   Offset16	stringOffset;		/* Offset to start of string storage (from start of table). */
-  NameRecord	nameRecord[VAR];	/* The name records where count is the number of records. */
+  UnsizedArrayOf<NameRecord>
+		nameRecordZ;		/* The name records where count is the number of records. */
   public:
-  DEFINE_SIZE_ARRAY (6, nameRecord);
+  DEFINE_SIZE_ARRAY (6, nameRecordZ);
 };
 
 

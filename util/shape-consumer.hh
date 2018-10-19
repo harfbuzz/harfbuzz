@@ -27,7 +27,7 @@
 #ifndef HB_SHAPE_CONSUMER_HH
 #define HB_SHAPE_CONSUMER_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 #include "options.hh"
 
 

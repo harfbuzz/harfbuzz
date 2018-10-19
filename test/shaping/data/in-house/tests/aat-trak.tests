@@ -1,0 +1,8 @@
+../fonts/TestTRAK.ttf::U+0041,U+0042,U+0043:[A.alt=0+1000|B=1+1000|C.alt=2+1000]
+../fonts/TestTRAK.ttf:--font-ptem=.5:U+0041,U+0042,U+0043:[A.alt=0@100,0+1200|B=1@100,0+1200|C.alt=2@100,0+1200]
+../fonts/TestTRAK.ttf:--font-ptem=1:U+0041,U+0042,U+0043:[A.alt=0@100,0+1200|B=1@100,0+1200|C.alt=2@100,0+1200]
+../fonts/TestTRAK.ttf:--font-ptem=2:U+0041,U+0042,U+0043:[A.alt=0@93,0+1187|B=1@93,0+1187|C.alt=2@93,0+1187]
+../fonts/TestTRAK.ttf:--font-ptem=9:U+0041,U+0042,U+0043:[A.alt=0+1000|B=1+1000|C.alt=2+1000]
+../fonts/TestTRAK.ttf:--font-ptem=24:U+0041,U+0042,U+0043:[A.alt=0@-12,0+976|B=1@-12,0+976|C.alt=2@-12,0+976]
+../fonts/TestTRAK.ttf:--font-ptem=72:U+0041,U+0042,U+0043:[A.alt=0@-50,0+900|B=1@-50,0+900|C.alt=2@-50,0+900]
+../fonts/TestTRAK.ttf:--font-ptem=144:U+0041,U+0042,U+0043:[A.alt=0@-100,0+800|B=1@-100,0+800|C.alt=2@-100,0+800]

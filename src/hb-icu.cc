@@ -27,11 +27,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
 #include "hb-icu.h"
 
-#include "hb-unicode-private.hh"
+#include "hb-machinery.hh"
 
 #include <unicode/uchar.h>
 #include <unicode/unorm2.h>
@@ -70,25 +70,6 @@ hb_icu_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
 {
   return (hb_unicode_combining_class_t) u_getCombiningClass (unicode);
-}
-
-static unsigned int
-hb_icu_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-				hb_codepoint_t      unicode,
-				void               *user_data HB_UNUSED)
-{
-  switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
-  {
-  case U_EA_WIDE:
-  case U_EA_FULLWIDTH:
-    return 2;
-  case U_EA_NEUTRAL:
-  case U_EA_AMBIGUOUS:
-  case U_EA_HALFWIDTH:
-  case U_EA_NARROW:
-    return 1;
-  }
-  return 1;
 }
 
 static hb_unicode_general_category_t
@@ -164,10 +145,6 @@ hb_icu_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return hb_icu_script_to_script (scriptCode);
 }
 
-#if U_ICU_VERSION_MAJOR_NUM >= 49
-static const UNormalizer2 *normalizer;
-#endif
-
 static hb_bool_t
 hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			hb_codepoint_t      a,
@@ -177,6 +154,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 {
 #if U_ICU_VERSION_MAJOR_NUM >= 49
   {
+    const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
     UChar32 ret = unorm2_composePair (normalizer, a, b);
     if (ret < 0) return false;
     *ab = ret;
@@ -222,6 +200,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 {
 #if U_ICU_VERSION_MAJOR_NUM >= 49
   {
+    const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
     UChar decomposed[4];
     int len;
     UErrorCode icu_err = U_ZERO_ERROR;
@@ -310,90 +289,51 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return ret;
 }
 
-static unsigned int
-hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-					hb_codepoint_t      u,
-					hb_codepoint_t     *decomposed,
-					void               *user_data HB_UNUSED)
+
+#ifdef HB_USE_ATEXIT
+static void free_static_icu_funcs (void);
+#endif
+
+static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_icu_unicode_funcs_lazy_loader_t>
 {
-  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
-  unsigned int len;
-  int32_t utf32_len;
-  hb_bool_t err;
-  UErrorCode icu_err;
+  static inline hb_unicode_funcs_t *create (void)
+  {
+    void *user_data = nullptr;
+#if U_ICU_VERSION_MAJOR_NUM >= 49
+    UErrorCode icu_err = U_ZERO_ERROR;
+    user_data = (void *) unorm2_getNFCInstance (&icu_err);
+    assert (user_data);
+#endif
 
-  /* Copy @u into a UTF-16 array to be passed to ICU. */
-  len = 0;
-  err = false;
-  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), u, err);
-  if (err)
-    return 0;
+    hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
-  /* Normalise the codepoint using NFKD mode. */
-  icu_err = U_ZERO_ERROR;
-  len = unorm2_normalize (unorm2_getNFKDInstance (&icu_err), utf16, len, normalized, ARRAY_LENGTH (normalized), &icu_err);
-  if (U_FAILURE (icu_err))
-    return 0;
+    hb_unicode_funcs_set_combining_class_func (funcs, hb_icu_unicode_combining_class, nullptr, nullptr);
+    hb_unicode_funcs_set_general_category_func (funcs, hb_icu_unicode_general_category, nullptr, nullptr);
+    hb_unicode_funcs_set_mirroring_func (funcs, hb_icu_unicode_mirroring, nullptr, nullptr);
+    hb_unicode_funcs_set_script_func (funcs, hb_icu_unicode_script, nullptr, nullptr);
+    hb_unicode_funcs_set_compose_func (funcs, hb_icu_unicode_compose, user_data, nullptr);
+    hb_unicode_funcs_set_decompose_func (funcs, hb_icu_unicode_decompose, user_data, nullptr);
 
-  /* Convert the decomposed form from UTF-16 to UTF-32. */
-  icu_err = U_ZERO_ERROR;
-  u_strToUTF32 ((UChar32*) decomposed, HB_UNICODE_MAX_DECOMPOSITION_LEN, &utf32_len, normalized, len, &icu_err);
-  if (U_FAILURE (icu_err))
-    return 0;
+    hb_unicode_funcs_make_immutable (funcs);
 
-  return utf32_len;
-}
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_icu_funcs);
+#endif
 
-
-static hb_unicode_funcs_t *static_icu_funcs = nullptr;
+    return funcs;
+  }
+} static_icu_funcs;
 
 #ifdef HB_USE_ATEXIT
 static
 void free_static_icu_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *icu_funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_icu_funcs);
-  if (!hb_atomic_ptr_cmpexch (&static_icu_funcs, icu_funcs, nullptr))
-    goto retry;
-
-  hb_unicode_funcs_destroy (icu_funcs);
+  static_icu_funcs.free_instance ();
 }
 #endif
 
 hb_unicode_funcs_t *
 hb_icu_get_unicode_funcs (void)
 {
-retry:
-  hb_unicode_funcs_t *funcs = (hb_unicode_funcs_t *) hb_atomic_ptr_get (&static_icu_funcs);
-
-  if (unlikely (!funcs))
-  {
-#if U_ICU_VERSION_MAJOR_NUM >= 49
-    if (!hb_atomic_ptr_get (&normalizer)) {
-      UErrorCode icu_err = U_ZERO_ERROR;
-      /* We ignore failure in getNFCInstace(). */
-      (void) hb_atomic_ptr_cmpexch (&normalizer, nullptr, unorm2_getNFCInstance (&icu_err));
-    }
-#endif
-
-    funcs = hb_unicode_funcs_create (nullptr);
-
-#define HB_UNICODE_FUNC_IMPLEMENT(name) \
-    hb_unicode_funcs_set_##name##_func (funcs, hb_icu_unicode_##name, nullptr, nullptr);
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-
-    hb_unicode_funcs_make_immutable (funcs);
-
-    if (!hb_atomic_ptr_cmpexch (&static_icu_funcs, nullptr, funcs)) {
-      hb_unicode_funcs_destroy (funcs);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_static_icu_funcs); /* First person registers atexit() callback. */
-#endif
-  };
-
-  return hb_unicode_funcs_reference (funcs);
+  return static_icu_funcs.get_unconst ();
 }

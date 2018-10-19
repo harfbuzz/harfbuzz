@@ -32,7 +32,6 @@
 static void
 test_types_int (void)
 {
-  /* We already ASSERT_STATIC these in hb-private.h, but anyway */
   g_assert_cmpint (sizeof (int8_t), ==, 1);
   g_assert_cmpint (sizeof (uint8_t), ==, 1);
   g_assert_cmpint (sizeof (int16_t), ==, 2);

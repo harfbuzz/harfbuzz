@@ -25,7 +25,7 @@
 #ifndef HB_AAT_LAYOUT_FEAT_TABLE_HH
 #define HB_AAT_LAYOUT_FEAT_TABLE_HH
 
-#include "hb-aat-layout-common-private.hh"
+#include "hb-aat-layout-common.hh"
 
 /*
  * feat -- Feature Name
@@ -78,7 +78,7 @@ struct FeatureName
   protected:
   HBUINT16	feature;	/* Feature type. */
   HBUINT16	nSettings;	/* The number of records in the setting name array. */
-  LOffsetTo<UnsizedArrayOf<SettingName> >
+  LOffsetTo<UnsizedArrayOf<SettingName>, false>
 		settingTable;	/* Offset in bytes from the beginning of this table to
 				 * this feature's setting name array. The actual type of
 				 * record this offset refers to will depend on the

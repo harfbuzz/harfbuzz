@@ -13,7 +13,8 @@ TESTS =
 check_PROGRAMS =
 
 # Convenience targets:
-lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
+lib: $(BUILT_SOURCES) libharfbuzz.la
+libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
 fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la libharfbuzz-subset-fuzzing.la
 
 lib_LTLIBRARIES = libharfbuzz.la
@@ -28,11 +29,9 @@ HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 
-if HAVE_OT
 HBSOURCES += $(HB_OT_sources)
 HBSOURCES += $(HB_OT_RAGEL_GENERATED_sources)
 HBHEADERS += $(HB_OT_headers)
-endif
 
 if HAVE_FALLBACK
 HBSOURCES += $(HB_FALLBACK_sources)
@@ -105,6 +104,17 @@ endif
 DIST_SUBDIRS += hb-ucdn
 
 
+BUILT_SOURCES += \
+	hb-version.h
+
+$(srcdir)/hb-version.h: hb-version.h.in $(top_srcdir)/configure.ac
+	$(AM_V_GEN) $(SED) \
+		-e 's/[@]HB_VERSION_MAJOR@/$(HB_VERSION_MAJOR)/' \
+		-e 's/[@]HB_VERSION_MINOR@/$(HB_VERSION_MINOR)/' \
+		-e 's/[@]HB_VERSION_MICRO@/$(HB_VERSION_MICRO)/' \
+		-e 's/[@]HB_VERSION@/$(HB_VERSION)/' \
+		"$<" > "$@" || ($(RM) "$@"; false)
+
 # Put the library together
 
 HBLIBS += $(HBNONPCLIBS)
@@ -147,7 +157,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
 cmakedir = $(libdir)/cmake/harfbuzz
 cmake_DATA = harfbuzz-config.cmake
-EXTRA_DIST += harfbuzz.pc.in harfbuzz-config.cmake.in
+EXTRA_DIST += hb-version.h.in harfbuzz.pc.in harfbuzz-config.cmake.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
@@ -266,40 +276,51 @@ endif
 check: $(DEF_FILES) # For check-symbols.sh
 CLEANFILES += $(DEF_FILES)
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-subset.def: $(HB_SUBSET_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-icu.def: $(HB_ICU_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 
 
 GENERATORS = \
 	gen-arabic-table.py \
-	gen-indic-table.py \
-	gen-use-table.py \
 	gen-def.py \
+	gen-emoji-table.py \
+	gen-indic-table.py \
+	gen-os2-unicode-ranges.py \
+	gen-tag-table.py \
+	gen-use-table.py \
 	$(NULL)
 EXTRA_DIST += $(GENERATORS)
 
-unicode-tables: arabic-table indic-table use-table
+unicode-tables: arabic-table indic-table tag-table use-table emoji-table
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh \
-	|| ($(RM) hb-ot-shape-complex-arabic-table.hh; false)
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-arabic-table.hh \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-arabic-table.hh; false)
 
 indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
-	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-indic-table.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-indic-table.cc; false)
+
+tag-table: gen-tag-table.py languagetags language-subtag-registry
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-tag-table.hh \
+	|| ($(RM) $(srcdir)/hb-ot-tag-table.hh; false)
 
 use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-use-table.cc \
-	|| ($(RM) hb-ot-shape-complex-use-table.cc; false)
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
+
+emoji-table: gen-emoji-table.py emoji-data.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-unicode-emoji-table.hh \
+	|| ($(RM) $(srcdir)/hb-unicode-emoji-table.hh; false)
 
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table use-table built-sources
+.PHONY: unicode-tables arabic-table indic-table tag-table use-table emoji-table built-sources
 
 RAGEL_GENERATED = \
 	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \
@@ -362,15 +383,11 @@ dist_check_SCRIPTS += \
 endif
 
 check_PROGRAMS += \
-	dump-fon \
 	dump-indic-data \
 	dump-khmer-data \
 	dump-myanmar-data \
 	dump-use-data \
 	$(NULL)
-dump_fon_SOURCES = dump-fon.cc
-dump_fon_CPPFLAGS = $(HBCFLAGS)
-dump_fon_LDADD = libharfbuzz.la $(HBLIBS)
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
 dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)

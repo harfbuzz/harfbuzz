@@ -39,19 +39,38 @@ HB_BEGIN_DECLS
 #define HB_OT_TAG_DEFAULT_SCRIPT	HB_TAG ('D', 'F', 'L', 'T')
 #define HB_OT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
+/**
+ * HB_OT_MAX_TAGS_PER_SCRIPT:
+ *
+ * Since: 2.0.0
+ **/
+#define HB_OT_MAX_TAGS_PER_SCRIPT	3u
+/**
+ * HB_OT_MAX_TAGS_PER_LANGUAGE:
+ *
+ * Since: 2.0.0
+ **/
+#define HB_OT_MAX_TAGS_PER_LANGUAGE	3u
+
 HB_EXTERN void
-hb_ot_tags_from_script (hb_script_t  script,
-			hb_tag_t    *script_tag_1,
-			hb_tag_t    *script_tag_2);
+hb_ot_tags_from_script_and_language (hb_script_t   script,
+				     hb_language_t language,
+				     unsigned int *script_count /* IN/OUT */,
+				     hb_tag_t     *script_tags /* OUT */,
+				     unsigned int *language_count /* IN/OUT */,
+				     hb_tag_t     *language_tags /* OUT */);
 
 HB_EXTERN hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag);
 
-HB_EXTERN hb_tag_t
-hb_ot_tag_from_language (hb_language_t language);
-
 HB_EXTERN hb_language_t
 hb_ot_tag_to_language (hb_tag_t tag);
+
+HB_EXTERN void
+hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
+				   hb_tag_t       language_tag,
+				   hb_script_t   *script /* OUT */,
+				   hb_language_t *language /* OUT */);
 
 
 HB_END_DECLS

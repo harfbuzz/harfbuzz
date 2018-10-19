@@ -63,6 +63,23 @@ typedef unsigned __int64 uint64_t;
 #  include <stdint.h>
 #endif
 
+#if    __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#define HB_DEPRECATED __attribute__((__deprecated__))
+#elif defined(_MSC_VER) && (_MSC_VER >= 1300)
+#define HB_DEPRECATED __declspec(deprecated)
+#else
+#define HB_DEPRECATED
+#endif
+
+#if    __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#define HB_DEPRECATED_FOR(f) __attribute__((__deprecated__("Use '" #f "' instead")))
+#elif defined(_MSC_FULL_VER) && (_MSC_FULL_VER > 140050320)
+#define HB_DEPRECATED_FOR(f) __declspec(deprecated("is deprecated. Use '" #f "' instead"))
+#else
+#define HB_DEPRECATED_FOR(f) HB_DEPRECATED
+#endif
+
+
 HB_BEGIN_DECLS
 
 
@@ -86,8 +103,8 @@ typedef union _hb_var_int_t {
 
 typedef uint32_t hb_tag_t;
 
-#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint8_t)(c1))<<24)|(((uint8_t)(c2))<<16)|(((uint8_t)(c3))<<8)|((uint8_t)(c4))))
-#define HB_UNTAG(tag)   ((uint8_t)((tag)>>24)), ((uint8_t)((tag)>>16)), ((uint8_t)((tag)>>8)), ((uint8_t)(tag))
+#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
+#define HB_UNTAG(tag)   (((tag)>>24)&0xFF), (((tag)>>16)&0xFF), (((tag)>>8)&0xFF), ((tag)&0xFF)
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
@@ -325,17 +342,30 @@ typedef enum
   /*10.0*/HB_SCRIPT_SOYOMBO			= HB_TAG ('S','o','y','o'),
   /*10.0*/HB_SCRIPT_ZANABAZAR_SQUARE		= HB_TAG ('Z','a','n','b'),
 
+  /*
+   * Since 1.8.0
+   */
+  /*11.0*/HB_SCRIPT_DOGRA			= HB_TAG ('D','o','g','r'),
+  /*11.0*/HB_SCRIPT_GUNJALA_GONDI		= HB_TAG ('G','o','n','g'),
+  /*11.0*/HB_SCRIPT_HANIFI_ROHINGYA		= HB_TAG ('R','o','h','g'),
+  /*11.0*/HB_SCRIPT_MAKASAR			= HB_TAG ('M','a','k','a'),
+  /*11.0*/HB_SCRIPT_MEDEFAIDRIN			= HB_TAG ('M','e','d','f'),
+  /*11.0*/HB_SCRIPT_OLD_SOGDIAN			= HB_TAG ('S','o','g','o'),
+  /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
   /* Dummy values to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior.  Include both a signed and unsigned max,
-   * since technically enums are int, and indeed, hb_script_t ends up being signed.
+   * without risking undefined behavior.  We have two, for historical reasons.
+   * HB_TAG_MAX used to be unsigned, but that was invalid Ansi C, so was changed
+   * to _HB_SCRIPT_MAX_VALUE to be equal to HB_TAG_MAX_SIGNED as well.
+   *
    * See this thread for technicalities:
    *
    *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
-  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
+  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX_SIGNED, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/
 
 } hb_script_t;
@@ -367,6 +397,19 @@ typedef void (*hb_destroy_func_t) (void *user_data);
 
 
 /* Font features and variations. */
+
+/**
+ * HB_FEATURE_GLOBAL_START
+ *
+ * Since: 2.0.0
+ */
+#define HB_FEATURE_GLOBAL_START	0
+/**
+ * HB_FEATURE_GLOBAL_END
+ *
+ * Since: 2.0.0
+ */
+#define HB_FEATURE_GLOBAL_END	((unsigned int) -1)
 
 typedef struct hb_feature_t {
   hb_tag_t      tag;

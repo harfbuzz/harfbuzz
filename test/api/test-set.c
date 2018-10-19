@@ -146,8 +146,12 @@ test_set_algebra (void)
 
   test_empty (s);
   g_assert (!hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (!hb_set_is_subset (o, s));
   hb_set_set (s, o);
   g_assert (hb_set_is_equal (s, o));
+  g_assert (hb_set_is_subset (s, o));
+  g_assert (hb_set_is_subset (o, s));
   test_not_empty (s);
   g_assert_cmpint (hb_set_get_population (s), ==, 2);
 
@@ -250,8 +254,15 @@ test_set_algebra (void)
   g_assert_cmpint (hb_set_get_population (o), ==, 1);
   g_assert (hb_set_has (o, 889));
 
+  hb_set_add (o, 511);
+  g_assert_cmpint (hb_set_get_population (o), ==, 2);
+  hb_set_intersect (o, s);
+  g_assert_cmpint (hb_set_get_population (o), ==, 1);
+  g_assert (hb_set_has (o, 889));
+
   hb_set_destroy (s);
   hb_set_destroy (o);
+  hb_set_destroy (o2);
 }
 
 static void
@@ -367,10 +378,6 @@ test_set_empty (void)
   test_empty (b);
 
   hb_set_add (b, 13);
-
-  test_empty (b);
-
-  hb_set_invert (b);
 
   test_empty (b);
 

@@ -3,8 +3,9 @@
 dir=`mktemp -d`
 
 out=/dev/stdout
-if test "x${1:0:3}" == 'x-o='; then
-	out=${1:3}
+if test "x$1" == 'x-o'; then
+	shift
+	out=$1
 	shift
 fi
 hb_shape=$1
@@ -46,15 +47,22 @@ if test $? != 0; then
 	echo "hb-shape failed." >&2
 	exit 2
 fi
-glyph_names=`echo "$text" | $hb_shape $options --no-clusters --no-positions "$fontfile" | sed 's/[][]//g; s/|/,/g'`
+glyph_ids=`echo "$text" | $hb_shape $options --no-glyph-names --no-clusters --no-positions "$fontfile" | sed 's/[][]//g; s/|/,/g'`
 
 cp "$fontfile" "$dir/font.ttf"
+echo fonttools subset \
+	--glyph-names \
+	--no-hinting \
+	--layout-features='*' \
+	"$dir/font.ttf" \
+	--gids="$glyph_ids" \
+	--text="$text"
 fonttools subset \
 	--glyph-names \
 	--no-hinting \
 	--layout-features='*' \
 	"$dir/font.ttf" \
-	--glyphs="$glyph_names" \
+	--gids="$glyph_ids" \
 	--text="$text"
 if ! test -s "$dir/font.subset.ttf"; then
 	echo "Subsetter didn't produce nonempty subset font in $dir/font.subset.ttf" >&2

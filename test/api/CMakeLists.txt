@@ -3,6 +3,8 @@ if (HB_HAVE_GLIB)
   extract_make_variable (TEST_PROGS ${MAKEFILEAM})
 
   list (APPEND TEST_PROGS
+    test-ot-color
+    test-ot-name
     test-ot-tag
     test-c
     test-cplusplus

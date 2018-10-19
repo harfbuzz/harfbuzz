@@ -25,15 +25,18 @@
  * Google Author(s): Sascha Brawer
  */
 
-#include "hb-open-type-private.hh"
+#include "hb.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
+#include "hb-ot-face.hh"
 #include "hb-ot.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "hb-ot-layout-private.hh"
+#include "hb-ot-layout.hh"
+#include "hb-shaper.hh"
 
 #if 0
 HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)
@@ -45,28 +48,26 @@ static inline const OT::COLR&
 _get_colr (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::COLR);
-  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->colr.get ());
+  return *(hb_ot_face_data (face)->COLR.get ());
 }
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
-  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
-  return *(layout->cpal.get ());
+  return *(hb_ot_face_data (face)->CPAL.get ());
 }
 
 HB_EXTERN hb_bool_t
 hb_ot_color_has_cpal_data (hb_face_t *face)
 {
-  return &_get_cpal (face) != &OT::Null(OT::CPAL);
+  return &_get_cpal (face) != &Null(OT::CPAL);
 }
 
 HB_EXTERN hb_bool_t
 hb_ot_color_has_colr_data (hb_face_t *face)
 {
-  return &_get_colr (face) != &OT::Null(OT::COLR);
+  return &_get_colr (face) != &Null(OT::COLR);
 }
 
 /**
