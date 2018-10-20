@@ -115,7 +115,7 @@ struct HVARVVAR
   }
 
   inline float get_advance_var (hb_codepoint_t glyph,
-				int *coords, unsigned int coord_count) const
+				const int *coords, unsigned int coord_count) const
   {
     unsigned int varidx = (this+advMap).map (glyph);
     return (this+varStore).get_delta (varidx, coords, coord_count);
