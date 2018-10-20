@@ -31,7 +31,7 @@ static const char *font_path = "fonts/cv01.otf";
 static hb_face_t *face;
 
 static void
-test_ot_layout_feature_get_name_ids_and_characters ()
+test_ot_layout_feature_get_name_ids_and_characters (void)
 {
   hb_tag_t cv01 = HB_TAG ('c','v','0','1');
   unsigned int feature_index;
