@@ -146,12 +146,6 @@ hb_unicode_funcs_set_decompose_compatibility_func (hb_unicode_funcs_t *ufuncs,
 						   hb_unicode_decompose_compatibility_func_t func,
 						   void *user_data, hb_destroy_func_t destroy);
 
-/**
- * hb_unicode_decompose_compatibility:
- * 
- *
- * Deprecated: 2.0.0
- **/
 HB_EXTERN HB_DEPRECATED unsigned int
 hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 				    hb_codepoint_t      u,
