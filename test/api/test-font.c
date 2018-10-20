@@ -364,6 +364,69 @@ test_fontfuncs_subclassing (void)
   hb_font_destroy (font2);
 }
 
+static hb_bool_t
+nominal_glyph_func (hb_font_t *font HB_UNUSED,
+		    void *font_data HB_UNUSED,
+		    hb_codepoint_t unicode,
+		    hb_codepoint_t *glyph,
+		    void *user_data HB_UNUSED)
+{
+  *glyph = 0;
+  return FALSE;
+}
+
+static unsigned int
+nominal_glyphs_func (hb_font_t *font HB_UNUSED,
+		     void *font_data HB_UNUSED,
+		     unsigned int count HB_UNUSED,
+		     const hb_codepoint_t *first_unicode HB_UNUSED,
+		     unsigned int unicode_stride HB_UNUSED,
+		     hb_codepoint_t *first_glyph HB_UNUSED,
+		     unsigned int glyph_stride HB_UNUSED,
+		     void *user_data HB_UNUSED)
+{
+  return 0;
+}
+
+static void
+test_fontfuncs_parallels (void)
+{
+  hb_blob_t *blob;
+  hb_face_t *face;
+
+  hb_font_funcs_t *ffuncs1;
+  hb_font_funcs_t *ffuncs2;
+
+  hb_font_t *font0;
+  hb_font_t *font1;
+  hb_font_t *font2;
+
+  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  font0 = hb_font_create (face);
+  hb_face_destroy (face);
+
+  /* setup sub-font1 */
+  font1 = hb_font_create_sub_font (font0);
+  hb_font_destroy (font0);
+  ffuncs1 = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyph_func (ffuncs1, nominal_glyph_func, NULL, NULL);
+  hb_font_set_funcs (font1, ffuncs1, NULL, NULL);
+  hb_font_funcs_destroy (ffuncs1);
+
+  /* setup sub-font2 */
+  font2 = hb_font_create_sub_font (font1);
+  hb_font_destroy (font1);
+  ffuncs2 = hb_font_funcs_create ();
+  hb_font_funcs_set_nominal_glyphs_func (ffuncs1, nominal_glyphs_func, NULL, NULL);
+  hb_font_set_funcs (font2, ffuncs2, NULL, NULL);
+  hb_font_funcs_destroy (ffuncs2);
+
+  /* Just test that calling get_nominal_glyph doesn't infinite-loop. */
+  hb_codepoint_t glyph;
+  hb_font_get_nominal_glyph (font2, 0x0020u, &glyph);
+}
 
 static void
 test_font_empty (void)
@@ -543,6 +606,7 @@ main (int argc, char **argv)
   hb_test_add (test_fontfuncs_empty);
   hb_test_add (test_fontfuncs_nil);
   hb_test_add (test_fontfuncs_subclassing);
+  hb_test_add (test_fontfuncs_parallels);
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
