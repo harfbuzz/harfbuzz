@@ -426,6 +426,8 @@ test_fontfuncs_parallels (void)
   /* Just test that calling get_nominal_glyph doesn't infinite-loop. */
   hb_codepoint_t glyph;
   hb_font_get_nominal_glyph (font2, 0x0020u, &glyph);
+
+  hb_font_destroy (font2);
 }
 
 static void
