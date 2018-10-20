@@ -1,5 +1,18 @@
+Overview of changes leading to 2.0.1
+Friday, October 19, 2018
+====================================
+- Fix hb-version.h reported release version that went wrong (1.8.0)
+  with previous release.
+- Fix extrapolation in 'trak' table.
+- Fix hb-font infinite-recursion issue with some font funcs and
+  subclassed fonts.
+- Implement variation-kerning format in kerx table, although without
+  variation.
+- Fix return value of hb_map_is_empty().
+
+
 Overview of changes leading to 2.0.0
-Wednesday, October 17, 2018
+Thursday, October 18, 2018
 ====================================
 - Added AAT shaping support (morx/kerx/trak).
   Automatically used if GSUB/GPOS are not available respectively.
