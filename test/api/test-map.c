@@ -69,7 +69,7 @@ test_map_userdata (void)
   hb_user_data_key_t key[2];
   int *data = (int *) malloc (sizeof (int));
   *data = 3123;
-  hb_map_set_user_data (m, &key[0], data, free, true);
+  hb_map_set_user_data (m, &key[0], data, free, TRUE);
   g_assert_cmpint (*((int *) hb_map_get_user_data (m, &key[0])), ==, 3123);
 
   int *data2 = (int *) malloc (sizeof (int));
