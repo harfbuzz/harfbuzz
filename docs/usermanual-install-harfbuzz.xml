@@ -279,7 +279,11 @@
 	      graphics-rendering library. The default setting is to
 	      check for the presence of Cairo and, if it is found,
 	      build with Cairo support.
-	    </para> 
+	    </para>
+	    <para>
+	      Note: Cairo is used only by the HarfBuzz
+	      command-line utilities, and not by the HarfBuzz library.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	
@@ -295,6 +299,10 @@
 	      provides access to font properties. The default setting
 	      is to check for the presence of Fontconfig and, if it is
 	      found, build with Fontconfig support.
+	    </para>
+	    <para>
+	      Note: Fontconfig is used only by the HarfBuzz
+	      command-line utilities, and not by the HarfBuzz library.
 	    </para>
 	  </listitem>
 	</varlistentry>

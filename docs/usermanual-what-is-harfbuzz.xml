@@ -296,10 +296,7 @@
     <para>
       In addition to OpenType shaping, HarfBuzz supports the latest
       version of Graphite shaping. HarfBuzz currently supports AAT
-      shaping only on macOS and iOS systems, and in a pass-through
-      fashion: HarfBuzz hands off AAT support to the system CoreText
-      library. However, full, built-in AAT support within HarfBuzz is
-      under development.
+      shaping only on macOS and iOS systems.
     </para>
     
     <para>
@@ -321,13 +318,9 @@
       all color-font formats (<literal>CBDT</literal>,
       <literal>sbix</literal>, <literal>COLR/CPAL</literal>, and
       <literal>SVG-OT</literal>) and OpenType variable fonts. HarfBuzz
-      also includes a font-subsetting feature.
-    </para>
-
-    <para>
-      HarfBuzz can perform some low-level math-shaping operations, 
-      although it does not currently perform full shaping for
-      mathematical typesetting.
+      also includes a font-subsetting feature. HarfBuzz can perform
+      some low-level math-shaping operations, although it does not
+      currently perform full shaping for mathematical typesetting.
     </para>
     
     <para>
@@ -355,9 +348,10 @@
         <para>
           HarfBuzz won't help you with bidirectionality. If you want to
           lay out text that includes a mix of Hebrew and English, you
-	  will need to ensure that each buffer provided to HarfBuzz has its
-          characters in the correct layout order. This will be different
-          from the logical order in which the Unicode text is stored. In
+	  will need to ensure that each buffer provided to HarfBuzz
+	  has all of its characters in the same order and that the
+	  directionality of the buffer is set correctly. This may mean
+	  segmenting the text before it is placed into HarfBuzz buffers. In
           other words, the user will hit the keys in the following
           sequence:
         </para>
@@ -374,7 +368,7 @@
           This reordering is called <emphasis>bidi processing</emphasis>
           (&quot;bidi&quot; is short for bidirectional), and there's an
           algorithm as an annex to the Unicode Standard which tells you how
-          to reorder a string from logical order into presentation order.
+          to process a string of mixed directionality.
           Before sending your string to HarfBuzz, you may need to apply the
           bidi algorithm to it. Libraries such as <ulink
 	  url="http://icu-project.org/">ICU</ulink> and <ulink
@@ -412,12 +406,7 @@
           HarfBuzz can tell you how wide a shaped piece of text is, which is
           useful input to a justification algorithm, but it knows nothing
           about paragraphs, lines or line lengths. Nor will it adjust the
-          space between words to fit them proportionally into a line. If you
-          want to layout text in paragraphs, you will probably want to send
-          each word of your text to HarfBuzz to determine its shaped width
-          after glyph substitutions, then work out how many words will fit
-          on a line, and then finally output each word of the line separated
-          by a space of the correct size to fully justify the paragraph.
+          space between words to fit them proportionally into a line.
         </para>
       </listitem>
     </itemizedlist>
