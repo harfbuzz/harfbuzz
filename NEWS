@@ -1,3 +1,9 @@
+Overview of changes leading to 2.0.2
+Saturday, October 20, 2018
+====================================
+- Fix two minor memory access issues in AAT tables.
+
+
 Overview of changes leading to 2.0.1
 Friday, October 19, 2018
 ====================================
