@@ -221,7 +221,7 @@
   <section>
     <title>What does HarfBuzz do?</title>
     <para>
-      HarfBuzz provides OpenType text shaping through a cross-platform
+      HarfBuzz provides text shaping through a cross-platform
       C API that accepts sequences of Unicode codepoints as input. Currently,
       the following OpenType shaping models are supported:
     </para>
