@@ -21,11 +21,13 @@
       <para>
 	The canonical source-code tree is available at
         <ulink
-	    url="http://cgit.freedesktop.org/harfbuzz/">cgit.freedesktop.org/harfbuzz</ulink>
-	and at
+	    url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>
+        and is also available at
         <ulink
-	    url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>. 
-        See <xref linkend="download" endterm="download.title"/> for release tarballs.
+	    url="http://cgit.freedesktop.org/harfbuzz/">cgit.freedesktop.org/harfbuzz</ulink>.
+	See <xref linkend="download" endterm="download.title"/> for
+	release tarballs.
+      </para>
     </abstract>
   </bookinfo>
 
@@ -53,7 +55,7 @@
 
     <note>
       <para>
-        The current HarfBuzz codebase is versioned 1.x.x and is stable
+        The current HarfBuzz codebase is versioned 2.x.x and is stable
 	and under active maintenance. This is what is used in latest
 	versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice,
 	XeTeX, Android, and KDE, among other places. 
