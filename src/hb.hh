@@ -446,6 +446,8 @@ typedef uint64_t hb_vector_size_impl_t;
 #define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned int)(x) < 32) + (1U << (unsigned int)(x)))
 #define FLAG_UNSAFE(x) ((unsigned int)(x) < 32 ? (1U << (unsigned int)(x)) : 0)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
+#define FLAG64(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned long long)(x) < 64) + (1ULL << (unsigned long long)(x)))
+#define FLAG64_UNSAFE(x) ((unsigned long long)(x) < 64 ? (1ULL << (unsigned long long)(x)) : 0)
 
 
 /* Size signifying variable-sized array */
