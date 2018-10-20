@@ -102,7 +102,7 @@ jobs:
       - run: make -j32
       # run-shape-fuzzer-tests.py automatically runs valgrind if see available
       # but test/api runs it by request, we probably should normalize the approaches
-      - run: make check && make -Ctest/api check-valgrind || .ci/fail.sh
+      - run: RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
       # informational for now
       - run: make -Ctest/api check-symbols || true
 
