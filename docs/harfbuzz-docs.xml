@@ -14,7 +14,7 @@
         HarfBuzz is an <ulink url="http://www.microsoft.com/typography/otspec/">OpenType</ulink>
         text shaping engine. Using the HarfBuzz library allows
 	programs to convert a sequence of Unicode input into
-	properly formatted and positioned text output&mdash;for any writing
+	properly formatted and positioned glyph output&mdash;for any writing
 	system and language.
       </para>
 
