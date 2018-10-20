@@ -161,7 +161,7 @@
       <listitem>
         <para>
           Similarly, each Arabic character has four different variants
-	  corresponding to the different positions in might appear in
+	  corresponding to the different positions it might appear in
 	  within a sequence. Inside a font, there will be separate
 	  glyphs for the initial, medial, final, and isolated forms of
 	  each letter, each at a different glyph ID.
