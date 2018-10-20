@@ -67,7 +67,9 @@ please provide it as the first argument to the tool""")
 print ('hb_shape_fuzzer:', hb_shape_fuzzer)
 fails = 0
 
-valgrind = which ('valgrind')
+valgrind = None
+if os.environ.get('RUN_VALGRIND', ''):
+	valgrind = which ('valgrind')
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
