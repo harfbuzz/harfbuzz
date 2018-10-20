@@ -103,7 +103,7 @@ hb_font_get_nominal_glyph_default (hb_font_t *font,
 				   hb_codepoint_t *glyph,
 				   void *user_data HB_UNUSED)
 {
-  if (font->has_nominal_glyphs_func ())
+  if (font->has_nominal_glyphs_func_set ())
   {
     return font->get_nominal_glyphs (1, &unicode, 0, glyph, 0);
   }
@@ -121,7 +121,7 @@ hb_font_get_nominal_glyphs_default (hb_font_t *font,
 				    unsigned int glyph_stride,
 				    void *user_data HB_UNUSED)
 {
-  if (font->has_nominal_glyph_func ())
+  if (font->has_nominal_glyph_func_set ())
   {
     for (unsigned int i = 0; i < count; i++)
     {
@@ -176,7 +176,7 @@ hb_font_get_glyph_h_advance_default (hb_font_t *font,
 				     hb_codepoint_t glyph,
 				     void *user_data HB_UNUSED)
 {
-  if (font->has_glyph_h_advances_func ())
+  if (font->has_glyph_h_advances_func_set ())
   {
     hb_position_t ret;
     font->get_glyph_h_advances (1, &glyph, 0, &ret, 0);
@@ -200,7 +200,7 @@ hb_font_get_glyph_v_advance_default (hb_font_t *font,
 				     hb_codepoint_t glyph,
 				     void *user_data HB_UNUSED)
 {
-  if (font->has_glyph_v_advances_func ())
+  if (font->has_glyph_v_advances_func_set ())
   {
     hb_position_t ret;
     font->get_glyph_v_advances (1, &glyph, 0, &ret, 0);
@@ -220,7 +220,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t* font,
 				      unsigned int advance_stride,
 				      void *user_data HB_UNUSED)
 {
-  if (font->has_glyph_h_advance_func ())
+  if (font->has_glyph_h_advance_func_set ())
   {
     for (unsigned int i = 0; i < count; i++)
     {
@@ -252,7 +252,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t* font,
 				      unsigned int advance_stride,
 				      void *user_data HB_UNUSED)
 {
-  if (font->has_glyph_v_advance_func ())
+  if (font->has_glyph_v_advance_func_set ())
   {
     for (unsigned int i = 0; i < count; i++)
     {
@@ -688,9 +688,15 @@ HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
 
 bool
+hb_font_t::has_func_set (unsigned int i)
+{
+  return this->klass->get.array[i] != _hb_font_funcs_default.get.array[i];
+}
+
+bool
 hb_font_t::has_func (unsigned int i)
 {
-  return (this->klass->get.array[i] != _hb_font_funcs_default.get.array[i]) ||
+  return has_func_set (i) ||
 	 (parent && parent != &_hb_Null_hb_font_t && parent->has_func (i));
 }
 

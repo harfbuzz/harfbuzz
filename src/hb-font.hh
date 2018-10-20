@@ -171,6 +171,7 @@ struct hb_font_t
   /* Public getters */
 
   HB_INTERNAL bool has_func (unsigned int i);
+  HB_INTERNAL bool has_func_set (unsigned int i);
 
   /* has_* ... */
 #define HB_FONT_FUNC_IMPLEMENT(name) \
@@ -180,6 +181,13 @@ struct hb_font_t
     hb_font_funcs_t *funcs = this->klass; \
     unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, name) / sizeof (funcs->get.array[0]); \
     return has_func (i); \
+  } \
+  bool \
+  has_##name##_func_set (void) \
+  { \
+    hb_font_funcs_t *funcs = this->klass; \
+    unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, name) / sizeof (funcs->get.array[0]); \
+    return has_func_set (i); \
   }
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
