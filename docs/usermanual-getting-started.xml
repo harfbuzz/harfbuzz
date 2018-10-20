@@ -18,9 +18,7 @@
       properties that affect shaping. The most important are the
       text-flow direction (e.g., left-to-right, right-to-left,
       top-to-bottom, or bottom-to-top), the script tag, and the
-      language tag. HarfBuzz can attempt to guess the correct values
-      for the buffer based on its contents if you do not set them
-      explicitly.
+      language tag.
     </para>
 
     <para>
@@ -29,7 +27,8 @@
       indicate whether or not to visibly render Unicode <literal>Default
       Ignorable</literal> codepoints, and to modify the cluster-merging
       behavior for the buffer. For shaped output buffers, the
-      individual X and Y offsets and widths of each glyph are
+      individual X and Y offsets and <literal>advances</literal>
+      (the logical dimensions) of each glyph are 
       accessible. HarfBuzz also flags glyphs as
       <literal>UNSAFE_TO_BREAK</literal> if breaking the string at
       that glyph (e.g., in a line-breaking or hyphenation process)
@@ -61,9 +60,10 @@
     </para>
     
     <para>
-      HarfBuzz provides glue code to integrate with FreeType, GObject,
-      Uniscribe, and CoreText. Support for integrating with
-      DirectWrite is experimental at present.
+      HarfBuzz provides glue code to integrate with various other
+      libraries, including FreeType, GObject, and CoreText. Support
+      for integrating with Uniscribe and DirectWrite is experimental
+      at present.
     </para>
   </section>
 
