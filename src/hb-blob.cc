@@ -487,8 +487,8 @@ hb_blob_t::try_make_writable (void)
 #if defined(_WIN32) || defined(__CYGWIN__)
 # include <windows.h>
 #else
-# ifndef _O_BINARY
-#  define _O_BINARY 0
+# ifndef O_BINARY
+#  define O_BINARY 0
 # endif
 #endif
 
@@ -540,7 +540,7 @@ hb_blob_create_from_file (const char *file_name)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
-  int fd = open (file_name, O_RDONLY | _O_BINARY, 0);
+  int fd = open (file_name, O_RDONLY | O_BINARY, 0);
   if (unlikely (fd == -1)) goto fail_without_close;
 
   struct stat st;
