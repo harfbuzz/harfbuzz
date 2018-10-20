@@ -72,7 +72,7 @@ struct MVAR
   }
 
   inline float get_var (hb_tag_t tag,
-			int *coords, unsigned int coord_count) const
+			const int *coords, unsigned int coord_count) const
   {
     const VariationValueRecord *record;
     record = (VariationValueRecord *) bsearch (&tag, valuesZ.arrayZ,
