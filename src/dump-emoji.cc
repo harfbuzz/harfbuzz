@@ -131,14 +131,14 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
       for (unsigned int pallet = 0; pallet < pallet_count; ++pallet) {
 	char output_path[255];
 
-        unsigned int num_colors = hb_ot_color_get_palette_colors (face, pallet, 0, nullptr, nullptr);
-        if (!num_colors)
-          continue;
+	unsigned int num_colors = hb_ot_color_get_palette_colors (face, pallet, 0, nullptr, nullptr);
+	if (!num_colors)
+	  continue;
 
-        hb_ot_color_t *colors = (hb_ot_color_t*) calloc (num_colors, sizeof (hb_ot_color_t));
-        hb_ot_color_get_palette_colors (face, pallet, 0, &num_colors, colors);
-        if (num_colors)
-        {
+	hb_ot_color_t *colors = (hb_ot_color_t*) calloc (num_colors, sizeof (hb_ot_color_t));
+	hb_ot_color_get_palette_colors (face, pallet, 0, &num_colors, colors);
+	if (num_colors)
+	{
 	  // If we have more than one pallet, use a better namin
 	  if (pallet_count == 1)
 	    sprintf (output_path, "out/colr-%d.svg", gid);
@@ -153,13 +153,13 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 	  for (unsigned int layer = 0; layer < num_layers; ++layer)
 	  {
 	    uint32_t color = 0xFF;
-            if (color_indices[layer] != 0xFFFF)
+	    if (color_indices[layer] != 0xFFFF)
 	      color = colors[color_indices[layer]];
-	    int alpha = hb_ot_color_get_alpha (color);
-	    int r = hb_ot_color_get_red (color);
-	    int g = hb_ot_color_get_green (color);
-	    int b = hb_ot_color_get_blue (color);
-	    cairo_set_source_rgba (cr, r / 255., g / 255., b / 255., alpha);
+	    cairo_set_source_rgba (cr,
+				   hb_ot_color_get_red (color) / 255.,
+				   hb_ot_color_get_green (color) / 255.,
+				   hb_ot_color_get_blue (color) / 255.,
+				   hb_ot_color_get_alpha (color) / 255.);
 
 	    cairo_glyph_t glyph;
 	    glyph.index = layer_gids[layer];
@@ -170,8 +170,8 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 
 	  cairo_surface_destroy (surface);
 	  cairo_destroy (cr);
-        }
-        free (colors);
+	}
+	free (colors);
       }
     }
 
@@ -281,11 +281,11 @@ main (int argc, char **argv)
     FT_New_Face (library, argv[1], 0, &ftface);
     cairo_face = cairo_ft_font_face_create_for_ft_face (ftface, 0);
   }
+  colr_cpal_rendering (face, cairo_face);
+
   unsigned int num_glyphs = hb_face_get_glyph_count (face);
   unsigned int upem = hb_face_get_upem (face);
-  colr_cpal_rendering (face, cairo_face);
   dump_glyphs (cairo_face, upem, num_glyphs);
-
 
   hb_font_destroy (font);
   hb_face_destroy (face);
