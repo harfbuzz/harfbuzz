@@ -285,7 +285,7 @@ struct LookupFormat10
 		valueArrayZ;	/* The lookup values (indexed by the glyph index
 				 * minus the value of firstGlyph). */
   public:
-  DEFINE_SIZE_ARRAY (6, valueArrayZ);
+  DEFINE_SIZE_ARRAY (8, valueArrayZ);
 };
 
 template <typename T>
