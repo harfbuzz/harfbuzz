@@ -61,11 +61,8 @@ test_map_basic (void)
   hb_map_destroy (m);
 }
 
-#define true 1
-#define false 0
-
 static void
-test_map_userdata ()
+test_map_userdata (void)
 {
   hb_map_t *m = hb_map_create ();
 
@@ -77,16 +74,16 @@ test_map_userdata ()
 
   int *data2 = (int *) malloc (sizeof (int));
   *data2 = 6343;
-  hb_map_set_user_data (m, &key[0], data2, free, false);
+  hb_map_set_user_data (m, &key[0], data2, free, FALSE);
   g_assert_cmpint (*((int *) hb_map_get_user_data (m, &key[0])), ==, 3123);
-  hb_map_set_user_data (m, &key[0], data2, free, true);
+  hb_map_set_user_data (m, &key[0], data2, free, TRUE);
   g_assert_cmpint (*((int *) hb_map_get_user_data (m, &key[0])), ==, 6343);
 
   hb_map_destroy (m);
 }
 
 static void
-test_map_refcount ()
+test_map_refcount (void)
 {
   hb_map_t *m = hb_map_create ();
   hb_map_set (m, 213, 223);
