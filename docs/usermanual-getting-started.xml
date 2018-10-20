@@ -33,7 +33,7 @@
       accessible. HarfBuzz also flags glyphs as
       <literal>UNSAFE_TO_BREAK</literal> if breaking the string at
       that glyph (e.g., in a line-breaking or hyphenation process)
-      would alter the shaping output for the buffer.
+      would require re-shaping the text.
     </para>
     
     <para>
