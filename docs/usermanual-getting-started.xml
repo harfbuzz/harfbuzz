@@ -128,7 +128,7 @@
       #include &lt;hb.h&gt;
       hb_buffer_t *buf;
       buf = hb_buffer_create();
-      hb_buffer_add_utf8(buf, text, strlen(text), 0, strlen(text));
+      hb_buffer_add_utf8(buf, text, -1, 0, -1);
     </programlisting>
     <orderedlist numeration="arabic">
       <listitem override="2">
