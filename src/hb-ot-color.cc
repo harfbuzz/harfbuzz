@@ -99,7 +99,7 @@ hb_ot_color_get_palette_count (hb_face_t *face)
  * the result is 0xFFFF. The implementation does not check whether
  * the returned palette name id is actually in @face's `name` table.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 unsigned int
 hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
@@ -118,7 +118,7 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
  * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
  * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 hb_ot_color_palette_flags_t
 hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
@@ -158,10 +158,10 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  */
 unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
-				unsigned int    palette, /* default=0 */
+				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
-				unsigned int   *count /* IN/OUT */,
-				hb_ot_color_t  *colors /* OUT */)
+				unsigned int   *count         /* IN/OUT */,
+				hb_ot_color_t  *colors        /* OUT */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
   if (unlikely (palette >= cpal.get_palette_count ()))
