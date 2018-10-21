@@ -127,23 +127,23 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
       extents.y_bearing -= extents.height / 20;
 
       // Render
-      unsigned int pallet_count = hb_ot_color_get_palette_count (face);
-      for (unsigned int pallet = 0; pallet < pallet_count; ++pallet) {
+      unsigned int palette_count = hb_ot_color_get_palette_count (face);
+      for (unsigned int palette = 0; palette < palette_count; palette++) {
 	char output_path[255];
 
-	unsigned int num_colors = hb_ot_color_get_palette_colors (face, pallet, 0, nullptr, nullptr);
+	unsigned int num_colors = hb_ot_color_get_palette_colors (face, palette, 0, nullptr, nullptr);
 	if (!num_colors)
 	  continue;
 
-	hb_ot_color_t *colors = (hb_ot_color_t*) calloc (num_colors, sizeof (hb_ot_color_t));
-	hb_ot_color_get_palette_colors (face, pallet, 0, &num_colors, colors);
+	hb_color_t *colors = (hb_color_t*) calloc (num_colors, sizeof (hb_color_t));
+	hb_ot_color_get_palette_colors (face, palette, 0, &num_colors, colors);
 	if (num_colors)
 	{
-	  // If we have more than one pallet, use a better namin
-	  if (pallet_count == 1)
+	  // If we have more than one palette, use a better namin
+	  if (palette_count == 1)
 	    sprintf (output_path, "out/colr-%d.svg", gid);
 	  else
-	    sprintf (output_path, "out/colr-%d-%d.svg", gid, pallet);
+	    sprintf (output_path, "out/colr-%d-%d.svg", gid, palette);
 
 	  cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
 	  cairo_t *cr = cairo_create (surface);
@@ -152,14 +152,14 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 
 	  for (unsigned int layer = 0; layer < num_layers; ++layer)
 	  {
-	    uint32_t color = 0xFF;
+	    hb_color_t color = 0x000000FF;
 	    if (color_indices[layer] != 0xFFFF)
 	      color = colors[color_indices[layer]];
 	    cairo_set_source_rgba (cr,
-				   hb_ot_color_get_red (color) / 255.,
-				   hb_ot_color_get_green (color) / 255.,
-				   hb_ot_color_get_blue (color) / 255.,
-				   hb_ot_color_get_alpha (color) / 255.);
+				   hb_color_get_red (color) / 255.,
+				   hb_color_get_green (color) / 255.,
+				   hb_color_get_blue (color) / 255.,
+				   hb_color_get_alpha (color) / 255.);
 
 	    cairo_glyph_t glyph;
 	    glyph.index = layer_gids[layer];

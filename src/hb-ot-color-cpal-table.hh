@@ -30,25 +30,14 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-color.h"
+#include "hb-ot-name.h"
 
 
 /*
- * Following parts to be moved to a public header.
+ * CPAL -- Color Palette
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/cpal
  */
-
-/**
- * hb_ot_color_palette_flags_t:
- * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
- *
- * Since: REPLACEME
- */
-typedef enum { /*< flags >*/
-  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
-} hb_ot_color_palette_flags_t;
+#define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
 
 
 namespace OT {
@@ -64,17 +53,19 @@ struct CPALV1Tail
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  (base+paletteFlagsZ).sanitize (c, palettes) &&
-		  (base+paletteLabelZ).sanitize (c, palettes) &&
-		  (base+paletteEntryLabelZ).sanitize (c, palettes));
+		  (base+paletteLabelZ).sanitize (c, palettes) /*&&
+		  (base+paletteEntryLabelZ).sanitize (c, palettes)*/);
   }
 
   private:
+  #if 0
   inline hb_ot_color_palette_flags_t
   get_palette_flags (const void *base, unsigned int palette) const
   {
     // range checked at the CPAL caller
     return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette];
   }
+  #endif
 
   inline unsigned int
   get_palette_name_id (const void *base, unsigned int palette) const
@@ -92,12 +83,12 @@ struct CPALV1Tail
 		paletteLabelZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Labels Array. Set to 0 if no
 					 * array is provided. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
-		paletteEntryLabelZ;	/* Offset from the beginning of CPAL table to
+  /*LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
+		paletteEntryLabelZ;*/	/* Offset from the beginning of CPAL table to
 					 * the Palette Entry Label Array. Set to 0
 					 * if no array is provided. */
   public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_STATIC (/*12*/8);
 };
 
 typedef HBUINT32 BGRAColor;
@@ -132,6 +123,7 @@ struct CPAL
     return min_size + numPalettes * sizeof (HBUINT16);
   }
 
+  #if 0
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
   {
     if (unlikely (version == 0 || palette >= numPalettes))
@@ -140,11 +132,12 @@ struct CPAL
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
     return cpal1.get_palette_flags (this, palette);
   }
+  #endif
 
   inline unsigned int get_palette_name_id (unsigned int palette) const
   {
     if (unlikely (version == 0 || palette >= numPalettes))
-      return 0xFFFF;
+      return HB_NAME_ID_INVALID;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
     return cpal1.get_palette_name_id (this, palette);
@@ -161,7 +154,7 @@ struct CPAL
   }
 
   bool
-  get_color_record_argb (unsigned int color_index, unsigned int palette, hb_ot_color_t* color) const
+  get_color_record_argb (unsigned int color_index, unsigned int palette, hb_color_t* color) const
   {
     if (unlikely (color_index >= numPaletteEntries || palette >= numPalettes))
       return false;
