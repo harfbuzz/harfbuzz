@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2018  Khaled Hosny
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -140,7 +141,7 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 	hb_ot_color_get_palette_colors (face, palette, 0, &num_colors, colors);
 	if (num_colors)
 	{
-	  // If we have more than one palette, use a better namin
+	  // If we have more than one palette, use a simpler naming
 	  if (palette_count == 1)
 	    sprintf (output_path, "out/colr-%d.svg", gid);
 	  else

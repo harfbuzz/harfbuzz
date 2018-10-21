@@ -1,5 +1,6 @@
 /*
  * Copyright © 2016  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -321,6 +322,13 @@ test_hb_ot_color_get_color_layers (void)
   unsigned int color_indices[1];
   unsigned int count = 1;
 
+  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 0, 0,
+						  NULL, NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 1, 0,
+						  NULL, NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 2, 0,
+						  NULL, NULL, NULL), ==, 2);
+
   unsigned int num_layers;
   num_layers = hb_ot_color_get_color_layers (cpal_v1, 2, 0, &count, layer_gids,
 					     color_indices);
@@ -338,6 +346,20 @@ test_hb_ot_color_get_color_layers (void)
   g_assert_cmpuint (count, ==, 1);
   g_assert_cmpuint (layer_gids[0], ==, 4);
   g_assert_cmpuint (color_indices[0], ==, 0);
+}
+
+static void
+test_hb_ot_color_has_data (void)
+{
+  hb_face_t *empty = hb_face_get_empty ();
+
+  g_assert (hb_ot_color_has_colr_data (empty) == FALSE);
+  g_assert (hb_ot_color_has_colr_data (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_colr_data (cpal_v1) == TRUE);
+
+  g_assert (hb_ot_color_has_cpal_data (empty) == FALSE);
+  g_assert (hb_ot_color_has_cpal_data (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_cpal_data (cpal_v1) == TRUE);
 }
 
 int
@@ -360,6 +382,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_get_palette_colors_v1);
   hb_test_add (test_hb_ot_color_get_palette_entry);
   hb_test_add (test_hb_ot_color_get_color_layers);
+  hb_test_add (test_hb_ot_color_has_data);
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
   hb_face_destroy (cpal_v1);
