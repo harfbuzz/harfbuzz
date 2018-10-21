@@ -295,13 +295,9 @@ test_hb_ot_color_get_palette_colors_v1 (void)
 
 
 static void
-test_hb_ot_color_get_palette_entry (void)
+test_hb_ot_color_get_palette_entry_name_id (void)
 {
   hb_face_t *empty = hb_face_get_empty ();
-
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_count (empty), ==, 0);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_count (cpal_v0), ==, 2);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_count (cpal_v1), ==, 2);
 
   g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (empty, 0), ==, HB_NAME_ID_INVALID);
   g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (empty, 1), ==, HB_NAME_ID_INVALID);
@@ -380,7 +376,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_get_palette_colors_empty);
   hb_test_add (test_hb_ot_color_get_palette_colors_v0);
   hb_test_add (test_hb_ot_color_get_palette_colors_v1);
-  hb_test_add (test_hb_ot_color_get_palette_entry);
+  hb_test_add (test_hb_ot_color_get_palette_entry_name_id);
   hb_test_add (test_hb_ot_color_get_color_layers);
   hb_test_add (test_hb_ot_color_has_data);
   status = hb_test_run();

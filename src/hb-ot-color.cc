@@ -117,20 +117,6 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
 }
 
 /**
- * hb_ot_color_get_palette_entry_count:
- * @face: a font face.
- *
- * Returns: Number of entries on each palette
- *
- * Since: REPLACEME
- */
-unsigned int
-hb_ot_color_get_palette_entry_count (hb_face_t *face)
-{
-  return _get_cpal (face).get_palette_entries_count ();
-}
-
-/**
  * hb_ot_color_get_palette_entry_name_id:
  * @face: a font face.
  * @palette_entry:
@@ -176,8 +162,8 @@ unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
-				unsigned int   *count         /* IN/OUT */,
-				hb_color_t  *colors        /* OUT */)
+				unsigned int   *count         /* IN/OUT.  May be NULL. */,
+				hb_color_t     *colors        /* OUT.     May be NULL. */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
   if (unlikely (palette >= cpal.get_palette_count ()))
