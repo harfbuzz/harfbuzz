@@ -51,6 +51,12 @@ HB_EXTERN hb_name_id_t
 hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
 
 HB_EXTERN unsigned int
+hb_ot_color_get_palette_entry_count (hb_face_t *face);
+
+HB_EXTERN hb_name_id_t
+hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_entry);
+
+HB_EXTERN unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
@@ -64,6 +70,23 @@ hb_ot_color_get_color_layers (hb_face_t       *face,
 			      unsigned int    *count,        /* IN/OUT */
 			      hb_codepoint_t  *gids,         /* OUT */
 			      unsigned int    *color_indices /* OUT */);
+
+/**
+ * hb_ot_color_palette_flags_t:
+ * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
+} hb_ot_color_palette_flags_t;
+
+HB_EXTERN hb_ot_color_palette_flags_t
+hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
 
 HB_END_DECLS
 
