@@ -50,9 +50,6 @@ hb_ot_color_get_palette_count (hb_face_t *face);
 HB_EXTERN hb_name_id_t
 hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
 
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_entry_count (hb_face_t *face);
-
 HB_EXTERN hb_name_id_t
 hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_entry);
 
