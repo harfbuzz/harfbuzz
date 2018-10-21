@@ -117,7 +117,7 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
 }
 
 /**
- * hb_ot_color_get_palette_count:
+ * hb_ot_color_get_palette_entry_count:
  * @face: a font face.
  *
  * Returns: Number of entries on each palette
@@ -206,7 +206,8 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
  * @gid:
  * @start_offset:
  * @count:  (inout) (optional):
- * @color_indices: (array length=color_count) (optional):
+ * @gids: (array length=count) (optional):
+ * @color_indices: (array length=count) (optional):
  *
  * Returns:
  *
@@ -250,7 +251,7 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
  * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
  * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
  *
- * Since: DONTREPLACEME
+ * Since: REPLACEME
  */
 hb_ot_color_palette_flags_t
 hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
