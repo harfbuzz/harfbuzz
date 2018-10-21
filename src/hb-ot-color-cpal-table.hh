@@ -48,30 +48,45 @@ struct CPALV1Tail
   friend struct CPAL;
 
   inline bool
-  sanitize (hb_sanitize_context_t *c, const void *base, unsigned int palettes) const
+  sanitize (hb_sanitize_context_t *c, const void *base,
+	    unsigned int palettes, unsigned int paletteEntries) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  (base+paletteFlagsZ).sanitize (c, palettes) &&
-		  (base+paletteLabelZ).sanitize (c, palettes) /*&&
-		  (base+paletteEntryLabelZ).sanitize (c, palettes)*/);
+		  (base+paletteLabelZ).sanitize (c, palettes) &&
+		  (base+paletteEntryLabelZ).sanitize (c, paletteEntries));
   }
 
   private:
-  #if 0
   inline hb_ot_color_palette_flags_t
-  get_palette_flags (const void *base, unsigned int palette) const
+  get_palette_flags (const void *base, unsigned int palette,
+		     unsigned int palettes_count) const
   {
-    // range checked at the CPAL caller
+    if (unlikely (palette >= palettes_count))
+      return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
+
     return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette];
   }
-  #endif
 
   inline unsigned int
-  get_palette_name_id (const void *base, unsigned int palette) const
+  get_palette_name_id (const void *base, unsigned int palette,
+		       unsigned int palettes_count) const
   {
-    // range checked at the CPAL caller
+    if (unlikely (palette >= palettes_count))
+      return HB_NAME_ID_INVALID;
+
     return (base+paletteLabelZ)[palette];
+  }
+
+  inline unsigned int
+  get_palette_entry_name_id (const void *base, unsigned int palette_entry,
+			     unsigned int palettes_entries_count) const
+  {
+    if (unlikely (palette_entry >= palettes_entries_count))
+      return HB_NAME_ID_INVALID;
+
+    return (base+paletteEntryLabelZ)[palette_entry];
   }
 
   protected:
@@ -83,12 +98,12 @@ struct CPALV1Tail
 		paletteLabelZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Labels Array. Set to 0 if no
 					 * array is provided. */
-  /*LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
-		paletteEntryLabelZ;*/	/* Offset from the beginning of CPAL table to
+  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
+		paletteEntryLabelZ;	/* Offset from the beginning of CPAL table to
 					 * the Palette Entry Label Array. Set to 0
 					 * if no array is provided. */
   public:
-  DEFINE_SIZE_STATIC (/*12*/8);
+  DEFINE_SIZE_STATIC (12);
 };
 
 typedef HBUINT32 BGRAColor;
@@ -115,7 +130,7 @@ struct CPAL
       return_trace (true);
 
     const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-    return_trace (likely (v1.sanitize (c, this, numPalettes)));
+    return_trace (likely (v1.sanitize (c, this, numPalettes, numPaletteEntries)));
   }
 
   inline unsigned int get_size (void) const
@@ -123,35 +138,38 @@ struct CPAL
     return min_size + numPalettes * sizeof (HBUINT16);
   }
 
-  #if 0
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
   {
-    if (unlikely (version == 0 || palette >= numPalettes))
+    if (unlikely (version == 0))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_flags (this, palette);
+    return cpal1.get_palette_flags (this, palette, numPalettes);
   }
-  #endif
 
   inline unsigned int get_palette_name_id (unsigned int palette) const
   {
-    if (unlikely (version == 0 || palette >= numPalettes))
+    if (unlikely (version == 0))
       return HB_NAME_ID_INVALID;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_name_id (this, palette);
+    return cpal1.get_palette_name_id (this, palette, numPalettes);
+  }
+
+  inline unsigned int get_palette_entry_name_id (unsigned int palette_entry) const
+  {
+    if (unlikely (version == 0))
+      return HB_NAME_ID_INVALID;
+
+    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
+    return cpal1.get_palette_entry_name_id (this, palette_entry, numPaletteEntries);
   }
 
   inline unsigned int get_palette_count () const
-  {
-    return numPalettes;
-  }
+  { return numPalettes; }
 
   inline unsigned int get_palette_entries_count () const
-  {
-    return numPaletteEntries;
-  }
+  { return numPaletteEntries; }
 
   bool
   get_color_record_argb (unsigned int color_index, unsigned int palette, hb_color_t* color) const
