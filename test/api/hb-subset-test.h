@@ -47,27 +47,6 @@ typedef short bool;
 
 HB_BEGIN_DECLS
 
-static inline hb_face_t *
-hb_subset_test_open_font (const char *font_path)
-{
-#if GLIB_CHECK_VERSION(2,37,2)
-  char *path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
-#else
-  char *path = g_strdup (font_path);
-#endif
-
-  hb_blob_t *blob = hb_blob_create_from_file (path);
-  if (hb_blob_get_length (blob) == 0)
-    g_error ("Font not found.");
-
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_blob_destroy (blob);
-
-  g_free (path);
-
-  return face;
-}
-
 static inline hb_subset_input_t *
 hb_subset_test_create_input(const hb_set_t  *codepoints)
 {

@@ -33,8 +33,8 @@
 static void
 test_subset_hdmx_simple_subset (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Roboto-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -53,8 +53,8 @@ test_subset_hdmx_simple_subset (void)
 static void
 test_subset_hdmx_multiple_device_records (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.multihdmx.abc.ttf");
-  hb_face_t *face_a = hb_subset_test_open_font ("fonts/Roboto-Regular.multihdmx.a.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.multihdmx.abc.ttf");
+  hb_face_t *face_a = hb_test_open_font_file ("fonts/Roboto-Regular.multihdmx.a.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -72,7 +72,7 @@ test_subset_hdmx_multiple_device_records (void)
 static void
 test_subset_hdmx_invalid (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("../fuzzing/fonts/crash-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/crash-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
@@ -94,7 +94,7 @@ test_subset_hdmx_invalid (void)
 static void
 test_subset_hdmx_fails_sanitize (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("../fuzzing/fonts/clusterfuzz-testcase-minimized-hb-subset-fuzzer-5609911946838016");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/clusterfuzz-testcase-minimized-hb-subset-fuzzer-5609911946838016");
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
@@ -116,7 +116,7 @@ test_subset_hdmx_fails_sanitize (void)
 static void
 test_subset_hdmx_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;

@@ -23,16 +23,13 @@
  *
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
 #include <pthread.h>
 
 #include <hb.h>
 #include <hb-ft.h>
 #include <hb-ot.h>
-#include <glib.h>
+
+#include "hb-test.h"
 
 static const char *font_path = "fonts/Inconsolata-Regular.abc.ttf";
 static const char *text = "abc";
@@ -127,15 +124,9 @@ test_body (void)
 int
 main (int argc, char **argv)
 {
-  g_test_init (&argc, &argv, NULL);
+  hb_test_init (&argc, &argv);
 
-#if GLIB_CHECK_VERSION(2,37,2)
-  gchar *default_path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
-#else
-  gchar *default_path = g_strdup (font_path);
-#endif
-
-  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) default_path;
+  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) font_path;
   if (argc > 2)
     num_threads = atoi (argv[2]);
   if (argc > 3)
@@ -147,11 +138,7 @@ main (int argc, char **argv)
    * https://github.com/harfbuzz/harfbuzz/issues/1191 */
   hb_language_get_default ();
 
-  hb_blob_t *blob = hb_blob_create_from_file (path);
-  if (hb_blob_get_length (blob) == 0)
-    g_error ("Font not found.");
-
-  hb_face_t *face = hb_face_create (blob, 0);
+  hb_face_t *face = hb_test_open_font_file (path);
   font = hb_font_create (face);
 
   /* Fill the reference */
@@ -170,9 +157,6 @@ main (int argc, char **argv)
 
   hb_font_destroy (font);
   hb_face_destroy (face);
-  hb_blob_destroy (blob);
-
-  g_free (default_path);
 
   return 0;
 }
