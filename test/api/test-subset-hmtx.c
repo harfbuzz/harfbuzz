@@ -47,8 +47,8 @@ static void check_num_hmetrics(hb_face_t *face, uint16_t expected_num_hmetrics)
 static void
 test_subset_hmtx_simple_subset (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Roboto-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -69,8 +69,8 @@ test_subset_hmtx_simple_subset (void)
 static void
 test_subset_hmtx_monospace (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Inconsolata-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Inconsolata-Regular.ac.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Inconsolata-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Inconsolata-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -91,8 +91,8 @@ test_subset_hmtx_monospace (void)
 static void
 test_subset_hmtx_keep_num_metrics (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Inconsolata-Regular.abc.widerc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Inconsolata-Regular.ac.widerc.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Inconsolata-Regular.abc.widerc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Inconsolata-Regular.ac.widerc.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -112,8 +112,8 @@ test_subset_hmtx_keep_num_metrics (void)
 static void
 test_subset_hmtx_decrease_num_metrics (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Inconsolata-Regular.abc.widerc.ttf");
-  hb_face_t *face_ab = hb_subset_test_open_font ("fonts/Inconsolata-Regular.ab.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Inconsolata-Regular.abc.widerc.ttf");
+  hb_face_t *face_ab = hb_test_open_font_file ("fonts/Inconsolata-Regular.ab.ttf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -133,7 +133,7 @@ test_subset_hmtx_decrease_num_metrics (void)
 static void
 test_subset_hmtx_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;
@@ -153,7 +153,7 @@ test_subset_hmtx_noop (void)
 static void
 test_subset_invalid_hmtx (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("../fuzzing/fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/crash-e4e0bb1458a91b692eba492c907ae1f94e635480");
   hb_face_t *subset;
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();

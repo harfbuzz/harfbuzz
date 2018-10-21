@@ -60,8 +60,8 @@ static void check_maxp_num_glyphs (hb_face_t *face, uint16_t expected_num_glyphs
 static void
 test_subset_glyf (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Roboto-Regular.ac.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;
@@ -82,8 +82,8 @@ test_subset_glyf (void)
 static void
 test_subset_glyf_with_components (void)
 {
-  hb_face_t *face_components = hb_subset_test_open_font ("fonts/Roboto-Regular.components.ttf");
-  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.subset.ttf");
+  hb_face_t *face_components = hb_test_open_font_file ("fonts/Roboto-Regular.components.ttf");
+  hb_face_t *face_subset = hb_test_open_font_file ("fonts/Roboto-Regular.components.subset.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_generated_subset;
@@ -103,8 +103,8 @@ test_subset_glyf_with_components (void)
 static void
 test_subset_glyf_with_gsub (void)
 {
-  hb_face_t *face_fil = hb_subset_test_open_font ("fonts/Roboto-Regular.gsub.fil.ttf");
-  hb_face_t *face_fi = hb_subset_test_open_font ("fonts/Roboto-Regular.gsub.fi.ttf");
+  hb_face_t *face_fil = hb_test_open_font_file ("fonts/Roboto-Regular.gsub.fil.ttf");
+  hb_face_t *face_fi = hb_test_open_font_file ("fonts/Roboto-Regular.gsub.fi.ttf");
   hb_subset_input_t *input;
   hb_face_t *face_subset;
 
@@ -130,8 +130,8 @@ test_subset_glyf_with_gsub (void)
 static void
 test_subset_glyf_without_gsub (void)
 {
-  hb_face_t *face_fil = hb_subset_test_open_font ("fonts/Roboto-Regular.gsub.fil.ttf");
-  hb_face_t *face_fi = hb_subset_test_open_font ("fonts/Roboto-Regular.nogsub.fi.ttf");
+  hb_face_t *face_fil = hb_test_open_font_file ("fonts/Roboto-Regular.gsub.fil.ttf");
+  hb_face_t *face_fi = hb_test_open_font_file ("fonts/Roboto-Regular.nogsub.fi.ttf");
   hb_subset_input_t *input;
   hb_face_t *face_subset;
 
@@ -157,7 +157,7 @@ test_subset_glyf_without_gsub (void)
 static void
 test_subset_glyf_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;
@@ -178,8 +178,8 @@ test_subset_glyf_noop (void)
 static void
 test_subset_glyf_strip_hints_simple (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/Roboto-Regular.ac.nohints.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/Roboto-Regular.ac.nohints.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_subset_input_t *input;
@@ -203,8 +203,8 @@ test_subset_glyf_strip_hints_simple (void)
 static void
 test_subset_glyf_strip_hints_composite (void)
 {
-  hb_face_t *face_components = hb_subset_test_open_font ("fonts/Roboto-Regular.components.ttf");
-  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/Roboto-Regular.components.1fc.nohints.ttf");
+  hb_face_t *face_components = hb_test_open_font_file ("fonts/Roboto-Regular.components.ttf");
+  hb_face_t *face_subset = hb_test_open_font_file ("fonts/Roboto-Regular.components.1fc.nohints.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_subset_input_t *input;
@@ -228,7 +228,7 @@ test_subset_glyf_strip_hints_composite (void)
 static void
 test_subset_glyf_strip_hints_invalid (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("../fuzzing/fonts/oom-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/oom-ccc61c92d589f895174cdef6ff2e3b20e9999a1a");
 
   hb_set_t *codepoints = hb_set_create();
   const hb_codepoint_t text[] =
