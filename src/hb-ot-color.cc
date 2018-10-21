@@ -230,7 +230,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
  * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 typedef enum { /*< flags >*/
   HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,

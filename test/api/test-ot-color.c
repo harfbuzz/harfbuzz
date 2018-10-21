@@ -150,9 +150,9 @@ test_hb_ot_color_get_palette_name_id_v0 (void)
 static void
 test_hb_ot_color_get_palette_name_id_v1 (void)
 {
-//   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 0), ==, 257);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 0), ==, 257);
   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 1), ==, HB_NAME_ID_INVALID);
-//   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 2), ==, 258);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 2), ==, 258);
 
   /* numPalettes=3, so palette #3 is out of bounds */
   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 3), ==, HB_NAME_ID_INVALID);
@@ -290,6 +290,32 @@ test_hb_ot_color_get_palette_colors_v1 (void)
   assert_color_rgba (colors, 2, 0x77, 0x77, 0x77, 0x77);  /* untouched */
 }
 
+static void
+test_hb_ot_color_get_color_layers (void)
+{
+  hb_codepoint_t layer_gids[1];
+  unsigned int color_indices[1];
+  unsigned int count = 1;
+
+  unsigned int num_layers;
+  num_layers = hb_ot_color_get_color_layers (cpal_v1, 2, 0, &count, layer_gids,
+					     color_indices);
+
+  g_assert_cmpuint (num_layers, ==, 2);
+  g_assert_cmpuint (count, ==, 1);
+  g_assert_cmpuint (layer_gids[0], ==, 3);
+  g_assert_cmpuint (color_indices[0], ==, 1);
+
+  count = 1;
+  hb_ot_color_get_color_layers (cpal_v1, 2, 1, &count, layer_gids,
+				color_indices);
+
+  g_assert_cmpuint (num_layers, ==, 2);
+  g_assert_cmpuint (count, ==, 1);
+  g_assert_cmpuint (layer_gids[0], ==, 4);
+  g_assert_cmpuint (color_indices[0], ==, 0);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -308,6 +334,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_get_palette_colors_empty);
   hb_test_add (test_hb_ot_color_get_palette_colors_v0);
   hb_test_add (test_hb_ot_color_get_palette_colors_v1);
+  hb_test_add (test_hb_ot_color_get_color_layers);
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
   hb_face_destroy (cpal_v1);
