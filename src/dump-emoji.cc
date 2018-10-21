@@ -91,7 +91,8 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 {
   unsigned int upem = hb_face_get_upem (face);
 
-  for (hb_codepoint_t gid = 0; gid < hb_face_get_glyph_count (face); ++gid)
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  for (hb_codepoint_t gid = 0; gid < glyph_count; ++gid)
   {
     unsigned int num_layers = hb_ot_color_get_color_layers (face, gid, 0, nullptr, nullptr, nullptr);
     if (!num_layers)
