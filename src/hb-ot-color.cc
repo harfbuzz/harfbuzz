@@ -55,8 +55,7 @@ _get_cpal (hb_face_t *face)
  * hb_ot_color_has_cpal_data:
  * @face: a font face.
  *
- * Returns: the number of color palettes in @face, or zero if @face has
- * no colors.
+ * Returns: whether CPAL table is available.
  *
  * Since: REPLACEME
  */
@@ -70,7 +69,7 @@ hb_ot_color_has_cpal_data (hb_face_t *face)
  * hb_ot_color_has_colr_data:
  * @face: a font face.
  *
- * Returns: whether COLR table available
+ * Returns: whether COLR table is available.
  *
  * Since: REPLACEME
  */
@@ -84,7 +83,8 @@ hb_ot_color_has_colr_data (hb_face_t *face)
  * hb_ot_color_get_palette_count:
  * @face: a font face.
  *
- * Returns:
+ * Returns: the number of color palettes in @face, or zero if @face has
+ * no colors.
  *
  * Since: REPLACEME
  */
@@ -195,8 +195,8 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
  * @gid:
  * @start_offset:
  * @count:  (inout) (optional):
- * @gids: (array length=count) (optional):
- * @color_indices: (array length=count) (optional):
+ * @gids: (array length=count) (out) (optional):
+ * @color_indices: (array length=count) (out) (optional):
  *
  * Returns:
  *
