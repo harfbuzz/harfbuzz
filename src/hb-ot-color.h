@@ -32,27 +32,9 @@
 #define HB_OT_COLOR_H
 
 #include "hb.h"
+#include "hb-ot-name.h"
 
 HB_BEGIN_DECLS
-
-/*
- * CPAL -- Color Palette
- * https://docs.microsoft.com/en-us/typography/opentype/spec/cpal
- */
-#define HB_OT_TAG_CPAL HB_TAG('C','P','A','L')
-
-/**
- * hb_ot_color_t:
- * ARGB data type for holding color values.
- *
- * Since: REPLACEME
- */
-typedef uint32_t hb_ot_color_t;
-
-#define hb_ot_color_get_alpha(color) (color & 0xFF)
-#define hb_ot_color_get_red(color)   ((color >> 8) & 0xFF)
-#define hb_ot_color_get_green(color) ((color >> 16) & 0xFF)
-#define hb_ot_color_get_blue(color)  ((color >> 24) & 0xFF)
 
 HB_EXTERN hb_bool_t
 hb_ot_color_has_cpal_data (hb_face_t *face);
@@ -63,26 +45,22 @@ hb_ot_color_has_colr_data (hb_face_t *face);
 HB_EXTERN unsigned int
 hb_ot_color_get_palette_count (hb_face_t *face);
 
-// HB_EXTERN unsigned int
-// hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
-
-// HB_EXTERN hb_ot_color_palette_flags_t
-// hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+HB_EXTERN hb_name_id_t
+hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
 
 HB_EXTERN unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
-				unsigned int    palette, /* default=0 */
+				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
-				unsigned int   *color_count /* IN/OUT */,
-				hb_ot_color_t  *colors /* OUT */);
-
+				unsigned int   *color_count   /* IN/OUT */,
+				hb_color_t     *colors        /* OUT */);
 
 HB_EXTERN unsigned int
 hb_ot_color_get_color_layers (hb_face_t       *face,
 			      hb_codepoint_t   gid,
 			      unsigned int     offset,
-			      unsigned int    *count, /* IN/OUT */
-			      hb_codepoint_t  *gids, /* OUT */
+			      unsigned int    *count,        /* IN/OUT */
+			      hb_codepoint_t  *gids,         /* OUT */
 			      unsigned int    *color_indices /* OUT */);
 
 HB_END_DECLS

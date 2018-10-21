@@ -444,6 +444,18 @@ HB_EXTERN void
 hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size);
 
+/**
+ * hb_color_t:
+ * ARGB data type for holding color values.
+ *
+ * Since: REPLACEME
+ */
+typedef uint32_t hb_color_t;
+
+#define hb_color_get_alpha(color) (color & 0xFF)
+#define hb_color_get_red(color)   ((color >> 8) & 0xFF)
+#define hb_color_get_green(color) ((color >> 16) & 0xFF)
+#define hb_color_get_blue(color)  ((color >> 24) & 0xFF)
 
 HB_END_DECLS
 

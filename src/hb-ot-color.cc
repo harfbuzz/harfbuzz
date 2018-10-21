@@ -36,11 +36,6 @@
 
 #include "hb-ot-layout.hh"
 
-#if 0
-HB_MARK_AS_FLAG_T (hb_ot_color_palette_flags_t)
-//HB_SHAPER_DATA_ENSURE_DECLARE(ot, face) Hmm?
-#endif
-
 
 static inline const OT::COLR&
 _get_colr (hb_face_t *face)
@@ -56,20 +51,8 @@ _get_cpal (hb_face_t *face)
   return *(hb_ot_face_data (face)->CPAL.get ());
 }
 
-HB_EXTERN hb_bool_t
-hb_ot_color_has_cpal_data (hb_face_t *face)
-{
-  return &_get_cpal (face) != &OT::Null(OT::CPAL);
-}
-
-HB_EXTERN hb_bool_t
-hb_ot_color_has_colr_data (hb_face_t *face)
-{
-  return &_get_colr (face) != &OT::Null(OT::COLR);
-}
-
 /**
- * hb_ot_color_get_palette_count:
+ * hb_ot_color_has_cpal_data:
  * @face: a font face.
  *
  * Returns: the number of color palettes in @face, or zero if @face has
@@ -77,57 +60,39 @@ hb_ot_color_has_colr_data (hb_face_t *face)
  *
  * Since: REPLACEME
  */
+hb_bool_t
+hb_ot_color_has_cpal_data (hb_face_t *face)
+{
+  return &_get_cpal (face) != &Null(OT::CPAL);
+}
+
+/**
+ * hb_ot_color_has_colr_data:
+ * @face: a font face.
+ *
+ * Returns: whether COLR table available
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_ot_color_has_colr_data (hb_face_t *face)
+{
+  return &_get_colr (face) != &Null(OT::COLR);
+}
+
+/**
+ * hb_ot_color_get_palette_count:
+ * @face: a font face.
+ *
+ * Returns: whether CPAL table available
+ *
+ * Since: REPLACEME
+ */
 unsigned int
 hb_ot_color_get_palette_count (hb_face_t *face)
 {
-  const OT::CPAL& cpal = _get_cpal (face);
-  return cpal.get_palette_count ();
+  return _get_cpal (face).get_palette_count ();
 }
-
-#if 0
-/**
- * hb_ot_color_get_palette_name_id:
- * @face: a font face.
- * @palette: the index of the color palette whose name is being requested.
- *
- * Retrieves the name id of a color palette. For example, a color font can
- * have themed palettes like "Spring", "Summer", "Fall", and "Winter".
- *
- * Returns: an identifier within @face's `name` table.
- * If the requested palette has no name, or if @face has no colors,
- * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is 0xFFFF. The implementation does not check whether
- * the returned palette name id is actually in @face's `name` table.
- *
- * Since: DONTREPLACEME
- */
-unsigned int
-hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
-{
-  const OT::CPAL& cpal = _get_cpal (face);
-  return cpal.get_palette_name_id (palette);
-}
-
-
-/**
- * hb_ot_color_get_palette_flags:
- * @face: a font face
- * @palette: the index of the color palette whose flags are being requested
- *
- * Returns: the flags for the requested color palette.  If @face has no colors,
- * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
- *
- * Since: DONTREPLACEME
- */
-hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
-{
-  const OT::CPAL& cpal = _get_cpal(face);
-  return cpal.get_palette_flags (palette);
-}
-#endif
-
 
 /**
  * hb_ot_color_get_palette_colors:
@@ -139,7 +104,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  *                can be maximally stored into the @colors array;
  *                on output, how many colors were actually stored.
  * @colors: (array length=color_count) (out) (optional):
- *                an array of #hb_ot_color_t records. After calling
+ *                an array of #hb_color_t records. After calling
  *                this function, @colors will be filled with
  *                the palette colors. If @colors is NULL, the function
  *                will just return the number of total colors
@@ -161,7 +126,7 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
 				unsigned int   *count         /* IN/OUT */,
-				hb_ot_color_t  *colors        /* OUT */)
+				hb_color_t  *colors        /* OUT */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
   if (unlikely (palette >= cpal.get_palette_count ()))
@@ -213,3 +178,66 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
   if (likely (count)) *count = num_results;
   return num_layers;
 }
+
+/**
+ * hb_ot_color_get_palette_name_id:
+ * @face: a font face.
+ * @palette: the index of the color palette whose name is being requested.
+ *
+ * Retrieves the name id of a color palette. For example, a color font can
+ * have themed palettes like "Spring", "Summer", "Fall", and "Winter".
+ *
+ * Returns: an identifier within @face's `name` table.
+ * If the requested palette has no name, or if @face has no colors,
+ * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
+ * the result is 0xFFFF. The implementation does not check whether
+ * the returned palette name id is actually in @face's `name` table.
+ *
+ * Since: REPLACEME
+ */
+hb_name_id_t
+hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
+{
+  return _get_cpal (face).get_palette_name_id (palette);
+}
+
+#if 0
+/**
+ * hb_ot_color_get_palette_flags:
+ * @face: a font face
+ * @palette: the index of the color palette whose flags are being requested
+ *
+ * Returns: the flags for the requested color palette.  If @face has no colors,
+ * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
+ * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
+ *
+ * Since: DONTREPLACEME
+ */
+hb_ot_color_palette_flags_t
+hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
+{
+  const OT::CPAL& cpal = _get_cpal(face);
+  return cpal.get_palette_flags (palette);
+}
+
+/*
+ * Following parts to be moved to a public header.
+ */
+
+/**
+ * hb_ot_color_palette_flags_t:
+ * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
+ * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
+  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
+} hb_ot_color_palette_flags_t;
+
+HB_EXTERN hb_ot_color_palette_flags_t
+hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+#endif
