@@ -96,7 +96,7 @@ hb_ot_color_get_palette_count (hb_face_t *face)
 
 /**
  * hb_ot_color_get_palette_name_id:
- * @face: a font face.
+ * @face:    a font face.
  * @palette: the index of the color palette whose name is being requested.
  *
  * Retrieves the name id of a color palette. For example, a color font can
@@ -121,7 +121,7 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
  * @face: a font face.
  * @palette_entry:
  *
- * Returns: Name ID associated with an palette entry, e.g. eye color
+ * Returns: Name ID associated with a palette entry, e.g. eye color
  *
  * Since: REPLACEME
  */
@@ -162,33 +162,36 @@ unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
-				unsigned int   *count         /* IN/OUT.  May be NULL. */,
+				unsigned int   *colors_count  /* IN/OUT.  May be NULL. */,
 				hb_color_t     *colors        /* OUT.     May be NULL. */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
   if (unlikely (palette >= cpal.get_palette_count ()))
   {
-    if (count) *count = 0;
+    if (colors_count) *colors_count = 0;
     return 0;
   }
 
   unsigned int num_results = 0;
-  if (count)
+  if (colors_count)
   {
-    unsigned int platte_count = MIN<unsigned int>(*count, cpal.get_palette_entries_count () - start_offset);
+    unsigned int platte_count;
+    platte_count = MIN<unsigned int>(*colors_count,
+				     cpal.get_palette_entries_count () - start_offset);
     for (unsigned int i = 0; i < platte_count; i++)
     {
       if (cpal.get_color_record_argb(start_offset + i, palette, &colors[num_results]))
-        ++num_results;
+	++num_results;
     }
   }
 
-  if (likely (count)) *count = num_results;
+  if (likely (colors_count)) *colors_count = num_results;
   return cpal.get_palette_entries_count ();
 }
 
 /**
  * hb_ot_color_get_color_layers:
+ * @face: a font face.
  * @gid:
  * @start_offset:
  * @count:  (inout) (optional):
@@ -203,8 +206,8 @@ unsigned int
 hb_ot_color_get_color_layers (hb_face_t        *face,
 			      hb_codepoint_t    gid,
 			      unsigned int      start_offset,
-			      unsigned int     *count,        /* IN/OUT.  May be NULL. */
-			      hb_codepoint_t   *gids,         /* OUT.     May be NULL. */
+			      unsigned int     *count         /* IN/OUT.  May be NULL. */,
+			      hb_codepoint_t   *gids          /* OUT.     May be NULL. */,
 			      unsigned int     *color_indices /* OUT.     May be NULL. */)
 {
   const OT::COLR& colr = _get_colr (face);
@@ -230,7 +233,7 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
 
 /**
  * hb_ot_color_get_palette_flags:
- * @face: a font face
+ * @face:    a font face
  * @palette: the index of the color palette whose flags are being requested
  *
  * Returns: the flags for the requested color palette.  If @face has no colors,
