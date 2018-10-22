@@ -63,21 +63,20 @@ struct LayerRecord
 
 struct BaseGlyphRecord
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  inline int cmp (hb_codepoint_t g) const {
-    return g < glyphId ? -1 : g > glyphId ? 1 : 0;
-  }
+  inline int cmp (hb_codepoint_t g) const
+  { return g < glyphId ? -1 : g > glyphId ? 1 : 0; }
 
   static int cmp (const void *pa, const void *pb)
   {
     const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
     const BaseGlyphRecord *b = (const BaseGlyphRecord *) pb;
     return b->cmp (*a);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this)));
   }
 
   public:
