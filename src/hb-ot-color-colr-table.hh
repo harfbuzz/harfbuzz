@@ -98,35 +98,27 @@ struct COLR
 
   inline bool has_data (void) const { return numBaseGlyphs; }
 
-  inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
-				     unsigned int *first_layer /* OUT */,
-				     unsigned int *num_layers /* OUT */) const
+  inline unsigned int get_glyph_layers (hb_codepoint_t       glyph,
+					unsigned int         start_offset,
+					unsigned int        *count, /* IN/OUT.  May be NULL. */
+					hb_ot_color_layer_t *layers /* OUT.     May be NULL. */) const
   {
-    const BaseGlyphRecord* record;
-    record = (BaseGlyphRecord *) bsearch (&glyph_id, &(this+baseGlyphsZ), numBaseGlyphs,
-					  sizeof (BaseGlyphRecord), BaseGlyphRecord::cmp);
-    if (unlikely (!record))
-      return false;
+    const BaseGlyphRecord &record = get_glyph_record (glyph);
 
-    if (first_layer) *first_layer = record->firstLayerIdx;
-    if (num_layers) *num_layers = record->numLayers;
-    return true;
-  }
-
-  inline bool get_layer_record (unsigned int record,
-				hb_codepoint_t *glyph_id /* OUT */,
-				unsigned int *color_index /* OUT */) const
-  {
-    if (unlikely (record >= numLayers))
+    hb_array_t<const LayerRecord> all_layers ((this+layersZ).arrayZ, numLayers);
+    hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
+								       record.numLayers);
+    if (count)
     {
-      *glyph_id = 0;
-      *color_index = 0xFFFF;
-      return false;
+      hb_array_t<const LayerRecord> segment_layers = glyph_layers.sub_array (start_offset, *count);
+      *count = segment_layers.len;
+      for (unsigned int i = 0; i < segment_layers.len; i++)
+      {
+        layers[i].glyph = segment_layers.arrayZ[i].glyphId;
+        layers[i].color_index = segment_layers.arrayZ[i].colorIdx;
+      }
     }
-    const LayerRecord &layer = (this+layersZ)[record];
-    if (glyph_id) *glyph_id = layer.glyphId;
-    if (color_index) *color_index = layer.colorIdx;
-    return true;
+    return glyph_layers.len;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -135,6 +127,17 @@ struct COLR
     return_trace (likely (c->check_struct (this) &&
 			  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
 			  (this+layersZ).sanitize (c, numLayers)));
+  }
+
+  private:
+  inline const BaseGlyphRecord &get_glyph_record (hb_codepoint_t glyph_id) const
+  {
+    const BaseGlyphRecord *rec = (BaseGlyphRecord *) bsearch (&glyph_id,
+							      &(this+baseGlyphsZ),
+							      numBaseGlyphs,
+							      sizeof (BaseGlyphRecord),
+							      BaseGlyphRecord::cmp);
+    return rec ? *rec : Null(BaseGlyphRecord);
   }
 
   protected:

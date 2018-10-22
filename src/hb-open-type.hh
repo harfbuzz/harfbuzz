@@ -417,7 +417,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
-  const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
+  inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
     if (unlikely (start_offset > count))

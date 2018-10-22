@@ -263,22 +263,5 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */)
 {
   const OT::COLR& colr = _get_colr (face);
-  unsigned int num_results = 0;
-  unsigned int start_layer_index, num_layers = 0;
-  if (colr.get_base_glyph_record (glyph, &start_layer_index, &num_layers))
-  {
-    if (count)
-    {
-      unsigned int layer_count = MIN<unsigned int>(*count, num_layers - start_offset);
-      for (unsigned int i = 0; i < layer_count; i++)
-      {
-	if (colr.get_layer_record (start_layer_index + start_offset + i,
-				   &layers[num_results].glyph, &layers[num_results].color_index))
-	  ++num_results;
-      }
-    }
-  }
-
-  if (likely (count)) *count = num_results;
-  return num_layers;
+  return colr.get_glyph_layers (glyph, start_offset, count, layers);
 }

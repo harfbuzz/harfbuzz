@@ -521,6 +521,17 @@ struct hb_array_t
     return arrayZ[i];
   }
 
+  inline hb_array_t<T> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  {
+    unsigned int count = len;
+    if (unlikely (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    count = MIN (count, seg_count);
+    return hb_array_t<T> (arrayZ + start_offset, count);
+  }
+
   inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   const T *arrayZ;
