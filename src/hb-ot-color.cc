@@ -26,8 +26,11 @@
  */
 
 #include "hb-open-type.hh"
+#include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-cpal-table.hh"
+#include "hb-ot-color-sbix-table.hh"
+#include "hb-ot-color-svg-table.hh"
 #include "hb-ot-face.hh"
 #include "hb-ot.h"
 
@@ -50,6 +53,29 @@ _get_cpal (hb_face_t *face)
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
   return *(hb_ot_face_data (face)->CPAL.get ());
 }
+
+#if 0
+static inline const OT::CBDT_accelerator_t&
+_get_cbdt (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
+  return *(hb_ot_face_data (face)->CBDT.get ());
+}
+
+static inline const OT::sbix&
+_get_sbix (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::sbix);
+  return *(hb_ot_face_data (face)->sbix.get ());
+}
+
+static inline const OT::SVG&
+_get_svg (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::SVG);
+  return *(hb_ot_face_data (face)->SVG.get ());
+}
+#endif
 
 /**
  * hb_ot_color_has_cpal_data:
