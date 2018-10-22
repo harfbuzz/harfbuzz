@@ -116,7 +116,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
     plan.fallback_mark_positioning = true;
 
   /* Currently we always apply trak. */
-  plan.apply_trak = hb_aat_layout_has_tracking (face);
+  plan.apply_trak = hb_aat_layout_has_tracking (face) &&
+		    plan.map.needs_fallback (HB_TAG ('t','r','a','k'));
 }
 
 
@@ -177,12 +178,15 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
-  map->enable_feature (HB_TAG('H','A','R','F'));
+  /* Tracking. */
+  map->enable_feature (HB_TAG ('t','r','a','k'), F_HAS_FALLBACK);
+
+  map->enable_feature (HB_TAG ('H','A','R','F'));
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
-  map->enable_feature (HB_TAG('B','U','Z','Z'));
+  map->enable_feature (HB_TAG ('B','U','Z','Z'));
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);
