@@ -25,7 +25,6 @@
  */
 
 #include "hb-test.h"
-#include "hb-subset-test.h" // for hb_subset_test_open_font
 #include <hb-ot.h>
 
 /* Unit tests for CFF/CFF2 glyph extents */
@@ -51,7 +50,7 @@ test_extents_cff1 (void)
 
   hb_font_destroy (font);
 
-  hb_face_t *face_j = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_face_t *face_j = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
   g_assert (face_j);
   hb_font_t *font_j = hb_font_create (face_j);
   hb_face_destroy (face_j);
@@ -72,7 +71,7 @@ test_extents_cff1 (void)
 static void
 test_extents_cff1_legacyops (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/cff1_legacyops.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_legacyops.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -94,7 +93,7 @@ test_extents_cff1_legacyops (void)
 static void
 test_extents_cff1_flex (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/cff1_flex.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -116,7 +115,7 @@ test_extents_cff1_flex (void)
 static void
 test_extents_cff2 (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -148,7 +147,7 @@ test_extents_cff2 (void)
 static void
 test_extents_cff2_vsindex (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/AdobeVFPrototype_vsindex.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);

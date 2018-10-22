@@ -380,8 +380,11 @@ struct Remap : hb_vector_t<hb_codepoint_t>
     return true;
   }
 
+  inline bool includes (hb_codepoint_t id) const
+  { return (id < len) && ((*this)[id] != CFF_UNDEF_CODE); }
+
   inline bool excludes (hb_codepoint_t id) const
-  { return (id < len) && ((*this)[id] == CFF_UNDEF_CODE); }
+  { return !includes (i); }
 
   inline hb_codepoint_t operator[] (hb_codepoint_t i) const
   {

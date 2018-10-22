@@ -25,14 +25,13 @@
  */
 
 #include "hb-test.h"
-#include "hb-subset-test.h"
 
 /* Unit tests for CFF2 subsetting */
 
 static void
 test_subset_cff2_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face_abc = hb_test_open_font_file("fonts/AdobeVFPrototype.abc.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -51,8 +50,8 @@ test_subset_cff2_noop (void)
 static void
 test_subset_cff2 (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.otf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/AdobeVFPrototype.ac.otf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/AdobeVFPrototype.ac.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -71,8 +70,8 @@ test_subset_cff2 (void)
 static void
 test_subset_cff2_strip_hints (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/AdobeVFPrototype.abc.otf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/AdobeVFPrototype.ac.nohints.otf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/AdobeVFPrototype.ac.nohints.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_subset_input_t *input;

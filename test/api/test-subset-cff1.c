@@ -25,14 +25,13 @@
  */
 
 #include "hb-test.h"
-#include "hb-subset-test.h"
 
 /* Unit tests for CFF subsetting */
 
 static void
 test_subset_cff1_noop (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face_abc = hb_test_open_font_file("fonts/SourceSansPro-Regular.abc.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -51,8 +50,8 @@ test_subset_cff1_noop (void)
 static void
 test_subset_cff1 (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.abc.otf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.ac.otf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/SourceSansPro-Regular.ac.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_abc_subset;
@@ -71,8 +70,8 @@ test_subset_cff1 (void)
 static void
 test_subset_cff1_strip_hints (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.abc.otf");
-  hb_face_t *face_ac = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.ac.nohints.otf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/SourceSansPro-Regular.ac.nohints.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_subset_input_t *input;
@@ -94,8 +93,8 @@ test_subset_cff1_strip_hints (void)
 static void
 test_subset_cff1_j (void)
 {
-  hb_face_t *face_41_3041_4c2e = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
-  hb_face_t *face_41_4c2e = hb_subset_test_open_font ("fonts/SourceHanSans-Regular.41,4C2E.otf");
+  hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_face_t *face_41_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,4C2E.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_face_t *face_41_3041_4c2e_subset;
@@ -114,8 +113,8 @@ test_subset_cff1_j (void)
 static void
 test_subset_cff1_expert (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/cff1_expert.otf");
-  hb_face_t *face_subset = hb_subset_test_open_font ("fonts/cff1_expert.2D,F6E9,FB00.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_expert.otf");
+  hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_expert.2D,F6E9,FB00.otf");
 
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 0x2D);
