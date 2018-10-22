@@ -125,31 +125,13 @@ struct CPAL
   inline unsigned int get_color_count () const { return numColors; }
 
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
-  {
-    if (unlikely (version == 0))
-      return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
-
-    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_flags (this, palette_index, numPalettes);
-  }
+  { return v1 ().get_palette_flags (this, palette_index, numPalettes); }
 
   inline unsigned int get_palette_name_id (unsigned int palette_index) const
-  {
-    if (unlikely (version == 0))
-      return HB_NAME_ID_INVALID;
-
-    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_name_id (this, palette_index, numPalettes);
-  }
+  { return v1 ().get_palette_name_id (this, palette_index, numPalettes); }
 
   inline unsigned int get_color_name_id (unsigned int color_index) const
-  {
-    if (unlikely (version == 0))
-      return HB_NAME_ID_INVALID;
-
-    const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_color_name_id (this, color_index, numColors);
-  }
+  { return v1 ().get_color_name_id (this, color_index, numColors); }
 
   bool
   get_color_record_argb (unsigned int color_index, unsigned int palette_index, hb_color_t* color) const
@@ -164,14 +146,22 @@ struct CPAL
     return true;
   }
 
+  private:
+  inline const CPALV1Tail& v1 (void) const
+  {
+    if (version == 0) return Null(CPALV1Tail);
+    return StructAfter<CPALV1Tail> (*this);
+  }
+
+  public:
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this) &&  /* it checks colorRecordIndices also
-					        * See #get_size */
+    if (unlikely (!(c->check_struct (this) &&
 		    (this+colorRecordsZ).sanitize (c, numColorRecords))))
       return_trace (false);
 
+    /* TODO */
     /* Check for indices sanity so no need for doing it runtime */
     for (unsigned int i = 0; i < numPalettes; ++i)
       if (unlikely (colorRecordIndicesZ[i] + numColors > numColorRecords))
@@ -181,8 +171,7 @@ struct CPAL
     if (version == 0)
       return_trace (true);
 
-    const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-    return_trace (likely (v1.sanitize (c, this, numPalettes, numColors)));
+    return_trace (likely (v1 ().sanitize (c, this, numPalettes, numColors)));
   }
 
   protected:
