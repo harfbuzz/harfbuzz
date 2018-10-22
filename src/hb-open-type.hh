@@ -150,7 +150,8 @@ struct Tag : HBUINT32
 typedef HBUINT16 GlyphID;
 
 /* Name-table index, same as uint16 (length = 16 bits) */
-typedef HBUINT16 NameID;
+struct NameID : HBUINT16 {};
+DECLARE_NULL_NAMESPACE_BYTES (OT, NameID);
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {

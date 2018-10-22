@@ -53,10 +53,9 @@ struct CPALV1Tail
 		     unsigned int palette_index,
 		     unsigned int palette_count) const
   {
-    if (unlikely (palette_index >= palette_count || !paletteFlagsZ))
-      return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
-
-    return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette_index];
+    if (!paletteFlagsZ) return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
+    return (hb_ot_color_palette_flags_t) (uint32_t)
+	   hb_array_t<const HBUINT32> ((base+paletteFlagsZ).arrayZ, palette_count)[palette_index];
   }
 
   inline unsigned int
@@ -64,10 +63,10 @@ struct CPALV1Tail
 		       unsigned int palette_index,
 		       unsigned int palette_count) const
   {
-    if (unlikely (palette_index >= palette_count || !paletteLabelZ))
-      return HB_NAME_ID_INVALID;
-
-    return (base+paletteLabelZ)[palette_index];
+    /* XXX the Null(NameID) returned by hb_array_t is wrong. Figure out why
+     * and remove the explicit bound check. */
+    if (!paletteLabelsZ || palette_index >= palette_count) return HB_NAME_ID_INVALID;
+    return hb_array_t<const NameID> ((base+paletteLabelsZ).arrayZ, palette_count)[palette_index];
   }
 
   inline unsigned int
@@ -75,21 +74,23 @@ struct CPALV1Tail
 		     unsigned int color_index,
 		     unsigned int color_count) const
   {
-    if (unlikely (color_index >= color_count || !paletteEntryLabelZ))
-      return HB_NAME_ID_INVALID;
-
-    return (base+paletteEntryLabelZ)[color_index];
+    /* XXX the Null(NameID) returned by hb_array_t is wrong. Figure out why
+     * and remove the explicit bound check. */
+    if (!colorLabelsZ || color_index >= color_count) return HB_NAME_ID_INVALID;
+    return hb_array_t<const NameID> ((base+colorLabelsZ).arrayZ, color_count)[color_index];
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base,
-			unsigned int palette_count, unsigned int color_count) const
+  inline bool sanitize (hb_sanitize_context_t *c,
+			const void *base,
+			unsigned int palette_count,
+			unsigned int color_count) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  (!paletteFlagsZ || (base+paletteFlagsZ).sanitize (c, palette_count)) &&
-		  (!paletteLabelZ || (base+paletteLabelZ).sanitize (c, palette_count)) &&
-		  (!paletteEntryLabelZ || (base+paletteEntryLabelZ).sanitize (c, color_count)));
+		  (!paletteFlagsZ  || (base+paletteFlagsZ).sanitize (c, palette_count)) &&
+		  (!paletteLabelsZ || (base+paletteLabelsZ).sanitize (c, palette_count)) &&
+		  (!colorLabelsZ   || (base+colorLabelsZ).sanitize (c, color_count)));
   }
 
   protected:
@@ -97,13 +98,13 @@ struct CPALV1Tail
 		paletteFlagsZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Type Array. Set to 0 if no array
 					 * is provided. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
-		paletteLabelZ;		/* Offset from the beginning of CPAL table to
-					 * the Palette Labels Array. Set to 0 if no
+  LOffsetTo<UnsizedArrayOf<NameID>, false>
+		paletteLabelsZ;		/* Offset from the beginning of CPAL table to
+					 * the palette labels array. Set to 0 if no
 					 * array is provided. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
-		paletteEntryLabelZ;	/* Offset from the beginning of CPAL table to
-					 * the Palette Entry Label Array. Set to 0
+  LOffsetTo<UnsizedArrayOf<NameID>, false>
+		colorLabelsZ;		/* Offset from the beginning of CPAL table to
+					 * the color labels array. Set to 0
 					 * if no array is provided. */
   public:
   DEFINE_SIZE_STATIC (12);
