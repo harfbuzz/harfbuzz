@@ -53,7 +53,7 @@ struct CPALV1Tail
 		     unsigned int palette_index,
 		     unsigned int palette_count) const
   {
-    if (unlikely (palette_index >= palette_count))
+    if (unlikely (palette_index >= palette_count || !paletteFlagsZ))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
     return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette_index];
@@ -64,7 +64,7 @@ struct CPALV1Tail
 		       unsigned int palette_index,
 		       unsigned int palette_count) const
   {
-    if (unlikely (palette_index >= palette_count))
+    if (unlikely (palette_index >= palette_count || !paletteLabelZ))
       return HB_NAME_ID_INVALID;
 
     return (base+paletteLabelZ)[palette_index];
@@ -75,7 +75,7 @@ struct CPALV1Tail
 		     unsigned int color_index,
 		     unsigned int color_count) const
   {
-    if (unlikely (color_index >= color_count))
+    if (unlikely (color_index >= color_count || !paletteEntryLabelZ))
       return HB_NAME_ID_INVALID;
 
     return (base+paletteEntryLabelZ)[color_index];
@@ -87,9 +87,9 @@ struct CPALV1Tail
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  (base+paletteFlagsZ).sanitize (c, palette_count) &&
-		  (base+paletteLabelZ).sanitize (c, palette_count) &&
-		  (base+paletteEntryLabelZ).sanitize (c, color_count));
+		  (!paletteFlagsZ || (base+paletteFlagsZ).sanitize (c, palette_count)) &&
+		  (!paletteLabelZ || (base+paletteLabelZ).sanitize (c, palette_count)) &&
+		  (!paletteEntryLabelZ || (base+paletteEntryLabelZ).sanitize (c, color_count)));
   }
 
   protected:
