@@ -49,34 +49,34 @@ struct CPALV1Tail
 
   inline bool
   sanitize (hb_sanitize_context_t *c, const void *base,
-	    unsigned int palettes, unsigned int paletteEntries) const
+	    unsigned int palette_count, unsigned int paletteEntries) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  (base+paletteFlagsZ).sanitize (c, palettes) &&
-		  (base+paletteLabelZ).sanitize (c, palettes) &&
+		  (base+paletteFlagsZ).sanitize (c, palette_count) &&
+		  (base+paletteLabelZ).sanitize (c, palette_count) &&
 		  (base+paletteEntryLabelZ).sanitize (c, paletteEntries));
   }
 
   private:
   inline hb_ot_color_palette_flags_t
-  get_palette_flags (const void *base, unsigned int palette,
+  get_palette_flags (const void *base, unsigned int palette_index,
 		     unsigned int palettes_count) const
   {
-    if (unlikely (palette >= palettes_count))
+    if (unlikely (palette_index >= palettes_count))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
-    return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette];
+    return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette_index];
   }
 
   inline unsigned int
-  get_palette_name_id (const void *base, unsigned int palette,
+  get_palette_name_id (const void *base, unsigned int palette_index,
 		       unsigned int palettes_count) const
   {
-    if (unlikely (palette >= palettes_count))
+    if (unlikely (palette_index >= palettes_count))
       return HB_NAME_ID_INVALID;
 
-    return (base+paletteLabelZ)[palette];
+    return (base+paletteLabelZ)[palette_index];
   }
 
   inline unsigned int
@@ -140,22 +140,22 @@ struct CPAL
     return min_size + numPalettes * sizeof (HBUINT16);
   }
 
-  inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette) const
+  inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
   {
     if (unlikely (version == 0))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_flags (this, palette, numPalettes);
+    return cpal1.get_palette_flags (this, palette_index, numPalettes);
   }
 
-  inline unsigned int get_palette_name_id (unsigned int palette) const
+  inline unsigned int get_palette_name_id (unsigned int palette_index) const
   {
     if (unlikely (version == 0))
       return HB_NAME_ID_INVALID;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_name_id (this, palette, numPalettes);
+    return cpal1.get_palette_name_id (this, palette_index, numPalettes);
   }
 
   inline unsigned int get_palette_entry_name_id (unsigned int palette_entry) const
@@ -174,15 +174,15 @@ struct CPAL
   { return numPaletteEntries; }
 
   bool
-  get_color_record_argb (unsigned int color_index, unsigned int palette, hb_color_t* color) const
+  get_color_record_argb (unsigned int color_index, unsigned int palette_index, hb_color_t* color) const
   {
-    if (unlikely (color_index >= numPaletteEntries || palette >= numPalettes))
+    if (unlikely (color_index >= numPaletteEntries || palette_index >= numPalettes))
       return false;
 
     /* No need for more range check as it is already done on #sanitize */
     const UnsizedArrayOf<BGRAColor>& color_records = this+colorRecordsZ;
     if (color)
-      *color = color_records[colorRecordIndicesZ[palette] + color_index];
+      *color = color_records[colorRecordIndicesZ[palette_index] + color_index];
     return true;
   }
 

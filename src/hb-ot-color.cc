@@ -77,6 +77,7 @@ _get_svg (hb_face_t *face)
 }
 #endif
 
+
 /*
  * CPAL
  */
