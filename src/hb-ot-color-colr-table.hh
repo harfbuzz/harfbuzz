@@ -39,25 +39,30 @@ namespace OT {
 
 struct LayerRecord
 {
-  friend struct COLR;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  protected:
-  GlyphID	glyphid;	/* Glyph ID of layer glyph */
-  HBUINT16	colorIdx;	/* Index value to use with a selected color palette */
+  public:
+  GlyphID	glyphId;	/* Glyph ID of layer glyph */
+  HBUINT16	colorIdx;	/* Index value to use with a
+				 * selected color palette.
+				 * An index value of 0xFFFF
+				 * is a special case indicating
+				 * that the text foreground
+				 * color (defined by a
+				 * higher-level client) should
+				 * be used and shall not be
+				 * treated as actual index
+				 * into CPAL ColorRecord array. */
   public:
   DEFINE_SIZE_STATIC (4);
 };
 
 struct BaseGlyphRecord
 {
-  friend struct COLR;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -65,13 +70,18 @@ struct BaseGlyphRecord
   }
 
   inline int cmp (hb_codepoint_t g) const {
-    return g < glyphid ? -1 : g > glyphid ? 1 : 0;
+    return g < glyphId ? -1 : g > glyphId ? 1 : 0;
   }
 
-  protected:
-  GlyphID	glyphid;	/* Glyph ID of reference glyph */
-  HBUINT16	firstLayerIdx;	/* Index to the layer record */
-  HBUINT16	numLayers;	/* Number of color layers associated with this glyph */
+  public:
+  GlyphID	glyphId;	/* Glyph ID of reference glyph */
+  HBUINT16	firstLayerIdx;	/* Index (from beginning of
+				 * the Layer Records) to the
+				 * layer record. There will be
+				 * numLayers consecutive entries
+				 * for this base glyph. */
+  HBUINT16	numLayers;	/* Number of color layers
+				 * associated with this glyph */
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -121,7 +131,7 @@ struct COLR
       return false;
     }
     const LayerRecord &layer = (this+layersZ)[record];
-    if (glyph_id) *glyph_id = layer.glyphid;
+    if (glyph_id) *glyph_id = layer.glyphId;
     if (color_index) *color_index = layer.colorIdx;
     return true;
   }
