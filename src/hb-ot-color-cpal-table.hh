@@ -53,9 +53,9 @@ struct CPALV1Tail
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  (base+paletteFlagsZ).sanitize (c, palettes) &&
-		  (base+paletteLabelZ).sanitize (c, palettes) &&
-		  (base+paletteEntryLabelZ).sanitize (c, paletteEntries));
+		  (!paletteFlagsZ || (base+paletteFlagsZ).sanitize (c, palettes)) &&
+		  (!paletteLabelZ || (base+paletteLabelZ).sanitize (c, palettes)) &&
+		  (!paletteEntryLabelZ || (base+paletteEntryLabelZ).sanitize (c, paletteEntries)));
   }
 
   private:
@@ -63,7 +63,7 @@ struct CPALV1Tail
   get_palette_flags (const void *base, unsigned int palette,
 		     unsigned int palettes_count) const
   {
-    if (unlikely (palette >= palettes_count))
+    if (unlikely (palette >= palettes_count || !paletteFlagsZ))
       return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
 
     return (hb_ot_color_palette_flags_t) (uint32_t) (base+paletteFlagsZ)[palette];
@@ -73,7 +73,7 @@ struct CPALV1Tail
   get_palette_name_id (const void *base, unsigned int palette,
 		       unsigned int palettes_count) const
   {
-    if (unlikely (palette >= palettes_count))
+    if (unlikely (palette >= palettes_count || !paletteLabelZ))
       return HB_NAME_ID_INVALID;
 
     return (base+paletteLabelZ)[palette];
@@ -83,7 +83,7 @@ struct CPALV1Tail
   get_palette_entry_name_id (const void *base, unsigned int palette_entry,
 			     unsigned int palettes_entries_count) const
   {
-    if (unlikely (palette_entry >= palettes_entries_count))
+    if (unlikely (palette_entry >= palettes_entries_count || !paletteEntryLabelZ))
       return HB_NAME_ID_INVALID;
 
     return (base+paletteEntryLabelZ)[palette_entry];
