@@ -49,13 +49,13 @@ struct CPALV1Tail
 
   inline bool
   sanitize (hb_sanitize_context_t *c, const void *base,
-	    unsigned int palette_count, unsigned int paletteEntries) const
+	    unsigned int palette_count, unsigned int color_count) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  (base+paletteFlagsZ).sanitize (c, palette_count) &&
 		  (base+paletteLabelZ).sanitize (c, palette_count) &&
-		  (base+paletteEntryLabelZ).sanitize (c, paletteEntries));
+		  (base+paletteEntryLabelZ).sanitize (c, color_count));
   }
 
   private:
@@ -124,7 +124,7 @@ struct CPAL
 
     /* Check for indices sanity so no need for doing it runtime */
     for (unsigned int i = 0; i < numPalettes; ++i)
-      if (unlikely (colorRecordIndicesZ[i] + numPaletteEntries > numColorRecords))
+      if (unlikely (colorRecordIndicesZ[i] + numColors > numColorRecords))
 	return_trace (false);
 
     /* If version is zero, we are done here; otherwise we need to check tail also */
@@ -132,7 +132,7 @@ struct CPAL
       return_trace (true);
 
     const CPALV1Tail &v1 = StructAfter<CPALV1Tail> (*this);
-    return_trace (likely (v1.sanitize (c, this, numPalettes, numPaletteEntries)));
+    return_trace (likely (v1.sanitize (c, this, numPalettes, numColors)));
   }
 
   inline unsigned int get_size (void) const
@@ -164,19 +164,19 @@ struct CPAL
       return HB_NAME_ID_INVALID;
 
     const CPALV1Tail& cpal1 = StructAfter<CPALV1Tail> (*this);
-    return cpal1.get_palette_entry_name_id (this, palette_entry, numPaletteEntries);
+    return cpal1.get_palette_entry_name_id (this, palette_entry, numColors);
   }
 
   inline unsigned int get_palette_count () const
   { return numPalettes; }
 
   inline unsigned int get_palette_entries_count () const
-  { return numPaletteEntries; }
+  { return numColors; }
 
   bool
   get_color_record_argb (unsigned int color_index, unsigned int palette_index, hb_color_t* color) const
   {
-    if (unlikely (color_index >= numPaletteEntries || palette_index >= numPalettes))
+    if (unlikely (color_index >= numColors || palette_index >= numPalettes))
       return false;
 
     /* No need for more range check as it is already done on #sanitize */
@@ -189,7 +189,7 @@ struct CPAL
   protected:
   HBUINT16	version;		/* Table version number */
   /* Version 0 */
-  HBUINT16	numPaletteEntries;	/* Number of palette entries in each palette. */
+  HBUINT16	numColors;		/* Number of colors in each palette. */
   HBUINT16	numPalettes;		/* Number of palettes in the table. */
   HBUINT16	numColorRecords;	/* Total number of color records, combined for
 					 * all palettes. */
