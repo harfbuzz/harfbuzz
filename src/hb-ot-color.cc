@@ -22,7 +22,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Sascha Brawer
+ * Google Author(s): Sascha Brawer, Behdad Esfahbod
  */
 
 #include "hb-open-type.hh"
@@ -97,7 +97,7 @@ hb_ot_color_has_palettes (hb_face_t *face)
 }
 
 /**
- * hb_ot_color_get_palette_count:
+ * hb_ot_color_palette_get_count:
  * @face: a font face.
  *
  * Returns: the number of color palettes in @face, or zero if @face has
@@ -106,13 +106,13 @@ hb_ot_color_has_palettes (hb_face_t *face)
  * Since: REPLACEME
  */
 unsigned int
-hb_ot_color_get_palette_count (hb_face_t *face)
+hb_ot_color_palette_get_count (hb_face_t *face)
 {
   return _get_cpal (face).get_palette_count ();
 }
 
 /**
- * hb_ot_color_get_palette_name_id:
+ * hb_ot_color_palette_get_name_id:
  * @face:    a font face.
  * @palette: the index of the color palette whose name is being requested.
  *
@@ -120,38 +120,54 @@ hb_ot_color_get_palette_count (hb_face_t *face)
  * have themed palettes like "Spring", "Summer", "Fall", and "Winter".
  *
  * Returns: an identifier within @face's `name` table.
- * If the requested palette has no name, or if @face has no colors,
- * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is 0xFFFF. The implementation does not check whether
- * the returned palette name id is actually in @face's `name` table.
+ * If the requested palette has no name the result is #HB_NAME_ID_INVALID.
  *
  * Since: REPLACEME
  */
 hb_name_id_t
-hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
+hb_ot_color_palette_get_name_id (hb_face_t *face,
+				 unsigned int palette_index)
 {
-  return _get_cpal (face).get_palette_name_id (palette);
+  return _get_cpal (face).get_palette_name_id (palette_index);
 }
 
 /**
- * hb_ot_color_get_palette_entry_name_id:
+ * hb_ot_color_palette_color_get_name_id:
  * @face: a font face.
- * @palette_entry:
+ * @color_index:
  *
  * Returns: Name ID associated with a palette entry, e.g. eye color
  *
  * Since: REPLACEME
  */
 hb_name_id_t
-hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_entry)
+hb_ot_color_palette_color_get_name_id (hb_face_t *face,
+				       unsigned int color_index)
 {
-  return _get_cpal (face).get_palette_entry_name_id (palette_entry);
+  return _get_cpal (face).get_palette_entry_name_id (color_index);
 }
 
 /**
- * hb_ot_color_get_palette_colors:
+ * hb_ot_color_palette_get_flags:
+ * @face:    a font face
+ * @palette_index: the index of the color palette whose flags are being requested
+ *
+ * Returns: the flags for the requested color palette.
+ *
+ * Since: REPLACEME
+ */
+hb_ot_color_palette_flags_t
+hb_ot_color_palette_get_flags (hb_face_t *face,
+			       unsigned int palette_index)
+{
+  const OT::CPAL& cpal = _get_cpal(face);
+  return cpal.get_palette_flags (palette_index);
+}
+
+/**
+ * hb_ot_color_palette_get_colors:
  * @face:         a font face.
- * @palette:      the index of the color palette whose colors
+ * @palette_index:the index of the color palette whose colors
  *                are being requested.
  * @start_offset: the index of the first color being requested.
  * @color_count:  (inout) (optional): on input, how many colors
@@ -164,26 +180,23 @@ hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_ent
  *                will just return the number of total colors
  *                without storing any actual colors; this can be used
  *                for allocating a buffer of suitable size before calling
- *                hb_ot_color_get_palette_colors() a second time.
+ *                hb_ot_color_palette_get_colors() a second time.
  *
  * Retrieves the colors in a color palette.
  *
- * Returns: the total number of colors in the palette. All palettes in
- * a font have the same number of colors. If @face has no colors, or if
- * @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is zero.
+ * Returns: the total number of colors in the palette.
  *
  * Since: REPLACEME
  */
 unsigned int
-hb_ot_color_get_palette_colors (hb_face_t      *face,
-				unsigned int    palette,      /* default=0 */
+hb_ot_color_palette_get_colors (hb_face_t      *face,
+				unsigned int    palette_index,      /* default=0 */
 				unsigned int    start_offset,
 				unsigned int   *colors_count  /* IN/OUT.  May be NULL. */,
 				hb_color_t     *colors        /* OUT.     May be NULL. */)
 {
   const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (palette >= cpal.get_palette_count ()))
+  if (unlikely (palette_index >= cpal.get_palette_count ()))
   {
     if (colors_count) *colors_count = 0;
     return 0;
@@ -197,31 +210,13 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 				     cpal.get_palette_entries_count () - start_offset);
     for (unsigned int i = 0; i < platte_count; i++)
     {
-      if (cpal.get_color_record_argb(start_offset + i, palette, &colors[num_results]))
+      if (cpal.get_color_record_argb(start_offset + i, palette_index, &colors[num_results]))
 	++num_results;
     }
   }
 
   if (likely (colors_count)) *colors_count = num_results;
   return cpal.get_palette_entries_count ();
-}
-
-/**
- * hb_ot_color_get_palette_flags:
- * @face:    a font face
- * @palette: the index of the color palette whose flags are being requested
- *
- * Returns: the flags for the requested color palette.  If @face has no colors,
- * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
- *
- * Since: REPLACEME
- */
-hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
-{
-  const OT::CPAL& cpal = _get_cpal(face);
-  return cpal.get_palette_flags (palette);
 }
 
 

@@ -23,7 +23,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Sascha Brawer
+ * Google Author(s): Sascha Brawer, Behdad Esfahbod
  */
 
 #ifndef HB_OT_H_IN
@@ -47,20 +47,15 @@ HB_EXTERN hb_bool_t
 hb_ot_color_has_palettes (hb_face_t *face);
 
 HB_EXTERN unsigned int
-hb_ot_color_get_palette_count (hb_face_t *face);
+hb_ot_color_palette_get_count (hb_face_t *face);
 
 HB_EXTERN hb_name_id_t
-hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
+hb_ot_color_palette_get_name_id (hb_face_t *face,
+				 unsigned int palette_index);
 
 HB_EXTERN hb_name_id_t
-hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_entry);
-
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_colors (hb_face_t      *face,
-				unsigned int    palette,      /* default=0 */
-				unsigned int    start_offset,
-				unsigned int   *color_count,  /* IN/OUT.  May be NULL. */
-				hb_color_t     *colors        /* OUT.     May be NULL. */);
+hb_ot_color_palette_color_get_name_id (hb_face_t *face,
+				       unsigned int color_index);
 
 /**
  * hb_ot_color_palette_flags_t:
@@ -80,8 +75,15 @@ typedef enum { /*< flags >*/
 } hb_ot_color_palette_flags_t;
 
 HB_EXTERN hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+hb_ot_color_palette_get_flags (hb_face_t *face,
+			       unsigned int palette_index);
 
+HB_EXTERN unsigned int
+hb_ot_color_palette_get_colors (hb_face_t      *face,
+				unsigned int    palette_index,
+				unsigned int    start_offset,
+				unsigned int   *color_count,  /* IN/OUT.  May be NULL. */
+				hb_color_t     *colors        /* OUT.     May be NULL. */);
 
 
 /*
