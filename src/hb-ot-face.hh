@@ -47,9 +47,6 @@
     /* OpenType shaping. */ \
     HB_OT_TABLE(OT, JSTF) \
     HB_OT_TABLE(OT, BASE) \
-    /* OpenType color */ \
-    HB_OT_TABLE(OT, COLR) \
-    HB_OT_TABLE(OT, CPAL) \
     /* AAT shaping. */ \
     HB_OT_TABLE(AAT, morx) \
     HB_OT_TABLE(AAT, kerx) \
@@ -71,7 +68,12 @@
     HB_OT_ACCELERATOR(OT, post) \
     HB_OT_ACCELERATOR(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
+    /* OpenType color fonts. */ \
+    HB_OT_TABLE(OT, COLR) \
+    HB_OT_TABLE(OT, CPAL) \
     HB_OT_ACCELERATOR(OT, CBDT) \
+    HB_OT_TABLE(OT, sbix) \
+    HB_OT_TABLE(OT, SVG) \
     /* */
 
 /* Declare tables. */
