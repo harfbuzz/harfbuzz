@@ -97,14 +97,6 @@ struct COLR
 {
   static const hb_tag_t tableTag = HB_OT_TAG_COLR;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
-			  (this+layersZ).sanitize (c, numLayers)));
-  }
-
   inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
 				     unsigned int *first_layer /* OUT */,
 				     unsigned int *num_layers /* OUT */) const
@@ -134,6 +126,14 @@ struct COLR
     if (glyph_id) *glyph_id = layer.glyphId;
     if (color_index) *color_index = layer.colorIdx;
     return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
+			  (this+layersZ).sanitize (c, numLayers)));
   }
 
   protected:
