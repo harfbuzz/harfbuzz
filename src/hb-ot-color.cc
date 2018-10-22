@@ -161,8 +161,7 @@ hb_ot_color_palette_flags_t
 hb_ot_color_palette_get_flags (hb_face_t *face,
 			       unsigned int palette_index)
 {
-  const OT::CPAL& cpal = _get_cpal(face);
-  return cpal.get_palette_flags (palette_index);
+  return _get_cpal(face).get_palette_flags (palette_index);
 }
 
 /**
@@ -258,6 +257,5 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      unsigned int        *count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */)
 {
-  const OT::COLR& colr = _get_colr (face);
-  return colr.get_glyph_layers (glyph, start_offset, count, layers);
+  return _get_colr (face).get_glyph_layers (glyph, start_offset, count, layers);
 }
