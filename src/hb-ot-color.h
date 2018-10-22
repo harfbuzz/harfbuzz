@@ -70,20 +70,24 @@ hb_ot_color_get_color_layers (hb_face_t       *face,
 
 /**
  * hb_ot_color_palette_flags_t:
- * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
+ * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special
+ *   to note about a color palette.
+ * @HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND: flag indicating that the color
+ *   palette is appropriate to use when displaying the font on a light background such as white.
+ * @HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND: flag indicating that the color
+ *   palette is appropriate to use when displaying the font on a dark background such as black.
  *
  * Since: REPLACEME
  */
 typedef enum { /*< flags >*/
-  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
+  HB_OT_COLOR_PALETTE_FLAG_DEFAULT			= 0x00000000u,
+  HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND	= 0x00000001u,
+  HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND	= 0x00000002u,
 } hb_ot_color_palette_flags_t;
 
 HB_EXTERN hb_ot_color_palette_flags_t
 hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+
 
 HB_END_DECLS
 

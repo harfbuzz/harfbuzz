@@ -191,8 +191,8 @@ test_hb_ot_color_get_palette_flags_v0 (void)
 static void
 test_hb_ot_color_get_palette_flags_v1 (void)
 {
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 0), ==, HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND);
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 1), ==, HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND);
+  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 0), ==, HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND);
+  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 1), ==, HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND);
   g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 2), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
 
   /* numPalettes=3, so palette #3 is out of bounds */
