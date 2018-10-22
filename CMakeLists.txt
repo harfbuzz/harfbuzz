@@ -47,6 +47,7 @@ if (WIN32)
   option(HB_HAVE_DIRECTWRITE "Enable DirectWrite shaper backend on Windows" OFF)
 endif ()
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
+option(HB_BUILD_TESTS "Build harbuzz tests" ON)
 if (HB_BUILD_UTILS)
   set (HB_HAVE_GLIB ON)
   set (HB_HAVE_FREETYPE ON)
@@ -87,9 +88,14 @@ set (HB_DISABLE_TESTS OFF)
 option(HB_IOS "Apply iOS specific build flags" OFF)
 if (HB_IOS)
   # We should fix their issue and enable them
+  set (HB_BUILD_TESTS OFF)
+  set (HB_HAVE_CORETEXT OFF)
+endif ()
+
+if (NOT HB_BUILD_TESTS)
+  # Subset is only used in tests
   set (HB_DISABLE_SUBSET ON)
   set (HB_DISABLE_TESTS ON)
-  set (HB_HAVE_CORETEXT OFF)
 endif ()
 
 include_directories(AFTER
