@@ -145,7 +145,7 @@ hb_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 				       unsigned int color_index)
 {
-  return _get_cpal (face).get_palette_entry_name_id (color_index);
+  return _get_cpal (face).get_color_name_id (color_index);
 }
 
 /**
@@ -208,7 +208,7 @@ hb_ot_color_palette_get_colors (hb_face_t      *face,
   {
     unsigned int platte_count;
     platte_count = MIN<unsigned int>(*colors_count,
-				     cpal.get_palette_entries_count () - start_offset);
+				     cpal.get_color_count () - start_offset);
     for (unsigned int i = 0; i < platte_count; i++)
     {
       if (cpal.get_color_record_argb(start_offset + i, palette_index, &colors[num_results]))
@@ -217,7 +217,7 @@ hb_ot_color_palette_get_colors (hb_face_t      *face,
   }
 
   if (likely (colors_count)) *colors_count = num_results;
-  return cpal.get_palette_entries_count ();
+  return cpal.get_color_count ();
 }
 
 
