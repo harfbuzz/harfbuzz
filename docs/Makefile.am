@@ -62,7 +62,6 @@ CFILE_GLOB=$(top_srcdir)/src/hb-*.cc
 
 # Extra header to include when scanning, which are not under DOC_SOURCE_DIR
 # e.g. EXTRA_HFILES=$(top_srcdir}/contrib/extra.h
-EXTRA_HFILES=$(top_builddir)/src/hb-version.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png

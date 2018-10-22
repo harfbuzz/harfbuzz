@@ -47,6 +47,9 @@
     /* OpenType shaping. */ \
     HB_OT_TABLE(OT, JSTF) \
     HB_OT_TABLE(OT, BASE) \
+    /* OpenType color */ \
+    HB_OT_TABLE(OT, COLR) \
+    HB_OT_TABLE(OT, CPAL) \
     /* AAT shaping. */ \
     HB_OT_TABLE(AAT, morx) \
     HB_OT_TABLE(AAT, kerx) \

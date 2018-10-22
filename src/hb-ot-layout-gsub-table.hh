@@ -103,7 +103,7 @@ struct SingleSubstFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return_trace (false);
-    deltaGlyphID.set (delta); /* TODO(serilaize) overflow? */
+    deltaGlyphID.set (delta); /* TODO(serialize) overflow? */
     return_trace (true);
   }
 

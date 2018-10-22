@@ -118,6 +118,9 @@ test_set_basic (void)
   g_assert (!hb_set_has (s, 801));
   g_assert (!hb_set_has (s, 802));
 
+  hb_set_del (s, 800);
+  g_assert (!hb_set_has (s, 800));
+
   hb_set_destroy (s);
 }
 

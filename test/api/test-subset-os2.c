@@ -31,8 +31,8 @@
 static void
 test_subset_os2 (void)
 {
-  hb_face_t *face_abc = hb_subset_test_open_font("fonts/Roboto-Regular.abc.ttf");
-  hb_face_t *face_b = hb_subset_test_open_font("fonts/Roboto-Regular.b.ttf");
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_b = hb_test_open_font_file ("fonts/Roboto-Regular.b.ttf");
 
   hb_set_t *codepoints = hb_set_create();
   hb_face_t *face_abc_subset;

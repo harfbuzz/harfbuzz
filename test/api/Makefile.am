@@ -33,6 +33,7 @@ TEST_PROGS = \
 	test-collect-unicodes \
 	test-common \
 	test-font \
+	test-map \
 	test-object \
 	test-set \
 	test-shape \
@@ -171,13 +172,18 @@ symbols-tested.txt: $(TEST_PROGS)
 	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
 	| grep ' U hb_' | sed 's/.* U hb_/hb_/' \
 	| sort | uniq > $@.tmp && mv $@.tmp $@
+symbols-tested-or-deprecated.txt: symbols-tested.txt $(top_builddir)/src/harfbuzz-deprecated.def
+	$(AM_V_GEN)cat $^ | sort | uniq > $@.tmp; mv $@.tmp $@
 symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
 	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
 	| grep ' T ' | sed 's/.* T //' | grep -v '^\(_init\|_fini\)$$' \
 	| sort | uniq > $@.tmp && mv $@.tmp $@
-symbols-untested.txt: symbols-tested.txt symbols-exported.txt
+symbols-untested.txt: symbols-tested-or-deprecated.txt symbols-exported.txt
 	$(AM_V_GEN)diff $^ > $@.tmp; mv $@.tmp $@
-CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
+CLEANFILES += symbols-tested.txt \
+	symbols-exported.txt \
+	symbols-untested.txt \
+	symbols-tested-or-deprecated.txt
 check-symbols: symbols-untested.txt
 	@! cat $^ | grep .
 

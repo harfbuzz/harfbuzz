@@ -1115,8 +1115,8 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 /**
  * hb_ot_layout_feature_get_name_ids:
  * @face: #hb_face_t to work upon
- * @table_tag:
- * @feature_index:
+ * @table_tag: table tag to query, "GSUB" or "GPOS".
+ * @feature_index: index of feature to query.
  * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
  *            for a user-interface label for this feature. (May be NULL.)
  * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
@@ -1188,10 +1188,10 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
 }
 
 /**
- * hb_ot_layout_feature_get_characters::
+ * hb_ot_layout_feature_get_characters:
  * @face: #hb_face_t to work upon
- * @table_tag:
- * @feature_index:
+ * @table_tag: table tag to query, "GSUB" or "GPOS".
+ * @feature_index: index of feature to query.
  * @start_offset: In case the resulting char_count was equal to its input value, there
  *                is a chance there were more characters on the tag so this API can be
  *                called with an offset till resulting char_count gets to a number

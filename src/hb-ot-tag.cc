@@ -201,7 +201,7 @@ subtag_matches (const char *lang_str,
     if (!ISALNUM (s[strlen (subtag)]))
       return true;
     lang_str = s + strlen (subtag);
-  } while (1);
+  } while (true);
 }
 
 static hb_bool_t

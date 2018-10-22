@@ -199,8 +199,6 @@ struct hb_collect_glyphs_context_t :
     after  = old_after;
 
     recursed_lookups->add (lookup_index);
-
-    return;
   }
 
   hb_face_t *face;
@@ -582,7 +580,7 @@ struct hb_ot_apply_context_t :
       add_in |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
       /* In the only place that the MULTIPLIED bit is used, Uniscribe
        * seems to only care about the "last" transformation between
-       * Ligature and Multiple substitions.  Ie. if you ligate, expand,
+       * Ligature and Multiple substitutions.  Ie. if you ligate, expand,
        * and ligate again, it forgives the multiplication and acts as
        * if only ligation happened.  As such, clear MULTIPLIED bit.
        */
@@ -903,7 +901,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 }
 static inline bool ligate_input (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
-				 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
+				 const unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int match_length,
 				 hb_codepoint_t lig_glyph,
 				 unsigned int total_component_count)

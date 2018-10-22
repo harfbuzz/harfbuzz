@@ -15,8 +15,6 @@ API additions
 
 - Add sanitize API.
 
-- BCP 47 language handling / API (language_matches?)
-
 - Add query / enumeration API for aalt-like features?
 
 - Add segmentation API

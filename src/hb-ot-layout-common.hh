@@ -718,7 +718,7 @@ struct Lookup
     return_trace (true);
   }
 
-  /* Older compileres need this to NOT be locally defined in a function. */
+  /* Older compilers need this to NOT be locally defined in a function. */
   template <typename TSubTable>
   struct SubTableSubsetWrapper
   {
@@ -1475,7 +1475,7 @@ struct VarRegionAxis
 struct VarRegionList
 {
   inline float evaluate (unsigned int region_index,
-			 int *coords, unsigned int coord_len) const
+			 const int *coords, unsigned int coord_len) const
   {
     if (unlikely (region_index >= regionCount))
       return 0.;
@@ -1526,7 +1526,7 @@ struct VarData
   { return itemCount * get_row_size (); }
 
   inline float get_delta (unsigned int inner,
-			  int *coords, unsigned int coord_count,
+			  const int *coords, unsigned int coord_count,
 			  const VarRegionList &regions) const
   {
     if (unlikely (inner >= itemCount))
@@ -1591,7 +1591,7 @@ struct VarData
 struct VariationStore
 {
   inline float get_delta (unsigned int outer, unsigned int inner,
-			  int *coords, unsigned int coord_count) const
+			  const int *coords, unsigned int coord_count) const
   {
     if (unlikely (outer >= dataSets.len))
       return 0.;
@@ -1602,7 +1602,7 @@ struct VariationStore
   }
 
   inline float get_delta (unsigned int index,
-			  int *coords, unsigned int coord_count) const
+			  const int *coords, unsigned int coord_count) const
   {
     unsigned int outer = index >> 16;
     unsigned int inner = index & 0xFFFF;

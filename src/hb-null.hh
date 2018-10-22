@@ -49,7 +49,7 @@ static inline Type const & Null (void) {
 }
 #define Null(Type) Null<Type>()
 
-/* Specializaitons for arbitrary-content Null objects expressed in bytes. */
+/* Specializations for arbitrary-content Null objects expressed in bytes. */
 #define DECLARE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 	} /* Close namespace. */ \
 	extern HB_INTERNAL const unsigned char _hb_Null_##Namespace##_##Type[Namespace::Type::min_size]; \
@@ -62,7 +62,7 @@ static inline Type const & Null (void) {
 #define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 	const unsigned char _hb_Null_##Namespace##_##Type[Namespace::Type::min_size]
 
-/* Specializaitons for arbitrary-content Null objects expressed as struct initializer. */
+/* Specializations for arbitrary-content Null objects expressed as struct initializer. */
 #define DECLARE_NULL_INSTANCE(Type) \
 	extern HB_INTERNAL const Type _hb_Null_##Type; \
 	template <> \

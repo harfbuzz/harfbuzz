@@ -643,7 +643,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   CFStringRef string_ref = nullptr;
   CTLineRef line = nullptr;
 
-  if (0)
+  if (false)
   {
 resize_and_retry:
     DEBUG_MSG (CORETEXT, buffer, "Buffer resize");
@@ -1054,7 +1054,7 @@ resize_and_retry:
      *
      * https://crbug.com/419769
      */
-    if (0)
+    if (false)
     {
       /* Make sure all runs had the expected direction. */
       bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);

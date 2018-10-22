@@ -204,7 +204,7 @@ struct hb_dispatch_context_t
  * The same argument can be made re GSUB/GPOS/GDEF, but there, the table
  * structure is so complicated that by checking all offsets at sanitize() time,
  * we make the code much simpler in other methods, as offsets and referenced
- * objectes do not need to be validated at each use site.
+ * objects do not need to be validated at each use site.
  */
 
 /* This limits sanitizing time on really broken fonts. */
@@ -652,6 +652,7 @@ template <typename Type>
 struct BEInt<Type, 1>
 {
   public:
+  typedef Type type;
   inline void set (Type V)
   {
     v = V;
@@ -666,6 +667,7 @@ template <typename Type>
 struct BEInt<Type, 2>
 {
   public:
+  typedef Type type;
   inline void set (Type V)
   {
     v[0] = (V >>  8) & 0xFF;
@@ -682,6 +684,7 @@ template <typename Type>
 struct BEInt<Type, 3>
 {
   public:
+  typedef Type type;
   inline void set (Type V)
   {
     v[0] = (V >> 16) & 0xFF;
@@ -700,6 +703,7 @@ template <typename Type>
 struct BEInt<Type, 4>
 {
   public:
+  typedef Type type;
   inline void set (Type V)
   {
     v[0] = (V >> 24) & 0xFF;

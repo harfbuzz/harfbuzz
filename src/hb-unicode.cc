@@ -442,6 +442,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
  * Return value: 
  *
  * Since: 0.9.2
+ * Deprecated: 2.0.0
  **/
 unsigned int
 hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,

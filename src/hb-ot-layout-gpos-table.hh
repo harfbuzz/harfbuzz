@@ -1164,7 +1164,7 @@ struct MarkBasePosFormat1
 	   ))
 	break;
       skippy_iter.reject ();
-    } while (1);
+    } while (true);
 
     /* Checking that matched glyph is actually a base glyph by GDEF is too strong; disabled */
     //if (!_hb_glyph_info_is_base_glyph (&buffer->info[skippy_iter.idx])) { return_trace (false); }

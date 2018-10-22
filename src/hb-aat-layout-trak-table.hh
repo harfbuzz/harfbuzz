@@ -136,7 +136,7 @@ struct TrackData
     /* TODO bfind() */
     hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
-    for (size_index = 0; size_index < sizes; size_index++)
+    for (size_index = 0; size_index < sizes - 1; size_index++)
       if (size_table[size_index].to_float () >= csspx)
         break;
 

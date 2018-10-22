@@ -35,6 +35,8 @@ jobs:
       - run: brew update-reset
       - run: brew install cmake
       # not needed to be a framework but we like to test that also
+      # TODO: wrong way of targeting iOS as it doesn't point to iOS headers thus building
+      # CoreText support is not possible, after the fix feel free HB_IOS from CMake altogether
       - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_IOS=ON
       - run: cd build && xcodebuild -sdk iphoneos12.0 -configuration Release build -arch arm64
 
@@ -89,6 +91,22 @@ jobs:
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
+
+  gcc-valgrind:
+    docker:
+      - image: ubuntu:18.10
+    steps:
+      - checkout
+      - run: apt update || true
+      - run: apt install -y gcc binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip valgrind
+      - run: pip install fonttools
+      - run: ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
+      - run: make -j32
+      # run-shape-fuzzer-tests.py automatically runs valgrind if see available
+      # but test/api runs it by request, we probably should normalize the approaches
+      - run: RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
+      # informational for now
+      - run: make -Ctest/api check-symbols || true
 
   clang-everything:
     docker:
@@ -269,14 +287,14 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  crosscompile-cmake-notest-windows-x64:
-    docker:
-      - image: dockcross/windows-x64
-    steps:
-      - checkout
-      - run: apt update && apt install ragel
-      - run: cmake -Bbuild -H. -GNinja
-      - run: ninja -Cbuild
+  #crosscompile-cmake-notest-windows-x64:
+  #  docker:
+  #    - image: dockcross/windows-x64
+  #  steps:
+  #    - checkout
+  #    - run: apt update && apt install ragel
+  #    - run: cmake -Bbuild -H. -GNinja
+  #    - run: ninja -Cbuild
 
 workflows:
   version: 2
@@ -293,6 +311,7 @@ workflows:
       # autotools based builds
       - alpine-O3-NOMMAP
       - archlinux-debug-O0-py3
+      - gcc-valgrind
       - clang-O3-O0
       - clang-everything
       - clang-asan
@@ -317,4 +336,4 @@ workflows:
       - crosscompile-cmake-notest-browser-asmjs
       - crosscompile-cmake-notest-linux-arm64
       - crosscompile-cmake-notest-linux-mips
-      - crosscompile-cmake-notest-windows-x64
+      #- crosscompile-cmake-notest-windows-x64

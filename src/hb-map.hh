@@ -172,7 +172,7 @@ struct hb_map_t
 
   inline bool is_empty (void) const
   {
-    return population != 0;
+    return population == 0;
   }
 
   inline unsigned int get_population () const
