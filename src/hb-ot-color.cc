@@ -218,10 +218,10 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 /**
  * hb_ot_color_get_color_layers:
  * @face: a font face.
- * @gid:
+ * @glyph:
  * @start_offset:
  * @count:  (inout) (optional):
- * @gids: (array length=count) (out) (optional):
+ * @glyphs: (array length=count) (out) (optional):
  * @color_indices: (array length=count) (out) (optional):
  *
  * Returns:
@@ -230,16 +230,16 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
  */
 unsigned int
 hb_ot_color_get_color_layers (hb_face_t        *face,
-			      hb_codepoint_t    gid,
+			      hb_codepoint_t    glyph,
 			      unsigned int      start_offset,
 			      unsigned int     *count         /* IN/OUT.  May be NULL. */,
-			      hb_codepoint_t   *gids          /* OUT.     May be NULL. */,
+			      hb_codepoint_t   *glyphs        /* OUT.     May be NULL. */,
 			      unsigned int     *color_indices /* OUT.     May be NULL. */)
 {
   const OT::COLR& colr = _get_colr (face);
   unsigned int num_results = 0;
   unsigned int start_layer_index, num_layers = 0;
-  if (colr.get_base_glyph_record (gid, &start_layer_index, &num_layers))
+  if (colr.get_base_glyph_record (glyph, &start_layer_index, &num_layers))
   {
     if (count)
     {
@@ -247,7 +247,7 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
       for (unsigned int i = 0; i < layer_count; i++)
       {
 	if (colr.get_layer_record (start_layer_index + start_offset + i,
-				   &gids[num_results], &color_indices[num_results]))
+				   &glyphs[num_results], &color_indices[num_results]))
 	  ++num_results;
       }
     }

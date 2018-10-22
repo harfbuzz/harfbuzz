@@ -57,15 +57,15 @@ HB_EXTERN unsigned int
 hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    palette,      /* default=0 */
 				unsigned int    start_offset,
-				unsigned int   *color_count   /* IN/OUT.  May be NULL. */,
+				unsigned int   *color_count,  /* IN/OUT.  May be NULL. */
 				hb_color_t     *colors        /* OUT.     May be NULL. */);
 
 HB_EXTERN unsigned int
 hb_ot_color_get_color_layers (hb_face_t       *face,
-			      hb_codepoint_t   gid,
+			      hb_codepoint_t   glyph,
 			      unsigned int     start_offset,
-			      unsigned int    *count         /* IN/OUT.  May be NULL. */,
-			      hb_codepoint_t  *gids          /* OUT.     May be NULL. */,
+			      unsigned int    *count,        /* IN/OUT.  May be NULL. */
+			      hb_codepoint_t  *glyphs,       /* OUT.     May be NULL. */
 			      unsigned int    *color_indices /* OUT.     May be NULL. */);
 
 /**
