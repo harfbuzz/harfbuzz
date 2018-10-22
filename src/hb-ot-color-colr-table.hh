@@ -73,6 +73,13 @@ struct BaseGlyphRecord
     return g < glyphId ? -1 : g > glyphId ? 1 : 0;
   }
 
+  static int cmp (const void *pa, const void *pb)
+  {
+    const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
+    const BaseGlyphRecord *b = (const BaseGlyphRecord *) pb;
+    return b->cmp (*a);
+  }
+
   public:
   GlyphID	glyphId;	/* Glyph ID of reference glyph */
   HBUINT16	firstLayerIdx;	/* Index (from beginning of
@@ -86,13 +93,6 @@ struct BaseGlyphRecord
   DEFINE_SIZE_STATIC (6);
 };
 
-static int compare_bgr (const void *pa, const void *pb)
-{
-  const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
-  const BaseGlyphRecord *b = (const BaseGlyphRecord *) pb;
-  return b->cmp (*a);
-}
-
 struct COLR
 {
   static const hb_tag_t tableTag = HB_OT_TAG_COLR;
@@ -103,7 +103,7 @@ struct COLR
   {
     const BaseGlyphRecord* record;
     record = (BaseGlyphRecord *) bsearch (&glyph_id, &(this+baseGlyphsZ), numBaseGlyphs,
-					  sizeof (BaseGlyphRecord), compare_bgr);
+					  sizeof (BaseGlyphRecord), BaseGlyphRecord::cmp);
     if (unlikely (!record))
       return false;
 
