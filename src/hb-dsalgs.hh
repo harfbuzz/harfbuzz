@@ -513,9 +513,9 @@ template <typename T>
 struct hb_array_t
 {
   inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
-  inline hb_array_t (const T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+  inline hb_array_t (T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
-  inline const T& operator [] (unsigned int i) const
+  inline T& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Null(T);
     return arrayZ[i];
@@ -534,7 +534,7 @@ struct hb_array_t
 
   inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
-  const T *arrayZ;
+  T *arrayZ;
   unsigned int len;
 };
 

@@ -55,7 +55,7 @@ struct TrackTableEntry
 			unsigned int index,
 			unsigned int nSizes) const
   {
-    return hb_array_t<FWORD> ((base+valuesZ).arrayZ, nSizes)[index];
+    return hb_array_t<const FWORD> ((base+valuesZ).arrayZ, nSizes)[index];
   }
 
   public:
@@ -88,7 +88,7 @@ struct TrackData
 			       const void *base) const
   {
     unsigned int sizes = nSizes;
-    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
 
     float s0 = size_table[idx].to_float ();
     float s1 = size_table[idx + 1].to_float ();
@@ -134,7 +134,7 @@ struct TrackData
     if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
     /* TODO bfind() */
-    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
       if (size_table[size_index].to_float () >= csspx)
