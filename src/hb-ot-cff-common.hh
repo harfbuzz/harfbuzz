@@ -384,7 +384,7 @@ struct Remap : hb_vector_t<hb_codepoint_t>
   { return (id < len) && ((*this)[id] != CFF_UNDEF_CODE); }
 
   inline bool excludes (hb_codepoint_t id) const
-  { return !includes (i); }
+  { return !includes (id); }
 
   inline hb_codepoint_t operator[] (hb_codepoint_t i) const
   {

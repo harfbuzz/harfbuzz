@@ -32,7 +32,7 @@
 static void
 test_extents_cff1 (void)
 {
-  hb_face_t *face = hb_subset_test_open_font ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
   g_assert (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
