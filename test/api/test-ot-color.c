@@ -317,36 +317,33 @@ test_hb_ot_color_get_palette_entry_name_id (void)
 
 
 static void
-test_hb_ot_color_get_color_layers (void)
+test_hb_ot_color_glyph_get_layers (void)
 {
-  hb_codepoint_t layer_gids[1];
-  unsigned int color_indices[1];
+  hb_ot_color_layer_t layers[1];
   unsigned int count = 1;
 
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 0, 0,
-						  NULL, NULL, NULL), ==, 0);
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 1, 0,
-						  NULL, NULL, NULL), ==, 0);
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 2, 0,
-						  NULL, NULL, NULL), ==, 2);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 0, 0,
+						  NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 1, 0,
+						  NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 2, 0,
+						  NULL, NULL), ==, 2);
 
   unsigned int num_layers;
-  num_layers = hb_ot_color_get_color_layers (cpal_v1, 2, 0, &count, layer_gids,
-					     color_indices);
+  num_layers = hb_ot_color_glyph_get_layers (cpal_v1, 2, 0, &count, layers);
 
   g_assert_cmpuint (num_layers, ==, 2);
   g_assert_cmpuint (count, ==, 1);
-  g_assert_cmpuint (layer_gids[0], ==, 3);
-  g_assert_cmpuint (color_indices[0], ==, 1);
+  g_assert_cmpuint (layers[0].glyph, ==, 3);
+  g_assert_cmpuint (layers[0].color_index, ==, 1);
 
   count = 1;
-  hb_ot_color_get_color_layers (cpal_v1, 2, 1, &count, layer_gids,
-				color_indices);
+  hb_ot_color_glyph_get_layers (cpal_v1, 2, 1, &count, layers);
 
   g_assert_cmpuint (num_layers, ==, 2);
   g_assert_cmpuint (count, ==, 1);
-  g_assert_cmpuint (layer_gids[0], ==, 4);
-  g_assert_cmpuint (color_indices[0], ==, 0);
+  g_assert_cmpuint (layers[0].glyph, ==, 4);
+  g_assert_cmpuint (layers[0].color_index, ==, 0);
 }
 
 static void
@@ -394,7 +391,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_get_palette_colors_v0);
   hb_test_add (test_hb_ot_color_get_palette_colors_v1);
   hb_test_add (test_hb_ot_color_get_palette_entry_name_id);
-  hb_test_add (test_hb_ot_color_get_color_layers);
+  hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
   status = hb_test_run();
   hb_face_destroy (cpal_v0);

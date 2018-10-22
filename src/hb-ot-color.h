@@ -91,13 +91,23 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
 HB_EXTERN hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face);
 
+/**
+ * hb_ot_color_layer_t:
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_ot_color_layer_t
+{
+  hb_codepoint_t glyph;
+  unsigned int   color_index;
+} hb_ot_color_layer_t;
+
 HB_EXTERN unsigned int
-hb_ot_color_get_color_layers (hb_face_t       *face,
-			      hb_codepoint_t   glyph,
-			      unsigned int     start_offset,
-			      unsigned int    *count,        /* IN/OUT.  May be NULL. */
-			      hb_codepoint_t  *glyphs,       /* OUT.     May be NULL. */
-			      unsigned int    *color_indices /* OUT.     May be NULL. */);
+hb_ot_color_glyph_get_layers (hb_face_t           *face,
+			      hb_codepoint_t       glyph,
+			      unsigned int         start_offset,
+			      unsigned int        *count, /* IN/OUT.  May be NULL. */
+			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */);
 
 
 HB_END_DECLS
