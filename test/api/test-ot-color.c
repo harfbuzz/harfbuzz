@@ -99,6 +99,11 @@ static hb_face_t *cpal_v0 = NULL;
 */
 static hb_face_t *cpal_v1 = NULL;
 
+static hb_face_t *cpal = NULL;
+static hb_face_t *cbdt = NULL;
+static hb_face_t *sbix = NULL;
+static hb_face_t *svg = NULL;
+
 #define assert_color_rgba(colors, i, r, g, b, a) G_STMT_START {	\
   const hb_color_t *_colors = (colors); \
   const size_t _i = (i); \
@@ -352,10 +357,18 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_colr_data (empty) == FALSE);
   g_assert (hb_ot_color_has_colr_data (cpal_v0) == TRUE);
   g_assert (hb_ot_color_has_colr_data (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_colr_data (cpal) == TRUE);
+  g_assert (hb_ot_color_has_colr_data (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_colr_data (sbix) == FALSE);
+  g_assert (hb_ot_color_has_colr_data (svg) == FALSE);
 
   g_assert (hb_ot_color_has_cpal_data (empty) == FALSE);
   g_assert (hb_ot_color_has_cpal_data (cpal_v0) == TRUE);
   g_assert (hb_ot_color_has_cpal_data (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_cpal_data (cpal) == TRUE);
+  g_assert (hb_ot_color_has_cpal_data (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_cpal_data (sbix) == FALSE);
+  g_assert (hb_ot_color_has_cpal_data (svg) == FALSE);
 }
 
 int
@@ -366,6 +379,10 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
   cpal_v0 = hb_test_open_font_file ("fonts/cpal-v0.ttf");
   cpal_v1 = hb_test_open_font_file ("fonts/cpal-v1.ttf");
+  cpal = hb_test_open_font_file ("fonts/chromacheck-colr.ttf");
+  cbdt = hb_test_open_font_file ("fonts/chromacheck-cbdt.ttf");
+  sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
+  svg = hb_test_open_font_file ("fonts/chromacheck-svg.ttf");
   hb_test_add (test_hb_ot_color_get_palette_count);
   hb_test_add (test_hb_ot_color_get_palette_name_id_empty);
   hb_test_add (test_hb_ot_color_get_palette_name_id_v0);
@@ -382,5 +399,9 @@ main (int argc, char **argv)
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
   hb_face_destroy (cpal_v1);
+  hb_face_destroy (cpal);
+  hb_face_destroy (cbdt);
+  hb_face_destroy (sbix);
+  hb_face_destroy (svg);
   return status;
 }
