@@ -38,11 +38,13 @@
 
 HB_BEGIN_DECLS
 
-HB_EXTERN hb_bool_t
-hb_ot_color_has_cpal_data (hb_face_t *face);
+
+/*
+ * Color palettes.
+ */
 
 HB_EXTERN hb_bool_t
-hb_ot_color_has_colr_data (hb_face_t *face);
+hb_ot_color_has_palettes (hb_face_t *face);
 
 HB_EXTERN unsigned int
 hb_ot_color_get_palette_count (hb_face_t *face);
@@ -59,14 +61,6 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 				unsigned int    start_offset,
 				unsigned int   *color_count,  /* IN/OUT.  May be NULL. */
 				hb_color_t     *colors        /* OUT.     May be NULL. */);
-
-HB_EXTERN unsigned int
-hb_ot_color_get_color_layers (hb_face_t       *face,
-			      hb_codepoint_t   glyph,
-			      unsigned int     start_offset,
-			      unsigned int    *count,        /* IN/OUT.  May be NULL. */
-			      hb_codepoint_t  *glyphs,       /* OUT.     May be NULL. */
-			      unsigned int    *color_indices /* OUT.     May be NULL. */);
 
 /**
  * hb_ot_color_palette_flags_t:
@@ -87,6 +81,23 @@ typedef enum { /*< flags >*/
 
 HB_EXTERN hb_ot_color_palette_flags_t
 hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+
+
+
+/*
+ * Color layers.
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_layers (hb_face_t *face);
+
+HB_EXTERN unsigned int
+hb_ot_color_get_color_layers (hb_face_t       *face,
+			      hb_codepoint_t   glyph,
+			      unsigned int     start_offset,
+			      unsigned int    *count,        /* IN/OUT.  May be NULL. */
+			      hb_codepoint_t  *glyphs,       /* OUT.     May be NULL. */
+			      unsigned int    *color_indices /* OUT.     May be NULL. */);
 
 
 HB_END_DECLS

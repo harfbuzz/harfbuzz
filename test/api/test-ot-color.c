@@ -354,21 +354,21 @@ test_hb_ot_color_has_data (void)
 {
   hb_face_t *empty = hb_face_get_empty ();
 
-  g_assert (hb_ot_color_has_colr_data (empty) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (cpal_v0) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cpal_v1) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cpal) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cbdt) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (sbix) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (svg) == FALSE);
+  g_assert (hb_ot_color_has_layers (empty) == FALSE);
+  g_assert (hb_ot_color_has_layers (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_layers (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_layers (cpal) == TRUE);
+  g_assert (hb_ot_color_has_layers (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_layers (sbix) == FALSE);
+  g_assert (hb_ot_color_has_layers (svg) == FALSE);
 
-  g_assert (hb_ot_color_has_cpal_data (empty) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (cpal_v0) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cpal_v1) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cpal) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cbdt) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (sbix) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (svg) == FALSE);
+  g_assert (hb_ot_color_has_palettes (empty) == FALSE);
+  g_assert (hb_ot_color_has_palettes (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cpal) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_palettes (sbix) == FALSE);
+  g_assert (hb_ot_color_has_palettes (svg) == FALSE);
 }
 
 int

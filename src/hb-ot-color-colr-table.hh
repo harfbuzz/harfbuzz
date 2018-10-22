@@ -96,6 +96,8 @@ struct COLR
 {
   static const hb_tag_t tableTag = HB_OT_TAG_COLR;
 
+  inline bool has_data (void) const { return numBaseGlyphs; }
+
   inline bool get_base_glyph_record (hb_codepoint_t glyph_id,
 				     unsigned int *first_layer /* OUT */,
 				     unsigned int *num_layers /* OUT */) const

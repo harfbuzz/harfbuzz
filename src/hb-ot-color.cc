@@ -77,8 +77,13 @@ _get_svg (hb_face_t *face)
 }
 #endif
 
+/*
+ * CPAL
+ */
+
+
 /**
- * hb_ot_color_has_cpal_data:
+ * hb_ot_color_has_palettes:
  * @face: a font face.
  *
  * Returns: whether CPAL table is available.
@@ -86,23 +91,9 @@ _get_svg (hb_face_t *face)
  * Since: REPLACEME
  */
 hb_bool_t
-hb_ot_color_has_cpal_data (hb_face_t *face)
+hb_ot_color_has_palettes (hb_face_t *face)
 {
-  return &_get_cpal (face) != &Null(OT::CPAL);
-}
-
-/**
- * hb_ot_color_has_colr_data:
- * @face: a font face.
- *
- * Returns: whether COLR table is available.
- *
- * Since: REPLACEME
- */
-hb_bool_t
-hb_ot_color_has_colr_data (hb_face_t *face)
-{
-  return &_get_colr (face) != &Null(OT::COLR);
+  return _get_cpal (face).has_data ();
 }
 
 /**
@@ -216,6 +207,43 @@ hb_ot_color_get_palette_colors (hb_face_t      *face,
 }
 
 /**
+ * hb_ot_color_get_palette_flags:
+ * @face:    a font face
+ * @palette: the index of the color palette whose flags are being requested
+ *
+ * Returns: the flags for the requested color palette.  If @face has no colors,
+ * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
+ * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
+ *
+ * Since: REPLACEME
+ */
+hb_ot_color_palette_flags_t
+hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
+{
+  const OT::CPAL& cpal = _get_cpal(face);
+  return cpal.get_palette_flags (palette);
+}
+
+
+/*
+ * COLR
+ */
+
+/**
+ * hb_ot_color_has_layers:
+ * @face: a font face.
+ *
+ * Returns: whether COLR table is available.
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_ot_color_has_layers (hb_face_t *face)
+{
+  return _get_colr (face).has_data ();
+}
+
+/**
  * hb_ot_color_get_color_layers:
  * @face: a font face.
  * @glyph:
@@ -255,22 +283,4 @@ hb_ot_color_get_color_layers (hb_face_t        *face,
 
   if (likely (count)) *count = num_results;
   return num_layers;
-}
-
-/**
- * hb_ot_color_get_palette_flags:
- * @face:    a font face
- * @palette: the index of the color palette whose flags are being requested
- *
- * Returns: the flags for the requested color palette.  If @face has no colors,
- * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is #HB_OT_COLOR_PALETTE_FLAG_DEFAULT.
- *
- * Since: REPLACEME
- */
-hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
-{
-  const OT::CPAL& cpal = _get_cpal(face);
-  return cpal.get_palette_flags (palette);
 }

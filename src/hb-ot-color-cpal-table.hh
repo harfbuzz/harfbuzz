@@ -112,6 +112,8 @@ struct CPAL
 {
   static const hb_tag_t tableTag = HB_OT_TAG_CPAL;
 
+  inline bool has_data (void) const { return numPalettes; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
