@@ -157,7 +157,7 @@ test_extents_cff2_vsindex (void)
   hb_glyph_extents_t  extents;
   float coords[2] = { 800.0f, 50.0f };
   hb_font_set_var_coords_design (font, coords, 2);
-  bool result = hb_font_get_glyph_extents (font, 1, &extents);
+  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 11);
