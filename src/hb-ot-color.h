@@ -79,11 +79,11 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
 			       unsigned int palette_index);
 
 HB_EXTERN unsigned int
-hb_ot_color_palette_get_colors (hb_face_t      *face,
-				unsigned int    palette_index,
-				unsigned int    start_offset,
-				unsigned int   *color_count,  /* IN/OUT.  May be NULL. */
-				hb_color_t     *colors        /* OUT.     May be NULL. */);
+hb_ot_color_palette_get_colors (hb_face_t    *face,
+				unsigned int  palette_index,
+				unsigned int  start_offset,
+				unsigned int *color_count,  /* IN/OUT.  May be NULL. */
+				hb_color_t   *colors        /* OUT.     May be NULL. */);
 
 
 /*

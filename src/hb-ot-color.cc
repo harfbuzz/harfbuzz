@@ -189,34 +189,13 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * Since: REPLACEME
  */
 unsigned int
-hb_ot_color_palette_get_colors (hb_face_t      *face,
-				unsigned int    palette_index,      /* default=0 */
-				unsigned int    start_offset,
-				unsigned int   *colors_count  /* IN/OUT.  May be NULL. */,
-				hb_color_t     *colors        /* OUT.     May be NULL. */)
+hb_ot_color_palette_get_colors (hb_face_t     *face,
+				unsigned int   palette_index,
+				unsigned int   start_offset,
+				unsigned int  *colors_count  /* IN/OUT.  May be NULL. */,
+				hb_color_t    *colors        /* OUT.     May be NULL. */)
 {
-  const OT::CPAL& cpal = _get_cpal(face);
-  if (unlikely (palette_index >= cpal.get_palette_count ()))
-  {
-    if (colors_count) *colors_count = 0;
-    return 0;
-  }
-
-  unsigned int num_results = 0;
-  if (colors_count)
-  {
-    unsigned int platte_count;
-    platte_count = MIN<unsigned int>(*colors_count,
-				     cpal.get_color_count () - start_offset);
-    for (unsigned int i = 0; i < platte_count; i++)
-    {
-      if (cpal.get_color_record_argb(start_offset + i, palette_index, &colors[num_results]))
-	++num_results;
-    }
-  }
-
-  if (likely (colors_count)) *colors_count = num_results;
-  return cpal.get_color_count ();
+  return _get_cpal (face).get_palette_colors (palette_index, start_offset, colors_count, colors);
 }
 
 

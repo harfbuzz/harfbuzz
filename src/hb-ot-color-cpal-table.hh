@@ -133,17 +133,30 @@ struct CPAL
   inline unsigned int get_color_name_id (unsigned int color_index) const
   { return v1 ().get_color_name_id (this, color_index, numColors); }
 
-  bool
-  get_color_record_argb (unsigned int color_index, unsigned int palette_index, hb_color_t* color) const
+  inline unsigned int get_palette_colors (unsigned int  palette_index,
+					  unsigned int  start_offset,
+					  unsigned int *color_count, /* IN/OUT.  May be NULL. */
+					  hb_color_t   *colors       /* OUT.     May be NULL. */) const
   {
-    if (unlikely (color_index >= numColors || palette_index >= numPalettes))
-      return false;
-
-    /* No need for more range check as it is already done on #sanitize */
-    const UnsizedArrayOf<BGRAColor>& color_records = this+colorRecordsZ;
-    if (color)
-      *color = color_records[colorRecordIndicesZ[palette_index] + color_index];
-    return true;
+    if (unlikely (palette_index >= numPalettes))
+    {
+      if (color_count) *color_count = 0;
+      return 0;
+    }
+    unsigned int start_index = colorRecordIndicesZ[palette_index];
+    hb_array_t<const BGRAColor> all_colors ((this+colorRecordsZ).arrayZ, numColorRecords);
+    hb_array_t<const BGRAColor> palette_colors = all_colors.sub_array (start_index,
+								       numColors);
+    if (color_count)
+    {
+      hb_array_t<const BGRAColor> segment_colors = palette_colors.sub_array (start_offset, *color_count);
+      /* Always return numColors colors per palette even if it has out-of-bounds start index. */
+      unsigned int count = MIN<unsigned int> (MAX<int> (numColors - start_offset, 0), *color_count);
+      *color_count = count;
+      for (unsigned int i = 0; i < count; i++)
+        colors[i] = segment_colors[i]; /* Bound-checked read. */
+    }
+    return numColors;
   }
 
   private:
@@ -157,21 +170,10 @@ struct CPAL
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this) &&
-		    (this+colorRecordsZ).sanitize (c, numColorRecords))))
-      return_trace (false);
-
-    /* TODO */
-    /* Check for indices sanity so no need for doing it runtime */
-    for (unsigned int i = 0; i < numPalettes; ++i)
-      if (unlikely (colorRecordIndicesZ[i] + numColors > numColorRecords))
-	return_trace (false);
-
-    /* If version is zero, we are done here; otherwise we need to check tail also */
-    if (version == 0)
-      return_trace (true);
-
-    return_trace (likely (v1 ().sanitize (c, this, numPalettes, numColors)));
+    return_trace (c->check_struct (this) &&
+		  (this+colorRecordsZ).sanitize (c, numColorRecords) &&
+		  colorRecordIndicesZ.sanitize (c, numPalettes) &&
+		  (version == 0 || v1 ().sanitize (c, this, numPalettes, numColors)));
   }
 
   protected:
