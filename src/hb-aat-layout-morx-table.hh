@@ -402,7 +402,11 @@ struct LigatureSubtable
         do
 	{
 	  if (unlikely (!cursor))
+	  {
+	    /* Stack underflow.  Clear the stack. */
+	    match_length = 0;
 	    break;
+	  }
 
 	  buffer->move_to (match_positions[--cursor]);
 
