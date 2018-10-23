@@ -596,22 +596,6 @@ struct ArgStack : Stack<ARG, 513>
     return (unsigned)i;
   }
 
-  inline void pop_delta (hb_vector_t<ARG>& vec, bool even=false)
-  {
-    if (even && unlikely ((this->count & 1) != 0))
-    {
-      S::set_error ();
-      return;
-    }
-
-    float val = 0.0f;
-    for (unsigned int i = 0; i < S::count; i++) {
-      val += S::elements[i].to_real ();
-      ARG *n = vec.push ();
-      n->set_real (val);
-    }
-  }
-
   inline void push_longint_from_substr (SubByteStr& substr)
   {
     push_int ((substr[0] << 24) | (substr[1] << 16) | (substr[2] << 8) | (substr[3]));

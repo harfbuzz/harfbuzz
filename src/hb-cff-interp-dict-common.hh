@@ -39,16 +39,13 @@ struct DictVal : OpStr
   inline void init (void)
   {
     single_val.set_int (0);
-    multi_val.init ();
   }
 
   inline void fini (void)
   {
-    multi_val.fini ();
   }
 
   Number              single_val;
-  hb_vector_t<Number> multi_val;
 };
 
 typedef DictVal NumDictVal;

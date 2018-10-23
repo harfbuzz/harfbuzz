@@ -338,7 +338,6 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_FamilyOtherBlues:
       case OpCode_StemSnapH:
       case OpCode_StemSnapV:
-        env.argStack.pop_delta (val.multi_val);
         env.clear_args ();
         break;
       case OpCode_Subrs:
