@@ -47,7 +47,7 @@ struct LayerRecord
 
   public:
   GlyphID	glyphId;	/* Glyph ID of layer glyph */
-  HBUINT16	colorIdx;	/* Index value to use with a
+  Index		colorIdx;	/* Index value to use with a
 				 * selected color palette.
 				 * An index value of 0xFFFF
 				 * is a special case indicating
