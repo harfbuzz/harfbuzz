@@ -53,6 +53,15 @@ _hb_apply_morx (hb_face_t *face)
 	 hb_aat_layout_has_substitution (face);
 }
 
+hb_ot_shape_planner_t::hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
+						face (master_plan->face_unsafe),
+						props (master_plan->props),
+						map (face, &props),
+						apply_morx (_hb_apply_morx (face)),
+						shaper (apply_morx ?
+						        &_hb_ot_complex_shaper_default :
+							hb_ot_shape_complex_categorize (this)) {}
+
 void
 hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 				const int          *coords,
@@ -89,7 +98,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
    * Decide who does substitutions. GSUB, morx, or fallback.
    */
 
-  plan.apply_morx = _hb_apply_morx (face);
+  plan.apply_morx = apply_morx;
 
   /*
    * Decide who does positioning. GPOS, kerx, kern, or fallback.
@@ -277,13 +286,6 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   plan->init ();
 
   hb_ot_shape_planner_t planner (shape_plan);
-
-  /* Ugly that we have to do this here...
-   * If we are going to apply morx, choose default shaper. */
-  if (_hb_apply_morx (planner.face))
-    planner.shaper = &_hb_ot_complex_shaper_default;
-  else
-    planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props,
 				user_features, num_user_features);

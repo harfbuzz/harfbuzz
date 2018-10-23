@@ -88,14 +88,11 @@ struct hb_ot_shape_planner_t
   /* In the order that they are filled in. */
   hb_face_t *face;
   hb_segment_properties_t props;
-  const struct hb_ot_complex_shaper_t *shaper;
   hb_ot_map_builder_t map;
+  bool apply_morx : 1;
+  const struct hb_ot_complex_shaper_t *shaper;
 
-  hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
-			 face (master_plan->face_unsafe),
-			 props (master_plan->props),
-			 shaper (nullptr),
-			 map (face, &props) {}
+  HB_INTERNAL hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan);
 
   HB_INTERNAL void compile (hb_ot_shape_plan_t &plan,
 			    const int          *coords,
