@@ -149,15 +149,13 @@ struct Tag : HBUINT32
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef HBUINT16 GlyphID;
 
-/* Name-table index, same as uint16 (length = 16 bits) */
-struct NameID : HBUINT16 {};
-DECLARE_NULL_NAMESPACE_BYTES (OT, NameID);
-
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
   enum { NOT_FOUND_INDEX = 0xFFFFu };
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
+
+typedef Index NameID;
 
 /* Offset, Null offset = 0 */
 template <typename Type, bool has_null=true>

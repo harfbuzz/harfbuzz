@@ -63,9 +63,7 @@ struct CPALV1Tail
 		       unsigned int palette_index,
 		       unsigned int palette_count) const
   {
-    /* XXX the Null(NameID) returned by hb_array_t is wrong. Figure out why
-     * and remove the explicit bound check. */
-    if (!paletteLabelsZ || palette_index >= palette_count) return HB_NAME_ID_INVALID;
+    if (!paletteLabelsZ) return HB_NAME_ID_INVALID;
     return hb_array_t<const NameID> ((base+paletteLabelsZ).arrayZ, palette_count)[palette_index];
   }
 
@@ -74,9 +72,7 @@ struct CPALV1Tail
 		     unsigned int color_index,
 		     unsigned int color_count) const
   {
-    /* XXX the Null(NameID) returned by hb_array_t is wrong. Figure out why
-     * and remove the explicit bound check. */
-    if (!colorLabelsZ || color_index >= color_count) return HB_NAME_ID_INVALID;
+    if (!colorLabelsZ) return HB_NAME_ID_INVALID;
     return hb_array_t<const NameID> ((base+colorLabelsZ).arrayZ, color_count)[color_index];
   }
 

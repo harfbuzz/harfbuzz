@@ -278,14 +278,11 @@ struct hb_atomic_int_t
 };
 
 
-template <typename T> struct hb_remove_ptr_t { typedef T value; };
-template <typename T> struct hb_remove_ptr_t<T *> { typedef T value; };
-
 #define HB_ATOMIC_PTR_INIT(V)          {V}
 template <typename P>
 struct hb_atomic_ptr_t
 {
-  typedef typename hb_remove_ptr_t<P>::value T;
+  typedef typename hb_remove_pointer<P>::value T;
 
   inline void init (T* v_ = nullptr) { set_relaxed (v_); }
   inline void set_relaxed (T* v_) const { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
