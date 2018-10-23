@@ -55,7 +55,7 @@ struct TrackTableEntry
 			unsigned int index,
 			unsigned int nSizes) const
   {
-    return hb_array_t<const FWORD> ((base+valuesZ).arrayZ, nSizes)[index];
+    return hb_array ((base+valuesZ).arrayZ, nSizes)[index];
   }
 
   public:
