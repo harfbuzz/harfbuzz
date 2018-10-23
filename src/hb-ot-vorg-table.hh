@@ -39,7 +39,7 @@ namespace OT {
 
 struct VertOriginMetric
 {
-  inline int cmp (hb_codepoint_t g) const { return -glyph.cmp (g); }
+  inline int cmp (hb_codepoint_t g) const { return glyph.cmp (g); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -63,7 +63,9 @@ struct VORG
 
   inline int get_y_origin (hb_codepoint_t glyph) const
   {
-    vertYOrigins.bsearch (glyph);
+    int i = vertYOrigins.bsearch (glyph);
+    if (i != -1)
+      return vertYOrigins[i].vertOriginY;
 
     return defaultVertOriginY;
   }

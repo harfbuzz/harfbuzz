@@ -31,7 +31,6 @@
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-post-table.hh"
-#include "hb-ot-vorg-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"

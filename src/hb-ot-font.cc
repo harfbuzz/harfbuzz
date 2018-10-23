@@ -37,6 +37,7 @@
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-vorg-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
 
 
@@ -138,9 +139,15 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 
   *x = font->get_glyph_h_advance (glyph) / 2;
 
+  const OT::VORG &VORG = *ot_face->VORG.get ();
+  if (VORG.has_data ())
+  {
+    *y = font->em_scale_y (VORG.get_y_origin (glyph));
+    return true;
+  }
+
   hb_glyph_extents_t extents = {0};
-  bool ret = ot_face->glyf->get_extents (glyph, &extents);
-  if (ret)
+  if (ot_face->glyf->get_extents (glyph, &extents))
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
     hb_position_t tsb = vmtx.get_side_bearing (glyph);
