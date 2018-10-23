@@ -149,14 +149,13 @@ struct Tag : HBUINT32
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef HBUINT16 GlyphID;
 
-/* Name-table index, same as uint16 (length = 16 bits) */
-typedef HBUINT16 NameID;
-
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
   enum { NOT_FOUND_INDEX = 0xFFFFu };
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
+
+typedef Index NameID;
 
 /* Offset, Null offset = 0 */
 template <typename Type, bool has_null=true>
@@ -386,6 +385,14 @@ struct UnsizedArrayOf
   public:
   DEFINE_SIZE_ARRAY (0, arrayZ);
 };
+} /* namespace OT */
+template <typename T> static inline
+hb_array_t<T> hb_array (OT::UnsizedArrayOf<T> &array, unsigned int len)
+{ return hb_array (array.arrayZ, len); }
+template <typename T> static inline
+hb_array_t<const T> hb_array (const OT::UnsizedArrayOf<T> &array, unsigned int len)
+{ return hb_array (array.arrayZ, len); }
+namespace OT {
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
@@ -417,7 +424,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
-  const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
+  inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
     if (unlikely (start_offset > count))

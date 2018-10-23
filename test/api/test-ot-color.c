@@ -128,113 +128,113 @@ static hb_face_t *svg = NULL;
 
 
 static void
-test_hb_ot_color_get_palette_count (void)
+test_hb_ot_color_palette_get_count (void)
 {
-  g_assert_cmpint (hb_ot_color_get_palette_count (hb_face_get_empty()), ==, 0);
-  g_assert_cmpint (hb_ot_color_get_palette_count (cpal_v0), ==, 2);
-  g_assert_cmpint (hb_ot_color_get_palette_count (cpal_v1), ==, 3);
+  g_assert_cmpint (hb_ot_color_palette_get_count (hb_face_get_empty()), ==, 0);
+  g_assert_cmpint (hb_ot_color_palette_get_count (cpal_v0), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_count (cpal_v1), ==, 3);
 }
 
 
 static void
-test_hb_ot_color_get_palette_name_id_empty (void)
-{
-  /* numPalettes=0, so all calls are for out-of-bounds palette indices */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 0), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 1), ==, HB_NAME_ID_INVALID);
-}
-
-
-static void
-test_hb_ot_color_get_palette_name_id_v0 (void)
-{
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 0), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 1), ==, HB_NAME_ID_INVALID);
-
-  /* numPalettes=2, so palette #2 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 2), ==, HB_NAME_ID_INVALID);
-}
-
-
-static void
-test_hb_ot_color_get_palette_name_id_v1 (void)
-{
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 0), ==, 257);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 1), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 2), ==, 258);
-
-  /* numPalettes=3, so palette #3 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 3), ==, HB_NAME_ID_INVALID);
-}
-
-
-static void
-test_hb_ot_color_get_palette_flags_empty (void)
+test_hb_ot_color_palette_get_name_id_empty (void)
 {
   /* numPalettes=0, so all calls are for out-of-bounds palette indices */
-  g_assert_cmpint (hb_ot_color_get_palette_flags (hb_face_get_empty(), 0), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
-  g_assert_cmpint (hb_ot_color_get_palette_flags (hb_face_get_empty(), 1), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (hb_face_get_empty(), 0), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (hb_face_get_empty(), 1), ==, HB_NAME_ID_INVALID);
 }
 
 
 static void
-test_hb_ot_color_get_palette_flags_v0 (void)
+test_hb_ot_color_palette_get_name_id_v0 (void)
 {
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 0), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 1), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v0, 0), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v0, 1), ==, HB_NAME_ID_INVALID);
 
   /* numPalettes=2, so palette #2 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 2), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v0, 2), ==, HB_NAME_ID_INVALID);
 }
 
 
 static void
-test_hb_ot_color_get_palette_flags_v1 (void)
+test_hb_ot_color_palette_get_name_id_v1 (void)
 {
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 0), ==, HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND);
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v1, 1), ==, HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND);
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 2), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v1, 0), ==, 257);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v1, 1), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v1, 2), ==, 258);
 
   /* numPalettes=3, so palette #3 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_flags (cpal_v0, 3), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_name_id (cpal_v1, 3), ==, HB_NAME_ID_INVALID);
 }
 
 
 static void
-test_hb_ot_color_get_palette_colors_empty (void)
+test_hb_ot_color_palette_get_flags_empty (void)
+{
+  /* numPalettes=0, so all calls are for out-of-bounds palette indices */
+  g_assert_cmpint (hb_ot_color_palette_get_flags (hb_face_get_empty(), 0), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_flags (hb_face_get_empty(), 1), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+}
+
+
+static void
+test_hb_ot_color_palette_get_flags_v0 (void)
+{
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v0, 0), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v0, 1), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+
+  /* numPalettes=2, so palette #2 is out of bounds */
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v0, 2), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+}
+
+
+static void
+test_hb_ot_color_palette_get_flags_v1 (void)
+{
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v1, 0), ==, HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND);
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v1, 1), ==, HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND);
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v0, 2), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+
+  /* numPalettes=3, so palette #3 is out of bounds */
+  g_assert_cmpint (hb_ot_color_palette_get_flags (cpal_v0, 3), ==, HB_OT_COLOR_PALETTE_FLAG_DEFAULT);
+}
+
+
+static void
+test_hb_ot_color_palette_get_colors_empty (void)
 {
   hb_face_t *empty = hb_face_get_empty ();
-  g_assert_cmpint (hb_ot_color_get_palette_colors (empty, 0, 0, NULL, NULL), ==, 0);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (empty, 0, 0, NULL, NULL), ==, 0);
 }
 
 
 static void
-test_hb_ot_color_get_palette_colors_v0 (void)
+test_hb_ot_color_palette_get_colors_v0 (void)
 {
-  unsigned int num_colors = hb_ot_color_get_palette_colors (cpal_v0, 0, 0, NULL, NULL);
+  unsigned int num_colors = hb_ot_color_palette_get_colors (cpal_v0, 0, 0, NULL, NULL);
   hb_color_t *colors = (hb_color_t*) alloca (num_colors * sizeof (hb_color_t));
   size_t colors_size = num_colors * sizeof(*colors);
   g_assert_cmpint (num_colors, ==, 2);
 
   /* Palette #0, start_index=0 */
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 0, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 0, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 2);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0x66, 0xcc, 0xff, 0xff);
 
   /* Palette #1, start_index=0 */
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 1, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 1, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 2);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0x80, 0x00, 0x00, 0xff);
 
   /* Palette #2 (there are only #0 and #1 in the font, so this is out of bounds) */
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 2, 0, &num_colors, colors), ==, 0);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 2, 0, &num_colors, colors), ==, 0);
 
   /* Palette #0, start_index=1 */
   memset(colors, 0x33, colors_size);
   num_colors = 2;
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 0, 1, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 0, 1, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 1);
   assert_color_rgba (colors, 0, 0x66, 0xcc, 0xff, 0xff);
   assert_color_rgba (colors, 1, 0x33, 0x33, 0x33, 0x33);  /* untouched */
@@ -242,7 +242,7 @@ test_hb_ot_color_get_palette_colors_v0 (void)
   /* Palette #0, start_index=0, pretend that we have only allocated space for 1 color */
   memset(colors, 0x44, colors_size);
   num_colors = 1;
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 0, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 0, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 1);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0x44, 0x44, 0x44, 0x44);  /* untouched */
@@ -250,7 +250,7 @@ test_hb_ot_color_get_palette_colors_v0 (void)
   /* start_index > numPaletteEntries */
   memset (colors, 0x44, colors_size);
   num_colors = 2;
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v0, 0, 9876, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v0, 0, 9876, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 0);
   assert_color_rgba (colors, 0, 0x44, 0x44, 0x44, 0x44);  /* untouched */
   assert_color_rgba (colors, 1, 0x44, 0x44, 0x44, 0x44);  /* untouched */
@@ -258,16 +258,16 @@ test_hb_ot_color_get_palette_colors_v0 (void)
 
 
 static void
-test_hb_ot_color_get_palette_colors_v1 (void)
+test_hb_ot_color_palette_get_colors_v1 (void)
 {
   hb_color_t colors[3];
-  unsigned int num_colors = hb_ot_color_get_palette_colors (cpal_v1, 0, 0, NULL, NULL);
+  unsigned int num_colors = hb_ot_color_palette_get_colors (cpal_v1, 0, 0, NULL, NULL);
   size_t colors_size = 3 * sizeof (hb_color_t);
   g_assert_cmpint (num_colors, ==, 2);
 
   /* Palette #0, start_index=0 */
   memset (colors, 0x77, colors_size);
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v1, 0, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v1, 0, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 2);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0x66, 0xcc, 0xff, 0xff);
@@ -275,7 +275,7 @@ test_hb_ot_color_get_palette_colors_v1 (void)
 
   /* Palette #1, start_index=0 */
   memset (colors, 0x77, colors_size);
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v1, 1, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v1, 1, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 2);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0xff, 0xcc, 0x66, 0xff);
@@ -283,7 +283,7 @@ test_hb_ot_color_get_palette_colors_v1 (void)
 
   /* Palette #2, start_index=0 */
   memset (colors, 0x77, colors_size);
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v1, 2, 0, &num_colors, colors), ==, 2);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v1, 2, 0, &num_colors, colors), ==, 2);
   g_assert_cmpint (num_colors, ==, 2);
   assert_color_rgba (colors, 0, 0x00, 0x00, 0x00, 0xff);
   assert_color_rgba (colors, 1, 0x80, 0x00, 0x00, 0xff);
@@ -291,7 +291,7 @@ test_hb_ot_color_get_palette_colors_v1 (void)
 
   /* Palette #3 (out of bounds), start_index=0 */
   memset (colors, 0x77, colors_size);
-  g_assert_cmpint (hb_ot_color_get_palette_colors (cpal_v1, 3, 0, &num_colors, colors), ==, 0);
+  g_assert_cmpint (hb_ot_color_palette_get_colors (cpal_v1, 3, 0, &num_colors, colors), ==, 0);
   g_assert_cmpint (num_colors, ==, 0);
   assert_color_rgba (colors, 0, 0x77, 0x77, 0x77, 0x77);  /* untouched */
   assert_color_rgba (colors, 1, 0x77, 0x77, 0x77, 0x77);  /* untouched */
@@ -300,53 +300,50 @@ test_hb_ot_color_get_palette_colors_v1 (void)
 
 
 static void
-test_hb_ot_color_get_palette_entry_name_id (void)
+test_hb_ot_color_palette_color_get_name_id (void)
 {
   hb_face_t *empty = hb_face_get_empty ();
 
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (empty, 0), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (empty, 1), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (empty, 2), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v0, 0), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v0, 1), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v0, 2), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v1, 0), ==, HB_NAME_ID_INVALID);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v1, 1), ==, 256);
-  g_assert_cmpuint (hb_ot_color_get_palette_entry_name_id (cpal_v1, 2), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (empty, 0), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (empty, 1), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (empty, 2), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v0, 0), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v0, 1), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v0, 2), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v1, 0), ==, HB_NAME_ID_INVALID);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v1, 1), ==, 256);
+  g_assert_cmpuint (hb_ot_color_palette_color_get_name_id (cpal_v1, 2), ==, HB_NAME_ID_INVALID);
 }
 
 
 static void
-test_hb_ot_color_get_color_layers (void)
+test_hb_ot_color_glyph_get_layers (void)
 {
-  hb_codepoint_t layer_gids[1];
-  unsigned int color_indices[1];
+  hb_ot_color_layer_t layers[1];
   unsigned int count = 1;
 
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 0, 0,
-						  NULL, NULL, NULL), ==, 0);
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 1, 0,
-						  NULL, NULL, NULL), ==, 0);
-  g_assert_cmpuint (hb_ot_color_get_color_layers (cpal_v1, 2, 0,
-						  NULL, NULL, NULL), ==, 2);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 0, 0,
+						  NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 1, 0,
+						  NULL, NULL), ==, 0);
+  g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 2, 0,
+						  NULL, NULL), ==, 2);
 
   unsigned int num_layers;
-  num_layers = hb_ot_color_get_color_layers (cpal_v1, 2, 0, &count, layer_gids,
-					     color_indices);
+  num_layers = hb_ot_color_glyph_get_layers (cpal_v1, 2, 0, &count, layers);
 
   g_assert_cmpuint (num_layers, ==, 2);
   g_assert_cmpuint (count, ==, 1);
-  g_assert_cmpuint (layer_gids[0], ==, 3);
-  g_assert_cmpuint (color_indices[0], ==, 1);
+  g_assert_cmpuint (layers[0].glyph, ==, 3);
+  g_assert_cmpuint (layers[0].color_index, ==, 1);
 
   count = 1;
-  hb_ot_color_get_color_layers (cpal_v1, 2, 1, &count, layer_gids,
-				color_indices);
+  hb_ot_color_glyph_get_layers (cpal_v1, 2, 1, &count, layers);
 
   g_assert_cmpuint (num_layers, ==, 2);
   g_assert_cmpuint (count, ==, 1);
-  g_assert_cmpuint (layer_gids[0], ==, 4);
-  g_assert_cmpuint (color_indices[0], ==, 0);
+  g_assert_cmpuint (layers[0].glyph, ==, 4);
+  g_assert_cmpuint (layers[0].color_index, ==, 0);
 }
 
 static void
@@ -354,21 +351,21 @@ test_hb_ot_color_has_data (void)
 {
   hb_face_t *empty = hb_face_get_empty ();
 
-  g_assert (hb_ot_color_has_colr_data (empty) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (cpal_v0) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cpal_v1) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cpal) == TRUE);
-  g_assert (hb_ot_color_has_colr_data (cbdt) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (sbix) == FALSE);
-  g_assert (hb_ot_color_has_colr_data (svg) == FALSE);
+  g_assert (hb_ot_color_has_layers (empty) == FALSE);
+  g_assert (hb_ot_color_has_layers (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_layers (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_layers (cpal) == TRUE);
+  g_assert (hb_ot_color_has_layers (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_layers (sbix) == FALSE);
+  g_assert (hb_ot_color_has_layers (svg) == FALSE);
 
-  g_assert (hb_ot_color_has_cpal_data (empty) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (cpal_v0) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cpal_v1) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cpal) == TRUE);
-  g_assert (hb_ot_color_has_cpal_data (cbdt) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (sbix) == FALSE);
-  g_assert (hb_ot_color_has_cpal_data (svg) == FALSE);
+  g_assert (hb_ot_color_has_palettes (empty) == FALSE);
+  g_assert (hb_ot_color_has_palettes (cpal_v0) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cpal_v1) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cpal) == TRUE);
+  g_assert (hb_ot_color_has_palettes (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_palettes (sbix) == FALSE);
+  g_assert (hb_ot_color_has_palettes (svg) == FALSE);
 }
 
 int
@@ -383,18 +380,18 @@ main (int argc, char **argv)
   cbdt = hb_test_open_font_file ("fonts/chromacheck-cbdt.ttf");
   sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
   svg = hb_test_open_font_file ("fonts/chromacheck-svg.ttf");
-  hb_test_add (test_hb_ot_color_get_palette_count);
-  hb_test_add (test_hb_ot_color_get_palette_name_id_empty);
-  hb_test_add (test_hb_ot_color_get_palette_name_id_v0);
-  hb_test_add (test_hb_ot_color_get_palette_name_id_v1);
-  hb_test_add (test_hb_ot_color_get_palette_flags_empty);
-  hb_test_add (test_hb_ot_color_get_palette_flags_v0);
-  hb_test_add (test_hb_ot_color_get_palette_flags_v1);
-  hb_test_add (test_hb_ot_color_get_palette_colors_empty);
-  hb_test_add (test_hb_ot_color_get_palette_colors_v0);
-  hb_test_add (test_hb_ot_color_get_palette_colors_v1);
-  hb_test_add (test_hb_ot_color_get_palette_entry_name_id);
-  hb_test_add (test_hb_ot_color_get_color_layers);
+  hb_test_add (test_hb_ot_color_palette_get_count);
+  hb_test_add (test_hb_ot_color_palette_get_name_id_empty);
+  hb_test_add (test_hb_ot_color_palette_get_name_id_v0);
+  hb_test_add (test_hb_ot_color_palette_get_name_id_v1);
+  hb_test_add (test_hb_ot_color_palette_get_flags_empty);
+  hb_test_add (test_hb_ot_color_palette_get_flags_v0);
+  hb_test_add (test_hb_ot_color_palette_get_flags_v1);
+  hb_test_add (test_hb_ot_color_palette_get_colors_empty);
+  hb_test_add (test_hb_ot_color_palette_get_colors_v0);
+  hb_test_add (test_hb_ot_color_palette_get_colors_v1);
+  hb_test_add (test_hb_ot_color_palette_color_get_name_id);
+  hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
   status = hb_test_run();
   hb_face_destroy (cpal_v0);

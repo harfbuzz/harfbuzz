@@ -295,6 +295,7 @@ GENERATORS = \
 	gen-os2-unicode-ranges.py \
 	gen-tag-table.py \
 	gen-use-table.py \
+	gen-vowel-constraints.py \
 	$(NULL)
 EXTRA_DIST += $(GENERATORS)
 
@@ -316,13 +317,17 @@ use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.tx
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
 
+vowel-constraints: gen-vowel-constraints.py HBIndicVowelConstraints.txt Scripts.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc; false)
+
 emoji-table: gen-emoji-table.py emoji-data.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-unicode-emoji-table.hh \
 	|| ($(RM) $(srcdir)/hb-unicode-emoji-table.hh; false)
 
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table tag-table use-table emoji-table built-sources
+.PHONY: unicode-tables arabic-table indic-table tag-table use-table vowel-constraints emoji-table built-sources
 
 RAGEL_GENERATED = \
 	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \

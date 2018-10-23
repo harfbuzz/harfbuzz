@@ -23,7 +23,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Sascha Brawer
+ * Google Author(s): Sascha Brawer, Behdad Esfahbod
  */
 
 #ifndef HB_OT_H_IN
@@ -38,52 +38,79 @@
 
 HB_BEGIN_DECLS
 
-HB_EXTERN hb_bool_t
-hb_ot_color_has_cpal_data (hb_face_t *face);
+
+/*
+ * Color palettes.
+ */
 
 HB_EXTERN hb_bool_t
-hb_ot_color_has_colr_data (hb_face_t *face);
+hb_ot_color_has_palettes (hb_face_t *face);
 
 HB_EXTERN unsigned int
-hb_ot_color_get_palette_count (hb_face_t *face);
+hb_ot_color_palette_get_count (hb_face_t *face);
 
 HB_EXTERN hb_name_id_t
-hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette);
+hb_ot_color_palette_get_name_id (hb_face_t *face,
+				 unsigned int palette_index);
 
 HB_EXTERN hb_name_id_t
-hb_ot_color_get_palette_entry_name_id (hb_face_t *face, unsigned int palette_entry);
-
-HB_EXTERN unsigned int
-hb_ot_color_get_palette_colors (hb_face_t      *face,
-				unsigned int    palette,      /* default=0 */
-				unsigned int    start_offset,
-				unsigned int   *color_count   /* IN/OUT.  May be NULL. */,
-				hb_color_t     *colors        /* OUT.     May be NULL. */);
-
-HB_EXTERN unsigned int
-hb_ot_color_get_color_layers (hb_face_t       *face,
-			      hb_codepoint_t   gid,
-			      unsigned int     start_offset,
-			      unsigned int    *count         /* IN/OUT.  May be NULL. */,
-			      hb_codepoint_t  *gids          /* OUT.     May be NULL. */,
-			      unsigned int    *color_indices /* OUT.     May be NULL. */);
+hb_ot_color_palette_color_get_name_id (hb_face_t *face,
+				       unsigned int color_index);
 
 /**
  * hb_ot_color_palette_flags_t:
- * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special to note about a color palette.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND: flag indicating that the color palette is suitable for rendering text on light background.
- * @HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND: flag indicating that the color palette is suitable for rendering text on dark background.
+ * @HB_OT_COLOR_PALETTE_FLAG_DEFAULT: default indicating that there is nothing special
+ *   to note about a color palette.
+ * @HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND: flag indicating that the color
+ *   palette is appropriate to use when displaying the font on a light background such as white.
+ * @HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND: flag indicating that the color
+ *   palette is appropriate to use when displaying the font on a dark background such as black.
  *
  * Since: REPLACEME
  */
 typedef enum { /*< flags >*/
-  HB_OT_COLOR_PALETTE_FLAG_DEFAULT = 0x00000000u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_LIGHT_BACKGROUND = 0x00000001u,
-  HB_OT_COLOR_PALETTE_FLAG_FOR_DARK_BACKGROUND = 0x00000002u,
+  HB_OT_COLOR_PALETTE_FLAG_DEFAULT			= 0x00000000u,
+  HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND	= 0x00000001u,
+  HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND	= 0x00000002u,
 } hb_ot_color_palette_flags_t;
 
 HB_EXTERN hb_ot_color_palette_flags_t
-hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette);
+hb_ot_color_palette_get_flags (hb_face_t *face,
+			       unsigned int palette_index);
+
+HB_EXTERN unsigned int
+hb_ot_color_palette_get_colors (hb_face_t    *face,
+				unsigned int  palette_index,
+				unsigned int  start_offset,
+				unsigned int *color_count,  /* IN/OUT.  May be NULL. */
+				hb_color_t   *colors        /* OUT.     May be NULL. */);
+
+
+/*
+ * Color layers.
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_layers (hb_face_t *face);
+
+/**
+ * hb_ot_color_layer_t:
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_ot_color_layer_t
+{
+  hb_codepoint_t glyph;
+  unsigned int   color_index;
+} hb_ot_color_layer_t;
+
+HB_EXTERN unsigned int
+hb_ot_color_glyph_get_layers (hb_face_t           *face,
+			      hb_codepoint_t       glyph,
+			      unsigned int         start_offset,
+			      unsigned int        *count, /* IN/OUT.  May be NULL. */
+			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */);
+
 
 HB_END_DECLS
 

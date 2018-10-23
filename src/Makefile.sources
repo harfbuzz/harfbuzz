@@ -147,6 +147,8 @@ HB_OT_sources = \
 	hb-ot-shape-complex-use.cc \
 	hb-ot-shape-complex-use.hh \
 	hb-ot-shape-complex-use-table.cc \
+	hb-ot-shape-complex-vowel-constraints.cc \
+	hb-ot-shape-complex-vowel-constraints.hh \
 	hb-ot-shape-complex.hh \
 	hb-ot-shape-normalize.hh \
 	hb-ot-shape-normalize.cc \
@@ -164,6 +166,7 @@ HB_OT_sources = \
 	hb-cff1-interp-cs.hh \
 	hb-cff2-interp-cs.hh \
 	hb-cff-interp-dict-common.hh \
+	hb-ot-vorg-table.hh \
 	$(NULL)
 
 HB_OT_RAGEL_GENERATED_sources = \

@@ -373,6 +373,7 @@ struct LigatureSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
+      DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
       if (flags & SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
@@ -383,10 +384,12 @@ struct LigatureSubtable
 	  match_length--;
 
 	match_positions[match_length++] = buffer->out_len;
+	DEBUG_MSG (APPLY, nullptr, "Set component at %d", buffer->out_len);
       }
 
       if (flags & PerformAction)
       {
+	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
 	unsigned int end = buffer->out_len;
 	unsigned int action_idx = entry->data.ligActionIndex;
 	unsigned int action;
@@ -402,8 +405,14 @@ struct LigatureSubtable
         do
 	{
 	  if (unlikely (!cursor))
+	  {
+	    /* Stack underflow.  Clear the stack. */
+	    DEBUG_MSG (APPLY, nullptr, "Stack underflow");
+	    match_length = 0;
 	    break;
+	  }
 
+	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %d", cursor - 1);
 	  buffer->move_to (match_positions[--cursor]);
 
 	  const HBUINT32 &actionData = ligAction[action_idx];
@@ -422,17 +431,22 @@ struct LigatureSubtable
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
 
+	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
+		     bool (action & LigActionStore),
+		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
 	  {
 	    const GlyphID &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
+	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %d", lig);
 	    buffer->replace_glyph (lig);
 
 	    /* Now go and delete all subsequent components. */
 	    while (match_length - 1 > cursor)
 	    {
+	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      buffer->move_to (match_positions[--match_length]);
 	      buffer->skip_glyph ();
 	      end--;
@@ -442,7 +456,6 @@ struct LigatureSubtable
 	  action_idx++;
 	}
 	while (!(action & LigActionLast));
-	match_length = 0;
 	buffer->move_to (end);
       }
 

@@ -39,14 +39,17 @@ namespace OT {
 
 struct VertOriginMetric
 {
+  inline int cmp (hb_codepoint_t g) const { return glyph.cmp (g); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  HBUINT16    glyph;
-  HBINT16     vertOriginY;
+  public:
+  GlyphID	glyph;
+  FWORD		vertOriginY;
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -54,14 +57,17 @@ struct VertOriginMetric
 
 struct VORG
 {
-  static const hb_tag_t tableTag        = HB_OT_TAG_VORG;
+  static const hb_tag_t tableTag = HB_OT_TAG_VORG;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool has_data (void) const { return version.to_int (); }
+
+  inline int get_y_origin (hb_codepoint_t glyph) const
   {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-                  likely (version.major == 1) &&
-                  vertYOrigins.sanitize (c));
+    int i = vertYOrigins.bsearch (glyph);
+    if (i != -1)
+      return vertYOrigins[i].vertOriginY;
+
+    return defaultVertOriginY;
   }
 
   inline bool _subset (const hb_subset_plan_t *plan,
@@ -154,10 +160,20 @@ struct VORG
     return success;
   }
 
-  FixedVersion<>  version;                  /* Version of VORG table. set to 0x00010000u */
-  HBINT16         defaultVertOriginY;       /* The default vertical origin */
-  ArrayOf<VertOriginMetric> vertYOrigins;   /* The array of vertical origins */
-  
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  version.major == 1 &&
+                  vertYOrigins.sanitize (c));
+  }
+
+  protected:
+  FixedVersion<>	version;		/* Version of VORG table. Set to 0x00010000u. */
+  FWORD			defaultVertOriginY;	/* The default vertical origin. */
+  SortedArrayOf<VertOriginMetric>
+			vertYOrigins;		/* The array of vertical origins. */
+
   public:
   DEFINE_SIZE_ARRAY(8, vertYOrigins);
 };

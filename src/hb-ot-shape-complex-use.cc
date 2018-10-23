@@ -28,6 +28,7 @@
 
 #include "hb-ot-shape-complex-use.hh"
 #include "hb-ot-shape-complex-arabic.hh"
+#include "hb-ot-shape-complex-vowel-constraints.hh"
 
 /* buffer var allocations */
 #define use_category() complex_var_u8_0()
@@ -571,6 +572,15 @@ reorder (const hb_ot_shape_plan_t *plan,
   HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
 }
 
+
+static void
+preprocess_text_use (const hb_ot_shape_plan_t *plan,
+		     hb_buffer_t              *buffer,
+		     hb_font_t                *font)
+{
+  _hb_preprocess_text_vowel_constraints (plan, buffer, font);
+}
+
 static bool
 compose_use (const hb_ot_shape_normalize_context_t *c,
 	     hb_codepoint_t  a,
@@ -591,7 +601,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   nullptr, /* override_features */
   data_create_use,
   data_destroy_use,
-  nullptr, /* preprocess_text */
+  preprocess_text_use,
   nullptr, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   nullptr, /* decompose */

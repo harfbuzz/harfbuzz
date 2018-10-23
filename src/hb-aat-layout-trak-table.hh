@@ -55,7 +55,7 @@ struct TrackTableEntry
 			unsigned int index,
 			unsigned int nSizes) const
   {
-    return hb_array_t<FWORD> ((base+valuesZ).arrayZ, nSizes)[index];
+    return hb_array (base+valuesZ, nSizes)[index];
   }
 
   public:
@@ -88,7 +88,7 @@ struct TrackData
 			       const void *base) const
   {
     unsigned int sizes = nSizes;
-    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
 
     float s0 = size_table[idx].to_float ();
     float s1 = size_table[idx + 1].to_float ();
@@ -134,7 +134,7 @@ struct TrackData
     if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
     /* TODO bfind() */
-    hb_array_t<Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
       if (size_table[size_index].to_float () >= csspx)
@@ -184,6 +184,8 @@ struct trak
   {
     TRACE_APPLY (this);
 
+    hb_mask_t trak_mask = c->plan->trak_mask;
+
     const float ptem = c->font->ptem;
     if (unlikely (ptem <= 0.f))
       return_trace (false);
@@ -197,6 +199,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
+        if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].x_advance += advance_to_add;
 	buffer->pos[start].x_offset += offset_to_add;
       }
@@ -209,6 +212,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
+        if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].y_advance += advance_to_add;
 	buffer->pos[start].y_offset += offset_to_add;
       }

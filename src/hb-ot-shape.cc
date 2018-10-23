@@ -62,16 +62,18 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.shaper = shaper;
   map.compile (plan.map, coords, num_coords);
 
-  plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
   plan.dnom_mask = plan.map.get_1_mask (HB_TAG ('d','n','o','m'));
   plan.has_frac = plan.frac_mask || (plan.numr_mask && plan.dnom_mask);
+  plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
   hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (plan.props.direction) ?
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
   plan.kern_mask = plan.map.get_mask (kern_tag);
+  plan.trak_mask = plan.map.get_mask (HB_TAG ('t','r','a','k'));
 
   plan.requested_kerning = !!plan.kern_mask;
+  plan.requested_tracking = !!plan.trak_mask;
   bool has_gpos_kern = plan.map.get_feature_index (1, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
@@ -116,7 +118,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
     plan.fallback_mark_positioning = true;
 
   /* Currently we always apply trak. */
-  plan.apply_trak = hb_aat_layout_has_tracking (face);
+  plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
 }
 
 
@@ -177,12 +179,17 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
-  map->enable_feature (HB_TAG('H','A','R','F'));
+  /* Tracking.  We enable dummy feature here just to allow disabling
+   * AAT 'trak' table using features.
+   * https://github.com/harfbuzz/harfbuzz/issues/1303 */
+  map->enable_feature (HB_TAG ('t','r','a','k'), F_HAS_FALLBACK);
+
+  map->enable_feature (HB_TAG ('H','A','R','F'));
 
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
-  map->enable_feature (HB_TAG('B','U','Z','Z'));
+  map->enable_feature (HB_TAG ('B','U','Z','Z'));
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);

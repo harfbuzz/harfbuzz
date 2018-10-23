@@ -40,10 +40,13 @@ struct hb_ot_shape_plan_t
   const struct hb_ot_complex_shaper_t *shaper;
   hb_ot_map_t map;
   const void *data;
-  hb_mask_t rtlm_mask, frac_mask, numr_mask, dnom_mask;
+  hb_mask_t frac_mask, numr_mask, dnom_mask;
+  hb_mask_t rtlm_mask;
   hb_mask_t kern_mask;
+  hb_mask_t trak_mask;
 
   bool requested_kerning : 1;
+  bool requested_tracking : 1;
   bool has_frac : 1;
   bool has_gpos_mark : 1;
   bool fallback_glyph_classes : 1;

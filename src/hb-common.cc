@@ -761,7 +761,7 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 static void free_static_C_locale (void);
 #endif
 
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_ptr_t<HB_LOCALE_T>::value,
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_LOCALE_T>::value,
 							  hb_C_locale_lazy_loader_t>
 {
   static inline HB_LOCALE_T create (void)
@@ -911,7 +911,7 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 
   has_start = parse_uint (pp, end, &feature->start);
 
-  if (parse_char (pp, end, ':')) {
+  if (parse_char (pp, end, ':') || parse_char (pp, end, ';')) {
     parse_uint (pp, end, &feature->end);
   } else {
     if (has_start)
