@@ -442,7 +442,6 @@ struct LigatureSubtable
 	  action_idx++;
 	}
 	while (!(action & LigActionLast));
-	match_length = 0;
 	buffer->move_to (end);
       }
 
