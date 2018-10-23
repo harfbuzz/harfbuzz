@@ -301,8 +301,8 @@ workflows:
   build:
     jobs:
       # macOS
-      - macos-llvm-gcc-4.2
-      - macos-notest-apple-gcc-i686-4.2
+      #- macos-llvm-gcc-4.2
+      #- macos-notest-apple-gcc-i686-4.2
       - macos-notest-ios
 
       # both autotools and cmake
