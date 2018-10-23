@@ -8,3 +8,4 @@
 ../fonts/TestTRAK.ttf:--font-ptem=144:U+0041,U+0042,U+0043:[A.alt=0@-107,0+786|B=1@-107,0+786|C.alt=2@-107,0+786]
 ../fonts/TestTRAK.ttf:--font-ptem=144:U+0041,U+0042,U+0043:[A.alt=0@-107,0+786|B=1@-107,0+786|C.alt=2@-107,0+786]
 ../fonts/TestTRAK.ttf:--font-ptem=144 --features=-trak:U+0041,U+0042,U+0043:[A.alt=0+1000|B=1+1000|C.alt=2+1000]
+../fonts/TestTRAK.ttf:--font-ptem=144 --features=-trak[1;3]:U+0041,U+0042,U+0043,U+0041,U+0042,U+0043:[A.alt=0@-107,0+786|B=1+1000|C.alt=2+1000|A.alt=3@-107,0+786|B=4@-107,0+786|C.alt=5@-107,0+786]

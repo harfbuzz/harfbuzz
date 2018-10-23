@@ -184,6 +184,8 @@ struct trak
   {
     TRACE_APPLY (this);
 
+    hb_mask_t trak_mask = c->plan->trak_mask;
+
     const float ptem = c->font->ptem;
     if (unlikely (ptem <= 0.f))
       return_trace (false);
@@ -197,6 +199,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
+        if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].x_advance += advance_to_add;
 	buffer->pos[start].x_offset += offset_to_add;
       }
@@ -209,6 +212,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
+        if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].y_advance += advance_to_add;
 	buffer->pos[start].y_offset += offset_to_add;
       }
