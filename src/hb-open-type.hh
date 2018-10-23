@@ -385,6 +385,14 @@ struct UnsizedArrayOf
   public:
   DEFINE_SIZE_ARRAY (0, arrayZ);
 };
+} /* namespace OT */
+template <typename T>
+hb_array_t<T> hb_array (OT::UnsizedArrayOf<T> &array, unsigned int len)
+{ return hb_array (array.arrayZ, len); }
+template <typename T>
+hb_array_t<const T> hb_array (const OT::UnsizedArrayOf<T> &array, unsigned int len)
+{ return hb_array (array.arrayZ, len); }
+namespace OT {
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
