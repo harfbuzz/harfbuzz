@@ -911,7 +911,7 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 
   has_start = parse_uint (pp, end, &feature->start);
 
-  if (parse_char (pp, end, ':')) {
+  if (parse_char (pp, end, ':') || parse_char (pp, end, ';')) {
     parse_uint (pp, end, &feature->end);
   } else {
     if (has_start)
