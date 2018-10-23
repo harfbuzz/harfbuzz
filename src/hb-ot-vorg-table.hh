@@ -39,6 +39,8 @@ namespace OT {
 
 struct VertOriginMetric
 {
+  inline int cmp (hb_codepoint_t g) const { return -glyph.cmp (g); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -56,6 +58,15 @@ struct VertOriginMetric
 struct VORG
 {
   static const hb_tag_t tableTag = HB_OT_TAG_VORG;
+
+  inline bool has_data (void) const { return version.to_int (); }
+
+  inline int get_y_origin (hb_codepoint_t glyph) const
+  {
+    vertYOrigins.bsearch (glyph);
+
+    return defaultVertOriginY;
+  }
 
   inline bool _subset (const hb_subset_plan_t *plan,
                        const VORG *vorg_table,
@@ -157,8 +168,9 @@ struct VORG
 
   protected:
   FixedVersion<>	version;		/* Version of VORG table. Set to 0x00010000u. */
-  FWORD			defaultVertOriginY;	/* The default vertical origin */
-  ArrayOf<VertOriginMetric>vertYOrigins;	/* The array of vertical origins */
+  FWORD			defaultVertOriginY;	/* The default vertical origin. */
+  SortedArrayOf<VertOriginMetric>
+			vertYOrigins;		/* The array of vertical origins. */
 
   public:
   DEFINE_SIZE_ARRAY(8, vertYOrigins);
