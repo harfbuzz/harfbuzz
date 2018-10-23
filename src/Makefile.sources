@@ -153,6 +153,7 @@ HB_OT_sources = \
 	hb-ot-var-fvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	hb-ot-vorg-table.hh \
 	$(NULL)
 
 HB_OT_RAGEL_GENERATED_sources = \

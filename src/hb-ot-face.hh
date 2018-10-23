@@ -68,6 +68,7 @@
     HB_OT_ACCELERATOR(OT, post) \
     HB_OT_ACCELERATOR(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
+    HB_OT_TABLE(OT, VORG) \
     /* OpenType color fonts. */ \
     HB_OT_TABLE(OT, COLR) \
     HB_OT_TABLE(OT, CPAL) \
