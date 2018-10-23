@@ -142,6 +142,8 @@ struct sbix
   DEFINE_SIZE_ARRAY (8, strikes);
 };
 
+struct sbix_accelerator_t : sbix::accelerator_t {};
+
 } /* namespace OT */
 
 #endif /* HB_OT_COLOR_SBIX_TABLE_HH */

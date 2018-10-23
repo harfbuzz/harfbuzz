@@ -111,6 +111,19 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      unsigned int        *count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */);
 
+/*
+ * SVG
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_svg (hb_face_t *face);
+
+HB_EXTERN hb_blob_t *
+hb_ot_color_glyph_svg_create_blob (hb_face_t      *face,
+				   hb_codepoint_t  glyph,
+				   hb_codepoint_t *start_glyph, /* OUT.  May be NULL. */
+				   hb_codepoint_t *end_glyph    /* OUT.  May be NULL. */);
+
 
 HB_END_DECLS
 

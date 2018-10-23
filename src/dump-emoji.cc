@@ -69,26 +69,40 @@ sbix_callback (const uint8_t* data, unsigned int length,
 }
 
 static void
-svg_callback (const uint8_t* data, unsigned int length,
-	      unsigned int start_glyph, unsigned int end_glyph)
+svg_dump (hb_face_t *face)
 {
-  char output_path[255];
-  if (start_glyph == end_glyph)
-    sprintf (output_path, "out/svg-%d.svg", start_glyph);
-  else
-    sprintf (output_path, "out/svg-%d-%d.svg", start_glyph, end_glyph);
+  unsigned glyph_count = hb_face_get_glyph_count (face);
 
-  // append "z" if the content is gzipped
-  if ((data[0] == 0x1F) && (data[1] == 0x8B))
-    strcat (output_path, "z");
+  for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+  {
+    hb_codepoint_t start_glyph_id, end_glyph_id;
+    hb_blob_t *blob = hb_ot_color_glyph_svg_create_blob (face, glyph_id,
+							 &start_glyph_id, &end_glyph_id);
 
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
+    if (hb_blob_get_length (blob) == 0) continue;
+
+    char output_path[255];
+    if (start_glyph_id == end_glyph_id)
+      sprintf (output_path, "out/svg-%d.svg", start_glyph_id);
+    else
+      sprintf (output_path, "out/svg-%d-%d.svg", start_glyph_id, end_glyph_id);
+
+    unsigned int length;
+    const char *data = hb_blob_get_data (blob, &length);
+    // append "z" if the content is gzipped, https://stackoverflow.com/a/6059405
+    if (length > 2 && (data[0] == '\x1F') && (data[1] == '\x8B'))
+        strcat (output_path, "z");
+
+    FILE *f = fopen (output_path, "wb");
+    fwrite (data, 1, length, f);
+    fclose (f);
+
+    if (glyph_id < end_glyph_id) glyph_id = end_glyph_id;
+  }
 }
 
 static void
-colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
+colr_cpal_dump (hb_face_t *face, cairo_font_face_t *cairo_face)
 {
   unsigned int upem = hb_face_get_upem (face);
 
@@ -268,10 +282,8 @@ main (int argc, char **argv)
   sbix.dump (sbix_callback);
   sbix.fini ();
 
-  OT::SVG::accelerator_t svg;
-  svg.init (face);
-  svg.dump (svg_callback);
-  svg.fini ();
+  if (hb_ot_color_has_svg (face))
+    svg_dump (face);
 
   cairo_font_face_t *cairo_face;
   {
@@ -281,7 +293,8 @@ main (int argc, char **argv)
     FT_New_Face (library, argv[1], 0, &ftface);
     cairo_face = cairo_ft_font_face_create_for_ft_face (ftface, 0);
   }
-  colr_cpal_rendering (face, cairo_face);
+  if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
+    colr_cpal_dump (face, cairo_face);
 
   unsigned int num_glyphs = hb_face_get_glyph_count (face);
   unsigned int upem = hb_face_get_upem (face);
