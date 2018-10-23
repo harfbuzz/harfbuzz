@@ -1517,6 +1517,14 @@ clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 
+static void
+preprocess_text_indic (const hb_ot_shape_plan_t *plan,
+		       hb_buffer_t              *buffer,
+		       hb_font_t                *font)
+{
+  _hb_preprocess_text_vowel_constraints (plan, buffer, font);
+}
+
 static bool
 decompose_indic (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  ab,
@@ -1616,7 +1624,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   override_features_indic,
   data_create_indic,
   data_destroy_indic,
-  preprocess_text_vowel_constraints,
+  preprocess_text_indic,
   nullptr, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   decompose_indic,

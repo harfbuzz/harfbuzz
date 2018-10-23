@@ -317,9 +317,9 @@ use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.tx
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
 
-vowel-constraints: gen-vowel-constraints.py use Scripts.txt
-	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-vowel-constraints.hh \
-	|| ($(RM) $(srcdir)/hb-ot-shape-complex-vowel-constraints.hh; false)
+vowel-constraints: gen-vowel-constraints.py HBIndicVowelConstraints.txt Scripts.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc; false)
 
 emoji-table: gen-emoji-table.py emoji-data.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-unicode-emoji-table.hh \

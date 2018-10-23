@@ -2,12 +2,10 @@
 
 """Generator of the function to prohibit certain vowel sequences.
 
-It creates ``preprocess_text_vowel_constraints``, which inserts dotted
+It creates ``_hb_preprocess_text_vowel_constraints``, which inserts dotted
 circles into sequences prohibited by the USE script development spec.
 This function should be used as the ``preprocess_text`` of an
 ``hb_ot_complex_shaper_t``.
-
-It also creates the helper function ``_output_with_dotted_circle``.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -27,22 +25,8 @@ import io
 import sys
 
 if len (sys.argv) != 3:
-	print ('usage: ./gen-vowel-constraints.py use Scripts.txt', file=sys.stderr)
+	print ('usage: ./gen-vowel-constraints.py HBIndicVowelConstraints.txt Scripts.txt', file=sys.stderr)
 	sys.exit (1)
-
-try:
-	from html import unescape
-	def html_unescape (parser, entity):
-		return unescape (entity)
-except ImportError:
-	def html_unescape (parser, entity):
-		return parser.unescape (entity)
-
-def expect (condition, message=None):
-	if not condition:
-		if message is None:
-			raise AssertionError
-		raise AssertionError (message)
 
 with io.open (sys.argv[2], encoding='utf-8') as f:
 	scripts_header = [f.readline () for i in range (2)]
@@ -142,74 +126,22 @@ class ConstraintSet (object):
 			s.append ('{}}}\n'.format (indent))
 		return ''.join (s)
 
-class USESpecParser (HTMLParser):
-	"""A parser for the USE script development spec.
-
-	Attributes:
-		header (str): The ``updated_at`` timestamp of the spec.
-		constraints (Mapping[str, ConstraintSet]): A map of script names
-			to the scripts' prohibited sequences.
-	"""
-	def __init__ (self):
-		HTMLParser.__init__ (self)
-		self.header = ''
-		self.constraints = {}
-		# Whether the next <code> contains the vowel constraints.
-		self._primed = False
-		# Whether the parser is in the <code> element with the constraints.
-		self._in_constraints = False
-		# The text of the constraints.
-		self._constraints = ''
-
-	def handle_starttag (self, tag, attrs):
-		if tag == 'meta':
-			for attr, value in attrs:
-				if attr == 'name' and value == 'updated_at':
-					self.header = self.get_starttag_text ()
-					break
-		elif tag == 'a':
-			for attr, value in attrs:
-				if attr == 'id' and value == 'ivdvconstraints':
-					self._primed = True
-					break
-		elif self._primed and tag == 'code':
-			self._primed = False
-			self._in_constraints = True
-
-	def handle_endtag (self, tag):
-		self._in_constraints = False
-
-	def handle_data (self, data):
-		if self._in_constraints:
-			self._constraints += data
-
-	def handle_charref (self, name):
-		self.handle_data (html_unescape (self, '&#%s;' % name))
-
-	def handle_entityref (self, name):
-		self.handle_data (html_unescape (self, '&%s;' % name))
-
-	def parse (self, filename):
-		"""Parse the USE script development spec.
-
-		Args:
-			filename (str): The file name of the spec.
-		"""
-		with io.open (filename, encoding='utf-8') as f:
-			self.feed (f.read ())
-		expect (self.header, 'No header found')
-		for line in self._constraints.splitlines ():
-			constraint = [int (cp, 16) for cp in line.split (';')[0].strip ().split (' ')]
-			expect (2 <= len (constraint), 'Prohibited sequence is too short: {}'.format (constraint))
-			script = scripts[constraint[0]]
-			if script in self.constraints:
-				self.constraints[script].add (constraint)
-			else:
-				self.constraints[script] = ConstraintSet (constraint)
-		expect (self.constraints, 'No constraints found')
-
-use_parser = USESpecParser ()
-use_parser.parse (sys.argv[1])
+constraints = {}
+with io.open (sys.argv[1], encoding='utf-8') as f:
+	constraints_header = [f.readline ().strip () for i in range (2)]
+	for line in f:
+		j = line.find ('#')
+		if j >= 0:
+			line = line[:j]
+		constraint = [int (cp, 16) for cp in line.split (';')[0].split ()]
+		if not constraint: continue
+		assert 2 <= len (constraint), 'Prohibited sequence is too short: {}'.format (constraint)
+		script = scripts[constraint[0]]
+		if script in constraints:
+			constraints[script].add (constraint)
+		else:
+			constraints[script] = ConstraintSet (constraint)
+		assert constraints, 'No constraints found'
 
 print ('/* == Start of generated functions == */')
 print ('/*')
@@ -219,15 +151,15 @@ print (' *   %s use Scripts.txt' % sys.argv[0])
 print (' *')
 print (' * on files with these headers:')
 print (' *')
-print (' * %s' % use_parser.header.strip ())
+for line in constraints_header:
+	print (' * %s' % line.strip ())
+print (' *')
 for line in scripts_header:
 	print (' * %s' % line.strip ())
 print (' */')
 print ()
-print ('#ifndef HB_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS_HH')
-print ('#define HB_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS_HH')
+print ('#include "hb-ot-shape-complex-vowel-constraints.hh"')
 print ()
-
 print ('static void')
 print ('_output_with_dotted_circle (hb_buffer_t *buffer)')
 print ('{')
@@ -238,10 +170,10 @@ print ('  buffer->next_glyph ();')
 print ('}')
 print ()
 
-print ('static void')
-print ('preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan,')
-print ('\t\t\t\t   hb_buffer_t              *buffer,')
-print ('\t\t\t\t   hb_font_t                *font)')
+print ('void')
+print ('_hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan,')
+print ('\t\t\t\t       hb_buffer_t              *buffer,')
+print ('\t\t\t\t       hb_font_t                *font)')
 print ('{')
 print ('  /* UGLY UGLY UGLY business of adding dotted-circle in the middle of')
 print ('   * vowel-sequences that look like another vowel.  Data for each script')
@@ -255,7 +187,7 @@ print ('  unsigned int count = buffer->len;')
 print ('  switch ((unsigned) buffer->props.script)')
 print ('  {')
 
-for script, constraints in sorted (use_parser.constraints.items (), key=lambda s_c: script_order[s_c[0]]):
+for script, constraints in sorted (constraints.items (), key=lambda s_c: script_order[s_c[0]]):
 	print ('    case HB_SCRIPT_{}:'.format (script.upper ()))
 	print ('      for (buffer->idx = 0; buffer->idx + 1 < count && buffer->successful;)')
 	print ('      {')
@@ -280,7 +212,5 @@ print ('      buffer->swap_buffers ();')
 print ('  }')
 print ('}')
 
-print ()
-print ('#endif /* HB_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS_HH */')
 print ()
 print ('/* == End of generated functions == */')
