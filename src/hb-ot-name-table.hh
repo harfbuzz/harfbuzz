@@ -137,7 +137,7 @@ struct name
 
   inline hb_bytes_t get_name (unsigned int idx) const
   {
-    const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (nameRecordZ.arrayZ, count);
+    const hb_array_t<const NameRecord> all_names (nameRecordZ.arrayZ, count);
     const NameRecord &record = all_names[idx];
     return hb_bytes_t ((char *) this + stringOffset + record.offset, record.length);
   }
@@ -170,8 +170,8 @@ struct name
     {
       this->blob = hb_sanitize_context_t().reference_table<name> (face);
       this->table = this->blob->as<name> ();
-      const hb_array_t<NameRecord> &all_names = hb_array_t<NameRecord> (this->table->nameRecordZ.arrayZ,
-									this->table->count);
+      const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
+						    this->table->count);
 
       this->names.init ();
       this->names.alloc (all_names.len);
