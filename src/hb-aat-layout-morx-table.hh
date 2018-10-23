@@ -399,9 +399,6 @@ struct LigatureSubtable
 	if (unlikely (!match_length))
 	  return true;
 
-	/* TODO Only when ligation happens? */
-	buffer->merge_out_clusters (match_positions[0], buffer->out_len);
-
 	unsigned int cursor = match_length;
         do
 	{
@@ -437,6 +434,7 @@ struct LigatureSubtable
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
 	  {
+
 	    const GlyphID &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
@@ -452,6 +450,9 @@ struct LigatureSubtable
 	      buffer->skip_glyph ();
 	      end--;
 	    }
+
+	    buffer->move_to (end + 1);
+	    buffer->merge_out_clusters (match_positions[cursor], buffer->out_len);
 	  }
 
 	  action_idx++;
