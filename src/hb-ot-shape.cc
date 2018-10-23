@@ -57,6 +57,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan
 						face (master_plan->face_unsafe),
 						props (master_plan->props),
 						map (face, &props),
+						aat_map (face, &props),
 						apply_morx (_hb_apply_morx (face)),
 						shaper (apply_morx ?
 						        &_hb_ot_complex_shaper_default :
@@ -70,6 +71,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, coords, num_coords);
+  aat_map.compile (plan.aat_map, coords, num_coords);
 
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
@@ -160,6 +162,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      unsigned int                    num_user_features)
 {
   hb_ot_map_builder_t *map = &planner->map;
+  hb_aat_map_builder_t *aat_map = &planner->aat_map;
 
   map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
@@ -225,6 +228,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 		      (feature->start == HB_FEATURE_GLOBAL_START &&
 		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
 		      feature->value);
+    aat_map->add_feature (feature->tag, feature->value);
   }
 }
 
