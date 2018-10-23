@@ -175,6 +175,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
   }
 
   /* Sort features and merge duplicates */
+  if (feature_infos.len)
   {
     feature_infos.qsort ();
     unsigned int j = 0;

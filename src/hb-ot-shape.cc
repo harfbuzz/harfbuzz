@@ -71,7 +71,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, coords, num_coords);
-  aat_map.compile (plan.aat_map, coords, num_coords);
+  if (apply_morx)
+    aat_map.compile (plan.aat_map, coords, num_coords);
 
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
@@ -162,7 +163,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      unsigned int                    num_user_features)
 {
   hb_ot_map_builder_t *map = &planner->map;
-  hb_aat_map_builder_t *aat_map = &planner->aat_map;
 
   map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
@@ -228,7 +228,16 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 		      (feature->start == HB_FEATURE_GLOBAL_START &&
 		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
 		      feature->value);
-    aat_map->add_feature (feature->tag, feature->value);
+  }
+
+  if (planner->apply_morx)
+  {
+    hb_aat_map_builder_t *aat_map = &planner->aat_map;
+    for (unsigned int i = 0; i < num_user_features; i++)
+    {
+      const hb_feature_t *feature = &user_features[i];
+      aat_map->add_feature (feature->tag, feature->value);
+    }
   }
 }
 
