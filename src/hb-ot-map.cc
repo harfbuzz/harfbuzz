@@ -79,8 +79,8 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag,
 				       hb_ot_map_feature_flags_t flags,
 				       unsigned int value)
 {
-  feature_info_t *info = feature_infos.push();
   if (unlikely (!tag)) return;
+  feature_info_t *info = feature_infos.push();
   info->tag = tag;
   info->seq = feature_infos.len;
   info->max_value = value;
