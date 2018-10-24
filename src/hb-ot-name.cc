@@ -51,6 +51,51 @@ hb_ot_name_get_names (hb_face_t                 *face,
 }
 
 
+template <typename in_utf_t, typename out_utf_t>
+static inline unsigned int
+hb_ot_name_convert_utf (const hb_bytes_t                *bytes,
+			unsigned int                    *text_size /* IN/OUT */,
+			typename out_utf_t::codepoint_t *text /* OUT */)
+{
+  unsigned int src_len = bytes->len / sizeof (typename in_utf_t::codepoint_t);
+  const typename in_utf_t::codepoint_t *src = (const typename in_utf_t::codepoint_t *) bytes->arrayZ;
+  const typename in_utf_t::codepoint_t *src_end = src + src_len;
+
+  typename out_utf_t::codepoint_t *dst = text;
+
+  hb_codepoint_t unicode;
+  const hb_codepoint_t replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
+
+  if (text_size && *text_size)
+  {
+    (*text_size)--; /* Same room for NUL-termination. */
+    const typename out_utf_t::codepoint_t *dst_end = text + *text_size;
+
+    while (src < src_end && dst < dst_end)
+    {
+      const typename in_utf_t::codepoint_t *src_next = in_utf_t::next (src, src_end, &unicode, replacement);
+      typename out_utf_t::codepoint_t *dst_next = out_utf_t::encode (dst, dst_end, unicode);
+      if (dst_next == dst)
+        break; /* Out-of-room. */
+
+      dst = dst_next;
+      src = src_next;
+    };
+
+    *text_size = dst - text;
+    *text = 0; /* NUL-terminate. */
+  }
+
+  /* Accumulate length of rest. */
+  unsigned int dst_len = dst - text;
+  while (src < src_end)
+  {
+    src = in_utf_t::next (src, src_end, &unicode, replacement);
+    dst_len += out_utf_t::encode_len (unicode);
+  };
+  return dst_len;
+}
+
 template <typename utf_t>
 static inline unsigned int
 hb_ot_name_get_utf (hb_face_t     *face,
@@ -63,22 +108,27 @@ hb_ot_name_get_utf (hb_face_t     *face,
   unsigned int idx = 0; // XXX bsearch and find
   hb_bytes_t bytes = name.table->get_name (idx);
 
-  unsigned int full_length = 0;
-  const typename utf_t::codepoint_t *src = (const typename utf_t::codepoint_t *) bytes.arrayZ;
-  unsigned int src_len = bytes.len / sizeof (typename utf_t::codepoint_t);
+  if (true /*UTF16-BE*/)
+    return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (&bytes, text_size, text);
 
-  if (text_size && *text_size)
+  if (text_size)
   {
-    *text_size--; /* Leave room for nul-termination. */
-    /* TODO Switch to walking string and validating. */
-    memcpy (text,
-	    src,
-	    MIN (*text_size, src_len) * sizeof (typename utf_t::codepoint_t));
+    if (*text_size)
+      *text = 0;
+    *text_size = 0;
   }
+  return 0;
+}
 
-  /* Walk the rest, accumulate the full length. */
-
-  return *text_size; //XXX
+unsigned int
+hb_ot_name_get_utf8 (hb_face_t     *face,
+		     hb_name_id_t   name_id,
+		     hb_language_t  language,
+		     unsigned int  *text_size /* IN/OUT */,
+		     char          *text      /* OUT */)
+{
+  return hb_ot_name_get_utf<hb_utf8_t> (face, name_id, language, text_size,
+					(hb_utf8_t::codepoint_t *) text);
 }
 
 unsigned int
@@ -89,4 +139,14 @@ hb_ot_name_get_utf16 (hb_face_t     *face,
 		      uint16_t      *text      /* OUT */)
 {
   return hb_ot_name_get_utf<hb_utf16_t> (face, name_id, language, text_size, text);
+}
+
+unsigned int
+hb_ot_name_get_utf32 (hb_face_t     *face,
+		      hb_name_id_t   name_id,
+		      hb_language_t  language,
+		      unsigned int  *text_size /* IN/OUT */,
+		      uint32_t      *text      /* OUT */)
+{
+  return hb_ot_name_get_utf<hb_utf32_t> (face, name_id, language, text_size, text);
 }
