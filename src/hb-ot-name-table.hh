@@ -156,7 +156,7 @@ struct name
   {
     const hb_array_t<const NameRecord> all_names (nameRecordZ.arrayZ, count);
     const NameRecord &record = all_names[idx];
-    return hb_bytes_t ((char *) this + stringOffset + record.offset, record.length);
+    return hb_bytes_t ((const char *) (this+stringOffset).arrayZ + record.offset, record.length);
   }
 
   inline unsigned int get_size (void) const
@@ -164,7 +164,7 @@ struct name
 
   inline bool sanitize_records (hb_sanitize_context_t *c) const {
     TRACE_SANITIZE (this);
-    char *string_pool = (char *) this + stringOffset;
+    const void *string_pool = (this+stringOffset).arrayZ;
     unsigned int _count = count;
     /* Move to run-time?! */
     for (unsigned int i = 0; i < _count; i++)
@@ -256,7 +256,8 @@ struct name
   /* We only implement format 0 for now. */
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
-  Offset16	stringOffset;		/* Offset to start of string storage (from start of table). */
+  OffsetTo<UnsizedArrayOf<HBUINT8>, HBUINT16, false>
+		stringOffset;		/* Offset to start of string storage (from start of table). */
   UnsizedArrayOf<NameRecord>
 		nameRecordZ;		/* The name records where count is the number of records. */
   public:
