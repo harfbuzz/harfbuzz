@@ -152,13 +152,6 @@ struct name
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_name;
 
-  inline hb_bytes_t get_name (unsigned int idx) const
-  {
-    const hb_array_t<const NameRecord> all_names (nameRecordZ.arrayZ, count);
-    const NameRecord &record = all_names[idx];
-    return hb_bytes_t ((const char *) (this+stringOffset).arrayZ + record.offset, record.length);
-  }
-
   inline unsigned int get_size (void) const
   { return min_size + count * nameRecordZ[0].min_size; }
 
@@ -178,7 +171,7 @@ struct name
     return_trace (c->check_struct (this) &&
 		  likely (format == 0 || format == 1) &&
 		  c->check_array (nameRecordZ.arrayZ, count) &&
-		  sanitize_records (c));
+		  c->check_range (this, stringOffset));
   }
 
   struct accelerator_t
@@ -187,6 +180,9 @@ struct name
     {
       this->blob = hb_sanitize_context_t().reference_table<name> (face);
       this->table = this->blob->as<name> ();
+      assert (this->blob->length >= this->table->stringOffset);
+      this->pool = (this->table+this->table->stringOffset).arrayZ;
+      this->pool_len = this->blob->length - this->table->stringOffset;
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
 
@@ -246,8 +242,18 @@ struct name
       return entry->entry_index;
     }
 
+    inline hb_bytes_t get_name (unsigned int idx) const
+    {
+      const hb_array_t<const NameRecord> all_names (table->nameRecordZ.arrayZ, table->count);
+      const NameRecord &record = all_names[idx];
+      const hb_array_t<const char> string_pool ((const char *) pool, pool_len);
+      return string_pool.sub_array (record.offset, record.length).as_bytes ();
+    }
+
     private:
     hb_blob_t *blob;
+    const void *pool;
+    unsigned int pool_len;
     public:
     const name *table;
     hb_vector_t<hb_ot_name_entry_t> names;
