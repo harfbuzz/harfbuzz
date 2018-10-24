@@ -206,7 +206,8 @@ struct name
       unsigned int j = 0;
       for (unsigned int i = 0; i < this->names.len; i++)
       {
-        if (this->names[i].entry_score == UNSUPPORTED)
+        if (this->names[i].entry_score == UNSUPPORTED ||
+	    this->names[i].language == HB_LANGUAGE_INVALID)
 	  continue;
         if (i &&
 	    this->names[i - 1].name_id  == this->names[i].name_id &&
