@@ -105,11 +105,15 @@ hb_ot_name_get_utf (hb_face_t     *face,
 		    typename utf_t::codepoint_t *text /* OUT */)
 {
   const OT::name_accelerator_t &name = _get_name (face);
-  unsigned int idx = 0; // XXX bsearch and find
-  hb_bytes_t bytes = name.table->get_name (idx);
 
-  if (true /*UTF16-BE*/)
-    return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (&bytes, text_size, text);
+  int idx = name.get_index (name_id, language);
+  if (idx != -1)
+  {
+    hb_bytes_t bytes = name.table->get_name (idx);
+
+    if (true /*UTF16-BE*/)
+      return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (&bytes, text_size, text);
+  }
 
   if (text_size)
   {

@@ -576,8 +576,8 @@ _hb_modified_combining_class[256] =
 bool
 _hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp)
 {
-  return hb_bsearch_r (&cp, _hb_unicode_emoji_Extended_Pictographic_table,
-		       ARRAY_LENGTH (_hb_unicode_emoji_Extended_Pictographic_table),
-		       sizeof (hb_unicode_range_t),
-		       hb_unicode_range_t::cmp, nullptr);
+  return hb_bsearch (&cp, _hb_unicode_emoji_Extended_Pictographic_table,
+		     ARRAY_LENGTH (_hb_unicode_emoji_Extended_Pictographic_table),
+		     sizeof (hb_unicode_range_t),
+		     hb_unicode_range_t::cmp);
 }
