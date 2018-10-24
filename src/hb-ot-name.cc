@@ -110,7 +110,7 @@ hb_ot_name_get_utf (hb_face_t     *face,
   int idx = name.get_index (name_id, language, &width);
   if (idx != -1)
   {
-    hb_bytes_t bytes = name.table->get_name (idx);
+    hb_bytes_t bytes = name.get_name (idx);
 
     if (width == 2) /* UTF16-BE */
       return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (&bytes, text_size, text);

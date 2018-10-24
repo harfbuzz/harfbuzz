@@ -530,36 +530,6 @@ struct hb_auto_t : Type
   void fini (void) {}
 };
 
-template <typename T>
-struct hb_array_t
-{
-  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
-  inline hb_array_t (T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
-
-  inline T& operator [] (unsigned int i) const
-  {
-    if (unlikely (i >= len)) return Null(T);
-    return arrayZ[i];
-  }
-
-  inline hb_array_t<T> sub_array (unsigned int start_offset, unsigned int seg_count) const
-  {
-    unsigned int count = len;
-    if (unlikely (start_offset > count))
-      count = 0;
-    else
-      count -= start_offset;
-    count = MIN (count, seg_count);
-    return hb_array_t<T> (arrayZ + start_offset, count);
-  }
-
-  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
-
-  T *arrayZ;
-  unsigned int len;
-};
-template <typename T> static inline
-hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 struct hb_bytes_t
 {
@@ -588,6 +558,42 @@ struct hb_bytes_t
   const char *arrayZ;
   unsigned int len;
 };
+
+template <typename T>
+struct hb_array_t
+{
+  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
+  inline hb_array_t (T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+
+  inline T& operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= len)) return Null(T);
+    return arrayZ[i];
+  }
+
+  inline hb_array_t<T> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  {
+    unsigned int count = len;
+    if (unlikely (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    count = MIN (count, seg_count);
+    return hb_array_t<T> (arrayZ + start_offset, count);
+  }
+
+  inline hb_bytes_t as_bytes (void) const
+  {
+    return hb_bytes_t (arrayZ, len * sizeof (T));
+  }
+
+  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+
+  T *arrayZ;
+  unsigned int len;
+};
+template <typename T> static inline
+hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 
 struct HbOpOr
