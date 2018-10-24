@@ -16,11 +16,16 @@
 #include "hb-ot-shape-complex-vowel-constraints.hh"
 
 static void
-_output_with_dotted_circle (hb_buffer_t *buffer)
+_output_dotted_circle (hb_buffer_t *buffer)
 {
   hb_glyph_info_t &dottedcircle = buffer->output_glyph (0x25CCu);
   _hb_glyph_info_reset_continuation (&dottedcircle);
+}
 
+static void
+_output_with_dotted_circle (hb_buffer_t *buffer)
+{
+  _output_dotted_circle (buffer);
   buffer->next_glyph ();
 }
 
@@ -83,7 +88,7 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan,
 	    {
 	      buffer->next_glyph ();
 	      buffer->next_glyph ();
-	      buffer->output_glyph (0x25CCu);
+	      _output_dotted_circle (buffer);
 	    }
 	    break;
 	}
