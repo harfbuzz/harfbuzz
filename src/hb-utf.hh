@@ -398,4 +398,59 @@ struct hb_latin1_t
   }
 };
 
+
+struct hb_ascii_t
+{
+  typedef uint8_t codepoint_t;
+
+  static inline const codepoint_t *
+  next (const codepoint_t *text,
+	const codepoint_t *end HB_UNUSED,
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement HB_UNUSED)
+  {
+    *unicode = *text++;
+    if (*unicode >= 0x100)
+      *unicode = replacement;
+    return text;
+  }
+
+  static inline const codepoint_t *
+  prev (const codepoint_t *text,
+	const codepoint_t *start HB_UNUSED,
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
+  {
+    *unicode = *--text;
+    if (*unicode >= 0x0080)
+      *unicode = replacement;
+    return text;
+  }
+
+  static inline unsigned int
+  strlen (const codepoint_t *text)
+  {
+    unsigned int l = 0;
+    while (*text++) l++;
+    return l;
+  }
+
+  static inline unsigned int
+  encode_len (hb_codepoint_t unicode HB_UNUSED)
+  {
+    return 1;
+  }
+
+  static inline codepoint_t *
+  encode (codepoint_t *text,
+	  const codepoint_t *end HB_UNUSED,
+	  hb_codepoint_t unicode)
+  {
+    if (unlikely (unicode >= 0x0080u))
+      unicode = '?';
+    *text++ = unicode;
+    return text;
+  }
+};
+
 #endif /* HB_UTF_HH */
