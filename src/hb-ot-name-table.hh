@@ -28,6 +28,7 @@
 #define HB_OT_NAME_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-name-language.hh"
 
 
 namespace OT {
@@ -53,19 +54,13 @@ struct NameRecord
     unsigned int l = languageID;
 
     if (p == 3)
-    {
-      switch (l)
-      {
-        case 0x0409:	return hb_language_from_string ("en", -1);
-      }
-    }
-    else if (p == 1)
-    {
-      switch (l)
-      {
-        case 0:		return hb_language_from_string ("en", -1);
-      }
-    }
+      return _hb_ot_name_language_for_ms_code (l);
+
+    if (p == 1)
+      return _hb_ot_name_language_for_mac_code (l);
+
+    //if (p == 0)
+      /* TODO use 'ltag' table? */
 
     return HB_LANGUAGE_INVALID;
   }
