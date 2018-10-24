@@ -38,9 +38,8 @@ environment:
 
 
 install:
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -Sy && pacman --noconfirm --force -S pacman-mirrors && pacman --force -Syu --noconfirm"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -Syyu mingw-w64-$MSYS2_ARCH-gcc"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -S --needed mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python2}"'
+# - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -Sy && pacman --noconfirm --force -S pacman-mirrors && pacman --force -Syu --noconfirm"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -S --needed mingw-w64-$MSYS2_ARCH-{gcc,freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python2}"'
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
   - set PATH=%PATH%;C:\msys64\mingw64\bin # msys2 is added just for having "ragel" on PATH
   - 'if "%compiler%"=="cygwin" %CYGWIN_PREFIX%\setup-%CYGWIN_ARCH%.exe -g -q -P cygwin-devel,libfreetype-devel,libcairo-devel,libicu-devel,gcc,gcc-g++,gobject-introspection,libglib2.0-devel,libgraphite2-devel,pkg-config,python2'
