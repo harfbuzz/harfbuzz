@@ -410,7 +410,7 @@ struct hb_ascii_t
 	hb_codepoint_t replacement HB_UNUSED)
   {
     *unicode = *text++;
-    if (*unicode >= 0x100)
+    if (*unicode >= 0x0080u)
       *unicode = replacement;
     return text;
   }
@@ -422,7 +422,7 @@ struct hb_ascii_t
 	hb_codepoint_t replacement)
   {
     *unicode = *--text;
-    if (*unicode >= 0x0080)
+    if (*unicode >= 0x0080u)
       *unicode = replacement;
     return text;
   }
