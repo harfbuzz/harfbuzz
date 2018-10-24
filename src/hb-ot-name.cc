@@ -83,7 +83,7 @@ hb_ot_name_convert_utf (const hb_bytes_t                *bytes,
     };
 
     *text_size = dst - text;
-    *text = 0; /* NUL-terminate. */
+    *dst = 0; /* NUL-terminate. */
   }
 
   /* Accumulate length of rest. */
