@@ -199,8 +199,8 @@ struct hmtxvmtx
 #define USE_TYPO_METRICS (1u<<7)
 	if (0 != (os2_table->fsSelection & USE_TYPO_METRICS))
 	{
-	  ascender = os2_table->sTypoAscender;
-	  descender = os2_table->sTypoDescender;
+	  ascender = abs (os2_table->sTypoAscender);
+	  descender = -abs (os2_table->sTypoDescender);
 	  line_gap = os2_table->sTypoLineGap;
 	  got_font_extents = (ascender | descender) != 0;
 	}
@@ -212,8 +212,8 @@ struct hmtxvmtx
       num_advances = _hea_table->numberOfLongMetrics;
       if (!got_font_extents)
       {
-	ascender = _hea_table->ascender;
-	descender = _hea_table->descender;
+	ascender = abs (_hea_table->ascender);
+	descender = -abs (_hea_table->descender);
 	line_gap = _hea_table->lineGap;
 	got_font_extents = (ascender | descender) != 0;
       }
