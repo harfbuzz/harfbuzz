@@ -127,6 +127,55 @@ struct hb_utf8_t
   {
     return ::strlen ((const char *) text);
   }
+
+  static inline unsigned int
+  encode_len (hb_codepoint_t unicode)
+  {
+    if (unicode <   0x0080u) return 1;
+    if (unicode <   0x0800u) return 2;
+    if (unicode <  0x10000u) return 3;
+    if (unicode < 0x110000u) return 4;
+    return 3;
+  }
+
+  static inline codepoint_t *
+  encode (codepoint_t *text,
+	  const codepoint_t *end,
+	  hb_codepoint_t unicode)
+  {
+    if (unlikely (unicode >= 0xD800u && (unicode <= 0xDFFFu || unicode > 0x10FFFFu)))
+      unicode = 0xFFFDu;
+    if (unicode < 0x0080u)
+     *text++ = unicode;
+    else if (unicode < 0x0800u)
+    {
+      if (end - text >= 2)
+      {
+	*text++ =  0xC0u + (0x1Fu & (unicode >>  6));
+	*text++ =  0x80u + (0x3Fu & (unicode      ));
+      }
+    }
+    else if (unicode < 0x10000u)
+    {
+      if (end - text >= 3)
+      {
+	*text++ =  0xE0u + (0x0Fu & (unicode >> 12));
+	*text++ =  0x80u + (0x3Fu & (unicode >>  6));
+	*text++ =  0x80u + (0x3Fu & (unicode      ));
+      }
+    }
+    else
+    {
+      if (end - text >= 4)
+      {
+	*text++ =  0xF0u + (0x07u & (unicode >> 18));
+	*text++ =  0x80u + (0x3Fu & (unicode >> 12));
+	*text++ =  0x80u + (0x3Fu & (unicode >>  6));
+	*text++ =  0x80u + (0x3Fu & (unicode      ));
+      }
+    }
+    return text;
+  }
 };
 
 
@@ -208,6 +257,30 @@ struct hb_utf16_xe_t
     while (*text++) l++;
     return l;
   }
+
+  static inline unsigned int
+  encode_len (hb_codepoint_t unicode)
+  {
+    return unicode < 0x10000 ? 1 : 2;
+  }
+
+  static inline codepoint_t *
+  encode (codepoint_t *text,
+	  const codepoint_t *end,
+	  hb_codepoint_t unicode)
+  {
+    if (unlikely (unicode >= 0xD800u && (unicode <= 0xDFFFu || unicode > 0x10FFFFu)))
+      unicode = 0xFFFDu;
+    if (unicode < 0x10000u)
+     *text++ = unicode;
+    else if (end - text >= 2)
+    {
+      unicode -= 0x10000u;
+      *text++ =  0xD800u + (unicode >> 10);
+      *text++ =  0xDC00u + (unicode & 0x03FFu);
+    }
+    return text;
+  }
 };
 
 typedef hb_utf16_xe_t<uint16_t> hb_utf16_t;
@@ -251,6 +324,23 @@ struct hb_utf32_xe_t
     while (*text++) l++;
     return l;
   }
+
+  static inline unsigned int
+  encode_len (hb_codepoint_t unicode HB_UNUSED)
+  {
+    return 1;
+  }
+
+  static inline codepoint_t *
+  encode (codepoint_t *text,
+	  const codepoint_t *end HB_UNUSED,
+	  hb_codepoint_t unicode)
+  {
+    if (validate && unlikely (unicode >= 0xD800u && (unicode <= 0xDFFFu || unicode > 0x10FFFFu)))
+      unicode = 0xFFFDu;
+    *text++ = unicode;
+    return text;
+  }
 };
 
 typedef hb_utf32_xe_t<uint32_t> hb_utf32_t;
@@ -288,6 +378,23 @@ struct hb_latin1_t
     unsigned int l = 0;
     while (*text++) l++;
     return l;
+  }
+
+  static inline unsigned int
+  encode_len (hb_codepoint_t unicode HB_UNUSED)
+  {
+    return 1;
+  }
+
+  static inline codepoint_t *
+  encode (codepoint_t *text,
+	  const codepoint_t *end HB_UNUSED,
+	  hb_codepoint_t unicode)
+  {
+    if (unlikely (unicode >= 0x0100u))
+      unicode = '?';
+    *text++ = unicode;
+    return text;
   }
 };
 
