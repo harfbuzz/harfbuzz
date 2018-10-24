@@ -345,7 +345,6 @@ struct hb_utf32_xe_t
 
 typedef hb_utf32_xe_t<uint32_t> hb_utf32_t;
 typedef hb_utf32_xe_t<uint32_t, false> hb_utf32_novalidate_t;
-typedef hb_utf32_xe_t<OT::HBUINT32> hb_utf32_be_t;
 
 
 struct hb_latin1_t
