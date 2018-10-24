@@ -107,20 +107,31 @@ struct NameRecord
 };
 
 static int
-_hb_ot_name_entry_cmp (const void *pa, const void *pb)
+_hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
 {
   const hb_ot_name_entry_t *a = (const hb_ot_name_entry_t *) pa;
   const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
 
-  /* Sort by name_id, then language, then score, then index. */
+  /* Compare by name_id, then language. */
 
   if (a->name_id != b->name_id)
     return a->name_id < b->name_id ? -1 : +1;
 
-  int e = strcmp (hb_language_to_string (a->language),
-		  hb_language_to_string (b->language));
-  if (e)
-    return e;
+  return strcmp (hb_language_to_string (a->language),
+		 hb_language_to_string (b->language));
+}
+
+static int
+_hb_ot_name_entry_cmp (const void *pa, const void *pb)
+{
+  /* Compare by name_id, then language, then score, then index. */
+
+  int v = _hb_ot_name_entry_cmp_key (pa, pb);
+  if (v)
+    return v;
+
+  const hb_ot_name_entry_t *a = (const hb_ot_name_entry_t *) pa;
+  const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
 
   if (a->entry_score != b->entry_score)
     return a->entry_score < b->entry_score ? -1 : +1;
@@ -199,11 +210,23 @@ struct name
       this->names.resize (j);
     }
 
-
     inline void fini (void)
     {
       this->names.fini ();
       hb_blob_destroy (this->blob);
+    }
+
+    inline int get_index (hb_name_id_t   name_id,
+			  hb_language_t  language) const
+    {
+      const hb_ot_name_entry_t key = {name_id, {0}, language};
+      const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)
+					hb_bsearch (&key,
+						    this->names.arrayZ(),
+						    this->names.len,
+						    sizeof (key),
+						    _hb_ot_name_entry_cmp_key);
+      return entry ? entry->entry_index : -1;
     }
 
     private:
