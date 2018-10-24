@@ -75,5 +75,8 @@ notifications:
     on_build_failure: true
     on_build_status_changed: true
 
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
 # disable automatic tests
 test: off
