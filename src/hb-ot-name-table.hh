@@ -47,6 +47,29 @@ namespace OT {
 
 struct NameRecord
 {
+  inline hb_language_t language (void) const
+  {
+    unsigned int p = platformID;
+    unsigned int l = languageID;
+
+    if (p == 3)
+    {
+      switch (l)
+      {
+        case 0x0409:	return hb_language_from_string ("en", -1);
+      }
+    }
+    else if (p == 1)
+    {
+      switch (l)
+      {
+        case 0:		return hb_language_from_string ("en", -1);
+      }
+    }
+
+    return HB_LANGUAGE_INVALID;
+  }
+
   inline uint16_t score (void) const
   {
     /* Same order as in cmap::find_best_subtable(). */
@@ -177,7 +200,7 @@ struct name
 	hb_ot_name_entry_t *entry = this->names.push ();
 
 	entry->name_id = all_names[i].nameID;
-	entry->language = HB_LANGUAGE_INVALID; /* XXX */
+	entry->language = all_names[i].language ();
 	entry->entry_score =  all_names[i].score ();
 	entry->entry_index = i;
       }
