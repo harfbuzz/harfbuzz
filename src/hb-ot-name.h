@@ -49,7 +49,7 @@ typedef unsigned int hb_name_id_t;
 #define HB_NAME_ID_INVALID 0xFFFF
 
 
-unsigned int
+HB_EXTERN unsigned int
 hb_ot_name_get_utf8 (hb_face_t     *face,
 		     hb_name_id_t   name_id,
 		     hb_language_t  language,
