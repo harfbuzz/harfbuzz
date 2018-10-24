@@ -120,6 +120,9 @@ _hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
   if (a->name_id != b->name_id)
     return a->name_id < b->name_id ? -1 : +1;
 
+  if (a->language == b->language) return 0;
+  if (!a->language) return -1;
+  if (!b->language) return +1;
   return strcmp (hb_language_to_string (a->language),
 		 hb_language_to_string (b->language));
 }
