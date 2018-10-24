@@ -34,7 +34,7 @@
 #include "hb-aat-layout-kerx-table.hh"
 #include "hb-aat-layout-morx-table.hh"
 #include "hb-aat-layout-trak-table.hh"
-#include "hb-aat-ltag-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-aat-ltag-table.hh"
 
 
 /* Table data courtesy of Apple.  Converted from mnemonics to integers
@@ -181,6 +181,12 @@ _get_trak (hb_face_t *face)
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::trak);
   return *(hb_ot_face_data (face)->trak.get ());
 }
+static inline const AAT::ltag&
+_get_ltag (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::ltag);
+  return *(hb_ot_face_data (face)->ltag.get ());
+}
 
 
 void
@@ -247,4 +253,11 @@ hb_aat_layout_track (hb_ot_shape_plan_t *plan,
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer);
   trak.apply (&c);
+}
+
+hb_language_t
+_hb_aat_language_get (hb_face_t *face,
+		      unsigned int i)
+{
+  return _get_ltag (face).get_language (i);
 }

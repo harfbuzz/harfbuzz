@@ -29,6 +29,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-name-language.hh"
+#include "hb-aat-layout.hh"
 
 
 namespace OT {
@@ -48,7 +49,7 @@ namespace OT {
 
 struct NameRecord
 {
-  inline hb_language_t language (void) const
+  inline hb_language_t language (hb_face_t *face) const
   {
     unsigned int p = platformID;
     unsigned int l = languageID;
@@ -59,8 +60,8 @@ struct NameRecord
     if (p == 1)
       return _hb_ot_name_language_for_mac_code (l);
 
-    //if (p == 0)
-      /* TODO use 'ltag' table? */
+    if (p == 0)
+      return _hb_aat_language_get (face, l);
 
     return HB_LANGUAGE_INVALID;
   }
@@ -194,7 +195,7 @@ struct name
 	hb_ot_name_entry_t *entry = this->names.push ();
 
 	entry->name_id = all_names[i].nameID;
-	entry->language = all_names[i].language ();
+	entry->language = all_names[i].language (face);
 	entry->entry_score =  all_names[i].score ();
 	entry->entry_index = i;
       }
