@@ -84,7 +84,8 @@ struct NameRecord
     /* Symbol. */
     if (p == 3 && e ==  0) return 8;
 
-    /* TODO Apple MacRoman (0:1). */
+    /* We treat all Mac Latin names as ASCII only. */
+    if (p == 1 && e ==  0) return 10; /* 10 is magic number :| */
 
     return UNSUPPORTED;
   }
@@ -198,11 +199,15 @@ struct name
       }
 
       this->names.qsort (_hb_ot_name_entry_cmp);
-      /* Walk and pick best only for each name_id,language pair... */
+      /* Walk and pick best only for each name_id,language pair,
+       * while dropping unsupported encodings. */
       unsigned int j = 0;
-      for (unsigned int i = 1; i < this->names.len; i++)
+      for (unsigned int i = 0; i < this->names.len; i++)
       {
-        if (this->names[i - 1].name_id  == this->names[i].name_id &&
+        if (this->names[i].entry_score == UNSUPPORTED)
+	  continue;
+        if (i &&
+	    this->names[i - 1].name_id  == this->names[i].name_id &&
 	    this->names[i - 1].language == this->names[i].language)
 	  continue;
 	this->names[j++] = this->names[i];
@@ -217,7 +222,8 @@ struct name
     }
 
     inline int get_index (hb_name_id_t   name_id,
-			  hb_language_t  language) const
+			  hb_language_t  language,
+			  unsigned int  *width=nullptr) const
     {
       const hb_ot_name_entry_t key = {name_id, {0}, language};
       const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)
@@ -226,7 +232,13 @@ struct name
 						    this->names.len,
 						    sizeof (key),
 						    _hb_ot_name_entry_cmp_key);
-      return entry ? entry->entry_index : -1;
+      if (!entry)
+        return -1;
+
+      if (width)
+        *width = entry->entry_score < 10 ? 2 : 1;
+
+      return entry->entry_index;
     }
 
     private:
