@@ -47,22 +47,6 @@ namespace OT {
 
 struct NameRecord
 {
-  static int cmp (const void *pa, const void *pb)
-  {
-    const NameRecord *a = (const NameRecord *) pa;
-    const NameRecord *b = (const NameRecord *) pb;
-    int ret;
-    ret = b->platformID.cmp (a->platformID);
-    if (ret) return ret;
-    ret = b->encodingID.cmp (a->encodingID);
-    if (ret) return ret;
-    ret = b->languageID.cmp (a->languageID);
-    if (ret) return ret;
-    ret = b->nameID.cmp (a->nameID);
-    if (ret) return ret;
-    return 0;
-  }
-
   inline uint16_t score (void) const
   {
     /* Same order as in cmap::find_best_subtable(). */
