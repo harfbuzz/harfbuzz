@@ -106,6 +106,9 @@ hb_ot_name_get_utf (hb_face_t     *face,
 {
   const OT::name_accelerator_t &name = _get_name (face);
 
+  if (!language)
+    language = hb_language_from_string ("en", 2);
+
   unsigned int width;
   int idx = name.get_index (name_id, language, &width);
   if (idx != -1)
