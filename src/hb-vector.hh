@@ -66,6 +66,12 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
+  template <typename T> inline operator  T * (void) { return arrayZ(); }
+  template <typename T> inline operator const T * (void) const { return arrayZ(); }
+
+  inline Type * operator  + (unsigned int i) { return arrayZ() + i; }
+  inline const Type * operator  + (unsigned int i) const { return arrayZ() + i; }
+
   inline Type *push (void)
   {
     if (unlikely (!resize (len + 1)))

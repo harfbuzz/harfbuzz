@@ -612,7 +612,7 @@ struct Supplier
   }
   inline Supplier (const hb_vector_t<Type> *v)
   {
-    head = v->arrayZ();
+    head = *v;
     len = v->len;
     stride = sizeof (Type);
   }
