@@ -232,7 +232,7 @@ struct hb_vector_t
     const Type *array = this->arrayZ();
     while (min <= max)
     {
-      int mid = (min + max) / 2;
+      int mid = ((unsigned int)min + (unsigned int)max) >> 1;
       int c = array[mid].cmp (&x);
       if (c < 0)
         max = mid - 1;
