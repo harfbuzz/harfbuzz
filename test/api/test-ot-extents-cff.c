@@ -69,28 +69,6 @@ test_extents_cff1 (void)
 }
 
 static void
-test_extents_cff1_legacyops (void)
-{
-  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_legacyops.otf");
-  g_assert (face);
-  hb_font_t *font = hb_font_create (face);
-  hb_face_destroy (face);
-  g_assert (font);
-  hb_ot_font_set_funcs (font);
-
-  hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 0, &extents);
-  g_assert (result);
-
-  g_assert_cmpint (extents.x_bearing, ==, 20);
-  g_assert_cmpint (extents.y_bearing, ==, 800);
-  g_assert_cmpint (extents.width, ==, 160);
-  g_assert_cmpint (extents.height, ==, -810);
-
-  hb_font_destroy (font);
-}
-
-static void
 test_extents_cff1_flex (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
@@ -182,7 +160,6 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_extents_cff1);
-  hb_test_add (test_extents_cff1_legacyops);
   hb_test_add (test_extents_cff1_flex);
   hb_test_add (test_extents_cff2);
   hb_test_add (test_extents_cff2_vsindex);
