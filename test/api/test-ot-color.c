@@ -375,28 +375,21 @@ test_hb_ot_color_has_data (void)
 static void
 test_hb_ot_color_svg (void)
 {
-  hb_codepoint_t start_glyph, end_glyph;
   hb_blob_t *blob;
 
-  blob = hb_ot_color_glyph_svg_create_blob (svg, 0, &start_glyph, &end_glyph);
+  blob = hb_ot_color_glyph_svg_create_blob (svg, 0);
   g_assert (hb_blob_get_length (blob) == 0);
-  g_assert (start_glyph == 0);
-  g_assert (end_glyph == 0);
 
-  blob = hb_ot_color_glyph_svg_create_blob (svg, 1, &start_glyph, &end_glyph);
+  blob = hb_ot_color_glyph_svg_create_blob (svg, 1);
   unsigned int length;
   const char *data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 146);
-  g_assert_cmpuint (start_glyph, ==, 1);
-  g_assert_cmpuint (end_glyph, ==, 1);
   g_assert (strncmp (data, "<?xml", 4) == 0);
   g_assert (strncmp (data + 140, "</svg>", 5) == 0);
   hb_blob_destroy (blob);
 
   blob = hb_ot_color_glyph_svg_create_blob (empty, 0, &start_glyph, &end_glyph);
   g_assert (hb_blob_get_length (blob) == 0);
-  g_assert (start_glyph == 0);
-  g_assert (end_glyph == 0);
 }
 
 int

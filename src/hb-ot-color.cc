@@ -262,18 +262,13 @@ hb_ot_color_has_svg (hb_face_t *face)
  * hb_ot_color_glyph_svg_create_blob:
  * @face:
  * @glyph:
- * @start_glyph: (out) (optional): Start of range this SVG supports
- * @end_glyph:   (out) (optional): End of range this SVG supports
  *
  * Returns:
  *
  * Since: REPLACEME
  */
 hb_blob_t *
-hb_ot_color_glyph_svg_create_blob (hb_face_t      *face,
-				   hb_codepoint_t  glyph,
-				   hb_codepoint_t *start_glyph, /* OUT.  May be NULL. */
-				   hb_codepoint_t *end_glyph    /* OUT.  May be NULL. */)
+hb_ot_color_glyph_svg_create_blob (hb_face_t *face, hb_codepoint_t glyph)
 {
-  return _get_svg (face).create_blob (glyph, start_glyph, end_glyph);
+  return _get_svg (face).create_blob_for_glyph (glyph);
 }

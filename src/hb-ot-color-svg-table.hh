@@ -40,9 +40,6 @@ namespace OT {
 
 struct SVGDocumentIndexEntry
 {
-  friend struct SVG;
-  friend struct SVGDocumentIndex;
-
   inline int cmp (hb_codepoint_t g) const
   { return g < startGlyphID ? -1 : g > endGlyphID ? 1 : 0; }
 
@@ -51,6 +48,13 @@ struct SVGDocumentIndexEntry
     const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
     const SVGDocumentIndexEntry *b = (const SVGDocumentIndexEntry *) pb;
     return b->cmp (*a);
+  }
+
+  inline hb_blob_t* create_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
+  {
+    if (svgDocLength == 0) return hb_blob_get_empty ();
+    return hb_blob_create_sub_blob (svg_blob, (unsigned int) svgDoc + index_offset,
+				    svgDocLength);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -85,7 +89,7 @@ struct SVGDocumentIndex
 					     entries.len,
 					     sizeof (SVGDocumentIndexEntry),
 					     SVGDocumentIndexEntry::cmp);
-    return likely (rec && glyph_id <= rec->endGlyphID) ? *rec : Null(SVGDocumentIndexEntry);
+    return likely (rec) ? *rec : Null(SVGDocumentIndexEntry);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -120,34 +124,12 @@ struct SVG
       hb_blob_destroy (svg_blob);
     }
 
-    inline hb_blob_t*
-    failed_create_blob (hb_codepoint_t  glyph_id,
-			hb_codepoint_t *start_glyph_id,
-			hb_codepoint_t *end_glyph_id) const
-    {
-      if (start_glyph_id) *start_glyph_id = 0;
-      if (end_glyph_id) *end_glyph_id = 0;
-      return hb_blob_get_empty ();
-    }
-
-    inline hb_blob_t*
-    create_blob (hb_codepoint_t  glyph_id,
-		 hb_codepoint_t *start_glyph_id,
-		 hb_codepoint_t *end_glyph_id) const
+    inline hb_blob_t* create_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
       if (unlikely (svg_len == 0))
-        return failed_create_blob (glyph_id, start_glyph_id, end_glyph_id);
-      const SVGDocumentIndex &index = svg+svg->svgDocIndex;
-      const SVGDocumentIndexEntry &entry = index.get_glyph_entry (glyph_id);
-      if (unlikely (entry.svgDocLength == 0))
-        return failed_create_blob (glyph_id, start_glyph_id, end_glyph_id);
-      unsigned int blob_offset = entry.svgDoc;
-      blob_offset += svg->svgDocIndex;
-      if (unlikely (blob_offset > svg_len || blob_offset + entry.svgDocLength > svg_len))
-        return failed_create_blob (glyph_id, start_glyph_id, end_glyph_id);
-      if (start_glyph_id) *start_glyph_id = entry.startGlyphID;
-      if (end_glyph_id) *end_glyph_id = entry.endGlyphID;
-      return hb_blob_create_sub_blob (svg_blob, blob_offset, entry.svgDocLength);
+        return hb_blob_get_empty ();
+      return (svg+svg->svgDocIndex).get_glyph_entry (glyph_id).create_blob (svg_blob,
+									    svg->svgDocIndex);
     }
 
     inline bool has_data () const
