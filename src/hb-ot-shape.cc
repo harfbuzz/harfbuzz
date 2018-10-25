@@ -53,6 +53,16 @@ _hb_apply_morx (hb_face_t *face)
 	 hb_aat_layout_has_substitution (face);
 }
 
+hb_ot_shape_planner_t::hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
+						face (master_plan->face_unsafe),
+						props (master_plan->props),
+						map (face, &props),
+						aat_map (face, &props),
+						apply_morx (_hb_apply_morx (face)),
+						shaper (apply_morx ?
+						        &_hb_ot_complex_shaper_default :
+							hb_ot_shape_complex_categorize (this)) {}
+
 void
 hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 				const int          *coords,
@@ -61,6 +71,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, coords, num_coords);
+  if (apply_morx)
+    aat_map.compile (plan.aat_map, coords, num_coords);
 
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
@@ -89,7 +101,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
    * Decide who does substitutions. GSUB, morx, or fallback.
    */
 
-  plan.apply_morx = _hb_apply_morx (face);
+  plan.apply_morx = apply_morx;
 
   /*
    * Decide who does positioning. GPOS, kerx, kern, or fallback.
@@ -217,6 +229,16 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
 		      feature->value);
   }
+
+  if (planner->apply_morx)
+  {
+    hb_aat_map_builder_t *aat_map = &planner->aat_map;
+    for (unsigned int i = 0; i < num_user_features; i++)
+    {
+      const hb_feature_t *feature = &user_features[i];
+      aat_map->add_feature (feature->tag, feature->value);
+    }
+  }
 }
 
 
@@ -277,13 +299,6 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   plan->init ();
 
   hb_ot_shape_planner_t planner (shape_plan);
-
-  /* Ugly that we have to do this here...
-   * If we are going to apply morx, choose default shaper. */
-  if (_hb_apply_morx (planner.face))
-    planner.shaper = &_hb_ot_complex_shaper_default;
-  else
-    planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props,
 				user_features, num_user_features);

@@ -183,6 +183,14 @@ _get_trak (hb_face_t *face)
 }
 
 
+void
+hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
+			   hb_aat_map_t *map)
+{
+  _get_morx (mapper->face).compile_flags (mapper, map);
+}
+
+
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
