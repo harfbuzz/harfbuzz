@@ -669,7 +669,9 @@ struct hb_set_t
 	return nullptr;
 
       pages[map.index].init0 ();
-      memmove (&page_map[i] + 1, &page_map[i], (page_map.len - 1 - i) * sizeof (page_map[0]));
+      memmove (page_map.arrayZ() + i + 1,
+	       page_map.arrayZ() + i,
+	       (page_map.len - 1 - i) * sizeof (page_map[0]));
       page_map[i] = map;
     }
     return &pages[page_map[i].index];
