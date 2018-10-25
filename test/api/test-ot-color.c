@@ -388,7 +388,7 @@ test_hb_ot_color_svg (void)
   g_assert (strncmp (data + 140, "</svg>", 5) == 0);
   hb_blob_destroy (blob);
 
-  blob = hb_ot_color_glyph_svg_create_blob (empty, 0, &start_glyph, &end_glyph);
+  blob = hb_ot_color_glyph_svg_create_blob (empty, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 }
 

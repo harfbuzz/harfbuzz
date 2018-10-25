@@ -270,5 +270,5 @@ hb_ot_color_has_svg (hb_face_t *face)
 hb_blob_t *
 hb_ot_color_glyph_svg_create_blob (hb_face_t *face, hb_codepoint_t glyph)
 {
-  return _get_svg (face).create_blob_for_glyph (glyph);
+  return _get_svg (face).reference_blob_for_glyph (glyph);
 }
