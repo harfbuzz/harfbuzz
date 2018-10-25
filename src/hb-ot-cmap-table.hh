@@ -249,7 +249,7 @@ struct CmapSubtableFormat4
       unsigned int i;
       while (min <= max)
       {
-	int mid = (min + max) / 2;
+        int mid = ((unsigned int) min + (unsigned int) max) / 2;
 	if (codepoint < startCount[mid])
 	  max = mid - 1;
 	else if (codepoint > endCount[mid])
