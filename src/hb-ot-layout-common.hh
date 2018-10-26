@@ -277,6 +277,8 @@ struct Script
   { return langSys.find_index (tag, index); }
 
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
+  inline const LangSys& get_default_lang_sys (unsigned int i) const
+  { return get_default_lang_sys (); }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool subset (hb_subset_context_t *c) const
