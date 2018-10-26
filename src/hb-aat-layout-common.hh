@@ -362,6 +362,7 @@ template <>
 }
 namespace AAT {
 
+enum { DELETED_GLYPH = 0xFFFF };
 
 /*
  * Extended State Table
@@ -424,6 +425,7 @@ struct StateTable
 
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
+    if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
     const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
     return v ? (unsigned) *v : (unsigned) CLASS_OUT_OF_BOUNDS;
   }
