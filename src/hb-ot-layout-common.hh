@@ -51,16 +51,6 @@
 #define HB_CLOSURE_MAX_STAGES	32
 #endif
 
-#ifndef HB_FEATURE_CLOSURE_MAX_OPERATIONS
-/*
- * When computing the closure there is worst case N^3 behaviour
- * this is used to limit the max number of operations that can
- * be done is the process of closing features.
- */
-#define HB_FEATURE_CLOSURE_MAX_OPERATIONS 1000000
-#endif
-
-
 namespace OT {
 
 

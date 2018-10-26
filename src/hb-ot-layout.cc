@@ -88,19 +88,46 @@ const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
   return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
 }
 
+/*
+ * GSUB/GPOS
+ */
+
+static const OT::GSUBGPOS&
+get_gsubgpos_table (hb_face_t *face,
+		    hb_tag_t   table_tag)
+{
+  switch (table_tag) {
+    case HB_OT_TAG_GSUB: return _get_gsub (face);
+    case HB_OT_TAG_GPOS: return _get_gpos (face);
+    default:             return Null(OT::GSUBGPOS);
+  }
+}
+
 struct hb_feature_closure_context_t
 {
   hb_feature_closure_context_t (hb_face_t       *face,
                                 hb_tag_t         table_tag,
                                 hb_set_t        *feature_indexes)
-      : face(face), table_tag(table_tag), operation_count(0),
-        feature_indexes(feature_indexes)
+      : face (face), table_tag (table_tag), feature_indexes (feature_indexes),
+        gsubgpos (get_gsubgpos_table (face, table_tag))
   {}
 
-  hb_face_t   *face;
-  hb_tag_t     table_tag;
-  unsigned int operation_count;
-  hb_set_t    *feature_indexes;
+  bool visit (const void *sub_table)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) sub_table - (uintptr_t) &gsubgpos);
+
+    if (visited.has (delta))
+      return false;
+
+    visited.add (delta);
+    return true;
+  }
+
+  hb_face_t          *face;
+  hb_tag_t            table_tag;
+  const OT::GSUBGPOS &gsubgpos;
+  hb_auto_t<hb_set_t> visited;
+  hb_set_t           *feature_indexes;
 };
 
 
@@ -313,22 +340,6 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  hb_position_t  *caret_array /* OUT */)
 {
   return _get_gdef (font->face).get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
-}
-
-
-/*
- * GSUB/GPOS
- */
-
-static const OT::GSUBGPOS&
-get_gsubgpos_table (hb_face_t *face,
-		    hb_tag_t   table_tag)
-{
-  switch (table_tag) {
-    case HB_OT_TAG_GSUB: return _get_gsub (face);
-    case HB_OT_TAG_GPOS: return _get_gpos (face);
-    default:             return Null(OT::GSUBGPOS);
-  }
 }
 
 
@@ -578,7 +589,6 @@ _hb_ot_layout_language_add_feature_indexes_to (unsigned int                  scr
   const OT::GSUBGPOS &g = get_gsubgpos_table (context->face, context->table_tag);
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
-  context->operation_count += l.featureIndex.len;
   l.add_feature_indexes_to (context->feature_indexes);
 }
 
@@ -726,9 +736,6 @@ _hb_ot_layout_collect_features_features (unsigned int          script_index,
                                          const hb_tag_t       *features,
                                          hb_feature_closure_context_t *context /* OUT */)
 {
-  if (context->operation_count > HB_FEATURE_CLOSURE_MAX_OPERATIONS)
-    return;
-
   if (!features)
   {
     unsigned int required_feature_index;
@@ -738,10 +745,7 @@ _hb_ot_layout_collect_features_features (unsigned int          script_index,
 						    language_index,
 						    &required_feature_index,
 						    nullptr))
-    {
-      context->operation_count++;
       context->feature_indexes->add (required_feature_index);
-    }
 
     /* All features */
     _hb_ot_layout_language_add_feature_indexes_to (script_index,
@@ -759,10 +763,7 @@ _hb_ot_layout_collect_features_features (unsigned int          script_index,
 					      language_index,
 					      *features,
 					      &feature_index))
-      {
-        context->operation_count++;
         context->feature_indexes->add (feature_index);
-      }
     }
   }
 }
@@ -773,9 +774,6 @@ _hb_ot_layout_collect_features_languages (unsigned int                  script_i
                                           const hb_tag_t               *features,
                                           hb_feature_closure_context_t *context /* OUT */)
 {
-  if (context->operation_count > HB_FEATURE_CLOSURE_MAX_OPERATIONS)
-    return;
-
   _hb_ot_layout_collect_features_features (script_index,
                                            HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
                                            features,
@@ -827,6 +825,7 @@ hb_ot_layout_collect_features (hb_face_t      *face,
                                hb_set_t       *feature_indexes /* OUT */)
 {
   hb_feature_closure_context_t context (face, table_tag, feature_indexes);
+
   if (!scripts)
   {
     /* All scripts */
@@ -834,10 +833,13 @@ hb_ot_layout_collect_features (hb_face_t      *face,
 							     table_tag,
 							     0, nullptr, nullptr);
     for (unsigned int script_index = 0; script_index < count; script_index++)
-      _hb_ot_layout_collect_features_languages (script_index,
-                                                languages,
-                                                features,
-                                                &context);
+    {
+      if (context.visit (&context.gsubgpos.get_script (script_index)))
+        _hb_ot_layout_collect_features_languages (script_index,
+                                                  languages,
+                                                  features,
+                                                  &context);
+    }
   }
   else
   {
@@ -847,7 +849,8 @@ hb_ot_layout_collect_features (hb_face_t      *face,
       if (hb_ot_layout_table_find_script (face,
 					  table_tag,
 					  *scripts,
-					  &script_index))
+					  &script_index)
+          && context.visit (&context.gsubgpos.get_script (script_index)))
         _hb_ot_layout_collect_features_languages (script_index,
                                                   languages,
                                                   features,
