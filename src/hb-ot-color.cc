@@ -47,11 +47,25 @@ _get_colr (hb_face_t *face)
   return *(hb_ot_face_data (face)->COLR.get ());
 }
 
+static inline const OT::CBDT_accelerator_t&
+_get_cbdt (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
+  return *(hb_ot_face_data (face)->CBDT.get ());
+}
+
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
   return *(hb_ot_face_data (face)->CPAL.get ());
+}
+
+static inline const OT::sbix_accelerator_t&
+_get_sbix (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::sbix_accelerator_t);
+  return *(hb_ot_face_data (face)->sbix.get ());
 }
 
 static inline const OT::SVG_accelerator_t&
@@ -271,4 +285,54 @@ hb_blob_t *
 hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
   return _get_svg (face).reference_blob_for_glyph (glyph);
+}
+
+
+/*
+ * PNG, CBDT or sbix
+ */
+
+/**
+ * hb_ot_color_has_png:
+ * @face: a font face.
+ *
+ * Returns: whether SVG table is available.
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_ot_color_has_png (hb_face_t *face)
+{
+  return _get_cbdt (face).has_data () || _get_sbix (face).has_data ();
+}
+
+/**
+ * hb_ot_color_glyph_reference_blob_svg:
+ * @font:
+ * @glyph:
+ * @strike_x_ppem: (out):
+ * @strike_y_ppem: (out):
+ *
+ * Returns:
+ *
+ * Since: REPLACEME
+ */
+hb_blob_t *
+hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
+				      hb_codepoint_t  glyph,
+				      unsigned int   *strike_x_ppem /* OUT */,
+				      unsigned int   *strike_y_ppem /* OUT */)
+{
+  /* TODO: if (hb_options ().aat ()) then call sbix first */
+
+  if (_get_cbdt (font->face).has_data ())
+    return _get_cbdt (font->face).reference_blob_for_glyph (glyph, font->x_ppem, font->y_ppem,
+							    strike_x_ppem, strike_y_ppem);
+
+  if (_get_sbix (font->face).has_data ())
+    return _get_sbix (font->face).reference_blob_for_glyph (glyph, font->ptem,
+							    MAX (font->x_ppem, font->y_ppem),
+							    HB_TAG('p','n','g',' '),
+							    strike_x_ppem, strike_y_ppem);
+
 }

@@ -376,13 +376,6 @@ struct CBDT
 {
   static const hb_tag_t tableTag = HB_OT_TAG_CBDT;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version.major == 2 || version.major == 3));
-  }
-
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
@@ -511,6 +504,20 @@ struct CBDT
       }
     }
 
+    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
+						unsigned int    requested_x_ppem,
+						unsigned int    requested_y_ppem,
+						unsigned int   *strike_x_ppem,
+						unsigned int   *strike_y_ppem) const
+    {
+//       if (unlikely (cbdt_len == 0))
+        return hb_blob_get_empty ();
+//       return svg->get_glyph_entry (glyph_id).reference_blob (svg_blob, svg->svgDocEntries);
+    }
+
+    inline bool has_data () const
+    { return cbdt_len; }
+
     private:
     hb_blob_t *cblc_blob;
     hb_blob_t *cbdt_blob;
@@ -521,6 +528,12 @@ struct CBDT
     unsigned int upem;
   };
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version.major == 2 || version.major == 3));
+  }
 
   protected:
   FixedVersion<>		version;

@@ -58,12 +58,13 @@ cbdt_callback (const uint8_t* data, unsigned int length,
 }
 
 static void
-sbix_callback (const uint8_t* data, unsigned int length,
-	       unsigned int group, unsigned int gid)
+sbix_callback (hb_blob_t *blob, unsigned int group, unsigned int gid)
 {
   char output_path[255];
   sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
   FILE *f = fopen (output_path, "wb");
+  unsigned int length;
+  const char* data = hb_blob_get_data (blob, &length);
   fwrite (data, 1, length, f);
   fclose (f);
 }
