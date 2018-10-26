@@ -75,7 +75,7 @@ svg_dump (hb_face_t *face)
 
   for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
   {
-    hb_blob_t *blob = hb_ot_color_glyph_svg_create_blob (face, glyph_id);
+    hb_blob_t *blob = hb_ot_color_glyph_reference_blob_svg (face, glyph_id);
 
     if (hb_blob_get_length (blob) == 0) continue;
 

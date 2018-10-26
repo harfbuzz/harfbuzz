@@ -377,10 +377,10 @@ test_hb_ot_color_svg (void)
 {
   hb_blob_t *blob;
 
-  blob = hb_ot_color_glyph_svg_create_blob (svg, 0);
+  blob = hb_ot_color_glyph_reference_blob_svg (svg, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
-  blob = hb_ot_color_glyph_svg_create_blob (svg, 1);
+  blob = hb_ot_color_glyph_reference_blob_svg (svg, 1);
   unsigned int length;
   const char *data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 146);
@@ -388,7 +388,7 @@ test_hb_ot_color_svg (void)
   g_assert (strncmp (data + 140, "</svg>", 5) == 0);
   hb_blob_destroy (blob);
 
-  blob = hb_ot_color_glyph_svg_create_blob (empty, 0);
+  blob = hb_ot_color_glyph_reference_blob_svg (empty, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 }
 

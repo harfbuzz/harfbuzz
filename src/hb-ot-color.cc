@@ -259,7 +259,7 @@ hb_ot_color_has_svg (hb_face_t *face)
 }
 
 /**
- * hb_ot_color_glyph_svg_create_blob:
+ * hb_ot_color_glyph_reference_blob_svg:
  * @face:
  * @glyph:
  *
@@ -268,7 +268,7 @@ hb_ot_color_has_svg (hb_face_t *face)
  * Since: REPLACEME
  */
 hb_blob_t *
-hb_ot_color_glyph_svg_create_blob (hb_face_t *face, hb_codepoint_t glyph)
+hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
   return _get_svg (face).reference_blob_for_glyph (glyph);
 }
