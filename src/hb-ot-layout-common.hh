@@ -555,6 +555,8 @@ struct Feature
 					  unsigned int *lookup_count /* IN/OUT */,
 					  unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
+  inline void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
+  { lookupIndex.add_indexes_to (lookup_indexes); }
 
   inline const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }

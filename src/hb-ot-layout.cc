@@ -828,29 +828,14 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */)
 {
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
   hb_auto_t<hb_set_t> feature_indexes;
   hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
+
   for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
        hb_set_next (&feature_indexes, &feature_index);)
-  {
-    unsigned int lookup_indices[32];
-    unsigned int offset, len;
-
-    offset = 0;
-    do {
-      len = ARRAY_LENGTH (lookup_indices);
-      hb_ot_layout_feature_get_lookups (face,
-					table_tag,
-					feature_index,
-					offset, &len,
-					lookup_indices);
-
-      for (unsigned int i = 0; i < len; i++)
-	lookup_indexes->add (lookup_indices[i]);
-
-      offset += len;
-    } while (len == ARRAY_LENGTH (lookup_indices));
-  }
+    g.get_feature (feature_index).add_lookup_indexes_to (lookup_indexes);
 }
 
 /**
