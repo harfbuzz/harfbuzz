@@ -652,19 +652,7 @@ unsigned int
 hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 				     hb_tag_t      table_tag)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return 0;
-  switch (table_tag)
-  {
-    case HB_OT_TAG_GSUB:
-    {
-      return hb_ot_face_data (face)->GSUB->lookup_count;
-    }
-    case HB_OT_TAG_GPOS:
-    {
-      return hb_ot_face_data (face)->GPOS->lookup_count;
-    }
-  }
-  return 0;
+  return get_gsubgpos_table (face, table_tag).get_lookup_count ();
 }
 
 static void
