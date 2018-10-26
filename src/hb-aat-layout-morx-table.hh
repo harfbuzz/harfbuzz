@@ -447,8 +447,7 @@ struct LigatureSubtable
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      buffer->move_to (match_positions[--match_length]);
-	      buffer->skip_glyph ();
-	      end--;
+	      buffer->replace_glyph (DELETED_GLYPH);
 	    }
 
 	    buffer->move_to (end + 1);
