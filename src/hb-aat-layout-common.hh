@@ -532,7 +532,7 @@ struct StateTableDriver
 
     unsigned int state = StateTable<EntryData>::STATE_START_OF_TEXT;
     bool last_was_dont_advance = false;
-    for (buffer->idx = 0;;)
+    for (buffer->idx = 0; buffer->successful;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
@@ -565,8 +565,6 @@ struct StateTableDriver
 
       if (unlikely (!c->transition (this, entry)))
         break;
-
-      if (unlikely (!buffer->successful)) return;
 
       last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
 
