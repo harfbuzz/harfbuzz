@@ -664,8 +664,46 @@ struct hb_collect_features_context_t
     : g (get_gsubgpos_table (face, table_tag)),
       feature_indexes (feature_indexes_) {}
 
+  bool inline visited (const OT::Script &s)
+  {
+    /* We might have Null() object here.  Don't want to involve
+     * that in the memoize.  So, detect empty objects and return. */
+    if (unlikely (!s.has_default_lang_sys () &&
+		  !s.get_lang_sys_count ()))
+      return true;
+
+    return visited (s, visited_script);
+  }
+  bool inline visited (const OT::LangSys &l)
+  {
+    /* We might have Null() object here.  Don't want to involve
+     * that in the memoize.  So, detect empty objects and return. */
+    if (unlikely (!l.has_required_feature () &&
+		  !l.get_feature_count ()))
+      return true;
+
+    return visited (l, visited_langsys);
+  }
+
+  private:
+  template <typename T>
+  bool inline visited (const T &p, hb_set_t &visited_set)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) &p - (uintptr_t) &g);
+     if (visited_set.has (delta))
+      return true;
+
+    visited_set.add (delta);
+    return false;
+  }
+
+  public:
   const OT::GSUBGPOS &g;
   hb_set_t           *feature_indexes;
+
+  private:
+  hb_auto_t<hb_set_t> visited_script;
+  hb_auto_t<hb_set_t> visited_langsys;
 };
 
 static void
@@ -673,12 +711,13 @@ langsys_collect_features (hb_collect_features_context_t *c,
 			  const OT::LangSys  &l,
 			  const hb_tag_t     *features)
 {
+  if (c->visited (l)) return;
+
   if (!features)
   {
     /* All features. */
-    unsigned int index = l.get_required_feature_index ();
-    if (index != HB_OT_LAYOUT_NO_FEATURE_INDEX)
-      c->feature_indexes->add (index);
+    if (l.has_required_feature ())
+      c->feature_indexes->add (l.get_required_feature_index ());
 
     l.add_feature_indexes_to (c->feature_indexes);
   }
@@ -688,7 +727,6 @@ langsys_collect_features (hb_collect_features_context_t *c,
     for (; *features; features++)
     {
       hb_tag_t feature_tag = *features;
-      unsigned int feature_index;
       unsigned int num_features = l.get_feature_count ();
       for (unsigned int i = 0; i < num_features; i++)
       {
@@ -710,12 +748,15 @@ script_collect_features (hb_collect_features_context_t *c,
 			 const hb_tag_t *languages,
 			 const hb_tag_t *features)
 {
+  if (c->visited (s)) return;
+
   if (!languages)
   {
     /* All languages. */
-    langsys_collect_features (c,
-			      s.get_default_lang_sys (),
-			      features);
+    if (s.has_default_lang_sys ())
+      langsys_collect_features (c,
+				s.get_default_lang_sys (),
+				features);
 
     unsigned int count = s.get_lang_sys_count ();
     for (unsigned int language_index = 0; language_index < count; language_index++)
