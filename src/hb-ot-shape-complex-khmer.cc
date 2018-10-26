@@ -46,7 +46,7 @@ khmer_features[] =
   {HB_TAG('c','f','a','r'), F_MANUAL_JOINERS},
   /*
    * Other features.
-   * These features are applied all at once.
+   * These features are applied all at once after clearing syllables.
    */
   {HB_TAG('p','r','e','s'), F_GLOBAL_MANUAL_JOINERS},
   {HB_TAG('a','b','v','s'), F_GLOBAL_MANUAL_JOINERS},
@@ -438,8 +438,6 @@ clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		 hb_font_t *font HB_UNUSED,
 		 hb_buffer_t *buffer)
 {
-  /* TODO: In USE, we clear syllables right after reorder.  Figure out
-   * what Uniscribe does. */
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
