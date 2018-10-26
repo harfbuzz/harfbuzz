@@ -656,31 +656,6 @@ hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 }
 
 static void
-_hb_ot_layout_collect_lookups_lookups (hb_face_t      *face,
-				       hb_tag_t        table_tag,
-				       unsigned int    feature_index,
-				       hb_set_t       *lookup_indexes /* OUT */)
-{
-  unsigned int lookup_indices[32];
-  unsigned int offset, len;
-
-  offset = 0;
-  do {
-    len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookups (face,
-				      table_tag,
-				      feature_index,
-				      offset, &len,
-				      lookup_indices);
-
-    for (unsigned int i = 0; i < len; i++)
-      lookup_indexes->add (lookup_indices[i]);
-
-    offset += len;
-  } while (len == ARRAY_LENGTH (lookup_indices));
-}
-
-static void
 langsys_collect_features (const OT::GSUBGPOS &g,
 			  const OT::LangSys  &l,
 			  const hb_tag_t     *features,
@@ -808,8 +783,27 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 {
   hb_auto_t<hb_set_t> feature_indexes;
   hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
-  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID; hb_set_next (&feature_indexes, &feature_index);)
-    _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
+  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
+       hb_set_next (&feature_indexes, &feature_index);)
+  {
+    unsigned int lookup_indices[32];
+    unsigned int offset, len;
+
+    offset = 0;
+    do {
+      len = ARRAY_LENGTH (lookup_indices);
+      hb_ot_layout_feature_get_lookups (face,
+					table_tag,
+					feature_index,
+					offset, &len,
+					lookup_indices);
+
+      for (unsigned int i = 0; i < len; i++)
+	lookup_indexes->add (lookup_indices[i]);
+
+      offset += len;
+    } while (len == ARRAY_LENGTH (lookup_indices));
+  }
 }
 
 /**
