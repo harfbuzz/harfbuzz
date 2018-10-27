@@ -34,6 +34,7 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 
+
 /**
  * SECTION:hb-shape
  * @title: Shaping
@@ -42,9 +43,10 @@
  *
  * Shaping is the central operation of HarfBuzz. Shaping operates on buffers,
  * which are sequences of Unicode characters that use the same font and have
- * the same text direction, script and language. After shaping the buffer
+ * the same text direction, script, and language. After shaping the buffer
  * contains the output glyphs and their positions.
  **/
+
 
 #ifdef HB_USE_ATEXIT
 static void free_static_shaper_list (void);

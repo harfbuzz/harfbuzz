@@ -34,6 +34,19 @@
 #include "hb-ot.h"
 
 
+/**
+ * SECTION:hb-font
+ * @title: Font
+ * @short_description: Font object
+ * @include: hb.h
+ *
+ * Font objects represent a font face at a certain size and other
+ * parameters (pixels per EM, points per EM, variation settings.)
+ * Fonts are created from font faces, and are used as input to
+ * hb_shape() among other things.
+ **/
+
+
 /*
  * hb_font_funcs_t
  */

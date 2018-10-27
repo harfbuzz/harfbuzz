@@ -61,22 +61,15 @@
     <title>Reference manual</title>
       <chapter>
         <title>HarfBuzz API</title>
-        <xi:include href="xml/hb.xml"/>
         <xi:include href="xml/hb-common.xml"/>
-        <xi:include href="xml/hb-unicode.xml"/>
-        <xi:include href="xml/hb-buffer.xml"/>
         <xi:include href="xml/hb-blob.xml"/>
         <xi:include href="xml/hb-face.xml"/>
         <xi:include href="xml/hb-font.xml"/>
+        <xi:include href="xml/hb-buffer.xml"/>
         <xi:include href="xml/hb-shape.xml"/>
-
+        <xi:include href="xml/hb-unicode.xml"/>
         <xi:include href="xml/hb-version.xml"/>
-        <xi:include href="xml/hb-deprecated.xml"/>
 
-        <xi:include href="xml/hb-set.xml"/>
-        <xi:include href="xml/hb-map.xml"/>
-
-        <xi:include href="xml/hb-ot.xml"/>
         <xi:include href="xml/hb-ot-font.xml"/>
         <xi:include href="xml/hb-ot-layout.xml"/>
         <xi:include href="xml/hb-ot-tag.xml"/>
@@ -87,16 +80,19 @@
 
         <xi:include href="xml/hb-shape-plan.xml"/>
 
-        <xi:include href="xml/hb-glib.xml"/>
-        <xi:include href="xml/hb-icu.xml"/>
+        <xi:include href="xml/hb-set.xml"/>
+        <xi:include href="xml/hb-map.xml"/>
 
         <xi:include href="xml/hb-ft.xml"/>
+        <xi:include href="xml/hb-icu.xml"/>
+        <xi:include href="xml/hb-glib.xml"/>
+        <xi:include href="xml/hb-gobject.xml"/>
 
         <xi:include href="xml/hb-graphite2.xml"/>
         <xi:include href="xml/hb-uniscribe.xml"/>
         <xi:include href="xml/hb-coretext.xml"/>
 
-        <xi:include href="xml/hb-gobject.xml"/>
+        <xi:include href="xml/hb-deprecated.xml"/>
 
       </chapter>
       <chapter id="object-tree">

@@ -33,6 +33,20 @@
 #include "hb-unicode.hh"
 
 
+/**
+ * SECTION: hb-unicode
+ * @title: Unicode functions
+ * @short_description: Unicode character property access
+ * @include: hb.h
+ *
+ * Unicode functions are used to access Unicode character properties.
+ * Client can pass its own Unicode functions to HarfBuzz, or access
+ * the built-in Unicode functions that come with HarfBuzz.
+ *
+ * With the Unicode functions, one can query variour Unicode character
+ * properties, such as General Category, Script, Combining Class, etc.
+ **/
+
 
 /*
  * hb_unicode_funcs_t

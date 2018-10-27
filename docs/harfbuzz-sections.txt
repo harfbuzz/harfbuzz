@@ -1,10 +1,6 @@
-<SECTION>
-<FILE>hb</FILE>
 <SUBSECTION Private>
 HB_H_IN
-HB_EXTERN
-HB_DEPRECATED
-HB_DEPRECATED_FOR
+HB_OT_H_IN
 </SECTION>
 
 <SECTION>
@@ -148,6 +144,10 @@ uint16_t
 uint32_t
 uint64_t
 uint8_t
+<SUBSECTION Private>
+HB_EXTERN
+HB_DEPRECATED
+HB_DEPRECATED_FOR
 </SECTION>
 
 <SECTION>
@@ -419,11 +419,6 @@ HB_GOBJECT_H_IN
 </SECTION>
 
 <SECTION>
-<FILE>hb-gobject</FILE>
-
-</SECTION>
-
-<SECTION>
 <FILE>hb-graphite2</FILE>
 HB_GRAPHITE2_TAG_SILF
 hb_graphite2_face_get_gr_face
@@ -455,12 +450,6 @@ hb_map_reference
 hb_map_set
 hb_map_set_user_data
 hb_map_t
-</SECTION>
-
-<SECTION>
-<FILE>hb-ot</FILE>
-<SUBSECTION Private>
-HB_OT_H_IN
 </SECTION>
 
 <SECTION>
@@ -496,11 +485,6 @@ hb_ot_name_list_names
 hb_ot_name_get_utf16
 hb_ot_name_get_utf32
 hb_ot_name_get_utf8
-</SECTION>
-
-<SECTION>
-<FILE>hb-ot-shape</FILE>
-hb_ot_shape_glyphs_closure
 </SECTION>
 
 <SECTION>
@@ -555,23 +539,6 @@ Xhb_ot_layout_lookup_substitute
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot-var</FILE>
-HB_OT_TAG_VAR_AXIS_ITALIC
-HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
-HB_OT_TAG_VAR_AXIS_SLANT
-HB_OT_TAG_VAR_AXIS_WEIGHT
-HB_OT_TAG_VAR_AXIS_WIDTH
-HB_OT_VAR_NO_AXIS_INDEX
-hb_ot_var_axis_t
-hb_ot_var_has_data
-hb_ot_var_find_axis
-hb_ot_var_get_axis_count
-hb_ot_var_get_axes
-hb_ot_var_normalize_variations
-hb_ot_var_normalize_coords
-</SECTION>
-
-<SECTION>
 <FILE>hb-ot-math</FILE>
 HB_OT_TAG_MATH
 HB_OT_MATH_SCRIPT
@@ -592,6 +559,11 @@ hb_ot_math_get_glyph_assembly
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-shape</FILE>
+hb_ot_shape_glyphs_closure
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-tag</FILE>
 HB_OT_MAX_TAGS_PER_LANGUAGE
 HB_OT_MAX_TAGS_PER_SCRIPT
@@ -601,6 +573,23 @@ hb_ot_tag_to_language
 hb_ot_tag_to_script
 hb_ot_tags_from_script_and_language
 hb_ot_tags_to_script_and_language
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-var</FILE>
+HB_OT_TAG_VAR_AXIS_ITALIC
+HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
+HB_OT_TAG_VAR_AXIS_SLANT
+HB_OT_TAG_VAR_AXIS_WEIGHT
+HB_OT_TAG_VAR_AXIS_WIDTH
+HB_OT_VAR_NO_AXIS_INDEX
+hb_ot_var_axis_t
+hb_ot_var_has_data
+hb_ot_var_find_axis
+hb_ot_var_get_axis_count
+hb_ot_var_get_axes
+hb_ot_var_normalize_variations
+hb_ot_var_normalize_coords
 </SECTION>
 
 <SECTION>

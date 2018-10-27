@@ -38,8 +38,9 @@
  * @include: hb.h
  *
  * Buffers serve dual role in HarfBuzz; they hold the input characters that are
- * passed hb_shape(), and after shaping they hold the output glyphs.
+ * passed to hb_shape(), and after shaping they hold the output glyphs.
  **/
+
 
 /**
  * hb_segment_properties_equal:
