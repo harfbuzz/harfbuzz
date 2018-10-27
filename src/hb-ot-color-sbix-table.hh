@@ -153,23 +153,17 @@ struct sbix
       hb_blob_destroy (sbix_blob);
     }
 
-    inline void dump (void (*callback) (hb_blob_t *data,
-					unsigned int group, unsigned int gid)) const
+    /* only to support dump-emoji, don't use it anywhere else */
+    inline unsigned int *get_available_ppems (unsigned int *length)
     {
-      for (unsigned group = 0; group < sbix_table->strikes.len; group++)
-      {
-	const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
-	for (unsigned int glyph_id = 0; glyph_id < num_glyphs; glyph_id++)
-	{
-	  hb_tag_t tag;
-	  hb_blob_t *blob;
-	  blob = strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
-					sbix_table->strikes[group],
-					nullptr, nullptr,
-					HB_TAG('p','n','g',' '), num_glyphs);
-	  if (hb_blob_get_length (blob)) callback (blob, group, glyph_id);
-	}
-      }
+      if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
+	return nullptr;
+      *length = sbix_table->strikes.len;
+      unsigned int *result;
+      result = (unsigned int *) malloc (sizeof (unsigned int) * sbix_table->strikes.len);
+      for (unsigned int i = 0; i < sbix_table->strikes.len; i++)
+	result[i] = (sbix_table+sbix_table->strikes[i]).get_ppem ();
+      return result;
     }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,

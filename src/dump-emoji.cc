@@ -58,15 +58,30 @@ cbdt_callback (const uint8_t* data, unsigned int length,
 }
 
 static void
-sbix_callback (hb_blob_t *blob, unsigned int group, unsigned int gid)
+sbix_dump (hb_face_t *face)
 {
-  char output_path[255];
-  sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
-  FILE *f = fopen (output_path, "wb");
-  unsigned int length;
-  const char* data = hb_blob_get_data (blob, &length);
-  fwrite (data, 1, length, f);
-  fclose (f);
+  OT::sbix::accelerator_t sbix;
+  sbix.init (face);
+  unsigned int length = 0;
+  unsigned int *available_ppems = sbix.get_available_ppems (&length);
+  unsigned int num_glyphs = face->num_glyphs;
+  for (unsigned int group = 0; group < length; group++)
+    for (unsigned int glyph_id = 0; glyph_id < num_glyphs; glyph_id++)
+    {
+      hb_blob_t *blob;
+      blob = sbix.reference_blob_for_glyph (glyph_id, 0, available_ppems[group],
+					    HB_TAG('p','n','g',' '), NULL, NULL);
+      if (hb_blob_get_length (blob) == 0) continue;
+
+      char output_path[255];
+      sprintf (output_path, "out/sbix-%d-%d.png", available_ppems[group], glyph_id);
+      FILE *f = fopen (output_path, "wb");
+      unsigned int length;
+      const char* data = hb_blob_get_data (blob, &length);
+      fwrite (data, 1, length, f);
+      fclose (f);
+    }
+  sbix.fini ();
 }
 
 static void
@@ -273,10 +288,7 @@ main (int argc, char **argv)
   cbdt.dump (cbdt_callback);
   cbdt.fini ();
 
-  OT::sbix::accelerator_t sbix;
-  sbix.init (face);
-  sbix.dump (sbix_callback);
-  sbix.fini ();
+  sbix_dump (face);
 
   if (hb_ot_color_has_svg (face))
     svg_dump (face);
