@@ -47,12 +47,14 @@ _get_colr (hb_face_t *face)
   return *(hb_ot_face_data (face)->COLR.get ());
 }
 
+#if 0
 static inline const OT::CBDT_accelerator_t&
 _get_cbdt (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
   return *(hb_ot_face_data (face)->CBDT.get ());
 }
+#endif
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
@@ -61,6 +63,7 @@ _get_cpal (hb_face_t *face)
   return *(hb_ot_face_data (face)->CPAL.get ());
 }
 
+#if 0
 static inline const OT::sbix_accelerator_t&
 _get_sbix (hb_face_t *face)
 {
@@ -74,6 +77,7 @@ _get_svg (hb_face_t *face)
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::SVG_accelerator_t);
   return *(hb_ot_face_data (face)->SVG.get ());
 }
+#endif
 
 
 /*
@@ -239,6 +243,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 }
 
 
+#if 0
 /*
  * SVG
  */
@@ -249,7 +254,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
  *
  * Returns: whether SVG table is available.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 hb_bool_t
 hb_ot_color_has_svg (hb_face_t *face)
@@ -264,7 +269,7 @@ hb_ot_color_has_svg (hb_face_t *face)
  *
  * Returns: respective svg blob of the glyph, if available.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 hb_blob_t *
 hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
@@ -283,7 +288,7 @@ hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
  *
  * Returns: whether either of CBDT or sbix tables is available.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 hb_bool_t
 hb_ot_color_has_png (hb_face_t *face)
@@ -302,7 +307,7 @@ hb_ot_color_has_png (hb_face_t *face)
  *
  * Returns: respective png blob of the glyph, if available.
  *
- * Since: REPLACEME
+ * Since: DONTREPLACEME
  */
 hb_blob_t *
 hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
@@ -328,3 +333,29 @@ hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
 
   return blob;
 }
+
+/* To be moved to public header */
+
+/*
+ * SVG
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_svg (hb_face_t *face);
+
+HB_EXTERN hb_blob_t *
+hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph);
+
+/*
+ * PNG: CBDT or sbix
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_color_has_png (hb_face_t *face);
+
+HB_EXTERN hb_blob_t *
+hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
+				      hb_codepoint_t  glyph,
+				      unsigned int   *strike_x_ppem,
+				      unsigned int   *strike_y_ppem);
+#endif

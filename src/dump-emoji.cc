@@ -89,9 +89,12 @@ svg_dump (hb_face_t *face)
 {
   unsigned glyph_count = hb_face_get_glyph_count (face);
 
+  OT::SVG::accelerator_t svg;
+  svg.init (face);
+
   for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
   {
-    hb_blob_t *blob = hb_ot_color_glyph_reference_blob_svg (face, glyph_id);
+    hb_blob_t *blob = svg.reference_blob_for_glyph (glyph_id);
 
     if (hb_blob_get_length (blob) == 0) continue;
 
@@ -110,6 +113,8 @@ svg_dump (hb_face_t *face)
 
     hb_blob_destroy (blob);
   }
+
+  svg.fini ();
 }
 
 static void
@@ -290,8 +295,8 @@ main (int argc, char **argv)
 
   sbix_dump (face);
 
-  if (hb_ot_color_has_svg (face))
-    svg_dump (face);
+//   if (hb_ot_color_has_svg (face))
+  svg_dump (face);
 
   cairo_font_face_t *cairo_face;
   {

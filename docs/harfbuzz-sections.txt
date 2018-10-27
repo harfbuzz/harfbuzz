@@ -460,12 +460,8 @@ HB_OT_H_IN
 <SECTION>
 <FILE>hb-ot-color</FILE>
 hb_ot_color_glyph_get_layers
-hb_ot_color_glyph_reference_blob_png
-hb_ot_color_glyph_reference_blob_svg
 hb_ot_color_has_layers
 hb_ot_color_has_palettes
-hb_ot_color_has_png
-hb_ot_color_has_svg
 hb_ot_color_layer_t
 hb_ot_color_palette_color_get_name_id
 hb_ot_color_palette_flags_t
