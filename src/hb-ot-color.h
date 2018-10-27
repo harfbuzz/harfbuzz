@@ -94,7 +94,7 @@ HB_EXTERN hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face);
 
 /**
- * hb_ot_color_layer_t:
+ * hb_ot_color_layer_t: Pairs of glyph and color index.
  *
  * Since: REPLACEME
  **/
@@ -110,7 +110,6 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      unsigned int         start_offset,
 			      unsigned int        *count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */);
-
 
 HB_END_DECLS
 

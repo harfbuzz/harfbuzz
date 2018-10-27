@@ -62,13 +62,59 @@ struct SBIXGlyph
 
 struct SBIXStrike
 {
-  friend struct sbix;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  imageOffsetsZ.sanitize_shallow (c, c->get_num_glyphs () + 1));
+  }
+
+  inline unsigned int get_ppem () const
+  { return ppem; }
+
+  inline unsigned int get_resolution () const
+  { return resolution; }
+
+  inline unsigned int blob_size (unsigned int glyph_id) const
+  {
+    return imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] - SBIXGlyph::min_size;
+  }
+
+  inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
+				    hb_blob_t    *sbix_blob,
+				    unsigned int  sbix_len,
+				    unsigned int  strike_offset,
+				    unsigned int *x_offset,
+				    unsigned int *y_offset,
+				    hb_tag_t      requested_file_type,
+				    unsigned int  num_glyphs) const
+  {
+    if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
+      return hb_blob_get_empty ();
+
+    if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
+      return hb_blob_get_empty ();
+
+    const SBIXGlyph *glyph = &(this+imageOffsetsZ[glyph_id]);
+    if (unlikely (glyph->graphicType == HB_TAG ('d','u','p','e') &&
+		  blob_size (glyph_id) >= 2))
+    {
+      unsigned int new_glyph_id = *((HBUINT16 *) &glyph->data);
+      if (new_glyph_id < num_glyphs)
+      {
+	glyph = &(this+imageOffsetsZ[new_glyph_id]);
+	glyph_id = new_glyph_id;
+        if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
+          return hb_blob_get_empty ();
+      }
+    }
+    if (unlikely (requested_file_type != glyph->graphicType))
+      return hb_blob_get_empty ();
+    if (likely (x_offset)) *x_offset = glyph->xOffset;
+    if (likely (y_offset)) *y_offset = glyph->yOffset;
+    unsigned int offset = strike_offset + SBIXGlyph::min_size;
+    offset += imageOffsetsZ[glyph_id];
+    return hb_blob_create_sub_blob (sbix_blob, offset, blob_size (glyph_id));
   }
 
   protected:
@@ -107,22 +153,47 @@ struct sbix
       hb_blob_destroy (sbix_blob);
     }
 
-    inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
-					unsigned int group, unsigned int gid)) const
+    /* only to support dump-emoji, don't use it anywhere else */
+    inline unsigned int *get_available_ppems (unsigned int *length)
     {
-      for (unsigned group = 0; group < sbix_table->strikes.len; ++group)
-      {
-	const SBIXStrike &strike = sbix_table->strikes[group](sbix_table);
-	for (unsigned int glyph = 0; glyph < num_glyphs; ++glyph)
-	  if (strike.imageOffsetsZ[glyph + 1] - strike.imageOffsetsZ[glyph] > 0)
-	  {
-	    const SBIXGlyph &sbixGlyph = strike.imageOffsetsZ[glyph]((const void *) &strike);
-	    callback ((const uint8_t*) &sbixGlyph.data,
-		      strike.imageOffsetsZ[glyph + 1] - strike.imageOffsetsZ[glyph] - 8,
-		      group, glyph);
-	  }
-      }
+      if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
+	return nullptr;
+      *length = sbix_table->strikes.len;
+      unsigned int *result;
+      result = (unsigned int *) malloc (sizeof (unsigned int) * sbix_table->strikes.len);
+      for (unsigned int i = 0; i < sbix_table->strikes.len; i++)
+	result[i] = (sbix_table+sbix_table->strikes[i]).get_ppem ();
+      return result;
     }
+
+    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
+						unsigned int    ptem HB_UNUSED,
+						unsigned int    requested_ppem,
+						unsigned int    requested_file_type,
+						unsigned int   *available_x_ppem,
+						unsigned int   *available_y_ppem) const
+    {
+      if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
+        return hb_blob_get_empty ();
+
+      /* TODO: Does spec guarantee strikes are ascended sorted? */
+      unsigned int group = sbix_table->strikes.len - 1;
+      if (requested_ppem != 0)
+	/* TODO: Use bsearch maybe or doesn't worth it? */
+        for (group = 0; group < sbix_table->strikes.len; group++)
+	  if ((sbix_table+sbix_table->strikes[group]).get_ppem () >= requested_ppem)
+	    break;
+
+      const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
+      if (available_x_ppem) *available_x_ppem = strike.get_ppem ();
+      if (available_y_ppem) *available_y_ppem = strike.get_ppem ();
+      return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
+				    sbix_table->strikes[group],
+				    nullptr, nullptr, requested_file_type, num_glyphs);
+    }
+
+    inline bool has_data () const
+    { return sbix_len; }
 
     private:
     hb_blob_t *sbix_blob;
@@ -142,6 +213,8 @@ struct sbix
   public:
   DEFINE_SIZE_ARRAY (8, strikes);
 };
+
+struct sbix_accelerator_t : sbix::accelerator_t {};
 
 } /* namespace OT */
 

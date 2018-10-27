@@ -41,10 +41,6 @@
 // Just so we compile them; unused otherwise:
 #include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-jstf-table.hh"
-#include "hb-ot-color-colr-table.hh"
-#include "hb-ot-color-cpal-table.hh"
-#include "hb-ot-color-sbix-table.hh"
-#include "hb-ot-color-svg-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 

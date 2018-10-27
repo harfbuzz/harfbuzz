@@ -376,13 +376,6 @@ struct CBDT
 {
   static const hb_tag_t tableTag = HB_OT_TAG_CBDT;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version.major == 2 || version.major == 3));
-  }
-
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
@@ -459,7 +452,7 @@ struct CBDT
     }
 
     inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
-        unsigned int group, unsigned int gid)) const
+					unsigned int group, unsigned int gid)) const
     {
       if (!cblc)
 	return;  // Not a color bitmap font.
@@ -511,6 +504,64 @@ struct CBDT
       }
     }
 
+    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
+						unsigned int    requested_x_ppem,
+						unsigned int    requested_y_ppem,
+						unsigned int   *strike_x_ppem,
+						unsigned int   *strike_y_ppem) const
+    {
+      if (!cblc)
+	return hb_blob_get_empty ();  // Not a color bitmap font.
+
+      if (requested_x_ppem == 0) requested_x_ppem = upem;
+      if (requested_y_ppem == 0) requested_y_ppem = upem;
+      unsigned int x_ppem = requested_x_ppem, y_ppem = requested_y_ppem;
+
+      const void *base;
+      const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph_id, &x_ppem, &y_ppem, &base);
+      if (!subtable_record || !x_ppem || !y_ppem)
+	return hb_blob_get_empty ();
+
+      unsigned int image_offset = 0, image_length = 0, image_format = 0;
+      if (!subtable_record->get_image_data (glyph_id, base, &image_offset, &image_length, &image_format))
+	return hb_blob_get_empty ();
+
+      switch (image_format)
+      {
+      case 17: {
+	if (strike_x_ppem) *strike_x_ppem = x_ppem;
+	if (strike_x_ppem) *strike_y_ppem = y_ppem;
+	const GlyphBitmapDataFormat17& glyphFormat17 =
+          StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	return hb_blob_create_sub_blob (cbdt_blob,
+					image_offset + GlyphBitmapDataFormat17::min_size,
+					glyphFormat17.data.len);
+      }
+      case 18: {
+	if (strike_x_ppem) *strike_x_ppem = x_ppem;
+	if (strike_x_ppem) *strike_y_ppem = y_ppem;
+	const GlyphBitmapDataFormat18& glyphFormat18 =
+          StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
+	return hb_blob_create_sub_blob (cbdt_blob,
+					image_offset + GlyphBitmapDataFormat18::min_size,
+					glyphFormat18.data.len);
+      }
+      case 19: {
+	if (strike_x_ppem) *strike_x_ppem = x_ppem;
+	if (strike_x_ppem) *strike_y_ppem = y_ppem;
+	const GlyphBitmapDataFormat19& glyphFormat19 =
+          StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
+	return hb_blob_create_sub_blob (cbdt_blob,
+					image_offset + GlyphBitmapDataFormat19::min_size,
+					glyphFormat19.data.len);
+      }
+      }
+      return hb_blob_get_empty ();
+    }
+
+    inline bool has_data () const
+    { return cbdt_len; }
+
     private:
     hb_blob_t *cblc_blob;
     hb_blob_t *cbdt_blob;
@@ -521,6 +572,12 @@ struct CBDT
     unsigned int upem;
   };
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version.major == 2 || version.major == 3));
+  }
 
   protected:
   FixedVersion<>		version;

@@ -40,13 +40,27 @@ namespace OT {
 
 struct SVGDocumentIndexEntry
 {
-  friend struct SVG;
+  inline int cmp (hb_codepoint_t g) const
+  { return g < startGlyphID ? -1 : g > endGlyphID ? 1 : 0; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void* base) const
+  static int cmp (const void *pa, const void *pb)
+  {
+    const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
+    const SVGDocumentIndexEntry *b = (const SVGDocumentIndexEntry *) pb;
+    return b->cmp (*a);
+  }
+
+  inline hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
+  {
+    if (svgDocLength == 0) return hb_blob_get_empty ();
+    return hb_blob_create_sub_blob (svg_blob, (unsigned int) svgDoc + index_offset,
+				    svgDocLength);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  (base+svgDoc).sanitize (c, svgDocLength));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -57,40 +71,15 @@ struct SVGDocumentIndexEntry
   LOffsetTo<UnsizedArrayOf<HBUINT8>, false>
 		svgDoc;		/* Offset from the beginning of the SVG Document Index
 				 * to an SVG document. Must be non-zero. */
-  HBUINT32 svgDocLength;	/* Length of the SVG document.
+  HBUINT32	svgDocLength;	/* Length of the SVG document.
 				 * Must be non-zero. */
   public:
   DEFINE_SIZE_STATIC (12);
 };
 
-struct SVGDocumentIndex
-{
-  friend struct SVG;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  entries.sanitize (c, this));
-  }
-
-  protected:
-  ArrayOf<SVGDocumentIndexEntry>
-		entries;	/* Array of SVG Document Index Entries. */
-  public:
-  DEFINE_SIZE_ARRAY (2, entries);
-};
-
 struct SVG
 {
   static const hb_tag_t tableTag = HB_OT_TAG_SVG;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  (this+svgDocIndex).sanitize (c)));
-  }
 
   struct accelerator_t
   {
@@ -106,19 +95,15 @@ struct SVG
       hb_blob_destroy (svg_blob);
     }
 
-    inline void
-    dump (void (*callback) (const uint8_t* data, unsigned int length,
-			    unsigned int start_glyph, unsigned int end_glyph)) const
+    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
-      const SVGDocumentIndex &index = svg+svg->svgDocIndex;
-      const ArrayOf<SVGDocumentIndexEntry> &entries = index.entries;
-      for (unsigned int i = 0; i < entries.len; ++i)
-      {
-	const SVGDocumentIndexEntry &entry = entries[i];
-	callback ((const uint8_t*) &entry.svgDoc (&index), entry.svgDocLength,
-						  entry.startGlyphID, entry.endGlyphID);
-      }
+      if (unlikely (svg_len == 0))
+        return hb_blob_get_empty ();
+      return svg->get_glyph_entry (glyph_id).reference_blob (svg_blob, svg->svgDocEntries);
     }
+
+    inline bool has_data () const
+    { return svg_len; }
 
     private:
     hb_blob_t *svg_blob;
@@ -127,15 +112,36 @@ struct SVG
     unsigned int svg_len;
   };
 
+  inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
+  {
+    const SVGDocumentIndexEntry *rec;
+    rec = (SVGDocumentIndexEntry *) bsearch (&glyph_id,
+					     &(this+svgDocEntries).arrayZ,
+					     (this+svgDocEntries).len,
+					     sizeof (SVGDocumentIndexEntry),
+					     SVGDocumentIndexEntry::cmp);
+    return likely (rec) ? *rec : Null(SVGDocumentIndexEntry);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  (this+svgDocEntries).sanitize_shallow (c)));
+  }
+
   protected:
   HBUINT16	version;	/* Table version (starting at 0). */
-  LOffsetTo<SVGDocumentIndex>
-		svgDocIndex;	/* Offset (relative to the start of the SVG table) to the
+  LOffsetTo<ArrayOf<SVGDocumentIndexEntry> >
+		svgDocEntries;	/* Offset (relative to the start of the SVG table) to the
 				 * SVG Documents Index. Must be non-zero. */
+				/* Array of SVG Document Index Entries. */
   HBUINT32	reserved;	/* Set to 0. */
   public:
   DEFINE_SIZE_STATIC (10);
 };
+
+struct SVG_accelerator_t : SVG::accelerator_t {};
 
 } /* namespace OT */
 

@@ -75,8 +75,8 @@
     HB_OT_TABLE(OT, COLR) \
     HB_OT_TABLE(OT, CPAL) \
     HB_OT_ACCELERATOR(OT, CBDT) \
-    HB_OT_TABLE(OT, sbix) \
-    HB_OT_TABLE(OT, SVG) \
+    HB_OT_ACCELERATOR(OT, sbix) \
+    HB_OT_ACCELERATOR(OT, SVG) \
     /* */
 
 /* Declare tables. */

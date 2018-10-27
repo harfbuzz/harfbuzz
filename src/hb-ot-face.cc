@@ -33,6 +33,8 @@
 #include "hb-ot-name-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
+#include "hb-ot-color-sbix-table.hh"
+#include "hb-ot-color-svg-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"

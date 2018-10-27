@@ -523,7 +523,6 @@ struct ArrayOf
     ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
   }
 
-  private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

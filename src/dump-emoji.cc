@@ -58,37 +58,67 @@ cbdt_callback (const uint8_t* data, unsigned int length,
 }
 
 static void
-sbix_callback (const uint8_t* data, unsigned int length,
-	       unsigned int group, unsigned int gid)
+sbix_dump (hb_face_t *face)
 {
-  char output_path[255];
-  sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
+  OT::sbix::accelerator_t sbix;
+  sbix.init (face);
+  unsigned int length = 0;
+  unsigned int *available_ppems = sbix.get_available_ppems (&length);
+  unsigned int num_glyphs = face->num_glyphs;
+  for (unsigned int group = 0; group < length; group++)
+    for (unsigned int glyph_id = 0; glyph_id < num_glyphs; glyph_id++)
+    {
+      hb_blob_t *blob;
+      blob = sbix.reference_blob_for_glyph (glyph_id, 0, available_ppems[group],
+					    HB_TAG('p','n','g',' '), NULL, NULL);
+      if (hb_blob_get_length (blob) == 0) continue;
+
+      char output_path[255];
+      sprintf (output_path, "out/sbix-%d-%d.png", available_ppems[group], glyph_id);
+      FILE *f = fopen (output_path, "wb");
+      unsigned int length;
+      const char* data = hb_blob_get_data (blob, &length);
+      fwrite (data, 1, length, f);
+      fclose (f);
+    }
+  sbix.fini ();
 }
 
 static void
-svg_callback (const uint8_t* data, unsigned int length,
-	      unsigned int start_glyph, unsigned int end_glyph)
+svg_dump (hb_face_t *face)
 {
-  char output_path[255];
-  if (start_glyph == end_glyph)
-    sprintf (output_path, "out/svg-%d.svg", start_glyph);
-  else
-    sprintf (output_path, "out/svg-%d-%d.svg", start_glyph, end_glyph);
+  unsigned glyph_count = hb_face_get_glyph_count (face);
 
-  // append "z" if the content is gzipped
-  if ((data[0] == 0x1F) && (data[1] == 0x8B))
-    strcat (output_path, "z");
+  OT::SVG::accelerator_t svg;
+  svg.init (face);
 
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
+  for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+  {
+    hb_blob_t *blob = svg.reference_blob_for_glyph (glyph_id);
+
+    if (hb_blob_get_length (blob) == 0) continue;
+
+    unsigned int length;
+    const char *data = hb_blob_get_data (blob, &length);
+
+    char output_path[256];
+    sprintf (output_path, "out/svg-%d.svg%s",
+	     glyph_id,
+	     // append "z" if the content is gzipped, https://stackoverflow.com/a/6059405
+	     (length > 2 && (data[0] == '\x1F') && (data[1] == '\x8B')) ? "z" : "");
+
+    FILE *f = fopen (output_path, "wb");
+    fwrite (data, 1, length, f);
+    fclose (f);
+
+    hb_blob_destroy (blob);
+  }
+
+  svg.fini ();
 }
 
 static void
-colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
+colr_cpal_dump (hb_face_t *face, cairo_font_face_t *cairo_face)
 {
   unsigned int upem = hb_face_get_upem (face);
 
@@ -263,15 +293,10 @@ main (int argc, char **argv)
   cbdt.dump (cbdt_callback);
   cbdt.fini ();
 
-  OT::sbix::accelerator_t sbix;
-  sbix.init (face);
-  sbix.dump (sbix_callback);
-  sbix.fini ();
+  sbix_dump (face);
 
-  OT::SVG::accelerator_t svg;
-  svg.init (face);
-  svg.dump (svg_callback);
-  svg.fini ();
+//   if (hb_ot_color_has_svg (face))
+  svg_dump (face);
 
   cairo_font_face_t *cairo_face;
   {
@@ -281,7 +306,8 @@ main (int argc, char **argv)
     FT_New_Face (library, argv[1], 0, &ftface);
     cairo_face = cairo_ft_font_face_create_for_ft_face (ftface, 0);
   }
-  colr_cpal_rendering (face, cairo_face);
+  if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
+    colr_cpal_dump (face, cairo_face);
 
   unsigned int num_glyphs = hb_face_get_glyph_count (face);
   unsigned int upem = hb_face_get_upem (face);
