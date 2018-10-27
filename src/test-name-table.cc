@@ -43,8 +43,8 @@ main (int argc, char **argv)
   hb_blob_destroy (blob);
   blob = NULL;
 
-  const hb_ot_name_entry_t *entries;
-  unsigned int count = hb_ot_name_get_names (face, &entries);
+  unsigned int count;
+  const hb_ot_name_entry_t *entries = hb_ot_name_list_names (face, &count);
 
   for (unsigned int i = 0; i < count; i++)
   {

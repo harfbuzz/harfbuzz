@@ -40,25 +40,24 @@ _get_name (hb_face_t *face)
 }
 
 /**
- * hb_ot_name_get_names:
+ * hb_ot_name_list_names:
  * @face: font face.
- * @entries: (out) (transfer none) (array):
+ * @num_entries: (out) number of returned entries.
  *
  * Enumerates all available name IDs and language combinations. Returned
  * array is owned by the @face and should not be modified.  It can be
  * used as long as @face is alive.
  *
- * Returns: Number of entries returned.
+ * Returns: (out) (transfer none) (array length=num_entries) Array of available name entries.
  * Since: 2.1.0
  **/
-unsigned int
-hb_ot_name_get_names (hb_face_t                 *face,
-		      const hb_ot_name_entry_t **entries /* OUT */)
+const hb_ot_name_entry_t *
+hb_ot_name_list_names (hb_face_t    *face,
+		       unsigned int *num_entries /* OUT */)
 {
   const OT::name_accelerator_t &name = _get_name (face);
-  if (entries)
-    *entries = name.names.arrayZ();
-  return name.names.len;
+  *num_entries = name.names.len;
+  return name.names.arrayZ();
 }
 
 

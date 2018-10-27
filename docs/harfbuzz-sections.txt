@@ -490,7 +490,7 @@ hb_ot_font_set_funcs
 <FILE>hb-ot-name</FILE>
 hb_name_id_t
 HB_NAME_ID_INVALID
-hb_ot_name_get_names
+hb_ot_name_list_names
 hb_ot_name_get_utf16
 hb_ot_name_get_utf32
 hb_ot_name_get_utf8

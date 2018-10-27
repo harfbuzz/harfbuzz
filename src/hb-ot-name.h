@@ -124,9 +124,9 @@ typedef struct hb_ot_name_entry_t
   hb_language_t language;
 } hb_ot_name_entry_t;
 
-HB_EXTERN unsigned int
-hb_ot_name_get_names (hb_face_t                 *face,
-		      const hb_ot_name_entry_t **entries /* OUT */);
+HB_EXTERN const hb_ot_name_entry_t *
+hb_ot_name_list_names (hb_face_t    *face,
+		       unsigned int *num_entries /* OUT */);
 
 
 HB_END_DECLS
