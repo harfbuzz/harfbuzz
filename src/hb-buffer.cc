@@ -33,7 +33,7 @@
 
 /**
  * SECTION: hb-buffer
- * @title: Buffers
+ * @title: hb_buffer_t
  * @short_description: Input and output buffers
  * @include: hb.h
  *

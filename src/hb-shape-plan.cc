@@ -33,7 +33,7 @@
 
 /**
  * SECTION:hb-shape-plan
- * @title: Shape plan
+ * @title: hb_shape_plan_t
  * @short_description: Object representing a shaping plan
  * @include: hb.h
  *

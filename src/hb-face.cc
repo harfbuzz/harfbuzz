@@ -37,8 +37,8 @@
 
 /**
  * SECTION:hb-face
- * @title: Face
- * @short_description: Font face object
+ * @title: hb_face_t
+ * @short_description: Font face objects
  * @include: hb.h
  *
  * Font face is objects represent a single face in a font family.

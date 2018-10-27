@@ -36,8 +36,8 @@
 
 /**
  * SECTION:hb-font
- * @title: Font
- * @short_description: Font object
+ * @title: hb_font_t
+ * @short_description: Font objects
  * @include: hb.h
  *
  * Font objects represent a font face at a certain size and other

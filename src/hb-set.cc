@@ -29,7 +29,7 @@
 
 /**
  * SECTION:hb-set
- * @title: Set
+ * @title: hb_set_t
  * @short_description: Object representing a set of integers
  * @include: hb.h
  *

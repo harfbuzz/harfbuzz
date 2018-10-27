@@ -42,7 +42,7 @@
 
 /**
  * SECTION: hb-blob
- * @title: Blobs
+ * @title: hb_blob_t
  * @short_description: Binary data containers
  * @include: hb.h
  *

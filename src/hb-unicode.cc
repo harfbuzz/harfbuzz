@@ -35,7 +35,7 @@
 
 /**
  * SECTION: hb-unicode
- * @title: Unicode functions
+ * @title: hb_unicode_funcs_t
  * @short_description: Unicode character property access
  * @include: hb.h
  *
