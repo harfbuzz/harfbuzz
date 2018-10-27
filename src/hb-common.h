@@ -33,6 +33,10 @@
 #ifndef HB_COMMON_H
 #define HB_COMMON_H
 
+#ifndef HB_EXTERN
+#define HB_EXTERN extern
+#endif
+
 #ifndef HB_BEGIN_DECLS
 # ifdef __cplusplus
 #  define HB_BEGIN_DECLS	extern "C" {
