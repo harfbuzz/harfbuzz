@@ -32,6 +32,16 @@
 #include "hb-utf.hh"
 
 
+/**
+ * SECTION:hb-ot-name
+ * @title: hb-ot-name
+ * @short_description: OpenType font name information
+ * @include: hb-ot.h
+ *
+ * Functions for fetching name strings from OpenType fonts.
+ **/
+
+
 static inline const OT::name_accelerator_t&
 _get_name (hb_face_t *face)
 {

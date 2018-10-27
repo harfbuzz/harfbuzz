@@ -45,6 +45,16 @@
 #include "hb-ot-name-table.hh"
 
 
+/**
+ * SECTION:hb-ot-layout
+ * @title: hb-ot-layout
+ * @short_description: OpenType Layout
+ * @include: hb-ot.h
+ *
+ * Functions for querying OpenType Layout features in the font face.
+ **/
+
+
 static const OT::kern::accelerator_t& _get_kern (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::kern::accelerator_t);

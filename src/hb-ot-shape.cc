@@ -42,6 +42,16 @@
 #include "hb-aat-layout.hh"
 
 
+/**
+ * SECTION:hb-ot-shape
+ * @title: hb-ot-shape
+ * @short_description: OpenType shaping support
+ * @include: hb-ot.h
+ *
+ * Support functions for OpenType shaping related queries.
+ **/
+
+
 static bool
 _hb_apply_morx (hb_face_t *face)
 {

@@ -41,6 +41,16 @@
 #include "hb-ot-color-cbdt-table.hh"
 
 
+/**
+ * SECTION:hb-ot-font
+ * @title: hb-ot-font
+ * @short_description: OpenType font implementation
+ * @include: hb-ot.h
+ *
+ * Functions for using OpenType fonts with hb_shape().
+ **/
+
+
 static hb_bool_t
 hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *font_data,

@@ -40,6 +40,16 @@
 #include "hb-ot-layout.hh"
 
 
+/**
+ * SECTION:hb-ot-color
+ * @title: hb-ot-color
+ * @short_description: OpenType Color Fonts
+ * @include: hb-ot.h
+ *
+ * Functions for fetching color-font information from OpenType font faces.
+ **/
+
+
 static inline const OT::COLR&
 _get_colr (hb_face_t *face)
 {
