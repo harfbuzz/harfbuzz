@@ -443,6 +443,7 @@ struct LigatureSubtable
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %d", lig);
 	    buffer->replace_glyph (lig);
 
+	    unsigned int lig_end = match_positions[match_length - 1] + 1;
 	    /* Now go and delete all subsequent components. */
 	    while (match_length - 1 > cursor)
 	    {
@@ -451,7 +452,7 @@ struct LigatureSubtable
 	      buffer->replace_glyph (DELETED_GLYPH);
 	    }
 
-	    buffer->move_to (end + 1);
+	    buffer->move_to (lig_end);
 	    buffer->merge_out_clusters (match_positions[cursor], buffer->out_len);
 	  }
 
