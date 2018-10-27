@@ -66,12 +66,18 @@ enum {
 /**
  * hb_name_id_t:
  *
+ * An integral type representing an OpenType 'name' table name identifier.
+ * There are predefined name IDs, as well as name IDs return from other
+ * API.  These can be used to fetch name strings from a font face.
+ *
  * Since: 2.0.0
  */
 typedef unsigned int hb_name_id_t;
 
 /**
  * HB_NAME_ID_INVALID
+ *
+ * Value to represent a nonexistent name ID.
  *
  * Since: 2.0.0
  **/
@@ -100,6 +106,15 @@ hb_ot_name_get_utf32 (hb_face_t     *face,
 		      uint32_t      *text      /* OUT */);
 
 
+/**
+ * hb_ot_name_entry_t:
+ * @name_id: name ID
+ * @language: language
+ *
+ * Structure representing a name ID in a particular language.
+ *
+ * Since: 2.1.0
+ **/
 typedef struct hb_ot_name_entry_t
 {
   hb_name_id_t  name_id;

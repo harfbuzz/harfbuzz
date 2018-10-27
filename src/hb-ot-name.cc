@@ -39,7 +39,18 @@ _get_name (hb_face_t *face)
   return *(hb_ot_face_data (face)->name.get ());
 }
 
-
+/**
+ * hb_ot_name_get_names:
+ * @face: font face.
+ * @entries: (out) (transfer none) (array):
+ *
+ * Enumerates all available name IDs and language combinations. Returned
+ * array is owned by the @face and should not be modified.  It can be
+ * used as long as @face is alive.
+ *
+ * Returns: Number of entries returned.
+ * Since: 2.1.0
+ **/
 unsigned int
 hb_ot_name_get_names (hb_face_t                 *face,
 		      const hb_ot_name_entry_t **entries /* OUT */)
@@ -131,6 +142,22 @@ hb_ot_name_get_utf (hb_face_t     *face,
   return 0;
 }
 
+/**
+ * hb_ot_name_get_utf8:
+ * @face: font face.
+ * @name_id: OpenType name identifier to fetch.
+ * @language: language to fetch the name for.
+ * @text_size: (inout) (allow-none): input size of @text buffer, and output size of
+ *                                   text written to buffer.
+ * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ *
+ * Fetches a font name from the OpenType 'name' table.
+ * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.
+ * Returns string in UTF-8 encoding.
+ *
+ * Returns: full length of the requested string, or 0 if not found.
+ * Since: 2.1.0
+ **/
 unsigned int
 hb_ot_name_get_utf8 (hb_face_t     *face,
 		     hb_name_id_t   name_id,
@@ -142,6 +169,22 @@ hb_ot_name_get_utf8 (hb_face_t     *face,
 					(hb_utf8_t::codepoint_t *) text);
 }
 
+/**
+ * hb_ot_name_get_utf16:
+ * @face: font face.
+ * @name_id: OpenType name identifier to fetch.
+ * @language: language to fetch the name for.
+ * @text_size: (inout) (allow-none): input size of @text buffer, and output size of
+ *                                   text written to buffer.
+ * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ *
+ * Fetches a font name from the OpenType 'name' table.
+ * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.
+ * Returns string in UTF-16 encoding.
+ *
+ * Returns: full length of the requested string, or 0 if not found.
+ * Since: 2.1.0
+ **/
 unsigned int
 hb_ot_name_get_utf16 (hb_face_t     *face,
 		      hb_name_id_t   name_id,
@@ -152,6 +195,22 @@ hb_ot_name_get_utf16 (hb_face_t     *face,
   return hb_ot_name_get_utf<hb_utf16_t> (face, name_id, language, text_size, text);
 }
 
+/**
+ * hb_ot_name_get_utf32:
+ * @face: font face.
+ * @name_id: OpenType name identifier to fetch.
+ * @language: language to fetch the name for.
+ * @text_size: (inout) (allow-none): input size of @text buffer, and output size of
+ *                                   text written to buffer.
+ * @text: (out caller-allocates) (array length=text_size): buffer to write fetched name into.
+ *
+ * Fetches a font name from the OpenType 'name' table.
+ * If @language is #HB_LANGUAGE_INVALID, English ("en") is assumed.
+ * Returns string in UTF-32 encoding.
+ *
+ * Returns: full length of the requested string, or 0 if not found.
+ * Since: 2.1.0
+ **/
 unsigned int
 hb_ot_name_get_utf32 (hb_face_t     *face,
 		      hb_name_id_t   name_id,

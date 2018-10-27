@@ -89,7 +89,7 @@ _get_svg (hb_face_t *face)
  *
  * Returns: whether CPAL table is available.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_bool_t
 hb_ot_color_has_palettes (hb_face_t *face)
@@ -104,7 +104,7 @@ hb_ot_color_has_palettes (hb_face_t *face)
  * Returns: the number of color palettes in @face, or zero if @face has
  * no colors.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 unsigned int
 hb_ot_color_palette_get_count (hb_face_t *face)
@@ -123,7 +123,7 @@ hb_ot_color_palette_get_count (hb_face_t *face)
  * Returns: an identifier within @face's `name` table.
  * If the requested palette has no name the result is #HB_NAME_ID_INVALID.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_name_id_t
 hb_ot_color_palette_get_name_id (hb_face_t *face,
@@ -139,7 +139,7 @@ hb_ot_color_palette_get_name_id (hb_face_t *face,
  *
  * Returns: Name ID associated with a palette entry, e.g. eye color
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
@@ -155,7 +155,7 @@ hb_ot_color_palette_color_get_name_id (hb_face_t *face,
  *
  * Returns: the flags for the requested color palette.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_ot_color_palette_flags_t
 hb_ot_color_palette_get_flags (hb_face_t *face,
@@ -186,7 +186,7 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  *
  * Returns: the total number of colors in the palette.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 unsigned int
 hb_ot_color_palette_get_colors (hb_face_t     *face,
@@ -209,7 +209,7 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
  *
  * Returns: whether COLR table is available.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face)
@@ -227,7 +227,7 @@ hb_ot_color_has_layers (hb_face_t *face)
  *
  * Returns:
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 unsigned int
 hb_ot_color_glyph_get_layers (hb_face_t           *face,
