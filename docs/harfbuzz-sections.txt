@@ -3,6 +3,8 @@
 <SUBSECTION Private>
 HB_H_IN
 HB_EXTERN
+HB_DEPRECATED
+HB_DEPRECATED_FOR
 </SECTION>
 
 <SECTION>
@@ -358,6 +360,7 @@ HB_GOBJECT_TYPE_FONT_FUNCS
 HB_GOBJECT_TYPE_GLYPH_FLAGS
 HB_GOBJECT_TYPE_MAP
 HB_GOBJECT_TYPE_MEMORY_MODE
+HB_GOBJECT_TYPE_OT_COLOR_PALETTE_FLAGS
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
 HB_GOBJECT_TYPE_OT_MATH_CONSTANT
 HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART
@@ -390,6 +393,7 @@ hb_gobject_font_get_type
 hb_gobject_glyph_flags_get_type
 hb_gobject_map_get_type
 hb_gobject_memory_mode_get_type
+hb_gobject_ot_color_palette_flags_get_type
 hb_gobject_ot_layout_glyph_class_get_type
 hb_gobject_ot_math_constant_get_type
 hb_gobject_ot_math_glyph_part_get_type
@@ -459,6 +463,12 @@ HB_OT_H_IN
 
 <SECTION>
 <FILE>hb-ot-color</FILE>
+hb_color_t
+HB_COLOR
+hb_color_get_alpha
+hb_color_get_blue
+hb_color_get_green
+hb_color_get_red
 hb_ot_color_glyph_get_layers
 hb_ot_color_has_layers
 hb_ot_color_has_palettes
@@ -477,6 +487,16 @@ hb_ot_font_set_funcs
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-name</FILE>
+hb_name_id_t
+HB_NAME_ID_INVALID
+hb_ot_name_get_names
+hb_ot_name_get_utf16
+hb_ot_name_get_utf32
+hb_ot_name_get_utf8
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-shape</FILE>
 hb_ot_shape_glyphs_closure
 </SECTION>
@@ -487,6 +507,7 @@ HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX
 HB_OT_LAYOUT_NO_FEATURE_INDEX
 HB_OT_LAYOUT_NO_SCRIPT_INDEX
 HB_OT_LAYOUT_NO_VARIATIONS_INDEX
+HB_OT_TAG_BASE
 HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB

@@ -115,7 +115,7 @@ hb_ot_color_palette_get_count (hb_face_t *face)
 /**
  * hb_ot_color_palette_get_name_id:
  * @face:    a font face.
- * @palette: the index of the color palette whose name is being requested.
+ * @palette_index: the index of the color palette whose name is being requested.
  *
  * Retrieves the name id of a color palette. For example, a color font can
  * have themed palettes like "Spring", "Summer", "Fall", and "Winter".
