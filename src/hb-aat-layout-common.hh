@@ -377,7 +377,10 @@ struct Entry
     /* Note, we don't recurse-sanitize data because we don't access it.
      * That said, in our DEFINE_SIZE_STATIC we access T::static_size,
      * which ensures that data has a simple sanitize(). To be determined
-     * if I need to remove that as well. */
+     * if I need to remove that as well.
+     *
+     * XXX Because we are a template, our DEFINE_SIZE_STATIC assertion
+     * wouldn't be checked. */
     return_trace (c->check_struct (this));
   }
 
@@ -394,7 +397,7 @@ struct Entry
 template <>
 struct Entry<void>
 {
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count /*XXX Unused?*/) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));

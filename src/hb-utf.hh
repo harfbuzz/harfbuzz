@@ -365,7 +365,7 @@ struct hb_latin1_t
   prev (const codepoint_t *text,
 	const codepoint_t *start HB_UNUSED,
 	hb_codepoint_t *unicode,
-	hb_codepoint_t replacement)
+	hb_codepoint_t replacement HB_UNUSED)
   {
     *unicode = *--text;
     return text;

@@ -70,7 +70,7 @@ struct VORG
     return defaultVertOriginY;
   }
 
-  inline bool _subset (const hb_subset_plan_t *plan,
+  inline bool _subset (const hb_subset_plan_t *plan HB_UNUSED,
                        const VORG *vorg_table,
                        const hb_vector_t<VertOriginMetric> &subset_metrics,
                        unsigned int dest_sz,

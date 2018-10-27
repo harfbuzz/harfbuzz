@@ -117,7 +117,7 @@ struct maxp
     return result;
   }
 
-  static inline void drop_hint_fields (hb_subset_plan_t *plan, maxp *maxp_prime)
+  static inline void drop_hint_fields (hb_subset_plan_t *plan HB_UNUSED, maxp *maxp_prime)
   {
     if (maxp_prime->version.major == 1)
     {

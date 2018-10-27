@@ -379,7 +379,7 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-clear_substitution_flags (const hb_ot_shape_plan_t *plan,
+clear_substitution_flags (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			  hb_font_t *font HB_UNUSED,
 			  hb_buffer_t *buffer)
 {
@@ -391,7 +391,7 @@ clear_substitution_flags (const hb_ot_shape_plan_t *plan,
 
 static void
 record_rphf (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
@@ -413,8 +413,8 @@ record_rphf (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-record_pref (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+record_pref (const hb_ot_shape_plan_t *plan HB_UNUSED,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   hb_glyph_info_t *info = buffer->info;

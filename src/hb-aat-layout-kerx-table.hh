@@ -163,7 +163,7 @@ struct KerxSubTableFormat1
 	kernAction (&table->machine + table->kernAction),
 	depth (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->data.kernActionIndex != 0xFFFF;
@@ -365,7 +365,7 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->data.ankrActionIndex != 0xFFFF;

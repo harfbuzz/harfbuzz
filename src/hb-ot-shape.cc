@@ -276,7 +276,7 @@ _hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 }
 
 void
-_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data)
+_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data HB_UNUSED)
 {
 }
 

@@ -213,7 +213,9 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
 }
 
 static inline void
-handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool short_circuit)
+handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
+				   unsigned int end,
+				   bool short_circuit HB_UNUSED)
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   hb_buffer_t * const buffer = c->buffer;

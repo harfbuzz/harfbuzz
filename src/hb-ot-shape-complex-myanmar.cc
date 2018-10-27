@@ -274,8 +274,8 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 }
 
 static void
-initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
-			     hb_face_t *face,
+initial_reordering_syllable (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			     hb_face_t *face HB_UNUSED,
 			     hb_buffer_t *buffer,
 			     unsigned int start, unsigned int end)
 {
@@ -362,7 +362,7 @@ reorder (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-clear_syllables (const hb_ot_shape_plan_t *plan,
+clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		 hb_font_t *font HB_UNUSED,
 		 hb_buffer_t *buffer)
 {

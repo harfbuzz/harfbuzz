@@ -65,11 +65,11 @@ struct RearrangementSubtable
       Verb		= 0x000F,	/* The type of rearrangement specified. */
     };
 
-    inline driver_context_t (const RearrangementSubtable *table) :
+    inline driver_context_t (const RearrangementSubtable *table HB_UNUSED) :
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
@@ -363,7 +363,7 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->flags & PerformAction;
@@ -620,7 +620,7 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
@@ -937,7 +937,7 @@ struct Chain
 
   inline unsigned int get_size (void) const { return length; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int version) const
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||

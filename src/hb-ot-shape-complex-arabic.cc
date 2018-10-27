@@ -416,7 +416,7 @@ retry:
 
 static void
 record_stch (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
@@ -440,7 +440,7 @@ record_stch (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-apply_stch (const hb_ot_shape_plan_t *plan,
+apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    hb_buffer_t              *buffer,
 	    hb_font_t                *font)
 {
@@ -626,7 +626,7 @@ info_is_mcm (const hb_glyph_info_t &info)
 }
 
 static void
-reorder_marks_arabic (const hb_ot_shape_plan_t *plan,
+reorder_marks_arabic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		      hb_buffer_t              *buffer,
 		      unsigned int              start,
 		      unsigned int              end)

@@ -128,7 +128,7 @@ is_zero_width_char (hb_font_t *font,
 }
 
 static void
-preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
+preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			hb_buffer_t              *buffer,
 			hb_font_t                *font)
 {

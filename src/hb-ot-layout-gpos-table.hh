@@ -1715,7 +1715,7 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 }
 
 void
-GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSED)
 {
   //_hb_buffer_assert_gsubgpos_vars (buffer);
 }

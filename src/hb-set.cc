@@ -391,7 +391,7 @@ hb_set_symmetric_difference (hb_set_t       *set,
  * Deprecated: 1.6.1
  **/
 void
-hb_set_invert (hb_set_t *set)
+hb_set_invert (hb_set_t *set HB_UNUSED)
 {
 }
 

@@ -136,7 +136,7 @@ struct hb_dispatch_context_t
   enum { max_debug_depth = MaxDebugDepth };
   typedef Return return_t;
   template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
+  inline bool may_dispatch (const T *obj HB_UNUSED, const F *format HB_UNUSED) { return true; }
   static return_t no_dispatch_return_value (void) { return Context::default_return_value (); }
 };
 
@@ -235,7 +235,7 @@ struct hb_sanitize_context_t :
 
   inline const char *get_name (void) { return "SANITIZE"; }
   template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format)
+  inline bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.sanitize (this); }

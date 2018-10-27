@@ -267,7 +267,7 @@ setup_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
 static void
 reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
-			    hb_face_t *face,
+			    hb_face_t *face HB_UNUSED,
 			    hb_buffer_t *buffer,
 			    unsigned int start, unsigned int end)
 {

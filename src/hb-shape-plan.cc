@@ -441,7 +441,7 @@ hb_non_global_user_features_present (const hb_feature_t *user_features,
 }
 
 static inline hb_bool_t
-hb_coords_present (const int *coords,
+hb_coords_present (const int *coords HB_UNUSED,
 		   unsigned int num_coords)
 {
   return num_coords != 0;

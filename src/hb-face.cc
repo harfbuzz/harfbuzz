@@ -666,7 +666,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
 }
 
 static hb_blob_t *
-_hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+_hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
 

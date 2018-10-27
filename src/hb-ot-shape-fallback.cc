@@ -192,7 +192,7 @@ zero_mark_advances (hb_buffer_t *buffer,
 }
 
 static inline void
-position_mark (const hb_ot_shape_plan_t *plan,
+position_mark (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	       hb_font_t *font,
 	       hb_buffer_t  *buffer,
 	       hb_glyph_extents_t &base_extents,
@@ -472,7 +472,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 
 /* Adjusts width of various spaces. */
 void
-_hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan,
+_hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			      hb_font_t *font,
 			      hb_buffer_t  *buffer)
 {

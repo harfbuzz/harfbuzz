@@ -56,7 +56,7 @@ struct LongMetric
 template <typename T, typename H>
 struct hmtxvmtx
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     /* We don't check for anything specific here.  The users of the

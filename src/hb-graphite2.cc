@@ -197,11 +197,14 @@ _hb_graphite2_shaper_font_data_destroy (hb_graphite2_font_data_t *data HB_UNUSED
 {
 }
 
-/*
+/**
+ * hb_graphite2_font_get_gr_font:
+ *
  * Since: 0.9.10
+ * Deprecated: 1.4.2
  */
 gr_font *
-hb_graphite2_font_get_gr_font (hb_font_t *font)
+hb_graphite2_font_get_gr_font (hb_font_t *font HB_UNUSED)
 {
   return nullptr;
 }
@@ -243,7 +246,7 @@ struct hb_graphite2_cluster_t {
 };
 
 hb_bool_t
-_hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
+_hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 		     hb_font_t          *font,
 		     hb_buffer_t        *buffer,
 		     const hb_feature_t *features,

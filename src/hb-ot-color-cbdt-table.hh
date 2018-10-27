@@ -166,7 +166,7 @@ struct IndexSubtable
     }
   }
 
-  inline bool get_extents (hb_glyph_extents_t *extents) const
+  inline bool get_extents (hb_glyph_extents_t *extents HB_UNUSED) const
   {
     switch (u.header.indexFormat) {
     case 2: case 5: /* TODO */
