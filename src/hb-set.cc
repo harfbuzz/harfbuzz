@@ -27,7 +27,16 @@
 #include "hb-set.hh"
 
 
-/* Public API */
+/**
+ * SECTION:hb-set
+ * @title: Set
+ * @short_description: Object representing a set of integers
+ * @include: hb.h
+ *
+ * Set objects represent a mathematical set of integer values.  They are
+ * used in non-shaping API to query certain set of characters or glyphs,
+ * or other integer values.
+ **/
 
 
 /**
