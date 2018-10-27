@@ -50,7 +50,7 @@ struct SVGDocumentIndexEntry
     return b->cmp (*a);
   }
 
-  inline hb_blob_t* reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
+  inline hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
   {
     if (svgDocLength == 0) return hb_blob_get_empty ();
     return hb_blob_create_sub_blob (svg_blob, (unsigned int) svgDoc + index_offset,
@@ -95,7 +95,7 @@ struct SVG
       hb_blob_destroy (svg_blob);
     }
 
-    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t glyph_id) const
+    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
       if (unlikely (svg_len == 0))
         return hb_blob_get_empty ();

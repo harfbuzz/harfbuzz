@@ -452,7 +452,7 @@ struct CBDT
     }
 
     inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
-        unsigned int group, unsigned int gid)) const
+					unsigned int group, unsigned int gid)) const
     {
       if (!cblc)
 	return;  // Not a color bitmap font.
@@ -504,15 +504,13 @@ struct CBDT
       }
     }
 
-    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
-						unsigned int    requested_x_ppem,
-						unsigned int    requested_y_ppem,
-						unsigned int   *strike_x_ppem,
-						unsigned int   *strike_y_ppem) const
+    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id HB_UNUSED,
+						unsigned int    requested_x_ppem HB_UNUSED,
+						unsigned int    requested_y_ppem HB_UNUSED,
+						unsigned int   *strike_x_ppem HB_UNUSED,
+						unsigned int   *strike_y_ppem HB_UNUSED) const
     {
-//       if (unlikely (cbdt_len == 0))
-        return hb_blob_get_empty ();
-//       return svg->get_glyph_entry (glyph_id).reference_blob (svg_blob, svg->svgDocEntries);
+      return hb_blob_get_empty ();
     }
 
     inline bool has_data () const

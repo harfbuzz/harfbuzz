@@ -82,6 +82,7 @@ struct SBIXStrike
 
   inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
 				    hb_blob_t    *sbix_blob,
+				    unsigned int  sbix_len,
 				    unsigned int  strike_offset,
 				    unsigned int *x_offset,
 				    unsigned int *y_offset,
@@ -89,6 +90,9 @@ struct SBIXStrike
 				    unsigned int  num_glyphs) const
   {
     if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
+      return hb_blob_get_empty ();
+
+    if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
       return hb_blob_get_empty ();
 
     const SBIXGlyph *glyph = &(this+imageOffsetsZ[glyph_id]);
@@ -100,6 +104,8 @@ struct SBIXStrike
       {
 	glyph = &(this+imageOffsetsZ[new_glyph_id]);
 	glyph_id = new_glyph_id;
+        if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
+          return hb_blob_get_empty ();
       }
     }
     if (unlikely (requested_file_type != glyph->graphicType))
@@ -155,18 +161,18 @@ struct sbix
 	const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
 	for (unsigned int glyph_id = 0; glyph_id < num_glyphs; glyph_id++)
 	{
-	  unsigned int x_offset, y_offset;
 	  hb_tag_t tag;
 	  hb_blob_t *blob;
-	  blob = strike.get_glyph_blob (glyph_id, sbix_blob, sbix_table->strikes[group],
-					&x_offset, &x_offset,
+	  blob = strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
+					sbix_table->strikes[group],
+					nullptr, nullptr,
 					HB_TAG('p','n','g',' '), num_glyphs);
 	  if (hb_blob_get_length (blob)) callback (blob, group, glyph_id);
 	}
       }
     }
 
-    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
+    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
 						unsigned int    ptem HB_UNUSED,
 						unsigned int    requested_ppem,
 						unsigned int    requested_file_type,
@@ -187,7 +193,8 @@ struct sbix
       const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
       if (available_x_ppem) *available_x_ppem = strike.get_ppem ();
       if (available_y_ppem) *available_y_ppem = strike.get_ppem ();
-      return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_table->strikes[group],
+      return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
+				    sbix_table->strikes[group],
 				    nullptr, nullptr, requested_file_type, num_glyphs);
     }
 
@@ -200,7 +207,6 @@ struct sbix
 
     unsigned int sbix_len;
     unsigned int num_glyphs;
-    hb_vector_t<hb_vector_t<unsigned int> > data_offsets;
   };
 
   protected:
