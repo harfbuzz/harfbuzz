@@ -489,6 +489,14 @@ hb_ot_name_get_utf8
 
 <SECTION>
 <FILE>hb-ot-layout</FILE>
+HB_OT_MAX_TAGS_PER_LANGUAGE
+HB_OT_MAX_TAGS_PER_SCRIPT
+HB_OT_TAG_DEFAULT_LANGUAGE
+HB_OT_TAG_DEFAULT_SCRIPT
+hb_ot_tag_to_language
+hb_ot_tag_to_script
+hb_ot_tags_from_script_and_language
+hb_ot_tags_to_script_and_language
 HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX
 HB_OT_LAYOUT_NO_FEATURE_INDEX
 HB_OT_LAYOUT_NO_SCRIPT_INDEX
@@ -561,18 +569,6 @@ hb_ot_math_get_glyph_assembly
 <SECTION>
 <FILE>hb-ot-shape</FILE>
 hb_ot_shape_glyphs_closure
-</SECTION>
-
-<SECTION>
-<FILE>hb-ot-tag</FILE>
-HB_OT_MAX_TAGS_PER_LANGUAGE
-HB_OT_MAX_TAGS_PER_SCRIPT
-HB_OT_TAG_DEFAULT_LANGUAGE
-HB_OT_TAG_DEFAULT_SCRIPT
-hb_ot_tag_to_language
-hb_ot_tag_to_script
-hb_ot_tags_from_script_and_language
-hb_ot_tags_to_script_and_language
 </SECTION>
 
 <SECTION>

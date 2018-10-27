@@ -36,7 +36,7 @@
 
 #include "hb-open-file.hh"
 #include "hb-ot-name-table.hh"
-#include "hb-ot-tag.h"
+#include "hb-ot-layout.h"
 
 
 static inline uint16_t hb_uint16_swap (const uint16_t v)

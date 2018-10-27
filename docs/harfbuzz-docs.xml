@@ -72,7 +72,6 @@
 
         <xi:include href="xml/hb-ot-font.xml"/>
         <xi:include href="xml/hb-ot-layout.xml"/>
-        <xi:include href="xml/hb-ot-tag.xml"/>
         <xi:include href="xml/hb-ot-color.xml"/>
         <xi:include href="xml/hb-ot-name.xml"/>
         <xi:include href="xml/hb-ot-math.xml"/>

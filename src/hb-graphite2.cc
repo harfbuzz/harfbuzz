@@ -33,7 +33,7 @@
 
 #include <graphite2/Segment.h>
 
-#include "hb-ot-tag.h"
+#include "hb-ot-layout.h"
 
 
 HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face)

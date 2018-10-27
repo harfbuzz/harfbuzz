@@ -184,7 +184,6 @@ HB_OT_headers = \
 	hb-ot-math.h \
 	hb-ot-name.h \
 	hb-ot-shape.h \
-	hb-ot-tag.h \
 	hb-ot-var.h \
 	$(NULL)
 
