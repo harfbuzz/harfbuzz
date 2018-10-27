@@ -363,7 +363,6 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_palettes (sbix) == FALSE);
   g_assert (hb_ot_color_has_palettes (svg) == FALSE);
 
-#if 0
   g_assert (hb_ot_color_has_svg (empty) == FALSE);
   g_assert (hb_ot_color_has_svg (cpal_v0) == FALSE);
   g_assert (hb_ot_color_has_svg (cpal_v1) == FALSE);
@@ -379,10 +378,8 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_png (cbdt) == TRUE);
   g_assert (hb_ot_color_has_png (sbix) == TRUE);
   g_assert (hb_ot_color_has_png (svg) == FALSE);
-#endif
 }
 
-#if 0
 static void
 test_hb_ot_color_svg (void)
 {
@@ -444,7 +441,6 @@ test_hb_ot_color_png (void)
   hb_blob_destroy (blob);
   hb_font_destroy (cbdt_font);
 }
-#endif
 
 int
 main (int argc, char **argv)
@@ -472,8 +468,8 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_palette_color_get_name_id);
   hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
-//   hb_test_add (test_hb_ot_color_png);
-//   hb_test_add (test_hb_ot_color_svg);
+  hb_test_add (test_hb_ot_color_png);
+  hb_test_add (test_hb_ot_color_svg);
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
   hb_face_destroy (cpal_v1);
