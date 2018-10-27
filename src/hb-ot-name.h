@@ -52,8 +52,6 @@ typedef unsigned int hb_name_id_t;
  *
  * Since: 2.0.0
  **/
-#define HB_NAME_ID_INVALID 0xFFFF
-
 enum {
   HB_NAME_ID_COPYRIGHT			= 0,
   HB_NAME_ID_FONT_FAMILY		= 1,
@@ -80,7 +78,9 @@ enum {
   HB_NAME_ID_WWS_SUBFAMILY		= 22,
   HB_NAME_ID_LIGHT_BACKGROUND		= 23,
   HB_NAME_ID_DARK_BACKGROUND		= 24,
-  HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25
+  HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
+
+  HB_NAME_ID_INVALID			= 0xFFFF
 };
 
 
