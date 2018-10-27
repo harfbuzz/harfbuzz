@@ -43,7 +43,7 @@ struct hb_subset_context_t :
   template <typename T>
   inline bool dispatch (const T &obj) { return obj.subset (this); }
   static bool default_return_value (void) { return true; }
-  bool stop_sublookup_iteration (bool r) const { return false; }
+  bool stop_sublookup_iteration (bool r HB_UNUSED) const { return false; }
 
   hb_subset_plan_t *plan;
   hb_serialize_context_t *serializer;
