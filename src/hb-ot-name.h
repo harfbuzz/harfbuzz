@@ -74,7 +74,7 @@ typedef enum
   HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
 
   HB_NAME_ID_INVALID			= 0xFFFF
-} hb_name_id_t ;
+} hb_name_id_t;
 
 
 /**
