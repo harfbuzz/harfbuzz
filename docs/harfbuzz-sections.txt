@@ -360,6 +360,7 @@ HB_GOBJECT_TYPE_FONT_FUNCS
 HB_GOBJECT_TYPE_GLYPH_FLAGS
 HB_GOBJECT_TYPE_MAP
 HB_GOBJECT_TYPE_MEMORY_MODE
+HB_GOBJECT_TYPE_NAME_ID
 HB_GOBJECT_TYPE_OT_COLOR_PALETTE_FLAGS
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
 HB_GOBJECT_TYPE_OT_MATH_CONSTANT
@@ -393,6 +394,7 @@ hb_gobject_font_get_type
 hb_gobject_glyph_flags_get_type
 hb_gobject_map_get_type
 hb_gobject_memory_mode_get_type
+hb_gobject_name_id_get_type
 hb_gobject_ot_color_palette_flags_get_type
 hb_gobject_ot_layout_glyph_class_get_type
 hb_gobject_ot_math_constant_get_type
@@ -489,7 +491,7 @@ hb_ot_font_set_funcs
 <SECTION>
 <FILE>hb-ot-name</FILE>
 hb_name_id_t
-HB_NAME_ID_INVALID
+hb_ot_name_entry_t
 hb_ot_name_list_names
 hb_ot_name_get_utf16
 hb_ot_name_get_utf32

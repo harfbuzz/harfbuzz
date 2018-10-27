@@ -58,22 +58,22 @@ struct CPALV1Tail
 	   hb_array (base+paletteFlagsZ, palette_count)[palette_index];
   }
 
-  inline unsigned int
+  inline hb_name_id_t
   get_palette_name_id (const void *base,
 		       unsigned int palette_index,
 		       unsigned int palette_count) const
   {
     if (!paletteLabelsZ) return HB_NAME_ID_INVALID;
-    return hb_array (base+paletteLabelsZ, palette_count)[palette_index];
+    return (hb_name_id_t) (unsigned) hb_array (base+paletteLabelsZ, palette_count)[palette_index];
   }
 
-  inline unsigned int
+  inline hb_name_id_t
   get_color_name_id (const void *base,
 		     unsigned int color_index,
 		     unsigned int color_count) const
   {
     if (!colorLabelsZ) return HB_NAME_ID_INVALID;
-    return hb_array (base+colorLabelsZ, color_count)[color_index];
+    return (hb_name_id_t) (unsigned) hb_array (base+colorLabelsZ, color_count)[color_index];
   }
 
   public:
@@ -123,10 +123,10 @@ struct CPAL
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
   { return v1 ().get_palette_flags (this, palette_index, numPalettes); }
 
-  inline unsigned int get_palette_name_id (unsigned int palette_index) const
+  inline hb_name_id_t get_palette_name_id (unsigned int palette_index) const
   { return v1 ().get_palette_name_id (this, palette_index, numPalettes); }
 
-  inline unsigned int get_color_name_id (unsigned int color_index) const
+  inline hb_name_id_t get_color_name_id (unsigned int color_index) const
   { return v1 ().get_color_name_id (this, color_index, numColors); }
 
   inline unsigned int get_palette_colors (unsigned int  palette_index,

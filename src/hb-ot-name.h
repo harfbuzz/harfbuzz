@@ -36,23 +36,16 @@ HB_BEGIN_DECLS
 
 /**
  * hb_name_id_t:
+ * @HB_NAME_ID_INVALID: Value to represent a nonexistent name ID.
  *
  * An integral type representing an OpenType 'name' table name identifier.
  * There are predefined name IDs, as well as name IDs return from other
  * API.  These can be used to fetch name strings from a font face.
  *
  * Since: 2.0.0
- */
-typedef unsigned int hb_name_id_t;
-
-/**
- * HB_NAME_ID_INVALID
- *
- * Value to represent a nonexistent name ID.
- *
- * Since: 2.0.0
  **/
-enum {
+typedef enum
+{
   HB_NAME_ID_COPYRIGHT			= 0,
   HB_NAME_ID_FONT_FAMILY		= 1,
   HB_NAME_ID_FONT_SUBFAMILY		= 2,
@@ -81,7 +74,7 @@ enum {
   HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
 
   HB_NAME_ID_INVALID			= 0xFFFF
-};
+} hb_name_id_t ;
 
 
 /**
