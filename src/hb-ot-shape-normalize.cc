@@ -222,7 +222,6 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
   hb_font_t * const font = c->font;
   for (; buffer->idx < end - 1 && buffer->successful;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
-      /* The next two lines are some ugly lines... But work. */
       if (font->get_variation_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index()))
       {
 	hb_codepoint_t unicode = buffer->cur().codepoint;
