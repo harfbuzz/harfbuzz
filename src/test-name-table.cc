@@ -41,7 +41,7 @@ main (int argc, char **argv)
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   hb_face_t *face = hb_face_create (blob, 0 /* first face */);
   hb_blob_destroy (blob);
-  blob = nullptr;
+  blob = NULL;
 
   const hb_ot_name_entry_t *entries;
   unsigned int count = hb_ot_name_get_names (face, &entries);
