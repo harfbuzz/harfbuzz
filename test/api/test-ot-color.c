@@ -405,22 +405,41 @@ static void
 test_hb_ot_color_png (void)
 {
   hb_blob_t *blob;
+  unsigned int length;
+  const char *data;
+  unsigned int strike_x_ppem, strike_y_ppem;
 
+  /* sbix */
   hb_font_t *sbix_font;
   sbix_font = hb_font_create (sbix);
   blob = hb_ot_color_glyph_reference_blob_png (sbix_font, 0, NULL, NULL);
   g_assert (hb_blob_get_length (blob) == 0);
 
-  unsigned int strike_x_ppem, strike_y_ppem;
   blob = hb_ot_color_glyph_reference_blob_png (sbix_font, 1,
 					       &strike_x_ppem, &strike_y_ppem);
-  unsigned int length;
-  const char *data = hb_blob_get_data (blob, &length);
+  data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 224);
   g_assert_cmpuint (strike_x_ppem, ==, 300);
   g_assert_cmpuint (strike_y_ppem, ==, 300);
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
   hb_blob_destroy (blob);
+  hb_font_destroy (sbix_font);
+
+  /* cbdt */
+  hb_font_t *cbdt_font;
+  cbdt_font = hb_font_create (cbdt);
+  blob = hb_ot_color_glyph_reference_blob_png (cbdt_font, 0, NULL, NULL);
+  g_assert (hb_blob_get_length (blob) == 0);
+
+  blob = hb_ot_color_glyph_reference_blob_png (cbdt_font, 1,
+					       &strike_x_ppem, &strike_y_ppem);
+  data = hb_blob_get_data (blob, &length);
+  g_assert_cmpuint (length, ==, 88);
+  g_assert_cmpuint (strike_x_ppem, ==, 80);
+  g_assert_cmpuint (strike_y_ppem, ==, 80);
+  g_assert (strncmp (data + 1, "PNG", 3) == 0);
+  hb_blob_destroy (blob);
+  hb_font_destroy (cbdt_font);
 }
 
 int

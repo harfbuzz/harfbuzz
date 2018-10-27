@@ -75,22 +75,6 @@ _get_svg (hb_face_t *face)
   return *(hb_ot_face_data (face)->SVG.get ());
 }
 
-#if 0
-static inline const OT::CBDT_accelerator_t&
-_get_cbdt (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
-  return *(hb_ot_face_data (face)->CBDT.get ());
-}
-
-static inline const OT::sbix&
-_get_sbix (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::sbix);
-  return *(hb_ot_face_data (face)->sbix.get ());
-}
-#endif
-
 
 /*
  * CPAL
@@ -289,7 +273,7 @@ hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
 
 
 /*
- * PNG, CBDT or sbix
+ * PNG: CBDT or sbix
  */
 
 /**
@@ -335,4 +319,5 @@ hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
 							    HB_TAG('p','n','g',' '),
 							    strike_x_ppem, strike_y_ppem);
 
+  return hb_blob_get_empty ();
 }
