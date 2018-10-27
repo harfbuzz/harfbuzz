@@ -788,6 +788,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *
      * We could use buffer->sort() for this, if there was no special
      * reordering of pre-base stuff happening later...
+     * We don't want to merge_clusters all of that, which buffer->sort()
+     * would.
      */
     if (indic_plan->is_old_spec || end - start > 127)
       buffer->merge_clusters (base, end);
