@@ -99,6 +99,7 @@ struct sbix
       sbix_blob = hb_sanitize_context_t().reference_table<sbix> (face);
       sbix_len = hb_blob_get_length (sbix_blob);
       sbix_table = sbix_blob->as<sbix> ();
+      num_glyphs = face->get_num_glyphs ();
     }
 
     inline void fini (void)
