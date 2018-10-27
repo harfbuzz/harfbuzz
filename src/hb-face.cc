@@ -37,7 +37,7 @@
 
 /**
  * SECTION:hb-face
- * @title: hb_face_t
+ * @title: hb-face
  * @short_description: Font face objects
  * @include: hb.h
  *

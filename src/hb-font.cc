@@ -36,7 +36,7 @@
 
 /**
  * SECTION:hb-font
- * @title: hb_font_t
+ * @title: hb-font
  * @short_description: Font objects
  * @include: hb.h
  *

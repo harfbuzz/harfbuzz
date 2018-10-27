@@ -38,7 +38,7 @@
 
 /**
  * SECTION:hb-common
- * @title: Common types
+ * @title: hb-common
  * @short_description: Common data types
  * @include: hb.h
  *
@@ -628,7 +628,7 @@ hb_user_data_array_t::get (hb_user_data_key_t *key)
 
 /**
  * SECTION:hb-version
- * @title: Version
+ * @title: hb-version
  * @short_description: Information about the version of HarfBuzz in use
  * @include: hb.h
  *

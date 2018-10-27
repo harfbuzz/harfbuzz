@@ -37,7 +37,7 @@
 
 /**
  * SECTION:hb-shape
- * @title: Shaping
+ * @title: hb-shape
  * @short_description: Conversion of text strings into positioned glyphs
  * @include: hb.h
  *
