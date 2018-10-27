@@ -74,6 +74,7 @@
         <xi:include href="xml/hb-deprecated.xml"/>
 
         <xi:include href="xml/hb-set.xml"/>
+        <xi:include href="xml/hb-map.xml"/>
 
         <xi:include href="xml/hb-ot.xml"/>
         <xi:include href="xml/hb-ot-font.xml"/>
