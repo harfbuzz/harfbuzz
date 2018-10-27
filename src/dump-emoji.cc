@@ -295,8 +295,8 @@ main (int argc, char **argv)
 
   sbix_dump (face);
 
-//   if (hb_ot_color_has_svg (face))
-  svg_dump (face);
+  if (hb_ot_color_has_svg (face))
+    svg_dump (face);
 
   cairo_font_face_t *cairo_face;
   {
