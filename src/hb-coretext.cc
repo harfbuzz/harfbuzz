@@ -35,6 +35,16 @@
 #include "hb-aat-layout.hh"
 #include <math.h>
 
+
+/**
+ * SECTION:hb-coretext
+ * @title: hb-coretext
+ * @short_description: CoreText integration
+ * @include: hb-coretext.h
+ *
+ * Functions for using HarfBuzz with the CoreText fonts.
+ **/
+
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
 #define HB_CORETEXT_DEFAULT_FONT_SIZE 12.f
 

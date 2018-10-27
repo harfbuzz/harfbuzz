@@ -40,6 +40,17 @@
 #include FT_TRUETYPE_TABLES_H
 
 
+/**
+ * SECTION:hb-ft
+ * @title: hb-ft
+ * @short_description: FreeType integration
+ * @include: hb-ft.h
+ *
+ * Functions for using HarfBuzz with the FreeType library to provide face and
+ * font data.
+ **/
+
+
 /* TODO:
  *
  * In general, this file does a fine job of what it's supposed to do.

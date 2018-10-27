@@ -39,6 +39,16 @@
 #include "hb-ot-layout.h"
 
 
+/**
+ * SECTION:hb-uniscribe
+ * @title: hb-uniscribe
+ * @short_description: Windows integration
+ * @include: hb-uniscribe.h
+ *
+ * Functions for using HarfBuzz with the Windows fonts.
+ **/
+
+
 static inline uint16_t hb_uint16_swap (const uint16_t v)
 { return (v >> 8) | (v << 8); }
 static inline uint32_t hb_uint32_swap (const uint32_t v)

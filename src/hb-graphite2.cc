@@ -36,6 +36,16 @@
 #include "hb-ot-layout.h"
 
 
+/**
+ * SECTION:hb-graphite2
+ * @title: hb-graphite2
+ * @short_description: Graphite2 integration
+ * @include: hb-graphite2.h
+ *
+ * Functions for using HarfBuzz with the Graphite2 fonts.
+ **/
+
+
 HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face)
 HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font)
 
