@@ -170,7 +170,6 @@ pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
 
 FUZZING_CPPFLAGS = \
-	-DHB_NDEBUG \
 	-DHB_MAX_NESTING_LEVEL=3 \
 	-DHB_SANITIZE_MAX_EDITS=3 \
 	-DHB_SANITIZE_MAX_OPS_FACTOR=3 \
