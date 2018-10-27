@@ -399,6 +399,9 @@ struct LigatureSubtable
 	if (unlikely (!match_length))
 	  return true;
 
+	if (buffer->idx >= buffer->len)
+	  return false; // TODO Work on previous instead?
+
 	unsigned int cursor = match_length;
         do
 	{
@@ -421,8 +424,6 @@ struct LigatureSubtable
 	  if (uoffset & 0x20000000)
 	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
-	  if (buffer->idx >= buffer->len)
-	    return false; // TODO Work on previous instead?
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
 
 	  const HBUINT16 &componentData = component[component_idx];
