@@ -132,8 +132,8 @@ hb_ot_color_palette_get_name_id (hb_face_t *face,
 
 /**
  * hb_ot_color_palette_color_get_name_id:
- * @face: a font face.
- * @color_index:
+ * @face:        a font face.
+ * @color_index: palette entry index.
  *
  * Returns: Name ID associated with a palette entry, e.g. eye color
  *
@@ -148,7 +148,7 @@ hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 
 /**
  * hb_ot_color_palette_get_flags:
- * @face:    a font face
+ * @face:          a font face
  * @palette_index: the index of the color palette whose flags are being requested
  *
  * Returns: the flags for the requested color palette.
@@ -217,13 +217,14 @@ hb_ot_color_has_layers (hb_face_t *face)
 
 /**
  * hb_ot_color_glyph_get_layers:
- * @face: a font face.
- * @glyph:
- * @start_offset:
- * @count:  (inout) (optional):
- * @layers: (array length=count) (out) (optional):
+ * @face:         a font face.
+ * @glyph:        a layered color glyph id.
+ * @start_offset: starting offset of layers.
+ * @count:  (inout) (optional): gets number of layers available to be written on buffer
+ * 				and returns number of written layers.
+ * @layers: (array length=count) (out) (optional): layers buffer to buffer.
  *
- * Returns:
+ * Returns: Total number of layers a layered color glyph have.
  *
  * Since: REPLACEME
  */
@@ -258,10 +259,10 @@ hb_ot_color_has_svg (hb_face_t *face)
 
 /**
  * hb_ot_color_glyph_reference_blob_svg:
- * @face:
- * @glyph:
+ * @face:  a font face.
+ * @glyph: a svg glyph index.
  *
- * Returns:
+ * Returns: respective svg blob of the glyph, if available.
  *
  * Since: REPLACEME
  */
@@ -280,7 +281,7 @@ hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
  * hb_ot_color_has_png:
  * @face: a font face.
  *
- * Returns: whether SVG table is available.
+ * Returns: whether either of CBDT or sbix tables is available.
  *
  * Since: REPLACEME
  */
@@ -292,12 +293,14 @@ hb_ot_color_has_png (hb_face_t *face)
 
 /**
  * hb_ot_color_glyph_reference_blob_svg:
- * @font:
- * @glyph:
+ * @font:  a font object, not face. upem should be set on
+ * 	   that font object if one wants to get optimal png blob, otherwise
+ * 	   return the biggest one
+ * @glyph: a glyph index.
  * @strike_x_ppem: (out):
  * @strike_y_ppem: (out):
  *
- * Returns:
+ * Returns: respective png blob of the glyph, if available.
  *
  * Since: REPLACEME
  */
@@ -307,8 +310,6 @@ hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
 				      unsigned int   *strike_x_ppem /* OUT */,
 				      unsigned int   *strike_y_ppem /* OUT */)
 {
-  /* TODO: if (hb_options ().aat ()) then call sbix first */
-
   if (_get_cbdt (font->face).has_data ())
     return _get_cbdt (font->face).reference_blob_for_glyph (glyph, font->x_ppem, font->y_ppem,
 							    strike_x_ppem, strike_y_ppem);

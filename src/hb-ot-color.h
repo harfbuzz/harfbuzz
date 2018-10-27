@@ -94,7 +94,7 @@ HB_EXTERN hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face);
 
 /**
- * hb_ot_color_layer_t:
+ * hb_ot_color_layer_t: Pairs of glyph and color index.
  *
  * Since: REPLACEME
  **/
