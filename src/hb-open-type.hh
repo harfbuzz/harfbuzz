@@ -541,6 +541,8 @@ typedef ArrayOf<HBUINT8, HBUINT8> PString;
 /* Array of Offset's */
 template <typename Type, typename OffsetType=HBUINT16>
 struct OffsetArrayOf : ArrayOf<OffsetTo<Type, OffsetType> > {};
+template <typename Type>
+struct LOffsetLArrayOf : ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32> {};
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
