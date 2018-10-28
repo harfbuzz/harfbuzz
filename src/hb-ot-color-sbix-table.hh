@@ -84,8 +84,6 @@ struct SBIXStrike
 				    hb_blob_t    *sbix_blob,
 				    unsigned int  sbix_len,
 				    unsigned int  strike_offset,
-				    unsigned int *x_offset,
-				    unsigned int *y_offset,
 				    hb_tag_t      requested_file_type,
 				    unsigned int  num_glyphs) const
   {
@@ -110,8 +108,8 @@ struct SBIXStrike
     }
     if (unlikely (requested_file_type != glyph->graphicType))
       return hb_blob_get_empty ();
-    if (likely (x_offset)) *x_offset = glyph->xOffset;
-    if (likely (y_offset)) *y_offset = glyph->yOffset;
+    // if (x_offset) *x_offset = glyph->xOffset;
+    // if (y_offset) *y_offset = glyph->yOffset;
     unsigned int offset = strike_offset + SBIXGlyph::min_size;
     offset += imageOffsetsZ[glyph_id];
     return hb_blob_create_sub_blob (sbix_blob, offset, blob_size (glyph_id));
@@ -169,9 +167,7 @@ struct sbix
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
 						unsigned int    ptem HB_UNUSED,
 						unsigned int    requested_ppem,
-						unsigned int    requested_file_type,
-						unsigned int   *available_x_ppem,
-						unsigned int   *available_y_ppem) const
+						unsigned int    requested_file_type) const
     {
       if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
         return hb_blob_get_empty ();
@@ -185,11 +181,9 @@ struct sbix
 	    break;
 
       const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
-      if (available_x_ppem) *available_x_ppem = strike.get_ppem ();
-      if (available_y_ppem) *available_y_ppem = strike.get_ppem ();
       return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
 				    sbix_table->strikes[group],
-				    nullptr, nullptr, requested_file_type, num_glyphs);
+				    requested_file_type, num_glyphs);
     }
 
     inline bool has_data () const
