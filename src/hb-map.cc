@@ -29,7 +29,7 @@
 
 /**
  * SECTION:hb-map
- * @title: hb_map_t
+ * @title: hb-map
  * @short_description: Object representing integer to integer mapping
  * @include: hb.h
  *
