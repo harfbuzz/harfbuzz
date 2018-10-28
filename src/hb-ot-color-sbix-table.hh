@@ -82,9 +82,9 @@ struct SBIXStrike
 
   inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
 				    hb_blob_t    *sbix_blob,
+				    hb_tag_t      file_type,
 				    int          *x_offset,
 				    int          *y_offset,
-				    hb_tag_t      file_type,
 				    unsigned int  num_glyphs) const
   {
     unsigned int sbix_len = sbix_blob->length;
@@ -186,8 +186,8 @@ struct sbix
 				     int            *y_offset) const
     {
       return get_strike (font).get_glyph_blob (glyph_id, sbix_blob,
-					       x_offset, y_offset,
 					       HB_TAG ('p','n','g',' '),
+					       x_offset, y_offset,
 					       num_glyphs);
     }
 
