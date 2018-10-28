@@ -161,19 +161,6 @@ struct sbix
 
     inline bool has_data () const { return sbix_len; }
 
-    /* only to support dump-emoji, don't use it anywhere else */
-    inline unsigned int *get_available_ppems (unsigned int *length)
-    {
-      if (unlikely (table->strikes.len == 0))
-	return nullptr;
-      *length = table->strikes.len;
-      unsigned int *result;
-      result = (unsigned int *) malloc (sizeof (unsigned int) * table->strikes.len);
-      for (unsigned int i = 0; i < table->strikes.len; i++)
-	result[i] = (table+table->strikes[i]).get_ppem ();
-      return result;
-    }
-
     inline bool get_extents (hb_font_t          *font,
 			     hb_codepoint_t      glyph,
 			     hb_glyph_extents_t *extents) const
