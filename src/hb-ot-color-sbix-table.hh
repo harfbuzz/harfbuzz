@@ -157,6 +157,8 @@ struct sbix
       hb_blob_destroy (sbix_blob);
     }
 
+    inline bool has_data () const { return sbix_len; }
+
     /* only to support dump-emoji, don't use it anywhere else */
     inline unsigned int *get_available_ppems (unsigned int *length)
     {
@@ -168,6 +170,15 @@ struct sbix
       for (unsigned int i = 0; i < sbix_table->strikes.len; i++)
 	result[i] = (sbix_table+sbix_table->strikes[i]).get_ppem ();
       return result;
+    }
+
+    inline bool get_extents (hb_codepoint_t      glyph,
+			     unsigned int        x_ppem,
+			     unsigned int        y_ppem,
+			     hb_glyph_extents_t *extents) const
+    {
+      /* We only support PNG right now, and following function checks type. */
+     return get_png_extents (glyph, x_ppem, y_ppem, extents);
     }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
@@ -195,6 +206,8 @@ struct sbix
 				    x_offset, y_offset,
 				    file_type, num_glyphs);
     }
+
+    private:
 
     struct PNGHeader
     {
@@ -244,8 +257,6 @@ struct sbix
 
       return true;
     }
-
-    inline bool has_data () const { return sbix_len; }
 
     private:
     hb_blob_t *sbix_blob;
