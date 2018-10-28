@@ -132,6 +132,8 @@ struct sbix
 
   inline bool has_data (void) const { return version; }
 
+  inline const SBIXStrike &get_strike (unsigned int i) const { return this+strikes[i]; }
+
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
@@ -185,11 +187,11 @@ struct sbix
         requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
       unsigned int best_i = 0;
-      unsigned int best_ppem = (table+table->strikes[0]).ppem;
+      unsigned int best_ppem = table->get_strike (0).ppem;
 
       for (unsigned int i = 1; i < table->strikes.len; i++)
       {
-	unsigned int ppem = (table+table->strikes[i]).ppem;
+	unsigned int ppem = (table->get_strike (i)).ppem;
 	if ((requested_ppem <= ppem && ppem < best_ppem) ||
 	    (requested_ppem > best_ppem && ppem > best_ppem))
 	{
@@ -198,7 +200,7 @@ struct sbix
 	}
       }
 
-      return table+table->strikes[best_i];
+      return table->get_strike (best_i);
     }
 
     struct PNGHeader
