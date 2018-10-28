@@ -180,11 +180,10 @@ struct sbix
       return get_png_extents (font, glyph, extents);
     }
 
-    inline hb_blob_t *reference_blob_for_glyph (hb_font_t      *font,
-						hb_codepoint_t  glyph_id,
-						unsigned int    file_type,
-						int            *x_offset,
-						int            *y_offset) const
+    inline hb_blob_t *reference_png (hb_font_t      *font,
+				     hb_codepoint_t  glyph_id,
+				     int            *x_offset,
+				     int            *y_offset) const
     {
       if (unlikely (!sbix_len || !sbix_table->strikes.len))
         return hb_blob_get_empty ();
@@ -211,7 +210,8 @@ struct sbix
       return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
 				    sbix_table->strikes[best_i],
 				    x_offset, y_offset,
-				    file_type, num_glyphs);
+				    HB_TAG ('p','n','g',' '),
+				    num_glyphs);
     }
 
     private:
@@ -247,9 +247,7 @@ struct sbix
         return false;
 
       int x_offset = 0, y_offset = 0;
-      hb_blob_t *blob = reference_blob_for_glyph (font, glyph,
-						  HB_TAG ('p','n','g',' '),
-						  &x_offset, &y_offset);
+      hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset);
 
       if (unlikely (blob->length < sizeof (PNGHeader)))
         return false;
