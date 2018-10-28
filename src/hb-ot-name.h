@@ -73,7 +73,9 @@ typedef enum
   HB_NAME_ID_DARK_BACKGROUND		= 24,
   HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
 
-  HB_NAME_ID_INVALID			= 0xFFFF
+  HB_NAME_ID_INVALID			= 0xFFFF,
+
+  _HB_NAME_ID_MAX_VALUE_SIGNED		= 0x7FFFFFFF /*< skip >*/ /* So we get int-sized. */
 } hb_name_id_t;
 
 
