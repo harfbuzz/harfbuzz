@@ -198,7 +198,7 @@ struct sbix
 
     struct PNGHeader
     {
-      HBUINT8 header[9];
+      HBUINT8 header[16];
       HBUINT32 width;
       HBUINT32 height;
     };
@@ -209,7 +209,7 @@ struct sbix
 				 hb_glyph_extents_t *extents) const
     {
       if (likely (sbix_len == 0))
-        return hb_blob_get_empty ();
+        return false;
 
       int x_offset, y_offset;
       hb_blob_t *blob = reference_blob_for_glyph (glyph, x_ppem, y_ppem,
@@ -221,7 +221,7 @@ struct sbix
       extents->x_bearing = x_offset;
       extents->y_bearing = y_offset;
       const PNGHeader &header = *blob->as<PNGHeader>();
-      extents->width     = header.width + 100;
+      extents->width     = header.width;
       extents->height    = header.height;
       hb_blob_destroy (blob);
 
