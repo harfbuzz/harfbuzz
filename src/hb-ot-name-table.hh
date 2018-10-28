@@ -194,7 +194,7 @@ struct name
       {
 	hb_ot_name_entry_t *entry = this->names.push ();
 
-	entry->name_id = (hb_name_id_t) (unsigned) all_names[i].nameID;
+	entry->name_id = all_names[i].nameID;
 	entry->language = all_names[i].language (face);
 	entry->entry_score =  all_names[i].score ();
 	entry->entry_index = i;

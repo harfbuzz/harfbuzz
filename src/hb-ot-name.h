@@ -44,7 +44,7 @@ HB_BEGIN_DECLS
  *
  * Since: 2.0.0
  **/
-typedef enum
+enum
 {
   HB_NAME_ID_COPYRIGHT			= 0,
   HB_NAME_ID_FONT_FAMILY		= 1,
@@ -74,9 +74,9 @@ typedef enum
   HB_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
 
   HB_NAME_ID_INVALID			= 0xFFFF,
+};
 
-  _HB_NAME_ID_MAX_VALUE_SIGNED		= 0x7FFFFFFF /*< skip >*/ /* So we get int-sized. */
-} hb_name_id_t;
+typedef unsigned int hb_name_id_t;
 
 
 /**

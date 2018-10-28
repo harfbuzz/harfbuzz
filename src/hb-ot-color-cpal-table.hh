@@ -64,7 +64,7 @@ struct CPALV1Tail
 		       unsigned int palette_count) const
   {
     if (!paletteLabelsZ) return HB_NAME_ID_INVALID;
-    return (hb_name_id_t) (unsigned) hb_array (base+paletteLabelsZ, palette_count)[palette_index];
+    return hb_array (base+paletteLabelsZ, palette_count)[palette_index];
   }
 
   inline hb_name_id_t
@@ -73,7 +73,7 @@ struct CPALV1Tail
 		     unsigned int color_count) const
   {
     if (!colorLabelsZ) return HB_NAME_ID_INVALID;
-    return (hb_name_id_t) (unsigned) hb_array (base+colorLabelsZ, color_count)[color_index];
+    return hb_array (base+colorLabelsZ, color_count)[color_index];
   }
 
   public:
