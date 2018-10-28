@@ -504,12 +504,12 @@ struct CBDT
       }
     }
 
-    inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
-						unsigned int    x_ppem,
-						unsigned int    y_ppem) const
+    inline hb_blob_t* reference_png (hb_codepoint_t  glyph_id,
+				     unsigned int    x_ppem,
+				     unsigned int    y_ppem) const
     {
       if (!cblc)
-	return hb_blob_get_empty ();  // Not a color bitmap font.
+	return hb_blob_get_empty ();
 
       if (x_ppem == 0) x_ppem = upem;
       if (y_ppem == 0) y_ppem = upem;
