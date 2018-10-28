@@ -505,15 +505,14 @@ struct CBDT
     }
 
     inline hb_blob_t* reference_blob_for_glyph (hb_codepoint_t  glyph_id,
-						unsigned int    requested_x_ppem,
-						unsigned int    requested_y_ppem) const
+						unsigned int    x_ppem,
+						unsigned int    y_ppem) const
     {
       if (!cblc)
 	return hb_blob_get_empty ();  // Not a color bitmap font.
 
-      if (requested_x_ppem == 0) requested_x_ppem = upem;
-      if (requested_y_ppem == 0) requested_y_ppem = upem;
-      unsigned int x_ppem = requested_x_ppem, y_ppem = requested_y_ppem;
+      if (x_ppem == 0) x_ppem = upem;
+      if (y_ppem == 0) y_ppem = upem;
 
       const void *base;
       const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph_id, &x_ppem, &y_ppem, &base);
@@ -527,8 +526,6 @@ struct CBDT
       switch (image_format)
       {
       case 17: {
-	// if (strike_x_ppem) *strike_x_ppem = x_ppem;
-	// if (strike_x_ppem) *strike_y_ppem = y_ppem;
 	const GlyphBitmapDataFormat17& glyphFormat17 =
           StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
 	return hb_blob_create_sub_blob (cbdt_blob,
@@ -536,8 +533,6 @@ struct CBDT
 					glyphFormat17.data.len);
       }
       case 18: {
-	// if (strike_x_ppem) *strike_x_ppem = x_ppem;
-	// if (strike_x_ppem) *strike_y_ppem = y_ppem;
 	const GlyphBitmapDataFormat18& glyphFormat18 =
           StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
 	return hb_blob_create_sub_blob (cbdt_blob,
@@ -545,8 +540,6 @@ struct CBDT
 					glyphFormat18.data.len);
       }
       case 19: {
-	// if (strike_x_ppem) *strike_x_ppem = x_ppem;
-	// if (strike_x_ppem) *strike_y_ppem = y_ppem;
 	const GlyphBitmapDataFormat19& glyphFormat19 =
           StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
 	return hb_blob_create_sub_blob (cbdt_blob,

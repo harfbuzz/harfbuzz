@@ -268,7 +268,7 @@ hb_ot_color_has_svg (hb_face_t *face)
 }
 
 /**
- * hb_ot_color_glyph_reference_blob_svg:
+ * hb_ot_color_glyph_reference_svg:
  * @face:  a font face.
  * @glyph: a svg glyph index.
  *
@@ -277,7 +277,7 @@ hb_ot_color_has_svg (hb_face_t *face)
  * Since: REPLACEME
  */
 hb_blob_t *
-hb_ot_color_glyph_reference_blob_svg (hb_face_t *face, hb_codepoint_t glyph)
+hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
   return _get_svg (face).reference_blob_for_glyph (glyph);
 }
@@ -302,7 +302,7 @@ hb_ot_color_has_png (hb_face_t *face)
 }
 
 /**
- * hb_ot_color_glyph_reference_blob_png:
+ * hb_ot_color_glyph_reference_png:
  * @font:  a font object, not face. upem should be set on
  * 	   that font object if one wants to get optimal png blob, otherwise
  * 	   return the biggest one
@@ -313,7 +313,7 @@ hb_ot_color_has_png (hb_face_t *face)
  * Since: REPLACEME
  */
 hb_blob_t *
-hb_ot_color_glyph_reference_blob_png (hb_font_t *font, hb_codepoint_t  glyph)
+hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)
 {
   hb_blob_t *blob = hb_blob_get_empty ();
   /* don't run cbdt first if aat is set */

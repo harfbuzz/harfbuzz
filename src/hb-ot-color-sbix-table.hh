@@ -84,7 +84,7 @@ struct SBIXStrike
 				    hb_blob_t    *sbix_blob,
 				    unsigned int  sbix_len,
 				    unsigned int  strike_offset,
-				    hb_tag_t      requested_file_type,
+				    hb_tag_t      file_type,
 				    unsigned int  num_glyphs) const
   {
     if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
@@ -106,10 +106,8 @@ struct SBIXStrike
           return hb_blob_get_empty ();
       }
     }
-    if (unlikely (requested_file_type != glyph->graphicType))
+    if (unlikely (file_type != glyph->graphicType))
       return hb_blob_get_empty ();
-    // if (x_offset) *x_offset = glyph->xOffset;
-    // if (y_offset) *y_offset = glyph->yOffset;
     unsigned int offset = strike_offset + SBIXGlyph::min_size;
     offset += imageOffsetsZ[glyph_id];
     return hb_blob_create_sub_blob (sbix_blob, offset, blob_size (glyph_id));
