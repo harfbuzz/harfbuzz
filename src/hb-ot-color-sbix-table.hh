@@ -198,9 +198,15 @@ struct sbix
 
     struct PNGHeader
     {
-      HBUINT8 header[16];
-      HBUINT32 width;
-      HBUINT32 height;
+      HBUINT8	signature[8];
+      HBUINT8   chunkHeaderIHDR[8];
+      HBUINT32	width;
+      HBUINT32	height;
+      HBUINT8	bitDepth;
+      HBUINT8	colorType;
+      HBUINT8	compressionMethod;
+      HBUINT8	filterMethod;
+      HBUINT8	interlaceMethod;
     };
 
     inline bool get_png_extents (hb_codepoint_t      glyph,
