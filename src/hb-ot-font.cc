@@ -181,7 +181,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  bool ret = ot_face->sbix->get_extents (glyph, font->x_ppem, font->y_ppem, extents);
+  bool ret = ot_face->sbix->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->glyf->get_extents (glyph, extents);
   if (!ret)

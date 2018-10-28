@@ -172,37 +172,44 @@ struct sbix
       return result;
     }
 
-    inline bool get_extents (hb_codepoint_t      glyph,
-			     unsigned int        x_ppem,
-			     unsigned int        y_ppem,
+    inline bool get_extents (hb_font_t          *font,
+			     hb_codepoint_t      glyph,
 			     hb_glyph_extents_t *extents) const
     {
       /* We only support PNG right now, and following function checks type. */
-     return get_png_extents (glyph, x_ppem, y_ppem, extents);
+      return get_png_extents (font, glyph, extents);
     }
 
-    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
-						unsigned int    x_ppem,
-						unsigned int    y_ppem,
+    inline hb_blob_t *reference_blob_for_glyph (hb_font_t      *font,
+						hb_codepoint_t  glyph_id,
 						unsigned int    file_type,
 						int            *x_offset,
 						int            *y_offset) const
     {
-      if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
+      if (unlikely (!sbix_len || !sbix_table->strikes.len))
         return hb_blob_get_empty ();
 
-      /* TODO: Does spec guarantee strikes are ascended sorted? */
-      unsigned int group = sbix_table->strikes.len - 1;
-      unsigned int ppem = MAX (x_ppem, y_ppem);
-      if (ppem != 0)
-	/* TODO: Use bsearch maybe or doesn't worth it? */
-        for (group = 0; group < sbix_table->strikes.len; group++)
-	  if ((sbix_table+sbix_table->strikes[group]).get_ppem () >= ppem)
-	    break;
+      unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+      if (!requested_ppem)
+        requested_ppem = 1<<30; /* Choose largest strike. */
+      /* TODO Add DPI sensitivity as well? */
+      unsigned int best_i = 0;
+      unsigned int best_ppem = (sbix_table+sbix_table->strikes[0]).get_ppem ();
 
-      const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
+      for (unsigned int i = 1; i < sbix_table->strikes.len; i++)
+      {
+	unsigned int ppem = (sbix_table+sbix_table->strikes[i]).get_ppem ();
+	if ((requested_ppem <= ppem && ppem < best_ppem) ||
+	    (requested_ppem > best_ppem && ppem > best_ppem))
+	{
+	  best_i = i;
+	  best_ppem = ppem;
+	}
+      }
+
+      const SBIXStrike &strike = sbix_table+sbix_table->strikes[best_i];
       return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
-				    sbix_table->strikes[group],
+				    sbix_table->strikes[best_i],
 				    x_offset, y_offset,
 				    file_type, num_glyphs);
     }
@@ -232,16 +239,15 @@ struct sbix
       DEFINE_SIZE_STATIC (29);
     };
 
-    inline bool get_png_extents (hb_codepoint_t      glyph,
-				 unsigned int        x_ppem,
-				 unsigned int        y_ppem,
+    inline bool get_png_extents (hb_font_t          *font,
+				 hb_codepoint_t      glyph,
 				 hb_glyph_extents_t *extents) const
     {
       if (likely (sbix_len == 0))
         return false;
 
       int x_offset, y_offset;
-      hb_blob_t *blob = reference_blob_for_glyph (glyph, x_ppem, y_ppem,
+      hb_blob_t *blob = reference_blob_for_glyph (font, glyph,
 						  HB_TAG ('p','n','g',' '),
 						  &x_offset, &y_offset);
 
