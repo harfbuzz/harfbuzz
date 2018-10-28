@@ -82,12 +82,12 @@ struct SBIXStrike
 
   inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
 				    hb_blob_t    *sbix_blob,
-				    unsigned int  sbix_len,
 				    int          *x_offset,
 				    int          *y_offset,
 				    hb_tag_t      file_type,
 				    unsigned int  num_glyphs) const
   {
+    unsigned int sbix_len = sbix_blob->length;
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
     if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
       return hb_blob_get_empty ();
@@ -185,7 +185,7 @@ struct sbix
 				     int            *x_offset,
 				     int            *y_offset) const
     {
-      return get_strike (font).get_glyph_blob (glyph_id, sbix_blob, sbix_len,
+      return get_strike (font).get_glyph_blob (glyph_id, sbix_blob,
 					       x_offset, y_offset,
 					       HB_TAG ('p','n','g',' '),
 					       num_glyphs);
