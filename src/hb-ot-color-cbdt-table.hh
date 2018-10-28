@@ -451,59 +451,6 @@ struct CBDT
       return true;
     }
 
-    inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
-					unsigned int group, unsigned int gid)) const
-    {
-      if (!cblc)
-	return;  // Not a color bitmap font.
-
-      for (unsigned int i = 0; i < cblc->sizeTables.len; ++i)
-      {
-        const BitmapSizeTable &sizeTable = cblc->sizeTables[i];
-        const IndexSubtableArray &subtable_array = cblc+sizeTable.indexSubtableArrayOffset;
-        for (unsigned int j = 0; j < sizeTable.numberOfIndexSubtables; ++j)
-        {
-          const IndexSubtableRecord &subtable_record = subtable_array.indexSubtablesZ[j];
-          for (unsigned int gid = subtable_record.firstGlyphIndex;
-                gid <= subtable_record.lastGlyphIndex; ++gid)
-          {
-            unsigned int image_offset = 0, image_length = 0, image_format = 0;
-
-            if (!subtable_record.get_image_data (gid, &subtable_array,
-                  &image_offset, &image_length, &image_format))
-              continue;
-
-            switch (image_format)
-            {
-            case 17: {
-              const GlyphBitmapDataFormat17& glyphFormat17 =
-                StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat17.data.arrayZ,
-                glyphFormat17.data.len, i, gid);
-            }
-            break;
-            case 18: {
-              const GlyphBitmapDataFormat18& glyphFormat18 =
-                StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat18.data.arrayZ,
-                glyphFormat18.data.len, i, gid);
-            }
-            break;
-            case 19: {
-              const GlyphBitmapDataFormat19& glyphFormat19 =
-                StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat19.data.arrayZ,
-                glyphFormat19.data.len, i, gid);
-            }
-            break;
-            default:
-              continue;
-            }
-          }
-        }
-      }
-    }
-
     inline hb_blob_t* reference_png (hb_codepoint_t  glyph_id,
 				     unsigned int    x_ppem,
 				     unsigned int    y_ppem) const
