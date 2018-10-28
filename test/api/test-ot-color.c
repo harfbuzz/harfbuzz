@@ -407,17 +407,28 @@ test_hb_ot_color_png (void)
   hb_blob_t *blob;
   unsigned int length;
   const char *data;
+  hb_glyph_extents_t extents;
 
   /* sbix */
   hb_font_t *sbix_font;
   sbix_font = hb_font_create (sbix);
   blob = hb_ot_color_glyph_reference_png (sbix_font, 0);
+  hb_font_get_glyph_extents (sbix_font, 0, &extents);
+  g_assert_cmpint (extents.x_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 0);
+  g_assert_cmpint (extents.width, ==, 0);
+  g_assert_cmpint (extents.height, ==, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
   blob = hb_ot_color_glyph_reference_png (sbix_font, 1);
   data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 224);
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
+  hb_font_get_glyph_extents (sbix_font, 1, &extents);
+  g_assert_cmpint (extents.x_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 0);
+  g_assert_cmpint (extents.width, ==, 3501);
+  g_assert_cmpint (extents.height, ==, 20992);
   hb_blob_destroy (blob);
   hb_font_destroy (sbix_font);
 
@@ -431,6 +442,11 @@ test_hb_ot_color_png (void)
   data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 88);
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
+  hb_font_get_glyph_extents (cbdt_font, 1, &extents);
+  g_assert_cmpint (extents.x_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 1024);
+  g_assert_cmpint (extents.width, ==, 1024);
+  g_assert_cmpint (extents.height, ==, -1024);
   hb_blob_destroy (blob);
   hb_font_destroy (cbdt_font);
 }

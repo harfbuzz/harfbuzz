@@ -196,23 +196,33 @@ struct sbix
 				    file_type, num_glyphs);
     }
 
+    struct PNGHeader
+    {
+      HBUINT8 header[9];
+      HBUINT32 width;
+      HBUINT32 height;
+    };
+
     inline bool get_png_extents (hb_codepoint_t      glyph,
 				 unsigned int        x_ppem,
 				 unsigned int        y_ppem,
 				 hb_glyph_extents_t *extents) const
     {
+      if (likely (sbix_len == 0))
+        return hb_blob_get_empty ();
+
       int x_offset, y_offset;
       hb_blob_t *blob = reference_blob_for_glyph (glyph, x_ppem, y_ppem,
-						  HB_TAG ('P','N','G',' '),
+						  HB_TAG ('p','n','g',' '),
 						  &x_offset, &y_offset);
-      if (hb_blob_get_length (blob) == 0)
+      if (hb_blob_get_length (blob) < sizeof (PNGHeader))
         return false;
 
       extents->x_bearing = x_offset;
       extents->y_bearing = y_offset;
-      /* XXX: Help me please! */
-      extents->width     = 0;
-      extents->height    = 0;
+      const PNGHeader &header = *blob->as<PNGHeader>();
+      extents->width     = header.width + 100;
+      extents->height    = header.height;
       hb_blob_destroy (blob);
 
       return true;
