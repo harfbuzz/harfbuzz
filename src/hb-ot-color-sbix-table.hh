@@ -148,7 +148,7 @@ struct sbix
     {
       sbix_blob = hb_sanitize_context_t().reference_table<sbix> (face);
       sbix_len = hb_blob_get_length (sbix_blob);
-      sbix_table = sbix_blob->as<sbix> ();
+      table = sbix_blob->as<sbix> ();
       num_glyphs = face->get_num_glyphs ();
     }
 
@@ -162,13 +162,13 @@ struct sbix
     /* only to support dump-emoji, don't use it anywhere else */
     inline unsigned int *get_available_ppems (unsigned int *length)
     {
-      if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
+      if (unlikely (sbix_len == 0 || table->strikes.len == 0))
 	return nullptr;
-      *length = sbix_table->strikes.len;
+      *length = table->strikes.len;
       unsigned int *result;
-      result = (unsigned int *) malloc (sizeof (unsigned int) * sbix_table->strikes.len);
-      for (unsigned int i = 0; i < sbix_table->strikes.len; i++)
-	result[i] = (sbix_table+sbix_table->strikes[i]).get_ppem ();
+      result = (unsigned int *) malloc (sizeof (unsigned int) * table->strikes.len);
+      for (unsigned int i = 0; i < table->strikes.len; i++)
+	result[i] = (table+table->strikes[i]).get_ppem ();
       return result;
     }
 
@@ -185,7 +185,7 @@ struct sbix
 				     int            *x_offset,
 				     int            *y_offset) const
     {
-      if (unlikely (!sbix_len || !sbix_table->strikes.len))
+      if (unlikely (!sbix_len || !table->strikes.len))
         return hb_blob_get_empty ();
 
       unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
@@ -193,11 +193,11 @@ struct sbix
         requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
       unsigned int best_i = 0;
-      unsigned int best_ppem = (sbix_table+sbix_table->strikes[0]).get_ppem ();
+      unsigned int best_ppem = (table+table->strikes[0]).get_ppem ();
 
-      for (unsigned int i = 1; i < sbix_table->strikes.len; i++)
+      for (unsigned int i = 1; i < table->strikes.len; i++)
       {
-	unsigned int ppem = (sbix_table+sbix_table->strikes[i]).get_ppem ();
+	unsigned int ppem = (table+table->strikes[i]).get_ppem ();
 	if ((requested_ppem <= ppem && ppem < best_ppem) ||
 	    (requested_ppem > best_ppem && ppem > best_ppem))
 	{
@@ -206,9 +206,9 @@ struct sbix
 	}
       }
 
-      const SBIXStrike &strike = sbix_table+sbix_table->strikes[best_i];
+      const SBIXStrike &strike = table+table->strikes[best_i];
       return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
-				    sbix_table->strikes[best_i],
+				    table->strikes[best_i],
 				    x_offset, y_offset,
 				    HB_TAG ('p','n','g',' '),
 				    num_glyphs);
@@ -265,7 +265,7 @@ struct sbix
 
     private:
     hb_blob_t *sbix_blob;
-    const sbix *sbix_table;
+    const sbix *table;
 
     unsigned int sbix_len;
     unsigned int num_glyphs;
