@@ -89,7 +89,8 @@ struct SBIXStrike
   {
     unsigned int sbix_len = sbix_blob->length;
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
-    if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
+    if (imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
+	imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size)
       return hb_blob_get_empty ();
 
     if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
