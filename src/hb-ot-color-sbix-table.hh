@@ -162,7 +162,7 @@ struct sbix
     /* only to support dump-emoji, don't use it anywhere else */
     inline unsigned int *get_available_ppems (unsigned int *length)
     {
-      if (unlikely (sbix_len == 0 || table->strikes.len == 0))
+      if (unlikely (table->strikes.len == 0))
 	return nullptr;
       *length = table->strikes.len;
       unsigned int *result;
@@ -185,7 +185,7 @@ struct sbix
 				     int            *x_offset,
 				     int            *y_offset) const
     {
-      if (unlikely (!sbix_len || !table->strikes.len))
+      if (unlikely (!table->strikes.len))
         return hb_blob_get_empty ();
 
       unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
