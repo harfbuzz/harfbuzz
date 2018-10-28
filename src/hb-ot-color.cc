@@ -316,16 +316,14 @@ hb_blob_t *
 hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)
 {
   hb_blob_t *blob = hb_blob_get_empty ();
-  /* don't run cbdt first if aat is set */
-  if (!hb_options ().aat && _get_cbdt (font->face).has_data ())
-    blob = _get_cbdt (font->face).reference_blob_for_glyph (glyph, font->x_ppem, font->y_ppem);
 
-  if (_get_sbix (font->face).has_data () && !hb_blob_get_length (blob))
-    blob = _get_sbix (font->face).reference_blob_for_glyph (glyph, font->ptem,
-							    MAX (font->x_ppem, font->y_ppem),
-							    HB_TAG('p','n','g',' '));
+  if (_get_sbix (font->face).has_data ())
+    blob = _get_sbix (font->face).reference_blob_for_glyph (glyph,
+							    font->x_ppem, font->y_ppem,
+							    HB_TAG('p','n','g',' '),
+							    nullptr, nullptr);
 
-  if (hb_options ().aat && _get_cbdt (font->face).has_data () && !hb_blob_get_length (blob))
+  if (hb_blob_get_length (blob) == 0 && _get_cbdt (font->face).has_data ())
     blob = _get_cbdt (font->face).reference_blob_for_glyph (glyph, font->x_ppem, font->y_ppem);
 
   return blob;
