@@ -246,14 +246,15 @@ struct sbix
       if (likely (sbix_len == 0))
         return false;
 
-      int x_offset, y_offset;
+      int x_offset = 0, y_offset = 0;
       hb_blob_t *blob = reference_blob_for_glyph (font, glyph,
 						  HB_TAG ('p','n','g',' '),
 						  &x_offset, &y_offset);
 
-      const PNGHeader &png = *blob->as<PNGHeader>();
       if (unlikely (blob->length < sizeof (PNGHeader)))
         return false;
+
+      const PNGHeader &png = *blob->as<PNGHeader>();
 
       extents->x_bearing = x_offset;
       extents->y_bearing = y_offset;
