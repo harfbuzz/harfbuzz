@@ -90,11 +90,13 @@ struct SBIXStrike
     unsigned int retry_count = 8;
     unsigned int sbix_len = sbix_blob->length;
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
+    assert (strike_offset < sbix_len);
 
   retry:
     if (unlikely (glyph_id >= num_glyphs ||
 		  imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
-		  imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size))
+		  imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size ||
+		  (unsigned int) imageOffsetsZ[glyph_id + 1] > sbix_len - strike_offset))
       return hb_blob_get_empty ();
 
     unsigned int glyph_offset = strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size;
