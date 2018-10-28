@@ -215,12 +215,13 @@ struct sbix
       hb_blob_t *blob = reference_blob_for_glyph (glyph, x_ppem, y_ppem,
 						  HB_TAG ('p','n','g',' '),
 						  &x_offset, &y_offset);
-      if (hb_blob_get_length (blob) < sizeof (PNGHeader))
+
+      const PNGHeader &header = *blob->as<PNGHeader>();
+      if (header.width == 0 && header.width == 0)
         return false;
 
       extents->x_bearing = x_offset;
       extents->y_bearing = y_offset;
-      const PNGHeader &header = *blob->as<PNGHeader>();
       extents->width     = header.width;
       extents->height    = header.height;
       hb_blob_destroy (blob);
