@@ -130,18 +130,13 @@ struct sbix
 {
   static const hb_tag_t tableTag = HB_OT_TAG_sbix;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && strikes.sanitize (c, this)));
-  }
+  inline bool has_data (void) const { return version; }
 
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
     {
       sbix_blob = hb_sanitize_context_t().reference_table<sbix> (face);
-      sbix_len = hb_blob_get_length (sbix_blob);
       table = sbix_blob->as<sbix> ();
       num_glyphs = face->get_num_glyphs ();
     }
@@ -151,7 +146,13 @@ struct sbix
       hb_blob_destroy (sbix_blob);
     }
 
-    inline bool has_data () const { return sbix_len; }
+    inline bool has_data () const
+    {
+      /* XXX Fix somehow and remove next line.
+       * https://github.com/harfbuzz/harfbuzz/issues/1146 */
+      if (!num_glyphs) return false;
+      return table->has_data ();
+    }
 
     inline bool get_extents (hb_font_t          *font,
 			     hb_codepoint_t      glyph,
@@ -227,6 +228,11 @@ struct sbix
 				 hb_codepoint_t      glyph,
 				 hb_glyph_extents_t *extents) const
     {
+      /* Following code is safe to call even without data, but faster to
+       * short-circuit. */
+      if (!has_data ())
+        return false;
+
       int x_offset = 0, y_offset = 0;
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset);
 
@@ -248,9 +254,16 @@ struct sbix
     hb_blob_t *sbix_blob;
     const sbix *table;
 
-    unsigned int sbix_len;
     unsigned int num_glyphs;
   };
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  version >= 1 &&
+			  strikes.sanitize (c, this)));
+  }
 
   protected:
   HBUINT16	version;	/* Table version number — set to 1 */
