@@ -199,14 +199,24 @@ struct sbix
     struct PNGHeader
     {
       HBUINT8	signature[8];
-      HBUINT8   chunkHeaderIHDR[8];
-      HBUINT32	width;
-      HBUINT32	height;
-      HBUINT8	bitDepth;
-      HBUINT8	colorType;
-      HBUINT8	compressionMethod;
-      HBUINT8	filterMethod;
-      HBUINT8	interlaceMethod;
+      struct
+      {
+        struct
+	{
+	  HBUINT32	length;
+	  Tag		type;
+	}		header;
+	HBUINT32	width;
+	HBUINT32	height;
+	HBUINT8		bitDepth;
+	HBUINT8		colorType;
+	HBUINT8		compressionMethod;
+	HBUINT8		filterMethod;
+	HBUINT8		interlaceMethod;
+      } IHDR;
+
+      public:
+      DEFINE_SIZE_STATIC (29);
     };
 
     inline bool get_png_extents (hb_codepoint_t      glyph,
@@ -222,21 +232,20 @@ struct sbix
 						  HB_TAG ('p','n','g',' '),
 						  &x_offset, &y_offset);
 
-      const PNGHeader &header = *blob->as<PNGHeader>();
-      if (header.width == 0 && header.width == 0)
+      const PNGHeader &png = *blob->as<PNGHeader>();
+      if (unlikely (blob->length < sizeof (PNGHeader)))
         return false;
 
       extents->x_bearing = x_offset;
       extents->y_bearing = y_offset;
-      extents->width     = header.width;
-      extents->height    = header.height;
+      extents->width     = png.IHDR.width;
+      extents->height    = png.IHDR.height;
       hb_blob_destroy (blob);
 
       return true;
     }
 
-    inline bool has_data () const
-    { return sbix_len; }
+    inline bool has_data () const { return sbix_len; }
 
     private:
     hb_blob_t *sbix_blob;
