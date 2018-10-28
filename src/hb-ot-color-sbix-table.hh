@@ -92,8 +92,9 @@ struct SBIXStrike
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
 
   retry:
-    if (imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
-	imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size)
+    if (unlikely (glyph_id >= num_glyphs ||
+		  imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
+		  imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size))
       return hb_blob_get_empty ();
 
     if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
@@ -106,7 +107,7 @@ struct SBIXStrike
       if (calculate_blob_size (glyph_id) >= 2)
       {
 	glyph_id = *((HBUINT16 *) &glyph->data);
-	if (glyph_id < num_glyphs && retry_count--)
+	if (retry_count--)
 	  goto retry;
       }
       return hb_blob_get_empty ();
