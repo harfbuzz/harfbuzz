@@ -385,10 +385,10 @@ test_hb_ot_color_svg (void)
 {
   hb_blob_t *blob;
 
-  blob = hb_ot_color_glyph_reference_blob_svg (svg, 0);
+  blob = hb_ot_color_glyph_reference_svg (svg, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
-  blob = hb_ot_color_glyph_reference_blob_svg (svg, 1);
+  blob = hb_ot_color_glyph_reference_svg (svg, 1);
   unsigned int length;
   const char *data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 146);
@@ -396,7 +396,7 @@ test_hb_ot_color_svg (void)
   g_assert (strncmp (data + 140, "</svg>", 5) == 0);
   hb_blob_destroy (blob);
 
-  blob = hb_ot_color_glyph_reference_blob_svg (empty, 0);
+  blob = hb_ot_color_glyph_reference_svg (empty, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 }
 
@@ -411,10 +411,10 @@ test_hb_ot_color_png (void)
   /* sbix */
   hb_font_t *sbix_font;
   sbix_font = hb_font_create (sbix);
-  blob = hb_ot_color_glyph_reference_blob_png (sbix_font, 0);
+  blob = hb_ot_color_glyph_reference_png (sbix_font, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
-  blob = hb_ot_color_glyph_reference_blob_png (sbix_font, 1);
+  blob = hb_ot_color_glyph_reference_png (sbix_font, 1);
   data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 224);
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
@@ -424,10 +424,10 @@ test_hb_ot_color_png (void)
   /* cbdt */
   hb_font_t *cbdt_font;
   cbdt_font = hb_font_create (cbdt);
-  blob = hb_ot_color_glyph_reference_blob_png (cbdt_font, 0);
+  blob = hb_ot_color_glyph_reference_png (cbdt_font, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
-  blob = hb_ot_color_glyph_reference_blob_png (cbdt_font, 1);
+  blob = hb_ot_color_glyph_reference_png (cbdt_font, 1);
   data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 88);
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
