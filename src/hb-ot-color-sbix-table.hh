@@ -69,9 +69,6 @@ struct SBIXStrike
 		  imageOffsetsZ.sanitize_shallow (c, c->get_num_glyphs () + 1));
   }
 
-  inline unsigned int get_ppem () const { return ppem; }
-  inline unsigned int get_resolution () const { return resolution; }
-
   inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
 				    hb_blob_t    *sbix_blob,
 				    hb_tag_t      file_type,
@@ -115,10 +112,11 @@ struct SBIXStrike
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
   }
 
-  protected:
+  public:
   HBUINT16	ppem;		/* The PPEM size for which this strike was designed. */
   HBUINT16	resolution;	/* The device pixel density (in PPI) for which this
 				 * strike was designed. (E.g., 96 PPI, 192 PPI.) */
+  protected:
   UnsizedArrayOf<LOffsetTo<SBIXGlyph> >
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
@@ -184,11 +182,11 @@ struct sbix
         requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
       unsigned int best_i = 0;
-      unsigned int best_ppem = (table+table->strikes[0]).get_ppem ();
+      unsigned int best_ppem = (table+table->strikes[0]).ppem;
 
       for (unsigned int i = 1; i < table->strikes.len; i++)
       {
-	unsigned int ppem = (table+table->strikes[i]).get_ppem ();
+	unsigned int ppem = (table+table->strikes[i]).ppem;
 	if ((requested_ppem <= ppem && ppem < best_ppem) ||
 	    (requested_ppem > best_ppem && ppem > best_ppem))
 	{
