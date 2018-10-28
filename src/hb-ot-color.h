@@ -129,10 +129,7 @@ HB_EXTERN hb_bool_t
 hb_ot_color_has_png (hb_face_t *face);
 
 HB_EXTERN hb_blob_t *
-hb_ot_color_glyph_reference_blob_png (hb_font_t      *font,
-				      hb_codepoint_t  glyph,
-				      unsigned int   *strike_x_ppem,
-				      unsigned int   *strike_y_ppem);
+hb_ot_color_glyph_reference_blob_png (hb_font_t *font, hb_codepoint_t glyph);
 
 
 HB_END_DECLS

@@ -70,7 +70,7 @@ sbix_dump (hb_face_t *face)
     {
       hb_blob_t *blob;
       blob = sbix.reference_blob_for_glyph (glyph_id, 0, available_ppems[group],
-					    HB_TAG('p','n','g',' '), NULL, NULL);
+					    HB_TAG('p','n','g',' '));
       if (hb_blob_get_length (blob) == 0) continue;
 
       char output_path[255];
