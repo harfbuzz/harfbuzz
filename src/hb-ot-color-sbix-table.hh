@@ -105,8 +105,10 @@ struct SBIXStrike
 	glyph = &(this+imageOffsetsZ[new_glyph_id]);
 	glyph_id = new_glyph_id;
         if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
-          return hb_blob_get_empty ();
+	  return hb_blob_get_empty ();
       }
+      else
+	return hb_blob_get_empty ();
     }
     if (unlikely (file_type != glyph->graphicType))
       return hb_blob_get_empty ();

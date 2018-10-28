@@ -412,15 +412,6 @@ dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
 
-if HAVE_FREETYPE
-if HAVE_CAIRO_FT
-check_PROGRAMS += dump-emoji
-dump_emoji_SOURCES = dump-emoji.cc
-dump_emoji_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS) $(CAIRO_FT_CFLAGS)
-dump_emoji_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS)
-endif # HAVE_CAIRO_FT
-endif # HAVE_FREETYPE
-
 check_PROGRAMS += test-ot-tag test-unicode-ranges
 TESTS += test-ot-tag test-unicode-ranges
 
