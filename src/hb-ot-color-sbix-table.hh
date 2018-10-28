@@ -87,8 +87,11 @@ struct SBIXStrike
 				    int          *y_offset,
 				    unsigned int  num_glyphs) const
   {
+    unsigned int retry_count = 8;
     unsigned int sbix_len = sbix_blob->length;
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
+
+  retry:
     if (imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
 	imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size)
       return hb_blob_get_empty ();
@@ -97,20 +100,18 @@ struct SBIXStrike
       return hb_blob_get_empty ();
 
     const SBIXGlyph *glyph = &(this+imageOffsetsZ[glyph_id]);
-    if (unlikely (glyph->graphicType == HB_TAG ('d','u','p','e') &&
-		  calculate_blob_size (glyph_id) >= 2))
+
+    if (glyph->graphicType == HB_TAG ('d','u','p','e'))
     {
-      unsigned int new_glyph_id = *((HBUINT16 *) &glyph->data);
-      if (new_glyph_id < num_glyphs)
+      if (calculate_blob_size (glyph_id) >= 2)
       {
-	glyph = &(this+imageOffsetsZ[new_glyph_id]);
-	glyph_id = new_glyph_id;
-        if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
-	  return hb_blob_get_empty ();
+	glyph_id = *((HBUINT16 *) &glyph->data);
+	if (glyph_id < num_glyphs && retry_count--)
+	  goto retry;
       }
-      else
-	return hb_blob_get_empty ();
+      return hb_blob_get_empty ();
     }
+
     if (unlikely (file_type != glyph->graphicType))
       return hb_blob_get_empty ();
     unsigned int blob_size = calculate_blob_size (glyph_id);
