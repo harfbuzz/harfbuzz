@@ -83,12 +83,12 @@ struct SBIXStrike
   inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
 				    hb_blob_t    *sbix_blob,
 				    unsigned int  sbix_len,
-				    unsigned int  strike_offset,
 				    int          *x_offset,
 				    int          *y_offset,
 				    hb_tag_t      file_type,
 				    unsigned int  num_glyphs) const
   {
+    unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
     if (imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] == 0)
       return hb_blob_get_empty ();
 
@@ -185,8 +185,18 @@ struct sbix
 				     int            *x_offset,
 				     int            *y_offset) const
     {
+      return get_strike (font).get_glyph_blob (glyph_id, sbix_blob, sbix_len,
+					       x_offset, y_offset,
+					       HB_TAG ('p','n','g',' '),
+					       num_glyphs);
+    }
+
+    private:
+
+    inline const SBIXStrike &get_strike (hb_font_t *font) const
+    {
       if (unlikely (!table->strikes.len))
-        return hb_blob_get_empty ();
+        return Null(SBIXStrike);
 
       unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
       if (!requested_ppem)
@@ -206,15 +216,8 @@ struct sbix
 	}
       }
 
-      const SBIXStrike &strike = table+table->strikes[best_i];
-      return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
-				    table->strikes[best_i],
-				    x_offset, y_offset,
-				    HB_TAG ('p','n','g',' '),
-				    num_glyphs);
+      return table+table->strikes[best_i];
     }
-
-    private:
 
     struct PNGHeader
     {
