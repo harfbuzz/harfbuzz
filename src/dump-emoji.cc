@@ -69,12 +69,13 @@ sbix_dump (hb_face_t *face)
     for (unsigned int glyph_id = 0; glyph_id < num_glyphs; glyph_id++)
     {
       hb_blob_t *blob;
-      blob = sbix.reference_blob_for_glyph (glyph_id, 0, available_ppems[group],
-					    HB_TAG('p','n','g',' '));
+      unsigned int ppem = available_ppems[group];
+      blob = sbix.reference_blob_for_glyph (glyph_id, ppem, ppem,
+					    HB_TAG('p','n','g',' '), nullptr, nullptr);
       if (hb_blob_get_length (blob) == 0) continue;
 
       char output_path[255];
-      sprintf (output_path, "out/sbix-%d-%d.png", available_ppems[group], glyph_id);
+      sprintf (output_path, "out/sbix-%d-%d.png", ppem, glyph_id);
       FILE *f = fopen (output_path, "wb");
       unsigned int length;
       const char* data = hb_blob_get_data (blob, &length);

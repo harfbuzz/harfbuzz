@@ -75,7 +75,7 @@ struct SBIXStrike
   inline unsigned int get_resolution () const
   { return resolution; }
 
-  inline unsigned int blob_size (unsigned int glyph_id) const
+  inline unsigned int calculate_blob_size (unsigned int glyph_id) const
   {
     return imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] - SBIXGlyph::min_size;
   }
@@ -84,6 +84,8 @@ struct SBIXStrike
 				    hb_blob_t    *sbix_blob,
 				    unsigned int  sbix_len,
 				    unsigned int  strike_offset,
+				    int          *x_offset,
+				    int          *y_offset,
 				    hb_tag_t      file_type,
 				    unsigned int  num_glyphs) const
   {
@@ -95,7 +97,7 @@ struct SBIXStrike
 
     const SBIXGlyph *glyph = &(this+imageOffsetsZ[glyph_id]);
     if (unlikely (glyph->graphicType == HB_TAG ('d','u','p','e') &&
-		  blob_size (glyph_id) >= 2))
+		  calculate_blob_size (glyph_id) >= 2))
     {
       unsigned int new_glyph_id = *((HBUINT16 *) &glyph->data);
       if (new_glyph_id < num_glyphs)
@@ -108,9 +110,15 @@ struct SBIXStrike
     }
     if (unlikely (file_type != glyph->graphicType))
       return hb_blob_get_empty ();
+    unsigned int blob_size = calculate_blob_size (glyph_id);
+    if (unlikely (blob_size == 0))
+      return hb_blob_get_empty ();
+
+    if (x_offset) *x_offset = glyph->xOffset;
+    if (y_offset) *y_offset = glyph->yOffset;
     unsigned int offset = strike_offset + SBIXGlyph::min_size;
     offset += imageOffsetsZ[glyph_id];
-    return hb_blob_create_sub_blob (sbix_blob, offset, blob_size (glyph_id));
+    return hb_blob_create_sub_blob (sbix_blob, offset, blob_size);
   }
 
   protected:
@@ -163,25 +171,51 @@ struct sbix
     }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t  glyph_id,
-						unsigned int    ptem HB_UNUSED,
-						unsigned int    requested_ppem,
-						unsigned int    requested_file_type) const
+						unsigned int    x_ppem,
+						unsigned int    y_ppem,
+						unsigned int    file_type,
+						int            *x_offset,
+						int            *y_offset) const
     {
       if (unlikely (sbix_len == 0 || sbix_table->strikes.len == 0))
         return hb_blob_get_empty ();
 
       /* TODO: Does spec guarantee strikes are ascended sorted? */
       unsigned int group = sbix_table->strikes.len - 1;
-      if (requested_ppem != 0)
+      unsigned int ppem = MAX (x_ppem, y_ppem);
+      if (ppem != 0)
 	/* TODO: Use bsearch maybe or doesn't worth it? */
         for (group = 0; group < sbix_table->strikes.len; group++)
-	  if ((sbix_table+sbix_table->strikes[group]).get_ppem () >= requested_ppem)
+	  if ((sbix_table+sbix_table->strikes[group]).get_ppem () >= ppem)
 	    break;
 
       const SBIXStrike &strike = sbix_table+sbix_table->strikes[group];
       return strike.get_glyph_blob (glyph_id, sbix_blob, sbix_len,
 				    sbix_table->strikes[group],
-				    requested_file_type, num_glyphs);
+				    x_offset, y_offset,
+				    file_type, num_glyphs);
+    }
+
+    inline bool get_png_extents (hb_codepoint_t      glyph,
+				 unsigned int        x_ppem,
+				 unsigned int        y_ppem,
+				 hb_glyph_extents_t *extents) const
+    {
+      int x_offset, y_offset;
+      hb_blob_t *blob = reference_blob_for_glyph (glyph, x_ppem, y_ppem,
+						  HB_TAG ('P','N','G',' '),
+						  &x_offset, &y_offset);
+      if (hb_blob_get_length (blob) == 0)
+        return false;
+
+      extents->x_bearing = x_offset;
+      extents->y_bearing = y_offset;
+      /* XXX: Help me please! */
+      extents->width     = 0;
+      extents->height    = 0;
+      hb_blob_destroy (blob);
+
+      return true;
     }
 
     inline bool has_data () const
