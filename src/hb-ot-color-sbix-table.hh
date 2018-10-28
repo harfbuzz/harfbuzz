@@ -97,7 +97,8 @@ struct SBIXStrike
 		  imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size))
       return hb_blob_get_empty ();
 
-    if (strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size > sbix_len)
+    unsigned int glyph_offset = strike_offset + (unsigned int) imageOffsetsZ[glyph_id] + SBIXGlyph::min_size;
+    if (glyph_offset > sbix_len)
       return hb_blob_get_empty ();
 
     const SBIXGlyph *glyph = &(this+imageOffsetsZ[glyph_id]);
@@ -121,9 +122,7 @@ struct SBIXStrike
 
     if (x_offset) *x_offset = glyph->xOffset;
     if (y_offset) *y_offset = glyph->yOffset;
-    unsigned int offset = strike_offset + SBIXGlyph::min_size;
-    offset += imageOffsetsZ[glyph_id];
-    return hb_blob_create_sub_blob (sbix_blob, offset, blob_size);
+    return hb_blob_create_sub_blob (sbix_blob, glyph_offset, blob_size);
   }
 
   protected:
