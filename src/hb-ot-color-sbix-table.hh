@@ -76,6 +76,8 @@ struct SBIXStrike
 				    int          *y_offset,
 				    unsigned int  num_glyphs) const
   {
+    if (unlikely (!ppem)) return hb_blob_get_empty (); /* To get Null() object out of the way. */
+
     unsigned int retry_count = 8;
     unsigned int sbix_len = sbix_blob->length;
     unsigned int strike_offset = (const char *) this - (const char *) sbix_blob->data;
@@ -83,7 +85,7 @@ struct SBIXStrike
 
   retry:
     if (unlikely (glyph_id >= num_glyphs ||
-		  imageOffsetsZ[glyph_id + 1] < imageOffsetsZ[glyph_id] ||
+		  imageOffsetsZ[glyph_id + 1] <= imageOffsetsZ[glyph_id] ||
 		  imageOffsetsZ[glyph_id + 1] - imageOffsetsZ[glyph_id] <= SBIXGlyph::min_size ||
 		  (unsigned int) imageOffsetsZ[glyph_id + 1] > sbix_len - strike_offset))
       return hb_blob_get_empty ();
@@ -225,9 +227,6 @@ struct sbix
 				 hb_codepoint_t      glyph,
 				 hb_glyph_extents_t *extents) const
     {
-      if (likely (sbix_len == 0))
-        return false;
-
       int x_offset = 0, y_offset = 0;
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset);
 
