@@ -74,7 +74,8 @@ png_dump (hb_face_t *face, unsigned int face_index)
 	strikes_count++;
 	blob_length = new_blob_length;
       }
-      strikes[strikes_count - 1] = ppem;
+      if (strikes_count != 0)
+	strikes[strikes_count - 1] = ppem;
       hb_blob_destroy (blob);
     }
     /* can't report the biggest strike correctly, and, we can't do anything about it */
