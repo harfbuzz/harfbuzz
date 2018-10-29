@@ -343,20 +343,14 @@ struct CBLC
   }
 
   protected:
-  const BitmapSizeTable &choose_strike (hb_font_t *font,
-					unsigned int *x_ppem, unsigned int *y_ppem) const
+  const BitmapSizeTable &choose_strike (hb_font_t *font) const
   {
     /* TODO: Make it possible to select strike. */
 
     unsigned int count = sizeTables.len;
     for (uint32_t i = 0; i < count; ++i)
-    {
-      *x_ppem = sizeTables[i].ppemX;
-      *y_ppem = sizeTables[i].ppemY;
       return sizeTables[i];
-    }
 
-    *x_ppem = *y_ppem = 0;
     return Null(BitmapSizeTable);
   }
 
@@ -403,11 +397,10 @@ struct CBDT
       if (!cblc)
 	return false;
 
-      unsigned int x_ppem, y_ppem;
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->choose_strike (font, &x_ppem, &y_ppem);
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
-      if (!subtable_record || !x_ppem || !y_ppem)
+      if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return false;
 
       if (subtable_record->get_extents (extents, base))
@@ -439,8 +432,8 @@ struct CBDT
       }
 
       /* Convert to font units. */
-      double x_scale = upem / (double) x_ppem;
-      double y_scale = upem / (double) y_ppem;
+      double x_scale = upem / (double) strike.ppemX;
+      double y_scale = upem / (double) strike.ppemY;
       extents->x_bearing = round (extents->x_bearing * x_scale);
       extents->y_bearing = round (extents->y_bearing * y_scale);
       extents->width = round (extents->width * x_scale);
@@ -455,11 +448,10 @@ struct CBDT
       if (!cblc)
 	return hb_blob_get_empty ();
 
-      unsigned int x_ppem, y_ppem;
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->choose_strike (font, &x_ppem, &y_ppem);
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
-      if (!subtable_record || !x_ppem || !y_ppem)
+      if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return hb_blob_get_empty ();
 
       unsigned int image_offset = 0, image_length = 0, image_format = 0;
