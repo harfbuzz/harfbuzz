@@ -335,6 +335,8 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null>
 template <typename Type>
 struct UnsizedArrayOf
 {
+  HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
+
   inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
   inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
 
@@ -424,6 +426,8 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
+  HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
+
   inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
@@ -589,6 +593,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct HeadlessArrayOf
 {
+  HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= lenP1 || !i)) return Null(Type);
@@ -653,6 +659,8 @@ struct HeadlessArrayOf
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOfM1
 {
+  HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE2 (ArrayOfM1, Type, LenType);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i > lenM1)) return Null(Type);
@@ -757,6 +765,7 @@ struct BinSearchHeader
 template <typename Type, typename LenType=HBUINT16>
 struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader<LenType> > {};
 
+
 struct VarSizedBinSearchHeader
 {
 
@@ -782,6 +791,8 @@ struct VarSizedBinSearchHeader
 template <typename Type>
 struct VarSizedBinSearchArrayOf
 {
+  HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= header.nUnits)) return Null(Type);
