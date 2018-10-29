@@ -91,7 +91,8 @@
       engines in Firefox, LibreOffice, and Chromium. Unless you are
       <emphasis>writing</emphasis> one of these layout engines
       yourself, you will probably not need to use HarfBuzz: normally,
-      lower-level libraries will turn text into glyphs for you.
+      a layout engine, toolkit, or other library will turn text into
+      glyphs for you.
     </para>
     <para>
       However, if you <emphasis>are</emphasis> writing a layout engine
@@ -301,8 +302,8 @@
 
     <para>
       In addition to OpenType shaping, HarfBuzz supports the latest
-      version of Graphite shaping. HarfBuzz currently supports AAT
-      shaping only on macOS and iOS systems.
+      version of Graphite shaping (the "Graphite 2" model) and AAT
+      shaping.
     </para>
     
     <para>
@@ -313,8 +314,9 @@
     </para>
 
     <para>
-      HarfBuzz can run on top of the FreeType, CoreText, DirectWrite,
-      or Uniscribe font renderers.
+      HarfBuzz is designed and tested to run on top of the FreeType
+      font renderer. It can run on Linux, Android, Windows, macOS, and
+      iOS systems.
     </para>
     
     <para>

@@ -1,3 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY version SYSTEM "version.xml">
+]>
 <chapter id="install-harfbuzz">
   <title>Installing HarfBuzz</title>
   
@@ -376,11 +382,16 @@
 	  <term>--with-uniscribe</term>
 	  <listitem>
 	    <para>
-	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/intl/uniscribe">Uniscribe</ulink> library. <emphasis>(Default = no)</emphasis>
+	      Use the <ulink
+	      url="https://docs.microsoft.com/en-us/windows/desktop/intl/uniscribe">Uniscribe</ulink>
+	      library (experimental). <emphasis>(Default = no)</emphasis>
 	    </para>	    
 	    <para>
 	      This option enables or disables usage of the Uniscribe
-	      font-rendering library. Uniscribe is available on Windows systems.
+	      font-rendering library. Uniscribe is available on
+	      Windows systems. Uniscribe support is used only for
+	      testing purposes and does not need to be enabled for
+	      HarfBuzz to run on Windows systems.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -393,7 +404,10 @@
 	    </para>	    
 	    <para>
 	      This option enables or disables usage of the DirectWrite
-	      font-rendering library. DirectWrite is available on Windows systems.
+	      font-rendering library. DirectWrite is available on
+	      Windows systems. DirectWrite support is used only for
+	      testing purposes and does not need to be enabled for
+	      HarfBuzz to run on Windows systems.
 	    </para>
 	  </listitem>
 	</varlistentry>
