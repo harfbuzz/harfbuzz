@@ -230,8 +230,8 @@ struct sbix
 				 hb_codepoint_t      glyph,
 				 hb_glyph_extents_t *extents) const
     {
-      /* Following code is safe to call even without data, but faster to
-       * short-circuit. */
+      /* Following code is safe to call even without data (XXX currently
+       * isn't.  See has_data()), but faster to short-circuit. */
       if (!has_data ())
         return false;
 
