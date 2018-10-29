@@ -182,7 +182,8 @@ struct sbix
 
     inline const SBIXStrike &choose_strike (hb_font_t *font) const
     {
-      if (unlikely (!table->strikes.len))
+      unsigned count = table->strikes.len;
+      if (unlikely (!count))
         return Null(SBIXStrike);
 
       unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
@@ -192,7 +193,7 @@ struct sbix
       unsigned int best_i = 0;
       unsigned int best_ppem = table->get_strike (0).ppem;
 
-      for (unsigned int i = 1; i < table->strikes.len; i++)
+      for (unsigned int i = 1; i < count; i++)
       {
 	unsigned int ppem = (table->get_strike (i)).ppem;
 	if ((requested_ppem <= ppem && ppem < best_ppem) ||
