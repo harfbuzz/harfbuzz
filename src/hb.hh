@@ -339,21 +339,24 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 #if __cplusplus >= 201103L
 
-#define HB_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+#define HB_NO_CREATE_COPY_ASSIGN(TypeName) \
+  TypeName(void); \
   TypeName(const TypeName&); \
   void operator=(const TypeName&)
-#define HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE(TypeName, T) \
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) \
+  TypeName(void); \
   TypeName(const TypeName<T>&); \
   void operator=(const TypeName<T>&)
-#define HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
+  TypeName(void); \
   TypeName(const TypeName<T1, T2>&); \
   void operator=(const TypeName<T1, T2>&);
 
 #else /* __cpluspplus >= 201103L */
 
-#define HB_DISALLOW_COPY_AND_ASSIGN(TypeName)
-#define HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE(TypeName, T)
-#define HB_DISALLOW_COPY_AND_ASSIGN_TEMPLATE2(TypeName, T1, T2)
+#define HB_NO_CREATE_COPY_ASSIGN(TypeName)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
 
 #endif /* __cpluspplus >= 201103L */
 
