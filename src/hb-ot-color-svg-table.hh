@@ -45,8 +45,8 @@ struct SVGDocumentIndexEntry
 
   inline hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
   {
-    if (svgDocLength == 0) return hb_blob_get_empty ();
-    return hb_blob_create_sub_blob (svg_blob, (unsigned int) svgDoc + index_offset,
+    return hb_blob_create_sub_blob (svg_blob,
+				    index_offset + (unsigned int) svgDoc,
 				    svgDocLength);
   }
 
