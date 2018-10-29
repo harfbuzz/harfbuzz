@@ -343,26 +343,21 @@ struct CBLC
   }
 
   protected:
-  const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
-					 unsigned int *x_ppem, unsigned int *y_ppem,
-					 const void **base) const
+  const BitmapSizeTable &get_strike (hb_font_t *font,
+				     unsigned int *x_ppem, unsigned int *y_ppem) const
   {
     /* TODO: Make it possible to select strike. */
 
     unsigned int count = sizeTables.len;
     for (uint32_t i = 0; i < count; ++i)
     {
-      unsigned int startGlyphIndex = sizeTables.arrayZ[i].startGlyphIndex;
-      unsigned int endGlyphIndex = sizeTables.arrayZ[i].endGlyphIndex;
-      if (startGlyphIndex <= glyph && glyph <= endGlyphIndex)
-      {
-	*x_ppem = sizeTables[i].ppemX;
-	*y_ppem = sizeTables[i].ppemY;
-	return sizeTables[i].find_table (glyph, this, base);
-      }
+      *x_ppem = sizeTables[i].ppemX;
+      *y_ppem = sizeTables[i].ppemY;
+      return sizeTables[i];
     }
 
-    return nullptr;
+    *x_ppem = *y_ppem = 0;
+    return Null(BitmapSizeTable);
   }
 
   protected:
@@ -405,13 +400,13 @@ struct CBDT
     inline bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
 			     hb_glyph_extents_t *extents) const
     {
-      unsigned int x_ppem = font->x_ppem, y_ppem = font->y_ppem;
-
       if (!cblc)
 	return false;
 
+      unsigned int x_ppem, y_ppem;
       const void *base;
-      const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph, &x_ppem, &y_ppem, &base);
+      const BitmapSizeTable &strike = this->cblc->get_strike (font, &x_ppem, &y_ppem);
+      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !x_ppem || !y_ppem)
 	return false;
 
@@ -454,23 +449,21 @@ struct CBDT
       return true;
     }
 
-    inline hb_blob_t* reference_png (hb_codepoint_t  glyph_id,
-				     unsigned int    x_ppem,
-				     unsigned int    y_ppem) const
+    inline hb_blob_t* reference_png (hb_font_t      *font,
+				     hb_codepoint_t  glyph) const
     {
       if (!cblc)
 	return hb_blob_get_empty ();
 
-      if (x_ppem == 0) x_ppem = upem;
-      if (y_ppem == 0) y_ppem = upem;
-
+      unsigned int x_ppem, y_ppem;
       const void *base;
-      const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph_id, &x_ppem, &y_ppem, &base);
+      const BitmapSizeTable &strike = this->cblc->get_strike (font, &x_ppem, &y_ppem);
+      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !x_ppem || !y_ppem)
 	return hb_blob_get_empty ();
 
       unsigned int image_offset = 0, image_length = 0, image_format = 0;
-      if (!subtable_record->get_image_data (glyph_id, base, &image_offset, &image_length, &image_format))
+      if (!subtable_record->get_image_data (glyph, base, &image_offset, &image_length, &image_format))
 	return hb_blob_get_empty ();
 
       switch (image_format)
