@@ -50,10 +50,11 @@ struct SVGDocumentIndexEntry
 				    svgDocLength);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
+    return_trace (c->check_struct (this) &&
+		  svgDoc.sanitize (c, base, svgDocLength));
   }
 
   protected:
