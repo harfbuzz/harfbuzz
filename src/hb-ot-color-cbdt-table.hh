@@ -345,13 +345,28 @@ struct CBLC
   protected:
   const BitmapSizeTable &choose_strike (hb_font_t *font) const
   {
-    /* TODO: Make it possible to select strike. */
+    unsigned count = sizeTables.len;
+    if (unlikely (!count))
+      return Null(BitmapSizeTable);
 
-    unsigned int count = sizeTables.len;
-    for (uint32_t i = 0; i < count; ++i)
-      return sizeTables[i];
+    unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+    if (!requested_ppem)
+      requested_ppem = 1<<30; /* Choose largest strike. */
+    unsigned int best_i = 0;
+    unsigned int best_ppem = MAX (sizeTables[0].ppemX, sizeTables[0].ppemY);
 
-    return Null(BitmapSizeTable);
+    for (unsigned int i = 1; i < count; i++)
+    {
+      unsigned int ppem = MAX (sizeTables[i].ppemX, sizeTables[i].ppemY);
+      if ((requested_ppem <= ppem && ppem < best_ppem) ||
+	  (requested_ppem > best_ppem && ppem > best_ppem))
+      {
+	best_i = i;
+	best_ppem = ppem;
+      }
+    }
+
+    return sizeTables[best_i];
   }
 
   protected:
