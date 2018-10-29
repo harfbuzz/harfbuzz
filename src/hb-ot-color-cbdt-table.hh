@@ -408,7 +408,7 @@ struct CBDT
       unsigned int x_ppem = font->x_ppem, y_ppem = font->y_ppem;
 
       if (!cblc)
-	return false;  // Not a color bitmap font.
+	return false;
 
       const void *base;
       const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph, &x_ppem, &y_ppem, &base);
