@@ -1,3 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY version SYSTEM "version.xml">
+]>
 <chapter id="what-is-harfbuzz">
   <title>What is HarfBuzz?</title>
   <para>
@@ -12,7 +18,7 @@
   <para>
     HarfBuzz can properly shape all of the world's major writing
     systems. It runs on all major operating systems and software
-    platforms, and it supports all of the modern font formats in use
+    platforms and it supports the modern font formats in use
     today.
   </para>
   <section id="what-is-text-shaping">
@@ -372,7 +378,7 @@
           Before sending your string to HarfBuzz, you may need to apply the
           bidi algorithm to it. Libraries such as <ulink
 	  url="http://icu-project.org/">ICU</ulink> and <ulink
-	  url="http://fribidi.org/">fribidi</a> can do this for you.
+	  url="http://fribidi.org/">fribidi</ulink> can do this for you.
         </para>
       </listitem>
       <listitem>
