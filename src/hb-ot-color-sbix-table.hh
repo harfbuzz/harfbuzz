@@ -252,14 +252,14 @@ struct sbix
       extents->width     = png.IHDR.width;
       extents->height    = png.IHDR.height;
 
-      /* Convert to the font units. */
+      /* Convert to font units. */
       if (strike_ppem)
       {
-	unsigned int upem = font->face->upem;
-	extents->x_bearing *= upem / (float) strike_ppem;
-	extents->y_bearing *= upem / (float) strike_ppem;
-	extents->width *= upem / (float) strike_ppem;
-	extents->height *= upem / (float) strike_ppem;
+	double scale = font->face->upem / (double) strike_ppem;
+	extents->x_bearing = round (extents->x_bearing * scale);
+	extents->y_bearing = round (extents->y_bearing * scale);
+	extents->width = round (extents->width * scale);
+	extents->height = round (extents->height * scale);
       }
 
       hb_blob_destroy (blob);
