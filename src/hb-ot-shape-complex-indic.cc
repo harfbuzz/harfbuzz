@@ -252,8 +252,6 @@ struct would_substitute_feature_t
 
 struct indic_shape_plan_t
 {
-  ASSERT_POD ();
-
   inline bool load_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
   {
     hb_codepoint_t glyph = virama_glyph.get_relaxed ();

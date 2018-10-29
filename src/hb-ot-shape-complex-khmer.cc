@@ -174,8 +174,6 @@ struct would_substitute_feature_t
 
 struct khmer_shape_plan_t
 {
-  ASSERT_POD ();
-
   inline bool get_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
   {
     hb_codepoint_t glyph = virama_glyph;

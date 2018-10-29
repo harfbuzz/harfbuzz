@@ -171,8 +171,6 @@ collect_features_use (hb_ot_shape_planner_t *plan)
 
 struct use_shape_plan_t
 {
-  ASSERT_POD ();
-
   hb_mask_t rphf_mask;
 
   arabic_shape_plan_t *arabic_plan;

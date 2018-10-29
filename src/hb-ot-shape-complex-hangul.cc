@@ -70,8 +70,6 @@ override_features_hangul (hb_ot_shape_planner_t *plan)
 
 struct hangul_shape_plan_t
 {
-  ASSERT_POD ();
-
   hb_mask_t mask_array[HANGUL_FEATURE_COUNT];
 };
 

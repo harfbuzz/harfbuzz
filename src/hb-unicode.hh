@@ -63,7 +63,6 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 struct hb_unicode_funcs_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_unicode_funcs_t *parent;
 

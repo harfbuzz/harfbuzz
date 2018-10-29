@@ -194,8 +194,6 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
 
 struct arabic_fallback_plan_t
 {
-  ASSERT_POD ();
-
   unsigned int num_lookups;
   bool free_lookups;
 

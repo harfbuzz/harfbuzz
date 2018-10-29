@@ -69,7 +69,6 @@ struct hb_blob_t
 
   public:
   hb_object_header_t header;
-  ASSERT_POD ();
 
   bool immutable;
 

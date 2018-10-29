@@ -243,8 +243,6 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
 
 struct arabic_shape_plan_t
 {
-  ASSERT_POD ();
-
   /* The "+ 1" in the next array is to accommodate for the "NONE" command,
    * which is not an OpenType feature, but this simplifies the code by not
    * having to do a "if (... < NONE) ..." and just rely on the fact that

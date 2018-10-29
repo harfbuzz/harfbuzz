@@ -82,10 +82,7 @@ static inline Type& StructAfter(TObject &X)
 /* Check _assertion in a method environment */
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
-  { \
-    static_assert ((_assertion), ""); \
-    ASSERT_INSTANCE_POD (*this); /* Make sure it's POD. */ \
-  }
+  { static_assert ((_assertion), ""); }
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
 # define DEFINE_INSTANCE_ASSERTION(_assertion) _DEFINE_INSTANCE_ASSERTION0 (__LINE__, _assertion)
 
