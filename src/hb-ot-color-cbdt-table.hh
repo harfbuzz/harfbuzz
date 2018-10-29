@@ -402,9 +402,10 @@ struct CBDT
       hb_blob_destroy (this->cbdt_blob);
     }
 
-    inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    inline bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
+			     hb_glyph_extents_t *extents) const
     {
-      unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
+      unsigned int x_ppem = font->x_ppem, y_ppem = font->y_ppem;
 
       if (!cblc)
 	return false;  // Not a color bitmap font.

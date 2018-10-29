@@ -318,7 +318,7 @@ hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)
   hb_blob_t *blob = hb_blob_get_empty ();
 
   if (_get_sbix (font->face).has_data ())
-    blob = _get_sbix (font->face).reference_png (font, glyph, nullptr, nullptr);
+    blob = _get_sbix (font->face).reference_png (font, glyph, nullptr, nullptr, nullptr);
 
   if (!blob->length && _get_cbdt (font->face).has_data ())
     blob = _get_cbdt (font->face).reference_png (glyph, font->x_ppem, font->y_ppem);

@@ -187,7 +187,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   if (!ret)
     ret = ot_face->glyf->get_extents (glyph, extents);
   if (!ret)
-    ret = ot_face->CBDT->get_extents (glyph, extents);
+    ret = ot_face->CBDT->get_extents (font, glyph, extents);
   // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
