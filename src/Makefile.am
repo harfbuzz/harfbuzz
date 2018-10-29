@@ -377,6 +377,15 @@ test_would_substitute_SOURCES = test-would-substitute.cc
 test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
 test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
+if HAVE_FREETYPE
+if HAVE_CAIRO_FT
+noinst_PROGRAMS += test-ot-color
+test_ot_color_SOURCES = test-ot-color.cc
+test_ot_color_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS) $(CAIRO_FT_CFLAGS)
+test_ot_color_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS)
+endif # HAVE_CAIRO_FT
+endif # HAVE_FREETYPE
+
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-externs.sh \
