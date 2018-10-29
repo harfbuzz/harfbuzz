@@ -268,7 +268,7 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-deprecated.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-deprecated-symbols.txt
 if HAVE_GOBJECT
 DEF_FILES += harfbuzz-gobject.def
 endif
@@ -282,8 +282,8 @@ harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
-harfbuzz-deprecated.def: $(srcdir)/hb-deprecated.h
-	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
+harfbuzz-deprecated-symbols.txt: $(srcdir)/hb-deprecated.h
+	$(AM_V_GEN) PLAIN_LIST=1 $(srcdir)/gen-def.py "$@" $^
 
 
 GENERATORS = \

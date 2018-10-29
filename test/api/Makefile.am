@@ -167,7 +167,7 @@ symbols-tested.txt: $(TEST_PROGS)
 	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
 	| grep ' U hb_' | sed 's/.* U hb_/hb_/' \
 	| sort | uniq > $@.tmp && mv $@.tmp $@
-symbols-tested-or-deprecated.txt: symbols-tested.txt $(top_builddir)/src/harfbuzz-deprecated.def
+symbols-tested-or-deprecated.txt: symbols-tested.txt $(top_builddir)/src/harfbuzz-deprecated-symbols.txt
 	$(AM_V_GEN)cat $^ | sort | uniq > $@.tmp; mv $@.tmp $@
 symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
 	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
