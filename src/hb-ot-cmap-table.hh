@@ -851,18 +851,6 @@ struct cmap
 
   struct subset_plan
   {
-    subset_plan(void)
-    {
-      format4_segments.init();
-      format12_groups.init();
-    }
-
-    ~subset_plan(void)
-    {
-      format4_segments.fini();
-      format12_groups.fini();
-    }
-
     inline size_t final_size() const
     {
       return 4 // header
@@ -872,9 +860,9 @@ struct cmap
     }
 
     // Format 4
-    hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
+    hb_auto_t<hb_vector_t<CmapSubtableFormat4::segment_plan> > format4_segments;
     // Format 12
-    hb_vector_t<CmapSubtableLongGroup> format12_groups;
+    hb_auto_t<hb_vector_t<CmapSubtableLongGroup> > format12_groups;
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
