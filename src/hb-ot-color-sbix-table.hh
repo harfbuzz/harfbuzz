@@ -74,7 +74,8 @@ struct SBIXStrike
 				    hb_tag_t      file_type,
 				    int          *x_offset,
 				    int          *y_offset,
-				    unsigned int  num_glyphs) const
+				    unsigned int  num_glyphs,
+				    unsigned int *strike_ppem) const
   {
     if (unlikely (!ppem)) return hb_blob_get_empty (); /* To get Null() object out of the way. */
 
@@ -109,6 +110,7 @@ struct SBIXStrike
     if (unlikely (file_type != glyph->graphicType))
       return hb_blob_get_empty ();
 
+    if (strike_ppem) *strike_ppem = ppem;
     if (x_offset) *x_offset = glyph->xOffset;
     if (y_offset) *y_offset = glyph->yOffset;
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
@@ -167,12 +169,13 @@ struct sbix
     inline hb_blob_t *reference_png (hb_font_t      *font,
 				     hb_codepoint_t  glyph_id,
 				     int            *x_offset,
-				     int            *y_offset) const
+				     int            *y_offset,
+				     unsigned int   *available_ppem) const
     {
       return get_strike (font).get_glyph_blob (glyph_id, sbix_blob,
 					       HB_TAG ('p','n','g',' '),
 					       x_offset, y_offset,
-					       num_glyphs);
+					       num_glyphs, available_ppem);
     }
 
     private:
@@ -236,7 +239,8 @@ struct sbix
         return false;
 
       int x_offset = 0, y_offset = 0;
-      hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset);
+      unsigned int strike_ppem = 0;
+      hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
 
       if (unlikely (blob->length < sizeof (PNGHeader)))
         return false;
@@ -247,6 +251,17 @@ struct sbix
       extents->y_bearing = y_offset;
       extents->width     = png.IHDR.width;
       extents->height    = png.IHDR.height;
+
+      /* Convert to the font units. */
+      if (strike_ppem)
+      {
+	unsigned int upem = font->face->upem;
+	extents->x_bearing *= upem / (float) strike_ppem;
+	extents->y_bearing *= upem / (float) strike_ppem;
+	extents->width *= upem / (float) strike_ppem;
+	extents->height *= upem / (float) strike_ppem;
+      }
+
       hb_blob_destroy (blob);
 
       return true;
