@@ -87,7 +87,7 @@ struct SVG
     {
       svg_blob = hb_sanitize_context_t().reference_table<SVG> (face);
       svg_len = hb_blob_get_length (svg_blob);
-      svg = svg_blob->as<SVG> ();
+      table = svg_blob->as<SVG> ();
     }
 
     inline void fini (void)
@@ -97,29 +97,28 @@ struct SVG
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
-      if (unlikely (svg_len == 0))
+      if (unlikely (!svg_len))
         return hb_blob_get_empty ();
-      return svg->get_glyph_entry (glyph_id).reference_blob (svg_blob, svg->svgDocEntries);
+      return table->get_glyph_entry (glyph_id).reference_blob (svg_blob, table->svgDocEntries);
     }
 
-    inline bool has_data () const
-    { return svg_len; }
+    inline bool has_data () const { return svg_len; }
 
     private:
     hb_blob_t *svg_blob;
-    const SVG *svg;
+    const SVG *table;
 
     unsigned int svg_len;
   };
 
   inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
   {
-    const SVGDocumentIndexEntry *rec;
-    rec = (SVGDocumentIndexEntry *) bsearch (&glyph_id,
-					     &(this+svgDocEntries).arrayZ,
-					     (this+svgDocEntries).len,
-					     sizeof (SVGDocumentIndexEntry),
-					     SVGDocumentIndexEntry::cmp);
+    const SVGDocumentIndexEntry *rec = (SVGDocumentIndexEntry *)
+				       bsearch (&glyph_id,
+						&(this+svgDocEntries).arrayZ,
+						(this+svgDocEntries).len,
+						sizeof (SVGDocumentIndexEntry),
+						SVGDocumentIndexEntry::cmp);
     return likely (rec) ? *rec : Null(SVGDocumentIndexEntry);
   }
 
