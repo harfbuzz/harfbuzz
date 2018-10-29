@@ -343,8 +343,8 @@ struct CBLC
   }
 
   protected:
-  const BitmapSizeTable &get_strike (hb_font_t *font,
-				     unsigned int *x_ppem, unsigned int *y_ppem) const
+  const BitmapSizeTable &choose_strike (hb_font_t *font,
+					unsigned int *x_ppem, unsigned int *y_ppem) const
   {
     /* TODO: Make it possible to select strike. */
 
@@ -405,7 +405,7 @@ struct CBDT
 
       unsigned int x_ppem, y_ppem;
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->get_strike (font, &x_ppem, &y_ppem);
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font, &x_ppem, &y_ppem);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !x_ppem || !y_ppem)
 	return false;
@@ -457,7 +457,7 @@ struct CBDT
 
       unsigned int x_ppem, y_ppem;
       const void *base;
-      const BitmapSizeTable &strike = this->cblc->get_strike (font, &x_ppem, &y_ppem);
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font, &x_ppem, &y_ppem);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
       if (!subtable_record || !x_ppem || !y_ppem)
 	return hb_blob_get_empty ();

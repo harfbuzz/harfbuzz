@@ -172,15 +172,15 @@ struct sbix
 				     int            *y_offset,
 				     unsigned int   *available_ppem) const
     {
-      return get_strike (font).get_glyph_blob (glyph_id, sbix_blob,
-					       HB_TAG ('p','n','g',' '),
-					       x_offset, y_offset,
-					       num_glyphs, available_ppem);
+      return choose_strike (font).get_glyph_blob (glyph_id, sbix_blob,
+						  HB_TAG ('p','n','g',' '),
+						  x_offset, y_offset,
+						  num_glyphs, available_ppem);
     }
 
     private:
 
-    inline const SBIXStrike &get_strike (hb_font_t *font) const
+    inline const SBIXStrike &choose_strike (hb_font_t *font) const
     {
       if (unlikely (!table->strikes.len))
         return Null(SBIXStrike);
