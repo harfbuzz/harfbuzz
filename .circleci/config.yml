@@ -37,7 +37,7 @@ jobs:
       # not needed to be a framework but we like to test that also
       # TODO: wrong way of targeting iOS as it doesn't point to iOS headers thus building
       # CoreText support is not possible, after the fix feel free HB_IOS from CMake altogether
-      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_IOS=ON
+      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_SUBSET=OFF -DHB_BUILD_TESTS=OFF
       - run: cd build && xcodebuild -sdk iphoneos12.0 -configuration Release build -arch arm64
 
   distcheck:
