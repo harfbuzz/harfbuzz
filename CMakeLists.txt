@@ -52,6 +52,9 @@ if (HB_BUILD_UTILS)
   set (HB_HAVE_FREETYPE ON)
 endif ()
 
+option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
+option(HB_BUILD_TESTS "Build harfbuzz tests" ON)
+
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
   set (HB_HAVE_GLIB ON)
@@ -80,16 +83,6 @@ if (HB_CHECK)
   elseif (APPLE)
     set (HB_HAVE_CORETEXT ON)
   endif ()
-endif ()
-
-set (HB_DISABLE_SUBSET OFF)
-set (HB_DISABLE_TESTS OFF)
-option(HB_IOS "Apply iOS specific build flags" OFF)
-if (HB_IOS)
-  # We should fix their issue and enable them
-  set (HB_DISABLE_SUBSET ON)
-  set (HB_DISABLE_TESTS ON)
-  set (HB_HAVE_CORETEXT OFF)
 endif ()
 
 include_directories(AFTER
@@ -556,7 +549,7 @@ add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_heade
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 ## Define harfbuzz-subset library
-if (NOT HB_DISABLE_SUBSET)
+if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
@@ -580,7 +573,7 @@ if (UNIX OR MINGW)
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
-    if (NOT HB_DISABLE_SUBSET)
+    if (HB_BUILD_SUBSET)
       set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
     endif ()
 
@@ -861,7 +854,7 @@ if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
 endif ()
 
 
-if (NOT HB_DISABLE_TESTS)
+if (HB_BUILD_TESTS)
   ## src/ executables
   foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
     set (prog_name ${prog})
