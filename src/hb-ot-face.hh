@@ -52,6 +52,7 @@
     HB_OT_TABLE(OT, BASE) \
     /* AAT shaping. */ \
     HB_OT_TABLE(AAT, morx) \
+    HB_OT_TABLE(AAT, mort) \
     HB_OT_TABLE(AAT, kerx) \
     HB_OT_TABLE(AAT, ankr) \
     HB_OT_TABLE(AAT, trak) \

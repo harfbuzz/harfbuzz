@@ -35,17 +35,21 @@
 /*
  * morx -- Extended Glyph Metamorphosis
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6morx.html
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6mort.html
  */
 #define HB_AAT_TAG_morx HB_TAG('m','o','r','x')
+#define HB_AAT_TAG_mort HB_TAG('m','o','r','t')
 
 
 namespace AAT {
 
 using namespace OT;
 
-
+template <typename Types>
 struct RearrangementSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   typedef void EntryData;
 
   struct driver_context_t
@@ -69,12 +73,12 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -165,7 +169,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -178,13 +182,16 @@ struct RearrangementSubtable
   }
 
   protected:
-  StateTable<EntryData>	machine;
+  StateTable<Types, EntryData>	machine;
   public:
   DEFINE_SIZE_STATIC (16);
 };
 
+template <typename Types>
 struct ContextualSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   struct EntryData
   {
     HBUINT16	markIndex;	/* Index of the substitution table for the
@@ -212,7 +219,7 @@ struct ContextualSubtable
 	mark (0),
 	subs (table+table->substitutionTables) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -222,7 +229,7 @@ struct ContextualSubtable
 
       return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -280,7 +287,7 @@ struct ContextualSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -310,16 +317,19 @@ struct ContextualSubtable
   }
 
   protected:
-  StateTable<EntryData>
+  StateTable<Types, EntryData>
 		machine;
-  LOffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false>, false>
+  OffsetTo<UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT, false>, HBUINT, false>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
 };
 
+template <typename Types>
 struct LigatureSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   struct EntryData
   {
     HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
@@ -363,12 +373,12 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->flags & PerformAction;
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -482,7 +492,7 @@ struct LigatureSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -497,18 +507,19 @@ struct LigatureSubtable
   }
 
   protected:
-  StateTable<EntryData>
+  StateTable<Types, EntryData>
 		machine;
-  LOffsetTo<UnsizedArrayOf<HBUINT32>, false>
+  OffsetTo<UnsizedArrayOf<HBUINT32>, HBUINT, false>
 		ligAction;	/* Offset to the ligature action table. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
+  OffsetTo<UnsizedArrayOf<HBUINT16>, HBUINT, false>
 		component;	/* Offset to the component table. */
-  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
+  OffsetTo<UnsizedArrayOf<GlyphID>, HBUINT, false>
 		ligature;	/* Offset to the actual ligature lists. */
   public:
   DEFINE_SIZE_STATIC (28);
 };
 
+template <typename Types>
 struct NoncontextualSubtable
 {
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -545,8 +556,11 @@ struct NoncontextualSubtable
   DEFINE_SIZE_MIN (2);
 };
 
+template <typename Types>
 struct InsertionSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   struct EntryData
   {
     HBUINT16	currentInsertIndex;	/* Zero-based index into the insertion glyph table.
@@ -622,13 +636,13 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -720,7 +734,7 @@ struct InsertionSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -735,9 +749,9 @@ struct InsertionSubtable
   }
 
   protected:
-  StateTable<EntryData>
+  StateTable<Types, EntryData>
 		machine;
-  LOffsetTo<UnsizedArrayOf<GlyphID>, false>
+  OffsetTo<UnsizedArrayOf<GlyphID>, HBUINT, false>
 		insertionAction;	/* Byte offset from stateHeader to the start of
 					 * the insertion glyph table. */
   public:
@@ -765,9 +779,10 @@ struct Feature
   DEFINE_SIZE_STATIC (12);
 };
 
-
+template <typename Types>
 struct ChainSubtable
 {
+  template <typename T>
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
@@ -830,18 +845,21 @@ struct ChainSubtable
   HBUINT32	coverage;	/* Coverage flags and subtable type. */
   HBUINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
-  RearrangementSubtable		rearrangement;
-  ContextualSubtable		contextual;
-  LigatureSubtable		ligature;
-  NoncontextualSubtable		noncontextual;
-  InsertionSubtable		insertion;
+  RearrangementSubtable<Types>	rearrangement;
+  ContextualSubtable<Types>	contextual;
+  LigatureSubtable<Types>	ligature;
+  NoncontextualSubtable<Types>	noncontextual;
+  InsertionSubtable<Types>	insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (12);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT32) + 4);
 };
 
+template <typename Types>
 struct Chain
 {
+  typedef typename Types::HBUINT HBUINT;
+
   inline hb_mask_t compile_flags (const hb_aat_map_builder_t *map) const
   {
     hb_mask_t flags = defaultFlags;
@@ -868,7 +886,7 @@ struct Chain
   inline void apply (hb_aat_apply_context_t *c,
 		     hb_mask_t flags) const
   {
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -877,9 +895,9 @@ struct Chain
       if (!(subtable->subFeatureFlags & flags))
         goto skip;
 
-      if (!(subtable->coverage & ChainSubtable::AllDirections) &&
+      if (!(subtable->coverage & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (subtable->coverage & ChainSubtable::Vertical))
+	  bool (subtable->coverage & ChainSubtable<Types>::Vertical))
         goto skip;
 
       /* Buffer contents is always in logical direction.  Determine if
@@ -909,9 +927,9 @@ struct Chain
 				(the order opposite that of the characters, which
 				may be right-to-left or left-to-right).
        */
-      reverse = subtable->coverage & ChainSubtable::Logical ?
-		bool (subtable->coverage & ChainSubtable::Backwards) :
-		bool (subtable->coverage & ChainSubtable::Backwards) !=
+      reverse = subtable->coverage & ChainSubtable<Types>::Logical ?
+		bool (subtable->coverage & ChainSubtable<Types>::Backwards) :
+		bool (subtable->coverage & ChainSubtable<Types>::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
@@ -932,7 +950,7 @@ struct Chain
       if (unlikely (!c->buffer->successful)) return;
 
     skip:
-      subtable = &StructAfter<ChainSubtable> (*subtable);
+      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
@@ -950,38 +968,39 @@ struct Chain
     if (!c->check_array (featureZ.arrayZ, featureCount))
       return_trace (false);
 
-    const ChainSubtable *subtable = &StructAtOffset<ChainSubtable> (&featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (&featureZ, featureZ[0].static_size * featureCount);
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!subtable->sanitize (c))
 	return_trace (false);
-      subtable = &StructAfter<ChainSubtable> (*subtable);
+      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
     }
 
     return_trace (true);
   }
 
   protected:
-  HBUINT32	defaultFlags;	/* The default specification for subtables. */
-  HBUINT32	length;		/* Total byte count, including this header. */
-  HBUINT32	featureCount;	/* Number of feature subtable entries. */
-  HBUINT32	subtableCount;	/* The number of subtables in the chain. */
+  HBUINT	defaultFlags;	/* The default specification for subtables. */
+  HBUINT	length;		/* Total byte count, including this header. */
+  HBUINT	featureCount;	/* Number of feature subtable entries. */
+  HBUINT	subtableCount;	/* The number of subtables in the chain. */
 
   UnsizedArrayOf<Feature>	featureZ;	/* Features. */
 /*ChainSubtable	firstSubtable;*//* Subtables. */
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
-  DEFINE_SIZE_MIN (16);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
 };
 
 
 /*
- * The 'morx' Table
+ * The 'mort'/'morx' Table
  */
 
-struct morx
+template <typename Types>
+struct mortmorx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_morx;
 
@@ -990,12 +1009,12 @@ struct morx
   inline void compile_flags (const hb_aat_map_builder_t *mapper,
 			     hb_aat_map_t *map) const
   {
-    const Chain *chain = &firstChain;
+    const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       map->chain_flags.push (chain->compile_flags (mapper));
-      chain = &StructAfter<Chain> (*chain);
+      chain = &StructAfter<Chain<Types> > (*chain);
     }
   }
 
@@ -1019,13 +1038,13 @@ struct morx
   {
     if (unlikely (!c->buffer->successful)) return;
     c->set_lookup_index (0);
-    const Chain *chain = &firstChain;
+    const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       chain->apply (c, c->plan->aat_map.chain_flags[i]);
       if (unlikely (!c->buffer->successful)) return;
-      chain = &StructAfter<Chain> (*chain);
+      chain = &StructAfter<Chain<Types> > (*chain);
     }
     remove_deleted_glyphs (c->buffer);
   }
@@ -1037,13 +1056,13 @@ struct morx
 	!chainCount.sanitize (c))
       return_trace (false);
 
-    const Chain *chain = &firstChain;
+    const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!chain->sanitize (c, version))
 	return_trace (false);
-      chain = &StructAfter<Chain> (*chain);
+      chain = &StructAfter<Chain<Types> > (*chain);
     }
 
     return_trace (true);
@@ -1055,11 +1074,21 @@ struct morx
   HBUINT16	unused;		/* Set to 0. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
-  Chain		firstChain;	/* Chains. */
+  Chain<Types>	firstChain;	/* Chains. */
 
   public:
   DEFINE_SIZE_MIN (8);
 };
+
+struct morx : mortmorx<MorxTypes>
+{
+  static const hb_tag_t tableTag	= HB_AAT_TAG_morx;
+};
+struct mort : mortmorx<MortTypes>
+{
+  static const hb_tag_t tableTag	= HB_AAT_TAG_mort;
+};
+
 
 } /* namespace AAT */
 

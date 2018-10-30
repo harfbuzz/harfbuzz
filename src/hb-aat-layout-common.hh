@@ -410,9 +410,13 @@ struct Entry<void>
   DEFINE_SIZE_STATIC (4);
 };
 
-template <typename Extra>
+template <typename Types, typename Extra>
 struct StateTable
 {
+  typedef typename Types::HBUINT HBUINT;
+  typedef typename Types::HBUSHORT HBUSHORT;
+  typedef typename Types::ClassType ClassType;
+
   enum State
   {
     STATE_START_OF_TEXT = 0,
@@ -504,23 +508,73 @@ struct StateTable
   }
 
   protected:
-  HBUINT32	nClasses;	/* Number of classes, which is the number of indices
+  HBUINT	nClasses;	/* Number of classes, which is the number of indices
 				 * in a single line in the state array. */
-  LOffsetTo<Lookup<HBUINT16>, false>
+  OffsetTo<ClassType, HBUINT, false>
 		classTable;	/* Offset to the class table. */
-  LOffsetTo<UnsizedArrayOf<HBUINT16>, false>
+  OffsetTo<UnsizedArrayOf<HBUSHORT>, HBUINT, false>
 		stateArrayTable;/* Offset to the state array. */
-  LOffsetTo<UnsizedArrayOf<Entry<Extra> >, false>
+  OffsetTo<UnsizedArrayOf<Entry<Extra> >, HBUINT, false>
 		entryTable;	/* Offset to the entry array. */
 
   public:
   DEFINE_SIZE_STATIC (16);
 };
 
-template <typename EntryData>
+struct ClassTable
+{
+  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  {
+    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
+  }
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
+  }
+  protected:
+  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
+				 * glyph minus the value of firstGlyph plus 1). */
+  UnsizedArrayOf<HBUINT8>
+		classArrayZ;	/* The class codes (indexed by glyph index minus
+				 * firstGlyph). */
+  public:
+  DEFINE_SIZE_ARRAY (4, classArrayZ);
+};
+
+struct MortTypes
+{
+  static const bool extended = false;
+  typedef HBUINT16 HBUINT;
+  typedef HBUINT8 HBUSHORT;
+  struct ClassType : ClassTable
+  {
+    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
+    {
+      return ClassTable::get_class (glyph_id);
+    }
+  };
+};
+struct MorxTypes
+{
+  static const bool extended = true;
+  typedef HBUINT32 HBUINT;
+  typedef HBUINT16 HBUSHORT;
+  struct ClassType : Lookup<HBUINT16>
+  {
+    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+    {
+      const HBUINT16 *v = get_value (glyph_id, num_glyphs);
+      return v ? *v : 1;
+    }
+  };
+};
+
+template <typename Types, typename EntryData>
 struct StateTableDriver
 {
-  inline StateTableDriver (const StateTable<EntryData> &machine_,
+  inline StateTableDriver (const StateTable<Types, EntryData> &machine_,
 			   hb_buffer_t *buffer_,
 			   hb_face_t *face_) :
 	      machine (machine_),
@@ -533,13 +587,13 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
-    unsigned int state = StateTable<EntryData>::STATE_START_OF_TEXT;
+    unsigned int state = StateTable<Types, EntryData>::STATE_START_OF_TEXT;
     bool last_was_dont_advance = false;
     for (buffer->idx = 0; buffer->successful;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
-			   (unsigned) StateTable<EntryData>::CLASS_END_OF_TEXT;
+			   (unsigned) StateTable<Types, EntryData>::CLASS_END_OF_TEXT;
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
@@ -553,7 +607,7 @@ struct StateTableDriver
 	/* If there's no action and we're just epsilon-transitioning to state 0,
 	 * safe to break. */
 	if (c->is_actionable (this, entry) ||
-	    !(entry->newState == StateTable<EntryData>::STATE_START_OF_TEXT &&
+	    !(entry->newState == StateTable<Types, EntryData>::STATE_START_OF_TEXT &&
 	      entry->flags == context_t::DontAdvance))
 	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
@@ -590,7 +644,7 @@ struct StateTableDriver
   }
 
   public:
-  const StateTable<EntryData> &machine;
+  const StateTable<Types, EntryData> &machine;
   hb_buffer_t *buffer;
   unsigned int num_glyphs;
 };
