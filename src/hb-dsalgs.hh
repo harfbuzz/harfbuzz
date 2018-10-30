@@ -511,26 +511,6 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
-template <typename Type>
-struct hb_auto_t : Type
-{
-  hb_auto_t (void) { Type::init (); }
-  /* Explicitly allow the following only for pointer and references,
-   * to avoid any accidental copies.
-   *
-   * Apparently if we template for all types, then gcc seems to
-   * capture a reference argument in the type, but clang doesn't,
-   * causing unwanted copies and bugs that come with it.  Ideally
-   * we should use C++11-style rvalue reference &&t1. */
-  template <typename T1> explicit hb_auto_t (T1 *t1) { Type::init (t1); }
-  template <typename T1> explicit hb_auto_t (T1 &t1) { Type::init (t1); }
-  ~hb_auto_t (void) { Type::fini (); }
-  private: /* Hide */
-  void init (void) {}
-  void fini (void) {}
-};
-
-
 struct hb_bytes_t
 {
   inline hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
