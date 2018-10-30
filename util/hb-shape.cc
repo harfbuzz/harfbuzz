@@ -163,9 +163,8 @@ main (int argc, char **argv)
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
     unsigned int ret = 0;
-    char *buf = nullptr;
-    size_t len;
-    while (getline (&buf, &len, stdin) > 0)
+    char buf[4092];
+    while (fgets (buf, sizeof (buf), stdin))
     {
       size_t l = strlen (buf);
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
@@ -187,7 +186,6 @@ main (int argc, char **argv)
       if (ret)
         break;
     }
-    free (buf);
     return ret;
   }
   main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
