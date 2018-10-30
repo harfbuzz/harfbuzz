@@ -41,11 +41,11 @@ test_ot_layout_feature_get_name_ids_and_characters (void)
 					   &feature_index))
      g_error ("Failed to find feature index");
 
-  hb_name_id_t label_id;
-  hb_name_id_t tooltip_id;
-  hb_name_id_t sample_id;
+  hb_ot_name_id_t label_id;
+  hb_ot_name_id_t tooltip_id;
+  hb_ot_name_id_t sample_id;
   unsigned int num_named_parameters;
-  hb_name_id_t first_param_id;
+  hb_ot_name_id_t first_param_id;
   if (!hb_ot_layout_feature_get_name_ids (face, HB_OT_TAG_GSUB, feature_index,
 					  &label_id, &tooltip_id, &sample_id,
 					  &num_named_parameters, &first_param_id))

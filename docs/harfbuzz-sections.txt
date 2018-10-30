@@ -481,7 +481,8 @@ hb_ot_font_set_funcs
 
 <SECTION>
 <FILE>hb-ot-name</FILE>
-hb_name_id_t
+hb_ot_name_id_t
+HB_OT_NAME_ID_INVALID
 hb_ot_name_entry_t
 hb_ot_name_list_names
 hb_ot_name_get_utf16

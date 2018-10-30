@@ -224,9 +224,9 @@ struct name
       hb_blob_destroy (this->blob);
     }
 
-    inline int get_index (hb_name_id_t   name_id,
-			  hb_language_t  language,
-			  unsigned int  *width=nullptr) const
+    inline int get_index (hb_ot_name_id_t   name_id,
+			  hb_language_t     language,
+			  unsigned int     *width=nullptr) const
     {
       const hb_ot_name_entry_t key = {name_id, {0}, language};
       const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)

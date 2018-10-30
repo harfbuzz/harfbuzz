@@ -364,23 +364,23 @@ Xhb_ot_layout_lookup_position (hb_font_t            *font,
 /* Optical 'size' feature info.  Returns true if found.
  * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */
 HB_EXTERN hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t    *face,
-			      unsigned int *design_size,       /* OUT.  May be NULL */
-			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      hb_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
-			      unsigned int *range_start,       /* OUT.  May be NULL */
-			      unsigned int *range_end          /* OUT.  May be NULL */);
+hb_ot_layout_get_size_params (hb_face_t       *face,
+			      unsigned int    *design_size,       /* OUT.  May be NULL */
+			      unsigned int    *subfamily_id,      /* OUT.  May be NULL */
+			      hb_ot_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int    *range_start,       /* OUT.  May be NULL */
+			      unsigned int    *range_end          /* OUT.  May be NULL */);
 
 
 HB_EXTERN hb_bool_t
-hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
-				   hb_tag_t      table_tag,
-				   unsigned int  feature_index,
-				   hb_name_id_t *label_id             /* OUT.  May be NULL */,
-				   hb_name_id_t *tooltip_id           /* OUT.  May be NULL */,
-				   hb_name_id_t *sample_id            /* OUT.  May be NULL */,
-				   unsigned int *num_named_parameters /* OUT.  May be NULL */,
-				   hb_name_id_t *first_param_id       /* OUT.  May be NULL */);
+hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
+				   hb_tag_t         table_tag,
+				   unsigned int     feature_index,
+				   hb_ot_name_id_t *label_id             /* OUT.  May be NULL */,
+				   hb_ot_name_id_t *tooltip_id           /* OUT.  May be NULL */,
+				   hb_ot_name_id_t *sample_id            /* OUT.  May be NULL */,
+				   unsigned int    *num_named_parameters /* OUT.  May be NULL */,
+				   hb_ot_name_id_t *first_param_id       /* OUT.  May be NULL */);
 
 
 HB_EXTERN unsigned int

@@ -1053,12 +1053,12 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * Since: 0.9.10
  **/
 hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t    *face,
-			      unsigned int *design_size,       /* OUT.  May be NULL */
-			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      hb_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
-			      unsigned int *range_start,       /* OUT.  May be NULL */
-			      unsigned int *range_end          /* OUT.  May be NULL */)
+hb_ot_layout_get_size_params (hb_face_t       *face,
+			      unsigned int    *design_size,       /* OUT.  May be NULL */
+			      unsigned int    *subfamily_id,      /* OUT.  May be NULL */
+			      hb_ot_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int    *range_start,       /* OUT.  May be NULL */
+			      unsigned int    *range_end          /* OUT.  May be NULL */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
   const hb_tag_t tag = HB_TAG ('s','i','z','e');
@@ -1086,7 +1086,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
   if (design_size) *design_size = 0;
   if (subfamily_id) *subfamily_id = 0;
-  if (subfamily_name_id) *subfamily_name_id = HB_NAME_ID_INVALID;
+  if (subfamily_name_id) *subfamily_name_id = HB_OT_NAME_ID_INVALID;
   if (range_start) *range_start = 0;
   if (range_end) *range_end = 0;
 
@@ -1118,14 +1118,14 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
  * Since: 2.0.0
  **/
 hb_bool_t
-hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
-				   hb_tag_t      table_tag,
-				   unsigned int  feature_index,
-				   hb_name_id_t *label_id,             /* OUT.  May be NULL */
-				   hb_name_id_t *tooltip_id,           /* OUT.  May be NULL */
-				   hb_name_id_t *sample_id,            /* OUT.  May be NULL */
-				   unsigned int *num_named_parameters, /* OUT.  May be NULL */
-				   hb_name_id_t *first_param_id        /* OUT.  May be NULL */)
+hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
+				   hb_tag_t         table_tag,
+				   unsigned int     feature_index,
+				   hb_ot_name_id_t *label_id,             /* OUT.  May be NULL */
+				   hb_ot_name_id_t *tooltip_id,           /* OUT.  May be NULL */
+				   hb_ot_name_id_t *sample_id,            /* OUT.  May be NULL */
+				   unsigned int    *num_named_parameters, /* OUT.  May be NULL */
+				   hb_ot_name_id_t *first_param_id        /* OUT.  May be NULL */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
@@ -1141,10 +1141,10 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
     {
       if (label_id) *label_id = ss_params.uiNameID;
       // ssXX features don't have the rest
-      if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
-      if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+      if (tooltip_id) *tooltip_id = HB_OT_NAME_ID_INVALID;
+      if (sample_id) *sample_id = HB_OT_NAME_ID_INVALID;
       if (num_named_parameters) *num_named_parameters = 0;
-      if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+      if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
       return true;
     }
     const OT::FeatureParamsCharacterVariants& cv_params =
@@ -1160,11 +1160,11 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
     }
   }
 
-  if (label_id) *label_id = HB_NAME_ID_INVALID;
-  if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
-  if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+  if (label_id) *label_id = HB_OT_NAME_ID_INVALID;
+  if (tooltip_id) *tooltip_id = HB_OT_NAME_ID_INVALID;
+  if (sample_id) *sample_id = HB_OT_NAME_ID_INVALID;
   if (num_named_parameters) *num_named_parameters = 0;
-  if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+  if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
   return false;
 }
 

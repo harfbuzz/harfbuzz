@@ -129,11 +129,11 @@ hb_ot_color_palette_get_count (hb_face_t *face)
  * have themed palettes like "Spring", "Summer", "Fall", and "Winter".
  *
  * Returns: an identifier within @face's `name` table.
- * If the requested palette has no name the result is #HB_NAME_ID_INVALID.
+ * If the requested palette has no name the result is #HB_OT_NAME_ID_INVALID.
  *
  * Since: 2.1.0
  */
-hb_name_id_t
+hb_ot_name_id_t
 hb_ot_color_palette_get_name_id (hb_face_t *face,
 				 unsigned int palette_index)
 {
@@ -149,7 +149,7 @@ hb_ot_color_palette_get_name_id (hb_face_t *face,
  *
  * Since: 2.1.0
  */
-hb_name_id_t
+hb_ot_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 				       unsigned int color_index)
 {

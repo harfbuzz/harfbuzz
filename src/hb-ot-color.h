@@ -49,11 +49,11 @@ hb_ot_color_has_palettes (hb_face_t *face);
 HB_EXTERN unsigned int
 hb_ot_color_palette_get_count (hb_face_t *face);
 
-HB_EXTERN hb_name_id_t
+HB_EXTERN hb_ot_name_id_t
 hb_ot_color_palette_get_name_id (hb_face_t *face,
 				 unsigned int palette_index);
 
-HB_EXTERN hb_name_id_t
+HB_EXTERN hb_ot_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 				       unsigned int color_index);
 
