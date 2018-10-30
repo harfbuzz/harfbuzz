@@ -668,7 +668,8 @@ struct hb_collect_features_context_t
 				 hb_tag_t         table_tag,
 				 hb_set_t        *feature_indexes_)
     : g (get_gsubgpos_table (face, table_tag)),
-      feature_indexes (feature_indexes_) {}
+      feature_indexes (feature_indexes_),
+      langsys_count(0), script_count(0) {}
 
   bool inline visited (const OT::Script &s)
   {
@@ -676,6 +677,9 @@ struct hb_collect_features_context_t
      * that in the memoize.  So, detect empty objects and return. */
     if (unlikely (!s.has_default_lang_sys () &&
 		  !s.get_lang_sys_count ()))
+      return true;
+
+    if (script_count++ > HB_MAX_SCRIPTS)
       return true;
 
     return visited (s, visited_script);
@@ -686,6 +690,9 @@ struct hb_collect_features_context_t
      * that in the memoize.  So, detect empty objects and return. */
     if (unlikely (!l.has_required_feature () &&
 		  !l.get_feature_count ()))
+      return true;
+
+    if (langsys_count++ > HB_MAX_LANGSYS)
       return true;
 
     return visited (l, visited_langsys);
@@ -710,6 +717,8 @@ struct hb_collect_features_context_t
   private:
   hb_set_t visited_script;
   hb_set_t visited_langsys;
+  unsigned int script_count;
+  unsigned int langsys_count;
 };
 
 static void
