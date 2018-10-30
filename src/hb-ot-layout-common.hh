@@ -51,6 +51,14 @@
 #define HB_CLOSURE_MAX_STAGES	32
 #endif
 
+#ifndef HB_MAX_SCRIPTS
+#define HB_MAX_SCRIPTS	500
+#endif
+
+#ifndef HB_MAX_LANGSYS
+#define HB_MAX_LANGSYS	2000
+#endif
+
 
 namespace OT {
 
