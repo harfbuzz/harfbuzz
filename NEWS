@@ -1,3 +1,84 @@
+Overview of changes leading to 2.1.0
+Tuesday, October 30, 2018
+====================================
+- AAT shaping improvements:
+  o Allow user controlling AAT features, for whole buffer only currently.
+  o Several 'morx' fixes.
+  o Implement tuple-kerns in 'kerx'; Fixes kerning with Apple default
+    San Francisco fonts.
+- Support for color fonts:
+  o COLR/CPAL API to fetch color layers.
+  o SVG table to fetch SVG documents.
+  o CBDT/sbix API to fetch PNG images.
+- New 'name' table API.
+- hb-ot-font now uses 'VORG' table to correctly position CFF glyphs
+  in vertical layout.
+- Various fuzzer-found bug fixes.
+
+Changed API:
+
+A type and a macro added in 2.0.0 were renamed:
+
+hb_name_id_t -> hb_ot_name_id_t
+HB_NAME_ID_INVALID -> HB_OT_NAME_ID_INVALID
+
+New API:
+
++hb_color_t
++HB_COLOR
++hb_color_get_alpha()
++hb_color_get_red()
++hb_color_get_green()
++hb_color_get_blue()
++hb_ot_color_has_palettes()
++hb_ot_color_palette_get_count()
++hb_ot_color_palette_get_name_id()
++hb_ot_color_palette_color_get_name_id()
++hb_ot_color_palette_flags_t
++hb_ot_color_palette_get_flags()
++hb_ot_color_palette_get_colors()
++hb_ot_color_has_layers()
++hb_ot_color_layer_t
++hb_ot_color_glyph_get_layers()
++hb_ot_color_has_svg()
++hb_ot_color_glyph_reference_svg()
++hb_ot_color_has_png()
++hb_ot_color_glyph_reference_png()
+
++hb_ot_name_id_t
++HB_OT_NAME_ID_INVALID
++HB_OT_NAME_ID_COPYRIGHT
++HB_OT_NAME_ID_FONT_FAMILY
++HB_OT_NAME_ID_FONT_SUBFAMILY
++HB_OT_NAME_ID_UNIQUE_ID
++HB_OT_NAME_ID_FULL_NAME
++HB_OT_NAME_ID_VERSION_STRING
++HB_OT_NAME_ID_POSTSCRIPT_NAME
++HB_OT_NAME_ID_TRADEMARK
++HB_OT_NAME_ID_MANUFACTURER
++HB_OT_NAME_ID_DESIGNER
++HB_OT_NAME_ID_DESCRIPTION
++HB_OT_NAME_ID_VENDOR_URL
++HB_OT_NAME_ID_DESIGNER_URL
++HB_OT_NAME_ID_LICENSE
++HB_OT_NAME_ID_LICENSE_URL
++HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY
++HB_OT_NAME_ID_TYPOGRAPHIC_SUBFAMILY
++HB_OT_NAME_ID_MAC_FULL_NAME
++HB_OT_NAME_ID_SAMPLE_TEXT
++HB_OT_NAME_ID_CID_FINDFONT_NAME
++HB_OT_NAME_ID_WWS_FAMILY
++HB_OT_NAME_ID_WWS_SUBFAMILY
++HB_OT_NAME_ID_LIGHT_BACKGROUND
++HB_OT_NAME_ID_DARK_BACKGROUND
++HB_OT_NAME_ID_VARIATIONS_PS_PREFIX
++hb_ot_name_entry_t
++hb_ot_name_list_names()
++hb_ot_name_get_utf8()
++hb_ot_name_get_utf16()
++hb_ot_name_get_utf32()
+
+
 Overview of changes leading to 2.0.2
 Saturday, October 20, 2018
 ====================================

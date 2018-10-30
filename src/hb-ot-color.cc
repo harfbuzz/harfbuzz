@@ -257,9 +257,11 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
  * hb_ot_color_has_svg:
  * @face: a font face.
  *
- * Returns: whether SVG table is available.
+ * Check whether @face has SVG glyph images.
  *
- * Since: REPLACEME
+ * Returns true if available, false otherwise.
+ *
+ * Since: 2.1.0
  */
 hb_bool_t
 hb_ot_color_has_svg (hb_face_t *face)
@@ -272,9 +274,11 @@ hb_ot_color_has_svg (hb_face_t *face)
  * @face:  a font face.
  * @glyph: a svg glyph index.
  *
+ * Get SVG document for a glyph.
+ *
  * Returns: (transfer full): respective svg blob of the glyph, if available.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 hb_blob_t *
 hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
@@ -291,9 +295,11 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
  * hb_ot_color_has_png:
  * @face: a font face.
  *
- * Returns: whether either of CBDT or sbix tables is available.
+ * Check whether @face has PNG glyph images (either CBDT or sbix tables).
  *
- * Since: REPLACEME
+ * Returns true if available, false otherwise.
+ *
+ * Since: 2.1.0
  */
 hb_bool_t
 hb_ot_color_has_png (hb_face_t *face)
@@ -308,9 +314,11 @@ hb_ot_color_has_png (hb_face_t *face)
  * 	   return the biggest one
  * @glyph: a glyph index.
  *
- * Returns: (transfer full): respective png blob of the glyph, if available.
+ * Get PNG image for a glyph.
  *
- * Since: REPLACEME
+ * Returns: (transfer full): respective PNG blob of the glyph, if available.
+ *
+ * Since: 2.1.0
  */
 hb_blob_t *
 hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)

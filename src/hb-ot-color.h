@@ -66,7 +66,7 @@ hb_ot_color_palette_color_get_name_id (hb_face_t *face,
  * @HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND: flag indicating that the color
  *   palette is appropriate to use when displaying the font on a dark background such as black.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 typedef enum { /*< flags >*/
   HB_OT_COLOR_PALETTE_FLAG_DEFAULT			= 0x00000000u,
@@ -98,7 +98,7 @@ hb_ot_color_has_layers (hb_face_t *face);
  *
  * Pairs of glyph and color index.
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  **/
 typedef struct hb_ot_color_layer_t
 {
