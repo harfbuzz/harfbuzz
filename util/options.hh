@@ -510,7 +510,6 @@ struct text_options_t : option_group_t
     text_file = nullptr;
 
     fp = nullptr;
-    close_fp = false;
     gs = nullptr;
     line = nullptr;
     line_len = (unsigned int) -1;
@@ -525,7 +524,7 @@ struct text_options_t : option_group_t
     g_free (text_file);
     if (gs)
       g_string_free (gs, true);
-    if (close_fp)
+    if (fp && fp != stdin)
       fclose (fp);
   }
 
@@ -548,7 +547,6 @@ struct text_options_t : option_group_t
 
   private:
   FILE *fp;
-  bool close_fp;
   GString *gs;
   char *line;
   unsigned int line_len;
@@ -565,7 +563,6 @@ struct output_options_t : option_group_t
     explicit_output_format = false;
 
     fp = nullptr;
-    close_fp = false;
 
     add_options (parser);
   }
@@ -573,7 +570,7 @@ struct output_options_t : option_group_t
   {
     g_free (output_file);
     g_free (output_format);
-    if (close_fp)
+    if (fp && fp != stdout)
       fclose (fp);
   }
 
@@ -605,7 +602,6 @@ struct output_options_t : option_group_t
   bool explicit_output_format;
 
   mutable FILE *fp;
-  bool close_fp;
 };
 
 struct format_options_t : option_group_t

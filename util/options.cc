@@ -758,10 +758,7 @@ text_options_t::get_line (unsigned int *len)
       fail (true, "At least one of text or text-file must be set");
 
     if (0 != strcmp (text_file, "-"))
-    {
       fp = fopen (text_file, "r");
-      close_fp = true;
-    }
     else
       fp = stdin;
 
@@ -798,10 +795,7 @@ output_options_t::get_file_handle (void)
     return fp;
 
   if (output_file)
-  {
     fp = fopen (output_file, "wb");
-    close_fp = true;
-  }
   else {
 #if defined(_WIN32) || defined(__CYGWIN__)
     setmode (fileno (stdout), O_BINARY);
