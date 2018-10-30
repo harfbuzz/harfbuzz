@@ -271,7 +271,7 @@ struct hb_ot_apply_context_t :
 	     syllable arg1(0),
 #undef arg1
 	     match_func (nullptr),
-	     match_data (nullptr) {};
+	     match_data (nullptr) {}
 
     typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const HBUINT16 &value, const void *data);
 
