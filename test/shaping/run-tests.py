@@ -6,7 +6,7 @@ import sys, os, subprocess
 
 def cmd(command):
 	global process
-	process.stdin.write (' '.join (command) + '\n')
+	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
 	return process.stdout.readline().decode ("utf-8").strip ()
 
