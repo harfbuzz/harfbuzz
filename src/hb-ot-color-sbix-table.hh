@@ -244,7 +244,10 @@ struct sbix
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
 
       if (unlikely (blob->length < sizeof (PNGHeader)))
+      {
+        hb_blob_destroy (blob);
         return false;
+      }
 
       const PNGHeader &png = *blob->as<PNGHeader>();
 
