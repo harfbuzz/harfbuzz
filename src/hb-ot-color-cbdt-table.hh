@@ -434,7 +434,6 @@ struct CBDT
 	  case 17: {
 	    if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
 	      return false;
-
 	    const GlyphBitmapDataFormat17& glyphFormat17 =
 		StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
 	    glyphFormat17.glyphMetrics.get_extents (extents);
@@ -473,30 +472,42 @@ struct CBDT
       if (!subtable_record->get_image_data (glyph, base, &image_offset, &image_length, &image_format))
 	return hb_blob_get_empty ();
 
-      switch (image_format)
       {
-      case 17: {
-	const GlyphBitmapDataFormat17& glyphFormat17 =
-          StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-	return hb_blob_create_sub_blob (cbdt_blob,
-					image_offset + GlyphBitmapDataFormat17::min_size,
-					glyphFormat17.data.len);
+	if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
+	  return hb_blob_get_empty ();
+
+	switch (image_format)
+	{
+	  case 17: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat17& glyphFormat17 =
+	      StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat17::min_size,
+					    glyphFormat17.data.len);
+	  }
+	  case 18: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat18::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat18& glyphFormat18 =
+	      StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat18::min_size,
+					    glyphFormat18.data.len);
+	  }
+	  case 19: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat19::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat19& glyphFormat19 =
+	      StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat19::min_size,
+					    glyphFormat19.data.len);
+	  }
+	}
       }
-      case 18: {
-	const GlyphBitmapDataFormat18& glyphFormat18 =
-          StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
-	return hb_blob_create_sub_blob (cbdt_blob,
-					image_offset + GlyphBitmapDataFormat18::min_size,
-					glyphFormat18.data.len);
-      }
-      case 19: {
-	const GlyphBitmapDataFormat19& glyphFormat19 =
-          StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
-	return hb_blob_create_sub_blob (cbdt_blob,
-					image_offset + GlyphBitmapDataFormat19::min_size,
-					glyphFormat19.data.len);
-      }
-      }
+
       return hb_blob_get_empty ();
     }
 
