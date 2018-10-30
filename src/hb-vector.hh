@@ -34,6 +34,10 @@
 template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
+  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, StaticSize);
+  inline hb_vector_t (void) { init (); }
+  inline ~hb_vector_t (void) { fini (); }
+
   unsigned int len;
   private:
   unsigned int allocated; /* == 0 means allocation failed. */
@@ -46,6 +50,22 @@ struct hb_vector_t
     len = 0;
     allocated = ARRAY_LENGTH (static_array);
     arrayZ_ = nullptr;
+  }
+
+  inline void fini (void)
+  {
+    if (arrayZ_)
+      free (arrayZ_);
+    arrayZ_ = nullptr;
+    allocated = len = 0;
+  }
+  inline void fini_deep (void)
+  {
+    Type *array = arrayZ();
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      array[i].fini ();
+    fini ();
   }
 
   inline Type * arrayZ (void)
@@ -254,23 +274,6 @@ struct hb_vector_t
       max++;
     *i = max;
     return false;
-  }
-
-  inline void fini_deep (void)
-  {
-    Type *array = arrayZ();
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      array[i].fini ();
-    fini ();
-  }
-
-  inline void fini (void)
-  {
-    if (arrayZ_)
-      free (arrayZ_);
-    arrayZ_ = nullptr;
-    allocated = len = 0;
   }
 };
 

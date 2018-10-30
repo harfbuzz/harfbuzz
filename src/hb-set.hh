@@ -39,6 +39,10 @@
 
 struct hb_set_t
 {
+  HB_NO_COPY_ASSIGN (hb_set_t);
+  inline hb_set_t (void) { init_shallow (); }
+  inline ~hb_set_t (void) { fini_shallow (); }
+
   struct page_map_t
   {
     inline int cmp (const page_map_t *o) const { return (int) o->major - (int) major; }
@@ -199,6 +203,7 @@ struct hb_set_t
   }
   inline void fini_shallow (void)
   {
+    population = 0;
     page_map.fini ();
     pages.fini ();
   }

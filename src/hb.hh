@@ -339,6 +339,16 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 #if __cplusplus >= 201103L
 
+/* We only enable these with C++11 or later, since earlier language
+ * does not allow structs with constructors in unions, and we need
+ * those. */
+
+#define HB_NO_COPY_ASSIGN(TypeName) \
+  TypeName(const TypeName&); \
+  void operator=(const TypeName&)
+#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
+  TypeName(const TypeName<T1, T2>&); \
+  void operator=(const TypeName<T1, T2>&)
 #define HB_NO_CREATE_COPY_ASSIGN(TypeName) \
   TypeName(void); \
   TypeName(const TypeName&); \
@@ -354,6 +364,8 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 #else /* __cpluspplus >= 201103L */
 
+#define HB_NO_COPY_ASSIGN(TypeName)
+#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
 #define HB_NO_CREATE_COPY_ASSIGN(TypeName)
 #define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T)
 #define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
