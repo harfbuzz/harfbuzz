@@ -437,8 +437,16 @@ struct CBDT
 	    const GlyphBitmapDataFormat17& glyphFormat17 =
 		StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
 	    glyphFormat17.glyphMetrics.get_extents (extents);
+	    break;
 	  }
-	  break;
+	  case 18: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat18::min_size))
+	      return false;
+	    const GlyphBitmapDataFormat18& glyphFormat18 =
+		StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
+	    glyphFormat18.glyphMetrics.get_extents (extents);
+	    break;
+	  }
 	  default:
 	    // TODO: Support other image formats.
 	    return false;
