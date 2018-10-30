@@ -1110,6 +1110,7 @@ struct Coverage
   {
     inline Iter (const Coverage &c_)
     {
+      memset (this, 0, sizeof (*this));
       format = c_.u.format;
       switch (format)
       {
