@@ -669,7 +669,7 @@ struct hb_collect_features_context_t
 				 hb_set_t        *feature_indexes_)
     : g (get_gsubgpos_table (face, table_tag)),
       feature_indexes (feature_indexes_),
-      langsys_count(0), script_count(0) {}
+      script_count(0),langsys_count(0) {}
 
   bool inline visited (const OT::Script &s)
   {
