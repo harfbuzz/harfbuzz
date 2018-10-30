@@ -123,40 +123,23 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 }
 
 
-#define HB_UNICODE_FUNCS_IMPLEMENT_SET \
-  HB_UNICODE_FUNCS_IMPLEMENT (glib) \
-  HB_UNICODE_FUNCS_IMPLEMENT (icu) \
-  HB_UNICODE_FUNCS_IMPLEMENT (ucdn) \
-  HB_UNICODE_FUNCS_IMPLEMENT (nil) \
-  /* ^--- Add new callbacks before nil */
-
-#define hb_nil_get_unicode_funcs hb_unicode_funcs_get_empty
-
-/* Prototype them all */
-#define HB_UNICODE_FUNCS_IMPLEMENT(set) \
-extern "C" hb_unicode_funcs_t *hb_##set##_get_unicode_funcs (void);
-HB_UNICODE_FUNCS_IMPLEMENT_SET
-#undef HB_UNICODE_FUNCS_IMPLEMENT
-
+extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs (void);
+extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs (void);
+extern "C" hb_unicode_funcs_t *hb_ucdn_get_unicode_funcs (void);
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default (void)
 {
-#define HB_UNICODE_FUNCS_IMPLEMENT(set) \
-  return hb_##set##_get_unicode_funcs ();
-
 #if defined(HAVE_UCDN)
-  HB_UNICODE_FUNCS_IMPLEMENT(ucdn)
+  return hb_ucdn_get_unicode_funcs ();
 #elif defined(HAVE_GLIB)
-  HB_UNICODE_FUNCS_IMPLEMENT(glib)
+  return hb_glib_get_unicode_funcs ();
 #elif defined(HAVE_ICU) && defined(HAVE_ICU_BUILTIN)
-  HB_UNICODE_FUNCS_IMPLEMENT(icu)
+  return hb_icu_get_unicode_funcs ();
 #else
 #define HB_UNICODE_FUNCS_NIL 1
-  HB_UNICODE_FUNCS_IMPLEMENT(nil)
+  return hb_unicode_funcs_get_empty ();
 #endif
-
-#undef HB_UNICODE_FUNCS_IMPLEMENT
 }
 
 #if !defined(HB_NO_UNICODE_FUNCS) && defined(HB_UNICODE_FUNCS_NIL)
