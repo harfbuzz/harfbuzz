@@ -93,7 +93,7 @@ struct hb_closure_context_t :
 
   hb_face_t *face;
   hb_set_t *glyphs;
-  hb_auto_t<hb_set_t> out[1];
+  hb_set_t out[1];
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int debug_depth;

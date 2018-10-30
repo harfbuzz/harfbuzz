@@ -55,7 +55,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 static void
 _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 {
-  hb_auto_t<hb_set_t> lookup_indices;
+  hb_set_t lookup_indices;
   hb_ot_layout_collect_lookups (face,
                                 HB_OT_TAG_GSUB,
                                 nullptr,

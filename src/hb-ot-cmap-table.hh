@@ -859,10 +859,8 @@ struct cmap
           +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
-    // Format 4
-    hb_auto_t<hb_vector_t<CmapSubtableFormat4::segment_plan> > format4_segments;
-    // Format 12
-    hb_auto_t<hb_vector_t<CmapSubtableLongGroup> > format12_groups;
+    hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
+    hb_vector_t<CmapSubtableLongGroup> format12_groups;
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const

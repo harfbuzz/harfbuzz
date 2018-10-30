@@ -110,8 +110,8 @@ struct SingleSubstFormat1
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    hb_auto_t<hb_vector_t<GlyphID> > from;
-    hb_auto_t<hb_vector_t<GlyphID> > to;
+    hb_vector_t<GlyphID> from;
+    hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
     for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
@@ -216,8 +216,8 @@ struct SingleSubstFormat2
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    hb_auto_t<hb_vector_t<GlyphID> > from;
-    hb_auto_t<hb_vector_t<GlyphID> > to;
+    hb_vector_t<GlyphID> from;
+    hb_vector_t<GlyphID> to;
     for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
     {
       if (!c->plan->glyphset->has (iter.get_glyph ()))

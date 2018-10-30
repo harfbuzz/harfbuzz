@@ -708,8 +708,8 @@ struct hb_collect_features_context_t
   hb_set_t           *feature_indexes;
 
   private:
-  hb_auto_t<hb_set_t> visited_script;
-  hb_auto_t<hb_set_t> visited_langsys;
+  hb_set_t visited_script;
+  hb_set_t visited_langsys;
 };
 
 static void
@@ -836,7 +836,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
-  hb_auto_t<hb_set_t> feature_indexes;
+  hb_set_t feature_indexes;
   hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
 
   for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
@@ -974,7 +974,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
 				        hb_set_t     *glyphs)
 {
-  hb_auto_t<hb_map_t> done_lookups;
+  hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
 
   const OT::SubstLookup& l = _get_gsub (face).get_lookup (lookup_index);
@@ -995,7 +995,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
                                          const hb_set_t *lookups,
                                          hb_set_t       *glyphs)
 {
-  hb_auto_t<hb_map_t> done_lookups;
+  hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
   const OT::GSUB& gsub = _get_gsub (face);
 
