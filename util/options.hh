@@ -535,7 +535,7 @@ struct text_options_t : option_group_t
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Only one of text and text-file can be set");
-  };
+  }
 
   const char *get_line (unsigned int *len);
 
