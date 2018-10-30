@@ -1045,6 +1045,7 @@ struct Coverage
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
+    case ("abcd"[0]) | ("abcd"[1]):
     case 1: return u.format1.get_coverage (glyph_id);
     case 2: return u.format2.get_coverage (glyph_id);
     default:return NOT_COVERED;
