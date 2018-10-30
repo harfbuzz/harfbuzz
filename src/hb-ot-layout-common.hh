@@ -1108,8 +1108,7 @@ struct Coverage
 
   struct Iter
   {
-    Iter (void) : format (0), u () {};
-    inline void init (const Coverage &c_)
+    inline Iter (const Coverage &c_)
     {
       format = c_.u.format;
       switch (format)
@@ -1119,7 +1118,6 @@ struct Coverage
       default:				     return;
       }
     }
-    inline void fini (void) {}
     inline bool more (void)
     {
       switch (format)
