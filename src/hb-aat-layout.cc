@@ -130,9 +130,23 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 
 
 /*
- * morx/kerx/trak
+ * mort/morx/kerx/trak
  */
 
+// static inline const AAT::mort&
+// _get_mort (hb_face_t *face, hb_blob_t **blob = nullptr)
+// {
+//   if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+//   {
+//     if (blob)
+//       *blob = hb_blob_get_empty ();
+//     return Null(AAT::mort);
+//   }
+//   const AAT::morx& mort = *(hb_ot_face_data (face)->mort.get ());
+//   if (blob)
+//     *blob = hb_ot_face_data (face)->mort.get_blob ();
+//   return mort;
+// }
 static inline const AAT::morx&
 _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
