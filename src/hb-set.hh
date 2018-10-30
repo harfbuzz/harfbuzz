@@ -40,8 +40,8 @@
 struct hb_set_t
 {
   HB_NO_COPY_ASSIGN (hb_set_t);
-  inline hb_set_t (void) { init_shallow (); }
-  inline ~hb_set_t (void) { fini_shallow (); }
+  inline hb_set_t (void) { init (); }
+  inline ~hb_set_t (void) { fini (); }
 
   struct page_map_t
   {

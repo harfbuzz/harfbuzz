@@ -272,6 +272,7 @@ static inline void hb_object_fini (Type *obj)
   {
     user_data->fini ();
     free (user_data);
+    user_data = nullptr;
   }
 }
 template <typename Type>

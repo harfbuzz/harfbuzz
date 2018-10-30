@@ -45,8 +45,8 @@ inline uint32_t Hash (const T &v)
 struct hb_map_t
 {
   HB_NO_COPY_ASSIGN (hb_map_t);
-  inline hb_map_t (void) { init_shallow (); }
-  inline ~hb_map_t (void) { fini_shallow (); }
+  inline hb_map_t (void) { init (); }
+  inline ~hb_map_t (void) { fini (); }
 
   struct item_t
   {
