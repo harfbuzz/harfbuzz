@@ -49,8 +49,8 @@ struct hb_set_t
 
   struct page_t
   {
-    inline void init0 (void) { memset (&v, 0, sizeof (v)); }
-    inline void init1 (void) { memset (&v, 0xff, sizeof (v)); }
+    inline void init0 (void) { memset (reinterpret_cast<char*>(&v), 0, sizeof (v)); }
+    inline void init1 (void) { memset (reinterpret_cast<char*>(&v), 0xff, sizeof (v)); }
 
     inline unsigned int len (void) const
     { return ARRAY_LENGTH_CONST (v); }

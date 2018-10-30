@@ -173,7 +173,7 @@ _hb_debug_msg_va (const char *what,
 
   fprintf (stderr, "\n");
 }
-template <> inline void
+template <> inline void HB_PRINTF_FUNC(7, 0)
 _hb_debug_msg_va<0> (const char *what HB_UNUSED,
 		     const void *obj HB_UNUSED,
 		     const char *func HB_UNUSED,
@@ -192,7 +192,7 @@ _hb_debug_msg (const char *what,
 	       int level_dir,
 	       const char *message,
 	       ...) HB_PRINTF_FUNC(7, 8);
-template <int max_level> static inline void
+template <int max_level> static inline void HB_PRINTF_FUNC(7, 8)
 _hb_debug_msg (const char *what,
 	       const void *obj,
 	       const char *func,
@@ -216,7 +216,7 @@ _hb_debug_msg<0> (const char *what HB_UNUSED,
 		  int level_dir HB_UNUSED,
 		  const char *message HB_UNUSED,
 		  ...) HB_PRINTF_FUNC(7, 8);
-template <> inline void
+template <> inline void HB_PRINTF_FUNC(7, 8)
 _hb_debug_msg<0> (const char *what HB_UNUSED,
 		  const void *obj HB_UNUSED,
 		  const char *func HB_UNUSED,
