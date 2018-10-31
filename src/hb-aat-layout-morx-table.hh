@@ -278,7 +278,7 @@ struct ContextualSubtable
     private:
     bool mark_set;
     unsigned int mark;
-    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT32, false> &subs;
+    const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT, false> &subs;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const

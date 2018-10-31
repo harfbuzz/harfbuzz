@@ -433,7 +433,7 @@ struct StateTable
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
+    const HBUSHORT *v = (this+classTable).get_value (glyph_id, num_glyphs);
     return v ? (unsigned) *v : (unsigned) CLASS_OUT_OF_BOUNDS;
   }
 
@@ -446,7 +446,7 @@ struct StateTable
   {
     if (unlikely (klass >= nClasses)) return nullptr;
 
-    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int entry = states[state * nClasses + klass];
@@ -461,7 +461,7 @@ struct StateTable
     if (unlikely (!(c->check_struct (this) &&
 		    classTable.sanitize (c, this)))) return_trace (false);
 
-    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int num_classes = nClasses;
@@ -483,8 +483,8 @@ struct StateTable
       if ((c->max_ops -= num_states - state) < 0)
 	return_trace (false);
       { /* Sweep new states. */
-	const HBUINT16 *stop = &states[num_states * num_classes];
-	for (const HBUINT16 *p = &states[state * num_classes]; p < stop; p++)
+	const HBUSHORT *stop = &states[num_states * num_classes];
+	for (const HBUSHORT *p = &states[state * num_classes]; p < stop; p++)
 	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
 	state = num_states;
       }
@@ -521,38 +521,17 @@ struct StateTable
   DEFINE_SIZE_STATIC (16);
 };
 
-struct ClassTable
-{
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
-  {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
-  }
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
-  }
-  protected:
-  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
-  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
-				 * glyph minus the value of firstGlyph plus 1). */
-  UnsizedArrayOf<HBUINT8>
-		classArrayZ;	/* The class codes (indexed by glyph index minus
-				 * firstGlyph). */
-  public:
-  DEFINE_SIZE_ARRAY (4, classArrayZ);
-};
-
 struct MortTypes
 {
   static const bool extended = false;
   typedef HBUINT16 HBUINT;
   typedef HBUINT8 HBUSHORT;
-  struct ClassType : ClassTable
+  struct ClassType : Lookup<HBUINT8>
   {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
+    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
     {
-      return ClassTable::get_class (glyph_id);
+      const HBUINT8 *v = get_value (glyph_id, num_glyphs);
+      return v ? *v : 1;
     }
   };
 };
