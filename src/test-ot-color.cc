@@ -23,7 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.h"
+#include "hb.hh"
 #include "hb-ot.h"
 
 #include "hb-ft.h"
