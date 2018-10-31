@@ -92,7 +92,7 @@ struct maxp
     if (version.major == 1)
     {
       const maxpV1Tail &v1 = StructAfter<maxpV1Tail> (*this);
-      return v1.sanitize (c);
+      return_trace (v1.sanitize (c));
     }
     return_trace (likely (version.major == 0 && version.minor == 0x5000u));
   }
