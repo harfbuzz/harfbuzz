@@ -1052,8 +1052,7 @@ struct mortmorx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) || version < 2 ||
-	!chainCount.sanitize (c))
+    if (!version.sanitize (c) || !version || !chainCount.sanitize (c))
       return_trace (false);
 
     const Chain<Types> *chain = &firstChain;
@@ -1070,7 +1069,7 @@ struct mortmorx
 
   protected:
   HBUINT16	version;	/* Version number of the glyph metamorphosis table.
-				 * 2 or 3. */
+				 * 1, 2, or 3. */
   HBUINT16	unused;		/* Set to 0. */
   HBUINT32	chainCount;	/* Number of metamorphosis chains contained in this
 				 * table. */
