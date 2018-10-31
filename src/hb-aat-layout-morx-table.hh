@@ -45,6 +45,14 @@ namespace AAT {
 
 using namespace OT;
 
+template <typename T>
+static inline unsigned int offsetToIndex (unsigned int offset,
+					  const void *base,
+					  const T *array)
+{
+  return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
+}
+
 template <typename Types>
 struct RearrangementSubtable
 {
@@ -255,11 +263,10 @@ struct ContextualSubtable
       }
       else
       {
-	unsigned int offset = 2 * (entry->data.markIndex + buffer->info[mark].codepoint);
-	replacement = &StructAtOffset<GlyphID> (table, offset);
-	if ((const void *) replacement < (const void *) subs ||
-	    !replacement->sanitize (&c->sanitizer) ||
-	    !*replacement)
+	unsigned int offset = entry->data.markIndex + buffer->info[mark].codepoint;
+	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
+	replacement = &subs_old[offsetToIndex (offset * 2, table, subs_old.arrayZ)];
+	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
 	  replacement = nullptr;
       }
       if (replacement)
@@ -281,11 +288,10 @@ struct ContextualSubtable
       }
       else
       {
-	unsigned int offset = 2 * (entry->data.currentIndex + buffer->info[idx].codepoint);
-	replacement = &StructAtOffset<GlyphID> (table, offset);
-	if ((const void *) replacement < (const void *) subs ||
-	    !replacement->sanitize (&c->sanitizer) ||
-	    !*replacement)
+	unsigned int offset = entry->data.currentIndex + buffer->info[idx].codepoint;
+	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
+	replacement = &subs_old[offsetToIndex (offset * 2, table, subs_old.arrayZ)];
+	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
 	  replacement = nullptr;
       }
       if (replacement)
@@ -456,14 +462,6 @@ struct LigatureSubtable
 	component (table+table->component),
 	ligature (table+table->ligature),
 	match_length (0) {}
-
-    template <typename T>
-    static inline unsigned int offsetToIndex (unsigned int offset,
-					      const void *base,
-					      const T *array)
-    {
-      return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
-    }
 
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
