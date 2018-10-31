@@ -388,11 +388,11 @@ struct LigatureEntry<true>
 
   template <typename Flags>
   static inline bool performAction (Flags flags)
-  { return flags & PerformAction; };
+  { return flags & PerformAction; }
 
   template <typename Entry, typename Flags>
   static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
-  { return entry->data.ligActionIndex; };
+  { return entry->data.ligActionIndex; }
 };
 template <>
 struct LigatureEntry<false>
@@ -412,11 +412,11 @@ struct LigatureEntry<false>
 
   template <typename Flags>
   static inline bool performAction (Flags flags)
-  { return flags & Offset; };
+  { return flags & Offset; }
 
   template <typename Entry, typename Flags>
   static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
-  { return flags & 0x3FFF; };
+  { return flags & 0x3FFF; }
 };
 
 
