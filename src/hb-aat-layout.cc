@@ -207,7 +207,19 @@ void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 			   hb_aat_map_t *map)
 {
-  _get_morx (mapper->face).compile_flags (mapper, map);
+  const AAT::morx& morx = _get_morx (mapper->face, nullptr);
+  if (morx.has_data ())
+  {
+    morx.compile_flags (mapper, map);
+    return;
+  }
+
+  const AAT::mort& mort = _get_mort (mapper->face, nullptr);
+  if (mort.has_data ())
+  {
+    mort.compile_flags (mapper, map);
+    return;
+  }
 }
 
 
