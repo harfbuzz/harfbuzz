@@ -359,19 +359,43 @@ struct ContextualSubtable
   DEFINE_SIZE_STATIC (20);
 };
 
-template <typename Types>
-struct LigatureSubtable
-{
-  typedef typename Types::HBUINT HBUINT;
 
-  struct EntryData
+template <bool extended>
+struct LigatureEntry;
+
+template <>
+struct LigatureEntry<true>
+{
+  typedef struct
   {
     HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
 				 * for processing this group, if indicated
 				 * by the flags. */
     public:
     DEFINE_SIZE_STATIC (2);
-  };
+  } EntryData;
+
+  template <typename Entry, typename Flags>
+  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
+  { return entry->data.ligActionIndex; };
+};
+template <>
+struct LigatureEntry<false>
+{
+  typedef void EntryData;
+
+  template <typename Entry, typename Flags>
+  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
+  { return flags & 0x3FFF; };
+};
+
+
+template <typename Types>
+struct LigatureSubtable
+{
+  typedef typename Types::HBUINT HBUINT;
+
+  typedef typename LigatureEntry<Types::extended>::EntryData EntryData;
 
   struct driver_context_t
   {
@@ -436,7 +460,7 @@ struct LigatureSubtable
       {
 	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = entry->data.ligActionIndex;
+	unsigned int action_idx = LigatureEntry<Types::extended>::ligActionIndex (entry, flags);
 	unsigned int action;
 	unsigned int ligature_idx = 0;
 
