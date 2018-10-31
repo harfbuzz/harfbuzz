@@ -73,12 +73,12 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -169,7 +169,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -219,7 +219,7 @@ struct ContextualSubtable
 	mark (0),
 	subs (table+table->substitutionTables) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -229,7 +229,7 @@ struct ContextualSubtable
 
       return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -287,7 +287,7 @@ struct ContextualSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -373,12 +373,12 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->flags & PerformAction;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -492,7 +492,7 @@ struct LigatureSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -636,13 +636,13 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -734,7 +734,7 @@ struct InsertionSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -782,12 +782,15 @@ struct Feature
 template <typename Types>
 struct ChainSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   template <typename T>
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
   inline unsigned int get_type (void) const { return coverage & SubtableType; }
 
+  // mort enumF is different...
   enum Coverage
   {
     Vertical		= 0x80000000,	/* If set, this subtable will only be applied
@@ -841,8 +844,8 @@ struct ChainSubtable
   }
 
   protected:
-  HBUINT32	length;		/* Total subtable length, including this header. */
-  HBUINT32	coverage;	/* Coverage flags and subtable type. */
+  HBUINT	length;		/* Total subtable length, including this header. */
+  HBUINT	coverage;	/* Coverage flags and subtable type. */
   HBUINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
   RearrangementSubtable<Types>	rearrangement;
@@ -852,7 +855,7 @@ struct ChainSubtable
   InsertionSubtable<Types>	insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT32) + 4);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
 };
 
 template <typename Types>
@@ -981,8 +984,8 @@ struct Chain
   }
 
   protected:
-  HBUINT	defaultFlags;	/* The default specification for subtables. */
-  HBUINT	length;		/* Total byte count, including this header. */
+  HBUINT32	defaultFlags;	/* The default specification for subtables. */
+  HBUINT32	length;		/* Total byte count, including this header. */
   HBUINT	featureCount;	/* Number of feature subtable entries. */
   HBUINT	subtableCount;	/* The number of subtables in the chain. */
 
@@ -991,7 +994,7 @@ struct Chain
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 8);
 };
 
 
