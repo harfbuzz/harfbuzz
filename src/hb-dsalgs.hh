@@ -610,8 +610,10 @@ struct HbOpXor
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
 {
-  elt_t& operator [] (unsigned int i) { return u.v[i]; }
-  const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
+  inline elt_t& operator [] (unsigned int i) { return u.v[i]; }
+  inline const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
+
+  inline void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
 
   template <class Op>
   inline hb_vector_size_t process (const hb_vector_size_t &o) const
