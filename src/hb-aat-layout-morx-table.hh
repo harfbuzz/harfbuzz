@@ -366,6 +366,17 @@ struct LigatureEntry;
 template <>
 struct LigatureEntry<true>
 {
+  enum Flags
+  {
+    SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
+					 * eventual processing. */
+    DontAdvance		= 0x4000,	/* Leave the glyph pointer at this glyph for the
+					   next iteration. */
+    PerformAction	= 0x2000,	/* Use the ligActionIndex to process a ligature
+					 * group. */
+    Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
+  };
+
   typedef struct
   {
     HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
@@ -375,6 +386,10 @@ struct LigatureEntry<true>
     DEFINE_SIZE_STATIC (2);
   } EntryData;
 
+  template <typename Flags>
+  static inline bool performAction (Flags flags)
+  { return flags & PerformAction; };
+
   template <typename Entry, typename Flags>
   static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
   { return entry->data.ligActionIndex; };
@@ -382,7 +397,22 @@ struct LigatureEntry<true>
 template <>
 struct LigatureEntry<false>
 {
+  enum Flags
+  {
+    SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
+					 * eventual processing. */
+    DontAdvance		= 0x4000,	/* Leave the glyph pointer at this glyph for the
+					   next iteration. */
+    Offset		= 0x3FFF,	/* Byte offset from beginning of subtable to the
+					 * ligature action list. This value must be a
+					 * multiple of 4. */
+  };
+
   typedef void EntryData;
+
+  template <typename Flags>
+  static inline bool performAction (Flags flags)
+  { return flags & Offset; };
 
   template <typename Entry, typename Flags>
   static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
@@ -395,21 +425,17 @@ struct LigatureSubtable
 {
   typedef typename Types::HBUINT HBUINT;
 
-  typedef typename LigatureEntry<Types::extended>::EntryData EntryData;
+  typedef LigatureEntry<Types::extended> LigatureEntryT;
+  typedef typename LigatureEntryT::EntryData EntryData;
+  typedef typename LigatureEntryT::Flags Flags;
 
   struct driver_context_t
   {
-    static const bool in_place = false;
-    enum Flags
+    enum
     {
-      SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
-					 * eventual processing. */
-      DontAdvance	= 0x4000,	/* Leave the glyph pointer at this glyph for the
-					   next iteration. */
-      PerformAction	= 0x2000,	/* Use the ligActionIndex to process a ligature
-					 * group. */
-      Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
+      DontAdvance	= LigatureEntry<Types::extended>::DontAdvance,
     };
+    static const bool in_place = false;
     enum LigActionFlags
     {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
@@ -434,7 +460,7 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
-      return entry->flags & PerformAction;
+      return LigatureEntryT::performAction (entry->flags);
     }
     inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
@@ -443,7 +469,7 @@ struct LigatureSubtable
       unsigned int flags = entry->flags;
 
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
-      if (flags & SetComponent)
+      if (flags & Flags::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
 	  return false;
@@ -456,11 +482,11 @@ struct LigatureSubtable
 	DEBUG_MSG (APPLY, nullptr, "Set component at %d", buffer->out_len);
       }
 
-      if (flags & PerformAction)
+      if (LigatureEntryT::performAction (flags))
       {
 	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = LigatureEntry<Types::extended>::ligActionIndex (entry, flags);
+	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry, flags);
 	unsigned int action;
 	unsigned int ligature_idx = 0;
 
