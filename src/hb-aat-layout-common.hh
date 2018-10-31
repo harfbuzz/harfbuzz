@@ -430,6 +430,10 @@ struct StateTable
     CLASS_END_OF_LINE = 3,
   };
 
+  inline unsigned int row_stride (void) const { return nClasses * sizeof (HBUSHORT); }
+  inline unsigned int new_state (unsigned int newState) const
+  { return newState / (Types::extended ? 1 : row_stride ()); }
+
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
@@ -495,7 +499,10 @@ struct StateTable
       { /* Sweep new entries. */
 	const Entry<Extra> *stop = &entries[num_entries];
 	for (const Entry<Extra> *p = &entries[entry]; p < stop; p++)
-	  num_states = MAX<unsigned int> (num_states, p->newState + 1);
+	{
+	  unsigned int newState = new_state (p->newState);
+	  num_states = MAX<unsigned int> (num_states, newState + 1);
+	}
 	entry = num_entries;
       }
     }
@@ -620,17 +627,17 @@ struct StateTableDriver
       }
 
       if (unlikely (!c->transition (this, entry)))
-        break;
+	break;
 
       last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
 
-      state = entry->newState;
+      state = machine.new_state (entry->newState);
 
       if (buffer->idx == buffer->len)
-        break;
+	break;
 
       if (!last_was_dont_advance)
-        buffer->next_glyph ();
+	buffer->next_glyph ();
     }
 
     if (!c->in_place)
