@@ -448,10 +448,11 @@ struct LigatureSubtable
 					 * into the component table. */
     };
 
-    inline driver_context_t (const LigatureSubtable *table,
+    inline driver_context_t (const LigatureSubtable *table_,
 			     hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
+	table (table_),
 	ligAction (table+table->ligAction),
 	component (table+table->component),
 	ligature (table+table->ligature),
@@ -497,6 +498,9 @@ struct LigatureSubtable
 	  return false; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
+	const HBUINT32 *actionData = Types::extended ?
+				     &ligAction[action_idx] :
+				     &StructAtOffset<HBUINT32> (table, action_idx);
         do
 	{
 	  if (unlikely (!cursor))
@@ -510,17 +514,20 @@ struct LigatureSubtable
 	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %d", cursor - 1);
 	  buffer->move_to (match_positions[--cursor]);
 
-	  const HBUINT32 &actionData = ligAction[action_idx];
-	  if (unlikely (!actionData.sanitize (&c->sanitizer))) return false;
-	  action = actionData;
+	  if (unlikely (!actionData->sanitize (&c->sanitizer))) return false;
+	  action = *actionData;
 
 	  uint32_t uoffset = action & LigActionOffset;
 	  if (uoffset & 0x20000000)
 	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
+	  if (!Types::extended)
+	    component_idx *= 2;
 
-	  const HBUINT16 &componentData = component[component_idx];
+	  const HBUINT16 &componentData = Types::extended ?
+					  component[component_idx] :
+					  StructAtOffset<HBUINT16> (table, component_idx);
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
 
@@ -529,8 +536,9 @@ struct LigatureSubtable
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
 	  {
-
-	    const GlyphID &ligatureData = ligature[ligature_idx];
+	    const GlyphID &ligatureData = Types::extended ?
+					  ligature[ligature_idx] :
+					  StructAtOffset<GlyphID> (table, ligature_idx);
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
@@ -550,7 +558,7 @@ struct LigatureSubtable
 	    buffer->merge_out_clusters (match_positions[cursor], buffer->out_len);
 	  }
 
-	  action_idx++;
+	  actionData++;
 	}
 	while (!(action & LigActionLast));
 	buffer->move_to (end);
@@ -563,6 +571,7 @@ struct LigatureSubtable
     bool ret;
     private:
     hb_aat_apply_context_t *c;
+    const LigatureSubtable *table;
     const UnsizedArrayOf<HBUINT32> &ligAction;
     const UnsizedArrayOf<HBUINT16> &component;
     const UnsizedArrayOf<GlyphID> &ligature;
