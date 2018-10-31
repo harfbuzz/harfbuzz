@@ -23,7 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.hh"
+#include "hb.h"
 #include "hb-ot.h"
 
 #include "hb-ft.h"
@@ -38,74 +38,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-static void
-png_dump (hb_face_t *face, unsigned int face_index)
-{
-  unsigned glyph_count = hb_face_get_glyph_count (face);
-  hb_font_t *font = hb_font_create (face);
-
-  /* ugly hack, scans the font for strikes, not needed for regular clients */
-  #define STRIKES_MAX 20
-  unsigned int strikes_count = 0;
-  unsigned int strikes[STRIKES_MAX] = {0};
-  {
-    /* find a sample glyph */
-    unsigned int sample_glyph_id;
-    /* we don't care much about different strikes for different glyphs */
-    for (sample_glyph_id = 0; sample_glyph_id < glyph_count; sample_glyph_id++)
-    {
-      hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
-      unsigned int blob_length = hb_blob_get_length (blob);
-      hb_blob_destroy (blob);
-      if (blob_length != 0)
-	break;
-    }
-    /* find strikes it has */
-    unsigned int upem = hb_face_get_upem (face);
-    unsigned int blob_length = 0;
-    for (unsigned int ppem = 1; ppem <= upem && strikes_count < STRIKES_MAX; ppem++)
-    {
-      hb_font_set_ppem (font, ppem, ppem);
-      hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
-      unsigned int new_blob_length = hb_blob_get_length (blob);
-      if (blob_length != new_blob_length)
-      {
-	strikes_count++;
-	blob_length = new_blob_length;
-      }
-      if (strikes_count != 0)
-	strikes[strikes_count - 1] = ppem;
-      hb_blob_destroy (blob);
-    }
-    /* can't report the biggest strike correctly, and, we can't do anything about it */
-  }
-  #undef STRIKES_MAX
-
-  for (unsigned int strike = 0; strike < strikes_count; strike++)
-    for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
-    {
-      unsigned int ppem = strikes[strike];
-      hb_font_set_ppem (font, ppem, ppem);
-      hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph_id);
-
-      if (hb_blob_get_length (blob) == 0) continue;
-
-      unsigned int length;
-      const char *data = hb_blob_get_data (blob, &length);
-
-      char output_path[255];
-      sprintf (output_path, "out/png-%d-%d-%d.png", glyph_id, strike, face_index);
-
-      FILE *f = fopen (output_path, "wb");
-      fwrite (data, 1, length, f);
-      fclose (f);
-
-      hb_blob_destroy (blob);
-    }
-
-  hb_font_destroy (font);
-}
 
 static void
 svg_dump (hb_face_t *face, unsigned int face_index)
@@ -136,6 +68,63 @@ svg_dump (hb_face_t *face, unsigned int face_index)
   }
 }
 
+/* _png API is so easy to use unlike the below code, don't get confused */
+static void
+png_dump (hb_face_t *face, unsigned int face_index)
+{
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  hb_font_t *font = hb_font_create (face);
+
+  /* scans the font for strikes */
+  unsigned int sample_glyph_id;
+  /* we don't care about different strikes for different glyphs at this point */
+  for (sample_glyph_id = 0; sample_glyph_id < glyph_count; sample_glyph_id++)
+  {
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned int blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (blob_length != 0)
+      break;
+  }
+
+  unsigned int upem = hb_face_get_upem (face);
+  unsigned int blob_length = 0;
+  unsigned int strike = 0;
+  for (unsigned int ppem = 1; ppem <= upem; ppem++)
+  {
+    hb_font_set_ppem (font, ppem, ppem);
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned int new_blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (new_blob_length != blob_length)
+    {
+      for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+      {
+	hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph_id);
+
+	if (hb_blob_get_length (blob) == 0) continue;
+
+	unsigned int length;
+	const char *data = hb_blob_get_data (blob, &length);
+
+	char output_path[255];
+	sprintf (output_path, "out/png-%d-%d-%d.png", glyph_id, strike, face_index);
+
+	FILE *f = fopen (output_path, "wb");
+	fwrite (data, 1, length, f);
+	fclose (f);
+
+	hb_blob_destroy (blob);
+      }
+
+      strike++;
+      blob_length = new_blob_length;
+    }
+  }
+
+  hb_font_destroy (font);
+}
+
 static void
 layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int face_index)
 {
@@ -144,7 +133,7 @@ layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int
   unsigned glyph_count = hb_face_get_glyph_count (face);
   for (hb_codepoint_t gid = 0; gid < glyph_count; ++gid)
   {
-    unsigned int num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
+    unsigned int num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, NULL, NULL);
     if (!num_layers)
       continue;
 
@@ -181,7 +170,7 @@ layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int
       for (unsigned int palette = 0; palette < palette_count; palette++) {
 	char output_path[255];
 
-	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
+	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, NULL, NULL);
 	if (!num_colors)
 	  continue;
 
@@ -282,14 +271,14 @@ main (int argc, char **argv)
 
 
   FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
-  if (font_name_file != nullptr)
+  if (font_name_file != NULL)
   {
     fprintf (stderr, "Purge or move ./out folder in order to run a new dump\n");
     exit (1);
   }
 
   font_name_file = fopen ("out/.dumped_font_name", "w");
-  if (font_name_file == nullptr)
+  if (font_name_file == NULL)
   {
     fprintf (stderr, "./out is not accessible as a folder, create it please\n");
     exit (1);
