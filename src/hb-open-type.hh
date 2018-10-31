@@ -340,6 +340,9 @@ struct UnsizedArrayOf
   inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
   inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
 
+  template <typename T> inline operator  T * (void) { return arrayZ; }
+  template <typename T> inline operator const T * (void) const { return arrayZ; }
+
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
@@ -450,6 +453,10 @@ struct ArrayOf
     if (unlikely (i >= len)) return Crap(Type);
     return arrayZ[i];
   }
+
+  template <typename T> inline operator  T * (void) { return arrayZ; }
+  template <typename T> inline operator const T * (void) const { return arrayZ; }
+
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 

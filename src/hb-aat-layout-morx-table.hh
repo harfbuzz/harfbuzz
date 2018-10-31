@@ -213,10 +213,13 @@ struct ContextualSubtable
       Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
     };
 
-    inline driver_context_t (const ContextualSubtable *table) :
+    inline driver_context_t (const ContextualSubtable *table_,
+			     hb_aat_apply_context_t *c_) :
 	ret (false),
+	c (c_),
 	mark_set (false),
 	mark (0),
+	table (table_),
 	subs (table+table->substitutionTables) {}
 
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver,
@@ -239,29 +242,56 @@ struct ContextualSubtable
       if (buffer->idx == buffer->len && !mark_set)
         return true;
 
-      if (entry->data.markIndex != 0xFFFF)
+      const GlyphID *replacement;
+
+      replacement = nullptr;
+      if (Types::extended)
       {
-	const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
-	hb_glyph_info_t *info = buffer->info;
-	const GlyphID *replacement = lookup.get_value (info[mark].codepoint, driver->num_glyphs);
-	if (replacement)
+	if (entry->data.markIndex != 0xFFFF)
 	{
-	  buffer->unsafe_to_break (mark, MIN (buffer->idx + 1, buffer->len));
-	  info[mark].codepoint = *replacement;
-	  ret = true;
+	  const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
+	  replacement = lookup.get_value (buffer->info[mark].codepoint, driver->num_glyphs);
 	}
       }
-      if (entry->data.currentIndex != 0xFFFF)
+      else
       {
-        unsigned int idx = MIN (buffer->idx, buffer->len - 1);
-	const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
-	hb_glyph_info_t *info = buffer->info;
-	const GlyphID *replacement = lookup.get_value (info[idx].codepoint, driver->num_glyphs);
-	if (replacement)
+	unsigned int offset = 2 * (entry->data.markIndex + buffer->info[mark].codepoint);
+	replacement = &StructAtOffset<GlyphID> (table, offset);
+	if ((const void *) replacement < (const void *) subs ||
+	    !replacement->sanitize (&c->sanitizer) ||
+	    !*replacement)
+	  replacement = nullptr;
+      }
+      if (replacement)
+      {
+	buffer->unsafe_to_break (mark, MIN (buffer->idx + 1, buffer->len));
+	buffer->info[mark].codepoint = *replacement;
+	ret = true;
+      }
+
+      replacement = nullptr;
+      unsigned int idx = MIN (buffer->idx, buffer->len - 1);
+      if (Types::extended)
+      {
+	if (entry->data.currentIndex != 0xFFFF)
 	{
-	  info[idx].codepoint = *replacement;
-	  ret = true;
+	  const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
+	  replacement = lookup.get_value (buffer->info[idx].codepoint, driver->num_glyphs);
 	}
+      }
+      else
+      {
+	unsigned int offset = 2 * (entry->data.currentIndex + buffer->info[idx].codepoint);
+	replacement = &StructAtOffset<GlyphID> (table, offset);
+	if ((const void *) replacement < (const void *) subs ||
+	    !replacement->sanitize (&c->sanitizer) ||
+	    !*replacement)
+	  replacement = nullptr;
+      }
+      if (replacement)
+      {
+	buffer->info[idx].codepoint = *replacement;
+	ret = true;
       }
 
       if (entry->flags & SetMark)
@@ -276,8 +306,10 @@ struct ContextualSubtable
     public:
     bool ret;
     private:
+    hb_aat_apply_context_t *c;
     bool mark_set;
     unsigned int mark;
+    const ContextualSubtable *table;
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT, false> &subs;
   };
 
@@ -285,7 +317,7 @@ struct ContextualSubtable
   {
     TRACE_APPLY (this);
 
-    driver_context_t dc (this);
+    driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
@@ -299,6 +331,8 @@ struct ContextualSubtable
 
     unsigned int num_entries = 0;
     if (unlikely (!machine.sanitize (c, &num_entries))) return_trace (false);
+
+    if (!Types::extended) return_trace (true);
 
     unsigned int num_lookups = 0;
 
