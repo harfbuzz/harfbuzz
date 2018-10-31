@@ -457,6 +457,14 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
+    template <typename T>
+    static inline unsigned int offsetToIndex (unsigned int offset,
+					      const void *base,
+					      const T *array)
+    {
+      return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
+    }
+
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
@@ -497,9 +505,9 @@ struct LigatureSubtable
 	  return false; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
-	const HBUINT32 *actionData = Types::extended ?
-				     &ligAction[action_idx] :
-				     &StructAtOffset<HBUINT32> (table, action_idx);
+	if (!Types::extended)
+	  action_idx = offsetToIndex (action_idx, table, ligAction.arrayZ);
+	const HBUINT32 *actionData = &ligAction[action_idx];
         do
 	{
 	  if (unlikely (!cursor))
@@ -522,11 +530,8 @@ struct LigatureSubtable
 	  int32_t offset = (int32_t) uoffset;
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
 	  if (!Types::extended)
-	    component_idx *= 2;
-
-	  const HBUINT16 &componentData = Types::extended ?
-					  component[component_idx] :
-					  StructAtOffset<HBUINT16> (table, component_idx);
+	    component_idx = offsetToIndex (component_idx * 2, table, component.arrayZ);
+	  const HBUINT16 &componentData = component[component_idx];
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
 
@@ -535,9 +540,9 @@ struct LigatureSubtable
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
 	  {
-	    const GlyphID &ligatureData = Types::extended ?
-					  ligature[ligature_idx] :
-					  StructAtOffset<GlyphID> (table, ligature_idx);
+	    if (!Types::extended)
+	      ligature_idx = offsetToIndex (ligature_idx, table, ligature.arrayZ);
+	    const GlyphID &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
