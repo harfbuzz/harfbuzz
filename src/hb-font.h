@@ -110,7 +110,7 @@ typedef struct hb_glyph_extents_t
 /* func types */
 
 typedef hb_bool_t (*hb_font_get_font_extents_func_t) (hb_font_t *font, void *font_data,
-						       hb_font_extents_t *metrics,
+						       hb_font_extents_t *extents,
 						       void *user_data);
 typedef hb_font_get_font_extents_func_t hb_font_get_font_h_extents_func_t;
 typedef hb_font_get_font_extents_func_t hb_font_get_font_v_extents_func_t;

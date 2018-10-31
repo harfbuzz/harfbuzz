@@ -54,23 +54,23 @@
 static hb_bool_t
 hb_font_get_font_h_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
-				hb_font_extents_t *metrics,
+				hb_font_extents_t *extents,
 				void *user_data HB_UNUSED)
 {
-  memset (metrics, 0, sizeof (*metrics));
+  memset (extents, 0, sizeof (*extents));
   return false;
 }
 static hb_bool_t
 hb_font_get_font_h_extents_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
-				    hb_font_extents_t *metrics,
+				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_h_extents (metrics);
+  hb_bool_t ret = font->parent->get_font_h_extents (extents);
   if (ret) {
-    metrics->ascender = font->parent_scale_y_distance (metrics->ascender);
-    metrics->descender = font->parent_scale_y_distance (metrics->descender);
-    metrics->line_gap = font->parent_scale_y_distance (metrics->line_gap);
+    extents->ascender = font->parent_scale_y_distance (extents->ascender);
+    extents->descender = font->parent_scale_y_distance (extents->descender);
+    extents->line_gap = font->parent_scale_y_distance (extents->line_gap);
   }
   return ret;
 }
@@ -78,23 +78,23 @@ hb_font_get_font_h_extents_default (hb_font_t *font,
 static hb_bool_t
 hb_font_get_font_v_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
-				hb_font_extents_t *metrics,
+				hb_font_extents_t *extents,
 				void *user_data HB_UNUSED)
 {
-  memset (metrics, 0, sizeof (*metrics));
+  memset (extents, 0, sizeof (*extents));
   return false;
 }
 static hb_bool_t
 hb_font_get_font_v_extents_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
-				    hb_font_extents_t *metrics,
+				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_v_extents (metrics);
+  hb_bool_t ret = font->parent->get_font_v_extents (extents);
   if (ret) {
-    metrics->ascender = font->parent_scale_x_distance (metrics->ascender);
-    metrics->descender = font->parent_scale_x_distance (metrics->descender);
-    metrics->line_gap = font->parent_scale_x_distance (metrics->line_gap);
+    extents->ascender = font->parent_scale_x_distance (extents->ascender);
+    extents->descender = font->parent_scale_x_distance (extents->descender);
+    extents->line_gap = font->parent_scale_x_distance (extents->line_gap);
   }
   return ret;
 }
