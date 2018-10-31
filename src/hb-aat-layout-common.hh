@@ -433,8 +433,7 @@ struct StateTable
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    const HBUINT16 *v = (this+classTable).get_value (glyph_id, num_glyphs);
-    return v ? (unsigned) *v : (unsigned) CLASS_OUT_OF_BOUNDS;
+    return (this+classTable).get_class (glyph_id, num_glyphs);
   }
 
   inline const Entry<Extra> *get_entries () const
@@ -446,7 +445,7 @@ struct StateTable
   {
     if (unlikely (klass >= nClasses)) return nullptr;
 
-    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int entry = states[state * nClasses + klass];
@@ -461,7 +460,7 @@ struct StateTable
     if (unlikely (!(c->check_struct (this) &&
 		    classTable.sanitize (c, this)))) return_trace (false);
 
-    const HBUINT16 *states = (this+stateArrayTable).arrayZ;
+    const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int num_classes = nClasses;
@@ -483,8 +482,8 @@ struct StateTable
       if ((c->max_ops -= num_states - state) < 0)
 	return_trace (false);
       { /* Sweep new states. */
-	const HBUINT16 *stop = &states[num_states * num_classes];
-	for (const HBUINT16 *p = &states[state * num_classes]; p < stop; p++)
+	const HBUSHORT *stop = &states[num_states * num_classes];
+	for (const HBUSHORT *p = &states[state * num_classes]; p < stop; p++)
 	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
 	state = num_states;
       }
