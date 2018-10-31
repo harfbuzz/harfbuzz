@@ -55,6 +55,7 @@ struct loca
 
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Location data. */
+  public:
   DEFINE_SIZE_ARRAY (0, dataZ);
 };
 
@@ -484,7 +485,7 @@ struct glyf
 
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Glyphs data. */
-
+  public:
   DEFINE_SIZE_ARRAY (0, dataZ);
 };
 
