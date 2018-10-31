@@ -243,12 +243,6 @@ struct sbix
       unsigned int strike_ppem = 0;
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
 
-      if (unlikely (blob->length < sizeof (PNGHeader)))
-      {
-        hb_blob_destroy (blob);
-        return false;
-      }
-
       const PNGHeader &png = *blob->as<PNGHeader>();
 
       extents->x_bearing = x_offset;
