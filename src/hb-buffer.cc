@@ -33,13 +33,14 @@
 
 /**
  * SECTION: hb-buffer
- * @title: Buffers
+ * @title: hb-buffer
  * @short_description: Input and output buffers
  * @include: hb.h
  *
  * Buffers serve dual role in HarfBuzz; they hold the input characters that are
- * passed hb_shape(), and after shaping they hold the output glyphs.
+ * passed to hb_shape(), and after shaping they hold the output glyphs.
  **/
+
 
 /**
  * hb_segment_properties_equal:
@@ -1665,7 +1666,7 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
-  hb_buffer_add_utf<hb_utf32_t<> > (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf32_t> (buffer, text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1726,7 +1727,7 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 			  unsigned int          item_offset,
 			  int                   item_length)
 {
-  hb_buffer_add_utf<hb_utf32_t<false> > (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf32_novalidate_t> (buffer, text, text_length, item_offset, item_length);
 }
 
 

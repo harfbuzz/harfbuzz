@@ -80,4 +80,9 @@ hb_aat_layout_track (hb_ot_shape_plan_t *plan,
 		     hb_font_t *font,
 		     hb_buffer_t *buffer);
 
+HB_INTERNAL hb_language_t
+_hb_aat_language_get (hb_face_t *face,
+		      unsigned int i);
+
+
 #endif /* HB_AAT_LAYOUT_HH */

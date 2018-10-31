@@ -63,7 +63,6 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 struct hb_unicode_funcs_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_unicode_funcs_t *parent;
 
@@ -369,7 +368,7 @@ DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 struct hb_unicode_range_t
 {
   static int
-  cmp (const void *_key, const void *_item, void *_arg)
+  cmp (const void *_key, const void *_item)
   {
     hb_codepoint_t cp = *((hb_codepoint_t *) _key);
     const hb_unicode_range_t *range = (hb_unicode_range_t *) _item;

@@ -313,6 +313,27 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
  */
 
 static inline void *
+hb_bsearch (const void *key, const void *base,
+	    size_t nmemb, size_t size,
+	    int (*compar)(const void *_key, const void *_item))
+{
+  int min = 0, max = (int) nmemb - 1;
+  while (min <= max)
+  {
+    int mid = (min + max) / 2;
+    const void *p = (const void *) (((const char *) base) + (mid * size));
+    int c = compar (key, p);
+    if (c < 0)
+      max = mid - 1;
+    else if (c > 0)
+      min = mid + 1;
+    else
+      return (void *) p;
+  }
+  return nullptr;
+}
+
+static inline void *
 hb_bsearch_r (const void *key, const void *base,
 	      size_t nmemb, size_t size,
 	      int (*compar)(const void *_key, const void *_item, void *_arg),
@@ -321,7 +342,7 @@ hb_bsearch_r (const void *key, const void *base,
   int min = 0, max = (int) nmemb - 1;
   while (min <= max)
   {
-    int mid = (min + max) / 2;
+    int mid = ((unsigned int) min + (unsigned int) max) / 2;
     const void *p = (const void *) (((const char *) base) + (mid * size));
     int c = compar (key, p, arg);
     if (c < 0)
@@ -490,56 +511,6 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
-template <typename Type>
-struct hb_auto_t : Type
-{
-  hb_auto_t (void) { Type::init (); }
-  /* Explicitly allow the following only for pointer and references,
-   * to avoid any accidental copies.
-   *
-   * Apparently if we template for all types, then gcc seems to
-   * capture a reference argument in the type, but clang doesn't,
-   * causing unwanted copies and bugs that come with it.  Ideally
-   * we should use C++11-style rvalue reference &&t1. */
-  template <typename T1> explicit hb_auto_t (T1 *t1) { Type::init (t1); }
-  template <typename T1> explicit hb_auto_t (T1 &t1) { Type::init (t1); }
-  ~hb_auto_t (void) { Type::fini (); }
-  private: /* Hide */
-  void init (void) {}
-  void fini (void) {}
-};
-
-template <typename T>
-struct hb_array_t
-{
-  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
-  inline hb_array_t (T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
-
-  inline T& operator [] (unsigned int i) const
-  {
-    if (unlikely (i >= len)) return Null(T);
-    return arrayZ[i];
-  }
-
-  inline hb_array_t<T> sub_array (unsigned int start_offset, unsigned int seg_count) const
-  {
-    unsigned int count = len;
-    if (unlikely (start_offset > count))
-      count = 0;
-    else
-      count -= start_offset;
-    count = MIN (count, seg_count);
-    return hb_array_t<T> (arrayZ + start_offset, count);
-  }
-
-  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
-
-  T *arrayZ;
-  unsigned int len;
-};
-template <typename T> static inline
-hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
-
 struct hb_bytes_t
 {
   inline hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
@@ -567,6 +538,42 @@ struct hb_bytes_t
   const char *arrayZ;
   unsigned int len;
 };
+
+template <typename T>
+struct hb_array_t
+{
+  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
+  inline hb_array_t (T *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+
+  inline T& operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= len)) return Null(T);
+    return arrayZ[i];
+  }
+
+  inline hb_array_t<T> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  {
+    unsigned int count = len;
+    if (unlikely (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    count = MIN (count, seg_count);
+    return hb_array_t<T> (arrayZ + start_offset, count);
+  }
+
+  inline hb_bytes_t as_bytes (void) const
+  {
+    return hb_bytes_t (arrayZ, len * sizeof (T));
+  }
+
+  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+
+  T *arrayZ;
+  unsigned int len;
+};
+template <typename T> static inline
+hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 
 struct HbOpOr

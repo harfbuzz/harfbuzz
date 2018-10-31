@@ -194,8 +194,6 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
 
 struct arabic_fallback_plan_t
 {
-  ASSERT_POD ();
-
   unsigned int num_lookups;
   bool free_lookups;
 
@@ -220,9 +218,9 @@ struct ManifestLookup
 typedef OT::ArrayOf<ManifestLookup> Manifest;
 
 static bool
-arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan,
-				   const hb_ot_shape_plan_t *plan,
-				   hb_font_t *font)
+arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan HB_UNUSED,
+				   const hb_ot_shape_plan_t *plan HB_UNUSED,
+				   hb_font_t *font HB_UNUSED)
 {
 #ifdef HB_WITH_WIN1256
   /* Does this font look like it's Windows-1256-encoded? */

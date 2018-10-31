@@ -33,6 +33,16 @@
 #include "hb-machinery.hh"
 
 
+/**
+ * SECTION:hb-glib
+ * @title: hb-glib
+ * @short_description: GLib integration
+ * @include: hb-glib.h
+ *
+ * Functions for using HarfBuzz with the GLib library to provide Unicode data.
+ **/
+
+
 #if !GLIB_CHECK_VERSION(2,29,14)
 static const hb_script_t
 glib_script_to_script[] =

@@ -36,6 +36,16 @@
 #endif
 
 
+/**
+ * SECTION:hb-common
+ * @title: hb-common
+ * @short_description: Common data types
+ * @include: hb.h
+ *
+ * Common data types used across HarfBuzz are defined here.
+ **/
+
+
 /* hb_options_t */
 
 hb_atomic_int_t _hb_options;
@@ -614,6 +624,19 @@ hb_user_data_array_t::get (hb_user_data_key_t *key)
 
 
 /* hb_version */
+
+
+/**
+ * SECTION:hb-version
+ * @title: hb-version
+ * @short_description: Information about the version of HarfBuzz in use
+ * @include: hb.h
+ *
+ * These functions and macros allow accessing version of the HarfBuzz
+ * library used at compile- as well as run-time, and to direct code
+ * conditionally based on those versions, again, at compile- or run-time.
+ **/
+
 
 /**
  * hb_version:

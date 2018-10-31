@@ -62,7 +62,6 @@
 struct hb_font_funcs_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_bool_t immutable;
 
@@ -102,7 +101,6 @@ DECLARE_NULL_INSTANCE (hb_font_funcs_t);
 struct hb_font_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_bool_t immutable;
 

@@ -47,7 +47,7 @@ struct loca
 
   static const hb_tag_t tableTag = HB_OT_TAG_loca;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     return_trace (true);
@@ -70,7 +70,7 @@ struct glyf
 {
   static const hb_tag_t tableTag = HB_OT_TAG_glyf;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     /* We don't check for anything specific here.  The users of the

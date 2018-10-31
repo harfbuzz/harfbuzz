@@ -76,7 +76,8 @@ for file in os.listdir (parent_path):
 	path = os.path.join(parent_path, file)
 
 	text, returncode = cmd ([hb_shape_fuzzer, path])
-	print (text)
+	if text.strip ():
+		print (text)
 
 	failed = False
 	if returncode != 0 or 'error' in text:

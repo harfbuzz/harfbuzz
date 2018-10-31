@@ -39,6 +39,19 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-vorg-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
+#include "hb-ot-color-sbix-table.hh"
+
+
+/**
+ * SECTION:hb-ot-font
+ * @title: hb-ot-font
+ * @short_description: OpenType font implementation
+ * @include: hb-ot.h
+ *
+ * Functions for using OpenType fonts with hb_shape().  Not that fonts returned
+ * by hb_font_create() default to using these functions, so most clients would
+ * never need to call these functions directly.
+ **/
 
 
 static hb_bool_t
@@ -170,9 +183,11 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  bool ret = ot_face->glyf->get_extents (glyph, extents);
+  bool ret = ot_face->sbix->get_extents (font, glyph, extents);
   if (!ret)
-    ret = ot_face->CBDT->get_extents (glyph, extents);
+    ret = ot_face->glyf->get_extents (glyph, extents);
+  if (!ret)
+    ret = ot_face->CBDT->get_extents (font, glyph, extents);
   // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);

@@ -51,6 +51,14 @@
 #define HB_CLOSURE_MAX_STAGES	32
 #endif
 
+#ifndef HB_MAX_SCRIPTS
+#define HB_MAX_SCRIPTS	500
+#endif
+
+#ifndef HB_MAX_LANGSYS
+#define HB_MAX_LANGSYS	2000
+#endif
+
 
 namespace OT {
 
@@ -555,6 +563,8 @@ struct Feature
 					  unsigned int *lookup_count /* IN/OUT */,
 					  unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
+  inline void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
+  { lookupIndex.add_indexes_to (lookup_indexes); }
 
   inline const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }
@@ -858,8 +868,8 @@ struct CoverageFormat1
   public:
   /* Older compilers need this to be public. */
   struct Iter {
-    inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
-    inline void fini (void) {};
+    inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
+    inline void fini (void) {}
     inline bool more (void) { return i < c->glyphArray.len; }
     inline void next (void) { i++; }
     inline hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
@@ -986,7 +996,7 @@ struct CoverageFormat2
         i = c->rangeRecord.len;
       }
     }
-    inline void fini (void) {};
+    inline void fini (void) {}
     inline bool more (void) { return i < c->rangeRecord.len; }
     inline void next (void)
     {
@@ -1106,9 +1116,9 @@ struct Coverage
 
   struct Iter
   {
-    Iter (void) : format (0), u () {};
-    inline void init (const Coverage &c_)
+    inline Iter (const Coverage &c_)
     {
+      memset (this, 0, sizeof (*this));
       format = c_.u.format;
       switch (format)
       {
@@ -1117,7 +1127,6 @@ struct Coverage
       default:				     return;
       }
     }
-    inline void fini (void) {}
     inline bool more (void)
     {
       switch (format)
@@ -1603,7 +1612,7 @@ struct VariationStore
   protected:
   HBUINT16				format;
   LOffsetTo<VarRegionList>		regions;
-  OffsetArrayOf<VarData, HBUINT32>	dataSets;
+  LOffsetArrayOf<VarData>		dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
 };
@@ -1685,7 +1694,7 @@ struct ConditionSet
   }
 
   protected:
-  OffsetArrayOf<Condition, HBUINT32> conditions;
+  LOffsetArrayOf<Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (2, conditions);
 };

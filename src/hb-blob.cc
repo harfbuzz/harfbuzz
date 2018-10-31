@@ -40,6 +40,19 @@
 #include <stdlib.h>
 
 
+/**
+ * SECTION: hb-blob
+ * @title: hb-blob
+ * @short_description: Binary data containers
+ * @include: hb.h
+ *
+ * Blobs wrap a chunk of binary data to handle lifecycle management of data
+ * while it is passed between client and HarfBuzz.  Blobs are primarily used
+ * to create font faces, but also to access font face tables, as well as
+ * pass around other binary data.
+ **/
+
+
 DEFINE_NULL_INSTANCE (hb_blob_t) =
 {
   HB_OBJECT_HEADER_STATIC,

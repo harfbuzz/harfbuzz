@@ -160,6 +160,34 @@ struct output_buffer_t
 int
 main (int argc, char **argv)
 {
+  if (argc == 2 && !strcmp (argv[1], "--batch"))
+  {
+    unsigned int ret = 0;
+    char buf[4092];
+    while (fgets (buf, sizeof (buf), stdin))
+    {
+      size_t l = strlen (buf);
+      if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
+      main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
+      char *args[32];
+      argc = 0;
+      char *p = buf, *e;
+      args[argc++] = p;
+      while ((e = strchr (p, ' ')) && argc < (int) (int) ARRAY_LENGTH (args))
+      {
+	*e++ = '\0';
+	while (*e == ' ')
+	  e++;
+	args[argc++] = p = e;
+      }
+      ret |= driver.main (argc, args);
+      fflush (stdout);
+
+      if (ret)
+        break;
+    }
+    return ret;
+  }
   main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
   return driver.main (argc, argv);
 }

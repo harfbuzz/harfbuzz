@@ -31,6 +31,19 @@
 #include "hb-buffer.hh"
 
 
+/**
+ * SECTION:hb-shape-plan
+ * @title: hb-shape-plan
+ * @short_description: Object representing a shaping plan
+ * @include: hb.h
+ *
+ * Shape plans are not used for shaping directly, but can be access to query
+ * certain information about how shaping will perform given a set of input
+ * parameters (script, language, direction, features, etc.)
+ * Most client would not need to deal with shape plans directly.
+ **/
+
+
 static void
 hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 		    const hb_feature_t *user_features,
@@ -441,7 +454,7 @@ hb_non_global_user_features_present (const hb_feature_t *user_features,
 }
 
 static inline hb_bool_t
-hb_coords_present (const int *coords,
+hb_coords_present (const int *coords HB_UNUSED,
 		   unsigned int num_coords)
 {
   return num_coords != 0;

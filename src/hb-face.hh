@@ -42,7 +42,6 @@
 struct hb_face_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_bool_t immutable;
 

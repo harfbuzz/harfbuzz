@@ -242,7 +242,6 @@ hb_ot_tag_from_language (hb_language_t language)
 static void
 hb_ot_tags_from_language (const char   *lang_str,
 			  const char   *limit,
-			  const char   *private_use_subtag,
 			  unsigned int *count,
 			  hb_tag_t     *tags)
 {
@@ -389,7 +388,7 @@ hb_ot_tags_from_script_and_language (hb_script_t   script,
     needs_language = parse_private_use_subtag (private_use_subtag, language_count, language_tags, "-hbot", TOUPPER);
 
     if (needs_language && language_count && language_tags && *language_count)
-      hb_ot_tags_from_language (lang_str, limit, private_use_subtag, language_count, language_tags);
+      hb_ot_tags_from_language (lang_str, limit, language_count, language_tags);
   }
 
   if (needs_script && script_count && script_tags && *script_count)

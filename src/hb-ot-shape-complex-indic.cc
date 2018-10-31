@@ -116,7 +116,8 @@ indic_features[] =
   {HB_TAG('c','j','c','t'), F_GLOBAL_MANUAL_JOINERS},
   /*
    * Other features.
-   * These features are applied all at once, after final_reordering.
+   * These features are applied all at once, after final_reordering
+   * but before clearing syllables.
    * Default Bengali font in Windows for example has intermixed
    * lookups for init,pres,abvs,blws features.
    */
@@ -251,8 +252,6 @@ struct would_substitute_feature_t
 
 struct indic_shape_plan_t
 {
-  ASSERT_POD ();
-
   inline bool load_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
   {
     hb_codepoint_t glyph = virama_glyph.get_relaxed ();
@@ -787,8 +786,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *
      * We could use buffer->sort() for this, if there was no special
      * reordering of pre-base stuff happening later...
+     * We don't want to merge_clusters all of that, which buffer->sort()
+     * would.
      */
-    if (indic_plan->is_old_spec || end - base > 127)
+    if (indic_plan->is_old_spec || end - start > 127)
       buffer->merge_clusters (base, end);
     else
     {

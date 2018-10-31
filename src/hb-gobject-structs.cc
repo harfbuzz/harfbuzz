@@ -26,6 +26,18 @@
 
 #include "hb.hh"
 
+
+/**
+ * SECTION:hb-gobject
+ * @title: hb-gobject
+ * @short_description: GObject integration
+ * @include: hb-gobject.h
+ *
+ * Functions for using HarfBuzz with the GObject library to provide
+ * type data.
+ **/
+
+
 /* g++ didn't like older gtype.h gcc-only code path. */
 #include <glib.h>
 #if !GLIB_CHECK_VERSION(2,29,16)

@@ -39,6 +39,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
       hb_glyph_extents_t extents;
       hb_font_get_glyph_extents (font, info.codepoint, &extents);
+
+      hb_ot_color_glyph_get_layers (face, info.codepoint, 0, nullptr, nullptr);
+      hb_blob_destroy (hb_ot_color_glyph_reference_svg (face, info.codepoint));
+      hb_blob_destroy (hb_ot_color_glyph_reference_png (font, info.codepoint));
     }
 
     hb_buffer_destroy (buffer);

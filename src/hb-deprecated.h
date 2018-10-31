@@ -36,6 +36,18 @@
 #include "hb-font.h"
 #include "hb-set.h"
 
+
+/**
+ * SECTION:hb-deprecated
+ * @title: hb-deprecated
+ * @short_description: Deprecated API
+ * @include: hb.h
+ *
+ * These API have been deprecated in favor of newer API, or because they
+ * were deemed unnecessary.
+ **/
+
+
 HB_BEGIN_DECLS
 
 #ifndef HB_DISABLE_DEPRECATED

@@ -2,22 +2,24 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys, os, subprocess, tempfile
-
+import sys, os, subprocess
 
 def cmd(command):
-	# https://stackoverflow.com/a/4408409
-	with tempfile.TemporaryFile() as tempf:
-		p = subprocess.Popen (command, stdout=tempf, stderr=sys.stdout)
-		p.wait ()
-		tempf.seek(0)
-		return tempf.read().decode ("utf-8").strip (), p.returncode
+	global process
+	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
+	process.stdin.flush ()
+	return process.stdout.readline().decode ("utf-8").strip ()
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
 	print ("""First argument does not seem to point to usable hb-shape.""")
 	sys.exit (1)
 hb_shape, args = args[0], args[1:]
+
+process = subprocess.Popen ([hb_shape, '--batch'],
+			    stdin=subprocess.PIPE,
+			    stdout=subprocess.PIPE,
+			    stderr=sys.stdout)
 
 fails = 0
 
@@ -60,23 +62,13 @@ for filename in args:
 			print ("%s %s %s %s --unicodes %s" %
 					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
 
-		glyphs1, returncode = cmd ([hb_shape, "--font-funcs=ft",
+		glyphs1 = cmd ([hb_shape, "--font-funcs=ft",
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
-		if returncode:
-			print ("ERROR: hb-shape --font-funcs=ft failed.") # file=sys.stderr
-			fails = fails + 1
-			#continue
-
-		glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
+		glyphs2 = cmd ([hb_shape, "--font-funcs=ot",
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
-
-		if returncode:
-			print ("ERROR: hb-shape --font-funcs=ot failed.") # file=sys.stderr
-			fails = fails + 1
-			#continue
 
 		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr

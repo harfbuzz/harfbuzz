@@ -41,12 +41,18 @@
 // Just so we compile them; unused otherwise:
 #include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-jstf-table.hh"
-#include "hb-ot-color-colr-table.hh"
-#include "hb-ot-color-cpal-table.hh"
-#include "hb-ot-color-sbix-table.hh"
-#include "hb-ot-color-svg-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
+
+
+/**
+ * SECTION:hb-ot-layout
+ * @title: hb-ot-layout
+ * @short_description: OpenType Layout
+ * @include: hb-ot.h
+ *
+ * Functions for querying OpenType Layout features in the font face.
+ **/
 
 
 static const OT::kern::accelerator_t& _get_kern (hb_face_t *face)
@@ -555,19 +561,6 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
   return l.has_required_feature ();
 }
 
-static void
-_hb_ot_layout_language_add_feature_indexes_to (hb_face_t    *face,
-                                               hb_tag_t      table_tag,
-                                               unsigned int  script_index,
-                                               unsigned int  language_index,
-                                               hb_set_t     *feature_indexes /* OUT */)
-{
-  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-  const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
-  l.add_feature_indexes_to (feature_indexes);
-}
-
-
 unsigned int
 hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 					   hb_tag_t      table_tag,
@@ -665,135 +658,136 @@ unsigned int
 hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 				     hb_tag_t      table_tag)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return 0;
-  switch (table_tag)
+  return get_gsubgpos_table (face, table_tag).get_lookup_count ();
+}
+
+
+struct hb_collect_features_context_t
+{
+  hb_collect_features_context_t (hb_face_t       *face,
+				 hb_tag_t         table_tag,
+				 hb_set_t        *feature_indexes_)
+    : g (get_gsubgpos_table (face, table_tag)),
+      feature_indexes (feature_indexes_),
+      script_count(0),langsys_count(0) {}
+
+  bool inline visited (const OT::Script &s)
   {
-    case HB_OT_TAG_GSUB:
-    {
-      return hb_ot_face_data (face)->GSUB->lookup_count;
-    }
-    case HB_OT_TAG_GPOS:
-    {
-      return hb_ot_face_data (face)->GPOS->lookup_count;
-    }
+    /* We might have Null() object here.  Don't want to involve
+     * that in the memoize.  So, detect empty objects and return. */
+    if (unlikely (!s.has_default_lang_sys () &&
+		  !s.get_lang_sys_count ()))
+      return true;
+
+    if (script_count++ > HB_MAX_SCRIPTS)
+      return true;
+
+    return visited (s, visited_script);
   }
-  return 0;
-}
+  bool inline visited (const OT::LangSys &l)
+  {
+    /* We might have Null() object here.  Don't want to involve
+     * that in the memoize.  So, detect empty objects and return. */
+    if (unlikely (!l.has_required_feature () &&
+		  !l.get_feature_count ()))
+      return true;
+
+    if (langsys_count++ > HB_MAX_LANGSYS)
+      return true;
+
+    return visited (l, visited_langsys);
+  }
+
+  private:
+  template <typename T>
+  bool inline visited (const T &p, hb_set_t &visited_set)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) &p - (uintptr_t) &g);
+     if (visited_set.has (delta))
+      return true;
+
+    visited_set.add (delta);
+    return false;
+  }
+
+  public:
+  const OT::GSUBGPOS &g;
+  hb_set_t           *feature_indexes;
+
+  private:
+  hb_set_t visited_script;
+  hb_set_t visited_langsys;
+  unsigned int script_count;
+  unsigned int langsys_count;
+};
 
 static void
-_hb_ot_layout_collect_lookups_lookups (hb_face_t      *face,
-				       hb_tag_t        table_tag,
-				       unsigned int    feature_index,
-				       hb_set_t       *lookup_indexes /* OUT */)
+langsys_collect_features (hb_collect_features_context_t *c,
+			  const OT::LangSys  &l,
+			  const hb_tag_t     *features)
 {
-  unsigned int lookup_indices[32];
-  unsigned int offset, len;
+  if (c->visited (l)) return;
 
-  offset = 0;
-  do {
-    len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookups (face,
-				      table_tag,
-				      feature_index,
-				      offset, &len,
-				      lookup_indices);
-
-    for (unsigned int i = 0; i < len; i++)
-      lookup_indexes->add (lookup_indices[i]);
-
-    offset += len;
-  } while (len == ARRAY_LENGTH (lookup_indices));
-}
-
-static void
-_hb_ot_layout_collect_features_features (hb_face_t      *face,
-                                         hb_tag_t        table_tag,
-                                         unsigned int    script_index,
-                                         unsigned int    language_index,
-                                         const hb_tag_t *features,
-                                         hb_set_t       *feature_indexes /* OUT */)
-{
   if (!features)
   {
-    unsigned int required_feature_index;
-    if (hb_ot_layout_language_get_required_feature (face,
-						    table_tag,
-						    script_index,
-						    language_index,
-						    &required_feature_index,
-						    nullptr))
-      feature_indexes->add (required_feature_index);
+    /* All features. */
+    if (l.has_required_feature ())
+      c->feature_indexes->add (l.get_required_feature_index ());
 
-    /* All features */
-    _hb_ot_layout_language_add_feature_indexes_to (face,
-                                                   table_tag,
-                                                   script_index,
-                                                   language_index,
-                                                   feature_indexes);
+    l.add_feature_indexes_to (c->feature_indexes);
   }
   else
   {
+    /* Ugh. Any faster way? */
     for (; *features; features++)
     {
-      unsigned int feature_index;
-      if (hb_ot_layout_language_find_feature (face,
-					      table_tag,
-					      script_index,
-					      language_index,
-					      *features,
-					      &feature_index))
-        feature_indexes->add (feature_index);
+      hb_tag_t feature_tag = *features;
+      unsigned int num_features = l.get_feature_count ();
+      for (unsigned int i = 0; i < num_features; i++)
+      {
+	unsigned int feature_index = l.get_feature_index (i);
+
+	if (feature_tag == c->g.get_feature_tag (feature_index))
+	{
+	  c->feature_indexes->add (feature_index);
+	  break;
+	}
+      }
     }
   }
 }
 
 static void
-_hb_ot_layout_collect_features_languages (hb_face_t      *face,
-                                          hb_tag_t        table_tag,
-                                          unsigned int    script_index,
-                                          const hb_tag_t *languages,
-                                          const hb_tag_t *features,
-                                          hb_set_t       *feature_indexes /* OUT */)
+script_collect_features (hb_collect_features_context_t *c,
+			 const OT::Script   &s,
+			 const hb_tag_t *languages,
+			 const hb_tag_t *features)
 {
-  _hb_ot_layout_collect_features_features (face,
-                                           table_tag,
-                                           script_index,
-                                           HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
-                                           features,
-                                           feature_indexes);
+  if (c->visited (s)) return;
 
   if (!languages)
   {
-    /* All languages */
-    unsigned int count = hb_ot_layout_script_get_language_tags (face,
-								table_tag,
-								script_index,
-								0, nullptr, nullptr);
+    /* All languages. */
+    if (s.has_default_lang_sys ())
+      langsys_collect_features (c,
+				s.get_default_lang_sys (),
+				features);
+
+    unsigned int count = s.get_lang_sys_count ();
     for (unsigned int language_index = 0; language_index < count; language_index++)
-      _hb_ot_layout_collect_features_features (face,
-                                               table_tag,
-                                               script_index,
-                                               language_index,
-                                               features,
-                                               feature_indexes);
+      langsys_collect_features (c,
+				s.get_lang_sys (language_index),
+				features);
   }
   else
   {
     for (; *languages; languages++)
     {
       unsigned int language_index;
-      if (hb_ot_layout_script_select_language (face,
-					       table_tag,
-					       script_index,
-					       1,
-					       languages,
-					       &language_index))
-        _hb_ot_layout_collect_features_features (face,
-                                                 table_tag,
-                                                 script_index,
-                                                 language_index,
-                                                 features,
-                                                 feature_indexes);
+      if (s.find_lang_sys_index (*languages, &language_index))
+	langsys_collect_features (c,
+				  s.get_lang_sys (language_index),
+				  features);
     }
   }
 }
@@ -811,35 +805,27 @@ hb_ot_layout_collect_features (hb_face_t      *face,
                                const hb_tag_t *features,
                                hb_set_t       *feature_indexes /* OUT */)
 {
+  hb_collect_features_context_t c (face, table_tag, feature_indexes);
   if (!scripts)
   {
-    /* All scripts */
-    unsigned int count = hb_ot_layout_table_get_script_tags (face,
-							     table_tag,
-							     0, nullptr, nullptr);
+    /* All scripts. */
+    unsigned int count = c.g.get_script_count ();
     for (unsigned int script_index = 0; script_index < count; script_index++)
-      _hb_ot_layout_collect_features_languages (face,
-                                                table_tag,
-                                                script_index,
-                                                languages,
-                                                features,
-                                                feature_indexes);
+      script_collect_features (&c,
+			       c.g.get_script (script_index),
+			       languages,
+			       features);
   }
   else
   {
     for (; *scripts; scripts++)
     {
       unsigned int script_index;
-      if (hb_ot_layout_table_find_script (face,
-					  table_tag,
-					  *scripts,
-					  &script_index))
-        _hb_ot_layout_collect_features_languages (face,
-                                                  table_tag,
-                                                  script_index,
-                                                  languages,
-                                                  features,
-                                                  feature_indexes);
+      if (c.g.find_script_index (*scripts, &script_index))
+	script_collect_features (&c,
+				 c.g.get_script (script_index),
+				 languages,
+				 features);
     }
   }
 }
@@ -857,10 +843,14 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */)
 {
-  hb_auto_t<hb_set_t> feature_indexes;
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  hb_set_t feature_indexes;
   hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
-  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID; hb_set_next (&feature_indexes, &feature_index);)
-    _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
+
+  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
+       hb_set_next (&feature_indexes, &feature_index);)
+    g.get_feature (feature_index).add_lookup_indexes_to (lookup_indexes);
 }
 
 /**
@@ -993,7 +983,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
 				        hb_set_t     *glyphs)
 {
-  hb_auto_t<hb_map_t> done_lookups;
+  hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
 
   const OT::SubstLookup& l = _get_gsub (face).get_lookup (lookup_index);
@@ -1014,7 +1004,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
                                          const hb_set_t *lookups,
                                          hb_set_t       *glyphs)
 {
-  hb_auto_t<hb_map_t> done_lookups;
+  hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
   const OT::GSUB& gsub = _get_gsub (face);
 
@@ -1072,12 +1062,12 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * Since: 0.9.10
  **/
 hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t    *face,
-			      unsigned int *design_size,       /* OUT.  May be NULL */
-			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
-			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
-			      unsigned int *range_start,       /* OUT.  May be NULL */
-			      unsigned int *range_end          /* OUT.  May be NULL */)
+hb_ot_layout_get_size_params (hb_face_t       *face,
+			      unsigned int    *design_size,       /* OUT.  May be NULL */
+			      unsigned int    *subfamily_id,      /* OUT.  May be NULL */
+			      hb_ot_name_id_t *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int    *range_start,       /* OUT.  May be NULL */
+			      unsigned int    *range_end          /* OUT.  May be NULL */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
   const hb_tag_t tag = HB_TAG ('s','i','z','e');
@@ -1105,7 +1095,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
   if (design_size) *design_size = 0;
   if (subfamily_id) *subfamily_id = 0;
-  if (subfamily_name_id) *subfamily_name_id = 0;
+  if (subfamily_name_id) *subfamily_name_id = HB_OT_NAME_ID_INVALID;
   if (range_start) *range_start = 0;
   if (range_end) *range_end = 0;
 
@@ -1137,14 +1127,14 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
  * Since: 2.0.0
  **/
 hb_bool_t
-hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
-				   hb_tag_t      table_tag,
-				   unsigned int  feature_index,
-				   hb_name_id_t *label_id,             /* OUT.  May be NULL */
-				   hb_name_id_t *tooltip_id,           /* OUT.  May be NULL */
-				   hb_name_id_t *sample_id,            /* OUT.  May be NULL */
-				   unsigned int *num_named_parameters, /* OUT.  May be NULL */
-				   hb_name_id_t *first_param_id        /* OUT.  May be NULL */)
+hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
+				   hb_tag_t         table_tag,
+				   unsigned int     feature_index,
+				   hb_ot_name_id_t *label_id,             /* OUT.  May be NULL */
+				   hb_ot_name_id_t *tooltip_id,           /* OUT.  May be NULL */
+				   hb_ot_name_id_t *sample_id,            /* OUT.  May be NULL */
+				   unsigned int    *num_named_parameters, /* OUT.  May be NULL */
+				   hb_ot_name_id_t *first_param_id        /* OUT.  May be NULL */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
@@ -1160,10 +1150,10 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
     {
       if (label_id) *label_id = ss_params.uiNameID;
       // ssXX features don't have the rest
-      if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
-      if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+      if (tooltip_id) *tooltip_id = HB_OT_NAME_ID_INVALID;
+      if (sample_id) *sample_id = HB_OT_NAME_ID_INVALID;
       if (num_named_parameters) *num_named_parameters = 0;
-      if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+      if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
       return true;
     }
     const OT::FeatureParamsCharacterVariants& cv_params =
@@ -1179,11 +1169,11 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
     }
   }
 
-  if (label_id) *label_id = HB_NAME_ID_INVALID;
-  if (tooltip_id) *tooltip_id = HB_NAME_ID_INVALID;
-  if (sample_id) *sample_id = HB_NAME_ID_INVALID;
+  if (label_id) *label_id = HB_OT_NAME_ID_INVALID;
+  if (tooltip_id) *tooltip_id = HB_OT_NAME_ID_INVALID;
+  if (sample_id) *sample_id = HB_OT_NAME_ID_INVALID;
   if (num_named_parameters) *num_named_parameters = 0;
-  if (first_param_id) *first_param_id = HB_NAME_ID_INVALID;
+  if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
   return false;
 }
 
@@ -1199,7 +1189,7 @@ hb_ot_layout_feature_get_name_ids (hb_face_t    *face,
  *                one shot copying).
  * @char_count: (inout) (allow-none): The count of characters for which this feature
  *              provides glyph variants. (May be zero.)
- * @characters: (out) (allow-none): A buffer pointer. The Unicode Scalar Value
+ * @characters: (out caller-allocates) (array length=char_count): A buffer pointer. The Unicode codepoints
  *              of the characters for which this feature provides glyph variants.
  *
  * Fetches characters listed by designer under feature parameters for "Character

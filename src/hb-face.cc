@@ -36,6 +36,19 @@
 
 
 /**
+ * SECTION:hb-face
+ * @title: hb-face
+ * @short_description: Font face objects
+ * @include: hb.h
+ *
+ * Font face is objects represent a single face in a font family.
+ * More exactly, a font face represents a single face in a binary font file.
+ * Font faces are typically built from a binary blob and a face index.
+ * Font faces are used to create fonts.
+ **/
+
+
+/**
  * hb_face_count:
  * @blob: a blob.
  *
@@ -666,7 +679,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
 }
 
 static hb_blob_t *
-_hb_face_builder_reference_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+_hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
 

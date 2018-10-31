@@ -39,6 +39,10 @@
 
 struct hb_set_t
 {
+  HB_NO_COPY_ASSIGN (hb_set_t);
+  inline hb_set_t (void) { init (); }
+  inline ~hb_set_t (void) { fini (); }
+
   struct page_map_t
   {
     inline int cmp (const page_map_t *o) const { return (int) o->major - (int) major; }
@@ -199,6 +203,7 @@ struct hb_set_t
   }
   inline void fini_shallow (void)
   {
+    population = 0;
     page_map.fini ();
     pages.fini ();
   }
@@ -368,8 +373,8 @@ struct hb_set_t
     if (!resize (count))
       return;
     population = other->population;
-    memcpy (pages.arrayZ(), other->pages.arrayZ(), count * sizeof (pages.arrayZ()[0]));
-    memcpy (page_map.arrayZ(), other->page_map.arrayZ(), count * sizeof (page_map.arrayZ()[0]));
+    memcpy (pages, other->pages, count * sizeof (pages[0]));
+    memcpy (page_map, other->page_map, count * sizeof (page_map[0]));
   }
 
   inline bool is_equal (const hb_set_t *other) const
@@ -669,7 +674,9 @@ struct hb_set_t
 	return nullptr;
 
       pages[map.index].init0 ();
-      memmove (&page_map[i + 1], &page_map[i], (page_map.len - 1 - i) * sizeof (page_map[0]));
+      memmove (page_map + i + 1,
+	       page_map + i,
+	       (page_map.len - 1 - i) * sizeof (page_map[0]));
       page_map[i] = map;
     }
     return &pages[page_map[i].index];
