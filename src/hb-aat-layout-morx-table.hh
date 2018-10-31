@@ -73,12 +73,12 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -169,7 +169,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -219,7 +219,7 @@ struct ContextualSubtable
 	mark (0),
 	subs (table+table->substitutionTables) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver,
 			       const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -229,7 +229,7 @@ struct ContextualSubtable
 
       return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -287,7 +287,7 @@ struct ContextualSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -373,12 +373,12 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->flags & PerformAction;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -492,7 +492,7 @@ struct LigatureSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
@@ -636,13 +636,13 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -734,7 +734,7 @@ struct InsertionSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
     driver.drive (&dc);
 
     return_trace (dc.ret);
