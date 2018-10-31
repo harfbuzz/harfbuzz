@@ -430,9 +430,8 @@ struct StateTable
     CLASS_END_OF_LINE = 3,
   };
 
-  inline unsigned int row_stride (void) const { return nClasses * sizeof (HBUSHORT); }
   inline unsigned int new_state (unsigned int newState) const
-  { return newState / (Types::extended ? 1 : row_stride ()); }
+  { return Types::extended ? newState : (newState - stateArrayTable) / nClasses; }
 
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
@@ -524,7 +523,7 @@ struct StateTable
 		entryTable;	/* Offset to the entry array. */
 
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_STATIC (4 * sizeof (HBUINT));
 };
 
 struct ClassTable
