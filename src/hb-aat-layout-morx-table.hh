@@ -45,14 +45,6 @@ namespace AAT {
 
 using namespace OT;
 
-template <typename T>
-static inline unsigned int offsetToIndex (unsigned int offset,
-					  const void *base,
-					  const T *array)
-{
-  return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
-}
-
 template <typename Types>
 struct RearrangementSubtable
 {
@@ -265,7 +257,7 @@ struct ContextualSubtable
       {
 	unsigned int offset = entry->data.markIndex + buffer->info[mark].codepoint;
 	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
-	replacement = &subs_old[offsetToIndex (offset * 2, table, subs_old.arrayZ)];
+	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
 	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
 	  replacement = nullptr;
       }
@@ -290,7 +282,7 @@ struct ContextualSubtable
       {
 	unsigned int offset = entry->data.currentIndex + buffer->info[idx].codepoint;
 	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
-	replacement = &subs_old[offsetToIndex (offset * 2, table, subs_old.arrayZ)];
+	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
 	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
 	  replacement = nullptr;
       }
@@ -503,8 +495,7 @@ struct LigatureSubtable
 	  return false; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
-	if (!Types::extended)
-	  action_idx = offsetToIndex (action_idx, table, ligAction.arrayZ);
+	action_idx = Types::offsetToIndex (action_idx, table, ligAction.arrayZ);
 	const HBUINT32 *actionData = &ligAction[action_idx];
         do
 	{
@@ -527,8 +518,7 @@ struct LigatureSubtable
 	    uoffset |= 0xC0000000; /* Sign-extend. */
 	  int32_t offset = (int32_t) uoffset;
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
-	  if (!Types::extended)
-	    component_idx = offsetToIndex (component_idx * 2, table, component.arrayZ);
+	  component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
 	  const HBUINT16 &componentData = component[component_idx];
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
@@ -538,8 +528,7 @@ struct LigatureSubtable
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
 	  {
-	    if (!Types::extended)
-	      ligature_idx = offsetToIndex (ligature_idx, table, ligature.arrayZ);
+	    ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
 	    const GlyphID &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;

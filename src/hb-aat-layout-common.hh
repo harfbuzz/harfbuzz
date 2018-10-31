@@ -560,6 +560,20 @@ struct MortTypes
       return ClassTable::get_class (glyph_id);
     }
   };
+  template <typename T>
+  static inline unsigned int offsetToIndex (unsigned int offset,
+					    const void *base,
+					    const T *array)
+  {
+    return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
+  }
+  template <typename T>
+  static inline unsigned int wordOffsetToIndex (unsigned int offset,
+						const void *base,
+						const T *array)
+  {
+    return offsetToIndex (2 * offset, base, array);
+  }
 };
 struct MorxTypes
 {
@@ -574,6 +588,20 @@ struct MorxTypes
       return v ? *v : 1;
     }
   };
+  template <typename T>
+  static inline unsigned int offsetToIndex (unsigned int offset,
+					    const void *base,
+					    const T *array)
+  {
+    return offset;
+  }
+  template <typename T>
+  static inline unsigned int wordOffsetToIndex (unsigned int offset,
+						const void *base,
+						const T *array)
+  {
+    return offset;
+  }
 };
 
 template <typename Types, typename EntryData>
