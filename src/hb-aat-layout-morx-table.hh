@@ -865,8 +865,6 @@ struct Chain
   {
     hb_mask_t flags = defaultFlags;
     {
-      /* Compute applicable flags.  TODO Should move this to planning
-       * stage and take user-requested features into account. */
       unsigned int count = featureCount;
       for (unsigned i = 0; i < count; i++)
       {
