@@ -782,28 +782,29 @@ struct Feature
 template <typename Types>
 struct ChainSubtable
 {
+  typedef typename Types::HBUINT HBUINT;
+
   template <typename T>
   friend struct Chain;
 
   inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & SubtableType; }
+  inline unsigned int get_type (void) const { return coverage & 0xFF; }
+  inline unsigned int get_coverage (void) const { return coverage >> (sizeof (HBUINT) * 8 - 8); }
 
   enum Coverage
   {
-    Vertical		= 0x80000000,	/* If set, this subtable will only be applied
-					 * to vertical text. If clear, this subtable
-					 * will only be applied to horizontal text. */
-    Backwards		= 0x40000000,	/* If set, this subtable will process glyphs
-					 * in descending order. If clear, it will
-					 * process the glyphs in ascending order. */
-    AllDirections	= 0x20000000,	/* If set, this subtable will be applied to
-					 * both horizontal and vertical text (i.e.
-					 * the state of bit 0x80000000 is ignored). */
-    Logical		= 0x10000000,	/* If set, this subtable will process glyphs
-					 * in logical order (or reverse logical order,
-					 * depending on the value of bit 0x80000000). */
-    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
-    SubtableType	= 0x000000FF,	/* Subtable type; see following table. */
+    Vertical		= 0x80,	/* If set, this subtable will only be applied
+				 * to vertical text. If clear, this subtable
+				 * will only be applied to horizontal text. */
+    Backwards		= 0x40,	/* If set, this subtable will process glyphs
+				 * in descending order. If clear, it will
+				 * process the glyphs in ascending order. */
+    AllDirections	= 0x20,	/* If set, this subtable will be applied to
+				 * both horizontal and vertical text (i.e.
+				 * the state of bit 0x80000000 is ignored). */
+    Logical		= 0x10,	/* If set, this subtable will process glyphs
+				 * in logical order (or reverse logical order,
+				 * depending on the value of bit 0x80000000). */
   };
   enum Type
   {
@@ -841,8 +842,8 @@ struct ChainSubtable
   }
 
   protected:
-  HBUINT32	length;		/* Total subtable length, including this header. */
-  HBUINT32	coverage;	/* Coverage flags and subtable type. */
+  HBUINT	length;		/* Total subtable length, including this header. */
+  HBUINT	coverage;	/* Coverage flags and subtable type. */
   HBUINT32	subFeatureFlags;/* The 32-bit mask identifying which subtable this is. */
   union {
   RearrangementSubtable<Types>	rearrangement;
@@ -852,7 +853,7 @@ struct ChainSubtable
   InsertionSubtable<Types>	insertion;
   } u;
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT32) + 4);
+  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
 };
 
 template <typename Types>
@@ -895,9 +896,9 @@ struct Chain
       if (!(subtable->subFeatureFlags & flags))
         goto skip;
 
-      if (!(subtable->coverage & ChainSubtable<Types>::AllDirections) &&
+      if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (subtable->coverage & ChainSubtable<Types>::Vertical))
+	  bool (subtable->get_coverage() & ChainSubtable<Types>::Vertical))
         goto skip;
 
       /* Buffer contents is always in logical direction.  Determine if
@@ -927,9 +928,9 @@ struct Chain
 				(the order opposite that of the characters, which
 				may be right-to-left or left-to-right).
        */
-      reverse = subtable->coverage & ChainSubtable<Types>::Logical ?
-		bool (subtable->coverage & ChainSubtable<Types>::Backwards) :
-		bool (subtable->coverage & ChainSubtable<Types>::Backwards) !=
+      reverse = subtable->get_coverage () & ChainSubtable<Types>::Logical ?
+		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) :
+		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
@@ -981,8 +982,8 @@ struct Chain
   }
 
   protected:
-  HBUINT	defaultFlags;	/* The default specification for subtables. */
-  HBUINT	length;		/* Total byte count, including this header. */
+  HBUINT32	defaultFlags;	/* The default specification for subtables. */
+  HBUINT32	length;		/* Total byte count, including this header. */
   HBUINT	featureCount;	/* Number of feature subtable entries. */
   HBUINT	subtableCount;	/* The number of subtables in the chain. */
 
@@ -991,7 +992,7 @@ struct Chain
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
-  DEFINE_SIZE_MIN (2 * sizeof (HBUINT) + 4);
+  DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT));
 };
 
 
