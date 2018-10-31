@@ -427,13 +427,12 @@ struct LigatureSubtable
 
   typedef LigatureEntry<Types::extended> LigatureEntryT;
   typedef typename LigatureEntryT::EntryData EntryData;
-  typedef typename LigatureEntryT::Flags Flags;
 
   struct driver_context_t
   {
     enum
     {
-      DontAdvance	= LigatureEntry<Types::extended>::DontAdvance,
+      DontAdvance	= LigatureEntryT::DontAdvance,
     };
     static const bool in_place = false;
     enum LigActionFlags
@@ -470,7 +469,7 @@ struct LigatureSubtable
       unsigned int flags = entry->flags;
 
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
-      if (flags & Flags::SetComponent)
+      if (flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
 	  return false;
