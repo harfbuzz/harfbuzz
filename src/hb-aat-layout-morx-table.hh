@@ -958,19 +958,19 @@ struct Chain
       for (unsigned i = 0; i < count; i++)
       {
 	const Feature &feature = featureZ[i];
-	hb_aat_feature_type_t type = feature.featureType;
-	hb_aat_feature_setting_t setting = feature.featureSetting;
+	hb_aat_layout_feature_type_t type = (hb_aat_layout_feature_type_t) (unsigned int) feature.featureType;
+	hb_aat_layout_feature_setting_t setting = feature.featureSetting;
       retry:
-	const hb_aat_map_builder_t::feature_info_t *info = map->features.bsearch (type);
+	const hb_aat_map_builder_t::feature_info_t *info = map->features.bsearch ((uint16_t) type);
 	if (info && info->setting == setting)
 	{
 	  flags &= feature.disableFlags;
 	  flags |= feature.enableFlags;
 	}
-	else if (type == 3/*kLetterCaseType*/ && setting == 3/*kSmallCapsSelector*/)
+	else if (type == HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE && setting == 3/*kSmallCapsSelector*/)
 	{
 	  /* Deprecated. https://github.com/harfbuzz/harfbuzz/issues/1342 */
-	  type = 37/*kLowerCaseType*/;
+	  type = HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE;
 	  setting = 1/*kLowerCaseSmallCapsSelector*/;
 	  goto retry;
 	}

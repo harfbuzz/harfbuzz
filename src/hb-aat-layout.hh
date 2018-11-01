@@ -36,9 +36,9 @@
 struct hb_aat_feature_mapping_t
 {
   hb_tag_t otFeatureTag;
-  hb_aat_feature_type_t aatFeatureType;
-  hb_aat_feature_setting_t selectorToEnable;
-  hb_aat_feature_setting_t selectorToDisable;
+  hb_aat_layout_feature_type_t aatFeatureType;
+  hb_aat_layout_feature_setting_t selectorToEnable;
+  hb_aat_layout_feature_setting_t selectorToDisable;
 
   static inline int cmp (const void *key_, const void *entry_)
   {
