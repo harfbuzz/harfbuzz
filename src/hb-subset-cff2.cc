@@ -188,7 +188,7 @@ struct cff2_subset_plan {
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
     subset_charstrings.fini ();
-    flat_charstrings.fini ();
+    flat_charstrings.fini_deep ();
     privateDictInfos.fini ();
   }
 
