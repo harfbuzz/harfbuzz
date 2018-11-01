@@ -169,12 +169,6 @@ AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_,
   ankr_table = ankr_table_;
   ankr_end = ankr_end_;
 }
-static inline const AAT::feat&
-_get_feat (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::feat);
-  return *(hb_ot_face_data (face)->feat.get ());
-}
 
 
 /*
@@ -309,9 +303,7 @@ _hb_aat_language_get (hb_face_t *face,
 /**
  * hb_aat_layout_get_feature_settings:
  * @face:            a font face.
- * @type:            AAT feature id you are querying, for example 1 for
- *                   "Ligatures" feature, 37 for the "Lower Case" feature,
- *                   38 for the "Upper Case" feature, etc.
+ * @feature:         AAT feature id you are querying.
  * @default_setting: (out): default value for the type. If it is HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED
  *                          means none is selected as default and the feature is not exclusive.
  * @start_offset:    start offset, if you are iterating
@@ -324,12 +316,22 @@ _hb_aat_language_get (hb_face_t *face,
  */
 unsigned int
 hb_aat_layout_get_feature_settings (hb_face_t                             *face,
-				    hb_aat_layout_feature_type_t           type,
+				    hb_aat_layout_feature_type_t           feature,
 				    hb_aat_layout_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                           start_offset,
 				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
 				    hb_aat_layout_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */)
 {
-  return _get_feat (face).get_settings (type, default_setting,
-					start_offset, selectors_count, selectors_buffer);
+  return face->table.feat->get_settings (feature, default_setting,
+					 start_offset, selectors_count, selectors_buffer);
+}
+
+
+unsigned int
+hb_aat_layout_get_features (hb_face_t                      *face,
+			    unsigned int                    start_offset,
+			    unsigned int                   *record_count, /* IN/OUT.  May be NULL. */
+			    hb_aat_layout_feature_record_t *record_buffer /* OUT.     May be NULL. */)
+{
+  return face->table.feat->get_features (start_offset, record_count, record_buffer);
 }
