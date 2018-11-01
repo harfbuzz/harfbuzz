@@ -32,7 +32,7 @@ static void
 test_aat_get_feature_settings (void)
 {
   hb_aat_feature_setting_t default_setting;
-  hb_aat_feature_option_record_t records[3];
+  hb_aat_feature_type_selector_t records[3];
   unsigned int count = 3;
 
   hb_face_t *face = hb_test_open_font_file ("fonts/aat-feat.ttf");
@@ -65,7 +65,7 @@ test_aat_get_feature_settings (void)
   g_assert_cmpuint (1, ==, hb_aat_get_feature_settings (face, 14, &default_setting,
 							0, &count, records));
   g_assert_cmpuint (1, ==, count);
-  g_assert_cmpuint (HB_AAT_FEATURE_NO_DEFAULT_INDEX, ==, default_setting);
+  g_assert_cmpuint (HB_AAT_FEATURE_NO_DEFAULT_SETTING, ==, default_setting);
 
   g_assert_cmpuint (8, ==, records[0].setting);
   g_assert_cmpuint (308, ==, records[0].name_id);
