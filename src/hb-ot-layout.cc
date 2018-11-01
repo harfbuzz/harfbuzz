@@ -38,9 +38,9 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 
-// Just so we compile them; unused otherwise:
-#include "hb-ot-layout-base-table.hh"
-#include "hb-ot-layout-jstf-table.hh"
+#include "hb-ot-layout-base-table.hh" // Just so we compile them; unused otherwise
+#include "hb-ot-layout-jstf-table.hh" // Just so we compile them; unused otherwise
+
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 
