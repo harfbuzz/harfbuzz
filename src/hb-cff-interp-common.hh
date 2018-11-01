@@ -217,9 +217,9 @@ struct Number
   inline void fini (void)
   {}
 
-  inline void set_int (int v)           { format = NumInt; u.int_val = v; };
+  inline void set_int (int v)           { format = NumInt; u.int_val = v; }
   inline int to_int (void) const        { return is_int ()? u.int_val: (int)to_real (); }
-  inline void set_fixed (int32_t v)     { format = NumFixed; u.fixed_val = v; };
+  inline void set_fixed (int32_t v)     { format = NumFixed; u.fixed_val = v; }
   inline int32_t to_fixed (void) const
   {
     if (is_fixed ())
@@ -229,7 +229,7 @@ struct Number
     else
       return (int32_t)(u.int_val << 16);
   }
-  inline void set_real (float v)        { format = NumReal; u.real_val = v; };
+  inline void set_real (float v)        { format = NumReal; u.real_val = v; }
   inline float to_real (void) const
   {
     if (is_real ())
