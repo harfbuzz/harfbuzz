@@ -476,11 +476,9 @@ _hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			      hb_font_t *font,
 			      hb_buffer_t  *buffer)
 {
-  if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-    return;
-
   hb_glyph_info_t *info = buffer->info;
   hb_glyph_position_t *pos = buffer->pos;
+  bool horizontal = HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction);
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     if (_hb_glyph_info_is_unicode_space (&info[i]) && !_hb_glyph_info_ligated (&info[i]))
@@ -501,27 +499,40 @@ _hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	case t::SPACE_EM_5:
 	case t::SPACE_EM_6:
 	case t::SPACE_EM_16:
-	  pos[i].x_advance = (font->x_scale + ((int) space_type)/2) / (int) space_type;
+	  if (horizontal)
+	    pos[i].x_advance = (font->x_scale + ((int) space_type)/2) / (int) space_type;
+	  else
+	    pos[i].y_advance = (font->y_scale + ((int) space_type)/2) / (int) space_type;
 	  break;
 
 	case t::SPACE_4_EM_18:
-	  pos[i].x_advance = (int64_t) font->x_scale * 4 / 18;
+	  if (horizontal)
+	    pos[i].x_advance = (int64_t) font->x_scale * 4 / 18;
+	  else
+	    pos[i].y_advance = (int64_t) font->y_scale * 4 / 18;
 	  break;
 
 	case t::SPACE_FIGURE:
 	  for (char u = '0'; u <= '9'; u++)
 	    if (font->get_nominal_glyph (u, &glyph))
 	    {
-	      pos[i].x_advance = font->get_glyph_h_advance (glyph);
+	      if (horizontal)
+		pos[i].x_advance = font->get_glyph_h_advance (glyph);
+	      else
+		pos[i].y_advance = font->get_glyph_v_advance (glyph);
 	      break;
 	    }
 	  break;
 
 	case t::SPACE_PUNCTUATION:
-	  if (font->get_nominal_glyph ('.', &glyph))
-	    pos[i].x_advance = font->get_glyph_h_advance (glyph);
-	  else if (font->get_nominal_glyph (',', &glyph))
-	    pos[i].x_advance = font->get_glyph_h_advance (glyph);
+	  if (font->get_nominal_glyph ('.', &glyph) ||
+	      font->get_nominal_glyph (',', &glyph))
+	  {
+	    if (horizontal)
+	      pos[i].x_advance = font->get_glyph_h_advance (glyph);
+	    else
+	      pos[i].y_advance = font->get_glyph_v_advance (glyph);
+	  }
 	  break;
 
 	case t::SPACE_NARROW:
@@ -530,7 +541,10 @@ _hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	   * However, in my testing, many fonts have their regular space being about that
 	   * size.  To me, a percentage of the space width makes more sense.  Half is as
 	   * good as any. */
-	  pos[i].x_advance /= 2;
+	  if (horizontal)
+	    pos[i].x_advance /= 2;
+	  else
+	    pos[i].y_advance /= 2;
 	  break;
       }
     }
