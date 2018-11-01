@@ -33,7 +33,6 @@
 
 #include <hb.h>
 #include <hb-ot.h>
-#include <hb-aat-layout.h>
 
 #ifdef HAVE_GLIB
 #include <hb-glib.h>

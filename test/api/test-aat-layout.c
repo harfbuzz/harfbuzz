@@ -24,9 +24,9 @@
 
 #include "hb-test.h"
 
-#include <hb-aat-layout.h>
+#include <hb-ot.h>
 
-/* Unit tests for hb-aat-layout.h */
+/* Unit tests for hb-aat.h */
 
 static void
 test_aat_get_feature_settings (void)
@@ -37,7 +37,7 @@ test_aat_get_feature_settings (void)
 
   hb_face_t *face = hb_test_open_font_file ("fonts/aat-feat.ttf");
 
-  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &default_setting,
+  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, 18, &default_setting,
 							0, &count, records));
   g_assert_cmpuint (3, ==, count);
   g_assert_cmpuint (0, ==, default_setting);
@@ -52,7 +52,7 @@ test_aat_get_feature_settings (void)
   g_assert_cmpuint (296, ==, records[2].name_id);
 
   count = 3;
-  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &default_setting,
+  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, 18, &default_setting,
 							3, &count, records));
   g_assert_cmpuint (1, ==, count);
   g_assert_cmpuint (0, ==, default_setting);
@@ -62,7 +62,7 @@ test_aat_get_feature_settings (void)
 
 
   count = 1;
-  g_assert_cmpuint (1, ==, hb_aat_get_feature_settings (face, 14, &default_setting,
+  g_assert_cmpuint (1, ==, hb_aat_layout_get_feature_settings (face, 14, &default_setting,
 							0, &count, records));
   g_assert_cmpuint (1, ==, count);
   g_assert_cmpuint (HB_AAT_FEATURE_NO_DEFAULT_SETTING, ==, default_setting);
@@ -72,14 +72,14 @@ test_aat_get_feature_settings (void)
 
 
   count = 100;
-  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (face, 32, NULL,
+  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (face, 32, NULL,
 							0, &count, records));
   g_assert_cmpuint (0, ==, count);
 
   hb_face_destroy (face);
 
   hb_face_t *sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
-  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (sbix, 100, NULL,
+  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (sbix, 100, NULL,
 							0, &count, records));
   hb_face_destroy (sbix);
 }

@@ -29,7 +29,7 @@
 
 #include "hb.hh"
 
-#include "hb-aat-layout.h"
+#include "hb-aat.h"
 #include "hb-ot-shape.hh"
 
 

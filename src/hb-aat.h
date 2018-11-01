@@ -22,8 +22,12 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_AAT_LAYOUT_H
-#define HB_AAT_LAYOUT_H
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
+#ifndef HB_AAT_H
+#define HB_AAT_H
 
 #include "hb.h"
 #include "hb-ot.h"
@@ -67,13 +71,13 @@ typedef struct hb_aat_feature_type_selector_t
 #define HB_AAT_FEATURE_NO_DEFAULT_SETTING ((hb_aat_feature_setting_t) -1)
 
 HB_EXTERN unsigned int
-hb_aat_get_feature_settings (hb_face_t                      *face,
-			     hb_aat_feature_type_t           type,
-			     hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
-			     unsigned int                    start_offset,
-			     unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-			     hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */);
+hb_aat_layout_get_feature_settings (hb_face_t                      *face,
+				    hb_aat_feature_type_t           type,
+				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
+				    unsigned int                    start_offset,
+				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
+				    hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */);
 
 HB_END_DECLS
 
-#endif /* HB_AAT_LAYOUT_H */
+#endif /* HB_AAT_H */
