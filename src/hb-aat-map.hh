@@ -30,8 +30,6 @@
 #include "hb.hh"
 
 
-struct hb_ot_shape_plan_t;
-
 struct hb_aat_map_t
 {
   friend struct hb_aat_map_builder_t;
