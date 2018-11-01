@@ -77,7 +77,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
 
 struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
+  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
     {
@@ -100,29 +100,30 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
         HB_FALLTHROUGH;
         
       default:
-        SUPER::flush_args_and_op (op, env, param, start_arg);
+        SUPER::flush_args_and_op (op, env, param);
         break;
     }
   }
 
-  static inline void flush_args (CFF2CSInterpEnv &env, FlattenParam& param, unsigned int start_arg = 0)
+  static inline void flush_args (CFF2CSInterpEnv &env, FlattenParam& param)
   {
-    for (unsigned int i = start_arg; i < env.argStack.get_count ();)
+    for (unsigned int i = 0; i < env.argStack.get_count ();)
     {
       const BlendArg &arg = env.argStack[i];
       if (arg.blending ())
       {
-        assert ((arg.numValues > 0) && (env.argStack.get_count () - start_arg >= arg.numValues));
+        assert ((arg.numValues > 0) && (env.argStack.get_count () >= arg.numValues));
         flatten_blends (arg, i, env, param);
         i += arg.numValues;
       }
       else
       {
-        param.flatStr.encode_num (arg);
+        StrEncoder  encoder (param.flatStr);
+        encoder.encode_num (arg);
         i++;
       }
     }
-    SUPER::flush_args (env, param, start_arg);
+    SUPER::flush_args (env, param);
   }
 
   static inline void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)
@@ -133,20 +134,22 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
       const BlendArg &arg1 = env.argStack[i + j];
       assert (arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
               (arg1.deltas.len == env.get_region_count ()));
-      param.flatStr.encode_num (arg1);
+      StrEncoder  encoder (param.flatStr);
+      encoder.encode_num (arg1);
     }
     /* flatten deltas for each value */
+    StrEncoder  encoder (param.flatStr);
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const BlendArg &arg1 = env.argStack[i + j];
       for (unsigned int k = 0; k < arg1.deltas.len; k++)
-        param.flatStr.encode_num (arg1.deltas[k]);
+        encoder.encode_num (arg1.deltas[k]);
     }
     /* flatten the number of values followed by blend operator */
-    param.flatStr.encode_int (arg.numValues);
-    param.flatStr.encode_op (OpCode_blendcs);
+    encoder.encode_int (arg.numValues);
+    encoder.encode_op (OpCode_blendcs);
   }
-
+ 
   static inline void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
@@ -155,7 +158,8 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
       case OpCode_endchar:
         return;
       default:
-        param.flatStr.encode_op (op);
+        StrEncoder  encoder (param.flatStr);
+        encoder.encode_op (op);
     }
   }
 
@@ -170,7 +174,8 @@ struct cff2_subset_plan {
       orig_fdcount (0),
       subset_fdcount(1),
       subset_fdselect_format (0),
-      drop_hints (false)
+      drop_hints (false),
+      desubroutinize (false)
   {
     subset_fdselect_ranges.init ();
     fdmap.init ();
@@ -195,6 +200,7 @@ struct cff2_subset_plan {
     orig_fdcount = acc.fdArray->count;
 
     drop_hints = plan->drop_hints;
+    desubroutinize = plan->desubroutinize;
 
     /* CFF2 header */
     final_size += OT::cff2::static_size;
@@ -260,7 +266,7 @@ struct cff2_subset_plan {
       unsigned int dataSize = 0;
       for (unsigned int i = 0; i < plan->glyphs.len; i++)
       {
-        ByteStrBuff &flatstr = flat_charstrings[i];
+        StrBuff &flatstr = flat_charstrings[i];
         ByteStr str (&flatstr[0], flatstr.len);
         subset_charstrings.push (str);
         dataSize += flatstr.len;
@@ -276,7 +282,7 @@ struct cff2_subset_plan {
       if (!fdmap.excludes (i))
       {
         unsigned int priv_size;
-        CFFPrivateDict_OpSerializer privSzr (drop_hints);
+        CFFPrivateDict_OpSerializer privSzr (desubroutinize, drop_hints);
         priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr);
         TableInfo  privInfo = { final_size, priv_size, 0 };
         privateDictInfos.push (privInfo);
@@ -300,11 +306,12 @@ struct cff2_subset_plan {
 
   Remap   fdmap;
 
-  hb_vector_t<ByteStr>    subset_charstrings;
-  ByteStrBuffArray        flat_charstrings;
+  ByteStrArray            subset_charstrings;
+  StrBuffArray            flat_charstrings;
   hb_vector_t<TableInfo>  privateDictInfos;
 
   bool            drop_hints;
+  bool            desubroutinize;
 };
 
 static inline bool _write_cff2 (const cff2_subset_plan &plan,
@@ -421,7 +428,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
       if (unlikely (pd == nullptr)) return false;
       unsigned int priv_size = plan.privateDictInfos[plan.fdmap[i]].size;
       bool result;
-      CFFPrivateDict_OpSerializer privSzr (plan.drop_hints);
+      CFFPrivateDict_OpSerializer privSzr (plan.desubroutinize, plan.drop_hints);
       result = pd->serialize (&c, acc.privateDicts[i], privSzr, priv_size);
       if (unlikely (!result))
       {

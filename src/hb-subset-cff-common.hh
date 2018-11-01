@@ -35,74 +35,101 @@
 namespace CFF {
 
 /* Used for writing a temporary charstring */
-struct ByteStrBuff : hb_vector_t<char, 1>
+struct StrEncoder
 {
-  inline bool encode_byte (unsigned char b)
+  inline StrEncoder (StrBuff &buff_)
+    : buff (buff_), error (false)
+  {}
+
+  inline void reset (void)
   {
-    return (push ((const char)b) != &Crap(char));
+    buff.resize (0);
   }
 
-  inline bool encode_int (int v)
+  inline void encode_byte (unsigned char b)
+  {
+    if (unlikely (buff.push ((const char)b) == &Crap(char)))
+      set_error ();
+  }
+
+  inline void encode_int (int v)
   {
     if ((-1131 <= v) && (v <= 1131))
     {
       if ((-107 <= v) && (v <= 107))
-        return encode_byte (v + 139);
+        encode_byte (v + 139);
       else if (v > 0)
       {
         v -= 108;
-        return encode_byte ((v >> 8) + OpCode_TwoBytePosInt0) && encode_byte (v & 0xFF);
+        encode_byte ((v >> 8) + OpCode_TwoBytePosInt0);
+        encode_byte (v & 0xFF);
       }
       else
       {
         v = -v - 108;
-        return encode_byte ((v >> 8) + OpCode_TwoByteNegInt0) && encode_byte (v & 0xFF);
+        encode_byte ((v >> 8) + OpCode_TwoByteNegInt0);
+        encode_byte (v & 0xFF);
       }
     }
-    if (unlikely (v < -32768))
-      v = -32768;
-    else if (unlikely (v > 32767))
-      v = 32767;
-    return encode_byte (OpCode_shortint) &&
-           encode_byte ((v >> 8) & 0xFF) &&
-           encode_byte (v & 0xFF);
+    else
+    {
+      if (unlikely (v < -32768))
+        v = -32768;
+      else if (unlikely (v > 32767))
+        v = 32767;
+      encode_byte (OpCode_shortint);
+      encode_byte ((v >> 8) & 0xFF);
+      encode_byte (v & 0xFF);
+    }
   }
 
-  inline bool encode_num (const Number& n)
+  inline void encode_num (const Number& n)
   {
     if (n.in_int_range ())
     {
-      return encode_int (n.to_int ());
+      encode_int (n.to_int ());
     }
     else
     {
       int32_t v = n.to_fixed ();
-      return encode_byte (OpCode_fixedcs) &&
-             encode_byte ((v >> 24) & 0xFF) &&
-             encode_byte ((v >> 16) & 0xFF) &&
-             encode_byte ((v >> 8) & 0xFF) &&
-             encode_byte (v & 0xFF);
+      encode_byte (OpCode_fixedcs);
+      encode_byte ((v >> 24) & 0xFF);
+      encode_byte ((v >> 16) & 0xFF);
+      encode_byte ((v >> 8) & 0xFF);
+      encode_byte (v & 0xFF);
     }
   }
 
-  inline bool encode_op (OpCode op)
+  inline void encode_op (OpCode op)
   {
     if (Is_OpCode_ESC (op))
-      return encode_byte (OpCode_escape) &&
-             encode_byte (Unmake_OpCode_ESC (op));
+    {
+      encode_byte (OpCode_escape);
+      encode_byte (Unmake_OpCode_ESC (op));
+    }
     else
-      return encode_byte (op);
+      encode_byte (op);
   }
-};
 
-struct ByteStrBuffArray : hb_vector_t<ByteStrBuff, 1>
-{
-  inline void fini (void)
+  inline void copy_str (const ByteStr &str)
   {
-    for (unsigned int i = 0; i < len; i++)
-      hb_vector_t<ByteStrBuff, 1>::operator[] (i).fini ();
-    hb_vector_t<ByteStrBuff, 1>::fini ();
+    unsigned int  offset = buff.len;
+    buff.resize (offset + str.len);
+    if (unlikely (buff.len < offset + str.len))
+    {
+      set_error ();
+      return;
+    }
+    memcpy (&buff[offset], &str.str[0], str.len);
   }
+
+  inline bool is_error (void) const { return error; }
+
+  protected:
+  inline void set_error (void) { error = true; }
+  
+  StrBuff &buff;
+  bool    error;
 };
 
 struct CFFSubTableOffsets {
@@ -215,8 +242,8 @@ struct CFFFontDict_OpSerializer : OpSerializer
 
 struct CFFPrivateDict_OpSerializer : OpSerializer
 {
-  inline CFFPrivateDict_OpSerializer (bool drop_hints_=false)
-    : drop_hints (drop_hints_) {}
+  inline CFFPrivateDict_OpSerializer (bool desubroutinize_, bool drop_hints_)
+    : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
 
   inline bool serialize (hb_serialize_context_t *c,
                          const OpStr &opstr,
@@ -227,7 +254,12 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return true;
     if (opstr.op == OpCode_Subrs)
-      return_trace (true);
+    {
+      if (desubroutinize)
+        return_trace (true);
+      else
+        return_trace (FontDict::serialize_offset4_op (c, opstr.op, subrsOffset));
+    }
     else
       return_trace (copy_opstr (c, opstr));
   }
@@ -237,18 +269,24 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return 0;
     if (opstr.op == OpCode_Subrs)
-      return 0;
+    {
+      if (desubroutinize)
+        return 0;
+      else
+        return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
+    }
     else
       return opstr.str.len;
   }
 
   protected:
+  const bool  desubroutinize;
   const bool  drop_hints;
 };
 
 struct FlattenParam
 {
-  ByteStrBuff &flatStr;
+  StrBuff     &flatStr;
   bool        drop_hints;
 };
 
@@ -263,7 +301,7 @@ struct SubrFlattener
       drop_hints (drop_hints_)
   {}
 
-  inline bool flatten (ByteStrBuffArray &flat_charstrings)
+  inline bool flatten (StrBuffArray &flat_charstrings)
   {
     if (!flat_charstrings.resize (glyphs.len))
       return false;
@@ -286,6 +324,594 @@ struct SubrFlattener
   const ACC &acc;
   const hb_vector_t<hb_codepoint_t> &glyphs;
   bool  drop_hints;
+};
+
+struct SubrClosures
+{
+  inline SubrClosures (void)
+    : valid (false),
+      global_closure (nullptr)
+  {
+    local_closures.init ();
+  }
+
+  inline void init (unsigned int fd_count)
+  {
+    valid = true;
+    global_closure = hb_set_create ();
+    if (global_closure == hb_set_get_empty ())
+      valid = false;
+    if (!local_closures.resize (fd_count))
+      valid = false;
+
+    for (unsigned int i = 0; i < local_closures.len; i++)
+    {
+      local_closures[i] = hb_set_create ();
+      if (local_closures[i] == hb_set_get_empty ())
+        valid = false;
+    }
+  }
+
+  inline void fini (void)
+  {
+    hb_set_destroy (global_closure);
+    for (unsigned int i = 0; i < local_closures.len; i++)
+      hb_set_destroy (local_closures[i]);
+    local_closures.fini ();
+  }
+
+  inline void reset (void)
+  {
+    hb_set_clear (global_closure);
+    for (unsigned int i = 0; i < local_closures.len; i++)
+      hb_set_clear (local_closures[i]);
+  }
+
+  bool is_valid (void) const { return valid; }
+  bool  valid;
+  hb_set_t  *global_closure;
+  hb_vector_t<hb_set_t *> local_closures;
+};
+
+struct ParsedCSOp : OpStr
+{
+  inline void init (unsigned int subr_num_ = 0)
+  {
+    OpStr::init ();
+    flags = kDropFlag_None;
+    subr_num = subr_num_;
+  }
+
+  inline void fini (void)
+  {
+    OpStr::fini ();
+  }
+
+  inline bool for_keep (void) const { return (flags & kDropFlag_Keep) != 0; }
+  inline bool for_drop (void) const { return (flags & kDropFlag_Drop) != 0; }
+  inline void set_drop (void) { if (!for_keep ()) flags |= kDropFlag_Drop; }
+  inline void set_keep (void) { flags |= kDropFlag_Keep; }
+
+  enum DropFlag
+  {
+    kDropFlag_None  = 0,
+    kDropFlag_Drop  = 1,
+    kDropFlag_Keep  = 2
+  };
+
+  unsigned int  flags;
+  unsigned int  subr_num;
+};
+
+struct ParsedCStr : ParsedValues<ParsedCSOp>
+{
+  inline void init (void)
+  {
+    SUPER::init ();
+    parsed = false;
+    hint_removed = false;
+    has_prefix_ = false;
+  }
+
+  inline void add_op (OpCode op, const SubByteStr& substr)
+  {
+    if (!is_parsed ())
+      SUPER::add_op (op, substr);
+  }
+
+  inline void addCallOp (OpCode op, const SubByteStr& substr, unsigned int subr_num)
+  {
+    if (!is_parsed ())
+    {
+      unsigned int parsed_len = get_count ();
+      if (likely (parsed_len > 0))
+        values[parsed_len-1].set_drop ();
+      
+      ParsedCSOp val;
+      val.init (subr_num);
+      SUPER::add_op (op, substr, val);
+    }
+  }
+
+  inline void set_prefix (const Number &num, OpCode op = OpCode_Invalid)
+  {
+    has_prefix_ = true;
+    prefix_op_ = op;
+    prefix_num_ = num;
+  }
+
+  inline bool is_parsed (void) const { return parsed; }
+  inline void set_parsed (void) { parsed = true; }
+  inline bool is_hint_removed (void) const { return hint_removed; }
+  inline void set_hint_removed (void) { hint_removed = true; }
+  inline bool has_prefix (void) const { return has_prefix_; }
+  inline OpCode prefix_op (void) const { return prefix_op_; }
+  inline const Number &prefix_num (void) const { return prefix_num_; }
+
+  protected:
+  bool    parsed;
+  bool    hint_removed;
+  bool    has_prefix_;
+  OpCode  prefix_op_;
+  Number  prefix_num_;
+
+  private:
+  typedef ParsedValues<ParsedCSOp> SUPER;
+};
+
+struct ParsedCStrs : hb_vector_t<ParsedCStr>
+{
+  inline void init (unsigned int len_ = 0)
+  {
+    hb_vector_t<ParsedCStr>::init ();
+    resize (len_);
+    for (unsigned int i = 0; i < len; i++)
+      (*this)[i].init ();
+  }
+};
+
+struct SubrSubsetParam
+{
+  inline void init (ParsedCStr *parsed_charstring_,
+                    ParsedCStrs *parsed_global_subrs_, ParsedCStrs *parsed_local_subrs_,
+                    hb_set_t *global_closure_, hb_set_t *local_closure_,
+                    bool drop_hints_)
+  {
+    parsed_charstring = parsed_charstring_;
+    current_parsed_str = parsed_charstring;
+    parsed_global_subrs = parsed_global_subrs_;
+    parsed_local_subrs = parsed_local_subrs_;
+    global_closure = global_closure_;
+    local_closure = local_closure_;
+    drop_hints = drop_hints_;
+  }
+
+  template <typename ENV>
+  inline void set_current_str (ENV &env)
+  {
+    const CallContext &context = env.context;
+  
+    switch (context.type)
+    {
+      case CSType_CharString:
+        current_parsed_str = parsed_charstring;
+        break;
+      
+      case CSType_LocalSubr:
+        if (likely (context.subr_num < parsed_local_subrs->len))
+          current_parsed_str = &(*parsed_local_subrs)[context.subr_num];
+        else
+          env.set_error ();
+        break;
+
+      case CSType_GlobalSubr:
+        if (likely (context.subr_num < parsed_global_subrs->len))
+          current_parsed_str = &(*parsed_global_subrs)[context.subr_num];
+        else
+          env.set_error ();
+        break;
+
+      default:
+        assert (0);
+    }
+  }
+
+  ParsedCStr    *current_parsed_str;
+
+  ParsedCStr    *parsed_charstring;
+  ParsedCStrs   *parsed_global_subrs;
+  ParsedCStrs   *parsed_local_subrs;
+  hb_set_t      *global_closure;
+  hb_set_t      *local_closure;
+  bool          drop_hints;
+};
+
+struct SubrRemap : Remap
+{
+  inline void create (hb_set_t *closure)
+  {
+    /* create a remapping of subroutine numbers from old to new.
+     * no optimization based on usage counts. fonttools doesn't appear doing that either.
+     */
+    reset (closure->get_max () + 1);
+    for (hb_codepoint_t old_num = 0; old_num < len; old_num++)
+    {
+      if (hb_set_has (closure, old_num))
+        add (old_num);
+    }
+  
+    if (get_count () < 1240)
+      bias = 107;
+    else if (get_count () < 33900)
+      bias = 1131;
+    else
+      bias = 32768;
+  }
+
+  inline hb_codepoint_t operator[] (unsigned int old_num) const
+  {
+    if (old_num >= len)
+      return CFF_UNDEF_CODE;
+    else
+      return Remap::operator[] (old_num);
+  }
+
+  inline int biased_num (unsigned int old_num) const
+  {
+    return (int)(*this)[old_num] - bias;
+  }
+
+  protected:
+  int bias;
+};
+
+struct SubrRemaps
+{
+  inline SubrRemaps (void)
+  {
+    global_remap.init ();
+    local_remaps.init ();
+  }
+
+  inline ~SubrRemaps (void)
+  {
+    fini ();
+  }
+
+  inline void init (unsigned int fdCount)
+  {
+    local_remaps.resize (fdCount);
+    for (unsigned int i = 0; i < fdCount; i++)
+      local_remaps[i].init ();
+  }
+
+  inline void create (SubrClosures& closures)
+  {
+    global_remap.create (closures.global_closure);
+    for (unsigned int i = 0; i < local_remaps.len; i++)
+      local_remaps[i].create (closures.local_closures[i]);
+  }
+
+  inline void fini (void)
+  {
+    global_remap.fini ();
+    local_remaps.fini_deep ();
+  }
+
+  SubrRemap               global_remap;
+  hb_vector_t<SubrRemap>  local_remaps;
+};
+
+template <typename SUBSETTER, typename SUBRS, typename ACC, typename ENV, typename OPSET>
+struct SubrSubsetter
+{
+  inline SubrSubsetter (void)
+  {
+    parsed_charstrings.init ();
+    parsed_global_subrs.init ();
+    parsed_local_subrs.init ();
+  }
+
+  inline ~SubrSubsetter (void)
+  {
+    closures.fini ();
+    remaps.fini ();
+    parsed_charstrings.fini_deep ();
+    parsed_global_subrs.fini_deep ();
+    parsed_local_subrs.fini_deep ();
+  }
+
+  /* Subroutine subsetting with --no-desubroutinize runs in phases:
+   *
+   * 1. execute charstrings/subroutines to determine subroutine closures
+   * 2. parse out all operators and numbers
+   * 3. mark hint operators and operands for removal if --no-hinting
+   * 4. re-encode all charstrings and subroutines with new subroutine numbers
+   *
+   * Phases #1 and #2 are done at the same time in collect_subrs ().
+   * Phase #3 requires walking charstrings/subroutines forward then backward (hence parsing), because
+   * we can't tell if a number belongs to a hint op until we see the first moveto.
+   *
+   * Assumption: a callsubr/callgsubr operator must immediately follow a (biased) subroutine number
+   * within the same charstring/subroutine, e.g., not split across a charstring and a subroutine.
+   */
+  inline bool subset (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, bool drop_hints)
+  {
+    closures.init (acc.fdCount);
+    remaps.init (acc.fdCount);
+
+    parsed_charstrings.init (glyphs.len);
+    parsed_global_subrs.init (acc.globalSubrs->count);
+    parsed_local_subrs.resize (acc.fdCount);
+    for (unsigned int i = 0; i < acc.fdCount; i++)
+    {
+      parsed_local_subrs[i].init (acc.privateDicts[i].localSubrs->count);
+    }
+    if (unlikely (!closures.valid))
+      return false;
+
+    /* phase 1 & 2 */
+    for (unsigned int i = 0; i < glyphs.len; i++)
+    {
+      hb_codepoint_t  glyph = glyphs[i];
+      const ByteStr str = (*acc.charStrings)[glyph];
+      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      
+      CSInterpreter<ENV, OPSET, SubrSubsetParam> interp;
+      interp.env.init (str, acc, fd);
+
+      SubrSubsetParam  param;
+      param.init (&parsed_charstrings[i],
+                  &parsed_global_subrs,  &parsed_local_subrs[fd],
+                  closures.global_closure, closures.local_closures[fd],
+                  drop_hints);
+
+      if (unlikely (!interp.interpret (param)))
+        return false;
+
+      /* copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
+      SUBSETTER::set_parsed_prefix (interp.env, parsed_charstrings[i]);
+    }
+    
+    if (drop_hints)
+    {
+      /* mark hint ops and arguments for drop */
+      for (unsigned int i = 0; i < glyphs.len; i++)
+      {
+        unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
+        SubrSubsetParam  param;
+        param.init (&parsed_charstrings[i],
+                    &parsed_global_subrs,  &parsed_local_subrs[fd],
+                    closures.global_closure, closures.local_closures[fd],
+                    drop_hints);
+
+        bool seen_moveto = false;
+        if (drop_hints_in_str (parsed_charstrings[i], param, seen_moveto))
+          parsed_charstrings[i].set_hint_removed ();
+      }
+
+      /* after dropping hints recreate closures from subrs actually used */
+      closures.reset ();
+      for (unsigned int i = 0; i < glyphs.len; i++)
+      {
+        unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
+        SubrSubsetParam  param;
+        param.init (&parsed_charstrings[i],
+                    &parsed_global_subrs,  &parsed_local_subrs[fd],
+                    closures.global_closure, closures.local_closures[fd],
+                    drop_hints);
+        collect_subr_refs_in_str (parsed_charstrings[i], param);
+      }
+    }
+    
+    remaps.create (closures);
+    
+    return true;
+  }
+
+  inline bool encode_charstrings (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, StrBuffArray &buffArray) const
+  {
+    if (unlikely (!buffArray.resize (glyphs.len)))
+      return false;
+    for (unsigned int i = 0; i < glyphs.len; i++)
+    {
+      unsigned int  fd = acc.fdSelect->get_fd (glyphs[i]);
+      if (unlikely (!encode_str (parsed_charstrings[i], fd, buffArray[i])))
+        return false;
+    }
+    return true;
+  }
+
+  inline bool encode_subrs (const ParsedCStrs &subrs, const SubrRemap& remap, StrBuffArray &buffArray) const
+  {
+    unsigned int  count = remap.get_count ();
+  
+    if (unlikely (!buffArray.resize (count)))
+      return false;
+    for (unsigned int old_num = 0; old_num < subrs.len; old_num++)
+    {
+      hb_codepoint_t new_num = remap[old_num];
+      if (new_num != CFF_UNDEF_CODE)
+      {
+        if (unlikely (!encode_str (subrs[old_num], 0, buffArray[new_num])))
+          return false;
+      }
+    }
+    return true;
+  }
+
+  inline bool encode_globalsubrs (StrBuffArray &buffArray)
+  {
+    return encode_subrs (parsed_global_subrs, remaps.global_remap, buffArray);
+  }
+
+  inline bool encode_localsubrs (unsigned int fd, StrBuffArray &buffArray) const
+  {
+    return encode_subrs (parsed_local_subrs[fd], remaps.local_remaps[fd], buffArray);
+  }
+
+  protected:
+  inline bool drop_hints_in_subr (ParsedCStr &str, unsigned int pos,
+                                 ParsedCStrs &subrs, unsigned int subr_num,
+                                 const SubrSubsetParam &param, bool &seen_moveto)
+  {
+    if (drop_hints_in_str (subrs[subr_num], param, seen_moveto))
+    {
+      /* if the first op in the subr is a hint op, then all args/ops (especially including other subr calls)
+       * preceding this subr no and call op are hints */
+      /* TODO CFF2 vsindex */
+      for (unsigned int i = 0; i + 1 < pos; i++)
+        str.values[i].set_drop ();
+      return true;
+    }
+    else
+      return false;
+  }
+
+  /* returns true if it sees a hint op before moveto */
+  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param, bool &seen_moveto)
+  {
+    bool  seen_hint = false;
+    unsigned int next_check_pos = 0;
+
+    for (unsigned int pos = 0; pos < str.values.len; pos++)
+    {
+      switch (str.values[pos].op)
+      {
+        case OpCode_callsubr:
+          seen_hint |= drop_hints_in_subr (str, pos,
+                                           *param.parsed_local_subrs, str.values[pos].subr_num,
+                                           param, seen_moveto);
+          break;
+
+        case OpCode_callgsubr:
+          seen_hint |= drop_hints_in_subr (str, pos,
+                                           *param.parsed_global_subrs, str.values[pos].subr_num,
+                                           param, seen_moveto);
+          break;
+
+        case OpCode_rmoveto:
+        case OpCode_hmoveto:
+        case OpCode_vmoveto:
+          seen_moveto = true;
+          break;
+
+        case OpCode_hintmask:
+        case OpCode_cntrmask:
+          if (seen_moveto)
+          {
+            str.values[pos].set_drop ();
+            break;
+          }
+          HB_FALLTHROUGH;
+
+        case OpCode_hstemhm:
+        case OpCode_vstemhm:
+        case OpCode_hstem:
+        case OpCode_vstem:
+          seen_hint = true;
+          for (unsigned int i = next_check_pos; i <= pos; i++)
+          {
+            /* TODO: CFF2 vsindex */
+            str.values[i].set_drop ();
+          }
+          next_check_pos = pos + 1;
+          break;
+
+        default:
+          /* NONE */
+          break;
+      }
+    }
+
+    return seen_hint;
+  }
+
+  inline void collect_subr_refs_in_subr (ParsedCStr &str, unsigned int pos,
+                                         unsigned int subr_num, ParsedCStrs &subrs,
+                                         hb_set_t *closure,
+                                         const SubrSubsetParam &param)
+  {
+    hb_set_add (closure, subr_num);
+    collect_subr_refs_in_str (subrs[subr_num], param);
+  }
+
+  inline void collect_subr_refs_in_str (ParsedCStr &str, const SubrSubsetParam &param)
+  {
+    for (unsigned int pos = 0; pos < str.values.len; pos++)
+    {
+      if (!str.values[pos].for_drop ())
+      {
+        switch (str.values[pos].op)
+        {
+          case OpCode_callsubr:
+            collect_subr_refs_in_subr (str, pos,
+                                       str.values[pos].subr_num, *param.parsed_local_subrs,
+                                       param.local_closure, param);
+            break;
+
+          case OpCode_callgsubr:
+            collect_subr_refs_in_subr (str, pos,
+                                       str.values[pos].subr_num, *param.parsed_global_subrs,
+                                       param.global_closure, param);
+            break;
+
+          default: break;
+        }
+      }
+    }
+  }
+
+  inline bool encode_str (const ParsedCStr &str, const unsigned int fd, StrBuff &buff) const
+  {
+    buff.init ();
+    StrEncoder  encoder (buff);
+    encoder.reset ();
+    /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
+     * re-insert it at the beginning of charstreing */
+    if (str.has_prefix () && str.is_hint_removed ())
+    {
+      encoder.encode_num (str.prefix_num ());
+      if (str.prefix_op () != OpCode_Invalid)
+        encoder.encode_op (str.prefix_op ());
+    }
+    for (unsigned int i = 0; i < str.get_count(); i++)
+    {
+      const ParsedCSOp  &opstr = str.values[i];
+      if (!opstr.for_drop ())
+      {
+        switch (opstr.op)
+        {
+          case OpCode_callsubr:
+            encoder.encode_int (remaps.local_remaps[fd].biased_num (opstr.subr_num));
+            encoder.encode_op (OpCode_callsubr);
+            break;
+            
+          case OpCode_callgsubr:
+            encoder.encode_int (remaps.global_remap.biased_num (opstr.subr_num));
+            encoder.encode_op (OpCode_callgsubr);
+            break;
+
+          default:
+            encoder.copy_str (opstr.str);
+            break;
+        }
+      }
+    }
+    return !encoder.is_error ();
+  }
+
+  protected:
+  SubrClosures              closures;
+
+  ParsedCStrs               parsed_charstrings;
+  ParsedCStrs               parsed_global_subrs;
+  hb_vector_t<ParsedCStrs>  parsed_local_subrs;
+
+  SubrRemaps                remaps;
+
+  private:
+  typedef typename SUBRS::count_type subr_count_type;
 };
 };  /* namespace CFF */
 

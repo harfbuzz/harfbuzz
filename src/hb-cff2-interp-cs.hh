@@ -74,6 +74,7 @@ struct BlendArg : Number
 };
 
 typedef InterpEnv<BlendArg> BlendInterpEnv;
+typedef BiasedSubrs<CFF2Subrs>   CFF2BiasedSubrs;
 
 struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {

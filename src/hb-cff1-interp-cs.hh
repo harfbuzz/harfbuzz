@@ -33,6 +33,8 @@ namespace CFF {
 
 using namespace OT;
 
+typedef BiasedSubrs<CFF1Subrs>   CFF1BiasedSubrs;
+
 struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 {
   template <typename ACC>
@@ -41,6 +43,7 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
     has_width = false;
+    arg_start = 0;
   }
 
   inline void fini (void)
@@ -48,24 +51,26 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     SUPER::fini ();
   }
 
-  inline unsigned int check_width (void)
+  inline void set_width (void)
   {
-    unsigned int arg_start = 0;
-    if (!processed_width)
+    if (likely (!processed_width && (SUPER::argStack.get_count () > 0)))
     {
-      if ((SUPER::argStack.get_count () & 1) != 0)
-      {
-        width = SUPER::argStack[0];
-        has_width = true;
-        arg_start = 1;
-      }
+      width = SUPER::argStack[0];
+      has_width = true;
       processed_width = true;
+      arg_start = 1;
     }
-    return arg_start;
+  }
+
+  inline void clear_args (void)
+  {
+    arg_start = 0;
+    SUPER::clear_args ();
   }
 
   bool          processed_width;
   bool          has_width;
+  unsigned int  arg_start;
   Number        width;
 
   private:
@@ -77,10 +82,45 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
 {
   /* PostScript-originated legacy opcodes (OpCode_add etc) are unsupported */
 
-  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param, unsigned int start_arg = 0)
+  static inline void check_width (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
-    start_arg = env.check_width ();
-    SUPER::flush_args (env, param, start_arg);
+    if (!env.processed_width)
+    {
+      bool  has_width = false;
+      switch (op)
+      {
+        default:
+        case OpCode_endchar:
+          has_width = (env.argStack.get_count () > 0);
+          break;
+        case OpCode_hstem:
+        case OpCode_hstemhm:
+        case OpCode_hintmask:
+        case OpCode_cntrmask:
+          has_width = ((env.argStack.get_count () & 1) != 0);
+          break;
+        case OpCode_hmoveto:
+        case OpCode_vmoveto:
+          has_width = (env.argStack.get_count () > 1);
+          break;
+        case OpCode_rmoveto:
+          has_width = (env.argStack.get_count () > 2);
+          break;
+      }
+      if (has_width)
+      {
+        env.set_width ();
+        OPSET::process_width (env, param);
+      }
+    }
+  }
+
+  static inline void process_width (CFF1CSInterpEnv &env, PARAM& param)
+  {}
+
+  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)
+  {
+    SUPER::flush_args (env, param);
     env.clear_args ();  /* pop off width */
   }
 

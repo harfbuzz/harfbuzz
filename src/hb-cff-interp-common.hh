@@ -448,6 +448,8 @@ struct SubByteStr
   bool          error;
 };
 
+typedef hb_vector_t<ByteStr> ByteStrArray;
+
 /* stack */
 template <typename ELEM, int LIMIT>
 struct Stack
@@ -650,6 +652,53 @@ struct OpSerializer
     memcpy (d, &opstr.str.str[0], opstr.str.len);
     return_trace (true);
   }
+};
+
+template <typename VAL>
+struct ParsedValues
+{
+  inline void init (void)
+  {
+    opStart = 0;
+    values.init ();
+  }
+
+  inline void fini (void)
+  {
+    values.fini_deep ();
+  }
+
+  inline void add_op (OpCode op, const SubByteStr& substr = SubByteStr ())
+  {
+    VAL *val = values.push ();
+    val->op = op;
+    assert (substr.offset >= opStart);
+    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
+    opStart = substr.offset;
+  }
+
+  inline void add_op (OpCode op, const SubByteStr& substr, const VAL &v)
+  {
+    VAL *val = values.push (v);
+    val->op = op;
+    assert (substr.offset >= opStart);
+    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
+    opStart = substr.offset;
+  }
+
+  inline bool has_op (OpCode op) const
+  {
+    for (unsigned int i = 0; i < get_count (); i++)
+      if (get_value (i).op == op) return true;
+    return false;
+  }
+
+  inline unsigned get_count (void) const { return values.len; }
+  inline const VAL &get_value (unsigned int i) const { return values[i]; }
+  inline const VAL &operator [] (unsigned int i) const { return get_value (i); }
+
+  unsigned int       opStart;
+  hb_vector_t<VAL>   values;
 };
 
 template <typename ARG=Number>

@@ -150,6 +150,7 @@ hb_subset_plan_create (hb_face_t           *face,
 
   plan->drop_hints = input->drop_hints;
   plan->drop_layout = input->drop_layout;
+  plan->desubroutinize = input->desubroutinize;
   plan->unicodes = hb_set_create();
   plan->glyphs.init();
   plan->source = hb_face_reference (face);

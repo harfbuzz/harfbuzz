@@ -50,50 +50,7 @@ struct DictVal : OpStr
 
 typedef DictVal NumDictVal;
 
-template <typename VAL>
-struct DictValues
-{
-  inline void init (void)
-  {
-    opStart = 0;
-    values.init ();
-  }
-
-  inline void fini (void)
-  {
-    values.fini_deep ();
-  }
-
-  inline void addOp (OpCode op, const SubByteStr& substr = SubByteStr ())
-  {
-    VAL *val = values.push ();
-    val->op = op;
-    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
-    opStart = substr.offset;
-  }
-
-  inline void addOp (OpCode op, const SubByteStr& substr, const VAL &v)
-  {
-    VAL *val = values.push (v);
-    val->op = op;
-    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
-    opStart = substr.offset;
-  }
-
-  inline bool hasOp (OpCode op) const
-  {
-    for (unsigned int i = 0; i < getNumValues (); i++)
-      if (getValue (i).op == op) return true;
-    return false;
-  }
-
-  inline unsigned getNumValues (void) const { return values.len; }
-  inline const VAL &getValue (unsigned int i) const { return values[i]; }
-  inline const VAL &operator [] (unsigned int i) const { return getValue (i); }
-
-  unsigned int       opStart;
-  hb_vector_t<VAL>   values;
-};
+template <typename VAL> struct DictValues : ParsedValues<VAL> {};
 
 template <typename OPSTR=OpStr>
 struct TopDictValues : DictValues<OPSTR>

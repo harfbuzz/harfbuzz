@@ -33,8 +33,31 @@ namespace CFF {
 
 using namespace OT;
 
+enum CSType {
+  CSType_CharString,
+  CSType_GlobalSubr,
+  CSType_LocalSubr
+};
+
+struct CallContext
+{
+  inline void init (const SubByteStr substr_=SubByteStr (), CSType type_=CSType_CharString, unsigned int subr_num_=0)
+  {
+    substr = substr_;
+    type = type_;
+    subr_num = subr_num_;
+  }
+
+  inline void fini (void) {}
+
+  SubByteStr      substr;
+  CSType          type;
+  unsigned int    subr_num;
+};
+
 /* call stack */
-struct CallStack : Stack<SubByteStr, 10> {};
+const unsigned int kMaxCallLimit = 10;
+struct CallStack : Stack<CallContext, kMaxCallLimit> {};
 
 template <typename SUBRS>
 struct BiasedSubrs
@@ -80,6 +103,7 @@ struct CSInterpEnv : InterpEnv<ARG>
   {
     InterpEnv<ARG>::init (str);
 
+    context.init (str, CSType_CharString);
     seen_moveto = true;
     seen_hintmask = false;
     hstem_count = 0;
@@ -114,23 +138,29 @@ struct CSInterpEnv : InterpEnv<ARG>
     return true;
   }
 
-  inline bool callSubr (const BiasedSubrs<SUBRS>& biasedSubrs)
+  inline void callSubr (const BiasedSubrs<SUBRS>& biasedSubrs, CSType type)
   {
     unsigned int subr_num;
 
-    if (unlikely (!popSubrNum (biasedSubrs, subr_num)))
-      return false;
-    callStack.push (SUPER::substr);
-    SUPER::substr = (*biasedSubrs.subrs)[subr_num];
+    if (unlikely (!popSubrNum (biasedSubrs, subr_num)
+                 || callStack.get_count () >= kMaxCallLimit))
+    {
+      SUPER::set_error ();
+      return;
+    }
+    context.substr = SUPER::substr;
+    callStack.push (context);
 
-    return true;
+    context.init ( (*biasedSubrs.subrs)[subr_num], type, subr_num);
+    SUPER::substr = context.substr;
   }
 
   inline void returnFromSubr (void)
   {
     if (unlikely (SUPER::substr.in_error ()))
       SUPER::set_error ();
-    SUPER::substr = callStack.pop ();
+    context = callStack.pop ();
+    SUPER::substr = context.substr;
   }
 
   inline void determine_hintmask_size (void)
@@ -153,6 +183,7 @@ struct CSInterpEnv : InterpEnv<ARG>
   inline void moveto (const Point &pt_ ) { pt = pt_; }
 
   public:
+  CallContext   context;
   bool          endchar_flag;
   bool          seen_moveto;
   bool          seen_hintmask;
@@ -206,6 +237,7 @@ struct CSOpSet : OpSet<ARG>
         env.returnFromSubr ();
         break;
       case OpCode_endchar:
+        OPSET::check_width (op, env, param);
         env.set_endchar (true);
         OPSET::flush_args_and_op (op, env, param);
         break;
@@ -215,36 +247,42 @@ struct CSOpSet : OpSet<ARG>
         break;
 
       case OpCode_callsubr:
-        env.callSubr (env.localSubrs);
+        env.callSubr (env.localSubrs, CSType_LocalSubr);
         break;
 
       case OpCode_callgsubr:
-        env.callSubr (env.globalSubrs);
+        env.callSubr (env.globalSubrs, CSType_GlobalSubr);
         break;
 
       case OpCode_hstem:
       case OpCode_hstemhm:
+        OPSET::check_width (op, env, param);
         OPSET::process_hstem (op, env, param);
         break;
       case OpCode_vstem:
       case OpCode_vstemhm:
+        OPSET::check_width (op, env, param);
         OPSET::process_vstem (op, env, param);
         break;
       case OpCode_hintmask:
       case OpCode_cntrmask:
+        OPSET::check_width (op, env, param);
         OPSET::process_hintmask (op, env, param);
         break;
       case OpCode_rmoveto:
+        OPSET::check_width (op, env, param);
         PATH::rmoveto (env, param);
-        process_post_move (op, env, param);
+        OPSET::process_post_move (op, env, param);
         break;
       case OpCode_hmoveto:
+        OPSET::check_width (op, env, param);
         PATH::hmoveto (env, param);
-        process_post_move (op, env, param);
+        OPSET::process_post_move (op, env, param);
         break;
       case OpCode_vmoveto:
+        OPSET::check_width (op, env, param);
         PATH::vmoveto (env, param);
-        process_post_move (op, env, param);
+        OPSET::process_post_move (op, env, param);
         break;
       case OpCode_rlineto:
         PATH::rlineto (env, param);
@@ -340,6 +378,9 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
+  static inline void check_width (OpCode op, ENV &env, PARAM& param)
+  {}
+
   static inline void process_post_move (OpCode op, ENV &env, PARAM& param)
   {
     if (!env.seen_moveto)
@@ -355,15 +396,15 @@ struct CSOpSet : OpSet<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param, unsigned int start_arg = 0)
+  static inline void flush_args_and_op (OpCode op, ENV &env, PARAM& param)
   {
-    OPSET::flush_args (env, param, start_arg);
+    OPSET::flush_args (env, param);
     OPSET::flush_op (op, env, param);
   }
 
-  static inline void flush_args (ENV &env, PARAM& param, unsigned int start_arg = 0)
+  static inline void flush_args (ENV &env, PARAM& param)
   {
-    env.pop_n_args (env.argStack.get_count () - start_arg);
+    env.pop_n_args (env.argStack.get_count ());
   }
 
   static inline void flush_op (OpCode op, ENV &env, PARAM& param)
@@ -373,6 +414,24 @@ struct CSOpSet : OpSet<ARG>
   static inline void flush_hintmask (OpCode op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
+  }
+
+  static inline bool is_number_op (OpCode op)
+  {
+    switch (op)
+    {
+      case OpCode_shortint:
+      case OpCode_fixedcs:
+      case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
+      case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
+      case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
+      case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
+        return true;
+
+      default:
+        /* 1-byte integer */
+        return (OpCode_OneByteIntFirst <= op) && (op <= OpCode_OneByteIntLast);
+    }
   }
 
   protected:

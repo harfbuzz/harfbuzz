@@ -669,6 +669,7 @@ struct subset_options_t : option_group_t
   subset_options_t (option_parser_t *parser)
   {
     drop_hints = false;
+    desubroutinize = false;
 
     add_options (parser);
   }
@@ -676,6 +677,7 @@ struct subset_options_t : option_group_t
   void add_options (option_parser_t *parser);
 
   hb_bool_t drop_hints;
+  hb_bool_t desubroutinize;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */

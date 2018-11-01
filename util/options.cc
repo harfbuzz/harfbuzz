@@ -970,6 +970,8 @@ subset_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
+    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutinizes",   nullptr},
+
     {nullptr}
   };
   parser->add_group (entries,

@@ -537,7 +537,7 @@ struct CFF1StringIndex : CFF1Index
       return_trace (true);
     }
     
-    hb_vector_t<ByteStr> bytesArray;
+    ByteStrArray bytesArray;
     bytesArray.init ();
     if (!bytesArray.resize (sidmap.get_count ()))
       return_trace (false);
@@ -757,7 +757,7 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.addOp (op, env.substr, val);
+    dictval.add_op (op, env.substr, val);
   }
 };
 
@@ -806,7 +806,7 @@ struct CFF1FontDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.addOp (op, env.substr);
+    dictval.add_op (op, env.substr);
   }
 };
 
@@ -828,11 +828,11 @@ struct CFF1PrivateDictValues_Base : DictValues<VAL>
   inline unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < DictValues<VAL>::getNumValues; i++)
-      if (DictValues<VAL>::getValue (i).op == OpCode_Subrs)
+    for (unsigned int i = 0; i < DictValues<VAL>::get_count; i++)
+      if (DictValues<VAL>::get_value (i).op == OpCode_Subrs)
         size += OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
       else
-        size += DictValues<VAL>::getValue (i).str.len;
+        size += DictValues<VAL>::get_value (i).str.len;
     return size;
   }
 
@@ -886,7 +886,7 @@ struct CFF1PrivateDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.addOp (op, env.substr, val);
+    dictval.add_op (op, env.substr, val);
   }
 };
 
@@ -928,7 +928,7 @@ struct CFF1PrivateDictOpSet_Subset : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.addOp (op, env.substr);
+    dictval.add_op (op, env.substr);
   }
 };
 
@@ -989,6 +989,7 @@ struct cff1
         if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
         CFF1TopDict_Interpreter top_interp;
         top_interp.env.init (topDictStr);
+        topDict.init ();
         if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
       
@@ -1041,12 +1042,14 @@ struct cff1
           CFF1FontDict_Interpreter font_interp;
           font_interp.env.init (fontDictStr);
           font = fontDicts.push ();
+          font->init ();
           if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
           PRIVDICTVAL  *priv = &privateDicts[i];
           const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
           if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
           DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
           priv_interp.env.init (privDictStr);
+          priv->init ();
           if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
           priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
@@ -1064,6 +1067,7 @@ struct cff1
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
         DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
         priv_interp.env.init (privDictStr);
+        priv->init ();
         if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
         priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
