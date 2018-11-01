@@ -90,7 +90,7 @@ png_dump (hb_face_t *face, unsigned int face_index)
   unsigned int upem = hb_face_get_upem (face);
   unsigned int blob_length = 0;
   unsigned int strike = 0;
-  for (unsigned int ppem = 1; ppem <= upem; ppem++)
+  for (unsigned int ppem = 1; ppem < upem; ppem++)
   {
     hb_font_set_ppem (font, ppem, ppem);
     hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
