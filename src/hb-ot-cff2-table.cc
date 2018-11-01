@@ -95,13 +95,14 @@ struct CFF2PathProcs_Extents : PathProcs<CFF2PathProcs_Extents, CFF2CSInterpEnv,
 
 struct CFF2CSOpSet_Extents : CFF2CSOpSet<CFF2CSOpSet_Extents, ExtentsParam, CFF2PathProcs_Extents> {};
 
-bool OT::cff2::accelerator_t::get_extents (hb_codepoint_t glyph,
-                                           hb_glyph_extents_t *extents,
-                                           const int *coords,
-                                           unsigned int num_coords) const
+bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
+                                           hb_codepoint_t glyph,
+                                           hb_glyph_extents_t *extents) const
 {
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
+  unsigned int num_coords;
+  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   unsigned int fd = fdSelect->get_fd (glyph);
   CFF2CSInterpreter<CFF2CSOpSet_Extents, ExtentsParam> interp;
   const ByteStr str = (*charStrings)[glyph];

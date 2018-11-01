@@ -144,8 +144,7 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
                           const unsigned int num_glyphs,
                           const FDSelect &src,
                           unsigned int size,
-                          const hb_vector_t<code_pair> &fdselect_ranges,
-                          const Remap &fdmap)
+                          const hb_vector_t<code_pair> &fdselect_ranges)
 {
   TRACE_SERIALIZE (this);
   FDSELECT3_4 *p = c->allocate_size<FDSELECT3_4> (size);
@@ -171,8 +170,7 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           unsigned int fd_count,
                           unsigned int fdselect_format,
                           unsigned int size,
-                          const hb_vector_t<code_pair> &fdselect_ranges,
-                          const Remap &fdmap)
+                          const hb_vector_t<code_pair> &fdselect_ranges)
 {
   TRACE_SERIALIZE (this);
   FDSelect  *p = c->allocate_min<FDSelect> ();
@@ -207,16 +205,14 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                                                 num_glyphs,
                                                 src,
                                                 size,
-                                                fdselect_ranges,
-                                                fdmap);
+                                                fdselect_ranges);
     
     case 4:
       return serialize_fdselect_3_4<FDSelect4> (c,
                                                 num_glyphs,
                                                 src,
                                                 size,
-                                                fdselect_ranges,
-                                                fdmap);
+                                                fdselect_ranges);
 
     default:
       assert(false);

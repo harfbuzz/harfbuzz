@@ -932,7 +932,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
                           unsigned int fd_count,
                           unsigned int fdselect_format,
                           unsigned int size,
-                          const hb_vector_t<CFF::code_pair> &fdselect_ranges,
-                          const CFF::Remap &fdmap);
+                          const hb_vector_t<CFF::code_pair> &fdselect_ranges);
 
 #endif /* HB_SUBSET_CFF_COMMON_HH */

@@ -960,8 +960,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     {
       if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *acc.fdSelect, acc.fdCount,
                                                 plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subset_fdselect_ranges,
-                                                plan.fdmap)))
+                                                plan.subset_fdselect_ranges)))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");
         return false;

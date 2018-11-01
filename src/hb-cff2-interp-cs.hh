@@ -114,12 +114,16 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 
   inline const BlendArg& eval_arg (unsigned int i)
   {
-    return blend_arg (argStack[i]);
+    BlendArg  &arg = argStack[i];
+    blend_arg (arg);
+    return arg;
   }
 
   inline const BlendArg& pop_arg (void)
   {
-    return blend_arg (argStack.pop ());
+    BlendArg  &arg = argStack.pop ();
+    blend_arg (arg);
+    return arg;
   }
 
   inline void process_blend (void)
@@ -155,7 +159,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
 
   protected:
-  inline BlendArg& blend_arg (BlendArg &arg)
+  inline void blend_arg (BlendArg &arg)
   {
     if (do_blend && arg.blending ())
     {
@@ -170,7 +174,6 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
         arg.deltas.resize (0);
       }
     }
-    return arg;
   }
 
   protected:
