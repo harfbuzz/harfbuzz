@@ -31,49 +31,55 @@
 static void
 test_aat_get_feature_settings (void)
 {
-  hb_bool_t is_exclusive;
+  hb_aat_feature_setting_t default_setting;
   hb_aat_feature_option_record_t records[3];
   unsigned int count = 3;
 
   hb_face_t *face = hb_test_open_font_file ("fonts/aat-feat.ttf");
 
-  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &is_exclusive,
+  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &default_setting,
 							0, &count, records));
   g_assert_cmpuint (3, ==, count);
-  g_assert (is_exclusive);
+  g_assert_cmpuint (0, ==, default_setting);
 
-  g_assert_cmpuint (1, ==, records[0].is_default);
   g_assert_cmpuint (0, ==, records[0].setting);
   g_assert_cmpuint (294, ==, records[0].name_id);
 
-  g_assert_cmpuint (0, ==, records[1].is_default);
   g_assert_cmpuint (1, ==, records[1].setting);
   g_assert_cmpuint (295, ==, records[1].name_id);
 
-  g_assert_cmpuint (0, ==, records[2].is_default);
   g_assert_cmpuint (2, ==, records[2].setting);
   g_assert_cmpuint (296, ==, records[2].name_id);
 
   count = 3;
-  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &is_exclusive,
+  g_assert_cmpuint (4, ==, hb_aat_get_feature_settings (face, 18, &default_setting,
 							3, &count, records));
   g_assert_cmpuint (1, ==, count);
-  g_assert (is_exclusive);
+  g_assert_cmpuint (0, ==, default_setting);
 
-  g_assert_cmpuint (0, ==, records[0].is_default);
   g_assert_cmpuint (3, ==, records[0].setting);
   g_assert_cmpuint (297, ==, records[0].name_id);
 
+
+  count = 1;
+  g_assert_cmpuint (1, ==, hb_aat_get_feature_settings (face, 14, &default_setting,
+							0, &count, records));
+  g_assert_cmpuint (1, ==, count);
+  g_assert_cmpuint (HB_AAT_FEATURE_NO_DEFAULT_INDEX, ==, default_setting);
+
+  g_assert_cmpuint (8, ==, records[0].setting);
+  g_assert_cmpuint (308, ==, records[0].name_id);
+
+
   count = 100;
-  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (face, 32, &is_exclusive,
+  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (face, 32, NULL,
 							0, &count, records));
   g_assert_cmpuint (0, ==, count);
-  g_assert (!is_exclusive);
 
   hb_face_destroy (face);
 
   hb_face_t *sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
-  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (face, 100, &is_exclusive,
+  g_assert_cmpuint (0, ==, hb_aat_get_feature_settings (sbix, 100, NULL,
 							0, &count, records));
   hb_face_destroy (sbix);
 }
