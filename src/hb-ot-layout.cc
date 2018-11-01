@@ -37,10 +37,8 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-
-#include "hb-ot-layout-base-table.hh" // Just so we compile them; unused otherwise
-#include "hb-ot-layout-jstf-table.hh" // Just so we compile them; unused otherwise
-
+#include "hb-ot-layout-base-table.hh"
+#include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 
@@ -92,6 +90,11 @@ static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 {
   return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
+}
+static const OT::BASE& _get_base (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
+  return *hb_ot_face_data (face)->BASE;
 }
 
 
@@ -1410,4 +1413,23 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 				const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   apply_string<GSUBProxy> (c, lookup, accel);
+}
+
+
+hb_bool_t
+hb_ot_layout_get_baseline (hb_font_t               *font,
+			   hb_ot_layout_baseline_t  baseline,
+			   hb_direction_t           direction,
+			   hb_script_t              script,
+			   hb_language_t            language,
+			   hb_codepoint_t          *glyph, /* IN/OUT.  May be NULL. */
+			   hb_position_t           *result /* OUT.     May be NULL. */)
+{
+  const OT::BASE& base = _get_base (font->face);
+  const OT::Axis& axis = base.get_axis (direction);
+  unsigned int base_index = axis.get_base_tag_index (baseline);
+  unsigned int script_index = axis.get_base_script_index (script);
+//   unsigned int lang_index = axis.get_lang_tag_index (language);
+  if (result) *result = axis.get_base_coord (script_index, base_index);
+  return true;
 }

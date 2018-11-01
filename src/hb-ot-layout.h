@@ -394,17 +394,33 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 /*
  * BASE
  */
-#if 0
 
-#define HB_OT_TAG_BASE_HANG HB_TAG('h','a','n','g')
-#define HB_OT_TAG_BASE_ICFB HB_TAG('i','c','f','b')
-#define HB_OT_TAG_BASE_ICFT HB_TAG('i','c','f','t')
-#define HB_OT_TAG_BASE_IDEO HB_TAG('i','d','e','o')
-#define HB_OT_TAG_BASE_IDTB HB_TAG('i','d','t','b')
-#define HB_OT_TAG_BASE_MATH HB_TAG('m','a','t','h')
-#define HB_OT_TAG_BASE_ROMN HB_TAG('r','o','m','n')
+/**
+ * hb_ot_layout_baseline_t:
+ *
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
+ *
+ * Since: REPLACEME
+ */
+typedef enum {
+  HB_OT_LAYOUT_BASELINE_HANG = HB_TAG('h','a','n','g'),
+  HB_OT_LAYOUT_BASELINE_ICFB = HB_TAG('i','c','f','b'),
+  HB_OT_LAYOUT_BASELINE_ICFT = HB_TAG('i','c','f','t'),
+  HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
+  HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
+  HB_OT_LAYOUT_BASELINE_MATH  = HB_TAG('m','a','t','h'),
+  HB_OT_LAYOUT_BASELINE_ROMAN = HB_TAG('r','o','m','n')
+} hb_ot_layout_baseline_t;
 
-#endif
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_get_baseline (hb_font_t               *font,
+			   hb_ot_layout_baseline_t  baseline,
+			   hb_direction_t           direction,
+			   hb_script_t              script,
+			   hb_language_t            language,
+			   hb_codepoint_t          *glyph, /* IN/OUT.  May be NULL. */
+			   hb_position_t           *result /* OUT.     May be NULL. */);
 
 
 HB_END_DECLS

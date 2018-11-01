@@ -175,14 +175,14 @@ struct FeatMinMaxRecord
 
 struct MinMax
 {
-  inline unsigned int get_feature_tag_index (Tag featureTableTag) const
+  inline unsigned int get_feature_tag_index (hb_ot_layout_baseline_t baseline) const
   {
     /* TODO bsearch */
     unsigned int count = featMinMaxRecords.len;
     for (unsigned int i = 0; i < count; i++)
     {
       Tag tag = featMinMaxRecords[i].get_tag ();
-      int cmp = tag.cmp(featureTableTag);
+      int cmp = tag.cmp (baseline);
       if (cmp == 0) return i;
       if (cmp > 0)  return NOT_INDEXED;
     }
@@ -213,15 +213,18 @@ struct MinMax
   }
 
   protected:
-  OffsetTo<BaseCoord>	minCoord;	/* Offset to BaseCoord table that defines
-					 * minimum extent value, from the beginning
-					 * of MinMax table (may be NULL) */
-  OffsetTo<BaseCoord>	maxCoord;	/* Offset to BaseCoord table that defines
-					 * maximum extent value, from the beginning
-					 * of MinMax table (may be NULL) */
+  OffsetTo<BaseCoord>
+		minCoord;	/* Offset to BaseCoord table that defines
+				 * minimum extent value, from the beginning
+				 * of MinMax table (may be NULL) */
+  OffsetTo<BaseCoord>
+		maxCoord;	/* Offset to BaseCoord table that defines
+				 * maximum extent value, from the beginning
+				 * of MinMax table (may be NULL) */
   ArrayOf<FeatMinMaxRecord>
-		featMinMaxRecords;	/* Array of FeatMinMaxRecords, in alphabetical
-					 * order by featureTableTag */
+		featMinMaxRecords;
+				/* Array of FeatMinMaxRecords, in alphabetical
+				 * order by featureTableTag */
   public:
   DEFINE_SIZE_ARRAY (6, featMinMaxRecords);
 };
@@ -229,11 +232,20 @@ struct MinMax
 /* TODO... */
 struct BaseLangSysRecord
 {
-  inline const Tag& get_tag(void) const
+   static int cmp (const void *key_, const void *entry_)
+  {
+    hb_tag_t key = * (hb_tag_t *) key_;
+    const BaseLangSysRecord &entry = * (const BaseLangSysRecord *) entry_;
+    return key < (unsigned int) entry.baseLangSysTag ? -1 :
+	   key > (unsigned int) entry.baseLangSysTag ? 1 :
+	   0;
+  }
+
+  inline const Tag get_tag(void) const
   { return baseLangSysTag; }
 
-  inline unsigned int get_feature_tag_index (Tag featureTableTag) const
-  { return (this+minMax).get_feature_tag_index( featureTableTag); }
+  inline unsigned int get_feature_tag_index (hb_ot_layout_baseline_t baseline) const
+  { return (this+minMax).get_feature_tag_index(baseline); }
 
   inline int get_min_value (unsigned int featureTableTagIndex) const
   { return (this+minMax).get_min_value( featureTableTagIndex); }
@@ -262,9 +274,7 @@ struct BaseValues
   { return defaultIndex; }
 
   inline int get_base_coord (unsigned int baselineTagIndex) const
-  {
-    return (this+baseCoords[baselineTagIndex]).get_coord ();
-  }
+  { return (this+baseCoords[baselineTagIndex]).get_coord (); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -282,31 +292,19 @@ struct BaseValues
 
 struct BaseScript {
 
-  inline unsigned int get_lang_tag_index (Tag baseLangSysTag) const
+  inline unsigned int get_lang_tag_index (hb_tag_t language_tag) const
   {
-    /* XXX bsearch */
-    Tag tag;
-    int cmp;
-    unsigned int count = baseLangSysRecords.len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      tag = baseLangSysRecords[i].get_tag ();
-      // taking advantage of alphabetical order
-      cmp = tag.cmp(baseLangSysTag);
-      if (cmp == 0) return i;
-      if (cmp > 0)  return NOT_INDEXED;
-    }
-    return NOT_INDEXED;
+    return 0; /* XXX: Not implemented yet */
   }
 
-  inline unsigned int get_feature_tag_index (unsigned int baseLangSysIndex, Tag featureTableTag) const
+  inline unsigned int get_feature_tag_index (unsigned int language_index, hb_ot_layout_baseline_t baseline) const
   {
-    if (baseLangSysIndex == NOT_INDEXED)
+    if (language_index == NOT_INDEXED)
     {
       if (unlikely(defaultMinMax)) return NOT_INDEXED;
-      return (this+defaultMinMax).get_feature_tag_index (featureTableTag);
+      return (this+defaultMinMax).get_feature_tag_index (baseline);
     }
-    return baseLangSysRecords[baseLangSysIndex].get_feature_tag_index (featureTableTag);
+    return baseLangSysRecords[language_index].get_feature_tag_index (baseline);
   }
 
   inline int get_min_value (unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
@@ -339,12 +337,15 @@ struct BaseScript {
   }
 
   protected:
-  OffsetTo<BaseValues>		baseValues;
-  OffsetTo<MinMax>		defaultMinMax;
-  ArrayOf<BaseLangSysRecord>	baseLangSysRecords;
+  OffsetTo<BaseValues>
+		baseValues;
+  OffsetTo<MinMax>
+		defaultMinMax;
+  ArrayOf<BaseLangSysRecord>
+		baseLangSysRecords;
 
   public:
-    DEFINE_SIZE_ARRAY (6, baseLangSysRecords);
+  DEFINE_SIZE_ARRAY (6, baseLangSysRecords);
 };
 
 
@@ -356,20 +357,20 @@ struct BaseScriptRecord {
   inline unsigned int get_default_base_tag_index(void) const
   { return (this+baseScript).get_default_base_tag_index (); }
 
-  inline int get_base_coord(unsigned int baselineTagIndex) const
-  { return (this+baseScript).get_base_coord (baselineTagIndex); }
+  inline int get_base_coord(unsigned int baseline_index) const
+  { return (this+baseScript).get_base_coord (baseline_index); }
 
-  inline unsigned int get_lang_tag_index (Tag baseLangSysTag) const
-  { return (this+baseScript).get_lang_tag_index (baseLangSysTag); }
+  inline unsigned int get_lang_tag_index (hb_tag_t language_tag) const
+  { return (this+baseScript).get_lang_tag_index (language_tag); }
 
-  inline unsigned int get_feature_tag_index (unsigned int baseLangSysIndex, Tag featureTableTag) const
-  { return (this+baseScript).get_feature_tag_index (baseLangSysIndex, featureTableTag); }
+  inline unsigned int get_feature_tag_index (unsigned int language_index, hb_ot_layout_baseline_t baseline) const
+  { return (this+baseScript).get_feature_tag_index (language_index, baseline); }
 
-  inline int get_max_value (unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return (this+baseScript).get_max_value (baseLangSysIndex, featureTableTagIndex); }
+  inline int get_max_value (unsigned int language_index, unsigned int tag_index) const
+  { return (this+baseScript).get_max_value (language_index, tag_index); }
 
-  inline int get_min_value (unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  { return (this+baseScript).get_min_value (baseLangSysIndex, featureTableTagIndex); }
+  inline int get_min_value (unsigned int language_index, unsigned int tag_index) const
+  { return (this+baseScript).get_min_value (language_index, tag_index); }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -386,136 +387,58 @@ struct BaseScriptRecord {
     DEFINE_SIZE_STATIC (6);
 };
 
-struct BaseScriptList {
-
-  inline unsigned int get_base_script_index (Tag baseScriptTag) const
-  {
-    /* XXX bsearch? */
-    unsigned int count = baseScriptRecords.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (baseScriptRecords[i].get_tag() == baseScriptTag)
-        return i;
-    return NOT_INDEXED;
-  }
-
-  inline unsigned int get_default_base_tag_index (unsigned int baseScriptIndex) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_default_base_tag_index();
-  }
-
-  inline int get_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_base_coord(baselineTagIndex);
-  }
-
-  inline unsigned int get_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_lang_tag_index(baseLangSysTag);
-  }
-
-  inline unsigned int get_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_feature_tag_index(baseLangSysIndex, featureTableTag);
-  }
-
-  inline int get_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_max_value(baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline int get_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return baseScriptRecords[baseScriptIndex].get_min_value(baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  baseScriptRecords.sanitize (c, this));
-  }
-
-  protected:
-  ArrayOf<BaseScriptRecord>	baseScriptRecords;
-
-  public:
-  DEFINE_SIZE_ARRAY (2, baseScriptRecords);
-};
-
-struct BaseTagList
-{
-  inline unsigned int get_tag_index (Tag baselineTag) const
-  {
-    /* TODO bsearch? */
-    unsigned int count = baselineTags.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (baselineTags[i] == baselineTag)
-        return i;
-    return NOT_INDEXED;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
-  }
-
-  protected:
-  SortedArrayOf<Tag>  baselineTags;
-
-  public:
-  DEFINE_SIZE_ARRAY (2, baselineTags);
-};
-
 struct Axis
 {
+  inline unsigned int get_base_tag_index (hb_ot_layout_baseline_t baseline) const
+  { return (this+baseTagList).bsearch (baseline); }
 
-  inline unsigned int get_base_tag_index (Tag baselineTag) const
+  inline unsigned int get_default_base_tag_index (unsigned int script_index) const
+  { return (this+baseScriptList)[script_index].get_default_base_tag_index(); }
+
+  inline int get_base_coord(unsigned int script_index, unsigned int baselineTagIndex) const
+  { return (this+baseScriptList)[script_index].get_base_coord(baselineTagIndex); }
+
+  inline unsigned int get_lang_tag_index (unsigned int script_index, hb_tag_t language_tag) const
+  { return (this+baseScriptList)[script_index].get_lang_tag_index (language_tag); }
+
+  inline unsigned int get_feature_tag_index (unsigned int script_index, unsigned int language_index, hb_ot_layout_baseline_t baseline) const
   {
-    return (this+baseTagList).get_tag_index(baselineTag);
+    return (this+baseScriptList)[script_index].get_feature_tag_index(language_index, baseline);
   }
 
-  inline unsigned int get_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
+  inline int get_max_value (unsigned int script_index, unsigned int baseLangSysIndex, unsigned int baseline_index) const
   {
-    return (this+baseScriptList).get_default_base_tag_index(baseScriptIndex);
+    return (this+baseScriptList)[script_index].get_max_value(baseLangSysIndex, baseline_index);
   }
 
-  inline int get_base_coord (unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
+  inline int get_min_value (unsigned int script_index, unsigned int baseLangSysIndex, unsigned int baseline_index) const
   {
-    return (this+baseScriptList).get_base_coord(baseScriptIndex, baselineTagIndex);
+    return (this+baseScriptList)[script_index].get_min_value(baseLangSysIndex, baseline_index);
   }
 
-  inline unsigned int get_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
+  inline unsigned int get_base_script_index (hb_script_t script) const
   {
-    return (this+baseScriptList).get_lang_tag_index(baseScriptIndex, baseLangSysTag);
-  }
-
-  inline unsigned int get_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  {
-    return (this+baseScriptList).get_feature_tag_index(baseScriptIndex, baseLangSysIndex, featureTableTag);
-  }
-
-  inline int get_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+baseScriptList).get_max_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline int get_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+baseScriptList).get_min_value(baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
+    const ArrayOf<BaseScriptRecord>& script_list = this+baseScriptList;
+    /* XXX bsearch? */
+    for (unsigned int i = 0; i < script_list.len; i++)
+      if (script_list[i].get_tag () == script)
+        return i;
+    return NOT_INDEXED;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  baseTagList.sanitize (c, this) &&
-		  baseScriptList.sanitize (c, this));
+		  (this+baseTagList).sanitize (c) &&
+		  (this+baseScriptList).sanitize (c, this));
   }
 
   protected:
-  OffsetTo<BaseTagList>		baseTagList;
-  OffsetTo<BaseScriptList>	baseScriptList;
+  OffsetTo<SortedArrayOf<Tag> >
+		baseTagList;
+  OffsetTo<ArrayOf<BaseScriptRecord> >
+		baseScriptList;
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -529,75 +452,8 @@ struct BASE
 
   inline bool has_h_axis(void) { return hAxis != 0; }
 
-  inline unsigned int get_h_base_tag_index (Tag baselineTag) const
-  {
-    return (this+hAxis).get_base_tag_index(baselineTag);
-  }
-
-  inline unsigned int get_h_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  {
-    return (this+hAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
-  }
-
-  inline int get_h_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
-  {
-    return (this+hAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
-  }
-
-  inline unsigned int get_v_base_tag_index(Tag baselineTag) const
-  {
-    return (this+vAxis).get_base_tag_index(baselineTag);
-  }
-
-  inline unsigned int get_v_default_base_tag_index_for_script_index (unsigned int baseScriptIndex) const
-  {
-    return (this+vAxis).get_default_base_tag_index_for_script_index(baseScriptIndex);
-  }
-
-  inline int get_v_base_coord(unsigned int baseScriptIndex, unsigned int baselineTagIndex) const
-  {
-    return (this+vAxis).get_base_coord(baseScriptIndex, baselineTagIndex);
-  }
-
-  inline unsigned int get_h_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
-  {
-    return (this+hAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
-  }
-
-  inline unsigned int get_h_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  {
-    return (this+hAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
-  }
-
-  inline int get_h_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+hAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline int get_h_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+hAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline unsigned int get_v_lang_tag_index (unsigned int baseScriptIndex, Tag baseLangSysTag) const
-  {
-    return (this+vAxis).get_lang_tag_index (baseScriptIndex, baseLangSysTag);
-  }
-
-  inline unsigned int get_v_feature_tag_index (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, Tag featureTableTag) const
-  {
-    return (this+vAxis).get_feature_tag_index (baseScriptIndex, baseLangSysIndex, featureTableTag);
-  }
-
-  inline int get_v_max_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+vAxis).get_max_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
-  }
-
-  inline int get_v_min_value (unsigned int baseScriptIndex, unsigned int baseLangSysIndex, unsigned int featureTableTagIndex) const
-  {
-    return (this+vAxis).get_min_value (baseScriptIndex, baseLangSysIndex, featureTableTagIndex);
-  }
+  inline const Axis& get_axis (hb_direction_t direction) const
+  { return HB_DIRECTION_IS_HORIZONTAL (direction) ? (this+hAxis) : (this+vAxis); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
