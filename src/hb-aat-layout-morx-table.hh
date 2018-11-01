@@ -949,9 +949,9 @@ struct Chain
       unsigned int count = featureCount;
       for (unsigned i = 0; i < count; i++)
       {
-        const Feature &feature = featureZ[i];
-        uint16_t type = feature.featureType;
-	uint16_t setting = feature.featureSetting;
+	const Feature &feature = featureZ[i];
+	hb_aat_feature_type_t type = feature.featureType;
+	hb_aat_feature_setting_t setting = feature.featureSetting;
       retry:
 	const hb_aat_map_builder_t::feature_info_t *info = map->features.bsearch (type);
 	if (info && info->setting == setting)

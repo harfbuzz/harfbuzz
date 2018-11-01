@@ -28,6 +28,7 @@
 #define HB_AAT_MAP_HH
 
 #include "hb.hh"
+#include "hb-aat-layout.h"
 
 
 struct hb_aat_map_t
@@ -65,8 +66,8 @@ struct hb_aat_map_builder_t
   public:
   struct feature_info_t
   {
-    uint16_t  type;
-    uint16_t  setting;
+    hb_aat_feature_type_t  type;
+    hb_aat_feature_setting_t  setting;
     unsigned  seq; /* For stable sorting only. */
 
     static int cmp (const void *pa, const void *pb)

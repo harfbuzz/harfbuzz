@@ -28,6 +28,7 @@ check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
 
 TEST_PROGS = \
+	test-aat-layout \
 	test-baseline \
 	test-blob \
 	test-buffer \

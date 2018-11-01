@@ -189,6 +189,7 @@ HB_OT_headers = \
 	hb-ot-name.h \
 	hb-ot-shape.h \
 	hb-ot-var.h \
+	hb-aat-layout.h \
 	$(NULL)
 
 # Optional Sources and Headers with external deps

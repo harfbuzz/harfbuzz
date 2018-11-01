@@ -1,5 +1,6 @@
 /*
  * Copyright © 2017  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -27,6 +28,7 @@
 #include "hb-open-type.hh"
 
 #include "hb-ot-face.hh"
+#include "hb-aat-layout.h"
 #include "hb-aat-layout.hh"
 #include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-bsln-table.hh" // Just so we compile it; unused otherwise.
@@ -167,6 +169,12 @@ AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_,
   ankr_table = ankr_table_;
   ankr_end = ankr_end_;
 }
+static inline const AAT::feat&
+_get_feat (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::feat);
+  return *(hb_ot_face_data (face)->feat.get ());
+}
 
 
 /*
@@ -296,4 +304,29 @@ _hb_aat_language_get (hb_face_t *face,
 		      unsigned int i)
 {
   return face->table.ltag->get_language (i);
+}
+
+/**
+ * hb_aat_get_feature_settings:
+ * @face:           a font face.
+ * @identifier:     aat feature id you are querying.
+ * @is_exclusive:   (out):    is only one of the features can be enabled.
+ * @start_offset:   start offset, if you are iterating
+ * @records_count:  (inout): gets input buffer size, puts number of filled one
+ * @records_buffer: (out):  buffer of records
+ *
+ * Returns: Total number of records available for the feature.
+ *
+ * Since: REPLACEME
+ */
+unsigned int
+hb_aat_get_feature_settings (hb_face_t                      *face,
+			     hb_aat_feature_type_t           identifier,
+			     hb_bool_t                      *is_exclusive,
+			     unsigned int                    start_offset,
+			     unsigned int                   *records_count, /* IN/OUT.  May be NULL. */
+			     hb_aat_feature_option_record_t *records_buffer /* OUT.     May be NULL. */)
+{
+  return _get_feat (face).get_settings (identifier, is_exclusive, start_offset,
+					records_count, records_buffer);
 }
