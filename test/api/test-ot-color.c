@@ -28,8 +28,6 @@
 #include "hb-test.h"
 
 #include <hb-ot.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 /* Unit tests for hb-ot-color.h */
 
