@@ -60,7 +60,7 @@ struct FeatureName
 =======
   static int cmp (const void *key_, const void *entry_)
   {
-    hb_aat_feature_type_t key = * (hb_aat_feature_type_t *) key_;
+    hb_aat_layout_feature_type_t key = * (hb_aat_layout_feature_type_t *) key_;
     const FeatureName * entry = (const FeatureName *) entry_;
     return key < entry->feature ? -1 :
 	   key > entry->feature ? 1 :
@@ -85,10 +85,10 @@ struct FeatureName
 <<<<<<< HEAD
 =======
   inline unsigned int get_settings (const feat                     *feat,
-				    hb_aat_feature_setting_t       *default_setting,
+				    hb_aat_layout_feature_setting_t       *default_setting,
 				    unsigned int                    start_offset,
 				    unsigned int                   *selectors_count,
-				    hb_aat_feature_type_selector_t *selectors_buffer) const
+				    hb_aat_layout_feature_type_selector_t *selectors_buffer) const
   {
     bool exclusive = featureFlags & Exclusive;
     bool not_default = featureFlags & NotDefault;
@@ -109,7 +109,7 @@ struct FeatureName
       unsigned int index = not_default ? featureFlags & IndexMask : 0;
       if (exclusive && index < settings_count)
         *default_setting = settings[index].setting;
-      else *default_setting = HB_AAT_FEATURE_NO_DEFAULT_SETTING;
+      else *default_setting = HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED;
     }
     if (selectors_count) *selectors_count = len;
     return settings_count;
@@ -143,7 +143,7 @@ struct feat
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_feat;
 
-  inline const FeatureName& get_feature (hb_aat_feature_type_t key) const
+  inline const FeatureName& get_feature (hb_aat_layout_feature_type_t key) const
   {
     const FeatureName* feature = (FeatureName*) hb_bsearch (&key, &names,
 							    FeatureName::static_size,
@@ -153,11 +153,11 @@ struct feat
     return feature ? *feature : Null (FeatureName);
   }
 
-  inline unsigned int get_settings (hb_aat_feature_type_t           type,
-				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
-				    unsigned int                    start_offset,
-				    unsigned int                   *selectors_count, /* IN/OUT.  May be NULL. */
-				    hb_aat_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */) const
+  inline unsigned int get_settings (hb_aat_layout_feature_type_t           type,
+				    hb_aat_layout_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
+				    unsigned int                           start_offset,
+				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
+				    hb_aat_layout_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */) const
   {
     return get_feature (type).get_settings (this, default_setting,
 					    start_offset, selectors_count, selectors_buffer);

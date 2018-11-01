@@ -66,8 +66,8 @@ struct hb_aat_map_builder_t
   public:
   struct feature_info_t
   {
-    hb_aat_feature_type_t  type;
-    hb_aat_feature_setting_t  setting;
+    hb_aat_layout_feature_type_t  type;
+    hb_aat_layout_feature_setting_t  setting;
     unsigned  seq; /* For stable sorting only. */
 
     static int cmp (const void *pa, const void *pb)
