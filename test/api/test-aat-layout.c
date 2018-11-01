@@ -30,6 +30,23 @@
 
 /* Unit tests for hb-aat.h */
 
+static hb_face_t *face;
+static hb_face_t *sbix;
+
+static void
+test_aat_get_features (void)
+{
+  hb_aat_layout_feature_record_t records[3];
+  unsigned int record_count = 3;
+  g_assert_cmpuint (11, ==, hb_aat_layout_get_features (face, 0, &record_count, records));
+  g_assert_cmpuint (1, ==, records[0].feature);
+  g_assert_cmpuint (258, ==, records[0].name_id);
+  g_assert_cmpuint (3, ==, records[1].feature);
+  g_assert_cmpuint (261, ==, records[1].name_id);
+  g_assert_cmpuint (6, ==, records[2].feature);
+  g_assert_cmpuint (265, ==, records[2].name_id);
+}
+
 static void
 test_aat_get_feature_settings (void)
 {
@@ -37,10 +54,8 @@ test_aat_get_feature_settings (void)
   hb_aat_layout_feature_type_selector_t records[3];
   unsigned int count = 3;
 
-  hb_face_t *face = hb_test_open_font_file ("fonts/aat-feat.ttf");
-
-  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, 18, &default_setting,
-							0, &count, records));
+  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, (hb_aat_layout_feature_type_t) 18,
+							       &default_setting, 0, &count, records));
   g_assert_cmpuint (3, ==, count);
   g_assert_cmpuint (0, ==, default_setting);
 
@@ -54,8 +69,8 @@ test_aat_get_feature_settings (void)
   g_assert_cmpuint (296, ==, records[2].name_id);
 
   count = 3;
-  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, 18, &default_setting,
-							3, &count, records));
+  g_assert_cmpuint (4, ==, hb_aat_layout_get_feature_settings (face, (hb_aat_layout_feature_type_t) 18,
+							       &default_setting, 3, &count, records));
   g_assert_cmpuint (1, ==, count);
   g_assert_cmpuint (0, ==, default_setting);
 
@@ -64,8 +79,8 @@ test_aat_get_feature_settings (void)
 
 
   count = 1;
-  g_assert_cmpuint (1, ==, hb_aat_layout_get_feature_settings (face, 14, &default_setting,
-							0, &count, records));
+  g_assert_cmpuint (1, ==, hb_aat_layout_get_feature_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,
+							       &default_setting, 0, &count, records));
   g_assert_cmpuint (1, ==, count);
   g_assert_cmpuint (HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED, ==, default_setting);
 
@@ -74,16 +89,12 @@ test_aat_get_feature_settings (void)
 
 
   count = 100;
-  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (face, 32, NULL,
-							0, &count, records));
+  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED,
+							       NULL, 0, &count, records));
   g_assert_cmpuint (0, ==, count);
 
-  hb_face_destroy (face);
-
-  hb_face_t *sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
-  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (sbix, 100, NULL,
-							0, &count, records));
-  hb_face_destroy (sbix);
+  g_assert_cmpuint (0, ==, hb_aat_layout_get_feature_settings (sbix, HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED, NULL,
+							       0, &count, records));
 }
 
 int
@@ -91,7 +102,13 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
+  hb_test_add (test_aat_get_features);
   hb_test_add (test_aat_get_feature_settings);
 
-  return hb_test_run();
+  face = hb_test_open_font_file ("fonts/aat-feat.ttf");
+  sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
+  unsigned int status = hb_test_run ();
+  hb_face_destroy (sbix);
+  hb_face_destroy (face);
+  return status;
 }

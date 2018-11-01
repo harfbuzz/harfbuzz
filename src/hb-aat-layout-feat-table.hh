@@ -123,6 +123,11 @@ struct FeatureName
 			  (base+settingTable).sanitize (c, nSettings)));
   }
 
+  inline hb_aat_layout_feature_type_t get_feature () const
+  { return (hb_aat_layout_feature_type_t) (unsigned int) feature; }
+
+  inline unsigned int get_name_id () const { return nameIndex; }
+
   protected:
   HBUINT16	feature;	/* Feature type. */
   HBUINT16	nSettings;	/* The number of records in the setting name array. */
@@ -143,14 +148,21 @@ struct feat
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_feat;
 
-  inline const FeatureName& get_feature (hb_aat_layout_feature_type_t key) const
+  inline unsigned int get_features (unsigned int                    start_offset,
+				    unsigned int                   *record_count,
+				    hb_aat_layout_feature_record_t *record_buffer) const
   {
-    const FeatureName* feature = (FeatureName*) hb_bsearch (&key, &names,
-							    FeatureName::static_size,
-							    sizeof (FeatureName),
-							    FeatureName::cmp);
-
-    return feature ? *feature : Null (FeatureName);
+    unsigned int feature_count = featureNameCount;
+    if (record_count)
+    {
+      unsigned int len = MIN (feature_count - start_offset, *record_count);
+      for (unsigned int i = 0; i < len; i++)
+      {
+	record_buffer[i].feature = names[i + start_offset].get_feature ();
+	record_buffer[i].name_id = names[i + start_offset].get_name_id ();
+      }
+    }
+    return featureNameCount;
   }
 
   inline unsigned int get_settings (hb_aat_layout_feature_type_t           type,
@@ -159,8 +171,14 @@ struct feat
 				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
 				    hb_aat_layout_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */) const
   {
-    return get_feature (type).get_settings (this, default_setting,
-					    start_offset, selectors_count, selectors_buffer);
+    const FeatureName* feature = (FeatureName*) hb_bsearch (&type, &names,
+							    FeatureName::static_size,
+							    sizeof (FeatureName),
+							    FeatureName::cmp);
+
+    return (feature ? *feature : Null (FeatureName)).get_settings (this, default_setting,
+								   start_offset, selectors_count,
+								   selectors_buffer);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

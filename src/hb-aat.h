@@ -61,6 +61,25 @@ typedef enum
 } hb_aat_layout_feature_type_t;
 
 /**
+ * hb_aat_layout_feature_record_t:
+ *
+ * Feature record and
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_aat_layout_feature_record_t
+{
+  hb_aat_layout_feature_type_t feature;
+  hb_ot_name_id_t name_id;
+} hb_aat_layout_feature_record_t;
+
+HB_EXTERN unsigned int
+hb_aat_layout_get_features (hb_face_t                      *face,
+			    unsigned int                    start_offset,
+			    unsigned int                   *record_count, /* IN/OUT.  May be NULL. */
+			    hb_aat_layout_feature_record_t *record_buffer /* OUT.     May be NULL. */);
+
+/**
  * hb_aat_feature_t:
  *
  * Feature value
@@ -72,7 +91,7 @@ typedef unsigned int hb_aat_layout_feature_setting_t;
 /**
  * hb_aat_layout_feature_type_selector_t:
  *
- * Feature type record
+ * Feature type selector
  *
  * Since: REPLACEME
  **/
@@ -84,7 +103,7 @@ typedef struct hb_aat_layout_feature_type_selector_t
 
 HB_EXTERN unsigned int
 hb_aat_layout_get_feature_settings (hb_face_t                             *face,
-				    hb_aat_layout_feature_type_t           type,
+				    hb_aat_layout_feature_type_t           feature,
 				    hb_aat_layout_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                           start_offset,
 				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
