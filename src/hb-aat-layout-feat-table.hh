@@ -87,7 +87,7 @@ struct FeatureName
 				    hb_aat_feature_setting_t       *default_setting,
 				    unsigned int                    start_offset,
 				    unsigned int                   *records_count,
-				    hb_aat_feature_option_record_t *records_buffer) const
+				    hb_aat_feature_type_selector_t *records_buffer) const
   {
     bool exclusive = featureFlags & Exclusive;
     bool not_default = featureFlags & NotDefault;
@@ -105,12 +105,10 @@ struct FeatureName
     }
     if (default_setting)
     {
-      if (exclusive)
-      {
-	if (settings_count && !not_default) *default_setting = settings[0].setting;
-	else if (not_default) *default_setting = featureFlags & IndexMask;
-      }
-      else *default_setting = HB_AAT_FEATURE_NO_DEFAULT_INDEX;
+      unsigned int index = not_default ? featureFlags & IndexMask : 0;
+      if (exclusive && index < settings_count)
+        *default_setting = settings[index].setting;
+      else *default_setting = HB_AAT_FEATURE_NO_DEFAULT_SETTING;
     }
     if (records_count) *records_count = len;
     return settings_count;
@@ -158,7 +156,7 @@ struct feat
 				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                    start_offset,
 				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-				    hb_aat_feature_option_record_t *records_buffer) const
+				    hb_aat_feature_type_selector_t *records_buffer) const
   {
     return get_feature (type).get_settings (this, default_setting,
 					    start_offset, records_count, records_buffer);

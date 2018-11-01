@@ -309,14 +309,16 @@ _hb_aat_language_get (hb_face_t *face,
 /**
  * hb_aat_get_feature_settings:
  * @face:            a font face.
- * @identifier:      aat feature id you are querying.
- * @default_setting: (out): default value for the type. If it is HB_AAT_FEATURE_NO_DEFAULT_INDEX
- *                          means non is default and it is not exclusive also.
+ * @identifier:      AAT feature id you are querying, for example 1 for
+ *                   "Ligatures" feature, 37 for the "Lower Case" feature,
+ *                   38 for the "Upper Case" feature, etc.
+ * @default_setting: (out): default value for the type. If it is HB_AAT_FEATURE_NO_DEFAULT_SETTING
+ *                          means none is selected as default and the feature is not exclusive.
  * @start_offset:    start offset, if you are iterating
  * @records_count:   (inout): gets input buffer size, puts number of filled one
  * @records_buffer:  (out):  buffer of records
  *
- * Returns: Total number of records available for the feature.
+ * Returns: Total number of feature selector records available for the feature.
  *
  * Since: REPLACEME
  */
@@ -326,7 +328,7 @@ hb_aat_get_feature_settings (hb_face_t                      *face,
 			     hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 			     unsigned int                    start_offset,
 			     unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-			     hb_aat_feature_option_record_t *records_buffer   /* OUT.     May be NULL. */)
+			     hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */)
 {
   return _get_feat (face).get_settings (identifier, default_setting,
 					start_offset, records_count, records_buffer);
