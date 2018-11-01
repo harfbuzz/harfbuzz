@@ -75,8 +75,8 @@ hb_aat_layout_get_feature_settings (hb_face_t                      *face,
 				    hb_aat_feature_type_t           type,
 				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                    start_offset,
-				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-				    hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */);
+				    unsigned int                   *selectors_count, /* IN/OUT.  May be NULL. */
+				    hb_aat_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */);
 
 HB_END_DECLS
 
