@@ -41,6 +41,7 @@
  * when moving to this file. */
 static const hb_aat_feature_mapping_t feature_mappings[] =
 {
+  {HB_TAG ('a','f','r','c'),	11/*kFractionsType*/,			1/*kVerticalFractionsSelector*/,		0/*kNoFractionsSelector*/},
   {HB_TAG ('c','2','p','c'),	38/*kUpperCaseType*/,			2/*kUpperCasePetiteCapsSelector*/,		0/*kDefaultUpperCaseSelector*/},
   {HB_TAG ('c','2','s','c'),	38/*kUpperCaseType*/,			1/*kUpperCaseSmallCapsSelector*/,		0/*kDefaultUpperCaseSelector*/},
   {HB_TAG ('c','a','l','t'),	36/*kContextualAlternatesType*/,	0/*kContextualAlternatesOnSelector*/,		1/*kContextualAlternatesOffSelector*/},
