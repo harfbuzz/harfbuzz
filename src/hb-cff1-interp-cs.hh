@@ -51,15 +51,18 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     SUPER::fini ();
   }
 
-  inline void set_width (void)
+  inline void set_width (bool has_width_)
   {
     if (likely (!processed_width && (SUPER::argStack.get_count () > 0)))
     {
-      width = SUPER::argStack[0];
-      has_width = true;
-      processed_width = true;
-      arg_start = 1;
+      if (has_width_)
+      {
+        width = SUPER::argStack[0];
+        has_width = true;
+        arg_start = 1;
+      }
     }
+    processed_width = true;
   }
 
   inline void clear_args (void)
@@ -107,9 +110,9 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
           has_width = (env.argStack.get_count () > 2);
           break;
       }
+      env.set_width (has_width);
       if (has_width)
       {
-        env.set_width ();
         OPSET::process_width (env, param);
       }
     }
