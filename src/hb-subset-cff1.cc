@@ -443,8 +443,8 @@ struct cff_subset_plan {
     topdict_mod.fini ();
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
-    subset_charstrings.fini ();
-    subset_globalsubrs.fini ();
+    subset_charstrings.fini_deep ();
+    subset_globalsubrs.fini_deep ();
     subset_localsubrs.fini_deep ();
     fontdicts_mod.fini ();
     subset_enc_code_ranges.fini ();

@@ -129,16 +129,15 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
   static inline void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     /* flatten the default values */
+    StrEncoder  encoder (param.flatStr);
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const BlendArg &arg1 = env.argStack[i + j];
       assert (arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
               (arg1.deltas.len == env.get_region_count ()));
-      StrEncoder  encoder (param.flatStr);
       encoder.encode_num (arg1);
     }
     /* flatten deltas for each value */
-    StrEncoder  encoder (param.flatStr);
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const BlendArg &arg1 = env.argStack[i + j];
