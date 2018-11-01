@@ -315,8 +315,8 @@ _hb_aat_language_get (hb_face_t *face,
  * @default_setting: (out): default value for the type. If it is HB_AAT_FEATURE_NO_DEFAULT_SETTING
  *                          means none is selected as default and the feature is not exclusive.
  * @start_offset:    start offset, if you are iterating
- * @records_count:   (inout): gets input buffer size, puts number of filled one
- * @records_buffer:  (out):  buffer of records
+ * @selectors_count: (inout): gets input buffer size, puts number of filled one
+ * @selectors_buffer:  (out):  buffer of records
  *
  * Returns: Total number of feature selector records available for the feature.
  *
@@ -327,9 +327,9 @@ hb_aat_layout_get_feature_settings (hb_face_t                      *face,
 				    hb_aat_feature_type_t           identifier,
 				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                    start_offset,
-				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-				    hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */)
+				    unsigned int                   *selectors_count, /* IN/OUT.  May be NULL. */
+				    hb_aat_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */)
 {
   return _get_feat (face).get_settings (identifier, default_setting,
-					start_offset, records_count, records_buffer);
+					start_offset, selectors_count, selectors_buffer);
 }
