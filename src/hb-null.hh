@@ -87,7 +87,7 @@ template <typename Type>
 static inline Type& Crap (void) {
   static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
-  *obj = Null(Type);
+  memcpy (obj, &Null(Type), sizeof (*obj));
   return *obj;
 }
 #define Crap(Type) Crap<typename hb_remove_const<typename hb_remove_reference<Type>::value>::value>()
