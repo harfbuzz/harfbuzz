@@ -80,7 +80,8 @@ other_features[] =
 {
   /*
    * Other features.
-   * These features are applied all at once, after reordering.
+   * These features are applied all at once, after reordering and
+   * clearing syllables.
    */
   HB_TAG('a','b','v','s'),
   HB_TAG('b','l','w','s'),
@@ -120,6 +121,10 @@ static void
 reorder (const hb_ot_shape_plan_t *plan,
 	 hb_font_t *font,
 	 hb_buffer_t *buffer);
+static void
+clear_syllables (const hb_ot_shape_plan_t *plan,
+		 hb_font_t *font,
+		 hb_buffer_t *buffer);
 
 static void
 collect_features_use (hb_ot_shape_planner_t *plan)
@@ -148,6 +153,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
     map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
 
   map->add_gsub_pause (reorder);
+  map->add_gsub_pause (clear_syllables);
 
   /* "Topographical features" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (arabic_features); i++)
@@ -165,8 +171,6 @@ collect_features_use (hb_ot_shape_planner_t *plan)
 
 struct use_shape_plan_t
 {
-  ASSERT_POD ();
-
   hb_mask_t rphf_mask;
 
   arabic_shape_plan_t *arabic_plan;
@@ -373,7 +377,7 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-clear_substitution_flags (const hb_ot_shape_plan_t *plan,
+clear_substitution_flags (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			  hb_font_t *font HB_UNUSED,
 			  hb_buffer_t *buffer)
 {
@@ -385,7 +389,7 @@ clear_substitution_flags (const hb_ot_shape_plan_t *plan,
 
 static void
 record_rphf (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
@@ -407,8 +411,8 @@ record_rphf (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-record_pref (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+record_pref (const hb_ot_shape_plan_t *plan HB_UNUSED,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -559,17 +563,21 @@ reorder (const hb_ot_shape_plan_t *plan,
 {
   insert_dotted_circles (plan, font, buffer);
 
-  hb_glyph_info_t *info = buffer->info;
-
   foreach_syllable (buffer, start, end)
     reorder_syllable (buffer, start, end);
 
-  /* Zero syllables now... */
+  HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
+}
+
+static void
+clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		 hb_font_t *font HB_UNUSED,
+		 hb_buffer_t *buffer)
+{
+  hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     info[i].syllable() = 0;
-
-  HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
 }
 
 

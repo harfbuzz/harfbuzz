@@ -37,7 +37,7 @@ jobs:
       # not needed to be a framework but we like to test that also
       # TODO: wrong way of targeting iOS as it doesn't point to iOS headers thus building
       # CoreText support is not possible, after the fix feel free HB_IOS from CMake altogether
-      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_IOS=ON
+      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_SUBSET=OFF -DHB_BUILD_TESTS=OFF
       - run: cd build && xcodebuild -sdk iphoneos12.0 -configuration Release build -arch arm64
 
   distcheck:
@@ -120,7 +120,7 @@ jobs:
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CFLAGS="-Weverything -Wno-reserved-id-macro -Wno-conversion -Wno-padded -Wno-sign-conversion -Wno-cast-qual -Wno-documentation -Wno-documentation-unknown-command" CXXFLAGS="-Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-extra-semi -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
+      - run: CFLAGS="-Weverything -Wno-reserved-id-macro -Wno-conversion -Wno-padded -Wno-sign-conversion -Wno-cast-qual -Wno-documentation -Wno-documentation-unknown-command" CXXFLAGS="-Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
       - run: make -j32 CPPFLAGS="-Werror"
       - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
 

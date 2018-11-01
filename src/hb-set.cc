@@ -27,7 +27,16 @@
 #include "hb-set.hh"
 
 
-/* Public API */
+/**
+ * SECTION:hb-set
+ * @title: hb-set
+ * @short_description: Object representing a set of integers
+ * @include: hb.h
+ *
+ * Set objects represent a mathematical set of integer values.  They are
+ * used in non-shaping API to query certain set of characters or glyphs,
+ * or other integer values.
+ **/
 
 
 /**
@@ -391,7 +400,7 @@ hb_set_symmetric_difference (hb_set_t       *set,
  * Deprecated: 1.6.1
  **/
 void
-hb_set_invert (hb_set_t *set)
+hb_set_invert (hb_set_t *set HB_UNUSED)
 {
 }
 

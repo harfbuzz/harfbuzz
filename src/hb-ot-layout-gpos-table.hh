@@ -663,7 +663,7 @@ struct PairSet
     int min = 0, max = (int) count - 1;
     while (min <= max)
     {
-      int mid = (min + max) / 2;
+      int mid = ((unsigned int) min + (unsigned int) max) / 2;
       const PairValueRecord *record = &StructAtOffset<PairValueRecord> (&firstPairValueRecord, record_size * mid);
       hb_codepoint_t mid_x = record->secondGlyph;
       if (x < mid_x)
@@ -719,7 +719,7 @@ struct PairPosFormat1
   inline bool intersects (const hb_set_t *glyphs) const
   {
     unsigned int count = pairSet.len;
-    for (hb_auto_t<Coverage::Iter> iter (this+coverage); iter.more (); iter.next ())
+    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -1715,7 +1715,7 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 }
 
 void
-GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSED)
 {
   //_hb_buffer_assert_gsubgpos_vars (buffer);
 }

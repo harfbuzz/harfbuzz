@@ -60,7 +60,7 @@ test_script_tags_from_language (const char *s, const char *lang_s, hb_script_t s
 {
   hb_script_t tag;
   unsigned int count = 1;
-  hb_script_t t;
+  hb_tag_t t;
 
   g_test_message ("Testing script %c%c%c%c: script tag %s, language tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s, lang_s);
   tag = hb_tag_from_string (s, -1);
@@ -78,7 +78,7 @@ static void
 test_indic_tags (const char *s1, const char *s2, const char *s3, hb_script_t script)
 {
   hb_script_t tag1, tag2, tag3;
-  hb_script_t t[3];
+  hb_tag_t t[3];
   unsigned int count = 3;
 
   g_test_message ("Testing script %c%c%c%c: USE tag %s, new tag %s, old tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s1, s2, s3);
@@ -103,7 +103,7 @@ test_indic_tags (const char *s1, const char *s2, const char *s3, hb_script_t scr
 static void
 test_ot_tag_script_degenerate (void)
 {
-  hb_script_t t[2];
+  hb_tag_t t[2];
   unsigned int count = 2;
 
   g_assert_cmphex (HB_TAG_CHAR4 ("DFLT"), ==, HB_OT_TAG_DEFAULT_SCRIPT);

@@ -102,9 +102,6 @@ struct hb_ot_shape_planner_t
   HB_INTERNAL void compile (hb_ot_shape_plan_t &plan,
 			    const int          *coords,
 			    unsigned int        num_coords);
-
-  private:
-  HB_DISALLOW_COPY_AND_ASSIGN (hb_ot_shape_planner_t);
 };
 
 

@@ -228,6 +228,10 @@ struct CmapSubtableFormat4
 
   struct accelerator_t
   {
+    inline accelerator_t (void) {}
+    inline accelerator_t (const CmapSubtableFormat4 *subtable) { init (subtable); }
+    inline ~accelerator_t (void) { fini (); }
+
     inline void init (const CmapSubtableFormat4 *subtable)
     {
       segCount = subtable->segCountX2 / 2;
@@ -249,7 +253,7 @@ struct CmapSubtableFormat4
       unsigned int i;
       while (min <= max)
       {
-	int mid = (min + max) / 2;
+        int mid = ((unsigned int) min + (unsigned int) max) / 2;
 	if (codepoint < startCount[mid])
 	  max = mid - 1;
 	else if (codepoint > endCount[mid])
@@ -327,12 +331,12 @@ struct CmapSubtableFormat4
 
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
-    hb_auto_t<accelerator_t> accel (this);
+    accelerator_t accel (this);
     return accel.get_glyph_func (&accel, codepoint, glyph);
   }
   inline void collect_unicodes (hb_set_t *out) const
   {
-    hb_auto_t<accelerator_t> accel (this);
+    accelerator_t accel (this);
     accel.collect_unicodes (out);
   }
 
@@ -495,7 +499,7 @@ struct CmapSubtableLongSegmented
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    Supplier<CmapSubtableLongGroup> supplier (group_data.arrayZ(), group_data.len);
+    Supplier<CmapSubtableLongGroup> supplier (group_data, group_data.len);
     if (unlikely (!groups.serialize (c, supplier, group_data.len))) return_trace (false);
     return true;
   }
@@ -851,18 +855,6 @@ struct cmap
 
   struct subset_plan
   {
-    subset_plan(void)
-    {
-      format4_segments.init();
-      format12_groups.init();
-    }
-
-    ~subset_plan(void)
-    {
-      format4_segments.fini();
-      format12_groups.fini();
-    }
-
     inline size_t final_size() const
     {
       return 4 // header
@@ -871,9 +863,7 @@ struct cmap
           +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
-    // Format 4
     hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
-    // Format 12
     hb_vector_t<CmapSubtableLongGroup> format12_groups;
   };
 

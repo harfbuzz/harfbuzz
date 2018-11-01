@@ -92,7 +92,7 @@ struct maxp
     if (version.major == 1)
     {
       const maxpV1Tail &v1 = StructAfter<maxpV1Tail> (*this);
-      return v1.sanitize (c);
+      return_trace (v1.sanitize (c));
     }
     return_trace (likely (version.major == 0 && version.minor == 0x5000u));
   }
@@ -117,7 +117,7 @@ struct maxp
     return result;
   }
 
-  static inline void drop_hint_fields (hb_subset_plan_t *plan, maxp *maxp_prime)
+  static inline void drop_hint_fields (hb_subset_plan_t *plan HB_UNUSED, maxp *maxp_prime)
   {
     if (maxp_prime->version.major == 1)
     {

@@ -1,8 +1,6 @@
-<SECTION>
-<FILE>hb</FILE>
 <SUBSECTION Private>
 HB_H_IN
-HB_EXTERN
+HB_OT_H_IN
 </SECTION>
 
 <SECTION>
@@ -146,6 +144,10 @@ uint16_t
 uint32_t
 uint64_t
 uint8_t
+<SUBSECTION Private>
+HB_EXTERN
+HB_DEPRECATED
+HB_DEPRECATED_FOR
 </SECTION>
 
 <SECTION>
@@ -358,6 +360,7 @@ HB_GOBJECT_TYPE_FONT_FUNCS
 HB_GOBJECT_TYPE_GLYPH_FLAGS
 HB_GOBJECT_TYPE_MAP
 HB_GOBJECT_TYPE_MEMORY_MODE
+HB_GOBJECT_TYPE_OT_COLOR_PALETTE_FLAGS
 HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS
 HB_GOBJECT_TYPE_OT_MATH_CONSTANT
 HB_GOBJECT_TYPE_OT_MATH_GLYPH_PART
@@ -390,6 +393,7 @@ hb_gobject_font_get_type
 hb_gobject_glyph_flags_get_type
 hb_gobject_map_get_type
 hb_gobject_memory_mode_get_type
+hb_gobject_ot_color_palette_flags_get_type
 hb_gobject_ot_layout_glyph_class_get_type
 hb_gobject_ot_math_constant_get_type
 hb_gobject_ot_math_glyph_part_get_type
@@ -410,11 +414,6 @@ hb_gobject_set_get_type
 hb_gobject_user_data_key_get_type
 <SUBSECTION Private>
 HB_GOBJECT_H_IN
-</SECTION>
-
-<SECTION>
-<FILE>hb-gobject</FILE>
-
 </SECTION>
 
 <SECTION>
@@ -452,9 +451,27 @@ hb_map_t
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot</FILE>
-<SUBSECTION Private>
-HB_OT_H_IN
+<FILE>hb-ot-color</FILE>
+hb_color_t
+HB_COLOR
+hb_color_get_alpha
+hb_color_get_blue
+hb_color_get_green
+hb_color_get_red
+hb_ot_color_glyph_get_layers
+hb_ot_color_glyph_reference_png
+hb_ot_color_glyph_reference_svg
+hb_ot_color_has_layers
+hb_ot_color_has_palettes
+hb_ot_color_has_png
+hb_ot_color_has_svg
+hb_ot_color_layer_t
+hb_ot_color_palette_color_get_name_id
+hb_ot_color_palette_flags_t
+hb_ot_color_palette_get_colors
+hb_ot_color_palette_get_count
+hb_ot_color_palette_get_flags
+hb_ot_color_palette_get_name_id
 </SECTION>
 
 <SECTION>
@@ -463,16 +480,31 @@ hb_ot_font_set_funcs
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot-shape</FILE>
-hb_ot_shape_glyphs_closure
+<FILE>hb-ot-name</FILE>
+hb_ot_name_id_t
+HB_OT_NAME_ID_INVALID
+hb_ot_name_entry_t
+hb_ot_name_list_names
+hb_ot_name_get_utf16
+hb_ot_name_get_utf32
+hb_ot_name_get_utf8
 </SECTION>
 
 <SECTION>
 <FILE>hb-ot-layout</FILE>
+HB_OT_MAX_TAGS_PER_LANGUAGE
+HB_OT_MAX_TAGS_PER_SCRIPT
+HB_OT_TAG_DEFAULT_LANGUAGE
+HB_OT_TAG_DEFAULT_SCRIPT
+hb_ot_tag_to_language
+hb_ot_tag_to_script
+hb_ot_tags_from_script_and_language
+hb_ot_tags_to_script_and_language
 HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX
 HB_OT_LAYOUT_NO_FEATURE_INDEX
 HB_OT_LAYOUT_NO_SCRIPT_INDEX
 HB_OT_LAYOUT_NO_VARIATIONS_INDEX
+HB_OT_TAG_BASE
 HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
@@ -518,23 +550,6 @@ Xhb_ot_layout_lookup_substitute
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot-var</FILE>
-HB_OT_TAG_VAR_AXIS_ITALIC
-HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
-HB_OT_TAG_VAR_AXIS_SLANT
-HB_OT_TAG_VAR_AXIS_WEIGHT
-HB_OT_TAG_VAR_AXIS_WIDTH
-HB_OT_VAR_NO_AXIS_INDEX
-hb_ot_var_axis_t
-hb_ot_var_has_data
-hb_ot_var_find_axis
-hb_ot_var_get_axis_count
-hb_ot_var_get_axes
-hb_ot_var_normalize_variations
-hb_ot_var_normalize_coords
-</SECTION>
-
-<SECTION>
 <FILE>hb-ot-math</FILE>
 HB_OT_TAG_MATH
 HB_OT_MATH_SCRIPT
@@ -555,15 +570,25 @@ hb_ot_math_get_glyph_assembly
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot-tag</FILE>
-HB_OT_MAX_TAGS_PER_LANGUAGE
-HB_OT_MAX_TAGS_PER_SCRIPT
-HB_OT_TAG_DEFAULT_LANGUAGE
-HB_OT_TAG_DEFAULT_SCRIPT
-hb_ot_tag_to_language
-hb_ot_tag_to_script
-hb_ot_tags_from_script_and_language
-hb_ot_tags_to_script_and_language
+<FILE>hb-ot-shape</FILE>
+hb_ot_shape_glyphs_closure
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-var</FILE>
+HB_OT_TAG_VAR_AXIS_ITALIC
+HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
+HB_OT_TAG_VAR_AXIS_SLANT
+HB_OT_TAG_VAR_AXIS_WEIGHT
+HB_OT_TAG_VAR_AXIS_WIDTH
+HB_OT_VAR_NO_AXIS_INDEX
+hb_ot_var_axis_t
+hb_ot_var_has_data
+hb_ot_var_find_axis
+hb_ot_var_get_axis_count
+hb_ot_var_get_axes
+hb_ot_var_normalize_variations
+hb_ot_var_normalize_coords
 </SECTION>
 
 <SECTION>

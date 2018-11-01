@@ -23,12 +23,8 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb-static.cc"
-#include "hb-ot-color-cbdt-table.hh"
-#include "hb-ot-color-colr-table.hh"
-#include "hb-ot-color-cpal-table.hh"
-#include "hb-ot-color-sbix-table.hh"
-#include "hb-ot-color-svg-table.hh"
+#include "hb.h"
+#include "hb-ot.h"
 
 #include "hb-ft.h"
 
@@ -40,62 +36,104 @@
 #include <cairo-ft.h>
 #include <cairo-svg.h>
 
-#ifdef HAVE_GLIB
-#include <glib.h>
-#endif
 #include <stdlib.h>
 #include <stdio.h>
 
 static void
-cbdt_callback (const uint8_t* data, unsigned int length,
-	       unsigned int group, unsigned int gid)
+svg_dump (hb_face_t *face, unsigned int face_index)
 {
-  char output_path[255];
-  sprintf (output_path, "out/cbdt-%d-%d.png", group, gid);
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+
+  for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+  {
+    hb_blob_t *blob = hb_ot_color_glyph_reference_svg (face, glyph_id);
+
+    if (hb_blob_get_length (blob) == 0) continue;
+
+    unsigned int length;
+    const char *data = hb_blob_get_data (blob, &length);
+
+    char output_path[255];
+    sprintf (output_path, "out/svg-%d-%d.svg%s",
+	     glyph_id,
+	     face_index,
+	     // append "z" if the content is gzipped, https://stackoverflow.com/a/6059405
+	     (length > 2 && (data[0] == '\x1F') && (data[1] == '\x8B')) ? "z" : "");
+
+    FILE *f = fopen (output_path, "wb");
+    fwrite (data, 1, length, f);
+    fclose (f);
+
+    hb_blob_destroy (blob);
+  }
+}
+
+/* _png API is so easy to use unlike the below code, don't get confused */
+static void
+png_dump (hb_face_t *face, unsigned int face_index)
+{
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  hb_font_t *font = hb_font_create (face);
+
+  /* scans the font for strikes */
+  unsigned int sample_glyph_id;
+  /* we don't care about different strikes for different glyphs at this point */
+  for (sample_glyph_id = 0; sample_glyph_id < glyph_count; sample_glyph_id++)
+  {
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned int blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (blob_length != 0)
+      break;
+  }
+
+  unsigned int upem = hb_face_get_upem (face);
+  unsigned int blob_length = 0;
+  unsigned int strike = 0;
+  for (unsigned int ppem = 1; ppem < upem; ppem++)
+  {
+    hb_font_set_ppem (font, ppem, ppem);
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned int new_blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (new_blob_length != blob_length)
+    {
+      for (unsigned int glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+      {
+	hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph_id);
+
+	if (hb_blob_get_length (blob) == 0) continue;
+
+	unsigned int length;
+	const char *data = hb_blob_get_data (blob, &length);
+
+	char output_path[255];
+	sprintf (output_path, "out/png-%d-%d-%d.png", glyph_id, strike, face_index);
+
+	FILE *f = fopen (output_path, "wb");
+	fwrite (data, 1, length, f);
+	fclose (f);
+
+	hb_blob_destroy (blob);
+      }
+
+      strike++;
+      blob_length = new_blob_length;
+    }
+  }
+
+  hb_font_destroy (font);
 }
 
 static void
-sbix_callback (const uint8_t* data, unsigned int length,
-	       unsigned int group, unsigned int gid)
-{
-  char output_path[255];
-  sprintf (output_path, "out/sbix-%d-%d.png", group, gid);
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
-}
-
-static void
-svg_callback (const uint8_t* data, unsigned int length,
-	      unsigned int start_glyph, unsigned int end_glyph)
-{
-  char output_path[255];
-  if (start_glyph == end_glyph)
-    sprintf (output_path, "out/svg-%d.svg", start_glyph);
-  else
-    sprintf (output_path, "out/svg-%d-%d.svg", start_glyph, end_glyph);
-
-  // append "z" if the content is gzipped
-  if ((data[0] == 0x1F) && (data[1] == 0x8B))
-    strcat (output_path, "z");
-
-  FILE *f = fopen (output_path, "wb");
-  fwrite (data, 1, length, f);
-  fclose (f);
-}
-
-static void
-colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
+layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int face_index)
 {
   unsigned int upem = hb_face_get_upem (face);
 
   unsigned glyph_count = hb_face_get_glyph_count (face);
   for (hb_codepoint_t gid = 0; gid < glyph_count; ++gid)
   {
-    unsigned int num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
+    unsigned int num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, NULL, NULL);
     if (!num_layers)
       continue;
 
@@ -132,7 +170,7 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
       for (unsigned int palette = 0; palette < palette_count; palette++) {
 	char output_path[255];
 
-	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
+	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, NULL, NULL);
 	if (!num_colors)
 	  continue;
 
@@ -140,11 +178,7 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 	hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
 	if (num_colors)
 	{
-	  // If we have more than one palette, use a simpler naming
-	  if (palette_count == 1)
-	    sprintf (output_path, "out/colr-%d.svg", gid);
-	  else
-	    sprintf (output_path, "out/colr-%d-%d.svg", gid, palette);
+	  sprintf (output_path, "out/colr-%d-%d-%d.svg", gid, palette, face_index);
 
 	  cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
 	  cairo_t *cr = cairo_create (surface);
@@ -182,10 +216,8 @@ colr_cpal_rendering (hb_face_t *face, cairo_font_face_t *cairo_face)
 
 static void
 dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
-	     unsigned int num_glyphs)
+	     unsigned int num_glyphs, unsigned int face_index)
 {
-  // Dump every glyph available on the font
-  return; // disabled for now
   for (unsigned int i = 0; i < num_glyphs; ++i)
   {
     cairo_text_extents_t extents;
@@ -213,7 +245,7 @@ dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
     // Render
     {
       char output_path[255];
-      sprintf (output_path, "out/%d.svg", i);
+      sprintf (output_path, "out/%d-%d.svg", face_index, i);
       cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
       cairo_t *cr = cairo_create (surface);
       cairo_set_font_face (cr, cairo_face);
@@ -238,15 +270,15 @@ main (int argc, char **argv)
   }
 
 
-  FILE *font_name_file = fopen ("out/_font_name_file.txt", "r");
-  if (font_name_file != nullptr)
+  FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
+  if (font_name_file != NULL)
   {
     fprintf (stderr, "Purge or move ./out folder in order to run a new dump\n");
     exit (1);
   }
 
-  font_name_file = fopen ("out/_font_name_file.txt", "w");
-  if (font_name_file == nullptr)
+  font_name_file = fopen ("out/.dumped_font_name", "w");
+  if (font_name_file == NULL)
   {
     fprintf (stderr, "./out is not accessible as a folder, create it please\n");
     exit (1);
@@ -255,40 +287,49 @@ main (int argc, char **argv)
   fclose (font_name_file);
 
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_font_t *font = hb_font_create (face);
-
-  OT::CBDT::accelerator_t cbdt;
-  cbdt.init (face);
-  cbdt.dump (cbdt_callback);
-  cbdt.fini ();
-
-  OT::sbix::accelerator_t sbix;
-  sbix.init (face);
-  sbix.dump (sbix_callback);
-  sbix.fini ();
-
-  OT::SVG::accelerator_t svg;
-  svg.init (face);
-  svg.dump (svg_callback);
-  svg.fini ();
-
-  cairo_font_face_t *cairo_face;
+  unsigned int num_faces = hb_face_count (blob);
+  if (num_faces == 0)
   {
-    FT_Library library;
-    FT_Init_FreeType (&library);
-    FT_Face ftface;
-    FT_New_Face (library, argv[1], 0, &ftface);
-    cairo_face = cairo_ft_font_face_create_for_ft_face (ftface, 0);
+    fprintf (stderr, "error: The file (%s) was corrupted, empty or not found", argv[1]);
+    exit (1);
   }
-  colr_cpal_rendering (face, cairo_face);
 
-  unsigned int num_glyphs = hb_face_get_glyph_count (face);
-  unsigned int upem = hb_face_get_upem (face);
-  dump_glyphs (cairo_face, upem, num_glyphs);
+  for (unsigned int face_index = 0; face_index < hb_face_count (blob); face_index++)
+  {
+    hb_face_t *face = hb_face_create (blob, face_index);
+    hb_font_t *font = hb_font_create (face);
 
-  hb_font_destroy (font);
-  hb_face_destroy (face);
+    if (hb_ot_color_has_png (face)) printf ("Dumping png (cbdt/sbix)...\n");
+    png_dump (face, face_index);
+
+    if (hb_ot_color_has_svg (face)) printf ("Dumping svg...\n");
+    svg_dump (face, face_index);
+
+    cairo_font_face_t *cairo_face;
+    {
+      FT_Library library;
+      FT_Init_FreeType (&library);
+      FT_Face ft_face;
+      FT_New_Face (library, argv[1], 0, &ft_face);
+      cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
+    }
+    if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
+      printf ("Dumping layered color glyphs...\n");
+    layered_glyph_dump (face, cairo_face, face_index);
+
+    unsigned int num_glyphs = hb_face_get_glyph_count (face);
+    unsigned int upem = hb_face_get_upem (face);
+
+    // disabled when color font as cairo rendering of NotoColorEmoji is soooo slow
+    if (!hb_ot_color_has_layers (face) &&
+        !hb_ot_color_has_png (face) &&
+        !hb_ot_color_has_svg (face))
+      dump_glyphs (cairo_face, upem, num_glyphs, face_index);
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+    }
+
   hb_blob_destroy (blob);
 
   return 0;

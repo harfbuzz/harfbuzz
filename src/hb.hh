@@ -337,35 +337,40 @@ static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
-/* We like our types POD */
+#if __cplusplus >= 201103L
 
-#define _ASSERT_TYPE_POD1(_line, _type)	union _type_##_type##_on_line_##_line##_is_not_POD { _type instance; }
-#define _ASSERT_TYPE_POD0(_line, _type)	_ASSERT_TYPE_POD1 (_line, _type)
-#define ASSERT_TYPE_POD(_type)		_ASSERT_TYPE_POD0 (__LINE__, _type)
+/* We only enable these with C++11 or later, since earlier language
+ * does not allow structs with constructors in unions, and we need
+ * those. */
 
-#ifdef __GNUC__
-# define _ASSERT_INSTANCE_POD1(_line, _instance) \
-	HB_STMT_START { \
-		typedef __typeof__(_instance) _type_##_line; \
-		_ASSERT_TYPE_POD1 (_line, _type_##_line); \
-	} HB_STMT_END
-#else
-# define _ASSERT_INSTANCE_POD1(_line, _instance)	typedef int _assertion_on_line_##_line##_not_tested
-#endif
-# define _ASSERT_INSTANCE_POD0(_line, _instance)	_ASSERT_INSTANCE_POD1 (_line, _instance)
-# define ASSERT_INSTANCE_POD(_instance)			_ASSERT_INSTANCE_POD0 (__LINE__, _instance)
-
-/* Check _assertion in a method environment */
-#define _ASSERT_POD1(_line) \
-	HB_UNUSED inline void _static_assertion_on_line_##_line (void) const \
-	{ _ASSERT_INSTANCE_POD1 (_line, *this); /* Make sure it's POD. */ }
-# define _ASSERT_POD0(_line)	_ASSERT_POD1 (_line)
-# define ASSERT_POD()		_ASSERT_POD0 (__LINE__)
-
-
-#define HB_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+#define HB_NO_COPY_ASSIGN(TypeName) \
   TypeName(const TypeName&); \
   void operator=(const TypeName&)
+#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
+  TypeName(const TypeName<T1, T2>&); \
+  void operator=(const TypeName<T1, T2>&)
+#define HB_NO_CREATE_COPY_ASSIGN(TypeName) \
+  TypeName(void); \
+  TypeName(const TypeName&); \
+  void operator=(const TypeName&)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) \
+  TypeName(void); \
+  TypeName(const TypeName<T>&); \
+  void operator=(const TypeName<T>&)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
+  TypeName(void); \
+  TypeName(const TypeName<T1, T2>&); \
+  void operator=(const TypeName<T1, T2>&)
+
+#else /* __cpluspplus >= 201103L */
+
+#define HB_NO_COPY_ASSIGN(TypeName)
+#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
+#define HB_NO_CREATE_COPY_ASSIGN(TypeName)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T)
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
+
+#endif /* __cpluspplus >= 201103L */
 
 
 /*
