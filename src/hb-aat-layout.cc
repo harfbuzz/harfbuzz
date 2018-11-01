@@ -308,12 +308,13 @@ _hb_aat_language_get (hb_face_t *face,
 
 /**
  * hb_aat_get_feature_settings:
- * @face:           a font face.
- * @identifier:     aat feature id you are querying.
- * @is_exclusive:   (out):    is only one of the features can be enabled.
- * @start_offset:   start offset, if you are iterating
- * @records_count:  (inout): gets input buffer size, puts number of filled one
- * @records_buffer: (out):  buffer of records
+ * @face:            a font face.
+ * @identifier:      aat feature id you are querying.
+ * @default_setting: (out): default value for the type. If it is HB_AAT_FEATURE_NO_DEFAULT_INDEX
+ *                          means non is default and it is not exclusive also.
+ * @start_offset:    start offset, if you are iterating
+ * @records_count:   (inout): gets input buffer size, puts number of filled one
+ * @records_buffer:  (out):  buffer of records
  *
  * Returns: Total number of records available for the feature.
  *
@@ -322,11 +323,11 @@ _hb_aat_language_get (hb_face_t *face,
 unsigned int
 hb_aat_get_feature_settings (hb_face_t                      *face,
 			     hb_aat_feature_type_t           identifier,
-			     hb_bool_t                      *is_exclusive,
+			     hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 			     unsigned int                    start_offset,
-			     unsigned int                   *records_count, /* IN/OUT.  May be NULL. */
-			     hb_aat_feature_option_record_t *records_buffer /* OUT.     May be NULL. */)
+			     unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
+			     hb_aat_feature_option_record_t *records_buffer   /* OUT.     May be NULL. */)
 {
-  return _get_feat (face).get_settings (identifier, is_exclusive, start_offset,
-					records_count, records_buffer);
+  return _get_feat (face).get_settings (identifier, default_setting,
+					start_offset, records_count, records_buffer);
 }

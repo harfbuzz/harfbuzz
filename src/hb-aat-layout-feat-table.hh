@@ -84,14 +84,13 @@ struct FeatureName
 <<<<<<< HEAD
 =======
   inline unsigned int get_settings (const feat                     *feat,
-				    hb_bool_t                      *is_exclusive,
+				    hb_aat_feature_setting_t       *default_setting,
 				    unsigned int                    start_offset,
 				    unsigned int                   *records_count,
 				    hb_aat_feature_option_record_t *records_buffer) const
   {
     bool exclusive = featureFlags & Exclusive;
     bool not_default = featureFlags & NotDefault;
-    if (is_exclusive) *is_exclusive = exclusive;
     const UnsizedArrayOf<SettingName>& settings = feat+settingTable;
     unsigned int len = 0;
     unsigned int settings_count = nSettings;
@@ -100,15 +99,19 @@ struct FeatureName
       len = MIN (settings_count - start_offset, *records_count);
       for (unsigned int i = 0; i < len; i++)
       {
-	records_buffer[i].is_default = exclusive && not_default &&
-				       i + start_offset == (featureFlags & IndexMask);
 	records_buffer[i].name_id = settings[start_offset + i].nameIndex;
 	records_buffer[i].setting = settings[start_offset + i].setting;
       }
-      if (exclusive && !not_default && start_offset == 0 && len != 0)
-        records_buffer[0].is_default = true;
     }
-    if (is_exclusive) *is_exclusive = exclusive;
+    if (default_setting)
+    {
+      if (exclusive)
+      {
+	if (settings_count && !not_default) *default_setting = settings[0].setting;
+	else if (not_default) *default_setting = featureFlags & IndexMask;
+      }
+      else *default_setting = HB_AAT_FEATURE_NO_DEFAULT_INDEX;
+    }
     if (records_count) *records_count = len;
     return settings_count;
   }
@@ -151,14 +154,14 @@ struct feat
     return feature ? *feature : Null (FeatureName);
   }
 
-  inline unsigned int get_settings (hb_aat_feature_type_t           key,
-				    hb_bool_t                      *is_exclusive,
+  inline unsigned int get_settings (hb_aat_feature_type_t           type,
+				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                    start_offset,
-				    unsigned int                   *records_count,
+				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
 				    hb_aat_feature_option_record_t *records_buffer) const
   {
-    return get_feature (key).get_settings (this, is_exclusive, start_offset,
-					   records_count, records_buffer);
+    return get_feature (type).get_settings (this, default_setting,
+					    start_offset, records_count, records_buffer);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

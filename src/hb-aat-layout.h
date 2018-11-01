@@ -57,18 +57,22 @@ typedef uint16_t hb_aat_feature_setting_t;
  **/
 typedef struct hb_aat_feature_option_record_t
 {
-  hb_bool_t is_default;
   hb_aat_feature_setting_t setting;
   hb_ot_name_id_t name_id;
 } hb_aat_feature_option_record_t;
 
+/*
+ * Since: REPLACEME
+ */
+#define HB_AAT_FEATURE_NO_DEFAULT_INDEX ((hb_aat_feature_setting_t) -1)
+
 HB_EXTERN unsigned int
 hb_aat_get_feature_settings (hb_face_t                      *face,
-			     hb_aat_feature_type_t           identifier,
-			     hb_bool_t                      *is_exclusive,
+			     hb_aat_feature_type_t           type,
+			     hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
 			     unsigned int                    start_offset,
-			     unsigned int                   *records_count, /* IN/OUT.  May be NULL. */
-			     hb_aat_feature_option_record_t *records_buffer /* OUT.     May be NULL. */);
+			     unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
+			     hb_aat_feature_option_record_t *records_buffer   /* OUT.     May be NULL. */);
 
 HB_END_DECLS
 
