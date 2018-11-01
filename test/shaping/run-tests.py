@@ -11,7 +11,13 @@ def cmd(command):
 	return process.stdout.readline().decode ("utf-8").strip ()
 
 args = sys.argv[1:]
-if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
+
+reference = False
+if len (args) and args[0] == "--reference":
+	reference = True
+	args = args[1:]
+
+if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	print ("""First argument does not seem to point to usable hb-shape.""")
 	sys.exit (1)
 hb_shape, args = args[0], args[1:]
@@ -22,11 +28,6 @@ process = subprocess.Popen ([hb_shape, '--batch'],
 			    stderr=sys.stdout)
 
 fails = 0
-
-reference = False
-if len (args) and args[0] == "--reference":
-	reference = True
-	args = args[1:]
 
 if not len (args):
 	args = ['-']
