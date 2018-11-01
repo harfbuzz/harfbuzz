@@ -955,11 +955,19 @@ struct Chain
         const Feature &feature = featureZ[i];
         uint16_t type = feature.featureType;
 	uint16_t setting = feature.featureSetting;
+      retry:
 	const hb_aat_map_builder_t::feature_info_t *info = map->features.bsearch (type);
 	if (info && info->setting == setting)
 	{
 	  flags &= feature.disableFlags;
 	  flags |= feature.enableFlags;
+	}
+	else if (type == 3/*kLetterCaseType*/ && setting == 3/*kSmallCapsSelector*/)
+	{
+	  /* Deprecated. https://github.com/harfbuzz/harfbuzz/issues/1342 */
+	  type = 37/*kLowerCaseType*/;
+	  setting = 1/*kLowerCaseSmallCapsSelector*/;
+	  goto retry;
 	}
       }
     }
