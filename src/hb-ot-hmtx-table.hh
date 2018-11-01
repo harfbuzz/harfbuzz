@@ -255,7 +255,7 @@ struct hmtxvmtx
       if (glyph < num_advances)
         return table->longMetricZ[glyph].sb;
 
-      if (unlikely (glyph > num_metrics))
+      if (unlikely (glyph >= num_metrics))
         return 0;
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_advances];
