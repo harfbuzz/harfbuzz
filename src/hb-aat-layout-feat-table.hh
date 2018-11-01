@@ -45,6 +45,7 @@ struct SettingName
     return_trace (likely (c->check_struct (this)));
   }
 
+  public:
   HBUINT16	setting;	/* The setting. */
   NameID	nameIndex;	/* The name table index for the setting's name. */
   public:

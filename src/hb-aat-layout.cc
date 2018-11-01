@@ -28,7 +28,7 @@
 #include "hb-open-type.hh"
 
 #include "hb-ot-face.hh"
-#include "hb-aat-layout.h"
+#include "hb-aat.h"
 #include "hb-aat-layout.hh"
 #include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-bsln-table.hh" // Just so we compile it; unused otherwise.
@@ -307,7 +307,7 @@ _hb_aat_language_get (hb_face_t *face,
 }
 
 /**
- * hb_aat_get_feature_settings:
+ * hb_aat_layout_get_feature_settings:
  * @face:            a font face.
  * @identifier:      AAT feature id you are querying, for example 1 for
  *                   "Ligatures" feature, 37 for the "Lower Case" feature,
@@ -323,12 +323,12 @@ _hb_aat_language_get (hb_face_t *face,
  * Since: REPLACEME
  */
 unsigned int
-hb_aat_get_feature_settings (hb_face_t                      *face,
-			     hb_aat_feature_type_t           identifier,
-			     hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
-			     unsigned int                    start_offset,
-			     unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
-			     hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */)
+hb_aat_layout_get_feature_settings (hb_face_t                      *face,
+				    hb_aat_feature_type_t           identifier,
+				    hb_aat_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
+				    unsigned int                    start_offset,
+				    unsigned int                   *records_count,   /* IN/OUT.  May be NULL. */
+				    hb_aat_feature_type_selector_t *records_buffer   /* OUT.     May be NULL. */)
 {
   return _get_feat (face).get_settings (identifier, default_setting,
 					start_offset, records_count, records_buffer);
