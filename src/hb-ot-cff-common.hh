@@ -93,7 +93,12 @@ struct CFFIndex
   { return calculate_offset_array_size (offSize, count); }
 
   inline static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
-  { return min_size + calculate_offset_array_size (offSize, count) + dataSize; }
+  {
+    if (count == 0)
+      return COUNT::static_size;
+    else
+      return min_size + calculate_offset_array_size (offSize, count) + dataSize;
+  }
 
   inline bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
   {
@@ -110,30 +115,39 @@ struct CFFIndex
                          const ByteStrArray &byteArray)
   {
     TRACE_SERIALIZE (this);
-    /* serialize CFFIndex header */
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (byteArray.len);
-    this->offSize.set (offSize_);
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.len + 1))))
-      return_trace (false);
-  
-    /* serialize indices */
-    unsigned int  offset = 1;
-    unsigned int  i = 0;
-    for (; i < byteArray.len; i++)
+    if (byteArray.len == 0)
     {
-      set_offset_at (i, offset);
-      offset += byteArray[i].get_size ();
+      COUNT *dest = c->allocate_min<COUNT> ();
+      if (unlikely (dest == nullptr)) return_trace (false);
+      dest->set (0);
     }
-    set_offset_at (i, offset);
-
-    /* serialize data */
-    for (unsigned int i = 0; i < byteArray.len; i++)
+    else
     {
-      ByteStr  *dest = c->start_embed<ByteStr> ();
-      if (unlikely (dest == nullptr ||
-                    !dest->serialize (c, byteArray[i])))
+      /* serialize CFFIndex header */
+      if (unlikely (!c->extend_min (*this))) return_trace (false);
+      this->count.set (byteArray.len);
+      this->offSize.set (offSize_);
+      if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.len + 1))))
         return_trace (false);
+    
+      /* serialize indices */
+      unsigned int  offset = 1;
+      unsigned int  i = 0;
+      for (; i < byteArray.len; i++)
+      {
+        set_offset_at (i, offset);
+        offset += byteArray[i].get_size ();
+      }
+      set_offset_at (i, offset);
+
+      /* serialize data */
+      for (unsigned int i = 0; i < byteArray.len; i++)
+      {
+        ByteStr  *dest = c->start_embed<ByteStr> ();
+        if (unlikely (dest == nullptr ||
+                      !dest->serialize (c, byteArray[i])))
+          return_trace (false);
+      }
     }
     return_trace (true);
   }

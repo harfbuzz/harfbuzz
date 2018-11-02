@@ -380,11 +380,6 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
     }
   }
 
-  static inline void process_width (CFF1CSInterpEnv &env, SubrSubsetParam& param)
-  {
-  
-  }
-
   protected:
   static inline void process_call_subr (OpCode op, CSType type,
                                         CFF1CSInterpEnv &env, SubrSubsetParam& param,
@@ -405,7 +400,7 @@ struct CFF1SubrSubsetter : SubrSubsetter<CFF1SubrSubsetter, CFF1Subrs, const OT:
 {
   static inline void set_parsed_prefix (const CFF1CSInterpEnv &env, ParsedCStr &charstring)
   {
-    if (env.processed_width)
+    if (env.has_width)
       charstring.set_prefix (env.width);
   }
 };
@@ -676,7 +671,7 @@ struct cff_subset_plan {
         return false;
       
       /* no global/local subroutines */
-      offsets.globalSubrsInfo.size = HBUINT16::static_size; /* count 0 only */
+      offsets.globalSubrsInfo.size = CFF1Subrs::calculate_serialized_size (1, 0, 0);
     }
     else
     {
@@ -704,14 +699,19 @@ struct cff_subset_plan {
       for (unsigned int fd = 0; fd < orig_fdcount; fd++)
       {
         subset_localsubrs[fd].init ();
+        offsets.localSubrsInfos[fd].init ();
         if (fdmap.includes (fd))
         {
           if (!subr_subsetter.encode_localsubrs (fd, subset_localsubrs[fd]))
             return false;
 
           unsigned int dataSize = subset_localsubrs[fd].total_size ();
-          offsets.localSubrsInfos[fd].offSize = calcOffSize (dataSize);
-          offsets.localSubrsInfos[fd].size = CFF1Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].len, dataSize);
+          if (dataSize > 0)
+          {
+            offsets.localSubrsInfos[fd].offset = final_size;
+            offsets.localSubrsInfos[fd].offSize = calcOffSize (dataSize);
+            offsets.localSubrsInfos[fd].size = CFF1Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].len, dataSize);
+          }
         }
       }
     }
@@ -779,8 +779,11 @@ struct cff_subset_plan {
         fontdicts_mod.push (fontdict_mod);
         final_size += privInfo.size;
 
-        if (!plan->desubroutinize)
+        if (!plan->desubroutinize && (offsets.localSubrsInfos[i].size > 0))
+        {
+          offsets.localSubrsInfos[i].offset = final_size;
           final_size += offsets.localSubrsInfos[i].size;
+        }
       }
     }
 
@@ -900,21 +903,12 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     assert (plan.offsets.globalSubrsInfo.offset != 0);
     assert (plan.offsets.globalSubrsInfo.offset == c.head - c.start);
     
-    if (plan.desubroutinize)
+    CFF1Subrs *dest = c.start_embed <CFF1Subrs> ();
+    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest->serialize (&c, plan.offsets.globalSubrsInfo.offSize, plan.subset_globalsubrs)))
     {
-      CFF1Subrs *dest = c.allocate_size <CFF1Subrs> (HBUINT16::static_size);
-      if (unlikely (dest == nullptr)) return false;
-      dest->count.set (0);
-    }
-    else
-    {
-      CFF1Subrs *dest = c.start_embed <CFF1Subrs> ();
-      if (unlikely (dest == nullptr)) return false;
-      if (unlikely (!dest->serialize (&c, plan.offsets.globalSubrsInfo.offSize, plan.subset_globalsubrs)))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize global subroutines");
-        return false;
-      }
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize global subroutines");
+      return false;
     }
   }
 
@@ -1010,7 +1004,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   assert (plan.offsets.privateDictInfo.offset == c.head - c.start);
   for (unsigned int i = 0; i < acc.privateDicts.len; i++)
   {
-    if (!plan.fdmap.excludes (i))
+    if (plan.fdmap.includes (i))
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
@@ -1024,14 +1018,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);
         return false;
       }
-    }
-  }
-
-  if (!plan.desubroutinize)
-  {
-    for (unsigned int i = 0; i < acc.privateDicts.len; i++)
-    {
-      if (!plan.fdmap.excludes (i))
+      if (plan.offsets.localSubrsInfos[i].size > 0)
       {
         CFF1Subrs *dest = c.start_embed <CFF1Subrs> ();
         if (unlikely (dest == nullptr)) return false;

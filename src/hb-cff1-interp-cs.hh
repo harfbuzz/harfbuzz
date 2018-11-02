@@ -111,15 +111,8 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
           break;
       }
       env.set_width (has_width);
-      if (has_width)
-      {
-        OPSET::process_width (env, param);
-      }
     }
   }
-
-  static inline void process_width (CFF1CSInterpEnv &env, PARAM& param)
-  {}
 
   static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)
   {

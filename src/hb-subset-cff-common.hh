@@ -378,8 +378,10 @@ struct ParsedCSOp : OpStr
   inline void init (unsigned int subr_num_ = 0)
   {
     OpStr::init ();
-    flags = kDropFlag_None;
     subr_num = subr_num_;
+    drop_flag = false;
+    keep_flag = false;
+    skip_flag = false;
   }
 
   inline void fini (void)
@@ -387,20 +389,19 @@ struct ParsedCSOp : OpStr
     OpStr::fini ();
   }
 
-  inline bool for_keep (void) const { return (flags & kDropFlag_Keep) != 0; }
-  inline bool for_drop (void) const { return (flags & kDropFlag_Drop) != 0; }
-  inline void set_drop (void) { if (!for_keep ()) flags |= kDropFlag_Drop; }
-  inline void set_keep (void) { flags |= kDropFlag_Keep; }
+  inline bool for_drop (void) const { return drop_flag; }
+  inline void set_drop (void) { if (!for_keep ()) drop_flag = true; }
+  inline bool for_keep (void) const { return keep_flag; }
+  inline void set_keep (void) { keep_flag = true; }
+  inline bool for_skip (void) const { return skip_flag; }
+  inline void set_skip (void) { skip_flag = true; }
 
-  enum DropFlag
-  {
-    kDropFlag_None  = 0,
-    kDropFlag_Drop  = 1,
-    kDropFlag_Keep  = 2
-  };
-
-  unsigned int  flags;
   unsigned int  subr_num;
+
+  protected:
+  bool          drop_flag : 1;
+  bool          keep_flag : 1;
+  bool          skip_flag : 1;
 };
 
 struct ParsedCStr : ParsedValues<ParsedCSOp>
@@ -425,7 +426,7 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     {
       unsigned int parsed_len = get_count ();
       if (likely (parsed_len > 0))
-        values[parsed_len-1].set_drop ();
+        values[parsed_len-1].set_skip ();
       
       ParsedCSOp val;
       val.init (subr_num);
@@ -629,8 +630,8 @@ struct SubrSubsetter
    * 4. re-encode all charstrings and subroutines with new subroutine numbers
    *
    * Phases #1 and #2 are done at the same time in collect_subrs ().
-   * Phase #3 requires walking charstrings/subroutines forward then backward (hence parsing), because
-   * we can't tell if a number belongs to a hint op until we see the first moveto.
+   * Phase #3 walks charstrings/subroutines forward then backward (hence parsing required),
+   * because we can't tell if a number belongs to a hint op until we see the first moveto.
    *
    * Assumption: a callsubr/callgsubr operator must immediately follow a (biased) subroutine number
    * within the same charstring/subroutine, e.g., not split across a charstring and a subroutine.
@@ -686,7 +687,8 @@ struct SubrSubsetter
                     drop_hints);
 
         bool seen_moveto = false;
-        if (drop_hints_in_str (parsed_charstrings[i], param, seen_moveto))
+        bool ends_in_hint = false;
+        if (drop_hints_in_str (parsed_charstrings[i], param, seen_moveto, ends_in_hint))
           parsed_charstrings[i].set_hint_removed ();
       }
 
@@ -755,39 +757,39 @@ struct SubrSubsetter
                                  ParsedCStrs &subrs, unsigned int subr_num,
                                  const SubrSubsetParam &param, bool &seen_moveto)
   {
-    if (drop_hints_in_str (subrs[subr_num], param, seen_moveto))
-    {
-      /* if the first op in the subr is a hint op, then all args/ops (especially including other subr calls)
-       * preceding this subr no and call op are hints */
-      /* TODO CFF2 vsindex */
-      for (unsigned int i = 0; i + 1 < pos; i++)
-        str.values[i].set_drop ();
-      return true;
-    }
-    else
-      return false;
+    bool  ends_in_hint = false;
+    bool has_hint = drop_hints_in_str (subrs[subr_num], param, seen_moveto, ends_in_hint);
+
+    /* if this subr ends with a stem hint (i.e., not a number a potential argument for moveto),
+     * then this entire subroutine must be a hint. drop its call. */
+    if (ends_in_hint)
+      str.values[pos].set_drop ();
+    
+    return has_hint;
   }
 
-  /* returns true if it sees a hint op before moveto */
-  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param, bool &seen_moveto)
+  /* returns true if it sees a hint op before the first moveto */
+  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param,
+                                 bool &seen_moveto, bool &ends_in_hint)
   {
     bool  seen_hint = false;
-    unsigned int next_check_pos = 0;
 
     for (unsigned int pos = 0; pos < str.values.len; pos++)
     {
+      bool  has_hint = false;
       switch (str.values[pos].op)
       {
         case OpCode_callsubr:
-          seen_hint |= drop_hints_in_subr (str, pos,
-                                           *param.parsed_local_subrs, str.values[pos].subr_num,
-                                           param, seen_moveto);
+          has_hint = drop_hints_in_subr (str, pos,
+                                        *param.parsed_local_subrs, str.values[pos].subr_num,
+                                        param, seen_moveto);
+                                        
           break;
 
         case OpCode_callgsubr:
-          seen_hint |= drop_hints_in_subr (str, pos,
-                                           *param.parsed_global_subrs, str.values[pos].subr_num,
-                                           param, seen_moveto);
+          has_hint = drop_hints_in_subr (str, pos,
+                                        *param.parsed_global_subrs, str.values[pos].subr_num,
+                                        param, seen_moveto);
           break;
 
         case OpCode_rmoveto:
@@ -809,18 +811,26 @@ struct SubrSubsetter
         case OpCode_vstemhm:
         case OpCode_hstem:
         case OpCode_vstem:
-          seen_hint = true;
-          for (unsigned int i = next_check_pos; i <= pos; i++)
-          {
-            /* TODO: CFF2 vsindex */
-            str.values[i].set_drop ();
-          }
-          next_check_pos = pos + 1;
+          has_hint = true;
+          str.values[pos].set_drop ();
+          if ((pos + 1 >= str.values.len) /* CFF2 */
+             || (str.values[pos + 1].op == OpCode_return))
+            ends_in_hint = true;
           break;
 
         default:
           /* NONE */
           break;
+      }
+      if (has_hint)
+      {
+        for (int i = pos - 1; i >= 0; i--)
+        {
+          if (str.values[i].for_drop ())
+            break;
+          str.values[i].set_drop ();
+        }
+        seen_hint |= has_hint;
       }
     }
 
@@ -878,7 +888,7 @@ struct SubrSubsetter
     for (unsigned int i = 0; i < str.get_count(); i++)
     {
       const ParsedCSOp  &opstr = str.values[i];
-      if (!opstr.for_drop ())
+      if (!opstr.for_drop () && !opstr.for_skip ())
       {
         switch (opstr.op)
         {
