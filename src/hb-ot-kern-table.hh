@@ -192,6 +192,130 @@ struct KernSubTableFormat0
   DEFINE_SIZE_ARRAY (8, pairs);
 };
 
+struct KernSubTableFormat1
+{
+  typedef void EntryData;
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+      Offset		= 0x3FFF,	/* Byte offset from beginning of subtable to the
+					 * value table for the glyphs on the kerning stack. */
+    };
+
+    inline driver_context_t (const KernSubTableFormat1 *table_,
+			     AAT::hb_aat_apply_context_t *c_) :
+	c (c_),
+	table (table_),
+	/* Apparently the offset kernAction is from the beginning of the state-machine,
+	 * similar to offsets in morx table, NOT from beginning of this table, like
+	 * other subtables in kerx.  Discovered via testing. */
+	kernAction (&table->machine + table->kernAction),
+	depth (0) {}
+
+    inline bool is_actionable (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver HB_UNUSED,
+			       const AAT::Entry<EntryData> *entry)
+    {
+      return entry->flags & Offset;
+    }
+    inline bool transition (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver,
+			    const AAT::Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (flags & Push)
+      {
+	if (likely (depth < ARRAY_LENGTH (stack)))
+	  stack[depth++] = buffer->idx;
+	else
+	  depth = 0; /* Probably not what CoreText does, but better? */
+      }
+
+      if (entry->flags & Offset)
+      {
+	unsigned int kernIndex = AAT::MortTypes::offsetToIndex (entry->flags & Offset, &table->machine, kernAction.arrayZ);
+	const FWORD *actions = &kernAction[kernIndex];
+	if (!c->sanitizer.check_array (actions, depth))
+	{
+	  depth = 0;
+	  return false;
+	}
+
+	hb_mask_t kern_mask = c->plan->kern_mask;
+	for (unsigned int i = 0; i < depth; i++)
+	{
+	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
+	   * and applies the kerning value to it.", it doesn't mean it in that order.
+	   * The deepest item in the stack corresponds to the first item in the action
+	   * list.  Discovered by testing. */
+	  unsigned int idx = stack[i];
+	  int v = *actions++;
+	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
+	  {
+	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	    {
+	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	    }
+	    else
+	    {
+	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	    }
+	  }
+	}
+	depth = 0;
+      }
+
+      return true;
+    }
+
+    private:
+    AAT::hb_aat_apply_context_t *c;
+    const KernSubTableFormat1 *table;
+    const UnsizedArrayOf<FWORD> &kernAction;
+    unsigned int stack[8];
+    unsigned int depth;
+  };
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    driver_context_t dc (this, c);
+
+    AAT::StateTableDriver<AAT::MortTypes, EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
+
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
+  }
+
+  protected:
+  AAT::StateTable<AAT::MortTypes, EntryData>		machine;
+  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>	kernAction;
+  public:
+  DEFINE_SIZE_STATIC (10);
+};
+
 struct KernClassTable
 {
   inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
@@ -361,6 +485,7 @@ struct KernSubTable
     /* TODO Switch to dispatch(). */
     switch (format) {
     case 0: u.format0.apply (c); return;
+    case 1: u.format1.apply (c); return;
     case 2: u.format2.apply (c); return;
     case 3: u.format3.apply (c); return;
     default:			 return;
@@ -372,6 +497,7 @@ struct KernSubTable
     TRACE_SANITIZE (this);
     switch (format) {
     case 0: return_trace (u.format0.sanitize (c));
+    case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     case 3: return_trace (u.format3.sanitize (c));
     default:return_trace (true);
@@ -381,6 +507,7 @@ struct KernSubTable
   protected:
   union {
   KernSubTableFormat0	format0;
+  KernSubTableFormat1	format1;
   KernSubTableFormat2	format2;
   KernSubTableFormat3	format3;
   } u;

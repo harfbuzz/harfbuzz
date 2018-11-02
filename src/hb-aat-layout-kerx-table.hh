@@ -207,11 +207,18 @@ struct KerxSubTableFormat1
 	  int v = *actions++;
 	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
-	    /* XXX Non-forward direction... */
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	    {
 	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	    }
 	    else
+	    {
 	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	    }
 	  }
 	}
 	depth = 0;
@@ -255,7 +262,7 @@ struct KerxSubTableFormat1
 
   protected:
   KerxSubTableHeader				header;
-  StateTable<MorxTypes, EntryData>				machine;
+  StateTable<MorxTypes, EntryData>		machine;
   LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
   public:
   DEFINE_SIZE_STATIC (32);
