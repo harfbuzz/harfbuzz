@@ -239,6 +239,54 @@ struct KernSubTableFormat2
   DEFINE_SIZE_MIN (8);
 };
 
+struct KernSubTableFormat3
+{
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  {
+    hb_array_t<const FWORD> kernValue = kernValueZ.as_array (kernValueCount);
+    hb_array_t<const HBUINT8> leftClass = StructAfter<const UnsizedArrayOf<HBUINT8> > (kernValue).as_array (glyphCount);
+    hb_array_t<const HBUINT8> rightClass = StructAfter<const UnsizedArrayOf<HBUINT8> > (leftClass).as_array (glyphCount);
+    hb_array_t<const HBUINT8> kernIndex = StructAfter<const UnsizedArrayOf<HBUINT8> > (rightClass).as_array (leftClassCount * rightClassCount);
+
+    unsigned int i = leftClass[left] * rightClassCount + rightClass[right];
+    return kernValue[kernIndex[i]];
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (true); /* Disabled.  See above. */
+    return_trace (c->check_struct (this) &&
+		  c->check_range (kernValueZ,
+				  kernValueCount +
+				  glyphCount * 2 +
+				  leftClassCount * rightClassCount));
+  }
+
+  protected:
+  HBUINT16	glyphCount;	/* The number of glyphs in this font. */
+  HBUINT8	kernValueCount;	/* The number of kerning values. */
+  HBUINT8	leftClassCount;	/* The number of left-hand classes. */
+  HBUINT8	rightClassCount;/* The number of right-hand classes. */
+  HBUINT8	flags;		/* Set to zero (reserved for future use). */
+  UnsizedArrayOf<FWORD>
+		kernValueZ;	/* The kerning values.
+				 * Length kernValueCount. */
+#if 0
+  UnsizedArrayOf<HBUINT8>
+		leftClass;	/* The left-hand classes.
+				 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>
+		RightClass;	/* The right-hand classes.
+				 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>
+		kernIndex;	/* The indices into the kernValue array.
+				 * Length leftClassCount * rightClassCount */
+#endif
+  public:
+  DEFINE_SIZE_ARRAY (6, kernValueZ);
+};
+
 struct KernSubTable
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end, unsigned int format) const
@@ -246,6 +294,7 @@ struct KernSubTable
     switch (format) {
     case 0: return u.format0.get_kerning (left, right);
     case 2: return u.format2.get_kerning (left, right, end);
+    case 3: return u.format3.get_kerning (left, right, end);
     default:return 0;
     }
   }
@@ -256,6 +305,7 @@ struct KernSubTable
     switch (format) {
     case 0: return_trace (u.format0.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+    case 3: return_trace (u.format3.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -264,6 +314,7 @@ struct KernSubTable
   union {
   KernSubTableFormat0	format0;
   KernSubTableFormat2	format2;
+  KernSubTableFormat3	format3;
   } u;
   public:
   DEFINE_SIZE_MIN (0);
