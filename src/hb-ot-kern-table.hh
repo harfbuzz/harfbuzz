@@ -474,6 +474,8 @@ struct KernTable
       if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
 	goto skip;
 
+      c->sanitizer.set_object (*st);
+
       st->apply (c);
 
       (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
