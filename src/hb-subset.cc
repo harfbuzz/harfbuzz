@@ -171,8 +171,8 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_cmap:
       result = _subset<const OT::cmap> (plan);
       break;
-    case HB_OT_TAG_os2:
-      result = _subset<const OT::os2> (plan);
+    case HB_OT_TAG_OS2:
+      result = _subset<const OT::OS2> (plan);
       break;
     case HB_OT_TAG_post:
       result = _subset<const OT::post> (plan);

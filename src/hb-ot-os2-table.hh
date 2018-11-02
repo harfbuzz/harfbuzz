@@ -36,11 +36,11 @@ namespace OT {
  * OS/2 and Windows Metrics
  * https://docs.microsoft.com/en-us/typography/opentype/spec/os2
  */
-#define HB_OT_TAG_os2 HB_TAG('O','S','/','2')
+#define HB_OT_TAG_OS2 HB_TAG('O','S','/','2')
 
-struct os2
+struct OS2
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_os2;
+  static const hb_tag_t tableTag = HB_OT_TAG_OS2;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -50,12 +50,12 @@ struct os2
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = hb_sanitize_context_t().reference_table<os2> (plan->source);
+    hb_blob_t *os2_blob = hb_sanitize_context_t().reference_table<OS2> (plan->source);
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     // TODO(grieger): move to hb_blob_copy_writable_or_fail
     hb_blob_destroy (os2_blob);
 
-    os2 *os2_prime = (os2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
+    OS2 *os2_prime = (OS2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
     if (unlikely (!os2_prime)) {
       hb_blob_destroy (os2_prime_blob);
       return false;
@@ -67,7 +67,7 @@ struct os2
     os2_prime->usLastCharIndex.set (max_cp);
 
     _update_unicode_ranges (plan->unicodes, os2_prime->ulUnicodeRange);
-    bool result = plan->add_table (HB_OT_TAG_os2, os2_prime_blob);
+    bool result = plan->add_table (HB_OT_TAG_OS2, os2_prime_blob);
 
     hb_blob_destroy (os2_prime_blob);
     return result;
