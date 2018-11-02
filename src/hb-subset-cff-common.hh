@@ -419,7 +419,7 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
       SUPER::add_op (op, substr);
   }
 
-  inline void addCallOp (OpCode op, const SubByteStr& substr, unsigned int subr_num)
+  inline void add_call_op (OpCode op, const SubByteStr& substr, unsigned int subr_num)
   {
     if (!is_parsed ())
     {

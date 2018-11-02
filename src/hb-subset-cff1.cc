@@ -392,7 +392,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
   {
     SubByteStr    substr = env.substr;
     env.callSubr (subrs, type);
-    param.current_parsed_str->addCallOp (op, substr, env.context.subr_num);
+    param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env);
   }
@@ -592,7 +592,7 @@ struct cff_subset_plan {
     num_glyphs = plan->glyphs.len;
     orig_fdcount = acc.fdCount;
     drop_hints = plan->drop_hints;
-    desubroutinize = true; // plan->desubroutinize;
+    desubroutinize = plan->desubroutinize;
 
     /* check whether the subset renumbers any glyph IDs */
     gid_renum = false;
