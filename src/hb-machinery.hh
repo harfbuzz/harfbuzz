@@ -82,10 +82,8 @@ static inline Type& StructAfter(TObject &X)
 /* Check _assertion in a method environment */
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
-  { \
-    static_assert ((_assertion), ""); \
-    ASSERT_INSTANCE_POD (*this); /* Make sure it's POD. */ \
-  }
+  { static_assert ((_assertion), ""); } \
+  static_assert (true, "") /* So we require semicolon here. */
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
 # define DEFINE_INSTANCE_ASSERTION(_assertion) _DEFINE_INSTANCE_ASSERTION0 (__LINE__, _assertion)
 
@@ -99,9 +97,9 @@ static inline Type& StructAfter(TObject &X)
 
 #define DEFINE_SIZE_STATIC(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)); \
+  inline unsigned int get_size (void) const { return (size); } \
   enum { static_size = (size) }; \
-  enum { min_size = (size) }; \
-  inline unsigned int get_size (void) const { return (size); }
+  enum { min_size = (size) }
 
 #define DEFINE_SIZE_UNION(size, _member) \
   DEFINE_INSTANCE_ASSERTION (0*sizeof(this->u._member.static_size) + sizeof(this->u._member) == (size)); \
@@ -114,11 +112,11 @@ static inline Type& StructAfter(TObject &X)
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof (array[0])); \
   DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
-  enum { min_size = (size) }; \
+  enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
-	DEFINE_SIZE_ARRAY(size, array); \
-	inline unsigned int get_size (void) const { return (size - array.min_size + array.get_size ()); }
+	inline unsigned int get_size (void) const { return (size - array.min_size + array.get_size ()); } \
+	DEFINE_SIZE_ARRAY(size, array)
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
@@ -136,7 +134,7 @@ struct hb_dispatch_context_t
   enum { max_debug_depth = MaxDebugDepth };
   typedef Return return_t;
   template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
+  inline bool may_dispatch (const T *obj HB_UNUSED, const F *format HB_UNUSED) { return true; }
   static return_t no_dispatch_return_value (void) { return Context::default_return_value (); }
 };
 
@@ -235,7 +233,7 @@ struct hb_sanitize_context_t :
 
   inline const char *get_name (void) { return "SANITIZE"; }
   template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format)
+  inline bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.sanitize (this); }
@@ -612,7 +610,7 @@ struct Supplier
   }
   inline Supplier (const hb_vector_t<Type> *v)
   {
-    head = v->arrayZ();
+    head = *v;
     len = v->len;
     stride = sizeof (Type);
   }

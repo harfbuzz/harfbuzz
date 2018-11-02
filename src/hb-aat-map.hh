@@ -30,8 +30,6 @@
 #include "hb.hh"
 
 
-struct hb_ot_shape_plan_t;
-
 struct hb_aat_map_t
 {
   friend struct hb_aat_map_builder_t;
@@ -58,15 +56,7 @@ struct hb_aat_map_builder_t
 
   HB_INTERNAL hb_aat_map_builder_t (hb_face_t *face_,
 				    const hb_segment_properties_t *props_ HB_UNUSED) :
-				      face (face_)
-  {
-    features.init ();
-  }
-
-  ~hb_aat_map_builder_t (void)
-  {
-    features.fini ();
-  }
+				      face (face_) {}
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value=1);
 

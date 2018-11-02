@@ -32,6 +32,17 @@
 #include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-var.h"
 
+
+/**
+ * SECTION:hb-ot-var
+ * @title: hb-ot-var
+ * @short_description: OpenType Font Variations
+ * @include: hb-ot.h
+ *
+ * Functions for fetching information about OpenType Variable Fonts.
+ **/
+
+
 /*
  * fvar/avar
  */

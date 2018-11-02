@@ -22,7 +22,6 @@ fails = 0
 
 def run_dir (parent_path):
 	global fails
-	print ("running subset fuzzer against fonts in %s" % parent_path)
 	for file in os.listdir (parent_path):
 		path = os.path.join(parent_path, file)
 

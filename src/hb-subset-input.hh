@@ -37,7 +37,6 @@
 struct hb_subset_input_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_set_t *unicodes;
   hb_set_t *glyphs;

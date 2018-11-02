@@ -335,8 +335,13 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null>
 template <typename Type>
 struct UnsizedArrayOf
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
+
   inline const Type& operator [] (unsigned int i) const { return arrayZ[i]; }
   inline Type& operator [] (unsigned int i) { return arrayZ[i]; }
+
+  template <typename T> inline operator  T * (void) { return arrayZ; }
+  template <typename T> inline operator const T * (void) const { return arrayZ; }
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
@@ -424,6 +429,8 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
+
   inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
@@ -446,6 +453,10 @@ struct ArrayOf
     if (unlikely (i >= len)) return Crap(Type);
     return arrayZ[i];
   }
+
+  template <typename T> inline operator  T * (void) { return arrayZ; }
+  template <typename T> inline operator const T * (void) const { return arrayZ; }
+
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
@@ -523,7 +534,6 @@ struct ArrayOf
     ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
   }
 
-  private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -540,8 +550,12 @@ template <typename Type> struct LArrayOf : ArrayOf<Type, HBUINT32> {};
 typedef ArrayOf<HBUINT8, HBUINT8> PString;
 
 /* Array of Offset's */
-template <typename Type, typename OffsetType=HBUINT16>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type, OffsetType> > {};
+template <typename Type>
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type, HBUINT16> > {};
+template <typename Type>
+struct LOffsetArrayOf : ArrayOf<OffsetTo<Type, HBUINT32> > {};
+template <typename Type>
+struct LOffsetLArrayOf : ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32> {};
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
@@ -586,6 +600,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct HeadlessArrayOf
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= lenP1 || !i)) return Null(Type);
@@ -650,6 +666,8 @@ struct HeadlessArrayOf
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOfM1
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOfM1, Type, LenType);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i > lenM1)) return Null(Type);
@@ -702,7 +720,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     int min = 0, max = (int) this->len - 1;
     while (min <= max)
     {
-      int mid = (min + max) / 2;
+      int mid = ((unsigned int) min + (unsigned int) max) / 2;
       int c = arr[mid].cmp (x);
       if (c < 0)
         max = mid - 1;
@@ -754,6 +772,7 @@ struct BinSearchHeader
 template <typename Type, typename LenType=HBUINT16>
 struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader<LenType> > {};
 
+
 struct VarSizedBinSearchHeader
 {
 
@@ -779,6 +798,8 @@ struct VarSizedBinSearchHeader
 template <typename Type>
 struct VarSizedBinSearchArrayOf
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= header.nUnits)) return Null(Type);
@@ -825,7 +846,7 @@ struct VarSizedBinSearchArrayOf
     int min = 0, max = (int) header.nUnits - 1;
     while (min <= max)
     {
-      int mid = (min + max) / 2;
+      int mid = ((unsigned int) min + (unsigned int) max) / 2;
       const Type *p = (const Type *) (((const char *) &bytesZ) + (mid * size));
       int c = p->cmp (key);
       if (c < 0)

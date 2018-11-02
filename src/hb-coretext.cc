@@ -35,6 +35,16 @@
 #include "hb-aat-layout.hh"
 #include <math.h>
 
+
+/**
+ * SECTION:hb-coretext
+ * @title: hb-coretext
+ * @short_description: CoreText integration
+ * @include: hb-coretext.h
+ *
+ * Functions for using HarfBuzz with the CoreText fonts.
+ **/
+
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
 #define HB_CORETEXT_DEFAULT_FONT_SIZE 12.f
 
@@ -464,8 +474,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	buffer->merge_clusters (i - 1, i + 1);
   }
 
-  hb_auto_t<hb_vector_t<feature_record_t> > feature_records;
-  hb_auto_t<hb_vector_t<range_record_t> > range_records;
+  hb_vector_t<feature_record_t> feature_records;
+  hb_vector_t<range_record_t> range_records;
 
   /*
    * Set up features.
@@ -474,7 +484,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   if (num_features)
   {
     /* Sort features by start/end events. */
-    hb_auto_t<hb_vector_t<feature_event_t> > feature_events;
+    hb_vector_t<feature_event_t> feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
       const hb_aat_feature_mapping_t * mapping = hb_aat_layout_find_feature_mapping (features[i].tag);
@@ -513,7 +523,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     }
 
     /* Scan events and save features for each range. */
-    hb_auto_t<hb_vector_t<active_feature_t> > active_features;
+    hb_vector_t<active_feature_t> active_features;
     unsigned int last_index = 0;
     for (unsigned int i = 0; i < feature_events.len; i++)
     {
@@ -586,7 +596,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ());
+	  active_features.remove (feature - active_features);
       }
     }
   }

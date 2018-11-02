@@ -36,7 +36,7 @@ basic_features[] =
 {
   /*
    * Basic features.
-   * These features are applied in order, one at a time, after initial_reordering.
+   * These features are applied in order, one at a time, after reordering.
    */
   HB_TAG('r','p','h','f'),
   HB_TAG('p','r','e','f'),
@@ -48,7 +48,7 @@ other_features[] =
 {
   /*
    * Other features.
-   * These features are applied all at once, after final_reordering.
+   * These features are applied all at once, after clearing syllables.
    */
   HB_TAG('p','r','e','s'),
   HB_TAG('a','b','v','s'),
@@ -80,13 +80,13 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer);
 static void
-initial_reordering (const hb_ot_shape_plan_t *plan,
-		    hb_font_t *font,
-		    hb_buffer_t *buffer);
+reorder (const hb_ot_shape_plan_t *plan,
+	 hb_font_t *font,
+	 hb_buffer_t *buffer);
 static void
-final_reordering (const hb_ot_shape_plan_t *plan,
-		  hb_font_t *font,
-		  hb_buffer_t *buffer);
+clear_syllables (const hb_ot_shape_plan_t *plan,
+		 hb_font_t *font,
+		 hb_buffer_t *buffer);
 
 static void
 collect_features_myanmar (hb_ot_shape_planner_t *plan)
@@ -102,7 +102,7 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
   map->enable_feature (HB_TAG('c','c','m','p'));
 
 
-  map->add_gsub_pause (initial_reordering);
+  map->add_gsub_pause (reorder);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
   {
@@ -110,7 +110,7 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
     map->add_gsub_pause (nullptr);
   }
 
-  map->add_gsub_pause (final_reordering);
+  map->add_gsub_pause (clear_syllables);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
     map->enable_feature (other_features[i], F_MANUAL_ZWJ);
@@ -274,8 +274,8 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 }
 
 static void
-initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
-			     hb_face_t *face,
+initial_reordering_syllable (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			     hb_face_t *face HB_UNUSED,
 			     hb_buffer_t *buffer,
 			     unsigned int start, unsigned int end)
 {
@@ -348,30 +348,28 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static void
-initial_reordering (const hb_ot_shape_plan_t *plan,
-		    hb_font_t *font,
-		    hb_buffer_t *buffer)
+reorder (const hb_ot_shape_plan_t *plan,
+	 hb_font_t *font,
+	 hb_buffer_t *buffer)
 {
   insert_dotted_circles (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
     initial_reordering_syllable (plan, font->face, buffer, start, end);
-}
-
-static void
-final_reordering (const hb_ot_shape_plan_t *plan,
-		  hb_font_t *font HB_UNUSED,
-		  hb_buffer_t *buffer)
-{
-  hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-
-  /* Zero syllables now... */
-  for (unsigned int i = 0; i < count; i++)
-    info[i].syllable() = 0;
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_position);
+}
+
+static void
+clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		 hb_font_t *font HB_UNUSED,
+		 hb_buffer_t *buffer)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    info[i].syllable() = 0;
 }
 
 

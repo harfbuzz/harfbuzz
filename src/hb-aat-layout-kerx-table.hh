@@ -163,12 +163,12 @@ struct KerxSubTableFormat1
 	kernAction (&table->machine + table->kernAction),
 	depth (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->data.kernActionIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -239,7 +239,7 @@ struct KerxSubTableFormat1
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->font->face);
     driver.drive (&dc);
 
     return_trace (true);
@@ -255,7 +255,7 @@ struct KerxSubTableFormat1
 
   protected:
   KerxSubTableHeader				header;
-  StateTable<EntryData>				machine;
+  StateTable<MorxTypes, EntryData>				machine;
   LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
   public:
   DEFINE_SIZE_STATIC (32);
@@ -365,12 +365,12 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
-    inline bool is_actionable (StateTableDriver<EntryData> *driver,
+    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->data.ankrActionIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<EntryData> *driver,
+    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -473,7 +473,7 @@ struct KerxSubTableFormat4
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<EntryData> driver (machine, c->buffer, c->font->face);
+    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->font->face);
     driver.drive (&dc);
 
     return_trace (true);
@@ -489,7 +489,8 @@ struct KerxSubTableFormat4
 
   protected:
   KerxSubTableHeader	header;
-  StateTable<EntryData>	machine;
+  StateTable<MorxTypes, EntryData>
+			machine;
   HBUINT32		flags;
   public:
   DEFINE_SIZE_STATIC (32);

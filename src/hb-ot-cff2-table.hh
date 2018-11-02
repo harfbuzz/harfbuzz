@@ -534,10 +534,9 @@ struct cff2
 
   struct accelerator_t : accelerator_templ_t<CFF2PrivateDictOpSet, CFF2PrivateDictValues>
   {
-    HB_INTERNAL bool get_extents (hb_codepoint_t glyph,
-                                  hb_glyph_extents_t *extents,
-                                  const int *coords,
-                                  unsigned int num_coords) const;
+    HB_INTERNAL bool get_extents (hb_font_t *font,
+                                  hb_codepoint_t glyph,
+                                  hb_glyph_extents_t *extents) const;
   };
 
   typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Subset> accelerator_subset_t;

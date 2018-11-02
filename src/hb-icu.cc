@@ -40,6 +40,16 @@
 #include <unicode/uversion.h>
 
 
+/**
+ * SECTION:hb-icu
+ * @title: hb-icu
+ * @short_description: ICU integration
+ * @include: hb-icu.h
+ *
+ * Functions for using HarfBuzz with the ICU library to provide Unicode data.
+ **/
+
+
 hb_script_t
 hb_icu_script_to_script (UScriptCode script)
 {

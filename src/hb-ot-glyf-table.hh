@@ -47,7 +47,7 @@ struct loca
 
   static const hb_tag_t tableTag = HB_OT_TAG_loca;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     return_trace (true);
@@ -55,6 +55,7 @@ struct loca
 
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Location data. */
+  public:
   DEFINE_SIZE_ARRAY (0, dataZ);
 };
 
@@ -70,7 +71,7 @@ struct glyf
 {
   static const hb_tag_t tableTag = HB_OT_TAG_glyf;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     /* We don't check for anything specific here.  The users of the
@@ -484,7 +485,7 @@ struct glyf
 
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Glyphs data. */
-
+  public:
   DEFINE_SIZE_ARRAY (0, dataZ);
 };
 

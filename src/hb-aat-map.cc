@@ -34,6 +34,14 @@
 void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
 					unsigned int value)
 {
+  if (tag == HB_TAG ('a','a','l','t'))
+  {
+    feature_info_t *info = features.push();
+    info->type = 17/*kCharacterAlternativesType*/;
+    info->setting = value;
+    return;
+  }
+
   const hb_aat_feature_mapping_t *mapping = hb_aat_layout_find_feature_mapping (tag);
   if (!mapping) return;
 

@@ -170,7 +170,6 @@ pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
 
 FUZZING_CPPFLAGS = \
-	-DHB_NDEBUG \
 	-DHB_MAX_NESTING_LEVEL=3 \
 	-DHB_SANITIZE_MAX_EDITS=3 \
 	-DHB_SANITIZE_MAX_OPS_FACTOR=3 \
@@ -269,7 +268,7 @@ EXTRA_DIST += \
 CLEANFILES += $(pkgconfig_DATA)
 
 
-DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-deprecated.def
+DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def harfbuzz-deprecated-symbols.txt
 if HAVE_GOBJECT
 DEF_FILES += harfbuzz-gobject.def
 endif
@@ -283,8 +282,8 @@ harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
-harfbuzz-deprecated.def: $(srcdir)/hb-deprecated.h
-	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
+harfbuzz-deprecated-symbols.txt: $(srcdir)/hb-deprecated.h
+	$(AM_V_GEN) PLAIN_LIST=1 $(srcdir)/gen-def.py "$@" $^
 
 
 GENERATORS = \
@@ -348,6 +347,7 @@ noinst_PROGRAMS = \
 	main \
 	test \
 	test-buffer-serialize \
+	test-name-table \
 	test-size-params \
 	test-would-substitute \
 	$(NULL)
@@ -361,17 +361,30 @@ test_SOURCES = test.cc
 test_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
 test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
-test_would_substitute_SOURCES = test-would-substitute.cc
-test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
-test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
+test_buffer_serialize_SOURCES = test-buffer-serialize.cc
+test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
+test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_name_table_SOURCES = test-name-table.cc
+test_name_table_CPPFLAGS = $(HBCFLAGS)
+test_name_table_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_size_params_SOURCES = test-size-params.cc
 test_size_params_CPPFLAGS = $(HBCFLAGS)
 test_size_params_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_buffer_serialize_SOURCES = test-buffer-serialize.cc
-test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
-test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
+test_would_substitute_SOURCES = test-would-substitute.cc
+test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
+test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
+
+if HAVE_FREETYPE
+if HAVE_CAIRO_FT
+noinst_PROGRAMS += test-ot-color
+test_ot_color_SOURCES = test-ot-color.cc
+test_ot_color_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS) $(CAIRO_FT_CFLAGS)
+test_ot_color_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS)
+endif # HAVE_CAIRO_FT
+endif # HAVE_FREETYPE
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
@@ -407,15 +420,6 @@ dump_myanmar_data_LDADD = libharfbuzz.la $(HBLIBS)
 dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
-
-if HAVE_FREETYPE
-if HAVE_CAIRO_FT
-check_PROGRAMS += dump-emoji
-dump_emoji_SOURCES = dump-emoji.cc
-dump_emoji_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS) $(CAIRO_FT_CFLAGS)
-dump_emoji_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS)
-endif # HAVE_CAIRO_FT
-endif # HAVE_FREETYPE
 
 check_PROGRAMS += test-ot-tag test-unicode-ranges
 TESTS += test-ot-tag test-unicode-ranges

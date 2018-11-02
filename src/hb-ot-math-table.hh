@@ -631,7 +631,7 @@ struct MathVariants
   inline const MathGlyphConstruction &
 		get_glyph_construction (hb_codepoint_t glyph,
 					hb_direction_t direction,
-					hb_font_t *font) const
+					hb_font_t *font HB_UNUSED) const
   {
     bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
     unsigned int count = vertical ? vertGlyphCount : horizGlyphCount;

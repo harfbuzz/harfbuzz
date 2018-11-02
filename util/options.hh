@@ -524,7 +524,7 @@ struct text_options_t : option_group_t
     g_free (text_file);
     if (gs)
       g_string_free (gs, true);
-    if (fp)
+    if (fp && fp != stdin)
       fclose (fp);
   }
 
@@ -535,7 +535,7 @@ struct text_options_t : option_group_t
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Only one of text and text-file can be set");
-  };
+  }
 
   const char *get_line (unsigned int *len);
 
@@ -570,7 +570,7 @@ struct output_options_t : option_group_t
   {
     g_free (output_file);
     g_free (output_format);
-    if (fp)
+    if (fp && fp != stdout)
       fclose (fp);
   }
 

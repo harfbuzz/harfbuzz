@@ -44,6 +44,10 @@ inline uint32_t Hash (const T &v)
 
 struct hb_map_t
 {
+  HB_NO_COPY_ASSIGN (hb_map_t);
+  inline hb_map_t (void) { init (); }
+  inline ~hb_map_t (void) { fini (); }
+
   struct item_t
   {
     hb_codepoint_t key;
@@ -77,9 +81,11 @@ struct hb_map_t
   inline void fini_shallow (void)
   {
     free (items);
+    items = nullptr;
   }
   inline void fini (void)
   {
+    population = occupancy = 0;
     hb_object_fini (this);
     fini_shallow ();
   }

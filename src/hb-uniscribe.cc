@@ -36,7 +36,17 @@
 
 #include "hb-open-file.hh"
 #include "hb-ot-name-table.hh"
-#include "hb-ot-tag.h"
+#include "hb-ot-layout.h"
+
+
+/**
+ * SECTION:hb-uniscribe
+ * @title: hb-uniscribe
+ * @short_description: Windows integration
+ * @include: hb-uniscribe.h
+ *
+ * Functions for using HarfBuzz with the Windows fonts.
+ **/
 
 
 static inline uint16_t hb_uint16_swap (const uint16_t v)
@@ -632,12 +642,12 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   /*
    * Set up features.
    */
-  hb_auto_t<hb_vector_t<OPENTYPE_FEATURE_RECORD> > feature_records;
-  hb_auto_t<hb_vector_t<range_record_t> > range_records;
+  hb_vector_t<OPENTYPE_FEATURE_RECORD> feature_records;
+  hb_vector_t<range_record_t> range_records;
   if (num_features)
   {
     /* Sort features by start/end events. */
-    hb_auto_t<hb_vector_t<feature_event_t> > feature_events;
+    hb_vector_t<feature_event_t> feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
       active_feature_t feature;
@@ -672,7 +682,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
     }
 
     /* Scan events and save features for each range. */
-    hb_auto_t<hb_vector_t<active_feature_t> > active_features;
+    hb_vector_t<active_feature_t> active_features;
     unsigned int last_index = 0;
     for (unsigned int i = 0; i < feature_events.len; i++)
     {
@@ -717,7 +727,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ());
+	  active_features.remove (feature - active_features);
       }
     }
 
@@ -728,7 +738,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < range_records.len; i++)
     {
       range_record_t *range = &range_records[i];
-      range->props.potfRecords = feature_records.arrayZ() + reinterpret_cast<uintptr_t> (range->props.potfRecords);
+      range->props.potfRecords = feature_records + reinterpret_cast<uintptr_t> (range->props.potfRecords);
     }
   }
 
@@ -844,8 +854,8 @@ retry:
 #undef MAX_ITEMS
 
   OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
-  hb_auto_t<hb_vector_t<TEXTRANGE_PROPERTIES*> > range_properties;
-  hb_auto_t<hb_vector_t<int> > range_char_counts;
+  hb_vector_t<TEXTRANGE_PROPERTIES*> range_properties;
+  hb_vector_t<int> range_char_counts;
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
@@ -902,8 +912,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ(),
-				     range_properties.arrayZ(),
+				     range_char_counts,
+				     range_properties,
 				     range_properties.len,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -943,8 +953,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ(),
-				     range_properties.arrayZ(),
+				     range_char_counts,
+				     range_properties,
 				     range_properties.len,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,

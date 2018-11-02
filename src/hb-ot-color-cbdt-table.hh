@@ -166,7 +166,7 @@ struct IndexSubtable
     }
   }
 
-  inline bool get_extents (hb_glyph_extents_t *extents) const
+  inline bool get_extents (hb_glyph_extents_t *extents HB_UNUSED) const
   {
     switch (u.header.indexFormat) {
     case 2: case 5: /* TODO */
@@ -343,26 +343,30 @@ struct CBLC
   }
 
   protected:
-  const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
-					 unsigned int *x_ppem, unsigned int *y_ppem,
-					 const void **base) const
+  const BitmapSizeTable &choose_strike (hb_font_t *font) const
   {
-    /* TODO: Make it possible to select strike. */
+    unsigned count = sizeTables.len;
+    if (unlikely (!count))
+      return Null(BitmapSizeTable);
 
-    unsigned int count = sizeTables.len;
-    for (uint32_t i = 0; i < count; ++i)
+    unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+    if (!requested_ppem)
+      requested_ppem = 1<<30; /* Choose largest strike. */
+    unsigned int best_i = 0;
+    unsigned int best_ppem = MAX (sizeTables[0].ppemX, sizeTables[0].ppemY);
+
+    for (unsigned int i = 1; i < count; i++)
     {
-      unsigned int startGlyphIndex = sizeTables.arrayZ[i].startGlyphIndex;
-      unsigned int endGlyphIndex = sizeTables.arrayZ[i].endGlyphIndex;
-      if (startGlyphIndex <= glyph && glyph <= endGlyphIndex)
+      unsigned int ppem = MAX (sizeTables[i].ppemX, sizeTables[i].ppemY);
+      if ((requested_ppem <= ppem && ppem < best_ppem) ||
+	  (requested_ppem > best_ppem && ppem > best_ppem))
       {
-	*x_ppem = sizeTables[i].ppemX;
-	*y_ppem = sizeTables[i].ppemY;
-	return sizeTables[i].find_table (glyph, this, base);
+	best_i = i;
+	best_ppem = ppem;
       }
     }
 
-    return nullptr;
+    return sizeTables[best_i];
   }
 
   protected:
@@ -375,13 +379,6 @@ struct CBLC
 struct CBDT
 {
   static const hb_tag_t tableTag = HB_OT_TAG_CBDT;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version.major == 2 || version.major == 3));
-  }
 
   struct accelerator_t
   {
@@ -409,16 +406,16 @@ struct CBDT
       hb_blob_destroy (this->cbdt_blob);
     }
 
-    inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    inline bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
+			     hb_glyph_extents_t *extents) const
     {
-      unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
-
       if (!cblc)
-	return false;  // Not a color bitmap font.
+	return false;
 
       const void *base;
-      const IndexSubtableRecord *subtable_record = this->cblc->find_table (glyph, &x_ppem, &y_ppem, &base);
-      if (!subtable_record || !x_ppem || !y_ppem)
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
+      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
+      if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return false;
 
       if (subtable_record->get_extents (extents, base))
@@ -437,79 +434,93 @@ struct CBDT
 	  case 17: {
 	    if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
 	      return false;
-
 	    const GlyphBitmapDataFormat17& glyphFormat17 =
 		StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
 	    glyphFormat17.glyphMetrics.get_extents (extents);
+	    break;
 	  }
-	  break;
+	  case 18: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat18::min_size))
+	      return false;
+	    const GlyphBitmapDataFormat18& glyphFormat18 =
+		StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
+	    glyphFormat18.glyphMetrics.get_extents (extents);
+	    break;
+	  }
 	  default:
 	    // TODO: Support other image formats.
 	    return false;
 	}
       }
 
-      /* Convert to the font units. */
-      extents->x_bearing *= upem / (float) x_ppem;
-      extents->y_bearing *= upem / (float) y_ppem;
-      extents->width *= upem / (float) x_ppem;
-      extents->height *= upem / (float) y_ppem;
+      /* Convert to font units. */
+      double x_scale = upem / (double) strike.ppemX;
+      double y_scale = upem / (double) strike.ppemY;
+      extents->x_bearing = round (extents->x_bearing * x_scale);
+      extents->y_bearing = round (extents->y_bearing * y_scale);
+      extents->width = round (extents->width * x_scale);
+      extents->height = round (extents->height * y_scale);
 
       return true;
     }
 
-    inline void dump (void (*callback) (const uint8_t* data, unsigned int length,
-        unsigned int group, unsigned int gid)) const
+    inline hb_blob_t* reference_png (hb_font_t      *font,
+				     hb_codepoint_t  glyph) const
     {
       if (!cblc)
-	return;  // Not a color bitmap font.
+	return hb_blob_get_empty ();
 
-      for (unsigned int i = 0; i < cblc->sizeTables.len; ++i)
+      const void *base;
+      const BitmapSizeTable &strike = this->cblc->choose_strike (font);
+      const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
+      if (!subtable_record || !strike.ppemX || !strike.ppemY)
+	return hb_blob_get_empty ();
+
+      unsigned int image_offset = 0, image_length = 0, image_format = 0;
+      if (!subtable_record->get_image_data (glyph, base, &image_offset, &image_length, &image_format))
+	return hb_blob_get_empty ();
+
       {
-        const BitmapSizeTable &sizeTable = cblc->sizeTables[i];
-        const IndexSubtableArray &subtable_array = cblc+sizeTable.indexSubtableArrayOffset;
-        for (unsigned int j = 0; j < sizeTable.numberOfIndexSubtables; ++j)
-        {
-          const IndexSubtableRecord &subtable_record = subtable_array.indexSubtablesZ[j];
-          for (unsigned int gid = subtable_record.firstGlyphIndex;
-                gid <= subtable_record.lastGlyphIndex; ++gid)
-          {
-            unsigned int image_offset = 0, image_length = 0, image_format = 0;
+	if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
+	  return hb_blob_get_empty ();
 
-            if (!subtable_record.get_image_data (gid, &subtable_array,
-                  &image_offset, &image_length, &image_format))
-              continue;
-
-            switch (image_format)
-            {
-            case 17: {
-              const GlyphBitmapDataFormat17& glyphFormat17 =
-                StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat17.data.arrayZ,
-                glyphFormat17.data.len, i, gid);
-            }
-            break;
-            case 18: {
-              const GlyphBitmapDataFormat18& glyphFormat18 =
-                StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat18.data.arrayZ,
-                glyphFormat18.data.len, i, gid);
-            }
-            break;
-            case 19: {
-              const GlyphBitmapDataFormat19& glyphFormat19 =
-                StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
-              callback ((const uint8_t *) &glyphFormat19.data.arrayZ,
-                glyphFormat19.data.len, i, gid);
-            }
-            break;
-            default:
-              continue;
-            }
-          }
-        }
+	switch (image_format)
+	{
+	  case 17: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat17& glyphFormat17 =
+	      StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat17::min_size,
+					    glyphFormat17.data.len);
+	  }
+	  case 18: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat18::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat18& glyphFormat18 =
+	      StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat18::min_size,
+					    glyphFormat18.data.len);
+	  }
+	  case 19: {
+	    if (unlikely (image_length < GlyphBitmapDataFormat19::min_size))
+	      return hb_blob_get_empty ();
+	    const GlyphBitmapDataFormat19& glyphFormat19 =
+	      StructAtOffset<GlyphBitmapDataFormat19> (this->cbdt, image_offset);
+	    return hb_blob_create_sub_blob (cbdt_blob,
+					    image_offset + GlyphBitmapDataFormat19::min_size,
+					    glyphFormat19.data.len);
+	  }
+	}
       }
+
+      return hb_blob_get_empty ();
     }
+
+    inline bool has_data () const
+    { return cbdt_len; }
 
     private:
     hb_blob_t *cblc_blob;
@@ -521,6 +532,12 @@ struct CBDT
     unsigned int upem;
   };
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version.major == 2 || version.major == 3));
+  }
 
   protected:
   FixedVersion<>		version;

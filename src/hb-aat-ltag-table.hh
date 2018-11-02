@@ -25,7 +25,7 @@
 #ifndef HB_AAT_LTAG_TABLE_HH
 #define HB_AAT_LTAG_TABLE_HH
 
-#include "hb-aat-layout-common.hh"
+#include "hb-open-type.hh"
 
 /*
  * ltag -- Language Tag
@@ -36,9 +36,13 @@
 
 namespace AAT {
 
+using namespace OT;
+
 
 struct FTStringRange
 {
+  friend struct ltag;
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -58,10 +62,19 @@ struct ltag
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_ltag;
 
+  inline hb_language_t get_language (unsigned int i) const
+  {
+    const FTStringRange &range = tagRanges[i];
+    return hb_language_from_string ((const char *) (this+range.tag).arrayZ,
+				    range.length);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && tagRanges.sanitize (c, this)));
+    return_trace (likely (c->check_struct (this) &&
+			  version >= 1 &&
+			  tagRanges.sanitize (c, this)));
   }
 
   protected:

@@ -70,8 +70,6 @@ override_features_hangul (hb_ot_shape_planner_t *plan)
 
 struct hangul_shape_plan_t
 {
-  ASSERT_POD ();
-
   hb_mask_t mask_array[HANGUL_FEATURE_COUNT];
 };
 
@@ -128,7 +126,7 @@ is_zero_width_char (hb_font_t *font,
 }
 
 static void
-preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
+preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			hb_buffer_t              *buffer,
 			hb_font_t                *font)
 {

@@ -86,7 +86,6 @@ HB_MARK_AS_FLAG_T (hb_buffer_scratch_flags_t);
 struct hb_buffer_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   /* Information about how the text in the buffer should be treated */
   hb_unicode_funcs_t *unicode; /* Unicode functions */

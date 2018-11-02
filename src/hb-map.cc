@@ -27,7 +27,16 @@
 #include "hb-map.hh"
 
 
-/* Public API */
+/**
+ * SECTION:hb-map
+ * @title: hb-map
+ * @short_description: Object representing integer to integer mapping
+ * @include: hb.h
+ *
+ * Map objects are integer-to-integer hash-maps.  Currently they are
+ * not used in the HarfBuzz public API, but are provided for client's
+ * use if desired.
+ **/
 
 
 /**

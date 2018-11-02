@@ -40,13 +40,21 @@ namespace OT {
 
 struct SVGDocumentIndexEntry
 {
-  friend struct SVG;
+  inline int cmp (hb_codepoint_t g) const
+  { return g < startGlyphID ? -1 : g > endGlyphID ? 1 : 0; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void* base) const
+  inline hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
+  {
+    return hb_blob_create_sub_blob (svg_blob,
+				    index_offset + (unsigned int) svgDoc,
+				    svgDocLength);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  (base+svgDoc).sanitize (c, svgDocLength));
+		  svgDoc.sanitize (c, base, svgDocLength));
   }
 
   protected:
@@ -57,40 +65,15 @@ struct SVGDocumentIndexEntry
   LOffsetTo<UnsizedArrayOf<HBUINT8>, false>
 		svgDoc;		/* Offset from the beginning of the SVG Document Index
 				 * to an SVG document. Must be non-zero. */
-  HBUINT32 svgDocLength;	/* Length of the SVG document.
+  HBUINT32	svgDocLength;	/* Length of the SVG document.
 				 * Must be non-zero. */
   public:
   DEFINE_SIZE_STATIC (12);
 };
 
-struct SVGDocumentIndex
-{
-  friend struct SVG;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  entries.sanitize (c, this));
-  }
-
-  protected:
-  ArrayOf<SVGDocumentIndexEntry>
-		entries;	/* Array of SVG Document Index Entries. */
-  public:
-  DEFINE_SIZE_ARRAY (2, entries);
-};
-
 struct SVG
 {
   static const hb_tag_t tableTag = HB_OT_TAG_SVG;
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  (this+svgDocIndex).sanitize (c)));
-  }
 
   struct accelerator_t
   {
@@ -98,7 +81,7 @@ struct SVG
     {
       svg_blob = hb_sanitize_context_t().reference_table<SVG> (face);
       svg_len = hb_blob_get_length (svg_blob);
-      svg = svg_blob->as<SVG> ();
+      table = svg_blob->as<SVG> ();
     }
 
     inline void fini (void)
@@ -106,36 +89,47 @@ struct SVG
       hb_blob_destroy (svg_blob);
     }
 
-    inline void
-    dump (void (*callback) (const uint8_t* data, unsigned int length,
-			    unsigned int start_glyph, unsigned int end_glyph)) const
+    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
-      const SVGDocumentIndex &index = svg+svg->svgDocIndex;
-      const ArrayOf<SVGDocumentIndexEntry> &entries = index.entries;
-      for (unsigned int i = 0; i < entries.len; ++i)
-      {
-	const SVGDocumentIndexEntry &entry = entries[i];
-	callback ((const uint8_t*) &entry.svgDoc (&index), entry.svgDocLength,
-						  entry.startGlyphID, entry.endGlyphID);
-      }
+      if (unlikely (!svg_len))
+        return hb_blob_get_empty ();
+      return table->get_glyph_entry (glyph_id).reference_blob (svg_blob, table->svgDocEntries);
     }
+
+    inline bool has_data () const { return svg_len; }
 
     private:
     hb_blob_t *svg_blob;
-    const SVG *svg;
+    const SVG *table;
 
     unsigned int svg_len;
   };
 
+  inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
+  {
+    const SortedArrayOf<SVGDocumentIndexEntry> &docs = this+svgDocEntries;
+    return docs[docs.bsearch (glyph_id)];
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  (this+svgDocEntries).sanitize_shallow (c)));
+  }
+
   protected:
   HBUINT16	version;	/* Table version (starting at 0). */
-  LOffsetTo<SVGDocumentIndex>
-		svgDocIndex;	/* Offset (relative to the start of the SVG table) to the
+  LOffsetTo<SortedArrayOf<SVGDocumentIndexEntry> >
+		svgDocEntries;	/* Offset (relative to the start of the SVG table) to the
 				 * SVG Documents Index. Must be non-zero. */
+				/* Array of SVG Document Index Entries. */
   HBUINT32	reserved;	/* Set to 0. */
   public:
   DEFINE_SIZE_STATIC (10);
 };
+
+struct SVG_accelerator_t : SVG::accelerator_t {};
 
 } /* namespace OT */
 
