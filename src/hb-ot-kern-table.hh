@@ -199,7 +199,8 @@ struct KernClassTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (firstGlyph.sanitize (c) && classes.sanitize (c));
+    return_trace (c->check_struct (this) &&
+		  classes.sanitize (c));
   }
 
   protected:
@@ -262,7 +263,7 @@ struct KernSubTableFormat2
   {
     TRACE_SANITIZE (this);
     return_trace (true); /* Disabled.  See above. */
-    return_trace (rowWidth.sanitize (c) &&
+    return_trace (c->check_struct (this) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
