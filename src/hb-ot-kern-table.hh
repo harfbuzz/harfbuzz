@@ -483,7 +483,12 @@ struct kern
 
       hb_kern_machine_t<accelerator_t> machine (*this);
 
+      if (!buffer->message (font, "start kern table"))
+        return;
+
       machine.kern (font, buffer, kern_mask);
+
+      (void) buffer->message (font, "end kern table");
     }
 
     private:
