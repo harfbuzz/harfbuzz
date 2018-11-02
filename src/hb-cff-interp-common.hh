@@ -575,12 +575,6 @@ struct ArgStack : Stack<ARG, 513>
     return this->pop ();
   }
 
-  inline void pop_num2 (ARG& n1, ARG& n2)
-  {
-    n2 = this->pop ();
-    n1 = this->pop ();
-  }
-
   inline int pop_int (void)
   {
     return this->pop ().to_int ();
@@ -611,18 +605,6 @@ struct ArgStack : Stack<ARG, 513>
     push_fixed ((int32_t)*(const HBUINT32*)&substr[0]);
     substr.inc (4);
     return true;
-  }
-
-  inline void reverse_range (int i, int j)
-  {
-    assert (i >= 0 && i <= j);
-    ARG  tmp;
-    while (i < j)
-    {
-      tmp = S::elements[i];
-      S::elements[i++] = S::elements[j];
-      S::elements[j--] = tmp;
-    }
   }
 
   private:
