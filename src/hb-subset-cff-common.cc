@@ -112,14 +112,14 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
   {
     assert (src.format == 4);
     subset_fdselect_format = 4;
-    subset_fdselect_size = FDSelect4::min_size + FDSelect4_Range::static_size * num_ranges + HBUINT32::static_size;
+    subset_fdselect_size = FDSelect::min_size + FDSelect4::min_size + FDSelect4_Range::static_size * num_ranges + HBUINT32::static_size;
   }
   else
   {
 #if CFF_SERIALIZE_FDSELECT_0
-    unsigned int format0_size = FDSelect0::min_size + HBUINT8::static_size * subset_num_glyphs;
+    unsigned int format0_size = FDSelect::min_size + FDSelect0::min_size + HBUINT8::static_size * subset_num_glyphs;
 #endif
-    unsigned int format3_size = FDSelect3::min_size + FDSelect3_Range::static_size * num_ranges + HBUINT16::static_size;
+    unsigned int format3_size = FDSelect::min_size + FDSelect3::min_size + FDSelect3_Range::static_size * num_ranges + HBUINT16::static_size;
 
 #if CFF_SERIALIZE_FDSELECT_0
     if (format0_size <= format3_size)

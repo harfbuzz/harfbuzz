@@ -632,7 +632,7 @@ struct FDSelect3_4 {
   FDSelect3_4_Range<GID_TYPE, FD_TYPE>  ranges[VAR];
   /* GID_TYPE sentinel */
 
-  DEFINE_SIZE_ARRAY (GID_TYPE::static_size * 2, ranges);
+  DEFINE_SIZE_ARRAY (GID_TYPE::static_size, ranges);
 };
 
 typedef FDSelect3_4<HBUINT16, HBUINT8> FDSelect3;
