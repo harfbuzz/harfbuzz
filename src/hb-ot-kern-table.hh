@@ -217,8 +217,7 @@ struct KernSubTableFormat2
     /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
      * based from.  I *think* they should be based from beginning of kern subtable wrapper,
      * *NOT* "this".  Since we know of no fonts that use this subtable, we are disabling
-     * it.  Someday fix it and re-enable.  Better yet, find fonts that use it... Meh,
-     * Windows doesn't implement it.  Maybe just remove... */
+     * it.  Someday fix it and re-enable. */
     return 0;
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
