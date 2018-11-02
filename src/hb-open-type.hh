@@ -452,9 +452,6 @@ struct ArrayOf
     return arrayZ[i];
   }
 
-  template <typename T> inline operator T * (void) { return arrayZ; }
-  template <typename T> inline operator const T * (void) const { return arrayZ; }
-
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
