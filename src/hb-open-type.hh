@@ -343,6 +343,9 @@ struct UnsizedArrayOf
   template <typename T> inline operator  T * (void) { return arrayZ; }
   template <typename T> inline operator const T * (void) const { return arrayZ; }
 
+  inline unsigned int get_size (unsigned int len) const
+  { return len * Type::static_size; }
+
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
