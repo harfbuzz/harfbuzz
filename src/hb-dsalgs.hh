@@ -551,7 +551,7 @@ struct hb_array_t
     return arrayZ[i];
   }
 
-  inline unsigned int get_size (void) { return len * sizeof (Type); }
+  inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
   template <typename T> inline operator  T * (void) { return arrayZ; }
   template <typename T> inline operator const T * (void) const { return arrayZ; }
