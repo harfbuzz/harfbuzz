@@ -556,6 +556,9 @@ struct hb_array_t
   template <typename T> inline operator  T * (void) { return arrayZ; }
   template <typename T> inline operator const T * (void) const { return arrayZ; }
 
+  inline Type * operator & (void) { return arrayZ; }
+  inline const Type * operator & (void) const { return arrayZ; }
+
   inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   {
     unsigned int count = len;
