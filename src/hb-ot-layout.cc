@@ -55,9 +55,9 @@
  **/
 
 
-static const OT::kern::accelerator_t& _get_kern (hb_face_t *face)
+static const OT::kern& _get_kern (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::kern::accelerator_t);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::kern);
   return *hb_ot_face_data (face)->kern;
 }
 const OT::GDEF& _get_gdef (hb_face_t *face)
