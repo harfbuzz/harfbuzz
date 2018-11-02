@@ -418,8 +418,7 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
 			   hb_direction_t           direction,
 			   hb_script_t              script,
-			   hb_language_t            language,
-			   hb_codepoint_t          *glyph, /* IN/OUT.  May be NULL. */
+			   hb_tag_t                 language,
 			   hb_position_t           *result /* OUT.     May be NULL. */);
 
 

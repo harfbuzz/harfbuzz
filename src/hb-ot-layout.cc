@@ -1421,15 +1421,10 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
 			   hb_direction_t           direction,
 			   hb_script_t              script,
-			   hb_language_t            language,
-			   hb_codepoint_t          *glyph, /* IN/OUT.  May be NULL. */
-			   hb_position_t           *result /* OUT.     May be NULL. */)
+			   hb_tag_t                 language,
+			   hb_position_t           *result    /* OUT.  May be NULL. */)
 {
-  const OT::BASE& base = _get_base (font->face);
-  const OT::Axis& axis = base.get_axis (direction);
-  unsigned int base_index = axis.get_base_tag_index (baseline);
-  unsigned int script_index = axis.get_base_script_index (script);
-//   unsigned int lang_index = axis.get_lang_tag_index (language);
-  if (result) *result = axis.get_base_coord (script_index, base_index);
+  const OT::BaseScript& base_script = _get_base (font->face).get_base_script (direction, baseline);
+  if (result) *result = base_script.get_base_coord (0);
   return true;
 }
