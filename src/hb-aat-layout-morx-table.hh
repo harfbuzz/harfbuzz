@@ -977,7 +977,7 @@ struct Chain
   inline void apply (hb_aat_apply_context_t *c,
 		     hb_mask_t flags) const
   {
-    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (&featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types> > (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -1059,7 +1059,7 @@ struct Chain
     if (!c->check_array (featureZ.arrayZ, featureCount))
       return_trace (false);
 
-    const ChainSubtable<Types> *subtable = &StructAtOffset<ChainSubtable<Types> > (&featureZ, featureZ[0].static_size * featureCount);
+    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types> > (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
