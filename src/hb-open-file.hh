@@ -330,7 +330,7 @@ struct ResourceTypeRecord
   inline const ResourceRecord& get_resource_record (unsigned int i,
 						    const void *type_base) const
   {
-    return hb_array (type_base+resourcesZ, get_resource_count ())[i];
+    return (type_base+resourcesZ).as_array (get_resource_count ())[i];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,

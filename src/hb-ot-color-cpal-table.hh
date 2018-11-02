@@ -55,7 +55,7 @@ struct CPALV1Tail
   {
     if (!paletteFlagsZ) return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
     return (hb_ot_color_palette_flags_t) (uint32_t)
-	   hb_array (base+paletteFlagsZ, palette_count)[palette_index];
+	   (base+paletteFlagsZ).as_array (palette_count)[palette_index];
   }
 
   inline hb_ot_name_id_t
@@ -64,7 +64,7 @@ struct CPALV1Tail
 		       unsigned int palette_count) const
   {
     if (!paletteLabelsZ) return HB_OT_NAME_ID_INVALID;
-    return hb_array (base+paletteLabelsZ, palette_count)[palette_index];
+    return (base+paletteLabelsZ).as_array (palette_count)[palette_index];
   }
 
   inline hb_ot_name_id_t
@@ -73,7 +73,7 @@ struct CPALV1Tail
 		     unsigned int color_count) const
   {
     if (!colorLabelsZ) return HB_OT_NAME_ID_INVALID;
-    return hb_array (base+colorLabelsZ, color_count)[color_index];
+    return (base+colorLabelsZ).as_array (color_count)[color_index];
   }
 
   public:

@@ -346,6 +346,9 @@ struct UnsizedArrayOf
   inline unsigned int get_size (unsigned int len) const
   { return len * Type::static_size; }
 
+  inline hb_array_t<Type> as_array (unsigned int len) { return hb_array_t<Type> (arrayZ, len); }
+  inline hb_array_t<const Type> as_array (unsigned int len) const { return hb_array_t<const Type> (arrayZ, len); }
+
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
@@ -393,14 +396,6 @@ struct UnsizedArrayOf
   public:
   DEFINE_SIZE_ARRAY (0, arrayZ);
 };
-} /* namespace OT */
-template <typename T> static inline
-hb_array_t<T> hb_array (OT::UnsizedArrayOf<T> &array, unsigned int len)
-{ return hb_array (array.arrayZ, len); }
-template <typename T> static inline
-hb_array_t<const T> hb_array (const OT::UnsizedArrayOf<T> &array, unsigned int len)
-{ return hb_array (array.arrayZ, len); }
-namespace OT {
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>

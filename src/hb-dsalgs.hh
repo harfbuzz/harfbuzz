@@ -572,8 +572,6 @@ struct hb_array_t
   T *arrayZ;
   unsigned int len;
 };
-template <typename T> static inline
-hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 
 struct HbOpOr
