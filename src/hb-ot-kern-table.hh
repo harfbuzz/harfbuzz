@@ -30,6 +30,8 @@
 #include "hb-open-type.hh"
 #include "hb-ot-shape.hh"
 #include "hb-ot-layout-gsubgpos.hh"
+#include "hb-aat-layout-ankr-table.hh" // Ugly but needed.
+#include "hb-aat-layout-common.hh"
 
 
 template <typename Driver>
@@ -165,6 +167,19 @@ struct KernSubTableFormat0
     return pairs[i].get_kerning ();
   }
 
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    hb_kern_machine_t<KernSubTableFormat0> machine (*this);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -196,7 +211,8 @@ struct KernClassTable
 
 struct KernSubTableFormat2
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+			  AAT::hb_aat_apply_context_t *c) const
   {
     /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
      * based from.  I *think* they should be based from beginning of kern subtable wrapper,
@@ -208,11 +224,40 @@ struct KernSubTableFormat2
     unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+#if 0
     if (unlikely ((const char *) v < (const char *) &array ||
 		  (const char *) v > (const char *) end - 2))
+#endif
       return 0;
     return *v;
   }
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    accelerator_t accel (*this, c);
+    hb_kern_machine_t<accelerator_t> machine (accel);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
+  }
+
+  struct accelerator_t
+  {
+    const KernSubTableFormat2 &table;
+    AAT::hb_aat_apply_context_t *c;
+
+    inline accelerator_t (const KernSubTableFormat2 &table_,
+			  AAT::hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
+
+    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    { return table.get_kerning (left, right, c); }
+  };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -241,7 +286,7 @@ struct KernSubTableFormat2
 
 struct KernSubTableFormat3
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     hb_array_t<const FWORD> kernValue = kernValueZ.as_array (kernValueCount);
     hb_array_t<const HBUINT8> leftClass = StructAfter<const UnsizedArrayOf<HBUINT8> > (kernValue).as_array (glyphCount);
@@ -250,6 +295,19 @@ struct KernSubTableFormat3
 
     unsigned int i = leftClass[left] * rightClassCount + rightClass[right];
     return kernValue[kernIndex[i]];
+  }
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    hb_kern_machine_t<KernSubTableFormat3> machine (*this);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -289,13 +347,23 @@ struct KernSubTableFormat3
 
 struct KernSubTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end, unsigned int format) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int format) const
   {
     switch (format) {
+    /* This method hooks up to hb_font_t's get_h_kerning.  Only support Format0. */
     case 0: return u.format0.get_kerning (left, right);
-    case 2: return u.format2.get_kerning (left, right, end);
-    case 3: return u.format3.get_kerning (left, right, end);
     default:return 0;
+    }
+  }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c, unsigned int format) const
+  {
+    /* TODO Switch to dispatch(). */
+    switch (format) {
+    case 0: u.format0.apply (c); return;
+    case 2: u.format2.apply (c); return;
+    case 3: u.format3.apply (c); return;
+    default:			 return;
     }
   }
 
@@ -333,11 +401,14 @@ struct KernSubTableWrapper
   inline bool is_override (void) const
   { return bool (thiz()->coverage & T::Override); }
 
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-  { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-  { return is_horizontal () ? get_kerning (left, right, end) : 0; }
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return is_horizontal () ? get_kerning (left, right) : 0; }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  { thiz()->subtable.apply (c, thiz()->format); }
 
   inline unsigned int get_size (void) const { return thiz()->length; }
 
@@ -366,10 +437,41 @@ struct KernTable
     {
       if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right, st->length + (const char *) st);
+      v += st->get_h_kerning (left, right);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
+  }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    c->set_lookup_index (0);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    unsigned int count = thiz()->nTables;
+    /* If there's an override subtable, skip subtables before that. */
+    unsigned int last_override = 0;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->is_override ())
+        last_override = i;
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
+    st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (i < last_override)
+	goto skip;
+
+      if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
+	goto skip;
+
+      st->apply (c);
+
+      (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
+
+    skip:
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -492,6 +594,16 @@ struct kern
     }
   }
 
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    /* TODO Switch to dispatch(). */
+    switch (u.major) {
+    case 0: u.ot.apply (c);  return;
+    case 1: u.aat.apply (c); return;
+    default:		     return;
+    }
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -501,27 +613,6 @@ struct kern
     case 1: return_trace (u.aat.sanitize (c));
     default:return_trace (true);
     }
-  }
-
-  inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
-  { return get_h_kerning (first, second); }
-
-  inline void apply (hb_font_t *font,
-		     hb_buffer_t  *buffer,
-		     hb_mask_t kern_mask) const
-  {
-    /* We only apply horizontal kerning in this table. */
-    if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-      return;
-
-    hb_kern_machine_t<kern> machine (*this);
-
-    if (!buffer->message (font, "start kern table"))
-      return;
-
-    machine.kern (font, buffer, kern_mask);
-
-    (void) buffer->message (font, "end kern table");
   }
 
   protected:

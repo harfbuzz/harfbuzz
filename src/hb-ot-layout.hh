@@ -34,6 +34,7 @@
 #include "hb-font.hh"
 #include "hb-buffer.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-shape.hh"
 #include "hb-set-digest.hh"
 
 
@@ -48,6 +49,7 @@ HB_INTERNAL const OT::GDEF& _get_gdef (hb_face_t *face);
 HB_INTERNAL const OT::GSUB& _get_gsub_relaxed (hb_face_t *face);
 HB_INTERNAL const OT::GPOS& _get_gpos_relaxed (hb_face_t *face);
 
+struct hb_ot_shape_plan_t;
 
 /*
  * kern
@@ -57,9 +59,9 @@ HB_INTERNAL hb_bool_t
 hb_ot_layout_has_kerning (hb_face_t *face);
 
 HB_INTERNAL void
-hb_ot_layout_kern (hb_font_t *font,
-		   hb_buffer_t  *buffer,
-		   hb_mask_t kern_mask);
+hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
+		   hb_font_t *font,
+		   hb_buffer_t  *buffer);
 
 
 /* Private API corresponding to hb-ot-layout.h: */

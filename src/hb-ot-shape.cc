@@ -918,7 +918,7 @@ hb_ot_position (const hb_ot_shape_context_t *c)
   /* Visual fallback goes here. */
 
   if (c->plan->apply_kern)
-    hb_ot_layout_kern (c->font, c->buffer, c->plan->kern_mask);
+    hb_ot_layout_kern (c->plan, c->font, c->buffer);
   else if (c->plan->fallback_kerning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
