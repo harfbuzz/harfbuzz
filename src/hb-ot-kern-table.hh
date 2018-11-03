@@ -444,7 +444,7 @@ struct KernSubTableFormat3
     return_trace (true); /* Disabled.  See above. */
     return_trace (c->check_struct (this) &&
 		  c->check_range (kernValueZ,
-				  kernValueCount +
+				  kernValueCount * sizeof (FWORD) +
 				  glyphCount * 2 +
 				  leftClassCount * rightClassCount));
   }
