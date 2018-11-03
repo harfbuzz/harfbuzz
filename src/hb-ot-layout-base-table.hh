@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Elie Roux <elie.roux@telecom-bretagne.eu>
+ * Copyright © 2016  Elie Roux <elie.roux@telecom-bretagne.eu>
  * Copyright © 2018  Google, Inc.
  * Copyright © 2018  Ebrahim Byagowi
  *
@@ -32,9 +32,6 @@
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 
-/* To be removed */
-typedef hb_tag_t hb_ot_layout_baseline_t;
-
 namespace OT {
 
 /*
@@ -61,9 +58,12 @@ struct BaseCoordFormat1
 
 struct BaseCoordFormat2
 {
-  hb_position_t get_coord () const
+  hb_position_t get_coord (hb_font_t *font, hb_direction_t direction) const
   {
-    /* TODO */
+    hb_position_t x = 0, y = 0;
+    if (font->get_glyph_contour_point (referenceGlyph, coordPoint, &x, &y))
+      return HB_DIRECTION_IS_VERTICAL (direction) ? x : y;
+
     return coordinate;
   }
 
@@ -122,7 +122,7 @@ struct BaseCoord
   {
     switch (u.format) {
     case 1: return u.format1.get_coord ();
-    case 2: return u.format2.get_coord ();
+    case 2: return u.format2.get_coord (font, direction);
     case 3: return u.format3.get_coord (font, var_store, direction);
     default:return 0;
     }
@@ -315,7 +315,8 @@ struct BaseScript
   const BaseCoord &get_base_coord (int baseline_tag_index) const
   { return (this+baseValues).get_base_coord (baseline_tag_index); }
 
-  bool is_empty () const { return !baseValues; }
+  bool has_base_data () const    { return baseValues; }
+  bool has_min_max_data () const { return defaultMinMax; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -417,7 +418,7 @@ struct Axis
 			    const BaseCoord         **coord) const
   {
     const BaseScript &base_script = (this+baseScriptList).get_base_script (script_tag);
-    if (base_script.is_empty ()) return false;
+    if (!base_script.has_base_data ()) return false;
 
     if (likely (coord)) *coord = &base_script.get_base_coord ((this+baseTagList).bsearch (baseline));
 
@@ -431,7 +432,7 @@ struct Axis
 		    const BaseCoord **max_coord) const
   {
     const BaseScript &base_script = (this+baseScriptList).get_base_script (script_tag);
-    if (base_script.is_empty ()) return false;
+    if (!base_script.has_min_max_data ()) return false;
 
     base_script.get_min_max (language_tag).get_min_max (feature_tag, min_coord, max_coord);
 
@@ -477,15 +478,15 @@ struct BASE
 		     hb_direction_t           direction,
 		     hb_tag_t                 script_tag,
 		     hb_tag_t                 language_tag,
-		     hb_position_t           *base) const
+		     hb_position_t           *coord) const
   {
     const BaseCoord *base_coord;
     if (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord))
       return false;
 
-    if (likely (base && base_coord)) *base = base_coord->get_coord (font,
-								    get_var_store (),
-								    direction);
+    if (likely (coord && base_coord)) *coord = base_coord->get_coord (font,
+								      get_var_store (),
+								      direction);
     return true;
   }
 

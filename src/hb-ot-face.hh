@@ -57,7 +57,6 @@
     HB_OT_ACCELERATOR(OT, GDEF) \
     HB_OT_ACCELERATOR(OT, GSUB) \
     HB_OT_ACCELERATOR(OT, GPOS) \
-    HB_OT_TABLE(OT, BASE) \
     HB_OT_TABLE(OT, JSTF) \
     /* AAT shaping. */ \
     HB_OT_TABLE(AAT, mort) \
@@ -68,6 +67,9 @@
     HB_OT_TABLE(AAT, lcar) \
     HB_OT_TABLE(AAT, ltag) \
     HB_OT_TABLE(AAT, feat) \
+    /* Baseline. */ \
+    HB_OT_TABLE(OT, BASE) \
+    HB_OT_TABLE(AAT, bsln) \
     /* OpenType variations. */ \
     HB_OT_TABLE(OT, fvar) \
     HB_OT_TABLE(OT, avar) \

@@ -39,6 +39,9 @@ namespace AAT {
 
 struct BaselineTableFormat0Part
 {
+  hb_position_t get_baseline (unsigned int index) const
+  { return deltas[index]; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -46,8 +49,6 @@ struct BaselineTableFormat0Part
   }
 
   protected:
-  // Roman, Ideographic centered, Ideographic low, Hanging and Math
-  // are the default defined ones, but any other maybe accessed also.
   HBINT16	deltas[32];	/* These are the FUnit distance deltas from
 				 * the font's natural baseline to the other
 				 * baselines used in the font. */
@@ -57,6 +58,9 @@ struct BaselineTableFormat0Part
 
 struct BaselineTableFormat1Part
 {
+  hb_position_t get_baseline (unsigned int index) const
+  { return deltas[index]; } /* We don't support per glyph baseline values */
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -75,7 +79,16 @@ struct BaselineTableFormat1Part
 
 struct BaselineTableFormat2Part
 {
-  bool sanitize (hb_sanitize_context_t *c) const
+  hb_position_t get_baseline (hb_font_t      *font,
+			      hb_direction_t  direction,
+			      unsigned int    index) const
+  {
+    hb_position_t x = 0, y = 0;
+    font->get_glyph_contour_point (stdGlyph, ctlPoints[index], &x, &y);
+    return HB_DIRECTION_IS_VERTICAL (direction) ? x : y;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -98,7 +111,17 @@ struct BaselineTableFormat2Part
 
 struct BaselineTableFormat3Part
 {
-  bool sanitize (hb_sanitize_context_t *c) const
+  hb_position_t get_baseline (hb_font_t      *font,
+			      hb_direction_t  direction,
+			      unsigned int    index) const
+  {
+    hb_position_t x = 0, y = 0;
+    font->get_glyph_contour_point (stdGlyph, ctlPoints[index], &x, &y);
+    return HB_DIRECTION_IS_VERTICAL (direction) ? x : y;
+    /* We don't support per glyph baseline values */
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && lookupTable.sanitize (c));
@@ -118,7 +141,45 @@ struct bsln
 {
   enum { tableTag = HB_AAT_TAG_bsln };
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  bool get_baseline (hb_font_t               *font,
+		     hb_ot_layout_baseline_t  baseline,
+		     hb_direction_t           direction,
+		     hb_position_t           *coord) const
+  {
+    if (version.to_int () == 0) return false;
+
+    // Roman, Ideographic centered, Ideographic low, Hanging and Math
+    // are the default defined ones, but any other maybe accessed also.
+    unsigned int index;
+    switch (baseline)
+    {
+    case HB_OT_LAYOUT_BASELINE_ROMN: index = 0; break;
+    case HB_OT_LAYOUT_BASELINE_HANG: index = 3; break;
+    case HB_OT_LAYOUT_BASELINE_MATH: index = 4; break;
+
+    /* Don't know which tags corresponds to Ideographic centered and low, polyfill maybe?
+    case HB_OT_LAYOUT_BASELINE_XXXX: index = 1; break;
+    case HB_OT_LAYOUT_BASELINE_XXXX: index = 2; break; */
+
+    /* TODO: Is this what we should do or giving up instead is better? */
+    case HB_OT_LAYOUT_BASELINE_ICFB:
+    case HB_OT_LAYOUT_BASELINE_ICFT:
+    case HB_OT_LAYOUT_BASELINE_IDEO:
+    case HB_OT_LAYOUT_BASELINE_IDTB:
+    default:                         index = defaultBaseline;
+    }
+
+    assert (index < 32);
+    switch (format) {
+    case 0: if (coord) *coord = u.format0.get_baseline (index); return true;
+    case 1: if (coord) *coord = u.format1.get_baseline (index); return true;
+    case 2: if (coord) *coord = u.format2.get_baseline (font, direction, index); return true;
+    case 3: if (coord) *coord = u.format3.get_baseline (font, direction, index); return true;
+    default: return false;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && defaultBaseline < 32)))
@@ -126,10 +187,10 @@ struct bsln
 
     switch (format)
     {
-    case 0: return_trace (parts.format0.sanitize (c));
-    case 1: return_trace (parts.format1.sanitize (c));
-    case 2: return_trace (parts.format2.sanitize (c));
-    case 3: return_trace (parts.format3.sanitize (c));
+    case 0: return_trace (u.format0.sanitize (c));
+    case 1: return_trace (u.format1.sanitize (c));
+    case 2: return_trace (u.format2.sanitize (c));
+    case 3: return_trace (u.format3.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -147,7 +208,7 @@ struct bsln
   // Control Point-based Formats
   BaselineTableFormat2Part	format2;
   BaselineTableFormat3Part	format3;
-  } parts;
+  } u;
   public:
   DEFINE_SIZE_MIN (8);
 };

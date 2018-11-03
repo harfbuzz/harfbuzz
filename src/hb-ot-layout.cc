@@ -34,19 +34,20 @@
 #include "hb-ot-map.hh"
 #include "hb-map.hh"
 
-#include "hb-ot-kern-table.hh"
+
+
+#include "hb-aat-layout-bsln-table.hh"
+#include "hb-aat-layout-lcar-table.hh"
+#include "hb-aat-layout-morx-table.hh"
 #include "hb-ot-gasp-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-kern-table.hh"
+#include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-#include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-name-table.hh"
 #include "hb-ot-os2-table.hh"
-
-#include "hb-aat-layout-lcar-table.hh"
-#include "hb-aat-layout-morx-table.hh"
-
 
 /**
  * SECTION:hb-ot-layout
@@ -1472,60 +1473,39 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
   apply_string<GSUBProxy> (c, lookup, accel);
 }
 
-#if 0
-static const OT::BASE& _get_base (hb_face_t *face)
-{
-  return *face->table.BASE;
-}
-
+/**
+ * hb_ot_layout_get_baseline:
+ * @font:         a font object so ppem and variation can be accessed
+ * @baseline:     baseline enum tags
+ * @direction:    Text direction, whether specially is vertical or horizontal
+ * @script_tag:   Tag of baseline script
+ * @language_tag: Language tag
+ * @coord:        (out) Baseline value result
+ *
+ * Return value: Whether the queried baseline was on the table, we try to return
+ * some sane value in case BASE couldn't help will return false as indication.
+ *
+ * Since: REPLACEME
+ **/
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
 			   hb_direction_t           direction,
 			   hb_tag_t                 script_tag,
 			   hb_tag_t                 language_tag,
-			   hb_position_t           *coord        /* OUT.  May be NULL. */)
+			   hb_position_t           *coord         /* OUT.  May be NULL. */)
 {
-  const OT::BASE &base = _get_base (font->face);
-  bool result = base.get_baseline (font, baseline, direction, script_tag,
-				   language_tag, coord);
+  unsigned int result = font->face->table.BASE->get_baseline (font, baseline, direction,
+							      script_tag, language_tag,
+							      coord);
 
-  /* TODO: Simulate https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
+  if (!result)
+    result = font->face->table.bsln->get_baseline (font, baseline, direction, coord);
+
+  /* TODO: Simulate? https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
   if (!result && coord) *coord = 0;
 
   if (coord) *coord = font->em_scale_dir (*coord, direction);
 
   return result;
 }
-
-/* To be moved to public header */
-/*
- * BASE
- */
-
-/**
- * hb_ot_layout_baseline_t:
- *
- * https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
- *
- * Since: DONTREPLACEME
- */
-typedef enum {
-  HB_OT_LAYOUT_BASELINE_HANG = HB_TAG('h','a','n','g'),
-  HB_OT_LAYOUT_BASELINE_ICFB = HB_TAG('i','c','f','b'),
-  HB_OT_LAYOUT_BASELINE_ICFT = HB_TAG('i','c','f','t'),
-  HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
-  HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
-  HB_OT_LAYOUT_BASELINE_MATH = HB_TAG('m','a','t','h'),
-  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n')
-} hb_ot_layout_baseline_t;
-
-HB_EXTERN hb_bool_t
-hb_ot_layout_get_baseline (hb_font_t               *font,
-			   hb_ot_layout_baseline_t  baseline,
-			   hb_direction_t           direction,
-			   hb_tag_t                 script_tag,
-			   hb_tag_t                 language_tag,
-			   hb_position_t           *coord        /* OUT.  May be NULL. */);
-
-#endif

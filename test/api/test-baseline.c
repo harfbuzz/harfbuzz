@@ -24,6 +24,7 @@
 
 #include "hb-test.h"
 
+#include <hb.h>
 #include <hb-ot.h>
 
 /* Unit tests for hb-ot-layout.h baseline */
@@ -33,18 +34,85 @@ test_ot_layout_base (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/base.ttf");
   hb_font_t *font = hb_font_create (face);
+  hb_font_set_scale (font, 2 * hb_face_get_upem (face), 2 * hb_face_get_upem (face));
 
-#if 0
   hb_position_t position;
   g_assert (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_ICFB, HB_DIRECTION_TTB,
 				       HB_TAG ('h','a','n','i'),
 				       HB_TAG ('E','N','G',' '),
 				       &position));
-  g_assert_cmpint (46, ==, position);
-#endif
+  g_assert_cmpint (2 * 46, ==, position);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
+}
+
+static void
+test_ot_layout_bsln (void)
+{
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_position_t position;
+
+  face = hb_test_open_font_file ("fonts/TestBSLN-0.ttf");
+  font = hb_font_create (face);
+  hb_font_set_scale (font, 2 * hb_face_get_upem (face), 2 * hb_face_get_upem (face));
+
+  position = 0;
+  g_assert (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_MATH, HB_DIRECTION_TTB,
+				       HB_TAG ('h','a','n','i'),
+				       HB_TAG ('E','N','G',' '),
+				       &position));
+  g_assert_cmpint (2 * 507, ==, position);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+
+  face = hb_test_open_font_file ("fonts/TestBSLN-1.ttf");
+  font = hb_font_create (face);
+  hb_font_set_scale (font, 2 * hb_face_get_upem (face), 2 * hb_face_get_upem (face));
+
+  position = 0;
+  g_assert (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_MATH, HB_DIRECTION_TTB,
+				       HB_TAG ('h','a','n','i'),
+				       HB_TAG ('E','N','G',' '),
+				       &position));
+  g_assert_cmpint (2 * 507, ==, position);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+
+  face = hb_test_open_font_file ("fonts/TestBSLN-2.ttf");
+  font = hb_font_create (face);
+  hb_font_set_scale (font, 2 * hb_face_get_upem (face), 2 * hb_face_get_upem (face));
+
+  position = 0;
+  g_assert (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_MATH, HB_DIRECTION_TTB,
+				       HB_TAG ('h','a','n','i'),
+				       HB_TAG ('E','N','G',' '),
+				       &position));
+  g_assert_cmpint (0, ==, position);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+
+  face = hb_test_open_font_file ("fonts/TestBSLN-3.ttf");
+  font = hb_font_create (face);
+  hb_font_set_scale (font, 2 * hb_face_get_upem (face), 2 * hb_face_get_upem (face));
+
+  position = 0;
+  g_assert (hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_MATH, HB_DIRECTION_TTB,
+				       HB_TAG ('h','a','n','i'),
+				       HB_TAG ('E','N','G',' '),
+				       &position));
+  g_assert_cmpint (0, ==, position);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
 }
 
 int
@@ -53,6 +121,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_ot_layout_base);
+  hb_test_add (test_ot_layout_bsln);
 
   return hb_test_run();
 }
