@@ -37,7 +37,7 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-#include "hb-ot-layout-base-table.hh"
+#include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
@@ -90,11 +90,6 @@ static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 {
   return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
-}
-static const OT::BASE& _get_base (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
-  return *hb_ot_face_data (face)->BASE;
 }
 
 
@@ -1415,6 +1410,13 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
   apply_string<GSUBProxy> (c, lookup, accel);
 }
 
+#if 0
+static const OT::BASE& _get_base (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
+  return *hb_ot_face_data (face)->BASE;
+}
+
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
@@ -1434,3 +1436,35 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 
   return result;
 }
+
+/* To be moved to public header */
+/*
+ * BASE
+ */
+
+/**
+ * hb_ot_layout_baseline_t:
+ *
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
+ *
+ * Since: DONTREPLACEME
+ */
+typedef enum {
+  HB_OT_LAYOUT_BASELINE_HANG = HB_TAG('h','a','n','g'),
+  HB_OT_LAYOUT_BASELINE_ICFB = HB_TAG('i','c','f','b'),
+  HB_OT_LAYOUT_BASELINE_ICFT = HB_TAG('i','c','f','t'),
+  HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
+  HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
+  HB_OT_LAYOUT_BASELINE_MATH = HB_TAG('m','a','t','h'),
+  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n')
+} hb_ot_layout_baseline_t;
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_get_baseline (hb_font_t               *font,
+			   hb_ot_layout_baseline_t  baseline,
+			   hb_direction_t           direction,
+			   hb_tag_t                 script_tag,
+			   hb_tag_t                 language_tag,
+			   hb_position_t           *coord        /* OUT.  May be NULL. */);
+
+#endif

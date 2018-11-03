@@ -32,6 +32,9 @@
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 
+/* To be removed */
+typedef hb_tag_t hb_ot_layout_baseline_t;
+
 namespace OT {
 
 /*
@@ -91,6 +94,7 @@ struct BaseCoordFormat3
 			 device.get_y_delta (font, var_store) :
 			 device.get_x_delta (font, var_store));
   }
+
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -199,7 +203,8 @@ struct MinMax
 						      featMinMaxRecords.len,
 						      FeatMinMaxRecord::static_size,
 						      FeatMinMaxRecord::cmp);
-    if (minMaxCoord) minMaxCoord->get_min_max (min, max);
+    if (minMaxCoord)
+      minMaxCoord->get_min_max (min, max);
     else
     {
       if (likely (min)) *min = &(this+minCoord);
@@ -462,6 +467,9 @@ struct BASE
   inline const Axis &get_axis (hb_direction_t direction) const
   { return HB_DIRECTION_IS_VERTICAL (direction) ? this+vAxis : this+hAxis; }
 
+  inline const VariationStore &get_var_store () const
+  { return version.to_int () < 0x00010001u ? Null (VariationStore) : this+varStore; }
+
   inline bool get_baseline (hb_font_t               *font,
 			    hb_ot_layout_baseline_t  baseline,
 			    hb_direction_t           direction,
@@ -473,9 +481,9 @@ struct BASE
     if (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord))
       return false;
 
-    const VariationStore &var_store = version.to_int () < 0x00010001u ?
-				      Null (VariationStore) : this+varStore;
-    if (likely (base && base_coord)) *base = base_coord->get_coord (font, var_store, direction);
+    if (likely (base && base_coord)) *base = base_coord->get_coord (font,
+								    get_var_store (),
+								    direction);
     return true;
   }
 
@@ -493,8 +501,7 @@ struct BASE
 					   &min_coord, &max_coord))
       return false;
 
-    const VariationStore &var_store = version.to_int () < 0x00010001u ?
-				      Null (VariationStore) : this+varStore;
+    const VariationStore &var_store = get_var_store ();
     if (likely (min && min_coord)) *min = min_coord->get_coord (font, var_store, direction);
     if (likely (max && max_coord)) *max = max_coord->get_coord (font, var_store, direction);
     return true;
