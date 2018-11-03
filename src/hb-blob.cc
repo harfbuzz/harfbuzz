@@ -149,7 +149,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 {
   hb_blob_t *blob;
 
-  if (!length || offset >= parent->length)
+  if (!length || !parent || offset >= parent->length)
     return hb_blob_get_empty ();
 
   hb_blob_make_immutable (parent);
