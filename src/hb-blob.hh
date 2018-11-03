@@ -70,8 +70,6 @@ struct hb_blob_t
   public:
   hb_object_header_t header;
 
-  bool immutable;
-
   const char *data;
   unsigned int length;
   hb_memory_mode_t mode;

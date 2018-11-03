@@ -187,7 +187,6 @@ DEFINE_NULL_INSTANCE (hb_unicode_funcs_t) =
   HB_OBJECT_HEADER_STATIC,
 
   nullptr, /* parent */
-  true, /* immutable */
   {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
@@ -303,12 +302,10 @@ hb_unicode_funcs_get_user_data (hb_unicode_funcs_t *ufuncs,
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {
-  if (unlikely (hb_object_is_inert (ufuncs)))
-    return;
-  if (ufuncs->immutable)
+  if (hb_object_is_immutable (ufuncs))
     return;
 
-  ufuncs->immutable = true;
+  hb_object_make_immutable (ufuncs);
 }
 
 /**
@@ -324,7 +321,7 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 hb_bool_t
 hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs)
 {
-  return ufuncs->immutable;
+  return hb_object_is_immutable (ufuncs);
 }
 
 /**
@@ -352,7 +349,7 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t		   *ufuncs,	\
 				    void			   *user_data,	\
 				    hb_destroy_func_t		    destroy)	\
 {										\
-  if (ufuncs->immutable)							\
+  if (hb_object_is_immutable (ufuncs))						\
     return;									\
 										\
   if (ufuncs->destroy.name)							\

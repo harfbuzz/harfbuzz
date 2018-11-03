@@ -197,7 +197,12 @@ struct hb_object_header_t
   hb_atomic_int_t writable;
   hb_atomic_ptr_t<hb_user_data_array_t> user_data;
 };
-#define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INIT, HB_ATOMIC_INT_INIT (0), HB_ATOMIC_PTR_INIT (nullptr)}
+#define HB_OBJECT_HEADER_STATIC \
+	{ \
+	  HB_REFERENCE_COUNT_INIT, \
+	  HB_ATOMIC_INT_INIT (false), \
+	  HB_ATOMIC_PTR_INIT (nullptr) \
+	}
 
 
 /*
@@ -248,9 +253,9 @@ static inline bool hb_object_is_immutable (const Type *obj)
   return !obj->header.writable.get_relaxed ();
 }
 template <typename Type>
-static inline bool hb_object_make_immutable (const Type *obj)
+static inline void hb_object_make_immutable (const Type *obj)
 {
-  return !obj->header.writable.set_relaxed (false);
+  obj->header.writable.set_relaxed (false);
 }
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)

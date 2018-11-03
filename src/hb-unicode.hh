@@ -66,8 +66,6 @@ struct hb_unicode_funcs_t
 
   hb_unicode_funcs_t *parent;
 
-  bool immutable;
-
 #define HB_UNICODE_FUNC_IMPLEMENT(return_type, name) \
   inline return_type name (hb_codepoint_t unicode) { return func.name (this, unicode, user_data.name); }
 HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
