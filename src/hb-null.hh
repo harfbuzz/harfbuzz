@@ -47,7 +47,7 @@ static inline Type const & Null (void) {
   static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
-#define Null(Type) Null<typename hb_remove_const<typename hb_remove_reference<Type>::value>::value>()
+#define Null(Type) Null<typename_outside_template hb_remove_const<typename_outside_template hb_remove_reference<Type>::value>::value>()
 
 /* Specializations for arbitrary-content Null objects expressed in bytes. */
 #define DECLARE_NULL_NAMESPACE_BYTES(Namespace, Type) \

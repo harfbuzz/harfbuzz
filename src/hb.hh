@@ -136,11 +136,20 @@ struct _hb_alignof
 #define explicit_operator
 #endif
 
+#ifndef typename_outside_template
+#define typename_outside_template
+#endif
+
 #else /* __cplusplus >= 201103L */
 
 /* https://github.com/harfbuzz/harfbuzz/issues/1127 */
 #ifndef explicit_operator
 #define explicit_operator explicit
+#endif
+
+/* https://github.com/harfbuzz/harfbuzz/issues/1341 */
+#ifndef typename_outside_template
+#define typename_outside_template typename
 #endif
 
 #endif /* __cplusplus < 201103L */
