@@ -1415,16 +1415,22 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
   apply_string<GSUBProxy> (c, lookup, accel);
 }
 
-
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
 			   hb_direction_t           direction,
-			   hb_script_t              script,
-			   hb_tag_t                 language,
-			   hb_position_t           *result    /* OUT.  May be NULL. */)
+			   hb_tag_t                 script_tag,
+			   hb_tag_t                 language_tag,
+			   hb_position_t           *coord        /* OUT.  May be NULL. */)
 {
-  const OT::BaseScript& base_script = _get_base (font->face).get_base_script (direction, baseline);
-  if (result) *result = base_script.get_base_coord (0);
-  return true;
+  const OT::BASE &base = _get_base (font->face);
+  bool result = base.get_baseline (font, baseline, direction, script_tag,
+				   language_tag, coord);
+
+  /* TODO: Simulate https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
+  if (!result && coord) *coord = 0;
+
+  if (coord) *coord = font->em_scale_dir (*coord, direction);
+
+  return result;
 }

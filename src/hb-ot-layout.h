@@ -408,8 +408,8 @@ typedef enum {
   HB_OT_LAYOUT_BASELINE_ICFT = HB_TAG('i','c','f','t'),
   HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
   HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
-  HB_OT_LAYOUT_BASELINE_MATH  = HB_TAG('m','a','t','h'),
-  HB_OT_LAYOUT_BASELINE_ROMAN = HB_TAG('r','o','m','n')
+  HB_OT_LAYOUT_BASELINE_MATH = HB_TAG('m','a','t','h'),
+  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n')
 } hb_ot_layout_baseline_t;
 
 
@@ -417,9 +417,9 @@ HB_EXTERN hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
 			   hb_direction_t           direction,
-			   hb_script_t              script,
-			   hb_tag_t                 language,
-			   hb_position_t           *result /* OUT.     May be NULL. */);
+			   hb_tag_t                 script_tag,
+			   hb_tag_t                 language_tag,
+			   hb_position_t           *coord        /* OUT.  May be NULL. */);
 
 
 HB_END_DECLS
