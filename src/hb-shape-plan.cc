@@ -343,7 +343,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
   if (unlikely (!buffer->len))
     return true;
 
-  assert (!hb_object_is_inert (buffer));
+  assert (!hb_object_is_immutable (buffer));
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE);
 
   if (unlikely (hb_object_is_inert (shape_plan)))

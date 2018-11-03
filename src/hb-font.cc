@@ -1377,7 +1377,7 @@ hb_font_create_sub_font (hb_font_t *parent)
 
   hb_font_t *font = _hb_font_create (parent->face);
 
-  if (unlikely (hb_object_is_inert (font)))
+  if (unlikely (hb_object_is_immutable (font)))
     return font;
 
   font->parent = hb_font_reference (parent);
