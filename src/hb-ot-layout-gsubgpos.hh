@@ -2774,7 +2774,7 @@ struct GSUBGPOS
     }
 
     hb_blob_t *blob;
-    const T *table;
+    hb_nonnull_ptr_t<const T> table;
     unsigned int lookup_count;
     hb_ot_layout_lookup_accelerator_t *accels;
   };

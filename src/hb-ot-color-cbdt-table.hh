@@ -409,9 +409,6 @@ struct CBDT
     inline bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
 			     hb_glyph_extents_t *extents) const
     {
-      if (!cblc)
-	return false;
-
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
@@ -467,9 +464,6 @@ struct CBDT
     inline hb_blob_t* reference_png (hb_font_t      *font,
 				     hb_codepoint_t  glyph) const
     {
-      if (!cblc)
-	return hb_blob_get_empty ();
-
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);
       const IndexSubtableRecord *subtable_record = strike.find_table (glyph, cblc, &base);
@@ -525,8 +519,8 @@ struct CBDT
     private:
     hb_blob_t *cblc_blob;
     hb_blob_t *cbdt_blob;
-    const CBLC *cblc;
-    const CBDT *cbdt;
+    hb_nonnull_ptr_t<const CBLC> cblc;
+    hb_nonnull_ptr_t<const CBDT> cbdt;
 
     unsigned int cbdt_len;
     unsigned int upem;

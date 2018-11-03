@@ -257,7 +257,7 @@ struct name
     const void *pool;
     unsigned int pool_len;
     public:
-    const name *table;
+    hb_nonnull_ptr_t<const name> table;
     hb_vector_t<hb_ot_name_entry_t> names;
   };
 

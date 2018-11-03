@@ -418,7 +418,7 @@ struct GDEF
     }
 
     hb_blob_t *blob;
-    const GDEF *table;
+    hb_nonnull_ptr_t<const GDEF> table;
   };
 
   inline unsigned int get_size (void) const
