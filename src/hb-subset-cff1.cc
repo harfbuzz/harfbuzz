@@ -390,6 +390,9 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
     param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env);
+    if ( unlikely (!param.current_parsed_str->is_parsed ()
+                && (param.current_parsed_str->values.len > 0)))
+      env.set_error ();
   }
 
   private:
