@@ -52,7 +52,7 @@ _get_name (hb_face_t *face)
 /**
  * hb_ot_name_list_names:
  * @face: font face.
- * @num_entries: (out): number of returned entries.
+ * @num_entries: (out) (allow-none): number of returned entries.
  *
  * Enumerates all available name IDs and language combinations. Returned
  * array is owned by the @face and should not be modified.  It can be
@@ -66,7 +66,7 @@ hb_ot_name_list_names (hb_face_t    *face,
 		       unsigned int *num_entries /* OUT */)
 {
   const OT::name_accelerator_t &name = _get_name (face);
-  *num_entries = name.names.len;
+  if (num_entries) *num_entries = name.names.len;
   return name.names.arrayZ();
 }
 
