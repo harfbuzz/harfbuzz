@@ -671,8 +671,7 @@ struct StateTableDriver
     {
       for (; buffer->successful && buffer->idx < buffer->len;)
 	buffer->next_glyph ();
-      if (likely (buffer->successful))
-	buffer->swap_buffers ();
+      buffer->swap_buffers ();
     }
   }
 

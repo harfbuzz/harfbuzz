@@ -1121,8 +1121,7 @@ struct mortmorx
       else
         buffer->next_glyph ();
     }
-    if (likely (buffer->successful))
-      buffer->swap_buffers ();
+    buffer->swap_buffers ();
   }
 
   inline void apply (hb_aat_apply_context_t *c) const

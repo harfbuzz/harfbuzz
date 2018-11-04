@@ -429,9 +429,8 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
   if (processed)
   {
     if (buffer->idx < count)
-     buffer->next_glyph ();
-    if (likely (buffer->successful))
-      buffer->swap_buffers ();
+      buffer->next_glyph ();
+    buffer->swap_buffers ();
   }
 }
 
