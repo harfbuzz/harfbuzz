@@ -36,6 +36,7 @@ TEST_PROGS = \
 	test-font \
 	test-map \
 	test-object \
+	test-ot-face \
 	test-set \
 	test-shape \
 	test-subset \
