@@ -487,5 +487,67 @@ struct hb_no_trace_t {
 #define TRACE_DISPATCH(this, format) hb_no_trace_t<typename context_t::return_t> trace
 #endif
 
+/* From https://gist.github.com/domnikl/af00cc154e3da1c5d965
+   by Dominik Liebler, MIT Licensed, adopted with the style and some tweaks */
+HB_UNUSED static void
+_hex_dump (const char *data, unsigned int len, const char *title = "")
+{
+  if (strlen (title))
+    printf ("%s: ", title);
+  printf ("%p+%d\n", (void *) data, len);
+  unsigned int i;
+  char buff[17] = {0};
+  unsigned char *pc = (unsigned char *) data;
+
+  /* Process every byte in the data. */
+  for (i = 0; i < len; i++)
+  {
+    /* Multiple of 16 means new line (with line offset). */
+
+    if ((i % 16) == 0)
+    {
+      /* Just don't print ASCII for the zeroth line. */
+      if (i != 0)
+	printf ("  %s\n", buff);
+
+      /* Output the offset. */
+      printf ("  %04x ", i);
+    }
+
+    /* Now the hex code for the specific character. */
+    printf (" %02x", pc[i]);
+
+    /* And store a printable ASCII character for later. */
+    if ((pc[i] < '\x20') || (pc[i] > '\x7e'))
+      buff[i % 16] = '.';
+    else
+      buff[i % 16] = pc[i];
+
+    buff[(i % 16) + 1] = '\0';
+  }
+
+  /* Pad out last line if not exactly 16 characters. */
+  while ((i % 16) != 0)
+  {
+    printf ("   ");
+    i++;
+  }
+
+  /* And print the final ASCII bit. */
+  printf ("  %s\n", buff);
+}
+
+HB_UNUSED static void
+_hex_dump_font_table (hb_face_t *face, hb_tag_t table)
+{
+  char tag[5] = {0};
+  hb_tag_to_string (table, tag);
+
+  hb_blob_t *blob = hb_face_reference_table (face, table);
+  unsigned int length;
+  const char *data = hb_blob_get_data (blob, &length);
+  _hex_dump (data, length, tag);
+  hb_blob_destroy (blob);
+}
 
 #endif /* HB_DEBUG_HH */
