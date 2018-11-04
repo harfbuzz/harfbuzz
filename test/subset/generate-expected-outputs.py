@@ -23,7 +23,6 @@ def generate_expected_output(input_file, unicodes, profile_flags, output_path):
 		     "--name-languages=*",
 		     "--name-legacy",
 		     "--drop-tables+=DSIG,GPOS,GSUB,GDEF",
-		     "--desubroutinize",
 		     "--unicodes=%s" % unicodes,
 		     "--output-file=%s" % output_path])
 	check_call(args)
