@@ -365,10 +365,10 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 #else /* __cpluspplus >= 201103L */
 
 #define HB_NO_COPY_ASSIGN(TypeName)
-#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
-#define HB_NO_CREATE_COPY_ASSIGN(TypeName)
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T)
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2)
+#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
+#define HB_NO_CREATE_COPY_ASSIGN(TypeName) static_assert (true, "")
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) static_assert (true, "")
+#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
 
 #endif /* __cpluspplus >= 201103L */
 
