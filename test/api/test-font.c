@@ -536,6 +536,11 @@ test_font_properties (void)
   g_assert_cmpint (x_ppem, ==, 17);
   g_assert_cmpint (y_ppem, ==, 19);
 
+  /* Check ptem */
+  g_assert_cmpint (hb_font_get_ptem (font), ==, 0);
+  hb_font_set_ptem (font, 42);
+  g_assert_cmpint (hb_font_get_ptem (font), ==, 42);
+
 
   /* Check immutable */
 

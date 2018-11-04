@@ -35,11 +35,27 @@ test_ot_face_empty (void)
 {
   hb_face_t *face = hb_face_get_empty ();
   hb_font_t *font = hb_font_create (face);
-  hb_set_t *set = hb_set_create ();
+  hb_ot_font_set_funcs (font);
 
+  hb_set_t *set = hb_set_create ();
   hb_face_collect_unicodes (face, set);
   hb_face_collect_variation_selectors (face, set);
   hb_face_collect_variation_unicodes (face, 0, set);
+
+  hb_codepoint_t g;
+  hb_position_t x, y;
+  hb_glyph_extents_t extents;
+  char buf[5] = {0};
+  hb_font_get_nominal_glyph (font, 0, &g);
+  hb_font_get_variation_glyph (font, 0, 0, &g);
+  hb_font_get_glyph_h_advance (font, g);
+  hb_font_get_glyph_v_advance (font, g);
+  hb_font_get_glyph_h_origin (font, g, &x, &y);
+  hb_font_get_glyph_v_origin (font, g, &x, &y);
+  hb_font_get_glyph_extents (font, g, &extents);
+  hb_font_get_glyph_contour_point (font, g, 0, &x, &y);
+  hb_font_get_glyph_name (font, g, buf, sizeof (buf));
+  hb_font_get_glyph_from_name (font, buf, strlen (buf), &g);
 
   hb_ot_color_has_palettes (face);
   hb_ot_color_palette_get_count (face);
@@ -68,8 +84,9 @@ test_ot_face_empty (void)
   hb_ot_math_get_min_connector_overlap (font, 0);
   hb_ot_math_get_glyph_assembly (font, 0, 0, 0, NULL, NULL, NULL);
 
+  unsigned int len = sizeof (buf);
   hb_ot_name_list_names (face, NULL);
-  hb_ot_name_get_utf8 (face, 0, NULL, NULL, NULL);
+  hb_ot_name_get_utf8 (face, 0, NULL, &len, buf);
   hb_ot_name_get_utf16 (face, 0, NULL, NULL, NULL);
   hb_ot_name_get_utf32 (face, 0, NULL, NULL, NULL);
 
