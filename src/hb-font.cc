@@ -471,8 +471,6 @@ DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
 {
   HB_OBJECT_HEADER_STATIC,
 
-  true, /* immutable */
-
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
@@ -494,8 +492,6 @@ DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
 
 static const hb_font_funcs_t _hb_font_funcs_default = {
   HB_OBJECT_HEADER_STATIC,
-
-  true, /* immutable */
 
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
@@ -645,12 +641,10 @@ hb_font_funcs_get_user_data (hb_font_funcs_t    *ffuncs,
 void
 hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
 {
-  if (unlikely (hb_object_is_inert (ffuncs)))
-    return;
-  if (ffuncs->immutable)
+  if (hb_object_is_immutable (ffuncs))
     return;
 
-  ffuncs->immutable = true;
+  hb_object_make_immutable (ffuncs);
 }
 
 /**
@@ -666,7 +660,7 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
 hb_bool_t
 hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs)
 {
-  return ffuncs->immutable;
+  return hb_object_is_immutable (ffuncs);
 }
 
 
@@ -678,7 +672,7 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
                                  void                        *user_data, \
                                  hb_destroy_func_t            destroy)   \
 {                                                                        \
-  if (ffuncs->immutable) {                                               \
+  if (hb_object_is_immutable (ffuncs)) {                                 \
     if (destroy)                                                         \
       destroy (user_data);                                               \
     return;                                                              \
@@ -1299,8 +1293,6 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 {
   HB_OBJECT_HEADER_STATIC,
 
-  true, /* immutable */
-
   nullptr, /* parent */
   const_cast<hb_face_t *> (&_hb_Null_hb_face_t),
 
@@ -1385,7 +1377,7 @@ hb_font_create_sub_font (hb_font_t *parent)
 
   hb_font_t *font = _hb_font_create (parent->face);
 
-  if (unlikely (hb_object_is_inert (font)))
+  if (unlikely (hb_object_is_immutable (font)))
     return font;
 
   font->parent = hb_font_reference (parent);
@@ -1525,15 +1517,13 @@ hb_font_get_user_data (hb_font_t          *font,
 void
 hb_font_make_immutable (hb_font_t *font)
 {
-  if (unlikely (hb_object_is_inert (font)))
-    return;
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   if (font->parent)
     hb_font_make_immutable (font->parent);
 
-  font->immutable = true;
+  hb_object_make_immutable (font);
 }
 
 /**
@@ -1549,7 +1539,7 @@ hb_font_make_immutable (hb_font_t *font)
 hb_bool_t
 hb_font_is_immutable (hb_font_t *font)
 {
-  return font->immutable;
+  return hb_object_is_immutable (font);
 }
 
 /**
@@ -1565,7 +1555,7 @@ void
 hb_font_set_parent (hb_font_t *font,
 		    hb_font_t *parent)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   if (!parent)
@@ -1607,7 +1597,7 @@ void
 hb_font_set_face (hb_font_t *font,
 		  hb_face_t *face)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   if (unlikely (!face))
@@ -1654,7 +1644,8 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *font_data,
 		   hb_destroy_func_t  destroy)
 {
-  if (font->immutable) {
+  if (hb_object_is_immutable (font))
+  {
     if (destroy)
       destroy (font_data);
     return;
@@ -1689,7 +1680,8 @@ hb_font_set_funcs_data (hb_font_t         *font,
 		        hb_destroy_func_t  destroy)
 {
   /* Destroy user_data? */
-  if (font->immutable) {
+  if (hb_object_is_immutable (font))
+  {
     if (destroy)
       destroy (font_data);
     return;
@@ -1718,7 +1710,7 @@ hb_font_set_scale (hb_font_t *font,
 		   int x_scale,
 		   int y_scale)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   font->x_scale = x_scale;
@@ -1759,7 +1751,7 @@ hb_font_set_ppem (hb_font_t *font,
 		  unsigned int x_ppem,
 		  unsigned int y_ppem)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   font->x_ppem = x_ppem;
@@ -1799,7 +1791,7 @@ hb_font_get_ppem (hb_font_t *font,
 void
 hb_font_set_ptem (hb_font_t *font, float ptem)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   font->ptem = ptem;
@@ -1846,7 +1838,7 @@ hb_font_set_variations (hb_font_t *font,
 			const hb_variation_t *variations,
 			unsigned int variations_length)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   if (!variations_length)
@@ -1877,7 +1869,7 @@ hb_font_set_var_coords_design (hb_font_t *font,
 			       const float *coords,
 			       unsigned int coords_length)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   int *normalized = coords_length ? (int *) calloc (coords_length, sizeof (int)) : nullptr;
@@ -1898,7 +1890,7 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
 				   const int *coords, /* 2.14 normalized */
 				   unsigned int coords_length)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   int *copy = coords_length ? (int *) calloc (coords_length, sizeof (coords[0])) : nullptr;

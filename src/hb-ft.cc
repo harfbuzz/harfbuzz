@@ -135,7 +135,7 @@ _hb_ft_font_destroy (void *data)
 void
 hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
 {
-  if (font->immutable)
+  if (hb_object_is_immutable (font))
     return;
 
   if (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy)

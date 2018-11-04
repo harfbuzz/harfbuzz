@@ -225,15 +225,17 @@ struct hb_set_t
     return true;
   }
 
-  inline void clear (void) {
-    if (unlikely (hb_object_is_inert (this)))
+  inline void clear (void)
+  {
+    if (unlikely (hb_object_is_immutable (this)))
       return;
     successful = true;
     population = 0;
     page_map.resize (0);
     pages.resize (0);
   }
-  inline bool is_empty (void) const {
+  inline bool is_empty (void) const
+  {
     unsigned int count = pages.len;
     for (unsigned int i = 0; i < count; i++)
       if (!pages[i].is_empty ())

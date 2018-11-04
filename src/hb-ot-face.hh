@@ -67,7 +67,7 @@
     HB_OT_ACCELERATOR(OT, hmtx) \
     HB_OT_ACCELERATOR(OT, vmtx) \
     HB_OT_ACCELERATOR(OT, post) \
-    HB_OT_ACCELERATOR(OT, kern) \
+    HB_OT_TABLE(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
     HB_OT_ACCELERATOR(OT, cff1) \
     HB_OT_ACCELERATOR(OT, cff2) \

@@ -391,22 +391,6 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     unsigned int   *char_count    /* IN/OUT.  May be NULL */,
 				     hb_codepoint_t *characters    /* OUT.     May be NULL */);
 
-/*
- * BASE
- */
-#if 0
-
-#define HB_OT_TAG_BASE_HANG HB_TAG('h','a','n','g')
-#define HB_OT_TAG_BASE_ICFB HB_TAG('i','c','f','b')
-#define HB_OT_TAG_BASE_ICFT HB_TAG('i','c','f','t')
-#define HB_OT_TAG_BASE_IDEO HB_TAG('i','d','e','o')
-#define HB_OT_TAG_BASE_IDTB HB_TAG('i','d','t','b')
-#define HB_OT_TAG_BASE_MATH HB_TAG('m','a','t','h')
-#define HB_OT_TAG_BASE_ROMN HB_TAG('r','o','m','n')
-
-#endif
-
-
 HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */

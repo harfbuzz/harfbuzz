@@ -254,7 +254,7 @@ struct post
     private:
     hb_blob_t *blob;
     uint32_t version;
-    const ArrayOf<HBUINT16> *glyphNameIndex;
+    hb_nonnull_ptr_t<const ArrayOf<HBUINT16> > glyphNameIndex;
     hb_vector_t<uint32_t, 1> index_to_offset;
     const uint8_t *pool;
     hb_atomic_ptr_t<uint16_t *> gids_sorted_by_name;

@@ -1018,7 +1018,6 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
     else
       buffer->next_glyph ();
   }
-
   buffer->swap_buffers ();
 }
 

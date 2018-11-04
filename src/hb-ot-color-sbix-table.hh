@@ -152,9 +152,6 @@ struct sbix
 
     inline bool has_data () const
     {
-      /* XXX Fix somehow and remove next line.
-       * https://github.com/harfbuzz/harfbuzz/issues/1146 */
-      if (!num_glyphs) return false;
       return table->has_data ();
     }
 
@@ -234,8 +231,8 @@ struct sbix
 				 hb_codepoint_t      glyph,
 				 hb_glyph_extents_t *extents) const
     {
-      /* Following code is safe to call even without data (XXX currently
-       * isn't.  See has_data()), but faster to short-circuit. */
+      /* Following code is safe to call even without data.
+       * But faster to short-circuit. */
       if (!has_data ())
         return false;
 
@@ -262,12 +259,12 @@ struct sbix
 
       hb_blob_destroy (blob);
 
-      return true;
+      return strike_ppem;
     }
 
     private:
     hb_blob_t *sbix_blob;
-    const sbix *table;
+    hb_nonnull_ptr_t<const sbix> table;
 
     unsigned int num_glyphs;
   };

@@ -30,6 +30,7 @@
 #include "hb-open-type.hh"
 #include "hb-ot-shape.hh"
 #include "hb-ot-layout-gsubgpos.hh"
+#include "hb-aat-layout-common.hh"
 
 
 template <typename Driver>
@@ -165,6 +166,19 @@ struct KernSubTableFormat0
     return pairs[i].get_kerning ();
   }
 
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    hb_kern_machine_t<KernSubTableFormat0> machine (*this);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -177,6 +191,130 @@ struct KernSubTableFormat0
   DEFINE_SIZE_ARRAY (8, pairs);
 };
 
+struct KernSubTableFormat1
+{
+  typedef void EntryData;
+
+  struct driver_context_t
+  {
+    static const bool in_place = true;
+    enum Flags
+    {
+      Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+      Offset		= 0x3FFF,	/* Byte offset from beginning of subtable to the
+					 * value table for the glyphs on the kerning stack. */
+    };
+
+    inline driver_context_t (const KernSubTableFormat1 *table_,
+			     AAT::hb_aat_apply_context_t *c_) :
+	c (c_),
+	table (table_),
+	/* Apparently the offset kernAction is from the beginning of the state-machine,
+	 * similar to offsets in morx table, NOT from beginning of this table, like
+	 * other subtables in kerx.  Discovered via testing. */
+	kernAction (&table->machine + table->kernAction),
+	depth (0) {}
+
+    inline bool is_actionable (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver HB_UNUSED,
+			       const AAT::Entry<EntryData> *entry)
+    {
+      return entry->flags & Offset;
+    }
+    inline bool transition (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver,
+			    const AAT::Entry<EntryData> *entry)
+    {
+      hb_buffer_t *buffer = driver->buffer;
+      unsigned int flags = entry->flags;
+
+      if (flags & Push)
+      {
+	if (likely (depth < ARRAY_LENGTH (stack)))
+	  stack[depth++] = buffer->idx;
+	else
+	  depth = 0; /* Probably not what CoreText does, but better? */
+      }
+
+      if (entry->flags & Offset)
+      {
+	unsigned int kernIndex = AAT::MortTypes::offsetToIndex (entry->flags & Offset, &table->machine, kernAction.arrayZ);
+	const FWORD *actions = &kernAction[kernIndex];
+	if (!c->sanitizer.check_array (actions, depth))
+	{
+	  depth = 0;
+	  return false;
+	}
+
+	hb_mask_t kern_mask = c->plan->kern_mask;
+	for (unsigned int i = 0; i < depth; i++)
+	{
+	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
+	   * and applies the kerning value to it.", it doesn't mean it in that order.
+	   * The deepest item in the stack corresponds to the first item in the action
+	   * list.  Discovered by testing. */
+	  unsigned int idx = stack[i];
+	  int v = *actions++;
+	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
+	  {
+	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	    {
+	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	    }
+	    else
+	    {
+	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	    }
+	  }
+	}
+	depth = 0;
+      }
+
+      return true;
+    }
+
+    private:
+    AAT::hb_aat_apply_context_t *c;
+    const KernSubTableFormat1 *table;
+    const UnsizedArrayOf<FWORD> &kernAction;
+    unsigned int stack[8];
+    unsigned int depth;
+  };
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    driver_context_t dc (this, c);
+
+    AAT::StateTableDriver<AAT::MortTypes, EntryData> driver (machine, c->buffer, c->font->face);
+    driver.drive (&dc);
+
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    /* The rest of array sanitizations are done at run-time. */
+    return_trace (likely (c->check_struct (this) &&
+			  machine.sanitize (c)));
+  }
+
+  protected:
+  AAT::StateTable<AAT::MortTypes, EntryData>		machine;
+  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>	kernAction;
+  public:
+  DEFINE_SIZE_STATIC (10);
+};
+
 struct KernClassTable
 {
   inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
@@ -184,7 +322,8 @@ struct KernClassTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (firstGlyph.sanitize (c) && classes.sanitize (c));
+    return_trace (c->check_struct (this) &&
+		  classes.sanitize (c));
   }
 
   protected:
@@ -196,29 +335,58 @@ struct KernClassTable
 
 struct KernSubTableFormat2
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+			  AAT::hb_aat_apply_context_t *c) const
   {
     /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
      * based from.  I *think* they should be based from beginning of kern subtable wrapper,
      * *NOT* "this".  Since we know of no fonts that use this subtable, we are disabling
-     * it.  Someday fix it and re-enable.  Better yet, find fonts that use it... Meh,
-     * Windows doesn't implement it.  Maybe just remove... */
+     * it.  Someday fix it and re-enable. */
     return 0;
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+#if 0
     if (unlikely ((const char *) v < (const char *) &array ||
 		  (const char *) v > (const char *) end - 2))
+#endif
       return 0;
     return *v;
   }
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    accelerator_t accel (*this, c);
+    hb_kern_machine_t<accelerator_t> machine (accel);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
+  }
+
+  struct accelerator_t
+  {
+    const KernSubTableFormat2 &table;
+    AAT::hb_aat_apply_context_t *c;
+
+    inline accelerator_t (const KernSubTableFormat2 &table_,
+			  AAT::hb_aat_apply_context_t *c_) :
+			    table (table_), c (c_) {}
+
+    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    { return table.get_kerning (left, right, c); }
+  };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (true); /* Disabled.  See above. */
-    return_trace (rowWidth.sanitize (c) &&
+    return_trace (c->check_struct (this) &&
 		  leftClassTable.sanitize (c, this) &&
 		  rightClassTable.sanitize (c, this) &&
 		  array.sanitize (c, this));
@@ -239,14 +407,90 @@ struct KernSubTableFormat2
   DEFINE_SIZE_MIN (8);
 };
 
+struct KernSubTableFormat3
+{
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    hb_array_t<const FWORD> kernValue = kernValueZ.as_array (kernValueCount);
+    hb_array_t<const HBUINT8> leftClass = StructAfter<const UnsizedArrayOf<HBUINT8> > (kernValue).as_array (glyphCount);
+    hb_array_t<const HBUINT8> rightClass = StructAfter<const UnsizedArrayOf<HBUINT8> > (leftClass).as_array (glyphCount);
+    hb_array_t<const HBUINT8> kernIndex = StructAfter<const UnsizedArrayOf<HBUINT8> > (rightClass).as_array (leftClassCount * rightClassCount);
+
+    unsigned int leftC = leftClass[left];
+    unsigned int rightC = rightClass[right];
+    if (unlikely (leftC >= leftClassCount || rightC >= rightClassCount))
+      return 0;
+    unsigned int i = leftC * rightClassCount + rightC;
+    return kernValue[kernIndex[i]];
+  }
+
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+
+    if (!c->plan->requested_kerning)
+      return false;
+
+    hb_kern_machine_t<KernSubTableFormat3> machine (*this);
+    machine.kern (c->font, c->buffer, c->plan->kern_mask);
+
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  c->check_range (kernValueZ,
+				  kernValueCount * sizeof (FWORD) +
+				  glyphCount * 2 +
+				  leftClassCount * rightClassCount));
+  }
+
+  protected:
+  HBUINT16	glyphCount;	/* The number of glyphs in this font. */
+  HBUINT8	kernValueCount;	/* The number of kerning values. */
+  HBUINT8	leftClassCount;	/* The number of left-hand classes. */
+  HBUINT8	rightClassCount;/* The number of right-hand classes. */
+  HBUINT8	flags;		/* Set to zero (reserved for future use). */
+  UnsizedArrayOf<FWORD>
+		kernValueZ;	/* The kerning values.
+				 * Length kernValueCount. */
+#if 0
+  UnsizedArrayOf<HBUINT8>
+		leftClass;	/* The left-hand classes.
+				 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>
+		RightClass;	/* The right-hand classes.
+				 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>
+		kernIndex;	/* The indices into the kernValue array.
+				 * Length leftClassCount * rightClassCount */
+#endif
+  public:
+  DEFINE_SIZE_ARRAY (6, kernValueZ);
+};
+
 struct KernSubTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end, unsigned int format) const
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int format) const
   {
     switch (format) {
+    /* This method hooks up to hb_font_t's get_h_kerning.  Only support Format0. */
     case 0: return u.format0.get_kerning (left, right);
-    case 2: return u.format2.get_kerning (left, right, end);
     default:return 0;
+    }
+  }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c, unsigned int format) const
+  {
+    /* TODO Switch to dispatch(). */
+    switch (format) {
+    case 0: u.format0.apply (c); return;
+    case 1: u.format1.apply (c); return;
+    case 2: u.format2.apply (c); return;
+    case 3: u.format3.apply (c); return;
+    default:			 return;
     }
   }
 
@@ -255,7 +499,9 @@ struct KernSubTable
     TRACE_SANITIZE (this);
     switch (format) {
     case 0: return_trace (u.format0.sanitize (c));
+    case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+    case 3: return_trace (u.format3.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -263,7 +509,9 @@ struct KernSubTable
   protected:
   union {
   KernSubTableFormat0	format0;
+  KernSubTableFormat1	format1;
   KernSubTableFormat2	format2;
+  KernSubTableFormat3	format3;
   } u;
   public:
   DEFINE_SIZE_MIN (0);
@@ -276,17 +524,23 @@ struct KernSubTableWrapper
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
+  inline bool is_supported (void) const
+  { return !(thiz()->coverage & T::CheckFlags); }
+
   inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::CheckFlags) == T::CheckHorizontal; }
+  { return (thiz()->coverage & T::Direction) == T::CheckHorizontal; }
 
   inline bool is_override (void) const
   { return bool (thiz()->coverage & T::Override); }
 
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-  { return thiz()->subtable.get_kerning (left, right, end, thiz()->format); }
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right, const char *end) const
-  { return is_horizontal () ? get_kerning (left, right, end) : 0; }
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  { return is_supported () && is_horizontal () ? get_kerning (left, right) : 0; }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  { thiz()->subtable.apply (c, thiz()->format); }
 
   inline unsigned int get_size (void) const { return thiz()->length; }
 
@@ -313,12 +567,51 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_override ())
+      if (st->is_supported () && st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right, st->length + (const char *) st);
+      v += st->get_h_kerning (left, right);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
+  }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    c->set_lookup_index (0);
+    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    unsigned int count = thiz()->nTables;
+    /* If there's an override subtable, skip subtables before that. */
+    unsigned int last_override = 0;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->is_supported () && st->is_override ())
+        last_override = i;
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
+    st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (!st->is_supported ())
+        goto skip;
+
+      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->is_horizontal ())
+	goto skip;
+
+      if (i < last_override)
+	goto skip;
+
+      if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
+	goto skip;
+
+      c->sanitizer.set_object (*st);
+
+      st->apply (c);
+
+      (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
+
+    skip:
+      st = &StructAfter<typename T::SubTableWrapper> (*st);
+    }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -361,7 +654,7 @@ struct KernOT : KernTable<KernOT>
 
       Variation		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0x07u,
+      CheckFlags	= 0x06u,
       CheckHorizontal	= 0x01u
     };
 
@@ -402,7 +695,7 @@ struct KernAAT : KernTable<KernAAT>
 
       Override		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0xE0u,
+      CheckFlags	= 0x60u,
       CheckHorizontal	= 0x00u
     };
 
@@ -441,6 +734,16 @@ struct kern
     }
   }
 
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    /* TODO Switch to dispatch(). */
+    switch (u.major) {
+    case 0: u.ot.apply (c);  return;
+    case 1: u.aat.apply (c); return;
+    default:		     return;
+    }
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -452,45 +755,6 @@ struct kern
     }
   }
 
-  struct accelerator_t
-  {
-    inline void init (hb_face_t *face)
-    {
-      blob = hb_sanitize_context_t().reference_table<kern> (face);
-      table = blob->as<kern> ();
-    }
-    inline void fini (void)
-    {
-      hb_blob_destroy (blob);
-    }
-
-    inline bool has_data (void) const
-    { return table->has_data (); }
-
-    inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table->get_h_kerning (left, right); }
-
-    inline int get_kerning (hb_codepoint_t first, hb_codepoint_t second) const
-    { return get_h_kerning (first, second); }
-
-    inline void apply (hb_font_t *font,
-		       hb_buffer_t  *buffer,
-		       hb_mask_t kern_mask) const
-    {
-      /* We only apply horizontal kerning in this table. */
-      if (!HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-        return;
-
-      hb_kern_machine_t<accelerator_t> machine (*this);
-
-      machine.kern (font, buffer, kern_mask);
-    }
-
-    private:
-    hb_blob_t *blob;
-    const kern *table;
-  };
-
   protected:
   union {
   HBUINT32		version32;
@@ -501,8 +765,6 @@ struct kern
   public:
   DEFINE_SIZE_UNION (4, version32);
 };
-
-struct kern_accelerator_t : kern::accelerator_t {};
 
 } /* namespace OT */
 

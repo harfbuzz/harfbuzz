@@ -37,10 +37,8 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-
-#include "hb-ot-layout-base-table.hh" // Just so we compile them; unused otherwise
-#include "hb-ot-layout-jstf-table.hh" // Just so we compile them; unused otherwise
-
+#include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise
+#include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 
@@ -55,10 +53,19 @@
  **/
 
 
-static const OT::kern::accelerator_t& _get_kern (hb_face_t *face)
+static inline const OT::kern&
+_get_kern (hb_face_t *face, hb_blob_t **blob = nullptr)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::kern::accelerator_t);
-  return *hb_ot_face_data (face)->kern;
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
+  {
+    if (blob)
+      *blob = hb_blob_get_empty ();
+    return Null(OT::kern);
+  }
+  const OT::kern& kern = *(hb_ot_face_data (face)->kern.get ());
+  if (blob)
+    *blob = hb_ot_face_data (face)->kern.get_blob ();
+  return kern;
 }
 const OT::GDEF& _get_gdef (hb_face_t *face)
 {
@@ -106,11 +113,16 @@ hb_ot_layout_has_kerning (hb_face_t *face)
 }
 
 void
-hb_ot_layout_kern (hb_font_t *font,
-		   hb_buffer_t  *buffer,
-		   hb_mask_t kern_mask)
+hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
+		   hb_font_t *font,
+		   hb_buffer_t  *buffer)
 {
-  _get_kern (font->face).apply (font, buffer, kern_mask);
+  hb_blob_t *blob;
+  const AAT::kern& kern = _get_kern (font->face, &blob);
+
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+
+  kern.apply (&c);
 }
 
 
@@ -1411,3 +1423,62 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 {
   apply_string<GSUBProxy> (c, lookup, accel);
 }
+
+#if 0
+static const OT::BASE& _get_base (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
+  return *hb_ot_face_data (face)->BASE;
+}
+
+hb_bool_t
+hb_ot_layout_get_baseline (hb_font_t               *font,
+			   hb_ot_layout_baseline_t  baseline,
+			   hb_direction_t           direction,
+			   hb_tag_t                 script_tag,
+			   hb_tag_t                 language_tag,
+			   hb_position_t           *coord        /* OUT.  May be NULL. */)
+{
+  const OT::BASE &base = _get_base (font->face);
+  bool result = base.get_baseline (font, baseline, direction, script_tag,
+				   language_tag, coord);
+
+  /* TODO: Simulate https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
+  if (!result && coord) *coord = 0;
+
+  if (coord) *coord = font->em_scale_dir (*coord, direction);
+
+  return result;
+}
+
+/* To be moved to public header */
+/*
+ * BASE
+ */
+
+/**
+ * hb_ot_layout_baseline_t:
+ *
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
+ *
+ * Since: DONTREPLACEME
+ */
+typedef enum {
+  HB_OT_LAYOUT_BASELINE_HANG = HB_TAG('h','a','n','g'),
+  HB_OT_LAYOUT_BASELINE_ICFB = HB_TAG('i','c','f','b'),
+  HB_OT_LAYOUT_BASELINE_ICFT = HB_TAG('i','c','f','t'),
+  HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
+  HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
+  HB_OT_LAYOUT_BASELINE_MATH = HB_TAG('m','a','t','h'),
+  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n')
+} hb_ot_layout_baseline_t;
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_get_baseline (hb_font_t               *font,
+			   hb_ot_layout_baseline_t  baseline,
+			   hb_direction_t           direction,
+			   hb_tag_t                 script_tag,
+			   hb_tag_t                 language_tag,
+			   hb_position_t           *coord        /* OUT.  May be NULL. */);
+
+#endif

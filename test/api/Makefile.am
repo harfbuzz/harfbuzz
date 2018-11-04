@@ -28,6 +28,7 @@ check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
 
 TEST_PROGS = \
+	test-baseline \
 	test-blob \
 	test-buffer \
 	test-collect-unicodes \
@@ -35,6 +36,7 @@ TEST_PROGS = \
 	test-font \
 	test-map \
 	test-object \
+	test-ot-face \
 	test-set \
 	test-shape \
 	test-subset \

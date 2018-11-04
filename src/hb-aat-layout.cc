@@ -131,6 +131,44 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 
 
 /*
+ * hb_aat_apply_context_t
+ */
+
+AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (hb_ot_shape_plan_t *plan_,
+						     hb_font_t *font_,
+						     hb_buffer_t *buffer_,
+						     hb_blob_t *blob) :
+						       plan (plan_),
+						       font (font_),
+						       face (font->face),
+						       buffer (buffer_),
+						       sanitizer (),
+						       ankr_table (&Null(AAT::ankr)),
+						       ankr_end (nullptr),
+						       lookup_index (0),
+						       debug_depth (0)
+{
+  sanitizer.init (blob);
+  sanitizer.set_num_glyphs (face->get_num_glyphs ());
+  sanitizer.start_processing ();
+  sanitizer.set_max_ops (HB_SANITIZE_MAX_OPS_MAX);
+}
+
+AAT::hb_aat_apply_context_t::~hb_aat_apply_context_t (void)
+{
+  sanitizer.end_processing ();
+}
+
+void
+AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_,
+					     const char      *ankr_end_)
+{
+  ankr_table = ankr_table_;
+  ankr_end = ankr_end_;
+}
+
+
+/*
  * mort/morx/kerx/trak
  */
 
@@ -273,8 +311,8 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
   hb_blob_t *ankr_blob;
   const AAT::ankr& ankr = _get_ankr (font->face, &ankr_blob);
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob,
-				 ankr, ankr_blob->data + ankr_blob->length);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  c.set_ankr_table (&ankr, ankr_blob->data + ankr_blob->length);
   kerx.apply (&c);
 }
 

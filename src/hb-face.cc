@@ -82,8 +82,6 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
 {
   HB_OBJECT_HEADER_STATIC,
 
-  true, /* immutable */
-
   nullptr, /* reference_table_func */
   nullptr, /* user_data */
   nullptr, /* destroy */
@@ -336,12 +334,10 @@ hb_face_get_user_data (const hb_face_t    *face,
 void
 hb_face_make_immutable (hb_face_t *face)
 {
-  if (unlikely (hb_object_is_inert (face)))
-    return;
-  if (face->immutable)
+  if (hb_object_is_immutable (face))
     return;
 
-  face->immutable = true;
+  hb_object_make_immutable (face);
 }
 
 /**
@@ -357,7 +353,7 @@ hb_face_make_immutable (hb_face_t *face)
 hb_bool_t
 hb_face_is_immutable (const hb_face_t *face)
 {
-  return face->immutable;
+  return hb_object_is_immutable (face);
 }
 
 
@@ -408,7 +404,7 @@ void
 hb_face_set_index (hb_face_t    *face,
 		   unsigned int  index)
 {
-  if (face->immutable)
+  if (hb_object_is_immutable (face))
     return;
 
   face->index = index;
@@ -443,7 +439,7 @@ void
 hb_face_set_upem (hb_face_t    *face,
 		  unsigned int  upem)
 {
-  if (face->immutable)
+  if (hb_object_is_immutable (face))
     return;
 
   face->upem = upem;
@@ -478,7 +474,7 @@ void
 hb_face_set_glyph_count (hb_face_t    *face,
 			 unsigned int  glyph_count)
 {
-  if (face->immutable)
+  if (hb_object_is_immutable (face))
     return;
 
   face->num_glyphs = glyph_count;

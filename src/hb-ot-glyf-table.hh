@@ -276,7 +276,7 @@ struct glyf
       if (!get_offsets (glyph, &start_offset, &end_offset))
         return false; /* glyph not found */
 
-      return CompositeGlyphHeader::get_iterator ((const char*) this->glyf_table + start_offset,
+      return CompositeGlyphHeader::get_iterator ((const char *) this->glyf_table + start_offset,
 						 end_offset - start_offset,
 						 composite);
     }
@@ -476,8 +476,8 @@ struct glyf
     private:
     bool short_offset;
     unsigned int num_glyphs;
-    const loca *loca_table;
-    const glyf *glyf_table;
+    hb_nonnull_ptr_t<const loca> loca_table;
+    hb_nonnull_ptr_t<const glyf> glyf_table;
     hb_blob_t *loca_blob;
     hb_blob_t *glyf_blob;
     unsigned int glyf_len;

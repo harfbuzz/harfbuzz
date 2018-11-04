@@ -43,8 +43,6 @@ struct hb_face_t
 {
   hb_object_header_t header;
 
-  hb_bool_t immutable;
-
   hb_reference_table_func_t  reference_table_func;
   void                      *user_data;
   hb_destroy_func_t          destroy;

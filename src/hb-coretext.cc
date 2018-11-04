@@ -353,7 +353,7 @@ hb_coretext_font_create (CTFontRef ct_font)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
 
-  if (unlikely (hb_object_is_inert (font)))
+  if (unlikely (hb_object_is_immutable (font)))
     return font;
 
   hb_font_set_ptem (font, coretext_font_size_to_ptem (CTFontGetSize(ct_font)));
