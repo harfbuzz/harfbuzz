@@ -498,10 +498,12 @@ struct SubrSubsetParam
       case CSType_LocalSubr:
         if (likely (context.subr_num < parsed_local_subrs->len))
           return &(*parsed_local_subrs)[context.subr_num];
+        break;
       
       case CSType_GlobalSubr:
         if (likely (context.subr_num < parsed_global_subrs->len))
           return &(*parsed_global_subrs)[context.subr_num];
+        break;
     }
     return nullptr;
   }
