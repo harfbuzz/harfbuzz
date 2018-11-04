@@ -24,16 +24,17 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#ifndef TEST_OT_FACE_NO_MAIN
 #include "hb-test.h"
+#endif
 #include <hb-ot.h>
 
 /* Unit tests for hb-ot-*.h */
 
 
 static void
-test_ot_face_empty (void)
+test_face (hb_face_t *face)
 {
-  hb_face_t *face = hb_face_get_empty ();
   hb_font_t *font = hb_font_create (face);
   hb_ot_font_set_funcs (font);
 
@@ -66,23 +67,23 @@ test_ot_face_empty (void)
   hb_ot_color_has_layers (face);
   hb_ot_color_glyph_get_layers (face, 0, 0, NULL, NULL);
   hb_ot_color_has_svg (face);
-  hb_ot_color_glyph_reference_svg (face, 0);
+  hb_blob_destroy (hb_ot_color_glyph_reference_svg (face, 0));
   hb_ot_color_has_png (face);
-  hb_ot_color_glyph_reference_png (font, 0);
+  hb_blob_destroy (hb_ot_color_glyph_reference_png (font, 0));
 
   hb_ot_layout_has_glyph_classes (face);
   hb_ot_layout_has_substitution (face);
   hb_ot_layout_has_positioning (face);
 
   hb_ot_math_has_data (face);
-  hb_ot_math_get_constant (font, 0);
+  hb_ot_math_get_constant (font, HB_OT_MATH_CONSTANT_MATH_LEADING);
   hb_ot_math_get_glyph_italics_correction (font, 0);
   hb_ot_math_get_glyph_top_accent_attachment (font, 0);
   hb_ot_math_is_glyph_extended_shape (face, 0);
-  hb_ot_math_get_glyph_kerning (font, 0, 0, 0);
-  hb_ot_math_get_glyph_variants (font, 0, 0, 0, NULL, NULL);
-  hb_ot_math_get_min_connector_overlap (font, 0);
-  hb_ot_math_get_glyph_assembly (font, 0, 0, 0, NULL, NULL, NULL);
+  hb_ot_math_get_glyph_kerning (font, 0, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
+  hb_ot_math_get_glyph_variants (font, 0, HB_DIRECTION_TTB, 0, NULL, NULL);
+  hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
+  hb_ot_math_get_glyph_assembly (font, 0, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
 
   unsigned int len = sizeof (buf);
   hb_ot_name_list_names (face, NULL);
@@ -97,7 +98,13 @@ test_ot_face_empty (void)
 
   hb_set_destroy (set);
   hb_font_destroy (font);
-  hb_face_destroy (face);
+}
+
+#ifndef TEST_OT_FACE_NO_MAIN
+static void
+test_ot_face_empty (void)
+{
+  test_face (hb_face_get_empty ());
 }
 
 int
@@ -109,3 +116,4 @@ main (int argc, char **argv)
 
   return hb_test_run();
 }
+#endif

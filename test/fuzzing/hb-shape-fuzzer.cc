@@ -3,6 +3,10 @@
 #include <hb-ot.h>
 #include <string.h>
 
+#define TEST_OT_FACE_NO_MAIN 1
+#include "../api/test-ot-face.c"
+#undef TEST_OT_FACE_NO_MAIN
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
@@ -48,6 +52,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     hb_buffer_destroy (buffer);
   }
 
+  /* Misc calls on face. */
+  test_face (face);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
