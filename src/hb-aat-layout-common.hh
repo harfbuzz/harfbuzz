@@ -698,36 +698,23 @@ struct hb_aat_apply_context_t :
   hb_face_t *face;
   hb_buffer_t *buffer;
   hb_sanitize_context_t sanitizer;
-  const ankr &ankr_table;
+  const ankr *ankr_table;
   const char *ankr_end;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
   unsigned int debug_depth;
 
-  inline hb_aat_apply_context_t (hb_ot_shape_plan_t *plan_,
-				 hb_font_t *font_,
-				 hb_buffer_t *buffer_,
-				 hb_blob_t *blob = const_cast<hb_blob_t *> (&Null(hb_blob_t)),
-				 const ankr &ankr_table_ = Null(ankr),
-				 const char *ankr_end_ = nullptr) :
-		plan (plan_), font (font_), face (font->face), buffer (buffer_),
-		sanitizer (),
-		ankr_table (ankr_table_), ankr_end (ankr_end_),
-		lookup_index (0), debug_depth (0)
-  {
-    sanitizer.init (blob);
-    sanitizer.set_num_glyphs (face->get_num_glyphs ());
-    sanitizer.start_processing ();
-    sanitizer.set_max_ops (HB_SANITIZE_MAX_OPS_MAX);
-  }
+  HB_INTERNAL hb_aat_apply_context_t (hb_ot_shape_plan_t *plan_,
+				      hb_font_t *font_,
+				      hb_buffer_t *buffer_,
+				      hb_blob_t *blob = const_cast<hb_blob_t *> (&Null(hb_blob_t)));
+
+  HB_INTERNAL ~hb_aat_apply_context_t (void);
+
+  HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_, const char *ankr_end_);
 
   inline void set_lookup_index (unsigned int i) { lookup_index = i; }
-
-  inline ~hb_aat_apply_context_t (void)
-  {
-    sanitizer.end_processing ();
-  }
 };
 
 

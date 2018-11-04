@@ -28,7 +28,6 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
-#include "hb-aat-layout-ankr-table.hh" /* I don't even want to know why... */
 #include "hb-aat-layout-common.hh"
 
 #include "hb-face.hh"

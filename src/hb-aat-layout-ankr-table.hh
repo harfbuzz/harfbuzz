@@ -36,6 +36,8 @@
 
 namespace AAT {
 
+using namespace OT;
+
 
 struct Anchor
 {

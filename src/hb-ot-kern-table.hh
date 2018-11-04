@@ -30,7 +30,6 @@
 #include "hb-open-type.hh"
 #include "hb-ot-shape.hh"
 #include "hb-ot-layout-gsubgpos.hh"
-#include "hb-aat-layout-ankr-table.hh" // Ugly but needed.
 #include "hb-aat-layout-common.hh"
 
 

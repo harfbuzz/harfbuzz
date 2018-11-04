@@ -423,14 +423,14 @@ struct KerxSubTableFormat4
 	      return false;
 	    unsigned int markAnchorPoint = *data++;
 	    unsigned int currAnchorPoint = *data++;
-	    const Anchor markAnchor = c->ankr_table.get_anchor (c->buffer->info[mark].codepoint,
-								markAnchorPoint,
-								c->sanitizer.get_num_glyphs (),
-								c->ankr_end);
-	    const Anchor currAnchor = c->ankr_table.get_anchor (c->buffer->cur ().codepoint,
-								currAnchorPoint,
-								c->sanitizer.get_num_glyphs (),
-								c->ankr_end);
+	    const Anchor markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
+								 markAnchorPoint,
+								 c->sanitizer.get_num_glyphs (),
+								 c->ankr_end);
+	    const Anchor currAnchor = c->ankr_table->get_anchor (c->buffer->cur ().codepoint,
+								 currAnchorPoint,
+								 c->sanitizer.get_num_glyphs (),
+								 c->ankr_end);
 
 	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
 	    o.y_offset = c->font->em_scale_y (markAnchor.yCoordinate) - c->font->em_scale_y (currAnchor.yCoordinate);
