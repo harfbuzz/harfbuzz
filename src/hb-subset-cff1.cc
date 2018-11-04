@@ -390,9 +390,6 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
     param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env);
-    if ( unlikely (!param.current_parsed_str->is_parsed ()
-                && (param.current_parsed_str->values.len > 0)))
-      env.set_error ();
   }
 
   private:
@@ -401,10 +398,24 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 
 struct CFF1SubrSubsetter : SubrSubsetter<CFF1SubrSubsetter, CFF1Subrs, const OT::cff1::accelerator_subset_t, CFF1CSInterpEnv, CFF1CSOpSet_SubrSubset>
 {
-  static inline void set_parsed_prefix (const CFF1CSInterpEnv &env, ParsedCStr &charstring)
+  static inline void finalize_parsed_str (CFF1CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
   {
+    /* insert width at the beginning of the charstring as necessary */
     if (env.has_width)
       charstring.set_prefix (env.width);
+
+    /* subroutines/charstring left on the call stack are legally left unmarked
+     * unmarked when a subroutine terminates with endchar. mark them.
+     */
+    param.current_parsed_str->set_parsed ();
+    for (unsigned int i = 0; i < env.callStack.get_count (); i++)
+    {
+      ParsedCStr  *parsed_str = param.get_parsed_str_for_context (env.callStack[i]);
+      if (likely (parsed_str != nullptr))
+        parsed_str->set_parsed ();
+      else
+        env.set_error ();
+    }
   }
 };
 
@@ -774,15 +785,16 @@ struct cff_subset_plan {
     {
       if (fdmap.includes (i))
       {
+        bool  has_localsubrs = offsets.localSubrsInfos[i].size > 0;
         CFFPrivateDict_OpSerializer privSzr (desubroutinize, plan->drop_hints);
-        unsigned int  priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr);
+        unsigned int  priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr, has_localsubrs);
         TableInfo  privInfo = { final_size, priv_size, 0 };
         FontDictValuesMod fontdict_mod;
         fontdict_mod.init ( &acc.fontDicts[i], sidmap[acc.fontDicts[i].fontName], privInfo );
         fontdicts_mod.push (fontdict_mod);
         final_size += privInfo.size;
 
-        if (!plan->desubroutinize && (offsets.localSubrsInfos[i].size > 0))
+        if (!plan->desubroutinize && has_localsubrs)
         {
           offsets.localSubrsInfos[i].offset = final_size;
           final_size += offsets.localSubrsInfos[i].size;
@@ -1014,7 +1026,8 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
       bool result;
       CFFPrivateDict_OpSerializer privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-      result = pd->serialize (&c, acc.privateDicts[i], privSzr, priv_size);
+      unsigned int  subroffset = (plan.offsets.localSubrsInfos[i].size > 0)? priv_size: 0;
+      result = pd->serialize (&c, acc.privateDicts[i], privSzr, subroffset);
       if (unlikely (!result))
       {
         DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);

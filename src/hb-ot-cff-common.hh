@@ -198,7 +198,7 @@ struct CFFIndex
   { return (const char *)this + min_size + offset_array_size (); }
 
   inline unsigned int data_size (void) const
-  { return HBINT8::static_size; };
+  { return HBINT8::static_size; }
 
   ByteStr operator [] (unsigned int index) const
   {
@@ -331,6 +331,17 @@ struct Dict : UnsizedByteStr
   }
 
   /* in parallel to above */
+  template <typename DICTVAL, typename OP_SERIALIZER, typename PARAM>
+  inline static unsigned int calculate_serialized_size (const DICTVAL &dictval,
+                                                        OP_SERIALIZER& opszr,
+                                                        PARAM& param)
+  {
+    unsigned int size = 0;
+    for (unsigned int i = 0; i < dictval.get_count (); i++)
+      size += opszr.calculate_serialized_size (dictval[i], param);
+    return size;
+  }
+
   template <typename DICTVAL, typename OP_SERIALIZER>
   inline static unsigned int calculate_serialized_size (const DICTVAL &dictval,
                                                         OP_SERIALIZER& opszr)

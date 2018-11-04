@@ -255,7 +255,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
       return true;
     if (opstr.op == OpCode_Subrs)
     {
-      if (desubroutinize)
+      if (desubroutinize || (subrsOffset == 0))
         return_trace (true);
       else
         return_trace (FontDict::serialize_offset4_op (c, opstr.op, subrsOffset));
@@ -264,13 +264,14 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
       return_trace (copy_opstr (c, opstr));
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  inline unsigned int calculate_serialized_size (const OpStr &opstr,
+                                                 bool has_localsubr=true) const
   {
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return 0;
     if (opstr.op == OpCode_Subrs)
     {
-      if (desubroutinize)
+      if (desubroutinize || !has_localsubr)
         return 0;
       else
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
@@ -487,34 +488,32 @@ struct SubrSubsetParam
     drop_hints = drop_hints_;
   }
 
-  template <typename ENV>
-  inline void set_current_str (ENV &env)
+  inline ParsedCStr *get_parsed_str_for_context (CallContext &context)
   {
-    const CallContext &context = env.context;
-  
     switch (context.type)
     {
       case CSType_CharString:
-        current_parsed_str = parsed_charstring;
-        break;
+        return parsed_charstring;
       
       case CSType_LocalSubr:
         if (likely (context.subr_num < parsed_local_subrs->len))
-          current_parsed_str = &(*parsed_local_subrs)[context.subr_num];
-        else
-          env.set_error ();
-        break;
-
+          return &(*parsed_local_subrs)[context.subr_num];
+      
       case CSType_GlobalSubr:
         if (likely (context.subr_num < parsed_global_subrs->len))
-          current_parsed_str = &(*parsed_global_subrs)[context.subr_num];
-        else
-          env.set_error ();
-        break;
-
-      default:
-        assert (0);
+          return &(*parsed_global_subrs)[context.subr_num];
     }
+    return nullptr;
+  }
+
+  template <typename ENV>
+  inline void set_current_str (ENV &env)
+  {
+    ParsedCStr  *parsed_str = get_parsed_str_for_context (env.context);
+    if (likely (parsed_str != nullptr))
+      current_parsed_str = parsed_str;
+    else
+      env.set_error ();
   }
 
   ParsedCStr    *current_parsed_str;
@@ -559,7 +558,9 @@ struct SubrRemap : Remap
 
   inline int biased_num (unsigned int old_num) const
   {
-    return (int)(*this)[old_num] - bias;
+    hb_codepoint_t new_num = (*this)[old_num];
+    assert (new_num != CFF_UNDEF_CODE);
+    return (int)new_num - bias;
   }
 
   protected:
@@ -670,8 +671,8 @@ struct SubrSubsetter
       if (unlikely (!interp.interpret (param)))
         return false;
 
-      /* copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
-      SUBSETTER::set_parsed_prefix (interp.env, parsed_charstrings[i]);
+      /* finalize parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
+      SUBSETTER::finalize_parsed_str (interp.env, param, parsed_charstrings[i]);
     }
     
     if (drop_hints)
@@ -692,7 +693,7 @@ struct SubrSubsetter
           parsed_charstrings[i].set_hint_removed ();
       }
 
-      /* after dropping hints recreate closures from subrs actually used */
+      /* after dropping hints recreate closures of actually used subrs */
       closures.reset ();
       for (unsigned int i = 0; i < glyphs.len; i++)
       {
@@ -724,7 +725,7 @@ struct SubrSubsetter
     return true;
   }
 
-  inline bool encode_subrs (const ParsedCStrs &subrs, const SubrRemap& remap, StrBuffArray &buffArray) const
+  inline bool encode_subrs (const ParsedCStrs &subrs, const SubrRemap& remap, unsigned int fd, StrBuffArray &buffArray) const
   {
     unsigned int  count = remap.get_count ();
   
@@ -735,7 +736,7 @@ struct SubrSubsetter
       hb_codepoint_t new_num = remap[old_num];
       if (new_num != CFF_UNDEF_CODE)
       {
-        if (unlikely (!encode_str (subrs[old_num], 0, buffArray[new_num])))
+        if (unlikely (!encode_str (subrs[old_num], fd, buffArray[new_num])))
           return false;
       }
     }
@@ -744,12 +745,12 @@ struct SubrSubsetter
 
   inline bool encode_globalsubrs (StrBuffArray &buffArray)
   {
-    return encode_subrs (parsed_global_subrs, remaps.global_remap, buffArray);
+    return encode_subrs (parsed_global_subrs, remaps.global_remap, 0, buffArray);
   }
 
   inline bool encode_localsubrs (unsigned int fd, StrBuffArray &buffArray) const
   {
-    return encode_subrs (parsed_local_subrs[fd], remaps.local_remaps[fd], buffArray);
+    return encode_subrs (parsed_local_subrs[fd], remaps.local_remaps[fd], fd, buffArray);
   }
 
   protected:
