@@ -60,6 +60,7 @@
     HB_OT_TABLE(AAT, kerx) \
     HB_OT_TABLE(AAT, ankr) \
     HB_OT_TABLE(AAT, trak) \
+    HB_OT_TABLE(AAT, lcar) \
     HB_OT_TABLE(AAT, ltag) \
     /* OpenType variations. */ \
     HB_OT_TABLE(OT, fvar) \

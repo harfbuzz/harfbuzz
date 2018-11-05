@@ -42,6 +42,8 @@
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
 
+#include "hb-aat-layout-lcar-table.hh"
+
 
 /**
  * SECTION:hb-ot-layout
@@ -275,12 +277,15 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
-  return font->face->table.GDEF->table->get_lig_carets (font,
-							direction,
-							glyph,
-							start_offset,
-							caret_count,
-							caret_array);
+  unsigned int result_caret_count = 0;
+  unsigned int result = font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, &result_caret_count, caret_array);
+  if (result)
+  {
+    if (caret_count) *caret_count = result_caret_count;
+  }
+  else
+    result = font->face->table.lcar->get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
+  return result;
 }
 
 
