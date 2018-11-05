@@ -1,3 +1,11 @@
+Overview of changes leading to 2.1.1
+Monday, November 5, 2018
+====================================
+- AAT improvements:
+  o Implement 'mort' table.
+  o Implement 'kern' subtables Format 1 and Format 3.
+
+
 Overview of changes leading to 2.1.0
 Tuesday, October 30, 2018
 ====================================
