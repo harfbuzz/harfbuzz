@@ -290,6 +290,9 @@ struct hb_atomic_ptr_t
   inline T *get (void) const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
   inline bool cmpexch (const T *old, T *new_) const { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
 
+  inline T * operator -> (void) const { return get (); }
+  template <typename C> inline operator C * (void) const { return get (); }
+
   mutable T *v;
 };
 

@@ -795,6 +795,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   inline const Returned * operator -> (void) const { return get (); }
   inline const Returned & operator * (void) const { return *get (); }
+  template <typename C> inline operator const C * (void) const { return get (); }
 
   inline Data * get_data (void) const
   {

@@ -71,7 +71,7 @@ struct hb_graphite2_face_data_t
 static const void *hb_graphite2_get_table (const void *data, unsigned int tag, size_t *len)
 {
   hb_graphite2_face_data_t *face_data = (hb_graphite2_face_data_t *) data;
-  hb_graphite2_tablelist_t *tlist = face_data->tlist.get ();
+  hb_graphite2_tablelist_t *tlist = face_data->tlist;
 
   hb_blob_t *blob = nullptr;
 
@@ -94,7 +94,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
     p->tag = tag;
 
 retry:
-    hb_graphite2_tablelist_t *tlist = face_data->tlist.get ();
+    hb_graphite2_tablelist_t *tlist = face_data->tlist;
     p->next = tlist;
 
     if (unlikely (!face_data->tlist.cmpexch (tlist, p)))
@@ -110,7 +110,7 @@ retry:
 static void hb_graphite2_release_table(const void *data, const void *table_buffer)
 {
   hb_graphite2_face_data_t *face_data = (hb_graphite2_face_data_t *) data;
-  hb_graphite2_tablelist_t *tlist = face_data->tlist.get();
+  hb_graphite2_tablelist_t *tlist = face_data->tlist;
 
   hb_graphite2_tablelist_t *prev = nullptr;
   hb_graphite2_tablelist_t *curr = tlist;
@@ -164,7 +164,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
 void
 _hb_graphite2_shaper_face_data_destroy (hb_graphite2_face_data_t *data)
 {
-  hb_graphite2_tablelist_t *tlist = data->tlist.get ();
+  hb_graphite2_tablelist_t *tlist = data->tlist;
 
   while (tlist)
   {

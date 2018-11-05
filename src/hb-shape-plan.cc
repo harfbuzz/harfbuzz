@@ -532,7 +532,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 
 
 retry:
-  hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans.get ();
+  hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;
 
   /* Don't look for plan in the cache if there were variation coordinates XXX Fix me. */
   if (!hb_coords_present (coords, num_coords))
