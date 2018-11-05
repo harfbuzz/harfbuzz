@@ -181,7 +181,7 @@ _get_mort (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(AAT::mort);
   }
-  const AAT::mort& mort = *(hb_ot_face_data (face)->mort.get ());
+  const AAT::mort& mort = *(hb_ot_face_data (face)->mort);
   if (blob)
     *blob = hb_ot_face_data (face)->mort.get_blob ();
   return mort;
@@ -195,7 +195,7 @@ _get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(AAT::morx);
   }
-  const AAT::morx& morx = *(hb_ot_face_data (face)->morx.get ());
+  const AAT::morx& morx = *(hb_ot_face_data (face)->morx);
   if (blob)
     *blob = hb_ot_face_data (face)->morx.get_blob ();
   return morx;
@@ -209,7 +209,7 @@ _get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(AAT::kerx);
   }
-  const AAT::kerx& kerx = *(hb_ot_face_data (face)->kerx.get ());
+  const AAT::kerx& kerx = *(hb_ot_face_data (face)->kerx);
   if (blob)
     *blob = hb_ot_face_data (face)->kerx.get_blob ();
   return kerx;
@@ -223,7 +223,7 @@ _get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(AAT::ankr);
   }
-  const AAT::ankr& ankr = *(hb_ot_face_data (face)->ankr.get ());
+  const AAT::ankr& ankr = *(hb_ot_face_data (face)->ankr);
   if (blob)
     *blob = hb_ot_face_data (face)->ankr.get_blob ();
   return ankr;
@@ -232,13 +232,13 @@ static inline const AAT::trak&
 _get_trak (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::trak);
-  return *(hb_ot_face_data (face)->trak.get ());
+  return *(hb_ot_face_data (face)->trak);
 }
 static inline const AAT::ltag&
 _get_ltag (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::ltag);
-  return *(hb_ot_face_data (face)->ltag.get ());
+  return *(hb_ot_face_data (face)->ltag);
 }
 
 

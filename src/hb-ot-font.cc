@@ -62,7 +62,7 @@ hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  return ot_face->cmap.get ()->get_nominal_glyph (unicode, glyph);
+  return ot_face->cmap->get_nominal_glyph (unicode, glyph);
 }
 
 static unsigned int
@@ -76,7 +76,7 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::cmap_accelerator_t &cmap = *ot_face->cmap.get ();
+  const OT::cmap_accelerator_t &cmap = *ot_face->cmap;
   unsigned int done;
   for (done = 0;
        done < count && cmap.get_nominal_glyph (*first_unicode, first_glyph);
@@ -97,7 +97,7 @@ hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  return ot_face->cmap.get ()->get_variation_glyph (unicode, variation_selector, glyph);
+  return ot_face->cmap->get_variation_glyph (unicode, variation_selector, glyph);
 }
 
 static void
@@ -110,7 +110,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx.get ();
+  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -130,7 +130,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
+  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -152,7 +152,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 
   *x = font->get_glyph_h_advance (glyph) / 2;
 
-  const OT::VORG &VORG = *ot_face->VORG.get ();
+  const OT::VORG &VORG = *ot_face->VORG;
   if (VORG.has_data ())
   {
     *y = font->em_scale_y (VORG.get_y_origin (glyph));
@@ -162,7 +162,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   hb_glyph_extents_t extents = {0};
   if (ot_face->glyf->get_extents (glyph, &extents))
   {
-    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
+    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     hb_position_t tsb = vmtx.get_side_bearing (glyph);
     *y = font->em_scale_y (extents.y_bearing + tsb);
     return true;
@@ -225,7 +225,7 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx.get ();
+  const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
   metrics->ascender = font->em_scale_y (hmtx.ascender);
   metrics->descender = font->em_scale_y (hmtx.descender);
   metrics->line_gap = font->em_scale_y (hmtx.line_gap);
@@ -240,7 +240,7 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx.get ();
+  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
   metrics->ascender = font->em_scale_x (vmtx.ascender);
   metrics->descender = font->em_scale_x (vmtx.descender);
   metrics->line_gap = font->em_scale_x (vmtx.line_gap);

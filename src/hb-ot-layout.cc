@@ -62,7 +62,7 @@ _get_kern (hb_face_t *face, hb_blob_t **blob = nullptr)
       *blob = hb_blob_get_empty ();
     return Null(OT::kern);
   }
-  const OT::kern& kern = *(hb_ot_face_data (face)->kern.get ());
+  const OT::kern& kern = *(hb_ot_face_data (face)->kern);
   if (blob)
     *blob = hb_ot_face_data (face)->kern.get_blob ();
   return kern;

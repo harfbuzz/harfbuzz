@@ -46,7 +46,7 @@ static inline const OT::name_accelerator_t&
 _get_name (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::name_accelerator_t);
-  return *(hb_ot_face_data (face)->name.get ());
+  return *(hb_ot_face_data (face)->name);
 }
 
 /**

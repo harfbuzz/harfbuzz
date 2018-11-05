@@ -54,35 +54,35 @@ static inline const OT::COLR&
 _get_colr (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::COLR);
-  return *(hb_ot_face_data (face)->COLR.get ());
+  return *(hb_ot_face_data (face)->COLR);
 }
 
 static inline const OT::CBDT_accelerator_t&
 _get_cbdt (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
-  return *(hb_ot_face_data (face)->CBDT.get ());
+  return *(hb_ot_face_data (face)->CBDT);
 }
 
 static inline const OT::CPAL&
 _get_cpal (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
-  return *(hb_ot_face_data (face)->CPAL.get ());
+  return *(hb_ot_face_data (face)->CPAL);
 }
 
 static inline const OT::sbix_accelerator_t&
 _get_sbix (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::sbix_accelerator_t);
-  return *(hb_ot_face_data (face)->sbix.get ());
+  return *(hb_ot_face_data (face)->sbix);
 }
 
 static inline const OT::SVG_accelerator_t&
 _get_svg (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::SVG_accelerator_t);
-  return *(hb_ot_face_data (face)->SVG.get ());
+  return *(hb_ot_face_data (face)->SVG);
 }
 
 

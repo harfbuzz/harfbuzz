@@ -51,15 +51,13 @@ static inline const OT::fvar&
 _get_fvar (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::fvar);
-  hb_ot_face_data_t *layout = hb_ot_face_data (face);
-  return *(layout->fvar.get ());
+  return *(hb_ot_face_data (face)->fvar);
 }
 static inline const OT::avar&
 _get_avar (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::avar);
-  hb_ot_face_data_t *layout = hb_ot_face_data (face);
-  return *(layout->avar.get ());
+  return *(hb_ot_face_data (face)->avar);
 }
 
 /**

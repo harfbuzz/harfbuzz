@@ -45,7 +45,7 @@ _get_math (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::MATH);
   hb_ot_face_data_t * data = hb_ot_face_data (face);
-  return *(data->MATH.get ());
+  return *(data->MATH);
 }
 
 /*
