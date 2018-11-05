@@ -853,7 +853,13 @@ retry:
 
 #undef MAX_ITEMS
 
-  OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
+  hb_tag_t lang_tag;
+  unsigned int lang_count = 1;
+  hb_ot_tags_from_script_and_language (buffer->props.script,
+				       buffer->props.language,
+				       nullptr, nullptr,
+				       &lang_count, &lang_tag);
+  OPENTYPE_TAG language_tag = hb_uint32_swap (lang_count ? lang_tag : HB_TAG_NONE);
   hb_vector_t<TEXTRANGE_PROPERTIES*> range_properties;
   hb_vector_t<int> range_char_counts;
 
