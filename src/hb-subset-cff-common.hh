@@ -465,11 +465,19 @@ struct ParsedCStrs : hb_vector_t<ParsedCStr>
 {
   inline void init (unsigned int len_ = 0)
   {
-    hb_vector_t<ParsedCStr>::init ();
+    SUPER::init ();
     resize (len_);
     for (unsigned int i = 0; i < len; i++)
       (*this)[i].init ();
   }
+
+  inline void fini (void)
+  {
+    SUPER::fini_deep ();
+  }
+
+  private:
+  typedef hb_vector_t<ParsedCStr> SUPER;
 };
 
 struct SubrSubsetParam

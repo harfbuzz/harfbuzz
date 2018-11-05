@@ -62,8 +62,13 @@ struct code_pair
 };
 
 typedef hb_vector_t<char, 1> StrBuff;
-struct StrBuffArray :  hb_vector_t<StrBuff>
+struct StrBuffArray : hb_vector_t<StrBuff>
 {
+  inline void fini (void)
+  {
+    SUPER::fini_deep ();
+  }
+
   inline unsigned int total_size (void) const
   {
     unsigned int size = 0;
@@ -71,6 +76,9 @@ struct StrBuffArray :  hb_vector_t<StrBuff>
       size += (*this)[i].len;
     return size;
   }
+
+  private:
+  typedef hb_vector_t<StrBuff> SUPER;
 };
 
 /* CFF INDEX */
