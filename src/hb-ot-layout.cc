@@ -69,7 +69,7 @@ hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
 		   hb_buffer_t  *buffer)
 {
   hb_blob_t *blob = font->face->table.kern.get_blob ();
-  const AAT::kern& kern = *font->face->table.kern;
+  const AAT::kern& kern = *blob->as<AAT::kern> ();
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 

@@ -206,7 +206,7 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
 			  hb_buffer_t *buffer)
 {
   hb_blob_t *morx_blob = font->face->table.morx.get_blob ();
-  const AAT::morx& morx = *font->face->table.morx;
+  const AAT::morx& morx = *morx_blob->as<AAT::morx> ();
   if (morx.has_data ())
   {
     AAT::hb_aat_apply_context_t c (plan, font, buffer, morx_blob);
@@ -215,7 +215,7 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
   }
 
   hb_blob_t *mort_blob = font->face->table.morx.get_blob ();
-  const AAT::mort& mort = *font->face->table.mort;
+  const AAT::mort& mort = *mort_blob->as<AAT::mort> ();
   if (mort.has_data ())
   {
     AAT::hb_aat_apply_context_t c (plan, font, buffer, mort_blob);
@@ -236,13 +236,13 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer)
 {
-  hb_blob_t *blob = font->face->table.kerx.get_blob ();
-  const AAT::kerx& kerx = *font->face->table.kerx;
+  hb_blob_t *kerx_blob = font->face->table.kerx.get_blob ();
+  const AAT::kerx& kerx = *kerx_blob->as<AAT::kerx> ();
 
   hb_blob_t *ankr_blob = font->face->table.ankr.get_blob ();;
   const AAT::ankr& ankr = *font->face->table.ankr;
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, kerx_blob);
   c.set_ankr_table (&ankr, ankr_blob->data + ankr_blob->length);
   kerx.apply (&c);
 }
