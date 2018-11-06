@@ -298,7 +298,6 @@ _hb_ot_get_font_funcs (void)
 void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (font->face))) return;
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
 		     &font->face->table,
