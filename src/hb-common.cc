@@ -281,7 +281,7 @@ static void
 free_langs (void)
 {
 retry:
-  hb_language_item_t *first_lang = langs.get ();
+  hb_language_item_t *first_lang = langs;
   if (unlikely (!langs.cmpexch (first_lang, nullptr)))
     goto retry;
 
@@ -298,7 +298,7 @@ static hb_language_item_t *
 lang_find_or_insert (const char *key)
 {
 retry:
-  hb_language_item_t *first_lang = langs.get ();
+  hb_language_item_t *first_lang = langs;
 
   for (hb_language_item_t *lang = first_lang; lang; lang = lang->next)
     if (*lang == key)
@@ -408,7 +408,7 @@ hb_language_get_default (void)
 {
   static hb_atomic_ptr_t <hb_language_t> default_language;
 
-  hb_language_t language = default_language.get ();
+  hb_language_t language = default_language;
   if (unlikely (language == HB_LANGUAGE_INVALID))
   {
     language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);

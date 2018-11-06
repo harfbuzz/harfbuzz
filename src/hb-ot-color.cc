@@ -50,42 +50,6 @@
  **/
 
 
-static inline const OT::COLR&
-_get_colr (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::COLR);
-  return *(hb_ot_face_data (face)->COLR.get ());
-}
-
-static inline const OT::CBDT_accelerator_t&
-_get_cbdt (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CBDT_accelerator_t);
-  return *(hb_ot_face_data (face)->CBDT.get ());
-}
-
-static inline const OT::CPAL&
-_get_cpal (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::CPAL);
-  return *(hb_ot_face_data (face)->CPAL.get ());
-}
-
-static inline const OT::sbix_accelerator_t&
-_get_sbix (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::sbix_accelerator_t);
-  return *(hb_ot_face_data (face)->sbix.get ());
-}
-
-static inline const OT::SVG_accelerator_t&
-_get_svg (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::SVG_accelerator_t);
-  return *(hb_ot_face_data (face)->SVG.get ());
-}
-
-
 /*
  * CPAL
  */
@@ -102,7 +66,7 @@ _get_svg (hb_face_t *face)
 hb_bool_t
 hb_ot_color_has_palettes (hb_face_t *face)
 {
-  return _get_cpal (face).has_data ();
+  return face->table.CPAL->has_data ();
 }
 
 /**
@@ -117,7 +81,7 @@ hb_ot_color_has_palettes (hb_face_t *face)
 unsigned int
 hb_ot_color_palette_get_count (hb_face_t *face)
 {
-  return _get_cpal (face).get_palette_count ();
+  return face->table.CPAL->get_palette_count ();
 }
 
 /**
@@ -137,7 +101,7 @@ hb_ot_name_id_t
 hb_ot_color_palette_get_name_id (hb_face_t *face,
 				 unsigned int palette_index)
 {
-  return _get_cpal (face).get_palette_name_id (palette_index);
+  return face->table.CPAL->get_palette_name_id (palette_index);
 }
 
 /**
@@ -153,7 +117,7 @@ hb_ot_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 				       unsigned int color_index)
 {
-  return _get_cpal (face).get_color_name_id (color_index);
+  return face->table.CPAL->get_color_name_id (color_index);
 }
 
 /**
@@ -169,7 +133,7 @@ hb_ot_color_palette_flags_t
 hb_ot_color_palette_get_flags (hb_face_t *face,
 			       unsigned int palette_index)
 {
-  return _get_cpal(face).get_palette_flags (palette_index);
+  return face->table.CPAL->get_palette_flags (palette_index);
 }
 
 /**
@@ -203,7 +167,7 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 				unsigned int  *colors_count  /* IN/OUT.  May be NULL. */,
 				hb_color_t    *colors        /* OUT.     May be NULL. */)
 {
-  return _get_cpal (face).get_palette_colors (palette_index, start_offset, colors_count, colors);
+  return face->table.CPAL->get_palette_colors (palette_index, start_offset, colors_count, colors);
 }
 
 
@@ -222,7 +186,7 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face)
 {
-  return _get_colr (face).has_data ();
+  return face->table.COLR->has_data ();
 }
 
 /**
@@ -245,7 +209,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      unsigned int        *count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */)
 {
-  return _get_colr (face).get_glyph_layers (glyph, start_offset, count, layers);
+  return face->table.COLR->get_glyph_layers (glyph, start_offset, count, layers);
 }
 
 
@@ -266,7 +230,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 hb_bool_t
 hb_ot_color_has_svg (hb_face_t *face)
 {
-  return _get_svg (face).has_data ();
+  return face->table.SVG->has_data ();
 }
 
 /**
@@ -283,7 +247,7 @@ hb_ot_color_has_svg (hb_face_t *face)
 hb_blob_t *
 hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
-  return _get_svg (face).reference_blob_for_glyph (glyph);
+  return face->table.SVG->reference_blob_for_glyph (glyph);
 }
 
 
@@ -304,7 +268,7 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 hb_bool_t
 hb_ot_color_has_png (hb_face_t *face)
 {
-  return _get_cbdt (face).has_data () || _get_sbix (face).has_data ();
+  return face->table.CBDT->has_data () || face->table.sbix->has_data ();
 }
 
 /**
@@ -325,11 +289,11 @@ hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)
 {
   hb_blob_t *blob = hb_blob_get_empty ();
 
-  if (_get_sbix (font->face).has_data ())
-    blob = _get_sbix (font->face).reference_png (font, glyph, nullptr, nullptr, nullptr);
+  if (font->face->table.sbix->has_data ())
+    blob = font->face->table.sbix->reference_png (font, glyph, nullptr, nullptr, nullptr);
 
-  if (!blob->length && _get_cbdt (font->face).has_data ())
-    blob = _get_cbdt (font->face).reference_png (font, glyph);
+  if (!blob->length && font->face->table.CBDT->has_data ())
+    blob = font->face->table.CBDT->reference_png (font, glyph);
 
   return blob;
 }

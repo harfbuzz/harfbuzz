@@ -38,18 +38,8 @@
 #include "hb-set-digest.hh"
 
 
-namespace OT
-{
-  struct GDEF;
-  struct GSUB;
-  struct GPOS;
-}
-
-HB_INTERNAL const OT::GDEF& _get_gdef (hb_face_t *face);
-HB_INTERNAL const OT::GSUB& _get_gsub_relaxed (hb_face_t *face);
-HB_INTERNAL const OT::GPOS& _get_gpos_relaxed (hb_face_t *face);
-
 struct hb_ot_shape_plan_t;
+
 
 /*
  * kern

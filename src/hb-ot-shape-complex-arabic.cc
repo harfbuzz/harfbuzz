@@ -279,7 +279,7 @@ data_destroy_arabic (void *data)
 {
   arabic_shape_plan_t *arabic_plan = (arabic_shape_plan_t *) data;
 
-  arabic_fallback_plan_destroy (arabic_plan->fallback_plan.get ());
+  arabic_fallback_plan_destroy (arabic_plan->fallback_plan);
 
   free (data);
 }
@@ -389,7 +389,7 @@ arabic_fallback_shape (const hb_ot_shape_plan_t *plan,
     return;
 
 retry:
-  arabic_fallback_plan_t *fallback_plan = arabic_plan->fallback_plan.get ();
+  arabic_fallback_plan_t *fallback_plan = arabic_plan->fallback_plan;
   if (unlikely (!fallback_plan))
   {
     /* This sucks.  We need a font to build the fallback plan... */

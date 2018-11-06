@@ -1487,6 +1487,9 @@ struct GSUB : GSUBGPOS
 };
 
 
+struct GSUB_accelerator_t : GSUB::accelerator_t {};
+
+
 /* Out-of-class implementation for methods recursing */
 
 /*static*/ inline bool ExtensionSubst::is_reverse (void) const
@@ -1500,13 +1503,13 @@ struct GSUB : GSUBGPOS
 template <typename context_t>
 /*static*/ inline typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
+  const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 /*static*/ inline bool SubstLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const SubstLookup &l = _get_gsub_relaxed (c->face).get_lookup (lookup_index);
+  const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);
@@ -1516,8 +1519,6 @@ template <typename context_t>
   c->set_lookup_props (saved_lookup_props);
   return ret;
 }
-
-struct GSUB_accelerator_t : GSUB::accelerator_t {};
 
 } /* namespace OT */
 

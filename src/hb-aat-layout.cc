@@ -172,88 +172,19 @@ AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_,
  * mort/morx/kerx/trak
  */
 
-static inline const AAT::mort&
-_get_mort (hb_face_t *face, hb_blob_t **blob = nullptr)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-  {
-    if (blob)
-      *blob = hb_blob_get_empty ();
-    return Null(AAT::mort);
-  }
-  const AAT::mort& mort = *(hb_ot_face_data (face)->mort.get ());
-  if (blob)
-    *blob = hb_ot_face_data (face)->mort.get_blob ();
-  return mort;
-}
-static inline const AAT::morx&
-_get_morx (hb_face_t *face, hb_blob_t **blob = nullptr)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-  {
-    if (blob)
-      *blob = hb_blob_get_empty ();
-    return Null(AAT::morx);
-  }
-  const AAT::morx& morx = *(hb_ot_face_data (face)->morx.get ());
-  if (blob)
-    *blob = hb_ot_face_data (face)->morx.get_blob ();
-  return morx;
-}
-static inline const AAT::kerx&
-_get_kerx (hb_face_t *face, hb_blob_t **blob = nullptr)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-  {
-    if (blob)
-      *blob = hb_blob_get_empty ();
-    return Null(AAT::kerx);
-  }
-  const AAT::kerx& kerx = *(hb_ot_face_data (face)->kerx.get ());
-  if (blob)
-    *blob = hb_ot_face_data (face)->kerx.get_blob ();
-  return kerx;
-}
-static inline const AAT::ankr&
-_get_ankr (hb_face_t *face, hb_blob_t **blob = nullptr)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-  {
-    if (blob)
-      *blob = hb_blob_get_empty ();
-    return Null(AAT::ankr);
-  }
-  const AAT::ankr& ankr = *(hb_ot_face_data (face)->ankr.get ());
-  if (blob)
-    *blob = hb_ot_face_data (face)->ankr.get_blob ();
-  return ankr;
-}
-static inline const AAT::trak&
-_get_trak (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::trak);
-  return *(hb_ot_face_data (face)->trak.get ());
-}
-static inline const AAT::ltag&
-_get_ltag (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(AAT::ltag);
-  return *(hb_ot_face_data (face)->ltag.get ());
-}
-
 
 void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 			   hb_aat_map_t *map)
 {
-  const AAT::morx& morx = _get_morx (mapper->face, nullptr);
+  const AAT::morx& morx = *mapper->face->table.morx;
   if (morx.has_data ())
   {
     morx.compile_flags (mapper, map);
     return;
   }
 
-  const AAT::mort& mort = _get_mort (mapper->face, nullptr);
+  const AAT::mort& mort = *mapper->face->table.mort;
   if (mort.has_data ())
   {
     mort.compile_flags (mapper, map);
@@ -265,8 +196,8 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
-  return _get_morx (face).has_data () ||
-	 _get_mort (face).has_data ();
+  return face->table.morx->has_data () ||
+	 face->table.mort->has_data ();
 }
 
 void
@@ -274,20 +205,20 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
 			  hb_buffer_t *buffer)
 {
-  hb_blob_t *blob;
-
-  const AAT::morx& morx = _get_morx (font->face, &blob);
+  hb_blob_t *morx_blob = font->face->table.morx.get_blob ();
+  const AAT::morx& morx = *morx_blob->as<AAT::morx> ();
   if (morx.has_data ())
   {
-    AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+    AAT::hb_aat_apply_context_t c (plan, font, buffer, morx_blob);
     morx.apply (&c);
     return;
   }
 
-  const AAT::mort& mort = _get_mort (font->face, &blob);
+  hb_blob_t *mort_blob = font->face->table.morx.get_blob ();
+  const AAT::mort& mort = *mort_blob->as<AAT::mort> ();
   if (mort.has_data ())
   {
-    AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+    AAT::hb_aat_apply_context_t c (plan, font, buffer, mort_blob);
     mort.apply (&c);
     return;
   }
@@ -297,7 +228,7 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
 hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
-  return _get_kerx (face).has_data ();
+  return face->table.kerx->has_data ();
 }
 
 void
@@ -305,21 +236,22 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer)
 {
-  hb_blob_t *blob;
-  const AAT::kerx& kerx = _get_kerx (font->face, &blob);
+  hb_blob_t *kerx_blob = font->face->table.kerx.get_blob ();
+  const AAT::kerx& kerx = *kerx_blob->as<AAT::kerx> ();
 
-  hb_blob_t *ankr_blob;
-  const AAT::ankr& ankr = _get_ankr (font->face, &ankr_blob);
+  hb_blob_t *ankr_blob = font->face->table.ankr.get_blob ();;
+  const AAT::ankr& ankr = *font->face->table.ankr;
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, kerx_blob);
   c.set_ankr_table (&ankr, ankr_blob->data + ankr_blob->length);
   kerx.apply (&c);
 }
 
+
 hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
-  return _get_trak (face).has_data ();
+  return face->table.trak->has_data ();
 }
 
 void
@@ -327,15 +259,16 @@ hb_aat_layout_track (hb_ot_shape_plan_t *plan,
 		     hb_font_t *font,
 		     hb_buffer_t *buffer)
 {
-  const AAT::trak& trak = _get_trak (font->face);
+  const AAT::trak& trak = *font->face->table.trak;
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer);
   trak.apply (&c);
 }
 
+
 hb_language_t
 _hb_aat_language_get (hb_face_t *face,
 		      unsigned int i)
 {
-  return _get_ltag (face).get_language (i);
+  return face->table.ltag->get_language (i);
 }

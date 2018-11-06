@@ -155,6 +155,7 @@ struct KernPair
   DEFINE_SIZE_STATIC (6);
 };
 
+template <typename KernSubTableHeader>
 struct KernSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
@@ -186,11 +187,13 @@ struct KernSubTableFormat0
   }
 
   protected:
-  BinSearchArrayOf<KernPair> pairs;	/* Array of kerning pairs. */
+  KernSubTableHeader		header;
+  BinSearchArrayOf<KernPair>	pairs;	/* Array of kerning pairs. */
   public:
-  DEFINE_SIZE_ARRAY (8, pairs);
+  DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 8, pairs);
 };
 
+template <typename KernSubTableHeader>
 struct KernSubTableFormat1
 {
   typedef void EntryData;
@@ -309,10 +312,11 @@ struct KernSubTableFormat1
   }
 
   protected:
+  KernSubTableHeader					header;
   AAT::StateTable<AAT::MortTypes, EntryData>		machine;
   OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>	kernAction;
   public:
-  DEFINE_SIZE_STATIC (10);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 10);
 };
 
 struct KernClassTable
@@ -333,6 +337,7 @@ struct KernClassTable
   DEFINE_SIZE_ARRAY (4, classes);
 };
 
+template <typename KernSubTableHeader>
 struct KernSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
@@ -393,20 +398,19 @@ struct KernSubTableFormat2
   }
 
   protected:
-  HBUINT16	rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<KernClassTable>
-		leftClassTable;	/* Offset from beginning of this subtable to
-				 * left-hand class table. */
-  OffsetTo<KernClassTable>
-		rightClassTable;/* Offset from beginning of this subtable to
-				 * right-hand class table. */
-  OffsetTo<FWORD>
-		array;		/* Offset from beginning of this subtable to
-				 * the start of the kerning array. */
+  KernSubTableHeader		header;
+  HBUINT16			rowWidth;	/* The width, in bytes, of a row in the table. */
+  OffsetTo<KernClassTable>	leftClassTable;	/* Offset from beginning of this subtable to
+						 * left-hand class table. */
+  OffsetTo<KernClassTable>	rightClassTable;/* Offset from beginning of this subtable to
+						 * right-hand class table. */
+  OffsetTo<FWORD>		array;		/* Offset from beginning of this subtable to
+						 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MIN (KernSubTableHeader::static_size + 8);
 };
 
+template <typename KernSubTableHeader>
 struct KernSubTableFormat3
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
@@ -448,111 +452,86 @@ struct KernSubTableFormat3
   }
 
   protected:
-  HBUINT16	glyphCount;	/* The number of glyphs in this font. */
-  HBUINT8	kernValueCount;	/* The number of kerning values. */
-  HBUINT8	leftClassCount;	/* The number of left-hand classes. */
-  HBUINT8	rightClassCount;/* The number of right-hand classes. */
-  HBUINT8	flags;		/* Set to zero (reserved for future use). */
-  UnsizedArrayOf<FWORD>
-		kernValueZ;	/* The kerning values.
-				 * Length kernValueCount. */
+  KernSubTableHeader	header;
+  HBUINT16		glyphCount;	/* The number of glyphs in this font. */
+  HBUINT8		kernValueCount;	/* The number of kerning values. */
+  HBUINT8		leftClassCount;	/* The number of left-hand classes. */
+  HBUINT8		rightClassCount;/* The number of right-hand classes. */
+  HBUINT8		flags;		/* Set to zero (reserved for future use). */
+  UnsizedArrayOf<FWORD>	kernValueZ;	/* The kerning values.
+					 * Length kernValueCount. */
 #if 0
-  UnsizedArrayOf<HBUINT8>
-		leftClass;	/* The left-hand classes.
-				 * Length glyphCount. */
-  UnsizedArrayOf<HBUINT8>
-		RightClass;	/* The right-hand classes.
-				 * Length glyphCount. */
-  UnsizedArrayOf<HBUINT8>
-		kernIndex;	/* The indices into the kernValue array.
-				 * Length leftClassCount * rightClassCount */
+  UnsizedArrayOf<HBUINT8>leftClass;	/* The left-hand classes.
+					 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>rightClass;	/* The right-hand classes.
+					 * Length glyphCount. */
+  UnsizedArrayOf<HBUINT8>kernIndex;	/* The indices into the kernValue array.
+					 * Length leftClassCount * rightClassCount */
 #endif
   public:
-  DEFINE_SIZE_ARRAY (6, kernValueZ);
+  DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 6, kernValueZ);
 };
 
+template <typename KernSubTableHeader>
 struct KernSubTable
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right, unsigned int format) const
+  inline unsigned int get_size (void) const { return u.header.length; }
+  inline unsigned int get_type (void) const { return u.header.format; }
+
+  inline bool is_simple (void) const
+  { return !(u.header.coverage & (u.header.CrossStream | u.header.Variation)); }
+
+  inline bool is_horizontal (void) const
+  { return (u.header.coverage & u.header.Direction) == u.header.DirectionHorizontal; }
+
+  inline bool is_override (void) const
+  { return bool (u.header.coverage & u.header.Override); }
+
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    switch (format) {
+    switch (get_type ()) {
     /* This method hooks up to hb_font_t's get_h_kerning.  Only support Format0. */
     case 0: return u.format0.get_kerning (left, right);
     default:return 0;
     }
   }
 
-  inline void apply (AAT::hb_aat_apply_context_t *c, unsigned int format) const
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    /* TODO Switch to dispatch(). */
-    switch (format) {
-    case 0: u.format0.apply (c); return;
-    case 1: u.format1.apply (c); return;
-    case 2: u.format2.apply (c); return;
-    case 3: u.format3.apply (c); return;
-    default:			 return;
+    unsigned int subtable_type = get_type ();
+    TRACE_DISPATCH (this, subtable_type);
+    switch (subtable_type) {
+    case 0:	return_trace (c->dispatch (u.format0));
+    case 1:	return_trace (c->dispatch (u.format1));
+    case 2:	return_trace (c->dispatch (u.format2));
+    case 3:	return_trace (c->dispatch (u.format3));
+    default:	return_trace (c->default_return_value ());
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int format) const
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    switch (format) {
-    case 0: return_trace (u.format0.sanitize (c));
-    case 1: return_trace (u.format1.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
-    case 3: return_trace (u.format3.sanitize (c));
-    default:return_trace (true);
-    }
+    if (unlikely (!u.header.sanitize (c) ||
+		  u.header.length < u.header.min_size ||
+		  !c->check_range (this, u.header.length))) return_trace (false);
+
+    return_trace (dispatch (c));
   }
 
   protected:
   union {
-  KernSubTableFormat0	format0;
-  KernSubTableFormat1	format1;
-  KernSubTableFormat2	format2;
-  KernSubTableFormat3	format3;
+  KernSubTableHeader				header;
+  KernSubTableFormat0<KernSubTableHeader>	format0;
+  KernSubTableFormat1<KernSubTableHeader>	format1;
+  KernSubTableFormat2<KernSubTableHeader>	format2;
+  KernSubTableFormat3<KernSubTableHeader>	format3;
   } u;
   public:
   DEFINE_SIZE_MIN (0);
 };
 
-
-template <typename T>
-struct KernSubTableWrapper
-{
-  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  inline const T* thiz (void) const { return static_cast<const T *> (this); }
-
-  inline bool is_supported (void) const
-  { return !(thiz()->coverage & T::CheckFlags); }
-
-  inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::Direction) == T::CheckHorizontal; }
-
-  inline bool is_override (void) const
-  { return bool (thiz()->coverage & T::Override); }
-
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
-
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return is_supported () && is_horizontal () ? get_kerning (left, right) : 0; }
-
-  inline void apply (AAT::hb_aat_apply_context_t *c) const
-  { thiz()->subtable.apply (c, thiz()->format); }
-
-  inline unsigned int get_size (void) const { return thiz()->length; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (thiz()) &&
-		  thiz()->length >= T::min_size &&
-		  c->check_range (thiz(), thiz()->length) &&
-		  thiz()->subtable.sanitize (c, thiz()->format));
-  }
-};
 
 template <typename T>
 struct KernTable
@@ -562,36 +541,42 @@ struct KernTable
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
+    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+
     int v = 0;
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_supported () && st->is_override ())
+      if (!st->is_simple () || !st->is_horizontal ())
+        continue;
+      if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right);
-      st = &StructAfter<typename T::SubTableWrapper> (*st);
+      v += st->get_kerning (left, right);
+      st = &StructAfter<SubTable> (*st);
     }
     return v;
   }
 
   inline void apply (AAT::hb_aat_apply_context_t *c) const
   {
+    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+
     c->set_lookup_index (0);
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     /* If there's an override subtable, skip subtables before that. */
     unsigned int last_override = 0;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_supported () && st->is_override ())
+      if (st->is_simple () && st->is_override ())
         last_override = i;
-      st = &StructAfter<typename T::SubTableWrapper> (*st);
+      st = &StructAfter<SubTable> (*st);
     }
-    st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_supported ())
+      if (!st->is_simple ())
         goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->is_horizontal ())
@@ -605,12 +590,12 @@ struct KernTable
 
       c->sanitizer.set_object (*st);
 
-      st->apply (c);
+      st->dispatch (c);
 
       (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
 
     skip:
-      st = &StructAfter<typename T::SubTableWrapper> (*st);
+      st = &StructAfter<SubTable> (*st);
     }
   }
 
@@ -621,13 +606,15 @@ struct KernTable
 		  thiz()->version != T::VERSION))
       return_trace (false);
 
-    const typename T::SubTableWrapper *st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
+    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+
+    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
       if (unlikely (!st->sanitize (c)))
 	return_trace (false);
-      st = &StructAfter<typename T::SubTableWrapper> (*st);
+      st = &StructAfter<SubTable> (*st);
     }
 
     return_trace (true);
@@ -640,11 +627,8 @@ struct KernOT : KernTable<KernOT>
 
   static const uint16_t VERSION = 0x0000u;
 
-  struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
+  struct SubTableHeader
   {
-    friend struct KernTable<KernOT>;
-    friend struct KernSubTableWrapper<SubTableWrapper>;
-
     enum Coverage
     {
       Direction		= 0x01u,
@@ -654,18 +638,22 @@ struct KernOT : KernTable<KernOT>
 
       Variation		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0x06u,
-      CheckHorizontal	= 0x01u
+      DirectionHorizontal= 0x01u
     };
 
-    protected:
+    inline bool sanitize (hb_sanitize_context_t *c) const
+    {
+      TRACE_SANITIZE (this);
+      return_trace (c->check_struct (this));
+    }
+
+    public:
     HBUINT16	versionZ;	/* Unused. */
     HBUINT16	length;		/* Length of the subtable (including this header). */
     HBUINT8	format;		/* Subtable format. */
     HBUINT8	coverage;	/* Coverage bits. */
-    KernSubTable subtable;	/* Subtable data. */
     public:
-    DEFINE_SIZE_MIN (6);
+    DEFINE_SIZE_STATIC (6);
   };
 
   protected:
@@ -682,11 +670,8 @@ struct KernAAT : KernTable<KernAAT>
 
   static const uint32_t VERSION = 0x00010000u;
 
-  struct SubTableWrapper : KernSubTableWrapper<SubTableWrapper>
+  struct SubTableHeader
   {
-    friend struct KernTable<KernAAT>;
-    friend struct KernSubTableWrapper<SubTableWrapper>;
-
     enum Coverage
     {
       Direction		= 0x80u,
@@ -695,19 +680,23 @@ struct KernAAT : KernTable<KernAAT>
 
       Override		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0x60u,
-      CheckHorizontal	= 0x00u
+      DirectionHorizontal= 0x00u
     };
 
-    protected:
+    inline bool sanitize (hb_sanitize_context_t *c) const
+    {
+      TRACE_SANITIZE (this);
+      return_trace (c->check_struct (this));
+    }
+
+    public:
     HBUINT32	length;		/* Length of the subtable (including this header). */
     HBUINT8	coverage;	/* Coverage bits. */
     HBUINT8	format;		/* Subtable format. */
     HBUINT16	tupleIndex;	/* The tuple index (used for variations fonts).
 				 * This value specifies which tuple this subtable covers. */
-    KernSubTable subtable;	/* Subtable data. */
     public:
-    DEFINE_SIZE_MIN (8);
+    DEFINE_SIZE_STATIC (8);
   };
 
   protected:

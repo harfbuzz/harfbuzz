@@ -114,20 +114,14 @@ struct hb_nonnull_ptr_t
 
   inline hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
   inline T * operator = (T *v_) { return v = v_; }
-  inline T * operator -> (void) { return get (); }
-  inline const T * operator -> (void) const { return get (); }
-  inline T & operator * (void) { return *get (); }
-  inline const T & operator * (void) const { return *get (); }
-  inline T ** operator & (void) { return &v; }
-  inline const T ** operator & (void) const { return &v; }
-  template <typename C> inline operator C * (void) { return get (); }
+  inline T * operator -> (void) const { return get (); }
+  inline T & operator * (void) const { return *get (); }
+  inline T ** operator & (void) const { return &v; }
+  /* Only auto-cast to const types. */
   template <typename C> inline operator const C * (void) const { return get (); }
-  inline operator char * (void) { return (char *) get (); }
   inline operator const char * (void) const { return (const char *) get (); }
-  inline T * get (void) { return v ? v : const_cast<T *> (&Null(T)); }
-  inline const T * get (void) const { return v ? v : const_cast<T *> (&Null(T)); }
-  inline T * get_raw (void) { return v; }
-  inline const T * get_raw (void) const { return v; }
+  inline T * get (void) const { return v ? v : const_cast<T *> (&Null(T)); }
+  inline T * get_raw (void) const { return v; }
 
   T *v;
 };

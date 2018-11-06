@@ -258,16 +258,17 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
 HB_SHAPER_DATA_ENSURE_DEFINE(ot, face)
 
+struct hb_ot_face_data_t {};
+
 hb_ot_face_data_t *
 _hb_ot_shaper_face_data_create (hb_face_t *face)
 {
-  return _hb_ot_face_data_create (face);
+  return (hb_ot_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
 _hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
 {
-  _hb_ot_face_data_destroy (data);
 }
 
 

@@ -132,6 +132,8 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
   face->upem = 0;
   face->num_glyphs = (unsigned int) -1;
 
+  face->table.init0 (face);
+
   return face;
 }
 
@@ -263,7 +265,7 @@ hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
 
-  for (hb_face_t::plan_node_t *node = face->shape_plans.get (); node; )
+  for (hb_face_t::plan_node_t *node = face->shape_plans; node; )
   {
     hb_face_t::plan_node_t *next = node->next;
     hb_shape_plan_destroy (node->shape_plan);
@@ -274,6 +276,8 @@ hb_face_destroy (hb_face_t *face)
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+
+  face->table.fini ();
 
   if (face->destroy)
     face->destroy (face->user_data);
@@ -547,8 +551,7 @@ void
 hb_face_collect_unicodes (hb_face_t *face,
 			  hb_set_t  *out)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_unicodes (out);
+  face->table.cmap->collect_unicodes (out);
 }
 
 /**
@@ -564,8 +567,7 @@ void
 hb_face_collect_variation_selectors (hb_face_t *face,
 				     hb_set_t  *out)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_variation_selectors (out);
+  face->table.cmap->collect_variation_selectors (out);
 }
 
 /**
@@ -582,8 +584,7 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 				    hb_codepoint_t variation_selector,
 				    hb_set_t  *out)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_variation_unicodes (variation_selector, out);
+  face->table.cmap->collect_variation_unicodes (variation_selector, out);
 }
 
 

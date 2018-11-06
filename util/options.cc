@@ -325,6 +325,7 @@ parse_text (const char *name G_GNUC_UNUSED,
     return false;
   }
 
+  text_opts->text_len = -1;
   text_opts->text = g_strdup (arg);
   return true;
 }
@@ -370,6 +371,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
     s = p;
   }
 
+  text_opts->text_len = gs->len;
   text_opts->text = g_string_free (gs, FALSE);
   return true;
 }
@@ -727,7 +729,11 @@ const char *
 text_options_t::get_line (unsigned int *len)
 {
   if (text) {
-    if (!line) line = text;
+    if (!line)
+    {
+      line = text;
+      line_len = text_len;
+    }
     if (line_len == (unsigned int) -1)
       line_len = strlen (line);
 

@@ -27,10 +27,11 @@
 
 #include <hb-ot.h>
 
+static hb_face_t *face;
+
 static void
 test_ot_layout_feature_get_name_ids_and_characters (void)
 {
-  hb_face_t *face = hb_test_open_font_file ("fonts/cv01.otf");
   hb_tag_t cv01 = HB_TAG ('c','v','0','1');
   unsigned int feature_index;
   if (!hb_ot_layout_language_find_feature (face,
@@ -68,8 +69,24 @@ test_ot_layout_feature_get_name_ids_and_characters (void)
   g_assert_cmpint (char_count, ==, 2);
   g_assert_cmpint (characters[0], ==, 10);
   g_assert_cmpint (characters[1], ==, 24030);
+}
 
-  hb_face_destroy (face);
+static void
+test_ot_name (void)
+{
+  unsigned int num_entries;
+  const hb_ot_name_entry_t *entries;
+  entries = hb_ot_name_list_names (face, &num_entries);
+  g_assert_cmpuint (12, ==, num_entries);
+  hb_ot_name_id_t name_id = entries[3].name_id;
+  g_assert_cmpuint (3, ==, name_id);
+  hb_language_t lang = entries[3].language;
+  g_assert_cmpstr ("en", ==, hb_language_to_string (lang));
+  char text[10];
+  unsigned int text_size = 10;
+  g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, lang, &text_size, text));
+  g_assert_cmpuint (9, ==, text_size);
+  g_assert_cmpstr (text, ==, "FontForge");
 }
 
 int
@@ -78,6 +95,10 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
 
   hb_test_add (test_ot_layout_feature_get_name_ids_and_characters);
+  hb_test_add (test_ot_name);
 
-  return hb_test_run ();
+  face = hb_test_open_font_file ("fonts/cv01.otf");
+  unsigned int status = hb_test_run ();
+  hb_face_destroy (face);
+  return status;
 }
