@@ -132,6 +132,8 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
   face->upem = 0;
   face->num_glyphs = (unsigned int) -1;
 
+  face->table.init0 (face);
+
   return face;
 }
 
@@ -274,6 +276,8 @@ hb_face_destroy (hb_face_t *face)
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+
+  face->table.fini ();
 
   if (face->destroy)
     face->destroy (face->user_data);

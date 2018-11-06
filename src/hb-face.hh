@@ -33,6 +33,7 @@
 
 #include "hb-shaper.hh"
 #include "hb-shape-plan.hh"
+#include "hb-ot-face.hh"
 
 
 /*
@@ -52,6 +53,8 @@ struct hb_face_t
   mutable unsigned int num_glyphs;	/* Number of glyphs. */
 
   struct hb_shaper_data_t shaper_data;	/* Various shaper data. */
+
+  hb_ot_face_t table;
 
   /* Cache */
   struct plan_node_t
