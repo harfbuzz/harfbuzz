@@ -478,18 +478,6 @@ struct KernSubTable
   inline unsigned int get_size (void) const { return u.header.length; }
   inline unsigned int get_type (void) const { return u.header.format; }
 
-  inline bool is_crossStream (void) const
-  { return u.header.coverage & u.header.CrossStream; }
-
-  inline bool is_variation (void) const
-  { return u.header.coverage & u.header.Variation; }
-
-  inline bool is_horizontal (void) const
-  { return (u.header.coverage & u.header.Direction) == u.header.DirectionHorizontal; }
-
-  inline bool is_override (void) const
-  { return bool (u.header.coverage & u.header.Override); }
-
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (get_type ()) {
@@ -523,7 +511,7 @@ struct KernSubTable
     return_trace (dispatch (c));
   }
 
-  protected:
+  public:
   union {
   KernSubTableHeader				header;
   KernSubTableFormat0<KernSubTableHeader>	format0;
@@ -551,9 +539,11 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_variation () || !st->is_crossStream () || !st->is_horizontal ())
+      if ((st->u.header.coverage &
+	   (st->u.header.Variation | st->u.header.CrossStream | st->u.header.Direction)) !=
+	  st->u.header.DirectionHorizontal)
         continue;
-      if (st->is_override ())
+      if (st->u.header.coverage & st->u.header.Override)
         v = 0;
       v += st->get_kerning (left, right);
       st = &StructAfter<SubTable> (*st);
@@ -572,18 +562,20 @@ struct KernTable
     unsigned int last_override = 0;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_variation () && !st->is_crossStream () &&
-	  st->is_override ())
+      if (!(st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) &&
+	  (st->u.header.coverage & st->u.header.Override))
         last_override = i;
       st = &StructAfter<SubTable> (*st);
     }
     st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_variation () || st->is_crossStream ())
+      if (st->u.header.coverage &
+	  (st->u.header.Variation | st->u.header.CrossStream))
         goto skip;
 
-      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->is_horizontal ())
+      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) !=
+	  ((st->u.header.coverage & st->u.header.Direction) == st->u.header.DirectionHorizontal))
 	goto skip;
 
       if (i < last_override)
