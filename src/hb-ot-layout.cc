@@ -53,33 +53,13 @@
  **/
 
 
-const OT::GDEF& _get_gdef (hb_face_t *face)
-{
-  return *face->table.GDEF->table;
-}
-static hb_blob_t * _get_gsub_blob (hb_face_t *face)
-{
-  return face->table.GSUB->blob;
-}
 static inline const OT::GSUB& _get_gsub (hb_face_t *face)
 {
   return *face->table.GSUB->table;
 }
-const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
-{
-  return *face->table.GSUB.get_relaxed ()->table;
-}
-static hb_blob_t * _get_gpos_blob (hb_face_t *face)
-{
-  return face->table.GPOS->blob;
-}
 static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 {
   return *face->table.GPOS->table;
-}
-const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
-{
-  return *face->table.GPOS.get_relaxed ()->table;
 }
 
 
@@ -219,8 +199,8 @@ OT::GDEF::accelerator_t::init (hb_face_t *face)
   this->blob = hb_sanitize_context_t().reference_table<GDEF> (face);
 
   if (unlikely (_hb_ot_blacklist_gdef (this->blob->length,
-				       _get_gsub_blob (face)->length,
-				       _get_gpos_blob (face)->length)))
+				       face->table.GSUB->blob->length,
+				       face->table.GPOS->blob->length)))
   {
     hb_blob_destroy (this->blob);
     this->blob = hb_blob_get_empty ();
@@ -235,7 +215,7 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
-  const OT::GDEF &gdef = _get_gdef (font->face);
+  const OT::GDEF &gdef = *font->face->table.GDEF->table;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
   {
@@ -250,7 +230,7 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
 hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face)
 {
-  return _get_gdef (face).has_glyph_classes ();
+  return face->table.GDEF->table->has_glyph_classes ();
 }
 
 /**
@@ -262,7 +242,7 @@ hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph)
 {
-  return (hb_ot_layout_glyph_class_t) _get_gdef (face).get_glyph_class (glyph);
+  return (hb_ot_layout_glyph_class_t) face->table.GDEF->table->get_glyph_class (glyph);
 }
 
 /**
@@ -275,7 +255,7 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 				  hb_ot_layout_glyph_class_t  klass,
 				  hb_set_t                   *glyphs /* OUT */)
 {
-  return _get_gdef (face).get_glyphs_in_class (klass, glyphs);
+  return face->table.GDEF->table->get_glyphs_in_class (klass, glyphs);
 }
 
 unsigned int
@@ -285,7 +265,10 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
-  return _get_gdef (face).get_attach_points (glyph, start_offset, point_count, point_array);
+  return face->table.GDEF->table->get_attach_points (glyph,
+						     start_offset,
+						     point_count,
+						     point_array);
 }
 
 unsigned int
@@ -296,7 +279,12 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
-  return _get_gdef (font->face).get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
+  return font->face->table.GDEF->table->get_lig_carets (font,
+							direction,
+							glyph,
+							start_offset,
+							caret_count,
+							caret_array);
 }
 
 
