@@ -410,7 +410,7 @@ struct GDEF
 
   struct accelerator_t
   {
-    HB_INTERNAL inline void init (hb_face_t *face);
+    HB_INTERNAL void init (hb_face_t *face);
 
     inline void fini (void)
     {
