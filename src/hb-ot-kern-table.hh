@@ -289,7 +289,7 @@ struct KernSubTableFormat1
 	      else
 	      {
 		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		if (last)
 		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
 	      }
 	    }
@@ -303,7 +303,7 @@ struct KernSubTableFormat1
 	      else
 	      {
 		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		if (last)
 		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
 	      }
 	    }
