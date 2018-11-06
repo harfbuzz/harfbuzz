@@ -53,20 +53,6 @@
  **/
 
 
-static inline const OT::kern&
-_get_kern (hb_face_t *face, hb_blob_t **blob = nullptr)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face)))
-  {
-    if (blob)
-      *blob = hb_blob_get_empty ();
-    return Null(OT::kern);
-  }
-  const OT::kern& kern = *(hb_ot_face_data (face)->kern);
-  if (blob)
-    *blob = hb_ot_face_data (face)->kern.get_blob ();
-  return kern;
-}
 const OT::GDEF& _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
@@ -109,7 +95,7 @@ const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 hb_bool_t
 hb_ot_layout_has_kerning (hb_face_t *face)
 {
-  return _get_kern (face).has_data ();
+  return face->table.kern->has_data ();
 }
 
 void
@@ -117,8 +103,8 @@ hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
 		   hb_font_t *font,
 		   hb_buffer_t  *buffer)
 {
-  hb_blob_t *blob;
-  const AAT::kern& kern = _get_kern (font->face, &blob);
+  hb_blob_t *blob = font->face->table.kern.get_blob ();
+  const AAT::kern& kern = *font->face->table.kern;
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 

@@ -47,18 +47,6 @@
  * fvar/avar
  */
 
-static inline const OT::fvar&
-_get_fvar (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::fvar);
-  return *(hb_ot_face_data (face)->fvar);
-}
-static inline const OT::avar&
-_get_avar (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::avar);
-  return *(hb_ot_face_data (face)->avar);
-}
 
 /**
  * hb_ot_var_has_data:
@@ -74,7 +62,7 @@ _get_avar (hb_face_t *face)
 hb_bool_t
 hb_ot_var_has_data (hb_face_t *face)
 {
-  return _get_fvar (face).has_data ();
+  return face->table.fvar->has_data ();
 }
 
 /**
@@ -85,8 +73,7 @@ hb_ot_var_has_data (hb_face_t *face)
 unsigned int
 hb_ot_var_get_axis_count (hb_face_t *face)
 {
-  const OT::fvar &fvar = _get_fvar (face);
-  return fvar.get_axis_count ();
+  return face->table.fvar->get_axis_count ();
 }
 
 /**
@@ -100,8 +87,7 @@ hb_ot_var_get_axes (hb_face_t        *face,
 		    unsigned int     *axes_count /* IN/OUT */,
 		    hb_ot_var_axis_t *axes_array /* OUT */)
 {
-  const OT::fvar &fvar = _get_fvar (face);
-  return fvar.get_axis_infos (start_offset, axes_count, axes_array);
+  return face->table.fvar->get_axis_infos (start_offset, axes_count, axes_array);
 }
 
 /**
@@ -115,8 +101,7 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     unsigned int     *axis_index,
 		     hb_ot_var_axis_t *axis_info)
 {
-  const OT::fvar &fvar = _get_fvar (face);
-  return fvar.find_axis (axis_tag, axis_index, axis_info);
+  return face->table.fvar->find_axis (axis_tag, axis_index, axis_info);
 }
 
 
@@ -135,7 +120,7 @@ hb_ot_var_normalize_variations (hb_face_t            *face,
   for (unsigned int i = 0; i < coords_length; i++)
     coords[i] = 0;
 
-  const OT::fvar &fvar = _get_fvar (face);
+  const OT::fvar &fvar = *face->table.fvar;
   for (unsigned int i = 0; i < variations_length; i++)
   {
     unsigned int axis_index;
@@ -144,8 +129,7 @@ hb_ot_var_normalize_variations (hb_face_t            *face,
       coords[axis_index] = fvar.normalize_axis_value (axis_index, variations[i].value);
   }
 
-  const OT::avar &avar = _get_avar (face);
-  avar.map_coords (coords, coords_length);
+  face->table.avar->map_coords (coords, coords_length);
 }
 
 /**
@@ -159,10 +143,9 @@ hb_ot_var_normalize_coords (hb_face_t    *face,
 			    const float *design_coords, /* IN */
 			    int *normalized_coords /* OUT */)
 {
-  const OT::fvar &fvar = _get_fvar (face);
+  const OT::fvar &fvar = *face->table.fvar;
   for (unsigned int i = 0; i < coords_length; i++)
     normalized_coords[i] = fvar.normalize_axis_value (i, design_coords[i]);
 
-  const OT::avar &avar = _get_avar (face);
-  avar.map_coords (normalized_coords, coords_length);
+  face->table.avar->map_coords (normalized_coords, coords_length);
 }

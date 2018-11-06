@@ -42,13 +42,6 @@
  **/
 
 
-static inline const OT::name_accelerator_t&
-_get_name (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::name_accelerator_t);
-  return *(hb_ot_face_data (face)->name);
-}
-
 /**
  * hb_ot_name_list_names:
  * @face: font face.
@@ -65,7 +58,7 @@ const hb_ot_name_entry_t *
 hb_ot_name_list_names (hb_face_t    *face,
 		       unsigned int *num_entries /* OUT */)
 {
-  const OT::name_accelerator_t &name = _get_name (face);
+  const OT::name_accelerator_t &name = *face->table.name;
   if (num_entries) *num_entries = name.names.len;
   return name.names.arrayZ();
 }
@@ -124,7 +117,7 @@ hb_ot_name_get_utf (hb_face_t       *face,
 		    unsigned int    *text_size /* IN/OUT */,
 		    typename utf_t::codepoint_t *text /* OUT */)
 {
-  const OT::name_accelerator_t &name = _get_name (face);
+  const OT::name_accelerator_t &name = *face->table.name;
 
   if (!language)
     language = hb_language_from_string ("en", 2);
