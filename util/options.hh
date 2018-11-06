@@ -506,6 +506,7 @@ struct text_options_t : option_group_t
     text_before = nullptr;
     text_after = nullptr;
 
+    text_len = -1;
     text = nullptr;
     text_file = nullptr;
 
@@ -542,6 +543,7 @@ struct text_options_t : option_group_t
   char *text_before;
   char *text_after;
 
+  int text_len;
   char *text;
   char *text_file;
 
