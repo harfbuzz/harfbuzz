@@ -476,6 +476,7 @@ template <typename KernSubTableHeader>
 struct KernSubTable
 {
   inline unsigned int get_size (void) const { return u.header.length; }
+  inline unsigned int get_type (void) const { return u.header.format; }
 
   inline bool is_simple (void) const
   { return !(u.header.coverage & (u.header.CrossStream | u.header.Variation)); }
@@ -488,21 +489,24 @@ struct KernSubTable
 
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    switch (u.header.format) {
+    switch (get_type ()) {
     /* This method hooks up to hb_font_t's get_h_kerning.  Only support Format0. */
     case 0: return u.format0.get_kerning (left, right);
     default:return 0;
     }
   }
 
-  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    switch (u.header.format) {
-    case 0: u.format0.apply (c); return;
-    case 1: u.format1.apply (c); return;
-    case 2: u.format2.apply (c); return;
-    case 3: u.format3.apply (c); return;
-    default:			 return;
+    unsigned int subtable_type = get_type ();
+    TRACE_DISPATCH (this, subtable_type);
+    switch (subtable_type) {
+    case 0:	return_trace (c->dispatch (u.format0));
+    case 1:	return_trace (c->dispatch (u.format1));
+    case 2:	return_trace (c->dispatch (u.format2));
+    case 3:	return_trace (c->dispatch (u.format3));
+    default:	return_trace (c->default_return_value ());
     }
   }
 
@@ -512,13 +516,8 @@ struct KernSubTable
     if (unlikely (!u.header.sanitize (c) ||
 		  u.header.length < u.header.min_size ||
 		  !c->check_range (this, u.header.length))) return_trace (false);
-    switch (u.header.format) {
-    case 0: return_trace (u.format0.sanitize (c));
-    case 1: return_trace (u.format1.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
-    case 3: return_trace (u.format3.sanitize (c));
-    default:return_trace (true);
-    }
+
+    return_trace (dispatch (c));
   }
 
   protected:
@@ -591,7 +590,7 @@ struct KernTable
 
       c->sanitizer.set_object (*st);
 
-      st->apply (c);
+      st->dispatch (c);
 
       (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
 

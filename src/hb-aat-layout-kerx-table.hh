@@ -637,12 +637,12 @@ struct KerxTable
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case 0	:		return_trace (c->dispatch (u.format0));
-    case 1	:		return_trace (c->dispatch (u.format1));
-    case 2	:		return_trace (c->dispatch (u.format2));
-    case 4	:		return_trace (c->dispatch (u.format4));
-    case 6	:		return_trace (c->dispatch (u.format6));
-    default:			return_trace (c->default_return_value ());
+    case 0:	return_trace (c->dispatch (u.format0));
+    case 1:	return_trace (c->dispatch (u.format1));
+    case 2:	return_trace (c->dispatch (u.format2));
+    case 4:	return_trace (c->dispatch (u.format4));
+    case 6:	return_trace (c->dispatch (u.format6));
+    default:	return_trace (c->default_return_value ());
     }
   }
 
