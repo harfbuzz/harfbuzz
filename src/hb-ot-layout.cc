@@ -55,17 +55,14 @@
 
 const OT::GDEF& _get_gdef (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
   return *face->table.GDEF->table;
 }
 static hb_blob_t * _get_gsub_blob (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
   return face->table.GSUB->blob;
 }
 static inline const OT::GSUB& _get_gsub (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
   return *face->table.GSUB->table;
 }
 const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
@@ -74,12 +71,10 @@ const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
 }
 static hb_blob_t * _get_gpos_blob (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
   return face->table.GPOS->blob;
 }
 static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GPOS);
   return *face->table.GPOS->table;
 }
 const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
@@ -865,8 +860,6 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_set_t     *glyphs_after,  /* OUT.  May be NULL */
 				    hb_set_t     *glyphs_output  /* OUT.  May be NULL */)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-
   OT::hb_collect_glyphs_context_t c (face,
 				     glyphs_before,
 				     glyphs_input,
@@ -945,8 +938,10 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          glyphs_length,
 				      hb_bool_t             zero_context)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return false;
-  return hb_ot_layout_lookup_would_substitute_fast (face, lookup_index, glyphs, glyphs_length, zero_context);
+  return hb_ot_layout_lookup_would_substitute_fast (face,
+						    lookup_index,
+						    glyphs, glyphs_length,
+						    zero_context);
 }
 
 hb_bool_t
@@ -1413,7 +1408,6 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 #if 0
 static const OT::BASE& _get_base (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
   return *face->table.BASE;
 }
 
