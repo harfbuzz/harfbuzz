@@ -196,7 +196,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
-  return face->table.morx->has_data ();
+  return face->table.morx->has_data () ||
 	 face->table.mort->has_data ();
 }
 
