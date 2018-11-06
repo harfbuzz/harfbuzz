@@ -536,9 +536,6 @@ struct KernSubTableWrapper
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return is_simple () && is_horizontal () ? get_kerning (left, right) : 0; }
-
   inline void apply (AAT::hb_aat_apply_context_t *c) const
   { thiz()->subtable.apply (c, thiz()->format); }
 
@@ -567,9 +564,11 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_simple () && st->is_override ())
+      if (!st->is_simple () || !st->is_horizontal ())
+        continue;
+      if (st->is_override ())
         v = 0;
-      v += st->get_h_kerning (left, right);
+      v += st->get_kerning (left, right);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     return v;
