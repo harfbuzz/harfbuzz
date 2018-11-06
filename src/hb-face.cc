@@ -552,7 +552,7 @@ hb_face_collect_unicodes (hb_face_t *face,
 			  hb_set_t  *out)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_unicodes (out);
+  face->table.cmap->collect_unicodes (out);
 }
 
 /**
@@ -569,7 +569,7 @@ hb_face_collect_variation_selectors (hb_face_t *face,
 				     hb_set_t  *out)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_variation_selectors (out);
+  face->table.cmap->collect_variation_selectors (out);
 }
 
 /**
@@ -587,7 +587,7 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 				    hb_set_t  *out)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
-  hb_ot_face_data (face)->cmap->collect_variation_unicodes (variation_selector, out);
+  face->table.cmap->collect_variation_unicodes (variation_selector, out);
 }
 
 

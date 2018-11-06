@@ -56,35 +56,35 @@
 const OT::GDEF& _get_gdef (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GDEF);
-  return *hb_ot_face_data (face)->GDEF->table;
+  return *face->table.GDEF->table;
 }
 static hb_blob_t * _get_gsub_blob (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
-  return hb_ot_face_data (face)->GSUB->blob;
+  return face->table.GSUB->blob;
 }
 static inline const OT::GSUB& _get_gsub (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GSUB);
-  return *hb_ot_face_data (face)->GSUB->table;
+  return *face->table.GSUB->table;
 }
 const OT::GSUB& _get_gsub_relaxed (hb_face_t *face)
 {
-  return *hb_ot_face_data (face)->GSUB.get_relaxed ()->table;
+  return *face->table.GSUB.get_relaxed ()->table;
 }
 static hb_blob_t * _get_gpos_blob (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return hb_blob_get_empty ();
-  return hb_ot_face_data (face)->GPOS->blob;
+  return face->table.GPOS->blob;
 }
 static inline const OT::GPOS& _get_gpos (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::GPOS);
-  return *hb_ot_face_data (face)->GPOS->table;
+  return *face->table.GPOS->table;
 }
 const OT::GPOS& _get_gpos_relaxed (hb_face_t *face)
 {
-  return *hb_ot_face_data (face)->GPOS.get_relaxed ()->table;
+  return *face->table.GPOS.get_relaxed ()->table;
 }
 
 
@@ -877,13 +877,13 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
   {
     case HB_OT_TAG_GSUB:
     {
-      const OT::SubstLookup& l = hb_ot_face_data (face)->GSUB->table->get_lookup (lookup_index);
+      const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
       l.collect_glyphs (&c);
       return;
     }
     case HB_OT_TAG_GPOS:
     {
-      const OT::PosLookup& l = hb_ot_face_data (face)->GPOS->table->get_lookup (lookup_index);
+      const OT::PosLookup& l = face->table.GPOS->table->get_lookup (lookup_index);
       l.collect_glyphs (&c);
       return;
     }
@@ -956,12 +956,12 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 					   unsigned int          glyphs_length,
 					   hb_bool_t             zero_context)
 {
-  if (unlikely (lookup_index >= hb_ot_face_data (face)->GSUB->lookup_count)) return false;
+  if (unlikely (lookup_index >= face->table.GSUB->lookup_count)) return false;
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
 
-  const OT::SubstLookup& l = hb_ot_face_data (face)->GSUB->table->get_lookup (lookup_index);
+  const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
 
-  return l.would_apply (&c, &hb_ot_face_data (face)->GSUB->accels[lookup_index]);
+  return l.would_apply (&c, &face->table.GSUB->accels[lookup_index]);
 }
 
 void
@@ -1240,8 +1240,8 @@ struct GSUBProxy
   typedef OT::SubstLookup Lookup;
 
   GSUBProxy (hb_face_t *face) :
-    table (*hb_ot_face_data (face)->GSUB->table),
-    accels (hb_ot_face_data (face)->GSUB->accels) {}
+    table (*face->table.GSUB->table),
+    accels (face->table.GSUB->accels) {}
 
   const OT::GSUB &table;
   const OT::hb_ot_layout_lookup_accelerator_t *accels;
@@ -1254,8 +1254,8 @@ struct GPOSProxy
   typedef OT::PosLookup Lookup;
 
   GPOSProxy (hb_face_t *face) :
-    table (*hb_ot_face_data (face)->GPOS->table),
-    accels (hb_ot_face_data (face)->GPOS->accels) {}
+    table (*face->table.GPOS->table),
+    accels (face->table.GPOS->accels) {}
 
   const OT::GPOS &table;
   const OT::hb_ot_layout_lookup_accelerator_t *accels;
@@ -1414,7 +1414,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 static const OT::BASE& _get_base (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(OT::BASE);
-  return *hb_ot_face_data (face)->BASE;
+  return *face->table.BASE;
 }
 
 hb_bool_t

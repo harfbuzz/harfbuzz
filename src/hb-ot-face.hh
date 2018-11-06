@@ -34,9 +34,6 @@
 #include "hb-machinery.hh"
 
 
-#define hb_ot_face_data(face) (&face->table)
-
-
 /*
  * hb_ot_face_t
  */
