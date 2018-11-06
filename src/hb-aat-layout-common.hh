@@ -528,24 +528,22 @@ struct StateTable
 
 struct ClassTable
 {
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int outOfRange=0) const
   {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
+    unsigned int i = glyph_id - firstGlyph;
+    return i >= classArray.len ? outOfRange : classArray.arrayZ[i];
   }
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
+    return_trace (c->check_struct (this) && classArray.sanitize (c));
   }
   protected:
-  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
-  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
-				 * glyph minus the value of firstGlyph plus 1). */
-  UnsizedArrayOf<HBUINT8>
-		classArrayZ;	/* The class codes (indexed by glyph index minus
-				 * firstGlyph). */
+  GlyphID		firstGlyph;	/* First glyph index included in the trimmed array. */
+  ArrayOf<HBUINT8>	classArray;	/* The class codes (indexed by glyph index minus
+					 * firstGlyph). */
   public:
-  DEFINE_SIZE_ARRAY (4, classArrayZ);
+  DEFINE_SIZE_ARRAY (4, classArray);
 };
 
 struct MortTypes
@@ -557,7 +555,7 @@ struct MortTypes
   {
     inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
     {
-      return ClassTable::get_class (glyph_id);
+      return ClassTable::get_class (glyph_id, 1);
     }
   };
   template <typename T>

@@ -319,44 +319,21 @@ struct KernSubTableFormat1
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 10);
 };
 
-struct KernClassTable
-{
-  inline unsigned int get_class (hb_codepoint_t g) const { return classes[g - firstGlyph]; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  classes.sanitize (c));
-  }
-
-  protected:
-  HBUINT16		firstGlyph;	/* First glyph in class range. */
-  ArrayOf<HBUINT16>	classes;	/* Glyph classes. */
-  public:
-  DEFINE_SIZE_ARRAY (4, classes);
-};
-
 template <typename KernSubTableHeader>
 struct KernSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  AAT::hb_aat_apply_context_t *c) const
   {
-    /* This subtable is disabled.  It's not cleaer to me *exactly* where the offests are
-     * based from.  I *think* they should be based from beginning of kern subtable wrapper,
-     * *NOT* "this".  Since we know of no fonts that use this subtable, we are disabling
-     * it.  Someday fix it and re-enable. */
+    /* Disabled until we find a font to test this.  Note that OT vs AAT specify
+     * different ClassTable.  OT's has 16bit entries, while AAT has 8bit entries.
+     * I've not seen any in the wild. */
     return 0;
     unsigned int l = (this+leftClassTable).get_class (left);
     unsigned int r = (this+rightClassTable).get_class (right);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
-#if 0
-    if (unlikely ((const char *) v < (const char *) &array ||
-		  (const char *) v > (const char *) end - 2))
-#endif
-      return 0;
+    if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
     return *v;
   }
 
@@ -400,9 +377,9 @@ struct KernSubTableFormat2
   protected:
   KernSubTableHeader		header;
   HBUINT16			rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<KernClassTable>	leftClassTable;	/* Offset from beginning of this subtable to
+  OffsetTo<AAT::ClassTable>	leftClassTable;	/* Offset from beginning of this subtable to
 						 * left-hand class table. */
-  OffsetTo<KernClassTable>	rightClassTable;/* Offset from beginning of this subtable to
+  OffsetTo<AAT::ClassTable>	rightClassTable;/* Offset from beginning of this subtable to
 						 * right-hand class table. */
   OffsetTo<FWORD>		array;		/* Offset from beginning of this subtable to
 						 * the start of the kerning array. */
