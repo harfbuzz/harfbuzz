@@ -53,16 +53,6 @@
  **/
 
 
-static inline const OT::GSUB& _get_gsub (hb_face_t *face)
-{
-  return *face->table.GSUB->table;
-}
-static inline const OT::GPOS& _get_gpos (hb_face_t *face)
-{
-  return *face->table.GPOS->table;
-}
-
-
 /*
  * kern
  */
@@ -297,8 +287,8 @@ get_gsubgpos_table (hb_face_t *face,
 		    hb_tag_t   table_tag)
 {
   switch (table_tag) {
-    case HB_OT_TAG_GSUB: return _get_gsub (face);
-    case HB_OT_TAG_GPOS: return _get_gpos (face);
+    case HB_OT_TAG_GSUB: return *face->table.GSUB->table;
+    case HB_OT_TAG_GPOS: return *face->table.GPOS->table;
     default:             return Null(OT::GSUBGPOS);
   }
 }
@@ -470,7 +460,12 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      language_tag,
 				   unsigned int *language_index)
 {
-  return hb_ot_layout_script_select_language (face, table_tag, script_index, 1, &language_tag, language_index);
+  return hb_ot_layout_script_select_language (face,
+					      table_tag,
+					      script_index,
+					      1,
+					      &language_tag,
+					      language_index);
 }
 
 /**
@@ -911,7 +906,7 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face)
 {
-  return _get_gsub (face).has_data ();
+  return face->table.GSUB->table->has_data ();
 }
 
 /**
@@ -967,7 +962,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
   hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
 
-  const OT::SubstLookup& l = _get_gsub (face).get_lookup (lookup_index);
+  const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
 
   l.closure (&c, lookup_index);
 }
@@ -987,7 +982,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 {
   hb_map_t done_lookups;
   OT::hb_closure_context_t c (face, glyphs, &done_lookups);
-  const OT::GSUB& gsub = _get_gsub (face);
+  const OT::GSUB& gsub = *face->table.GSUB->table;
 
   unsigned int iteration_count = 0;
   unsigned int glyphs_length;
@@ -1016,7 +1011,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face)
 {
-  return _get_gpos (face).has_data ();
+  return face->table.GPOS->table->has_data ();
 }
 
 void
@@ -1050,7 +1045,7 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 			      unsigned int    *range_start,       /* OUT.  May be NULL */
 			      unsigned int    *range_end          /* OUT.  May be NULL */)
 {
-  const OT::GPOS &gpos = _get_gpos (face);
+  const OT::GPOS &gpos = *face->table.GPOS->table;
   const hb_tag_t tag = HB_TAG ('s','i','z','e');
 
   unsigned int num_features = gpos.get_feature_count ();
