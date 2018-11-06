@@ -1017,22 +1017,20 @@ struct cmap
       this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
       const cmap *table = this->blob->as<cmap> ();
       bool symbol;
-      subtableZ = table->find_best_subtable (&symbol);
-
-      /* UVS subtable. */
-      subtable_uvsZ = &Null(CmapSubtableFormat14);
+      this->subtable = table->find_best_subtable (&symbol);
+      this->subtable_uvs = &Null(CmapSubtableFormat14);
       {
 	const CmapSubtable *st = table->find_subtable (0, 5);
 	if (st && st->u.format == 14)
-	  subtable_uvsZ = &st->u.format14;
+	  subtable_uvs = &st->u.format14;
       }
 
-      this->get_glyph_data = subtableZ;
+      this->get_glyph_data = subtable;
       if (unlikely (symbol))
       {
 	this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable>;
       } else {
-	switch (subtableZ->u.format) {
+	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
 	default:
 	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
@@ -1042,7 +1040,7 @@ struct cmap
 	  break;
 	case  4:
 	  {
-	    this->format4_accel.init (&subtableZ->u.format4);
+	    this->format4_accel.init (&subtable->u.format4);
 	    this->get_glyph_data = &this->format4_accel;
 	    this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
 	  }
@@ -1067,10 +1065,9 @@ struct cmap
 				     hb_codepoint_t  variation_selector,
 				     hb_codepoint_t *glyph) const
     {
-      if (unlikely (!this->subtable_uvsZ)) return false;
-      switch (this->subtable_uvsZ->get_glyph_variant (unicode,
-						      variation_selector,
-						      glyph))
+      switch (this->subtable_uvs->get_glyph_variant (unicode,
+						     variation_selector,
+						     glyph))
       {
 	case GLYPH_VARIANT_NOT_FOUND:	return false;
 	case GLYPH_VARIANT_FOUND:	return true;
@@ -1082,19 +1079,16 @@ struct cmap
 
     inline void collect_unicodes (hb_set_t *out) const
     {
-      if (unlikely (!this->subtableZ)) return;
-      subtableZ->collect_unicodes (out);
+      subtable->collect_unicodes (out);
     }
     inline void collect_variation_selectors (hb_set_t *out) const
     {
-      if (unlikely (!this->subtable_uvsZ)) return;
-      subtable_uvsZ->collect_variation_selectors (out);
+      subtable_uvs->collect_variation_selectors (out);
     }
     inline void collect_variation_unicodes (hb_codepoint_t variation_selector,
 					    hb_set_t *out) const
     {
-      if (unlikely (!this->subtable_uvsZ)) return;
-      subtable_uvsZ->collect_variation_unicodes (variation_selector, out);
+      subtable_uvs->collect_variation_unicodes (variation_selector, out);
     }
 
     protected:
@@ -1134,8 +1128,8 @@ struct cmap
     }
 
     private:
-    const CmapSubtable *subtableZ;
-    const CmapSubtableFormat14 *subtable_uvsZ;
+    hb_nonnull_ptr_t<const CmapSubtable> subtable;
+    hb_nonnull_ptr_t<const CmapSubtableFormat14> subtable_uvs;
 
     hb_cmap_get_glyph_func_t get_glyph_funcZ;
     const void *get_glyph_data;
