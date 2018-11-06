@@ -183,7 +183,7 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
   return false;
 }
 
-inline void
+HB_INTERNAL void
 OT::GDEF::accelerator_t::init (hb_face_t *face)
 {
   this->blob = hb_sanitize_context_t().reference_table<GDEF> (face);
