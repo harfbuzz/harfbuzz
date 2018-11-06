@@ -148,7 +148,7 @@ check-gtester:
 
 # Check tests under valgrind.  Saves log to log-valgrind.txt
 VALGRIND_FLAGS = \
-	--tool=memcheck
+	--tool=memcheck \
 	--track-origins=yes \
 	--leak-check=yes
 	$(EXTRA_VALGRIND_FLAGS)
