@@ -365,7 +365,7 @@ namespace AAT {
 enum { DELETED_GLYPH = 0xFFFF };
 
 /*
- * Extended State Table
+ * (Extended) State Table
  */
 
 template <typename T>
