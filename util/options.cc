@@ -729,9 +729,13 @@ const char *
 text_options_t::get_line (unsigned int *len)
 {
   if (text) {
-    if (!line) line = text;
-    if (line_len == (unsigned int) -1)
+    if (!line)
+    {
+      line = text;
       line_len = text_len;
+    }
+    if (line_len == (unsigned int) -1)
+      line_len = strlen (line);
 
     if (!line_len) {
       *len = 0;
