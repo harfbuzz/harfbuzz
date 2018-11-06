@@ -720,6 +720,7 @@ struct kerx
 
     skip:
       table = &StructAfter<KerxTable> (*table);
+      c->set_lookup_index (c->lookup_index + 1);
     }
   }
 
