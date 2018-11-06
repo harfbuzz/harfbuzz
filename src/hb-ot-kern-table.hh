@@ -524,11 +524,11 @@ struct KernSubTableWrapper
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  inline bool is_supported (void) const
-  { return !(thiz()->coverage & T::CheckFlags); }
+  inline bool is_simple (void) const
+  { return !(thiz()->coverage & (T::CrossStream | T::Variation)); }
 
   inline bool is_horizontal (void) const
-  { return (thiz()->coverage & T::Direction) == T::CheckHorizontal; }
+  { return (thiz()->coverage & T::Direction) == T::DirectionHorizontal; }
 
   inline bool is_override (void) const
   { return bool (thiz()->coverage & T::Override); }
@@ -537,7 +537,7 @@ struct KernSubTableWrapper
   { return thiz()->subtable.get_kerning (left, right, thiz()->format); }
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  { return is_supported () && is_horizontal () ? get_kerning (left, right) : 0; }
+  { return is_simple () && is_horizontal () ? get_kerning (left, right) : 0; }
 
   inline void apply (AAT::hb_aat_apply_context_t *c) const
   { thiz()->subtable.apply (c, thiz()->format); }
@@ -567,7 +567,7 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_supported () && st->is_override ())
+      if (st->is_simple () && st->is_override ())
         v = 0;
       v += st->get_h_kerning (left, right);
       st = &StructAfter<typename T::SubTableWrapper> (*st);
@@ -584,14 +584,14 @@ struct KernTable
     unsigned int last_override = 0;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_supported () && st->is_override ())
+      if (st->is_simple () && st->is_override ())
         last_override = i;
       st = &StructAfter<typename T::SubTableWrapper> (*st);
     }
     st = CastP<typename T::SubTableWrapper> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_supported ())
+      if (!st->is_simple ())
         goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->is_horizontal ())
@@ -654,8 +654,7 @@ struct KernOT : KernTable<KernOT>
 
       Variation		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0x06u,
-      CheckHorizontal	= 0x01u
+      DirectionHorizontal= 0x01u
     };
 
     protected:
@@ -695,8 +694,7 @@ struct KernAAT : KernTable<KernAAT>
 
       Override		= 0x00u, /* Not supported. */
 
-      CheckFlags	= 0x60u,
-      CheckHorizontal	= 0x00u
+      DirectionHorizontal= 0x00u
     };
 
     protected:
