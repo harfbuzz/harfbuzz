@@ -478,8 +478,11 @@ struct KernSubTable
   inline unsigned int get_size (void) const { return u.header.length; }
   inline unsigned int get_type (void) const { return u.header.format; }
 
-  inline bool is_simple (void) const
-  { return !(u.header.coverage & (u.header.CrossStream | u.header.Variation)); }
+  inline bool is_crossStream (void) const
+  { return u.header.coverage & u.header.CrossStream; }
+
+  inline bool is_variation (void) const
+  { return u.header.coverage & u.header.Variation; }
 
   inline bool is_horizontal (void) const
   { return (u.header.coverage & u.header.Direction) == u.header.DirectionHorizontal; }
@@ -548,7 +551,7 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_simple () || !st->is_horizontal ())
+      if (!st->is_variation () || !st->is_crossStream () || !st->is_horizontal ())
         continue;
       if (st->is_override ())
         v = 0;
@@ -569,14 +572,15 @@ struct KernTable
     unsigned int last_override = 0;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->is_simple () && st->is_override ())
+      if (!st->is_variation () && !st->is_crossStream () &&
+	  st->is_override ())
         last_override = i;
       st = &StructAfter<SubTable> (*st);
     }
     st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->is_simple ())
+      if (st->is_variation () || st->is_crossStream ())
         goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->is_horizontal ())
