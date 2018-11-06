@@ -68,5 +68,7 @@ hb_subset_fuzzer_DEPENDENCIES = \
 check:
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-shape-fuzzer-tests.py
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-subset-fuzzer-tests.py
+check-valgrind:
+	$(AM_V_at)RUN_VALGRIND=1 $(MAKE) $(AM_MAKEFLGS) check
 
 -include $(top_srcdir)/git.mk
