@@ -700,10 +700,10 @@ struct MATH
 				     hb_font_t		   *font) const
   { return (this+mathConstants).get_value (constant, font); }
 
-  inline const MathGlyphInfo &get_math_glyph_info (void) const
+  inline const MathGlyphInfo &get_glyph_info (void) const
   { return this+mathGlyphInfo; }
 
-  inline const MathVariants &get_math_variants (void) const
+  inline const MathVariants &get_variants (void) const
   { return this+mathVariants; }
 
   protected:
