@@ -150,7 +150,7 @@ check-gtester:
 VALGRIND_FLAGS = \
 	--tool=memcheck \
 	--track-origins=yes \
-	--leak-check=yes
+	--leak-check=yes \
 	$(EXTRA_VALGRIND_FLAGS)
 #	Can't do for now: --show-reachable=yes
 CLEANFILES +=  log-valgrind.txt
