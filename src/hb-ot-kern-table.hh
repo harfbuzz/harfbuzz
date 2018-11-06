@@ -174,6 +174,9 @@ struct KernSubTableFormat0
     if (!c->plan->requested_kerning)
       return false;
 
+    if (header.coverage & header.CrossStream)
+      return false;
+
     hb_kern_machine_t<KernSubTableFormat0> machine (*this);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
@@ -218,7 +221,9 @@ struct KernSubTableFormat1
 	 * similar to offsets in morx table, NOT from beginning of this table, like
 	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
-	depth (0) {}
+	depth (0),
+	crossStream (table->header.coverage & table->header.CrossStream),
+	crossOffset (0) {}
 
     inline bool is_actionable (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver HB_UNUSED,
 			       const AAT::Entry<EntryData> *entry)
@@ -241,7 +246,9 @@ struct KernSubTableFormat1
 
       if (entry->flags & Offset)
       {
-	unsigned int kernIndex = AAT::MortTypes::offsetToIndex (entry->flags & Offset, &table->machine, kernAction.arrayZ);
+	unsigned int kernIndex = AAT::MortTypes::offsetToIndex (entry->flags & Offset,
+								&table->machine,
+								kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kernIndex];
 	if (!c->sanitizer.check_array (actions, depth))
 	{
@@ -258,21 +265,50 @@ struct KernSubTableFormat1
 	   * list.  Discovered by testing. */
 	  unsigned int idx = stack[i];
 	  int v = *actions++;
+
+	  /* The following two flags are undocumented in the spec, but described
+	   * in the example. */
+	  bool last = v & 1;
+	  v = v & ~1;
+	  if (v == 0x8000)
+	  {
+	    crossOffset = 0;
+	    v = 0;
+	  }
+
 	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	    {
-	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      if (crossStream)
+	      {
+	        crossOffset += v;
+		buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
+	      }
+	      else
+	      {
+		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      }
 	    }
 	    else
 	    {
-	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      if (crossStream)
+	      {
+	        crossOffset += v;
+		buffer->pos[idx].x_offset += c->font->em_scale_x (crossOffset);
+	      }
+	      else
+	      {
+		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      }
 	    }
 	  }
+	  if (last)
+	    break;
 	}
 	depth = 0;
       }
@@ -286,6 +322,8 @@ struct KernSubTableFormat1
     const UnsizedArrayOf<FWORD> &kernAction;
     unsigned int stack[8];
     unsigned int depth;
+    bool crossStream;
+    int crossOffset;
   };
 
   inline bool apply (AAT::hb_aat_apply_context_t *c) const
@@ -342,6 +380,9 @@ struct KernSubTableFormat2
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
+      return false;
+
+    if (header.coverage & header.CrossStream)
       return false;
 
     accelerator_t accel (*this, c);
@@ -410,6 +451,9 @@ struct KernSubTableFormat3
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
+      return false;
+
+    if (header.coverage & header.CrossStream)
       return false;
 
     hb_kern_machine_t<KernSubTableFormat3> machine (*this);
@@ -547,8 +591,7 @@ struct KernTable
     st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->u.header.coverage &
-	  (st->u.header.Variation | st->u.header.CrossStream))
+      if (st->u.header.coverage & st->u.header.Variation)
         goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) !=

@@ -62,6 +62,20 @@ kerxTupleKern (int value,
 
 struct KerxSubTableHeader
 {
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
+    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
+    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
+    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
+					 * is, from first to last in the glyph stream.
+					 * If we, process them from last to first.
+					 * This flag only applies to state-table based
+					 * 'kerx' subtables (types 1 and 4). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type. */
+  };
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -93,6 +107,9 @@ struct KerxSubTableFormat0
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
+      return false;
+
+    if (header.coverage & header.CrossStream)
       return false;
 
     accelerator_t accel (*this, c);
@@ -161,7 +178,8 @@ struct KerxSubTableFormat1
 	 * similar to offsets in morx table, NOT from beginning of this table, like
 	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
-	depth (0) {}
+	depth (0),
+	crossStream (table->header.coverage & table->header.CrossStream) {}
 
     inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
@@ -209,15 +227,25 @@ struct KerxSubTableFormat1
 	  {
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	    {
-	      buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      if (crossStream)
+		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      else
+	      {
+		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      }
 	    }
 	    else
 	    {
-	      buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-	      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      if (crossStream)
+		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      else
+	      {
+		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      }
 	    }
 	  }
 	}
@@ -232,6 +260,7 @@ struct KerxSubTableFormat1
     const UnsizedArrayOf<FWORD> &kernAction;
     unsigned int stack[8];
     unsigned int depth;
+    bool crossStream;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -239,6 +268,9 @@ struct KerxSubTableFormat1
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
+      return false;
+
+    if (header.coverage & header.CrossStream)
       return false;
 
     if (header.tupleCount)
@@ -287,6 +319,9 @@ struct KerxSubTableFormat2
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
+      return false;
+
+    if (header.coverage & header.CrossStream)
       return false;
 
     accelerator_t accel (*this, c);
@@ -547,6 +582,9 @@ struct KerxSubTableFormat6
     if (!c->plan->requested_kerning)
       return false;
 
+    if (header.coverage & header.CrossStream)
+      return false;
+
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -615,21 +653,7 @@ struct KerxTable
   friend struct kerx;
 
   inline unsigned int get_size (void) const { return u.header.length; }
-  inline unsigned int get_type (void) const { return u.header.coverage & SubtableType; }
-
-  enum Coverage
-  {
-    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
-    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
-    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
-    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
-					 * is, from first to last in the glyph stream.
-					 * If we, process them from last to first.
-					 * This flag only applies to state-table based
-					 * 'kerx' subtables (types 1 and 4). */
-    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
-    SubtableType	= 0x000000FF,	/* Subtable type. */
-  };
+  inline unsigned int get_type (void) const { return u.header.coverage & u.header.SubtableType; }
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
@@ -689,14 +713,11 @@ struct kerx
     {
       bool reverse;
 
-      if (table->u.header.coverage & (KerxTable::CrossStream))
-	goto skip; /* We do NOT handle cross-stream. */
-
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (table->u.header.coverage & KerxTable::Vertical))
+	  bool (table->u.header.coverage & table->u.header.Vertical))
 	goto skip;
 
-      reverse = bool (table->u.header.coverage & KerxTable::Backwards) !=
+      reverse = bool (table->u.header.coverage & table->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
