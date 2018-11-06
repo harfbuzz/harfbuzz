@@ -282,7 +282,8 @@ struct KernSubTableFormat1
 	    {
 	      if (crossStream)
 	      {
-	        crossOffset += v;
+	        /* XXX Why negative, not positive?!?! */
+	        crossOffset -= v;
 		buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
 	      }
 	      else
