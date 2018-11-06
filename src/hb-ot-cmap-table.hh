@@ -1060,6 +1060,27 @@ struct cmap
       if (unlikely (!this->get_glyph_funcZ)) return false;
       return this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
     }
+    inline unsigned int get_nominal_glyphs (unsigned int count,
+					    const hb_codepoint_t *first_unicode,
+					    unsigned int unicode_stride,
+					    hb_codepoint_t *first_glyph,
+					    unsigned int glyph_stride) const
+    {
+      if (unlikely (!this->get_glyph_funcZ)) return 0;
+
+      hb_cmap_get_glyph_func_t get_glyph_funcZ = this->get_glyph_funcZ;
+      const void *get_glyph_data = this->get_glyph_data;
+
+      unsigned int done;
+      for (done = 0;
+	   done < count && get_glyph_funcZ (get_glyph_data, *first_unicode, first_glyph);
+	   done++)
+      {
+	first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
+	first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      }
+      return done;
+    }
 
     inline bool get_variation_glyph (hb_codepoint_t  unicode,
 				     hb_codepoint_t  variation_selector,

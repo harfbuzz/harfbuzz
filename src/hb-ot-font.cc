@@ -76,16 +76,9 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ot_face_data_t *ot_face = (const hb_ot_face_data_t *) font_data;
-  const OT::cmap_accelerator_t &cmap = *ot_face->cmap;
-  unsigned int done;
-  for (done = 0;
-       done < count && cmap.get_nominal_glyph (*first_unicode, first_glyph);
-       done++)
-  {
-    first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-  }
-  return done;
+  return ot_face->cmap->get_nominal_glyphs (count,
+					    first_unicode, unicode_stride,
+					    first_glyph, glyph_stride);
 }
 
 static hb_bool_t
