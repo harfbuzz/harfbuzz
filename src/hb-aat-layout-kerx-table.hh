@@ -311,6 +311,7 @@ struct KerxSubTableFormat1
 	    crossOffset = 0;
 	    v = 0;
 	  }
+
 	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
@@ -402,7 +403,7 @@ struct KerxSubTableFormat1
   StateTable<Types, EntryData>			machine;
   OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>kernAction;
   public:
-  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 5 * sizeof (HBUINT));
 };
 
 template <typename KernSubTableHeader>
