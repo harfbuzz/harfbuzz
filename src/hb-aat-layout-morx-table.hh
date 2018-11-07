@@ -1106,21 +1106,6 @@ struct mortmorx
     }
   }
 
-  inline static void remove_deleted_glyphs (hb_buffer_t *buffer)
-  {
-    if (unlikely (!buffer->successful)) return;
-
-    buffer->clear_output ();
-    for (buffer->idx = 0; buffer->idx < buffer->len && buffer->successful;)
-    {
-      if (unlikely (buffer->cur().codepoint == DELETED_GLYPH))
-        buffer->skip_glyph ();
-      else
-        buffer->next_glyph ();
-    }
-    buffer->swap_buffers ();
-  }
-
   inline void apply (hb_aat_apply_context_t *c) const
   {
     if (unlikely (!c->buffer->successful)) return;
@@ -1133,7 +1118,6 @@ struct mortmorx
       if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain<Types> > (*chain);
     }
-    remove_deleted_glyphs (c->buffer);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

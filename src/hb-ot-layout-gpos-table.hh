@@ -113,7 +113,7 @@ struct ValueFormat : HBUINT16
     if (!format) return ret;
 
     hb_font_t *font = c->font;
-    hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (c->direction);
+    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (c->direction);
 
     if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++, &ret));
     if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++, &ret));
@@ -271,10 +271,10 @@ struct AnchorFormat2
     unsigned int x_ppem = font->x_ppem;
     unsigned int y_ppem = font->y_ppem;
     hb_position_t cx = 0, cy = 0;
-    hb_bool_t ret;
+    bool ret;
 
     ret = (x_ppem || y_ppem) &&
-	   font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
+	  font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
     *x = ret && x_ppem ? cx : font->em_fscale_x (xCoordinate);
     *y = ret && y_ppem ? cy : font->em_fscale_y (yCoordinate);
   }
