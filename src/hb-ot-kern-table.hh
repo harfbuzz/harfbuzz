@@ -27,8 +27,7 @@
 #ifndef HB_OT_KERN_TABLE_HH
 #define HB_OT_KERN_TABLE_HH
 
-#include "hb-kern.hh"
-#include "hb-ot-shape.hh"
+#include "hb-aat-layout-kerx-table.hh"
 
 
 /*
@@ -47,7 +46,7 @@ struct KernSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    hb_glyph_pair_t pair = {left, right};
+    AAT::hb_glyph_pair_t pair = {left, right};
     int i = pairs.bsearch (pair);
     if (i == -1) return 0;
     return pairs[i].get_kerning ();
@@ -77,7 +76,7 @@ struct KernSubTableFormat0
 
   protected:
   KernSubTableHeader		header;
-  BinSearchArrayOf<KernPair, typename KernSubTableHeader::Types::HBUINT>
+  BinSearchArrayOf<AAT::KernPair, typename KernSubTableHeader::Types::HBUINT>
 				pairs;	/* Array of kerning pairs. */
   public:
   DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 8, pairs);

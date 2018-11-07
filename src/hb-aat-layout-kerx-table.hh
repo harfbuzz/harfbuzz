@@ -29,6 +29,7 @@
 #define HB_AAT_LAYOUT_KERX_TABLE_HH
 
 #include "hb-kern.hh"
+#include "hb-aat-layout-ankr-table.hh"
 
 /*
  * kerx -- Extended Kerning
@@ -57,36 +58,36 @@ kerxTupleKern (int value,
 }
 
 
-struct KerxSubTableHeader
+struct hb_glyph_pair_t
 {
-  typedef MorxTypes Types;
+  hb_codepoint_t left;
+  hb_codepoint_t right;
+};
 
-  enum Coverage
+struct KernPair
+{
+  inline int get_kerning (void) const
+  { return value; }
+
+  inline int cmp (const hb_glyph_pair_t &o) const
   {
-    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
-    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
-    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
-    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
-					 * is, from first to last in the glyph stream.
-					 * If we, process them from last to first.
-					 * This flag only applies to state-table based
-					 * 'kerx' subtables (types 1 and 4). */
-    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
-    SubtableType	= 0x000000FF,	/* Subtable type. */
-  };
+    int ret = left.cmp (o.left);
+    if (ret) return ret;
+    return right.cmp (o.right);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
+  protected:
+  GlyphID	left;
+  GlyphID	right;
+  FWORD		value;
   public:
-  HBUINT32	length;
-  HBUINT32	coverage;
-  HBUINT32	tupleCount;
-  public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_STATIC (6);
 };
 
 template <typename KernSubTableHeader>
@@ -687,6 +688,39 @@ struct KerxSubTableFormat6
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };
 
+
+struct KerxSubTableHeader
+{
+  typedef MorxTypes Types;
+
+  enum Coverage
+  {
+    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
+    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
+    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
+    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
+					 * is, from first to last in the glyph stream.
+					 * If we, process them from last to first.
+					 * This flag only applies to state-table based
+					 * 'kerx' subtables (types 1 and 4). */
+    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
+    SubtableType	= 0x000000FF,	/* Subtable type. */
+  };
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this)));
+  }
+
+  public:
+  HBUINT32	length;
+  HBUINT32	coverage;
+  HBUINT32	tupleCount;
+  public:
+  DEFINE_SIZE_STATIC (12);
+};
+
 struct KerxTable
 {
   friend struct kerx;
@@ -815,6 +849,7 @@ struct kerx
   public:
   DEFINE_SIZE_MIN (8);
 };
+
 
 } /* namespace AAT */
 

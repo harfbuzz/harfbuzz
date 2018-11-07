@@ -114,39 +114,6 @@ struct hb_kern_machine_t
 };
 
 
-struct hb_glyph_pair_t
-{
-  hb_codepoint_t left;
-  hb_codepoint_t right;
-};
-
-struct KernPair
-{
-  inline int get_kerning (void) const
-  { return value; }
-
-  inline int cmp (const hb_glyph_pair_t &o) const
-  {
-    int ret = left.cmp (o.left);
-    if (ret) return ret;
-    return right.cmp (o.right);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
-  }
-
-  protected:
-  GlyphID	left;
-  GlyphID	right;
-  FWORD		value;
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-
-
 } /* namespace OT */
 
 
