@@ -49,12 +49,15 @@ namespace OT {
 
 struct postV2Tail
 {
+  friend struct post;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (glyphNameIndex.sanitize (c));
   }
 
+  protected:
   ArrayOf<HBUINT16>	glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
@@ -62,6 +65,7 @@ struct postV2Tail
 			namesX;		/* Glyph names with length bytes [variable]
 					 * (a Pascal string). */
 
+  public:
   DEFINE_SIZE_ARRAY2 (2, glyphNameIndex, namesX);
 };
 
