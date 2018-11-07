@@ -156,9 +156,22 @@ struct KerxSubTableFormat0
   DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 16, pairs);
 };
 
-template <typename KernSubTableHeader>
-struct KerxSubTableFormat1
+
+template <bool extended>
+struct Format1Entry;
+
+template <>
+struct Format1Entry<true>
 {
+  enum Flags
+  {
+    Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+    DontAdvance		= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+    Reset		= 0x2000,	/* If set, reset the kerning data (clear the stack) */
+    Reserved		= 0x1FFF,	/* Not used; set to 0. */
+  };
+
   struct EntryData
   {
     HBUINT16	kernActionIndex;/* Index into the kerning value array. If
@@ -167,17 +180,39 @@ struct KerxSubTableFormat1
     public:
     DEFINE_SIZE_STATIC (2);
   };
+};
+template <>
+struct Format1Entry<false>
+{
+  enum Flags
+  {
+    Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
+    DontAdvance		= 0x4000,	/* If set, don't advance to the next glyph
+					 * before going to the new state. */
+    Offset		= 0x3FFF,	/* Byte offset from beginning of subtable to the
+					 * value table for the glyphs on the kerning stack. */
+
+    Reset		= 0x0000,	/* Not supported? */
+  };
+
+  typedef void EntryData;
+};
+
+template <typename KernSubTableHeader>
+struct KerxSubTableFormat1
+{
+  typedef typename KernSubTableHeader::Types Types;
+  typedef typename Types::HBUINT HBUINT;
+
+  typedef Format1Entry<Types::extended> Format1EntryT;
+  typedef typename Format1EntryT::EntryData EntryData;
 
   struct driver_context_t
   {
     static const bool in_place = true;
-    enum Flags
+    enum
     {
-      Push		= 0x8000,	/* If set, push this glyph on the kerning stack. */
-      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
-					 * before going to the new state. */
-      Reset		= 0x2000,	/* If set, reset the kerning data (clear the stack) */
-      Reserved		= 0x1FFF,	/* Not used; set to 0. */
+      DontAdvance	= Format1EntryT::DontAdvance,
     };
 
     inline driver_context_t (const KerxSubTableFormat1 *table,
@@ -202,12 +237,10 @@ struct KerxSubTableFormat1
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (flags & Reset)
-      {
+      if (flags & Format1EntryT::Reset)
 	depth = 0;
-      }
 
-      if (flags & Push)
+      if (flags & Format1EntryT::Push)
       {
 	if (likely (depth < ARRAY_LENGTH (stack)))
 	  stack[depth++] = buffer->idx;
@@ -339,8 +372,8 @@ struct KerxSubTableFormat1
 
   protected:
   KernSubTableHeader				header;
-  StateTable<MorxTypes, EntryData>		machine;
-  LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
+  StateTable<Types, EntryData>			machine;
+  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>kernAction;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
 };
