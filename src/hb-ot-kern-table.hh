@@ -235,43 +235,46 @@ struct KernTable
   }
 };
 
+
+struct KernOTSubTableHeader
+{
+  typedef AAT::ObsoleteTypes Types;
+
+  inline unsigned int tuple_count (void) const { return 0; }
+  inline bool is_horizontal (void) const { return (coverage & Horizontal); }
+
+  enum Coverage
+  {
+    Horizontal	= 0x01u,
+    Minimum		= 0x02u,
+    CrossStream	= 0x04u,
+    Override		= 0x08u,
+
+    Variation		= 0x00u, /* Not supported. */
+  };
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT16	versionZ;	/* Unused. */
+  HBUINT16	length;		/* Length of the subtable (including this header). */
+  HBUINT8	format;		/* Subtable format. */
+  HBUINT8	coverage;	/* Coverage bits. */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
 struct KernOT : KernTable<KernOT>
 {
   friend struct KernTable<KernOT>;
 
+  typedef KernOTSubTableHeader SubTableHeader;
+
   static const uint16_t minVersion = 0;
-
-  struct SubTableHeader
-  {
-    typedef AAT::ObsoleteTypes Types;
-
-    inline unsigned int tuple_count (void) const { return 0; }
-    inline bool is_horizontal (void) const { return (coverage & Horizontal); }
-
-    enum Coverage
-    {
-      Horizontal	= 0x01u,
-      Minimum		= 0x02u,
-      CrossStream	= 0x04u,
-      Override		= 0x08u,
-
-      Variation		= 0x00u, /* Not supported. */
-    };
-
-    inline bool sanitize (hb_sanitize_context_t *c) const
-    {
-      TRACE_SANITIZE (this);
-      return_trace (c->check_struct (this));
-    }
-
-    public:
-    HBUINT16	versionZ;	/* Unused. */
-    HBUINT16	length;		/* Length of the subtable (including this header). */
-    HBUINT8	format;		/* Subtable format. */
-    HBUINT8	coverage;	/* Coverage bits. */
-    public:
-    DEFINE_SIZE_STATIC (6);
-  };
 
   protected:
   HBUINT16			version;	/* Version--0x0000u */
@@ -281,42 +284,45 @@ struct KernOT : KernTable<KernOT>
   DEFINE_SIZE_MIN (4);
 };
 
+
+struct KernAATSubTableHeader
+{
+  typedef AAT::ObsoleteTypes Types;
+
+  inline unsigned int tuple_count (void) const { return 0; }
+  inline bool is_horizontal (void) const { return !(coverage & Vertical); }
+
+  enum Coverage
+  {
+    Vertical		= 0x80u,
+    CrossStream	= 0x40u,
+    Variation		= 0x20u,
+  };
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT32	length;		/* Length of the subtable (including this header). */
+  HBUINT8	coverage;	/* Coverage bits. */
+  HBUINT8	format;		/* Subtable format. */
+  HBUINT16	tupleIndex;	/* The tuple index (used for variations fonts).
+			       * This value specifies which tuple this subtable covers.
+			       * Note: We don't implement. */
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
 struct KernAAT : KernTable<KernAAT>
 {
   friend struct KernTable<KernAAT>;
 
+  typedef KernAATSubTableHeader SubTableHeader;
+
   static const uint32_t minVersion = 0x00010000u;
-
-  struct SubTableHeader
-  {
-    typedef AAT::ObsoleteTypes Types;
-
-    inline unsigned int tuple_count (void) const { return 0; }
-    inline bool is_horizontal (void) const { return !(coverage & Vertical); }
-
-    enum Coverage
-    {
-      Vertical		= 0x80u,
-      CrossStream	= 0x40u,
-      Variation		= 0x20u,
-    };
-
-    inline bool sanitize (hb_sanitize_context_t *c) const
-    {
-      TRACE_SANITIZE (this);
-      return_trace (c->check_struct (this));
-    }
-
-    public:
-    HBUINT32	length;		/* Length of the subtable (including this header). */
-    HBUINT8	coverage;	/* Coverage bits. */
-    HBUINT8	format;		/* Subtable format. */
-    HBUINT16	tupleIndex;	/* The tuple index (used for variations fonts).
-				 * This value specifies which tuple this subtable covers.
-				 * Note: We don't implement. */
-    public:
-    DEFINE_SIZE_STATIC (8);
-  };
 
   protected:
   HBUINT32			version;	/* Version--0x00010000u */
