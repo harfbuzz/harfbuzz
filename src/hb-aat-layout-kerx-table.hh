@@ -789,7 +789,7 @@ struct KerxSubTableHeader
   DEFINE_SIZE_STATIC (12);
 };
 
-struct KerxTable
+struct KerxSubTable
 {
   friend struct kerx;
 
@@ -848,17 +848,17 @@ struct kerx
   inline void apply (hb_aat_apply_context_t *c) const
   {
     c->set_lookup_index (0);
-    const KerxTable *table = &firstTable;
+    const KerxSubTable *st = &firstTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       bool reverse;
 
       if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (table->u.header.coverage & table->u.header.Vertical))
+	  bool (st->u.header.coverage & st->u.header.Vertical))
 	goto skip;
 
-      reverse = bool (table->u.header.coverage & table->u.header.Backwards) !=
+      reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
@@ -867,13 +867,13 @@ struct kerx
       if (reverse)
 	c->buffer->reverse ();
 
-      c->sanitizer.set_object (*table);
+      c->sanitizer.set_object (*st);
 
       /* XXX Reverse-kern is not working yet...
        * hb_kern_machine_t would need to know that it's reverse-kerning.
        * Or better yet, make it work in reverse as well, so we don't have
        * to reverse and reverse back? */
-      table->dispatch (c);
+      st->dispatch (c);
 
       if (reverse)
 	c->buffer->reverse ();
@@ -881,7 +881,7 @@ struct kerx
       (void) c->buffer->message (c->font, "end kerx subtable %d", c->lookup_index);
 
     skip:
-      table = &StructAfter<KerxTable> (*table);
+      st = &StructAfter<KerxSubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
@@ -893,13 +893,13 @@ struct kerx
 	!tableCount.sanitize (c))
       return_trace (false);
 
-    const KerxTable *table = &firstTable;
+    const KerxSubTable *st = &firstTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!table->sanitize (c))
+      if (!st->sanitize (c))
 	return_trace (false);
-      table = &StructAfter<KerxTable> (*table);
+      st = &StructAfter<KerxSubTable> (*st);
     }
 
     return_trace (true);
@@ -911,7 +911,7 @@ struct kerx
   HBUINT16	unused;		/* Set to 0. */
   HBUINT32	tableCount;	/* The number of subtables included in the extended kerning
 				 * table. */
-  KerxTable	firstTable;	/* Subtables. */
+  KerxSubTable	firstTable;	/* Subtables. */
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
