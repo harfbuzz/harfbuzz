@@ -179,7 +179,8 @@ struct KerxSubTableFormat1
 	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
 	depth (0),
-	crossStream (table->header.coverage & table->header.CrossStream) {}
+	crossStream (table->header.coverage & table->header.CrossStream),
+	crossOffset (0) {}
 
     inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
@@ -215,36 +216,68 @@ struct KerxSubTableFormat1
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
-	for (unsigned int i = 0; i < depth; i++)
+
+	/* From Apple 'kern' spec:
+	 * "Each pops one glyph from the kerning stack and applies the kerning value to it.
+	 * The end of the list is marked by an odd value... */
+	unsigned int i;
+	for (i = 0; i < depth; i++)
+	  if (actions[i] & 1)
+	  {
+	    i++;
+	    break;
+	  }
+	for (; i; i--)
 	{
-	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
-	   * and applies the kerning value to it.", it doesn't mean it in that order.
-	   * The deepest item in the stack corresponds to the first item in the action
-	   * list.  Discovered by testing. */
-	  unsigned int idx = stack[i];
-	  int v = *actions++;
+	  unsigned int idx = stack[depth - i];
+	  int v = actions[i - 1];
+
+	  /* "The end of the list is marked by an odd value..."
+	   * Ignore it. */
+	  v &= ~1;
+
+	  /* The following flag is undocumented in the spec, but described
+	   * in the 'kern' table example. */
+	  if (v == 0x8000)
+	  {
+	    crossOffset = 0;
+	    v = 0;
+	  }
 	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
 	  {
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	    {
 	      if (crossStream)
-		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+	      {
+		crossOffset += v;
+		if (!buffer->pos[idx].y_offset)
+		  buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
+	      }
 	      else
 	      {
-		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		if (!buffer->pos[idx].x_offset)
+		{
+		  buffer->pos[idx].x_advance += c->font->em_scale_x (v);
 		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+		}
 	      }
 	    }
 	    else
 	    {
 	      if (crossStream)
-		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+	      {
+	        /* CoreText doesn't do crossStream kerning in vertical. */
+		//crossOffset += v;
+		//if (!buffer->pos[idx].x_offset)
+		//  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
+	      }
 	      else
 	      {
-		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-		if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+		if (!buffer->pos[idx].y_offset)
+		{
+		  buffer->pos[idx].y_advance += c->font->em_scale_y (v);
 		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+		}
 	      }
 	    }
 	  }
@@ -261,6 +294,7 @@ struct KerxSubTableFormat1
     unsigned int stack[8];
     unsigned int depth;
     bool crossStream;
+    int crossOffset;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
