@@ -300,10 +300,11 @@ struct KerxSubTableFormat1
 	for (; i; i--)
 	{
 	  unsigned int idx = stack[depth - i];
+	  if (idx >= buffer->len) continue;
+
 	  int v = actions[(i - 1) * tuple_count];
 
-	  /* "The end of the list is marked by an odd value..."
-	   * Ignore it. */
+	  /* "The end of the list is marked by an odd value..."  Ignore it. */
 	  v &= ~1;
 
 	  /* The following flag is undocumented in the spec, but described
@@ -314,41 +315,38 @@ struct KerxSubTableFormat1
 	    v = 0;
 	  }
 
-	  if (idx < buffer->len)
+	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	  {
-	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	    if (crossStream)
 	    {
-	      if (crossStream)
+	      crossOffset += v;
+	      if (!buffer->pos[idx].y_offset)
+		buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
+	    }
+	    else if (buffer->info[idx].mask & kern_mask)
+	    {
+	      if (!buffer->pos[idx].x_offset)
 	      {
-		crossOffset += v;
-		if (!buffer->pos[idx].y_offset)
-		  buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
-	      }
-	      else if (buffer->info[idx].mask & kern_mask)
-	      {
-		if (!buffer->pos[idx].x_offset)
-		{
-		  buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
-		}
+		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
+		buffer->pos[idx].x_offset += c->font->em_scale_x (v);
 	      }
 	    }
-	    else
+	  }
+	  else
+	  {
+	    if (crossStream)
 	    {
-	      if (crossStream)
+	      /* CoreText doesn't do crossStream kerning in vertical.  We do. */
+	      crossOffset += v;
+	      if (!buffer->pos[idx].x_offset)
+		buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
+	    }
+	    else if (buffer->info[idx].mask & kern_mask)
+	    {
+	      if (!buffer->pos[idx].y_offset)
 	      {
-	        /* CoreText doesn't do crossStream kerning in vertical.  We do. */
-		crossOffset += v;
-		if (!buffer->pos[idx].x_offset)
-		  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
-	      }
-	      else if (buffer->info[idx].mask & kern_mask)
-	      {
-		if (!buffer->pos[idx].y_offset)
-		{
-		  buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
-		}
+		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
+		buffer->pos[idx].y_offset += c->font->em_scale_y (v);
 	      }
 	    }
 	  }
