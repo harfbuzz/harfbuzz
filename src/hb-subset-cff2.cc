@@ -167,6 +167,68 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
   typedef CSOpSet<BlendArg, CFF2CSOpSet_Flatten, CFF2CSOpSet_Flatten, CFF2CSInterpEnv, FlattenParam> CSOPSET;
 };
 
+struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetParam>
+{
+  static inline void process_op (OpCode op, CFF2CSInterpEnv &env, SubrSubsetParam& param)
+  {
+    switch (op) {
+
+      case OpCode_return:
+        param.current_parsed_str->set_parsed ();
+        env.returnFromSubr ();
+        param.set_current_str (env);
+        break;
+
+      case OpCode_endchar:
+        param.current_parsed_str->set_parsed ();
+        SUPER::process_op (op, env, param);
+        break;
+
+      case OpCode_callsubr:
+        process_call_subr (op, CSType_LocalSubr, env, param, env.localSubrs, param.local_closure);
+        break;
+
+      case OpCode_callgsubr:
+        process_call_subr (op, CSType_GlobalSubr, env, param, env.globalSubrs, param.global_closure);
+        break;
+
+      default:
+        SUPER::process_op (op, env, param);
+        param.current_parsed_str->add_op (op, env.substr);
+        break;
+    }
+  }
+
+  protected:
+  static inline void process_call_subr (OpCode op, CSType type,
+                                        CFF2CSInterpEnv &env, SubrSubsetParam& param,
+                                        CFF2BiasedSubrs& subrs, hb_set_t *closure)
+  {
+    SubByteStr    substr = env.substr;
+    env.callSubr (subrs, type);
+    param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
+    hb_set_add (closure, env.context.subr_num);
+    param.set_current_str (env);
+  }
+
+  private:
+  typedef CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetParam> SUPER;
+};
+
+struct CFF2SubrSubsetter : SubrSubsetter<CFF2SubrSubsetter, CFF2Subrs, const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_SubrSubset>
+{
+  static inline void finalize_parsed_str (CFF2CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
+  {
+    /* vsindex is inserted at the beginning of the charstring as necessary */
+    if (env.seen_vsindex ())
+    {
+      Number  ivs;
+      ivs.set_int ((int)env.get_ivs ());
+      charstring.set_prefix (ivs, OpCode_vsindexcs);
+    }
+  }
+};
+
 struct cff2_subset_plan {
   inline cff2_subset_plan (void)
     : final_size (0),
@@ -179,7 +241,8 @@ struct cff2_subset_plan {
     subset_fdselect_ranges.init ();
     fdmap.init ();
     subset_charstrings.init ();
-    flat_charstrings.init ();
+    subset_globalsubrs.init ();
+    subset_localsubrs.init ();
     privateDictInfos.init ();
   }
 
@@ -187,8 +250,9 @@ struct cff2_subset_plan {
   {
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
-    subset_charstrings.fini ();
-    flat_charstrings.fini_deep ();
+    subset_charstrings.fini_deep ();
+    subset_globalsubrs.fini_deep ();
+    subset_localsubrs.fini_deep ();
     privateDictInfos.fini ();
   }
 
@@ -211,17 +275,60 @@ struct cff2_subset_plan {
       final_size += offsets.topDictInfo.size;
     }
 
+    if (desubroutinize)
     {
       /* Flatten global & local subrs */
       SubrFlattener<const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_Flatten>
                     flattener(acc, plan->glyphs, plan->drop_hints);
-      if (!flattener.flatten (flat_charstrings))
+      if (!flattener.flatten (subset_charstrings))
         return false;
       
       /* no global/local subroutines */
-      offsets.globalSubrsInfo.size = HBUINT32::static_size; /* count 0 only */
+      offsets.globalSubrsInfo.size = CFF2Subrs::calculate_serialized_size (1, 0, 0);
     }
-    
+    else
+    {
+      /* Subset subrs: collect used subroutines, leaving all unused ones behind */
+      if (!subr_subsetter.subset (acc, plan->glyphs, plan->drop_hints))
+        return false;
+
+      /* encode charstrings, global subrs, local subrs with new subroutine numbers */
+      if (!subr_subsetter.encode_charstrings (acc, plan->glyphs, subset_charstrings))
+        return false;
+
+      if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
+        return false;
+
+      /* global subrs */
+      unsigned int dataSize = subset_globalsubrs.total_size ();
+      offsets.globalSubrsInfo.offSize = calcOffSize (dataSize);
+      offsets.globalSubrsInfo.size = CFF2Subrs::calculate_serialized_size (offsets.globalSubrsInfo.offSize, subset_globalsubrs.len, dataSize);
+
+      /* local subrs */
+      if (!offsets.localSubrsInfos.resize (orig_fdcount))
+        return false;
+      if (!subset_localsubrs.resize (orig_fdcount))
+        return false;
+      for (unsigned int fd = 0; fd < orig_fdcount; fd++)
+      {
+        subset_localsubrs[fd].init ();
+        offsets.localSubrsInfos[fd].init ();
+        if (fdmap.includes (fd))
+        {
+          if (!subr_subsetter.encode_localsubrs (fd, subset_localsubrs[fd]))
+            return false;
+
+          unsigned int dataSize = subset_localsubrs[fd].total_size ();
+          if (dataSize > 0)
+          {
+            offsets.localSubrsInfos[fd].offset = final_size;
+            offsets.localSubrsInfos[fd].offSize = calcOffSize (dataSize);
+            offsets.localSubrsInfos[fd].size = CFF2Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].len, dataSize);
+          }
+        }
+      }
+    }
+
     /* global subrs */
     offsets.globalSubrsInfo.offset = final_size;
     final_size += offsets.globalSubrsInfo.size;
@@ -256,20 +363,19 @@ struct cff2_subset_plan {
     {
       offsets.FDArrayInfo.offset = final_size;
       CFFFontDict_OpSerializer fontSzr;
-      final_size += CFF2FDArray::calculate_serialized_size(offsets.FDArrayInfo.offSize/*OUT*/, acc.fontDicts, subset_fdcount, fdmap, fontSzr);
+      unsigned int dictsSize = 0;
+      for (unsigned int i = 0; i < acc.fontDicts.len; i++)
+        if (fdmap.includes (i))
+          dictsSize += FontDict::calculate_serialized_size (acc.fontDicts[i], fontSzr);
+
+      offsets.FDArrayInfo.offSize = calcOffSize (dictsSize);
+      final_size += CFF2Index::calculate_serialized_size (offsets.FDArrayInfo.offSize, subset_fdcount, dictsSize);
     }
 
     /* CharStrings */
     {
       offsets.charStringsInfo.offset = final_size;
-      unsigned int dataSize = 0;
-      for (unsigned int i = 0; i < plan->glyphs.len; i++)
-      {
-        StrBuff &flatstr = flat_charstrings[i];
-        ByteStr str (&flatstr[0], flatstr.len);
-        subset_charstrings.push (str);
-        dataSize += flatstr.len;
-      }
+      unsigned int dataSize = subset_charstrings.total_size ();
       offsets.charStringsInfo.offSize = calcOffSize (dataSize);
       final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.len, dataSize);
     }
@@ -278,14 +384,20 @@ struct cff2_subset_plan {
     offsets.privateDictsOffset = final_size;
     for (unsigned int i = 0; i < orig_fdcount; i++)
     {
-      if (!fdmap.excludes (i))
+      if (fdmap.includes (i))
       {
-        unsigned int priv_size;
+        bool  has_localsubrs = offsets.localSubrsInfos[i].size > 0;
         CFFPrivateDict_OpSerializer privSzr (desubroutinize, drop_hints);
-        priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr);
+        unsigned int  priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr, has_localsubrs);
         TableInfo  privInfo = { final_size, priv_size, 0 };
         privateDictInfos.push (privInfo);
         final_size += privInfo.size;
+
+        if (!plan->desubroutinize && has_localsubrs)
+        {
+          offsets.localSubrsInfos[i].offset = final_size;
+          final_size += offsets.localSubrsInfos[i].size;
+        }
       }
     }
 
@@ -305,12 +417,14 @@ struct cff2_subset_plan {
 
   Remap   fdmap;
 
-  ByteStrArray            subset_charstrings;
-  StrBuffArray            flat_charstrings;
+  StrBuffArray            subset_charstrings;
+  StrBuffArray            subset_globalsubrs;
+  hb_vector_t<StrBuffArray> subset_localsubrs;
   hb_vector_t<TableInfo>  privateDictInfos;
 
   bool            drop_hints;
   bool            desubroutinize;
+  CFF2SubrSubsetter       subr_subsetter;
 };
 
 static inline bool _write_cff2 (const cff2_subset_plan &plan,
@@ -346,9 +460,13 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   /* global subrs */
   {
     assert (cff2->topDict + plan.offsets.topDictInfo.size == c.head - c.start);
-    CFF2Subrs *dest = c.allocate_size <CFF2Subrs> (HBUINT32::static_size);
+    CFF2Subrs *dest = c.start_embed <CFF2Subrs> ();
     if (unlikely (dest == nullptr)) return false;
-    dest->count.set (0);
+    if (unlikely (!dest->serialize (&c, plan.offsets.globalSubrsInfo.offSize, plan.subset_globalsubrs)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize global subroutines");
+      return false;
+    }
   }
   
   /* variation store */
@@ -420,18 +538,30 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   assert (plan.offsets.privateDictsOffset == c.head - c.start);
   for (unsigned int i = 0; i < acc.privateDicts.len; i++)
   {
-    if (!plan.fdmap.excludes (i))
+    if (plan.fdmap.includes (i))
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
       unsigned int priv_size = plan.privateDictInfos[plan.fdmap[i]].size;
       bool result;
       CFFPrivateDict_OpSerializer privSzr (plan.desubroutinize, plan.drop_hints);
-      result = pd->serialize (&c, acc.privateDicts[i], privSzr, priv_size);
+      /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
+      unsigned int  subroffset = (plan.offsets.localSubrsInfos[i].size > 0)? priv_size: 0;
+      result = pd->serialize (&c, acc.privateDicts[i], privSzr, subroffset);
       if (unlikely (!result))
       {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Private Dict[%d]", i);
+        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF Private Dict[%d]", i);
         return false;
+      }
+      if (plan.offsets.localSubrsInfos[i].size > 0)
+      {
+        CFF2Subrs *dest = c.start_embed <CFF2Subrs> ();
+        if (unlikely (dest == nullptr)) return false;
+        if (unlikely (!dest->serialize (&c, plan.offsets.localSubrsInfos[i].offSize, plan.subset_localsubrs[i])))
+        {
+          DEBUG_MSG (SUBSET, nullptr, "failed to serialize local subroutines");
+          return false;
+        }
       }
     }
   }

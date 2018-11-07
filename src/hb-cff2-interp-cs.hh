@@ -88,7 +88,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     num_coords = num_coords_;
     varStore = acc.varStore;
     seen_blend = false;
-    seen_vsindex = false;
+    seen_vsindex_ = false;
     scalars.init ();
     do_blend = (coords != nullptr) && num_coords && (varStore != &Null(CFF2VariationStore));
     set_ivs (acc.privateDicts[fd].ivs);
@@ -145,18 +145,22 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   inline void process_vsindex (void)
   {
     unsigned int  index = argStack.pop_uint ();
-    if (do_blend)
+    if (unlikely (seen_vsindex () || seen_blend))
     {
-      if (likely (!seen_vsindex && !seen_blend))
-        set_ivs (index);
+      set_error ();
     }
-    seen_vsindex = true;
+    else
+    {
+      set_ivs (index);
+    }
+    seen_vsindex_ = true;
   }
 
   inline unsigned int get_region_count (void) const { return region_count; }
   inline void         set_region_count (unsigned int region_count_) { region_count = region_count_; }
   inline unsigned int get_ivs (void) const { return ivs; }
   inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  inline bool         seen_vsindex (void) const { return seen_vsindex_; }
 
   protected:
   inline void blend_arg (BlendArg &arg)
@@ -184,7 +188,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   unsigned int  ivs;
   hb_vector_t<float>  scalars;
   bool          do_blend;
-  bool          seen_vsindex;
+  bool          seen_vsindex_;
   bool          seen_blend;
 
   typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;

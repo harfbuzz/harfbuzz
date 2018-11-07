@@ -411,7 +411,7 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
   {
     SUPER::init ();
     parsed = false;
-    hint_removed = false;
+    hint_dropped = false;
     has_prefix_ = false;
   }
 
@@ -444,15 +444,18 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
 
   inline bool is_parsed (void) const { return parsed; }
   inline void set_parsed (void) { parsed = true; }
-  inline bool is_hint_removed (void) const { return hint_removed; }
-  inline void set_hint_removed (void) { hint_removed = true; }
+  inline bool is_hint_dropped (void) const { return hint_dropped; }
+  inline void set_hint_dropped (void) { hint_dropped = true; }
+  inline bool is_vsindex_dropped (void) const { return vsindex_dropped; }
+  inline void set_vsindex_dropped (void) { vsindex_dropped = true; }
   inline bool has_prefix (void) const { return has_prefix_; }
   inline OpCode prefix_op (void) const { return prefix_op_; }
   inline const Number &prefix_num (void) const { return prefix_num_; }
 
   protected:
   bool    parsed;
-  bool    hint_removed;
+  bool    hint_dropped;
+  bool    vsindex_dropped;
   bool    has_prefix_;
   OpCode  prefix_op_;
   Number  prefix_num_;
@@ -697,10 +700,13 @@ struct SubrSubsetter
                     closures.global_closure, closures.local_closures[fd],
                     drop_hints);
 
-        bool seen_moveto = false;
-        bool ends_in_hint = false;
-        if (drop_hints_in_str (parsed_charstrings[i], param, seen_moveto, ends_in_hint))
-          parsed_charstrings[i].set_hint_removed ();
+        DropHintsParam  drop;
+        if (drop_hints_in_str (parsed_charstrings[i], param, drop))
+        {
+          parsed_charstrings[i].set_hint_dropped ();
+          if (drop.vsindex_dropped)
+            parsed_charstrings[i].set_vsindex_dropped ();
+        }
       }
 
       /* after dropping hints recreate closures of actually used subrs */
@@ -764,24 +770,35 @@ struct SubrSubsetter
   }
 
   protected:
+  struct DropHintsParam
+  {
+    inline DropHintsParam (void)
+      : seen_moveto (false),
+        ends_in_hint (false),
+        vsindex_dropped (false) {}
+  
+    bool  seen_moveto;
+    bool  ends_in_hint;
+    bool  vsindex_dropped;
+  };
+  
   inline bool drop_hints_in_subr (ParsedCStr &str, unsigned int pos,
                                  ParsedCStrs &subrs, unsigned int subr_num,
-                                 const SubrSubsetParam &param, bool &seen_moveto)
+                                 const SubrSubsetParam &param, DropHintsParam &drop)
   {
-    bool  ends_in_hint = false;
-    bool has_hint = drop_hints_in_str (subrs[subr_num], param, seen_moveto, ends_in_hint);
+    drop.ends_in_hint = false;
+    bool has_hint = drop_hints_in_str (subrs[subr_num], param, drop);
 
     /* if this subr ends with a stem hint (i.e., not a number a potential argument for moveto),
      * then this entire subroutine must be a hint. drop its call. */
-    if (ends_in_hint)
+    if (drop.ends_in_hint)
       str.values[pos].set_drop ();
     
     return has_hint;
   }
 
   /* returns true if it sees a hint op before the first moveto */
-  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param,
-                                 bool &seen_moveto, bool &ends_in_hint)
+  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param, DropHintsParam &drop)
   {
     bool  seen_hint = false;
 
@@ -793,25 +810,25 @@ struct SubrSubsetter
         case OpCode_callsubr:
           has_hint = drop_hints_in_subr (str, pos,
                                         *param.parsed_local_subrs, str.values[pos].subr_num,
-                                        param, seen_moveto);
+                                        param, drop);
                                         
           break;
 
         case OpCode_callgsubr:
           has_hint = drop_hints_in_subr (str, pos,
                                         *param.parsed_global_subrs, str.values[pos].subr_num,
-                                        param, seen_moveto);
+                                        param, drop);
           break;
 
         case OpCode_rmoveto:
         case OpCode_hmoveto:
         case OpCode_vmoveto:
-          seen_moveto = true;
+          drop.seen_moveto = true;
           break;
 
         case OpCode_hintmask:
         case OpCode_cntrmask:
-          if (seen_moveto)
+          if (drop.seen_moveto)
           {
             str.values[pos].set_drop ();
             break;
@@ -826,7 +843,7 @@ struct SubrSubsetter
           str.values[pos].set_drop ();
           if ((pos + 1 >= str.values.len) /* CFF2 */
              || (str.values[pos + 1].op == OpCode_return))
-            ends_in_hint = true;
+            drop.ends_in_hint = true;
           break;
 
         default:
@@ -837,9 +854,12 @@ struct SubrSubsetter
       {
         for (int i = pos - 1; i >= 0; i--)
         {
-          if (str.values[i].for_drop ())
+          ParsedCSOp  &csop = str.values[i];
+          if (csop.for_drop ())
             break;
-          str.values[i].set_drop ();
+          csop.set_drop ();
+          if (csop.op == OpCode_vsindexcs)
+            drop.vsindex_dropped = true;
         }
         seen_hint |= has_hint;
       }
@@ -890,7 +910,7 @@ struct SubrSubsetter
     encoder.reset ();
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
-    if (str.has_prefix () && str.is_hint_removed ())
+    if (str.has_prefix () && str.is_hint_dropped ())
     {
       encoder.encode_num (str.prefix_num ());
       if (str.prefix_op () != OpCode_Invalid)

@@ -262,12 +262,12 @@ struct DictInterpreter : Interpreter<ENV>
   inline bool interpret (PARAM& param)
   {
     param.init ();
-    do
+    while (SUPER::env.substr.avail ())
     {
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
       if (unlikely (SUPER::env.in_error ()))
         return false;
-    } while (SUPER::env.substr.avail ());
+    }
     
     return true;
   }

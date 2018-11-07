@@ -418,14 +418,14 @@ struct TableInfo
 struct Remap : hb_vector_t<hb_codepoint_t>
 {
   inline void init (void)
-  { hb_vector_t<hb_codepoint_t>::init (); }
+  { SUPER::init (); }
 
   inline void fini (void)
-  { hb_vector_t<hb_codepoint_t>::fini (); }
+  { SUPER::fini (); }
 
   inline bool reset (unsigned int size)
   {
-    if (unlikely (!hb_vector_t<hb_codepoint_t>::resize (size)))
+    if (unlikely (!SUPER::resize (size)))
       return false;
     for (unsigned int i = 0; i < len; i++)
       (*this)[i] = CFF_UNDEF_CODE;
@@ -436,7 +436,7 @@ struct Remap : hb_vector_t<hb_codepoint_t>
   inline bool fullset (void) const
   {
     for (unsigned int i = 0; i < len; i++)
-      if (hb_vector_t<hb_codepoint_t>::operator[] (i) == CFF_UNDEF_CODE)
+      if (SUPER::operator[] (i) == CFF_UNDEF_CODE)
         return false;
     return true;
   }
@@ -452,13 +452,13 @@ struct Remap : hb_vector_t<hb_codepoint_t>
     if (fullset ())
       return i;
     else
-      return hb_vector_t<hb_codepoint_t>::operator[] (i);
+      return SUPER::operator[] (i);
   }
 
   inline hb_codepoint_t &operator[] (hb_codepoint_t i)
   {
     assert (i < len);
-    return hb_vector_t<hb_codepoint_t>::operator[] (i);
+    return SUPER::operator[] (i);
   }
 
   inline unsigned int add (unsigned int i)
@@ -473,6 +473,9 @@ struct Remap : hb_vector_t<hb_codepoint_t>
 
   protected:
   hb_codepoint_t  count;
+
+  private:
+  typedef hb_vector_t<hb_codepoint_t> SUPER;
 };
 
 template <typename COUNT>
@@ -533,7 +536,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     unsigned int  offset = 1;
     unsigned int  fid = 0;
     for (unsigned i = 0; i < fontDicts.len; i++)
-      if (!fdmap.excludes (i))
+      if (fdmap.includes (i))
       {
         CFFIndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
         offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
@@ -542,7 +545,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
 
     /* serialize font dicts */
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      if (!fdmap.excludes (i))
+      if (fdmap.includes (i))
       {
         FontDict *dict = c->start_embed<FontDict> ();
         if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]])))
@@ -561,7 +564,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   {
     unsigned int dictsSize = 0;
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      if (!fdmap.excludes (i))
+      if (fdmap.includes (i))
         dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
     offSize_ = calcOffSize (dictsSize);
@@ -720,4 +723,3 @@ struct Subrs : CFFIndex<COUNT>
 } /* namespace CFF */
 
 #endif /* HB_OT_CFF_COMMON_HH */
-
