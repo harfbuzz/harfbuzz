@@ -148,10 +148,9 @@ struct post
         return false;
       if (!buf_len)
 	return true;
-      if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
-        return false;
-      strncpy (buf, s.arrayZ, s.len);
-      buf[s.len] = '\0';
+      unsigned int len = MIN (buf_len - 1, s.len);
+      strncpy (buf, s.arrayZ, len);
+      buf[len] = '\0';
       return true;
     }
 
