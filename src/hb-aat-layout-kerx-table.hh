@@ -53,7 +53,7 @@ kerxTupleKern (int value,
 
   unsigned int offset = value;
   const FWORD *pv = &StructAtOffset<FWORD> (base, offset);
-  if (unlikely (!pv->sanitize (&c->sanitizer))) return 0;
+  if (unlikely (!c->sanitizer.check_array (pv, tupleCount))) return 0;
   return *pv;
 }
 
