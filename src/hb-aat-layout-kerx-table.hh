@@ -118,7 +118,7 @@ struct KerxSubTableFormat0
     if (!c->plan->requested_kerning)
       return false;
 
-    if (header.coverage & header.CrossStream)
+    if (header.coverage & (header.CrossStream | header.Backwards))
       return false;
 
     accelerator_t accel (*this, c);
@@ -427,7 +427,7 @@ struct KerxSubTableFormat2
     if (!c->plan->requested_kerning)
       return false;
 
-    if (header.coverage & header.CrossStream)
+    if (header.coverage & (header.CrossStream | header.Backwards))
       return false;
 
     accelerator_t accel (*this, c);
@@ -696,7 +696,7 @@ struct KerxSubTableFormat6
     if (!c->plan->requested_kerning)
       return false;
 
-    if (header.coverage & header.CrossStream)
+    if (header.coverage & (header.CrossStream | header.Backwards))
       return false;
 
     accelerator_t accel (*this, c);
@@ -918,8 +918,6 @@ struct KerxTable
 
       c->sanitizer.set_object (*st);
 
-      /* XXX Reverse-kern is probably not working yet...
-       * hb_kern_machine_t would need to know that it's reverse-kerning. */
       st->dispatch (c);
 
       if (reverse)
