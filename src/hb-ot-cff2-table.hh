@@ -347,6 +347,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
       case OpCode_vsindexdict:
         env.process_vsindex ();
         dictval.ivs = env.get_ivs ();
+        env.clear_args ();
         break;
       case OpCode_blenddict:
         break;
