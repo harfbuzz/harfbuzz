@@ -16,6 +16,7 @@ HB_BASE_sources = \
 	hb-font.hh \
 	hb-font.cc \
 	hb-iter.hh \
+	hb-kern.hh \
 	hb-map.hh \
 	hb-map.cc \
 	hb-machinery.hh \

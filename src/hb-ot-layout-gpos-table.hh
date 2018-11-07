@@ -103,56 +103,58 @@ struct ValueFormat : HBUINT16
   inline unsigned int get_size (void) const
   { return get_len () * Value::static_size; }
 
-  void apply_value (hb_ot_apply_context_t   *c,
+  bool apply_value (hb_ot_apply_context_t   *c,
 		    const void           *base,
 		    const Value          *values,
 		    hb_glyph_position_t  &glyph_pos) const
   {
+    bool ret = false;
     unsigned int format = *this;
-    if (!format) return;
+    if (!format) return ret;
 
     hb_font_t *font = c->font;
-    hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (c->direction);
+    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (c->direction);
 
-    if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++));
-    if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++));
+    if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++, &ret));
+    if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++, &ret));
     if (format & xAdvance) {
-      if (likely (horizontal)) glyph_pos.x_advance += font->em_scale_x (get_short (values));
+      if (likely (horizontal)) glyph_pos.x_advance += font->em_scale_x (get_short (values, &ret));
       values++;
     }
     /* y_advance values grow downward but font-space grows upward, hence negation */
     if (format & yAdvance) {
-      if (unlikely (!horizontal)) glyph_pos.y_advance -= font->em_scale_y (get_short (values));
+      if (unlikely (!horizontal)) glyph_pos.y_advance -= font->em_scale_y (get_short (values, &ret));
       values++;
     }
 
-    if (!has_device ()) return;
+    if (!has_device ()) return ret;
 
     bool use_x_device = font->x_ppem || font->num_coords;
     bool use_y_device = font->y_ppem || font->num_coords;
 
-    if (!use_x_device && !use_y_device) return;
+    if (!use_x_device && !use_y_device) return ret;
 
     const VariationStore &store = c->var_store;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values)).get_x_delta (font, store);
+      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values, &ret)).get_x_delta (font, store);
       values++;
     }
     if (format & yPlaDevice) {
-      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values)).get_y_delta (font, store);
+      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values, &ret)).get_y_delta (font, store);
       values++;
     }
     if (format & xAdvDevice) {
-      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values)).get_x_delta (font, store);
+      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values, &ret)).get_x_delta (font, store);
       values++;
     }
     if (format & yAdvDevice) {
       /* y_advance values grow downward but font-space grows upward, hence negation */
-      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values)).get_y_delta (font, store);
+      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values, &ret)).get_y_delta (font, store);
       values++;
     }
+    return ret;
   }
 
   private:
@@ -175,11 +177,17 @@ struct ValueFormat : HBUINT16
 
   static inline OffsetTo<Device>& get_device (Value* value)
   { return *CastP<OffsetTo<Device> > (value); }
-  static inline const OffsetTo<Device>& get_device (const Value* value)
-  { return *CastP<OffsetTo<Device> > (value); }
+  static inline const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
+  {
+    if (worked) *worked |= *value;
+    return *CastP<OffsetTo<Device> > (value);
+  }
 
-  static inline const HBINT16& get_short (const Value* value)
-  { return *CastP<HBINT16> (value); }
+  static inline const HBINT16& get_short (const Value* value, bool *worked=nullptr)
+  {
+    if (worked) *worked |= *value;
+    return *CastP<HBINT16> (value);
+  }
 
   public:
 
@@ -263,10 +271,10 @@ struct AnchorFormat2
     unsigned int x_ppem = font->x_ppem;
     unsigned int y_ppem = font->y_ppem;
     hb_position_t cx = 0, cy = 0;
-    hb_bool_t ret;
+    bool ret;
 
     ret = (x_ppem || y_ppem) &&
-	   font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
+	  font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
     *x = ret && x_ppem ? cx : font->em_fscale_x (xCoordinate);
     *y = ret && y_ppem ? cy : font->em_fscale_y (yCoordinate);
   }
@@ -672,9 +680,10 @@ struct PairSet
         min = mid + 1;
       else
       {
-        buffer->unsafe_to_break (buffer->idx, pos + 1);
-	valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos());
-	valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]);
+	/* Note the intentional use of "|" instead of short-circuit "||". */
+	if (valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos()) |
+	    valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
+	  buffer->unsafe_to_break (buffer->idx, pos + 1);
 	if (len2)
 	  pos++;
 	buffer->idx = pos;
@@ -837,10 +846,11 @@ struct PairPosFormat2
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
 
-    buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (c, this, v, buffer->cur_pos());
-    valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]);
+    /* Note the intentional use of "|" instead of short-circuit "||". */
+    if (valueFormat1.apply_value (c, this, v, buffer->cur_pos()) |
+	valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]))
+      buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
 
     buffer->idx = skippy_iter.idx;
     if (len2)

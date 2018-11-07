@@ -375,21 +375,19 @@ struct LigatureEntry<true>
     Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
   };
 
-  typedef struct
+  struct EntryData
   {
     HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
 				 * for processing this group, if indicated
 				 * by the flags. */
     public:
     DEFINE_SIZE_STATIC (2);
-  } EntryData;
+  };
 
-  template <typename Flags>
-  static inline bool performAction (Flags flags)
-  { return flags & PerformAction; }
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->flags & PerformAction; }
 
-  template <typename Entry, typename Flags>
-  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
+  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
   { return entry->data.ligActionIndex; }
 };
 template <>
@@ -408,13 +406,11 @@ struct LigatureEntry<false>
 
   typedef void EntryData;
 
-  template <typename Flags>
-  static inline bool performAction (Flags flags)
-  { return flags & Offset; }
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->flags & Offset; }
 
-  template <typename Entry, typename Flags>
-  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
-  { return flags & 0x3FFF; }
+  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
+  { return entry->flags & Offset; }
 };
 
 
@@ -428,11 +424,11 @@ struct LigatureSubtable
 
   struct driver_context_t
   {
+    static const bool in_place = false;
     enum
     {
       DontAdvance	= LigatureEntryT::DontAdvance,
     };
-    static const bool in_place = false;
     enum LigActionFlags
     {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
@@ -458,16 +454,15 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
-      return LigatureEntryT::performAction (entry->flags);
+      return LigatureEntryT::performAction (entry);
     }
     inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
 
-      DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
-      if (flags & LigatureEntryT::SetComponent)
+      DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
+      if (entry->flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
 	  return false;
@@ -477,16 +472,13 @@ struct LigatureSubtable
 	  match_length--;
 
 	match_positions[match_length++] = buffer->out_len;
-	DEBUG_MSG (APPLY, nullptr, "Set component at %d", buffer->out_len);
+	DEBUG_MSG (APPLY, nullptr, "Set component at %u", buffer->out_len);
       }
 
-      if (LigatureEntryT::performAction (flags))
+      if (LigatureEntryT::performAction (entry))
       {
-	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
+	DEBUG_MSG (APPLY, nullptr, "Perform action with %u", match_length);
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry, flags);
-	unsigned int action;
-	unsigned int ligature_idx = 0;
 
 	if (unlikely (!match_length))
 	  return true;
@@ -495,8 +487,13 @@ struct LigatureSubtable
 	  return false; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
+
+	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
 	action_idx = Types::offsetToIndex (action_idx, table, ligAction.arrayZ);
 	const HBUINT32 *actionData = &ligAction[action_idx];
+
+	unsigned int ligature_idx = 0;
+	unsigned int action;
         do
 	{
 	  if (unlikely (!cursor))
@@ -507,7 +504,7 @@ struct LigatureSubtable
 	    break;
 	  }
 
-	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %d", cursor - 1);
+	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
 	  buffer->move_to (match_positions[--cursor]);
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) return false;
@@ -523,7 +520,7 @@ struct LigatureSubtable
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
 
-	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
+	  DEBUG_MSG (APPLY, nullptr, "Action store %u last %u",
 		     bool (action & LigActionStore),
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
@@ -533,7 +530,7 @@ struct LigatureSubtable
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
-	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %d", lig);
+	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
 	    buffer->replace_glyph (lig);
 
 	    unsigned int lig_end = match_positions[match_length - 1] + 1;
@@ -1109,21 +1106,6 @@ struct mortmorx
     }
   }
 
-  inline static void remove_deleted_glyphs (hb_buffer_t *buffer)
-  {
-    if (unlikely (!buffer->successful)) return;
-
-    buffer->clear_output ();
-    for (buffer->idx = 0; buffer->idx < buffer->len && buffer->successful;)
-    {
-      if (unlikely (buffer->cur().codepoint == DELETED_GLYPH))
-        buffer->skip_glyph ();
-      else
-        buffer->next_glyph ();
-    }
-    buffer->swap_buffers ();
-  }
-
   inline void apply (hb_aat_apply_context_t *c) const
   {
     if (unlikely (!c->buffer->successful)) return;
@@ -1136,7 +1118,6 @@ struct mortmorx
       if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain<Types> > (*chain);
     }
-    remove_deleted_glyphs (c->buffer);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1169,11 +1150,11 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
-struct morx : mortmorx<MorxTypes>
+struct morx : mortmorx<ExtendedTypes>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_morx;
 };
-struct mort : mortmorx<MortTypes>
+struct mort : mortmorx<ObsoleteTypes>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_mort;
 };

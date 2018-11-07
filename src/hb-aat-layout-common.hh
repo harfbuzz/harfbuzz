@@ -365,7 +365,7 @@ namespace AAT {
 enum { DELETED_GLYPH = 0xFFFF };
 
 /*
- * Extended State Table
+ * (Extended) State Table
  */
 
 template <typename T>
@@ -430,13 +430,13 @@ struct StateTable
     CLASS_END_OF_LINE = 3,
   };
 
-  inline unsigned int new_state (unsigned int newState) const
-  { return Types::extended ? newState : (newState - stateArrayTable) / nClasses; }
+  inline int new_state (unsigned int newState) const
+  { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / nClasses; }
 
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    return (this+classTable).get_class (glyph_id, num_glyphs);
+    return (this+classTable).get_class (glyph_id, num_glyphs, 1);
   }
 
   inline const Entry<Extra> *get_entries () const
@@ -444,7 +444,7 @@ struct StateTable
     return (this+entryTable).arrayZ;
   }
 
-  inline const Entry<Extra> *get_entryZ (unsigned int state, unsigned int klass) const
+  inline const Entry<Extra> *get_entryZ (int state, unsigned int klass) const
   {
     if (unlikely (klass >= nClasses)) return nullptr;
 
@@ -452,6 +452,7 @@ struct StateTable
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int entry = states[state * nClasses + klass];
+    DEBUG_MSG (APPLY, nullptr, "e%u", entry);
 
     return &entries[entry];
   }
@@ -467,28 +468,69 @@ struct StateTable
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int num_classes = nClasses;
+    if (unlikely (hb_unsigned_mul_overflows (num_classes, states[0].static_size)))
+      return_trace (false);
+    unsigned int row_stride = num_classes * states[0].static_size;
 
-    unsigned int num_states = 1;
+    /* Apple 'kern' table has this peculiarity:
+     *
+     * "Because the stateTableOffset in the state table header is (strictly
+     * speaking) redundant, some 'kern' tables use it to record an initial
+     * state where that should not be StartOfText. To determine if this is
+     * done, calculate what the stateTableOffset should be. If it's different
+     * from the actual stateTableOffset, use it as the initial state."
+     *
+     * We implement this by calling the initial state zero, but allow *negative*
+     * states if the start state indeed was not the first state.  Since the code
+     * is shared, this will also apply to 'mort' table.  The 'kerx' / 'morx'
+     * tables are not affected since those address states by index, not offset.
+     */
+
+    int min_state = 0;
+    int max_state = 0;
     unsigned int num_entries = 0;
 
-    unsigned int state = 0;
+    int state_pos = 0;
+    int state_neg = 0;
     unsigned int entry = 0;
-    while (state < num_states)
+    while (min_state < state_neg || state_pos <= max_state)
     {
-      if (unlikely (hb_unsigned_mul_overflows (num_classes, states[0].static_size)))
-	return_trace (false);
+      if (min_state < state_neg)
+      {
+	/* Negative states. */
+	if (unlikely (hb_unsigned_mul_overflows (min_state, num_classes)))
+	  return_trace (false);
+	if (unlikely (!c->check_array (&states[min_state * num_classes], -min_state, row_stride)))
+	  return_trace (false);
+	if ((c->max_ops -= state_neg - min_state) < 0)
+	  return_trace (false);
+	{ /* Sweep new states. */
+	  const HBUSHORT *stop = &states[min_state * num_classes];
+	  if (unlikely (stop > states))
+	    return_trace (false);
+	  for (const HBUSHORT *p = states; stop < p; p--)
+	    num_entries = MAX<unsigned int> (num_entries, *(p - 1) + 1);
+	  state_neg = min_state;
+	}
+      }
 
-      if (unlikely (!c->check_array (states,
-				     num_states,
-				     num_classes * states[0].static_size)))
-	return_trace (false);
-      if ((c->max_ops -= num_states - state) < 0)
-	return_trace (false);
-      { /* Sweep new states. */
-	const HBUSHORT *stop = &states[num_states * num_classes];
-	for (const HBUSHORT *p = &states[state * num_classes]; p < stop; p++)
-	  num_entries = MAX<unsigned int> (num_entries, *p + 1);
-	state = num_states;
+      if (state_pos <= max_state)
+      {
+	/* Positive states. */
+	if (unlikely (!c->check_array (states, max_state + 1, row_stride)))
+	  return_trace (false);
+	if ((c->max_ops -= max_state - state_pos + 1) < 0)
+	  return_trace (false);
+	{ /* Sweep new states. */
+	  if (unlikely (hb_unsigned_mul_overflows ((max_state + 1), num_classes)))
+	    return_trace (false);
+	  const HBUSHORT *stop = &states[(max_state + 1) * num_classes];
+	  if (unlikely (stop < states))
+	    return_trace (false);
+	  for (const HBUSHORT *p = &states[state_pos * num_classes]; p < stop; p++)
+	    num_entries = MAX<unsigned int> (num_entries, *p + 1);
+	  state_pos = max_state + 1;
+	}
       }
 
       if (unlikely (!c->check_array (entries, num_entries)))
@@ -499,8 +541,9 @@ struct StateTable
 	const Entry<Extra> *stop = &entries[num_entries];
 	for (const Entry<Extra> *p = &entries[entry]; p < stop; p++)
 	{
-	  unsigned int newState = new_state (p->newState);
-	  num_states = MAX<unsigned int> (num_states, newState + 1);
+	  int newState = new_state (p->newState);
+	  min_state = MIN (min_state, newState);
+	  max_state = MAX (max_state, newState);
 	}
 	entry = num_entries;
       }
@@ -528,36 +571,36 @@ struct StateTable
 
 struct ClassTable
 {
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int outOfRange) const
   {
-    return firstGlyph <= glyph_id && glyph_id - firstGlyph < glyphCount ? classArrayZ[glyph_id - firstGlyph] : 1;
+    unsigned int i = glyph_id - firstGlyph;
+    return i >= classArray.len ? outOfRange : classArray.arrayZ[i];
   }
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && classArrayZ.sanitize (c, glyphCount));
+    return_trace (c->check_struct (this) && classArray.sanitize (c));
   }
   protected:
-  GlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
-  HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
-				 * glyph minus the value of firstGlyph plus 1). */
-  UnsizedArrayOf<HBUINT8>
-		classArrayZ;	/* The class codes (indexed by glyph index minus
-				 * firstGlyph). */
+  GlyphID		firstGlyph;	/* First glyph index included in the trimmed array. */
+  ArrayOf<HBUINT8>	classArray;	/* The class codes (indexed by glyph index minus
+					 * firstGlyph). */
   public:
-  DEFINE_SIZE_ARRAY (4, classArrayZ);
+  DEFINE_SIZE_ARRAY (4, classArray);
 };
 
-struct MortTypes
+struct ObsoleteTypes
 {
   static const bool extended = false;
   typedef HBUINT16 HBUINT;
   typedef HBUINT8 HBUSHORT;
   struct ClassType : ClassTable
   {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
+    inline unsigned int get_class (hb_codepoint_t glyph_id,
+				   unsigned int num_glyphs HB_UNUSED,
+				   unsigned int outOfRange) const
     {
-      return ClassTable::get_class (glyph_id);
+      return ClassTable::get_class (glyph_id, outOfRange);
     }
   };
   template <typename T>
@@ -575,17 +618,19 @@ struct MortTypes
     return offsetToIndex (2 * offset, base, array);
   }
 };
-struct MorxTypes
+struct ExtendedTypes
 {
   static const bool extended = true;
   typedef HBUINT32 HBUINT;
   typedef HBUINT16 HBUSHORT;
   struct ClassType : Lookup<HBUINT16>
   {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+    inline unsigned int get_class (hb_codepoint_t glyph_id,
+				   unsigned int num_glyphs,
+				   unsigned int outOfRange) const
     {
       const HBUINT16 *v = get_value (glyph_id, num_glyphs);
-      return v ? *v : 1;
+      return v ? *v : outOfRange;
     }
   };
   template <typename T>
@@ -620,13 +665,14 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
-    unsigned int state = StateTable<Types, EntryData>::STATE_START_OF_TEXT;
+    int state = StateTable<Types, EntryData>::STATE_START_OF_TEXT;
     bool last_was_dont_advance = false;
     for (buffer->idx = 0; buffer->successful;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTable<Types, EntryData>::CLASS_END_OF_TEXT;
+      DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
@@ -659,6 +705,7 @@ struct StateTableDriver
       last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
 
       state = machine.new_state (entry->newState);
+      DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
       if (buffer->idx == buffer->len)
 	break;
