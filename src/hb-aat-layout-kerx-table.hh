@@ -476,6 +476,8 @@ struct KerxSubTableFormat2
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat4
 {
+  typedef ExtendedTypes Types;
+
   struct EntryData
   {
     HBUINT16	ankrActionIndex;/* Either 0xFFFF (for no action) or the index of
@@ -512,12 +514,12 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return entry->data.ankrActionIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -619,7 +621,7 @@ struct KerxSubTableFormat4
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->font->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->font->face);
     driver.drive (&dc);
 
     return_trace (true);
@@ -634,10 +636,9 @@ struct KerxSubTableFormat4
   }
 
   protected:
-  KernSubTableHeader	header;
-  StateTable<MorxTypes, EntryData>
-			machine;
-  HBUINT32		flags;
+  KernSubTableHeader		header;
+  StateTable<Types, EntryData>	machine;
+  HBUINT32			flags;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
 };
@@ -756,7 +757,7 @@ struct KerxSubTableFormat6
 
 struct KerxSubTableHeader
 {
-  typedef MorxTypes Types;
+  typedef ExtendedTypes Types;
 
   unsigned int tuple_count (void) const { return tupleCount; }
 

@@ -546,7 +546,7 @@ struct ClassTable
   DEFINE_SIZE_ARRAY (4, classArray);
 };
 
-struct MortTypes
+struct ObsoleteTypes
 {
   static const bool extended = false;
   typedef HBUINT16 HBUINT;
@@ -573,7 +573,7 @@ struct MortTypes
     return offsetToIndex (2 * offset, base, array);
   }
 };
-struct MorxTypes
+struct ExtendedTypes
 {
   static const bool extended = true;
   typedef HBUINT32 HBUINT;

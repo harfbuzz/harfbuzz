@@ -316,7 +316,7 @@ struct KernOT : KernTable<KernOT>
 
   struct SubTableHeader
   {
-    typedef AAT::MortTypes Types;
+    typedef AAT::ObsoleteTypes Types;
 
     unsigned int tuple_count (void) const { return 0; }
 
@@ -363,7 +363,7 @@ struct KernAAT : KernTable<KernAAT>
 
   struct SubTableHeader
   {
-    typedef AAT::MortTypes Types;
+    typedef AAT::ObsoleteTypes Types;
 
     unsigned int tuple_count (void) const { return 0; }
 

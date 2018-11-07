@@ -1166,11 +1166,11 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
-struct morx : mortmorx<MorxTypes>
+struct morx : mortmorx<ExtendedTypes>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_morx;
 };
-struct mort : mortmorx<MortTypes>
+struct mort : mortmorx<ObsoleteTypes>
 {
   static const hb_tag_t tableTag	= HB_AAT_TAG_mort;
 };
