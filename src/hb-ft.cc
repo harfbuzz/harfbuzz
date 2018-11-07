@@ -466,9 +466,9 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
-  metrics->ascender = ft_face->size->metrics.ascender;
-  metrics->descender = ft_face->size->metrics.descender;
-  metrics->line_gap = ft_face->size->metrics.height - (ft_face->size->metrics.ascender - ft_face->size->metrics.descender);
+  metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
+  metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
+  metrics->line_gap = FT_MulFix( ft_face->height, ft_face->size->metrics.y_scale ) - (metrics->ascender - metrics->descender);
   if (font->y_scale < 0)
   {
     metrics->ascender = -metrics->ascender;

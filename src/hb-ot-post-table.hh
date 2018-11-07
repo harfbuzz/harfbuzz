@@ -49,12 +49,15 @@ namespace OT {
 
 struct postV2Tail
 {
+  friend struct post;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (glyphNameIndex.sanitize (c));
   }
 
+  protected:
   ArrayOf<HBUINT16>	glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
@@ -62,6 +65,7 @@ struct postV2Tail
 			namesX;		/* Glyph names with length bytes [variable]
 					 * (a Pascal string). */
 
+  public:
   DEFINE_SIZE_ARRAY2 (2, glyphNameIndex, namesX);
 };
 
@@ -124,7 +128,9 @@ struct post
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
       const uint8_t *end = (uint8_t *) table + table_length;
-      for (const uint8_t *data = pool; data < end && data + *data <= end; data += 1 + *data)
+      for (const uint8_t *data = pool;
+	   index_to_offset.len < 65535 && data < end && data + *data < end;
+	   data += 1 + *data)
 	index_to_offset.push (data - pool);
     }
     inline void fini (void)
@@ -142,10 +148,9 @@ struct post
         return false;
       if (!buf_len)
 	return true;
-      if (buf_len <= s.len) /* What to do with truncation? Returning false for now. */
-        return false;
-      strncpy (buf, s.arrayZ, s.len);
-      buf[s.len] = '\0';
+      unsigned int len = MIN (buf_len - 1, s.len);
+      strncpy (buf, s.arrayZ, len);
+      buf[len] = '\0';
       return true;
     }
 
