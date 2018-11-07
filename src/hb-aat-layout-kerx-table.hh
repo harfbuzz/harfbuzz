@@ -768,7 +768,7 @@ struct KerxSubTableHeader
 {
   typedef ExtendedTypes Types;
 
-  unsigned int tuple_count (void) const { return tupleCount; }
+  inline unsigned int tuple_count (void) const { return tupleCount; }
 
   enum Coverage
   {

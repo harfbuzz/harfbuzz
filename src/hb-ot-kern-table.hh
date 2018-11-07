@@ -247,7 +247,8 @@ struct KernOT : KernTable<KernOT>
   {
     typedef AAT::ObsoleteTypes Types;
 
-    unsigned int tuple_count (void) const { return 0; }
+    inline unsigned int tuple_count (void) const { return 0; }
+
 
     enum Coverage
     {
@@ -294,7 +295,7 @@ struct KernAAT : KernTable<KernAAT>
   {
     typedef AAT::ObsoleteTypes Types;
 
-    unsigned int tuple_count (void) const { return 0; }
+    inline unsigned int tuple_count (void) const { return 0; }
 
     enum Coverage
     {
