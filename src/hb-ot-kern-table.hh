@@ -51,8 +51,8 @@ struct KernSubTableFormat2
      * different ClassTable.  OT's has 16bit entries, while AAT has 8bit entries.
      * I've not seen any in the wild. */
     return 0;
-    unsigned int l = (this+leftClassTable).get_class (left);
-    unsigned int r = (this+rightClassTable).get_class (right);
+    unsigned int l = (this+leftClassTable).get_class (left, 0);
+    unsigned int r = (this+rightClassTable).get_class (right, 0);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;

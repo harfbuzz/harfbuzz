@@ -436,7 +436,7 @@ struct StateTable
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    return (this+classTable).get_class (glyph_id, num_glyphs);
+    return (this+classTable).get_class (glyph_id, num_glyphs, 1);
   }
 
   inline const Entry<Extra> *get_entries () const
@@ -528,7 +528,7 @@ struct StateTable
 
 struct ClassTable
 {
-  inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int outOfRange=0) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int outOfRange) const
   {
     unsigned int i = glyph_id - firstGlyph;
     return i >= classArray.len ? outOfRange : classArray.arrayZ[i];
@@ -553,9 +553,11 @@ struct ObsoleteTypes
   typedef HBUINT8 HBUSHORT;
   struct ClassType : ClassTable
   {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs HB_UNUSED) const
+    inline unsigned int get_class (hb_codepoint_t glyph_id,
+				   unsigned int num_glyphs HB_UNUSED,
+				   unsigned int outOfRange) const
     {
-      return ClassTable::get_class (glyph_id, 1);
+      return ClassTable::get_class (glyph_id, outOfRange);
     }
   };
   template <typename T>
@@ -580,10 +582,12 @@ struct ExtendedTypes
   typedef HBUINT16 HBUSHORT;
   struct ClassType : Lookup<HBUINT16>
   {
-    inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
+    inline unsigned int get_class (hb_codepoint_t glyph_id,
+				   unsigned int num_glyphs,
+				   unsigned int outOfRange) const
     {
       const HBUINT16 *v = get_value (glyph_id, num_glyphs);
-      return v ? *v : 1;
+      return v ? *v : outOfRange;
     }
   };
   template <typename T>
