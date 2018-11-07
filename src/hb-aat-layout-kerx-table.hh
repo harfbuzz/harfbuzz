@@ -524,7 +524,6 @@ struct KerxSubTableFormat4
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
 
       if (mark_set && entry->data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
       {
@@ -600,7 +599,7 @@ struct KerxSubTableFormat4
 	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
       }
 
-      if (flags & Mark)
+      if (entry->flags & Mark)
       {
 	mark_set = true;
 	mark = buffer->idx;
