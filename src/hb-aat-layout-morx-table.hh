@@ -375,14 +375,14 @@ struct LigatureEntry<true>
     Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
   };
 
-  typedef struct
+  struct EntryData
   {
     HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
 				 * for processing this group, if indicated
 				 * by the flags. */
     public:
     DEFINE_SIZE_STATIC (2);
-  } EntryData;
+  };
 
   template <typename Flags>
   static inline bool performAction (Flags flags)
@@ -428,11 +428,11 @@ struct LigatureSubtable
 
   struct driver_context_t
   {
+    static const bool in_place = false;
     enum
     {
       DontAdvance	= LigatureEntryT::DontAdvance,
     };
-    static const bool in_place = false;
     enum LigActionFlags
     {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
