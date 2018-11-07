@@ -269,7 +269,7 @@ struct KernSubTableFormat1
 	  /* The following two flags are undocumented in the spec, but described
 	   * in the example. */
 	  bool last = v & 1;
-	  v = v & ~1;
+	  v &= ~1;
 	  if (v == 0x8000)
 	  {
 	    crossOffset = 0;
