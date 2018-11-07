@@ -236,9 +236,7 @@ struct KerxSubTableFormat1
 	 * other subtables in kerx.  Discovered via testing. */
 	kernAction (&table->machine + table->kernAction),
 	depth (0),
-	crossStream (table->header.coverage & table->header.CrossStream),
-	crossOffset (0) {}
-
+	crossStream (table->header.coverage & table->header.CrossStream) {}
 
     /* TODO
      * 'kern' table has this pecularity, we don't currently implement.
@@ -307,21 +305,25 @@ struct KerxSubTableFormat1
 	  /* "The end of the list is marked by an odd value..."  Ignore it. */
 	  v &= ~1;
 
+	  hb_glyph_position_t &o = buffer->pos[idx];
+
 	  /* The following flag is undocumented in the spec, but described
 	   * in the 'kern' table example. */
 	  if (v == -0x8000)
 	  {
-	    crossOffset = 0;
-	    v = 0;
+	    o.attach_type() = ATTACH_TYPE_NONE;
+	    o.attach_chain() = 0;
+	    o.x_offset = o.y_offset = 0;
 	  }
-
-	  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	  else if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	  {
 	    if (crossStream)
 	    {
-	      crossOffset += v;
-	      if (!buffer->pos[idx].y_offset)
-		buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
+	      if (buffer->pos[idx].attach_type() && !buffer->pos[idx].y_offset)
+	      {
+		o.y_offset = c->font->em_scale_y (v);
+		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+	      }
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
@@ -337,9 +339,11 @@ struct KerxSubTableFormat1
 	    if (crossStream)
 	    {
 	      /* CoreText doesn't do crossStream kerning in vertical.  We do. */
-	      crossOffset += v;
-	      if (!buffer->pos[idx].x_offset)
-		buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
+	      if (buffer->pos[idx].attach_type() && !buffer->pos[idx].x_offset)
+	      {
+		o.x_offset = c->font->em_scale_x (v);
+		buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+	      }
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
@@ -353,8 +357,6 @@ struct KerxSubTableFormat1
 	}
 	depth = 0;
       }
-      else
-	buffer->pos[buffer->idx].y_offset += c->font->em_scale_y (crossOffset);
 
       return true;
     }
@@ -366,7 +368,6 @@ struct KerxSubTableFormat1
     unsigned int stack[8];
     unsigned int depth;
     bool crossStream;
-    int crossOffset;
   };
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -875,6 +876,7 @@ struct KerxTable
   {
     typedef typename T::SubTable SubTable;
 
+    bool seenCrossStream = false;
     c->set_lookup_index (0);
     const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
@@ -893,6 +895,23 @@ struct KerxTable
 
       if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index))
 	goto skip;
+
+      if (!seenCrossStream &&
+	  (st->u.header.coverage & st->u.header.CrossStream))
+      {
+        /* Attach all glyphs into a chain. */
+        seenCrossStream = true;
+	hb_glyph_position_t *pos = c->buffer->pos;
+	unsigned int count = c->buffer->len;
+	for (unsigned int i = 0; i < count; i++)
+	{
+	  pos[i].attach_type() = ATTACH_TYPE_CURSIVE;
+	  pos[i].attach_chain() = HB_DIRECTION_IS_FORWARD (c->buffer->props.direction) ? -1 : +1;
+	  /* We intentionally don't set HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT,
+	   * since there needs to be a non-zero attachment for post-positioning to
+	   * be needed. */
+	}
+      }
 
       if (reverse)
 	c->buffer->reverse ();
