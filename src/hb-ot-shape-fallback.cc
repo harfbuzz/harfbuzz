@@ -464,9 +464,18 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
       !font->has_glyph_h_kerning_func () :
       !font->has_glyph_v_kerning_func ())
     return;
+
+  bool reverse = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
+
+  if (reverse)
+    buffer->reverse ();
+
   hb_ot_shape_fallback_kern_driver_t driver (font, buffer);
   OT::hb_kern_machine_t<hb_ot_shape_fallback_kern_driver_t> machine (driver);
   machine.kern (font, buffer, plan->kern_mask, false);
+
+  if (reverse)
+    buffer->reverse ();
 }
 
 

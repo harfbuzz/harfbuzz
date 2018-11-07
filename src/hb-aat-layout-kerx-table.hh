@@ -889,8 +889,7 @@ struct KerxTable
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      reverse = T::Types::extended /* TODO remove after kern application is moved earlier. */ &&
-		bool (st->u.header.coverage & st->u.header.Backwards) !=
+      reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index))

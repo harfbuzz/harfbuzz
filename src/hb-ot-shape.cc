@@ -866,10 +866,15 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 	break;
     }
 
+  /* XXX Clean up relationship between these. */
   if (c->plan->apply_gpos)
     c->plan->position (c->font, c->buffer);
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
+  else if (c->plan->apply_kern)
+    hb_ot_layout_kern (c->plan, c->font, c->buffer);
+  else if (c->plan->fallback_kerning)
+    _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   if (c->plan->apply_trak)
     hb_aat_layout_track (c->plan, c->font, c->buffer);
@@ -914,13 +919,6 @@ hb_ot_position (const hb_ot_shape_context_t *c)
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
     hb_buffer_reverse (c->buffer);
-
-  /* Visual fallback goes here. */
-
-  if (c->plan->apply_kern)
-    hb_ot_layout_kern (c->plan, c->font, c->buffer);
-  else if (c->plan->fallback_kerning)
-    _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
 }
