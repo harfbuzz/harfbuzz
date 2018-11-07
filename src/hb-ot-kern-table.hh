@@ -27,89 +27,8 @@
 #ifndef HB_OT_KERN_TABLE_HH
 #define HB_OT_KERN_TABLE_HH
 
-#include "hb-open-type.hh"
+#include "hb-kern.hh"
 #include "hb-ot-shape.hh"
-#include "hb-ot-layout-gsubgpos.hh"
-#include "hb-aat-layout-common.hh"
-
-
-template <typename Driver>
-struct hb_kern_machine_t
-{
-  hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
-
-  HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
-  inline void kern (hb_font_t   *font,
-		    hb_buffer_t *buffer,
-		    hb_mask_t    kern_mask,
-		    bool         scale = true) const
-  {
-    OT::hb_ot_apply_context_t c (1, font, buffer);
-    c.set_lookup_mask (kern_mask);
-    c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
-    OT::hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c.iter_input;
-    skippy_iter.init (&c);
-
-    bool horizontal = HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction);
-    unsigned int count = buffer->len;
-    hb_glyph_info_t *info = buffer->info;
-    hb_glyph_position_t *pos = buffer->pos;
-    for (unsigned int idx = 0; idx < count;)
-    {
-      if (!(info[idx].mask & kern_mask))
-      {
-	idx++;
-	continue;
-      }
-
-      skippy_iter.reset (idx, 1);
-      if (!skippy_iter.next ())
-      {
-	idx++;
-	continue;
-      }
-
-      unsigned int i = idx;
-      unsigned int j = skippy_iter.idx;
-
-      hb_position_t kern = driver.get_kerning (info[i].codepoint,
-					       info[j].codepoint);
-
-
-      if (likely (!kern))
-        goto skip;
-
-
-      if (horizontal)
-      {
-        if (scale)
-	  kern = font->em_scale_x (kern);
-	hb_position_t kern1 = kern >> 1;
-	hb_position_t kern2 = kern - kern1;
-	pos[i].x_advance += kern1;
-	pos[j].x_advance += kern2;
-	pos[j].x_offset += kern2;
-      }
-      else
-      {
-        if (scale)
-	  kern = font->em_scale_y (kern);
-	hb_position_t kern1 = kern >> 1;
-	hb_position_t kern2 = kern - kern1;
-	pos[i].y_advance += kern1;
-	pos[j].y_advance += kern2;
-	pos[j].y_offset += kern2;
-      }
-
-      buffer->unsafe_to_break (i, j + 1);
-
-    skip:
-      idx = skippy_iter.idx;
-    }
-  }
-
-  const Driver &driver;
-};
 
 
 /*
@@ -122,38 +41,6 @@ struct hb_kern_machine_t
 
 namespace OT {
 
-
-struct hb_glyph_pair_t
-{
-  hb_codepoint_t left;
-  hb_codepoint_t right;
-};
-
-struct KernPair
-{
-  inline int get_kerning (void) const
-  { return value; }
-
-  inline int cmp (const hb_glyph_pair_t &o) const
-  {
-    int ret = left.cmp (o.left);
-    if (ret) return ret;
-    return right.cmp (o.right);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
-  }
-
-  protected:
-  GlyphID	left;
-  GlyphID	right;
-  FWORD		value;
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
 
 template <typename KernSubTableHeader>
 struct KernSubTableFormat0

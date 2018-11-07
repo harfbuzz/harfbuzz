@@ -28,10 +28,7 @@
 #ifndef HB_AAT_LAYOUT_KERX_TABLE_HH
 #define HB_AAT_LAYOUT_KERX_TABLE_HH
 
-#include "hb-open-type.hh"
-#include "hb-aat-layout-common.hh"
-#include "hb-ot-layout-gpos-table.hh"
-#include "hb-ot-kern-table.hh"
+#include "hb-kern.hh"
 
 /*
  * kerx -- Extended Kerning
