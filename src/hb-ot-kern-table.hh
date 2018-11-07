@@ -588,8 +588,6 @@ struct KernTable
 	   (st->u.header.Variation | st->u.header.CrossStream | st->u.header.Direction)) !=
 	  st->u.header.DirectionHorizontal)
         continue;
-      if (st->u.header.coverage & st->u.header.Override)
-        v = 0;
       v += st->get_kerning (left, right);
       st = &StructAfter<SubTable> (*st);
     }
@@ -603,15 +601,6 @@ struct KernTable
     c->set_lookup_index (0);
     const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
     unsigned int count = thiz()->nTables;
-    /* If there's an override subtable, skip subtables before that. */
-    unsigned int last_override = 0;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (!(st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) &&
-	  (st->u.header.coverage & st->u.header.Override))
-        last_override = i;
-      st = &StructAfter<SubTable> (*st);
-    }
     st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
@@ -620,9 +609,6 @@ struct KernTable
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) !=
 	  ((st->u.header.coverage & st->u.header.Direction) == st->u.header.DirectionHorizontal))
-	goto skip;
-
-      if (i < last_override)
 	goto skip;
 
       if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
@@ -718,8 +704,6 @@ struct KernAAT : KernTable<KernAAT>
       Direction		= 0x80u,
       CrossStream	= 0x40u,
       Variation		= 0x20u,
-
-      Override		= 0x00u, /* Not supported. */
 
       DirectionHorizontal= 0x00u
     };
