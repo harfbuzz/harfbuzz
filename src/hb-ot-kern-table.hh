@@ -334,6 +334,8 @@ struct KernSubTableFormat1
 	}
 	depth = 0;
       }
+      else
+	buffer->pos[buffer->idx].y_offset += c->font->em_scale_y (crossOffset);
 
       return true;
     }
