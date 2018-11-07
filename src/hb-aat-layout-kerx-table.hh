@@ -881,10 +881,11 @@ struct KerxTable
     return v;
   }
 
-  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
   {
     typedef typename T::SubTable SubTable;
 
+    bool ret = false;
     bool seenCrossStream = false;
     c->set_lookup_index (0);
     const SubTable *st = &thiz()->firstSubTable;
@@ -927,7 +928,7 @@ struct KerxTable
 
       c->sanitizer.set_object (*st);
 
-      st->dispatch (c);
+      ret |= st->dispatch (c);
 
       if (reverse)
 	c->buffer->reverse ();
@@ -938,6 +939,8 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+
+    return ret;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

@@ -272,10 +272,11 @@ struct kern
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
   inline bool has_data (void) const { return u.version32; }
+  inline unsigned int get_type (void) const { return u.major; }
 
   inline bool has_cross_stream (void) const
   {
-    switch (u.major) {
+    switch (get_type ()) {
     case 0: return u.ot.has_cross_stream ();
     case 1: return u.aat.has_cross_stream ();
     default:return false;
@@ -284,20 +285,25 @@ struct kern
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    switch (u.major) {
+    switch (get_type ()) {
     case 0: return u.ot.get_h_kerning (left, right);
     case 1: return u.aat.get_h_kerning (left, right);
     default:return 0;
     }
   }
 
-  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  { return dispatch (c); }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    /* TODO Switch to dispatch(). */
-    switch (u.major) {
-    case 0: u.ot.apply (c);  return;
-    case 1: u.aat.apply (c); return;
-    default:		     return;
+    unsigned int subtable_type = get_type ();
+    TRACE_DISPATCH (this, subtable_type);
+    switch (subtable_type) {
+    case 0:	return_trace (c->dispatch (u.ot));
+    case 1:	return_trace (c->dispatch (u.aat));
+    default:	return_trace (c->default_return_value ());
     }
   }
 
@@ -305,11 +311,7 @@ struct kern
   {
     TRACE_SANITIZE (this);
     if (!u.version32.sanitize (c)) return_trace (false);
-    switch (u.major) {
-    case 0: return_trace (u.ot.sanitize (c));
-    case 1: return_trace (u.aat.sanitize (c));
-    default:return_trace (true);
-    }
+    return_trace (dispatch (c));
   }
 
   protected:

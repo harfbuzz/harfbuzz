@@ -1275,10 +1275,8 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
-    {
-     if (accel.apply (c))
-       ret = true;
-    }
+     ret |= accel.apply (c);
+
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
 
