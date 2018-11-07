@@ -180,6 +180,12 @@ struct Format1Entry<true>
     public:
     DEFINE_SIZE_STATIC (2);
   };
+
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->data.kernActionIndex != 0xFFFF; }
+
+  static inline unsigned int kernActionIndex (const Entry<EntryData> *entry)
+  { return entry->data.kernActionIndex; }
 };
 template <>
 struct Format1Entry<false>
@@ -196,6 +202,12 @@ struct Format1Entry<false>
   };
 
   typedef void EntryData;
+
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->flags & Offset; }
+
+  static inline unsigned int kernActionIndex (const Entry<EntryData> *entry)
+  { return entry->flags & Offset; }
 };
 
 template <typename KernSubTableHeader>
@@ -215,9 +227,10 @@ struct KerxSubTableFormat1
       DontAdvance	= Format1EntryT::DontAdvance,
     };
 
-    inline driver_context_t (const KerxSubTableFormat1 *table,
+    inline driver_context_t (const KerxSubTableFormat1 *table_,
 			     hb_aat_apply_context_t *c_) :
 	c (c_),
+	table (table_),
 	/* Apparently the offset kernAction is from the beginning of the state-machine,
 	 * similar to offsets in morx table, NOT from beginning of this table, like
 	 * other subtables in kerx.  Discovered via testing. */
@@ -226,10 +239,21 @@ struct KerxSubTableFormat1
 	crossStream (table->header.coverage & table->header.CrossStream),
 	crossOffset (0) {}
 
+
+    /* TODO
+     * 'kern' table has this pecularity, we don't currently implement.
+     *
+     * "Because the stateTableOffset in the state table header is (strictly
+     * speaking) redundant, some 'kern' tables use it to record an initial
+     * state where that should not be StartOfText. To determine if this is
+     * done, calculate what the stateTableOffset should be. If it's different
+     * from the actual stateTableOffset, use it as the initial state."
+     */
+
     inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
-      return entry->data.kernActionIndex != 0xFFFF;
+      return Format1EntryT::performAction (entry);
     }
     inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
 			    const Entry<EntryData> *entry)
@@ -248,9 +272,11 @@ struct KerxSubTableFormat1
 	  depth = 0; /* Probably not what CoreText does, but better? */
       }
 
-      if (entry->data.kernActionIndex != 0xFFFF)
+      if (Format1EntryT::performAction (entry))
       {
-	const FWORD *actions = &kernAction[entry->data.kernActionIndex];
+	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
+	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
+	const FWORD *actions = &kernAction[kern_idx];
 	if (!c->sanitizer.check_array (actions, depth))
 	{
 	  depth = 0;
@@ -334,6 +360,7 @@ struct KerxSubTableFormat1
 
     private:
     hb_aat_apply_context_t *c;
+    const KerxSubTableFormat1 *table;
     const UnsizedArrayOf<FWORD> &kernAction;
     unsigned int stack[8];
     unsigned int depth;

@@ -410,7 +410,7 @@ struct LigatureEntry<false>
   { return entry->flags & Offset; }
 
   static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
-  { return entry->flags & 0x3FFF; }
+  { return entry->flags & Offset; }
 };
 
 
@@ -479,9 +479,6 @@ struct LigatureSubtable
       {
 	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
-	unsigned int action;
-	unsigned int ligature_idx = 0;
 
 	if (unlikely (!match_length))
 	  return true;
@@ -490,8 +487,13 @@ struct LigatureSubtable
 	  return false; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
+
+	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
 	action_idx = Types::offsetToIndex (action_idx, table, ligAction.arrayZ);
 	const HBUINT32 *actionData = &ligAction[action_idx];
+
+	unsigned int ligature_idx = 0;
+	unsigned int action;
         do
 	{
 	  if (unlikely (!cursor))
