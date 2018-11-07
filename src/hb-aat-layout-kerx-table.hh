@@ -773,16 +773,16 @@ struct KerxSubTableHeader
 
   enum Coverage
   {
-    Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
-    CrossStream		= 0x40000000,	/* Set if table has cross-stream kerning values. */
-    Variation		= 0x20000000,	/* Set if table has variation kerning values. */
-    Backwards		= 0x10000000,	/* If clear, process the glyphs forwards, that
-					 * is, from first to last in the glyph stream.
-					 * If we, process them from last to first.
-					 * This flag only applies to state-table based
-					 * 'kerx' subtables (types 1 and 4). */
-    Reserved		= 0x0FFFFF00,	/* Reserved, set to zero. */
-    SubtableType	= 0x000000FF,	/* Subtable type. */
+    Vertical	= 0x80000000u,	/* Set if table has vertical kerning values. */
+    CrossStream	= 0x40000000u,	/* Set if table has cross-stream kerning values. */
+    Variation	= 0x20000000u,	/* Set if table has variation kerning values. */
+    Backwards	= 0x10000000u,	/* If clear, process the glyphs forwards, that
+				 * is, from first to last in the glyph stream.
+				 * If we, process them from last to first.
+				 * This flag only applies to state-table based
+				 * 'kerx' subtables (types 1 and 4). */
+    Reserved	= 0x0FFFFF00u,	/* Reserved, set to zero. */
+    SubtableType= 0x000000FFu,	/* Subtable type. */
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -854,12 +854,16 @@ struct kerx
   static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
   static const uint16_t minVersion = 2;
 
+  typedef KerxSubTableHeader SubTableHeader;
+  typedef SubTableHeader::Types Types;
+  typedef KerxSubTable SubTable;
+
   inline bool has_data (void) const { return version != 0; }
 
   inline void apply (hb_aat_apply_context_t *c) const
   {
     c->set_lookup_index (0);
-    const KerxSubTable *st = &firstSubTable;
+    const SubTable *st = &firstSubTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -871,7 +875,7 @@ struct kerx
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
-      if (!c->buffer->message (c->font, "start kerx subtable %d", c->lookup_index))
+      if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (tableTag), c->lookup_index))
 	goto skip;
 
       if (reverse)
@@ -879,19 +883,17 @@ struct kerx
 
       c->sanitizer.set_object (*st);
 
-      /* XXX Reverse-kern is not working yet...
-       * hb_kern_machine_t would need to know that it's reverse-kerning.
-       * Or better yet, make it work in reverse as well, so we don't have
-       * to reverse and reverse back? */
+      /* XXX Reverse-kern is probably not working yet...
+       * hb_kern_machine_t would need to know that it's reverse-kerning. */
       st->dispatch (c);
 
       if (reverse)
 	c->buffer->reverse ();
 
-      (void) c->buffer->message (c->font, "end kerx subtable %d", c->lookup_index);
+      (void) c->buffer->message (c->font, "end %c%c%c%c subtable %d", HB_UNTAG (tableTag), c->lookup_index);
 
     skip:
-      st = &StructAfter<KerxSubTable> (*st);
+      st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
@@ -899,16 +901,18 @@ struct kerx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) || version < minVersion || !tableCount.sanitize (c))
+    if (unlikely (!version.sanitize (c) ||
+		  version < minVersion ||
+		  !tableCount.sanitize (c)))
       return_trace (false);
 
-    const KerxSubTable *st = &firstSubTable;
+    const SubTable *st = &firstSubTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!st->sanitize (c))
 	return_trace (false);
-      st = &StructAfter<KerxSubTable> (*st);
+      st = &StructAfter<SubTable> (*st);
     }
 
     return_trace (true);
@@ -920,7 +924,7 @@ struct kerx
   HBUINT16	unused;		/* Set to 0. */
   HBUINT32	tableCount;	/* The number of subtables included in the extended kerning
 				 * table. */
-  KerxSubTable	firstSubTable;	/* Subtables. */
+  SubTable	firstSubTable;	/* Subtables. */
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:

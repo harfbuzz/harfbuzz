@@ -191,20 +191,34 @@ struct KernTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (st->u.header.coverage & st->u.header.Variation)
+      bool reverse;
+
+      if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
         goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
+      reverse = T::Types::extended /* TODO remove after kern application is moved earlier. */ &&
+		bool (st->u.header.coverage & st->u.header.Backwards) !=
+		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+
+      if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index))
 	goto skip;
+
+      if (reverse)
+	c->buffer->reverse ();
 
       c->sanitizer.set_object (*st);
 
+      /* XXX Reverse-kern is probably not working yet...
+       * hb_kern_machine_t would need to know that it's reverse-kerning. */
       st->dispatch (c);
 
-      (void) c->buffer->message (c->font, "end kern subtable %d", c->lookup_index);
+      if (reverse)
+	c->buffer->reverse ();
+
+      (void) c->buffer->message (c->font, "end %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index);
 
     skip:
       st = &StructAfter<SubTable> (*st);
@@ -247,11 +261,13 @@ struct KernOTSubTableHeader
   enum Coverage
   {
     Horizontal	= 0x01u,
-    Minimum		= 0x02u,
+    Minimum	= 0x02u,
     CrossStream	= 0x04u,
-    Override		= 0x08u,
+    Override	= 0x08u,
 
-    Variation		= 0x00u, /* Not supported. */
+    /* Not supported: */
+    Backwards	= 0x00u,
+    Variation	= 0x00u,
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -273,15 +289,17 @@ struct KernOT : KernTable<KernOT>
 {
   friend struct KernTable<KernOT>;
 
-  typedef KernOTSubTableHeader SubTableHeader;
-  typedef KernSubTable<SubTableHeader> SubTable;
-
+  static const hb_tag_t tableTag = HB_OT_TAG_kern;
   static const uint16_t minVersion = 0;
 
+  typedef KernOTSubTableHeader SubTableHeader;
+  typedef SubTableHeader::Types Types;
+  typedef KernSubTable<SubTableHeader> SubTable;
+
   protected:
-  HBUINT16			version;	/* Version--0x0000u */
-  HBUINT16			tableCount;	/* Number of subtables in the kerning table. */
-  KernSubTable<SubTableHeader>	firstSubTable;	/* Subtables. */
+  HBUINT16	version;	/* Version--0x0000u */
+  HBUINT16	tableCount;	/* Number of subtables in the kerning table. */
+  SubTable	firstSubTable;	/* Subtables. */
   public:
   DEFINE_SIZE_MIN (4);
 };
@@ -297,9 +315,12 @@ struct KernAATSubTableHeader
 
   enum Coverage
   {
-    Vertical		= 0x80u,
+    Vertical	= 0x80u,
     CrossStream	= 0x40u,
-    Variation		= 0x20u,
+    Variation	= 0x20u,
+
+    /* Not supported: */
+    Backwards	= 0x00u,
   };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -323,15 +344,17 @@ struct KernAAT : KernTable<KernAAT>
 {
   friend struct KernTable<KernAAT>;
 
-  typedef KernAATSubTableHeader SubTableHeader;
-  typedef KernSubTable<SubTableHeader> SubTable;
-
+  static const hb_tag_t tableTag = HB_OT_TAG_kern;
   static const uint32_t minVersion = 0x00010000u;
 
+  typedef KernAATSubTableHeader SubTableHeader;
+  typedef SubTableHeader::Types Types;
+  typedef KernSubTable<SubTableHeader> SubTable;
+
   protected:
-  HBUINT32			version;	/* Version--0x00010000u */
-  HBUINT32			tableCount;	/* Number of subtables in the kerning table. */
-  KernSubTable<SubTableHeader>	firstSubTable;	/* Subtables. */
+  HBUINT32	version;	/* Version--0x00010000u */
+  HBUINT32	tableCount;	/* Number of subtables in the kerning table. */
+  SubTable	firstSubTable;	/* Subtables. */
   public:
   DEFINE_SIZE_MIN (8);
 };
