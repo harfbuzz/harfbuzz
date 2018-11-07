@@ -48,6 +48,9 @@ struct hb_ot_shape_plan_t;
 HB_INTERNAL hb_bool_t
 hb_ot_layout_has_kerning (hb_face_t *face);
 
+HB_INTERNAL hb_bool_t
+hb_ot_layout_has_cross_kerning (hb_face_t *face);
+
 HB_INTERNAL void
 hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
 		   hb_font_t *font,

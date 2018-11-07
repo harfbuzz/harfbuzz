@@ -131,13 +131,12 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
       plan.apply_kerx = true;
     else if (hb_ot_layout_has_kerning (face))
       plan.apply_kern = true;
-    else
-      plan.fallback_kerning = true;
   }
 
+  bool has_kern_mark = plan.apply_kern && hb_ot_layout_has_cross_kerning (face);
+  plan.zero_marks = !plan.apply_kerx && !has_kern_mark;
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
-  if (!plan.apply_gpos && !plan.apply_kerx)
-    plan.fallback_mark_positioning = true;
+  plan.fallback_mark_positioning = !plan.apply_gpos && !plan.apply_kerx && !has_kern_mark;
 
   /* Currently we always apply trak. */
   plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
@@ -853,7 +852,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 
   hb_ot_layout_position_start (c->font, c->buffer);
 
-  if (!c->plan->apply_kerx)
+  if (c->plan->zero_marks)
     switch (c->plan->shaper->zero_width_marks)
     {
       case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
@@ -866,20 +865,19 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 	break;
     }
 
-  /* XXX Clean up relationship between these. */
   if (c->plan->apply_gpos)
     c->plan->position (c->font, c->buffer);
   else if (c->plan->apply_kerx)
     hb_aat_layout_position (c->plan, c->font, c->buffer);
   else if (c->plan->apply_kern)
     hb_ot_layout_kern (c->plan, c->font, c->buffer);
-  else if (c->plan->fallback_kerning)
+  else
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   if (c->plan->apply_trak)
     hb_aat_layout_track (c->plan, c->font, c->buffer);
 
-  if (!c->plan->apply_kerx)
+  if (c->plan->zero_marks)
     switch (c->plan->shaper->zero_width_marks)
     {
       case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE:

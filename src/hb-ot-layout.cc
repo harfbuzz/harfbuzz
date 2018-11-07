@@ -63,6 +63,12 @@ hb_ot_layout_has_kerning (hb_face_t *face)
   return face->table.kern->has_data ();
 }
 
+hb_bool_t
+hb_ot_layout_has_cross_kerning (hb_face_t *face)
+{
+  return face->table.kern->has_cross_stream ();
+}
+
 void
 hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
 		   hb_font_t *font,
