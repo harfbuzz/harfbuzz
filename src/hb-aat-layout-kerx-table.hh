@@ -859,7 +859,7 @@ struct kerx
   inline void apply (hb_aat_apply_context_t *c) const
   {
     c->set_lookup_index (0);
-    const KerxSubTable *st = &firstTable;
+    const KerxSubTable *st = &firstSubTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -902,7 +902,7 @@ struct kerx
     if (!version.sanitize (c) || version < minVersion || !tableCount.sanitize (c))
       return_trace (false);
 
-    const KerxSubTable *st = &firstTable;
+    const KerxSubTable *st = &firstSubTable;
     unsigned int count = tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -920,8 +920,7 @@ struct kerx
   HBUINT16	unused;		/* Set to 0. */
   HBUINT32	tableCount;	/* The number of subtables included in the extended kerning
 				 * table. */
-  KerxSubTable	firstTable;	/* Subtables. */
-  UnsizedArrayOf<HBUINT8>	dataZ;
+  KerxSubTable	firstSubTable;	/* Subtables. */
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:
