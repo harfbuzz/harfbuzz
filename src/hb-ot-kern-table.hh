@@ -266,15 +266,27 @@ struct KernSubTableFormat1
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
-	while (depth--)
-	{
-	  unsigned int idx = stack[depth];
-	  int v = *actions++;
 
-	  /* The following two flags are undocumented in the spec, but described
-	   * in the example. */
-	  bool last = v & 1;
+	/* "Each pops one glyph from the kerning stack and applies the kerning value to it.
+	 * The end of the list is marked by an odd value... */
+	unsigned int i;
+	for (i = 0; i < depth; i++)
+	  if (actions[i] & 1)
+	  {
+	    i++;
+	    break;
+	  }
+	for (; i; i--)
+	{
+	  unsigned int idx = stack[depth - i];
+	  int v = actions[i - 1];
+
+	  /* "The end of the list is marked by an odd value..."
+	   * Ignore it. */
 	  v &= ~1;
+
+	  /* The following flag is undocumented in the spec, but described
+	   * in the example. */
 	  if (v == 0x8000)
 	  {
 	    crossOffset = 0;
@@ -287,11 +299,9 @@ struct KernSubTableFormat1
 	    {
 	      if (crossStream)
 	      {
+		crossOffset += v;
 		if (!buffer->pos[idx].y_offset)
 		  buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
-	        /* XXX Why negative, not positive?!?! */
-	        v = -v;
-		crossOffset += v;
 	      }
 	      else
 	      {
@@ -307,13 +317,9 @@ struct KernSubTableFormat1
 	      if (crossStream)
 	      {
 	        /* CoreText doesn't do crossStream kerning in vertical. */
-#if 0
-		if (!buffer->pos[idx].x_offset)
-		  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
-#endif
-	        /* XXX Why negative, not positive?!?! */
-	        v = -v;
-		crossOffset += v;
+		//crossOffset += v;
+		//if (!buffer->pos[idx].x_offset)
+		//  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
 	      }
 	      else
 	      {
@@ -325,8 +331,6 @@ struct KernSubTableFormat1
 	      }
 	    }
 	  }
-	  if (last)
-	    break;
 	}
 	depth = 0;
       }
