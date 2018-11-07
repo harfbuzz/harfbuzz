@@ -166,7 +166,7 @@ struct KernTable
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
-    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+    typedef typename T::SubTable SubTable;
 
     int v = 0;
     const SubTable *st = &thiz()->firstSubTable;
@@ -184,7 +184,7 @@ struct KernTable
 
   inline void apply (AAT::hb_aat_apply_context_t *c) const
   {
-    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+    typedef typename T::SubTable SubTable;
 
     c->set_lookup_index (0);
     const SubTable *st = &thiz()->firstSubTable;
@@ -220,7 +220,7 @@ struct KernTable
 		  !thiz()->tableCount.sanitize (c)))
       return_trace (false);
 
-    typedef KernSubTable<typename T::SubTableHeader> SubTable;
+    typedef typename T::SubTable SubTable;
 
     const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
@@ -273,6 +273,7 @@ struct KernOT : KernTable<KernOT>
   friend struct KernTable<KernOT>;
 
   typedef KernOTSubTableHeader SubTableHeader;
+  typedef KernSubTable<SubTableHeader> SubTable;
 
   static const uint16_t minVersion = 0;
 
@@ -321,6 +322,7 @@ struct KernAAT : KernTable<KernAAT>
   friend struct KernTable<KernAAT>;
 
   typedef KernAATSubTableHeader SubTableHeader;
+  typedef KernSubTable<SubTableHeader> SubTable;
 
   static const uint32_t minVersion = 0x00010000u;
 
