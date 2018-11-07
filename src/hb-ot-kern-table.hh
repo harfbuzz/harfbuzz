@@ -287,7 +287,7 @@ struct KernSubTableFormat1
 
 	  /* The following flag is undocumented in the spec, but described
 	   * in the example. */
-	  if (v == 0x8000)
+	  if (v == -0x8000)
 	  {
 	    crossOffset = 0;
 	    v = 0;
