@@ -128,9 +128,9 @@ struct KernSubTable
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
     case 0:	return_trace (c->dispatch (u.format0));
-    case 1:	return_trace (c->dispatch (u.format1));
+    case 1:	return_trace (u.header.apple ? c->dispatch (u.format1) : c->default_return_value ());
     case 2:	return_trace (c->dispatch (u.format2));
-    case 3:	return_trace (c->dispatch (u.format3));
+    case 3:	return_trace (u.header.apple ? c->dispatch (u.format3) : c->default_return_value ());
     default:	return_trace (c->default_return_value ());
     }
   }
@@ -238,6 +238,7 @@ struct KernTable
 
 struct KernOTSubTableHeader
 {
+  static const bool apple = false;
   typedef AAT::ObsoleteTypes Types;
 
   inline unsigned int tuple_count (void) const { return 0; }
@@ -288,6 +289,7 @@ struct KernOT : KernTable<KernOT>
 
 struct KernAATSubTableHeader
 {
+  static const bool apple = true;
   typedef AAT::ObsoleteTypes Types;
 
   inline unsigned int tuple_count (void) const { return 0; }
