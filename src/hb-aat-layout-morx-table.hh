@@ -384,12 +384,10 @@ struct LigatureEntry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
-  template <typename Flags>
-  static inline bool performAction (Flags flags)
-  { return flags & PerformAction; }
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->flags & PerformAction; }
 
-  template <typename Entry, typename Flags>
-  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
+  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
   { return entry->data.ligActionIndex; }
 };
 template <>
@@ -408,13 +406,11 @@ struct LigatureEntry<false>
 
   typedef void EntryData;
 
-  template <typename Flags>
-  static inline bool performAction (Flags flags)
-  { return flags & Offset; }
+  static inline bool performAction (const Entry<EntryData> *entry)
+  { return entry->flags & Offset; }
 
-  template <typename Entry, typename Flags>
-  static inline unsigned int ligActionIndex (Entry &entry, Flags flags)
-  { return flags & 0x3FFF; }
+  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
+  { return entry->flags & 0x3FFF; }
 };
 
 
@@ -458,16 +454,15 @@ struct LigatureSubtable
     inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
-      return LigatureEntryT::performAction (entry->flags);
+      return LigatureEntryT::performAction (entry);
     }
     inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
 
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
-      if (flags & LigatureEntryT::SetComponent)
+      if (entry->flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
 	  return false;
@@ -480,11 +475,11 @@ struct LigatureSubtable
 	DEBUG_MSG (APPLY, nullptr, "Set component at %d", buffer->out_len);
       }
 
-      if (LigatureEntryT::performAction (flags))
+      if (LigatureEntryT::performAction (entry))
       {
 	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
 	unsigned int end = buffer->out_len;
-	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry, flags);
+	unsigned int action_idx = LigatureEntryT::ligActionIndex (entry);
 	unsigned int action;
 	unsigned int ligature_idx = 0;
 
