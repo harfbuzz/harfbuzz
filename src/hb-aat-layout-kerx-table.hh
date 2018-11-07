@@ -90,6 +90,7 @@ struct KerxSubTableHeader
   DEFINE_SIZE_STATIC (12);
 };
 
+template <typename KernSubTableHeader>
 struct KerxSubTableFormat0
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
@@ -141,13 +142,14 @@ struct KerxSubTableFormat0
   }
 
   protected:
-  KerxSubTableHeader	header;
+  KernSubTableHeader	header;
   BinSearchArrayOf<KernPair, HBUINT32>
 			pairs;	/* Sorted kern records. */
   public:
-  DEFINE_SIZE_ARRAY (28, pairs);
+  DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 16, pairs);
 };
 
+template <typename KernSubTableHeader>
 struct KerxSubTableFormat1
 {
   struct EntryData
@@ -329,13 +331,14 @@ struct KerxSubTableFormat1
   }
 
   protected:
-  KerxSubTableHeader				header;
+  KernSubTableHeader				header;
   StateTable<MorxTypes, EntryData>		machine;
   LOffsetTo<UnsizedArrayOf<FWORD>, false>	kernAction;
   public:
-  DEFINE_SIZE_STATIC (32);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
 };
 
+template <typename KernSubTableHeader>
 struct KerxSubTableFormat2
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
@@ -390,7 +393,7 @@ struct KerxSubTableFormat2
   }
 
   protected:
-  KerxSubTableHeader	header;
+  KernSubTableHeader	header;
   HBUINT32		rowWidth;	/* The width, in bytes, of a row in the table. */
   LOffsetTo<Lookup<HBUINT16>, false>
 			leftClassTable;	/* Offset from beginning of this subtable to
@@ -402,9 +405,10 @@ struct KerxSubTableFormat2
 			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_STATIC (28);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 16);
 };
 
+template <typename KernSubTableHeader>
 struct KerxSubTableFormat4
 {
   struct EntryData
@@ -566,14 +570,15 @@ struct KerxSubTableFormat4
   }
 
   protected:
-  KerxSubTableHeader	header;
+  KernSubTableHeader	header;
   StateTable<MorxTypes, EntryData>
 			machine;
   HBUINT32		flags;
   public:
-  DEFINE_SIZE_STATIC (32);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
 };
 
+template <typename KernSubTableHeader>
 struct KerxSubTableFormat6
 {
   enum Flags
@@ -589,7 +594,7 @@ struct KerxSubTableFormat6
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     if (is_long ())
     {
-      const U::Long &t = u.l;
+      const typename U::Long &t = u.l;
       unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
       unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
       unsigned int offset = l + r;
@@ -601,7 +606,7 @@ struct KerxSubTableFormat6
     }
     else
     {
-      const U::Short &t = u.s;
+      const typename U::Short &t = u.s;
       unsigned int l = (this+t.rowIndexTable).get_value_or_null (left, num_glyphs);
       unsigned int r = (this+t.columnIndexTable).get_value_or_null (right, num_glyphs);
       unsigned int offset = l + r;
@@ -660,7 +665,7 @@ struct KerxSubTableFormat6
   };
 
   protected:
-  KerxSubTableHeader		header;
+  KernSubTableHeader		header;
   HBUINT32			flags;
   HBUINT16			rowCount;
   HBUINT16			columnCount;
@@ -681,7 +686,7 @@ struct KerxSubTableFormat6
   } u;
   LOffsetTo<UnsizedArrayOf<FWORD>, false>	vector;
   public:
-  DEFINE_SIZE_STATIC (36);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };
 
 struct KerxTable
@@ -718,12 +723,12 @@ struct KerxTable
 
 protected:
   union {
-  KerxSubTableHeader	header;
-  KerxSubTableFormat0	format0;
-  KerxSubTableFormat1	format1;
-  KerxSubTableFormat2	format2;
-  KerxSubTableFormat4	format4;
-  KerxSubTableFormat6	format6;
+  KerxSubTableHeader				header;
+  KerxSubTableFormat0<KerxSubTableHeader>	format0;
+  KerxSubTableFormat1<KerxSubTableHeader>	format1;
+  KerxSubTableFormat2<KerxSubTableHeader>	format2;
+  KerxSubTableFormat4<KerxSubTableHeader>	format4;
+  KerxSubTableFormat6<KerxSubTableHeader>	format6;
   } u;
 public:
   DEFINE_SIZE_MIN (12);
