@@ -225,6 +225,15 @@ struct KernSubTableFormat1
 	crossStream (table->header.coverage & table->header.CrossStream),
 	crossOffset (0) {}
 
+    /* TODO
+     *
+     * "Because the stateTableOffset in the state table header is (strictly
+     * speaking) redundant, some 'kern' tables use it to record an initial
+     * state where that should not be StartOfText. To determine if this is
+     * done, calculate what the stateTableOffset should be. If it's different
+     * from the actual stateTableOffset, use it as the initial state."
+     */
+
     inline bool is_actionable (AAT::StateTableDriver<AAT::MortTypes, EntryData> *driver HB_UNUSED,
 			       const AAT::Entry<EntryData> *entry)
     {
