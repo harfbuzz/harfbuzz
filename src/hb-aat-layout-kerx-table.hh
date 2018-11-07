@@ -314,7 +314,7 @@ struct KerxSubTableFormat1
 	    v = 0;
 	  }
 
-	  if (idx < buffer->len && buffer->info[idx].mask & kern_mask)
+	  if (idx < buffer->len)
 	  {
 	    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	    {
@@ -324,7 +324,7 @@ struct KerxSubTableFormat1
 		if (!buffer->pos[idx].y_offset)
 		  buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
 	      }
-	      else
+	      else if (buffer->info[idx].mask & kern_mask)
 	      {
 		if (!buffer->pos[idx].x_offset)
 		{
@@ -342,7 +342,7 @@ struct KerxSubTableFormat1
 		if (!buffer->pos[idx].x_offset)
 		  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
 	      }
-	      else
+	      else if (buffer->info[idx].mask & kern_mask)
 	      {
 		if (!buffer->pos[idx].y_offset)
 		{
@@ -375,7 +375,8 @@ struct KerxSubTableFormat1
   {
     TRACE_APPLY (this);
 
-    if (!c->plan->requested_kerning)
+    if (!c->plan->requested_kerning &&
+	!(header.coverage & header.CrossStream))
       return false;
 
     driver_context_t dc (this, c);

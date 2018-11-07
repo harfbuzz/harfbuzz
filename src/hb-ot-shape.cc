@@ -124,7 +124,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 
-  if (plan.requested_kerning && !plan.apply_kerx && !has_gpos_kern)
+  if (!plan.apply_kerx && !has_gpos_kern)
   {
     /* Apparently Apple applies kerx if GPOS kern was not applied. */
     if (hb_aat_layout_has_positioning (face))
