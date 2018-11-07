@@ -38,7 +38,10 @@ namespace OT {
 template <typename Driver>
 struct hb_kern_machine_t
 {
-  hb_kern_machine_t (const Driver &driver_) : driver (driver_) {}
+  hb_kern_machine_t (const Driver &driver_,
+		     bool crossStream_ = false) :
+		       driver (driver_),
+		       crossStream (crossStream_) {}
 
   HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
   inline void kern (hb_font_t   *font,
@@ -81,26 +84,41 @@ struct hb_kern_machine_t
       if (likely (!kern))
         goto skip;
 
-
       if (horizontal)
       {
         if (scale)
 	  kern = font->em_scale_x (kern);
-	hb_position_t kern1 = kern >> 1;
-	hb_position_t kern2 = kern - kern1;
-	pos[i].x_advance += kern1;
-	pos[j].x_advance += kern2;
-	pos[j].x_offset += kern2;
+	if (crossStream)
+	{
+	  pos[j].y_offset = kern;
+	  buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+	}
+	else
+	{
+	  hb_position_t kern1 = kern >> 1;
+	  hb_position_t kern2 = kern - kern1;
+	  pos[i].x_advance += kern1;
+	  pos[j].x_advance += kern2;
+	  pos[j].x_offset += kern2;
+	}
       }
       else
       {
         if (scale)
 	  kern = font->em_scale_y (kern);
-	hb_position_t kern1 = kern >> 1;
-	hb_position_t kern2 = kern - kern1;
-	pos[i].y_advance += kern1;
-	pos[j].y_advance += kern2;
-	pos[j].y_offset += kern2;
+	if (crossStream)
+	{
+	  pos[j].x_offset = kern;
+	  buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+	}
+	else
+	{
+	  hb_position_t kern1 = kern >> 1;
+	  hb_position_t kern2 = kern - kern1;
+	  pos[i].y_advance += kern1;
+	  pos[j].y_advance += kern2;
+	  pos[j].y_offset += kern2;
+	}
       }
 
       buffer->unsafe_to_break (i, j + 1);
@@ -111,6 +129,7 @@ struct hb_kern_machine_t
   }
 
   const Driver &driver;
+  bool crossStream;
 };
 
 

@@ -66,10 +66,10 @@ struct KernSubTableFormat3
     if (!c->plan->requested_kerning)
       return false;
 
-    if (header.coverage & (header.CrossStream | header.Backwards))
+    if (header.coverage & header.Backwards)
       return false;
 
-    hb_kern_machine_t<KernSubTableFormat3> machine (*this);
+    hb_kern_machine_t<KernSubTableFormat3> machine (*this, header.coverage & header.CrossStream);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
 
     return_trace (true);
