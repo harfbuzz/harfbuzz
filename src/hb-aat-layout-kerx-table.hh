@@ -93,6 +93,14 @@ struct KernPair
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat0
 {
+  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  {
+    hb_glyph_pair_t pair = {left, right};
+    int i = pairs.bsearch (pair);
+    if (i == -1) return 0;
+    return pairs[i].get_kerning ();
+  }
+
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  hb_aat_apply_context_t *c) const
   {
@@ -100,7 +108,7 @@ struct KerxSubTableFormat0
     int i = pairs.bsearch (pair);
     if (i == -1) return 0;
     int v = pairs[i].get_kerning ();
-    return kerxTupleKern (v, header.tupleCount, this, c);
+    return kerxTupleKern (v, header.tuple_count (), this, c);
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -310,7 +318,7 @@ struct KerxSubTableFormat1
     if (header.coverage & header.CrossStream)
       return false;
 
-    if (header.tupleCount)
+    if (header.tuple_count ())
       return_trace (false); /* TODO kerxTupleKern */
 
     driver_context_t dc (this, c);
@@ -349,7 +357,7 @@ struct KerxSubTableFormat2
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-    return kerxTupleKern (*v, header.tupleCount, this, c);
+    return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
@@ -601,7 +609,7 @@ struct KerxSubTableFormat6
       if (unlikely (hb_unsigned_mul_overflows (offset, sizeof (FWORD32)))) return 0;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-      return kerxTupleKern (*v, header.tupleCount, &(this+vector), c);
+      return kerxTupleKern (*v, header.tuple_count (), &(this+vector), c);
     }
     else
     {
@@ -611,7 +619,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-      return kerxTupleKern (*v, header.tupleCount, &(this+vector), c);
+      return kerxTupleKern (*v, header.tuple_count (), &(this+vector), c);
     }
   }
 
@@ -646,7 +654,7 @@ struct KerxSubTableFormat6
 			     u.s.columnIndexTable.sanitize (c, this) &&
 			     c->check_range (this, u.s.array)
 			   )) &&
-			  (header.tupleCount == 0 ||
+			  (header.tuple_count () == 0 ||
 			   c->check_range (this, vector))));
   }
 
@@ -692,6 +700,8 @@ struct KerxSubTableFormat6
 struct KerxSubTableHeader
 {
   typedef MorxTypes Types;
+
+  unsigned int tuple_count (void) const { return tupleCount; }
 
   enum Coverage
   {

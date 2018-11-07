@@ -42,47 +42,6 @@ namespace OT {
 
 
 template <typename KernSubTableHeader>
-struct KernSubTableFormat0
-{
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  {
-    AAT::hb_glyph_pair_t pair = {left, right};
-    int i = pairs.bsearch (pair);
-    if (i == -1) return 0;
-    return pairs[i].get_kerning ();
-  }
-
-  inline bool apply (AAT::hb_aat_apply_context_t *c) const
-  {
-    TRACE_APPLY (this);
-
-    if (!c->plan->requested_kerning)
-      return false;
-
-    if (header.coverage & header.CrossStream)
-      return false;
-
-    hb_kern_machine_t<KernSubTableFormat0> machine (*this);
-    machine.kern (c->font, c->buffer, c->plan->kern_mask);
-
-    return_trace (true);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (pairs.sanitize (c));
-  }
-
-  protected:
-  KernSubTableHeader		header;
-  BinSearchArrayOf<AAT::KernPair, typename KernSubTableHeader::Types::HBUINT>
-				pairs;	/* Array of kerning pairs. */
-  public:
-  DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 8, pairs);
-};
-
-template <typename KernSubTableHeader>
 struct KernSubTableFormat1
 {
   typedef void EntryData;
@@ -445,7 +404,7 @@ struct KernSubTable
   public:
   union {
   KernSubTableHeader				header;
-  KernSubTableFormat0<KernSubTableHeader>	format0;
+  AAT::KerxSubTableFormat0<KernSubTableHeader>	format0;
   KernSubTableFormat1<KernSubTableHeader>	format1;
   KernSubTableFormat2<KernSubTableHeader>	format2;
   KernSubTableFormat3<KernSubTableHeader>	format3;
@@ -544,6 +503,8 @@ struct KernOT : KernTable<KernOT>
   {
     typedef AAT::MortTypes Types;
 
+    unsigned int tuple_count (void) const { return 0; }
+
     enum Coverage
     {
       Direction		= 0x01u,
@@ -589,6 +550,8 @@ struct KernAAT : KernTable<KernAAT>
   {
     typedef AAT::MortTypes Types;
 
+    unsigned int tuple_count (void) const { return 0; }
+
     enum Coverage
     {
       Direction		= 0x80u,
@@ -609,7 +572,8 @@ struct KernAAT : KernTable<KernAAT>
     HBUINT8	coverage;	/* Coverage bits. */
     HBUINT8	format;		/* Subtable format. */
     HBUINT16	tupleIndex;	/* The tuple index (used for variations fonts).
-				 * This value specifies which tuple this subtable covers. */
+				 * This value specifies which tuple this subtable covers.
+				 * Note: We don't implement. */
     public:
     DEFINE_SIZE_STATIC (8);
   };
