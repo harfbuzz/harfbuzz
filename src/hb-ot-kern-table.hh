@@ -49,8 +49,7 @@ struct KernSubTableFormat0
   {
     hb_glyph_pair_t pair = {left, right};
     int i = pairs.bsearch (pair);
-    if (i == -1)
-      return 0;
+    if (i == -1) return 0;
     return pairs[i].get_kerning ();
   }
 
@@ -78,7 +77,8 @@ struct KernSubTableFormat0
 
   protected:
   KernSubTableHeader		header;
-  BinSearchArrayOf<KernPair>	pairs;	/* Array of kerning pairs. */
+  BinSearchArrayOf<KernPair, typename KernSubTableHeader::Types::HBUINT>
+				pairs;	/* Array of kerning pairs. */
   public:
   DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 8, pairs);
 };
@@ -543,6 +543,8 @@ struct KernOT : KernTable<KernOT>
 
   struct SubTableHeader
   {
+    typedef AAT::MortTypes Types;
+
     enum Coverage
     {
       Direction		= 0x01u,
@@ -586,6 +588,8 @@ struct KernAAT : KernTable<KernAAT>
 
   struct SubTableHeader
   {
+    typedef AAT::MortTypes Types;
+
     enum Coverage
     {
       Direction		= 0x80u,

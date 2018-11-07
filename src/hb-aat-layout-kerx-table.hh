@@ -59,6 +59,8 @@ kerxTupleKern (int value,
 
 struct KerxSubTableHeader
 {
+  typedef MorxTypes Types;
+
   enum Coverage
   {
     Vertical		= 0x80000000,	/* Set if table has vertical kerning values. */
@@ -134,13 +136,12 @@ struct KerxSubTableFormat0
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  pairs.sanitize (c)));
+    return_trace (likely (pairs.sanitize (c)));
   }
 
   protected:
   KernSubTableHeader	header;
-  BinSearchArrayOf<KernPair, HBUINT32>
+  BinSearchArrayOf<KernPair, typename KernSubTableHeader::Types::HBUINT>
 			pairs;	/* Sorted kern records. */
   public:
   DEFINE_SIZE_ARRAY (KernSubTableHeader::static_size + 16, pairs);
