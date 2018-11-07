@@ -461,7 +461,7 @@ struct LigatureSubtable
     {
       hb_buffer_t *buffer = driver->buffer;
 
-      DEBUG_MSG (APPLY, nullptr, "Ligature transition at %d", buffer->idx);
+      DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
       if (entry->flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
@@ -472,12 +472,12 @@ struct LigatureSubtable
 	  match_length--;
 
 	match_positions[match_length++] = buffer->out_len;
-	DEBUG_MSG (APPLY, nullptr, "Set component at %d", buffer->out_len);
+	DEBUG_MSG (APPLY, nullptr, "Set component at %u", buffer->out_len);
       }
 
       if (LigatureEntryT::performAction (entry))
       {
-	DEBUG_MSG (APPLY, nullptr, "Perform action with %d", match_length);
+	DEBUG_MSG (APPLY, nullptr, "Perform action with %u", match_length);
 	unsigned int end = buffer->out_len;
 
 	if (unlikely (!match_length))
@@ -504,7 +504,7 @@ struct LigatureSubtable
 	    break;
 	  }
 
-	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %d", cursor - 1);
+	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
 	  buffer->move_to (match_positions[--cursor]);
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) return false;
@@ -520,7 +520,7 @@ struct LigatureSubtable
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
 	  ligature_idx += componentData;
 
-	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
+	  DEBUG_MSG (APPLY, nullptr, "Action store %u last %u",
 		     bool (action & LigActionStore),
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
@@ -530,7 +530,7 @@ struct LigatureSubtable
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
 	    hb_codepoint_t lig = ligatureData;
 
-	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %d", lig);
+	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
 	    buffer->replace_glyph (lig);
 
 	    unsigned int lig_end = match_positions[match_length - 1] + 1;
