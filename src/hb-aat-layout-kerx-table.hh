@@ -295,10 +295,12 @@ struct KerxSubTableFormat1
 	    i++;
 	    break;
 	  }
+	unsigned int tuple_count = table->header.tuple_count ();
+	tuple_count = tuple_count ? tuple_count : 1;
 	for (; i; i--)
 	{
 	  unsigned int idx = stack[depth - i];
-	  int v = actions[i - 1];
+	  int v = actions[(i - 1) * tuple_count];
 
 	  /* "The end of the list is marked by an odd value..."
 	   * Ignore it. */
@@ -375,9 +377,6 @@ struct KerxSubTableFormat1
 
     if (!c->plan->requested_kerning)
       return false;
-
-    if (header.tuple_count ())
-      return_trace (false); /* TODO kerxTupleKern */
 
     driver_context_t dc (this, c);
 
