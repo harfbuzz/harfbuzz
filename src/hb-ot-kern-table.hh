@@ -158,98 +158,6 @@ struct KernSubTable
 };
 
 
-template <typename T>
-struct KernTable
-{
-  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  inline const T* thiz (void) const { return static_cast<const T *> (this); }
-
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  {
-    typedef typename T::SubTable SubTable;
-
-    int v = 0;
-    const SubTable *st = &thiz()->firstSubTable;
-    unsigned int count = thiz()->tableCount;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
-	  !st->u.header.is_horizontal ())
-        continue;
-      v += st->get_kerning (left, right);
-      st = &StructAfter<SubTable> (*st);
-    }
-    return v;
-  }
-
-  inline void apply (AAT::hb_aat_apply_context_t *c) const
-  {
-    typedef typename T::SubTable SubTable;
-
-    c->set_lookup_index (0);
-    const SubTable *st = &thiz()->firstSubTable;
-    unsigned int count = thiz()->tableCount;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      bool reverse;
-
-      if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
-        goto skip;
-
-      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
-	goto skip;
-
-      reverse = T::Types::extended /* TODO remove after kern application is moved earlier. */ &&
-		bool (st->u.header.coverage & st->u.header.Backwards) !=
-		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
-
-      if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index))
-	goto skip;
-
-      if (reverse)
-	c->buffer->reverse ();
-
-      c->sanitizer.set_object (*st);
-
-      /* XXX Reverse-kern is probably not working yet...
-       * hb_kern_machine_t would need to know that it's reverse-kerning. */
-      st->dispatch (c);
-
-      if (reverse)
-	c->buffer->reverse ();
-
-      (void) c->buffer->message (c->font, "end %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index);
-
-    skip:
-      st = &StructAfter<SubTable> (*st);
-      c->set_lookup_index (c->lookup_index + 1);
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!thiz()->version.sanitize (c) ||
-		  thiz()->version < T::minVersion ||
-		  !thiz()->tableCount.sanitize (c)))
-      return_trace (false);
-
-    typedef typename T::SubTable SubTable;
-
-    const SubTable *st = &thiz()->firstSubTable;
-    unsigned int count = thiz()->tableCount;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (unlikely (!st->sanitize (c)))
-	return_trace (false);
-      st = &StructAfter<SubTable> (*st);
-    }
-
-    return_trace (true);
-  }
-};
-
-
 struct KernOTSubTableHeader
 {
   static const bool apple = false;
@@ -285,9 +193,9 @@ struct KernOTSubTableHeader
   DEFINE_SIZE_STATIC (6);
 };
 
-struct KernOT : KernTable<KernOT>
+struct KernOT : AAT::KerxTable<KernOT>
 {
-  friend struct KernTable<KernOT>;
+  friend struct AAT::KerxTable<KernOT>;
 
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
   static const uint16_t minVersion = 0;
@@ -340,9 +248,9 @@ struct KernAATSubTableHeader
   DEFINE_SIZE_STATIC (8);
 };
 
-struct KernAAT : KernTable<KernAAT>
+struct KernAAT : AAT::KerxTable<KernAAT>
 {
-  friend struct KernTable<KernAAT>;
+  friend struct AAT::KerxTable<KernAAT>;
 
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
   static const uint32_t minVersion = 0x00010000u;
@@ -363,8 +271,7 @@ struct kern
 {
   static const hb_tag_t tableTag = HB_OT_TAG_kern;
 
-  inline bool has_data (void) const
-  { return u.version32 != 0; }
+  inline bool has_data (void) const { return u.version32; }
 
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {

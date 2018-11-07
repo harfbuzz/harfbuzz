@@ -831,7 +831,7 @@ struct KerxSubTable
     return_trace (dispatch (c));
   }
 
-protected:
+  public:
   union {
   KerxSubTableHeader				header;
   KerxSubTableFormat0<KerxSubTableHeader>	format0;
@@ -840,7 +840,7 @@ protected:
   KerxSubTableFormat4<KerxSubTableHeader>	format4;
   KerxSubTableFormat6<KerxSubTableHeader>	format6;
   } u;
-public:
+  public:
   DEFINE_SIZE_MIN (12);
 };
 
@@ -849,33 +849,52 @@ public:
  * The 'kerx' Table
  */
 
-struct kerx
+template <typename T>
+struct KerxTable
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
-  static const uint16_t minVersion = 2;
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
-  typedef KerxSubTableHeader SubTableHeader;
-  typedef SubTableHeader::Types Types;
-  typedef KerxSubTable SubTable;
-
-  inline bool has_data (void) const { return version != 0; }
-
-  inline void apply (hb_aat_apply_context_t *c) const
+  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
+    typedef typename T::SubTable SubTable;
+
+    int v = 0;
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
+	  !st->u.header.is_horizontal ())
+        continue;
+      v += st->get_kerning (left, right);
+      st = &StructAfter<SubTable> (*st);
+    }
+    return v;
+  }
+
+  inline void apply (AAT::hb_aat_apply_context_t *c) const
+  {
+    typedef typename T::SubTable SubTable;
+
     c->set_lookup_index (0);
-    const SubTable *st = &firstSubTable;
-    unsigned int count = tableCount;
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       bool reverse;
 
+      if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
+        goto skip;
+
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
+      reverse = T::Types::extended /* TODO remove after kern application is moved earlier. */ &&
+		bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
-      if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (tableTag), c->lookup_index))
+      if (!c->buffer->message (c->font, "start %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index))
 	goto skip;
 
       if (reverse)
@@ -890,7 +909,7 @@ struct kerx
       if (reverse)
 	c->buffer->reverse ();
 
-      (void) c->buffer->message (c->font, "end %c%c%c%c subtable %d", HB_UNTAG (tableTag), c->lookup_index);
+      (void) c->buffer->message (c->font, "end %c%c%c%c subtable %d", HB_UNTAG (thiz()->tableTag), c->lookup_index);
 
     skip:
       st = &StructAfter<SubTable> (*st);
@@ -901,22 +920,38 @@ struct kerx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!version.sanitize (c) ||
-		  version < minVersion ||
-		  !tableCount.sanitize (c)))
+    if (unlikely (!thiz()->version.sanitize (c) ||
+		  thiz()->version < T::minVersion ||
+		  !thiz()->tableCount.sanitize (c)))
       return_trace (false);
 
-    const SubTable *st = &firstSubTable;
-    unsigned int count = tableCount;
+    typedef typename T::SubTable SubTable;
+
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!st->sanitize (c))
+      if (unlikely (!st->sanitize (c)))
 	return_trace (false);
       st = &StructAfter<SubTable> (*st);
     }
 
     return_trace (true);
   }
+};
+
+struct kerx : KerxTable<kerx>
+{
+  friend struct KerxTable<kerx>;
+
+  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
+  static const uint16_t minVersion = 2;
+
+  typedef KerxSubTableHeader SubTableHeader;
+  typedef SubTableHeader::Types Types;
+  typedef KerxSubTable SubTable;
+
+  inline bool has_data (void) const { return version; }
 
   protected:
   HBUINT16	version;	/* The version number of the extended kerning table
