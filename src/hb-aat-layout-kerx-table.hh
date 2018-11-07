@@ -406,12 +406,15 @@ struct KerxSubTableFormat1
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat2
 {
+  typedef typename KernSubTableHeader::Types Types;
+  typedef typename Types::HBUINT HBUINT;
+
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  hb_aat_apply_context_t *c) const
   {
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
-    unsigned int l = (this+leftClassTable).get_value_or_null (left, num_glyphs);
-    unsigned int r = (this+rightClassTable).get_value_or_null (right, num_glyphs);
+    unsigned int l = (this+leftClassTable).get_class (left, num_glyphs, 0);
+    unsigned int r = (this+rightClassTable).get_class (right, num_glyphs, 0);
     unsigned int offset = l + r;
     const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
@@ -459,18 +462,18 @@ struct KerxSubTableFormat2
 
   protected:
   KernSubTableHeader	header;
-  HBUINT32		rowWidth;	/* The width, in bytes, of a row in the table. */
-  LOffsetTo<Lookup<HBUINT16>, false>
+  HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */
+  OffsetTo<typename Types::ClassType, HBUINT, false>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  LOffsetTo<Lookup<HBUINT16>, false>
+  OffsetTo<typename Types::ClassType, HBUINT, false>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
-  LOffsetTo<UnsizedArrayOf<FWORD>, false>
+  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>
 			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
-  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 16);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 4 * sizeof (HBUINT));
 };
 
 template <typename KernSubTableHeader>
