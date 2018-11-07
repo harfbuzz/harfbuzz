@@ -460,6 +460,12 @@ struct KerxSubTableFormat2
 			  c->check_range (this, array)));
   }
 
+  /* Note:
+   * OT kern table specifies ClassTable as having 16-bit entries, whereas
+   * AAT kern table specifies them as having 8bit entries.
+   * I've not seen any fonts with this format in kern table.
+   * We follow AAT. */
+
   protected:
   KernSubTableHeader	header;
   HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */

@@ -42,77 +42,6 @@ namespace OT {
 
 
 template <typename KernSubTableHeader>
-struct KernSubTableFormat2
-{
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  AAT::hb_aat_apply_context_t *c) const
-  {
-    /* Disabled until we find a font to test this.  Note that OT vs AAT specify
-     * different ClassTable.  OT's has 16bit entries, while AAT has 8bit entries.
-     * I've not seen any in the wild. */
-    return 0;
-    unsigned int l = (this+leftClassTable).get_class (left, 0);
-    unsigned int r = (this+rightClassTable).get_class (right, 0);
-    unsigned int offset = l + r;
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
-    if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
-    return *v;
-  }
-
-  inline bool apply (AAT::hb_aat_apply_context_t *c) const
-  {
-    TRACE_APPLY (this);
-
-    if (!c->plan->requested_kerning)
-      return false;
-
-    if (header.coverage & header.CrossStream)
-      return false;
-
-    accelerator_t accel (*this, c);
-    hb_kern_machine_t<accelerator_t> machine (accel);
-    machine.kern (c->font, c->buffer, c->plan->kern_mask);
-
-    return_trace (true);
-  }
-
-  struct accelerator_t
-  {
-    const KernSubTableFormat2 &table;
-    AAT::hb_aat_apply_context_t *c;
-
-    inline accelerator_t (const KernSubTableFormat2 &table_,
-			  AAT::hb_aat_apply_context_t *c_) :
-			    table (table_), c (c_) {}
-
-    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-    { return table.get_kerning (left, right, c); }
-  };
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (true); /* Disabled.  See above. */
-    return_trace (c->check_struct (this) &&
-		  leftClassTable.sanitize (c, this) &&
-		  rightClassTable.sanitize (c, this) &&
-		  array.sanitize (c, this));
-  }
-
-  protected:
-  KernSubTableHeader		header;
-  HBUINT16			rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<AAT::ClassTable>	leftClassTable;	/* Offset from beginning of this subtable to
-						 * left-hand class table. */
-  OffsetTo<AAT::ClassTable>	rightClassTable;/* Offset from beginning of this subtable to
-						 * right-hand class table. */
-  OffsetTo<FWORD>		array;		/* Offset from beginning of this subtable to
-						 * the start of the kerning array. */
-  public:
-  DEFINE_SIZE_MIN (KernSubTableHeader::static_size + 8);
-};
-
-template <typename KernSubTableHeader>
 struct KernSubTableFormat3
 {
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
@@ -221,7 +150,7 @@ struct KernSubTable
   KernSubTableHeader				header;
   AAT::KerxSubTableFormat0<KernSubTableHeader>	format0;
   AAT::KerxSubTableFormat1<KernSubTableHeader>	format1;
-  KernSubTableFormat2<KernSubTableHeader>	format2;
+  AAT::KerxSubTableFormat2<KernSubTableHeader>	format2;
   KernSubTableFormat3<KernSubTableHeader>	format3;
   } u;
   public:
