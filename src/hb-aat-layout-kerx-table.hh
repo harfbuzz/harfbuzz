@@ -334,10 +334,10 @@ struct KerxSubTableFormat1
 	    {
 	      if (crossStream)
 	      {
-	        /* CoreText doesn't do crossStream kerning in vertical. */
-		//crossOffset += v;
-		//if (!buffer->pos[idx].x_offset)
-		//  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
+	        /* CoreText doesn't do crossStream kerning in vertical.  We do. */
+		crossOffset += v;
+		if (!buffer->pos[idx].x_offset)
+		  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
 	      }
 	      else
 	      {
