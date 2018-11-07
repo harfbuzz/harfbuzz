@@ -848,6 +848,21 @@ struct KerxTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
+  inline bool has_cross_stream (void) const
+  {
+    typedef typename T::SubTable SubTable;
+
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->u.header.coverage & st->u.header.CrossStream)
+        return true;
+      st = &StructAfter<SubTable> (*st);
+    }
+    return false;
+  }
+
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     typedef typename T::SubTable SubTable;

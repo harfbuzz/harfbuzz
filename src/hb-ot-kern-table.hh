@@ -273,6 +273,15 @@ struct kern
 
   inline bool has_data (void) const { return u.version32; }
 
+  inline bool has_cross_stream (void) const
+  {
+    switch (u.major) {
+    case 0: return u.ot.has_cross_stream ();
+    case 1: return u.aat.has_cross_stream ();
+    default:return false;
+    }
+  }
+
   inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (u.major) {
