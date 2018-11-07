@@ -266,13 +266,9 @@ struct KernSubTableFormat1
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
-	for (unsigned int i = 0; i < depth; i++)
+	while (depth--)
 	{
-	  /* Apparently, when spec says "Each pops one glyph from the kerning stack
-	   * and applies the kerning value to it.", it doesn't mean it in that order.
-	   * The deepest item in the stack corresponds to the first item in the action
-	   * list.  Discovered by testing. */
-	  unsigned int idx = stack[i];
+	  unsigned int idx = stack[depth];
 	  int v = *actions++;
 
 	  /* The following two flags are undocumented in the spec, but described
@@ -291,29 +287,41 @@ struct KernSubTableFormat1
 	    {
 	      if (crossStream)
 	      {
+		if (!buffer->pos[idx].y_offset)
+		  buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
 	        /* XXX Why negative, not positive?!?! */
-	        crossOffset -= v;
-		buffer->pos[idx].y_offset += c->font->em_scale_y (crossOffset);
+	        v = -v;
+		crossOffset += v;
 	      }
 	      else
 	      {
-		buffer->pos[idx].x_advance += c->font->em_scale_x (v);
-		if (last)
+		if (!buffer->pos[idx].x_offset)
+		{
+		  buffer->pos[idx].x_advance += c->font->em_scale_x (v);
 		  buffer->pos[idx].x_offset += c->font->em_scale_x (v);
+		}
 	      }
 	    }
 	    else
 	    {
 	      if (crossStream)
 	      {
-	        crossOffset += v;
-		buffer->pos[idx].x_offset += c->font->em_scale_x (crossOffset);
+	        /* CoreText doesn't do crossStream kerning in vertical. */
+#if 0
+		if (!buffer->pos[idx].x_offset)
+		  buffer->pos[idx].x_offset = c->font->em_scale_x (crossOffset);
+#endif
+	        /* XXX Why negative, not positive?!?! */
+	        v = -v;
+		crossOffset += v;
 	      }
 	      else
 	      {
-		buffer->pos[idx].y_advance += c->font->em_scale_y (v);
-		if (last)
+		if (!buffer->pos[idx].y_offset)
+		{
+		  buffer->pos[idx].y_advance += c->font->em_scale_y (v);
 		  buffer->pos[idx].y_offset += c->font->em_scale_y (v);
+		}
 	      }
 	    }
 	  }
