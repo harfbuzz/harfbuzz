@@ -852,6 +852,7 @@ public:
 struct kerx
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
+  static const uint16_t minVersion = 2;
 
   inline bool has_data (void) const { return version != 0; }
 
@@ -898,8 +899,7 @@ struct kerx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) || version < 2 ||
-	!tableCount.sanitize (c))
+    if (!version.sanitize (c) || version < minVersion || !tableCount.sanitize (c))
       return_trace (false);
 
     const KerxSubTable *st = &firstTable;
@@ -921,6 +921,7 @@ struct kerx
   HBUINT32	tableCount;	/* The number of subtables included in the extended kerning
 				 * table. */
   KerxSubTable	firstTable;	/* Subtables. */
+  UnsizedArrayOf<HBUINT8>	dataZ;
 /*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
 
   public:

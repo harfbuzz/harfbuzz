@@ -170,7 +170,7 @@ struct KernTable
 
     int v = 0;
     const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
-    unsigned int count = thiz()->nTables;
+    unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
@@ -188,7 +188,7 @@ struct KernTable
 
     c->set_lookup_index (0);
     const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
-    unsigned int count = thiz()->nTables;
+    unsigned int count = thiz()->tableCount;
     st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
@@ -216,14 +216,15 @@ struct KernTable
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (thiz()) ||
-		  thiz()->version != T::VERSION))
+    if (unlikely (!thiz()->version.sanitize (c) ||
+		  thiz()->version < T::minVersion ||
+		  !thiz()->tableCount.sanitize (c)))
       return_trace (false);
 
     typedef KernSubTable<typename T::SubTableHeader> SubTable;
 
     const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
-    unsigned int count = thiz()->nTables;
+    unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (unlikely (!st->sanitize (c)))
@@ -239,7 +240,7 @@ struct KernOT : KernTable<KernOT>
 {
   friend struct KernTable<KernOT>;
 
-  static const uint16_t VERSION = 0x0000u;
+  static const uint16_t minVersion = 0;
 
   struct SubTableHeader
   {
@@ -275,7 +276,7 @@ struct KernOT : KernTable<KernOT>
 
   protected:
   HBUINT16			version;	/* Version--0x0000u */
-  HBUINT16			nTables;	/* Number of subtables in the kerning table. */
+  HBUINT16			tableCount;	/* Number of subtables in the kerning table. */
   UnsizedArrayOf<HBUINT8>	dataZ;
   public:
   DEFINE_SIZE_ARRAY (4, dataZ);
@@ -285,7 +286,7 @@ struct KernAAT : KernTable<KernAAT>
 {
   friend struct KernTable<KernAAT>;
 
-  static const uint32_t VERSION = 0x00010000u;
+  static const uint32_t minVersion = 0x00010000u;
 
   struct SubTableHeader
   {
@@ -320,7 +321,7 @@ struct KernAAT : KernTable<KernAAT>
 
   protected:
   HBUINT32			version;	/* Version--0x00010000u */
-  HBUINT32			nTables;	/* Number of subtables in the kerning table. */
+  HBUINT32			tableCount;	/* Number of subtables in the kerning table. */
   UnsizedArrayOf<HBUINT8>	dataZ;
   public:
   DEFINE_SIZE_ARRAY (8, dataZ);
