@@ -169,7 +169,7 @@ struct KernTable
     typedef KernSubTable<typename T::SubTableHeader> SubTable;
 
     int v = 0;
-    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
+    const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -187,9 +187,8 @@ struct KernTable
     typedef KernSubTable<typename T::SubTableHeader> SubTable;
 
     c->set_lookup_index (0);
-    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
+    const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
-    st = CastP<SubTable> (&thiz()->dataZ);
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->u.header.coverage & st->u.header.Variation)
@@ -223,7 +222,7 @@ struct KernTable
 
     typedef KernSubTable<typename T::SubTableHeader> SubTable;
 
-    const SubTable *st = CastP<SubTable> (&thiz()->dataZ);
+    const SubTable *st = &thiz()->firstSubTable;
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -277,9 +276,9 @@ struct KernOT : KernTable<KernOT>
   protected:
   HBUINT16			version;	/* Version--0x0000u */
   HBUINT16			tableCount;	/* Number of subtables in the kerning table. */
-  UnsizedArrayOf<HBUINT8>	dataZ;
+  KernSubTable<SubTableHeader>	firstSubTable;	/* Subtables. */
   public:
-  DEFINE_SIZE_ARRAY (4, dataZ);
+  DEFINE_SIZE_MIN (4);
 };
 
 struct KernAAT : KernTable<KernAAT>
@@ -322,9 +321,9 @@ struct KernAAT : KernTable<KernAAT>
   protected:
   HBUINT32			version;	/* Version--0x00010000u */
   HBUINT32			tableCount;	/* Number of subtables in the kerning table. */
-  UnsizedArrayOf<HBUINT8>	dataZ;
+  KernSubTable<SubTableHeader>	firstSubTable;	/* Subtables. */
   public:
-  DEFINE_SIZE_ARRAY (8, dataZ);
+  DEFINE_SIZE_MIN (8);
 };
 
 struct kern
