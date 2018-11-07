@@ -286,23 +286,18 @@ struct KerxSubTableFormat1
 	/* From Apple 'kern' spec:
 	 * "Each pops one glyph from the kerning stack and applies the kerning value to it.
 	 * The end of the list is marked by an odd value... */
-	unsigned int i;
-	for (i = 0; i < depth; i++)
-	  if (actions[i] & 1)
-	  {
-	    i++;
-	    break;
-	  }
 	unsigned int tuple_count = table->header.tuple_count ();
 	tuple_count = tuple_count ? tuple_count : 1;
-	for (; i; i--)
+	bool last = false;
+	while (!last && depth--)
 	{
-	  unsigned int idx = stack[depth - i];
+	  unsigned int idx = stack[depth];
+	  int v = *actions;
+	  actions += tuple_count;
 	  if (idx >= buffer->len) continue;
 
-	  int v = actions[(i - 1) * tuple_count];
-
-	  /* "The end of the list is marked by an odd value..."  Ignore it. */
+	  /* "The end of the list is marked by an odd value..." */
+	  last = v & 1;
 	  v &= ~1;
 
 	  hb_glyph_position_t &o = buffer->pos[idx];
@@ -355,7 +350,6 @@ struct KerxSubTableFormat1
 	    }
 	  }
 	}
-	depth = 0;
       }
 
       return true;
