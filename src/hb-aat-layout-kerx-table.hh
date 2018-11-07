@@ -250,12 +250,12 @@ struct KerxSubTableFormat1
      * from the actual stateTableOffset, use it as the initial state."
      */
 
-    inline bool is_actionable (StateTableDriver<MorxTypes, EntryData> *driver HB_UNUSED,
+    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			       const Entry<EntryData> *entry)
     {
       return Format1EntryT::performAction (entry);
     }
-    inline bool transition (StateTableDriver<MorxTypes, EntryData> *driver,
+    inline bool transition (StateTableDriver<Types, EntryData> *driver,
 			    const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -376,15 +376,12 @@ struct KerxSubTableFormat1
     if (!c->plan->requested_kerning)
       return false;
 
-    if (header.coverage & header.CrossStream)
-      return false;
-
     if (header.tuple_count ())
       return_trace (false); /* TODO kerxTupleKern */
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<MorxTypes, EntryData> driver (machine, c->buffer, c->font->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->font->face);
     driver.drive (&dc);
 
     return_trace (true);
