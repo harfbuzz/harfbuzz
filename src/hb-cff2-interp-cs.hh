@@ -247,6 +247,7 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
   static inline void process_vsindex (CFF2CSInterpEnv &env, PARAM& param)
   {
     env.process_vsindex ();
+    env.clear_args ();
   }
 
   private:

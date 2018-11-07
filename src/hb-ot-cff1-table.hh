@@ -64,6 +64,8 @@ struct Encoding0 {
 
   inline hb_codepoint_t get_code (hb_codepoint_t glyph) const
   {
+    assert (glyph > 0);
+    glyph--;
     if (glyph < nCodes)
     {
       return (hb_codepoint_t)codes[glyph];
@@ -106,6 +108,8 @@ struct Encoding1 {
 
   inline hb_codepoint_t get_code (hb_codepoint_t glyph) const
   {
+    assert (glyph > 0);
+    glyph--;
     for (unsigned int i = 0; i < nRanges; i++)
     {
       if (glyph <= ranges[i].nLeft)
