@@ -25,7 +25,7 @@
  */
 
 #include "hb-ot-shape-fallback.hh"
-#include "hb-ot-kern-table.hh"
+#include "hb-kern.hh"
 
 static unsigned int
 recategorize_combining_class (hb_codepoint_t u,
