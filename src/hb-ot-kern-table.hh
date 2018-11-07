@@ -173,9 +173,8 @@ struct KernTable
     unsigned int count = thiz()->nTables;
     for (unsigned int i = 0; i < count; i++)
     {
-      if ((st->u.header.coverage &
-	   (st->u.header.Variation | st->u.header.CrossStream | st->u.header.Direction)) !=
-	  st->u.header.DirectionHorizontal)
+      if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
+	  !st->u.header.is_horizontal ())
         continue;
       v += st->get_kerning (left, right);
       st = &StructAfter<SubTable> (*st);
@@ -196,8 +195,7 @@ struct KernTable
       if (st->u.header.coverage & st->u.header.Variation)
         goto skip;
 
-      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) !=
-	  ((st->u.header.coverage & st->u.header.Direction) == st->u.header.DirectionHorizontal))
+      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
       if (!c->buffer->message (c->font, "start kern subtable %d", c->lookup_index))
@@ -248,18 +246,16 @@ struct KernOT : KernTable<KernOT>
     typedef AAT::ObsoleteTypes Types;
 
     inline unsigned int tuple_count (void) const { return 0; }
-
+    inline bool is_horizontal (void) const { return (coverage & Horizontal); }
 
     enum Coverage
     {
-      Direction		= 0x01u,
+      Horizontal	= 0x01u,
       Minimum		= 0x02u,
       CrossStream	= 0x04u,
       Override		= 0x08u,
 
       Variation		= 0x00u, /* Not supported. */
-
-      DirectionHorizontal= 0x01u
     };
 
     inline bool sanitize (hb_sanitize_context_t *c) const
@@ -296,14 +292,13 @@ struct KernAAT : KernTable<KernAAT>
     typedef AAT::ObsoleteTypes Types;
 
     inline unsigned int tuple_count (void) const { return 0; }
+    inline bool is_horizontal (void) const { return !(coverage & Vertical); }
 
     enum Coverage
     {
-      Direction		= 0x80u,
+      Vertical		= 0x80u,
       CrossStream	= 0x40u,
       Variation		= 0x20u,
-
-      DirectionHorizontal= 0x00u
     };
 
     inline bool sanitize (hb_sanitize_context_t *c) const

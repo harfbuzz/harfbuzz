@@ -769,6 +769,7 @@ struct KerxSubTableHeader
   typedef ExtendedTypes Types;
 
   inline unsigned int tuple_count (void) const { return tupleCount; }
+  inline bool is_horizontal (void) const { return !(coverage & Vertical); }
 
   enum Coverage
   {
@@ -863,8 +864,7 @@ struct kerx
     {
       bool reverse;
 
-      if (HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (st->u.header.coverage & st->u.header.Vertical))
+      if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
