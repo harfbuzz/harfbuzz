@@ -837,6 +837,8 @@ struct PairPosFormat2
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
 
+    /* TODO Only unsafe_to_break if kerning values not zero...
+     * https://github.com/harfbuzz/harfbuzz/issues/1365 */
     buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
     valueFormat1.apply_value (c, this, v, buffer->cur_pos());
