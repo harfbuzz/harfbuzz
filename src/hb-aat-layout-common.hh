@@ -452,6 +452,7 @@ struct StateTable
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
     unsigned int entry = states[state * nClasses + klass];
+    DEBUG_MSG (APPLY, nullptr, "e%d", entry);
 
     return &entries[entry];
   }
@@ -629,6 +630,7 @@ struct StateTableDriver
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTable<Types, EntryData>::CLASS_END_OF_TEXT;
+      DEBUG_MSG (APPLY, nullptr, "c%d at %d", klass, buffer->idx);
       const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
       if (unlikely (!entry))
 	break;
@@ -661,6 +663,7 @@ struct StateTableDriver
       last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
 
       state = machine.new_state (entry->newState);
+      DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
       if (buffer->idx == buffer->len)
 	break;
