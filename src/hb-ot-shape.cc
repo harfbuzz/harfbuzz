@@ -903,6 +903,9 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
       c->font->subtract_glyph_h_origin (info[i].codepoint,
 					&pos[i].x_offset,
 					&pos[i].y_offset);
+
+  if (c->plan->fallback_mark_positioning && c->plan->shaper->fallback_position)
+    _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer);
 }
 
 static inline void
@@ -913,9 +916,6 @@ hb_ot_position (const hb_ot_shape_context_t *c)
   hb_ot_position_default (c);
 
   hb_ot_position_complex (c);
-
-  if (c->plan->fallback_mark_positioning && c->plan->shaper->fallback_position)
-    _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
     hb_buffer_reverse (c->buffer);
