@@ -292,6 +292,10 @@ struct KerxSubTableFormat1
 
 	  hb_glyph_position_t &o = buffer->pos[idx];
 
+	  /* Testing shows that CoreText only applies kern (cross-stream or not)
+	   * if none has been applied by previous subtables.  That is, it does
+	   * NOT seem to accumulate as otherwise implied by specs. */
+
 	  /* The following flag is undocumented in the spec, but described
 	   * in the 'kern' table example. */
 	  if (v == -0x8000)
