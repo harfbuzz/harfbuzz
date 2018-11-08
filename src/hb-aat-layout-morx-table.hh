@@ -971,7 +971,7 @@ struct Chain
 	{
 	  /* Deprecated. https://github.com/harfbuzz/harfbuzz/issues/1342 */
 	  type = HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE;
-	  setting = 1/*kLowerCaseSmallCapsSelector*/;
+	  setting = HB_AAT_LAYOUT_SELECTOR_LOWER_CASE_SMALL_CAPS;
 	  goto retry;
 	}
       }
