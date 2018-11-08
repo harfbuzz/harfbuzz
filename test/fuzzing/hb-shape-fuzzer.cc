@@ -25,18 +25,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     hb_buffer_destroy (buffer);
   }
 
-  uint32_t text32[16];
-  if (size > sizeof (text32)) {
-    memcpy(text32, data + size - sizeof (text32), sizeof (text32));
-    hb_buffer_t *buffer = hb_buffer_create ();
-    hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
-    hb_buffer_guess_segment_properties (buffer);
-    hb_shape (font, buffer, NULL, 0);
-    hb_buffer_destroy (buffer);
+  uint32_t text32[16] = {0};
+  unsigned int len = sizeof (text32);
+  if (size < len)
+    len = size;
+  memcpy(text32, data + size - len, len);
 
-    /* Misc calls on face. */
-    test_face (face, text32[15]);
-  }
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, NULL, 0);
+  hb_buffer_destroy (buffer);
+
+  /* Misc calls on face. */
+  test_face (face, text32[15]);
 
   hb_font_destroy (font);
   hb_face_destroy (face);

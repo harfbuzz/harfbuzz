@@ -31,6 +31,7 @@
 #include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-bsln-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-feat-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-aat-layout-just-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-kerx-table.hh"
 #include "hb-aat-layout-morx-table.hh"
 #include "hb-aat-layout-trak-table.hh"
@@ -193,7 +194,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 }
 
 
-hb_bool_t
+bool
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
   return face->table.morx->has_data () ||
@@ -224,8 +225,32 @@ hb_aat_layout_substitute (hb_ot_shape_plan_t *plan,
   }
 }
 
+void
+hb_aat_layout_zero_width_deleted_glyphs (hb_buffer_t *buffer)
+{
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+  hb_glyph_position_t *pos = buffer->pos;
+  for (unsigned int i = 0; i < count; i++)
+    if (unlikely (info[i].codepoint == AAT::DELETED_GLYPH))
+      pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
+}
 
-hb_bool_t
+static bool
+is_deleted_glyph (const hb_glyph_info_t *info)
+{
+  return info->codepoint == AAT::DELETED_GLYPH;
+}
+
+void
+hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
+{
+  hb_ot_layout_delete_glyphs_inplace (buffer, is_deleted_glyph);
+}
+
+
+
+bool
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
   return face->table.kerx->has_data ();
@@ -248,7 +273,7 @@ hb_aat_layout_position (hb_ot_shape_plan_t *plan,
 }
 
 
-hb_bool_t
+bool
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
   return face->table.trak->has_data ();
