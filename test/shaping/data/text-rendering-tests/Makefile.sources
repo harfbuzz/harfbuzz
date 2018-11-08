@@ -51,7 +51,6 @@ TESTS = \
 	tests/MORX-29.tests \
 	tests/MORX-2.tests \
 	tests/MORX-30.tests \
-	tests/MORX-31.tests \
 	tests/MORX-32.tests \
 	tests/MORX-33.tests \
 	tests/MORX-34.tests \
@@ -74,6 +73,7 @@ TESTS = \
 
 DISBALED_TESTS = \
 	tests/CMAP-3.tests \
+	tests/MORX-31.tests \
 	tests/MORX-41.tests \
 	tests/SHARAN-1.tests \
 	tests/SHBALI-1.tests \
