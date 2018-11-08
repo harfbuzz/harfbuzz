@@ -57,6 +57,8 @@ template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
+  inline IntType (void) { set (0); }
+  inline explicit IntType (Type i) { set (i); }
   inline void set (Type i) { v.set (i); }
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
