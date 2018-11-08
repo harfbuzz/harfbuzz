@@ -147,9 +147,9 @@ struct TrackData
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  sizeTable.sanitize (c, base, nSizes) &&
-		  trackTable.sanitize (c, nTracks, base, nSizes));
+    return_trace (likely (c->check_struct (this) &&
+			  sizeTable.sanitize (c, base, nSizes) &&
+			  trackTable.sanitize (c, nTracks, base, nSizes)));
   }
 
   protected:
@@ -175,9 +175,9 @@ struct trak
   {
     TRACE_SANITIZE (this);
 
-    return_trace (unlikely (c->check_struct (this) &&
-			    horizData.sanitize (c, this, this) &&
-			    vertData.sanitize (c, this, this)));
+    return_trace (likely (c->check_struct (this) &&
+			  horizData.sanitize (c, this, this) &&
+			  vertData.sanitize (c, this, this)));
   }
 
   inline bool apply (hb_aat_apply_context_t *c) const
