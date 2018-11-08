@@ -442,6 +442,12 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     prefix_num_ = num;
   }
 
+  inline bool at_end (unsigned int pos) const
+  {
+    return ((pos + 1 >= values.len) /* CFF2 */
+        || (values[pos + 1].op == OpCode_return));
+  }
+
   inline bool is_parsed (void) const { return parsed; }
   inline void set_parsed (void) { parsed = true; }
   inline bool is_hint_dropped (void) const { return hint_dropped; }
@@ -792,7 +798,13 @@ struct SubrSubsetter
     /* if this subr ends with a stem hint (i.e., not a number a potential argument for moveto),
      * then this entire subroutine must be a hint. drop its call. */
     if (drop.ends_in_hint)
+    {
       str.values[pos].set_drop ();
+      /* if this subr call is at the end of the parent subr, propagate the flag
+       * otherwise reset the flag */
+      if (!str.at_end (pos))
+        drop.ends_in_hint = false;
+    }
     
     return has_hint;
   }
@@ -841,8 +853,7 @@ struct SubrSubsetter
         case OpCode_vstem:
           has_hint = true;
           str.values[pos].set_drop ();
-          if ((pos + 1 >= str.values.len) /* CFF2 */
-             || (str.values[pos + 1].op == OpCode_return))
+          if (str.at_end (pos))
             drop.ends_in_hint = true;
           break;
 
