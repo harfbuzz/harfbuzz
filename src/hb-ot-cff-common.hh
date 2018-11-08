@@ -433,33 +433,11 @@ struct Remap : hb_vector_t<hb_codepoint_t>
     return true;
   }
 
-  inline bool fullset (void) const
-  {
-    for (unsigned int i = 0; i < len; i++)
-      if (SUPER::operator[] (i) == CFF_UNDEF_CODE)
-        return false;
-    return true;
-  }
-
   inline bool excludes (hb_codepoint_t id) const
   { return (id < len) && ((*this)[id] == CFF_UNDEF_CODE); }
 
   inline bool includes (hb_codepoint_t id) const
   { return !excludes (id); }
-
-  inline hb_codepoint_t operator[] (hb_codepoint_t i) const
-  {
-    if (fullset ())
-      return i;
-    else
-      return SUPER::operator[] (i);
-  }
-
-  inline hb_codepoint_t &operator[] (hb_codepoint_t i)
-  {
-    assert (i < len);
-    return SUPER::operator[] (i);
-  }
 
   inline unsigned int add (unsigned int i)
   {
