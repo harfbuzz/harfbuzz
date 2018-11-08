@@ -58,6 +58,11 @@ struct LookupFormat0
     TRACE_SANITIZE (this);
     return_trace (arrayZ.sanitize (c, c->get_num_glyphs ()));
   }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (arrayZ.sanitize (c, c->get_num_glyphs (), base));
+  }
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 0 */
@@ -79,6 +84,11 @@ struct LookupSegmentSingle
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && value.sanitize (c));
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && value.sanitize (c, base));
   }
 
   GlyphID	last;		/* Last GlyphID in this segment */
@@ -104,6 +114,11 @@ struct LookupFormat2
   {
     TRACE_SANITIZE (this);
     return_trace (segments.sanitize (c));
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (segments.sanitize (c, base));
   }
 
   protected:
@@ -135,6 +150,14 @@ struct LookupSegmentArray
 		  first <= last &&
 		  valuesZ.sanitize (c, base, last - first + 1));
   }
+  template <typename T2>
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T2 user_data) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  first <= last &&
+		  valuesZ.sanitize (c, base, last - first + 1, user_data));
+  }
 
   GlyphID	last;		/* Last GlyphID in this segment */
   GlyphID	first;		/* First GlyphID in this segment */
@@ -162,6 +185,11 @@ struct LookupFormat4
     TRACE_SANITIZE (this);
     return_trace (segments.sanitize (c, this));
   }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (segments.sanitize (c, this, base));
+  }
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 4 */
@@ -182,6 +210,11 @@ struct LookupSingle
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && value.sanitize (c));
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && value.sanitize (c, base));
   }
 
   GlyphID	glyph;		/* Last GlyphID */
@@ -206,6 +239,11 @@ struct LookupFormat6
   {
     TRACE_SANITIZE (this);
     return_trace (entries.sanitize (c));
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (entries.sanitize (c, base));
   }
 
   protected:
@@ -232,6 +270,11 @@ struct LookupFormat8
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && valueArrayZ.sanitize (c, glyphCount));
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && valueArrayZ.sanitize (c, glyphCount, base));
   }
 
   protected:
@@ -325,6 +368,20 @@ struct Lookup
     case 6: return_trace (u.format6.sanitize (c));
     case 8: return_trace (u.format8.sanitize (c));
     case 10: return_trace (u.format10.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.format.sanitize (c)) return_trace (false);
+    switch (u.format) {
+    case 0: return_trace (u.format0.sanitize (c, base));
+    case 2: return_trace (u.format2.sanitize (c, base));
+    case 4: return_trace (u.format4.sanitize (c, base));
+    case 6: return_trace (u.format6.sanitize (c, base));
+    case 8: return_trace (u.format8.sanitize (c, base));
+    case 10: return_trace (false); /* No need to support format10 apparently */
     default:return_trace (true);
     }
   }

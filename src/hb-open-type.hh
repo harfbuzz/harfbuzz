@@ -833,6 +833,17 @@ struct VarSizedBinSearchArrayOf
         return_trace (false);
     return_trace (true);
   }
+  template <typename T>
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    unsigned int count = header.nUnits;
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!(*this)[i].sanitize (c, base, user_data)))
+        return_trace (false);
+    return_trace (true);
+  }
 
   template <typename T>
   inline const Type *bsearch (const T &key) const
