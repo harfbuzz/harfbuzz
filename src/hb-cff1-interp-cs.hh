@@ -92,12 +92,13 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
       bool  has_width = false;
       switch (op)
       {
-        default:
         case OpCode_endchar:
           has_width = (env.argStack.get_count () > 0);
           break;
         case OpCode_hstem:
         case OpCode_hstemhm:
+        case OpCode_vstem:
+        case OpCode_vstemhm:
         case OpCode_hintmask:
         case OpCode_cntrmask:
           has_width = ((env.argStack.get_count () & 1) != 0);
@@ -109,6 +110,8 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
         case OpCode_rmoveto:
           has_width = (env.argStack.get_count () > 2);
           break;
+        default:
+          return;
       }
       env.set_width (has_width);
     }
