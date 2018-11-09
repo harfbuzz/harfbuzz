@@ -34,6 +34,9 @@
 template <typename Type, unsigned int StaticSize=8>
 struct hb_vector_t
 {
+  typedef Type ItemType;
+  enum { item_size = sizeof (Type) };
+
   HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, StaticSize);
   inline hb_vector_t (void) { init (); }
   inline ~hb_vector_t (void) { fini (); }
