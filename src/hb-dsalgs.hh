@@ -530,14 +530,13 @@ struct hb_bytes_t
 
   inline int cmp (const hb_bytes_t &a) const
   {
-    unsigned int l = MIN(a.len, len);
-    if (l) /* glibc's memcmp() args are declared nonnull.  Meh. */
-    {
-      int r = memcmp (a.arrayZ, arrayZ, l);
-      if (r) return r;
-    }
+    if (len != a.len)
+      return (int) a.len - (int) len;
 
-    return a.len < len ? -1 : a.len > len ? +1 : 0;
+    if (!len)
+      return 0; /* glibc's memcmp() declares args non-NULL, and UBSan doesn't like that. :( */
+
+    return memcmp (a.arrayZ, arrayZ, len);
   }
   static inline int cmp (const void *pa, const void *pb)
   {
