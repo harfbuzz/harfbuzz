@@ -530,10 +530,12 @@ struct hb_bytes_t
 
   inline int cmp (const hb_bytes_t &a) const
   {
-    if (len != a.len)
-      return (int) a.len - (int) len;
+    if (!len) return 0; /* glibc's memcmp() args are declared nonnull.  Meh. */
 
-    return memcmp (a.arrayZ, arrayZ, len);
+    int r = memcmp (a.arrayZ, arrayZ, len);
+    if (r) return r;
+
+    return a.len < len ? -1 : a.len > len ? +1 : 0;
   }
   static inline int cmp (const void *pa, const void *pb)
   {
