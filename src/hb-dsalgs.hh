@@ -526,6 +526,9 @@ struct hb_bytes_t
   template <typename T>
   inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len) {}
 
+  inline operator const void * (void) const { return arrayZ; }
+  inline operator const char * (void) const { return arrayZ; }
+
   inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   inline int cmp (const hb_bytes_t &a) const
