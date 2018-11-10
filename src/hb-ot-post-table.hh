@@ -73,19 +73,6 @@ struct post
 {
   static const hb_tag_t tableTag = HB_OT_TAG_post;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this)))
-      return_trace (false);
-    if (version.to_int () == 0x00020000)
-    {
-      const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
-      return_trace (v2.sanitize (c));
-    }
-    return_trace (true);
-  }
-
   inline bool subset (hb_subset_plan_t *plan) const
   {
     unsigned int post_prime_length;
@@ -264,6 +251,19 @@ struct post
     const uint8_t *pool;
     hb_atomic_ptr_t<uint16_t *> gids_sorted_by_name;
   };
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (this)))
+      return_trace (false);
+    if (version.to_int () == 0x00020000)
+    {
+      const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
+      return_trace (v2.sanitize (c));
+    }
+    return_trace (true);
+  }
 
   public:
   FixedVersion<>version;		/* 0x00010000 for version 1.0
