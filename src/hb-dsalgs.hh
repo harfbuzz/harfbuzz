@@ -356,7 +356,12 @@ hb_bsearch_r (const void *key, const void *base,
 }
 
 
-/* From https://github.com/noporpoise/sort_r */
+/* From https://github.com/noporpoise/sort_r
+ * With following modifications:
+ *
+ * 10 November 2018:
+ * https://github.com/noporpoise/sort_r/issues/7
+ */
 
 /* Isaac Turner 29 April 2014 Public Domain */
 
@@ -412,7 +417,7 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
 
     /* Use median of first, middle and last items as pivot */
     char *x, *y, *xend, ch;
-    char *pl, *pr;
+    char *pl, *pm, *pr;
     char *last = b+w*(nel-1), *tmp;
     char *l[3];
     l[0] = b;
@@ -434,13 +439,15 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
     pr = last;
 
     while(pl < pr) {
-      for(; pl < pr; pl += w) {
+      pm = pl+((pr-pl+1)>>1);
+      for(; pl < pm; pl += w) {
         if(sort_r_cmpswap(pl, pr, w, compar, arg)) {
           pr -= w; /* pivot now at pl */
           break;
         }
       }
-      for(; pl < pr; pr -= w) {
+      pm = pl+((pr-pl)>>1);
+      for(; pm < pr; pr -= w) {
         if(sort_r_cmpswap(pl, pr, w, compar, arg)) {
           pl += w; /* pivot now at pr */
           break;
