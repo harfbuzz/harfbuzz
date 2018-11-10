@@ -77,11 +77,11 @@ struct post
   {
     unsigned int post_prime_length;
     hb_blob_t *post_blob = hb_sanitize_context_t().reference_table<post>(plan->source);
-    hb_blob_t *post_prime_blob = hb_blob_create_sub_blob (post_blob, 0, post::static_size);
+    hb_blob_t *post_prime_blob = hb_blob_create_sub_blob (post_blob, 0, post::min_size);
     post *post_prime = (post *) hb_blob_get_data_writable (post_prime_blob, &post_prime_length);
     hb_blob_destroy (post_blob);
 
-    if (unlikely (!post_prime || post_prime_length != post::static_size))
+    if (unlikely (!post_prime || post_prime_length != post::min_size))
     {
       hb_blob_destroy (post_prime_blob);
       DEBUG_MSG(SUBSET, nullptr, "Invalid source post table with length %d.", post_prime_length);
@@ -109,7 +109,7 @@ struct post
       if (version != 0x00020000)
         return;
 
-      const postV2Tail &v2 = StructAfter<postV2Tail> (*table);
+      const postV2Tail &v2 = table->v2;
 
       glyphNameIndex = &v2.glyphNameIndex;
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
@@ -255,14 +255,10 @@ struct post
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this)))
-      return_trace (false);
-    if (version.to_int () == 0x00020000)
-    {
-      const postV2Tail &v2 = StructAfter<postV2Tail> (*this);
-      return_trace (v2.sanitize (c));
-    }
-    return_trace (true);
+    return_trace (likely (c->check_struct (this) &&
+			  (version.to_int () == 0x00010000 ||
+			   (version.to_int () == 0x00020000 && v2.sanitize (c)) ||
+			   version.to_int () == 0x00030000)));
   }
 
   public:
@@ -297,8 +293,8 @@ struct post
 					 * is downloaded as a Type 1 font. */
   HBUINT32	maxMemType1;		/* Maximum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
-/*postV2Tail	v2[VAR];*/
-  DEFINE_SIZE_STATIC (32);
+  postV2Tail	v2;
+  DEFINE_SIZE_MIN (32);
 };
 
 struct post_accelerator_t : post::accelerator_t {};
