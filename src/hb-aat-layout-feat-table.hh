@@ -54,13 +54,6 @@ struct SettingName
 
 struct FeatureName
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) &&
-			  (base+settingTable).sanitize (c, nSettings)));
-  }
-
   enum {
     Exclusive = 0x8000,		/* If set, the feature settings are mutually exclusive. */
     NotDefault = 0x4000,	/* If clear, then the setting with an index of 0 in
@@ -74,6 +67,13 @@ struct FeatureName
 				 * array for this feature which should be taken
 				 * as the default. */
   };
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  (base+settingTable).sanitize (c, nSettings)));
+  }
 
   protected:
   HBUINT16	feature;	/* Feature type. */
