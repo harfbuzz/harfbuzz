@@ -524,7 +524,7 @@ struct hb_bytes_t
   inline hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
   inline hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
   template <typename T>
-  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len) {}
+  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len * sizeof (array.arrayZ[0])) {}
 
   inline operator const void * (void) const { return arrayZ; }
   inline operator const char * (void) const { return arrayZ; }
