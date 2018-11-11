@@ -96,7 +96,7 @@ struct hb_blob_ptr_t
   inline operator const char * (void) const { return (const char *) get (); }
   inline const T * get (void) const { return b->as<T> (); }
   inline hb_blob_t * get_blob (void) const { return b.get_raw (); }
-  inline unsigned int get_length (void) const { return get_blob ()->length; }
+  inline unsigned int get_length (void) const { return b.get ()->length; }
 
   hb_nonnull_ptr_t<hb_blob_t> b;
 };
