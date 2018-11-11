@@ -194,17 +194,15 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
 void
 OT::GDEF::accelerator_t::init (hb_face_t *face)
 {
-  this->blob = hb_sanitize_context_t().reference_table<GDEF> (face);
+  this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
 
-  if (unlikely (_hb_ot_blacklist_gdef (this->blob->length,
-				       face->table.GSUB->blob->length,
-				       face->table.GPOS->blob->length)))
+  if (unlikely (_hb_ot_blacklist_gdef (this->table.get_length (),
+				       face->table.GSUB->table.get_length (),
+				       face->table.GPOS->table.get_length ())))
   {
-    hb_blob_destroy (this->blob);
-    this->blob = hb_blob_get_empty ();
+    hb_blob_destroy (this->table.get_blob ());
+    this->table = hb_blob_get_empty ();
   }
-
-  table = this->blob->as<GDEF> ();
 }
 
 static void

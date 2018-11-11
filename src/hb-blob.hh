@@ -80,4 +80,27 @@ struct hb_blob_t
 DECLARE_NULL_INSTANCE (hb_blob_t);
 
 
+/*
+ * hb_blob_ptr_t
+ */
+
+template <typename P>
+struct hb_blob_ptr_t
+{
+  typedef typename hb_remove_pointer<P>::value T;
+
+  inline hb_blob_ptr_t (hb_blob_t *b_ = nullptr) : b (b_) {}
+  inline hb_blob_t * operator = (hb_blob_t *b_) { return b = b_; }
+  inline const T * operator -> (void) const { return get (); }
+  inline const T & operator * (void) const { return *get (); }
+  template <typename C> inline operator const C * (void) const { return get (); }
+  inline operator const char * (void) const { return (const char *) get (); }
+  inline const T * get (void) const { return b->as<T> (); }
+  inline hb_blob_t * get_blob (void) const { return b.get_raw (); }
+  inline unsigned int get_length (void) const { return get_blob ()->length; }
+
+  hb_nonnull_ptr_t<hb_blob_t> b;
+};
+
+
 #endif /* HB_BLOB_HH */

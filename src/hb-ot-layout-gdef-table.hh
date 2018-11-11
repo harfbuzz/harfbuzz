@@ -412,11 +412,10 @@ struct GDEF
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->blob);
+      hb_blob_destroy (this->table.get_blob ());
     }
 
-    hb_blob_t *blob;
-    hb_nonnull_ptr_t<const GDEF> table;
+    hb_blob_ptr_t<GDEF> table;
   };
 
   inline unsigned int get_size (void) const
