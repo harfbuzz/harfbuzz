@@ -28,8 +28,8 @@
 #include "hb-shaper-impl.hh"
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(fallback, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(fallback, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(fallback, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(fallback, font);
 
 
 /*

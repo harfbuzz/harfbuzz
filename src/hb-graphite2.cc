@@ -46,8 +46,8 @@
  **/
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font);
 
 
 /*

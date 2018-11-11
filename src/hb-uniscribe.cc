@@ -314,8 +314,8 @@ struct range_record_t {
   unsigned int index_last;  /* == end - 1 */
 };
 
-HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, font);
 
 
 /*

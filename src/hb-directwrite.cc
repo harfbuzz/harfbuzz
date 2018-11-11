@@ -31,8 +31,8 @@
 #include "hb-directwrite.h"
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, face)
-HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, font)
+HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, face);
+HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, font);
 
 
 /*

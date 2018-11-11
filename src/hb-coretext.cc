@@ -101,10 +101,10 @@ _hb_cg_font_release (void *data)
 }
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face);
 HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
 	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
-)
+);
 
 static CTFontDescriptorRef
 get_last_resort_font_desc (void)
@@ -1152,8 +1152,8 @@ fail:
  * AAT shaper
  */
 
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font);
 
 /*
  * shaper face data
