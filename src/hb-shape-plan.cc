@@ -103,30 +103,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
  * hb_shape_plan_t
  */
 
-DEFINE_NULL_INSTANCE (hb_shape_plan_t) =
-{
-  HB_OBJECT_HEADER_STATIC,
-
-  nullptr, /* face */
-  false, /* custom_shaper_list */
-  HB_SEGMENT_PROPERTIES_DEFAULT, /* props */
-
-  nullptr, /* shaper_func */
-  nullptr, /* shaper_name */
-
-  nullptr, /* user_features */
-  0,    /* num_user_featurs */
-
-  nullptr, /* coords */
-  0,    /* num_coords */
-
-  {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-  },
-};
-
 
 /**
  * hb_shape_plan_create: (Xconstructor)
