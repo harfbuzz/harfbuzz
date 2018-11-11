@@ -412,7 +412,7 @@ struct GDEF
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->table.get_blob ());
+      this->table.destroy ();
     }
 
     hb_blob_ptr_t<GDEF> table;

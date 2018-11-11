@@ -123,7 +123,7 @@ struct post
     {
       index_to_offset.fini ();
       free (gids_sorted_by_name.get ());
-      hb_blob_destroy (table.get_blob ());
+      table.destroy ();
     }
 
     inline bool get_glyph_name (hb_codepoint_t glyph,

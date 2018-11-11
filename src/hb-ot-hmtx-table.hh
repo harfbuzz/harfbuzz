@@ -234,7 +234,7 @@ struct hmtxvmtx
       if (unlikely (!num_advances))
       {
 	num_metrics = num_advances = 0;
-	hb_blob_destroy (table.get_blob ());
+	table.destroy ();
 	table = hb_blob_get_empty ();
       }
 
@@ -243,8 +243,8 @@ struct hmtxvmtx
 
     inline void fini (void)
     {
-      hb_blob_destroy (table.get_blob ());
-      hb_blob_destroy (var_table.get_blob ());
+      table.destroy ();
+      var_table.destroy ();
     }
 
     /* TODO Add variations version. */

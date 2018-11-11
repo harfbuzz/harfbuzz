@@ -254,8 +254,8 @@ struct glyf
 
     inline void fini (void)
     {
-      hb_blob_destroy (loca_table.get_blob ());
-      hb_blob_destroy (glyf_table.get_blob ());
+      loca_table.destroy ();
+      glyf_table.destroy ();
     }
 
     /*

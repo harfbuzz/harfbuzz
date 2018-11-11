@@ -392,8 +392,8 @@ struct CBDT
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->cblc.get_blob ());
-      hb_blob_destroy (this->cbdt.get_blob ());
+      this->cblc.destroy ();
+      this->cbdt.destroy ();
     }
 
     inline bool get_extents (hb_font_t *font, hb_codepoint_t glyph,

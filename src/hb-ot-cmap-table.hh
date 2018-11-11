@@ -1050,7 +1050,7 @@ struct cmap
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->table.get_blob ());
+      this->table.destroy ();
     }
 
     inline bool get_nominal_glyph (hb_codepoint_t  unicode,

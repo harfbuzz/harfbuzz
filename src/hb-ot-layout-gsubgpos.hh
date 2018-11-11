@@ -2769,7 +2769,7 @@ struct GSUBGPOS
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].fini ();
       free (this->accels);
-      hb_blob_destroy (this->table.get_blob ());
+      this->table.destroy ();
     }
 
     hb_blob_ptr_t<T> table;

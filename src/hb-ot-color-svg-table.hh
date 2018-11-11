@@ -86,7 +86,7 @@ struct SVG
 
     inline void fini (void)
     {
-      hb_blob_destroy (table.get_blob ());
+      table.destroy ();
     }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const

@@ -220,7 +220,7 @@ struct name
     inline void fini (void)
     {
       this->names.fini ();
-      hb_blob_destroy (this->table.get_blob ());
+      this->table.destroy ();
     }
 
     inline int get_index (hb_ot_name_id_t   name_id,

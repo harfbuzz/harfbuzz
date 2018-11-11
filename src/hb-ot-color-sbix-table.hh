@@ -146,7 +146,7 @@ struct sbix
 
     inline void fini (void)
     {
-      hb_blob_destroy (table.get_blob ());
+      table.destroy ();
     }
 
     inline bool has_data () const
