@@ -101,9 +101,8 @@ struct post
     {
       index_to_offset.init ();
 
-      blob = hb_sanitize_context_t().reference_table<post> (face);
-      const post *table = blob->as<post> ();
-      unsigned int table_length = blob->length;
+      table = hb_sanitize_context_t().reference_table<post> (face);
+      unsigned int table_length = table.get_length ();
 
       version = table->version.to_int ();
       if (version != 0x00020000)
@@ -114,7 +113,7 @@ struct post
       glyphNameIndex = &v2.glyphNameIndex;
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
-      const uint8_t *end = (uint8_t *) table + table_length;
+      const uint8_t *end = (const uint8_t *) (const void *) table + table_length;
       for (const uint8_t *data = pool;
 	   index_to_offset.len < 65535 && data < end && data + *data < end;
 	   data += 1 + *data)
@@ -124,7 +123,7 @@ struct post
     {
       index_to_offset.fini ();
       free (gids_sorted_by_name.get ());
-      hb_blob_destroy (blob);
+      hb_blob_destroy (table.get_blob ());
     }
 
     inline bool get_glyph_name (hb_codepoint_t glyph,
@@ -244,7 +243,7 @@ struct post
     }
 
     private:
-    hb_blob_t *blob;
+    hb_blob_ptr_t<post> table;
     uint32_t version;
     const ArrayOf<HBUINT16> *glyphNameIndex;
     hb_vector_t<uint32_t, 1> index_to_offset;
