@@ -1060,9 +1060,8 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
       for (unsigned int i = 0; i < gsub.get_lookup_count (); i++)
         gsub.get_lookup (i).closure (&c, i);
     }
-    iteration_count++;
-  } while (iteration_count <= HB_CLOSURE_MAX_STAGES
-           && glyphs_length != glyphs->get_population ());
+  } while (iteration_count++ <= HB_CLOSURE_MAX_STAGES &&
+	   glyphs_length != glyphs->get_population ());
 }
 
 /*
