@@ -77,7 +77,6 @@ struct hb_blob_t
   void *user_data;
   hb_destroy_func_t destroy;
 };
-DECLARE_NULL_INSTANCE (hb_blob_t);
 
 
 /*
