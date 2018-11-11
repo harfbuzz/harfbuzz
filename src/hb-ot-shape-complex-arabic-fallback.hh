@@ -212,8 +212,11 @@ struct arabic_fallback_plan_t
 
 struct ManifestLookup
 {
+  public:
   OT::Tag tag;
   OT::OffsetTo<OT::SubstLookup> lookupOffset;
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
 typedef OT::ArrayOf<ManifestLookup> Manifest;
 
