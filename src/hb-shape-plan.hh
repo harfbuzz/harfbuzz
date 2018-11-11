@@ -35,8 +35,8 @@ struct hb_shape_plan_t
 {
   hb_object_header_t header;
 
-  hb_bool_t default_shaper_list;
   hb_face_t *face_unsafe; /* We don't carry a reference to face. */
+  bool custom_shaper_list;
   hb_segment_properties_t props;
 
   hb_shape_func_t *shaper_func;

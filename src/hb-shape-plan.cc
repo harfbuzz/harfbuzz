@@ -107,8 +107,8 @@ DEFINE_NULL_INSTANCE (hb_shape_plan_t) =
 {
   HB_OBJECT_HEADER_STATIC,
 
-  true, /* default_shaper_list */
   nullptr, /* face */
+  false, /* custom_shaper_list */
   HB_SEGMENT_PROPERTIES_DEFAULT, /* props */
 
   nullptr, /* shaper_func */
@@ -196,7 +196,7 @@ hb_shape_plan_create2 (hb_face_t                     *face,
   assert (props->direction != HB_DIRECTION_INVALID);
 
   hb_face_make_immutable (face);
-  shape_plan->default_shaper_list = !shaper_list;
+  shape_plan->custom_shaper_list = shaper_list;
   shape_plan->face_unsafe = face;
   shape_plan->props = *props;
   shape_plan->num_user_features = num_user_features;
@@ -382,7 +382,7 @@ static unsigned int
 hb_shape_plan_hash (const hb_shape_plan_t *shape_plan)
 {
   return hb_segment_properties_hash (&shape_plan->props) +
-	 shape_plan->default_shaper_list ? 0 : (intptr_t) shape_plan->shaper_func;
+	 shape_plan->custom_shaper_list ? (intptr_t) shape_plan->shaper_func : 0;
 }
 #endif
 
@@ -436,7 +436,7 @@ hb_shape_plan_matches (const hb_shape_plan_t          *shape_plan,
   return hb_segment_properties_equal (&shape_plan->props, &proposal->props) &&
 	 hb_shape_plan_user_features_match (shape_plan, proposal) &&
 	 hb_shape_plan_coords_match (shape_plan, proposal) &&
-	 ((shape_plan->default_shaper_list && !proposal->shaper_list) ||
+	 ((!shape_plan->custom_shaper_list && !proposal->shaper_list) ||
 	  (shape_plan->shaper_func == proposal->shaper_func));
 }
 
