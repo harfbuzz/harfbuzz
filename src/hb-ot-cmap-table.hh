@@ -636,7 +636,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (4, arrayZ);
+  DEFINE_SIZE_ARRAY (4, *this);
 };
 
 struct UVSMapping
@@ -668,7 +668,7 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (4, arrayZ);
+  DEFINE_SIZE_ARRAY (4, *this);
 };
 
 struct VariationSelectorRecord
