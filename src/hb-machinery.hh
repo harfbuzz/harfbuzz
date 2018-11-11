@@ -110,7 +110,7 @@ static inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * (array).item_size); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
   DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
   enum { min_size = (size) }
 
