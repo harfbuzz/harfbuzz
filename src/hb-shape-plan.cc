@@ -64,7 +64,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 	HB_STMT_START { \
 	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face_unsafe)) \
 	  { \
-	    /* XXX-MT-bug What happened to *ensure*ing this?!!!! */ \
 	    HB_SHAPER_DATA (shaper, shape_plan).set_relaxed ( \
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, \
 							       user_features, num_user_features, \
