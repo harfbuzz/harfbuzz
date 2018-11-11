@@ -43,7 +43,7 @@ hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_
 
 /* Generic nul-content Null objects. */
 template <typename Type>
-static inline constexpr Type const & Null (void) {
+static inline Type const & Null (void) {
   static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
