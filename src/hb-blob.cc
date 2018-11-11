@@ -59,7 +59,7 @@ DEFINE_NULL_INSTANCE (hb_blob_t) =
 
   nullptr, /* data */
   0, /* length */
-  HB_MEMORY_MODE_READONLY, /* mode */
+  HB_MEMORY_MODE_DUPLICATE, /* mode */
 
   nullptr, /* user_data */
   nullptr  /* destroy */
