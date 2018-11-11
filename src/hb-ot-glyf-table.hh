@@ -149,7 +149,7 @@ struct glyf
     };
 
     HBUINT16 flags;
-    HBUINT16 glyphIndex;
+    GlyphID  glyphIndex;
 
     inline unsigned int get_size (void) const
     {

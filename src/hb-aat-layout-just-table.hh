@@ -178,6 +178,8 @@ struct RepeatedAddGlyphAction
 
 struct ActionSubrecord
 {
+  inline unsigned int get_length (void) const { return u.header.actionLength; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -195,8 +197,6 @@ struct ActionSubrecord
     default: return_trace (true);
     }
   }
-
-  inline unsigned int get_length () const { return u.header.actionLength; }
 
   protected:
   union	{
@@ -309,8 +309,8 @@ struct WidthDeltaPair
   public:
   DEFINE_SIZE_STATIC (24);
 };
-
-struct WidthDeltaCluster : OT::LArrayOf<WidthDeltaPair> {};
+  
+typedef OT::LArrayOf<WidthDeltaPair> WidthDeltaCluster;
 
 struct JustificationCategory
 {
@@ -388,9 +388,10 @@ struct just
   {
     TRACE_SANITIZE (this);
 
-    return_trace (unlikely (c->check_struct (this) &&
-			    horizData.sanitize (c, this, this) &&
-			    vertData.sanitize (c, this, this)));
+    return_trace (likely (c->check_struct (this) &&
+			  version.major == 1 &&
+			  horizData.sanitize (c, this, this) &&
+			  vertData.sanitize (c, this, this)));
   }
 
   protected:

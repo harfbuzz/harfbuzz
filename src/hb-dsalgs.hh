@@ -356,7 +356,12 @@ hb_bsearch_r (const void *key, const void *base,
 }
 
 
-/* From https://github.com/noporpoise/sort_r */
+/* From https://github.com/noporpoise/sort_r
+ * With following modifications:
+ *
+ * 10 November 2018:
+ * https://github.com/noporpoise/sort_r/issues/7
+ */
 
 /* Isaac Turner 29 April 2014 Public Domain */
 
@@ -412,7 +417,7 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
 
     /* Use median of first, middle and last items as pivot */
     char *x, *y, *xend, ch;
-    char *pl, *pr;
+    char *pl, *pm, *pr;
     char *last = b+w*(nel-1), *tmp;
     char *l[3];
     l[0] = b;
@@ -434,13 +439,15 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
     pr = last;
 
     while(pl < pr) {
-      for(; pl < pr; pl += w) {
+      pm = pl+((pr-pl+1)>>1);
+      for(; pl < pm; pl += w) {
         if(sort_r_cmpswap(pl, pr, w, compar, arg)) {
           pr -= w; /* pivot now at pl */
           break;
         }
       }
-      for(; pl < pr; pr -= w) {
+      pm = pl+((pr-pl)>>1);
+      for(; pm < pr; pr -= w) {
         if(sort_r_cmpswap(pl, pr, w, compar, arg)) {
           pl += w; /* pivot now at pr */
           break;
@@ -517,7 +524,10 @@ struct hb_bytes_t
   inline hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
   inline hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
   template <typename T>
-  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len) {}
+  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len * sizeof (array.arrayZ[0])) {}
+
+  inline operator const void * (void) const { return arrayZ; }
+  inline operator const char * (void) const { return arrayZ; }
 
   inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
@@ -525,6 +535,9 @@ struct hb_bytes_t
   {
     if (len != a.len)
       return (int) a.len - (int) len;
+
+    if (!len)
+      return 0; /* glibc's memcmp() declares args non-NULL, and UBSan doesn't like that. :( */
 
     return memcmp (a.arrayZ, arrayZ, len);
   }

@@ -147,9 +147,9 @@ struct TrackData
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  sizeTable.sanitize (c, base, nSizes) &&
-		  trackTable.sanitize (c, nTracks, base, nSizes));
+    return_trace (likely (c->check_struct (this) &&
+			  sizeTable.sanitize (c, base, nSizes) &&
+			  trackTable.sanitize (c, nTracks, base, nSizes)));
   }
 
   protected:
@@ -170,15 +170,6 @@ struct trak
   static const hb_tag_t tableTag = HB_AAT_TAG_trak;
 
   inline bool has_data (void) const { return version.to_int () != 0; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-
-    return_trace (unlikely (c->check_struct (this) &&
-			    horizData.sanitize (c, this, this) &&
-			    vertData.sanitize (c, this, this)));
-  }
 
   inline bool apply (hb_aat_apply_context_t *c) const
   {
@@ -221,15 +212,27 @@ struct trak
     return_trace (true);
   }
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+
+    return_trace (likely (c->check_struct (this) &&
+			  version.major == 1 &&
+			  horizData.sanitize (c, this, this) &&
+			  vertData.sanitize (c, this, this)));
+  }
+
   protected:
-  FixedVersion<>	version;	/* Version of the tracking table
+  FixedVersion<>version;	/* Version of the tracking table
 					 * (0x00010000u for version 1.0). */
-  HBUINT16		format; 	/* Format of the tracking table (set to 0). */
-  OffsetTo<TrackData>	horizData;	/* Offset from start of tracking table to TrackData
-					 * for horizontal text (or 0 if none). */
-  OffsetTo<TrackData>	vertData;	/* Offset from start of tracking table to TrackData
-					 * for vertical text (or 0 if none). */
-  HBUINT16		reserved;	/* Reserved. Set to 0. */
+  HBUINT16	format; 	/* Format of the tracking table (set to 0). */
+  OffsetTo<TrackData>
+		horizData;	/* Offset from start of tracking table to TrackData
+				 * for horizontal text (or 0 if none). */
+  OffsetTo<TrackData>
+		vertData;	/* Offset from start of tracking table to TrackData
+				 * for vertical text (or 0 if none). */
+  HBUINT16	reserved;	/* Reserved. Set to 0. */
 
   public:
   DEFINE_SIZE_STATIC (12);
