@@ -782,10 +782,6 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   inline Stored * do_create (void) const
   {
-    Stored *p = this->template call_create<Stored, Funcs> ();
-    if (unlikely (!p))
-      p = const_cast<Stored *> (Funcs::get_null ());
-    return p;
   }
   static inline void do_destroy (Stored *p)
   {
@@ -803,7 +799,10 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
-      p = do_create ();
+      p = this->template call_create<Stored, Funcs> ();
+      if (unlikely (!p))
+	return const_cast<Stored *> (Funcs::get_null ());
+
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
         do_destroy (p);
