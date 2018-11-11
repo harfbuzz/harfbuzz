@@ -7,11 +7,13 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 # Convenience targets:
-lib:
+lib-only:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src fuzzing
+lib: lib-only
+	@$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 
-$(top_builddir)/src/libharfbuzz-fuzzing.la: lib
-$(top_builddir)/src/libharfbuzz-subset-fuzzing.la: lib
+$(top_builddir)/src/libharfbuzz-fuzzing.la: lib-only
+$(top_builddir)/src/libharfbuzz-subset-fuzzing.la: lib-only
 
 EXTRA_DIST += \
 	README \
@@ -47,7 +49,7 @@ hb_shape_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(NULL)
 hb_shape_fuzzer_DEPENDENCIES = \
-	lib \
+	$(top_builddir)/src/libharfbuzz-fuzzing.la
 	$(NULL)
 
 hb_subset_fuzzer_SOURCES = \
@@ -62,7 +64,7 @@ hb_subset_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(NULL)
 hb_subset_fuzzer_DEPENDENCIES = \
-	lib \
+	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la
 	$(NULL)
 
 check:

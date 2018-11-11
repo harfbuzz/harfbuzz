@@ -195,7 +195,7 @@ libharfbuzz_subset_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_subset_fuzzi
 libharfbuzz_subset_fuzzing_la_SOURCES = $(libharfbuzz_subset_la_SOURCES)
 libharfbuzz_subset_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
 libharfbuzz_subset_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
-libharfbuzz_subset_fuzzing_la_LIBADD = $(libharfbuzz_subset_la_LIBADD)
+libharfbuzz_subset_fuzzing_la_LIBADD = libharfbuzz-fuzzing.la
 EXTRA_libharfbuzz_subset_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_subset_la_DEPENDENCIES)
 CLEANFILES += libharfbuzz-subset-fuzzing.la
 
