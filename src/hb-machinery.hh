@@ -780,12 +780,9 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     do_destroy (p);
   }
 
-  inline Stored * do_create (void) const
-  {
-  }
   static inline void do_destroy (Stored *p)
   {
-    if (p && p != Funcs::get_null ())
+    if (p)
       Funcs::destroy (p);
   }
 
