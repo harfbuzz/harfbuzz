@@ -262,10 +262,12 @@ struct KerxSubTableFormat1
 
       if (Format1EntryT::performAction (entry))
       {
+	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
+
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
 	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kern_idx];
-	if (!c->sanitizer.check_array (actions, depth))
+	if (!c->sanitizer.check_array (actions, depth * tuple_count))
 	{
 	  depth = 0;
 	  return false;
@@ -276,8 +278,6 @@ struct KerxSubTableFormat1
 	/* From Apple 'kern' spec:
 	 * "Each pops one glyph from the kerning stack and applies the kerning value to it.
 	 * The end of the list is marked by an odd value... */
-	unsigned int tuple_count = table->header.tuple_count ();
-	tuple_count = tuple_count ? tuple_count : 1;
 	bool last = false;
 	while (!last && depth--)
 	{
