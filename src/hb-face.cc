@@ -96,7 +96,7 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
 #undef HB_SHAPER_IMPLEMENT
   },
 
-  HB_ATOMIC_PTR_INIT (nullptr), /* shape_plans */
+  /* Zero for the rest is fine. */
 };
 
 
