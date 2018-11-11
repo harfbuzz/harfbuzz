@@ -129,7 +129,6 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
   face->user_data = user_data;
   face->destroy = destroy;
 
-  face->upem = 0;
   face->num_glyphs = (unsigned int) -1;
 
   face->table.init0 (face);
