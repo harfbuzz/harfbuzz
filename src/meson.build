@@ -14,7 +14,7 @@ hb_base_sources = [
   'hb-warning.cc',
 ]
 
-hb_base_headers = [
+hb_base_headers = files([
   'hb.h',
   'hb-blob.h',
   'hb-buffer.h',
@@ -27,7 +27,7 @@ hb_base_headers = [
   'hb-shape-plan.h',
   'hb-unicode.h',
   'hb-version.h',
-]
+])
 
 hb_base_ragel_sources = [
   'hb-buffer-deserialize-json.rl',
@@ -63,7 +63,7 @@ hb_ot_sources = [
   'hb-ot-var.cc',
 ]
 
-hb_ot_headers = [
+hb_ot_headers = files([
   'hb-ot.h',
   'hb-ot-font.h',
   'hb-ot-layout.h',
@@ -71,7 +71,7 @@ hb_ot_headers = [
   'hb-ot-shape.h',
   'hb-ot-tag.h',
   'hb-ot-var.h',
-]
+])
 
 hb_ot_ragel_sources = [
   'hb-ot-shape-complex-indic-machine.rl',
@@ -84,33 +84,33 @@ hb_ft_sources = [
   'hb-ft.cc',
 ]
 
-hb_ft_headers = [
+hb_ft_headers = files([
   'hb-ft.h',
-]
+])
 
 hb_glib_sources = [
   'hb-glib.cc',
 ]
 
-hb_glib_headers = [
+hb_glib_headers = files([
   'hb-glib.h',
-]
+])
 
 hb_graphite2_sources = [
   'hb-graphite2.cc',
 ]
 
-hb_graphite2_headers = [
+hb_graphite2_headers = files([
   'hb-graphite2.h',
-]
+])
 
 hb_icu_sources = [
   'hb-icu.cc',
 ]
 
-hb_icu_headers = [
+hb_icu_headers = files([
   'hb-icu.h',
-]
+])
 
 hb_subset_sources = [
   'hb-subset.cc',
@@ -119,21 +119,21 @@ hb_subset_sources = [
   'hb-subset-plan.cc',
 ]
 
-hb_subset_headers = [
+hb_subset_headers = files([
   'hb-subset.h',
   'hb-subset-glyf.hh',
   'hb-subset-plan.hh',
   'hb-subset-private.hh',
-]
+])
 
 hb_gobject_sources = [
   'hb-gobject-structs.cc'
 ]
 
-hb_gobject_headers = [
+hb_gobject_headers = files([
   'hb-gobject.h',
   'hb-gobject-structs.h',
-]
+])
 
 incucdn = []
 incsrc = include_directories('.')
@@ -182,13 +182,20 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   hb_headers += ['hb-coretext.h']
 endif
 
+# harfbuzz
+gen_def = find_program('gen-def.py')
+harfbuzz_def = custom_target('harfbuzz.def',
+    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    input: hb_headers,
+    output: 'harfbuzz.def')
+
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
 
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: [incbase, incucdn],
   dependencies: deps,
   cpp_args: cpp_args,
-  vs_module_defs: 'harfbuzz.def',
+  vs_module_defs: harfbuzz_def,
   soversion: '0',
   version: version,
   install: true,
@@ -199,11 +206,17 @@ libharfbuzz_dep = declare_dependency(
   include_directories: [incbase, incucdn],
   dependencies: deps)
 
+# harfbuzz-subset
+harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
+    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    input: hb_subset_headers,
+    output: 'harfbuzz-subset.def')
+
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incbase,
   link_with: [libharfbuzz],
   cpp_args: cpp_args,
-  vs_module_defs: 'harfbuzz-subset.def',
+  vs_module_defs: harfbuzz_subset_def,
   soversion: '0',
   version: version,
   install: true,
@@ -265,12 +278,17 @@ if conf.get('HAVE_GOBJECT', 0) == 1
 
   hb_gobject_sources += [enum_c]
 
+  harfbuzz_gobject_def = custom_target('harfbuzz-gobject.def',
+    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    input: [hb_gobject_headers, enum_h],
+    output: 'harfbuzz-gobject.def')
+
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
     include_directories: incbase,
     dependencies: deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args,
-    vs_module_defs: 'harfbuzz-gobject.def',
+    vs_module_defs: harfbuzz_gobject_def,
     soversion: '0',
     version: version,
     install: true,
