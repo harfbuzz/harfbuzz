@@ -264,6 +264,17 @@ static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 /* A const version, but does not detect erratically being called on pointers. */
 #define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
+
+static inline int
+hb_memcmp (const void *a, const void *b, unsigned int len)
+{
+  /* It's illegal to pass NULL to memcmp(), even if len is zero.
+   * So, wrap it.
+   * https://sourceware.org/bugzilla/show_bug.cgi?id=23878 */
+  if (!len) return 0;
+  return memcmp (a, b, len);
+}
+
 static inline bool
 hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
 {
@@ -535,11 +546,7 @@ struct hb_bytes_t
   {
     if (len != a.len)
       return (int) a.len - (int) len;
-
-    if (!len)
-      return 0; /* glibc's memcmp() declares args non-NULL, and UBSan doesn't like that. :( */
-
-    return memcmp (a.arrayZ, arrayZ, len);
+    return hb_memcmp (a.arrayZ, arrayZ, len);
   }
   static inline int cmp (const void *pa, const void *pb)
   {
