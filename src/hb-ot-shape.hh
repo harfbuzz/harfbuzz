@@ -33,6 +33,29 @@
 #include "hb-aat-map.hh"
 
 
+struct hb_ot_shape_plan_key_t
+{
+  unsigned int variations_index[2];
+
+  inline void init (hb_face_t   *face,
+		    const int   *coords,
+		    unsigned int num_coords)
+  {
+    for (unsigned int table_index = 0; table_index < 2; table_index++)
+      hb_ot_layout_table_find_feature_variations (face,
+						  table_tags[table_index],
+						  coords,
+						  num_coords,
+						  &variations_index[table_index]);
+  }
+
+  inline bool equal (const hb_ot_shape_plan_key_t *other)
+  {
+    return 0 == memcmp (this, other, sizeof (*this));
+  }
+};
+
+
 struct hb_shape_plan_key_t;
 
 struct hb_ot_shape_plan_t
@@ -95,9 +118,8 @@ struct hb_ot_shape_planner_t
   HB_INTERNAL hb_ot_shape_planner_t (hb_face_t                     *face,
 				     const hb_segment_properties_t *props);
 
-  HB_INTERNAL void compile (hb_ot_shape_plan_t &plan,
-			    const int          *coords,
-			    unsigned int        num_coords);
+  HB_INTERNAL void compile (hb_ot_shape_plan_t           &plan,
+			    const hb_ot_shape_plan_key_t &key);
 };
 
 

@@ -54,15 +54,12 @@ hb_shape_plan_key_t::init (bool                           copy,
 			   const hb_segment_properties_t *props,
 			   const hb_feature_t            *user_features,
 			   unsigned int                   num_user_features,
-			   const int                     *orig_coords,
+			   const int                     *coords,
 			   unsigned int                   num_coords,
 			   const char * const            *shaper_list)
 {
   hb_feature_t *features = nullptr;
-  int *coords = nullptr;
   if (copy && num_user_features && !(features = (hb_feature_t *) calloc (num_user_features, sizeof (hb_feature_t))))
-    goto bail;
-  if (copy && num_coords && !(coords = (int *) calloc (num_coords, sizeof (int))))
     goto bail;
 
   this->props = *props;
@@ -70,12 +67,9 @@ hb_shape_plan_key_t::init (bool                           copy,
   this->user_features = copy ? features : user_features;
   if (copy && num_user_features)
     memcpy (features, user_features, num_user_features * sizeof (hb_feature_t));
-  this->num_coords = num_coords;
-  this->coords = copy ? coords : orig_coords;
-  if (copy && num_coords)
-    memcpy (coords, orig_coords, num_coords * sizeof (int));
   this->shaper_func = nullptr;
   this->shaper_name = nullptr;
+  this->ot.init (face, coords, num_coords);
 
   /*
    * Choose shaper.
@@ -117,7 +111,6 @@ hb_shape_plan_key_t::init (bool                           copy,
 #undef HB_SHAPER_PLAN
 
 bail:
-  ::free (coords);
   ::free (features);
   return false;
 }
@@ -379,38 +372,6 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
  */
 
 static inline bool
-hb_shape_plan_key_user_features_equal (const hb_shape_plan_key_t *key1,
-				       const hb_shape_plan_key_t *key2)
-{
-  if (key1->num_user_features != key2->num_user_features)
-    return false;
-  return 0 == hb_memcmp(key1->user_features,
-			key2->user_features,
-			key1->num_user_features * sizeof (key1->user_features[0]));
-}
-
-static inline bool
-hb_shape_plan_key_coords_equal (const hb_shape_plan_key_t *key2,
-				const hb_shape_plan_key_t *key1)
-{
-  if (key1->num_coords != key2->num_coords)
-    return false;
-  return 0 == hb_memcmp(key1->coords,
-			key2->coords,
-			key1->num_coords * sizeof (key1->coords[0]));
-}
-
-static bool
-hb_shape_plan_key_equal (const hb_shape_plan_key_t *key1,
-			 const hb_shape_plan_key_t *key2)
-{
-  return hb_segment_properties_equal (&key1->props, &key2->props) &&
-	 hb_shape_plan_key_user_features_equal (key1, key2) &&
-	 hb_shape_plan_key_coords_equal (key1, key2) &&
-	 key1->shaper_func == key2->shaper_func;
-}
-
-static inline bool
 _has_non_global_user_features (const hb_feature_t *user_features,
 			       unsigned int        num_user_features)
 {
@@ -426,20 +387,12 @@ _has_non_global_user_features (const hb_feature_t *user_features,
 }
 
 static inline bool
-_has_coords (const int    *coords,
-	     unsigned int  num_coords)
-{
-  return num_coords;
-}
-
-static inline bool
 _dont_cache (const hb_feature_t *user_features,
 	     unsigned int        num_user_features,
 	     const int          *coords,
 	     unsigned int        num_coords)
 {
-  return _has_non_global_user_features (user_features, num_user_features) ||
-	 _has_coords (coords, num_coords);
+  return _has_non_global_user_features (user_features, num_user_features);
 }
 
 /**
@@ -505,7 +458,7 @@ retry:
       return hb_shape_plan_get_empty ();
 
     for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
-      if (hb_shape_plan_key_equal (&node->shape_plan->key, &key))
+      if (node->shape_plan->key.equal (&key))
       {
         DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
         return hb_shape_plan_reference (node->shape_plan);

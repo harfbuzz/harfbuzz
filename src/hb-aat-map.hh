@@ -60,9 +60,7 @@ struct hb_aat_map_builder_t
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value=1);
 
-  HB_INTERNAL void compile (hb_aat_map_t  &m,
-			    const int    *coords,
-			    unsigned int  num_coords);
+  HB_INTERNAL void compile (hb_aat_map_t  &m);
 
   public:
   struct feature_info_t

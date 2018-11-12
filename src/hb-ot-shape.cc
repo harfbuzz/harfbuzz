@@ -79,15 +79,14 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 							hb_ot_shape_complex_categorize (this)) {}
 
 void
-hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
-				const int          *coords,
-				unsigned int        num_coords)
+hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
+				const hb_ot_shape_plan_key_t &key)
 {
   plan.props = props;
   plan.shaper = shaper;
-  map.compile (plan.map, coords, num_coords);
+  map.compile (plan.map, key);
   if (apply_morx)
-    aat_map.compile (plan.aat_map, coords, num_coords);
+    aat_map.compile (plan.aat_map);
 
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
@@ -160,9 +159,7 @@ hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
 				key->user_features,
 				key->num_user_features);
 
-  planner.compile (*this,
-		   key->coords,
-		   key->num_coords);
+  planner.compile (*this, key->ot);
 
   if (shaper->data_create)
   {

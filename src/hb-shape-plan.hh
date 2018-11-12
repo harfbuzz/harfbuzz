@@ -39,8 +39,7 @@ struct hb_shape_plan_key_t
   const hb_feature_t      *user_features;
   unsigned int             num_user_features;
 
-  const int               *coords;
-  unsigned int             num_coords;
+  hb_ot_shape_plan_key_t   ot;
 
   hb_shape_func_t         *shaper_func;
   const char              *shaper_name;
@@ -50,14 +49,30 @@ struct hb_shape_plan_key_t
 				const hb_segment_properties_t *props,
 				const hb_feature_t            *user_features,
 				unsigned int                   num_user_features,
-				const int                     *orig_coords,
+				const int                     *coords,
 				unsigned int                   num_coords,
 				const char * const            *shaper_list);
 
   HB_INTERNAL inline void free (void)
   {
     ::free ((void *) user_features);
-    ::free ((void *) coords);
+  }
+
+  inline bool user_features_match (const hb_shape_plan_key_t *other)
+  {
+    /* TODO Implement non-exact matching. */
+    if (this->num_user_features != other->num_user_features)
+      return false;
+    return 0 == hb_memcmp(this->user_features, other->user_features,
+			  this->num_user_features * sizeof (this->user_features[0]));
+  }
+
+  inline bool equal (const hb_shape_plan_key_t *other)
+  {
+    return hb_segment_properties_equal (&this->props, &other->props) &&
+	   this->user_features_match (other) &&
+	   this->ot.equal (&other->ot) &&
+	   this->shaper_func == other->shaper_func;
   }
 };
 
