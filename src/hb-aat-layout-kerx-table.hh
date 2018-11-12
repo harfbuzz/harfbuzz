@@ -260,7 +260,7 @@ struct KerxSubTableFormat1
 	  depth = 0; /* Probably not what CoreText does, but better? */
       }
 
-      if (depth && Format1EntryT::performAction (entry))
+      if (Format1EntryT::performAction (entry) && depth)
       {
 	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
 
@@ -279,9 +279,9 @@ struct KerxSubTableFormat1
 	 * "Each pops one glyph from the kerning stack and applies the kerning value to it.
 	 * The end of the list is marked by an odd value... */
 	bool last = false;
-	while (!last && depth--)
+	while (!last && depth)
 	{
-	  unsigned int idx = stack[depth];
+	  unsigned int idx = stack[--depth];
 	  int v = *actions;
 	  actions += tuple_count;
 	  if (idx >= buffer->len) continue;
