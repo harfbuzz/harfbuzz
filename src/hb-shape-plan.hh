@@ -37,17 +37,18 @@ struct hb_shape_plan_t
   hb_object_header_t header;
 
   hb_face_t *face_unsafe; /* We don't carry a reference to face. */
-  bool custom_shaper_list;
-  hb_segment_properties_t props;
 
-  hb_shape_func_t *shaper_func;
-  const char *shaper_name;
+  hb_segment_properties_t props;
 
   hb_feature_t *user_features;
   unsigned int num_user_features;
 
   int *coords;
   unsigned int num_coords;
+
+  bool custom_shaper_list;
+  hb_shape_func_t *shaper_func;
+  const char *shaper_name;
 
   hb_ot_shape_plan_t ot;
 };

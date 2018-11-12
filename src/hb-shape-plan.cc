@@ -161,7 +161,6 @@ hb_shape_plan_create2 (hb_face_t                     *face,
     face = hb_face_get_empty ();
   hb_face_make_immutable (face);
 
-  shape_plan->custom_shaper_list = shaper_list;
   shape_plan->face_unsafe = face;
   shape_plan->props = *props;
   shape_plan->num_user_features = num_user_features;
@@ -172,7 +171,7 @@ hb_shape_plan_create2 (hb_face_t                     *face,
   shape_plan->coords = coords;
   if (num_coords)
     memcpy (coords, orig_coords, num_coords * sizeof (int));
-
+  shape_plan->custom_shaper_list = shaper_list;
   hb_shape_plan_choose_shaper (shape_plan,
 			       user_features, num_user_features,
 			       coords, num_coords,
@@ -369,11 +368,11 @@ hb_shape_plan_hash (const hb_shape_plan_t *shape_plan)
 struct hb_shape_plan_proposal_t
 {
   const hb_segment_properties_t  props;
-  const char * const            *shaper_list;
   const hb_feature_t            *user_features;
   unsigned int                   num_user_features;
   const int                     *coords;
   unsigned int                   num_coords;
+  bool                           custom_shaper_list;
   hb_shape_func_t               *shaper_func;
 };
 
@@ -411,7 +410,7 @@ hb_shape_plan_matches (const hb_shape_plan_t          *shape_plan,
   return hb_segment_properties_equal (&shape_plan->props, &proposal->props) &&
 	 hb_shape_plan_user_features_match (shape_plan, proposal) &&
 	 hb_shape_plan_coords_match (shape_plan, proposal) &&
-	 ((!shape_plan->custom_shaper_list && !proposal->shaper_list) ||
+	 ((!shape_plan->custom_shaper_list && !proposal->custom_shaper_list) ||
 	  (shape_plan->shaper_func == proposal->shaper_func));
 }
 
@@ -477,17 +476,19 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 		  num_user_features,
 		  shaper_list);
 
-  hb_shape_plan_proposal_t proposal = {
+  hb_shape_plan_proposal_t proposal =
+  {
     *props,
-    shaper_list,
     user_features,
     num_user_features,
     coords,
     num_coords,
+    shaper_list,
     nullptr
   };
 
-  if (shaper_list) {
+  if (shaper_list)
+  {
     /* Choose shaper.  Adapted from hb_shape_plan_choose_shaper().
      * Must choose shaper exactly the same way as that function. */
     for (const char * const *shaper_item = shaper_list; *shaper_item; shaper_item++)
