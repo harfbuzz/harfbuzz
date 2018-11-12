@@ -19,6 +19,6 @@ symbols = "\n".join (sorted (re.findall (r"^hb_\w+(?= \()", "\n".join (headers_c
 
 result = symbols if os.environ.get('PLAIN_LIST', '') else """EXPORTS
 %s
-LIBRARY lib%s-0.dll""" % (symbols, output_file.replace ('.def', ''))
+LIBRARY lib%s-0.dll""" % (symbols, output_file.replace ('src/', '').replace ('.def', ''))
 
 with open (output_file, "w") as f: f.write (result)
