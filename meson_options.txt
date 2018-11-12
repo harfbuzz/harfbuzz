@@ -17,6 +17,8 @@ option('ucdn', type: 'feature', value: 'auto',
   description: 'Use internal HarfBuzz-provided UCDN library')
 option('uniscribe', type: 'feature', value: 'disabled',
   description: 'Enable Uniscribe shaper backend (Windows only)')
+option('directwrite', type: 'feature', value: 'disabled',
+  description: 'Enable DirectWrite shaper backend on Windows (experimental)')
 
 # Common feature options
 #option('tests', type : 'feature', value : 'auto', yield : true,
