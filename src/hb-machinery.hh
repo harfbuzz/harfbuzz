@@ -343,11 +343,11 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
-  inline bool check_array2 (const T *base,
-			    unsigned int a,
-			    unsigned int b) const
+  inline bool check_array (const T *base,
+			   unsigned int a,
+			   unsigned int b) const
   {
-    return this->check_range (base, a * b, T::static_size);
+    return this->check_range (base, a, b, T::static_size);
   }
 
   template <typename Type>
