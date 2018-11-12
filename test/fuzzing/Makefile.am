@@ -7,13 +7,13 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 # Convenience targets:
-lib-only:
-	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src fuzzing
-lib: lib-only
-	@$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
+lib:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+libs:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
 
-$(top_builddir)/src/libharfbuzz-fuzzing.la: lib-only
-$(top_builddir)/src/libharfbuzz-subset-fuzzing.la: lib-only
+$(top_builddir)/src/libharfbuzz.la: lib
+$(top_builddir)/src/libharfbuzz-subset.la: libs
 
 EXTRA_DIST += \
 	README \
@@ -33,24 +33,15 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/ \
 	-I$(top_builddir)/src/ \
 	$(NULL)
-LDADD = \
-	$(top_builddir)/src/libharfbuzz-fuzzing.la \
-	$(NULL)
 
 hb_shape_fuzzer_SOURCES = \
 	hb-fuzzer.hh \
 	hb-shape-fuzzer.cc \
 	main.cc \
 	$(NULL)
-hb_shape_fuzzer_LDADD = \
-	$(LDADD) \
-	$(NULL)
-hb_shape_fuzzer_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	$(NULL)
-hb_shape_fuzzer_DEPENDENCIES = \
-	$(top_builddir)/src/libharfbuzz-fuzzing.la
-	$(NULL)
+hb_shape_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
+hb_shape_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_shape_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
 
 hb_subset_fuzzer_SOURCES = \
 	hb-fuzzer.hh \
@@ -58,14 +49,10 @@ hb_subset_fuzzer_SOURCES = \
 	main.cc \
 	$(NULL)
 hb_subset_fuzzer_LDADD = \
-	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la \
-	$(NULL)
-hb_subset_fuzzer_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	$(NULL)
-hb_subset_fuzzer_DEPENDENCIES = \
-	$(top_builddir)/src/libharfbuzz-subset-fuzzing.la
-	$(NULL)
+	$(top_builddir)/src/libharfbuzz.la \
+	$(top_builddir)/src/libharfbuzz-subset.la
+hb_subset_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_subset_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz-subset.la
 
 check:
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-shape-fuzzer-tests.py
