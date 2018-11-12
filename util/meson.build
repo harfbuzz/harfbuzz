@@ -57,4 +57,8 @@ if conf.get('HAVE_GLIB', 0) == 1
     link_with: [libharfbuzz],
     install: true,
   )
+else
+  # Disable tests that use this
+  hb_shape = disabler()
+  hb_subset = disabler()
 endif
