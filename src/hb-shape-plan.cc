@@ -411,10 +411,9 @@ hb_shape_plan_key_equal (const hb_shape_plan_key_t *key1,
 }
 
 static inline bool
-hb_shape_plan_key_has_non_global_user_features (const hb_shape_plan_key_t *key)
+_has_non_global_user_features (const hb_feature_t *user_features,
+			       unsigned int        num_user_features)
 {
-  unsigned int num_user_features = key->num_user_features;
-  const hb_feature_t *user_features = key->user_features;
   while (num_user_features)
   {
     if (user_features->start != HB_FEATURE_GLOBAL_START ||
@@ -427,16 +426,20 @@ hb_shape_plan_key_has_non_global_user_features (const hb_shape_plan_key_t *key)
 }
 
 static inline bool
-hb_shape_plan_key_has_coords (const hb_shape_plan_key_t *key)
+_has_coords (const int    *coords,
+	     unsigned int  num_coords)
 {
-  return key->num_coords;
+  return num_coords;
 }
 
 static inline bool
-hb_shape_plan_key_dont_cache (const hb_shape_plan_key_t *key)
+_dont_cache (const hb_feature_t *user_features,
+	     unsigned int        num_user_features,
+	     const int          *coords,
+	     unsigned int        num_coords)
 {
-  return hb_shape_plan_key_has_non_global_user_features (key) ||
-	 hb_shape_plan_key_has_coords (key);
+  return _has_non_global_user_features (user_features, num_user_features) ||
+	 _has_coords (coords, num_coords);
 }
 
 /**
@@ -481,30 +484,33 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 		  num_user_features,
 		  shaper_list);
 
-  hb_shape_plan_key_t key;
-  if (!key.init (false,
-		 face,
-		 props,
-		 user_features,
-		 num_user_features,
-		 coords,
-		 num_coords,
-		 shaper_list))
-    return hb_shape_plan_get_empty ();
-
 retry:
   hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;
 
-  bool dont_cache = hb_shape_plan_key_dont_cache (&key) ||
+  bool dont_cache = _dont_cache (user_features, num_user_features,
+				 coords, num_coords) ||
 		    hb_object_is_inert (face);
 
   if (!dont_cache)
+  {
+    hb_shape_plan_key_t key;
+    if (!key.init (false,
+		   face,
+		   props,
+		   user_features,
+		   num_user_features,
+		   coords,
+		   num_coords,
+		   shaper_list))
+      return hb_shape_plan_get_empty ();
+
     for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
       if (hb_shape_plan_key_equal (&node->shape_plan->key, &key))
       {
         DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
         return hb_shape_plan_reference (node->shape_plan);
       }
+  }
 
   hb_shape_plan_t *shape_plan = hb_shape_plan_create2 (face, props,
 						       user_features, num_user_features,
