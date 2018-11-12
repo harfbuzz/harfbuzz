@@ -146,27 +146,21 @@ hb_shape_plan_create2 (hb_face_t                     *face,
   hb_feature_t *features = nullptr;
   int *coords = nullptr;
 
-  if (unlikely (!face))
-    face = hb_face_get_empty ();
   if (unlikely (!props))
-    return hb_shape_plan_get_empty ();
+    goto bail;
   if (num_user_features && !(features = (hb_feature_t *) calloc (num_user_features, sizeof (hb_feature_t))))
-    return hb_shape_plan_get_empty ();
+    goto bail;
   if (num_coords && !(coords = (int *) calloc (num_coords, sizeof (int))))
-  {
-    free (features);
-    return hb_shape_plan_get_empty ();
-  }
+    goto bail;
   if (!(shape_plan = hb_object_create<hb_shape_plan_t> ()))
-  {
-    free (coords);
-    free (features);
-    return hb_shape_plan_get_empty ();
-  }
+    goto bail;
 
   assert (props->direction != HB_DIRECTION_INVALID);
 
+  if (unlikely (!face))
+    face = hb_face_get_empty ();
   hb_face_make_immutable (face);
+
   shape_plan->custom_shaper_list = shaper_list;
   shape_plan->face_unsafe = face;
   shape_plan->props = *props;
@@ -189,13 +183,14 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 				       num_user_features,
 				       coords,
 				       num_coords)))
-  {
-    free (coords);
-    free (features);
-    return hb_shape_plan_get_empty ();
-  }
+    goto bail;
 
   return shape_plan;
+
+bail:
+  free (coords);
+  free (features);
+  return hb_shape_plan_get_empty ();
 }
 
 /**
