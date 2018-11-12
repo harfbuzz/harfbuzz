@@ -58,7 +58,7 @@ hb_shape_plan_choose_shaper (hb_shape_plan_t    *shape_plan,
 		  num_coords,
 		  shaper_list);
 
-  const hb_shaper_pair_t *shapers = _hb_shapers_get ();
+  const hb_shaper_pair_static_t *shapers = _hb_shapers_get ();
 
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
