@@ -116,11 +116,6 @@ hb_uniscribe_sources = [
   'hb-uniscribe.cc',
 ]
 
-hb_ucdn_sources = [
-  'hb-ucdn.cc',
-  'hb-ucdn/ucdn.c',
-]
-
 hb_icu_sources = [
   'hb-icu.cc',
 ]
@@ -152,13 +147,17 @@ hb_gobject_headers = [
   'hb-gobject-structs.h',
 ]
 
-conf.set('HAVE_UCDN', 1)
-
-incucdn = include_directories('hb-ucdn')
+incucdn = []
 incsrc = include_directories('.')
 
-hb_sources = hb_base_sources + hb_fallback_sources + hb_ot_sources + hb_ucdn_sources
+hb_sources = hb_base_sources + hb_fallback_sources + hb_ot_sources
 hb_headers = hb_base_headers + hb_ot_headers
+
+if not get_option('ucdn').disabled()
+  conf.set('HAVE_UCDN', 1)
+  hb_sources += ['hb-ucdn.cc', 'hb-ucdn/ucdn.c']
+  incucdn = include_directories('hb-ucdn')
+endif
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
