@@ -104,10 +104,6 @@ hb_graphite2_headers = [
   'hb-graphite2.h',
 ]
 
-hb_coretext_sources = [
-  'hb-coretext.cc',
-]
-
 hb_icu_sources = [
   'hb-icu.cc',
 ]
@@ -179,6 +175,11 @@ endif
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += ['hb-directwrite.cc']
   hb_headers += ['hb-directwrite.h']
+endif
+
+if conf.get('HAVE_CORETEXT', 0) == 1
+  hb_sources += ['hb-coretext.cc']
+  hb_headers += ['hb-coretext.h']
 endif
 
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
