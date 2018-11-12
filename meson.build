@@ -136,6 +136,16 @@ if host_machine.system() == 'windows' and not get_option('uniscribe').disabled()
   endif
 endif
 
+# DirectWrite (windows) - FIXME: untested
+if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
+  if cpp.has_header('dwrite.h')
+    deps += [cpp.find_library('dwrite', required: true)]
+    conf.set('HAVE_DIRECTWRITE', 1)
+  elif get_option('directwrite').enabled()
+    error('DirectWrite was enabled explicitly, but required header is missing.')
+  endif
+endif
+
 # threads
 if host_machine.system() != 'windows'
   thread_dep = dependency('threads', required: false)
