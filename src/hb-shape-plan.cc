@@ -64,10 +64,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 	HB_STMT_START { \
 	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face_unsafe)) \
 	  { \
-	    HB_SHAPER_DATA (shaper, shape_plan).set_relaxed ( \
-	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, \
-							       user_features, num_user_features, \
-							       coords, num_coords)); \
 	    shape_plan->shaper_func = _hb_##shaper##_shape; \
 	    shape_plan->shaper_name = #shaper; \
 	    return; \
@@ -188,6 +184,17 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		      coords, num_coords,
 		      shaper_list);
 
+  if (unlikely (!shape_plan->ot.init0 (shape_plan,
+				       user_features,
+				       num_user_features,
+				       coords,
+				       num_coords)))
+  {
+    free (coords);
+    free (features);
+    return hb_shape_plan_get_empty ();
+  }
+
   return shape_plan;
 }
 
@@ -235,9 +242,7 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
 {
   if (!hb_object_destroy (shape_plan)) return;
 
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, shape_plan);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
+  shape_plan->ot.fini ();
 
   free (shape_plan->user_features);
   free (shape_plan->coords);
@@ -329,8 +334,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  return HB_SHAPER_DATA (shaper, shape_plan).get () && \
-		 hb_##shaper##_shaper_font_data_ensure (font) && \
+	  return hb_##shaper##_shaper_font_data_ensure (font) && \
 		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
 

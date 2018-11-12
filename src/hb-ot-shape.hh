@@ -31,8 +31,6 @@
 
 #include "hb-ot-map.hh"
 #include "hb-aat-map.hh"
-#include "hb-shape-plan.hh"
-
 
 
 struct hb_ot_shape_plan_t
@@ -75,17 +73,16 @@ struct hb_ot_shape_plan_t
   inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 
-  void init (void)
-  {
-    memset (this, 0, sizeof (*this));
-    map.init ();
-    aat_map.init ();
-  }
-  void fini (void) {
-    map.fini ();
-    aat_map.fini ();
-  }
+  HB_INTERNAL bool init0 (hb_shape_plan_t    *shape_plan,
+			  const hb_feature_t *user_features,
+			  unsigned int        num_user_features,
+			  const int          *coords,
+			  unsigned int        num_coords);
+
+  HB_INTERNAL void fini (void);
 };
+
+struct hb_shape_plan_t;
 
 struct hb_ot_shape_planner_t
 {

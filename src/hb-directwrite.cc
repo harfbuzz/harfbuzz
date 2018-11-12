@@ -256,27 +256,6 @@ _hb_directwrite_shaper_font_data_destroy (hb_directwrite_font_data_t *data)
 }
 
 
-/*
- * shaper shape_plan data
- */
-
-struct hb_directwrite_shape_plan_data_t {};
-
-hb_directwrite_shape_plan_data_t *
-_hb_directwrite_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
-					       const hb_feature_t *user_features HB_UNUSED,
-					       unsigned int        num_user_features HB_UNUSED,
-					       const int          *coords HB_UNUSED,
-					       unsigned int        num_coords HB_UNUSED)
-{
-  return (hb_directwrite_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_directwrite_shaper_shape_plan_data_destroy (hb_directwrite_shape_plan_data_t *data HB_UNUSED)
-{
-}
-
 // Most of TextAnalysis is originally written by Bas Schouten for Mozilla project
 // but now is relicensed to MIT for HarfBuzz use
 class TextAnalysis

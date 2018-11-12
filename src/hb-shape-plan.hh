@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-shaper.hh"
+#include "hb-ot-shape.hh"
 
 
 struct hb_shape_plan_t
@@ -48,7 +49,7 @@ struct hb_shape_plan_t
   int *coords;
   unsigned int num_coords;
 
-  struct hb_shaper_data_t shaper_data;
+  hb_ot_shape_plan_t ot;
 };
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS \
