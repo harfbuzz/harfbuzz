@@ -298,7 +298,8 @@ struct hb_sanitize_context_t :
     this->start = this->end = nullptr;
   }
 
-  inline bool check_range (const void *base, unsigned int len) const
+  inline bool check_range (const void *base,
+			   unsigned int len) const
   {
     const char *p = (const char *) base;
     bool ok = this->start <= p &&
@@ -316,20 +317,22 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
-  inline bool check_array (const T *base, unsigned int len, unsigned int record_size = T::static_size) const
+  inline bool check_array (const T *base,
+			   unsigned int len,
+			   unsigned int record_size = T::static_size) const
   {
-    const char *p = (const char *) base;
-    bool overflows = hb_unsigned_mul_overflows (len, record_size);
-    unsigned int array_size = record_size * len;
-    bool ok = !overflows && this->check_range (base, array_size);
+    return !hb_unsigned_mul_overflows (len, record_size) &&
+	   this->check_range (base, len * record_size);
+  }
 
-    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
-       "check_array [%p..%p] (%d*%d=%d bytes) in [%p..%p] -> %s",
-       p, p + (record_size * len), record_size, len, (unsigned int) array_size,
-       this->start, this->end,
-       overflows ? "OVERFLOWS" : ok ? "OK" : "OUT-OF-RANGE");
-
-    return likely (ok);
+  template <typename T>
+  inline bool check_array2 (const T *base,
+			    unsigned int a,
+			    unsigned int b,
+			    unsigned int record_size = T::static_size) const
+  {
+    return !hb_unsigned_mul_overflows (a, b) &&
+	   this->check_array (base, a * b, record_size);
   }
 
   template <typename Type>

@@ -267,7 +267,7 @@ struct KerxSubTableFormat1
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
 	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kern_idx];
-	if (!c->sanitizer.check_array (actions, depth * tuple_count))
+	if (!c->sanitizer.check_array2 (actions, depth, tuple_count))
 	{
 	  depth = 0;
 	  return false;
