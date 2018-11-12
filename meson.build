@@ -146,6 +146,27 @@ if host_machine.system() == 'windows' and not get_option('directwrite').disabled
   endif
 endif
 
+# CoreText (macOS) - FIXME: untested
+if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
+  app_services_dep = dependency('appleframeworks', modules : ['ApplicationServices'], required: false)
+  if cpp.has_type('CTFontRef', prefix: '#include <ApplicationServices/ApplicationServices.h>', dependencies: app_services_dep)
+    deps += [app_services_dep]
+    conf.set('HAVE_CORETEXT', 1)
+  # On iOS CoreText and CoreGraphics are stand-alone frameworks
+  # Check for a different symbol to avoid getting cached result
+  else
+    coretext_dep = dependency('appleframeworks', modules : ['CoreText'], required: false)
+    coregraphics_dep = dependency('appleframeworks', modules : ['CoreGraphics'], required: false)
+    corefoundation_dep = dependency('appleframeworks', modules : ['CoreFoundation'], required: false)
+    if cpp.has_type('CTRunRef', prefix: '#include <CoreText/CoreText.h>', dependencies: [coretext_dep, coregraphics_dep, corefoundation_dep])
+      deps += [coretext_dep, coregraphics_dep, corefoundation_dep]
+      conf.set('HAVE_CORETEXT', 1)
+    elif get_option('coretext').enabled()
+      error('CoreText was enabled explicitly, but required headers or frameworks are missing.')
+    endif
+  endif
+endif
+
 # threads
 if host_machine.system() != 'windows'
   thread_dep = dependency('threads', required: false)
