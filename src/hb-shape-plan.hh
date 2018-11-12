@@ -44,6 +44,21 @@ struct hb_shape_plan_key_t
 
   hb_shape_func_t         *shaper_func;
   const char              *shaper_name;
+
+  HB_INTERNAL inline bool init (bool                           copy,
+				hb_face_t                     *face,
+				const hb_segment_properties_t *props,
+				const hb_feature_t            *user_features,
+				unsigned int                   num_user_features,
+				const int                     *orig_coords,
+				unsigned int                   num_coords,
+				const char * const            *shaper_list);
+
+  HB_INTERNAL inline void free (void)
+  {
+    ::free ((void *) user_features);
+    ::free ((void *) coords);
+  }
 };
 
 struct hb_shape_plan_t
