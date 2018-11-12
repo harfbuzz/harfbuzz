@@ -303,6 +303,22 @@ hb_shape_plan_get_user_data (hb_shape_plan_t    *shape_plan,
   return hb_object_get_user_data (shape_plan, key);
 }
 
+/**
+ * hb_shape_plan_get_shaper:
+ * @shape_plan: a shape plan.
+ *
+ * 
+ *
+ * Return value: (transfer none):
+ *
+ * Since: 0.9.7
+ **/
+const char *
+hb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan)
+{
+  return shape_plan->key.shaper_name;
+}
+
 
 /**
  * hb_shape_plan_execute:
@@ -519,20 +535,4 @@ retry:
   DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan, "inserted into cache");
 
   return hb_shape_plan_reference (shape_plan);
-}
-
-/**
- * hb_shape_plan_get_shaper:
- * @shape_plan: a shape plan.
- *
- * 
- *
- * Return value: (transfer none):
- *
- * Since: 0.9.7
- **/
-const char *
-hb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan)
-{
-  return shape_plan->key.shaper_name;
 }
