@@ -112,10 +112,6 @@ hb_directwrite_sources = [
   'hb-directwrite.cc',
 ]
 
-hb_uniscribe_sources = [
-  'hb-uniscribe.cc',
-]
-
 hb_icu_sources = [
   'hb-icu.cc',
 ]
@@ -177,6 +173,11 @@ endif
 if conf.get('HAVE_ICU', 0) == 1
   hb_sources += hb_icu_sources
   hb_headers += hb_icu_headers
+endif
+
+if conf.get('HAVE_UNISCRIBE', 0) == 1
+  hb_sources += ['hb-uniscribe.cc']
+  hb_headers += ['hb-uniscribe.h']
 endif
 
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
