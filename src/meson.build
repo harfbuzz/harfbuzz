@@ -108,10 +108,6 @@ hb_coretext_sources = [
   'hb-coretext.cc',
 ]
 
-hb_directwrite_sources = [
-  'hb-directwrite.cc',
-]
-
 hb_icu_sources = [
   'hb-icu.cc',
 ]
@@ -178,6 +174,11 @@ endif
 if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_sources += ['hb-uniscribe.cc']
   hb_headers += ['hb-uniscribe.h']
+endif
+
+if conf.get('HAVE_DIRECTWRITE', 0) == 1
+  hb_sources += ['hb-directwrite.cc']
+  hb_headers += ['hb-directwrite.h']
 endif
 
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
