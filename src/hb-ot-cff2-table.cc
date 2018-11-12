@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Adobe Systems Incorporated.
+ * Copyright © 2018 Adobe Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
