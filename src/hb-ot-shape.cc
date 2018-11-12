@@ -68,11 +68,12 @@ _hb_apply_morx (hb_face_t *face)
 	 hb_aat_layout_has_substitution (face);
 }
 
-hb_ot_shape_planner_t::hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
-						face (master_plan->face_unsafe),
-						props (master_plan->props),
-						map (face, &props),
-						aat_map (face, &props),
+hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *face,
+					      const hb_segment_properties_t *props) :
+						face (face),
+						props (*props),
+						map (face, props),
+						aat_map (face, props),
 						apply_morx (_hb_apply_morx (face)),
 						shaper (apply_morx ?
 						        &_hb_ot_complex_shaper_default :
@@ -148,18 +149,19 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 }
 
 bool
-hb_ot_shape_plan_t::init0 (hb_shape_plan_t    *shape_plan,
-			   const hb_feature_t *user_features,
-			   unsigned int        num_user_features,
-			   const int          *coords,
-			   unsigned int        num_coords)
+hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
+			   const hb_segment_properties_t *props,
+			   const hb_feature_t            *user_features,
+			   unsigned int                   num_user_features,
+			   const int                     *coords,
+			   unsigned int                   num_coords)
 {
   map.init ();
   aat_map.init ();
 
-  hb_ot_shape_planner_t planner (shape_plan);
+  hb_ot_shape_planner_t planner (face, props);
 
-  hb_ot_shape_collect_features (&planner, &shape_plan->props,
+  hb_ot_shape_collect_features (&planner, props,
 				user_features, num_user_features);
 
   planner.compile (*this, coords, num_coords);

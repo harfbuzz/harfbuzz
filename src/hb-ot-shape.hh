@@ -73,12 +73,12 @@ struct hb_ot_shape_plan_t
   inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 
-  HB_INTERNAL bool init0 (hb_shape_plan_t    *shape_plan,
-			  const hb_feature_t *user_features,
-			  unsigned int        num_user_features,
-			  const int          *coords,
-			  unsigned int        num_coords);
-
+  HB_INTERNAL bool init0 (hb_face_t                     *face,
+			  const hb_segment_properties_t *props,
+			  const hb_feature_t            *user_features,
+			  unsigned int                   num_user_features,
+			  const int                     *coords,
+			  unsigned int                   num_coords);
   HB_INTERNAL void fini (void);
 };
 
@@ -94,7 +94,8 @@ struct hb_ot_shape_planner_t
   bool apply_morx : 1;
   const struct hb_ot_complex_shaper_t *shaper;
 
-  HB_INTERNAL hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan);
+  HB_INTERNAL hb_ot_shape_planner_t (hb_face_t                     *face,
+				     const hb_segment_properties_t *props);
 
   HB_INTERNAL void compile (hb_ot_shape_plan_t &plan,
 			    const int          *coords,

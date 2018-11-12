@@ -178,7 +178,8 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 			       coords, num_coords,
 			       shaper_list);
 
-  if (unlikely (!shape_plan->ot.init0 (shape_plan,
+  if (unlikely (!shape_plan->ot.init0 (face,
+				       props,
 				       user_features,
 				       num_user_features,
 				       coords,
