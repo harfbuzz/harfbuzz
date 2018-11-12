@@ -13,6 +13,8 @@ option('graphite', type: 'feature', value: 'disabled',
   description: 'Enable Graphite2 complementary shaper')
 option('freetype', type: 'feature', value: 'auto',
   description: 'Enable freetype interop helpers')
+option('ucdn', type: 'feature', value: 'auto',
+  description: 'Use internal HarfBuzz-provided UCDN library')
 
 # Common feature options
 #option('tests', type : 'feature', value : 'auto', yield : true,
