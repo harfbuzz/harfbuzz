@@ -68,7 +68,9 @@ struct MVAR
 		  c->check_struct (this) &&
 		  valueRecordSize >= VariationValueRecord::static_size &&
 		  varStore.sanitize (c, this) &&
-		  c->check_array (valuesZ.arrayZ, valueRecordCount, valueRecordSize));
+		  c->check_range (valuesZ.arrayZ,
+				  valueRecordCount,
+				  valueRecordSize));
   }
 
   inline float get_var (hb_tag_t tag,

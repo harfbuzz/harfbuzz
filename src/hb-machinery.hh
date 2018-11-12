@@ -317,22 +317,37 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
-  inline bool check_array (const T *base,
-			   unsigned int len,
-			   unsigned int record_size = T::static_size) const
+  inline bool check_range (const T *base,
+			   unsigned int a,
+			   unsigned int b) const
   {
-    return !hb_unsigned_mul_overflows (len, record_size) &&
-	   this->check_range (base, len * record_size);
+    return !hb_unsigned_mul_overflows (a, b) &&
+	   this->check_range (base, a * b);
+  }
+
+  template <typename T>
+  inline bool check_range (const T *base,
+			   unsigned int a,
+			   unsigned int b,
+			   unsigned int c) const
+  {
+    return !hb_unsigned_mul_overflows (a, b) &&
+	   this->check_range (base, a * b, c);
+  }
+
+  template <typename T>
+  inline bool check_array (const T *base,
+			   unsigned int len) const
+  {
+    return this->check_range (base, len, T::static_size);
   }
 
   template <typename T>
   inline bool check_array2 (const T *base,
 			    unsigned int a,
-			    unsigned int b,
-			    unsigned int record_size = T::static_size) const
+			    unsigned int b) const
   {
-    return !hb_unsigned_mul_overflows (a, b) &&
-	   this->check_array (base, a * b, record_size);
+    return this->check_range (base, a * b, T::static_size);
   }
 
   template <typename Type>

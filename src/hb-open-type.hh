@@ -887,7 +887,9 @@ struct VarSizedBinSearchArrayOf
     TRACE_SANITIZE (this);
     return_trace (header.sanitize (c) &&
 		  Type::static_size <= header.unitSize &&
-		  c->check_array (bytesZ.arrayZ, header.nUnits, header.unitSize));
+		  c->check_range (bytesZ.arrayZ,
+				  header.nUnits,
+				  header.unitSize));
   }
 
   protected:

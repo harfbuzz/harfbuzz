@@ -1566,8 +1566,9 @@ struct VarData
     return_trace (c->check_struct (this) &&
 		  regionIndices.sanitize(c) &&
 		  shortCount <= regionIndices.len &&
-		  c->check_array (&StructAfter<HBUINT8> (regionIndices),
-				  itemCount, get_row_size ()));
+		  c->check_range (&StructAfter<HBUINT8> (regionIndices),
+				  itemCount,
+				  get_row_size ()));
   }
 
   protected:

@@ -207,7 +207,7 @@ struct ValueFormat : HBUINT16
     TRACE_SANITIZE (this);
     unsigned int len = get_len ();
 
-    if (!c->check_array (values, count, get_size ())) return_trace (false);
+    if (!c->check_range (values, count, get_size ())) return_trace (false);
 
     if (!has_device ()) return_trace (true);
 
@@ -706,7 +706,10 @@ struct PairSet
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this)
-       && c->check_array (&firstPairValueRecord, len, HBUINT16::static_size * closure->stride))) return_trace (false);
+       && c->check_range (&firstPairValueRecord,
+			  len,
+			  HBUINT16::static_size,
+			  closure->stride))) return_trace (false);
 
     unsigned int count = len;
     const PairValueRecord *record = &firstPairValueRecord;
@@ -879,7 +882,9 @@ struct PairPosFormat2
     unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
-    return_trace (c->check_array ((const void *) values, count, record_size) &&
+    return_trace (c->check_range ((const void *) values,
+				  count,
+				  record_size) &&
 		  valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
 		  valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
   }

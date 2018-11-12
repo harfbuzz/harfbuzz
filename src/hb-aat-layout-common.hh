@@ -557,7 +557,9 @@ struct StateTable
 	/* Negative states. */
 	if (unlikely (hb_unsigned_mul_overflows (min_state, num_classes)))
 	  return_trace (false);
-	if (unlikely (!c->check_array (&states[min_state * num_classes], -min_state, row_stride)))
+	if (unlikely (!c->check_range (&states[min_state * num_classes],
+				       -min_state,
+				       row_stride)))
 	  return_trace (false);
 	if ((c->max_ops -= state_neg - min_state) < 0)
 	  return_trace (false);
@@ -574,7 +576,9 @@ struct StateTable
       if (state_pos <= max_state)
       {
 	/* Positive states. */
-	if (unlikely (!c->check_array (states, max_state + 1, row_stride)))
+	if (unlikely (!c->check_range (states,
+				       max_state + 1,
+				       row_stride)))
 	  return_trace (false);
 	if ((c->max_ops -= max_state - state_pos + 1) < 0)
 	  return_trace (false);
