@@ -33,6 +33,8 @@
 #include "hb-aat-map.hh"
 
 
+struct hb_shape_plan_key_t;
+
 struct hb_ot_shape_plan_t
 {
   hb_segment_properties_t props;
@@ -74,11 +76,7 @@ struct hb_ot_shape_plan_t
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 
   HB_INTERNAL bool init0 (hb_face_t                     *face,
-			  const hb_segment_properties_t *props,
-			  const hb_feature_t            *user_features,
-			  unsigned int                   num_user_features,
-			  const int                     *coords,
-			  unsigned int                   num_coords);
+			  const hb_shape_plan_key_t     *key);
   HB_INTERNAL void fini (void);
 };
 

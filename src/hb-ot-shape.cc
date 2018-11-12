@@ -53,7 +53,6 @@
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
-			      const hb_segment_properties_t  *props,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features);
 
@@ -150,21 +149,20 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
 
 bool
 hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
-			   const hb_segment_properties_t *props,
-			   const hb_feature_t            *user_features,
-			   unsigned int                   num_user_features,
-			   const int                     *coords,
-			   unsigned int                   num_coords)
+			   const hb_shape_plan_key_t     *key)
 {
   map.init ();
   aat_map.init ();
 
-  hb_ot_shape_planner_t planner (face, props);
+  hb_ot_shape_planner_t planner (face,
+				 &key->props);
+  hb_ot_shape_collect_features (&planner,
+				key->user_features,
+				key->num_user_features);
 
-  hb_ot_shape_collect_features (&planner, props,
-				user_features, num_user_features);
-
-  planner.compile (*this, coords, num_coords);
+  planner.compile (*this,
+		   key->coords,
+		   key->num_coords);
 
   if (shaper->data_create)
   {
@@ -211,7 +209,6 @@ horizontal_features[] =
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
-			      const hb_segment_properties_t  *props,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features)
 {
@@ -220,7 +217,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
 
-  switch (props->direction) {
+  switch (planner->props.direction) {
     case HB_DIRECTION_LTR:
       map->enable_feature (HB_TAG ('l','t','r','a'));
       map->enable_feature (HB_TAG ('l','t','r','m'));
@@ -259,7 +256,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);
 
-  if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
+  if (HB_DIRECTION_IS_HORIZONTAL (planner->props.direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
       map->add_feature (horizontal_features[i]);
   else
