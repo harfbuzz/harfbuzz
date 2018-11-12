@@ -382,12 +382,15 @@ hb_shape_plan_key_equal (const hb_shape_plan_key_t *key1,
 	 key1->shaper_func == key2->shaper_func;
 }
 
-static inline hb_bool_t
-hb_non_global_user_features_present (const hb_feature_t *user_features,
-				     unsigned int        num_user_features)
+static inline bool
+hb_shape_plan_key_has_non_global_user_features (const hb_shape_plan_key_t *key)
 {
-  while (num_user_features) {
-    if (user_features->start != 0 || user_features->end != (unsigned int) -1)
+  unsigned int num_user_features = key->num_user_features;
+  const hb_feature_t *user_features = key->user_features;
+  while (num_user_features)
+  {
+    if (user_features->start != HB_FEATURE_GLOBAL_START ||
+	user_features->end   != HB_FEATURE_GLOBAL_END)
       return true;
     num_user_features--;
     user_features++;
@@ -395,11 +398,17 @@ hb_non_global_user_features_present (const hb_feature_t *user_features,
   return false;
 }
 
-static inline hb_bool_t
-hb_coords_present (const int *coords HB_UNUSED,
-		   unsigned int num_coords)
+static inline bool
+hb_shape_plan_key_has_coords (const hb_shape_plan_key_t *key)
 {
-  return num_coords != 0;
+  return key->num_coords;
+}
+
+static inline bool
+hb_shape_plan_key_dont_cache (const hb_shape_plan_key_t *key)
+{
+  return hb_shape_plan_key_has_non_global_user_features (key) ||
+	 hb_shape_plan_key_has_coords (key);
 }
 
 /**
@@ -462,8 +471,10 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 retry:
   hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;
 
-  /* Don't look for plan in the cache if there were variation coordinates XXX Fix me. */
-  if (!hb_coords_present (coords, num_coords))
+  bool dont_cache = hb_shape_plan_key_dont_cache (&key) ||
+		    hb_object_is_inert (face);
+
+  if (!dont_cache)
     for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
       if (hb_shape_plan_key_equal (&node->shape_plan->key, &key))
       {
@@ -471,21 +482,12 @@ retry:
         return hb_shape_plan_reference (node->shape_plan);
       }
 
-  /* Not found. */
   hb_shape_plan_t *shape_plan = hb_shape_plan_create2 (face, props,
 						       user_features, num_user_features,
 						       coords, num_coords,
 						       shaper_list);
 
-  /* Don't add to the cache if face is inert. */
-  if (unlikely (hb_object_is_inert (face)))
-    return shape_plan;
-
-  /* Don't add the plan to the cache if there were user features with non-global ranges */
-  if (hb_non_global_user_features_present (user_features, num_user_features))
-    return shape_plan;
-  /* Don't add the plan to the cache if there were variation coordinates XXX Fix me. */
-  if (hb_coords_present (coords, num_coords))
+  if (dont_cache)
     return shape_plan;
 
   hb_face_t::plan_node_t *node = (hb_face_t::plan_node_t *) calloc (1, sizeof (hb_face_t::plan_node_t));
