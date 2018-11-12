@@ -260,7 +260,7 @@ struct KerxSubTableFormat1
 	  depth = 0; /* Probably not what CoreText does, but better? */
       }
 
-      if (Format1EntryT::performAction (entry))
+      if (depth && Format1EntryT::performAction (entry))
       {
 	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
 
