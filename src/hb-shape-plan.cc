@@ -481,6 +481,8 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
     shaper_list,
     user_features,
     num_user_features,
+    coords,
+    num_coords,
     nullptr
   };
 
