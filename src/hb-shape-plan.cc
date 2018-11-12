@@ -45,12 +45,12 @@
 
 
 static void
-hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
-		    const hb_feature_t *user_features,
-		    unsigned int        num_user_features,
-		    const int          *coords,
-		    unsigned int        num_coords,
-		    const char * const *shaper_list)
+hb_shape_plan_choose_shaper (hb_shape_plan_t    *shape_plan,
+			     const hb_feature_t *user_features,
+			     unsigned int        num_user_features,
+			     const int          *coords,
+			     unsigned int        num_coords,
+			     const char * const *shaper_list)
 {
   DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan,
 		  "num_features=%d num_coords=%d shaper_list=%p",
@@ -173,10 +173,10 @@ hb_shape_plan_create2 (hb_face_t                     *face,
   if (num_coords)
     memcpy (coords, orig_coords, num_coords * sizeof (int));
 
-  hb_shape_plan_plan (shape_plan,
-		      user_features, num_user_features,
-		      coords, num_coords,
-		      shaper_list);
+  hb_shape_plan_choose_shaper (shape_plan,
+			       user_features, num_user_features,
+			       coords, num_coords,
+			       shaper_list);
 
   if (unlikely (!shape_plan->ot.init0 (shape_plan,
 				       user_features,
@@ -487,7 +487,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
   };
 
   if (shaper_list) {
-    /* Choose shaper.  Adapted from hb_shape_plan_plan().
+    /* Choose shaper.  Adapted from hb_shape_plan_choose_shaper().
      * Must choose shaper exactly the same way as that function. */
     for (const char * const *shaper_item = shaper_list; *shaper_item; shaper_item++)
       if (false)
