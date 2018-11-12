@@ -53,18 +53,6 @@
  **/
 
 
-DEFINE_NULL_INSTANCE (hb_blob_t) =
-{
-  HB_OBJECT_HEADER_STATIC,
-
-  nullptr, /* data */
-  0, /* length */
-  HB_MEMORY_MODE_READONLY, /* mode */
-
-  nullptr, /* user_data */
-  nullptr  /* destroy */
-};
-
 /**
  * hb_blob_create: (skip)
  * @data: Pointer to blob data.

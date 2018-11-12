@@ -54,7 +54,7 @@ struct hb_face_t
 
   struct hb_shaper_data_t shaper_data;	/* Various shaper data. */
 
-  hb_ot_face_t table;
+  hb_ot_face_t table;			/* All the face's tables. */
 
   /* Cache */
   struct plan_node_t

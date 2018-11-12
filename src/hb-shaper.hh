@@ -119,7 +119,8 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
     } \
   } \
   return data != nullptr && (void *) data != HB_SHAPER_DATA_INVALID; \
-}
+} \
+static_assert (true, "") /* Require semicolon. */
 
 
 /* For embedding in face / font / ... */

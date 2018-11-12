@@ -53,7 +53,7 @@ enum attach_type_t {
 
 typedef HBUINT16 Value;
 
-typedef Value ValueRecord[VAR];
+typedef UnsizedArrayOf<Value> ValueRecord;
 
 struct ValueFormat : HBUINT16
 {
@@ -879,7 +879,7 @@ struct PairPosFormat2
     unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
-    return_trace (c->check_array (values, count, record_size) &&
+    return_trace (c->check_array ((const void *) values, count, record_size) &&
 		  valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
 		  valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
   }

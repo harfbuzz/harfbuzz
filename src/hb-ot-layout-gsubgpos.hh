@@ -2752,8 +2752,7 @@ struct GSUBGPOS
   {
     inline void init (hb_face_t *face)
     {
-      this->blob = hb_sanitize_context_t().reference_table<T> (face);
-      table = this->blob->template as<T> ();
+      this->table = hb_sanitize_context_t().reference_table<T> (face);
 
       this->lookup_count = table->get_lookup_count ();
 
@@ -2770,11 +2769,10 @@ struct GSUBGPOS
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].fini ();
       free (this->accels);
-      hb_blob_destroy (this->blob);
+      this->table.destroy ();
     }
 
-    hb_blob_t *blob;
-    hb_nonnull_ptr_t<const T> table;
+    hb_blob_ptr_t<T> table;
     unsigned int lookup_count;
     hb_ot_layout_lookup_accelerator_t *accels;
   };

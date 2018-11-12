@@ -140,14 +140,13 @@ struct sbix
   {
     inline void init (hb_face_t *face)
     {
-      sbix_blob = hb_sanitize_context_t().reference_table<sbix> (face);
-      table = sbix_blob->as<sbix> ();
+      table = hb_sanitize_context_t().reference_table<sbix> (face);
       num_glyphs = face->get_num_glyphs ();
     }
 
     inline void fini (void)
     {
-      hb_blob_destroy (sbix_blob);
+      table.destroy ();
     }
 
     inline bool has_data () const
@@ -169,7 +168,7 @@ struct sbix
 				     int            *y_offset,
 				     unsigned int   *available_ppem) const
     {
-      return choose_strike (font).get_glyph_blob (glyph_id, sbix_blob,
+      return choose_strike (font).get_glyph_blob (glyph_id, table.get_blob (),
 						  HB_TAG ('p','n','g',' '),
 						  x_offset, y_offset,
 						  num_glyphs, available_ppem);
@@ -263,8 +262,7 @@ struct sbix
     }
 
     private:
-    hb_blob_t *sbix_blob;
-    hb_nonnull_ptr_t<const sbix> table;
+    hb_blob_ptr_t<sbix> table;
 
     unsigned int num_glyphs;
   };

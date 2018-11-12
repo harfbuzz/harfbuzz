@@ -101,10 +101,10 @@ _hb_cg_font_release (void *data)
 }
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face);
 HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
 	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
-)
+);
 
 static CTFontDescriptorRef
 get_last_resort_font_desc (void)
@@ -369,29 +369,6 @@ hb_coretext_font_get_ct_font (hb_font_t *font)
 {
   if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return nullptr;
   return (CTFontRef) HB_SHAPER_DATA_GET (font);
-}
-
-
-
-/*
- * shaper shape_plan data
- */
-
-struct hb_coretext_shape_plan_data_t {};
-
-hb_coretext_shape_plan_data_t *
-_hb_coretext_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
-					     const hb_feature_t *user_features HB_UNUSED,
-					     unsigned int        num_user_features HB_UNUSED,
-					     const int          *coords HB_UNUSED,
-					     unsigned int        num_coords HB_UNUSED)
-{
-  return (hb_coretext_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shape_plan_data_t *data HB_UNUSED)
-{
 }
 
 
@@ -1152,8 +1129,8 @@ fail:
  * AAT shaper
  */
 
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(coretext_aat, font);
 
 /*
  * shaper face data
@@ -1200,28 +1177,6 @@ _hb_coretext_aat_shaper_font_data_create (hb_font_t *font)
 
 void
 _hb_coretext_aat_shaper_font_data_destroy (hb_coretext_aat_font_data_t *data HB_UNUSED)
-{
-}
-
-
-/*
- * shaper shape_plan data
- */
-
-struct hb_coretext_aat_shape_plan_data_t {};
-
-hb_coretext_aat_shape_plan_data_t *
-_hb_coretext_aat_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
-					     const hb_feature_t *user_features HB_UNUSED,
-					     unsigned int        num_user_features HB_UNUSED,
-					     const int          *coords HB_UNUSED,
-					     unsigned int        num_coords HB_UNUSED)
-{
-  return (hb_coretext_aat_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_coretext_aat_shaper_shape_plan_data_destroy (hb_coretext_aat_shape_plan_data_t *data HB_UNUSED)
 {
 }
 

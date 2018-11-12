@@ -29,14 +29,15 @@
 
 #include "hb.hh"
 #include "hb-shaper.hh"
+#include "hb-ot-shape.hh"
 
 
 struct hb_shape_plan_t
 {
   hb_object_header_t header;
 
-  hb_bool_t default_shaper_list;
   hb_face_t *face_unsafe; /* We don't carry a reference to face. */
+  bool custom_shaper_list;
   hb_segment_properties_t props;
 
   hb_shape_func_t *shaper_func;
@@ -48,9 +49,8 @@ struct hb_shape_plan_t
   int *coords;
   unsigned int num_coords;
 
-  struct hb_shaper_data_t shaper_data;
+  hb_ot_shape_plan_t ot;
 };
-DECLARE_NULL_INSTANCE (hb_shape_plan_t);
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS \
 	, const hb_feature_t *user_features \

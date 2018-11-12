@@ -179,11 +179,10 @@ struct name
   {
     inline void init (hb_face_t *face)
     {
-      this->blob = hb_sanitize_context_t().reference_table<name> (face);
-      this->table = this->blob->as<name> ();
-      assert (this->blob->length >= this->table->stringOffset);
+      this->table = hb_sanitize_context_t().reference_table<name> (face);
+      assert (this->table.get_length () >= this->table->stringOffset);
       this->pool = (this->table+this->table->stringOffset).arrayZ;
-      this->pool_len = this->blob->length - this->table->stringOffset;
+      this->pool_len = this->table.get_length () - this->table->stringOffset;
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
 
@@ -221,7 +220,7 @@ struct name
     inline void fini (void)
     {
       this->names.fini ();
-      hb_blob_destroy (this->blob);
+      this->table.destroy ();
     }
 
     inline int get_index (hb_ot_name_id_t   name_id,
@@ -253,11 +252,10 @@ struct name
     }
 
     private:
-    hb_blob_t *blob;
     const void *pool;
     unsigned int pool_len;
     public:
-    hb_nonnull_ptr_t<const name> table;
+    hb_blob_ptr_t<name> table;
     hb_vector_t<hb_ot_name_entry_t> names;
   };
 

@@ -46,8 +46,8 @@
  **/
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font);
 
 
 /*
@@ -217,28 +217,6 @@ gr_font *
 hb_graphite2_font_get_gr_font (hb_font_t *font HB_UNUSED)
 {
   return nullptr;
-}
-
-
-/*
- * shaper shape_plan data
- */
-
-struct hb_graphite2_shape_plan_data_t {};
-
-hb_graphite2_shape_plan_data_t *
-_hb_graphite2_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
-					     const hb_feature_t *user_features HB_UNUSED,
-					     unsigned int        num_user_features HB_UNUSED,
-					     const int          *coords HB_UNUSED,
-					     unsigned int        num_coords HB_UNUSED)
-{
-  return (hb_graphite2_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_graphite2_shaper_shape_plan_data_destroy (hb_graphite2_shape_plan_data_t *data HB_UNUSED)
-{
 }
 
 

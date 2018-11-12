@@ -1306,7 +1306,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0, /* num_coords */
   nullptr, /* coords */
 
-  const_cast<hb_font_funcs_t *> (&_hb_Null_hb_font_funcs_t), /* klass */
+  const_cast<hb_font_funcs_t *> (&_hb_Null_hb_font_funcs_t),
   nullptr, /* user_data */
   nullptr, /* destroy */
 

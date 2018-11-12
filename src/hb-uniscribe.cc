@@ -314,8 +314,8 @@ struct range_record_t {
   unsigned int index_last;  /* == end - 1 */
 };
 
-HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, face)
-HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, font)
+HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, face);
+HB_SHAPER_DATA_ENSURE_DEFINE(uniscribe, font);
 
 
 /*
@@ -597,28 +597,6 @@ hb_uniscribe_font_get_hfont (hb_font_t *font)
   if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return nullptr;
   hb_uniscribe_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return font_data->hfont;
-}
-
-
-/*
- * shaper shape_plan data
- */
-
-struct hb_uniscribe_shape_plan_data_t {};
-
-hb_uniscribe_shape_plan_data_t *
-_hb_uniscribe_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
-					     const hb_feature_t *user_features HB_UNUSED,
-					     unsigned int        num_user_features HB_UNUSED,
-					     const int          *coords HB_UNUSED,
-					     unsigned int        num_coords HB_UNUSED)
-{
-  return (hb_uniscribe_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shape_plan_data_t *data HB_UNUSED)
-{
 }
 
 

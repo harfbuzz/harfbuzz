@@ -246,19 +246,16 @@ struct glyf
       short_offset = 0 == head_table->indexToLocFormat;
       hb_blob_destroy (head_blob);
 
-      loca_blob = hb_sanitize_context_t().reference_table<loca> (face);
-      loca_table = loca_blob->as<loca> ();
-      glyf_blob = hb_sanitize_context_t().reference_table<glyf> (face);
-      glyf_table = glyf_blob->as<glyf> ();
+      loca_table = hb_sanitize_context_t().reference_table<loca> (face);
+      glyf_table = hb_sanitize_context_t().reference_table<glyf> (face);
 
-      num_glyphs = MAX (1u, hb_blob_get_length (loca_blob) / (short_offset ? 2 : 4)) - 1;
-      glyf_len = hb_blob_get_length (glyf_blob);
+      num_glyphs = MAX (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
     }
 
     inline void fini (void)
     {
-      hb_blob_destroy (loca_blob);
-      hb_blob_destroy (glyf_blob);
+      loca_table.destroy ();
+      glyf_table.destroy ();
     }
 
     /*
@@ -388,7 +385,7 @@ struct glyf
 	*end_offset   = offsets[glyph + 1];
       }
 
-      if (*start_offset > *end_offset || *end_offset > glyf_len)
+      if (*start_offset > *end_offset || *end_offset > glyf_table.get_length ())
 	return false;
 
       return true;
@@ -476,11 +473,8 @@ struct glyf
     private:
     bool short_offset;
     unsigned int num_glyphs;
-    hb_nonnull_ptr_t<const loca> loca_table;
-    hb_nonnull_ptr_t<const glyf> glyf_table;
-    hb_blob_t *loca_blob;
-    hb_blob_t *glyf_blob;
-    unsigned int glyf_len;
+    hb_blob_ptr_t<loca> loca_table;
+    hb_blob_ptr_t<glyf> glyf_table;
   };
 
   protected:

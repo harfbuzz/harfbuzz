@@ -113,7 +113,7 @@ struct hmtxvmtx
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, (unsigned int) dest_sz);
 
-    const char *source_table = hb_blob_get_data (_mtx.blob, nullptr);
+    const char *source_table = hb_blob_get_data (_mtx.table.get_blob (), nullptr);
     // Copy everything over
     LongMetric * old_metrics = (LongMetric *) source_table;
     FWORD *lsbs = (FWORD *) (old_metrics + _mtx.num_advances);
@@ -221,10 +221,10 @@ struct hmtxvmtx
 
       has_font_extents = got_font_extents;
 
-      blob = hb_sanitize_context_t().reference_table<hmtxvmtx> (face, T::tableTag);
+      table = hb_sanitize_context_t().reference_table<hmtxvmtx> (face, T::tableTag);
 
       /* Cap num_metrics() and num_advances() based on table length. */
-      unsigned int len = hb_blob_get_length (blob);
+      unsigned int len = table.get_length ();
       if (unlikely (num_advances * 4 > len))
 	num_advances = len / 4;
       num_metrics = num_advances + (len - 4 * num_advances) / 2;
@@ -234,19 +234,17 @@ struct hmtxvmtx
       if (unlikely (!num_advances))
       {
 	num_metrics = num_advances = 0;
-	hb_blob_destroy (blob);
-	blob = hb_blob_get_empty ();
+	table.destroy ();
+	table = hb_blob_get_empty ();
       }
-      table = blob->as<hmtxvmtx> ();
 
-      var_blob = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
-      var_table = var_blob->as<HVARVVAR> ();
+      var_table = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
     }
 
     inline void fini (void)
     {
-      hb_blob_destroy (blob);
-      hb_blob_destroy (var_blob);
+      table.destroy ();
+      var_table.destroy ();
     }
 
     /* TODO Add variations version. */
@@ -301,10 +299,8 @@ struct hmtxvmtx
     unsigned int default_advance;
 
     private:
-    const hmtxvmtx *table;
-    hb_blob_t *blob;
-    const HVARVVAR *var_table;
-    hb_blob_t *var_blob;
+    hb_blob_ptr_t<hmtxvmtx> table;
+    hb_blob_ptr_t<HVARVVAR> var_table;
   };
 
   protected:

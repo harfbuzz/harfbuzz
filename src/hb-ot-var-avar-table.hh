@@ -94,7 +94,7 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (2, arrayZ);
+  DEFINE_SIZE_ARRAY (2, *this);
 };
 
 struct avar
@@ -109,7 +109,7 @@ struct avar
 		    c->check_struct (this))))
       return_trace (false);
 
-    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
+    const SegmentMaps *map = &firstAxisSegmentMaps;
     unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -125,7 +125,7 @@ struct avar
   {
     unsigned int count = MIN<unsigned int> (coords_length, axisCount);
 
-    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
+    const SegmentMaps *map = &firstAxisSegmentMaps;
     for (unsigned int i = 0; i < count; i++)
     {
       coords[i] = map->map (coords[i]);
@@ -140,8 +140,7 @@ struct avar
   HBUINT16	axisCount;	/* The number of variation axes in the font. This
 				 * must be the same number as axisCount in the
 				 * 'fvar' table. */
-  UnsizedArrayOf<SegmentMaps>
-		axisSegmentMapsZ;
+  SegmentMaps   firstAxisSegmentMaps;
 
   public:
   DEFINE_SIZE_MIN (8);

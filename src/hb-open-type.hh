@@ -335,6 +335,8 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null>
 template <typename Type>
 struct UnsizedArrayOf
 {
+  enum { item_size = Type::static_size };
+
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
 
   /* Unlikely other places, use "int i" instead of "unsigned int i" for our
@@ -435,6 +437,8 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
+  enum { item_size = Type::static_size };
+
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
 
   inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
@@ -603,6 +607,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct HeadlessArrayOf
 {
+  enum { item_size = Type::static_size };
+
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
 
   inline const Type& operator [] (unsigned int i) const
@@ -801,6 +807,8 @@ struct VarSizedBinSearchHeader
 template <typename Type>
 struct VarSizedBinSearchArrayOf
 {
+  enum { item_size = Type::static_size };
+
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
 
   inline const Type& operator [] (unsigned int i) const

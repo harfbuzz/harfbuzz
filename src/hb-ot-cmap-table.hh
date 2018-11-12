@@ -636,7 +636,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (4, arrayZ);
+  DEFINE_SIZE_ARRAY (4, *this);
 };
 
 struct UVSMapping
@@ -668,7 +668,7 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (4, arrayZ);
+  DEFINE_SIZE_ARRAY (4, *this);
 };
 
 struct VariationSelectorRecord
@@ -1014,8 +1014,7 @@ struct cmap
   {
     inline void init (hb_face_t *face)
     {
-      this->blob = hb_sanitize_context_t().reference_table<cmap> (face);
-      const cmap *table = this->blob->as<cmap> ();
+      this->table = hb_sanitize_context_t().reference_table<cmap> (face);
       bool symbol;
       this->subtable = table->find_best_subtable (&symbol);
       this->subtable_uvs = &Null(CmapSubtableFormat14);
@@ -1051,7 +1050,7 @@ struct cmap
 
     inline void fini (void)
     {
-      hb_blob_destroy (this->blob);
+      this->table.destroy ();
     }
 
     inline bool get_nominal_glyph (hb_codepoint_t  unicode,
@@ -1157,7 +1156,7 @@ struct cmap
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 
-    hb_blob_t *blob;
+    hb_blob_ptr_t<cmap> table;
   };
 
   protected:

@@ -64,11 +64,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 	HB_STMT_START { \
 	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face_unsafe)) \
 	  { \
-	    /* XXX-MT-bug What happened to *ensure*ing this?!!!! */ \
-	    HB_SHAPER_DATA (shaper, shape_plan).set_relaxed ( \
-	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, \
-							       user_features, num_user_features, \
-							       coords, num_coords)); \
 	    shape_plan->shaper_func = _hb_##shaper##_shape; \
 	    shape_plan->shaper_name = #shaper; \
 	    return; \
@@ -102,30 +97,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 /*
  * hb_shape_plan_t
  */
-
-DEFINE_NULL_INSTANCE (hb_shape_plan_t) =
-{
-  HB_OBJECT_HEADER_STATIC,
-
-  true, /* default_shaper_list */
-  nullptr, /* face */
-  HB_SEGMENT_PROPERTIES_DEFAULT, /* props */
-
-  nullptr, /* shaper_func */
-  nullptr, /* shaper_name */
-
-  nullptr, /* user_features */
-  0,    /* num_user_featurs */
-
-  nullptr, /* coords */
-  0,    /* num_coords */
-
-  {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-  },
-};
 
 
 /**
@@ -175,28 +146,22 @@ hb_shape_plan_create2 (hb_face_t                     *face,
   hb_feature_t *features = nullptr;
   int *coords = nullptr;
 
-  if (unlikely (!face))
-    face = hb_face_get_empty ();
   if (unlikely (!props))
-    return hb_shape_plan_get_empty ();
+    goto bail;
   if (num_user_features && !(features = (hb_feature_t *) calloc (num_user_features, sizeof (hb_feature_t))))
-    return hb_shape_plan_get_empty ();
+    goto bail;
   if (num_coords && !(coords = (int *) calloc (num_coords, sizeof (int))))
-  {
-    free (features);
-    return hb_shape_plan_get_empty ();
-  }
+    goto bail;
   if (!(shape_plan = hb_object_create<hb_shape_plan_t> ()))
-  {
-    free (coords);
-    free (features);
-    return hb_shape_plan_get_empty ();
-  }
+    goto bail;
 
   assert (props->direction != HB_DIRECTION_INVALID);
 
+  if (unlikely (!face))
+    face = hb_face_get_empty ();
   hb_face_make_immutable (face);
-  shape_plan->default_shaper_list = !shaper_list;
+
+  shape_plan->custom_shaper_list = shaper_list;
   shape_plan->face_unsafe = face;
   shape_plan->props = *props;
   shape_plan->num_user_features = num_user_features;
@@ -213,7 +178,19 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		      coords, num_coords,
 		      shaper_list);
 
+  if (unlikely (!shape_plan->ot.init0 (shape_plan,
+				       user_features,
+				       num_user_features,
+				       coords,
+				       num_coords)))
+    goto bail;
+
   return shape_plan;
+
+bail:
+  free (coords);
+  free (features);
+  return hb_shape_plan_get_empty ();
 }
 
 /**
@@ -260,9 +237,7 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
 {
   if (!hb_object_destroy (shape_plan)) return;
 
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, shape_plan);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
+  shape_plan->ot.fini ();
 
   free (shape_plan->user_features);
   free (shape_plan->coords);
@@ -354,8 +329,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  return HB_SHAPER_DATA (shaper, shape_plan).get () && \
-		 hb_##shaper##_shaper_font_data_ensure (font) && \
+	  return hb_##shaper##_shaper_font_data_ensure (font) && \
 		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
 
@@ -382,7 +356,7 @@ static unsigned int
 hb_shape_plan_hash (const hb_shape_plan_t *shape_plan)
 {
   return hb_segment_properties_hash (&shape_plan->props) +
-	 shape_plan->default_shaper_list ? 0 : (intptr_t) shape_plan->shaper_func;
+	 shape_plan->custom_shaper_list ? (intptr_t) shape_plan->shaper_func : 0;
 }
 #endif
 
@@ -436,7 +410,7 @@ hb_shape_plan_matches (const hb_shape_plan_t          *shape_plan,
   return hb_segment_properties_equal (&shape_plan->props, &proposal->props) &&
 	 hb_shape_plan_user_features_match (shape_plan, proposal) &&
 	 hb_shape_plan_coords_match (shape_plan, proposal) &&
-	 ((shape_plan->default_shaper_list && !proposal->shaper_list) ||
+	 ((!shape_plan->custom_shaper_list && !proposal->shaper_list) ||
 	  (shape_plan->shaper_func == proposal->shaper_func));
 }
 
@@ -507,6 +481,8 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
     shaper_list,
     user_features,
     num_user_features,
+    coords,
+    num_coords,
     nullptr
   };
 

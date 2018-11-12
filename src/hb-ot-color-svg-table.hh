@@ -81,25 +81,24 @@ struct SVG
   {
     inline void init (hb_face_t *face)
     {
-      svg_blob = hb_sanitize_context_t().reference_table<SVG> (face);
-      table = svg_blob->as<SVG> ();
+      table = hb_sanitize_context_t().reference_table<SVG> (face);
     }
 
     inline void fini (void)
     {
-      hb_blob_destroy (svg_blob);
+      table.destroy ();
     }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
-      return table->get_glyph_entry (glyph_id).reference_blob (svg_blob, table->svgDocEntries);
+      return table->get_glyph_entry (glyph_id).reference_blob (table.get_blob (),
+							       table->svgDocEntries);
     }
 
     inline bool has_data () const { return table->has_data (); }
 
     private:
-    hb_blob_t *svg_blob;
-    hb_nonnull_ptr_t<const SVG> table;
+    hb_blob_ptr_t<SVG> table;
   };
 
   inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
