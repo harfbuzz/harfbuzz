@@ -257,10 +257,10 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 inline void hb_atomic_int_impl_set (int *AI, int v)	{ _hb_memory_w_barrier (); *AI = v; }
 #endif
 #ifndef hb_atomic_int_impl_get
-inline int hb_atomic_int_impl_get (int *AI)	{ int v = *AI; _hb_memory_r_barrier (); return v; }
+inline int hb_atomic_int_impl_get (const int *AI)	{ int v = *AI; _hb_memory_r_barrier (); return v; }
 #endif
 #ifndef hb_atomic_ptr_impl_get
-inline void *hb_atomic_ptr_impl_get (void **P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
+inline void *hb_atomic_ptr_impl_get (void ** const P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
 #endif
 
 
