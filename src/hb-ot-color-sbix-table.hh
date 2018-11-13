@@ -249,7 +249,7 @@ struct sbix
       /* Convert to font units. */
       if (strike_ppem)
       {
-	double scale = font->face->upem / (double) strike_ppem;
+	double scale = font->face->get_upem () / (double) strike_ppem;
 	extents->x_bearing = round (extents->x_bearing * scale);
 	extents->y_bearing = round (extents->y_bearing * scale);
 	extents->width = round (extents->width * scale);

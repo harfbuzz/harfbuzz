@@ -49,7 +49,8 @@ struct lcar
 				      unsigned int   *caret_count /* IN/OUT */,
 				      hb_position_t  *caret_array /* OUT */) const
   {
-    const OffsetTo<LigCaretClassEntry>* entry_offset = lookup.get_value (glyph, font->face->num_glyphs);
+    const OffsetTo<LigCaretClassEntry>* entry_offset = lookup.get_value (glyph,
+									 font->face->get_num_glyphs ());
     const LigCaretClassEntry& array = entry_offset ? this+*entry_offset : Null (LigCaretClassEntry);
     if (caret_count && *caret_count)
     {
