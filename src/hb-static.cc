@@ -60,10 +60,7 @@ hb_face_t::load_num_glyphs (void) const
 void
 hb_face_t::load_upem (void) const
 {
-  hb_blob_t *head_blob = hb_sanitize_context_t ().reference_table<OT::head> (this);
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  upem = head_table->get_upem ();
-  hb_blob_destroy (head_blob);
+  upem = table.head->get_upem ();
 }
 
 #endif

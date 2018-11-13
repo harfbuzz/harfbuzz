@@ -235,16 +235,11 @@ struct glyf
     {
       memset (this, 0, sizeof (accelerator_t));
 
-      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (face);
-      const head *head_table = head_blob->as<head> ();
-      if (head_table->indexToLocFormat > 1 || head_table->glyphDataFormat != 0)
-      {
+      const OT::head &head = *face->table.head;
+      if (head.indexToLocFormat > 1 || head.glyphDataFormat != 0)
 	/* Unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
-	hb_blob_destroy (head_blob);
 	return;
-      }
-      short_offset = 0 == head_table->indexToLocFormat;
-      hb_blob_destroy (head_blob);
+      short_offset = 0 == head.indexToLocFormat;
 
       loca_table = hb_sanitize_context_t().reference_table<loca> (face);
       glyf_table = hb_sanitize_context_t().reference_table<glyf> (face);
