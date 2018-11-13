@@ -200,7 +200,8 @@ def is_HALANT(U, UISC, UGC):
 	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
 def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
 	# https://github.com/harfbuzz/harfbuzz/issues/1102
-	return U == 0x11046
+	# https://github.com/harfbuzz/harfbuzz/issues/1379
+	return U in [0x11046, 0x1134D]
 def is_HALANT_NUM(U, UISC, UGC):
 	return UISC == Number_Joiner
 def is_ZWNJ(U, UISC, UGC):
