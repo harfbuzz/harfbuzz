@@ -481,7 +481,7 @@ hb_blob_t::try_make_writable (void)
 # include <fcntl.h>
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#ifdef _WIN32
 # include <windows.h>
 #else
 # ifndef O_BINARY
@@ -497,19 +497,19 @@ struct hb_mapped_file_t
 {
   char *contents;
   unsigned long length;
-#if defined(_WIN32) || defined(__CYGWIN__)
+#ifdef _WIN32
   HANDLE mapping;
 #endif
 };
 
-#if (defined(HAVE_MMAP) || defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
+#if (defined(HAVE_MMAP) || defined(_WIN32)) && !defined(HB_NO_MMAP)
 static void
 _hb_mapped_file_destroy (void *file_)
 {
   hb_mapped_file_t *file = (hb_mapped_file_t *) file_;
 #ifdef HAVE_MMAP
   munmap (file->contents, file->length);
-#elif defined(_WIN32) || defined(__CYGWIN__)
+#elif defined(_WIN32)
   UnmapViewOfFile (file->contents);
   CloseHandle (file->mapping);
 #else
@@ -560,7 +560,7 @@ fail:
 fail_without_close:
   free (file);
 
-#elif (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_MMAP)
+#elif defined(_WIN32) && !defined(HB_NO_MMAP)
   hb_mapped_file_t *file = (hb_mapped_file_t *) calloc (1, sizeof (hb_mapped_file_t));
   if (unlikely (!file)) return hb_blob_get_empty ();
 
