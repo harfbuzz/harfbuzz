@@ -58,22 +58,9 @@ struct hb_shape_plan_key_t
     ::free ((void *) user_features);
   }
 
-  inline bool user_features_match (const hb_shape_plan_key_t *other)
-  {
-    /* TODO Implement non-exact matching. */
-    if (this->num_user_features != other->num_user_features)
-      return false;
-    return 0 == hb_memcmp(this->user_features, other->user_features,
-			  this->num_user_features * sizeof (this->user_features[0]));
-  }
+  HB_INTERNAL bool user_features_match (const hb_shape_plan_key_t *other);
 
-  inline bool equal (const hb_shape_plan_key_t *other)
-  {
-    return hb_segment_properties_equal (&this->props, &other->props) &&
-	   this->user_features_match (other) &&
-	   this->ot.equal (&other->ot) &&
-	   this->shaper_func == other->shaper_func;
-  }
+  HB_INTERNAL bool equal (const hb_shape_plan_key_t *other);
 };
 
 struct hb_shape_plan_t

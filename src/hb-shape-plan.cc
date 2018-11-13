@@ -66,7 +66,17 @@ hb_shape_plan_key_t::init (bool                           copy,
   this->num_user_features = num_user_features;
   this->user_features = copy ? features : user_features;
   if (copy && num_user_features)
+  {
     memcpy (features, user_features, num_user_features * sizeof (hb_feature_t));
+    /* Make start/end uniform to easier catch bugs. */
+    for (unsigned int i = 0; i < num_user_features; i++)
+    {
+      if (features[0].start != HB_FEATURE_GLOBAL_START)
+	features[0].start = 1;
+      if (features[0].end   != HB_FEATURE_GLOBAL_END)
+	features[0].end   = 2;
+    }
+  }
   this->shaper_func = nullptr;
   this->shaper_name = nullptr;
   this->ot.init (face, coords, num_coords);
@@ -113,6 +123,33 @@ hb_shape_plan_key_t::init (bool                           copy,
 bail:
   ::free (features);
   return false;
+}
+
+bool
+hb_shape_plan_key_t::user_features_match (const hb_shape_plan_key_t *other)
+{
+  if (this->num_user_features != other->num_user_features)
+    return false;
+  for (unsigned int i = 0; i < num_user_features; i++)
+  {
+    if (this->user_features[i].tag   != other->user_features[i].tag   ||
+	this->user_features[i].value != other->user_features[i].value ||
+	(this->user_features[i].start == HB_FEATURE_GLOBAL_START &&
+	 this->user_features[i].end   == HB_FEATURE_GLOBAL_END) !=
+	(other->user_features[i].start == HB_FEATURE_GLOBAL_START &&
+	 other->user_features[i].end   == HB_FEATURE_GLOBAL_END))
+      return false;
+  }
+  return true;
+}
+
+bool
+hb_shape_plan_key_t::equal (const hb_shape_plan_key_t *other)
+{
+  return hb_segment_properties_equal (&this->props, &other->props) &&
+	 this->user_features_match (other) &&
+	 this->ot.equal (&other->ot) &&
+	 this->shaper_func == other->shaper_func;
 }
 
 
@@ -371,30 +408,6 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
  * Caching
  */
 
-static inline bool
-_has_non_global_user_features (const hb_feature_t *user_features,
-			       unsigned int        num_user_features)
-{
-  while (num_user_features)
-  {
-    if (user_features->start != HB_FEATURE_GLOBAL_START ||
-	user_features->end   != HB_FEATURE_GLOBAL_END)
-      return true;
-    num_user_features--;
-    user_features++;
-  }
-  return false;
-}
-
-static inline bool
-_dont_cache (const hb_feature_t *user_features,
-	     unsigned int        num_user_features,
-	     const int          *coords,
-	     unsigned int        num_coords)
-{
-  return _has_non_global_user_features (user_features, num_user_features);
-}
-
 /**
  * hb_shape_plan_create_cached:
  * @face: 
@@ -440,11 +453,9 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 retry:
   hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;
 
-  bool dont_cache = _dont_cache (user_features, num_user_features,
-				 coords, num_coords) ||
-		    hb_object_is_inert (face);
+  bool dont_cache = hb_object_is_inert (face);
 
-  if (!dont_cache)
+  if (likely (!dont_cache))
   {
     hb_shape_plan_key_t key;
     if (!key.init (false,
@@ -470,7 +481,7 @@ retry:
 						       coords, num_coords,
 						       shaper_list);
 
-  if (dont_cache)
+  if (unlikely (dont_cache))
     return shape_plan;
 
   hb_face_t::plan_node_t *node = (hb_face_t::plan_node_t *) calloc (1, sizeof (hb_face_t::plan_node_t));
