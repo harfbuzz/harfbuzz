@@ -1,7 +1,6 @@
 tests = [
   ['hb-shape-fuzzer.cc'],
   ['hb-subset-fuzzer.cc'],
-  ['hb-subset-get-codepoints-fuzzer.cc'],
 ]
 
 foreach test_data : tests
@@ -34,7 +33,6 @@ test('subset_fuzzer', python3,
   args: [
     files('run-subset-fuzzer-tests.py')[0],
     hb_subset_fuzzer_exe,
-    hb_subset_get_codepoints_fuzzer_exe,
   ],
   workdir: join_paths(meson.current_build_dir(), '..', '..'),
   env: env)
