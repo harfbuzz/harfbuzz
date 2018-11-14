@@ -48,7 +48,7 @@
 /* Defined externally, i.e. in config.h; must have typedef'ed hb_mutex_impl_t as well. */
 
 
-#elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
+#elif !defined(HB_NO_MT) && defined(_WIN32)
 
 #include <windows.h>
 typedef CRITICAL_SECTION hb_mutex_impl_t;

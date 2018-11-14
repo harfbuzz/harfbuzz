@@ -100,7 +100,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
 
 
-#elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
+#elif !defined(HB_NO_MT) && defined(_WIN32)
 
 #include <windows.h>
 
