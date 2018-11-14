@@ -194,17 +194,14 @@ struct hmtxvmtx
       bool got_font_extents = false;
       if (T::os2Tag)
       {
-	hb_blob_t *os2_blob = hb_sanitize_context_t().reference_table<OS2> (face);
-	const OS2 *os2_table = os2_blob->as<OS2> ();
 #define USE_TYPO_METRICS (1u<<7)
-	if (0 != (os2_table->fsSelection & USE_TYPO_METRICS))
+	if (0 != (face->table.OS2->fsSelection & USE_TYPO_METRICS))
 	{
-	  ascender = abs (os2_table->sTypoAscender);
-	  descender = -abs (os2_table->sTypoDescender);
-	  line_gap = os2_table->sTypoLineGap;
+	  ascender = abs (face->table.OS2->sTypoAscender);
+	  descender = -abs (face->table.OS2->sTypoDescender);
+	  line_gap = face->table.OS2->sTypoLineGap;
 	  got_font_extents = (ascender | descender) != 0;
 	}
-	hb_blob_destroy (os2_blob);
       }
 
       hb_blob_t *_hea_blob = hb_sanitize_context_t().reference_table<H> (face);
