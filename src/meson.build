@@ -192,7 +192,7 @@ harfbuzz_def = custom_target('harfbuzz.def',
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
 
 libharfbuzz = library('harfbuzz', hb_sources,
-  include_directories: [incbase, incucdn],
+  include_directories: [incconfig, incucdn],
   dependencies: deps,
   cpp_args: cpp_args,
   vs_module_defs: harfbuzz_def,
@@ -213,7 +213,7 @@ harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
     output: 'harfbuzz-subset.def')
 
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
-  include_directories: incbase,
+  include_directories: incconfig,
   link_with: [libharfbuzz],
   cpp_args: cpp_args,
   vs_module_defs: harfbuzz_subset_def,
@@ -284,7 +284,7 @@ if conf.get('HAVE_GOBJECT', 0) == 1
     output: 'harfbuzz-gobject.def')
 
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
-    include_directories: incbase,
+    include_directories: incconfig,
     dependencies: deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args,
