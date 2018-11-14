@@ -289,9 +289,9 @@ struct hmtxvmtx
 
     public:
     bool has_font_extents;
-    unsigned short ascender;
-    unsigned short descender;
-    unsigned short line_gap;
+    int ascender;
+    int descender;
+    int line_gap;
 
     protected:
     unsigned int num_metrics;
