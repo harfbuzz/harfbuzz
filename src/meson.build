@@ -203,7 +203,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
 
 libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
-  include_directories: [incbase, incucdn],
+  include_directories: [incsrc, incucdn],
   dependencies: deps)
 
 # harfbuzz-subset
@@ -224,7 +224,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
 
 libharfbuzz_subset_dep = declare_dependency(
   link_with: libharfbuzz_subset,
-  include_directories: incbase,
+  include_directories: incsrc,
   dependencies: deps)
 
 pkgmod.generate(libharfbuzz,
@@ -319,7 +319,7 @@ if conf.get('HAVE_GOBJECT', 0) == 1
 
   libharfbuzz_gobject_dep = declare_dependency(
     link_with: libharfbuzz_gobject,
-    include_directories: incbase,
+    include_directories: incsrc,
     sources: hb_gen_files_gir,
     dependencies: deps)
 
