@@ -55,7 +55,7 @@ endif
 deps = []
 
 conf = configuration_data()
-incbase = include_directories('.')
+incconfig = include_directories('.')
 cpp_args = ['-DHAVE_CONFIG_H']
 
 warn_cflags = [
