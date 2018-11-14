@@ -72,7 +72,7 @@ hb_ot_layout_has_cross_kerning (hb_face_t *face)
 }
 
 void
-hb_ot_layout_kern (hb_ot_shape_plan_t *plan,
+hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
 		   hb_font_t *font,
 		   hb_buffer_t  *buffer)
 {

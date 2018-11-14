@@ -181,6 +181,33 @@ hb_ot_shape_plan_t::fini (void)
   aat_map.fini ();
 }
 
+void
+hb_ot_shape_plan_t::substitute (hb_font_t   *font,
+				hb_buffer_t *buffer) const
+{
+  if (unlikely (apply_morx))
+    hb_aat_layout_substitute (this, font, buffer);
+  else
+    map.substitute (this, font, buffer);
+}
+
+void
+hb_ot_shape_plan_t::position (hb_font_t   *font,
+			      hb_buffer_t *buffer) const
+{
+  if (this->apply_gpos)
+    map.position (this, font, buffer);
+  else if (this->apply_kerx)
+    hb_aat_layout_position (this, font, buffer);
+  else if (this->apply_kern)
+    hb_ot_layout_kern (this, font, buffer);
+  else
+    _hb_ot_shape_fallback_kern (this, font, buffer);
+
+  if (this->apply_trak)
+    hb_aat_layout_track (this, font, buffer);
+}
+
 
 static const hb_ot_map_feature_t
 common_features[] =
@@ -687,10 +714,7 @@ hb_ot_substitute_complex (const hb_ot_shape_context_t *c)
   if (c->plan->fallback_glyph_classes)
     hb_synthesize_glyph_classes (c->buffer);
 
-  if (unlikely (c->plan->apply_morx))
-    hb_aat_layout_substitute (c->plan, c->font, c->buffer);
-  else
-    c->plan->substitute (c->font, buffer);
+  c->plan->substitute (c->font, buffer);
 }
 
 static inline void
@@ -825,17 +849,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 	break;
     }
 
-  if (c->plan->apply_gpos)
-    c->plan->position (c->font, c->buffer);
-  else if (c->plan->apply_kerx)
-    hb_aat_layout_position (c->plan, c->font, c->buffer);
-  else if (c->plan->apply_kern)
-    hb_ot_layout_kern (c->plan, c->font, c->buffer);
-  else
-    _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
-
-  if (c->plan->apply_trak)
-    hb_aat_layout_track (c->plan, c->font, c->buffer);
+  c->plan->position (c->font, c->buffer);
 
   if (c->plan->zero_marks)
     switch (c->plan->shaper->zero_width_marks)
