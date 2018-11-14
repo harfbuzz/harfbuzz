@@ -1,13 +1,22 @@
 tests = [
+  ['test-baseline.c'],
   ['test-blob.c'],
   ['test-buffer.c'],
+  ['test-c.c'],
+  ['test-collect-unicodes.c'],
   ['test-common.c'],
+  ['test-cplusplus.cc'],
   ['test-font.c'],
+  ['test-map.c'],
   ['test-object.c'],
+  ['test-ot-color.c'],
+  ['test-ot-face.c'],
+  ['test-ot-ligature-carets.c'],
+  ['test-ot-name.c'],
+  ['test-ot-tag.c'],
   ['test-set.c'],
   ['test-shape.c'],
   ['test-subset.c'],
-  ['test-subset-codepoints.c'],
   ['test-subset-cmap.c'],
   ['test-subset-glyf.c'],
   ['test-subset-hdmx.c'],
@@ -17,14 +26,15 @@ tests = [
   ['test-subset-vmtx.c'],
   ['test-unicode.c'],
   ['test-version.c'],
-  ['test-ot-color.c'],
-  ['test-ot-tag.c'],
 ]
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   tests += [['test-ot-math.c']]
 endif
 
+if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
+  tests += [['test-multithread.c']]
+endif
 if conf.get('HAVE_GLIB', 0) == 1
   env = environment()
   env.set('G_TEST_SRCDIR', meson.current_source_dir())
