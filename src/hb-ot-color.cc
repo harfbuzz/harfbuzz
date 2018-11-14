@@ -238,7 +238,7 @@ hb_ot_color_has_svg (hb_face_t *face)
  * @face:  a font face.
  * @glyph: a svg glyph index.
  *
- * Get SVG document for a glyph.
+ * Get SVG document for a glyph. The blob may be either plain text or gzip-encoded.
  *
  * Returns: (transfer full): respective svg blob of the glyph, if available.
  *
