@@ -10,7 +10,7 @@ foreach test_data : tests
 
   exe = executable(test_name, [fname, 'main.cc'],
     cpp_args: cpp_args,
-    include_directories: [incbase, incsrc],
+    include_directories: [incconfig, incsrc],
     dependencies: deps,
     link_with: [libharfbuzz, libharfbuzz_subset],
   )

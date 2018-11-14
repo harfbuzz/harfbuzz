@@ -40,7 +40,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     test_name = fname.split('.')[0].underscorify()
     exe = executable(test_name, fname,
       cpp_args: cpp_args + extra_c_args,
-      include_directories: [incbase, incsrc],
+      include_directories: [incconfig, incsrc],
       dependencies: deps,
       link_with: [libharfbuzz, libharfbuzz_subset],
     )
