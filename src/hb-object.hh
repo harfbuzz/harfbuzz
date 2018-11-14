@@ -194,7 +194,7 @@ struct hb_user_data_array_t
 struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
-  hb_atomic_int_t writable;
+  mutable hb_atomic_int_t writable;
   hb_atomic_ptr_t<hb_user_data_array_t> user_data;
 };
 #define HB_OBJECT_HEADER_STATIC \

@@ -39,7 +39,9 @@ struct DeltaSetIndexMap
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (mapDataZ.arrayZ, mapCount, get_width ()));
+		  c->check_range (mapDataZ.arrayZ,
+				  mapCount,
+				  get_width ()));
   }
 
   unsigned int map (unsigned int v) const /* Returns 16.16 outer.inner. */

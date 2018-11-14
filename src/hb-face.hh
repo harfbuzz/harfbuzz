@@ -49,8 +49,8 @@ struct hb_face_t
   hb_destroy_func_t          destroy;
 
   unsigned int index;			/* Face index in a collection, zero-based. */
-  mutable unsigned int upem;		/* Units-per-EM. */
-  mutable unsigned int num_glyphs;	/* Number of glyphs. */
+  mutable hb_atomic_int_t upem;		/* Units-per-EM. */
+  mutable hb_atomic_int_t num_glyphs;	/* Number of glyphs. */
 
   struct hb_shaper_data_t shaper_data;	/* Various shaper data. */
 
@@ -80,21 +80,25 @@ struct hb_face_t
 
   inline HB_PURE_FUNC unsigned int get_upem (void) const
   {
-    if (unlikely (!upem))
-      load_upem ();
-    return upem;
+    unsigned int ret = upem.get_relaxed ();
+    if (unlikely (!ret))
+    {
+      return load_upem ();
+    }
+    return ret;
   }
 
   inline unsigned int get_num_glyphs (void) const
   {
-    if (unlikely (num_glyphs == (unsigned int) -1))
-      load_num_glyphs ();
-    return num_glyphs;
+    unsigned int ret = num_glyphs.get_relaxed ();
+    if (unlikely (ret == (unsigned int) -1))
+      return load_num_glyphs ();
+    return ret;
   }
 
   private:
-  HB_INTERNAL void load_upem (void) const;
-  HB_INTERNAL void load_num_glyphs (void) const;
+  HB_INTERNAL unsigned int load_upem (void) const;
+  HB_INTERNAL unsigned int load_num_glyphs (void) const;
 };
 DECLARE_NULL_INSTANCE (hb_face_t);
 

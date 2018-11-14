@@ -46,24 +46,26 @@ DEFINE_NULL_NAMESPACE_BYTES (OT, RangeRecord) = {0x00,0x01, 0x00,0x00, 0x00, 0x0
 const unsigned char _hb_Null_AAT_Lookup[2] = {0xFF, 0xFF};
 
 
-void
+unsigned int
 hb_face_t::load_num_glyphs (void) const
 {
   hb_sanitize_context_t c = hb_sanitize_context_t ();
   c.set_num_glyphs (0); /* So we don't recurse ad infinitum. */
   hb_blob_t *maxp_blob = c.reference_table<OT::maxp> (this);
   const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
-  num_glyphs = maxp_table->get_num_glyphs ();
+
+  unsigned int ret = maxp_table->get_num_glyphs ();
+  num_glyphs.set_relaxed (ret);
   hb_blob_destroy (maxp_blob);
+  return ret;
 }
 
-void
+unsigned int
 hb_face_t::load_upem (void) const
 {
-  hb_blob_t *head_blob = hb_sanitize_context_t ().reference_table<OT::head> (this);
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  upem = head_table->get_upem ();
-  hb_blob_destroy (head_blob);
+  unsigned int ret = table.head->get_upem ();
+  upem.set_relaxed (ret);
+  return ret;
 }
 
 #endif

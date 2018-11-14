@@ -53,7 +53,6 @@
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
-			      const hb_segment_properties_t  *props,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features);
 
@@ -68,26 +67,26 @@ _hb_apply_morx (hb_face_t *face)
 	 hb_aat_layout_has_substitution (face);
 }
 
-hb_ot_shape_planner_t::hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
-						face (master_plan->face_unsafe),
-						props (master_plan->props),
-						map (face, &props),
-						aat_map (face, &props),
+hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *face,
+					      const hb_segment_properties_t *props) :
+						face (face),
+						props (*props),
+						map (face, props),
+						aat_map (face, props),
 						apply_morx (_hb_apply_morx (face)),
 						shaper (apply_morx ?
 						        &_hb_ot_complex_shaper_default :
 							hb_ot_shape_complex_categorize (this)) {}
 
 void
-hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
-				const int          *coords,
-				unsigned int        num_coords)
+hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
+				const hb_ot_shape_plan_key_t &key)
 {
   plan.props = props;
   plan.shaper = shaper;
-  map.compile (plan.map, coords, num_coords);
+  map.compile (plan.map, key);
   if (apply_morx)
-    aat_map.compile (plan.aat_map, coords, num_coords);
+    aat_map.compile (plan.aat_map);
 
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
@@ -139,30 +138,28 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t &plan,
   }
 
   bool has_kern_mark = plan.apply_kern && hb_ot_layout_has_cross_kerning (face);
-  plan.zero_marks = !plan.apply_kerx && !has_kern_mark;
+  plan.zero_marks = !plan.apply_morx && !plan.apply_kerx && !has_kern_mark;
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
-  plan.fallback_mark_positioning = !plan.apply_gpos && !plan.apply_kerx && !has_kern_mark;
+  plan.fallback_mark_positioning = !plan.apply_gpos && plan.zero_marks;
 
   /* Currently we always apply trak. */
   plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
 }
 
 bool
-hb_ot_shape_plan_t::init0 (hb_shape_plan_t    *shape_plan,
-			   const hb_feature_t *user_features,
-			   unsigned int        num_user_features,
-			   const int          *coords,
-			   unsigned int        num_coords)
+hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
+			   const hb_shape_plan_key_t     *key)
 {
   map.init ();
   aat_map.init ();
 
-  hb_ot_shape_planner_t planner (shape_plan);
+  hb_ot_shape_planner_t planner (face,
+				 &key->props);
+  hb_ot_shape_collect_features (&planner,
+				key->user_features,
+				key->num_user_features);
 
-  hb_ot_shape_collect_features (&planner, &shape_plan->props,
-				user_features, num_user_features);
-
-  planner.compile (*this, coords, num_coords);
+  planner.compile (*this, key->ot);
 
   if (shaper->data_create)
   {
@@ -209,7 +206,6 @@ horizontal_features[] =
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
-			      const hb_segment_properties_t  *props,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features)
 {
@@ -218,7 +214,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
 
-  switch (props->direction) {
+  switch (planner->props.direction) {
     case HB_DIRECTION_LTR:
       map->enable_feature (HB_TAG ('l','t','r','a'));
       map->enable_feature (HB_TAG ('l','t','r','m'));
@@ -257,7 +253,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
     map->add_feature (common_features[i]);
 
-  if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
+  if (HB_DIRECTION_IS_HORIZONTAL (planner->props.direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
       map->add_feature (horizontal_features[i]);
   else

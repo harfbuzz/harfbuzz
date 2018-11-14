@@ -63,7 +63,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
     if (unlikely (!shaper_list))
       return nullptr;
 
-    const hb_shaper_pair_t *shapers = _hb_shapers_get ();
+    const hb_shaper_pair_static_t *shapers = _hb_shapers_get ();
     unsigned int i;
     for (i = 0; i < HB_SHAPERS_COUNT; i++)
       shaper_list[i] = shapers[i].name;

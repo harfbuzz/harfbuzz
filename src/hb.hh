@@ -246,7 +246,7 @@ struct _hb_alignof
 #endif
 
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#ifdef _WIN32
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,
     * though we run on it fine. */

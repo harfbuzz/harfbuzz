@@ -202,7 +202,7 @@ struct arabic_fallback_plan_t
   OT::hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
 };
 
-#if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(HB_NO_WIN1256)
+#if defined(_WIN32) && !defined(HB_NO_WIN1256)
 #define HB_WITH_WIN1256
 #endif
 

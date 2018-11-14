@@ -91,7 +91,7 @@ struct CFFIndex
     return_trace (likely ((count.sanitize (c) && count == 0) || /* empty INDEX */
                           (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
                            c->check_array (offsets, offSize, count + 1) &&
-                           c->check_array (data_base (), 1, max_offset () - 1))));
+                           c->check_array ((const HBUINT8*)data_base (), 1, max_offset () - 1))));
   }
 
   inline static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)

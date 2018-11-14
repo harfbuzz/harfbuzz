@@ -298,7 +298,8 @@ struct hb_sanitize_context_t :
     this->start = this->end = nullptr;
   }
 
-  inline bool check_range (const void *base, unsigned int len) const
+  inline bool check_range (const void *base,
+			   unsigned int len) const
   {
     const char *p = (const char *) base;
     bool ok = this->start <= p &&
@@ -316,20 +317,37 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
-  inline bool check_array (const T *base, unsigned int len, unsigned int record_size = T::static_size) const
+  inline bool check_range (const T *base,
+			   unsigned int a,
+			   unsigned int b) const
   {
-    const char *p = (const char *) base;
-    bool overflows = hb_unsigned_mul_overflows (len, record_size);
-    unsigned int array_size = record_size * len;
-    bool ok = !overflows && this->check_range (base, array_size);
+    return !hb_unsigned_mul_overflows (a, b) &&
+	   this->check_range (base, a * b);
+  }
 
-    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
-       "check_array [%p..%p] (%d*%d=%d bytes) in [%p..%p] -> %s",
-       p, p + (record_size * len), record_size, len, (unsigned int) array_size,
-       this->start, this->end,
-       overflows ? "OVERFLOWS" : ok ? "OK" : "OUT-OF-RANGE");
+  template <typename T>
+  inline bool check_range (const T *base,
+			   unsigned int a,
+			   unsigned int b,
+			   unsigned int c) const
+  {
+    return !hb_unsigned_mul_overflows (a, b) &&
+	   this->check_range (base, a * b, c);
+  }
 
-    return likely (ok);
+  template <typename T>
+  inline bool check_array (const T *base,
+			   unsigned int len) const
+  {
+    return this->check_range (base, len, T::static_size);
+  }
+
+  template <typename T>
+  inline bool check_array (const T *base,
+			   unsigned int a,
+			   unsigned int b) const
+  {
+    return this->check_range (base, a, b, T::static_size);
   }
 
   template <typename Type>
@@ -734,16 +752,19 @@ struct hb_data_wrapper_t
     return *(((Data **) (void *) this) - WheresData);
   }
 
+  inline bool is_inert (void) const { return !get_data (); }
+
   template <typename Stored, typename Subclass>
   inline Stored * call_create (void) const
   {
-    Data *data = this->get_data ();
-    return likely (data) ? Subclass::create (data) : nullptr;
+    return Subclass::create (this->get_data ());
   }
 };
 template <>
 struct hb_data_wrapper_t<void, 0>
 {
+  inline bool is_inert (void) const { return false; }
+
   template <typename Stored, typename Funcs>
   inline Stored * call_create (void) const
   {
@@ -782,7 +803,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   static inline void do_destroy (Stored *p)
   {
-    if (p)
+    if (p && p != const_cast<Stored *> (Funcs::get_null ()))
       Funcs::destroy (p);
   }
 
@@ -796,9 +817,12 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
+      if (unlikely (this->is_inert ()))
+	return const_cast<Stored *> (Funcs::get_null ());
+
       p = this->template call_create<Stored, Funcs> ();
       if (unlikely (!p))
-	return const_cast<Stored *> (Funcs::get_null ());
+	p = const_cast<Stored *> (Funcs::get_null ());
 
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {

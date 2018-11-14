@@ -90,7 +90,7 @@ struct hb_set_t
 
     inline bool is_equal (const page_t *other) const
     {
-      return 0 == memcmp (&v, &other->v, sizeof (v));
+      return 0 == hb_memcmp (&v, &other->v, sizeof (v));
     }
 
     inline unsigned int get_population (void) const

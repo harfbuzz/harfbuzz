@@ -40,6 +40,7 @@
 
 #define HB_OT_TABLES \
     /* OpenType fundamentals. */ \
+    HB_OT_TABLE(OT, head) \
     HB_OT_ACCELERATOR(OT, cmap) \
     HB_OT_ACCELERATOR(OT, hmtx) \
     HB_OT_ACCELERATOR(OT, vmtx) \
@@ -50,6 +51,8 @@
     HB_OT_ACCELERATOR(OT, cff2) \
     HB_OT_TABLE(OT, VORG) \
     HB_OT_ACCELERATOR(OT, name) \
+    HB_OT_TABLE(OT, OS2) \
+    HB_OT_TABLE(OT, STAT) \
     /* OpenType shaping. */ \
     HB_OT_ACCELERATOR(OT, GDEF) \
     HB_OT_ACCELERATOR(OT, GSUB) \

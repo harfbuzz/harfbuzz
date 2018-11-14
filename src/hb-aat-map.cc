@@ -51,9 +51,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
 }
 
 void
-hb_aat_map_builder_t::compile (hb_aat_map_t  &m,
-			       const int    *coords HB_UNUSED,
-			       unsigned int  num_coords HB_UNUSED)
+hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 {
   /* Sort features and merge duplicates */
   if (features.len)
