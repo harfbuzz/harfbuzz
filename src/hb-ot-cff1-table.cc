@@ -30,7 +30,7 @@
 using namespace CFF;
 
 /* SID to code */
-static const uint8_t standard_encoding [] =
+static const uint8_t standard_encoding_to_code [] =
 {
     0,   32,   33,   34,   35,   36,   37,   38,  39,   40,   41,   42,   43,   44,   45,   46,
    47,   48,   49,   50,   51,   52,   53,   54,  55,   56,   57,   58,   59,   60,   61,   62,
@@ -45,7 +45,7 @@ static const uint8_t standard_encoding [] =
 };
 
 /* SID to code */
-static const uint8_t expert_encoding [] =
+static const uint8_t expert_encoding_to_code [] =
 {
     0,   32,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,   44,   45,   46,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,   58,   59,    0,    0,    0,
@@ -74,7 +74,7 @@ static const uint8_t expert_encoding [] =
 };
 
 /* glyph ID to SID */
-static const uint16_t expert_charset [] =
+static const uint16_t expert_charset_to_sid [] =
 {
     0,    1,  229,  230,  231,  232,  233,  234,  235,  236,  237,  238,   13,   14,   15,   99,
   239,  240,  241,  242,  243,  244,  245,  246,  247,  248,   27,   28,  249,  250,  251,  252,
@@ -90,7 +90,7 @@ static const uint16_t expert_charset [] =
 };
 
 /* glyph ID to SID */
-static const uint16_t expert_subset_charset [] =
+static const uint16_t expert_subset_charset_to_sid [] =
 {
     0,    1,  231,  232,  235,  236,  237,  238,   13,   14,   15,   99,  239,  240,  241,  242,
   243,  244,  245,  246,  247,  248,   27,   28,  249,  250,  251,  253,  254,  255,  256,  257,
@@ -100,66 +100,131 @@ static const uint16_t expert_subset_charset [] =
   340,  341,  342,  343,  344,  345,  346
 };
 
-hb_codepoint_t OT::cff1::lookup_standard_encoding (hb_codepoint_t sid)
+/* code to SID */
+static const uint8_t standard_encoding_to_sid [] =
 {
-  if (sid < ARRAY_LENGTH (standard_encoding))
-    return (hb_codepoint_t)standard_encoding[sid];
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    1,    2,    3,    4,    5,    6,    7,    8,    9,   10,   11,   12,   13,   14,   15,   16,
+    17,  18,   19,   20,   21,   22,   23,   24,   25,   26,   27,   28,   29,   30,   31,   32,
+    33,  34,   35,   36,   37,   38,   39,   40,   41,   42,   43,   44,   45,   46,   47,   48,
+    49,  50,   51,   52,   53,   54,   55,   56,   57,   58,   59,   60,   61,   62,   63,   64,
+    65,  66,   67,   68,   69,   70,   71,   72,   73,   74,   75,   76,   77,   78,   79,   80,
+    81,  82,   83,   84,   85,   86,   87,   88,   89,   90,   91,   92,   93,   94,   95,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,   96,   97,   98,   99,  100,  101,  102,  103,  104,  105,  106,  107,  108,  109,  110,
+    0,  111,  112,  113,  114,    0,  115,  116,  117,  118,  119,  120,  121,  122,    0,  123,
+    0,  124,  125,  126,  127,  128,  129,  130,  131,    0,  132,  133,    0,  134,  135,  136,
+  137,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,   138,   0,  139,    0,    0,    0,    0,  140,  141,  142,  143,    0,    0,    0,    0,
+    0,   144,   0,    0,    0,  145,    0,    0,  146,  147,  148,  149,    0,    0,    0,    0
+};
+
+hb_codepoint_t OT::cff1::lookup_standard_encoding_for_code (hb_codepoint_t sid)
+{
+  if (sid < ARRAY_LENGTH (standard_encoding_to_code))
+    return (hb_codepoint_t)standard_encoding_to_code[sid];
   else
     return 0;
 }
 
-hb_codepoint_t OT::cff1::lookup_expert_encoding (hb_codepoint_t sid)
+hb_codepoint_t OT::cff1::lookup_expert_encoding_for_code (hb_codepoint_t sid)
 {
-  if (sid < ARRAY_LENGTH (expert_encoding))
-    return (hb_codepoint_t)expert_encoding[sid];
+  if (sid < ARRAY_LENGTH (expert_encoding_to_code))
+    return (hb_codepoint_t)expert_encoding_to_code[sid];
   else
     return 0;
 }
 
-hb_codepoint_t OT::cff1::lookup_expert_charset (hb_codepoint_t glyph)
+hb_codepoint_t OT::cff1::lookup_expert_charset_for_sid (hb_codepoint_t glyph)
 {
-  if (glyph < ARRAY_LENGTH (expert_charset))
-    return (hb_codepoint_t)expert_charset[glyph];
+  if (glyph < ARRAY_LENGTH (expert_charset_to_sid))
+    return (hb_codepoint_t)expert_charset_to_sid[glyph];
   else
     return 0;
 }
 
-hb_codepoint_t OT::cff1::lookup_expert_subset_charset (hb_codepoint_t glyph)
+hb_codepoint_t OT::cff1::lookup_expert_subset_charset_for_sid (hb_codepoint_t glyph)
 {
-  if (glyph < ARRAY_LENGTH (expert_subset_charset))
-    return (hb_codepoint_t)expert_subset_charset[glyph];
+  if (glyph < ARRAY_LENGTH (expert_subset_charset_to_sid))
+    return (hb_codepoint_t)expert_subset_charset_to_sid[glyph];
   else
     return 0;
 }
 
-struct ExtentsParam
+hb_codepoint_t OT::cff1::lookup_standard_encoding_for_sid (hb_codepoint_t code)
+{
+  if (code < ARRAY_LENGTH (standard_encoding_to_sid))
+    return (hb_codepoint_t)standard_encoding_to_sid[code];
+  else
+    return CFF_UNDEF_SID;
+}
+
+struct Bounds
 {
   inline void init (void)
   {
+    min.set_int (0x7FFFFFFF, 0x7FFFFFFF);
+    max.set_int (-0x80000000, -0x80000000);
+  }
+
+  inline void update (const Point &pt)
+  {
+    if (pt.x < min.x) min.x = pt.x;
+    if (pt.x > max.x) max.x = pt.x;
+    if (pt.y < min.y) min.y = pt.y;
+    if (pt.y > max.y) max.y = pt.y;
+  }
+
+  inline void merge (const Bounds &b)
+  {
+    if (empty ())
+      *this = b;
+    else if (!b.empty ())
+    {
+      if (b.min.x < min.x) min.x = b.min.x;
+      if (b.max.x > max.x) max.x = b.max.x;
+      if (b.min.y < min.y) min.y = b.min.y;
+      if (b.max.y > max.y) max.y = b.max.y;
+    }
+  }
+
+  inline void offset (const Point &delta)
+  {
+    if (!empty ())
+    {
+      min.move (delta);
+      max.move (delta);
+    }
+  }
+
+  inline bool  empty (void) const
+  {
+    return (min.x >= max.x) || (min.y >= max.y);
+  }
+
+  Point min;
+  Point max;
+};
+
+struct ExtentsParam
+{
+  inline void init (const OT::cff1::accelerator_t *_cff)
+  {
     path_open = false;
-    min_x.set_int (0x7FFFFFFF);
-    min_y.set_int (0x7FFFFFFF);
-    max_x.set_int (-0x80000000);
-    max_y.set_int (-0x80000000);
+    cff = _cff;
+    bounds.init ();
   }
 
   inline void start_path (void) { path_open = true; }
   inline void end_path (void) { path_open = false; }
   inline bool is_path_open (void) const { return path_open; }
 
-  inline void update_bounds (const Point &pt)
-  {
-    if (pt.x < min_x) min_x = pt.x;
-    if (pt.x > max_x) max_x = pt.x;
-    if (pt.y < min_y) min_y = pt.y;
-    if (pt.y > max_y) max_y = pt.y;
-  }
+  bool    path_open;
+  Bounds  bounds;
 
-  bool  path_open;
-  Number min_x;
-  Number min_y;
-  Number max_x;
-  Number max_y;
+  const OT::cff1::accelerator_t *cff;
 };
 
 struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv, ExtentsParam>
@@ -175,10 +240,10 @@ struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv,
     if (!param.is_path_open ())
     {
       param.start_path ();
-      param.update_bounds (env.get_pt ());
+      param.bounds.update (env.get_pt ());
     }
     env.moveto (pt1);
-    param.update_bounds (env.get_pt ());
+    param.bounds.update (env.get_pt ());
   }
 
   static inline void curve (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
@@ -186,50 +251,137 @@ struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv,
     if (!param.is_path_open ())
     {
       param.start_path ();
-      param.update_bounds (env.get_pt ());
+      param.bounds.update (env.get_pt ());
     }
     /* include control points */
-    param.update_bounds (pt1);
-    param.update_bounds (pt2);
+    param.bounds.update (pt1);
+    param.bounds.update (pt2);
     env.moveto (pt3);
-    param.update_bounds (env.get_pt ());
+    param.bounds.update (env.get_pt ());
   }
 };
 
-struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1PathProcs_Extents> {};
+static bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds);
+
+struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1PathProcs_Extents>
+{
+  static inline void process_seac (CFF1CSInterpEnv &env, ExtentsParam& param)
+  {
+    unsigned int  n = env.argStack.get_count ();
+    Point delta;
+    delta.x = env.argStack[n-4];
+    delta.y = env.argStack[n-3];
+    hb_codepoint_t base = param.cff->std_code_to_glyph (env.argStack[n-2].to_int ());
+    hb_codepoint_t accent = param.cff->std_code_to_glyph (env.argStack[n-1].to_int ());
+
+    Bounds  base_bounds, accent_bounds;
+    if (likely (base && accent
+               && _get_bounds (param.cff, base, base_bounds)
+               && _get_bounds (param.cff, accent, accent_bounds)))
+    {
+      param.bounds.merge (base_bounds);
+      accent_bounds.offset (delta);
+      param.bounds.merge (accent_bounds);
+    }
+    else
+      env.set_error ();
+  }
+};
+
+bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds)
+{
+  bounds.init ();
+  if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
+
+  unsigned int fd = cff->fdSelect->get_fd (glyph);
+  CFF1CSInterpreter<CFF1CSOpSet_Extents, ExtentsParam> interp;
+  const ByteStr str = (*cff->charStrings)[glyph];
+  interp.env.init (str, *cff, fd);
+  ExtentsParam  param;
+  param.init (cff);
+  if (unlikely (!interp.interpret (param))) return false;
+  bounds = param.bounds;
+  return true;
+}
 
 bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
 {
-  if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+  Bounds  bounds;
 
-  unsigned int fd = fdSelect->get_fd (glyph);
-  CFF1CSInterpreter<CFF1CSOpSet_Extents, ExtentsParam> interp;
-  const ByteStr str = (*charStrings)[glyph];
-  interp.env.init (str, *this, fd);
-  ExtentsParam  param;
-  param.init ();
-  if (unlikely (!interp.interpret (param))) return false;
+  if (!_get_bounds (this, glyph, bounds))
+    return false;
 
-  if (param.min_x >= param.max_x)
+  if (bounds.min.x >= bounds.max.x)
   {
     extents->width = 0;
     extents->x_bearing = 0;
   }
   else
   {
-    extents->x_bearing = (int32_t)param.min_x.floor ();
-    extents->width = (int32_t)param.max_x.ceil () - extents->x_bearing;
+    extents->x_bearing = (int32_t)bounds.min.x.floor ();
+    extents->width = (int32_t)bounds.max.x.ceil () - extents->x_bearing;
   }
-  if (param.min_y >= param.max_y)
+  if (bounds.min.y >= bounds.max.y)
   {
     extents->height = 0;
     extents->y_bearing = 0;
   }
   else
   {
-    extents->y_bearing = (int32_t)param.max_y.ceil ();
-    extents->height = (int32_t)param.min_y.floor () - extents->y_bearing;
+    extents->y_bearing = (int32_t)bounds.max.y.ceil ();
+    extents->height = (int32_t)bounds.min.y.floor () - extents->y_bearing;
   }
 
   return true;
+}
+
+struct GetSeacParam
+{
+  inline void init (const OT::cff1::accelerator_t *_cff)
+  {
+    cff = _cff;
+    base = 0;
+    accent = 0;
+  }
+
+  inline bool has_seac (void) const
+  { return base && accent; }
+
+  const OT::cff1::accelerator_t *cff;
+  hb_codepoint_t  base;
+  hb_codepoint_t  accent;
+};
+
+struct CFF1CSOpSet_Seac : CFF1CSOpSet<CFF1CSOpSet_Seac, GetSeacParam>
+{
+  static inline void process_seac (CFF1CSInterpEnv &env, GetSeacParam& param)
+  {
+    unsigned int  n = env.argStack.get_count ();
+    hb_codepoint_t  base_char = (hb_codepoint_t)env.argStack[n-2].to_int ();
+    hb_codepoint_t  accent_char = (hb_codepoint_t)env.argStack[n-1].to_int ();
+
+    param.base = param.cff->std_code_to_glyph (base_char);
+    param.accent = param.cff->std_code_to_glyph (accent_char);
+  }
+};
+
+bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const
+{
+  if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+
+  unsigned int fd = fdSelect->get_fd (glyph);
+  CFF1CSInterpreter<CFF1CSOpSet_Seac, GetSeacParam> interp;
+  const ByteStr str = (*charStrings)[glyph];
+  interp.env.init (str, *this, fd);
+  GetSeacParam  param;
+  param.init (this);
+  if (unlikely (!interp.interpret (param))) return false;
+
+  if (param.has_seac ())
+  {
+    *base = param.base;
+    *accent = param.accent;
+    return true;
+  }
+  return false;
 }

@@ -323,6 +323,19 @@ struct Charset0 {
       return sids[glyph - 1];
   }
 
+  inline hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
+  {
+    if (sid == 0)
+      return 0;
+
+    for (unsigned int glyph = 1; glyph < num_glyphs; glyph++)
+    {
+      if (sids[glyph-1] == sid)
+        return glyph;
+    }
+    return 0;
+  }
+
   inline unsigned int get_size (unsigned int num_glyphs) const
   {
     assert (num_glyphs > 0);
@@ -374,6 +387,20 @@ struct Charset1_2 {
       if (glyph <= ranges[i].nLeft)
         return (hb_codepoint_t)ranges[i].first + glyph;
       glyph -= (ranges[i].nLeft + 1);
+    }
+  
+    return 0;
+  }
+
+  inline hb_codepoint_t get_glyph (hb_codepoint_t sid) const
+  {
+    if (sid == 0) return 0;
+    hb_codepoint_t  glyph = 1;
+    for (unsigned int i = 0;; i++)
+    {
+      if ((ranges[i].first <= sid) && sid <= ranges[i].first + ranges[i].nLeft)
+        return glyph + (sid - ranges[i].first);
+      glyph += (ranges[i].nLeft + 1);
     }
   
     return 0;
@@ -516,6 +543,16 @@ struct Charset {
       return u.format1.get_sid (glyph);
     else
       return u.format2.get_sid (glyph);
+  }
+
+  inline hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
+  {
+    if (format == 0)
+      return u.format0.get_glyph (sid, num_glyphs);
+    else if (format == 1)
+      return u.format1.get_glyph (sid);
+    else
+      return u.format2.get_glyph (sid);
   }
 
   HBUINT8       format;
@@ -997,6 +1034,14 @@ struct cff1
         if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
       
+      if (is_predef_charset ())
+        charset = &Null(Charset);
+      else
+      {
+        charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
+        if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc))) { fini (); return; }
+      }
+
       fdCount = 1;
       if (is_CID ())
       {
@@ -1094,11 +1139,27 @@ struct cff1
     inline bool is_valid (void) const { return blob != nullptr; }
     inline bool is_CID (void) const { return topDict.is_CID (); }
 
+    inline bool is_predef_charset (void) const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
+
+    inline unsigned int  std_code_to_glyph (hb_codepoint_t code) const
+    {
+      hb_codepoint_t sid = lookup_standard_encoding_for_sid (code);
+      if (unlikely (sid == CFF_UNDEF_SID))
+        return 0;
+      
+      if (charset != &Null(Charset))
+        return charset->get_glyph (sid, num_glyphs);
+      else if ((topDict.CharsetOffset == ISOAdobeCharset)
+              && (code <= 228 /*zcaron*/)) return sid;
+      return 0;
+    }
+
     protected:
     hb_blob_t               *blob;
     hb_sanitize_context_t   sc;
 
     public:
+    const Charset           *charset;
     const CFF1NameIndex     *nameIndex;
     const CFF1TopDictIndex  *topDictIndex;
     const CFF1StringIndex   *stringIndex;
@@ -1118,6 +1179,7 @@ struct cff1
   struct accelerator_t : accelerator_templ_t<CFF1PrivateDictOpSet, CFF1PrivateDictValues>
   {
     HB_INTERNAL bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
+    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
   };
 
   struct accelerator_subset_t : accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset>
@@ -1129,13 +1191,6 @@ struct cff1
     
       const OT::cff1 *cff = this->blob->as<OT::cff1> ();
       encoding = &Null(Encoding);
-      if (is_predef_charset ())
-        charset = &Null(Charset);
-      else
-      {
-        charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
-        if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc))) { fini (); return; }
-      }
       if (is_CID ())
       {
         if (unlikely (charset == &Null(Charset))) { fini (); return; }
@@ -1151,7 +1206,6 @@ struct cff1
     }
 
     inline bool is_predef_encoding (void) const { return topDict.EncodingOffset <= ExpertEncoding; }
-    inline bool is_predef_charset (void) const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
 
     inline hb_codepoint_t  glyph_to_code (hb_codepoint_t glyph) const
     {
@@ -1165,10 +1219,10 @@ struct cff1
         switch (topDict.EncodingOffset)
         {
           case  StandardEncoding:
-            code = lookup_standard_encoding (sid);
+            code = lookup_standard_encoding_for_code (sid);
             break;
           case  ExpertEncoding:
-            code = lookup_expert_encoding (sid);
+            code = lookup_expert_encoding_for_code (sid);
             break;
           default:
             break;
@@ -1190,10 +1244,10 @@ struct cff1
             if (glyph <= 228 /*zcaron*/) sid = glyph;
             break;
           case  ExpertCharset:
-            sid = lookup_expert_charset (glyph);
+            sid = lookup_expert_charset_for_sid (glyph);
             break;
           case  ExpertSubsetCharset:
-              sid = lookup_expert_subset_charset (glyph);
+              sid = lookup_expert_subset_charset_for_sid (glyph);
             break;
           default:
             break;
@@ -1203,7 +1257,6 @@ struct cff1
     }
 
     const Encoding          *encoding;
-    const Charset           *charset;
 
     private:
     typedef accelerator_templ_t<CFF1PrivateDictOpSet_Subset, CFF1PrivateDictValues_Subset> SUPER;
@@ -1228,10 +1281,11 @@ struct cff1
   }
 
   protected:
-  HB_INTERNAL static hb_codepoint_t lookup_standard_encoding (hb_codepoint_t sid);
-  HB_INTERNAL static hb_codepoint_t lookup_expert_encoding (hb_codepoint_t sid);
-  HB_INTERNAL static hb_codepoint_t lookup_expert_charset (hb_codepoint_t glyph);
-  HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_code (hb_codepoint_t sid);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_encoding_for_code (hb_codepoint_t sid);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_charset_for_sid (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset_for_sid (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_sid (hb_codepoint_t code);
 
   public:
   FixedVersion<HBUINT8> version;          /* Version of CFF table. set to 0x0100u */

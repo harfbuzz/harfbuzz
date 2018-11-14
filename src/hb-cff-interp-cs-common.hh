@@ -88,9 +88,16 @@ struct Point
     y.init ();
   }
 
+  inline void set_int (int _x, int _y)
+  {
+    x.set_int (_x);
+    y.set_int (_y);
+  }
+
   inline void move_x (const Number &dx) { x += dx; }
   inline void move_y (const Number &dy) { y += dy; }
   inline void move (const Number &dx, const Number &dy) { move_x (dx); move_y (dy); }
+  inline void move (const Point &d) { move_x (d.x); move_y (d.y); }
 
   Number  x;
   Number  y;

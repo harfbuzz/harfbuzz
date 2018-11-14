@@ -169,7 +169,7 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op)? 2: 1; }
 #define OpCode_fixedcs                 255   /* 32-bit fixed */
 
 /* Two byte escape operators 12, (0-41) */
-#define OpCode_ReservedESC0            Make_OpCode_ESC(0)
+#define OpCode_dotsection              Make_OpCode_ESC(0)  /* CFF (obsoleted) */
 #define OpCode_ReservedESC1            Make_OpCode_ESC(1)
 #define OpCode_ReservedESC2            Make_OpCode_ESC(2)
 #define OpCode_and                     Make_OpCode_ESC(3)  /* CFF */

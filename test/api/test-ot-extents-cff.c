@@ -91,6 +91,36 @@ test_extents_cff1_flex (void)
 }
 
 static void
+test_extents_cff1_seac (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  hb_bool_t result = hb_font_get_glyph_extents (font, 3, &extents); /* Agrave */
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 3);
+  g_assert_cmpint (extents.y_bearing, ==, 861);
+  g_assert_cmpint (extents.width, ==, 538);
+  g_assert_cmpint (extents.height, ==, -861);
+
+  result = hb_font_get_glyph_extents (font, 4, &extents); /* Udieresis */
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 87);
+  g_assert_cmpint (extents.y_bearing, ==, 827);
+  g_assert_cmpint (extents.width, ==, 471);
+  g_assert_cmpint (extents.height, ==, -839);
+
+  hb_font_destroy (font);
+}
+
+static void
 test_extents_cff2 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
@@ -161,6 +191,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_extents_cff1);
   hb_test_add (test_extents_cff1_flex);
+  hb_test_add (test_extents_cff1_seac);
   hb_test_add (test_extents_cff2);
   hb_test_add (test_extents_cff2_vsindex);
 

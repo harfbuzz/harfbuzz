@@ -84,6 +84,29 @@ template <typename OPSET, typename PARAM, typename PATH=PathProcsNull<CFF1CSInte
 struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
 {
   /* PostScript-originated legacy opcodes (OpCode_add etc) are unsupported */
+  /* Type 1-originated deprecated opcodes, seac behavior of endchar and dotsection are supported */
+
+  static inline void process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
+  {
+    switch (op) {
+      case OpCode_dotsection:
+        SUPER::flush_args_and_op (op, env, param);
+        break;
+
+      case OpCode_endchar:
+        OPSET::check_width (op, env, param);
+        if (env.argStack.get_count () >= 4)
+        {
+          OPSET::process_seac (env, param);
+        }
+        OPSET::flush_args_and_op (op, env, param);
+        env.set_endchar (true);
+        break;
+
+      default:
+        SUPER::process_op (op, env, param);
+    }
+  }
 
   static inline void check_width (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
@@ -93,8 +116,6 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
       switch (op)
       {
         case OpCode_endchar:
-          has_width = (env.argStack.get_count () > 0);
-          break;
         case OpCode_hstem:
         case OpCode_hstemhm:
         case OpCode_vstem:
@@ -115,6 +136,10 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
       }
       env.set_width (has_width);
     }
+  }
+
+  static inline void process_seac (CFF1CSInterpEnv &env, PARAM& param)
+  {
   }
 
   static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)

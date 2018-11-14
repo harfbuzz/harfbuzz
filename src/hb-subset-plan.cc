@@ -30,6 +30,7 @@
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-cff1-table.hh"
 
 static void
 _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
@@ -49,6 +50,19 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
     {
       _add_gid_and_children (glyf, (hb_codepoint_t) composite.current->glyphIndex, gids_to_retain);
     } while (composite.move_to_next());
+  }
+}
+
+static void
+_add_cff_seac_components (const OT::cff1::accelerator_t &cff,
+           hb_codepoint_t gid,
+           hb_set_t *gids_to_retain)
+{
+  hb_codepoint_t base_gid, accent_gid;
+  if (cff.get_seac_components (gid, &base_gid, &accent_gid))
+  {
+    hb_set_add (gids_to_retain, base_gid);
+    hb_set_add (gids_to_retain, accent_gid);
   }
 }
 
@@ -78,8 +92,10 @@ _populate_gids_to_retain (hb_face_t *face,
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
+  OT::cff1::accelerator_t cff;
   cmap.init (face);
   glyf.init (face);
+  cff.init (face);
 
   hb_set_t *initial_gids_to_retain = hb_set_create ();
   initial_gids_to_retain->add (0); // Not-def
@@ -109,6 +125,8 @@ _populate_gids_to_retain (hb_face_t *face,
   while (initial_gids_to_retain->next (&gid))
   {
     _add_gid_and_children (glyf, gid, all_gids_to_retain);
+    if (cff.is_valid ())
+      _add_cff_seac_components (cff, gid, all_gids_to_retain);
   }
   hb_set_destroy (initial_gids_to_retain);
 
@@ -117,6 +135,7 @@ _populate_gids_to_retain (hb_face_t *face,
   while (all_gids_to_retain->next (&gid))
     glyphs->push (gid);
 
+  cff.fini ();
   glyf.fini ();
   cmap.fini ();
 
