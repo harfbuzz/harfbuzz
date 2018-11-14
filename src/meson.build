@@ -294,9 +294,33 @@ if conf.get('HAVE_GOBJECT', 0) == 1
     install: true,
     name_prefix: 'lib')
 
+  gir = find_program('g-ir-scanner', required: get_option('introspection'))
+  build_gir = gir.found() and not meson.is_cross_build()
+
+  if build_gir
+    hb_gen_files_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
+      sources: [hb_headers, hb_sources, hb_gobject_headers, hb_gobject_sources, enum_h],
+      namespace: 'HarfBuzz',
+      nsversion: '0.0',
+      identifier_prefix: 'hb_',
+      symbol_prefix: 'hb_',
+      includes: ['GObject-2.0'],
+      install: true,
+      extra_args:  ['--cflags-begin',
+                    '-DHB_H',
+                    '-DHB_H_IN',
+                    '-DHB_OT_H',
+                    '-DHB_OT_H_IN',
+                    '-DHB_GOBJECT_H',
+                    '-DHB_GOBJECT_H_IN',
+                    '-DHB_EXTERN=',
+                    '--cflags-end'])
+  endif
+
   libharfbuzz_gobject_dep = declare_dependency(
     link_with: libharfbuzz_gobject,
     include_directories: incbase,
+    sources: hb_gen_files_gir,
     dependencies: deps)
 
   pkgmod.generate(libharfbuzz_gobject,
