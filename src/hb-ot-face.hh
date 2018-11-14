@@ -49,6 +49,8 @@
     HB_OT_ACCELERATOR(OT, glyf) \
     HB_OT_TABLE(OT, VORG) \
     HB_OT_ACCELERATOR(OT, name) \
+    HB_OT_TABLE(OT, OS2) \
+    HB_OT_TABLE(OT, STAT) \
     /* OpenType shaping. */ \
     HB_OT_ACCELERATOR(OT, GDEF) \
     HB_OT_ACCELERATOR(OT, GSUB) \
