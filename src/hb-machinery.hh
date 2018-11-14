@@ -752,16 +752,19 @@ struct hb_data_wrapper_t
     return *(((Data **) (void *) this) - WheresData);
   }
 
+  inline bool is_inert (void) const { return !get_data (); }
+
   template <typename Stored, typename Subclass>
   inline Stored * call_create (void) const
   {
-    Data *data = this->get_data ();
-    return likely (data) ? Subclass::create (data) : nullptr;
+    return Subclass::create (this->get_data ());
   }
 };
 template <>
 struct hb_data_wrapper_t<void, 0>
 {
+  inline bool is_inert (void) const { return false; }
+
   template <typename Stored, typename Funcs>
   inline Stored * call_create (void) const
   {
@@ -800,7 +803,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   static inline void do_destroy (Stored *p)
   {
-    if (p)
+    if (p && p != const_cast<Stored *> (Funcs::get_null ()))
       Funcs::destroy (p);
   }
 
@@ -814,9 +817,12 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     Stored *p = this->instance.get ();
     if (unlikely (!p))
     {
+      if (unlikely (this->is_inert ()))
+	return const_cast<Stored *> (Funcs::get_null ());
+
       p = this->template call_create<Stored, Funcs> ();
       if (unlikely (!p))
-	return const_cast<Stored *> (Funcs::get_null ());
+	p = const_cast<Stored *> (Funcs::get_null ());
 
       if (unlikely (!this->instance.cmpexch (nullptr, p)))
       {
