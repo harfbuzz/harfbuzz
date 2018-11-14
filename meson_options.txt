@@ -25,5 +25,5 @@ option('coretext', type: 'feature', value: 'disabled',
 # Common feature options
 option('tests', type : 'feature', value : 'auto', yield : true,
   description: 'Enable or disable unit tests')
-#option('introspection', type : 'feature', value : 'disabled', yield : true,
-#  description : 'Generate gobject-introspection bindings (.gir/.typelib files)')
+option('introspection', type : 'feature', value : 'disabled', yield : true,
+  description : 'Generate gobject-introspection bindings (.gir/.typelib files)')
