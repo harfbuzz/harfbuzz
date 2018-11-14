@@ -23,7 +23,7 @@ option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper backend on macOS')
 
 # Common feature options
-#option('tests', type : 'feature', value : 'auto', yield : true,
-#  description: 'Enable or disable unit tests')
+option('tests', type : 'feature', value : 'auto', yield : true,
+  description: 'Enable or disable unit tests')
 #option('introspection', type : 'feature', value : 'disabled', yield : true,
 #  description : 'Generate gobject-introspection bindings (.gir/.typelib files)')

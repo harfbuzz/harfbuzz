@@ -238,6 +238,9 @@ endif
 
 subdir('src')
 subdir('util')
-subdir('test')
+
+if not get_option('tests').disabled()
+  subdir('test')
+endif
 
 configure_file(output: 'config.h', configuration: conf)
