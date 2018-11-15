@@ -261,7 +261,7 @@ struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv,
   }
 };
 
-static bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds);
+static bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds, bool in_seac=false);
 
 struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1PathProcs_Extents>
 {
@@ -275,9 +275,9 @@ struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1
     hb_codepoint_t accent = param.cff->std_code_to_glyph (env.argStack[n-1].to_int ());
 
     Bounds  base_bounds, accent_bounds;
-    if (likely (base && accent
-               && _get_bounds (param.cff, base, base_bounds)
-               && _get_bounds (param.cff, accent, accent_bounds)))
+    if (likely (!env.in_seac && base && accent
+               && _get_bounds (param.cff, base, base_bounds, true)
+               && _get_bounds (param.cff, accent, accent_bounds, true)))
     {
       param.bounds.merge (base_bounds);
       accent_bounds.offset (delta);
@@ -288,7 +288,7 @@ struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1
   }
 };
 
-bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds)
+bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Bounds &bounds, bool in_seac)
 {
   bounds.init ();
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
@@ -297,6 +297,7 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Boun
   CFF1CSInterpreter<CFF1CSOpSet_Extents, ExtentsParam> interp;
   const ByteStr str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
+  interp.env.set_in_seac (in_seac);
   ExtentsParam  param;
   param.init (cff);
   if (unlikely (!interp.interpret (param))) return false;
