@@ -198,6 +198,7 @@ struct MinMax
 			   const BaseCoord **min,
 			   const BaseCoord **max) const
   {
+    /* TODO Replace hb_bsearch() with .bsearch(). */
     const FeatMinMaxRecord *minMaxCoord = (const FeatMinMaxRecord *)
 					  hb_bsearch (&feature_tag, featMinMaxRecords.arrayZ,
 						      featMinMaxRecords.len,
@@ -230,7 +231,7 @@ struct MinMax
 		maxCoord;	/* Offset to BaseCoord table that defines
 				 * maximum extent value, from the beginning
 				 * of MinMax table (may be NULL) */
-  ArrayOf<FeatMinMaxRecord>
+  SortedArrayOf<FeatMinMaxRecord>
 		featMinMaxRecords;
 				/* Array of FeatMinMaxRecords, in alphabetical
 				 * order by featureTableTag */
@@ -302,6 +303,7 @@ struct BaseScript
 {
   inline const MinMax &get_min_max (hb_tag_t language_tag) const
   {
+    /* TODO Replace hb_bsearch() with .bsearch(). */
     const BaseLangSysRecord* record = (const BaseLangSysRecord *)
 				      hb_bsearch (&language_tag, baseLangSysRecords.arrayZ,
 						  baseLangSysRecords.len,
@@ -332,7 +334,7 @@ struct BaseScript
   OffsetTo<MinMax>
 		defaultMinMax;	/* Offset to MinMax table, from beginning of
 				 * BaseScript table (may be NULL) */
-  ArrayOf<BaseLangSysRecord>
+  SortedArrayOf<BaseLangSysRecord>
 		baseLangSysRecords;
 				/* Number of BaseLangSysRecords
 				 * defined — may be zero (0) */
@@ -377,6 +379,7 @@ struct BaseScriptList
 {
   inline const BaseScriptRecord *find_record (hb_tag_t script) const
   {
+    /* TODO Replace hb_bsearch() with .bsearch(). */
     return (const BaseScriptRecord *) hb_bsearch (&script, baseScriptRecords.arrayZ,
 						  baseScriptRecords.len,
 						  BaseScriptRecord::static_size,
@@ -400,7 +403,7 @@ struct BaseScriptList
   }
 
   protected:
-  ArrayOf<BaseScriptRecord>
+  SortedArrayOf<BaseScriptRecord>
 			baseScriptRecords;
 
   public:
