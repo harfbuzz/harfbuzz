@@ -74,7 +74,7 @@ struct MathConstants
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && sanitize_math_value_records(c));
+    return_trace (c->check_struct (this) && sanitize_math_value_records (c));
   }
 
   inline hb_position_t get_value (hb_ot_math_constant_t constant,
@@ -94,7 +94,7 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_RADICAL_KERN_BEFORE_DEGREE:
     case HB_OT_MATH_CONSTANT_SKEWED_FRACTION_HORIZONTAL_GAP:
     case HB_OT_MATH_CONSTANT_SPACE_AFTER_SCRIPT:
-      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_x_value(font, this);
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_x_value (font, this);
 
     case HB_OT_MATH_CONSTANT_ACCENT_BASE_HEIGHT:
     case HB_OT_MATH_CONSTANT_AXIS_HEIGHT:
@@ -143,7 +143,7 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_UNDERBAR_VERTICAL_GAP:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_BASELINE_RISE_MIN:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_GAP_MIN:
-      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_y_value(font, this);
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_y_value (font, this);
 
     case HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT:
       return radicalDegreeBottomRaisePercent;
@@ -210,7 +210,7 @@ struct MathTopAccentAttachment
     unsigned int index = (this+topAccentCoverage).get_coverage (glyph);
     if (index == NOT_COVERED)
       return font->get_glyph_h_advance (glyph) / 2;
-    return topAccentAttachment[index].get_x_value(font, this);
+    return topAccentAttachment[index].get_x_value (font, this);
   }
 
   protected:
@@ -265,7 +265,7 @@ struct MathKern
     while (count > 0)
     {
       unsigned int half = count / 2;
-      hb_position_t height = correctionHeight[i + half].get_y_value(font, this);
+      hb_position_t height = correctionHeight[i + half].get_y_value (font, this);
       if (sign * height < sign * correction_height)
       {
 	i += half + 1;
@@ -273,7 +273,7 @@ struct MathKern
       } else
 	count = half;
     }
-    return kernValue[i].get_x_value(font, this);
+    return kernValue[i].get_x_value (font, this);
   }
 
   protected:
@@ -368,7 +368,7 @@ struct MathGlyphInfo
 		  mathItalicsCorrectionInfo.sanitize (c, this) &&
 		  mathTopAccentAttachment.sanitize (c, this) &&
 		  extendedShapeCoverage.sanitize (c, this) &&
-		  mathKernInfo.sanitize(c, this));
+		  mathKernInfo.sanitize (c, this));
   }
 
   inline hb_position_t
@@ -425,8 +425,8 @@ struct MathGlyphVariantRecord
   protected:
   GlyphID variantGlyph;       /* Glyph ID for the variant. */
   HBUINT16  advanceMeasurement; /* Advance width/height, in design units, of the
-			       * variant, in the direction of requested
-			       * glyph extension. */
+				 * variant, in the direction of requested
+				 * glyph extension. */
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -495,8 +495,8 @@ struct MathGlyphAssembly
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  italicsCorrection.sanitize(c, this) &&
-		  partRecords.sanitize(c));
+		  italicsCorrection.sanitize (c, this) &&
+		  partRecords.sanitize (c));
   }
 
   inline unsigned int get_parts (hb_direction_t direction,
@@ -540,8 +540,8 @@ struct MathGlyphConstruction
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  glyphAssembly.sanitize(c, this) &&
-		  mathGlyphVariantRecord.sanitize(c));
+		  glyphAssembly.sanitize (c, this) &&
+		  mathGlyphVariantRecord.sanitize (c));
   }
 
   inline const MathGlyphAssembly &get_assembly (void) const
@@ -639,7 +639,7 @@ struct MathVariants
 						  : horizGlyphCoverage;
 
     unsigned int index = (this+coverage).get_coverage (glyph);
-    if (unlikely (index >= count)) return Null(MathGlyphConstruction);
+    if (unlikely (index >= count)) return Null (MathGlyphConstruction);
 
     if (!vertical)
       index += vertGlyphCount;
