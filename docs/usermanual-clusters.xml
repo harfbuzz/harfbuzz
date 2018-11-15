@@ -30,26 +30,33 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Correctly positioning the cursor between two characters that
-	  have combined into a single glyph by forming a ligature.
+	  Correctly positioning the cursor within a shaped text run,
+	  even when characters have formed ligatures, composed or
+	  decomposed, reordered, or undergone other shaping operations.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Correctly highlighting a text selection that includes some,
-	  but not all, of the characters comprising a ligature. 
+	  but not all, of the characters in a word. 
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Applying text attributes (such as color or underlining) to
-	  part, but not all, of a composed base-and-mark combination.
+	  part, but not all, of a word.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Generating output document formats (such as PDF) with
 	  embedded text that can be fully extracted.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Determining the mapping between input characters and output
+	  glyphs, such as which glyphs are ligatures.
 	</para>
       </listitem>
       <listitem>
@@ -69,7 +76,7 @@
       This cluster value is an arbitrary number; HarfBuzz uses it only
       to distinguish between clusters. Many client programs will use
       the index of each code point in the input text stream as the
-      cluster value, as a matter of convenience; the actual value does
+      cluster value, for the sake of convenience; the actual value does
       not matter.
     </para>
     <para>
@@ -122,10 +129,10 @@
 	  Level 1 differs from level 0 by not merging the 
 	  clusters of marks and other modifier code points with the
 	  preceding "base" code point's cluster. By preserving the
-	  cluster values of these marks and modifier code points,
-	  script shaping can perform additional operations that might
-	  lead to improved results (for example, reordering a sequence
-	  of marks).
+	  separate cluster values of these marks and modifier code
+	  points, script shapers can perform additional operations
+	  that might lead to improved results (for example, reordering
+	  a sequence of marks).
 	</para>
 	<para>
 	  Client programs can specify level 1 behavior for a buffer by
