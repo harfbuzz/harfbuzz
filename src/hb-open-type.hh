@@ -724,9 +724,16 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   template <typename SearchType>
   inline int bsearch (const SearchType &x) const
   {
+    int max = (int) this->len - 1;
+    /* Special case, should be between 0.7% to 3% while formatting text. */
+    if (max == 0) {
+      return this->arrayZ[0].cmp (x);
+    }
+
     /* Hand-coded bsearch here since this is in the hot inner loop. */
     const Type *arr = this->arrayZ;
-    int min = 0, max = (int) this->len - 1;
+    int min = 0;
+
     while (min <= max)
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
