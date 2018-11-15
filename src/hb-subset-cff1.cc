@@ -735,12 +735,13 @@ struct cff_subset_plan {
     final_size += offsets.globalSubrsInfo.size;
 
     /* Encoding */
-    if (!subset_encoding && acc.is_predef_charset ())
+    if (!subset_encoding)
       offsets.encodingOffset = acc.topDict.EncodingOffset;
     else
+    {
       offsets.encodingOffset = final_size;
-    if (subset_encoding)
       final_size += plan_subset_encoding (acc, plan);
+    }
 
     /* Charset */
     if (!subset_charset && acc.is_predef_charset ())

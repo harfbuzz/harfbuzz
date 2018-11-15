@@ -389,13 +389,11 @@ struct Dict : UnsizedByteStr
 
   inline static bool serialize_offset4_op (hb_serialize_context_t *c, OpCode op, int value)
   {
-    if (value == 0) return true;
     return serialize_uint4_op (c, op, value);
   }
 
   inline static bool serialize_offset2_op (hb_serialize_context_t *c, OpCode op, int value)
   {
-    if (value == 0) return true;
     return serialize_uint2_op (c, op, value);
   }
 };

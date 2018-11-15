@@ -770,11 +770,13 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
       case OpCode_Encoding:
         dictval.EncodingOffset = env.argStack.pop_uint ();
         env.clear_args ();
+        if (unlikely (dictval.EncodingOffset == 0)) return;
         break;
 
       case OpCode_charset:
         dictval.CharsetOffset = env.argStack.pop_uint ();
         env.clear_args ();
+        if (unlikely (dictval.CharsetOffset == 0)) return;
         break;
 
       case OpCode_FDSelect:
