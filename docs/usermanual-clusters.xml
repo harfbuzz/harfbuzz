@@ -14,15 +14,29 @@
       unit.
     </para>
     <para>
-      During the shaping process, some shaping operations may
-      merge adjacent characters (for example, when two code points form
-      a ligature and are replaced by a single glyph) or split one
-      character into several (for example, when performing the Unicode
-      canonical decomposition of a code point).
+      A cluster is distinct from a <emphasis>grapheme</emphasis>,
+      which is the smallest unit of a writing system or script,
+      because clusters are only relevant for script shaping and the
+      layout of glyphs.
+    </para>
+    <para>
+      For example, a grapheme may be a letter, a number, a logogram,
+      or a symbol. When two letters form a ligature, however, they
+      combine into a single glyph. They are therefore part of the same
+      cluster and are treated as a unit &mdash; even though the two
+      original, underlying letters are separate graphemes.
+    </para>
+    <para>
+      During the shaping process, there are several shaping operations
+      that may merge adjacent characters (for example, when two code
+      points form a ligature or a conjunct form and are replaced by a
+      single glyph) or split one character into several (for example,
+      when decomposing a code point through the
+      <literal>ccmp</literal> feature).
     </para>
     <para>
       HarfBuzz tracks clusters independently from how these
-      shaping operations alter the individual glyphs that comprise the
+      shaping operations affect the individual glyphs that comprise the
       output HarfBuzz returns in a buffer. Consequently,
       a client program using HarfBuzz can utilize the cluster
       information to implement features such as:
@@ -69,15 +83,15 @@
       </listitem>
     </itemizedlist>
     <para>
-      When you add text to a HarfBuzz buffer, each code point is assigned
-      a <emphasis>cluster value</emphasis>.
+      When you add text to a HarfBuzz buffer, each code point must be
+      assigned a <emphasis>cluster value</emphasis>.
     </para>
     <para>
       This cluster value is an arbitrary number; HarfBuzz uses it only
       to distinguish between clusters. Many client programs will use
       the index of each code point in the input text stream as the
-      cluster value, for the sake of convenience; the actual value does
-      not matter.
+      cluster value. This is for the sake of convenience; the actual
+      value does not matter.
     </para>
     <para>
       Client programs can choose how HarfBuzz handles clusters during
@@ -100,7 +114,7 @@
 	  as well as the <emphasis>Zero Width Joiner</emphasis> and
 	  <emphasis>Zero Width Non-Joiner</emphasis> code points, are
 	  assigned the cluster value of the closest preceding code
-	  point from <emphasis>diferent</emphasis> category. 
+	  point from <emphasis>different</emphasis> category. 
 	</para>
 	<para>
 	  In essence, whenever a base character is followed by a mark
@@ -161,22 +175,30 @@
       </listitem>
     </itemizedlist>
     <para>
+      As mentioned earlier, client programs using HarfBuzz often
+      assign initial cluster values in a buffer by reusing the indices
+      of the code points in the input text. This gives a sequence of
+      cluster values that is monotonically increasing (for example,
+      0,1,2,3,4,5). 
+    </para>
+    <para>
       It is not <emphasis>required</emphasis> that the cluster values
       in a buffer be monotonically increasing. However, if the initial
       cluster values in a buffer are monotonic and the buffer is
-      configured to use clustering level 0 or 1, then HarfBuzz
+      configured to use cluster level 0 or 1, then HarfBuzz
       guarantees that the final cluster values in the shaped buffer
       will also be monotonic. No such guarantee is made for cluster
       level 2.
     </para>
     <para>
-      In levels 0 and 1, HarfBuzz implements the following conceptual model for
-      cluster values:
+      In levels 0 and 1, HarfBuzz implements the following conceptual
+      model for cluster values:
     </para>
     <itemizedlist spacing="compact">
       <listitem>
 	<para>
-          The sequence of cluster values will always remain monotonic.
+          If the sequence of input cluster values is monotonic, the
+	  sequence of cluster values will remain monotonic.
 	</para>
       </listitem>
       <listitem>
@@ -231,7 +253,7 @@
     </programlisting>
     <para>
       During shaping, HarfBuzz maps these characters to glyphs from
-      the font. For simplicity, let's assume that each character maps
+      the font. For simplicity, let us assume that each character maps
       to the corresponding, identical-looking glyph:
     </para>
     <programlisting>
@@ -297,7 +319,7 @@
       0,1,2,3,4
     </programlisting>
     <para>
-      If <literal>D</literal> is reordered before <literal>B</literal>,
+      If <literal>D</literal> is reordered to before <literal>B</literal>,
       then HarfBuzz merges the <literal>B</literal>,
       <literal>C</literal>, and <literal>D</literal> clusters, and we
       get:
