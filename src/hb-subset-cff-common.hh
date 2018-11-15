@@ -258,7 +258,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
       if (desubroutinize || (subrsOffset == 0))
         return_trace (true);
       else
-        return_trace (FontDict::serialize_offset4_op (c, opstr.op, subrsOffset));
+        return_trace (FontDict::serialize_offset2_op (c, opstr.op, subrsOffset));
     }
     else
       return_trace (copy_opstr (c, opstr));
@@ -274,7 +274,7 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
       if (desubroutinize || !has_localsubr)
         return 0;
       else
-        return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
+        return OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (opstr.op);
     }
     else
       return opstr.str.len;
