@@ -84,7 +84,6 @@ struct hb_ot_shape_plan_t
   bool apply_morx : 1;
   bool apply_trak : 1;
 
-
   inline void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
   {
     unsigned int table_index;
@@ -95,12 +94,13 @@ struct hb_ot_shape_plan_t
     }
     map.collect_lookups (table_index, lookups);
   }
-  inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
-  inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 
   HB_INTERNAL bool init0 (hb_face_t                     *face,
 			  const hb_shape_plan_key_t     *key);
   HB_INTERNAL void fini (void);
+
+  HB_INTERNAL void substitute (hb_font_t *font, hb_buffer_t *buffer) const;
+  HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;
 };
 
 struct hb_shape_plan_t;

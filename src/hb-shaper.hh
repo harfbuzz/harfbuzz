@@ -40,12 +40,12 @@ typedef hb_bool_t hb_shape_func_t (hb_shape_plan_t    *shape_plan,
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 
-struct hb_shaper_pair_static_t {
+struct hb_shaper_entry_t {
   char name[16];
   hb_shape_func_t *func;
 };
 
-HB_INTERNAL const hb_shaper_pair_static_t *
+HB_INTERNAL const hb_shaper_entry_t *
 _hb_shapers_get (void);
 
 
