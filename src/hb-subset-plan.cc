@@ -67,6 +67,16 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
                                            gids_to_retain);
 }
 
+static void
+_remove_invalid_gids (hb_set_t *all_gids_to_retain, unsigned int max_gid)
+{
+  hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+  while (all_gids_to_retain->next (&gid))
+  {
+    if (gid > max_gid)
+      all_gids_to_retain->del (gid);
+  }
+}
 
 static hb_set_t *
 _populate_gids_to_retain (hb_face_t *face,
@@ -112,6 +122,7 @@ _populate_gids_to_retain (hb_face_t *face,
   }
   hb_set_destroy (initial_gids_to_retain);
 
+  _remove_invalid_gids (all_gids_to_retain, glyf.max_glyph_id ());
   glyphs->alloc (all_gids_to_retain->get_population ());
   gid = HB_SET_VALUE_INVALID;
   while (all_gids_to_retain->next (&gid))

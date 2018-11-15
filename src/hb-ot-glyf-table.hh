@@ -253,6 +253,13 @@ struct glyf
       glyf_table.destroy ();
     }
 
+    inline unsigned int max_glyph_id ()
+    {
+      if (num_glyphs > 0)
+        return num_glyphs - 1;
+      return 0;
+    }
+
     /*
      * Returns true if the referenced glyph is a valid glyph and a composite glyph.
      * If true is returned a pointer to the composite glyph will be written into
