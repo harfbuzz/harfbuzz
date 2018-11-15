@@ -588,7 +588,7 @@ struct AlternateSubstFormat1
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+alternateSet[iter.get_coverage ()]).closure (c);
     }
@@ -602,7 +602,7 @@ struct AlternateSubstFormat1
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
       (this+alternateSet[iter.get_coverage ()]).collect_glyphs (c);
     }
   }
