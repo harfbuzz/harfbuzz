@@ -46,7 +46,7 @@ struct RemapSID : Remap
 
   inline unsigned int operator[] (unsigned int sid) const
   {
-    if (is_std_std (sid))
+    if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
       return offset_sid (Remap::operator [] (unoffset_sid (sid)));
@@ -754,8 +754,6 @@ struct cff_subset_plan {
     if (acc.fdSelect != &Null(CFF1FDSelect))
     {
       offsets.FDSelectInfo.offset = final_size;
-      if (!is_fds_subsetted ())
-        offsets.FDSelectInfo.size = acc.fdSelect->calculate_serialized_size (acc.num_glyphs);
       final_size += offsets.FDSelectInfo.size;
     }
 
@@ -820,7 +818,6 @@ struct cff_subset_plan {
   unsigned int    num_glyphs;
   unsigned int    orig_fdcount;
   unsigned int    subset_fdcount;
-  inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
   unsigned int    subset_fdselect_format;
   hb_vector_t<code_pair>   subset_fdselect_ranges;
 
@@ -966,24 +963,12 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
     
-    if (plan.is_fds_subsetted ())
+    if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *acc.fdSelect, acc.fdCount,
+                                              plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
+                                              plan.subset_fdselect_ranges)))
     {
-      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *acc.fdSelect, acc.fdCount,
-                                                plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subset_fdselect_ranges)))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");
-        return false;
-      }
-    }
-    else
-    {
-      CFF1FDSelect *dest = c.start_embed<CFF1FDSelect> ();
-      if (unlikely (!dest->serialize (&c, *acc.fdSelect, acc.num_glyphs)))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF FDSelect");
-        return false;
-      }
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF subset FDSelect");
+      return false;
     }
   }
 

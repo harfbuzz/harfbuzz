@@ -431,6 +431,17 @@ struct Remap : hb_vector_t<hb_codepoint_t>
     return true;
   }
 
+  inline bool identity (unsigned int size)
+  {
+    if (unlikely (!SUPER::resize (size)))
+      return false;
+    unsigned int i;
+    for (i = 0; i < len; i++)
+      (*this)[i] = i;
+    count = i;
+    return true;
+  }
+
   inline bool excludes (hb_codepoint_t id) const
   { return (id < len) && ((*this)[id] == CFF_UNDEF_CODE); }
 

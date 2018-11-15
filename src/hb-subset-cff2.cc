@@ -354,8 +354,6 @@ struct cff2_subset_plan {
                                   fdmap)))
         return false;
       
-      if (!is_fds_subsetted ())
-        offsets.FDSelectInfo.size = acc.fdSelect->calculate_serialized_size (acc.num_glyphs);
       final_size += offsets.FDSelectInfo.size;
     }
 
@@ -411,7 +409,6 @@ struct cff2_subset_plan {
 
   unsigned int    orig_fdcount;
   unsigned int    subset_fdcount;
-  inline bool     is_fds_subsetted (void) const { return subset_fdcount < orig_fdcount; }
   unsigned int    subset_fdselect_format;
   hb_vector_t<code_pair>   subset_fdselect_ranges;
 
@@ -486,24 +483,12 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
     
-    if (plan.is_fds_subsetted ())
+    if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
+                                              plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
+                                              plan.subset_fdselect_ranges)))
     {
-      if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
-                                                plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
-                                                plan.subset_fdselect_ranges)))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 subset FDSelect");
-        return false;
-      }
-    }
-    else
-    {
-      CFF2FDSelect *dest = c.start_embed<CFF2FDSelect> ();
-      if (unlikely (!dest->serialize (&c, *acc.fdSelect, acc.num_glyphs)))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 FDSelect");
-        return false;
-      }
+      DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 subset FDSelect");
+      return false;
     }
   }
 

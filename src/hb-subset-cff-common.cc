@@ -85,22 +85,24 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
     if (subset_fd_count == fdCount)
     {
       /* all font dicts belong to the subset. no need to subset FDSelect & FDArray */
+      fdmap.identity (fdCount);
       hb_set_destroy (set);
-      return true;
     }
-
-    /* create a fdmap */
-    if (!fdmap.reset (fdCount))
+    else
     {
-      hb_set_destroy (set);
-      return false;
-    }
+      /* create a fdmap */
+      if (!fdmap.reset (fdCount))
+      {
+        hb_set_destroy (set);
+        return false;
+      }
 
-    hb_codepoint_t  fd = CFF_UNDEF_CODE;
-    while (set->next (&fd))
-      fdmap.add (fd);
-    assert (fdmap.get_count () == subset_fd_count);
-    hb_set_destroy (set);
+      hb_codepoint_t  fd = CFF_UNDEF_CODE;
+      while (set->next (&fd))
+        fdmap.add (fd);
+      assert (fdmap.get_count () == subset_fd_count);
+      hb_set_destroy (set);
+    }
 
     /* update each font dict index stored as "code" in fdselect_ranges */
     for (unsigned int i = 0; i < fdselect_ranges.len; i++)
