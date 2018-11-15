@@ -213,7 +213,7 @@ struct ValueFormat : HBUINT16
 
     for (unsigned int i = 0; i < count; i++) {
       if (!sanitize_value_devices (c, base, values))
-        return_trace (false);
+	return_trace (false);
       values += len;
     }
 
@@ -229,7 +229,7 @@ struct ValueFormat : HBUINT16
 
     for (unsigned int i = 0; i < count; i++) {
       if (!sanitize_value_devices (c, base, values))
-        return_trace (false);
+	return_trace (false);
       values += stride;
     }
 
@@ -634,7 +634,7 @@ struct PairSet
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs->has (record->secondGlyph))
-        return true;
+	return true;
       record = &StructAtOffset<const PairValueRecord> (record, record_size);
     }
     return false;
@@ -675,9 +675,9 @@ struct PairSet
       const PairValueRecord *record = &StructAtOffset<PairValueRecord> (&firstPairValueRecord, record_size * mid);
       hb_codepoint_t mid_x = record->secondGlyph;
       if (x < mid_x)
-        max = mid - 1;
+	max = mid - 1;
       else if (x > mid_x)
-        min = mid + 1;
+	min = mid + 1;
       else
       {
 	/* Note the intentional use of "|" instead of short-circuit "||". */
@@ -734,10 +734,10 @@ struct PairPosFormat1
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
       if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
       if (glyphs->has (iter.get_glyph ()) &&
 	  (this+pairSet[iter.get_coverage ()]).intersects (glyphs, valueFormat))
-        return true;
+	return true;
     }
     return false;
   }
@@ -1421,7 +1421,7 @@ struct MarkMarkPosFormat1
       if (id1 == 0) /* Marks belonging to the same base. */
 	goto good;
       else if (comp1 == comp2) /* Marks belonging to the same ligature component. */
-        goto good;
+	goto good;
     } else {
       /* If ligature ids don't match, it may be the case that one of the marks
        * itself is a ligature.  In which case match. */

@@ -66,10 +66,10 @@ struct hmtxvmtx
 
 
   inline bool subset_update_header (hb_subset_plan_t *plan,
-                                    unsigned int num_hmetrics) const
+				    unsigned int num_hmetrics) const
   {
-    hb_blob_t *src_blob = hb_sanitize_context_t().reference_table<H> (plan->source, H::tableTag);
-    hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail(src_blob);
+    hb_blob_t *src_blob = hb_sanitize_context_t ().reference_table<H> (plan->source, H::tableTag);
+    hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail (src_blob);
     hb_blob_destroy (src_blob);
 
     if (unlikely (!dest_blob)) {
@@ -96,15 +96,15 @@ struct hmtxvmtx
     hb_vector_t<hb_codepoint_t> &gids = plan->glyphs;
     unsigned int num_advances = gids.len;
     unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
-    while (num_advances > 1
-        && last_advance == _mtx.get_advance (gids[num_advances - 2]))
+    while (num_advances > 1 &&
+	   last_advance == _mtx.get_advance (gids[num_advances - 2]))
     {
       num_advances--;
     }
 
     /* alloc the new table */
     size_t dest_sz = num_advances * 4
-                  + (gids.len - num_advances) * 2;
+		  + (gids.len - num_advances) * 2;
     void *dest = (void *) malloc (dest_sz);
     if (unlikely (!dest))
     {
@@ -277,7 +277,7 @@ struct hmtxvmtx
                                      hb_font_t      *font) const
     {
       unsigned int advance = get_advance (glyph);
-      if (likely(glyph < num_metrics))
+      if (likely (glyph < num_metrics))
       {
 	advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
       }

@@ -93,7 +93,7 @@ struct subset_consumer_t
 
     hb_face_t *face = hb_font_get_face (font);
 
-    hb_face_t *new_face = hb_subset(face, input);
+    hb_face_t *new_face = hb_subset (face, input);
     hb_blob_t *result = hb_face_reference_blob (new_face);
 
     failed = !hb_blob_get_length (result);

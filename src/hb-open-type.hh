@@ -58,7 +58,7 @@ struct IntType
 {
   typedef Type type;
   inline void set (Type i) { v.set (i); }
-  inline operator Type(void) const { return v; }
+  inline operator Type (void) const { return v; }
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   inline bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
@@ -173,7 +173,7 @@ struct Offset : Type
   }
 
   public:
-  DEFINE_SIZE_STATIC (sizeof(Type));
+  DEFINE_SIZE_STATIC (sizeof (Type));
 };
 
 typedef Offset<HBUINT16> Offset16;
@@ -211,7 +211,7 @@ struct CheckSum : HBUINT32
 template <typename FixedType=HBUINT16>
 struct FixedVersion
 {
-  inline uint32_t to_int (void) const { return (major << (sizeof(FixedType) * 8)) + minor; }
+  inline uint32_t to_int (void) const { return (major << (sizeof (FixedType) * 8)) + minor; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -222,7 +222,7 @@ struct FixedVersion
   FixedType major;
   FixedType minor;
   public:
-  DEFINE_SIZE_STATIC (2 * sizeof(FixedType));
+  DEFINE_SIZE_STATIC (2 * sizeof (FixedType));
 };
 
 
@@ -241,12 +241,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
   inline const Type& operator () (const void *base) const
   {
-    if (unlikely (this->is_null ())) return Null(Type);
+    if (unlikely (this->is_null ())) return Null (Type);
     return StructAtOffset<const Type> (base, *this);
   }
   inline Type& operator () (void *base) const
   {
-    if (unlikely (this->is_null ())) return Crap(Type);
+    if (unlikely (this->is_null ())) return Crap (Type);
     return StructAtOffset<Type> (base, *this);
   }
 
@@ -258,7 +258,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   template <typename T>
   inline void serialize_subset (hb_subset_context_t *c, const T &src, const void *base)
   {
-    if (&src == &Null(T))
+    if (&src == &Null (T))
     {
       this->set (0);
       return;
@@ -319,7 +319,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     if (!has_null) return false;
     return c->try_set (this, 0);
   }
-  DEFINE_SIZE_STATIC (sizeof(OffsetType));
+  DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 template <typename Type, bool has_null=true> struct LOffsetTo : OffsetTo<Type, HBUINT32, has_null> {};
 template <typename Base, typename OffsetType, bool has_null, typename Type>
@@ -344,7 +344,7 @@ struct UnsizedArrayOf
    * 1. For UnsizedArrayOf, it's not totally unimaginable to want to look
    *    at items before the start of current array.
    * 2. Fixes MSVC 2008 "overloads have similar conversions" issue with the
-   *    built-in operator [] that takes int, in expressions like sizeof(array[0])).
+   *    built-in operator [] that takes int, in expressions like sizeof (array[0])).
    *    I suppose I could fix that by replacing 0 with 0u, but like this fix
    *    more now. */
   inline const Type& operator [] (int i) const { return arrayZ[i]; }
@@ -381,7 +381,7 @@ struct UnsizedArrayOf
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!arrayZ[i].sanitize (c, base)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
   template <typename T>
@@ -391,7 +391,7 @@ struct UnsizedArrayOf
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
 
@@ -455,12 +455,12 @@ struct ArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= len)) return Null(Type);
+    if (unlikely (i >= len)) return Null (Type);
     return arrayZ[i];
   }
   inline Type& operator [] (unsigned int i)
   {
-    if (unlikely (i >= len)) return Crap(Type);
+    if (unlikely (i >= len)) return Crap (Type);
     return arrayZ[i];
   }
 
@@ -511,7 +511,7 @@ struct ArrayOf
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!arrayZ[i].sanitize (c, base)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
   template <typename T>
@@ -522,7 +522,7 @@ struct ArrayOf
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
 
@@ -532,7 +532,7 @@ struct ArrayOf
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!this->arrayZ[i].cmp (x))
-        return i;
+	return i;
     return -1;
   }
 
@@ -570,12 +570,12 @@ struct OffsetListOf : OffsetArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= this->len)) return Null(Type);
+    if (unlikely (i >= this->len)) return Null (Type);
     return this+this->arrayZ[i];
   }
   inline const Type& operator [] (unsigned int i)
   {
-    if (unlikely (i >= this->len)) return Crap(Type);
+    if (unlikely (i >= this->len)) return Crap (Type);
     return this+this->arrayZ[i];
   }
 
@@ -613,12 +613,12 @@ struct HeadlessArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= lenP1 || !i)) return Null(Type);
+    if (unlikely (i >= lenP1 || !i)) return Null (Type);
     return arrayZ[i-1];
   }
   inline Type& operator [] (unsigned int i)
   {
-    if (unlikely (i >= lenP1 || !i)) return Crap(Type);
+    if (unlikely (i >= lenP1 || !i)) return Crap (Type);
     return arrayZ[i-1];
   }
   inline unsigned int get_size (void) const
@@ -679,12 +679,12 @@ struct ArrayOfM1
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i > lenM1)) return Null(Type);
+    if (unlikely (i > lenM1)) return Null (Type);
     return arrayZ[i];
   }
   inline Type& operator [] (unsigned int i)
   {
-    if (unlikely (i > lenM1)) return Crap(Type);
+    if (unlikely (i > lenM1)) return Crap (Type);
     return arrayZ[i];
   }
   inline unsigned int get_size (void) const
@@ -698,7 +698,7 @@ struct ArrayOfM1
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
 
@@ -731,12 +731,9 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
       int c = arr[mid].cmp (x);
-      if (c < 0)
-        max = mid - 1;
-      else if (c > 0)
-        min = mid + 1;
-      else
-        return mid;
+      if (c < 0) max = mid - 1;
+      else if (c > 0) min = mid + 1;
+      else return mid;
     }
     return -1;
   }
@@ -813,7 +810,7 @@ struct VarSizedBinSearchArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= header.nUnits)) return Null(Type);
+    if (unlikely (i >= header.nUnits)) return Null (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   inline Type& operator [] (unsigned int i)
@@ -846,7 +843,7 @@ struct VarSizedBinSearchArrayOf
     unsigned int count = header.nUnits;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, base)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
   template <typename T>
@@ -857,7 +854,7 @@ struct VarSizedBinSearchArrayOf
     unsigned int count = header.nUnits;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, base, user_data)))
-        return_trace (false);
+	return_trace (false);
     return_trace (true);
   }
 
@@ -871,12 +868,9 @@ struct VarSizedBinSearchArrayOf
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
       const Type *p = (const Type *) (((const char *) &bytesZ) + (mid * size));
       int c = p->cmp (key);
-      if (c < 0)
-	max = mid - 1;
-      else if (c > 0)
-	min = mid + 1;
-      else
-	return p;
+      if (c < 0) max = mid - 1;
+      else if (c > 0) min = mid + 1;
+      else return p;
     }
     return nullptr;
   }

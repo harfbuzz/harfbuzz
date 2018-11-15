@@ -57,24 +57,24 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 {
   hb_set_t lookup_indices;
   hb_ot_layout_collect_lookups (face,
-                                HB_OT_TAG_GSUB,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                &lookup_indices);
+				HB_OT_TAG_GSUB,
+				nullptr,
+				nullptr,
+				nullptr,
+				&lookup_indices);
   hb_ot_layout_lookups_substitute_closure (face,
-                                           &lookup_indices,
-                                           gids_to_retain);
+					   &lookup_indices,
+					   gids_to_retain);
 }
 
 
 static hb_set_t *
 _populate_gids_to_retain (hb_face_t *face,
-                          const hb_set_t *unicodes,
-                          bool close_over_gsub,
-                          hb_set_t *unicodes_to_retain,
-                          hb_map_t *codepoint_to_glyph,
-                          hb_vector_t<hb_codepoint_t> *glyphs)
+			  const hb_set_t *unicodes,
+			  bool close_over_gsub,
+			  hb_set_t *unicodes_to_retain,
+			  hb_map_t *codepoint_to_glyph,
+			  hb_vector_t<hb_codepoint_t> *glyphs)
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
@@ -125,7 +125,7 @@ _populate_gids_to_retain (hb_face_t *face,
 
 static void
 _create_old_gid_to_new_gid_map (const hb_vector_t<hb_codepoint_t> &glyphs,
-                                hb_map_t *glyph_map)
+				hb_map_t *glyph_map)
 {
   for (unsigned int i = 0; i < glyphs.len; i++) {
     glyph_map->set (glyphs[i], i);
@@ -144,7 +144,7 @@ _create_old_gid_to_new_gid_map (const hb_vector_t<hb_codepoint_t> &glyphs,
  **/
 hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-                       hb_subset_input_t   *input)
+		       hb_subset_input_t   *input)
 {
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
 
@@ -163,7 +163,7 @@ hb_subset_plan_create (hb_face_t           *face,
 					     plan->codepoint_to_glyph,
 					     &plan->glyphs);
   _create_old_gid_to_new_gid_map (plan->glyphs,
-                                  plan->glyph_map);
+				  plan->glyph_map);
 
   return plan;
 }
@@ -179,7 +179,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
-  plan->glyphs.fini();
+  plan->glyphs.fini ();
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);

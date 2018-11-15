@@ -76,7 +76,7 @@ struct post
   inline bool subset (hb_subset_plan_t *plan) const
   {
     unsigned int post_prime_length;
-    hb_blob_t *post_blob = hb_sanitize_context_t().reference_table<post>(plan->source);
+    hb_blob_t *post_blob = hb_sanitize_context_t ().reference_table<post>(plan->source);
     hb_blob_t *post_prime_blob = hb_blob_create_sub_blob (post_blob, 0, post::min_size);
     post *post_prime = (post *) hb_blob_get_data_writable (post_prime_blob, &post_prime_length);
     hb_blob_destroy (post_blob);
@@ -101,12 +101,11 @@ struct post
     {
       index_to_offset.init ();
 
-      table = hb_sanitize_context_t().reference_table<post> (face);
+      table = hb_sanitize_context_t ().reference_table<post> (face);
       unsigned int table_length = table.get_length ();
 
       version = table->version.to_int ();
-      if (version != 0x00020000)
-        return;
+      if (version != 0x00020000) return;
 
       const postV2Tail &v2 = table->v2;
 
@@ -130,10 +129,8 @@ struct post
 				char *buf, unsigned int buf_len) const
     {
       hb_bytes_t s = find_glyph_name (glyph);
-      if (!s.len)
-        return false;
-      if (!buf_len)
-	return true;
+      if (!s.len) return false;
+      if (!buf_len) return true;
       unsigned int len = MIN (buf_len - 1, s.len);
       strncpy (buf, s.arrayZ, len);
       buf[len] = '\0';
@@ -144,14 +141,11 @@ struct post
 				     hb_codepoint_t *glyph) const
     {
       unsigned int count = get_glyph_count ();
-      if (unlikely (!count))
-        return false;
+      if (unlikely (!count)) return false;
 
-      if (len < 0)
-	len = strlen (name);
+      if (len < 0) len = strlen (name);
 
-      if (unlikely (!len))
-	return false;
+      if (unlikely (!len)) return false;
 
     retry:
       uint16_t *gids = gids_sorted_by_name.get ();
@@ -189,10 +183,10 @@ struct post
     inline unsigned int get_glyph_count (void) const
     {
       if (version == 0x00010000)
-        return NUM_FORMAT1_NAMES;
+	return NUM_FORMAT1_NAMES;
 
       if (version == 0x00020000)
-        return glyphNameIndex->len;
+	return glyphNameIndex->len;
 
       return 0;
     }

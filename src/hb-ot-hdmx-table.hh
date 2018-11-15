@@ -47,9 +47,9 @@ struct DeviceRecord
     unsigned int sizeDeviceRecord;
     hb_subset_plan_t *subset_plan;
 
-    inline void init(const DeviceRecord *source_device_record,
-		     unsigned int sizeDeviceRecord,
-		     hb_subset_plan_t   *subset_plan)
+    inline void init (const DeviceRecord *source_device_record,
+		      unsigned int sizeDeviceRecord,
+		      hb_subset_plan_t   *subset_plan)
     {
       this->source_device_record = source_device_record;
       this->sizeDeviceRecord = sizeDeviceRecord;
@@ -63,7 +63,7 @@ struct DeviceRecord
 
     inline const HBUINT8* operator [] (unsigned int i) const
     {
-      if (unlikely (i >= len())) return nullptr;
+      if (unlikely (i >= len ())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->glyphs [i];
 
       const HBUINT8* width = &(this->source_device_record->widthsZ[gid]);
@@ -84,18 +84,18 @@ struct DeviceRecord
   {
     TRACE_SERIALIZE (this);
 
-    unsigned int size = get_size (subset_view.len());
+    unsigned int size = get_size (subset_view.len ());
     if (unlikely (!c->allocate_size<DeviceRecord> (size)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for DeviceRecord: %d.",
-                 size);
+      DEBUG_MSG(SUBSET, nullptr, "Couldn't allocate enough space for DeviceRecord: %d.",
+		 size);
       return_trace (false);
     }
 
     this->pixelSize.set (subset_view.source_device_record->pixelSize);
     this->maxWidth.set (subset_view.source_device_record->maxWidth);
 
-    for (unsigned int i = 0; i < subset_view.len(); i++)
+    for (unsigned int i = 0; i < subset_view.len (); i++)
     {
       const HBUINT8 *width = subset_view[i];
       if (!width)
@@ -135,7 +135,7 @@ struct hdmx
 
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= numRecords)) return Null(DeviceRecord);
+    if (unlikely (i >= numRecords)) return Null (DeviceRecord);
     return StructAtOffset<DeviceRecord> (&this->dataZ, i * sizeDeviceRecord);
   }
 
@@ -203,7 +203,7 @@ struct hdmx
     return_trace (c->check_struct (this) && version == 0 &&
 		  !hb_unsigned_mul_overflows (numRecords, sizeDeviceRecord) &&
 		  sizeDeviceRecord >= DeviceRecord::min_size &&
-		  c->check_range (this, get_size()));
+		  c->check_range (this, get_size ()));
   }
 
   protected:
