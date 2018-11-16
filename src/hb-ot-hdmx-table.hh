@@ -66,12 +66,9 @@ struct DeviceRecord
       if (unlikely (i >= len ())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->glyphs [i];
 
-      const HBUINT8* width = &(this->source_device_record->widthsZ[gid]);
-
-      if (width < ((const HBUINT8 *) this->source_device_record) + sizeDeviceRecord)
-	return width;
-      else
-	return nullptr;
+      if (gid >= sizeDeviceRecord - DeviceRecord::min_size)
+        return nullptr;
+      return &(this->source_device_record->widthsZ[gid]);
     }
   };
 
@@ -135,6 +132,8 @@ struct hdmx
 
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
+    /* XXX Null(DeviceRecord) is NOT safe as it's num-glyphs lengthed.
+     * https://github.com/harfbuzz/harfbuzz/issues/1300 */
     if (unlikely (i >= numRecords)) return Null (DeviceRecord);
     return StructAtOffset<DeviceRecord> (&this->firstDeviceRecord, i * sizeDeviceRecord);
   }
