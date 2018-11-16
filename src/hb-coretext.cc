@@ -357,8 +357,8 @@ retry:
     /* Drop and recreate. */
     /* If someone dropped it in the mean time, throw it away and don't touch it.
      * Otherwise, destruct it. */
-    if (likely (cmpexch (data, nullptr)))
-      _hb_coretext_shaper_font_data_destroy (data);
+    if (likely (font->data.coretext.cmpexch (data, nullptr)))
+      _hb_coretext_shaper_font_data_destroy (const_cast<hb_coretext_font_data_t *> (data));
     else
       goto retry;
   }
@@ -384,7 +384,7 @@ hb_coretext_font_create (CTFontRef ct_font)
   hb_font_set_ptem (font, coretext_font_size_to_ptem (CTFontGetSize(ct_font)));
 
   /* Let there be dragons here... */
-  font->data.coretext.exchange (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
+  font->data.coretext.cmpexch (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
 
   return font;
 }
@@ -392,7 +392,7 @@ hb_coretext_font_create (CTFontRef ct_font)
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
-  const hb_coretext_font_data *data = hb_coretext_font_data_sync (font);
+  const hb_coretext_font_data_t *data = hb_coretext_font_data_sync (font);
   return data ? (CTFontRef) data : nullptr;
 }
 
