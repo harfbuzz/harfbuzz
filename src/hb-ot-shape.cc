@@ -62,7 +62,11 @@ _hb_apply_morx (hb_face_t *face)
       hb_aat_layout_has_substitution (face))
     return true;
 
-  return !hb_ot_layout_has_substitution (face) &&
+  /* Ignore empty GSUB tables. */
+  return (!hb_ot_layout_has_substitution (face) ||
+	  !hb_ot_layout_table_get_script_tags (face,
+					       HB_OT_TAG_GSUB,
+					       0, nullptr, nullptr)) &&
 	 hb_aat_layout_has_substitution (face);
 }
 
