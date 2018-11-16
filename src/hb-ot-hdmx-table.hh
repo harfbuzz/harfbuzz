@@ -136,7 +136,7 @@ struct hdmx
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
     if (unlikely (i >= numRecords)) return Null (DeviceRecord);
-    return StructAtOffset<DeviceRecord> (&this->dataZ, i * sizeDeviceRecord);
+    return StructAtOffset<DeviceRecord> (&this->firstDeviceRecord, i * sizeDeviceRecord);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
@@ -200,19 +200,19 @@ struct hdmx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && version == 0 &&
+    return_trace (c->check_struct (this) &&
 		  !hb_unsigned_mul_overflows (numRecords, sizeDeviceRecord) &&
 		  sizeDeviceRecord >= DeviceRecord::min_size &&
 		  c->check_range (this, get_size ()));
   }
 
   protected:
-  HBUINT16			version;		/* Table version number (0) */
-  HBUINT16			numRecords;		/* Number of device records. */
-  HBUINT32			sizeDeviceRecord;	/* Size of a device record, 32-bit aligned. */
-  UnsizedArrayOf<HBUINT8>	dataZ;			/* Array of device records. */
+  HBUINT16		version;		/* Table version number (0) */
+  HBUINT16		numRecords;		/* Number of device records. */
+  HBUINT32		sizeDeviceRecord;	/* Size of a device record, 32-bit aligned. */
+  DeviceRecord		firstDeviceRecord;	/* Array of device records. */
   public:
-  DEFINE_SIZE_ARRAY (8, dataZ);
+  DEFINE_SIZE_MIN (8);
 };
 
 } /* namespace OT */
