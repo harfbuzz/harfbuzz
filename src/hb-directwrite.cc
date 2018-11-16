@@ -235,8 +235,6 @@ struct hb_directwrite_font_data_t
 hb_directwrite_font_data_t *
 _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 {
-  if (unlikely (!hb_directwrite_shaper_face_data_ensure (font->face))) return nullptr;
-
   hb_directwrite_font_data_t *data = new hb_directwrite_font_data_t;
   if (unlikely (!data))
     return nullptr;
