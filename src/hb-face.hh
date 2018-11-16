@@ -40,6 +40,10 @@
  * hb_face_t
  */
 
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INSTANTIATE_SHAPERS(shaper, face);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+
 struct hb_face_t
 {
   hb_object_header_t header;
@@ -52,8 +56,7 @@ struct hb_face_t
   mutable hb_atomic_int_t upem;		/* Units-per-EM. */
   mutable hb_atomic_int_t num_glyphs;	/* Number of glyphs. */
 
-  struct hb_shaper_data_t shaper_data;	/* Various shaper data. */
-
+  hb_shaper_object_dataset_t<hb_face_t> data;/* Various shaper data. */
   hb_ot_face_t table;			/* All the face's tables. */
 
   /* Cache */
@@ -101,12 +104,6 @@ struct hb_face_t
   HB_INTERNAL unsigned int load_num_glyphs (void) const;
 };
 DECLARE_NULL_INSTANCE (hb_face_t);
-
-#define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, face);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-#undef HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 
 
 #endif /* HB_FACE_HH */

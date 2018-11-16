@@ -72,7 +72,7 @@ hb_subset_input_reference (hb_subset_input_t *subset_input)
  * Since: 1.8.0
  **/
 void
-hb_subset_input_destroy(hb_subset_input_t *subset_input)
+hb_subset_input_destroy (hb_subset_input_t *subset_input)
 {
   if (!hb_object_destroy (subset_input)) return;
 
@@ -121,7 +121,7 @@ hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_drop_layout (hb_subset_input_t *subset_input,
-				hb_bool_t drop_layout)
+				 hb_bool_t drop_layout)
 {
   subset_input->drop_layout = drop_layout;
 }

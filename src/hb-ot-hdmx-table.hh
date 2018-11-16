@@ -47,9 +47,9 @@ struct DeviceRecord
     unsigned int sizeDeviceRecord;
     hb_subset_plan_t *subset_plan;
 
-    inline void init(const DeviceRecord *source_device_record,
-		     unsigned int sizeDeviceRecord,
-		     hb_subset_plan_t   *subset_plan)
+    inline void init (const DeviceRecord *source_device_record,
+		      unsigned int sizeDeviceRecord,
+		      hb_subset_plan_t   *subset_plan)
     {
       this->source_device_record = source_device_record;
       this->sizeDeviceRecord = sizeDeviceRecord;
@@ -63,15 +63,12 @@ struct DeviceRecord
 
     inline const HBUINT8* operator [] (unsigned int i) const
     {
-      if (unlikely (i >= len())) return nullptr;
+      if (unlikely (i >= len ())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->glyphs [i];
 
-      const HBUINT8* width = &(this->source_device_record->widthsZ[gid]);
-
-      if (width < ((const HBUINT8 *) this->source_device_record) + sizeDeviceRecord)
-	return width;
-      else
-	return nullptr;
+      if (gid >= sizeDeviceRecord - DeviceRecord::min_size)
+        return nullptr;
+      return &(this->source_device_record->widthsZ[gid]);
     }
   };
 
@@ -84,18 +81,18 @@ struct DeviceRecord
   {
     TRACE_SERIALIZE (this);
 
-    unsigned int size = get_size (subset_view.len());
+    unsigned int size = get_size (subset_view.len ());
     if (unlikely (!c->allocate_size<DeviceRecord> (size)))
     {
-      DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for DeviceRecord: %d.",
-                 size);
+      DEBUG_MSG(SUBSET, nullptr, "Couldn't allocate enough space for DeviceRecord: %d.",
+		 size);
       return_trace (false);
     }
 
     this->pixelSize.set (subset_view.source_device_record->pixelSize);
     this->maxWidth.set (subset_view.source_device_record->maxWidth);
 
-    for (unsigned int i = 0; i < subset_view.len(); i++)
+    for (unsigned int i = 0; i < subset_view.len (); i++)
     {
       const HBUINT8 *width = subset_view[i];
       if (!width)
@@ -135,8 +132,10 @@ struct hdmx
 
   inline const DeviceRecord& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= numRecords)) return Null(DeviceRecord);
-    return StructAtOffset<DeviceRecord> (&this->dataZ, i * sizeDeviceRecord);
+    /* XXX Null(DeviceRecord) is NOT safe as it's num-glyphs lengthed.
+     * https://github.com/harfbuzz/harfbuzz/issues/1300 */
+    if (unlikely (i >= numRecords)) return Null (DeviceRecord);
+    return StructAtOffset<DeviceRecord> (&this->firstDeviceRecord, i * sizeDeviceRecord);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
@@ -200,19 +199,19 @@ struct hdmx
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && version == 0 &&
+    return_trace (c->check_struct (this) &&
 		  !hb_unsigned_mul_overflows (numRecords, sizeDeviceRecord) &&
 		  sizeDeviceRecord >= DeviceRecord::min_size &&
-		  c->check_range (this, get_size()));
+		  c->check_range (this, get_size ()));
   }
 
   protected:
-  HBUINT16			version;		/* Table version number (0) */
-  HBUINT16			numRecords;		/* Number of device records. */
-  HBUINT32			sizeDeviceRecord;	/* Size of a device record, 32-bit aligned. */
-  UnsizedArrayOf<HBUINT8>	dataZ;			/* Array of device records. */
+  HBUINT16		version;		/* Table version number (0) */
+  HBUINT16		numRecords;		/* Number of device records. */
+  HBUINT32		sizeDeviceRecord;	/* Size of a device record, 32-bit aligned. */
+  DeviceRecord		firstDeviceRecord;	/* Array of device records. */
   public:
-  DEFINE_SIZE_ARRAY (8, dataZ);
+  DEFINE_SIZE_MIN (8);
 };
 
 } /* namespace OT */

@@ -90,12 +90,6 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
   HB_ATOMIC_INT_INIT (1000), /* upem */
   HB_ATOMIC_INT_INIT (0),    /* num_glyphs */
 
-  {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-  },
-
   /* Zero for the rest is fine. */
 };
 
@@ -131,6 +125,7 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
 
   face->num_glyphs.set_relaxed (-1);
 
+  face->data.init0 (face);
   face->table.init0 (face);
 
   return face;
@@ -272,10 +267,7 @@ hb_face_destroy (hb_face_t *face)
     node = next;
   }
 
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-
+  face->data.fini ();
   face->table.fini ();
 
   if (face->destroy)

@@ -24,12 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define HB_SHAPER fallback
 #include "hb-shaper-impl.hh"
-
-
-HB_SHAPER_DATA_ENSURE_DEFINE(fallback, face);
-HB_SHAPER_DATA_ENSURE_DEFINE(fallback, font);
 
 
 /*

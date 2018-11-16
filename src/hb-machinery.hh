@@ -755,10 +755,7 @@ struct hb_data_wrapper_t
   inline bool is_inert (void) const { return !get_data (); }
 
   template <typename Stored, typename Subclass>
-  inline Stored * call_create (void) const
-  {
-    return Subclass::create (this->get_data ());
-  }
+  inline Stored * call_create (void) const { return Subclass::create (get_data ()); }
 };
 template <>
 struct hb_data_wrapper_t<void, 0>
@@ -766,10 +763,7 @@ struct hb_data_wrapper_t<void, 0>
   inline bool is_inert (void) const { return false; }
 
   template <typename Stored, typename Funcs>
-  inline Stored * call_create (void) const
-  {
-    return Funcs::create ();
-  }
+  inline Stored * call_create (void) const { return Funcs::create (); }
 };
 
 template <typename T1, typename T2> struct hb_non_void_t { typedef T1 value; };
@@ -796,7 +790,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   {
   retry:
     Stored *p = instance.get ();
-    if (unlikely (p && !this->instance.cmpexch (p, nullptr)))
+    if (unlikely (p && !cmpexch (p, nullptr)))
       goto retry;
     do_destroy (p);
   }
@@ -809,6 +803,8 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   inline const Returned * operator -> (void) const { return get (); }
   inline const Returned & operator * (void) const { return *get (); }
+  explicit_operator inline operator bool (void) const
+  { return get_stored () != Funcs::get_null (); }
   template <typename C> inline operator const C * (void) const { return get (); }
 
   inline Stored * get_stored (void) const
@@ -824,7 +820,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
       if (unlikely (!p))
 	p = const_cast<Stored *> (Funcs::get_null ());
 
-      if (unlikely (!this->instance.cmpexch (nullptr, p)))
+      if (unlikely (!cmpexch (nullptr, p)))
       {
         do_destroy (p);
 	goto retry;
@@ -837,15 +833,10 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     return this->instance.get_relaxed ();
   }
 
-  inline void set_stored (Stored *instance_)
+  inline bool cmpexch (Stored *current, Stored *value) const
   {
-    /* This *must* be called when there are no other threads accessing.
-     * However, to make TSan, etc, happy, we using cmpexch. */
-  retry:
-    Stored *p = this->instance.get ();
-    if (unlikely (!this->instance.cmpexch (p, instance_)))
-      goto retry;
-    do_destroy (p);
+    /* This *must* be called when there are no other threads accessing. */
+    return this->instance.cmpexch (current, value);
   }
 
   inline const Returned * get (void) const { return Funcs::convert (get_stored ()); }
@@ -877,7 +868,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
     free (p);
   }
 
-  private:
+//  private:
   /* Must only have one pointer. */
   hb_atomic_ptr_t<Stored *> instance;
 };

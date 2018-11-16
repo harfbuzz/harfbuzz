@@ -87,7 +87,7 @@ hb_shape_plan_key_t::init (bool                           copy,
 
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
-	  if (hb_##shaper##_shaper_face_data_ensure (face)) \
+	  if (face->data.shaper) \
 	  { \
 	    this->shaper_func = _hb_##shaper##_shape; \
 	    this->shaper_name = #shaper; \
@@ -386,7 +386,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  return hb_##shaper##_shaper_font_data_ensure (font) && \
+	  return font->data.shaper && \
 		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
 

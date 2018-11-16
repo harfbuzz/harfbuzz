@@ -26,7 +26,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define HB_SHAPER graphite2
 #include "hb-shaper-impl.hh"
 
 #include "hb-graphite2.h"
@@ -44,10 +43,6 @@
  *
  * Functions for using HarfBuzz with the Graphite2 fonts.
  **/
-
-
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, face);
-HB_SHAPER_DATA_ENSURE_DEFINE(graphite2, font);
 
 
 /*
@@ -185,8 +180,8 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_face_data_t *data)
 gr_face *
 hb_graphite2_face_get_gr_face (hb_face_t *face)
 {
-  if (unlikely (!hb_graphite2_shaper_face_data_ensure (face))) return nullptr;
-  return HB_SHAPER_DATA_GET (face)->grface;
+  const hb_graphite2_face_data_t *data = face->data.graphite2;
+  return data ? data->grface : nullptr;
 }
 
 
@@ -241,7 +236,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 		     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  gr_face *grface = HB_SHAPER_DATA_GET (face)->grface;
+  gr_face *grface = face->data.graphite2->grface;
 
   const char *lang = hb_language_to_string (hb_buffer_get_language (buffer));
   const char *lang_end = lang ? strchr (lang, '-') : nullptr;
