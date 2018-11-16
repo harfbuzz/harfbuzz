@@ -313,7 +313,7 @@ hb_coretext_font_data_t *
 _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
   hb_face_t *face = font->face;
-  const hb_coretext_face_data *face_data = face->data.coretext;
+  const hb_coretext_face_data_t *face_data = face->data.coretext;
   if (unlikely (!face_data)) return nullptr;
   CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
 
@@ -338,7 +338,7 @@ static const hb_coretext_font_data_t *
 hb_coretext_font_data_sync (hb_font_t *font)
 {
 retry:
-  const hb_coretext_font_data_t *data = font->data.font;
+  const hb_coretext_font_data_t *data = font->data.coretext;
   if (unlikely (!data)) return nullptr;
 
   if (fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) > .5)
@@ -384,7 +384,7 @@ hb_coretext_font_create (CTFontRef ct_font)
   hb_font_set_ptem (font, coretext_font_size_to_ptem (CTFontGetSize(ct_font)));
 
   /* Let there be dragons here... */
-  HB_SHAPER_DATA (HB_SHAPER, font).set_relaxed ((hb_coretext_font_data_t *) CFRetain (ct_font));
+  font->data.coretext.exchange (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
 
   return font;
 }
@@ -453,7 +453,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
-  CTFontRef ct_font = (CTFontRef) hb_coretext_font_data *data = hb_coretext_font_data_sync (font);
+  CTFontRef ct_font = (CTFontRef) hb_coretext_font_data_sync (font);
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
@@ -1171,7 +1171,7 @@ _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
     if (hb_blob_get_length (blob))
     {
       hb_blob_destroy (blob);
-      return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
+      return face->data.coretext ? (hb_coretext_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
     }
     hb_blob_destroy (blob);
   }
