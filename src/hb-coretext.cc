@@ -338,7 +338,7 @@ static const hb_coretext_font_data_t *
 hb_coretext_font_data_sync (hb_font_t *font)
 {
 retry:
-  const hb_coretext_shaper_font_data_t *data = font->data.font;
+  const hb_coretext_font_data_t *data = font->data.font;
   if (unlikely (!data)) return nullptr;
 
   if (fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) > .5)
