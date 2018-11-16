@@ -99,11 +99,6 @@ _hb_cg_font_release (void *data)
 }
 
 
-/* XXX TODO */
-//HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
-//	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
-//);
-
 static CTFontDescriptorRef
 get_last_resort_font_desc (void)
 {
@@ -318,7 +313,8 @@ hb_coretext_font_data_t *
 _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
   hb_face_t *face = font->face;
-  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return nullptr;
+  const hb_coretext_face_data *face_data = face->data.coretext;
+  if (unlikely (!face_data)) return nullptr;
   CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
 
   CTFontRef ct_font = create_ct_font (cg_font, coretext_font_size_from_ptem (font->ptem));
@@ -337,6 +333,38 @@ _hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
 {
   CFRelease ((CTFontRef) data);
 }
+
+static const hb_coretext_font_data_t *
+hb_coretext_font_data_sync (hb_font_t *font)
+{
+retry:
+  const hb_coretext_shaper_font_data_t *data = font->data.font;
+  if (unlikely (!data)) return nullptr;
+
+  if (fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) > .5)
+  {
+    /* XXX-MT-bug
+     * Note that evaluating condition above can be dangerous if another thread
+     * got here first and destructed data.  That's, as always, bad use pattern.
+     * If you modify the font (change font size), other threads must not be
+     * using it at the same time.  However, since this check is delayed to
+     * when one actually tries to shape something, this is a XXX race condition
+     * (and the only one we have that I know of) right now.  Ie. you modify the
+     * font size in one thread, then (supposedly safely) try to use it from two
+     * or more threads and BOOM!  I'm not sure how to fix this.  We want RCU.
+     */
+
+    /* Drop and recreate. */
+    /* If someone dropped it in the mean time, throw it away and don't touch it.
+     * Otherwise, destruct it. */
+    if (likely (cmpexch (data, nullptr)))
+      _hb_coretext_shaper_font_data_destroy (data);
+    else
+      goto retry;
+  }
+  return font->data.coretext;
+}
+
 
 /*
  * Since: 1.7.2
@@ -364,8 +392,8 @@ hb_coretext_font_create (CTFontRef ct_font)
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
-  if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return nullptr;
-  return (CTFontRef) (const void *) font->data.coretext;
+  const hb_coretext_font_data *data = hb_coretext_font_data_sync (font);
+  return data ? (CTFontRef) data : nullptr;
 }
 
 
@@ -425,7 +453,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
-  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
+  CTFontRef ct_font = (CTFontRef) hb_coretext_font_data *data = hb_coretext_font_data_sync (font);
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
@@ -1169,7 +1197,7 @@ struct hb_coretext_aat_font_data_t {};
 hb_coretext_aat_font_data_t *
 _hb_coretext_aat_shaper_font_data_create (hb_font_t *font)
 {
-  return hb_coretext_shaper_font_data_ensure (font) ? (hb_coretext_aat_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
+  return font->data.coretext ? (hb_coretext_aat_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
 }
 
 void
