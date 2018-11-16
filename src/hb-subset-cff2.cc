@@ -356,6 +356,8 @@ struct cff2_subset_plan {
       
       final_size += offsets.FDSelectInfo.size;
     }
+    else
+      fdmap.identity (1);
 
     /* FDArray (FDIndex) */
     {

@@ -647,8 +647,9 @@ struct cff_subset_plan {
     }
 
     /* Determine re-mapping of font index as fdmap among other info */
-    if (acc.fdSelect != &Null(CFF1FDSelect)
-        && unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
+    if (acc.fdSelect != &Null(CFF1FDSelect))
+    {
+        if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
                                   orig_fdcount,
                                   *acc.fdSelect,
                                   subset_fdcount,
@@ -657,6 +658,9 @@ struct cff_subset_plan {
                                   subset_fdselect_ranges,
                                   fdmap)))
         return false;
+    }
+    else
+      fdmap.identity (1);
 
     /* remove unused SIDs & reassign SIDs */
     {
@@ -790,7 +794,10 @@ struct cff_subset_plan {
         unsigned int  priv_size = PrivateDict::calculate_serialized_size (acc.privateDicts[i], privSzr, has_localsubrs);
         TableInfo  privInfo = { final_size, priv_size, 0 };
         FontDictValuesMod fontdict_mod;
-        fontdict_mod.init ( &acc.fontDicts[i], sidmap[acc.fontDicts[i].fontName], privInfo );
+        if (!acc.is_CID ())
+          fontdict_mod.init ( &Null(CFF1FontDictValues), CFF_UNDEF_SID, privInfo );
+        else
+          fontdict_mod.init ( &acc.fontDicts[i], sidmap[acc.fontDicts[i].fontName], privInfo );
         fontdicts_mod.push (fontdict_mod);
         final_size += privInfo.size;
 
