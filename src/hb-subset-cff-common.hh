@@ -857,6 +857,10 @@ struct SubrSubsetter
             drop.ends_in_hint = true;
           break;
 
+        case OpCode_dotsection:
+          str.values[pos].set_drop ();
+          break;
+
         default:
           /* NONE */
           break;

@@ -266,6 +266,26 @@ test_subset_cff1_seac (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_cff1_dotsection (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_dotsect.otf");
+  hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_dotsect.nohints.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_set_add (codepoints, 0x69);  /* i */
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_drop_hints (input, true);
+  hb_face_t *face_test = hb_subset_test_create_subset (face, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_test);
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -282,6 +302,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_j_desubr_strip_hints);
   hb_test_add (test_subset_cff1_expert);
   hb_test_add (test_subset_cff1_seac);
+  hb_test_add (test_subset_cff1_dotsection);
 
   return hb_test_run ();
 }
