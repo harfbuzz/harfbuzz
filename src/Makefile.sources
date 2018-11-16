@@ -181,6 +181,7 @@ HB_OT_RAGEL_sources = \
 	$(NULL)
 
 HB_OT_headers = \
+	hb-aat.h \
 	hb-ot.h \
 	hb-ot-color.h \
 	hb-ot-font.h \
@@ -189,7 +190,6 @@ HB_OT_headers = \
 	hb-ot-name.h \
 	hb-ot-shape.h \
 	hb-ot-var.h \
-	hb-aat.h \
 	$(NULL)
 
 # Optional Sources and Headers with external deps
