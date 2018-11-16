@@ -357,7 +357,7 @@ retry:
     /* Drop and recreate. */
     /* If someone dropped it in the mean time, throw it away and don't touch it.
      * Otherwise, destruct it. */
-    if (likely (font->data.coretext.cmpexch (data, nullptr)))
+    if (likely (font->data.coretext.cmpexch (const_cast<hb_coretext_font_data_t *> (data), nullptr)))
       _hb_coretext_shaper_font_data_destroy (const_cast<hb_coretext_font_data_t *> (data));
     else
       goto retry;
