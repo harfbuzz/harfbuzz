@@ -126,7 +126,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 
   if (hb_options ().aat && hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
-  else if (!disable_gpos && hb_ot_layout_has_positioning (face))
+  else if (!apply_morx && !disable_gpos && hb_ot_layout_has_positioning (face))
     plan.apply_gpos = true;
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
