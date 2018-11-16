@@ -101,8 +101,8 @@ _hb_cg_font_release (void *data)
 
 /* XXX TODO */
 //HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
-	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
-);
+//	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
+//);
 
 static CTFontDescriptorRef
 get_last_resort_font_desc (void)
