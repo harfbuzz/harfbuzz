@@ -28,6 +28,7 @@
 #define HB_SHAPER_HH
 
 #include "hb.hh"
+#include "hb-machinery.hh"
 
 typedef hb_bool_t hb_shape_func_t (hb_shape_plan_t    *shape_plan,
 				   hb_font_t          *font,
@@ -49,36 +50,7 @@ HB_INTERNAL const hb_shaper_entry_t *
 _hb_shapers_get (void);
 
 
-/* Means: succeeded, but don't need to keep any data. */
-#define HB_SHAPER_DATA_SUCCEEDED ((void *) +1)
-/* Means: tried but failed to create. */
-#define HB_SHAPER_DATA_INVALID ((void *) -1)
-
-#define HB_SHAPER_DATA_TYPE_NAME(shaper, object)	hb_##shaper##_##object##_data_t
-#define HB_SHAPER_DATA_TYPE(shaper, object)		struct HB_SHAPER_DATA_TYPE_NAME(shaper, object)
-#define HB_SHAPER_DATA_INSTANCE(shaper, object, instance)	(* reinterpret_cast<hb_atomic_ptr_t<HB_SHAPER_DATA_TYPE(shaper, object) *> *> (&(instance)->shaper_data.shaper))
-#define HB_SHAPER_DATA(shaper, object)			HB_SHAPER_DATA_INSTANCE(shaper, object, object)
-#define HB_SHAPER_DATA_CREATE_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_create
-#define HB_SHAPER_DATA_DESTROY_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_destroy
-#define HB_SHAPER_DATA_ENSURE_FUNC(shaper, object)	hb_##shaper##_shaper_##object##_data_ensure
-
-#define HB_SHAPER_DATA_PROTOTYPE(shaper, object) \
-	HB_SHAPER_DATA_TYPE (shaper, object); /* Type forward declaration. */ \
-	extern "C" HB_INTERNAL HB_SHAPER_DATA_TYPE (shaper, object) * \
-	HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (hb_##object##_t *object HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS); \
-	extern "C" HB_INTERNAL void \
-	HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (HB_SHAPER_DATA_TYPE (shaper, object) *data); \
-	extern "C" HB_INTERNAL bool \
-	HB_SHAPER_DATA_ENSURE_FUNC (shaper, object) (hb_##object##_t *object)
-
-#define HB_SHAPER_DATA_DESTROY(shaper, object) \
-    if (HB_SHAPER_DATA_TYPE (shaper, object) *data = HB_SHAPER_DATA (shaper, object).get ()) \
-      if (data != HB_SHAPER_DATA_INVALID && data != HB_SHAPER_DATA_SUCCEEDED) \
-        HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (data);
-
-#define HB_SHAPER_DATA_ENSURE_DEFINE(shaper, object) \
-	HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(shaper, object, true)
-
+#if 0
 #define HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(shaper, object, condition) \
 bool \
 HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
@@ -111,9 +83,7 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
     if (unlikely (!data)) \
       data = (HB_SHAPER_DATA_TYPE (shaper, object) *) HB_SHAPER_DATA_INVALID; \
     if (unlikely (!HB_SHAPER_DATA (shaper, object).cmpexch (nullptr, data))) { \
-      if (data && \
-	  data != HB_SHAPER_DATA_INVALID && \
-	  data != HB_SHAPER_DATA_SUCCEEDED) \
+      if (data) \
 	HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (data); \
       goto retry; \
     } \
@@ -121,15 +91,88 @@ HB_SHAPER_DATA_ENSURE_FUNC(shaper, object) (hb_##object##_t *object) \
   return data != nullptr && (void *) data != HB_SHAPER_DATA_INVALID; \
 } \
 static_assert (true, "") /* Require semicolon. */
+#endif
 
 
-/* For embedding in face / font / ... */
-struct hb_shaper_data_t {
-#define HB_SHAPER_IMPLEMENT(shaper) hb_atomic_ptr_t<void *> shaper;
+template <typename Data, unsigned int WheresData, typename T>
+struct hb_shaper_lazy_loader_t;
+
+#define HB_SHAPER_ORDER(Shaper) \
+  HB_PASTE (HB_SHAPER_ORDER_, Shaper)
+enum hb_shaper_order_t
+{
+  _HB_SHAPER_ORDER_ORDER_ZERO,
+#define HB_SHAPER_IMPLEMENT(Shaper) \
+      HB_SHAPER_ORDER (Shaper),
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  _HB_SHAPERS_COUNT_PLUS_ONE,
+  HB_SHAPERS_COUNT = _HB_SHAPERS_COUNT_PLUS_ONE - 1,
+};
+
+template <enum hb_shaper_order_t order, typename Object> struct hb_shaper_object_data_type_t;
+
+#define HB_SHAPER_DATA_SUCCEEDED ((void *) +1)
+#define HB_SHAPER_DATA_TYPE(shaper, object)		hb_##shaper##_##object##_data_t
+#define HB_SHAPER_DATA_CREATE_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_create
+#define HB_SHAPER_DATA_DESTROY_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_destroy
+
+#define HB_SHAPER_DATA_INSTANTIATE_SHAPERS(shaper, object) \
+	\
+	struct HB_SHAPER_DATA_TYPE (shaper, object); /* Type forward declaration. */ \
+	extern "C" HB_INTERNAL HB_SHAPER_DATA_TYPE (shaper, object) * \
+	HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (hb_##object##_t *object); \
+	extern "C" HB_INTERNAL void \
+	HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (HB_SHAPER_DATA_TYPE (shaper, object) *shaper##_##object); \
+	\
+	template <> \
+	struct hb_shaper_object_data_type_t<HB_SHAPER_ORDER (shaper), hb_##object##_t> \
+	{ \
+	  typedef HB_SHAPER_DATA_TYPE(shaper, object) value; \
+	}; \
+	\
+	template <unsigned int WheresData> \
+	struct hb_shaper_lazy_loader_t<hb_##object##_t, WheresData, HB_SHAPER_DATA_TYPE(shaper, object)> \
+		: hb_lazy_loader_t<HB_SHAPER_DATA_TYPE(shaper, object), \
+				   hb_shaper_lazy_loader_t<hb_##object##_t, \
+							   WheresData, \
+							   HB_SHAPER_DATA_TYPE(shaper, object)>, \
+				   hb_##object##_t, WheresData> \
+	{ \
+	  typedef HB_SHAPER_DATA_TYPE(shaper, object) Type; \
+	  static inline Type* create (hb_##object##_t *data) \
+	  { return HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (data); } \
+	  static inline Type *get_null (void) { return nullptr; } \
+	  static inline void destroy (Type *p) { HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (p); } \
+	}; \
+	\
+	static_assert (true, "") /* Require semicolon. */
+
+
+template <typename Object>
+struct hb_shaper_object_dataset_t
+{
+  inline void init0 (Object *parent_data)
+  {
+    this->parent_data = parent_data;
+#define HB_SHAPER_IMPLEMENT(shaper) shaper.init0 ();
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  }
+  inline void fini (void)
+  {
+#define HB_SHAPER_IMPLEMENT(shaper) shaper.fini ();
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  }
+
+  Object *parent_data; /* MUST be JUST before the lazy loaders. */
+#define HB_SHAPER_IMPLEMENT(shaper) \
+	hb_shaper_lazy_loader_t<Object, HB_SHAPER_ORDER(shaper), \
+				typename hb_shaper_object_data_type_t<HB_SHAPER_ORDER(shaper), Object>::value \
+			       > shaper;
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 };
-#define HB_SHAPERS_COUNT (sizeof (hb_shaper_data_t) / sizeof (void *))
-
 
 #endif /* HB_SHAPER_HH */

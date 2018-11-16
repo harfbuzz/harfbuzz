@@ -23,16 +23,11 @@
  */
 
 #include "hb.hh"
-#define HB_SHAPER directwrite
 #include "hb-shaper-impl.hh"
 
 #include <DWrite_1.h>
 
 #include "hb-directwrite.h"
-
-
-HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, face);
-HB_SHAPER_DATA_ENSURE_DEFINE (directwrite, font);
 
 
 /*
@@ -534,8 +529,8 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   float               lineWidth)
 {
   hb_face_t *face = font->face;
-  hb_directwrite_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  hb_directwrite_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+  const hb_directwrite_face_data_t *face_data = face->data.directwrite;
+  const hb_directwrite_font_data_t *font_data = font->data.directwrite;
   IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
   IDWriteFontFace *fontFace = face_data->fontFace;
 

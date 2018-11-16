@@ -1307,14 +1307,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   nullptr, /* coords */
 
   const_cast<hb_font_funcs_t *> (&_hb_Null_hb_font_funcs_t),
-  nullptr, /* user_data */
-  nullptr, /* destroy */
 
-  {
-#define HB_SHAPER_IMPLEMENT(shaper) HB_ATOMIC_PTR_INIT (HB_SHAPER_DATA_INVALID),
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-  }
+  /* Zero for the rest is fine. */
 };
 
 
@@ -1332,7 +1326,7 @@ _hb_font_create (hb_face_t *face)
   font->parent = hb_font_get_empty ();
   font->face = hb_face_reference (face);
   font->klass = hb_font_funcs_get_empty ();
-
+  font->data.init0 (font);
   font->x_scale = font->y_scale = hb_face_get_upem (face);
 
   return font;
@@ -1448,9 +1442,7 @@ hb_font_destroy (hb_font_t *font)
 {
   if (!hb_object_destroy (font)) return;
 
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, font);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
+  font->data.fini ();
 
   if (font->destroy)
     font->destroy (font->user_data);

@@ -26,8 +26,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define HB_SHAPER coretext
-
 #include "hb.hh"
 #include "hb-shaper-impl.hh"
 
@@ -101,8 +99,8 @@ _hb_cg_font_release (void *data)
 }
 
 
-HB_SHAPER_DATA_ENSURE_DEFINE(coretext, face);
-HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
+/* XXX TODO */
+//HB_SHAPER_DATA_ENSURE_DEFINE_WITH_CONDITION(coretext, font,
 	fabs (CTFontGetSize((CTFontRef) data) - coretext_font_size_from_ptem (font->ptem)) <= .5
 );
 
@@ -312,8 +310,7 @@ hb_coretext_face_create (CGFontRef cg_font)
 CGFontRef
 hb_coretext_face_get_cg_font (hb_face_t *face)
 {
-  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return nullptr;
-  return (CGFontRef) HB_SHAPER_DATA_GET (face);
+  return (CGFontRef) (const void *) face->data.coretext;
 }
 
 
@@ -322,7 +319,7 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
   hb_face_t *face = font->face;
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return nullptr;
-  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
+  CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
 
   CTFontRef ct_font = create_ct_font (cg_font, coretext_font_size_from_ptem (font->ptem));
 
@@ -368,7 +365,7 @@ CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
   if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return nullptr;
-  return (CTFontRef) HB_SHAPER_DATA_GET (font);
+  return (CTFontRef) (const void *) font->data.coretext;
 }
 
 
@@ -427,8 +424,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
                     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  CGFontRef cg_font = (CGFontRef) HB_SHAPER_DATA_GET (face);
-  CTFontRef ct_font = (CTFontRef) HB_SHAPER_DATA_GET (font);
+  CGFontRef cg_font = (CGFontRef) (const void *) face->data.coretext;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;

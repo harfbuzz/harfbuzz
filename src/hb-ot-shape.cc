@@ -26,7 +26,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define HB_SHAPER ot
 #include "hb-shaper-impl.hh"
 
 #include "hb-ot-shape.hh"
@@ -320,8 +319,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
  * shaper face data
  */
 
-HB_SHAPER_DATA_ENSURE_DEFINE(ot, face);
-
 struct hb_ot_face_data_t {};
 
 hb_ot_face_data_t *
@@ -339,8 +336,6 @@ _hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
 /*
  * shaper font data
  */
-
-HB_SHAPER_DATA_ENSURE_DEFINE(ot, font);
 
 struct hb_ot_font_data_t {};
 

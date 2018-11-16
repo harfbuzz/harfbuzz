@@ -96,6 +96,10 @@ DECLARE_NULL_INSTANCE (hb_font_funcs_t);
  * hb_font_t
  */
 
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INSTANTIATE_SHAPERS(shaper, font);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+
 struct hb_font_t
 {
   hb_object_header_t header;
@@ -119,7 +123,7 @@ struct hb_font_t
   void              *user_data;
   hb_destroy_func_t  destroy;
 
-  struct hb_shaper_data_t shaper_data;
+  hb_shaper_object_dataset_t<hb_font_t> data; /* Various shaper data. */
 
 
   /* Convert from font-space to user-space */
@@ -608,12 +612,6 @@ struct hb_font_t
   }
 };
 DECLARE_NULL_INSTANCE (hb_font_t);
-
-#define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, font);
-#include "hb-shaper-list.hh"
-#undef HB_SHAPER_IMPLEMENT
-#undef HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 
 
 #endif /* HB_FONT_HH */
