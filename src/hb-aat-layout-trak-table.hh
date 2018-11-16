@@ -169,7 +169,7 @@ struct trak
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_trak;
 
-  inline bool has_data (void) const { return version.to_int () != 0; }
+  inline bool has_data (void) const { return version.to_int (); }
 
   inline bool apply (hb_aat_apply_context_t *c) const
   {
