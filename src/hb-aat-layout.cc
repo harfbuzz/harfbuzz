@@ -53,37 +53,37 @@ static const hb_aat_feature_mapping_t feature_mappings[] =
   {HB_TAG ('c','p','s','p'), HB_AAT_LAYOUT_FEATURE_TYPE_CASE_SENSITIVE_LAYOUT,   HB_AAT_LAYOUT_SELECTOR_CASE_SENSITIVE_SPACING_ON,      HB_AAT_LAYOUT_SELECTOR_CASE_SENSITIVE_SPACING_OFF},
   {HB_TAG ('c','s','w','h'), HB_AAT_LAYOUT_FEATURE_TYPE_CONTEXTUAL_ALTERNATIVES, HB_AAT_LAYOUT_SELECTOR_CONTEXTUAL_SWASH_ALTERNATES_ON, HB_AAT_LAYOUT_SELECTOR_CONTEXTUAL_SWASH_ALTERNATES_OFF},
   {HB_TAG ('d','l','i','g'), HB_AAT_LAYOUT_FEATURE_TYPE_LIGATURES,               HB_AAT_LAYOUT_SELECTOR_RARE_LIGATURES_ON,              HB_AAT_LAYOUT_SELECTOR_RARE_LIGATURES_OFF},
-  {HB_TAG ('e','x','p','t'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_EXPERT_CHARACTERS,              16},
+  {HB_TAG ('e','x','p','t'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_EXPERT_CHARACTERS,              (hb_aat_layout_feature_setting_t) 16},
   {HB_TAG ('f','r','a','c'), HB_AAT_LAYOUT_FEATURE_TYPE_FRACTIONS,               HB_AAT_LAYOUT_SELECTOR_DIAGONAL_FRACTIONS,             HB_AAT_LAYOUT_SELECTOR_NO_FRACTIONS},
-  {HB_TAG ('f','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_MONOSPACED_TEXT,                7},
-  {HB_TAG ('h','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_HALF_WIDTH_TEXT,            7},
+  {HB_TAG ('f','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_MONOSPACED_TEXT,                (hb_aat_layout_feature_setting_t) 7},
+  {HB_TAG ('h','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_HALF_WIDTH_TEXT,            (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('h','i','s','t'), HB_AAT_LAYOUT_FEATURE_TYPE_LIGATURES,               HB_AAT_LAYOUT_SELECTOR_HISTORICAL_LIGATURES_ON,        HB_AAT_LAYOUT_SELECTOR_HISTORICAL_LIGATURES_OFF},
   {HB_TAG ('h','k','n','a'), HB_AAT_LAYOUT_FEATURE_TYPE_ALTERNATE_KANA,          HB_AAT_LAYOUT_SELECTOR_ALTERNATE_HORIZ_KANA_ON,        HB_AAT_LAYOUT_SELECTOR_ALTERNATE_HORIZ_KANA_OFF},
   {HB_TAG ('h','l','i','g'), HB_AAT_LAYOUT_FEATURE_TYPE_LIGATURES,               HB_AAT_LAYOUT_SELECTOR_HISTORICAL_LIGATURES_ON,        HB_AAT_LAYOUT_SELECTOR_HISTORICAL_LIGATURES_OFF},
   {HB_TAG ('h','n','g','l'), HB_AAT_LAYOUT_FEATURE_TYPE_TRANSLITERATION,         HB_AAT_LAYOUT_SELECTOR_HANJA_TO_HANGUL,                HB_AAT_LAYOUT_SELECTOR_NO_TRANSLITERATION},
-  {HB_TAG ('h','o','j','o'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_HOJO_CHARACTERS,                16},
-  {HB_TAG ('h','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_HALF_WIDTH_TEXT,                7},
+  {HB_TAG ('h','o','j','o'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_HOJO_CHARACTERS,                (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('h','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_HALF_WIDTH_TEXT,                (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('i','t','a','l'), HB_AAT_LAYOUT_FEATURE_TYPE_ITALIC_CJK_ROMAN,        HB_AAT_LAYOUT_SELECTOR_CJK_ITALIC_ROMAN_ON,            HB_AAT_LAYOUT_SELECTOR_CJK_ITALIC_ROMAN_OFF},
-  {HB_TAG ('j','p','0','4'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS2004_CHARACTERS,             16},
-  {HB_TAG ('j','p','7','8'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1978_CHARACTERS,             16},
-  {HB_TAG ('j','p','8','3'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1983_CHARACTERS,             16},
-  {HB_TAG ('j','p','9','0'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1990_CHARACTERS,             16},
+  {HB_TAG ('j','p','0','4'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS2004_CHARACTERS,             (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('j','p','7','8'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1978_CHARACTERS,             (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('j','p','8','3'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1983_CHARACTERS,             (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('j','p','9','0'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_JIS1990_CHARACTERS,             (hb_aat_layout_feature_setting_t) 16},
   {HB_TAG ('l','i','g','a'), HB_AAT_LAYOUT_FEATURE_TYPE_LIGATURES,               HB_AAT_LAYOUT_SELECTOR_COMMON_LIGATURES_ON,            HB_AAT_LAYOUT_SELECTOR_COMMON_LIGATURES_OFF},
-  {HB_TAG ('l','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_CASE,             HB_AAT_LAYOUT_SELECTOR_UPPER_CASE_NUMBERS,             2},
+  {HB_TAG ('l','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_CASE,             HB_AAT_LAYOUT_SELECTOR_UPPER_CASE_NUMBERS,             (hb_aat_layout_feature_setting_t) 2},
   {HB_TAG ('m','g','r','k'), HB_AAT_LAYOUT_FEATURE_TYPE_MATHEMATICAL_EXTRAS,     HB_AAT_LAYOUT_SELECTOR_MATHEMATICAL_GREEK_ON,          HB_AAT_LAYOUT_SELECTOR_MATHEMATICAL_GREEK_OFF},
-  {HB_TAG ('n','l','c','k'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_NLCCHARACTERS,                  16},
-  {HB_TAG ('o','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_CASE,             HB_AAT_LAYOUT_SELECTOR_LOWER_CASE_NUMBERS,             2},
+  {HB_TAG ('n','l','c','k'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_NLCCHARACTERS,                  (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('o','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_CASE,             HB_AAT_LAYOUT_SELECTOR_LOWER_CASE_NUMBERS,             (hb_aat_layout_feature_setting_t) 2},
   {HB_TAG ('o','r','d','n'), HB_AAT_LAYOUT_FEATURE_TYPE_VERTICAL_POSITION,       HB_AAT_LAYOUT_SELECTOR_ORDINALS,                       HB_AAT_LAYOUT_SELECTOR_NORMAL_POSITION},
-  {HB_TAG ('p','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          7},
+  {HB_TAG ('p','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('p','c','a','p'), HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE,              HB_AAT_LAYOUT_SELECTOR_LOWER_CASE_PETITE_CAPS,         HB_AAT_LAYOUT_SELECTOR_DEFAULT_LOWER_CASE},
-  {HB_TAG ('p','k','n','a'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_TEXT,              7},
-  {HB_TAG ('p','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_SPACING,          HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_NUMBERS,           4},
-  {HB_TAG ('p','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_TEXT,              7},
-  {HB_TAG ('q','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_QUARTER_WIDTH_TEXT,             7},
+  {HB_TAG ('p','k','n','a'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_TEXT,              (hb_aat_layout_feature_setting_t) 7},
+  {HB_TAG ('p','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_SPACING,          HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_NUMBERS,           (hb_aat_layout_feature_setting_t) 4},
+  {HB_TAG ('p','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_PROPORTIONAL_TEXT,              (hb_aat_layout_feature_setting_t) 7},
+  {HB_TAG ('q','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_QUARTER_WIDTH_TEXT,             (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('r','u','b','y'), HB_AAT_LAYOUT_FEATURE_TYPE_RUBY_KANA,               HB_AAT_LAYOUT_SELECTOR_RUBY_KANA_ON,                   HB_AAT_LAYOUT_SELECTOR_RUBY_KANA_OFF},
   {HB_TAG ('s','i','n','f'), HB_AAT_LAYOUT_FEATURE_TYPE_VERTICAL_POSITION,       HB_AAT_LAYOUT_SELECTOR_SCIENTIFIC_INFERIORS,           HB_AAT_LAYOUT_SELECTOR_NORMAL_POSITION},
   {HB_TAG ('s','m','c','p'), HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE,              HB_AAT_LAYOUT_SELECTOR_LOWER_CASE_SMALL_CAPS,          HB_AAT_LAYOUT_SELECTOR_DEFAULT_LOWER_CASE},
-  {HB_TAG ('s','m','p','l'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_SIMPLIFIED_CHARACTERS,          16},
+  {HB_TAG ('s','m','p','l'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_SIMPLIFIED_CHARACTERS,          (hb_aat_layout_feature_setting_t) 16},
   {HB_TAG ('s','s','0','1'), HB_AAT_LAYOUT_FEATURE_TYPE_STYLISTIC_ALTERNATIVES,  HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_ONE_ON,           HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_ONE_OFF},
   {HB_TAG ('s','s','0','2'), HB_AAT_LAYOUT_FEATURE_TYPE_STYLISTIC_ALTERNATIVES,  HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_TWO_ON,           HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_TWO_OFF},
   {HB_TAG ('s','s','0','3'), HB_AAT_LAYOUT_FEATURE_TYPE_STYLISTIC_ALTERNATIVES,  HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_THREE_ON,         HB_AAT_LAYOUT_SELECTOR_STYLISTIC_ALT_THREE_OFF},
@@ -108,16 +108,16 @@ static const hb_aat_feature_mapping_t feature_mappings[] =
   {HB_TAG ('s','u','p','s'), HB_AAT_LAYOUT_FEATURE_TYPE_VERTICAL_POSITION,       HB_AAT_LAYOUT_SELECTOR_SUPERIORS,                      HB_AAT_LAYOUT_SELECTOR_NORMAL_POSITION},
   {HB_TAG ('s','w','s','h'), HB_AAT_LAYOUT_FEATURE_TYPE_CONTEXTUAL_ALTERNATIVES, HB_AAT_LAYOUT_SELECTOR_SWASH_ALTERNATES_ON,            HB_AAT_LAYOUT_SELECTOR_SWASH_ALTERNATES_OFF},
   {HB_TAG ('t','i','t','l'), HB_AAT_LAYOUT_FEATURE_TYPE_STYLE_OPTIONS,           HB_AAT_LAYOUT_SELECTOR_TITLING_CAPS,                   HB_AAT_LAYOUT_SELECTOR_NO_STYLE_OPTIONS},
-  {HB_TAG ('t','n','a','m'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_TRADITIONAL_NAMES_CHARACTERS,   16},
-  {HB_TAG ('t','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_SPACING,          HB_AAT_LAYOUT_SELECTOR_MONOSPACED_NUMBERS,             4},
-  {HB_TAG ('t','r','a','d'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_TRADITIONAL_CHARACTERS,         16},
-  {HB_TAG ('t','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_THIRD_WIDTH_TEXT,               7},
-  {HB_TAG ('u','n','i','c'), HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE,             14,                                                    15},
-  {HB_TAG ('v','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          7},
+  {HB_TAG ('t','n','a','m'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_TRADITIONAL_NAMES_CHARACTERS,   (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('t','n','u','m'), HB_AAT_LAYOUT_FEATURE_TYPE_NUMBER_SPACING,          HB_AAT_LAYOUT_SELECTOR_MONOSPACED_NUMBERS,             (hb_aat_layout_feature_setting_t) 4},
+  {HB_TAG ('t','r','a','d'), HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE,         HB_AAT_LAYOUT_SELECTOR_TRADITIONAL_CHARACTERS,         (hb_aat_layout_feature_setting_t) 16},
+  {HB_TAG ('t','w','i','d'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_THIRD_WIDTH_TEXT,               (hb_aat_layout_feature_setting_t) 7},
+  {HB_TAG ('u','n','i','c'), HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE,             (hb_aat_layout_feature_setting_t) 14,                  (hb_aat_layout_feature_setting_t) 15},
+  {HB_TAG ('v','a','l','t'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('v','e','r','t'), HB_AAT_LAYOUT_FEATURE_TYPE_VERTICAL_SUBSTITUTION,   HB_AAT_LAYOUT_SELECTOR_SUBSTITUTE_VERTICAL_FORMS_ON,   HB_AAT_LAYOUT_SELECTOR_SUBSTITUTE_VERTICAL_FORMS_OFF},
-  {HB_TAG ('v','h','a','l'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_HALF_WIDTH_TEXT,            7},
+  {HB_TAG ('v','h','a','l'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_HALF_WIDTH_TEXT,            (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('v','k','n','a'), HB_AAT_LAYOUT_FEATURE_TYPE_ALTERNATE_KANA,          HB_AAT_LAYOUT_SELECTOR_ALTERNATE_VERT_KANA_ON,         HB_AAT_LAYOUT_SELECTOR_ALTERNATE_VERT_KANA_OFF},
-  {HB_TAG ('v','p','a','l'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          7},
+  {HB_TAG ('v','p','a','l'), HB_AAT_LAYOUT_FEATURE_TYPE_TEXT_SPACING,            HB_AAT_LAYOUT_SELECTOR_ALT_PROPORTIONAL_TEXT,          (hb_aat_layout_feature_setting_t) 7},
   {HB_TAG ('v','r','t','2'), HB_AAT_LAYOUT_FEATURE_TYPE_VERTICAL_SUBSTITUTION,   HB_AAT_LAYOUT_SELECTOR_SUBSTITUTE_VERTICAL_FORMS_ON,   HB_AAT_LAYOUT_SELECTOR_SUBSTITUTE_VERTICAL_FORMS_OFF},
   {HB_TAG ('z','e','r','o'), HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,      HB_AAT_LAYOUT_SELECTOR_SLASHED_ZERO_ON,                HB_AAT_LAYOUT_SELECTOR_SLASHED_ZERO_OFF},
 };
@@ -301,37 +301,43 @@ _hb_aat_language_get (hb_face_t *face,
 }
 
 /**
- * hb_aat_layout_get_feature_settings:
- * @face:            a font face.
- * @feature:         AAT feature id you are querying.
- * @default_setting: (out): default value for the type. If it is HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED
- *                          means none is selected as default and the feature is not exclusive.
- * @start_offset:    start offset, if you are iterating
- * @selectors_count: (inout): gets input buffer size, puts number of filled one
- * @selectors_buffer:  (out):  buffer of records
- *
- * Returns: Total number of feature selector records available for the feature.
+ * hb_aat_layout_get_features:
  *
  * Since: REPLACEME
  */
 unsigned int
-hb_aat_layout_get_feature_settings (hb_face_t                             *face,
-				    hb_aat_layout_feature_type_t           feature,
-				    hb_aat_layout_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
-				    unsigned int                           start_offset,
-				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
-				    hb_aat_layout_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */)
+hb_aat_layout_get_features (hb_face_t                    *face,
+			    unsigned int                  start_offset,
+			    unsigned int                 *count,   /* IN/OUT.  May be NULL. */
+			    hb_aat_layout_feature_type_t *features /* OUT.     May be NULL. */)
+{
+  return face->table.feat->get_features (start_offset, count, features);
+}
+
+hb_ot_name_id_t
+hb_aat_layout_get_feature_name_id (hb_face_t                    *face,
+				   hb_aat_layout_feature_type_t  feature)
+{ return HB_OT_NAME_ID_INVALID; }
+
+/**
+ * hb_aat_layout_get_feature_settings:
+ *
+ * Since: REPLACEME
+ */
+unsigned int
+hb_aat_layout_get_feature_settings (hb_face_t                       *face,
+				    hb_aat_layout_feature_type_t     feature,
+				    hb_aat_layout_feature_setting_t *default_setting, /* OUT.     May be NULL. */
+				    unsigned int                     start_offset,
+				    unsigned int                    *count,           /* IN/OUT.  May be NULL. */
+				    hb_aat_layout_feature_setting_t *settings         /* OUT.     May be NULL. */)
 {
   return face->table.feat->get_settings (feature, default_setting,
-					 start_offset, selectors_count, selectors_buffer);
+					 start_offset, count, settings);
 }
 
-
-unsigned int
-hb_aat_layout_get_features (hb_face_t                      *face,
-			    unsigned int                    start_offset,
-			    unsigned int                   *record_count, /* IN/OUT.  May be NULL. */
-			    hb_aat_layout_feature_record_t *record_buffer /* OUT.     May be NULL. */)
-{
-  return face->table.feat->get_features (start_offset, record_count, record_buffer);
-}
+hb_ot_name_id_t
+hb_aat_layout_get_feature_setting_name_id (hb_face_t                       *face,
+					   hb_aat_layout_feature_type_t     feature,
+					   hb_aat_layout_feature_setting_t  setting)
+{ return HB_OT_NAME_ID_INVALID; }

@@ -45,7 +45,6 @@ struct SettingName
     return_trace (likely (c->check_struct (this)));
   }
 
-  public:
   HBUINT16	setting;	/* The setting. */
   NameID	nameIndex;	/* The name table index for the setting's name. */
   public:
@@ -56,18 +55,15 @@ struct feat;
 
 struct FeatureName
 {
-<<<<<<< HEAD
-=======
   static int cmp (const void *key_, const void *entry_)
   {
-    hb_aat_layout_feature_type_t key = * (hb_aat_layout_feature_type_t *) key_;
+    hb_aat_feature_type_t key = * (hb_aat_feature_type_t *) key_;
     const FeatureName * entry = (const FeatureName *) entry_;
     return key < entry->feature ? -1 :
 	   key > entry->feature ? 1 :
 	   0;
   }
 
->>>>>>> 08982bb4... [feat] Expose public API
   enum {
     Exclusive = 0x8000,		/* If set, the feature settings are mutually exclusive. */
     NotDefault = 0x4000,	/* If clear, then the setting with an index of 0 in
@@ -82,51 +78,42 @@ struct FeatureName
 				 * as the default. */
   };
 
-<<<<<<< HEAD
-=======
   inline unsigned int get_settings (const feat                     *feat,
-				    hb_aat_layout_feature_setting_t       *default_setting,
+				    hb_bool_t                      *is_exclusive,
 				    unsigned int                    start_offset,
-				    unsigned int                   *selectors_count,
-				    hb_aat_layout_feature_type_selector_t *selectors_buffer) const
+				    unsigned int                   *records_count,
+				    hb_aat_feature_option_record_t *records_buffer) const
   {
     bool exclusive = featureFlags & Exclusive;
     bool not_default = featureFlags & NotDefault;
+    if (is_exclusive) *is_exclusive = exclusive;
     const UnsizedArrayOf<SettingName>& settings = feat+settingTable;
     unsigned int len = 0;
     unsigned int settings_count = nSettings;
-    if (selectors_count && selectors_buffer)
+    if (records_count && records_buffer)
     {
-      len = MIN (settings_count - start_offset, *selectors_count);
+      len = MIN (settings_count - start_offset, *records_count);
       for (unsigned int i = 0; i < len; i++)
       {
-	selectors_buffer[i].name_id = settings[start_offset + i].nameIndex;
-	selectors_buffer[i].setting = settings[start_offset + i].setting;
+	records_buffer[i].is_default = exclusive && not_default &&
+				       i + start_offset == (featureFlags & IndexMask);
+	records_buffer[i].name_id = settings[start_offset + i].nameIndex;
+	records_buffer[i].setting = settings[start_offset + i].setting;
       }
+      if (exclusive && !not_default && start_offset == 0 && len != 0)
+        records_buffer[0].is_default = true;
     }
-    if (default_setting)
-    {
-      unsigned int index = not_default ? featureFlags & IndexMask : 0;
-      if (exclusive && index < settings_count)
-        *default_setting = settings[index].setting;
-      else *default_setting = HB_AAT_LAYOUT_FEATURE_TYPE_UNDEFINED;
-    }
-    if (selectors_count) *selectors_count = len;
+    if (is_exclusive) *is_exclusive = exclusive;
+    if (records_count) *records_count = len;
     return settings_count;
   }
 
->>>>>>> 08982bb4... [feat] Expose public API
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  (base+settingTable).sanitize (c, nSettings)));
   }
-
-  inline hb_aat_layout_feature_type_t get_feature () const
-  { return (hb_aat_layout_feature_type_t) (unsigned int) feature; }
-
-  inline unsigned int get_name_id () const { return nameIndex; }
 
   protected:
   HBUINT16	feature;	/* Feature type. */
@@ -148,37 +135,24 @@ struct feat
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_feat;
 
-  inline unsigned int get_features (unsigned int                    start_offset,
-				    unsigned int                   *record_count,
-				    hb_aat_layout_feature_record_t *record_buffer) const
+  inline const FeatureName& get_feature (hb_aat_feature_type_t key) const
   {
-    unsigned int feature_count = featureNameCount;
-    if (record_count)
-    {
-      unsigned int len = MIN (feature_count - start_offset, *record_count);
-      for (unsigned int i = 0; i < len; i++)
-      {
-	record_buffer[i].feature = names[i + start_offset].get_feature ();
-	record_buffer[i].name_id = names[i + start_offset].get_name_id ();
-      }
-    }
-    return featureNameCount;
-  }
-
-  inline unsigned int get_settings (hb_aat_layout_feature_type_t           type,
-				    hb_aat_layout_feature_setting_t       *default_setting, /* OUT.     May be NULL. */
-				    unsigned int                           start_offset,
-				    unsigned int                          *selectors_count, /* IN/OUT.  May be NULL. */
-				    hb_aat_layout_feature_type_selector_t *selectors_buffer /* OUT.     May be NULL. */) const
-  {
-    const FeatureName* feature = (FeatureName*) hb_bsearch (&type, &names,
+    const FeatureName* feature = (FeatureName*) hb_bsearch (&key, &names,
 							    FeatureName::static_size,
 							    sizeof (FeatureName),
 							    FeatureName::cmp);
 
-    return (feature ? *feature : Null (FeatureName)).get_settings (this, default_setting,
-								   start_offset, selectors_count,
-								   selectors_buffer);
+    return feature ? *feature : Null (FeatureName);
+  }
+
+  inline unsigned int get_settings (hb_aat_feature_type_t           key,
+				    hb_bool_t                      *is_exclusive,
+				    unsigned int                    start_offset,
+				    unsigned int                   *records_count,
+				    hb_aat_feature_option_record_t *records_buffer) const
+  {
+    return get_feature (key).get_settings (this, is_exclusive, start_offset,
+					   records_count, records_buffer);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
