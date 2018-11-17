@@ -347,7 +347,7 @@ struct UnsizedArrayOf
   }
   inline Type& operator [] (unsigned int i)
   {
-    const Type *p = &arrayZ[i];
+    Type *p = &arrayZ[i];
     if (unlikely (p < arrayZ)) return Crap (Type); /* Overflowed. */
     return *p;
   }
