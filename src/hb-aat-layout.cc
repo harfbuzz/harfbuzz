@@ -215,7 +215,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
     return;
   }
 
-  hb_blob_t *mort_blob = font->face->table.morx.get_blob ();
+  hb_blob_t *mort_blob = font->face->table.mort.get_blob ();
   const AAT::mort& mort = *mort_blob->as<AAT::mort> ();
   if (mort.has_data ())
   {
