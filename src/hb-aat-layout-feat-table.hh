@@ -39,17 +39,25 @@ namespace AAT {
 
 struct SettingName
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  static int cmp (const void *key_, const void *entry_)
   {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    hb_aat_layout_feature_setting_t key = * (hb_aat_layout_feature_setting_t *) key_;
+    const SettingName * entry = (const SettingName *) entry_;
+    return key < entry->setting ? -1 :
+	   key > entry->setting ? +1 :
+	   0;
   }
 
   inline hb_aat_layout_feature_setting_t get_setting () const
   { return (hb_aat_layout_feature_setting_t) (unsigned int) setting; }
 
-  inline hb_ot_name_id_t get_name_id () const
-  { return (hb_ot_name_id_t) nameIndex; }
+  inline hb_ot_name_id_t get_name_id () const { return nameIndex; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this)));
+  }
 
   protected:
   HBUINT16	setting;	/* The setting. */
@@ -113,17 +121,17 @@ struct FeatureName
   inline hb_aat_layout_feature_type_t get_feature_type () const
   { return (hb_aat_layout_feature_type_t) (unsigned int) feature; }
 
-  inline hb_ot_name_id_t get_feature_name_id () const
-  { return (hb_ot_name_id_t) nameIndex; }
+  inline hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
   inline hb_ot_name_id_t get_feature_setting_name_id (const feat                      *feat,
-						      hb_aat_layout_feature_setting_t  setting) const
+						      hb_aat_layout_feature_setting_t  key) const
   {
-    const UnsizedArrayOf<SettingName>& settings_table = feat+settingTableZ;
-    for (unsigned int i = 0; i < nSettings; i++)
-      if (settings_table[i].get_setting () == setting)
-        return settings_table[i].get_name_id ();
-    return HB_OT_NAME_ID_INVALID;
+    const SettingName* setting = (SettingName*) hb_bsearch (&key, feat+settingTableZ,
+							    nSettings,
+							    SettingName::static_size,
+							    SettingName::cmp);
+
+    return setting ? setting->get_name_id () : HB_OT_NAME_ID_INVALID;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -171,8 +179,8 @@ struct feat
   inline const FeatureName& get_feature (hb_aat_layout_feature_type_t key) const
   {
     const FeatureName* feature = (FeatureName*) hb_bsearch (&key, &namesZ,
+							    featureNameCount,
 							    FeatureName::static_size,
-							    sizeof (FeatureName),
 							    FeatureName::cmp);
 
     return feature ? *feature : Null (FeatureName);

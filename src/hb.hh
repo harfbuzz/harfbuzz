@@ -48,6 +48,8 @@
 #include "hb-ot.h"
 #define HB_OT_H_IN
 
+#include "hb-aat.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <stddef.h>
