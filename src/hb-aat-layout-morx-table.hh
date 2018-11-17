@@ -967,7 +967,7 @@ struct Chain
 	  flags &= feature.disableFlags;
 	  flags |= feature.enableFlags;
 	}
-	else if (type == HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE && setting == 3/*kSmallCapsSelector*/)
+	else if (type == HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE && setting == HB_AAT_LAYOUT_SELECTOR_SMALL_CAPS)
 	{
 	  /* Deprecated. https://github.com/harfbuzz/harfbuzz/issues/1342 */
 	  type = HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE;
