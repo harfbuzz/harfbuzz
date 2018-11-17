@@ -339,25 +339,16 @@ struct UnsizedArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
 
-  /* Unlikely other places, use "ssize_t i" instead of "unsigned int i" for our
-   * indexing operator.  For three reasons:
-   * 1. For UnsizedArrayOf, it's not totally unimaginable to want to look
-   *    at items before the start of current array.
-   * 2. Use the largest type, to help detect overflows.
-   * 3. Fixes MSVC 2008 "overloads have similar conversions" issue with the
-   *    built-in operator [] that takes int, in expressions like sizeof (array[0])).
-   *    I suppose I could fix that by replacing 0 with 0u, but like this fix
-   *    more now. */
-  inline const Type& operator [] (ssize_t i) const
+  inline const Type& operator [] (unsigned int i) const
   {
     const Type *p = &arrayZ[i];
-    if (unlikely ((0 <= i) != (arrayZ <= p))) return Null (Type); /* Over/under-flowed. */
+    if (unlikely (p < arrayZ)) return Null (Type); /* Overflowed. */
     return *p;
   }
-  inline Type& operator [] (ssize_t i)
+  inline Type& operator [] (unsigned int i)
   {
     const Type *p = &arrayZ[i];
-    if (unlikely ((0 <= i) != (arrayZ <= p))) return Crap (Type); /* Over/under-flowed. */
+    if (unlikely (p < arrayZ)) return Crap (Type); /* Overflowed. */
     return *p;
   }
 
