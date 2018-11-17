@@ -1,4 +1,21 @@
-Overview of changes leading to 2.1.1
+Overview of changes leading to 2.1.3
+Friday, November 16, 2018
+====================================
+- Fix AAT 'mort' shaping, which was broken in 2.1.2
+
+
+Overview of changes leading to 2.1.2
+Friday, November 16, 2018
+====================================
+- Various internal changes.
+- AAT shaping improvements:
+  o Implement kern table Format 1 state-machine-based kerning.
+  o Implement cross-stream kerning (cursive positioning, etc).
+  o Ignore emptyish GSUB tables (zero scripts) if morx present.
+  o Don't apply GPOS if morx is being applied.  Matches Apple.
+
+
+-Overview of changes leading to 2.1.1
 Monday, November 5, 2018
 ====================================
 - AAT improvements:

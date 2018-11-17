@@ -684,7 +684,7 @@ struct MATH
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_MATH;
 
-  inline bool has_data (void) const { return version.to_int () != 0; }
+  inline bool has_data (void) const { return version.to_int (); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

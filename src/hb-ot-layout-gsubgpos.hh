@@ -2657,7 +2657,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
 struct GSUBGPOS
 {
-  inline bool has_data (void) const { return version.to_int () != 0; }
+  inline bool has_data (void) const { return version.to_int (); }
   inline unsigned int get_script_count (void) const
   { return (this+scriptList).len; }
   inline const Tag& get_script_tag (unsigned int i) const
