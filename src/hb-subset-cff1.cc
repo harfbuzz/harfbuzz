@@ -335,15 +335,19 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 struct RangeList : hb_vector_t<code_pair>
 {
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
-  inline void finalize (unsigned int last_glyph)
+  inline bool finalize (unsigned int last_glyph)
   {
+    bool  two_byte = false;
     for (unsigned int i = (*this).len; i > 0; i--)
     {
       code_pair &pair = (*this)[i - 1];
       unsigned int  nLeft = last_glyph - pair.glyph - 1;
+      if (nLeft >= 0x100)
+        two_byte = true;
       last_glyph = pair.glyph;
       pair.glyph = nLeft;
     }
+    return two_byte;
   }
 };
 
@@ -529,7 +533,6 @@ struct cff_subset_plan {
   {
     unsigned int  size0, size_ranges;
     hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
-    bool  two_byte = false;
 
     subset_charset_ranges.resize (0);
     unsigned int glyph;
@@ -549,7 +552,7 @@ struct cff_subset_plan {
       last_sid = sid;
     }
 
-    subset_charset_ranges.finalize (glyph);
+    bool two_byte = subset_charset_ranges.finalize (glyph);
 
     size0 = Charset0::min_size + HBUINT16::static_size * (plan->glyphs.len - 1);
     if (!two_byte)
