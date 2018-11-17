@@ -314,10 +314,15 @@ hb_aat_layout_get_features (hb_face_t                    *face,
   return face->table.feat->get_features (start_offset, count, features);
 }
 
+/**
+ * hb_aat_layout_get_feature_name_id:
+ *
+ * Since: REPLACEME
+ */
 hb_ot_name_id_t
 hb_aat_layout_get_feature_name_id (hb_face_t                    *face,
 				   hb_aat_layout_feature_type_t  feature)
-{ return HB_OT_NAME_ID_INVALID; }
+{ return face->table.feat->get_feature_name_id (feature); }
 
 /**
  * hb_aat_layout_get_feature_settings:
@@ -336,8 +341,13 @@ hb_aat_layout_get_feature_settings (hb_face_t                       *face,
 					 start_offset, count, settings);
 }
 
+/**
+ * hb_aat_layout_get_feature_setting_name_id:
+ *
+ * Since: REPLACEME
+ */
 hb_ot_name_id_t
 hb_aat_layout_get_feature_setting_name_id (hb_face_t                       *face,
 					   hb_aat_layout_feature_type_t     feature,
 					   hb_aat_layout_feature_setting_t  setting)
-{ return HB_OT_NAME_ID_INVALID; }
+{ return face->table.feat->get_feature_setting_name_id (feature, setting); }
