@@ -42,6 +42,11 @@ namespace OT {
 
 struct InstanceRecord
 {
+  friend struct fvar;
+
+  inline hb_array_t<const Fixed> get_coordinates (unsigned int axis_count) const
+  { return coordinatesZ.as_array (axis_count); }
+
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int axis_count) const
   {
     TRACE_SANITIZE (this);
@@ -104,7 +109,7 @@ struct fvar
 		  axisSize == 20 && /* Assumed in our code. */
 		  instanceSize >= axisCount * 4 + 4 &&
 		  get_axes ().sanitize (c) &&
-		  c->check_range (get_first_instance (), instanceCount, instanceSize));
+		  c->check_range (&get_instance (0), instanceCount, instanceSize));
   }
 
   inline unsigned int get_axis_count (void) const
@@ -186,12 +191,56 @@ struct fvar
     return (int) (v * 16384.f + (v >= 0.f ? .5f : -.5f));
   }
 
+  inline unsigned int get_instance_count (void) const
+  { return instanceCount; }
+
+  inline hb_ot_name_id_t get_instance_subfamily_name_id (unsigned int index) const
+  {
+    const InstanceRecord &instance = get_instance (index);
+    return instance.subfamilyNameID;
+  }
+
+  inline hb_ot_name_id_t get_instance_postscript_name_id (unsigned int index) const
+  {
+    const InstanceRecord &instance = get_instance (index);
+    if (instanceSize >= axisCount * 4 + 6)
+      return StructAfter<NameID> (instance.get_coordinates (axisCount));
+    return HB_OT_NAME_ID_INVALID;
+  }
+
+  inline unsigned int get_instance_coords (unsigned int  index,
+					   unsigned int *coords_length, /* IN/OUT */
+					   int          *coords         /* OUT */) const
+  {
+    if (unlikely (index >= instanceCount))
+    {
+      if (coords_length)
+        *coords_length = 0;
+      return 0;
+    }
+
+    if (coords_length && *coords_length)
+    {
+      const InstanceRecord &instance = get_instance (index);
+      hb_array_t<const Fixed> instanceCoords = instance.get_coordinates (axisCount)
+						       .sub_array (0, *coords_length);
+      for (unsigned int i = 0; i < instanceCoords.len; i++)
+        coords[i] = instanceCoords.arrayZ[i].to_float ();
+    }
+    return axisCount;
+  }
+
   protected:
   inline hb_array_t<const AxisRecord> get_axes (void) const
   { return hb_array (&(this+firstAxis), axisCount); }
 
-  inline const InstanceRecord * get_first_instance (void) const
-  { return &StructAfter<InstanceRecord> (get_axes ()); }
+  inline const InstanceRecord &get_instance (unsigned int i) const
+  {
+    if (unlikely (i >= instanceCount)) return Null (InstanceRecord);
+
+   return StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),
+					  i * instanceSize);
+  }
 
   protected:
   FixedVersion<>version;	/* Version of the fvar table

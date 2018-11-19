@@ -116,6 +116,39 @@ hb_ot_var_axis_get_flags (hb_face_t    *face,
   return face->table.fvar->get_axis_flags (axis_index);
 }
 
+/*
+ * Named instances.
+ */
+
+unsigned int
+hb_ot_var_get_named_instance_count (hb_face_t *face)
+{
+  return face->table.fvar->get_instance_count ();
+}
+
+hb_ot_name_id_t
+hb_ot_var_named_instance_get_subfamily_name_id (hb_face_t   *face,
+						unsigned int instance_index)
+{
+  return face->table.fvar->get_instance_subfamily_name_id (instance_index);
+}
+
+hb_ot_name_id_t
+hb_ot_var_named_instance_get_postscript_name_id (hb_face_t  *face,
+						unsigned int instance_index)
+{
+  return face->table.fvar->get_instance_postscript_name_id (instance_index);
+}
+
+unsigned int
+hb_ot_var_named_instance_get_design_coords (hb_face_t    *face,
+					    unsigned int  instance_index,
+					    unsigned int *coords_length, /* IN/OUT */
+					    int          *coords         /* OUT */)
+{
+  return face->table.fvar->get_instance_coords (instance_index, coords_length, coords);
+}
+
 
 /**
  * hb_ot_var_normalize_variations:
