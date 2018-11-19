@@ -101,12 +101,10 @@ struct fvar
     return_trace (version.sanitize (c) &&
 		  likely (version.major == 1) &&
 		  c->check_struct (this) &&
+		  axisSize == 20 && /* Assumed in our code. */
 		  instanceSize >= axisCount * 4 + 4 &&
-		  axisSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
-		  instanceSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
-		  c->check_range (this, firstAxis) &&
-		  c->check_range (&StructAtOffset<char> (this, firstAxis),
-				  axisCount * axisSize + instanceCount * instanceSize));
+		  get_axes ().sanitize (c) &&
+		  c->check_range (get_first_instance (), instanceCount, instanceSize));
   }
 
   inline unsigned int get_axis_count (void) const
