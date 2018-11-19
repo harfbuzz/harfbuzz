@@ -104,8 +104,8 @@ struct fvar
 		  instanceSize >= axisCount * 4 + 4 &&
 		  axisSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
 		  instanceSize <= 1024 && /* Arbitrary, just to simplify overflow checks. */
-		  c->check_range (this, things) &&
-		  c->check_range (&StructAtOffset<char> (this, things),
+		  c->check_range (this, firstAxis) &&
+		  c->check_range (&StructAtOffset<char> (this, firstAxis),
 				  axisCount * axisSize + instanceCount * instanceSize));
   }
 
@@ -196,7 +196,7 @@ struct fvar
 
   protected:
   inline const AxisRecord * get_axes (void) const
-  { return &StructAtOffset<AxisRecord> (this, things); }
+  { return &(this+firstAxis); }
 
   inline const InstanceRecord * get_instances (void) const
   { return &StructAtOffset<InstanceRecord> (get_axes () + axisCount, 0); }
@@ -204,7 +204,8 @@ struct fvar
   protected:
   FixedVersion<>version;	/* Version of the fvar table
 				 * initially set to 0x00010000u */
-  Offset16	things;		/* Offset in bytes from the beginning of the table
+  OffsetTo<AxisRecord>
+		firstAxis;	/* Offset in bytes from the beginning of the table
 				 * to the start of the AxisRecord array. */
   HBUINT16	reserved;	/* This field is permanently reserved. Set to 2. */
   HBUINT16	axisCount;	/* The number of variation axes in the font (the
