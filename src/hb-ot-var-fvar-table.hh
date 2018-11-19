@@ -52,7 +52,7 @@ struct InstanceRecord
   protected:
   NameID	subfamilyNameID;/* The name ID for entries in the 'name' table
 				 * that provide subfamily names for this instance. */
-  HBUINT16	reserved;	/* Reserved for future use — set to 0. */
+  HBUINT16	flags;		/* Reserved for future use — set to 0. */
   UnsizedArrayOf<Fixed>
 		coordinatesZ;	/* The coordinates array for this instance. */
   //NameID	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
@@ -65,6 +65,11 @@ struct InstanceRecord
 
 struct AxisRecord
 {
+  enum
+  {
+    AXIS_FLAG_HIDDEN	= 0x0001,
+  };
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -76,7 +81,7 @@ struct AxisRecord
   Fixed		minValue;	/* The minimum coordinate value for the axis. */
   Fixed		defaultValue;	/* The default coordinate value for the axis. */
   Fixed		maxValue;	/* The maximum coordinate value for the axis. */
-  HBUINT16	reserved;	/* Reserved for future use — set to 0. */
+  HBUINT16	flags;		/* Axis flags. */
   NameID	axisNameID;	/* The name ID for entries in the 'name' table that
 				 * provide a display name for this axis. */
 
