@@ -54,7 +54,7 @@ HB_BEGIN_DECLS
  */
 typedef struct hb_ot_var_axis_t {
   hb_tag_t tag;
-  unsigned int name_id;
+  hb_ot_name_id_t name_id;
   float min_value;
   float default_value;
   float max_value;
