@@ -603,7 +603,7 @@ struct hb_array_t
   unsigned int len;
 };
 template <typename T>
-hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
+inline hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 
 struct HbOpOr
