@@ -587,6 +587,8 @@ hb_ot_var_has_data
 hb_ot_var_find_axis
 hb_ot_var_get_axis_count
 hb_ot_var_get_axes
+hb_ot_var_axis_flags_t
+hb_ot_var_axis_get_flags
 hb_ot_var_normalize_variations
 hb_ot_var_normalize_coords
 </SECTION>

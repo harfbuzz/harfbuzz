@@ -131,6 +131,15 @@ struct fvar
     return true;
   }
 
+  inline hb_ot_var_axis_flags_t get_axis_flags (unsigned int index) const
+  {
+    if (unlikely (index >= axisCount))
+      return (hb_ot_var_axis_flags_t) 0;
+
+    const AxisRecord &axis = get_axes ()[index];
+    return (hb_ot_var_axis_flags_t) (unsigned int) axis.flags;
+  }
+
   inline unsigned int get_axis_infos (unsigned int      start_offset,
 				      unsigned int     *axes_count /* IN/OUT */,
 				      hb_ot_var_axis_t *axes_array /* OUT */) const

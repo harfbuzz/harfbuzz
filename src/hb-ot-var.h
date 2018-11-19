@@ -85,6 +85,19 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     unsigned int     *axis_index,
 		     hb_ot_var_axis_t *axis_info);
 
+/**
+ * hb_ot_var_axis_flags_t:
+ * @HB_OT_VAR_AXIS_FLAG_HIDDEN: The axis should not be exposed directly in user interfaces.
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_OT_VAR_AXIS_FLAG_HIDDEN	= 0x0001u,
+} hb_ot_var_axis_flags_t;
+
+HB_EXTERN hb_ot_var_axis_flags_t
+hb_ot_var_axis_get_flags (hb_face_t    *face,
+			  unsigned int  axis_index);
 
 HB_EXTERN void
 hb_ot_var_normalize_variations (hb_face_t            *face,

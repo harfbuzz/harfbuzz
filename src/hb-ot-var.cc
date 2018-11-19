@@ -104,6 +104,18 @@ hb_ot_var_find_axis (hb_face_t        *face,
   return face->table.fvar->find_axis (axis_tag, axis_index, axis_info);
 }
 
+/**
+ * hb_ot_var_axis_get_flags:
+ *
+ * Since: REPLACEME
+ **/
+hb_ot_var_axis_flags_t
+hb_ot_var_axis_get_flags (hb_face_t    *face,
+			  unsigned int  axis_index)
+{
+  return face->table.fvar->get_axis_flags (axis_index);
+}
+
 
 /**
  * hb_ot_var_normalize_variations:
