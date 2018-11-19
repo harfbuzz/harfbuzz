@@ -114,9 +114,6 @@ struct fvar
 
   inline bool get_axis (unsigned int index, hb_ot_var_axis_t *info) const
   {
-    if (unlikely (index >= axisCount))
-      return false;
-
     if (info)
     {
       const AxisRecord &axis = get_axes ()[index];
@@ -133,9 +130,6 @@ struct fvar
 
   inline hb_ot_var_axis_flags_t get_axis_flags (unsigned int index) const
   {
-    if (unlikely (index >= axisCount))
-      return (hb_ot_var_axis_flags_t) 0;
-
     const AxisRecord &axis = get_axes ()[index];
     return (hb_ot_var_axis_flags_t) (unsigned int) axis.flags;
   }
@@ -195,11 +189,11 @@ struct fvar
   }
 
   protected:
-  inline const AxisRecord * get_axes (void) const
-  { return &(this+firstAxis); }
+  inline hb_array_t<const AxisRecord> get_axes (void) const
+  { return hb_array (&(this+firstAxis), axisCount); }
 
-  inline const InstanceRecord * get_instances (void) const
-  { return &StructAtOffset<InstanceRecord> (get_axes () + axisCount, 0); }
+  inline const InstanceRecord * get_first_instance (void) const
+  { return &StructAfter<InstanceRecord> (get_axes ()); }
 
   protected:
   FixedVersion<>version;	/* Version of the fvar table
