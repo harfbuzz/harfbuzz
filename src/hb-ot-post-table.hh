@@ -236,14 +236,18 @@ struct post
       return hb_bytes_t ((const char *) data, name_length);
     }
 
-    private:
+    public:
     hb_blob_ptr_t<post> table;
+
+    private:
     uint32_t version;
     const ArrayOf<HBUINT16> *glyphNameIndex;
     hb_vector_t<uint32_t, 1> index_to_offset;
     const uint8_t *pool;
     hb_atomic_ptr_t<uint16_t *> gids_sorted_by_name;
   };
+
+  inline bool has_data () const { return version.to_int (); };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

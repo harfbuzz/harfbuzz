@@ -30,6 +30,8 @@
 #include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
 
+#include "hb-set.hh"
+
 namespace OT {
 
 /*
@@ -41,6 +43,8 @@ namespace OT {
 struct OS2
 {
   enum { tableTag = HB_OT_TAG_OS2 };
+
+  inline bool has_data () const { return true; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

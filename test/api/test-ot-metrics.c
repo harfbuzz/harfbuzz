@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,29 +20,30 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb-test.h"
 
-#include "hb.h"
+#include <hb-ot.h>
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+/* Unit tests for hb-ot-metrics.h */
 
-HB_BEGIN_DECLS
+static void
+test_ot_metrics_get (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cpal-v0.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_position_t value;
+  g_assert (hb_ot_metrics_get (font, HB_OT_METRICS_HORIZONTAL_ASCENDER, &value));
+  g_assert_cmpint (value, ==, 800);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
 
-HB_END_DECLS
-
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+  hb_test_add (test_ot_metrics_get);
+  return hb_test_run ();
+}

@@ -45,6 +45,8 @@ namespace OT {
 template <typename T>
 struct _hea
 {
+  inline bool has_data () const { return version.major; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
