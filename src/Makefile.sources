@@ -88,6 +88,9 @@ HB_BASE_sources = \
 	hb-ot-math-table.hh \
 	hb-ot-math.cc \
 	hb-ot-maxp-table.hh \
+	hb-ot-metrics-internal.cc \
+	hb-ot-metrics.cc \
+	hb-ot-metrics.hh \
 	hb-ot-name-language-static.hh \
 	hb-ot-name-language.hh \
 	hb-ot-name-table.hh \
@@ -191,6 +194,7 @@ HB_BASE_headers = \
 	hb-ot-font.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
+	hb-ot-metrics.h \
 	hb-ot-name.h \
 	hb-ot-shape.h \
 	hb-ot-var.h \
@@ -233,6 +237,8 @@ HB_ICU_headers = hb-icu.h
 HB_SUBSET_sources = \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
+	hb-ot-metrics-internal.cc \
+	hb-ot-metrics.hh \
 	hb-static.cc \
 	hb-subset-cff-common.cc \
 	hb-subset-cff-common.hh \

@@ -50,6 +50,7 @@ HB_OT_TABLE (OT, head)
 #if !defined(HB_NO_FACE_COLLECT_UNICODES) || !defined(HB_NO_OT_FONT)
 HB_OT_ACCELERATOR (OT, cmap)
 #endif
+HB_OT_TABLE (OT, hhea)
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_TABLE (OT, OS2)
 #ifndef HB_NO_OT_FONT_GLYPH_NAMES
@@ -63,6 +64,7 @@ HB_OT_TABLE (OT, STAT)
 #endif
 
 /* Vertical layout. */
+HB_OT_TABLE (OT, vhea)
 HB_OT_ACCELERATOR (OT, vmtx)
 
 /* TrueType outlines. */

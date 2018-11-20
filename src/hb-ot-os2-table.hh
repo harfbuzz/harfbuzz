@@ -59,6 +59,10 @@ struct OS2V1Tail
 
 struct OS2V2Tail
 {
+  bool has_data () const { return this != &Null (OS2V2Tail); }
+
+  const OS2V2Tail * operator -> () const { return this; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
