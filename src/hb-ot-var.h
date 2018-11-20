@@ -47,19 +47,6 @@ HB_BEGIN_DECLS
  * fvar / avar
  */
 
-/**
- * hb_ot_var_axis_t:
- *
- * Since: 1.4.2
- */
-typedef struct hb_ot_var_axis_t {
-  hb_tag_t tag;
-  hb_ot_name_id_t name_id;
-  float min_value;
-  float default_value;
-  float max_value;
-} hb_ot_var_axis_t;
-
 HB_EXTERN hb_bool_t
 hb_ot_var_has_data (hb_face_t *face);
 
@@ -77,6 +64,20 @@ hb_ot_var_has_data (hb_face_t *face);
 
 HB_EXTERN unsigned int
 hb_ot_var_get_axis_count (hb_face_t *face);
+
+/**
+ * hb_ot_var_axis_t:
+ *
+ * Since: 1.4.2
+ */
+typedef struct hb_ot_var_axis_t
+{
+  hb_tag_t tag;
+  hb_ot_name_id_t name_id;
+  float min_value;
+  float default_value;
+  float max_value;
+} hb_ot_var_axis_t;
 
 HB_EXTERN unsigned int
 hb_ot_var_get_axes (hb_face_t        *face,
