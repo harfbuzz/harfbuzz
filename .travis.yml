@@ -29,6 +29,7 @@ matrix:
         - rm -rf freetype-2.9
       after_success:
         - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
+        - bash <(curl -s https://codecov.io/bash)
         - bash .ci/deploy-docs.sh
         - bash .ci/trigger-coverity.sh
 
