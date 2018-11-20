@@ -35,7 +35,6 @@
 #include "hb-map.hh"
 
 #include "hb-ot-kern-table.hh"
-#include "hb-ot-gasp-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"

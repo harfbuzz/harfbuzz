@@ -601,6 +601,15 @@ hb_ot_math_get_glyph_assembly
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-metrics</FILE>
+hb_ot_metrics_t
+hb_ot_metrics_get_position
+hb_ot_metrics_get_variation
+hb_ot_metrics_get_x_variation
+hb_ot_metrics_get_y_variation
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-shape</FILE>
 hb_ot_shape_glyphs_closure
 </SECTION>
