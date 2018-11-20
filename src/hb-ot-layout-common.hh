@@ -38,6 +38,15 @@
 #ifndef HB_MAX_NESTING_LEVEL
 #define HB_MAX_NESTING_LEVEL	6
 #endif
+/*
+ * Used to calculate maximum numbers of closure ops (set operations)
+ * that can be performed as part of the glyph closure. This is
+ * multiplied by the number of glyphs in a family to get the
+ * final value.
+ */
+#ifndef HB_MAX_CLOSURE_OPS_PER_GLYPH
+#define HB_MAX_CLOSURE_OPS_PER_GLYPH 1000
+#endif
 #ifndef HB_MAX_CONTEXT_LENGTH
 #define HB_MAX_CONTEXT_LENGTH	64
 #endif
@@ -848,6 +857,11 @@ struct CoverageFormat1
     return_trace (glyphArray.sanitize (c));
   }
 
+  inline unsigned int intersects_cost () const
+  {
+    return glyphArray.len;
+  }
+
   inline bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
@@ -944,6 +958,11 @@ struct CoverageFormat2
   {
     TRACE_SANITIZE (this);
     return_trace (rangeRecord.sanitize (c));
+  }
+
+  inline unsigned int intersects_cost () const
+  {
+    return rangeRecord.len;
   }
 
   inline bool intersects (const hb_set_t *glyphs) const
@@ -1082,6 +1101,16 @@ struct Coverage
     }
   }
 
+  inline bool intersects_cost () const
+  {
+    switch (u.format)
+    {
+    case 1: return u.format1.intersects_cost ();
+    case 2: return u.format2.intersects_cost ();
+    default:return 1;
+    }
+  }
+
   inline bool intersects (const hb_set_t *glyphs) const
   {
     switch (u.format)
@@ -1091,6 +1120,7 @@ struct Coverage
     default:return false;
     }
   }
+
   inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     switch (u.format)
@@ -1246,6 +1276,10 @@ struct ClassDefFormat1
       if (classValue[iter - start]) return true;
     return false;
   }
+  inline unsigned int intersects_class_cost () const
+  {
+    return classValue.len;
+  }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
     if (klass == 0)
@@ -1324,6 +1358,10 @@ struct ClassDefFormat2
       if (rangeRecord[i].intersects (glyphs))
 	return true;
     return false;
+  }
+  inline unsigned int intersects_class_cost () const
+  {
+    return rangeRecord.len;
   }
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
   {
@@ -1407,6 +1445,14 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
+    default:return false;
+    }
+  }
+  inline unsigned int intersects_class_cost () const
+  {
+    switch (u.format) {
+    case 1: return u.format1.intersects_class_cost ();
+    case 2: return u.format2.intersects_class_cost ();
     default:return false;
     }
   }

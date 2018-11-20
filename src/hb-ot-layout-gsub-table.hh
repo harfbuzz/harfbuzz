@@ -53,8 +53,12 @@ struct SingleSubstFormat1
       /* TODO Switch to range-based API to work around malicious fonts.
        * https://github.com/harfbuzz/harfbuzz/issues/363 */
       hb_codepoint_t glyph_id = iter.get_glyph ();
+      c->increment_ops ();
       if (c->glyphs->has (glyph_id))
-	c->out->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
+      {
+        c->increment_ops ();
+        c->out->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
+      }
     }
   }
 
@@ -161,8 +165,12 @@ struct SingleSubstFormat2
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
-	c->out->add (substitute[iter.get_coverage ()]);
+      {
+        c->increment_ops ();
+        c->out->add (substitute[iter.get_coverage ()]);
+      }
     }
   }
 
@@ -322,7 +330,10 @@ struct Sequence
     TRACE_CLOSURE (this);
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops ();
       c->out->add (substitute[i]);
+    }
   }
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -399,6 +410,7 @@ struct MultipleSubstFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+sequence[iter.get_coverage ()]).closure (c);
     }
@@ -518,7 +530,10 @@ struct AlternateSet
     TRACE_CLOSURE (this);
     unsigned int count = alternates.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops ();
       c->out->add (alternates[i]);
+    }
   }
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -589,6 +604,7 @@ struct AlternateSubstFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+alternateSet[iter.get_coverage ()]).closure (c);
     }
@@ -722,8 +738,12 @@ struct Ligature
     TRACE_CLOSURE (this);
     unsigned int count = component.lenP1;
     for (unsigned int i = 1; i < count; i++)
+    {
+      c->increment_ops ();
       if (!c->glyphs->has (component[i]))
         return;
+    }
+    c->increment_ops ();
     c->out->add (ligGlyph);
   }
 
@@ -925,6 +945,7 @@ struct LigatureSubstFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+ligatureSet[iter.get_coverage ()]).closure (c);
     }
@@ -1104,13 +1125,19 @@ struct ReverseChainSingleSubstFormat1
 
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops ((this+backtrack[i]).intersects_cost ());
       if (!(this+backtrack[i]).intersects (c->glyphs))
         return;
+    }
 
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops ((this+backtrack[i]).intersects_cost ());
       if (!(this+lookahead[i]).intersects (c->glyphs))
         return;
+    }
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     count = substitute.len;
@@ -1118,8 +1145,12 @@ struct ReverseChainSingleSubstFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
         break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
+      {
+        c->increment_ops ();
 	c->out->add (substitute[iter.get_coverage ()]);
+      }
     }
   }
 

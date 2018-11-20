@@ -77,9 +77,22 @@ struct hb_closure_context_t :
     nesting_level_left++;
   }
 
+  bool increment_ops (unsigned int count = 1)
+  {
+    closure_ops_remaining -= count;
+    return !has_exceeded_ops_limit ();
+  }
+
+  bool has_exceeded_ops_limit () const
+  {
+    return closure_ops_remaining <= 0;
+  }
+
   bool should_visit_lookup (unsigned int lookup_index)
   {
     if (is_lookup_done (lookup_index))
+      return false;
+    if (has_exceeded_ops_limit ())
       return false;
     done_lookups->set (lookup_index, glyphs->get_population ());
     return true;
@@ -97,17 +110,19 @@ struct hb_closure_context_t :
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
+  int closure_ops_remaining;
 
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
 			hb_map_t *done_lookups_,
 			unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
-			  face (face_),
-			  glyphs (glyphs_),
-			  recurse_func (nullptr),
-			  nesting_level_left (nesting_level_left_),
-			  debug_depth (0),
-			  done_lookups (done_lookups_) {}
+      face (face_),
+      glyphs (glyphs_),
+      recurse_func (nullptr),
+      nesting_level_left (nesting_level_left_),
+      debug_depth (0),
+      done_lookups (done_lookups_),
+      closure_ops_remaining (face_->get_num_glyphs () * HB_MAX_CLOSURE_OPS_PER_GLYPH) {}
 
   ~hb_closure_context_t (void)
   {
@@ -1244,6 +1259,7 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 					   const LookupRecord lookupRecord[],
 					   ContextClosureLookupContext &lookup_context)
 {
+  // TODO(grieger): increment ops
   if (context_intersects (c->glyphs,
 			  inputCount, input,
 			  lookup_context))
@@ -1310,6 +1326,7 @@ struct Rule
     TRACE_CLOSURE (this);
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord> >
 						       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
+    // TODO(grieger): increment ops
     context_closure_lookup (c,
 			    inputCount, inputZ.arrayZ,
 			    lookupCount, lookupRecord.arrayZ,
@@ -1470,6 +1487,7 @@ struct ContextFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+ruleSet[iter.get_coverage ()]).closure (c, lookup_context);
     }
@@ -1572,6 +1590,7 @@ struct ContextFormat2
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
+    c->increment_ops ((this+coverage).intersects_cost ());
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
@@ -1584,10 +1603,13 @@ struct ContextFormat2
 
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops (class_def.intersects_class_cost ());
       if (class_def.intersects_class (c->glyphs, i)) {
 	const RuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+    }
   }
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -1687,6 +1709,7 @@ struct ContextFormat3
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
+    c->increment_ops ((this+coverageZ[0]).intersects_cost ());
     if (!(this+coverageZ[0]).intersects (c->glyphs))
       return;
 
@@ -1695,6 +1718,7 @@ struct ContextFormat3
       {intersects_coverage},
       this
     };
+    // TODO(grieger): Count intersects
     context_closure_lookup (c,
 			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 			    lookupCount, lookupRecord,
@@ -1858,6 +1882,7 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 						 const LookupRecord lookupRecord[],
 						 ChainContextClosureLookupContext &lookup_context)
 {
+  // TODO(grieger): increment ops
   if (chain_context_intersects (c->glyphs,
 				backtrackCount, backtrack,
 				inputCount, input,
@@ -1959,6 +1984,7 @@ struct ChainRule
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16> > (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    // TODO(grieger): increment ops
     chain_context_closure_lookup (c,
 				  backtrack.len, backtrack.arrayZ,
 				  input.lenP1, input.arrayZ,
@@ -2134,6 +2160,7 @@ struct ChainContextFormat1
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
+      c->increment_ops ();
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+ruleSet[iter.get_coverage ()]).closure (c, lookup_context);
     }
@@ -2237,6 +2264,7 @@ struct ChainContextFormat2
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
+    c->increment_ops ((this+coverage).intersects_cost ());
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
@@ -2253,10 +2281,13 @@ struct ChainContextFormat2
 
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
+    {
+      c->increment_ops (input_class_def.intersects_class_cost ());
       if (input_class_def.intersects_class (c->glyphs, i)) {
 	const ChainRuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+    }
   }
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2390,6 +2421,7 @@ struct ChainContextFormat3
     TRACE_CLOSURE (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
+    c->increment_ops ((this+input[0]).intersects_cost ());
     if (!(this+input[0]).intersects (c->glyphs))
       return;
 
@@ -2399,6 +2431,7 @@ struct ChainContextFormat3
       {intersects_coverage},
       {this, this, this}
     };
+    // TODO(grieger): increment ops
     chain_context_closure_lookup (c,
 				  backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
 				  input.len, (const HBUINT16 *) input.arrayZ + 1,
