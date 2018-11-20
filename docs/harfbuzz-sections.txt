@@ -586,6 +586,7 @@ hb_ot_math_get_glyph_assembly
 
 <SECTION>
 <FILE>hb-ot-metrics</FILE>
+hb_ot_metrics_t
 hb_ot_metrics_get
 </SECTION>
 

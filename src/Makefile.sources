@@ -27,6 +27,7 @@ HB_BASE_sources = \
 	hb-open-type.hh \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
+	hb-ot-gasp-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \

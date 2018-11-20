@@ -178,6 +178,8 @@ struct post
       return false;
     }
 
+    hb_blob_ptr_t<post> table;
+
     protected:
 
     inline unsigned int get_glyph_count (void) const
@@ -236,9 +238,6 @@ struct post
       return hb_bytes_t ((const char *) data, name_length);
     }
 
-    public:
-    hb_blob_ptr_t<post> table;
-
     private:
     uint32_t version;
     const ArrayOf<HBUINT16> *glyphNameIndex;
@@ -247,7 +246,7 @@ struct post
     hb_atomic_ptr_t<uint16_t *> gids_sorted_by_name;
   };
 
-  inline bool has_data () const { return version.to_int (); };
+  inline bool has_data () const { return version.to_int (); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

@@ -49,10 +49,12 @@
     HB_OT_ACCELERATOR(OT, glyf) \
     HB_OT_TABLE(OT, VORG) \
     HB_OT_ACCELERATOR(OT, name) \
+    /* OpenType metrics. */ \
     HB_OT_TABLE(OT, OS2) \
     HB_OT_TABLE(OT, STAT) \
     HB_OT_TABLE(OT, vhea) \
     HB_OT_TABLE(OT, hhea) \
+    HB_OT_TABLE(OT, gasp) \
     /* OpenType shaping. */ \
     HB_OT_ACCELERATOR(OT, GDEF) \
     HB_OT_ACCELERATOR(OT, GSUB) \
