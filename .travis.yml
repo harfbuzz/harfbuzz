@@ -28,8 +28,8 @@ matrix:
         - make check || .ci/fail.sh
         - rm -rf freetype-2.9
       after_success:
-        - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
-        - bash <(curl -s https://codecov.io/bash)
+        - bash .ci/run-coveralls.sh # coveralls.io code coverage
+        - bash <(curl -s https://codecov.io/bash) # codecov.io code coverage
         - bash .ci/deploy-docs.sh
         - bash .ci/trigger-coverity.sh
 
