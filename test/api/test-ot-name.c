@@ -81,7 +81,7 @@ test_ot_name (void)
   hb_ot_name_id_t name_id = entries[3].name_id;
   g_assert_cmpuint (3, ==, name_id);
   hb_language_t lang = entries[3].language;
-  g_assert_cmpstr ("en", ==, hb_language_to_string (lang));
+  g_assert_cmpstr (hb_language_to_string (lang), ==, "en");
   char text[10];
   unsigned int text_size = 10;
   g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, lang, &text_size, text));

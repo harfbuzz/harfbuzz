@@ -48,7 +48,7 @@ main (int argc, char **argv)
 
   for (unsigned int i = 0; i < count; i++)
   {
-    printf ("%d	%s	",
+    printf ("%u	%s	",
 	    entries[i].name_id,
 	    hb_language_to_string (entries[i].language));
 

@@ -54,7 +54,7 @@ svg_dump (hb_face_t *face, unsigned int face_index)
     const char *data = hb_blob_get_data (blob, &length);
 
     char output_path[255];
-    sprintf (output_path, "out/svg-%d-%d.svg%s",
+    sprintf (output_path, "out/svg-%u-%u.svg%s",
 	     glyph_id,
 	     face_index,
 	     // append "z" if the content is gzipped, https://stackoverflow.com/a/6059405
@@ -108,7 +108,7 @@ png_dump (hb_face_t *face, unsigned int face_index)
 	const char *data = hb_blob_get_data (blob, &length);
 
 	char output_path[255];
-	sprintf (output_path, "out/png-%d-%d-%d.png", glyph_id, strike, face_index);
+	sprintf (output_path, "out/png-%u-%u-%u.png", glyph_id, strike, face_index);
 
 	FILE *f = fopen (output_path, "wb");
 	fwrite (data, 1, length, f);
@@ -167,9 +167,8 @@ layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int
 
       // Render
       unsigned int palette_count = hb_ot_color_palette_get_count (face);
-      for (unsigned int palette = 0; palette < palette_count; palette++) {
-	char output_path[255];
-
+      for (unsigned int palette = 0; palette < palette_count; palette++)
+      {
 	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, NULL, NULL);
 	if (!num_colors)
 	  continue;
@@ -178,7 +177,8 @@ layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int
 	hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
 	if (num_colors)
 	{
-	  sprintf (output_path, "out/colr-%d-%d-%d.svg", gid, palette, face_index);
+	  char output_path[255];
+	  sprintf (output_path, "out/colr-%u-%u-%u.svg", gid, palette, face_index);
 
 	  cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
 	  cairo_t *cr = cairo_create (surface);
@@ -245,7 +245,7 @@ dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
     // Render
     {
       char output_path[255];
-      sprintf (output_path, "out/%d-%d.svg", face_index, i);
+      sprintf (output_path, "out/%u-%u.svg", face_index, i);
       cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
       cairo_t *cr = cairo_create (surface);
       cairo_set_font_face (cr, cairo_face);
