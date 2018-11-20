@@ -144,7 +144,7 @@ unsigned int
 hb_ot_var_named_instance_get_design_coords (hb_face_t    *face,
 					    unsigned int  instance_index,
 					    unsigned int *coords_length, /* IN/OUT */
-					    int          *coords         /* OUT */)
+					    float        *coords         /* OUT */)
 {
   return face->table.fvar->get_instance_coords (instance_index, coords_length, coords);
 }

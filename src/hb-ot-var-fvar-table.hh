@@ -210,7 +210,7 @@ struct fvar
 
   inline unsigned int get_instance_coords (unsigned int  index,
 					   unsigned int *coords_length, /* IN/OUT */
-					   int          *coords         /* OUT */) const
+					   float        *coords         /* OUT */) const
   {
     if (unlikely (index >= instanceCount))
     {

@@ -124,7 +124,7 @@ HB_EXTERN unsigned int
 hb_ot_var_named_instance_get_design_coords (hb_face_t    *face,
 					    unsigned int  instance_index,
 					    unsigned int *coords_length, /* IN/OUT */
-					    int          *coords         /* OUT */);
+					    float        *coords         /* OUT */);
 
 
 /*
