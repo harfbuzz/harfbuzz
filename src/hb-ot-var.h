@@ -103,10 +103,6 @@ typedef enum { /*< flags >*/
   _HB_OT_VAR_AXIS_FLAG_MAX_VALUE= 0x7FFFFFFFu, /*< skip >*/
 } hb_ot_var_axis_flags_t;
 
-HB_EXTERN hb_ot_var_axis_flags_t
-hb_ot_var_axis_get_flags (hb_face_t    *face,
-			  unsigned int  axis_index);
-
 
 /*
  * Named instances.
