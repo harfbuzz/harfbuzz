@@ -379,14 +379,15 @@ static void
 test_buffer_utf8_conversion (void)
 {
   hb_buffer_t *b;
-  hb_glyph_info_t *glyphs;
-  unsigned int bytes, chars, i, j, len;
+  unsigned int chars, i, j, len;
 
   b = hb_buffer_create ();
   hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
 
   for (i = 0; i < G_N_ELEMENTS (utf8_conversion_tests); i++)
   {
+    unsigned int bytes;
+    hb_glyph_info_t *glyphs;
     const utf8_conversion_test_t *test = &utf8_conversion_tests[i];
     char *escaped;
 

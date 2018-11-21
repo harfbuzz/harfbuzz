@@ -54,7 +54,7 @@ HB_BEGIN_DECLS
  */
 typedef struct hb_ot_var_axis_t {
   hb_tag_t tag;
-  unsigned int name_id;
+  hb_ot_name_id_t name_id;
   float min_value;
   float default_value;
   float max_value;
@@ -62,6 +62,11 @@ typedef struct hb_ot_var_axis_t {
 
 HB_EXTERN hb_bool_t
 hb_ot_var_has_data (hb_face_t *face);
+
+
+/*
+ * Variation axes.
+ */
 
 /**
  * HB_OT_VAR_NO_AXIS_INDEX:
@@ -85,6 +90,46 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     unsigned int     *axis_index,
 		     hb_ot_var_axis_t *axis_info);
 
+/**
+ * hb_ot_var_axis_flags_t:
+ * @HB_OT_VAR_AXIS_FLAG_HIDDEN: The axis should not be exposed directly in user interfaces.
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_OT_VAR_AXIS_FLAG_HIDDEN	= 0x0001u,
+} hb_ot_var_axis_flags_t;
+
+HB_EXTERN hb_ot_var_axis_flags_t
+hb_ot_var_axis_get_flags (hb_face_t    *face,
+			  unsigned int  axis_index);
+
+
+/*
+ * Named instances.
+ */
+
+HB_EXTERN unsigned int
+hb_ot_var_get_named_instance_count (hb_face_t *face);
+
+HB_EXTERN hb_ot_name_id_t
+hb_ot_var_named_instance_get_subfamily_name_id (hb_face_t   *face,
+						unsigned int instance_index);
+
+HB_EXTERN hb_ot_name_id_t
+hb_ot_var_named_instance_get_postscript_name_id (hb_face_t  *face,
+						unsigned int instance_index);
+
+HB_EXTERN unsigned int
+hb_ot_var_named_instance_get_design_coords (hb_face_t    *face,
+					    unsigned int  instance_index,
+					    unsigned int *coords_length, /* IN/OUT */
+					    float        *coords         /* OUT */);
+
+
+/*
+ * Conversions.
+ */
 
 HB_EXTERN void
 hb_ot_var_normalize_variations (hb_face_t            *face,

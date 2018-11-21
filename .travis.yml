@@ -11,7 +11,7 @@ env:
     - CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
     - NOCONFIGURE=1
     # COVERITY_SCAN_TOKEN
-    - secure: "MRJtVu/fQoWNwMAamvIJBCX/1SMvEuEUk/ljAif/y2/3syyWgxFGp17UGnDILdoZYyCqTM+jQciY2P0nVqbjjOAUlML4QOAalqw8kPp8iTsnHUe+KOMVrOVP6p6qAQxk1im1O41cCMkmVKvk+NXe/on5euz6LGF2laHZaOAMoes="
+    - secure: "k6l/18dpsoPAf0E5RQWCr+rgjbHns0H3k0WzSYovCoVg0B7RVlV8x8OjyEOBzEvXI4aaHRdH6MHCPDFnX4fa7ysImlT6LxxIG8YhDdLkJWyS0hHbcJiGxko9AhAGzOZcDl8fZi13d697wagMqqXpjN5v2T/AQm8t4X9z2otJosY="
 
 matrix:
   include:
@@ -28,7 +28,8 @@ matrix:
         - make check || .ci/fail.sh
         - rm -rf freetype-2.9
       after_success:
-        - bash .ci/run-coveralls.sh # for coveralls.io code coverage tracking
+        - bash .ci/run-coveralls.sh # coveralls.io code coverage
+        - bash <(curl -s https://codecov.io/bash) # codecov.io code coverage
         - bash .ci/deploy-docs.sh
         - bash .ci/trigger-coverity.sh
 

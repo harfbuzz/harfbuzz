@@ -573,6 +573,10 @@ struct hb_array_t
 
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
+  template <typename hb_sanitize_context_t>
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  { return c->check_array (arrayZ, len); }
+
   template <typename T> inline operator  T * (void) const { return arrayZ; }
 
   inline Type * operator & (void) const { return arrayZ; }
@@ -598,6 +602,8 @@ struct hb_array_t
   Type *arrayZ;
   unsigned int len;
 };
+template <typename T>
+inline hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
 
 
 struct HbOpOr

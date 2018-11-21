@@ -235,7 +235,7 @@ test_object (void)
 
     {
       unsigned int j;
-      data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
+      data_t data[1000] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
       deadlock_test_t deadlock_test;
 
       g_test_message ("Testing object %s", o->name);

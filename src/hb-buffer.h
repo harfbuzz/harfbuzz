@@ -90,6 +90,8 @@ typedef struct hb_glyph_info_t
  * 				   the reshaping to a small piece around the
  * 				   breaking point only.
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
+ *
+ * Since: 1.5.0
  */
 typedef enum { /*< flags >*/
   HB_GLYPH_FLAG_UNSAFE_TO_BREAK		= 0x00000001,
