@@ -243,7 +243,7 @@ hb_ot_get_font_v_extents (hb_font_t *font,
   return vmtx.has_font_extents;
 }
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_ot_funcs (void);
 #endif
 
@@ -269,7 +269,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 
     hb_font_funcs_make_immutable (funcs);
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_ot_funcs);
 #endif
 
@@ -277,7 +277,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
   }
 } static_ot_funcs;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_ot_funcs (void)
 {

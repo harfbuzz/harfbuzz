@@ -222,7 +222,7 @@ hb_ucdn_decompose(hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_ucdn_funcs (void);
 #endif
 
@@ -241,7 +241,7 @@ static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
 
     hb_unicode_funcs_make_immutable (funcs);
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_ucdn_funcs);
 #endif
 
@@ -249,7 +249,7 @@ static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
   }
 } static_ucdn_funcs;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_ucdn_funcs (void)
 {

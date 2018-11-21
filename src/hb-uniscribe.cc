@@ -245,7 +245,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
 
     funcs->init ();
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_uniscribe_shaper_funcs);
 #endif
 
@@ -261,7 +261,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
   }
 } static_uniscribe_shaper_funcs;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_uniscribe_shaper_funcs (void)
 {

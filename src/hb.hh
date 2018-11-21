@@ -281,7 +281,7 @@ static int errno = 0; /* Use something better? */
 #  endif
 #endif
 
-#if HAVE_ATEXIT
+#if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
 /* atexit() is only safe to be called from shared libraries on certain
  * platforms.  Whitelist.
  * https://bugs.freedesktop.org/show_bug.cgi?id=82246 */
@@ -312,6 +312,9 @@ static int errno = 0; /* Use something better? */
 #endif
 #ifdef HB_NO_ATEXIT
 #  undef HB_USE_ATEXIT
+#endif
+#ifndef HB_USE_ATEXIT
+#  define HB_USE_ATEXIT 0
 #endif
 
 #define HB_STMT_START do
