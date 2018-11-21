@@ -55,41 +55,9 @@ hb_ot_var_has_data (hb_face_t *face);
  * Variation axes.
  */
 
-/**
- * HB_OT_VAR_NO_AXIS_INDEX:
- *
- * Since: 1.4.2
- */
-#define HB_OT_VAR_NO_AXIS_INDEX		0xFFFFFFFFu
 
 HB_EXTERN unsigned int
 hb_ot_var_get_axis_count (hb_face_t *face);
-
-/**
- * hb_ot_var_axis_t:
- *
- * Since: 1.4.2
- */
-typedef struct hb_ot_var_axis_t
-{
-  hb_tag_t tag;
-  hb_ot_name_id_t name_id;
-  float min_value;
-  float default_value;
-  float max_value;
-} hb_ot_var_axis_t;
-
-HB_EXTERN unsigned int
-hb_ot_var_get_axes (hb_face_t        *face,
-		    unsigned int      start_offset,
-		    unsigned int     *axes_count /* IN/OUT */,
-		    hb_ot_var_axis_t *axes_array /* OUT */);
-
-HB_EXTERN hb_bool_t
-hb_ot_var_find_axis (hb_face_t        *face,
-		     hb_tag_t          axis_tag,
-		     unsigned int     *axis_index,
-		     hb_ot_var_axis_t *axis_info);
 
 /**
  * hb_ot_var_axis_flags_t:
@@ -102,6 +70,35 @@ typedef enum { /*< flags >*/
 
   _HB_OT_VAR_AXIS_FLAG_MAX_VALUE= 0x7FFFFFFFu, /*< skip >*/
 } hb_ot_var_axis_flags_t;
+
+/**
+ * hb_ot_var_axis_info_t:
+ *
+ * Since: REPLACEME
+ */
+typedef struct hb_ot_var_axis_info_t
+{
+  unsigned int			axis_index;
+  hb_tag_t			tag;
+  hb_ot_name_id_t		name_id;
+  hb_ot_var_axis_flags_t	flags;
+  float				min_value;
+  float				default_value;
+  float				max_value;
+  /*< private >*/
+  unsigned int			reserved;
+} hb_ot_var_axis_info_t;
+
+HB_EXTERN unsigned int
+hb_ot_var_get_axis_infos (hb_face_t             *face,
+			  unsigned int           start_offset,
+			  unsigned int          *axes_count /* IN/OUT */,
+			  hb_ot_var_axis_info_t *axes_array /* OUT */);
+
+HB_EXTERN hb_bool_t
+hb_ot_var_find_axis_info (hb_face_t             *face,
+			  hb_tag_t               axis_tag,
+			  hb_ot_var_axis_info_t *axis_info);
 
 
 /*

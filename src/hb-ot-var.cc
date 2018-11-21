@@ -53,7 +53,6 @@
  * @face: #hb_face_t to test
  *
  * This function allows to verify the presence of OpenType variation data on the face.
- * Alternatively, use hb_ot_var_get_axis_count().
  *
  * Return value: true if face has a `fvar' table and false otherwise
  *
@@ -80,6 +79,7 @@ hb_ot_var_get_axis_count (hb_face_t *face)
  * hb_ot_var_get_axes:
  *
  * Since: 1.4.2
+ * Deprecated: REPLACEME
  **/
 unsigned int
 hb_ot_var_get_axes (hb_face_t        *face,
@@ -87,13 +87,14 @@ hb_ot_var_get_axes (hb_face_t        *face,
 		    unsigned int     *axes_count /* IN/OUT */,
 		    hb_ot_var_axis_t *axes_array /* OUT */)
 {
-  return face->table.fvar->get_axis_infos (start_offset, axes_count, axes_array);
+  return face->table.fvar->get_axes_deprecated (start_offset, axes_count, axes_array);
 }
 
 /**
  * hb_ot_var_find_axis:
  *
  * Since: 1.4.2
+ * Deprecated: REPLACEME
  **/
 hb_bool_t
 hb_ot_var_find_axis (hb_face_t        *face,
@@ -101,8 +102,36 @@ hb_ot_var_find_axis (hb_face_t        *face,
 		     unsigned int     *axis_index,
 		     hb_ot_var_axis_t *axis_info)
 {
-  return face->table.fvar->find_axis (axis_tag, axis_index, axis_info);
+  return face->table.fvar->find_axis_deprecated (axis_tag, axis_index, axis_info);
 }
+
+/**
+ * hb_ot_var_get_axis_infos:
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN unsigned int
+hb_ot_var_get_axis_infos (hb_face_t             *face,
+			  unsigned int           start_offset,
+			  unsigned int          *axes_count /* IN/OUT */,
+			  hb_ot_var_axis_info_t *axes_array /* OUT */)
+{
+  return face->table.fvar->get_axis_infos (start_offset, axes_count, axes_array);
+}
+
+/**
+ * hb_ot_var_find_axis_info:
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN hb_bool_t
+hb_ot_var_find_axis_info (hb_face_t             *face,
+			  hb_tag_t               axis_tag,
+			  hb_ot_var_axis_info_t *axis_info)
+{
+  return face->table.fvar->find_axis_info (axis_tag, axis_info);
+}
+
 
 /*
  * Named instances.
@@ -156,10 +185,10 @@ hb_ot_var_normalize_variations (hb_face_t            *face,
   const OT::fvar &fvar = *face->table.fvar;
   for (unsigned int i = 0; i < variations_length; i++)
   {
-    unsigned int axis_index;
-    if (hb_ot_var_find_axis (face, variations[i].tag, &axis_index, nullptr) &&
-	axis_index < coords_length)
-      coords[axis_index] = fvar.normalize_axis_value (axis_index, variations[i].value);
+    hb_ot_var_axis_info_t info;
+    if (hb_ot_var_find_axis_info (face, variations[i].tag, &info) &&
+	info.axis_index < coords_length)
+      coords[info.axis_index] = fvar.normalize_axis_value (info.axis_index, variations[i].value);
   }
 
   face->table.avar->map_coords (coords, coords_length);
