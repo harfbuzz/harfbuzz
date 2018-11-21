@@ -50,6 +50,8 @@ data[0][0x20F0] = defaults[0]
 # TODO https://github.com/roozbehp/unicode-data/issues/9
 data[0][0x11C44] = 'Consonant_Placeholder'
 data[0][0x11C45] = 'Consonant_Placeholder'
+# TODO https://github.com/harfbuzz/harfbuzz/pull/1399
+data[0][0x111C8] = 'Consonant_Placeholder'
 for u in range (0xFE00, 0xFE0F + 1):
 	data[0][u] = defaults[0]
 
@@ -168,7 +170,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -353,6 +355,9 @@ def map_to_use(data):
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
 		if U == 0x11134: UISC = Gemination_Mark
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1399
+		if U == 0x111C9: UISC = Consonant_Final
 
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
