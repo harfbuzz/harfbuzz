@@ -90,7 +90,8 @@ static inline Type& StructAfter(TObject &X)
 /* Check that _code compiles in a method environment */
 #define _DEFINE_COMPILES_ASSERTION1(_line, _code) \
   inline void _compiles_assertion_on_line_##_line (void) const \
-  { _code; }
+  { _code; } \
+  static_assert (true, "") /* So we require semicolon here. */
 # define _DEFINE_COMPILES_ASSERTION0(_line, _code) _DEFINE_COMPILES_ASSERTION1 (_line, _code)
 # define DEFINE_COMPILES_ASSERTION(_code) _DEFINE_COMPILES_ASSERTION0 (__LINE__, _code)
 
@@ -116,7 +117,7 @@ static inline Type& StructAfter(TObject &X)
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
-  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
+  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size); \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
