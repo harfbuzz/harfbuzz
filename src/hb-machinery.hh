@@ -115,8 +115,8 @@ static inline Type& StructAfter(TObject &X)
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
-	inline unsigned int get_size (void) const { return (size - (array).min_size + (array).get_size ()); } \
-	DEFINE_SIZE_ARRAY(size, array)
+  inline unsigned int get_size (void) const { return (size - (array).min_size + (array).get_size ()); } \
+  DEFINE_SIZE_ARRAY(size, array)
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
