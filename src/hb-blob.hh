@@ -60,7 +60,7 @@ struct hb_blob_t
   template <typename Type>
   inline const Type* as (void) const
   {
-    return length < Type::min_size ? &Null(Type) : reinterpret_cast<const Type *> (data);
+    return length < hb_null_size<Type>::value ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
   inline hb_bytes_t as_bytes (void) const
   {
