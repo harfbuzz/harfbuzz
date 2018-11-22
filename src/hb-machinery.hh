@@ -82,16 +82,14 @@ static inline Type& StructAfter(TObject &X)
 /* Check _assertion in a method environment */
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
-  { static_assert ((_assertion), ""); } \
-  static_assert (true, "") /* So we require semicolon here. */
+  { static_assert ((_assertion), ""); }
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
 # define DEFINE_INSTANCE_ASSERTION(_assertion) _DEFINE_INSTANCE_ASSERTION0 (__LINE__, _assertion)
 
 /* Check that _code compiles in a method environment */
 #define _DEFINE_COMPILES_ASSERTION1(_line, _code) \
   inline void _compiles_assertion_on_line_##_line (void) const \
-  { _code; } \
-  static_assert (true, "") /* So we require semicolon here. */
+  { _code; }
 # define _DEFINE_COMPILES_ASSERTION0(_line, _code) _DEFINE_COMPILES_ASSERTION1 (_line, _code)
 # define DEFINE_COMPILES_ASSERTION(_code) _DEFINE_COMPILES_ASSERTION0 (__LINE__, _code)
 
@@ -104,19 +102,19 @@ static inline Type& StructAfter(TObject &X)
   enum { static_size = (size) }
 
 #define DEFINE_SIZE_UNION(size, _member) \
-  DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size); \
-  DEFINE_INSTANCE_ASSERTION (sizeof(this->u._member) == (size)); \
+  DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof(this->u._member) == (size)) \
   enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_MIN(size) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
   enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size); \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
+  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])) \
   enum { null_size = (size) }; \
   enum { min_size = (size) }
 
