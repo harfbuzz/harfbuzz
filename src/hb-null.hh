@@ -40,16 +40,22 @@
 
 /* Use SFINAE to sniff whether T has min_size; in which case return T::null_size,
  * otherwise return sizeof(T). */
-template <typename T, bool b>
+
+/* The hard way...
+ * https://stackoverflow.com/questions/7776448/sfinae-tried-with-bool-gives-compiler-error-template-argument-tvalue-invol
+ */
+template<bool> struct _hb_bool_type {};
+
+template <typename T, typename B>
 struct _hb_null_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_null_size<T, T::min_size ? false : false>
+struct _hb_null_size<T, _hb_bool_type<(bool) T::min_size> >
 { enum { value = T::null_size }; };
 
 template <typename T>
 struct hb_null_size
-{ enum { value = _hb_null_size<T, false>::value }; };
+{ enum { value = _hb_null_size<T, _hb_bool_type<true> >::value }; };
 
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];

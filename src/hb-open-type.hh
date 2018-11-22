@@ -231,14 +231,9 @@ struct FixedVersion
  * Use: (base+offset)
  */
 
-template <typename Type, bool has_null_> struct assert_has_null_size { static_assert (Type::null_size > 0, ""); };
-template <typename Type> struct assert_has_null_size<Type, false> {};
-
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
-  static_assert (sizeof (assert_has_null_size<Type, has_null>) || true, "");
-
   inline const Type& operator () (const void *base) const
   {
     if (unlikely (this->is_null ())) return Null (Type);

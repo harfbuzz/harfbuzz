@@ -56,7 +56,7 @@ struct loca
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Location data. */
   public:
-  DEFINE_SIZE_ARRAY (0, dataZ);
+  DEFINE_SIZE_UNBOUNDED (0);
 };
 
 
@@ -465,7 +465,7 @@ struct glyf
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Glyphs data. */
   public:
-  DEFINE_SIZE_ARRAY (0, dataZ);
+  DEFINE_SIZE_UNBOUNDED (0);
 };
 
 struct glyf_accelerator_t : glyf::accelerator_t {};
