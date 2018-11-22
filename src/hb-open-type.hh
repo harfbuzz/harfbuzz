@@ -317,6 +317,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 template <typename Type, bool has_null=true> struct LOffsetTo : OffsetTo<Type, HBUINT32, has_null> {};
+
 template <typename Base, typename OffsetType, bool has_null, typename Type>
 static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
 template <typename Base, typename OffsetType, bool has_null, typename Type>
@@ -401,7 +402,7 @@ struct UnsizedArrayOf
   public:
   Type		arrayZ[VAR];
   public:
-  DEFINE_SIZE_ARRAY (0, arrayZ);
+  DEFINE_SIZE_UNBOUNDED (0);
 };
 
 /* Unsized array of offset's */
