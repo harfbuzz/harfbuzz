@@ -104,8 +104,8 @@ static inline Type& StructAfter(TObject &X)
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_UNION(size, _member) \
+  DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size); \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
-			     0*sizeof(this->u._member.static_size) + \
 			     sizeof(this->u._member) == (size)); \
   static const unsigned int min_size = (size)
 
@@ -115,9 +115,9 @@ static inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
+  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size); \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
-  DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size); \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
