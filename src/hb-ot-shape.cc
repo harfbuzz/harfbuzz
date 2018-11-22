@@ -149,9 +149,12 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   plan.zero_marks = script_zero_marks && !plan.apply_kerx;
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
-  bool has_kern_mark = plan.apply_kern && hb_ot_layout_has_cross_kerning (face);
-  plan.fallback_mark_positioning = script_fallback_mark_positioning && !plan.apply_gpos && !plan.apply_kerx && !has_kern_mark;
-  plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos && !plan.apply_kerx && !has_kern_mark;
+  plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&
+					      !plan.apply_kerx &&
+					      (!plan.apply_kern || !hb_ot_layout_has_cross_kerning (face));
+
+  plan.fallback_mark_positioning = plan.adjust_mark_positioning_when_zeroing &&
+				   script_fallback_mark_positioning;
 
   /* Currently we always apply trak. */
   plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
