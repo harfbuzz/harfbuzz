@@ -283,6 +283,12 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_myanmar;
 
 
+    /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
+    case HB_SCRIPT_MYANMAR_ZAWGYI:
+
+      return &_hb_ot_complex_shaper_myanmar_zawgyi;
+
+
     /* Unicode-2.0 additions */
     case HB_SCRIPT_TIBETAN:
 
@@ -381,12 +387,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_default;
       else
 	return &_hb_ot_complex_shaper_use;
-
-
-    /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
-    case HB_SCRIPT_MYANMAR_ZAWGYI:
-
-      return &_hb_ot_complex_shaper_myanmar_zawgyi;
   }
 }
 
