@@ -95,7 +95,7 @@ static inline Type& StructAfter(TObject &X)
 
 
 #define DEFINE_SIZE_STATIC(size) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)) \
   inline unsigned int get_size (void) const { return (size); } \
   enum { null_size = (size) }; \
   enum { min_size = (size) }; \
