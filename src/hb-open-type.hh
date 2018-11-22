@@ -231,17 +231,31 @@ struct FixedVersion
  * Use: (base+offset)
  */
 
+template <typename Type, bool has_null>
+struct _hb_has_null
+{
+  static inline const Type *get_null (void) { return nullptr; }
+  static inline Type *get_crap (void) { return nullptr; }
+};
+template <typename Type>
+struct _hb_has_null<Type, true>
+{
+  static inline const Type *get_null (void) { return &Null(Type); }
+  static inline Type *get_crap (void) { return &Crap(Type); }
+};
+
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
   inline const Type& operator () (const void *base) const
   {
-    if (unlikely (this->is_null ())) return Null (Type);
+    if (unlikely (this->is_null ())) return *_hb_has_null<Type, has_null>::get_null ();
     return StructAtOffset<const Type> (base, *this);
   }
   inline Type& operator () (void *base) const
   {
     if (unlikely (this->is_null ())) return Crap (Type);
+    if (unlikely (this->is_null ())) return *_hb_has_null<Type, has_null>::get_crap ();
     return StructAtOffset<Type> (base, *this);
   }
 
