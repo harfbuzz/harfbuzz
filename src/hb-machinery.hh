@@ -123,12 +123,6 @@ static inline Type& StructAfter(TObject &X)
   inline unsigned int get_size (void) const { return (size - (array).min_size + (array).get_size ()); } \
   DEFINE_SIZE_ARRAY(size, array)
 
-#define DEFINE_SIZE_ARRAY2(size, array1, array2) \
-  DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
-			     sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
-  DEFINE_COMPILES_ASSERTION ((void) (array1)[0].static_size; (void) (array2)[0].static_size) \
-  static const unsigned int min_size = (size)
-
 
 /*
  * Dispatch

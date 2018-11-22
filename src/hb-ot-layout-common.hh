@@ -802,11 +802,11 @@ struct Lookup
   HBUINT16	lookupFlag;		/* Lookup qualifiers */
   ArrayOf<Offset16>
 		subTable;		/* Array of SubTables */
-  HBUINT16	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
+/*HBUINT16	markFilteringSetX[VAR];*//* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
   public:
-  DEFINE_SIZE_ARRAY2 (6, subTable, markFilteringSetX);
+  DEFINE_SIZE_ARRAY (6, subTable);
 };
 
 typedef OffsetListOf<Lookup> LookupList;
@@ -1568,9 +1568,9 @@ struct VarData
   HBUINT16		itemCount;
   HBUINT16		shortCount;
   ArrayOf<HBUINT16>	regionIndices;
-  UnsizedArrayOf<HBUINT8>bytesX;
+/*UnsizedArrayOf<HBUINT8>bytesX;*/
   public:
-  DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
+  DEFINE_SIZE_ARRAY (6, regionIndices);
 };
 
 struct VariationStore
