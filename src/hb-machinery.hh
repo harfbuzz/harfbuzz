@@ -100,24 +100,28 @@ static inline Type& StructAfter(TObject &X)
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof (*this) == (size)); \
   inline unsigned int get_size (void) const { return (size); } \
-  enum { static_size = (size) }; \
-  enum { min_size = (size) }
+  enum { null_size = (size) }; \
+  enum { min_size = (size) }; \
+  enum { static_size = (size) }
 
 #define DEFINE_SIZE_UNION(size, _member) \
   DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size); \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof(this->u._member) == (size)); \
+  enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_MIN(size) \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof (*this) >= (size)); \
+  enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size); \
   DEFINE_INSTANCE_ASSERTION (alignof (*this) == 1 && \
 			     sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
+  enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
