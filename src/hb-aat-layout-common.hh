@@ -69,7 +69,7 @@ struct LookupFormat0
   UnsizedArrayOf<T>
 		arrayZ;		/* Array of lookup values, indexed by glyph index. */
   public:
-  DEFINE_SIZE_ARRAY (2, arrayZ);
+  DEFINE_SIZE_UNBOUNDED (2);
 };
 
 

@@ -65,7 +65,7 @@ struct InstanceRecord
   //				  * instance. */
 
   public:
-  DEFINE_SIZE_ARRAY (4, coordinatesZ);
+  DEFINE_SIZE_UNBOUNDED (4);
 };
 
 struct AxisRecord
@@ -109,7 +109,7 @@ struct fvar
 		  axisSize == 20 && /* Assumed in our code. */
 		  instanceSize >= axisCount * 4 + 4 &&
 		  get_axes ().sanitize (c) &&
-		  c->check_range (&get_instance (0), instanceCount, instanceSize));
+		  c->check_range (get_instance (0), instanceCount, instanceSize));
   }
 
   inline unsigned int get_axis_count (void) const
@@ -240,15 +240,17 @@ struct fvar
 
   inline hb_ot_name_id_t get_instance_subfamily_name_id (unsigned int instance_index) const
   {
-    const InstanceRecord &instance = get_instance (instance_index);
-    return instance.subfamilyNameID;
+    const InstanceRecord *instance = get_instance (instance_index);
+    if (unlikely (!instance)) return HB_OT_NAME_ID_INVALID;
+    return instance->subfamilyNameID;
   }
 
   inline hb_ot_name_id_t get_instance_postscript_name_id (unsigned int instance_index) const
   {
-    const InstanceRecord &instance = get_instance (instance_index);
+    const InstanceRecord *instance = get_instance (instance_index);
+    if (unlikely (!instance)) return HB_OT_NAME_ID_INVALID;
     if (instanceSize >= axisCount * 4 + 6)
-      return StructAfter<NameID> (instance.get_coordinates (axisCount));
+      return StructAfter<NameID> (instance->get_coordinates (axisCount));
     return HB_OT_NAME_ID_INVALID;
   }
 
@@ -256,7 +258,8 @@ struct fvar
 					   unsigned int *coords_length, /* IN/OUT */
 					   float        *coords         /* OUT */) const
   {
-    if (unlikely (instance_index >= instanceCount))
+    const InstanceRecord *instance = get_instance (instance_index);
+    if (unlikely (!instance))
     {
       if (coords_length)
         *coords_length = 0;
@@ -265,9 +268,8 @@ struct fvar
 
     if (coords_length && *coords_length)
     {
-      const InstanceRecord &instance = get_instance (instance_index);
-      hb_array_t<const Fixed> instanceCoords = instance.get_coordinates (axisCount)
-						       .sub_array (0, *coords_length);
+      hb_array_t<const Fixed> instanceCoords = instance->get_coordinates (axisCount)
+							 .sub_array (0, *coords_length);
       for (unsigned int i = 0; i < instanceCoords.len; i++)
         coords[i] = instanceCoords.arrayZ[i].to_float ();
     }
@@ -278,12 +280,11 @@ struct fvar
   inline hb_array_t<const AxisRecord> get_axes (void) const
   { return hb_array (&(this+firstAxis), axisCount); }
 
-  inline const InstanceRecord &get_instance (unsigned int i) const
+  inline const InstanceRecord *get_instance (unsigned int i) const
   {
-    if (unlikely (i >= instanceCount)) return Null (InstanceRecord);
-
-   return StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),
-					  i * instanceSize);
+    if (unlikely (i >= instanceCount)) return nullptr;
+   return &StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),
+					   i * instanceSize);
   }
 
   protected:

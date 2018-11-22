@@ -154,7 +154,7 @@ struct KernSubTable
   KernSubTableFormat3<KernSubTableHeader>	format3;
   } u;
   public:
-  DEFINE_SIZE_MIN (0);
+  DEFINE_SIZE_UNBOUNDED (KernSubTableHeader::static_size);
 };
 
 
