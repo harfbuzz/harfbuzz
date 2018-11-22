@@ -41,9 +41,14 @@
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
 
+#if __cplusplus < 201103L
+#define decltype typeof
+#endif
+
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline Type const & Null (void) {
+  HB_UNUSED decltype (0) _i;
   static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
