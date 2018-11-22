@@ -38,13 +38,26 @@
 
 #define HB_NULL_POOL_SIZE 1024
 
+/* Use SFINAE to sniff whether T has min_size; in which case return T::null_size,
+ * otherwise return sizeof(T). */
+template <typename T, bool b>
+struct _hb_null_size
+{ enum { value = sizeof (T) }; };
+template <typename T>
+struct _hb_null_size<T, T::min_size ? false : false>
+{ enum { value = T::null_size }; };
+
+template <typename T>
+struct hb_null_size
+{ enum { value = _hb_null_size<T, false>::value }; };
+
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline Type const & Null (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (hb_null_size<Type>::value <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
 #define Null(Type) Null<typename hb_remove_const<typename hb_remove_reference<Type>::value>::value>()
@@ -85,7 +98,7 @@ extern HB_INTERNAL
 /* CRAP pool: Common Region for Access Protection. */
 template <typename Type>
 static inline Type& Crap (void) {
-  static_assert (sizeof (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (hb_null_size<Type>::value <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
   memcpy (obj, &Null(Type), sizeof (*obj));
   return *obj;
