@@ -268,10 +268,19 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_khmer;
 
     case HB_SCRIPT_MYANMAR:
-      if (planner->map.chosen_script[0] == HB_TAG ('m','y','m','2'))
-	return &_hb_ot_complex_shaper_myanmar;
-      else
+      /* If the designer designed the font for the 'DFLT' script,
+       * (or we ended up arbitrarily pick 'latn'), use the default shaper.
+       * Otherwise, use the specific shaper.
+       *
+       * If designer designed for 'mymr' tag, also send to default
+       * shaper.  That's tag used from before Myanmar shaping spec
+       * was developed.  The shaping spec uses 'mym2' tag. */
+      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
+	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n') ||
+	  planner->map.chosen_script[0] == HB_TAG ('m','y','m','r'))
 	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_myanmar;
 
 
     /* Unicode-2.0 additions */
@@ -372,6 +381,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_default;
       else
 	return &_hb_ot_complex_shaper_use;
+
 
     /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
     case HB_SCRIPT_MYANMAR_ZAWGYI:
