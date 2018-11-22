@@ -50,7 +50,7 @@ template <typename T, typename B>
 struct _hb_null_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_null_size<T, _hb_bool_type<(bool) T::min_size> >
+struct _hb_null_size<T, _hb_bool_type<(bool) (int) T::min_size> >
 { enum { value = T::null_size }; };
 
 template <typename T>
