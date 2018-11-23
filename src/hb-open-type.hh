@@ -479,6 +479,9 @@ struct ArrayOf
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
+  inline hb_array_t<Type> as_array (void) { return hb_array_t<Type> (arrayZ, len); }
+  inline hb_array_t<const Type> as_array (void) const { return hb_array_t<const Type> (arrayZ, len); }
+
   inline bool serialize (hb_serialize_context_t *c,
 			 unsigned int items_len)
   {
