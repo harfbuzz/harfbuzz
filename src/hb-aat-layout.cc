@@ -302,6 +302,12 @@ _hb_aat_language_get (hb_face_t *face,
 
 /**
  * hb_aat_layout_get_features:
+ * @face: a face object
+ * @start_offset: iteration's start offset
+ * @count:    (inout): buffer size as input, filled size as output
+ * @features: (out): features buffer
+ *
+ * Return value: Number of all available features
  *
  * Since: REPLACEME
  */
@@ -315,22 +321,43 @@ hb_aat_layout_get_features (hb_face_t                    *face,
 }
 
 /**
- * hb_aat_layout_get_feature_name_id:
+ * hb_aat_layout_feature_get_name_id:
+ * @face: a face object
+ * @feature: feature id
+ *
+ * Return value: Name ID index
  *
  * Since: REPLACEME
  */
 hb_ot_name_id_t
-hb_aat_layout_get_feature_name_id (hb_face_t                    *face,
+hb_aat_layout_feature_get_name_id (hb_face_t                    *face,
 				   hb_aat_layout_feature_type_t  feature)
 { return face->table.feat->get_feature_name_id (feature); }
 
 /**
- * hb_aat_layout_get_feature_settings:
+ * hb_aat_layout_feature_get_settings:
+ * @face:    a face object
+ * @feature: feature id
+ * @default_setting: (out): if is set, the feature is exclusive
+ * @start_offset:    iteration's start offset
+ * @count:  (inout): buffer size as input, filled size as output
+ * @settings: (out): settings buffer
+ *
+ * Per spec:
+ *   For feature types that don't have exclusive settings,
+ *   there will always be a pair of values. One value turns
+ *   a selector on and a second value turns the selector off.
+ *   The on setting must be even and the off setting must be one
+ *   greater than the corresponding on setting. The off setting
+ *   is therefore always odd. As a result, only the on setting
+ *   should have an entry in the setting name array.
+ *
+ * Return value: Number of all available features
  *
  * Since: REPLACEME
  */
 unsigned int
-hb_aat_layout_get_feature_settings (hb_face_t                       *face,
+hb_aat_layout_feature_get_settings (hb_face_t                       *face,
 				    hb_aat_layout_feature_type_t     feature,
 				    hb_aat_layout_feature_setting_t *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                     start_offset,
@@ -342,12 +369,17 @@ hb_aat_layout_get_feature_settings (hb_face_t                       *face,
 }
 
 /**
- * hb_aat_layout_get_feature_setting_name_id:
+ * hb_aat_layout_feature_setting_get_name_id:
+ * @face:    a face object
+ * @feature: feature id
+ * @setting: setting value
+ *
+ * Return value: Name ID index
  *
  * Since: REPLACEME
  */
 hb_ot_name_id_t
-hb_aat_layout_get_feature_setting_name_id (hb_face_t                       *face,
+hb_aat_layout_feature_setting_get_name_id (hb_face_t                       *face,
 					   hb_aat_layout_feature_type_t     feature,
 					   hb_aat_layout_feature_setting_t  setting)
 { return face->table.feat->get_feature_setting_name_id (feature, setting); }
