@@ -2,7 +2,7 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys, os, subprocess
+import sys, os, subprocess, hashlib, tempfile, shutil
 
 def cmd(command):
 	global process
@@ -28,6 +28,7 @@ process = subprocess.Popen ([hb_shape, '--batch'],
 			    stderr=sys.stdout)
 
 fails = 0
+skips = 0
 
 if not len (args):
 	args = ['-']
@@ -46,8 +47,24 @@ for filename in args:
 
 	for line in f:
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
-		cwd = os.path.dirname(filename)
-		fontfile = os.path.normpath (os.path.join (cwd, fontfile))
+		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
+			fontfile, expected_hash = fontfile.split('@')
+
+			try:
+				with open (fontfile, 'rb') as ff:
+					actual_hash = hashlib.sha1 (ff.read()).hexdigest ().strip ()
+					if actual_hash != expected_hash:
+						print ('different versions of the font is found, expected %s hash was %s but got %s, skip' %
+							   (fontfile, expected_hash, actual_hash))
+						skips = skips + 1
+						continue
+			except:
+				print ('%s is not found, skip.' % fontfile)
+				skips = skips + 1
+				continue
+		else:
+			cwd = os.path.dirname(filename)
+			fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
 		extra_options = ["--shaper=ot"]
 		glyphs_expected = glyphs_expected.strip()
@@ -62,6 +79,12 @@ for filename in args:
 		if not reference:
 			print ("%s %s %s %s --unicodes %s" %
 					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
+
+		# hack to support fonts with space on run-tests.py, after several other tries...
+		if ' ' in fontfile:
+			new_fontfile = os.path.join (tempfile.gettempdir (), 'tmpfile')
+			shutil.copyfile(fontfile, new_fontfile)
+			fontfile = new_fontfile
 
 		glyphs1 = cmd ([hb_shape, "--font-funcs=ft",
 			fontfile] + extra_options + ["--unicodes",
@@ -85,11 +108,12 @@ for filename in args:
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
 			fails = fails + 1
 
-if fails != 0:
+if fails != 0 or skips != 0:
 	if not reference:
-		print (str (fails) + " tests failed.") # file=sys.stderr
-	sys.exit (1)
-
+		print ("%d tests are failed and %d tests are skipped." % (fails, skips)) # file=sys.stderr
+	if fails != 0:
+		sys.exit (1)
+	sys.exit (77)
 else:
 	if not reference:
 		print ("All tests passed.")

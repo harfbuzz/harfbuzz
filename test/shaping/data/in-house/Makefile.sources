@@ -33,6 +33,7 @@ TESTS = \
 	tests/khmer-misc.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
+	tests/macos-10.12.tests \
 	tests/mark-attachment.tests \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
