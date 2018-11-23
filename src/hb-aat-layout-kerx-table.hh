@@ -934,6 +934,7 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+    c->sanitizer.reset_object ();
 
     return ret;
   }

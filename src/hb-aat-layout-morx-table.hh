@@ -1041,6 +1041,7 @@ struct Chain
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
+    c->sanitizer.reset_object ();
   }
 
   inline unsigned int get_size (void) const { return length; }
