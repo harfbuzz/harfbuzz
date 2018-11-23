@@ -29,7 +29,6 @@
 
 #include "hb.hh"
 
-#include "hb-aat.h"
 #include "hb-ot-shape.hh"
 
 

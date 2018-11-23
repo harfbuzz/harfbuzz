@@ -28,7 +28,6 @@
 #define HB_AAT_MAP_HH
 
 #include "hb.hh"
-#include "hb-aat.h"
 
 
 struct hb_aat_map_t
