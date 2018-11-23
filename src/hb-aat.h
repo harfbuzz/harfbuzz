@@ -30,8 +30,9 @@
 
 HB_BEGIN_DECLS
 
-/*
- * AAT available features
+/**
+ * hb_aat_layout_feature_type_t:
+ *
  *
  * Since: REPLACEME
  */
@@ -80,8 +81,9 @@ typedef enum
   HB_AAT_LAYOUT_FEATURE_TYPE_CJK_ROMAN_SPACING_TYPE		= 103
 } hb_aat_layout_feature_type_t;
 
-/*
- * AAT available settings
+/**
+ * hb_aat_layout_feature_selector_t:
+ *
  *
  * Since: REPLACEME
  */
