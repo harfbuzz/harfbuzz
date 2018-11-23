@@ -66,6 +66,12 @@ hb_ot_layout_has_kerning (hb_face_t *face)
 }
 
 bool
+hb_ot_layout_has_machine_kerning (hb_face_t *face)
+{
+  return face->table.kern->has_state_machine ();
+}
+
+bool
 hb_ot_layout_has_cross_kerning (hb_face_t *face)
 {
   return face->table.kern->has_cross_stream ();

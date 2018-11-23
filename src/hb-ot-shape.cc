@@ -146,7 +146,9 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
       plan.apply_kern = true;
   }
 
-  plan.zero_marks = script_zero_marks && !plan.apply_kerx;
+  plan.zero_marks = script_zero_marks &&
+		    !plan.apply_kerx &&
+		    (!plan.apply_kern || !hb_ot_layout_has_machine_kerning (face));
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
   plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&

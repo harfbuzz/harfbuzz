@@ -843,6 +843,21 @@ struct KerxTable
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
 
+  inline bool has_state_machine (void) const
+  {
+    typedef typename T::SubTable SubTable;
+
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->get_type () == 1)
+        return true;
+      st = &StructAfter<SubTable> (*st);
+    }
+    return false;
+  }
+
   inline bool has_cross_stream (void) const
   {
     typedef typename T::SubTable SubTable;

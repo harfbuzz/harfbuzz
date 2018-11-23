@@ -49,6 +49,9 @@ HB_INTERNAL bool
 hb_ot_layout_has_kerning (hb_face_t *face);
 
 HB_INTERNAL bool
+hb_ot_layout_has_machine_kerning (hb_face_t *face);
+
+HB_INTERNAL bool
 hb_ot_layout_has_cross_kerning (hb_face_t *face);
 
 HB_INTERNAL void

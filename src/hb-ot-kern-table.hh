@@ -274,6 +274,15 @@ struct kern
   inline bool has_data (void) const { return u.version32; }
   inline unsigned int get_type (void) const { return u.major; }
 
+  inline bool has_state_machine (void) const
+  {
+    switch (get_type ()) {
+    case 0: return u.ot.has_state_machine ();
+    case 1: return u.aat.has_state_machine ();
+    default:return false;
+    }
+  }
+
   inline bool has_cross_stream (void) const
   {
     switch (get_type ()) {
