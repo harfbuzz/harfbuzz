@@ -951,7 +951,7 @@ struct Chain
       {
 	const Feature &feature = featureZ[i];
 	hb_aat_layout_feature_type_t type = (hb_aat_layout_feature_type_t) (unsigned int) feature.featureType;
-	hb_aat_layout_feature_setting_t setting = (hb_aat_layout_feature_setting_t) (unsigned int) feature.featureSetting;
+	hb_aat_layout_feature_selector_t setting = (hb_aat_layout_feature_selector_t) (unsigned int) feature.featureSetting;
       retry:
 	const hb_aat_map_builder_t::feature_info_t *info = map->features.bsearch ((uint16_t) type);
 	if (info && info->setting == setting)

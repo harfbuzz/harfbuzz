@@ -50,53 +50,53 @@ test_aat_get_features (void)
 }
 
 static void
-test_aat_get_feature_settings (void)
+test_aat_get_feature_selectors (void)
 {
-  hb_aat_layout_feature_setting_t default_setting;
-  hb_aat_layout_feature_setting_t settings[3];
+  hb_aat_layout_feature_selector_t default_selector;
+  hb_aat_layout_feature_selector_t settings[3];
   unsigned int count = 3;
 
-  g_assert_cmpuint (4, ==, hb_aat_layout_feature_get_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
-							       &default_setting, 0, &count, settings));
+  g_assert_cmpuint (4, ==, hb_aat_layout_feature_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
+							        &default_selector, 0, &count, settings));
   g_assert_cmpuint (3, ==, count);
-  g_assert_cmpuint (0, ==, default_setting);
+  g_assert_cmpuint (0, ==, default_selector);
 
   g_assert_cmpuint (0, ==, settings[0]);
-  g_assert_cmpuint (294, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
+  g_assert_cmpuint (294, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
 
   g_assert_cmpuint (1, ==, settings[1]);
-  g_assert_cmpuint (295, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[1]));
+  g_assert_cmpuint (295, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[1]));
 
   g_assert_cmpuint (2, ==, settings[2]);
-  g_assert_cmpuint (296, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[2]));
+  g_assert_cmpuint (296, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[2]));
 
-  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, HB_AAT_LAYOUT_SELECTOR_INVALID));
+  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, HB_AAT_LAYOUT_SELECTOR_INVALID));
 
   count = 3;
-  g_assert_cmpuint (4, ==, hb_aat_layout_feature_get_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
-							       &default_setting, 3, &count, settings));
+  g_assert_cmpuint (4, ==, hb_aat_layout_feature_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
+								&default_selector, 3, &count, settings));
   g_assert_cmpuint (1, ==, count);
-  g_assert_cmpuint (0, ==, default_setting);
+  g_assert_cmpuint (0, ==, default_selector);
 
   g_assert_cmpuint (3, ==, settings[0]);
-  g_assert_cmpuint (297, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
+  g_assert_cmpuint (297, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
 
   count = 1;
-  g_assert_cmpuint (1, ==, hb_aat_layout_feature_get_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,
-							       &default_setting, 0, &count, settings));
+  g_assert_cmpuint (1, ==, hb_aat_layout_feature_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,
+								&default_selector, 0, &count, settings));
   g_assert_cmpuint (1, ==, count);
-  g_assert_cmpuint (HB_AAT_LAYOUT_FEATURE_TYPE_INVALID, ==, default_setting);
+  g_assert_cmpuint (HB_AAT_LAYOUT_FEATURE_TYPE_INVALID, ==, default_selector);
 
   g_assert_cmpuint (8, ==, settings[0]);
-  g_assert_cmpuint (308, ==, hb_aat_layout_feature_setting_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS, settings[0]));
+  g_assert_cmpuint (308, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS, settings[0]));
 
   count = 100;
-  g_assert_cmpuint (0, ==, hb_aat_layout_feature_get_settings (face, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
-							       NULL, 0, &count, settings));
+  g_assert_cmpuint (0, ==, hb_aat_layout_feature_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
+								NULL, 0, &count, settings));
   g_assert_cmpuint (0, ==, count);
 
-  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_setting_get_name_id (sbix, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
-											  (hb_aat_layout_feature_setting_t) 0));
+  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (sbix, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
+											   (hb_aat_layout_feature_selector_t) 0));
 }
 
 int
@@ -105,7 +105,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_aat_get_features);
-  hb_test_add (test_aat_get_feature_settings);
+  hb_test_add (test_aat_get_feature_selectors);
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");
   sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
