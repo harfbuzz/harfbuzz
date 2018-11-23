@@ -131,7 +131,7 @@ struct FeatureName
 							    SettingName::static_size,
 							    SettingName::cmp);
 
-    return setting ? setting->get_name_id () : HB_OT_NAME_ID_INVALID;
+    return setting ? setting->get_name_id () : (hb_ot_name_id_t) HB_OT_NAME_ID_INVALID;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -161,9 +161,9 @@ struct feat
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_feat;
 
-  inline unsigned int get_features (unsigned int                  start_offset,
-				    unsigned int                 *count,
-				    hb_aat_layout_feature_type_t *features) const
+  inline unsigned int get_feature_types (unsigned int                  start_offset,
+					 unsigned int                 *count,
+					 hb_aat_layout_feature_type_t *features) const
   {
     unsigned int feature_count = featureNameCount;
     if (count && *count)

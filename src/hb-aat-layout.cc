@@ -301,7 +301,7 @@ _hb_aat_language_get (hb_face_t *face,
 }
 
 /**
- * hb_aat_layout_get_features:
+ * hb_aat_layout_get_feature_types:
  * @face: a face object
  * @start_offset: iteration's start offset
  * @count:    (inout): buffer size as input, filled size as output
@@ -312,16 +312,16 @@ _hb_aat_language_get (hb_face_t *face,
  * Since: REPLACEME
  */
 unsigned int
-hb_aat_layout_get_features (hb_face_t                    *face,
-			    unsigned int                  start_offset,
-			    unsigned int                 *count,   /* IN/OUT.  May be NULL. */
-			    hb_aat_layout_feature_type_t *features /* OUT.     May be NULL. */)
+hb_aat_layout_get_feature_types (hb_face_t                    *face,
+				 unsigned int                  start_offset,
+				 unsigned int                 *count,   /* IN/OUT.  May be NULL. */
+				 hb_aat_layout_feature_type_t *features /* OUT.     May be NULL. */)
 {
-  return face->table.feat->get_features (start_offset, count, features);
+  return face->table.feat->get_feature_types (start_offset, count, features);
 }
 
 /**
- * hb_aat_layout_feature_get_name_id:
+ * hb_aat_layout_feature_type_get_name_id:
  * @face: a face object
  * @feature: feature id
  *
@@ -330,12 +330,12 @@ hb_aat_layout_get_features (hb_face_t                    *face,
  * Since: REPLACEME
  */
 hb_ot_name_id_t
-hb_aat_layout_feature_get_name_id (hb_face_t                    *face,
-				   hb_aat_layout_feature_type_t  feature)
+hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
+					hb_aat_layout_feature_type_t  feature)
 { return face->table.feat->get_feature_name_id (feature); }
 
 /**
- * hb_aat_layout_feature_get_selectors:
+ * hb_aat_layout_feature_type_get_selectors:
  * @face:    a face object
  * @feature: feature id
  * @default_selector: (out): if is set, the feature is exclusive
@@ -357,12 +357,12 @@ hb_aat_layout_feature_get_name_id (hb_face_t                    *face,
  * Since: REPLACEME
  */
 unsigned int
-hb_aat_layout_feature_get_selectors (hb_face_t                       *face,
-				    hb_aat_layout_feature_type_t      feature,
-				    hb_aat_layout_feature_selector_t *default_selector, /* OUT.     May be NULL. */
-				    unsigned int                      start_offset,
-				    unsigned int                     *count,            /* IN/OUT.  May be NULL. */
-				    hb_aat_layout_feature_selector_t *selectors         /* OUT.     May be NULL. */)
+hb_aat_layout_feature_type_get_selectors (hb_face_t                        *face,
+					  hb_aat_layout_feature_type_t      feature,
+					  hb_aat_layout_feature_selector_t *default_selector, /* OUT.     May be NULL. */
+					  unsigned int                      start_offset,
+					  unsigned int                     *count,            /* IN/OUT.  May be NULL. */
+					  hb_aat_layout_feature_selector_t *selectors         /* OUT.     May be NULL. */)
 {
   return face->table.feat->get_selectors (feature, default_selector,
 					  start_offset, count, selectors);

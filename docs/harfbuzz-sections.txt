@@ -5,12 +5,12 @@ HB_OT_H_IN
 
 <SECTION>
 <FILE>hb-aat</FILE>
-hb_aat_layout_feature_get_name_id
-hb_aat_layout_feature_get_selectors
-hb_aat_layout_feature_selector_get_name_id
-hb_aat_layout_feature_selector_t
 hb_aat_layout_feature_type_t
-hb_aat_layout_get_features
+hb_aat_layout_get_feature_types
+hb_aat_layout_feature_type_get_name_id
+hb_aat_layout_feature_selector_t
+hb_aat_layout_feature_type_get_selectors
+hb_aat_layout_feature_selector_get_name_id
 </SECTION>
 
 <SECTION>
