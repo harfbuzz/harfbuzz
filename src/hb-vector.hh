@@ -89,6 +89,9 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
+  inline hb_array_t<Type> as_array (void) { return hb_array_t<Type> (arrayZ(), len); }
+  inline hb_array_t<const Type> as_array (void) const { return hb_array_t<const Type> (arrayZ(), len); }
+
   template <typename T> inline operator  T * (void) { return arrayZ(); }
   template <typename T> inline operator const T * (void) const { return arrayZ(); }
 
