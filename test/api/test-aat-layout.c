@@ -70,7 +70,7 @@ test_aat_get_feature_selectors (void)
   g_assert_cmpuint (2, ==, settings[2]);
   g_assert_cmpuint (296, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[2]));
 
-  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, HB_AAT_LAYOUT_SELECTOR_INVALID));
+  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, HB_AAT_LAYOUT_FEATURE_SELECTOR_INVALID));
 
   count = 3;
   g_assert_cmpuint (4, ==, hb_aat_layout_feature_type_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,

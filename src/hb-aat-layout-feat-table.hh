@@ -113,7 +113,7 @@ struct FeatureName
       unsigned int index = (featureFlags & NotDefault) ? featureFlags & IndexMask : 0;
       *default_selector = ((featureFlags & Exclusive) && index < settings_count)
 			  ? settings_table[index].get_selector ()
-			  : HB_AAT_LAYOUT_SELECTOR_INVALID;
+			  : HB_AAT_LAYOUT_FEATURE_SELECTOR_INVALID;
     }
     return settings_count;
   }
