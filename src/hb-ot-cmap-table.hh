@@ -863,14 +863,6 @@ struct cmap
     hb_vector_t<CmapSubtableLongGroup> format12_groups;
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version == 0) &&
-		  encodingRecord.sanitize (c, this));
-  }
-
   inline bool _create_plan (const hb_subset_plan_t *plan,
 			    subset_plan *cmap_plan) const
   {
@@ -1169,6 +1161,16 @@ struct cmap
       return nullptr;
 
     return &(this+encodingRecord[result].subtable);
+  }
+
+  public:
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version == 0) &&
+		  encodingRecord.sanitize (c, this));
   }
 
   protected:
