@@ -4,6 +4,16 @@ HB_OT_H_IN
 </SECTION>
 
 <SECTION>
+<FILE>hb-aat</FILE>
+hb_aat_layout_feature_get_name_id
+hb_aat_layout_feature_get_settings
+hb_aat_layout_feature_setting_get_name_id
+hb_aat_layout_feature_setting_t
+hb_aat_layout_feature_type_t
+hb_aat_layout_get_features
+</SECTION>
+
+<SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
 hb_blob_create_from_file

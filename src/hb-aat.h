@@ -423,12 +423,12 @@ hb_aat_layout_get_features (hb_face_t                    *face,
 			    hb_aat_layout_feature_type_t *features /* OUT.     May be NULL. */);
 
 HB_EXTERN hb_ot_name_id_t
-hb_aat_layout_get_feature_name_id (hb_face_t                    *face,
+hb_aat_layout_feature_get_name_id (hb_face_t                    *face,
 				   hb_aat_layout_feature_type_t  feature);
 
 
 HB_EXTERN unsigned int
-hb_aat_layout_get_feature_settings (hb_face_t                       *face,
+hb_aat_layout_feature_get_settings (hb_face_t                       *face,
 				    hb_aat_layout_feature_type_t     feature,
 				    hb_aat_layout_feature_setting_t *default_setting, /* OUT.     May be NULL. */
 				    unsigned int                     start_offset,
@@ -436,7 +436,7 @@ hb_aat_layout_get_feature_settings (hb_face_t                       *face,
 				    hb_aat_layout_feature_setting_t *settings         /* OUT.     May be NULL. */);
 
 HB_EXTERN hb_ot_name_id_t
-hb_aat_layout_get_feature_setting_name_id (hb_face_t                       *face,
+hb_aat_layout_feature_setting_get_name_id (hb_face_t                       *face,
 					   hb_aat_layout_feature_type_t     feature,
 					   hb_aat_layout_feature_setting_t  setting);
 
