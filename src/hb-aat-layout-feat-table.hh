@@ -41,15 +41,15 @@ struct SettingName
 {
   static int cmp (const void *key_, const void *entry_)
   {
-    hb_aat_layout_feature_setting_t key = * (hb_aat_layout_feature_setting_t *) key_;
+    hb_aat_layout_feature_selector_t key = * (hb_aat_layout_feature_selector_t *) key_;
     const SettingName * entry = (const SettingName *) entry_;
     return key < entry->setting ? -1 :
 	   key > entry->setting ? +1 :
 	   0;
   }
 
-  inline hb_aat_layout_feature_setting_t get_setting () const
-  { return (hb_aat_layout_feature_setting_t) (unsigned int) setting; }
+  inline hb_aat_layout_feature_selector_t get_selector () const
+  { return (hb_aat_layout_feature_selector_t) (unsigned int) setting; }
 
   inline hb_ot_name_id_t get_name_id () const { return nameIndex; }
 
@@ -72,7 +72,7 @@ struct FeatureName
 {
   static int cmp (const void *key_, const void *entry_)
   {
-    hb_aat_layout_feature_setting_t key = * (hb_aat_layout_feature_setting_t *) key_;
+    hb_aat_layout_feature_selector_t key = * (hb_aat_layout_feature_selector_t *) key_;
     const FeatureName * entry = (const FeatureName *) entry_;
     return key < entry->feature ? -1 :
 	   key > entry->feature ? +1 :
@@ -93,11 +93,11 @@ struct FeatureName
 				 * as the default. */
   };
 
-  inline unsigned int get_settings (const feat                      *feat,
-				    hb_aat_layout_feature_setting_t *default_setting,
-				    unsigned int                     start_offset,
-				    unsigned int                    *count,
-				    hb_aat_layout_feature_setting_t *settings) const
+  inline unsigned int get_selectors (const feat                       *feat,
+				     hb_aat_layout_feature_selector_t *default_selector,
+				     unsigned int                      start_offset,
+				     unsigned int                     *count,
+				     hb_aat_layout_feature_selector_t *selectors) const
   {
     const UnsizedArrayOf<SettingName>& settings_table = feat+settingTableZ;
     unsigned int settings_count = nSettings;
@@ -105,15 +105,15 @@ struct FeatureName
     {
       unsigned int len = MIN (settings_count - start_offset, *count);
       for (unsigned int i = 0; i < len; i++)
-        settings[i] = settings_table[start_offset + i].get_setting ();
+        selectors[i] = settings_table[start_offset + i].get_selector ();
       *count = len;
     }
-    if (default_setting)
+    if (default_selector)
     {
       unsigned int index = (featureFlags & NotDefault) ? featureFlags & IndexMask : 0;
-      *default_setting = ((featureFlags & Exclusive) && index < settings_count)
-			 ? settings_table[index].get_setting ()
-			 : HB_AAT_LAYOUT_SELECTOR_INVALID;
+      *default_selector = ((featureFlags & Exclusive) && index < settings_count)
+			  ? settings_table[index].get_selector ()
+			  : HB_AAT_LAYOUT_SELECTOR_INVALID;
     }
     return settings_count;
   }
@@ -123,8 +123,8 @@ struct FeatureName
 
   inline hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
-  inline hb_ot_name_id_t get_feature_setting_name_id (const feat                      *feat,
-						      hb_aat_layout_feature_setting_t  key) const
+  inline hb_ot_name_id_t get_feature_selector_name_id (const feat                      *feat,
+						       hb_aat_layout_feature_selector_t  key) const
   {
     const SettingName* setting = (SettingName*) hb_bsearch (&key, feat+settingTableZ,
 							    nSettings,
@@ -189,18 +189,18 @@ struct feat
   inline hb_ot_name_id_t get_feature_name_id (hb_aat_layout_feature_type_t feature) const
   { return get_feature (feature).get_feature_name_id (); }
 
-  inline hb_ot_name_id_t get_feature_setting_name_id (hb_aat_layout_feature_type_t    feature,
-						      hb_aat_layout_feature_setting_t setting) const
-  { return get_feature (feature).get_feature_setting_name_id (this, setting); }
+  inline hb_ot_name_id_t get_feature_selector_name_id (hb_aat_layout_feature_type_t    feature,
+						      hb_aat_layout_feature_selector_t selector) const
+  { return get_feature (feature).get_feature_selector_name_id (this, selector); }
 
-  inline unsigned int get_settings (hb_aat_layout_feature_type_t     key,
-				    hb_aat_layout_feature_setting_t *default_setting,
-				    unsigned int                     start_offset,
-				    unsigned int                    *count,
-				    hb_aat_layout_feature_setting_t *settings) const
+  inline unsigned int get_selectors (hb_aat_layout_feature_type_t     key,
+				    hb_aat_layout_feature_selector_t *default_selector,
+				    unsigned int                      start_offset,
+				    unsigned int                     *count,
+				    hb_aat_layout_feature_selector_t *selectors) const
   {
-    return get_feature (key).get_settings (this, default_setting, start_offset,
-					   count, settings);
+    return get_feature (key).get_selectors (this, default_selector, start_offset,
+					    count, selectors);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

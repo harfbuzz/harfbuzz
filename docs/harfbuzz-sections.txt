@@ -6,9 +6,9 @@ HB_OT_H_IN
 <SECTION>
 <FILE>hb-aat</FILE>
 hb_aat_layout_feature_get_name_id
-hb_aat_layout_feature_get_settings
-hb_aat_layout_feature_setting_get_name_id
-hb_aat_layout_feature_setting_t
+hb_aat_layout_feature_get_selectors
+hb_aat_layout_feature_selector_get_name_id
+hb_aat_layout_feature_selector_t
 hb_aat_layout_feature_type_t
 hb_aat_layout_get_features
 </SECTION>
