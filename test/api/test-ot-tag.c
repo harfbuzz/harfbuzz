@@ -449,6 +449,9 @@ test_ot_tag_language (void)
 
   /* A UN M.49 region code, not an extended language subtag */
   test_tag_from_language ("ARA", "ar-001");
+
+  /* An invalid tag */
+  test_tag_from_language ("TRK", "tr@foo=bar");
 }
 
 static void
