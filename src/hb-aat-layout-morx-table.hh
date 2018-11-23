@@ -1061,10 +1061,12 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      c->set_object (*subtable);
       if (!subtable->sanitize (c))
 	return_trace (false);
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
     }
+    c->reset_object ();
 
     return_trace (true);
   }

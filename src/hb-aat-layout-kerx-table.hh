@@ -953,10 +953,12 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      c->set_object (*st);
       if (unlikely (!st->sanitize (c)))
 	return_trace (false);
       st = &StructAfter<SubTable> (*st);
     }
+    c->reset_object ();
 
     return_trace (true);
   }
