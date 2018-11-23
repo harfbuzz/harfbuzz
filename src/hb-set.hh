@@ -341,11 +341,11 @@ struct hb_set_t
   {
     /* TODO perform op even if !successful. */
     if (unlikely (!successful)) return;
-    page_t *p = page_for (g);
-    if (!p)
+    page_t *page = page_for (g);
+    if (!page)
       return;
     dirty ();
-    p->del (g);
+    page->del (g);
   }
   inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
@@ -357,10 +357,10 @@ struct hb_set_t
   }
   inline bool has (hb_codepoint_t g) const
   {
-    const page_t *p = page_for (g);
-    if (!p)
+    const page_t *page = page_for (g);
+    if (!page)
       return false;
-    return p->has (g);
+    return page->has (g);
   }
   inline bool intersects (hb_codepoint_t first,
 			  hb_codepoint_t last) const
