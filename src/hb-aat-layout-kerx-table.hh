@@ -812,6 +812,7 @@ struct KerxSubTable
   {
     TRACE_SANITIZE (this);
     if (!u.header.sanitize (c) ||
+	u.header.length <= u.header.static_size ||
 	!c->check_range (this, u.header.length))
       return_trace (false);
 

@@ -915,7 +915,7 @@ struct ChainSubtable
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||
-	length < min_size ||
+	length <= min_size ||
 	!c->check_range (this, length))
       return_trace (false);
 
