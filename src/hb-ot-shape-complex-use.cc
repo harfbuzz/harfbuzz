@@ -450,22 +450,22 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 
   hb_glyph_info_t *info = buffer->info;
 
-#define POST_BASE_FLAGS (FLAG64 (USE_FM) | \
-			 FLAG64 (USE_FAbv) | \
-			 FLAG64 (USE_FBlw) | \
-			 FLAG64 (USE_FPst) | \
-			 FLAG64 (USE_MAbv) | \
-			 FLAG64 (USE_MBlw) | \
-			 FLAG64 (USE_MPst) | \
-			 FLAG64 (USE_MPre) | \
-			 FLAG64 (USE_VAbv) | \
-			 FLAG64 (USE_VBlw) | \
-			 FLAG64 (USE_VPst) | \
-			 FLAG64 (USE_VPre) | \
-			 FLAG64 (USE_VMAbv) | \
-			 FLAG64 (USE_VMBlw) | \
-			 FLAG64 (USE_VMPst) | \
-			 FLAG64 (USE_VMPre))
+#define POST_BASE_FLAGS64 (FLAG64 (USE_FM) | \
+			   FLAG64 (USE_FAbv) | \
+			   FLAG64 (USE_FBlw) | \
+			   FLAG64 (USE_FPst) | \
+			   FLAG64 (USE_MAbv) | \
+			   FLAG64 (USE_MBlw) | \
+			   FLAG64 (USE_MPst) | \
+			   FLAG64 (USE_MPre) | \
+			   FLAG64 (USE_VAbv) | \
+			   FLAG64 (USE_VBlw) | \
+			   FLAG64 (USE_VPst) | \
+			   FLAG64 (USE_VPre) | \
+			   FLAG64 (USE_VMAbv) | \
+			   FLAG64 (USE_VMBlw) | \
+			   FLAG64 (USE_VMPst) | \
+			   FLAG64 (USE_VMPre))
 
   /* Move things forward. */
   if (info[start].use_category() == USE_R && end - start > 1)
@@ -474,7 +474,7 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
      * glyph. */
     for (unsigned int i = start + 1; i < end; i++)
     {
-      bool is_post_base_glyph = (FLAG64_UNSAFE (info[i].use_category()) & POST_BASE_FLAGS) ||
+      bool is_post_base_glyph = (FLAG64_UNSAFE (info[i].use_category()) & POST_BASE_FLAGS64) ||
 				is_halant (info[i]);
       if (is_post_base_glyph || i == end - 1)
       {
