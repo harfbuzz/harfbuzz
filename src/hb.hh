@@ -508,10 +508,13 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 /* Some really basic things everyone wants. */
 template <typename T> struct hb_remove_const { typedef T value; };
 template <typename T> struct hb_remove_const<const T> { typedef T value; };
+#define hb_remove_const(T) hb_remove_const<T>::value
 template <typename T> struct hb_remove_reference { typedef T value; };
 template <typename T> struct hb_remove_reference<T &> { typedef T value; };
+#define hb_remove_reference(T) hb_remove_reference<T>::value
 template <typename T> struct hb_remove_pointer { typedef T value; };
 template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
+#define hb_remove_pointer(T) hb_remove_pointer<T>::value
 
 
 /* Headers we include for everyone.  Keep sorted.  They express dependency amongst

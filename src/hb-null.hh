@@ -56,6 +56,7 @@ struct _hb_null_size<T, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
 template <typename T>
 struct hb_null_size
 { enum { value = _hb_null_size<T, _hb_bool_type<true> >::value }; };
+#define hb_null_size(T) hb_null_size<T>::value
 
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
@@ -63,10 +64,10 @@ hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_
 /* Generic nul-content Null objects. */
 template <typename Type>
 static inline Type const & Null (void) {
-  static_assert (hb_null_size<Type>::value <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
-#define Null(Type) Null<typename hb_remove_const<typename hb_remove_reference<Type>::value>::value>()
+#define Null(Type) Null<typename hb_remove_const (typename hb_remove_reference (Type))> ()
 
 /* Specializations for arbitrary-content Null objects expressed in bytes. */
 #define DECLARE_NULL_NAMESPACE_BYTES(Namespace, Type) \
@@ -104,12 +105,12 @@ extern HB_INTERNAL
 /* CRAP pool: Common Region for Access Protection. */
 template <typename Type>
 static inline Type& Crap (void) {
-  static_assert (hb_null_size<Type>::value <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
+  static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
   memcpy (obj, &Null(Type), sizeof (*obj));
   return *obj;
 }
-#define Crap(Type) Crap<typename hb_remove_const<typename hb_remove_reference<Type>::value>::value>()
+#define Crap(Type) Crap<typename hb_remove_const (typename hb_remove_reference (Type))> ()
 
 template <typename Type>
 struct CrapOrNull {
@@ -129,7 +130,7 @@ struct CrapOrNull<const Type> {
 template <typename P>
 struct hb_nonnull_ptr_t
 {
-  typedef typename hb_remove_pointer<P>::value T;
+  typedef typename hb_remove_pointer (P) T;
 
   inline hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
   inline T * operator = (T *v_) { return v = v_; }
