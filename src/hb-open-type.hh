@@ -578,9 +578,7 @@ struct ArrayOf
   { return *as_array ().lsearch (x, &Null (T)); }
 
   inline void qsort (void)
-  {
-    ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
-  }
+  { as_array ().qsort (); }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
