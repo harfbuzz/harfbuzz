@@ -128,12 +128,7 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> >
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    if (!this->bfind (tag, index))
-    {
-      if (index) *index = Index::NOT_FOUND_INDEX;
-      return false;
-    }
-    return true;
+    return this->bfind (tag, index, HB_BFIND_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
   }
 };
 
@@ -821,8 +816,7 @@ struct CoverageFormat1
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     unsigned int i;
-    if (!glyphArray.bfind (glyph_id, &i))
-      return NOT_COVERED;
+    glyphArray.bfind (glyph_id, &i, HB_BFIND_NOT_FOUND_STORE, NOT_COVERED);
     return i;
   }
 

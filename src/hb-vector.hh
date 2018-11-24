@@ -239,8 +239,10 @@ struct hb_vector_t
   inline const Type *bsearch (const T &x, const Type *not_found = nullptr) const
   { return as_sorted_array ().bsearch (x, not_found); }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i = nullptr) const
-  { return as_sorted_array ().bfind (x, i); }
+  inline bool bfind (const T &x, unsigned int *i = nullptr,
+		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
+		     unsigned int to_store = (unsigned int) -1) const
+  { return as_sorted_array ().bfind (x, i, not_found, to_store); }
 };
 
 

@@ -650,6 +650,13 @@ template <typename T>
 inline hb_array_t<T> hb_array (T *array, unsigned int len)
 { return hb_array_t<T> (array, len); }
 
+enum hb_bfind_not_found_t
+{
+  HB_BFIND_NOT_FOUND_DONT_STORE,
+  HB_BFIND_NOT_FOUND_STORE,
+  HB_BFIND_NOT_FOUND_STORE_CLOSEST,
+};
+
 template <typename Type>
 struct hb_sorted_array_t : hb_array_t<Type>
 {
@@ -669,7 +676,9 @@ struct hb_sorted_array_t : hb_array_t<Type>
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i = nullptr) const
+  inline bool bfind (const T &x, unsigned int *i = nullptr,
+		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
+		     unsigned int to_store = (unsigned int) -1) const
   {
     int min = 0, max = (int) this->len - 1;
     const Type *array = this->arrayZ;
@@ -690,9 +699,21 @@ struct hb_sorted_array_t : hb_array_t<Type>
     }
     if (i)
     {
-      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
-	max++;
-      *i = max;
+      switch (not_found)
+      {
+	case HB_BFIND_NOT_FOUND_DONT_STORE:
+	  break;
+
+	case HB_BFIND_NOT_FOUND_STORE:
+	  *i = to_store;
+	  break;
+
+	case HB_BFIND_NOT_FOUND_STORE_CLOSEST:
+	  if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
+	    max++;
+	  *i = max;
+	  break;
+      }
     }
     return false;
   }

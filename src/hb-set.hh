@@ -544,7 +544,7 @@ struct hb_set_t
 
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
-    page_map.bfind (map, &i);
+    page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
     if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].next (codepoint))
@@ -575,7 +575,7 @@ struct hb_set_t
 
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
-    page_map.bfind (map, &i);
+    page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
     if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].previous (codepoint))
@@ -670,7 +670,7 @@ struct hb_set_t
   {
     page_map_t map = {get_major (g), pages.len};
     unsigned int i;
-    if (!page_map.bfind (map, &i))
+    if (!page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST))
     {
       if (!resize (pages.len + 1))
 	return nullptr;
