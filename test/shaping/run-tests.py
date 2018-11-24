@@ -47,6 +47,20 @@ for filename in args:
 		f = open (filename)
 
 	for line in f:
+		comment = False
+		if line.startswith ("#"):
+			comment = True
+			line = line[1:]
+
+			if line.startswith (' '):
+				if not reference:
+					print ("#%s" % line)
+				continue
+
+		line = line.strip ()
+		if not line:
+			continue
+
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
 			fontfile, expected_hash = fontfile.split('@')
@@ -68,11 +82,10 @@ for filename in args:
 			fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
 		extra_options = ["--shaper=ot"]
-		glyphs_expected = glyphs_expected.strip()
 		if glyphs_expected != '*':
 			extra_options.append("--verify")
 
-		if line.startswith ("#"):
+		if comment:
 			if not reference:
 				print ("# %s %s --unicodes %s" % (hb_shape, fontfile, unicodes))
 			continue
