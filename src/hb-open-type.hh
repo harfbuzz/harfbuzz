@@ -449,6 +449,27 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
   }
 };
 
+/* An array with sorted elements.  Supports binary searching. */
+template <typename Type>
+struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
+{
+  inline hb_sorted_array_t<Type> as_array (unsigned int len)
+  { return hb_sorted_array (this->arrayZ, len); }
+  inline hb_sorted_array_t<const Type> as_array (unsigned int len) const
+  { return hb_sorted_array (this->arrayZ, len); }
+
+  template <typename T>
+  inline Type &bsearch (unsigned int len, const T &x)
+  { return *as_array (len).bsearch (x, &Crap (Type)); }
+  template <typename T>
+  inline const Type &bsearch (unsigned int len, const T &x) const
+  { return *as_array (len).bsearch (x, &Null (Type)); }
+  template <typename T>
+  inline bool bfind (unsigned int len, const T &x, unsigned int *i = nullptr) const
+  { return as_array (len).bfind (x, i); }
+};
+
+
 /* An array with a number of elements. */
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
