@@ -39,12 +39,10 @@ namespace AAT {
 
 struct SettingName
 {
-  static int cmp (const void *key_, const void *entry_)
+  int cmp (hb_aat_layout_feature_selector_t key) const
   {
-    hb_aat_layout_feature_selector_t key = * (hb_aat_layout_feature_selector_t *) key_;
-    const SettingName * entry = (const SettingName *) entry_;
-    return key < entry->setting ? -1 :
-	   key > entry->setting ? +1 :
+    return key < setting ? -1 :
+	   key > setting ? +1 :
 	   0;
   }
 
@@ -65,6 +63,7 @@ struct SettingName
   public:
   DEFINE_SIZE_STATIC (4);
 };
+DECLARE_NULL_NAMESPACE_BYTES (AAT, SettingName);
 
 struct feat;
 
@@ -123,15 +122,10 @@ struct FeatureName
 
   inline hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
-  inline hb_ot_name_id_t get_feature_selector_name_id (const feat                      *feat,
+  inline hb_ot_name_id_t get_feature_selector_name_id (const feat                       *feat,
 						       hb_aat_layout_feature_selector_t  key) const
   {
-    const SettingName* setting = (SettingName*) hb_bsearch (&key, feat+settingTableZ,
-							    nSettings,
-							    SettingName::static_size,
-							    SettingName::cmp);
-
-    return setting ? setting->get_name_id () : (hb_ot_name_id_t) HB_OT_NAME_ID_INVALID;
+    return (feat+settingTableZ).lsearch (nSettings, key).get_name_id ();
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const

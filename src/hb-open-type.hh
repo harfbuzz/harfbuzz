@@ -376,11 +376,11 @@ struct UnsizedArrayOf
   { return hb_array (arrayZ, len); }
 
   template <typename T>
-  inline Type &lsearch (unsigned int len, const T &x)
-  { return *as_array (len).lsearch (x, &Crap (T)); }
+  inline Type &lsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
+  { return *as_array (len).lsearch (x, &not_found); }
   template <typename T>
-  inline const Type &lsearch (unsigned int len, const T &x) const
-  { return *as_array (len).lsearch (x, &Null (T)); }
+  inline const Type &lsearch (unsigned int len, const T &x, const Type &not_found = Null (Type)) const
+  { return *as_array (len).lsearch (x, &not_found); }
 
   inline void qsort (unsigned int len, unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array (len).qsort (start, end); }
@@ -589,11 +589,11 @@ struct ArrayOf
   }
 
   template <typename T>
-  inline Type &lsearch (const T &x)
-  { return *as_array ().lsearch (x, &Crap (T)); }
+  inline Type &lsearch (const T &x, Type &not_found = Crap (Type))
+  { return *as_array ().lsearch (x, &not_found); }
   template <typename T>
-  inline const Type &lsearch (const T &x) const
-  { return *as_array ().lsearch (x, &Null (T)); }
+  inline const Type &lsearch (const T &x, const Type &not_found = Null (Type)) const
+  { return *as_array ().lsearch (x, &not_found); }
 
   inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array ().qsort (start, end); }
