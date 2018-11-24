@@ -370,8 +370,10 @@ struct UnsizedArrayOf
   inline unsigned int get_size (unsigned int len) const
   { return len * Type::static_size; }
 
-  inline hb_array_t<Type> as_array (unsigned int len) { return hb_array_t<Type> (arrayZ, len); }
-  inline hb_array_t<const Type> as_array (unsigned int len) const { return hb_array_t<const Type> (arrayZ, len); }
+  inline hb_array_t<Type> as_array (unsigned int len)
+  { return hb_array (arrayZ, len); }
+  inline hb_array_t<const Type> as_array (unsigned int len) const
+  { return hb_array (arrayZ, len); }
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
@@ -483,8 +485,10 @@ struct ArrayOf
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
-  inline hb_array_t<Type> as_array (void) { return hb_array_t<Type> (arrayZ, len); }
-  inline hb_array_t<const Type> as_array (void) const { return hb_array_t<const Type> (arrayZ, len); }
+  inline hb_array_t<Type> as_array (void)
+  { return hb_array (arrayZ, len); }
+  inline hb_array_t<const Type> as_array (void) const
+  { return hb_array (arrayZ, len); }
 
   inline bool serialize (hb_serialize_context_t *c,
 			 unsigned int items_len)

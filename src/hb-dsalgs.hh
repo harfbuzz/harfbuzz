@@ -564,7 +564,6 @@ struct hb_array_t
 {
   static_assert ((bool) (unsigned) hb_static_size (Type), "");
 
-  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
   inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
   inline Type& operator [] (unsigned int i) const
@@ -576,7 +575,8 @@ struct hb_array_t
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
   template <typename T>
-  inline Type *lsearch (const T &x, Type *not_found = nullptr)
+  inline Type *lsearch (const T &x,
+			Type *not_found = nullptr)
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -585,7 +585,8 @@ struct hb_array_t
     return not_found;
   }
   template <typename T>
-  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  inline const Type *lsearch (const T &x,
+			      const Type *not_found = nullptr) const
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -625,7 +626,61 @@ struct hb_array_t
   unsigned int len;
 };
 template <typename T>
-inline hb_array_t<T> hb_array (T *array, unsigned int len) { return hb_array_t<T> (array, len); }
+inline hb_array_t<T> hb_array (T *array, unsigned int len)
+{ return hb_array_t<T> (array, len); }
+
+template <typename Type>
+struct hb_sorted_array_t : hb_array_t<Type>
+{
+  inline hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
+
+  template <typename T>
+  inline Type *bsearch (const T &x,
+			Type *not_found = nullptr)
+  {
+    unsigned int i;
+    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
+  }
+  template <typename T>
+  inline const Type *bsearch (const T &x,
+			      const Type *not_found = nullptr) const
+  {
+    unsigned int i;
+    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
+  }
+  template <typename T>
+  inline bool bfind (const T &x,
+		     unsigned int *i = nullptr) const
+  {
+    int min = 0, max = (int) this->len - 1;
+    const Type *array = this->arrayZ;
+    while (min <= max)
+    {
+      int mid = ((unsigned int) min + (unsigned int) max) / 2;
+      int c = array[mid].cmp (x);
+      if (c < 0)
+        max = mid - 1;
+      else if (c > 0)
+        min = mid + 1;
+      else
+      {
+	if (i)
+	  *i = mid;
+	return true;
+      }
+    }
+    if (i)
+    {
+      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
+	max++;
+      *i = max;
+    }
+    return false;
+  }
+};
+template <typename T>
+inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
+{ return hb_sorted_array_t<T> (array, len); }
 
 
 struct HbOpOr

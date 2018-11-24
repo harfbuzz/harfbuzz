@@ -91,8 +91,15 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
-  inline hb_array_t<Type> as_array (void) { return hb_array_t<Type> (arrayZ(), len); }
-  inline hb_array_t<const Type> as_array (void) const { return hb_array_t<const Type> (arrayZ(), len); }
+  inline hb_array_t<Type> as_array (void)
+  { return hb_array (arrayZ(), len); }
+  inline hb_array_t<const Type> as_array (void) const
+  { return hb_array (arrayZ(), len); }
+
+  inline hb_sorted_array_t<Type> as_sorted_array (void)
+  { return hb_sorted_array (arrayZ(), len); }
+  inline hb_sorted_array_t<const Type> as_sorted_array (void) const
+  { return hb_sorted_array (arrayZ(), len); }
 
   template <typename T> inline operator  T * (void) { return arrayZ(); }
   template <typename T> inline operator const T * (void) const { return arrayZ(); }
@@ -229,55 +236,35 @@ struct hb_vector_t
   }
 
   template <typename T>
-  inline Type *lsearch (const T &x, Type *not_found = nullptr)
+  inline Type *lsearch (const T &x,
+			Type *not_found = nullptr)
   {
     return as_array ().lsearch (x, not_found);
   }
   template <typename T>
-  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  inline const Type *lsearch (const T &x,
+			      const Type *not_found = nullptr) const
   {
     return as_array ().lsearch (x, not_found);
   }
 
   template <typename T>
-  inline Type *bsearch (const T &x)
+  inline Type *bsearch (const T &x,
+			Type *not_found = nullptr)
   {
-    unsigned int i;
-    return bfind (x, &i) ? &arrayZ()[i] : nullptr;
+    return as_sorted_array ().bsearch (x, not_found);
   }
   template <typename T>
-  inline const Type *bsearch (const T &x) const
+  inline const Type *bsearch (const T &x,
+			      const Type *not_found = nullptr) const
   {
-    unsigned int i;
-    return bfind (x, &i) ? &arrayZ()[i] : nullptr;
+    return as_sorted_array ().bsearch (x, not_found);
   }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i = nullptr) const
+  inline bool bfind (const T &x,
+		     unsigned int *i = nullptr) const
   {
-    int min = 0, max = (int) this->len - 1;
-    const Type *array = this->arrayZ();
-    while (min <= max)
-    {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (x);
-      if (c < 0)
-        max = mid - 1;
-      else if (c > 0)
-        min = mid + 1;
-      else
-      {
-	if (i)
-	  *i = mid;
-	return true;
-      }
-    }
-    if (i)
-    {
-      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
-	max++;
-      *i = max;
-    }
-    return false;
+    return as_sorted_array ().bfind (x, i);
   }
 };
 
