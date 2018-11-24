@@ -548,20 +548,12 @@ struct ArrayOf
   template <typename T>
   inline Type &lsearch (const T &x)
   {
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!this->arrayZ[i].cmp (x))
-	return this->arrayZ[i];
-    return Crap (T);
+    return *as_array ().lsearch (x, &Crap (T));
   }
   template <typename T>
   inline const Type &lsearch (const T &x) const
   {
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!this->arrayZ[i].cmp (x))
-	return this->arrayZ[i];
-    return Null (T);
+    return *as_array ().lsearch (x, &Null (T));
   }
 
   inline void qsort (void)
