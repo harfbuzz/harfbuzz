@@ -375,6 +375,16 @@ struct UnsizedArrayOf
   inline hb_array_t<const Type> as_array (unsigned int len) const
   { return hb_array (arrayZ, len); }
 
+  template <typename T>
+  inline Type &lsearch (unsigned int len, const T &x)
+  { return *as_array (len).lsearch (x, &Crap (T)); }
+  template <typename T>
+  inline const Type &lsearch (unsigned int len, const T &x) const
+  { return *as_array (len).lsearch (x, &Null (T)); }
+
+  inline void qsort (unsigned int len, unsigned int start = 0, unsigned int end = (unsigned int) -1)
+  { as_array (len).qsort (start, end); }
+
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
@@ -577,8 +587,8 @@ struct ArrayOf
   inline const Type &lsearch (const T &x) const
   { return *as_array ().lsearch (x, &Null (T)); }
 
-  inline void qsort (void)
-  { as_array ().qsort (); }
+  inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
+  { as_array ().qsort (start, end); }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {

@@ -560,6 +560,9 @@ struct hb_bytes_t
 };
 
 template <typename Type>
+struct hb_sorted_array_t;
+
+template <typename Type>
 struct hb_array_t
 {
   static_assert ((bool) (unsigned) hb_static_size (Type), "");
@@ -600,13 +603,20 @@ struct hb_array_t
     return not_found;
   }
 
-  inline void qsort (int (*cmp)(const void*, const void*))
+  inline hb_sorted_array_t<Type> qsort (int (*cmp)(const void*, const void*))
   {
     ::qsort (arrayZ, len, sizeof (Type), cmp);
+    return hb_sorted_array_t<Type> (*this);
   }
-  inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
+  inline hb_sorted_array_t<Type> qsort (void)
+  {
+    ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
+    return hb_sorted_array_t<Type> (*this);
+  }
+  inline void qsort (unsigned int start, unsigned int end)
   {
     end = MIN (end, len);
+    assert (start <= end);
     ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
   }
 
