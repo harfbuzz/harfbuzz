@@ -153,6 +153,7 @@ bool gsub_test(const char *testName,
     char test_name[255];
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
+    if (!ok) fprintf (tests_file, "#");
     fprintf (tests_file, "../fonts/%s:--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < gNbFeatures; i++)
     {
