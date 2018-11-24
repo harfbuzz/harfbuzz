@@ -3,6 +3,7 @@
 NULL =
 SUBDIRS = \
 	in-house \
+	aots \
 	text-rendering-tests \
 	$(NULL)
 

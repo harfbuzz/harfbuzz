@@ -27,6 +27,7 @@ process = subprocess.Popen ([hb_shape, '--batch'],
 			    stdout=subprocess.PIPE,
 			    stderr=sys.stdout)
 
+ran_once = False
 fails = 0
 skips = 0
 
@@ -94,6 +95,8 @@ for filename in args:
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
+		ran_once = True
+
 		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr
 			print ("OT funcs: " + glyphs2) # file=sys.stderr
@@ -115,5 +118,9 @@ if fails != 0 or skips != 0:
 		sys.exit (1)
 	sys.exit (77)
 else:
-	if not reference:
+	if not ran_once:
+		if not reference:
+			print ("No tests ran.")
+		sys.exit (77)
+	elif not reference:
 		print ("All tests passed.")
