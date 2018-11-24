@@ -575,9 +575,24 @@ struct hb_array_t
 
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
-  template <typename hb_sanitize_context_t>
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  { return c->check_array (arrayZ, len); }
+  template <typename T>
+  inline Type *lsearch (const T &x, Type *not_found = nullptr)
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->arrayZ[i].cmp (x))
+	return &this->arrayZ[i];
+    return not_found;
+  }
+  template <typename T>
+  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->arrayZ[i].cmp (x))
+	return &this->arrayZ[i];
+    return not_found;
+  }
 
   template <typename T> inline operator  T * (void) const { return arrayZ; }
 
@@ -601,6 +616,11 @@ struct hb_array_t
 
   inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
+  template <typename hb_sanitize_context_t>
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  { return c->check_array (arrayZ, len); }
+
+  public:
   Type *arrayZ;
   unsigned int len;
 };

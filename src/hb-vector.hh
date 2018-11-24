@@ -229,22 +229,14 @@ struct hb_vector_t
   }
 
   template <typename T>
-  inline Type *lsearch (const T &x)
+  inline Type *lsearch (const T &x, Type *not_found = nullptr)
   {
-    Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (x))
-	return &array[i];
-    return nullptr;
+    return as_array ().lsearch (x, not_found);
   }
   template <typename T>
-  inline const Type *lsearch (const T &x) const
+  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
   {
-    const Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (x))
-	return &array[i];
-    return nullptr;
+    return as_array ().lsearch (x, not_found);
   }
 
   template <typename T>
