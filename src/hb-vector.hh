@@ -233,7 +233,7 @@ struct hb_vector_t
   {
     Type *array = arrayZ();
     for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (&x))
+      if (0 == array[i].cmp (x))
 	return &array[i];
     return nullptr;
   }
@@ -242,7 +242,7 @@ struct hb_vector_t
   {
     const Type *array = arrayZ();
     for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (&x))
+      if (0 == array[i].cmp (x))
 	return &array[i];
     return nullptr;
   }
