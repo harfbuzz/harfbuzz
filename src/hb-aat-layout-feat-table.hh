@@ -40,11 +40,7 @@ namespace AAT {
 struct SettingName
 {
   int cmp (hb_aat_layout_feature_selector_t key) const
-  {
-    return key < setting ? -1 :
-	   key > setting ? +1 :
-	   0;
-  }
+  { return (int) key - (int) setting; }
 
   inline hb_aat_layout_feature_selector_t get_selector () const
   { return (hb_aat_layout_feature_selector_t) (unsigned int) setting; }
@@ -70,11 +66,7 @@ struct feat;
 struct FeatureName
 {
   int cmp (hb_aat_layout_feature_type_t key) const
-  {
-    return key < feature ? -1 :
-	   key > feature ? +1 :
-	   0;
-  }
+  { return (int) key - (int) feature; }
 
   enum {
     Exclusive	= 0x8000,	/* If set, the feature settings are mutually exclusive. */
