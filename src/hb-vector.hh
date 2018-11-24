@@ -31,13 +31,13 @@
 #include "hb.hh"
 
 
-template <typename Type, unsigned int StaticSize=8>
+template <typename Type, unsigned int PreallocedCount=8>
 struct hb_vector_t
 {
   typedef Type ItemType;
   enum { item_size = sizeof (Type) };
 
-  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, StaticSize);
+  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
   inline hb_vector_t (void) { init (); }
   inline ~hb_vector_t (void) { fini (); }
 
@@ -45,7 +45,7 @@ struct hb_vector_t
   private:
   unsigned int allocated; /* == 0 means allocation failed. */
   Type *arrayZ_;
-  Type static_array[StaticSize];
+  Type static_array[PreallocedCount];
   public:
 
   void init (void)
