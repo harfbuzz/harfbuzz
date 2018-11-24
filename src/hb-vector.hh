@@ -260,7 +260,7 @@ struct hb_vector_t
     return bfind (x, &i) ? &arrayZ()[i] : nullptr;
   }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i) const
+  inline bool bfind (const T &x, unsigned int *i = nullptr) const
   {
     int min = 0, max = (int) this->len - 1;
     const Type *array = this->arrayZ();
@@ -274,13 +274,17 @@ struct hb_vector_t
         min = mid + 1;
       else
       {
-        *i = mid;
+	if (i)
+	  *i = mid;
 	return true;
       }
     }
-    if (max < 0 || (max < (int) this->len && array[max].cmp (&x) > 0))
-      max++;
-    *i = max;
+    if (i)
+    {
+      if (max < 0 || (max < (int) this->len && array[max].cmp (&x) > 0))
+	max++;
+      *i = max;
+    }
     return false;
   }
 };

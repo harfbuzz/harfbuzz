@@ -103,8 +103,7 @@ struct SVG
 
   inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
   {
-    const SortedArrayOf<SVGDocumentIndexEntry> &docs = this+svgDocEntries;
-    return docs[docs.bsearch (glyph_id)];
+    return (this+svgDocEntries).bsearch (glyph_id);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

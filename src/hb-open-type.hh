@@ -740,21 +740,45 @@ struct ArrayOfM1
 template <typename Type, typename LenType=HBUINT16>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
-  template <typename SearchType>
-  inline int bsearch (const SearchType &x) const
+  template <typename T>
+  inline Type &bsearch (const T &x)
   {
-    /* Hand-coded bsearch here since this is in the hot inner loop. */
-    const Type *arr = this->arrayZ;
+    unsigned int i;
+    return bfind (x, &i) ? this->arrayZ[i] : Crap(Type);
+  }
+  template <typename T>
+  inline const Type &bsearch (const T &x) const
+  {
+    unsigned int i;
+    return bfind (x, &i) ? this->arrayZ[i] : Null(Type);
+  }
+  template <typename T>
+  inline bool bfind (const T &x, unsigned int *i = nullptr) const
+  {
     int min = 0, max = (int) this->len - 1;
+    const Type *array = this->arrayZ;
     while (min <= max)
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = arr[mid].cmp (x);
-      if (c < 0) max = mid - 1;
-      else if (c > 0) min = mid + 1;
-      else return mid;
+      int c = array[mid].cmp (x);
+      if (c < 0)
+        max = mid - 1;
+      else if (c > 0)
+        min = mid + 1;
+      else
+      {
+	if (i)
+	  *i = mid;
+	return true;
+      }
     }
-    return -1;
+    if (i)
+    {
+      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
+	max++;
+      *i = max;
+    }
+    return false;
   }
 };
 

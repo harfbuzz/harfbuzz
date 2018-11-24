@@ -128,15 +128,12 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> >
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    /* If we want to allow non-sorted data, we can lsearch(). */
-    int i = this->/*lsearch*/bsearch (tag);
-    if (i != -1) {
-      if (index) *index = i;
-      return true;
-    } else {
+    if (!this->bfind (tag, index))
+    {
       if (index) *index = Index::NOT_FOUND_INDEX;
       return false;
     }
+    return true;
   }
 };
 
@@ -823,8 +820,9 @@ struct CoverageFormat1
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = glyphArray.bsearch (glyph_id);
-    static_assert ((((unsigned int) -1) == NOT_COVERED), "");
+    unsigned int i;
+    if (!glyphArray.bfind (glyph_id, &i))
+      return NOT_COVERED;
     return i;
   }
 
@@ -896,12 +894,10 @@ struct CoverageFormat2
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.bsearch (glyph_id);
-    if (i != -1) {
-      const RangeRecord &range = rangeRecord[i];
-      return (unsigned int) range.value + (glyph_id - range.start);
-    }
-    return NOT_COVERED;
+    const RangeRecord &range = rangeRecord.bsearch (glyph_id);
+    return likely (range.start <= range.end) ?
+	   (unsigned int) range.value + (glyph_id - range.start) :
+	   NOT_COVERED;
   }
 
   inline bool serialize (hb_serialize_context_t *c,
@@ -1277,10 +1273,7 @@ struct ClassDefFormat2
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.bsearch (glyph_id);
-    if (unlikely (i != -1))
-      return rangeRecord[i].value;
-    return 0;
+    return rangeRecord.bsearch (glyph_id).value;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

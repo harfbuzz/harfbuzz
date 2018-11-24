@@ -111,10 +111,14 @@ typedef struct OffsetTable
   {
     Tag t;
     t.set (tag);
-    int i = tables.bsearch (t);
-    if (table_index)
-      *table_index = i == -1 ? (unsigned) Index::NOT_FOUND_INDEX : (unsigned) i;
-    return i != -1;
+    unsigned int i;
+    if (tables.bfind (t, &i))
+    {
+      if (table_index) *table_index = i;
+      return true;
+    }
+    if (table_index) *table_index = (unsigned) Index::NOT_FOUND_INDEX;
+    return false;
   }
   inline const TableRecord& get_table_by_tag (hb_tag_t tag) const
   {
