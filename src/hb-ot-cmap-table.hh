@@ -417,6 +417,7 @@ struct CmapSubtableLongGroup
   public:
   DEFINE_SIZE_STATIC (12);
 };
+DECLARE_NULL_NAMESPACE_BYTES (OT, CmapSubtableLongGroup);
 
 template <typename UINT>
 struct CmapSubtableTrimmed
