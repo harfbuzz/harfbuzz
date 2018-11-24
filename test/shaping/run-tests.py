@@ -27,7 +27,7 @@ process = subprocess.Popen ([hb_shape, '--batch'],
 			    stdout=subprocess.PIPE,
 			    stderr=sys.stdout)
 
-ran_once = False
+passes = 0
 fails = 0
 skips = 0
 
@@ -69,13 +69,13 @@ for filename in args:
 				with open (fontfile, 'rb') as ff:
 					actual_hash = hashlib.sha1 (ff.read()).hexdigest ().strip ()
 					if actual_hash != expected_hash:
-						print ('different versions of the font is found, expected %s hash was %s but got %s, skip' %
+						print ('different version of %s found; Expected hash %s, got %s; skipping.' %
 							   (fontfile, expected_hash, actual_hash))
-						skips = skips + 1
+						skips += 1
 						continue
 			except:
-				print ('%s is not found, skip.' % fontfile)
-				skips = skips + 1
+				print ('%s not found, skip.' % fontfile)
+				skips += 1
 				continue
 		else:
 			cwd = os.path.dirname(filename)
@@ -108,12 +108,12 @@ for filename in args:
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
-		ran_once = True
-
 		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr
 			print ("OT funcs: " + glyphs2) # file=sys.stderr
-			fails = fails + 1
+			fails += 1
+		else:
+			passes += 1
 
 		if reference:
 			print (":".join ([fontfile, options, unicodes, glyphs1]))
@@ -122,18 +122,20 @@ for filename in args:
 		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
 			print ("Actual:   " + glyphs1) # file=sys.stderr
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
-			fails = fails + 1
+			fails += 1
+		else:
+			passes += 1
 
-if fails != 0 or skips != 0:
-	if not reference:
-		print ("%d tests are failed and %d tests are skipped." % (fails, skips)) # file=sys.stderr
-	if fails != 0:
-		sys.exit (1)
-	sys.exit (77)
-else:
-	if not ran_once:
-		if not reference:
-			print ("No tests ran.")
-		sys.exit (77)
-	elif not reference:
+if not reference:
+	print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips)) # file=sys.stderr
+	if not (fails + passes):
+		print ("No tests ran.")
+	elif not (fails + skips):
 		print ("All tests passed.")
+
+if fails:
+	sys.exit (1)
+elif passes:
+	sys.exit (0)
+else:
+	sys.exit (77)
