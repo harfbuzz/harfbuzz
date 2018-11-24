@@ -545,14 +545,23 @@ struct ArrayOf
     return_trace (true);
   }
 
-  template <typename SearchType>
-  inline int lsearch (const SearchType &x) const
+  template <typename T>
+  inline Type &lsearch (const T &x)
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!this->arrayZ[i].cmp (x))
-	return i;
-    return -1;
+	return this->arrayZ[i];
+    return Crap (T);
+  }
+  template <typename T>
+  inline const Type &lsearch (const T &x) const
+  {
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->arrayZ[i].cmp (x))
+	return this->arrayZ[i];
+    return Null (T);
   }
 
   inline void qsort (void)
