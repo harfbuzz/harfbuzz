@@ -77,14 +77,14 @@ struct FeatureName
   }
 
   enum {
-    Exclusive = 0x8000,		/* If set, the feature settings are mutually exclusive. */
-    NotDefault = 0x4000,	/* If clear, then the setting with an index of 0 in
+    Exclusive	= 0x8000,	/* If set, the feature settings are mutually exclusive. */
+    NotDefault	= 0x4000,	/* If clear, then the setting with an index of 0 in
 				 * the setting name array for this feature should
 				 * be taken as the default for the feature
 				 * (if one is required). If set, then bits 0-15 of this
 				 * featureFlags field contain the index of the setting
 				 * which is to be taken as the default. */
-    IndexMask = 0x00FF		/* If bits 30 and 31 are set, then these sixteen bits
+    IndexMask	= 0x00FF	/* If bits 30 and 31 are set, then these sixteen bits
 				 * indicate the index of the setting in the setting name
 				 * array for this feature which should be taken
 				 * as the default. */
