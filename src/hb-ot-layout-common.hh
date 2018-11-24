@@ -1194,10 +1194,7 @@ struct ClassDefFormat1
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    unsigned int i = (unsigned int) (glyph_id - startGlyph);
-    if (unlikely (i < classValue.len))
-      return classValue[i];
-    return 0;
+    return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
