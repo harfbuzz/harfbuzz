@@ -26,6 +26,8 @@
 #define HB_AAT_H
 #define HB_AAT_H_IN
 
+#include "hb.h"
+
 #include "hb-aat-layout.h"
 
 HB_BEGIN_DECLS
