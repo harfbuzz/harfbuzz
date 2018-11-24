@@ -436,8 +436,10 @@ struct Entry
      * which ensures that data has a simple sanitize(). To be determined
      * if I need to remove that as well.
      *
-     * XXX Because we are a template, our DEFINE_SIZE_STATIC assertion
-     * wouldn't be checked. */
+     * HOWEVER! Because we are a template, our DEFINE_SIZE_STATIC
+     * assertion wouldn't be checked, hence the line below. */
+    static_assert (T::static_size, "");
+
     return_trace (c->check_struct (this));
   }
 
