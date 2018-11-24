@@ -962,6 +962,11 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      if (unlikely (!st->u.header.sanitize (c)))
+      {
+	c->reset_object ();
+	return_trace (false);
+      }
       /* OpenType kern table has 2-byte subtable lengths.  That's limiting.
        * MS implementation also only supports one subtable, of format 0,
        * anyway.  Certain versions of some fonts, like Calibry, contain
