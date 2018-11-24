@@ -562,6 +562,8 @@ struct hb_bytes_t
 template <typename Type>
 struct hb_array_t
 {
+  static_assert ((bool) (unsigned) hb_static_size (Type), "");
+
   inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
   inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
