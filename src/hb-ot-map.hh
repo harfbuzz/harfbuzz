@@ -57,8 +57,8 @@ struct hb_ot_map_t
     unsigned int auto_zwj : 1;
     unsigned int random : 1;
 
-    inline int cmp (const hb_tag_t *tag_) const
-    { return *tag_ < tag ? -1 : *tag_ > tag ? 1 : 0; }
+    inline int cmp (const hb_tag_t tag_) const
+    { return tag_ < tag ? -1 : tag_ > tag ? 1 : 0; }
   };
 
   struct lookup_map_t {

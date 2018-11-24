@@ -267,7 +267,7 @@ struct hb_vector_t
     while (min <= max)
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (&x);
+      int c = array[mid].cmp (x);
       if (c < 0)
         max = mid - 1;
       else if (c > 0)
@@ -281,7 +281,7 @@ struct hb_vector_t
     }
     if (i)
     {
-      if (max < 0 || (max < (int) this->len && array[max].cmp (&x) > 0))
+      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
 	max++;
       *i = max;
     }

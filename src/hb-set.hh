@@ -45,7 +45,7 @@ struct hb_set_t
 
   struct page_map_t
   {
-    inline int cmp (const page_map_t *o) const { return (int) o->major - (int) major; }
+    inline int cmp (const page_map_t &o) const { return (int) o.major - (int) major; }
 
     uint32_t major;
     uint32_t index;

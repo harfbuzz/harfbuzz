@@ -77,9 +77,9 @@ struct hb_aat_map_builder_t
 	     (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
     }
 
-    int cmp (const short unsigned int *ty) const
+    int cmp (unsigned int ty) const
     {
-      return (type != *ty) ? (type < *ty ? -1 : 1) : 0;
+      return (type != ty) ? (type < ty ? -1 : 1) : 0;
     }
   };
 
