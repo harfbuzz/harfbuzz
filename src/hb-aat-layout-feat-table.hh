@@ -69,12 +69,10 @@ struct feat;
 
 struct FeatureName
 {
-  static int cmp (const void *key_, const void *entry_)
+  int cmp (hb_aat_layout_feature_type_t key) const
   {
-    hb_aat_layout_feature_selector_t key = * (hb_aat_layout_feature_selector_t *) key_;
-    const FeatureName * entry = (const FeatureName *) entry_;
-    return key < entry->feature ? -1 :
-	   key > entry->feature ? +1 :
+    return key < feature ? -1 :
+	   key > feature ? +1 :
 	   0;
   }
 
@@ -155,6 +153,8 @@ struct feat
 {
   static const hb_tag_t tableTag = HB_AAT_TAG_feat;
 
+  inline bool has_data (void) const { return version.to_int (); }
+
   inline unsigned int get_feature_types (unsigned int                  start_offset,
 					 unsigned int                 *count,
 					 hb_aat_layout_feature_type_t *features) const
@@ -172,12 +172,7 @@ struct feat
 
   inline const FeatureName& get_feature (hb_aat_layout_feature_type_t key) const
   {
-    const FeatureName* feature = (FeatureName*) hb_bsearch (&key, &namesZ,
-							    featureNameCount,
-							    FeatureName::static_size,
-							    FeatureName::cmp);
-
-    return feature ? *feature : Null (FeatureName);
+    return namesZ.bsearch (featureNameCount, key);
   }
 
   inline hb_ot_name_id_t get_feature_name_id (hb_aat_layout_feature_type_t feature) const
@@ -211,7 +206,7 @@ struct feat
 				/* The number of entries in the feature name array. */
   HBUINT16	reserved1;	/* Reserved (set to zero). */
   HBUINT32	reserved2;	/* Reserved (set to zero). */
-  UnsizedArrayOf<FeatureName>
+  SortedUnsizedArrayOf<FeatureName>
 		namesZ;		/* The feature name array. */
   public:
   DEFINE_SIZE_STATIC (24);
