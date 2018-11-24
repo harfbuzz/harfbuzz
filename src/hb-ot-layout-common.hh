@@ -1265,10 +1265,10 @@ struct ClassDefFormat1
   }
 
   protected:
-  HBUINT16	classFormat;		/* Format identifier--format = 1 */
-  GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
+  HBUINT16	classFormat;	/* Format identifier--format = 1 */
+  GlyphID	startGlyph;	/* First GlyphID of the classValueArray */
   ArrayOf<HBUINT16>
-		classValue;		/* Array of Class Values--one per GlyphID */
+		classValue;	/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (6, classValue);
 };
