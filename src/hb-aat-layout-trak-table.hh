@@ -133,7 +133,6 @@ struct TrackData
     if (!sizes) return 0.;
     if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
-    /* TODO bfind() */
     hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
