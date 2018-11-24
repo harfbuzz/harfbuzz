@@ -225,13 +225,9 @@ struct hb_vector_t
     ::qsort (arrayZ(), len, sizeof (Type), cmp);
   }
 
-  inline void qsort (void)
+  inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
   {
-    ::qsort (arrayZ(), len, sizeof (Type), Type::cmp);
-  }
-
-  inline void qsort (unsigned int start, unsigned int end)
-  {
+    end = MIN (end, len);
     ::qsort (arrayZ() + start, end - start, sizeof (Type), Type::cmp);
   }
 
