@@ -564,6 +564,7 @@ struct hb_array_t
 {
   static_assert ((bool) (unsigned) hb_static_size (Type), "");
 
+  inline hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
   inline Type& operator [] (unsigned int i) const
@@ -642,6 +643,7 @@ inline hb_array_t<T> hb_array (T *array, unsigned int len)
 template <typename Type>
 struct hb_sorted_array_t : hb_array_t<Type>
 {
+  inline hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
   inline hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
 
   template <typename T>
