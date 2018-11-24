@@ -236,36 +236,21 @@ struct hb_vector_t
   }
 
   template <typename T>
-  inline Type *lsearch (const T &x,
-			Type *not_found = nullptr)
-  {
-    return as_array ().lsearch (x, not_found);
-  }
+  inline Type *lsearch (const T &x, Type *not_found = nullptr)
+  { return as_array ().lsearch (x, not_found); }
   template <typename T>
-  inline const Type *lsearch (const T &x,
-			      const Type *not_found = nullptr) const
-  {
-    return as_array ().lsearch (x, not_found);
-  }
+  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  { return as_array ().lsearch (x, not_found); }
 
   template <typename T>
-  inline Type *bsearch (const T &x,
-			Type *not_found = nullptr)
-  {
-    return as_sorted_array ().bsearch (x, not_found);
-  }
+  inline Type *bsearch (const T &x, Type *not_found = nullptr)
+  { return as_sorted_array ().bsearch (x, not_found); }
   template <typename T>
-  inline const Type *bsearch (const T &x,
-			      const Type *not_found = nullptr) const
-  {
-    return as_sorted_array ().bsearch (x, not_found);
-  }
+  inline const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  { return as_sorted_array ().bsearch (x, not_found); }
   template <typename T>
-  inline bool bfind (const T &x,
-		     unsigned int *i = nullptr) const
-  {
-    return as_sorted_array ().bfind (x, i);
-  }
+  inline bool bfind (const T &x, unsigned int *i = nullptr) const
+  { return as_sorted_array ().bfind (x, i); }
 };
 
 

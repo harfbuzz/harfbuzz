@@ -551,14 +551,10 @@ struct ArrayOf
 
   template <typename T>
   inline Type &lsearch (const T &x)
-  {
-    return *as_array ().lsearch (x, &Crap (T));
-  }
+  { return *as_array ().lsearch (x, &Crap (T)); }
   template <typename T>
   inline const Type &lsearch (const T &x) const
-  {
-    return *as_array ().lsearch (x, &Null (T));
-  }
+  { return *as_array ().lsearch (x, &Null (T)); }
 
   inline void qsort (void)
   {
@@ -745,46 +741,20 @@ struct ArrayOfM1
 template <typename Type, typename LenType=HBUINT16>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
+  inline hb_sorted_array_t<Type> as_array (void)
+  { return hb_sorted_array (this->arrayZ, this->len); }
+  inline hb_sorted_array_t<const Type> as_array (void) const
+  { return hb_sorted_array (this->arrayZ, this->len); }
+
   template <typename T>
   inline Type &bsearch (const T &x)
-  {
-    unsigned int i;
-    return bfind (x, &i) ? this->arrayZ[i] : Crap(Type);
-  }
+  { return *as_array ().bsearch (x, &Crap (Type)); }
   template <typename T>
   inline const Type &bsearch (const T &x) const
-  {
-    unsigned int i;
-    return bfind (x, &i) ? this->arrayZ[i] : Null(Type);
-  }
+  { return *as_array ().bsearch (x, &Null (Type)); }
   template <typename T>
   inline bool bfind (const T &x, unsigned int *i = nullptr) const
-  {
-    int min = 0, max = (int) this->len - 1;
-    const Type *array = this->arrayZ;
-    while (min <= max)
-    {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (x);
-      if (c < 0)
-        max = mid - 1;
-      else if (c > 0)
-        min = mid + 1;
-      else
-      {
-	if (i)
-	  *i = mid;
-	return true;
-      }
-    }
-    if (i)
-    {
-      if (max < 0 || (max < (int) this->len && array[max].cmp (x) > 0))
-	max++;
-      *i = max;
-    }
-    return false;
-  }
+  { return as_array ().bfind (x, i); }
 };
 
 /*

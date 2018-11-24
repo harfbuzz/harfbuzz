@@ -635,22 +635,19 @@ struct hb_sorted_array_t : hb_array_t<Type>
   inline hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
 
   template <typename T>
-  inline Type *bsearch (const T &x,
-			Type *not_found = nullptr)
+  inline Type *bsearch (const T &x, Type *not_found = nullptr)
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  inline const Type *bsearch (const T &x,
-			      const Type *not_found = nullptr) const
+  inline const Type *bsearch (const T &x, const Type *not_found = nullptr) const
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  inline bool bfind (const T &x,
-		     unsigned int *i = nullptr) const
+  inline bool bfind (const T &x, unsigned int *i = nullptr) const
   {
     int min = 0, max = (int) this->len - 1;
     const Type *array = this->arrayZ;
