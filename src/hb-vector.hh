@@ -221,15 +221,9 @@ struct hb_vector_t
   }
 
   inline void qsort (int (*cmp)(const void*, const void*))
-  {
-    ::qsort (arrayZ(), len, sizeof (Type), cmp);
-  }
-
+  { as_array ().qsort (cmp); }
   inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
-  {
-    end = MIN (end, len);
-    ::qsort (arrayZ() + start, end - start, sizeof (Type), Type::cmp);
-  }
+  { as_array ().qsort (start, end); }
 
   template <typename T>
   inline Type *lsearch (const T &x, Type *not_found = nullptr)

@@ -572,6 +572,10 @@ struct hb_array_t
     return arrayZ[i];
   }
 
+  template <typename T> inline operator  T * (void) const { return arrayZ; }
+
+  inline Type * operator & (void) const { return arrayZ; }
+
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
   template <typename T>
@@ -595,9 +599,15 @@ struct hb_array_t
     return not_found;
   }
 
-  template <typename T> inline operator  T * (void) const { return arrayZ; }
-
-  inline Type * operator & (void) const { return arrayZ; }
+  inline void qsort (int (*cmp)(const void*, const void*))
+  {
+    ::qsort (arrayZ, len, sizeof (Type), cmp);
+  }
+  inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
+  {
+    end = MIN (end, len);
+    ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
+  }
 
   inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   {
