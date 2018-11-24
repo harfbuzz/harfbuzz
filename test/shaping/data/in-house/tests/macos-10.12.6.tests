@@ -1,5 +1,3 @@
-
-# 10.12:
 /System/Library/Fonts/Times.dfont@39c954614d3f3317b28564db06d5b7b7a6ff0e39::U+0066,U+0069:[fi=0+1139]
 /Library/Fonts/Khmer MN.ttc@5f5b1072df99b7355d3066ea85fe82969d13c94a::U+17A2,U+1780,U+17D2,U+179F,U+179A,U+1781,U+17D2,U+1798,U+17C2,U+179A:[km_qa=0+1025|km_ka=1+1025|km_sa.sub=1+517|km_ro=4+593|km_vs_ae=5+605|km_kha=5+1025|km_mo.sub=5+0|km_ro=9+593]
 /Library/Fonts/Tamil MN.ttc@37a2020c3f86ebcc45e02c1de5fdf81e2676989d::U+0BA4,U+0BCA,U+0B95,U+0BC1,U+0B95,U+0BCD,U+0B95,U+0BAA,U+0BCD,U+0BAA,U+0B9F,U+0BCD,U+0B9F,U+0BC1:[tgm_e=0+1702|tgc_ta=0+1598|tgm_aa=0+1074|tgc_ka=2@-74,0+1518|tgm_u=2+1205|tgc_ka=4+1592|tgm_pulli=4+503|tgc_ka=6+1592|tgc_pa=7+1370|tgm_pulli=7+503|tgc_pa=9+1370|tgc_tta=10+1566|tgm_pulli=10+503|tgc_tta=12+1566|tgm_u=12+1205]
