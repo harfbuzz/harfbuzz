@@ -509,9 +509,8 @@ struct MathGlyphAssembly
     if (parts_count)
     {
       int scale = font->dir_scale (direction);
-      const MathGlyphPartRecord *arr =
-	    partRecords.sub_array (start_offset, parts_count);
-      unsigned int count = *parts_count;
+      hb_array_t<const MathGlyphPartRecord> arr = partRecords.sub_array (start_offset, parts_count);
+      unsigned int count = arr.len;
       for (unsigned int i = 0; i < count; i++)
 	arr[i].extract (parts[i], scale, font);
     }
@@ -556,9 +555,8 @@ struct MathGlyphConstruction
     if (variants_count)
     {
       int scale = font->dir_scale (direction);
-      const MathGlyphVariantRecord *arr =
-	    mathGlyphVariantRecord.sub_array (start_offset, variants_count);
-      unsigned int count = *variants_count;
+      hb_array_t<const MathGlyphVariantRecord> arr = mathGlyphVariantRecord.sub_array (start_offset, variants_count);
+      unsigned int count = arr.len;
       for (unsigned int i = 0; i < count; i++)
       {
 	variants[i].glyph = arr[i].variantGlyph;
