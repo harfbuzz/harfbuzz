@@ -928,9 +928,9 @@ struct KerxTable
 
       /* See comment in sanitize() for conditional here. */
       if (i < count - 1)
-	c->sanitizer.set_object (*st);
+	c->sanitizer.set_object (st);
       else
-	c->sanitizer.reset_object ();
+	c->sanitizer.set_object ();
 
       ret |= st->dispatch (c);
 
@@ -943,7 +943,7 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
-    c->sanitizer.reset_object ();
+    c->sanitizer.set_object ();
 
     return ret;
   }
@@ -962,7 +962,7 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      c->reset_object ();
+      c->set_object ();
       if (unlikely (!st->u.header.sanitize (c)))
 	return_trace (false);
       /* OpenType kern table has 2-byte subtable lengths.  That's limiting.
@@ -973,13 +973,13 @@ struct KerxTable
        * have multiple subtables.  To handle such fonts, we just ignore
        * the length for the last subtable. */
       if (i < count - 1)
-	c->set_object (*st);
+	c->set_object (st);
 
       if (unlikely (!st->sanitize (c)))
 	return_trace (false);
       st = &StructAfter<SubTable> (*st);
     }
-    c->reset_object ();
+    c->set_object ();
 
     return_trace (true);
   }

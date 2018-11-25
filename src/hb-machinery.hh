@@ -259,13 +259,20 @@ struct hb_sanitize_context_t :
 
   inline void set_max_ops (int max_ops_) { max_ops = max_ops_; }
 
-  template <typename T>
-  inline void set_object (const T& obj)
-  {
-    reset_object ();
+  struct dummy_get_size_t
+  { inline unsigned int get_size (void) const { return 0; } };
 
-    const char *obj_start = (const char *) &obj;
-    const char *obj_end = (const char *) &obj + obj.get_size ();
+  template <typename T = dummy_get_size_t>
+  inline void set_object (const T *obj = nullptr)
+  {
+    this->start = this->blob->data;
+    this->end = this->start + this->blob->length;
+    assert (this->start <= this->end); /* Must not overflow. */
+
+    if (!obj) return;
+
+    const char *obj_start = (const char *) obj;
+    const char *obj_end = (const char *) obj + obj->get_size ();
     assert (obj_start <= obj_end); /* Must not overflow. */
 
     if (unlikely (obj_end < this->start || this->end < obj_start))
@@ -277,16 +284,9 @@ struct hb_sanitize_context_t :
     }
   }
 
-  inline void reset_object (void)
-  {
-    this->start = this->blob->data;
-    this->end = this->start + this->blob->length;
-    assert (this->start <= this->end); /* Must not overflow. */
-  }
-
   inline void start_processing (void)
   {
-    reset_object ();
+    set_object ();
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
     this->edit_count = 0;
