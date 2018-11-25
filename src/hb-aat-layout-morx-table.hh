@@ -911,6 +911,13 @@ struct ChainSubtable
     }
   }
 
+  inline bool apply (hb_aat_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    hb_sanitize_with_object_t with (&c->sanitizer, this);
+    return_trace (dispatch (c));
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -919,6 +926,7 @@ struct ChainSubtable
 	!c->check_range (this, length))
       return_trace (false);
 
+    hb_sanitize_with_object_t with (c, this);
     return_trace (dispatch (c));
   }
 
@@ -1026,9 +1034,7 @@ struct Chain
       if (reverse)
         c->buffer->reverse ();
 
-      c->sanitizer.set_object (subtable);
-
-      subtable->dispatch (c);
+      subtable->apply (c);
 
       if (reverse)
         c->buffer->reverse ();
@@ -1041,7 +1047,6 @@ struct Chain
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
-    c->sanitizer.set_object ();
   }
 
   inline unsigned int get_size (void) const { return length; }
@@ -1061,15 +1066,10 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      c->set_object ();
-      if (unlikely (!c->check_struct (subtable)))
-	return_trace (false);
-      c->set_object (subtable);
       if (!subtable->sanitize (c))
 	return_trace (false);
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
     }
-    c->set_object ();
 
     return_trace (true);
   }
