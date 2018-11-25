@@ -443,8 +443,17 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 {
   inline const Type& operator [] (unsigned int i) const
   {
-    return this+this->arrayZ[i];
+    const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
+    if (unlikely (p < this->arrayZ)) return Null (Type); /* Overflowed. */
+    return this+*p;
   }
+  inline Type& operator [] (unsigned int i)
+  {
+    const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
+    if (unlikely (p < this->arrayZ)) return Crap (Type); /* Overflowed. */
+    return this+*p;
+  }
+
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
@@ -867,13 +876,15 @@ struct VarSizedBinSearchArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (unlikely (i >= header.nUnits)) return Null (Type);
+    if (unlikely (i >= get_length ())) return Null (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   inline Type& operator [] (unsigned int i)
   {
+    if (unlikely (i >= get_length ())) return Crap (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
+  inline unsigned int get_length (void) const { return header.nUnits; }
   inline unsigned int get_size (void) const
   { return header.static_size + header.nUnits * header.unitSize; }
 
@@ -897,7 +908,7 @@ struct VarSizedBinSearchArrayOf
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
-    unsigned int count = header.nUnits;
+    unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, base)))
 	return_trace (false);
@@ -908,7 +919,7 @@ struct VarSizedBinSearchArrayOf
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
-    unsigned int count = header.nUnits;
+    unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, base, user_data)))
 	return_trace (false);
@@ -919,7 +930,7 @@ struct VarSizedBinSearchArrayOf
   inline const Type *bsearch (const T &key) const
   {
     unsigned int size = header.unitSize;
-    int min = 0, max = (int) header.nUnits - 1;
+    int min = 0, max = (int) get_length () - 1;
     while (min <= max)
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
