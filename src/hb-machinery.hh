@@ -259,17 +259,10 @@ struct hb_sanitize_context_t :
 
   inline void set_max_ops (int max_ops_) { max_ops = max_ops_; }
 
-  struct dummy_get_size_t
-  { inline unsigned int get_size (void) const { return 0; } };
-
-  template <typename T = dummy_get_size_t>
-  inline void set_object (const T *obj = nullptr)
+  template <typename T>
+  inline void set_object (const T *obj)
   {
-    this->start = this->blob->data;
-    this->end = this->start + this->blob->length;
-    assert (this->start <= this->end); /* Must not overflow. */
-
-    if (!obj) return;
+    reset_object ();
 
     const char *obj_start = (const char *) obj;
     const char *obj_end = (const char *) obj + obj->get_size ();
@@ -284,9 +277,16 @@ struct hb_sanitize_context_t :
     }
   }
 
+  inline void reset_object (void)
+  {
+    this->start = this->blob->data;
+    this->end = this->start + this->blob->length;
+    assert (this->start <= this->end); /* Must not overflow. */
+  }
+
   inline void start_processing (void)
   {
-    set_object ();
+    reset_object ();
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
     this->edit_count = 0;
@@ -482,7 +482,7 @@ struct hb_sanitize_context_t :
 
 struct hb_sanitize_with_object_t
 {
-  template <typename T = hb_sanitize_context_t::dummy_get_size_t>
+  template <typename T>
   inline hb_sanitize_with_object_t (hb_sanitize_context_t *c,
 				    const T& obj) : c (c)
   {
@@ -490,7 +490,7 @@ struct hb_sanitize_with_object_t
   }
   inline ~hb_sanitize_with_object_t (void)
   {
-    c->set_object ();
+    c->reset_object ();
   }
 
   private:
