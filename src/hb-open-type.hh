@@ -874,6 +874,22 @@ struct VarSizedBinSearchArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
 
+  inline bool last_is_terminator (void) const
+  {
+    if (unlikely (!header.nUnits)) return false;
+
+    /* Gah.
+     *
+     * "The number of termination values that need to be included is table-specific.
+     * The value that indicates binary search termination is 0xFFFF." */
+    const HBUINT16 *words = &StructAtOffset<HBUINT16> (&bytesZ, (header.nUnits - 1) * header.unitSize);
+    unsigned int count = Type::TerminationWordCount;
+    for (unsigned int i = 0; i < count; i++)
+      if (words[i] != 0xFFFFu)
+        return false;
+    return true;
+  }
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= get_length ())) return Null (Type);
@@ -884,7 +900,10 @@ struct VarSizedBinSearchArrayOf
     if (unlikely (i >= get_length ())) return Crap (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
-  inline unsigned int get_length (void) const { return header.nUnits; }
+  inline unsigned int get_length (void) const
+  {
+    return header.nUnits - last_is_terminator ();
+  }
   inline unsigned int get_size (void) const
   { return header.static_size + header.nUnits * header.unitSize; }
 

@@ -76,6 +76,8 @@ struct LookupFormat0
 template <typename T>
 struct LookupSegmentSingle
 {
+  enum { TerminationWordCount = 2 };
+
   inline int cmp (hb_codepoint_t g) const {
     return g < first ? -1 : g <= last ? 0 : +1 ;
   }
@@ -134,6 +136,8 @@ struct LookupFormat2
 template <typename T>
 struct LookupSegmentArray
 {
+  enum { TerminationWordCount = 2 };
+
   inline const T* get_value (hb_codepoint_t glyph_id, const void *base) const
   {
     return first <= glyph_id && glyph_id <= last ? &(base+valuesZ)[glyph_id - first] : nullptr;
@@ -204,6 +208,8 @@ struct LookupFormat4
 template <typename T>
 struct LookupSingle
 {
+  enum { TerminationWordCount = 1 };
+
   inline int cmp (hb_codepoint_t g) const { return glyph.cmp (g); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
