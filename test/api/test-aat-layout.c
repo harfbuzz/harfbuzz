@@ -52,51 +52,53 @@ test_aat_get_feature_types (void)
 static void
 test_aat_get_feature_selectors (void)
 {
-  hb_aat_layout_feature_selector_t default_selector;
-  hb_aat_layout_feature_selector_t settings[3];
+  unsigned int default_index;
+  hb_aat_layout_feature_selector_info_t settings[3];
   unsigned int count = 3;
 
-  g_assert_cmpuint (4, ==, hb_aat_layout_feature_type_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
-								     &default_selector, 0, &count, settings));
+  g_assert_cmpuint (4, ==, hb_aat_layout_feature_type_get_selector_infos (face,
+									  HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
+									  0, &count, settings,
+									  &default_index));
   g_assert_cmpuint (3, ==, count);
-  g_assert_cmpuint (0, ==, default_selector);
+  g_assert_cmpuint (0, ==, default_index);
 
-  g_assert_cmpuint (0, ==, settings[0]);
-  g_assert_cmpuint (294, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
+  g_assert_cmpuint (0, ==, settings[0].enable);
+  g_assert_cmpuint (294, ==, settings[0].name_id);
 
-  g_assert_cmpuint (1, ==, settings[1]);
-  g_assert_cmpuint (295, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[1]));
+  g_assert_cmpuint (1, ==, settings[1].enable);
+  g_assert_cmpuint (295, ==, settings[1].name_id);
 
-  g_assert_cmpuint (2, ==, settings[2]);
-  g_assert_cmpuint (296, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[2]));
-
-  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, HB_AAT_LAYOUT_FEATURE_SELECTOR_INVALID));
+  g_assert_cmpuint (2, ==, settings[2].enable);
+  g_assert_cmpuint (296, ==, settings[2].name_id);
 
   count = 3;
-  g_assert_cmpuint (4, ==, hb_aat_layout_feature_type_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
-								     &default_selector, 3, &count, settings));
+  g_assert_cmpuint (4, ==, hb_aat_layout_feature_type_get_selector_infos (face,
+									  HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE,
+									  3, &count, settings,
+									  &default_index));
   g_assert_cmpuint (1, ==, count);
-  g_assert_cmpuint (0, ==, default_selector);
+  g_assert_cmpuint (0, ==, default_index);
 
-  g_assert_cmpuint (3, ==, settings[0]);
-  g_assert_cmpuint (297, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, settings[0]));
+  g_assert_cmpuint (3, ==, settings[0].enable);
+  g_assert_cmpuint (297, ==, settings[0].name_id);
 
   count = 1;
-  g_assert_cmpuint (1, ==, hb_aat_layout_feature_type_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,
-								     &default_selector, 0, &count, settings));
+  g_assert_cmpuint (1, ==, hb_aat_layout_feature_type_get_selector_infos (face,
+									  HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,
+									  0, &count, settings,
+									  &default_index));
   g_assert_cmpuint (1, ==, count);
-  g_assert_cmpuint (HB_AAT_LAYOUT_FEATURE_TYPE_INVALID, ==, default_selector);
+  g_assert_cmpuint (HB_AAT_LAYOUT_NO_SELECTOR_INDEX, ==, default_index);
 
-  g_assert_cmpuint (8, ==, settings[0]);
-  g_assert_cmpuint (308, ==, hb_aat_layout_feature_selector_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS, settings[0]));
+  g_assert_cmpuint (8, ==, settings[0].enable);
+  g_assert_cmpuint (308, ==, settings[0].name_id);
 
   count = 100;
-  g_assert_cmpuint (0, ==, hb_aat_layout_feature_type_get_selectors (face, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
-								     NULL, 0, &count, settings));
+  g_assert_cmpuint (0, ==, hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
+									  0, &count, settings,
+									  NULL));
   g_assert_cmpuint (0, ==, count);
-
-  g_assert_cmpuint (HB_OT_NAME_ID_INVALID, ==, hb_aat_layout_feature_selector_get_name_id (sbix, HB_AAT_LAYOUT_FEATURE_TYPE_INVALID,
-											   (hb_aat_layout_feature_selector_t) 0));
 }
 
 int

@@ -430,26 +430,32 @@ typedef enum
 HB_EXTERN unsigned int
 hb_aat_layout_get_feature_types (hb_face_t                    *face,
 				 unsigned int                  start_offset,
-				 unsigned int                 *count,   /* IN/OUT.  May be NULL. */
-				 hb_aat_layout_feature_type_t *features /* OUT.     May be NULL. */);
+				 unsigned int                 *feature_count, /* IN/OUT.  May be NULL. */
+				 hb_aat_layout_feature_type_t *features       /* OUT.     May be NULL. */);
 
 HB_EXTERN hb_ot_name_id_t
 hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
-					hb_aat_layout_feature_type_t  feature);
+					hb_aat_layout_feature_type_t  feature_type);
 
+typedef struct hb_aat_layout_feature_selector_info_t
+{
+  hb_ot_name_id_t			name_id;
+  hb_aat_layout_feature_selector_t	enable;
+  hb_aat_layout_feature_selector_t	disable;
+  /*< private >*/
+  unsigned int				reserved;
+} hb_aat_layout_feature_selector_info_t;
+
+#define HB_AAT_LAYOUT_NO_SELECTOR_INDEX		0xFFFFu
 
 HB_EXTERN unsigned int
-hb_aat_layout_feature_type_get_selectors (hb_face_t                        *face,
-					  hb_aat_layout_feature_type_t      feature,
-					  hb_aat_layout_feature_selector_t *default_selector, /* OUT.     May be NULL. */
-					  unsigned int                      start_offset,
-					  unsigned int                     *count,            /* IN/OUT.  May be NULL. */
-					  hb_aat_layout_feature_selector_t *settings          /* OUT.     May be NULL. */);
+hb_aat_layout_feature_type_get_selector_infos (hb_face_t                             *face,
+					       hb_aat_layout_feature_type_t           feature_type,
+					       unsigned int                           start_offset,
+					       unsigned int                          *selector_count, /* IN/OUT.  May be NULL. */
+					       hb_aat_layout_feature_selector_info_t *selectors,      /* OUT.     May be NULL. */
+					       unsigned int                          *default_index   /* OUT.     May be NULL. */);
 
-HB_EXTERN hb_ot_name_id_t
-hb_aat_layout_feature_selector_get_name_id (hb_face_t                        *face,
-					    hb_aat_layout_feature_type_t      feature,
-					    hb_aat_layout_feature_selector_t  selector);
 
 HB_END_DECLS
 

@@ -4,13 +4,14 @@ HB_OT_H_IN
 </SECTION>
 
 <SECTION>
-<FILE>hb-aat</FILE>
+<FILE>hb-aat-layout</FILE>
+HB_AAT_LAYOUT_NO_SELECTOR_INDEX
 hb_aat_layout_feature_type_t
 hb_aat_layout_get_feature_types
 hb_aat_layout_feature_type_get_name_id
 hb_aat_layout_feature_selector_t
-hb_aat_layout_feature_type_get_selectors
-hb_aat_layout_feature_selector_get_name_id
+hb_aat_layout_feature_selector_info_t
+hb_aat_layout_feature_type_get_selector_infos
 </SECTION>
 
 <SECTION>
