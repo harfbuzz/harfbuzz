@@ -480,6 +480,23 @@ struct hb_sanitize_context_t :
   bool  num_glyphs_set;
 };
 
+struct hb_sanitize_with_object_t
+{
+  template <typename T = hb_sanitize_context_t::dummy_get_size_t>
+  inline hb_sanitize_with_object_t (hb_sanitize_context_t *c,
+				    const T& obj) : c (c)
+  {
+    c->set_object (obj);
+  }
+  inline ~hb_sanitize_with_object_t (void)
+  {
+    c->set_object ();
+  }
+
+  private:
+  hb_sanitize_context_t *c;
+};
+
 
 /*
  * Serialize
