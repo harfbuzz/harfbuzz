@@ -413,7 +413,15 @@ struct GDEF
 
   struct accelerator_t
   {
-    HB_INTERNAL void init (hb_face_t *face);
+    inline void init (hb_face_t *face)
+    {
+      this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
+      if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
+      {
+	hb_blob_destroy (this->table.get_blob ());
+	this->table = hb_blob_get_empty ();
+      }
+    }
 
     inline void fini (void)
     {

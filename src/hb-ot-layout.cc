@@ -198,17 +198,6 @@ OT::GDEF::is_blacklisted (hb_blob_t *blob,
   return false;
 }
 
-void
-OT::GDEF::accelerator_t::init (hb_face_t *face)
-{
-  this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
-  if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
-  {
-    hb_blob_destroy (this->table.get_blob ());
-    this->table = hb_blob_get_empty ();
-  }
-}
-
 static void
 _hb_ot_layout_set_glyph_props (hb_font_t *font,
 			       hb_buffer_t *buffer)
