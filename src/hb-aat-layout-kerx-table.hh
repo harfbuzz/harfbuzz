@@ -926,6 +926,12 @@ struct KerxTable
       if (reverse)
 	c->buffer->reverse ();
 
+      /* See comment in sanitize() for conditional here. */
+      if (i < count - 1)
+	c->sanitizer.set_object (*st);
+      else
+	c->sanitizer.reset_object ();
+
       ret |= st->dispatch (c);
 
       if (reverse)
@@ -937,6 +943,7 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+    c->sanitizer.reset_object ();
 
     return ret;
   }
@@ -955,10 +962,24 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      c->reset_object ();
+      if (unlikely (!st->u.header.sanitize (c)))
+	return_trace (false);
+      /* OpenType kern table has 2-byte subtable lengths.  That's limiting.
+       * MS implementation also only supports one subtable, of format 0,
+       * anyway.  Certain versions of some fonts, like Calibry, contain
+       * kern subtable that exceeds 64kb.  Looks like, the subtable length
+       * is simply ignored.  Which makes sense.  It's only needed if you
+       * have multiple subtables.  To handle such fonts, we just ignore
+       * the length for the last subtable. */
+      if (i < count - 1)
+	c->set_object (*st);
+
       if (unlikely (!st->sanitize (c)))
 	return_trace (false);
       st = &StructAfter<SubTable> (*st);
     }
+    c->reset_object ();
 
     return_trace (true);
   }
