@@ -117,7 +117,7 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279693
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279875
    */
-#define ENCODE(x,y,z) ((int64_t) (x) << 32 | (int64_t) (y) << 16 | (z))
+#define ENCODE(x,y,z) (((uint64_t) (x) << 48) | ((uint64_t) (y) << 24) | (uint64_t) (z))
   switch ENCODE(gdef_len, gsub_len, gpos_len)
   {
     /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
