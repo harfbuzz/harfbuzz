@@ -3,8 +3,8 @@
 NULL =
 SUBDIRS = \
 	in-house \
-	aots \
 	text-rendering-tests \
+	aots \
 	$(NULL)
 
 # Convenience targets:
