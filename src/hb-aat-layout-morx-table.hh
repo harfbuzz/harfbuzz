@@ -1026,6 +1026,8 @@ struct Chain
       if (reverse)
         c->buffer->reverse ();
 
+      c->sanitizer.set_object (*subtable);
+
       subtable->dispatch (c);
 
       if (reverse)
@@ -1039,6 +1041,7 @@ struct Chain
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
+    c->sanitizer.reset_object ();
   }
 
   inline unsigned int get_size (void) const { return length; }
@@ -1058,10 +1061,15 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      c->reset_object ();
+      if (unlikely (!c->check_struct (subtable)))
+	return_trace (false);
+      c->set_object (*subtable);
       if (!subtable->sanitize (c))
 	return_trace (false);
       subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
     }
+    c->reset_object ();
 
     return_trace (true);
   }
