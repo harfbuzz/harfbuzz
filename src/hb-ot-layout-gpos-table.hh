@@ -1643,6 +1643,9 @@ struct GPOS : GSUBGPOS
   inline bool sanitize (hb_sanitize_context_t *c) const
   { return GSUBGPOS::sanitize<PosLookup> (c); }
 
+  HB_INTERNAL bool is_blacklisted (hb_blob_t *blob,
+				   hb_face_t *face) const;
+
   typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
 

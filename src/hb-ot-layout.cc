@@ -34,15 +34,17 @@
 #include "hb-ot-map.hh"
 #include "hb-map.hh"
 
+#include "hb-ot-kern-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise
-#include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
+#include "hb-ot-os2-table.hh"
 
 #include "hb-aat-layout-lcar-table.hh"
+#include "hb-aat-layout-morx-table.hh"
 
 
 /**
@@ -283,6 +285,38 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 /*
  * GSUB/GPOS
  */
+
+bool
+OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+			  hb_face_t *face) const
+{
+  /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
+   * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
+   * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
+   * our morx/GSUB preference code.  But if GSUB has non-zero scripts, we tend
+   * to prefer it over morx because we want to be consistent with other OpenType
+   * shapers.
+   *
+   * To work around broken Indic Mac system fonts, we ignore GSUB table if
+   * OS/2 VendorId is 'MUTF' and font has morx table as well.
+   *
+   * https://github.com/harfbuzz/harfbuzz/issues/1410
+   * https://github.com/harfbuzz/harfbuzz/issues/1348
+   * https://github.com/harfbuzz/harfbuzz/issues/1391
+   */
+  if (unlikely (face->table.OS2->achVendID == HB_TAG ('M','U','T','F') &&
+		face->table.morx->has_data ()))
+    return true;
+
+  return false;
+}
+
+bool
+OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+			  hb_face_t *face HB_UNUSED) const
+{
+  return false;
+}
 
 static const OT::GSUBGPOS&
 get_gsubgpos_table (hb_face_t *face,
