@@ -264,6 +264,8 @@ struct hb_sanitize_context_t :
   {
     reset_object ();
 
+    if (!obj) return;
+
     const char *obj_start = (const char *) obj;
     const char *obj_end = (const char *) obj + obj->get_size ();
     assert (obj_start <= obj_end); /* Must not overflow. */
