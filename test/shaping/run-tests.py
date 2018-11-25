@@ -87,11 +87,11 @@ for filename in args:
 
 		if comment:
 			if not reference:
-				print ("# %s %s --unicodes %s" % (hb_shape, fontfile, unicodes))
+				print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
 			continue
 
 		if not reference:
-			print ("%s %s %s %s --unicodes %s" %
+			print ('%s "%s" %s %s --unicodes %s' %
 					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
 
 		# hack to support fonts with space on run-tests.py, after several other tries...
