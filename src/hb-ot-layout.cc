@@ -95,10 +95,9 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
  * GDEF
  */
 
-static bool
-_hb_ot_blacklist_gdef (unsigned int gdef_len,
-		       unsigned int gsub_len,
-		       unsigned int gpos_len)
+bool
+OT::GDEF::is_blacklisted (hb_blob_t *blob,
+			  hb_face_t *face) const
 {
   /* The ugly business of blacklisting individual fonts' tables happen here!
    * See this thread for why we finally had to bend in and do this:
@@ -118,7 +117,9 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279875
    */
 #define ENCODE(x,y,z) (((uint64_t) (x) << 48) | ((uint64_t) (y) << 24) | (uint64_t) (z))
-  switch ENCODE(gdef_len, gsub_len, gpos_len)
+  switch ENCODE(blob->length,
+		face->table.GSUB->table.get_length (),
+		face->table.GPOS->table.get_length ())
   {
     /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
     case ENCODE (442, 2874, 42038):
@@ -201,10 +202,7 @@ void
 OT::GDEF::accelerator_t::init (hb_face_t *face)
 {
   this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
-
-  if (unlikely (_hb_ot_blacklist_gdef (this->table.get_length (),
-				       face->table.GSUB->table.get_length (),
-				       face->table.GPOS->table.get_length ())))
+  if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
   {
     hb_blob_destroy (this->table.get_blob ());
     this->table = hb_blob_get_empty ();

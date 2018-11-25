@@ -408,6 +408,9 @@ struct GDEF
     }
   }
 
+  HB_INTERNAL bool is_blacklisted (hb_blob_t *blob,
+				   hb_face_t *face) const;
+
   struct accelerator_t
   {
     HB_INTERNAL void init (hb_face_t *face);
