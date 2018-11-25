@@ -492,18 +492,6 @@ struct ArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
 
-  inline const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
-  {
-    unsigned int count = len;
-    if (unlikely (start_offset > count))
-      count = 0;
-    else
-      count -= start_offset;
-    count = MIN (count, *pcount);
-    *pcount = count;
-    return arrayZ + start_offset;
-  }
-
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Null (Type);
@@ -522,6 +510,15 @@ struct ArrayOf
   { return hb_array (arrayZ, len); }
   inline hb_array_t<const Type> as_array (void) const
   { return hb_array (arrayZ, len); }
+
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */)
+  { return as_array ().sub_array (start_offset, count);}
 
   inline bool serialize (hb_serialize_context_t *c,
 			 unsigned int items_len)
@@ -776,6 +773,15 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   { return hb_sorted_array (this->arrayZ, this->len); }
   inline hb_sorted_array_t<const Type> as_array (void) const
   { return hb_sorted_array (this->arrayZ, this->len); }
+
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */)
+  { return as_array ().sub_array (start_offset, count);}
 
   template <typename T>
   inline Type &bsearch (const T &x, Type &not_found = Crap (Type))

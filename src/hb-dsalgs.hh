@@ -567,6 +567,7 @@ struct hb_array_t
 {
   static_assert ((bool) (unsigned) hb_static_size (Type), "");
 
+  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
   inline hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
@@ -581,6 +582,24 @@ struct hb_array_t
   inline Type * operator & (void) const { return arrayZ; }
 
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
+
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
+  {
+    if (!seg_count) return hb_array_t<Type> ();
+
+    unsigned int count = len;
+    if (unlikely (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    count = *seg_count = MIN (count, *seg_count);
+    return hb_array_t<Type> (arrayZ + start_offset, count);
+  }
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  { return sub_array (start_offset, &seg_count); }
+
+  inline hb_bytes_t as_bytes (void) const
+  { return hb_bytes_t (arrayZ, len * sizeof (Type)); }
 
   template <typename T>
   inline Type *lsearch (const T &x,
@@ -620,23 +639,8 @@ struct hb_array_t
     ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
   }
 
-  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
-  {
-    unsigned int count = len;
-    if (unlikely (start_offset > count))
-      count = 0;
-    else
-      count -= start_offset;
-    count = MIN (count, seg_count);
-    return hb_array_t<Type> (arrayZ + start_offset, count);
-  }
-
-  inline hb_bytes_t as_bytes (void) const
-  {
-    return hb_bytes_t (arrayZ, len * sizeof (Type));
-  }
-
-  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+  inline void free (void)
+  { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   template <typename hb_sanitize_context_t>
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -660,8 +664,14 @@ enum hb_bfind_not_found_t
 template <typename Type>
 struct hb_sorted_array_t : hb_array_t<Type>
 {
+  inline hb_sorted_array_t (void) : hb_array_t<Type> () {}
   inline hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
   inline hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
+
+  inline hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
+  { return hb_sorted_array_t<Type> (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
+  inline hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  { return sub_array (start_offset, &seg_count); }
 
   template <typename T>
   inline Type *bsearch (const T &x, Type *not_found = nullptr)
