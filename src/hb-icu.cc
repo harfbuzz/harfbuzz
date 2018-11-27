@@ -65,7 +65,8 @@ hb_icu_script_from_script (hb_script_t script)
   if (unlikely (script == HB_SCRIPT_INVALID))
     return USCRIPT_INVALID_CODE;
 
-  for (unsigned int i = 0; i < USCRIPT_CODE_LIMIT; i++)
+  unsigned int maxScriptCode = u_getIntPropertyMaxValue(UCHAR_SCRIPT);
+  for (unsigned int i = 0; i <= maxScriptCode; i++)
     if (unlikely (hb_icu_script_to_script ((UScriptCode) i) == script))
       return (UScriptCode) i;
 
