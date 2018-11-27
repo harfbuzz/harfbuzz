@@ -25,12 +25,13 @@
 #include "hb.hh"
 
 #include "hb-ot-gasp-table.hh"
-#include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
+#include "hb-ot-hmtx-table.hh"
 
 #include "hb-ot-face.hh"
 
+#if 0
 static bool
 _get_gasp (hb_font_t *font, unsigned int i, hb_position_t *result)
 {
@@ -39,6 +40,7 @@ _get_gasp (hb_font_t *font, unsigned int i, hb_position_t *result)
   if (result) *result = font->em_scale_y (range.rangeMaxPPEM);
   return true;
 }
+#endif
 
 /**
  * hb_ot_metrics_get:
@@ -57,43 +59,44 @@ hb_ot_metrics_get (hb_font_t       *font,
 {
   switch (metrics_tag)
   {
-#define GET_METRICS(TABLE, ATTR, DIR) \
-  if (font->face->table.TABLE->has_data ()) \
-  { \
-    if (position) *position = font->em_scale_##DIR (font->face->table.TABLE->ATTR); \
-    return true; \
-  } \
-  else return false
+#define GET_METRIC(TABLE, ATTR, DIR) \
+  (font->face->table.TABLE->has_data () && \
+    (position && (*position = font->em_scale_##DIR (font->face->table.TABLE->ATTR)), true))
+#define GET_X_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, x)
+#define GET_Y_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, y)
 
-  case HB_OT_METRICS_HORIZONTAL_ASCENDER:         GET_METRICS (OS2, sTypoAscender, y);
-  case HB_OT_METRICS_HORIZONTAL_DESCENDER:        GET_METRICS (OS2, sTypoDescender, y);
-  case HB_OT_METRICS_HORIZONTAL_LINE_GAP:         GET_METRICS (OS2, sTypoLineGap, y);
-  case HB_OT_METRICS_HORIZONTAL_CLIPPING_ASCENT:  GET_METRICS (OS2, usWinAscent, y);
-  case HB_OT_METRICS_HORIZONTAL_CLIPPING_DESCENT: GET_METRICS (OS2, usWinDescent, y);
-  case HB_OT_METRICS_VERTICAL_ASCENDER:           GET_METRICS (vhea, ascender, x);
-  case HB_OT_METRICS_VERTICAL_DESCENDER:          GET_METRICS (vhea, descender, x);
-  case HB_OT_METRICS_VERTICAL_LINE_GAP:           GET_METRICS (vhea, lineGap, x);
-  case HB_OT_METRICS_HORIZONTAL_CARET_RISE:       GET_METRICS (hhea, caretSlopeRise, y);
-  case HB_OT_METRICS_HORIZONTAL_CARET_RUN:        GET_METRICS (hhea, caretSlopeRun, y);
-  case HB_OT_METRICS_HORIZONTAL_CARET_OFFSET:     GET_METRICS (hhea, caretOffset, y);
-  case HB_OT_METRICS_VERTICAL_CARET_RISE:         GET_METRICS (vhea, caretSlopeRise, x);
-  case HB_OT_METRICS_VERTICAL_CARET_RUN:          GET_METRICS (vhea, caretSlopeRun, x);
-  case HB_OT_METRICS_VERTICAL_CARET_OFFSET:       GET_METRICS (hhea, caretOffset, x);
-  case HB_OT_METRICS_X_HEIGHT:                    GET_METRICS (OS2->get_v2 (), sxHeight, y);
-  case HB_OT_METRICS_CAP_HEIGHT:                  GET_METRICS (OS2->get_v2 (), sCapHeight, y);
-  case HB_OT_METRICS_SUBSCRIPT_EM_X_SIZE:         GET_METRICS (OS2, ySubscriptXSize, x);
-  case HB_OT_METRICS_SUBSCRIPT_EM_Y_SIZE:         GET_METRICS (OS2, ySubscriptYSize, y);
-  case HB_OT_METRICS_SUBSCRIPT_EM_X_OFFSET:       GET_METRICS (OS2, ySubscriptXOffset, x);
-  case HB_OT_METRICS_SUBSCRIPT_EM_Y_OFFSET:       GET_METRICS (OS2, ySubscriptYOffset, x);
-  case HB_OT_METRICS_SUPERSCRIPT_EM_X_SIZE:       GET_METRICS (OS2, ySuperscriptXSize, x);
-  case HB_OT_METRICS_SUPERSCRIPT_EM_Y_SIZE:       GET_METRICS (OS2, ySuperscriptYSize, y);
-  case HB_OT_METRICS_SUPERSCRIPT_EM_X_OFFSET:     GET_METRICS (OS2, ySuperscriptXOffset, x);
-  case HB_OT_METRICS_SUPERSCRIPT_EM_Y_OFFSET:     GET_METRICS (OS2, ySuperscriptYOffset, y);
-  case HB_OT_METRICS_STRIKEOUT_SIZE:              GET_METRICS (OS2, yStrikeoutSize, y);
-  case HB_OT_METRICS_STRIKEOUT_OFFSET:            GET_METRICS (OS2, yStrikeoutPosition, y);
-  case HB_OT_METRICS_UNDERLINE_SIZE:              GET_METRICS (post->table, underlineThickness, y);
-  case HB_OT_METRICS_UNDERLINE_OFFSET:            GET_METRICS (post->table, underlinePosition, y);
-#undef GET_METRICS
+  case HB_OT_METRICS_HORIZONTAL_ASCENDER:         return GET_Y_METRIC (hmtx, ascender);
+  case HB_OT_METRICS_HORIZONTAL_DESCENDER:        return GET_Y_METRIC (hmtx, descender);
+  case HB_OT_METRICS_HORIZONTAL_LINE_GAP:         return GET_Y_METRIC (hmtx, line_gap);
+  case HB_OT_METRICS_HORIZONTAL_CLIPPING_ASCENT:  return GET_Y_METRIC (OS2, usWinAscent);
+  case HB_OT_METRICS_HORIZONTAL_CLIPPING_DESCENT: return GET_Y_METRIC (OS2, usWinDescent);
+  case HB_OT_METRICS_VERTICAL_ASCENDER:           return GET_X_METRIC (vmtx, ascender);
+  case HB_OT_METRICS_VERTICAL_DESCENDER:          return GET_X_METRIC (vmtx, descender);
+  case HB_OT_METRICS_VERTICAL_LINE_GAP:           return GET_X_METRIC (vmtx, line_gap);
+  case HB_OT_METRICS_HORIZONTAL_CARET_RISE:       return GET_Y_METRIC (hhea, caretSlopeRise);
+  case HB_OT_METRICS_HORIZONTAL_CARET_RUN:        return GET_Y_METRIC (hhea, caretSlopeRun);
+  case HB_OT_METRICS_HORIZONTAL_CARET_OFFSET:     return GET_Y_METRIC (hhea, caretOffset);
+  case HB_OT_METRICS_VERTICAL_CARET_RISE:         return GET_X_METRIC (vhea, caretSlopeRise);
+  case HB_OT_METRICS_VERTICAL_CARET_RUN:          return GET_X_METRIC (vhea, caretSlopeRun);
+  case HB_OT_METRICS_VERTICAL_CARET_OFFSET:       return GET_X_METRIC (vhea, caretOffset);
+  case HB_OT_METRICS_X_HEIGHT:                    return GET_Y_METRIC (OS2->get_v2 ().thiz (), sxHeight);
+  case HB_OT_METRICS_CAP_HEIGHT:                  return GET_Y_METRIC (OS2->get_v2 ().thiz (), sCapHeight);
+  case HB_OT_METRICS_SUBSCRIPT_EM_X_SIZE:         return GET_X_METRIC (OS2, ySubscriptXSize);
+  case HB_OT_METRICS_SUBSCRIPT_EM_Y_SIZE:         return GET_Y_METRIC (OS2, ySubscriptYSize);
+  case HB_OT_METRICS_SUBSCRIPT_EM_X_OFFSET:       return GET_X_METRIC (OS2, ySubscriptXOffset);
+  case HB_OT_METRICS_SUBSCRIPT_EM_Y_OFFSET:       return GET_Y_METRIC (OS2, ySubscriptYOffset);
+  case HB_OT_METRICS_SUPERSCRIPT_EM_X_SIZE:       return GET_X_METRIC (OS2, ySuperscriptXSize);
+  case HB_OT_METRICS_SUPERSCRIPT_EM_Y_SIZE:       return GET_Y_METRIC (OS2, ySuperscriptYSize);
+  case HB_OT_METRICS_SUPERSCRIPT_EM_X_OFFSET:     return GET_X_METRIC (OS2, ySuperscriptXOffset);
+  case HB_OT_METRICS_SUPERSCRIPT_EM_Y_OFFSET:     return GET_Y_METRIC (OS2, ySuperscriptYOffset);
+  case HB_OT_METRICS_STRIKEOUT_SIZE:              return GET_Y_METRIC (OS2, yStrikeoutSize);
+  case HB_OT_METRICS_STRIKEOUT_OFFSET:            return GET_Y_METRIC (OS2, yStrikeoutPosition);
+  case HB_OT_METRICS_UNDERLINE_SIZE:              return GET_Y_METRIC (post->table, underlineThickness);
+  case HB_OT_METRICS_UNDERLINE_OFFSET:            return GET_Y_METRIC (post->table, underlinePosition);
+#undef GET_METRIC
+#undef GET_X_METRIC
+#undef GET_Y_METRIC
+#if 0
   case HB_OT_METRICS_GASP_RANGE_0:                return _get_gasp (font, 0, position);
   case HB_OT_METRICS_GASP_RANGE_1:                return _get_gasp (font, 1, position);
   case HB_OT_METRICS_GASP_RANGE_2:                return _get_gasp (font, 2, position);
@@ -104,7 +107,7 @@ hb_ot_metrics_get (hb_font_t       *font,
   case HB_OT_METRICS_GASP_RANGE_7:                return _get_gasp (font, 7, position);
   case HB_OT_METRICS_GASP_RANGE_8:                return _get_gasp (font, 8, position);
   case HB_OT_METRICS_GASP_RANGE_9:                return _get_gasp (font, 9, position);
-#undef GET_GASP
+#endif
   default:                                        return false;
   }
 }

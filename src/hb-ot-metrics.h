@@ -71,16 +71,6 @@ typedef enum {
   HB_OT_METRICS_STRIKEOUT_OFFSET		= HB_TAG ('s','t','r','o'), /* OS/2.yStrikeoutPosition */
   HB_OT_METRICS_UNDERLINE_SIZE			= HB_TAG ('u','n','d','s'), /* post.underlineThickness */
   HB_OT_METRICS_UNDERLINE_OFFSET		= HB_TAG ('u','n','d','o'), /* post.underlinePosition */
-  HB_OT_METRICS_GASP_RANGE_0			= HB_TAG ('g','s','p','0'), /* gasp.gaspRange[0].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_1			= HB_TAG ('g','s','p','1'), /* gasp.gaspRange[1].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_2			= HB_TAG ('g','s','p','2'), /* gasp.gaspRange[2].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_3			= HB_TAG ('g','s','p','3'), /* gasp.gaspRange[3].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_4			= HB_TAG ('g','s','p','4'), /* gasp.gaspRange[4].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_5			= HB_TAG ('g','s','p','5'), /* gasp.gaspRange[5].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_6			= HB_TAG ('g','s','p','6'), /* gasp.gaspRange[6].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_7			= HB_TAG ('g','s','p','7'), /* gasp.gaspRange[7].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_8			= HB_TAG ('g','s','p','8'), /* gasp.gaspRange[8].rangeMaxPPEM */
-  HB_OT_METRICS_GASP_RANGE_9			= HB_TAG ('g','s','p','9'), /* gasp.gaspRange[9].rangeMaxPPEM */
 } hb_ot_metrics_t;
 
 HB_EXTERN hb_bool_t

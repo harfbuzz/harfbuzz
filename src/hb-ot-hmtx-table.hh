@@ -284,6 +284,8 @@ struct hmtxvmtx
       return advance;
     }
 
+    inline bool has_data () const { return true; }
+
     public:
     bool has_font_extents;
     int ascender;

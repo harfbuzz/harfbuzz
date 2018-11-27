@@ -57,7 +57,7 @@ struct GaspRange
 
 struct gasp
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_gasp;
+  enum { tableTag = HB_OT_TAG_gasp };
 
   inline const GaspRange &get_gasp_range (unsigned int i) const
   { return gaspRanges[i]; }
