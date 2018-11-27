@@ -692,8 +692,10 @@ struct BEInt<Type, 2>
   inline operator Type (void) const
   {
 #if defined(__GNUC__) || defined(__clang__)
+    /* Spoon-feed the compiler a big-endian integer with alignment 1.
+     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
     struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
-    return __builtin_bswap16(((packed_uint16_t *) this)->v);
+    return __builtin_bswap16 (((packed_uint16_t *) this)->v);
 #endif
     return (v[0] <<  8)
          + (v[1]      );
