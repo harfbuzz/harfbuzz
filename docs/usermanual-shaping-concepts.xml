@@ -182,22 +182,23 @@
       Southeast Asian scripts are also assigned
       <emphasis>Unicode Indic Syllabic Category</emphasis> (UISC) and
       <emphasis>Unicode Indic Positional Category</emphasis> (UIPC)
-      property that provides more detailed information needed for
+      properties that provide more detailed information needed for
       shaping.
     </para>
     <para>
       The UISC property sub-categorizes Letters and Marks according to
       common script-shaping behaviors. For example, UISC distinguishes
       between consonant letters, vowel letters, and vowel marks. The
-      UIPC property sub-categorizes Mark codepoints by the visual
+      UIPC property sub-categorizes Mark codepoints by the relative visual
       position that they occupy (above, below, right, left, or in
       multiple positions).
     </para>
     <para>
       Some complex scripts require that the text run be split into
-      syllables, and what constitutes a valid syllable in these
-      scripts is specified in regular expressions of the Letter and
-      Mark codepoints that take the UISC and UIPC properties into account.
+      syllables. What constitutes a valid syllable in these
+      scripts is specified in regular expressions, formed from the
+      Letter and Mark codepoints, that take the UISC and UIPC
+      properties into account.
     </para>
 
   </section>

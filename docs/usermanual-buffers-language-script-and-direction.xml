@@ -15,14 +15,15 @@
   <section id="creating-and-destroying-buffers">
     <title>Creating and destroying buffers</title>
     <para>
-      As we saw in our initial example, a buffer is created and
+      As we saw in our <emphasis>Getting Started</emphasis> example, a
+      buffer is created and 
       initialized with <literal>hb_buffer_create()</literal>. This
       produces a new, empty buffer object, instantiated with some
       default values and ready to accept your Unicode strings.
     </para>
     <para>
-      HarfBuzz manages the memory of objects that it creates (such as
-      buffers), so you don't have to. When you have finished working on
+      HarfBuzz manages the memory of objects (such as buffers) that it
+      creates, so you don't have to. When you have finished working on 
       a buffer, you can call <literal>hb_buffer_destroy()</literal>:
     </para>
     <programlisting language="C">

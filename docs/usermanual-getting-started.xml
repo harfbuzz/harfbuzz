@@ -76,12 +76,41 @@
   <section>
     <title>Terminology</title>
       <variablelist>
+	<?dbfo list-presentation="blocks"?> 
+	<varlistentry>
+	  <term>script</term>
+	  <listitem>
+	    <para>
+	      In text shaping, a <emphasis>script</emphasis> is a
+	      writing system: a set of symbols, rules, and conventions
+	      that is used to represent a language or multiple
+	      languages.
+	    </para>
+	    <para>
+	      In general computing lingo, the word "script" can also
+	      be used to mean an executable program (usually one
+	      written in a human-readable programming language). For
+	      the sake of clarity, HarfBuzz documents will always use
+	      more specific terminology when referring to this
+	      meaning, such as "Python script" or "shell script." In
+	      all other instances, "script" refers to a writing system.
+	    </para>
+	    <para>
+	      For developers using HarfBuzz, it is important to note
+	      the distinction between a script and a language. Most
+	      scripts are used to write a variety of different
+	      languages, and many languages may be written in more
+	      than one script.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	
 	<varlistentry>
 	  <term>shaper</term>
 	  <listitem>
 	    <para>
 	      In HarfBuzz, a <emphasis>shaper</emphasis> is a
-	      handler for a specific script shaping model. HarfBuzz
+	      handler for a specific script-shaping model. HarfBuzz
 	      implements separate shapers for Indic, Arabic, Thai and
 	      Lao, Khmer, Myanmar, Tibetan, Hangul, Hebrew, the
 	      Universal Shaping Engine (USE), and a default shaper for
@@ -95,12 +124,12 @@
 	  <listitem>
 	    <para>
 	      In text shaping, a <emphasis>cluster</emphasis> is a
-	      sequence of codepoints that must be handled as an
-	      indivisible unit. Clusters can include codepoint
+	      sequence of codepoints that must be treated as an
+	      indivisible unit. Clusters can include code-point
 	      sequences that form a ligature or base-and-mark
 	      sequences. Tracking and preserving clusters is important
 	      when shaping operations might separate or reorder
-	      codepoints.
+	      code points.
 	    </para>
 	    <para>
 	      HarfBuzz provides three cluster
@@ -111,7 +140,59 @@
 	  </listitem>
 	</varlistentry>
 	
-
+	<varlistentry>
+	  <term>grapheme</term>
+	  <listitem>
+	    <para>
+	      In linguistics, a <emphasis>grapheme</emphasis> is one
+	      of the indivisible units that make up a writing system or
+	      script. Often, graphemes are individual symbols (letters,
+	      numbers, punctuation marks, logograms, etc.) but,
+	      depending on the writing system, a particular grapheme
+	      might correspond to a sequence of several Unicode code
+	      points.
+	    </para>
+	    <para>
+	      In practice, HarfBuzz and other text-shaping engines
+	      are not generally concerned with graphemes. However, it
+	      is important for developers using HarfBuzz to recognize
+	      that there is a difference between graphemes and shaping
+	      clusters (see above). The two concepts may overlap
+	      frequently, but there is no guarantee that they will be
+	      identical.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>syllable</term>
+	  <listitem>
+	    <para>
+	      In linguistics, a <emphasis>syllable</emphasis> is an 
+	      a sequence of sounds that makes up a building block of a
+	      particular language. Every language has its own set of
+	      rules describing what constitutes a valid syllable.
+	    </para>
+	    <para>
+	      For text-shaping purposes, the various definitions of
+	      "syllable" are important because script-specific shaping
+	      operations may be applied at the syllable level. For
+	      example, a reordering rule might specify that a vowel
+	      mark be reordered to the beginning of the syllable.
+	    </para>
+	    <para>
+	      Syllables will consist of one or more Unicode code
+	      points. The definition of a syllable for a particular
+	      writing system might correspond to how HarfBuzz
+	      identifies clusters (see above) for the same writing
+	      system. However, it is important for developers using
+	      HarfBuzz to recognize that there is a difference between
+	      syllables and shaping clusters. The two concepts may
+	      overlap frequently, but there is no guarantee that they
+	      will be identical.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     
   </section>
