@@ -488,7 +488,7 @@ struct StateTable
 {
   typedef typename Types::HBUINT HBUINT;
   typedef typename Types::HBUSHORT HBUSHORT;
-  typedef typename Types::ClassType ClassType;
+  typedef typename Types::ClassTypeNarrow ClassType;
 
   enum State
   {
@@ -678,7 +678,8 @@ struct ObsoleteTypes
   static const bool extended = false;
   typedef HBUINT16 HBUINT;
   typedef HBUINT8 HBUSHORT;
-  typedef ClassTable<HBUINT8> ClassType;
+  typedef ClassTable<HBUINT8> ClassTypeNarrow;
+  typedef ClassTable<HBUINT16> ClassTypeWide;
 
   template <typename T>
   static inline unsigned int offsetToIndex (unsigned int offset,
@@ -700,7 +701,8 @@ struct ExtendedTypes
   static const bool extended = true;
   typedef HBUINT32 HBUINT;
   typedef HBUINT16 HBUSHORT;
-  typedef Lookup<HBUINT16> ClassType;
+  typedef Lookup<HBUINT16> ClassTypeNarrow;
+  typedef Lookup<HBUINT16> ClassTypeWide;
 
   template <typename T>
   static inline unsigned int offsetToIndex (unsigned int offset,
