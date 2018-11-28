@@ -255,7 +255,7 @@ struct KerxSubTableFormat1
 	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
-	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
+	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kern_idx];
 	if (!c->sanitizer.check_array (actions, depth, tuple_count))
 	{

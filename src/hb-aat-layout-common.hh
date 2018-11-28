@@ -689,6 +689,13 @@ struct ObsoleteTypes
     return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
   }
   template <typename T>
+  static inline unsigned int byteOffsetToIndex (unsigned int offset,
+						const void *base,
+						const T *array)
+  {
+    return offsetToIndex (offset, base, array);
+  }
+  template <typename T>
   static inline unsigned int wordOffsetToIndex (unsigned int offset,
 						const void *base,
 						const T *array)
@@ -710,6 +717,13 @@ struct ExtendedTypes
 					    const T *array)
   {
     return offset;
+  }
+  template <typename T>
+  static inline unsigned int byteOffsetToIndex (unsigned int offset,
+						const void *base,
+						const T *array)
+  {
+    return offset / 2;
   }
   template <typename T>
   static inline unsigned int wordOffsetToIndex (unsigned int offset,
