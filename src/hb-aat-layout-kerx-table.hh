@@ -392,9 +392,13 @@ struct KerxSubTableFormat2
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_class (left, num_glyphs, 0);
     unsigned int r = (this+rightClassTable).get_class (right, num_glyphs, 0);
-    unsigned int offset = l + r;
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+
+    const UnsizedArrayOf<FWORD> &arrayZ = this+array;
+    unsigned int kern_idx = l + r;
+    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+
     return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
 
