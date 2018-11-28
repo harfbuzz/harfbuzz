@@ -392,9 +392,13 @@ struct KerxSubTableFormat2
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_class (left, num_glyphs, 0);
     unsigned int r = (this+rightClassTable).get_class (right, num_glyphs, 0);
-    unsigned int offset = l + r;
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+
+    const UnsizedArrayOf<FWORD> &arrayZ = this+array;
+    unsigned int kern_idx = l + r;
+    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+
     return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
 
@@ -437,19 +441,13 @@ struct KerxSubTableFormat2
 			  c->check_range (this, array)));
   }
 
-  /* Note:
-   * OT kern table specifies ClassTable as having 16-bit entries, whereas
-   * AAT kern table specifies them as having 8bit entries.
-   * I've not seen any fonts with this format in kern table.
-   * We follow AAT. */
-
   protected:
   KernSubTableHeader	header;
   HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<typename Types::ClassType, HBUINT, false>
+  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  OffsetTo<typename Types::ClassType, HBUINT, false>
+  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
   OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>
