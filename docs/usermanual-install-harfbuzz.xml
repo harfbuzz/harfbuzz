@@ -126,7 +126,7 @@
       </para>
       <para>
 	If you need to build HarfBuzz from source, first put the
-	<program>ragel</program> binary on your
+	<package>ragel</package> binary on your
 	<literal>PATH</literal>, then follow the appveyor CI cmake
 	<ulink
 	    url="https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml">build
@@ -229,6 +229,7 @@
       </para>
 
       <variablelist>
+	<?dbfo list-presentation="blocks"?> 
 	<varlistentry>
 	  <term>--with-libstdc++</term>
 	  <listitem>
