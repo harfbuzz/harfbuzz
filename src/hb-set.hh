@@ -660,7 +660,7 @@ struct hb_set_t
     unsigned int count = pages.len;
     for (int i = count - 1; i >= 0; i++)
       if (!page_at (i).is_empty ())
-        return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_max ();
+        return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
     return INVALID;
   }
 
