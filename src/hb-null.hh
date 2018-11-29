@@ -77,6 +77,7 @@ struct hb_static_size
 /*
  * Null()
  */
+
 extern HB_INTERNAL
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)];
 
@@ -86,7 +87,13 @@ static inline Type const & Null (void) {
   static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   return *reinterpret_cast<Type const *> (_hb_NullPool);
 }
-#define Null(Type) Null<typename hb_remove_const (typename hb_remove_reference (Type))> ()
+template <typename QType>
+struct NullHelper
+{
+  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  static inline const Type & get_null (void) { return Null<Type> (); }
+};
+#define Null(Type) NullHelper<Type>::get_null ()
 
 /* Specializations for arbitrary-content Null objects expressed in bytes. */
 #define DECLARE_NULL_NAMESPACE_BYTES(Namespace, Type) \
@@ -129,17 +136,23 @@ static inline Type& Crap (void) {
   memcpy (obj, &Null(Type), sizeof (*obj));
   return *obj;
 }
-#define Crap(Type) Crap<typename hb_remove_const (typename hb_remove_reference (Type))> ()
+template <typename QType>
+struct CrapHelper
+{
+  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  static inline Type & get_crap (void) { return Crap<Type> (); }
+};
+#define Crap(Type) CrapHelper<Type>::get_crap ()
 
 template <typename Type>
-struct CrapOrNull {
+struct CrapOrNullHelper {
   static inline Type & get (void) { return Crap(Type); }
 };
 template <typename Type>
-struct CrapOrNull<const Type> {
-  static inline Type const & get (void) { return Null(Type); }
+struct CrapOrNullHelper<const Type> {
+  static inline const Type & get (void) { return Null(Type); }
 };
-#define CrapOrNull(Type) CrapOrNull<Type>::get ()
+#define CrapOrNull(Type) CrapOrNullHelper<Type>::get ()
 
 
 /*
