@@ -49,7 +49,7 @@ kerxTupleKern (int value,
 	       const void *base,
 	       hb_aat_apply_context_t *c)
 {
-  if (likely (!tupleCount)) return value;
+  if (likely (!tupleCount || !c)) return value;
 
   unsigned int offset = value;
   const FWORD *pv = &StructAtOffset<FWORD> (base, offset);
@@ -93,21 +93,11 @@ struct KernPair
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat0
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
-  {
-    hb_glyph_pair_t pair = {left, right};
-    int i = pairs.bsearch (pair);
-    if (i == -1) return 0;
-    return pairs[i].get_kerning ();
-  }
-
   inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  hb_aat_apply_context_t *c) const
+			  hb_aat_apply_context_t *c = nullptr) const
   {
     hb_glyph_pair_t pair = {left, right};
-    int i = pairs.bsearch (pair);
-    if (i == -1) return 0;
-    int v = pairs[i].get_kerning ();
+    int v = pairs.bsearch (pair).get_kerning ();
     return kerxTupleKern (v, header.tuple_count (), this, c);
   }
 
@@ -265,7 +255,7 @@ struct KerxSubTableFormat1
 	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
-	kern_idx = Types::offsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
+	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
 	const FWORD *actions = &kernAction[kern_idx];
 	if (!c->sanitizer.check_array (actions, depth, tuple_count))
 	{
@@ -402,9 +392,13 @@ struct KerxSubTableFormat2
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_class (left, num_glyphs, 0);
     unsigned int r = (this+rightClassTable).get_class (right, num_glyphs, 0);
-    unsigned int offset = l + r;
-    const FWORD *v = &StructAtOffset<FWORD> (&(this+array), offset);
+
+    const UnsizedArrayOf<FWORD> &arrayZ = this+array;
+    unsigned int kern_idx = l + r;
+    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+
     return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
 
@@ -447,19 +441,13 @@ struct KerxSubTableFormat2
 			  c->check_range (this, array)));
   }
 
-  /* Note:
-   * OT kern table specifies ClassTable as having 16-bit entries, whereas
-   * AAT kern table specifies them as having 8bit entries.
-   * I've not seen any fonts with this format in kern table.
-   * We follow AAT. */
-
   protected:
   KernSubTableHeader	header;
   HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<typename Types::ClassType, HBUINT, false>
+  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  OffsetTo<typename Types::ClassType, HBUINT, false>
+  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
   OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>
@@ -812,6 +800,7 @@ struct KerxSubTable
   {
     TRACE_SANITIZE (this);
     if (!u.header.sanitize (c) ||
+	u.header.length <= u.header.static_size ||
 	!c->check_range (this, u.header.length))
       return_trace (false);
 
@@ -841,6 +830,21 @@ struct KerxTable
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   inline const T* thiz (void) const { return static_cast<const T *> (this); }
+
+  inline bool has_state_machine (void) const
+  {
+    typedef typename T::SubTable SubTable;
+
+    const SubTable *st = &thiz()->firstSubTable;
+    unsigned int count = thiz()->tableCount;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (st->get_type () == 1)
+        return true;
+      st = &StructAfter<SubTable> (*st);
+    }
+    return false;
+  }
 
   inline bool has_cross_stream (void) const
   {
@@ -920,9 +924,11 @@ struct KerxTable
       if (reverse)
 	c->buffer->reverse ();
 
-      c->sanitizer.set_object (*st);
-
-      ret |= st->dispatch (c);
+      {
+	/* See comment in sanitize() for conditional here. */
+	hb_sanitize_with_object_t with (&c->sanitizer, i < count - 1 ? st : (const SubTable *) nullptr);
+	ret |= st->dispatch (c);
+      }
 
       if (reverse)
 	c->buffer->reverse ();
@@ -951,8 +957,20 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      if (unlikely (!st->u.header.sanitize (c)))
+	return_trace (false);
+      /* OpenType kern table has 2-byte subtable lengths.  That's limiting.
+       * MS implementation also only supports one subtable, of format 0,
+       * anyway.  Certain versions of some fonts, like Calibry, contain
+       * kern subtable that exceeds 64kb.  Looks like, the subtable length
+       * is simply ignored.  Which makes sense.  It's only needed if you
+       * have multiple subtables.  To handle such fonts, we just ignore
+       * the length for the last subtable. */
+      hb_sanitize_with_object_t with (c, i < count - 1 ? st : (const SubTable *) nullptr);
+
       if (unlikely (!st->sanitize (c)))
 	return_trace (false);
+
       st = &StructAfter<SubTable> (*st);
     }
 

@@ -66,13 +66,6 @@ struct BaseGlyphRecord
   inline int cmp (hb_codepoint_t g) const
   { return g < glyphId ? -1 : g > glyphId ? 1 : 0; }
 
-  static int cmp (const void *pa, const void *pb)
-  {
-    const hb_codepoint_t *a = (const hb_codepoint_t *) pa;
-    const BaseGlyphRecord *b = (const BaseGlyphRecord *) pb;
-    return b->cmp (*a);
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -103,12 +96,7 @@ struct COLR
 					unsigned int        *count, /* IN/OUT.  May be NULL. */
 					hb_ot_color_layer_t *layers /* OUT.     May be NULL. */) const
   {
-    const BaseGlyphRecord *rec = (BaseGlyphRecord *) bsearch (&glyph,
-							      &(this+baseGlyphsZ),
-							      numBaseGlyphs,
-							      sizeof (BaseGlyphRecord),
-							      BaseGlyphRecord::cmp);
-    const BaseGlyphRecord &record = rec ? *rec : Null (BaseGlyphRecord);
+    const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
 
     hb_array_t<const LayerRecord> all_layers ((this+layersZ).arrayZ, numLayers);
     hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
@@ -137,7 +125,7 @@ struct COLR
   protected:
   HBUINT16	version;	/* Table version number (starts at 0). */
   HBUINT16	numBaseGlyphs;	/* Number of Base Glyph Records. */
-  LOffsetTo<UnsizedArrayOf<BaseGlyphRecord>, false>
+  LOffsetTo<SortedUnsizedArrayOf<BaseGlyphRecord>, false>
 		baseGlyphsZ;	/* Offset to Base Glyph records. */
   LOffsetTo<UnsizedArrayOf<LayerRecord>, false>
 		layersZ;	/* Offset to Layer Records. */

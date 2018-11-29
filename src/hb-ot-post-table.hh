@@ -61,12 +61,12 @@ struct postV2Tail
   ArrayOf<HBUINT16>	glyphNameIndex;	/* This is not an offset, but is the
 					 * ordinal number of the glyph in 'post'
 					 * string tables. */
-  UnsizedArrayOf<HBUINT8>
-			namesX;		/* Glyph names with length bytes [variable]
+/*UnsizedArrayOf<HBUINT8>
+			namesX;*/	/* Glyph names with length bytes [variable]
 					 * (a Pascal string). */
 
   public:
-  DEFINE_SIZE_ARRAY2 (2, glyphNameIndex, namesX);
+  DEFINE_SIZE_ARRAY (2, glyphNameIndex);
 };
 
 struct post

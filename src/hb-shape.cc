@@ -48,7 +48,7 @@
  **/
 
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_shaper_list (void);
 #endif
 
@@ -69,7 +69,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
       shaper_list[i] = shapers[i].name;
     shaper_list[i] = nullptr;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_shaper_list);
 #endif
 
@@ -85,7 +85,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
   }
 } static_shaper_list;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_shaper_list (void)
 {

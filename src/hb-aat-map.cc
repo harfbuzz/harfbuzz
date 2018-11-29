@@ -37,8 +37,8 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
   if (tag == HB_TAG ('a','a','l','t'))
   {
     feature_info_t *info = features.push();
-    info->type = 17/*kCharacterAlternativesType*/;
-    info->setting = value;
+    info->type = HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES;
+    info->setting = (hb_aat_layout_feature_selector_t) value;
     return;
   }
 

@@ -4,6 +4,7 @@ NULL =
 SUBDIRS = \
 	in-house \
 	text-rendering-tests \
+	aots \
 	$(NULL)
 
 # Convenience targets:

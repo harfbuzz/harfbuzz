@@ -588,10 +588,10 @@ struct hb_face_builder_data_t
 {
   struct table_entry_t
   {
-    inline int cmp (const hb_tag_t *t) const
+    inline int cmp (hb_tag_t t) const
     {
-      if (*t < tag) return -1;
-      if (*t > tag) return -1;
+      if (t < tag) return -1;
+      if (t > tag) return -1;
       return 0;
     }
 

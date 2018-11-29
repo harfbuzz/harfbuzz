@@ -52,10 +52,10 @@ struct lcar
     const OffsetTo<LigCaretClassEntry>* entry_offset = lookup.get_value (glyph,
 									 font->face->get_num_glyphs ());
     const LigCaretClassEntry& array = entry_offset ? this+*entry_offset : Null (LigCaretClassEntry);
-    if (caret_count && *caret_count)
+    if (caret_count)
     {
-      const HBINT16 *arr = array.sub_array (start_offset, caret_count);
-      unsigned int count = *caret_count;
+      hb_array_t<const HBINT16> arr = array.sub_array (start_offset, caret_count);
+      unsigned int count = arr.len;
       for (unsigned int i = 0; i < count; ++i)
 	switch (format)
 	{

@@ -82,8 +82,7 @@ static inline Type& StructAfter(TObject &X)
 /* Check _assertion in a method environment */
 #define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
   inline void _instance_assertion_on_line_##_line (void) const \
-  { static_assert ((_assertion), ""); } \
-  static_assert (true, "") /* So we require semicolon here. */
+  { static_assert ((_assertion), ""); }
 # define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
 # define DEFINE_INSTANCE_ASSERTION(_assertion) _DEFINE_INSTANCE_ASSERTION0 (__LINE__, _assertion)
 
@@ -96,32 +95,36 @@ static inline Type& StructAfter(TObject &X)
 
 
 #define DEFINE_SIZE_STATIC(size) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)) \
   inline unsigned int get_size (void) const { return (size); } \
-  enum { static_size = (size) }; \
-  enum { min_size = (size) }
+  enum { null_size = (size) }; \
+  enum { min_size = (size) }; \
+  enum { static_size = (size) }
 
 #define DEFINE_SIZE_UNION(size, _member) \
-  DEFINE_INSTANCE_ASSERTION (0*sizeof(this->u._member.static_size) + sizeof(this->u._member) == (size)); \
-  static const unsigned int min_size = (size)
+  DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof(this->u._member) == (size)) \
+  enum { null_size = (size) }; \
+  enum { min_size = (size) }
 
 #define DEFINE_SIZE_MIN(size) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)); \
-  static const unsigned int min_size = (size)
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
+  enum { null_size = (size) }; \
+  enum { min_size = (size) }
+
+#define DEFINE_SIZE_UNBOUNDED(size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
+  enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])); \
   DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])) \
+  enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
-	inline unsigned int get_size (void) const { return (size - (array).min_size + (array).get_size ()); } \
-	DEFINE_SIZE_ARRAY(size, array)
-
-#define DEFINE_SIZE_ARRAY2(size, array1, array2) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
-  DEFINE_COMPILES_ASSERTION ((void) (array1)[0].static_size; (void) (array2)[0].static_size) \
-  static const unsigned int min_size = (size)
+  inline unsigned int get_size (void) const { return (size - (array).min_size + (array).get_size ()); } \
+  DEFINE_SIZE_ARRAY(size, array)
 
 
 /*
@@ -256,26 +259,36 @@ struct hb_sanitize_context_t :
 
   inline void set_max_ops (int max_ops_) { max_ops = max_ops_; }
 
-  /* TODO
-   * This set_object() thing is to use sanitize at runtime lookup
-   * application time.  This is very distinct from the regular
-   * sanitizer operation, so, eventually, separate into another
-   * type and make hb_aat_apply_context_t use that one instead
-   * of abusing this one.
-   */
   template <typename T>
-  inline void set_object (const T& obj)
+  inline void set_object (const T *obj)
   {
-    this->start = (const char *) &obj;
-    this->end = (const char *) &obj + obj.get_size ();
+    reset_object ();
+
+    if (!obj) return;
+
+    const char *obj_start = (const char *) obj;
+    const char *obj_end = (const char *) obj + obj->get_size ();
+    assert (obj_start <= obj_end); /* Must not overflow. */
+
+    if (unlikely (obj_end < this->start || this->end < obj_start))
+      this->start = this->end = nullptr;
+    else
+    {
+      this->start = MAX (this->start, obj_start);
+      this->end   = MIN (this->end  , obj_end  );
+    }
+  }
+
+  inline void reset_object (void)
+  {
+    this->start = this->blob->data;
+    this->end = this->start + this->blob->length;
     assert (this->start <= this->end); /* Must not overflow. */
   }
 
   inline void start_processing (void)
   {
-    this->start = this->blob->data;
-    this->end = this->start + this->blob->length;
-    assert (this->start <= this->end); /* Must not overflow. */
+    reset_object ();
     this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
     this->edit_count = 0;
@@ -467,6 +480,23 @@ struct hb_sanitize_context_t :
   hb_blob_t *blob;
   unsigned int num_glyphs;
   bool  num_glyphs_set;
+};
+
+struct hb_sanitize_with_object_t
+{
+  template <typename T>
+  inline hb_sanitize_with_object_t (hb_sanitize_context_t *c,
+				    const T& obj) : c (c)
+  {
+    c->set_object (obj);
+  }
+  inline ~hb_sanitize_with_object_t (void)
+  {
+    c->reset_object ();
+  }
+
+  private:
+  hb_sanitize_context_t *c;
 };
 
 
@@ -691,6 +721,12 @@ struct BEInt<Type, 2>
   }
   inline operator Type (void) const
   {
+#if defined(__GNUC__) || defined(__clang__)
+    /* Spoon-feed the compiler a big-endian integer with alignment 1.
+     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+    struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
+    return __builtin_bswap16 (((packed_uint16_t *) this)->v);
+#endif
     return (v[0] <<  8)
          + (v[1]      );
   }

@@ -508,6 +508,7 @@ test/api/Makefile
 test/fuzzing/Makefile
 test/shaping/Makefile
 test/shaping/data/Makefile
+test/shaping/data/aots/Makefile
 test/shaping/data/in-house/Makefile
 test/shaping/data/text-rendering-tests/Makefile
 test/subset/Makefile

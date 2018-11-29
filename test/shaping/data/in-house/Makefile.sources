@@ -29,10 +29,12 @@ TESTS = \
 	tests/indic-special-cases.tests \
 	tests/indic-syllable.tests \
 	tests/indic-vowel-letter-spoofing.tests \
+	tests/kern-format2.tests \
 	tests/khmer-mark-order.tests \
 	tests/khmer-misc.tests \
 	tests/language-tags.tests \
 	tests/ligature-id.tests \
+	tests/macos.tests \
 	tests/mark-attachment.tests \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \

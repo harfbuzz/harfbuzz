@@ -77,6 +77,7 @@ struct hb_ot_shape_plan_t
   bool zero_marks : 1;
   bool fallback_glyph_classes : 1;
   bool fallback_mark_positioning : 1;
+  bool adjust_mark_positioning_when_zeroing : 1;
 
   bool apply_gpos : 1;
   bool apply_kerx : 1;
@@ -113,6 +114,8 @@ struct hb_ot_shape_planner_t
   hb_ot_map_builder_t map;
   hb_aat_map_builder_t aat_map;
   bool apply_morx : 1;
+  bool script_zero_marks : 1;
+  bool script_fallback_mark_positioning : 1;
   const struct hb_ot_complex_shaper_t *shaper;
 
   HB_INTERNAL hb_ot_shape_planner_t (hb_face_t                     *face,

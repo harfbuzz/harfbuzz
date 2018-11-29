@@ -63,11 +63,10 @@ struct VORG
 
   inline int get_y_origin (hb_codepoint_t glyph) const
   {
-    int i = vertYOrigins.bsearch (glyph);
-    if (i != -1)
-      return vertYOrigins[i].vertOriginY;
-
-    return defaultVertOriginY;
+    unsigned int i;
+    if (!vertYOrigins.bfind (glyph, &i))
+      return defaultVertOriginY;
+    return vertYOrigins[i].vertOriginY;
   }
 
   inline bool _subset (const hb_subset_plan_t *plan HB_UNUSED,

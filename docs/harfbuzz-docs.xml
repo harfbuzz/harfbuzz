@@ -113,6 +113,11 @@
       </chapter>
 
       <chapter>
+        <title>Apple Advanced Typography API</title>
+        <xi:include href="xml/hb-aat-layout.xml"/>
+      </chapter>
+
+      <chapter>
         <title>Integration API</title>
         <xi:include href="xml/hb-coretext.xml"/>
         <xi:include href="xml/hb-ft.xml"/>

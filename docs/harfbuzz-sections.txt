@@ -4,6 +4,17 @@ HB_OT_H_IN
 </SECTION>
 
 <SECTION>
+<FILE>hb-aat-layout</FILE>
+HB_AAT_LAYOUT_NO_SELECTOR_INDEX
+hb_aat_layout_feature_type_t
+hb_aat_layout_get_feature_types
+hb_aat_layout_feature_type_get_name_id
+hb_aat_layout_feature_selector_t
+hb_aat_layout_feature_selector_info_t
+hb_aat_layout_feature_type_get_selector_infos
+</SECTION>
+
+<SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
 hb_blob_create_from_file
@@ -161,6 +172,10 @@ hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_script
 hb_ot_tag_from_language
 hb_ot_tags_from_script
+HB_OT_VAR_NO_AXIS_INDEX
+hb_ot_var_axis_t
+hb_ot_var_find_axis
+hb_ot_var_get_axes
 hb_set_invert
 hb_unicode_eastasian_width_func_t
 hb_unicode_eastasian_width
@@ -581,14 +596,12 @@ HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE
 HB_OT_TAG_VAR_AXIS_SLANT
 HB_OT_TAG_VAR_AXIS_WEIGHT
 HB_OT_TAG_VAR_AXIS_WIDTH
-HB_OT_VAR_NO_AXIS_INDEX
-hb_ot_var_axis_t
 hb_ot_var_has_data
-hb_ot_var_find_axis
-hb_ot_var_get_axis_count
-hb_ot_var_get_axes
 hb_ot_var_axis_flags_t
-hb_ot_var_axis_get_flags
+hb_ot_var_axis_info_t
+hb_ot_var_find_axis_info
+hb_ot_var_get_axis_count
+hb_ot_var_get_axis_infos
 hb_ot_var_get_named_instance_count
 hb_ot_var_named_instance_get_subfamily_name_id
 hb_ot_var_named_instance_get_postscript_name_id

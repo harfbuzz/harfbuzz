@@ -45,7 +45,7 @@ struct hb_set_t
 
   struct page_map_t
   {
-    inline int cmp (const page_map_t *o) const { return (int) o->major - (int) major; }
+    inline int cmp (const page_map_t &o) const { return (int) o.major - (int) major; }
 
     uint32_t major;
     uint32_t index;
@@ -341,11 +341,11 @@ struct hb_set_t
   {
     /* TODO perform op even if !successful. */
     if (unlikely (!successful)) return;
-    page_t *p = page_for (g);
-    if (!p)
+    page_t *page = page_for (g);
+    if (!page)
       return;
     dirty ();
-    p->del (g);
+    page->del (g);
   }
   inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
@@ -357,10 +357,10 @@ struct hb_set_t
   }
   inline bool has (hb_codepoint_t g) const
   {
-    const page_t *p = page_for (g);
-    if (!p)
+    const page_t *page = page_for (g);
+    if (!page)
       return false;
-    return p->has (g);
+    return page->has (g);
   }
   inline bool intersects (hb_codepoint_t first,
 			  hb_codepoint_t last) const
@@ -544,7 +544,7 @@ struct hb_set_t
 
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
-    page_map.bfind (map, &i);
+    page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
     if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].next (codepoint))
@@ -575,7 +575,7 @@ struct hb_set_t
 
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
-    page_map.bfind (map, &i);
+    page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
     if (i < page_map.len && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].previous (codepoint))
@@ -670,7 +670,7 @@ struct hb_set_t
   {
     page_map_t map = {get_major (g), pages.len};
     unsigned int i;
-    if (!page_map.bfind (map, &i))
+    if (!page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST))
     {
       if (!resize (pages.len + 1))
 	return nullptr;

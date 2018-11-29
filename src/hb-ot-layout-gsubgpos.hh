@@ -2753,6 +2753,11 @@ struct GSUBGPOS
     inline void init (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t().reference_table<T> (face);
+      if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
+      {
+	hb_blob_destroy (this->table.get_blob ());
+	this->table = hb_blob_get_empty ();
+      }
 
       this->lookup_count = table->get_lookup_count ();
 

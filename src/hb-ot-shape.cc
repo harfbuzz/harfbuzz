@@ -76,10 +76,16 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						props (*props),
 						map (face, props),
 						aat_map (face, props),
-						apply_morx (_hb_apply_morx (face)),
-						shaper (apply_morx ?
-						        &_hb_ot_complex_shaper_default :
-							hb_ot_shape_complex_categorize (this)) {}
+						apply_morx (_hb_apply_morx (face))
+{
+  shaper = hb_ot_shape_complex_categorize (this);
+
+  script_zero_marks = shaper->zero_width_marks != HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
+  script_fallback_mark_positioning = shaper->fallback_position;
+
+  if (apply_morx)
+    shaper = &_hb_ot_complex_shaper_default;
+}
 
 void
 hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
@@ -140,10 +146,17 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
       plan.apply_kern = true;
   }
 
-  bool has_kern_mark = plan.apply_kern && hb_ot_layout_has_cross_kerning (face);
-  plan.zero_marks = !plan.apply_morx && !plan.apply_kerx && !has_kern_mark;
+  plan.zero_marks = script_zero_marks &&
+		    !plan.apply_kerx &&
+		    (!plan.apply_kern || !hb_ot_layout_has_machine_kerning (face));
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
-  plan.fallback_mark_positioning = !plan.apply_gpos && plan.zero_marks;
+
+  plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&
+					      !plan.apply_kerx &&
+					      (!plan.apply_kern || !hb_ot_layout_has_cross_kerning (face));
+
+  plan.fallback_mark_positioning = plan.adjust_mark_positioning_when_zeroing &&
+				   script_fallback_mark_positioning;
 
   /* Currently we always apply trak. */
   plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
@@ -158,6 +171,7 @@ hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
 
   hb_ot_shape_planner_t planner (face,
 				 &key->props);
+
   hb_ot_shape_collect_features (&planner,
 				key->user_features,
 				key->num_user_features);
@@ -811,17 +825,16 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
   hb_glyph_info_t *info = c->buffer->info;
   hb_glyph_position_t *pos = c->buffer->pos;
 
-  /* If the font has no GPOS, AND, no fallback positioning will
-   * happen, AND, direction is forward, then when zeroing mark
-   * widths, we shift the mark with it, such that the mark
-   * is positioned hanging over the previous glyph.  When
+  /* If the font has no GPOS and direction is forward, then when
+   * zeroing mark widths, we shift the mark with it, such that the
+   * mark is positioned hanging over the previous glyph.  When
    * direction is backward we don't shift and it will end up
    * hanging over the next glyph after the final reordering.
-   * If fallback positinoing happens or GPOS is present, we don't
-   * care.
+   *
+   * Note: If fallback positinoing happens, we don't care about
+   * this as it will be overriden.
    */
-  bool adjust_offsets_when_zeroing = c->plan->fallback_mark_positioning &&
-				     !c->plan->shaper->fallback_position &&
+  bool adjust_offsets_when_zeroing = c->plan->adjust_mark_positioning_when_zeroing &&
 				     HB_DIRECTION_IS_FORWARD (c->buffer->props.direction);
 
   /* We change glyph origin to what GPOS expects (horizontal), apply GPOS, change it back. */
@@ -877,7 +890,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 					&pos[i].x_offset,
 					&pos[i].y_offset);
 
-  if (c->plan->fallback_mark_positioning && c->plan->shaper->fallback_position)
+  if (c->plan->fallback_mark_positioning)
     _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer);
 }
 

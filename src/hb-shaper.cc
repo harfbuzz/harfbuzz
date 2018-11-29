@@ -35,7 +35,7 @@ static const hb_shaper_entry_t all_shapers[] = {
 #undef HB_SHAPER_IMPLEMENT
 };
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_shapers (void);
 #endif
 
@@ -80,7 +80,7 @@ static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_
 	p = end + 1;
     }
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_shapers);
 #endif
 
@@ -96,7 +96,7 @@ static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_
   }
 } static_shapers;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_shapers (void)
 {

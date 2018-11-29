@@ -204,7 +204,7 @@ static const char canon_map[256] = {
    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,  '-',  0,   0,
   '0', '1', '2', '3', '4', '5', '6', '7',  '8', '9',  0,   0,   0,   0,   0,   0,
-  '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g',  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+   0,  'a', 'b', 'c', 'd', 'e', 'f', 'g',  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z',  0,   0,   0,   0,  '-',
    0,  'a', 'b', 'c', 'd', 'e', 'f', 'g',  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z',  0,   0,   0,   0,   0
@@ -276,7 +276,7 @@ struct hb_language_item_t {
 
 static hb_atomic_ptr_t <hb_language_item_t> langs;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void
 free_langs (void)
 {
@@ -323,7 +323,7 @@ retry:
     goto retry;
   }
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
   if (!first_lang)
     atexit (free_langs); /* First person registers atexit() callback. */
 #endif
@@ -780,18 +780,18 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 
 #ifdef USE_XLOCALE
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_C_locale (void);
 #endif
 
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_LOCALE_T>::value,
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (HB_LOCALE_T),
 							  hb_C_locale_lazy_loader_t>
 {
   static inline HB_LOCALE_T create (void)
   {
     HB_LOCALE_T C_locale = HB_CREATE_LOCALE ("C");
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_C_locale);
 #endif
 
@@ -807,7 +807,7 @@ static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_
   }
 } static_C_locale;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_C_locale (void)
 {

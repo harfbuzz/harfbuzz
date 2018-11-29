@@ -417,6 +417,7 @@ struct CmapSubtableLongGroup
   public:
   DEFINE_SIZE_STATIC (12);
 };
+DECLARE_NULL_NAMESPACE_BYTES (OT, CmapSubtableLongGroup);
 
 template <typename UINT>
 struct CmapSubtableTrimmed
@@ -467,10 +468,7 @@ struct CmapSubtableLongSegmented
 
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
-    int i = groups.bsearch (codepoint);
-    if (i == -1)
-      return false;
-    hb_codepoint_t gid = T::group_get_glyph (groups[i], codepoint);
+    hb_codepoint_t gid = T::group_get_glyph (groups.bsearch (codepoint), codepoint);
     if (!gid)
       return false;
     *glyph = gid;
@@ -517,7 +515,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 {
   static inline hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 						hb_codepoint_t u)
-  { return group.glyphID + (u - group.startCharCode); }
+  { return likely (group.startCharCode <= group.endCharCode) ?
+	   group.glyphID + (u - group.startCharCode) : 0; }
 
 
   bool serialize (hb_serialize_context_t *c,
@@ -673,16 +672,12 @@ struct VariationSelectorRecord
 				    hb_codepoint_t *glyph,
 				    const void *base) const
   {
-    int i;
-    const DefaultUVS &defaults = base+defaultUVS;
-    i = defaults.bsearch (codepoint);
-    if (i != -1)
+    if ((base+defaultUVS).bfind (codepoint))
       return GLYPH_VARIANT_USE_DEFAULT;
-    const NonDefaultUVS &nonDefaults = base+nonDefaultUVS;
-    i = nonDefaults.bsearch (codepoint);
-    if (i != -1 && nonDefaults[i].glyphID)
+    const UVSMapping &nonDefault = (base+nonDefaultUVS).bsearch (codepoint);
+    if (nonDefault.glyphID)
     {
-      *glyph = nonDefaults[i].glyphID;
+      *glyph = nonDefault.glyphID;
        return GLYPH_VARIANT_FOUND;
     }
     return GLYPH_VARIANT_NOT_FOUND;
@@ -722,7 +717,7 @@ struct CmapSubtableFormat14
 					    hb_codepoint_t variation_selector,
 					    hb_codepoint_t *glyph) const
   {
-    return record[record.bsearch (variation_selector)].get_glyph (codepoint, glyph, this);
+    return record.bsearch (variation_selector).get_glyph (codepoint, glyph, this);
   }
 
   inline void collect_variation_selectors (hb_set_t *out) const
@@ -734,7 +729,7 @@ struct CmapSubtableFormat14
   inline void collect_variation_unicodes (hb_codepoint_t variation_selector,
 					  hb_set_t *out) const
   {
-    record[record.bsearch (variation_selector)].collect_unicodes (out, this);
+    record.bsearch (variation_selector).collect_unicodes (out, this);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -862,14 +857,6 @@ struct cmap
     hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
     hb_vector_t<CmapSubtableLongGroup> format12_groups;
   };
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  likely (version == 0) &&
-		  encodingRecord.sanitize (c, this));
-  }
 
   inline bool _create_plan (const hb_subset_plan_t *plan,
 			    subset_plan *cmap_plan) const
@@ -1164,11 +1151,21 @@ struct cmap
     key.platformID.set (platform_id);
     key.encodingID.set (encoding_id);
 
-    int result = encodingRecord.bsearch (key);
-    if (result == -1 || !encodingRecord[result].subtable)
+    const EncodingRecord &result = encodingRecord.bsearch (key);
+    if (!result.subtable)
       return nullptr;
 
-    return &(this+encodingRecord[result].subtable);
+    return &(this+result.subtable);
+  }
+
+  public:
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  likely (version == 0) &&
+		  encodingRecord.sanitize (c, this));
   }
 
   protected:

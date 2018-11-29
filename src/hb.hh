@@ -47,6 +47,10 @@
 #define HB_H_IN
 #include "hb-ot.h"
 #define HB_OT_H_IN
+#include "hb-aat.h"
+#define HB_AAT_H_IN
+
+#include "hb-aat.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -281,7 +285,7 @@ static int errno = 0; /* Use something better? */
 #  endif
 #endif
 
-#if HAVE_ATEXIT
+#if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
 /* atexit() is only safe to be called from shared libraries on certain
  * platforms.  Whitelist.
  * https://bugs.freedesktop.org/show_bug.cgi?id=82246 */
@@ -312,6 +316,9 @@ static int errno = 0; /* Use something better? */
 #endif
 #ifdef HB_NO_ATEXIT
 #  undef HB_USE_ATEXIT
+#endif
+#ifndef HB_USE_ATEXIT
+#  define HB_USE_ATEXIT 0
 #endif
 
 #define HB_STMT_START do
@@ -443,9 +450,11 @@ typedef uint64_t hb_vector_size_impl_t;
  * For example, for testing "x ∈ {x1, x2, x3}" use:
  * (FLAG_UNSAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
  */
-#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned int)(x) < 32) + (1U << (unsigned int)(x)))
-#define FLAG_UNSAFE(x) ((unsigned int)(x) < 32 ? (1U << (unsigned int)(x)) : 0)
+#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 32) + (((uint32_t) 1U) << (unsigned)(x)))
+#define FLAG_UNSAFE(x) ((unsigned)(x) < 32 ? (((uint32_t) 1U) << (unsigned)(x)) : 0)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
+#define FLAG64(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
+#define FLAG64_UNSAFE(x) ((unsigned)(x) < 64 ? (((uint64_t) 1ULL) << (unsigned)(x)) : 0)
 
 
 /* Size signifying variable-sized array */
@@ -503,10 +512,13 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 /* Some really basic things everyone wants. */
 template <typename T> struct hb_remove_const { typedef T value; };
 template <typename T> struct hb_remove_const<const T> { typedef T value; };
+#define hb_remove_const(T) hb_remove_const<T>::value
 template <typename T> struct hb_remove_reference { typedef T value; };
 template <typename T> struct hb_remove_reference<T &> { typedef T value; };
+#define hb_remove_reference(T) hb_remove_reference<T>::value
 template <typename T> struct hb_remove_pointer { typedef T value; };
 template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
+#define hb_remove_pointer(T) hb_remove_pointer<T>::value
 
 
 /* Headers we include for everyone.  Keep sorted.  They express dependency amongst

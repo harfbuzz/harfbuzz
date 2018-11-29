@@ -128,15 +128,7 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> >
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    /* If we want to allow non-sorted data, we can lsearch(). */
-    int i = this->/*lsearch*/bsearch (tag);
-    if (i != -1) {
-      if (index) *index = i;
-      return true;
-    } else {
-      if (index) *index = Index::NOT_FOUND_INDEX;
-      return false;
-    }
+    return this->bfind (tag, index, HB_BFIND_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
   }
 };
 
@@ -802,11 +794,11 @@ struct Lookup
   HBUINT16	lookupFlag;		/* Lookup qualifiers */
   ArrayOf<Offset16>
 		subTable;		/* Array of SubTables */
-  HBUINT16	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
+/*HBUINT16	markFilteringSetX[VAR];*//* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
   public:
-  DEFINE_SIZE_ARRAY2 (6, subTable, markFilteringSetX);
+  DEFINE_SIZE_ARRAY (6, subTable);
 };
 
 typedef OffsetListOf<Lookup> LookupList;
@@ -823,8 +815,8 @@ struct CoverageFormat1
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = glyphArray.bsearch (glyph_id);
-    static_assert ((((unsigned int) -1) == NOT_COVERED), "");
+    unsigned int i;
+    glyphArray.bfind (glyph_id, &i, HB_BFIND_NOT_FOUND_STORE, NOT_COVERED);
     return i;
   }
 
@@ -896,12 +888,10 @@ struct CoverageFormat2
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.bsearch (glyph_id);
-    if (i != -1) {
-      const RangeRecord &range = rangeRecord[i];
-      return (unsigned int) range.value + (glyph_id - range.start);
-    }
-    return NOT_COVERED;
+    const RangeRecord &range = rangeRecord.bsearch (glyph_id);
+    return likely (range.start <= range.end) ?
+	   (unsigned int) range.value + (glyph_id - range.start) :
+	   NOT_COVERED;
   }
 
   inline bool serialize (hb_serialize_context_t *c,
@@ -1194,10 +1184,7 @@ struct ClassDefFormat1
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    unsigned int i = (unsigned int) (glyph_id - startGlyph);
-    if (unlikely (i < classValue.len))
-      return classValue[i];
-    return 0;
+    return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1265,10 +1252,10 @@ struct ClassDefFormat1
   }
 
   protected:
-  HBUINT16	classFormat;		/* Format identifier--format = 1 */
-  GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
+  HBUINT16	classFormat;	/* Format identifier--format = 1 */
+  GlyphID	startGlyph;	/* First GlyphID of the classValueArray */
   ArrayOf<HBUINT16>
-		classValue;		/* Array of Class Values--one per GlyphID */
+		classValue;	/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (6, classValue);
 };
@@ -1280,10 +1267,7 @@ struct ClassDefFormat2
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.bsearch (glyph_id);
-    if (unlikely (i != -1))
-      return rangeRecord[i].value;
-    return 0;
+    return rangeRecord.bsearch (glyph_id).value;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1586,9 +1570,9 @@ struct VarData
   HBUINT16		itemCount;
   HBUINT16		shortCount;
   ArrayOf<HBUINT16>	regionIndices;
-  UnsizedArrayOf<HBUINT8>bytesX;
+/*UnsizedArrayOf<HBUINT8>bytesX;*/
   public:
-  DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
+  DEFINE_SIZE_ARRAY (6, regionIndices);
 };
 
 struct VariationStore

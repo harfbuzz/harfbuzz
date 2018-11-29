@@ -60,7 +60,7 @@ struct hb_blob_t
   template <typename Type>
   inline const Type* as (void) const
   {
-    return length < Type::min_size ? &Null(Type) : reinterpret_cast<const Type *> (data);
+    return length < hb_null_size (Type) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
   inline hb_bytes_t as_bytes (void) const
   {
@@ -86,7 +86,7 @@ struct hb_blob_t
 template <typename P>
 struct hb_blob_ptr_t
 {
-  typedef typename hb_remove_pointer<P>::value T;
+  typedef typename hb_remove_pointer (P) T;
 
   inline hb_blob_ptr_t (hb_blob_t *b_ = nullptr) : b (b_) {}
   inline hb_blob_t * operator = (hb_blob_t *b_) { return b = b_; }

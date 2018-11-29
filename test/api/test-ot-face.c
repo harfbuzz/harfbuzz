@@ -93,7 +93,7 @@ test_face (hb_face_t *face,
   hb_ot_name_get_utf32 (face, cp, NULL, NULL, NULL);
 
   hb_ot_var_get_axis_count (face);
-  hb_ot_var_get_axes (face, 0, NULL, NULL);
+  hb_ot_var_get_axis_infos (face, 0, NULL, NULL);
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 

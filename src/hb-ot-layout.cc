@@ -34,15 +34,17 @@
 #include "hb-ot-map.hh"
 #include "hb-map.hh"
 
+#include "hb-ot-kern-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise
-#include "hb-ot-kern-table.hh"
 #include "hb-ot-name-table.hh"
+#include "hb-ot-os2-table.hh"
 
 #include "hb-aat-layout-lcar-table.hh"
+#include "hb-aat-layout-morx-table.hh"
 
 
 /**
@@ -63,6 +65,12 @@ bool
 hb_ot_layout_has_kerning (hb_face_t *face)
 {
   return face->table.kern->has_data ();
+}
+
+bool
+hb_ot_layout_has_machine_kerning (hb_face_t *face)
+{
+  return face->table.kern->has_state_machine ();
 }
 
 bool
@@ -89,10 +97,9 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
  * GDEF
  */
 
-static bool
-_hb_ot_blacklist_gdef (unsigned int gdef_len,
-		       unsigned int gsub_len,
-		       unsigned int gpos_len)
+bool
+OT::GDEF::is_blacklisted (hb_blob_t *blob,
+			  hb_face_t *face) const
 {
   /* The ugly business of blacklisting individual fonts' tables happen here!
    * See this thread for why we finally had to bend in and do this:
@@ -111,8 +118,10 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279693
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279875
    */
-#define ENCODE(x,y,z) ((int64_t) (x) << 32 | (int64_t) (y) << 16 | (z))
-  switch ENCODE(gdef_len, gsub_len, gpos_len)
+#define ENCODE(x,y,z) (((uint64_t) (x) << 48) | ((uint64_t) (y) << 24) | (uint64_t) (z))
+  switch ENCODE(blob->length,
+		face->table.GSUB->table.get_length (),
+		face->table.GPOS->table.get_length ())
   {
     /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
     case ENCODE (442, 2874, 42038):
@@ -189,20 +198,6 @@ _hb_ot_blacklist_gdef (unsigned int gdef_len,
 #undef ENCODE
   }
   return false;
-}
-
-void
-OT::GDEF::accelerator_t::init (hb_face_t *face)
-{
-  this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
-
-  if (unlikely (_hb_ot_blacklist_gdef (this->table.get_length (),
-				       face->table.GSUB->table.get_length (),
-				       face->table.GPOS->table.get_length ())))
-  {
-    hb_blob_destroy (this->table.get_blob ());
-    this->table = hb_blob_get_empty ();
-  }
 }
 
 static void
@@ -290,6 +285,38 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 /*
  * GSUB/GPOS
  */
+
+bool
+OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+			  hb_face_t *face) const
+{
+  /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
+   * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
+   * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
+   * our morx/GSUB preference code.  But if GSUB has non-zero scripts, we tend
+   * to prefer it over morx because we want to be consistent with other OpenType
+   * shapers.
+   *
+   * To work around broken Indic Mac system fonts, we ignore GSUB table if
+   * OS/2 VendorId is 'MUTF' and font has morx table as well.
+   *
+   * https://github.com/harfbuzz/harfbuzz/issues/1410
+   * https://github.com/harfbuzz/harfbuzz/issues/1348
+   * https://github.com/harfbuzz/harfbuzz/issues/1391
+   */
+  if (unlikely (face->table.OS2->achVendID == HB_TAG ('M','U','T','F') &&
+		face->table.morx->has_data ()))
+    return true;
+
+  return false;
+}
+
+bool
+OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+			  hb_face_t *face HB_UNUSED) const
+{
+  return false;
+}
 
 static const OT::GSUBGPOS&
 get_gsubgpos_table (hb_face_t *face,

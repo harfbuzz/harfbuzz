@@ -432,7 +432,8 @@ record_pref (const hb_ot_shape_plan_t *plan HB_UNUSED,
 static inline bool
 is_halant (const hb_glyph_info_t &info)
 {
-  return info.use_category() == USE_H && !_hb_glyph_info_ligated (&info);
+  return (info.use_category() == USE_H || info.use_category() == USE_HVM) &&
+	 !_hb_glyph_info_ligated (&info);
 }
 
 static void
@@ -449,19 +450,38 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 
   hb_glyph_info_t *info = buffer->info;
 
-#define BASE_FLAGS (FLAG (USE_B) | FLAG (USE_GB))
+#define POST_BASE_FLAGS64 (FLAG64 (USE_FM) | \
+			   FLAG64 (USE_FAbv) | \
+			   FLAG64 (USE_FBlw) | \
+			   FLAG64 (USE_FPst) | \
+			   FLAG64 (USE_MAbv) | \
+			   FLAG64 (USE_MBlw) | \
+			   FLAG64 (USE_MPst) | \
+			   FLAG64 (USE_MPre) | \
+			   FLAG64 (USE_VAbv) | \
+			   FLAG64 (USE_VBlw) | \
+			   FLAG64 (USE_VPst) | \
+			   FLAG64 (USE_VPre) | \
+			   FLAG64 (USE_VMAbv) | \
+			   FLAG64 (USE_VMBlw) | \
+			   FLAG64 (USE_VMPst) | \
+			   FLAG64 (USE_VMPre))
 
   /* Move things forward. */
   if (info[start].use_category() == USE_R && end - start > 1)
   {
-    /* Got a repha.  Reorder it to after first base, before first halant. */
+    /* Got a repha.  Reorder it towards the end, but before the first post-base
+     * glyph. */
     for (unsigned int i = start + 1; i < end; i++)
-      if ((FLAG_UNSAFE (info[i].use_category()) & (BASE_FLAGS)) || is_halant (info[i]))
+    {
+      bool is_post_base_glyph = (FLAG64_UNSAFE (info[i].use_category()) & POST_BASE_FLAGS64) ||
+				is_halant (info[i]);
+      if (is_post_base_glyph || i == end - 1)
       {
-	/* If we hit a halant, move before it; otherwise it's a base: move to it's
-	 * place, and shift things in between backward. */
+	/* If we hit a post-base glyph, move before it; otherwise move to the
+	 * end. Shift things in between backward. */
 
-	if (is_halant (info[i]))
+	if (is_post_base_glyph)
 	  i--;
 
 	buffer->merge_clusters (start, i + 1);
@@ -471,21 +491,19 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 
 	break;
       }
+    }
   }
 
   /* Move things back. */
-  unsigned int j = end;
+  unsigned int j = start;
   for (unsigned int i = start; i < end; i++)
   {
     uint32_t flag = FLAG_UNSAFE (info[i].use_category());
-    if ((flag & (BASE_FLAGS)) || is_halant (info[i]))
+    if (is_halant (info[i]))
     {
-      /* If we hit a halant, move after it; otherwise it's a base: move to it's
-       * place, and shift things in between backward. */
-      if (is_halant (info[i]))
-	j = i + 1;
-      else
-	j = i;
+      /* If we hit a halant, move after it; otherwise move to the beginning, and
+       * shift things in between forward. */
+      j = i + 1;
     }
     else if (((flag) & (FLAG (USE_VPre) | FLAG (USE_VMPre))) &&
 	     /* Only move the first component of a MultipleSubst. */

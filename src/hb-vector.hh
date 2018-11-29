@@ -31,13 +31,15 @@
 #include "hb.hh"
 
 
-template <typename Type, unsigned int StaticSize=8>
+template <typename Type, unsigned int PreallocedCount=8>
 struct hb_vector_t
 {
+  static_assert ((bool) (unsigned) hb_static_size (Type), "");
+
   typedef Type ItemType;
   enum { item_size = sizeof (Type) };
 
-  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, StaticSize);
+  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
   inline hb_vector_t (void) { init (); }
   inline ~hb_vector_t (void) { fini (); }
 
@@ -45,7 +47,7 @@ struct hb_vector_t
   private:
   unsigned int allocated; /* == 0 means allocation failed. */
   Type *arrayZ_;
-  Type static_array[StaticSize];
+  Type static_array[PreallocedCount];
   public:
 
   void init (void)
@@ -88,6 +90,16 @@ struct hb_vector_t
       return Null(Type);
     return arrayZ()[i];
   }
+
+  inline hb_array_t<Type> as_array (void)
+  { return hb_array (arrayZ(), len); }
+  inline hb_array_t<const Type> as_array (void) const
+  { return hb_array (arrayZ(), len); }
+
+  inline hb_sorted_array_t<Type> as_sorted_array (void)
+  { return hb_sorted_array (arrayZ(), len); }
+  inline hb_sorted_array_t<const Type> as_sorted_array (void) const
+  { return hb_sorted_array (arrayZ(), len); }
 
   template <typename T> inline operator  T * (void) { return arrayZ(); }
   template <typename T> inline operator const T * (void) const { return arrayZ(); }
@@ -209,75 +221,28 @@ struct hb_vector_t
   }
 
   inline void qsort (int (*cmp)(const void*, const void*))
-  {
-    ::qsort (arrayZ(), len, sizeof (Type), cmp);
-  }
-
-  inline void qsort (void)
-  {
-    ::qsort (arrayZ(), len, sizeof (Type), Type::cmp);
-  }
-
-  inline void qsort (unsigned int start, unsigned int end)
-  {
-    ::qsort (arrayZ() + start, end - start, sizeof (Type), Type::cmp);
-  }
+  { as_array ().qsort (cmp); }
+  inline void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
+  { as_array ().qsort (start, end); }
 
   template <typename T>
-  inline Type *lsearch (const T &x)
-  {
-    Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (&x))
-	return &array[i];
-    return nullptr;
-  }
+  inline Type *lsearch (const T &x, Type *not_found = nullptr)
+  { return as_array ().lsearch (x, not_found); }
   template <typename T>
-  inline const Type *lsearch (const T &x) const
-  {
-    const Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
-      if (0 == array[i].cmp (&x))
-	return &array[i];
-    return nullptr;
-  }
+  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  { return as_array ().lsearch (x, not_found); }
 
   template <typename T>
-  inline Type *bsearch (const T &x)
-  {
-    unsigned int i;
-    return bfind (x, &i) ? &arrayZ()[i] : nullptr;
-  }
+  inline Type *bsearch (const T &x, Type *not_found = nullptr)
+  { return as_sorted_array ().bsearch (x, not_found); }
   template <typename T>
-  inline const Type *bsearch (const T &x) const
-  {
-    unsigned int i;
-    return bfind (x, &i) ? &arrayZ()[i] : nullptr;
-  }
+  inline const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  { return as_sorted_array ().bsearch (x, not_found); }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i) const
-  {
-    int min = 0, max = (int) this->len - 1;
-    const Type *array = this->arrayZ();
-    while (min <= max)
-    {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (&x);
-      if (c < 0)
-        max = mid - 1;
-      else if (c > 0)
-        min = mid + 1;
-      else
-      {
-        *i = mid;
-	return true;
-      }
-    }
-    if (max < 0 || (max < (int) this->len && array[max].cmp (&x) > 0))
-      max++;
-    *i = max;
-    return false;
-  }
+  inline bool bfind (const T &x, unsigned int *i = nullptr,
+		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
+		     unsigned int to_store = (unsigned int) -1) const
+  { return as_sorted_array ().bfind (x, i, not_found, to_store); }
 };
 
 

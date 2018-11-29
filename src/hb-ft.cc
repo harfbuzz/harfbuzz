@@ -478,7 +478,7 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   return true;
 }
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_ft_funcs (void);
 #endif
 
@@ -504,7 +504,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 
     hb_font_funcs_make_immutable (funcs);
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_ft_funcs);
 #endif
 
@@ -512,7 +512,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
   }
 } static_ft_funcs;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_ft_funcs (void)
 {
@@ -744,11 +744,11 @@ hb_ft_font_create_referenced (FT_Face ft_face)
   return hb_ft_font_create (ft_face, _hb_ft_face_destroy);
 }
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static void free_static_ft_library (void);
 #endif
 
-static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<FT_Library>::value,
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (FT_Library),
 							     hb_ft_library_lazy_loader_t>
 {
   static inline FT_Library create (void)
@@ -757,7 +757,7 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<F
     if (FT_Init_FreeType (&l))
       return nullptr;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
     atexit (free_static_ft_library);
 #endif
 
@@ -773,7 +773,7 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<F
   }
 } static_ft_library;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
 static
 void free_static_ft_library (void)
 {

@@ -56,7 +56,9 @@ struct loca
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Location data. */
   public:
-  DEFINE_SIZE_ARRAY (0, dataZ);
+  DEFINE_SIZE_MIN (0); /* In reality, this is UNBOUNDED() type; but since we always
+			* check the size externally, allow Null() object of it by
+			* defining it MIN() instead. */
 };
 
 
@@ -465,7 +467,9 @@ struct glyf
   protected:
   UnsizedArrayOf<HBUINT8>	dataZ;		/* Glyphs data. */
   public:
-  DEFINE_SIZE_ARRAY (0, dataZ);
+  DEFINE_SIZE_MIN (0); /* In reality, this is UNBOUNDED() type; but since we always
+			* check the size externally, allow Null() object of it by
+			* defining it MIN() instead. */
 };
 
 struct glyf_accelerator_t : glyf::accelerator_t {};

@@ -5,306 +5,538 @@
   <!ENTITY version SYSTEM "version.xml">
 ]>
 <chapter id="clusters">
-<sect1 id="clusters">
   <title>Clusters</title>
-  <para>
-    In shaping text, a <emphasis>cluster</emphasis> is a sequence of
-    code points that needs to be treated as a single, indivisible unit.
-  </para>
-  <para>
-    When you add text to a HB buffer, each character is associated with
-    a <emphasis>cluster value</emphasis>. This is an arbitrary number as
-    far as HB is concerned.
-  </para>
-  <para>
-    Most clients will use UTF-8, UTF-16, or UTF-32 indices, but the
-    actual number does not matter. Moreover, it is not required for the
-    cluster values to be monotonically increasing, but pretty much all
-    of HB's tests are performed on monotonically increasing cluster
-    numbers. Nevertheless, there is no such assumption in the code
-    itself. With that in mind, let's examine what happens with cluster
-    values during shaping under each cluster-level.
-  </para>
-  <para>
-    HarfBuzz provides three <emphasis>levels</emphasis> of clustering
-    support. Level 0 is the default behavior and reproduces the behavior
-    of the old HarfBuzz library. Level 1 tweaks this behavior slightly
-    to produce better results, so level 1 clustering is recommended for
-    code that is not required to implement backward compatibility with
-    the old HarfBuzz.
-  </para>
-  <para>
-    Level 2 differs significantly in how it treats cluster values.
-    Levels 0 and 1 both process ligatures and glyph decomposition by
-    merging clusters; level 2 does not.
-  </para>
-  <para>
-    The conceptual model for what the cluster values mean, in levels 0
-    and 1, is this:
-  </para>
-  <itemizedlist spacing="compact">
-    <listitem>
-      <para>
-        the sequence of cluster values will always remain monotone
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        each value represents a single cluster
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        each cluster contains one or more glyphs and one or more
-        characters
-      </para>
-    </listitem>
-  </itemizedlist>
-  <para>
-    Assuming that initial cluster numbers were monotonically increasing
-    and distinct, then all adjacent glyphs having the same cluster
-    number belong to the same cluster, and all characters belong to the
-    cluster that has the highest number not larger than their initial
-    cluster number. This will become clearer with an example.
-  </para>
-</sect1>
-<sect1 id="a-clustering-example-for-levels-0-and-1">
-  <title>A clustering example for levels 0 and 1</title>
-  <para>
-    Let's say we start with the following character sequence and cluster
-    values:
-  </para>
-  <programlisting>
-   A,B,C,D,E
-   0,1,2,3,4
-</programlisting>
-  <para>
-    We then map the characters to glyphs. For simplicity, let's assume
-    that each character maps to the corresponding, identical-looking
-    glyph:
-  </para>
-  <programlisting>
-   A,B,C,D,E
-   0,1,2,3,4
-</programlisting>
-  <para>
-    Now if, for example, <literal>B</literal> and <literal>C</literal>
-    ligate, then the clusters to which they belong &quot;merge&quot;.
-    This merged cluster takes for its cluster number the minimum of all
-    the cluster numbers of the clusters that went in. In this case, we
-    get:
-  </para>
-  <programlisting>
-   A,BC,D,E
-   0,1 ,3,4
-</programlisting>
-  <para>
-    Now let's assume that the <literal>BC</literal> glyph decomposes
-    into three components, and <literal>D</literal> also decomposes into
-    two. The components each inherit the cluster value of their parent:
-  </para>
-  <programlisting>
-   A,BC0,BC1,BC2,D0,D1,E
-   0,1  ,1  ,1  ,3 ,3 ,4
-</programlisting>
-  <para>
-    Now if <literal>BC2</literal> and <literal>D0</literal> ligate, then
-    their clusters (numbers 1 and 3) merge into
-    <literal>min(1,3) = 1</literal>:
-  </para>
-  <programlisting>
-   A,BC0,BC1,BC2D0,D1,E
-   0,1  ,1  ,1    ,1 ,4
-</programlisting>
-  <para>
-    At this point, cluster 1 means: the character sequence
-    <literal>BCD</literal> is represented by glyphs
-    <literal>BC0,BC1,BC2D0,D1</literal> and cannot be broken down any
-    further.
-  </para>
-</sect1>
-<sect1 id="reordering-in-levels-0-and-1">
-  <title>Reordering in levels 0 and 1</title>
-  <para>
-    Another common operation in the more complex shapers is when things
-    reorder. In those cases, to maintain monotone clusters, HB merges
-    the clusters of everything in the reordering sequence. For example,
-    let's again start with the character sequence:
-  </para>
-  <programlisting>
-   A,B,C,D,E
-   0,1,2,3,4
-</programlisting>
-  <para>
-    If <literal>D</literal> is reordered before <literal>B</literal>,
-    then the <literal>B</literal>, <literal>C</literal>, and
-    <literal>D</literal> clusters merge, and we get:
-  </para>
-  <programlisting>
-   A,D,B,C,E
-   0,1,1,1,4
-</programlisting>
-  <para>
-    This is clearly not ideal, but it is the only sensible way to
-    maintain monotone indices and retain the true relationship between
-    glyphs and characters.
-  </para>
-</sect1>
-<sect1 id="the-distinction-between-levels-0-and-1">
-  <title>The distinction between levels 0 and 1</title>
-  <para>
-    So, the above is pretty much what cluster levels 0 and 1 do. The
-    only difference between the two is this: in level 0, at the very
-    beginning of the shaping process, we also merge clusters between
-    base characters and all Unicode marks (combining or not) following
-    them. E.g.:
-  </para>
-  <programlisting>
-  A,acute,B
-  0,1    ,2
-</programlisting>
-  <para>
-    will become:
-  </para>
-  <programlisting>
-  A,acute,B
-  0,0    ,2
-</programlisting>
-  <para>
-    This is the default behavior. We do it because Windows did it and
-    old HarfBuzz did it, so this remained the default. But this behavior
-    makes it impossible to color diacritic marks differently from their
-    base characters. That's why in level 1 we do not perform this
-    initial merging step.
-  </para>
-  <para>
-    For clients, level 0 is more convenient if they rely on HarfBuzz
-    clusters for cursor positioning. But that's wrong anyway: cursor
-    positions should be determined based on Unicode grapheme boundaries,
-    NOT shaping clusters. As such, level 1 clusters are preferred.
-  </para>
-  <para>
-    One last note about levels 0 and 1. We currently don't allow a
-    <literal>MultipleSubst</literal> lookup to replace a glyph with zero
-    glyphs (i.e., to delete a glyph). But in some other situations,
-    glyphs can be deleted. In those cases, if the glyph being deleted is
-    the last glyph of its cluster, we make sure to merge the cluster
-    with a neighboring cluster.
-  </para>
-  <para>
-    This is, primarily, to make sure that the starting cluster of the
-    text always has the cluster index pointing to the start of the text
-    for the run; more than one client currently relies on this
-    guarantee.
-  </para>
-  <para>
-    Incidentally, Apple's CoreText does something else to maintain the
-    same promise: it inserts a glyph with id 65535 at the beginning of
-    the glyph string if the glyph corresponding to the first character
-    in the run was deleted. HarfBuzz might do something similar in the
-    future.
-  </para>
-</sect1>
-<sect1 id="level-2">
-  <title>Level 2</title>
-  <para>
-    Level 2 is a different beast from levels 0 and 1. It is simple to
-    describe, but hard to make sense of. It simply doesn't do any
-    cluster merging whatsoever. When things ligate or otherwise multiple
-    glyphs turn into one, the cluster value of the first glyph is
-    retained.
-  </para>
-  <para>
-    Here are a few examples of why processing cluster values produced at
-    this level might be tricky:
-  </para>
-  <sect2 id="ligatures-with-combining-marks">
-    <title>Ligatures with combining marks</title>
+  <section id="clusters">
+    <title>Clusters</title>
     <para>
-      Imagine capital letters are bases and lower case letters are
-      combining marks. With an input sequence like this:
+      In text shaping, a <emphasis>cluster</emphasis> is a sequence of
+      characters that needs to be treated as a single, indivisible
+      unit.
+    </para>
+    <para>
+      A cluster is distinct from a <emphasis>grapheme</emphasis>,
+      which is the smallest unit of a writing system or script,
+      because clusters are only relevant for script shaping and the
+      layout of glyphs.
+    </para>
+    <para>
+      For example, a grapheme may be a letter, a number, a logogram,
+      or a symbol. When two letters form a ligature, however, they
+      combine into a single glyph. They are therefore part of the same
+      cluster and are treated as a unit &mdash; even though the two
+      original, underlying letters are separate graphemes.
+    </para>
+    <para>
+      During the shaping process, there are several shaping operations
+      that may merge adjacent characters (for example, when two code
+      points form a ligature or a conjunct form and are replaced by a
+      single glyph) or split one character into several (for example,
+      when decomposing a code point through the
+      <literal>ccmp</literal> feature).
+    </para>
+    <para>
+      HarfBuzz tracks clusters independently from how these
+      shaping operations affect the individual glyphs that comprise the
+      output HarfBuzz returns in a buffer. Consequently,
+      a client program using HarfBuzz can utilize the cluster
+      information to implement features such as:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Correctly positioning the cursor within a shaped text run,
+	  even when characters have formed ligatures, composed or
+	  decomposed, reordered, or undergone other shaping operations.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Correctly highlighting a text selection that includes some,
+	  but not all, of the characters in a word. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Applying text attributes (such as color or underlining) to
+	  part, but not all, of a word.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Generating output document formats (such as PDF) with
+	  embedded text that can be fully extracted.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Determining the mapping between input characters and output
+	  glyphs, such as which glyphs are ligatures.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Performing line-breaking, justification, and other
+	  line-level or paragraph-level operations that must be done
+	  after shaping is complete, but which require character-level
+	  properties.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      When you add text to a HarfBuzz buffer, each code point must be
+      assigned a <emphasis>cluster value</emphasis>.
+    </para>
+    <para>
+      This cluster value is an arbitrary number; HarfBuzz uses it only
+      to distinguish between clusters. Many client programs will use
+      the index of each code point in the input text stream as the
+      cluster value. This is for the sake of convenience; the actual
+      value does not matter.
+    </para>
+    <para>
+      Client programs can choose how HarfBuzz handles clusters during
+      shaping by setting the
+      <literal>cluster_level</literal> of the
+      buffer. HarfBuzz offers three <emphasis>levels</emphasis> of
+      clustering support for this property:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para><emphasis>Level 0</emphasis> is the default and
+	reproduces the behavior of the old HarfBuzz library.
+	</para>
+	<para>
+	  The distinguishing feature of level 0 behavior is that, at
+	  the beginning of processing the buffer, all code points that
+	  are categorized as <emphasis>marks</emphasis>,
+	  <emphasis>modifier symbols</emphasis>, or
+	  <emphasis>Emoji extended pictographic</emphasis> modifiers,
+	  as well as the <emphasis>Zero Width Joiner</emphasis> and
+	  <emphasis>Zero Width Non-Joiner</emphasis> code points, are
+	  assigned the cluster value of the closest preceding code
+	  point from <emphasis>different</emphasis> category. 
+	</para>
+	<para>
+	  In essence, whenever a base character is followed by a mark
+	  character or a sequence of mark characters, those marks are
+	  reassigned to the same initial cluster value as the base
+	  character. This reassignment is referred to as
+	  "merging" the affected clusters. This behavior is based on
+	  the Grapheme Cluster Boundary specification in <ulink
+	  url="https://www.unicode.org/reports/tr29/#Regex_Definitions">Unicode
+	  Technical Report 29</ulink>.
+	</para>
+	<para>
+	  Client programs can specify level 0 behavior for a buffer by
+	  setting its <literal>cluster_level</literal> to
+	  <literal>HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES</literal>. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <emphasis>Level 1</emphasis> tweaks the old behavior
+	  slightly to produce better results. Therefore, level 1
+	  clustering is recommended for code that is not required to
+	  implement backward compatibility with the old HarfBuzz.
+	</para>
+	<para>
+	  Level 1 differs from level 0 by not merging the 
+	  clusters of marks and other modifier code points with the
+	  preceding "base" code point's cluster. By preserving the
+	  separate cluster values of these marks and modifier code
+	  points, script shapers can perform additional operations
+	  that might lead to improved results (for example, reordering
+	  a sequence of marks).
+	</para>
+	<para>
+	  Client programs can specify level 1 behavior for a buffer by
+	  setting its <literal>cluster_level</literal> to
+	  <literal>HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS</literal>. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <emphasis>Level 2</emphasis> differs significantly in how it
+	  treats cluster values. In level 2, HarfBuzz never merges
+	  clusters.
+	</para>
+	<para>
+	  This difference can be seen most clearly when HarfBuzz processes
+	  ligature substitutions and glyph decompositions. In level 0 
+	  and level 1, ligatures and glyph decomposition both involve
+	  merging clusters; in level 2, neither of these operations
+	  triggers a merge.
+	</para>
+	<para>
+	  Client programs can specify level 2 behavior for a buffer by
+	  setting its <literal>cluster_level</literal> to
+	  <literal>HB_BUFFER_CLUSTER_LEVEL_CHARACTERS</literal>. 
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      As mentioned earlier, client programs using HarfBuzz often
+      assign initial cluster values in a buffer by reusing the indices
+      of the code points in the input text. This gives a sequence of
+      cluster values that is monotonically increasing (for example,
+      0,1,2,3,4,5). 
+    </para>
+    <para>
+      It is not <emphasis>required</emphasis> that the cluster values
+      in a buffer be monotonically increasing. However, if the initial
+      cluster values in a buffer are monotonic and the buffer is
+      configured to use cluster level 0 or 1, then HarfBuzz
+      guarantees that the final cluster values in the shaped buffer
+      will also be monotonic. No such guarantee is made for cluster
+      level 2.
+    </para>
+    <para>
+      In levels 0 and 1, HarfBuzz implements the following conceptual
+      model for cluster values:
+    </para>
+    <itemizedlist spacing="compact">
+      <listitem>
+	<para>
+          If the sequence of input cluster values is monotonic, the
+	  sequence of cluster values will remain monotonic.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          Each cluster value represents a single cluster.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          Each cluster contains one or more glyphs and one or more
+          characters.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      In practice, this model offers several benefits. Assuming that
+      the initial cluster values were monotonically increasing
+      and distinct before shaping began, then, in the final output:
+    </para>
+    <itemizedlist spacing="compact">
+      <listitem>
+	<para>
+	  All adjacent glyphs having the same final cluster
+	  value belong to the same cluster.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          Each character belongs to the cluster that has the highest
+	  cluster value <emphasis>not larger than</emphasis> its
+	  initial cluster value.
+	</para>
+      </listitem>
+    </itemizedlist>
+	
+  </section>
+  <section id="a-clustering-example-for-levels-0-and-1">
+    <title>A clustering example for levels 0 and 1</title>
+    <para>
+      The guarantees and benefits of level 0 and level 1 can be seen
+      with some examples. First, let us examine what happens with cluster
+      values when shaping involves cluster merging with ligatures and
+      decomposition.
+    </para>
+    <para>
+      Let's say we start with the following character sequence (top row) and
+      initial cluster values (bottom row):
     </para>
     <programlisting>
-  A,a,B,b,C,c
-  0,1,2,3,4,5
-</programlisting>
+      A,B,C,D,E
+      0,1,2,3,4
+    </programlisting>
     <para>
-      if <literal>A,B,C</literal> ligate, then here are the cluster
-      values one would get under the various levels:
-    </para>
-    <para>
-      level 0:
+      During shaping, HarfBuzz maps these characters to glyphs from
+      the font. For simplicity, let us assume that each character maps
+      to the corresponding, identical-looking glyph:
     </para>
     <programlisting>
-  ABC,a,b,c
-  0  ,0,0,0
-</programlisting>
+      A,B,C,D,E
+      0,1,2,3,4
+    </programlisting>
     <para>
-      level 1:
+      Now if, for example, <literal>B</literal> and <literal>C</literal>
+      form a ligature, then the clusters to which they belong
+      &quot;merge&quot;. This merged cluster takes for its cluster
+      value the minimum of all the cluster values of the clusters that
+      went in to the ligature. In this case, we get:
     </para>
     <programlisting>
-  ABC,a,b,c
-  0  ,0,0,5
-</programlisting>
+      A,BC,D,E
+      0,1 ,3,4
+    </programlisting>
     <para>
-      level 2:
+      because 1 is the minimum of the set {1,2}, which were the
+      cluster values of <literal>B</literal> and
+      <literal>C</literal>. 
+    </para>
+    <para>
+      Next, let us say that the <literal>BC</literal> ligature glyph
+      decomposes into three components, and <literal>D</literal> also
+      decomposes into two components. These components each inherit the
+      cluster value of their parent: 
     </para>
     <programlisting>
-  ABC,a,b,c
-  0  ,1,3,5
-</programlisting>
+      A,BC0,BC1,BC2,D0,D1,E
+      0,1  ,1  ,1  ,3 ,3 ,4
+    </programlisting>
     <para>
-      Making sense of the last example is the hardest for a client,
-      because there is nothing in the cluster values to suggest that
-      <literal>B</literal> and <literal>C</literal> ligated with
-      <literal>A</literal>.
-    </para>
-  </sect2>
-  <sect2 id="reordering">
-    <title>Reordering</title>
-    <para>
-      Another tricky case is when things reorder. Under level 2:
+      Next, if <literal>BC2</literal> and <literal>D0</literal> form a
+      ligature, then their clusters (cluster values 1 and 3) merge into
+      <literal>min(1,3) = 1</literal>:
     </para>
     <programlisting>
-  A,B,C,D,E
-  0,1,2,3,4
-</programlisting>
+      A,BC0,BC1,BC2D0,D1,E
+      0,1  ,1  ,1    ,1 ,4
+    </programlisting>
     <para>
-      Now imagine <literal>D</literal> moves before
-      <literal>B</literal>:
+      At this point, cluster 1 means: the character sequence
+      <literal>BCD</literal> is represented by glyphs
+      <literal>BC0,BC1,BC2D0,D1</literal> and cannot be broken down any
+      further.
+    </para>
+  </section>
+  <section id="reordering-in-levels-0-and-1">
+    <title>Reordering in levels 0 and 1</title>
+    <para>
+      Another common operation in the more complex shapers is glyph
+      reordering. In order to maintain a monotonic cluster sequence
+      when glyph reordering takes place, HarfBuzz merges the clusters
+      of everything in the reordering sequence.
+    </para>
+    <para>
+      For example, let us again start with the character sequence (top
+      row) and initial cluster values (bottom row):
     </para>
     <programlisting>
-  A,D,B,C,E
-  0,3,1,2,4
-</programlisting>
+      A,B,C,D,E
+      0,1,2,3,4
+    </programlisting>
     <para>
-      Now, if <literal>D</literal> ligates with <literal>B</literal>, we
+      If <literal>D</literal> is reordered to before <literal>B</literal>,
+      then HarfBuzz merges the <literal>B</literal>,
+      <literal>C</literal>, and <literal>D</literal> clusters, and we
       get:
     </para>
     <programlisting>
-  A,DB,C,E
-  0,3 ,2,4
-</programlisting>
+      A,D,B,C,E
+      0,1,1,1,4
+    </programlisting>
     <para>
-      In a different scenario, <literal>A</literal> and
-      <literal>B</literal> could have ligated
-      <emphasis>before</emphasis> <literal>D</literal> reordered; that
-      would have resulted in:
+      This is clearly not ideal, but it is the only sensible way to
+      maintain a monotonic sequence of cluster values and retain the
+      true relationship between glyphs and characters.
+    </para>
+  </section>
+  <section id="the-distinction-between-levels-0-and-1">
+    <title>The distinction between levels 0 and 1</title>
+    <para>
+      The preceding examples demonstrate the main effects of using
+      cluster levels 0 and 1. The only difference between the two
+      levels is this: in level 0, at the very beginning of the shaping
+      process, HarfBuzz also merges clusters between any base character
+      and all Unicode marks (combining or not) that follow it.
+    </para>
+    <para>
+      For example, let us start with the following character sequence
+      (top row) and accompanying initial cluster values (bottom row):
     </para>
     <programlisting>
-  AB,D,C,E
-  0 ,3,2,4   
-</programlisting>
+      A,acute,B
+      0,1    ,2
+    </programlisting>
     <para>
-      There's no way to differentiate between these two scenarios based
-      on the cluster numbers alone.
+      The <literal>acute</literal> is a Unicode mark. If HarfBuzz is
+      using cluster level 0 on this sequence, then the
+      <literal>A</literal> and <literal>acute</literal> clusters will
+      merge, and the result will become:
+    </para>
+    <programlisting>
+      A,acute,B
+      0,0    ,2
+    </programlisting>
+    <para>
+      This initial cluster merging is the default behavior of the
+      Windows shaping engine, and the old HarfBuzz codebase copied
+      that behavior to maintain compatibility. Consequently, it has
+      remained the default behavior in the new HarfBuzz codebase.
     </para>
     <para>
-      Another problem happens with ligatures under level 2 if the
-      direction of the text is forced to opposite of its natural
-      direction (e.g. left-to-right Arabic). But that's too much of a
-      corner case to worry about.
+      But this initial cluster-merging behavior makes it impossible to
+      color diacritic marks differently from their base
+      characters. That is why, in level 1, HarfBuzz does not perform
+      the initial merging step.
     </para>
-  </sect2>
-</sect1>
+    <para>
+      For client programs that rely on HarfBuzz cluster values to
+      perform cursor positioning, level 0 is more convenient. But
+      relying on cluster boundaries for cursor positioning is wrong: cursor
+      positions should be determined based on Unicode grapheme
+      boundaries, not on shaping-cluster boundaries. As such, level 1
+      clusters are preferred. 
+    </para>
+    <para>
+      One last note about levels 0 and 1. HarfBuzz currently does not allow a
+      <literal>MultipleSubst</literal> lookup to replace a glyph with zero
+      glyphs (in other words, to delete a glyph). But, in some other situations,
+      glyphs can be deleted. In those cases, if the glyph being deleted is
+      the last glyph of its cluster, HarfBuzz makes sure to merge the cluster
+      with a neighboring cluster.
+    </para>
+    <para>
+      This is done primarily to make sure that the starting cluster of the
+      text always has the cluster index pointing to the start of the text
+      for the run; more than one client currently relies on this
+      guarantee.
+    </para>
+    <para>
+      Incidentally, Apple's CoreText does something else to maintain the
+      same promise: it inserts a glyph with id 65535 at the beginning of
+      the glyph string if the glyph corresponding to the first character
+      in the run was deleted. HarfBuzz might do something similar in the
+      future.
+    </para>
+  </section>
+  <section id="level-2">
+    <title>Level 2</title>
+    <para>
+      HarfBuzz's level 2 cluster behavior uses a significantly
+      different model than that of level 0 and level 1.
+    </para>
+    <para>
+      The level 2 behavior is easy to describe, but it may be
+      difficult to understand in practical terms. In brief, level 2 
+      performs no merging of clusters whatsoever.
+    </para>
+    <para>
+      When glyphs form a ligature (or when some other feature
+      substitutes multiple glyphs with one glyph), the cluster value
+      of the first glyph is retained as the cluster value for the
+      ligature. However, no subsequent clusters &mdash; including
+      marks and modifiers &mdash; are affected.
+    </para>
+    <para>
+      Level 2 cluster behavior is less complex than level 0 or level
+      1, but there are a few cases in which processing cluster values
+      produced at level 2 may be tricky. 
+    </para>
+    <section id="ligatures-with-combining-marks-in-level-2">
+      <title>Ligatures with combining marks in level 2</title>
+      <para>
+	The first example of how HarfBuzz's level 2 cluster behavior
+	can be tricky is when the text to be shaped includes combining
+	marks attached to ligatures.
+      </para>
+      <para>
+	Let us start with an input sequence with the following
+	characters (top row) and initial cluster values (bottom row):
+      </para>
+      <programlisting>
+	A,acute,B,breve,C,circumflex
+	0,1    ,2,3    ,4,5
+      </programlisting>
+      <para>
+	If the sequence <literal>A,B,C</literal> forms a ligature,
+	then these are the cluster values HarfBuzz will return under
+	the various cluster levels:
+      </para>
+      <para>
+	Level 0:
+      </para>
+      <programlisting>
+	ABC,acute,breve,circumflex
+	0  ,0    ,0    ,0
+      </programlisting>
+      <para>
+	Level 1:
+      </para>
+      <programlisting>
+	ABC,acute,breve,circumflex
+	0  ,0    ,0    ,5
+      </programlisting>
+      <para>
+	Level 2:
+      </para>
+      <programlisting>
+	ABC,acute,breve,circumflex
+	0  ,1    ,3    ,5
+      </programlisting>
+      <para>
+	Making sense of the level 2 result is the hardest for a client
+	program, because there is nothing in the cluster values that
+	indicates that <literal>B</literal> and <literal>C</literal>
+	formed a ligature with <literal>A</literal>.
+      </para>
+      <para>
+	In contrast, the "merged" cluster values of the mark glyphs
+	that are seen in the level 0 and level 1 output are evidence
+	that a ligature substitution took place. 
+      </para>
+    </section>
+    <section id="reordering-in-level-2">
+      <title>Reordering in level 2</title>
+      <para>
+	Another example of how HarfBuzz's level 2 cluster behavior
+	can be tricky is when glyphs reorder. Consider an input sequence
+	with the following characters (top row) and initial cluster
+	values (bottom row):
+      </para>
+      <programlisting>
+	A,B,C,D,E
+	0,1,2,3,4
+      </programlisting>
+      <para>
+	Now imagine <literal>D</literal> moves before
+	<literal>B</literal> in a reordering operation. The cluster
+	values will then be:
+      </para>
+      <programlisting>
+	A,D,B,C,E
+	0,3,1,2,4
+      </programlisting>
+      <para>
+	Next, if <literal>D</literal> forms a ligature with
+	<literal>B</literal>, the output is:
+      </para>
+      <programlisting>
+	A,DB,C,E
+	0,3 ,2,4
+      </programlisting>
+      <para>
+	However, in a different scenario, in which the shaping rules
+	of the script instead caused <literal>A</literal> and
+	<literal>B</literal> to form a ligature
+	<emphasis>before</emphasis> the <literal>D</literal> reordered, the
+	result would be:
+      </para>
+      <programlisting>
+	AB,D,C,E
+	0 ,3,2,4   
+      </programlisting>
+      <para>
+	There is no way for a client program to differentiate between
+	these two scenarios based on the cluster values
+	alone. Consequently, client programs that use level 2 might
+	need to undertake additional work in order to manage cursor
+	positioning, text attributes, or other desired features.
+      </para>
+    </section>
+    <section id="other-considerations-in-level-2">
+      <title>Other considerations in level 2</title>
+      <para>
+	There may be other problems encountered with ligatures under
+	level 2, such as if the direction of the text is forced to
+	opposite of its natural direction (for example, left-to-right
+	Arabic). But, generally speaking, these other scenarios are
+	minor corner cases that are too obscure for most client
+	programs to need to worry about.
+      </para>
+    </section>
+  </section>
 </chapter>

@@ -192,6 +192,8 @@ HB_OT_RAGEL_sources = \
 	$(NULL)
 
 HB_OT_headers = \
+	hb-aat.h \
+	hb-aat-layout.h \
 	hb-ot.h \
 	hb-ot-color.h \
 	hb-ot-font.h \
