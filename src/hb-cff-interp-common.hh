@@ -356,6 +356,15 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
   
   inline static bool serialize_int2 (hb_serialize_context_t *c, int value)
   { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
+
+  /* Defining null_size allows a Null object may be created. Should be safe because:
+   * A descendent struct Dict uses a Null pointer to indicate a missing table,
+   * checked before access.
+   * ByteStr, a wrapper struct pairing a byte pointer along with its length, always
+   * checks the length before access. A Null pointer is used as the initial pointer
+   * along with zero length by the default ctor.
+   */
+  DEFINE_SIZE_MIN(0);
 };
 
 struct ByteStr
