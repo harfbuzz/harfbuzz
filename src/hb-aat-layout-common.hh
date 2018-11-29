@@ -675,7 +675,7 @@ struct ClassTable
 
 struct ObsoleteTypes
 {
-  static const bool extended = false;
+  enum { extended = false };
   typedef HBUINT16 HBUINT;
   typedef HBUINT8 HBUSHORT;
   typedef ClassTable<HBUINT8> ClassTypeNarrow;
@@ -705,7 +705,7 @@ struct ObsoleteTypes
 };
 struct ExtendedTypes
 {
-  static const bool extended = true;
+  enum { extended = true };
   typedef HBUINT32 HBUINT;
   typedef HBUINT16 HBUSHORT;
   typedef Lookup<HBUINT16> ClassTypeNarrow;

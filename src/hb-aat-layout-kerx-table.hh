@@ -211,7 +211,7 @@ struct KerxSubTableFormat1
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum
     {
       DontAdvance	= Format1EntryT::DontAdvance,
@@ -472,7 +472,7 @@ struct KerxSubTableFormat4
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum Flags
     {
       Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
