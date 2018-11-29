@@ -22,28 +22,28 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
-  # macos-llvm-gcc-4.2:
-  #   macos:
-  #     xcode: "8.3.3"
-  #   steps:
-  #     - checkout
-  #     - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel freetype glib cairo
-  #     - run: wget https://packages.macports.org/llvm-gcc42/llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2
-  #     - run: CC=$PWD/opt/local/bin/llvm-gcc-4.2 CXX=$PWD/opt/local/bin/llvm-g++-4.2 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
-  #     # Ignoring assembler complains, https://stackoverflow.com/a/39867021
-  #     - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
-  #     - run: make check || .ci/fail.sh
+  macos-llvm-gcc-4.2:
+    macos:
+      xcode: "8.3.3"
+    steps:
+      - checkout
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel freetype glib cairo
+      - run: wget https://packages.macports.org/llvm-gcc42/llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf llvm-gcc42-2336.11_3+universal.darwin_15.i386-x86_64.tbz2
+      - run: CC=$PWD/opt/local/bin/llvm-gcc-4.2 CXX=$PWD/opt/local/bin/llvm-g++-4.2 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
+      # Ignoring assembler complains, https://stackoverflow.com/a/39867021
+      - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
+      - run: make check || .ci/fail.sh
 
-  # macos-notest-apple-gcc-i686-4.2:
-  #   macos:
-  #     xcode: "8.3.3"
-  #   steps:
-  #     - checkout
-  #     - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel
-  #     - run: wget https://packages.macports.org/apple-gcc42/apple-gcc42-5666.3_15+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf apple-gcc42-5666.3_15+universal.darwin_15.i386-x86_64.tbz2
-  #     - run: CPP=$PWD/opt/local/bin/i686-apple-darwin15-cpp-apple-4.2.1 CC=$PWD/opt/local/bin/i686-apple-darwin15-gcc-apple-4.2.1 CXX=$PWD/opt/local/bin/i686-apple-darwin15-g++-apple-4.2.1 ./autogen.sh
-  #     # Ignoring assembler complains, https://stackoverflow.com/a/39867021
-  #     - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
+  macos-notest-apple-gcc-i686-4.2:
+    macos:
+      xcode: "8.3.3"
+    steps:
+      - checkout
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel
+      - run: wget https://packages.macports.org/apple-gcc42/apple-gcc42-5666.3_15+universal.darwin_15.i386-x86_64.tbz2 && tar zxvf apple-gcc42-5666.3_15+universal.darwin_15.i386-x86_64.tbz2
+      - run: CPP=$PWD/opt/local/bin/i686-apple-darwin15-cpp-apple-4.2.1 CC=$PWD/opt/local/bin/i686-apple-darwin15-gcc-apple-4.2.1 CXX=$PWD/opt/local/bin/i686-apple-darwin15-g++-apple-4.2.1 ./autogen.sh
+      # Ignoring assembler complains, https://stackoverflow.com/a/39867021
+      - run: make 2>&1 | grep -v -e '^/var/folders/*' -e '^[[:space:]]*\.section' -e '^[[:space:]]*\^[[:space:]]*~*'
 
   macos-notest-ios:
     macos:
@@ -321,8 +321,8 @@ workflows:
       # macOS
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
-      #- macos-llvm-gcc-4.2
-      #- macos-notest-apple-gcc-i686-4.2
+      - macos-llvm-gcc-4.2
+      - macos-notest-apple-gcc-i686-4.2
       - macos-notest-ios
 
       # both autotools and cmake
