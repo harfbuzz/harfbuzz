@@ -35,7 +35,7 @@ test_ot_metrics_get (void)
   hb_font_t *font = hb_font_create (face);
   hb_position_t value;
   g_assert (hb_ot_metrics_get (font, HB_OT_METRICS_HORIZONTAL_ASCENDER, &value));
-  g_assert_cmpint (value, ==, 800);
+  g_assert_cmpint (value, ==, 1000);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }

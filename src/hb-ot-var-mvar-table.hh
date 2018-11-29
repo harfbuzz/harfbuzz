@@ -76,15 +76,19 @@ struct MVAR
   inline float get_var (hb_tag_t tag,
 			const int *coords, unsigned int coord_count) const
   {
+    if (!version.major) return 0.;
+
     const VariationValueRecord *record;
     record = (VariationValueRecord *) bsearch (&tag, valuesZ.arrayZ,
 					       valueRecordCount, valueRecordSize,
 					       tag_compare);
-    if (!record)
-      return 0.;
+    if (!record) return 0.;
 
     return (this+varStore).get_delta (record->varIdx, coords, coord_count);
   }
+
+  inline float get_var (hb_tag_t tag) const
+  { return get_var (tag, nullptr, 0); }
 
 protected:
   static inline int tag_compare (const void *pa, const void *pb)

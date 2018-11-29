@@ -28,6 +28,7 @@
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-hmtx-table.hh"
+#include "hb-ot-var-mvar-table.hh"
 
 #include "hb-ot-face.hh"
 
@@ -61,7 +62,8 @@ hb_ot_metrics_get (hb_font_t       *font,
   {
 #define GET_METRIC(TABLE, ATTR, DIR) \
   (font->face->table.TABLE->has_data () && \
-    (position && (*position = font->em_scale_##DIR (font->face->table.TABLE->ATTR)), true))
+    (position && (*position = font->em_scale_##DIR (font->face->table.TABLE->ATTR + \
+						    font->face->table.MVAR->get_var (metrics_tag))), true))
 #define GET_X_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, x)
 #define GET_Y_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, y)
 
