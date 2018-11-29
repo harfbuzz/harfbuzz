@@ -79,7 +79,7 @@ hb_ot_var_get_axis_count (hb_face_t *face)
  * hb_ot_var_get_axes:
  *
  * Since: 1.4.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.2.0
  **/
 unsigned int
 hb_ot_var_get_axes (hb_face_t        *face,
@@ -94,7 +94,7 @@ hb_ot_var_get_axes (hb_face_t        *face,
  * hb_ot_var_find_axis:
  *
  * Since: 1.4.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.2.0
  **/
 hb_bool_t
 hb_ot_var_find_axis (hb_face_t        *face,
@@ -108,7 +108,7 @@ hb_ot_var_find_axis (hb_face_t        *face,
 /**
  * hb_ot_var_get_axis_infos:
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  **/
 HB_EXTERN unsigned int
 hb_ot_var_get_axis_infos (hb_face_t             *face,
@@ -122,7 +122,7 @@ hb_ot_var_get_axis_infos (hb_face_t             *face,
 /**
  * hb_ot_var_find_axis_info:
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  **/
 HB_EXTERN hb_bool_t
 hb_ot_var_find_axis_info (hb_face_t             *face,

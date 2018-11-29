@@ -318,7 +318,7 @@ _hb_aat_language_get (hb_face_t *face,
  *
  * Return value: Number of all available feature types.
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 unsigned int
 hb_aat_layout_get_feature_types (hb_face_t                    *face,
@@ -336,7 +336,7 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
  *
  * Return value: Name ID index
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 hb_ot_name_id_t
 hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
@@ -358,7 +358,7 @@ hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
  *
  * Return value: Number of all available feature selectors.
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 unsigned int
 hb_aat_layout_feature_type_get_selector_infos (hb_face_t                             *face,

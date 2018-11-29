@@ -247,7 +247,7 @@ typedef unsigned int hb_ot_name_id_t; /* Since is in hb-ot.h */
  * HB_OT_VAR_NO_AXIS_INDEX:
  *
  * Since: 1.4.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.2.0
  */
 #define HB_OT_VAR_NO_AXIS_INDEX		0xFFFFFFFFu
 
@@ -255,7 +255,7 @@ typedef unsigned int hb_ot_name_id_t; /* Since is in hb-ot.h */
  * hb_ot_var_axis_t:
  *
  * Since: 1.4.2
- * Deprecated: REPLACEME
+ * Deprecated: 2.2.0
  */
 typedef struct hb_ot_var_axis_t
 {

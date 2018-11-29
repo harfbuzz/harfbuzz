@@ -1,3 +1,38 @@
+Overview of changes leading to 2.2.0
+Thursday, November 29, 2018
+====================================
+- Misc shaping bug fixes.
+- Add font variations named-instance API.
+- Deprecate font variations axis enumeration API and add replacement.
+- AAT shaping improvements:
+  o Fixed 'kern' table Format 2 implementation.
+  o Implement 'feat' table API for feature detection.
+  o Blacklist 'GSUB' table of fonts from 'MUTF' foundry that also have 'morx'.
+
+New API:
++hb_aat_layout_feature_type_t
++hb_aat_layout_feature_selector_t
++hb_aat_layout_get_feature_types()
++hb_aat_layout_feature_type_get_name_id
++hb_aat_layout_feature_selector_info_t
++HB_AAT_LAYOUT_NO_SELECTOR_INDEX
++hb_aat_layout_feature_type_get_selector_infos()
++hb_ot_var_axis_flags_t
++hb_ot_var_axis_info_t
++hb_ot_var_get_axis_infos()
++hb_ot_var_find_axis_info()
++hb_ot_var_get_named_instance_count()
++hb_ot_var_named_instance_get_subfamily_name_id()
++hb_ot_var_named_instance_get_postscript_name_id()
++hb_ot_var_named_instance_get_design_coords()
+
+Deprecated API:
++HB_OT_VAR_NO_AXIS_INDEX
++hb_ot_var_axis_t
++hb_ot_var_get_axes()
++hb_ot_var_find_axis()
+
+
 Overview of changes leading to 2.1.3
 Friday, November 16, 2018
 ====================================
