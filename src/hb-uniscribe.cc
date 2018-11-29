@@ -695,7 +695,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features);
+	  active_features.remove (feature - (active_feature_t *) active_features);
       }
     }
 
