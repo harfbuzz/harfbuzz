@@ -102,8 +102,8 @@ struct DeltaSetIndexMap
 
 struct HVARVVAR
 {
-  static const hb_tag_t HVARTag	= HB_OT_TAG_HVAR;
-  static const hb_tag_t VVARTag	= HB_OT_TAG_VVAR;
+  enum { HVARTag = HB_OT_TAG_HVAR };
+  enum { VVARTag = HB_OT_TAG_VVAR };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -143,10 +143,10 @@ struct HVARVVAR
 };
 
 struct HVAR : HVARVVAR {
-  static const hb_tag_t tableTag	= HB_OT_TAG_HVAR;
+  enum { tableTag = HB_OT_TAG_HVAR };
 };
 struct VVAR : HVARVVAR {
-  static const hb_tag_t tableTag	= HB_OT_TAG_VVAR;
+  enum { tableTag = HB_OT_TAG_VVAR };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

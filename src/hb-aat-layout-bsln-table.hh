@@ -116,7 +116,7 @@ struct BaselineTableFormat3Part
 
 struct bsln
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_bsln;
+  enum { tableTag = HB_AAT_TAG_bsln };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

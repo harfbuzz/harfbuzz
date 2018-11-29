@@ -87,7 +87,7 @@ struct BaseGlyphRecord
 
 struct COLR
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_COLR;
+  enum { tableTag = HB_OT_TAG_COLR };
 
   inline bool has_data (void) const { return numBaseGlyphs; }
 

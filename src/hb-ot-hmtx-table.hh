@@ -192,7 +192,7 @@ struct hmtxvmtx
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
       bool got_font_extents = false;
-      if (T::os2Tag)
+      if (T::os2Tag != HB_TAG_NONE)
       {
 #define USE_TYPO_METRICS (1u<<7)
 	if (0 != (face->table.OS2->fsSelection & USE_TYPO_METRICS))
@@ -327,14 +327,14 @@ struct hmtxvmtx
 };
 
 struct hmtx : hmtxvmtx<hmtx, hhea> {
-  static const hb_tag_t tableTag	= HB_OT_TAG_hmtx;
-  static const hb_tag_t variationsTag	= HB_OT_TAG_HVAR;
-  static const hb_tag_t os2Tag		= HB_OT_TAG_OS2;
+  enum { tableTag = HB_OT_TAG_hmtx };
+  enum { variationsTag = HB_OT_TAG_HVAR };
+  enum { os2Tag = HB_OT_TAG_OS2 };
 };
 struct vmtx : hmtxvmtx<vmtx, vhea> {
-  static const hb_tag_t tableTag	= HB_OT_TAG_vmtx;
-  static const hb_tag_t variationsTag	= HB_OT_TAG_VVAR;
-  static const hb_tag_t os2Tag		= HB_TAG_NONE;
+  enum { tableTag = HB_OT_TAG_vmtx };
+  enum { variationsTag = HB_OT_TAG_VVAR };
+  enum { os2Tag = HB_TAG_NONE };
 };
 
 struct hmtx_accelerator_t : hmtx::accelerator_t {};

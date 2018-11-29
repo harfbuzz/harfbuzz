@@ -130,7 +130,7 @@ struct SBIXStrike
 
 struct sbix
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_sbix;
+  enum { tableTag = HB_OT_TAG_sbix };
 
   inline bool has_data (void) const { return version; }
 

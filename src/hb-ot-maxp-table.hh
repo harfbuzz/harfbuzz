@@ -71,7 +71,7 @@ struct maxpV1Tail
 
 struct maxp
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_maxp;
+  enum { tableTag = HB_OT_TAG_maxp };
 
   inline unsigned int get_num_glyphs (void) const
   {

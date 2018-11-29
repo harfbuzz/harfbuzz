@@ -45,7 +45,7 @@ struct loca
 {
   friend struct glyf;
 
-  static const hb_tag_t tableTag = HB_OT_TAG_loca;
+  enum { tableTag = HB_OT_TAG_loca };
 
   inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
@@ -71,7 +71,7 @@ struct loca
 
 struct glyf
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_glyf;
+  enum { tableTag = HB_OT_TAG_glyf };
 
   inline bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {

@@ -155,7 +155,7 @@ struct FeatureName
 
 struct feat
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_feat;
+  enum { tableTag = HB_AAT_TAG_feat };
 
   inline bool has_data (void) const { return version.to_int (); }
 

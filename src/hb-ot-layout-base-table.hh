@@ -465,7 +465,7 @@ struct Axis
 
 struct BASE
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_BASE;
+  enum { tableTag = HB_OT_TAG_BASE };
 
   inline const Axis &get_axis (hb_direction_t direction) const
   { return HB_DIRECTION_IS_VERTICAL (direction) ? this+vAxis : this+hAxis; }

@@ -166,7 +166,7 @@ struct TrackData
 
 struct trak
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_trak;
+  enum { tableTag = HB_AAT_TAG_trak };
 
   inline bool has_data (void) const { return version.to_int (); }
 

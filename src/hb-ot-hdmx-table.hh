@@ -123,7 +123,7 @@ struct DeviceRecord
 
 struct hdmx
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_hdmx;
+  enum { tableTag = HB_OT_TAG_hdmx };
 
   inline unsigned int get_size (void) const
   {

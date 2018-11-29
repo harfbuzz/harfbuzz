@@ -86,10 +86,10 @@ struct _hea
 };
 
 struct hhea : _hea<hhea> {
-  static const hb_tag_t tableTag	= HB_OT_TAG_hhea;
+  enum { tableTag = HB_OT_TAG_hhea };
 };
 struct vhea : _hea<vhea> {
-  static const hb_tag_t tableTag	= HB_OT_TAG_vhea;
+  enum { tableTag = HB_OT_TAG_vhea };
 };
 
 

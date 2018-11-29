@@ -225,7 +225,7 @@ struct AxisValue
 
 struct STAT
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_STAT;
+  enum { tableTag = HB_OT_TAG_STAT };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

@@ -40,7 +40,7 @@ namespace OT {
 
 struct OS2
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_OS2;
+  enum { tableTag = HB_OT_TAG_OS2 };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

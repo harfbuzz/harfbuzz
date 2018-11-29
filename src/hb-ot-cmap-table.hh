@@ -843,7 +843,7 @@ struct EncodingRecord
 
 struct cmap
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
+  enum { tableTag = HB_OT_TAG_cmap };
 
   struct subset_plan
   {

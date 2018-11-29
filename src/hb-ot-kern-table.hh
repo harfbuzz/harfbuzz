@@ -197,7 +197,7 @@ struct KernOT : AAT::KerxTable<KernOT>
 {
   friend struct AAT::KerxTable<KernOT>;
 
-  static const hb_tag_t tableTag = HB_OT_TAG_kern;
+  enum { tableTag = HB_OT_TAG_kern };
   enum { minVersion = 0u };
 
   typedef KernOTSubTableHeader SubTableHeader;
@@ -252,7 +252,7 @@ struct KernAAT : AAT::KerxTable<KernAAT>
 {
   friend struct AAT::KerxTable<KernAAT>;
 
-  static const hb_tag_t tableTag = HB_OT_TAG_kern;
+  enum { tableTag = HB_OT_TAG_kern };
   enum { minVersion = 0x00010000u };
 
   typedef KernAATSubTableHeader SubTableHeader;
@@ -269,7 +269,7 @@ struct KernAAT : AAT::KerxTable<KernAAT>
 
 struct kern
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_kern;
+  enum { tableTag = HB_OT_TAG_kern };
 
   inline bool has_data (void) const { return u.version32; }
   inline unsigned int get_type (void) const { return u.major; }
