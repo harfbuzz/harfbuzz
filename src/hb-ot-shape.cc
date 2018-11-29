@@ -309,9 +309,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     map->enable_feature (HB_TAG ('v','e','r','t'), F_GLOBAL_SEARCH);
   }
 
-  if (planner->shaper->override_features)
-    planner->shaper->override_features (planner);
-
   for (unsigned int i = 0; i < num_user_features; i++)
   {
     const hb_feature_t *feature = &user_features[i];
@@ -330,6 +327,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       aat_map->add_feature (feature->tag, feature->value);
     }
   }
+
+  if (planner->shaper->override_features)
+    planner->shaper->override_features (planner);
 }
 
 
