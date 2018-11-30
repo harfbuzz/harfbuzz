@@ -87,9 +87,6 @@ struct MVAR
     return (this+varStore).get_delta (record->varIdx, coords, coord_count);
   }
 
-  inline float get_var (hb_tag_t tag) const
-  { return get_var (tag, nullptr, 0); }
-
 protected:
   static inline int tag_compare (const void *pa, const void *pb)
   {

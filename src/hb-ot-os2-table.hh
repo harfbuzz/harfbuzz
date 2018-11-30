@@ -45,7 +45,7 @@ struct OS2V1Tail
 {
   inline bool has_data () const { return this != &Null (OS2V1Tail); }
 
-  inline const OS2V1Tail *thiz () const { return this; }
+  inline const OS2V1Tail * operator -> (void) const { return this; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -64,7 +64,7 @@ struct OS2V2Tail
 {
   inline bool has_data () const { return this != &Null (OS2V2Tail); }
 
-  inline const OS2V2Tail *thiz () const { return this; }
+  inline const OS2V2Tail * operator -> (void) const { return this; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -86,7 +86,7 @@ struct OS2V5Tail
 {
   inline bool has_data () const { return this != &Null (OS2V5Tail); }
 
-  inline const OS2V5Tail *thiz () const { return this; }
+  inline const OS2V5Tail * operator -> (void) const { return this; }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -111,15 +111,15 @@ struct OS2
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
-    if (unlikely (version >= 1 && !v1Tail.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 2 && !v2Tail.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 5 && !v5Tail.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 1 && !v1X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 2 && !v2X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 5 && !v5X.sanitize (c))) return_trace (false);
     return_trace (true);
   }
 
-  inline const OS2V1Tail &get_v1 () const { return version >= 1 ? v1Tail : Null (OS2V1Tail); }
-  inline const OS2V2Tail &get_v2 () const { return version >= 2 ? v2Tail : Null (OS2V2Tail); }
-  inline const OS2V5Tail &get_v5 () const { return version >= 5 ? v5Tail : Null (OS2V5Tail); }
+  inline const OS2V1Tail &v1 () const { return version >= 1 ? v1X : Null (OS2V1Tail); }
+  inline const OS2V2Tail &v2 () const { return version >= 2 ? v2X : Null (OS2V2Tail); }
+  inline const OS2V5Tail &v5 () const { return version >= 5 ? v5X : Null (OS2V5Tail); }
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
@@ -226,9 +226,9 @@ struct OS2
   HBINT16	sTypoLineGap;
   HBUINT16	usWinAscent;
   HBUINT16	usWinDescent;
-  OS2V1Tail	v1Tail;
-  OS2V2Tail	v2Tail;
-  OS2V5Tail	v5Tail;
+  OS2V1Tail	v1X;
+  OS2V2Tail	v2X;
+  OS2V5Tail	v5X;
   public:
   DEFINE_SIZE_MIN (78);
 };

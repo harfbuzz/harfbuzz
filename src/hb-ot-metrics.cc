@@ -63,7 +63,7 @@ hb_ot_metrics_get (hb_font_t       *font,
 #define GET_METRIC(TABLE, ATTR, DIR) \
   (font->face->table.TABLE->has_data () && \
     (position && (*position = font->em_scale_##DIR (font->face->table.TABLE->ATTR + \
-						    font->face->table.MVAR->get_var (metrics_tag))), true))
+						    font->face->table.MVAR->get_var (metrics_tag, nullptr, 0))), true))
 #define GET_X_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, x)
 #define GET_Y_METRIC(TABLE, ATTR) GET_METRIC (TABLE, ATTR, y)
 
@@ -76,13 +76,13 @@ hb_ot_metrics_get (hb_font_t       *font,
   case HB_OT_METRICS_VERTICAL_DESCENDER:          return GET_X_METRIC (vmtx, descender);
   case HB_OT_METRICS_VERTICAL_LINE_GAP:           return GET_X_METRIC (vmtx, line_gap);
   case HB_OT_METRICS_HORIZONTAL_CARET_RISE:       return GET_Y_METRIC (hhea, caretSlopeRise);
-  case HB_OT_METRICS_HORIZONTAL_CARET_RUN:        return GET_Y_METRIC (hhea, caretSlopeRun);
-  case HB_OT_METRICS_HORIZONTAL_CARET_OFFSET:     return GET_Y_METRIC (hhea, caretOffset);
+  case HB_OT_METRICS_HORIZONTAL_CARET_RUN:        return GET_X_METRIC (hhea, caretSlopeRun);
+  case HB_OT_METRICS_HORIZONTAL_CARET_OFFSET:     return GET_X_METRIC (hhea, caretOffset);
   case HB_OT_METRICS_VERTICAL_CARET_RISE:         return GET_X_METRIC (vhea, caretSlopeRise);
-  case HB_OT_METRICS_VERTICAL_CARET_RUN:          return GET_X_METRIC (vhea, caretSlopeRun);
-  case HB_OT_METRICS_VERTICAL_CARET_OFFSET:       return GET_X_METRIC (vhea, caretOffset);
-  case HB_OT_METRICS_X_HEIGHT:                    return GET_Y_METRIC (OS2->get_v2 ().thiz (), sxHeight);
-  case HB_OT_METRICS_CAP_HEIGHT:                  return GET_Y_METRIC (OS2->get_v2 ().thiz (), sCapHeight);
+  case HB_OT_METRICS_VERTICAL_CARET_RUN:          return GET_Y_METRIC (vhea, caretSlopeRun);
+  case HB_OT_METRICS_VERTICAL_CARET_OFFSET:       return GET_Y_METRIC (vhea, caretOffset);
+  case HB_OT_METRICS_X_HEIGHT:                    return GET_Y_METRIC (OS2->v2 (), sxHeight);
+  case HB_OT_METRICS_CAP_HEIGHT:                  return GET_Y_METRIC (OS2->v2 (), sCapHeight);
   case HB_OT_METRICS_SUBSCRIPT_EM_X_SIZE:         return GET_X_METRIC (OS2, ySubscriptXSize);
   case HB_OT_METRICS_SUBSCRIPT_EM_Y_SIZE:         return GET_Y_METRIC (OS2, ySubscriptYSize);
   case HB_OT_METRICS_SUBSCRIPT_EM_X_OFFSET:       return GET_X_METRIC (OS2, ySubscriptXOffset);
