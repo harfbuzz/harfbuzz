@@ -31,6 +31,7 @@
 #ifndef HB_OT_DEPRECATED_H
 #define HB_OT_DEPRECATED_H
 
+#include "hb-common.h"
 #include "hb-ot-name.h"
 
 
