@@ -249,7 +249,7 @@ struct ContextualSubtable
       {
 	if (entry->data.markIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
+	  const Lookup<GlyphID> &lookup = subs[(unsigned) entry->data.markIndex];
 	  replacement = lookup.get_value (buffer->info[mark].codepoint, driver->num_glyphs);
 	}
       }
@@ -274,7 +274,7 @@ struct ContextualSubtable
       {
 	if (entry->data.currentIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
+	  const Lookup<GlyphID> &lookup = subs[(unsigned) entry->data.currentIndex];
 	  replacement = lookup.get_value (buffer->info[idx].codepoint, driver->num_glyphs);
 	}
       }
