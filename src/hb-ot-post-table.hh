@@ -107,7 +107,7 @@ struct post
       version = table->version.to_int ();
       if (version != 0x00020000) return;
 
-      const postV2Tail &v2 = table->v2;
+      const postV2Tail &v2 = table->v2X;
 
       glyphNameIndex = &v2.glyphNameIndex;
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
@@ -250,7 +250,7 @@ struct post
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  (version.to_int () == 0x00010000 ||
-			   (version.to_int () == 0x00020000 && v2.sanitize (c)) ||
+			   (version.to_int () == 0x00020000 && v2X.sanitize (c)) ||
 			   version.to_int () == 0x00030000)));
   }
 
@@ -286,7 +286,7 @@ struct post
 					 * is downloaded as a Type 1 font. */
   HBUINT32	maxMemType1;		/* Maximum memory usage when an OpenType font
 					 * is downloaded as a Type 1 font. */
-  postV2Tail	v2;
+  postV2Tail	v2X;
   DEFINE_SIZE_MIN (32);
 };
 
