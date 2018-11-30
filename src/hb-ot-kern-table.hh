@@ -56,7 +56,7 @@ struct KernSubTableFormat3
     if (unlikely (leftC >= leftClassCount || rightC >= rightClassCount))
       return 0;
     unsigned int i = leftC * rightClassCount + rightC;
-    return kernValue[kernIndex[i]];
+    return kernValue[(unsigned) kernIndex[i]];
   }
 
   inline bool apply (AAT::hb_aat_apply_context_t *c) const
