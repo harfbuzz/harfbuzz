@@ -1028,7 +1028,7 @@ struct cff1
       { fini (); return; }
 
       { /* parse top dict */
-        const ByteStr topDictStr = (*topDictIndex)[0];
+        const ByteStr topDictStr = (*topDictIndex)[static_cast<unsigned int>(0)];
         if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
         CFF1TopDict_Interpreter top_interp;
         top_interp.env.init (topDictStr);
@@ -1112,7 +1112,7 @@ struct cff1
       else  /* non-CID */
       {
         CFF1TopDictValues  *font = &topDict;
-        PRIVDICTVAL  *priv = &privateDicts[0];
+        PRIVDICTVAL  *priv = &privateDicts[static_cast<unsigned int>(0)];
         
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
