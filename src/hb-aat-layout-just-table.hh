@@ -382,7 +382,7 @@ struct JustificationHeader
 
 struct just
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_just;
+  enum { tableTag = HB_AAT_TAG_just };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

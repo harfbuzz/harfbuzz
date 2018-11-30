@@ -57,7 +57,7 @@ struct VertOriginMetric
 
 struct VORG
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_VORG;
+  enum { tableTag = HB_OT_TAG_VORG };
 
   inline bool has_data (void) const { return version.to_int (); }
 
@@ -93,7 +93,7 @@ struct VORG
       unsigned int  size = VertOriginMetric::static_size * subset_metrics.len;
       VertOriginMetric  *metrics = c.allocate_size<VertOriginMetric> (size);
       if (likely (metrics != nullptr))
-        memcpy (metrics, &subset_metrics[0], size);
+        memcpy (metrics, &subset_metrics[0u], size);
       else
         success = false;
     }

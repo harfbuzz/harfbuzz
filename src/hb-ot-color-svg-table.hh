@@ -73,7 +73,7 @@ struct SVGDocumentIndexEntry
 
 struct SVG
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_SVG;
+  enum { tableTag = HB_OT_TAG_SVG };
 
   inline bool has_data (void) const { return svgDocEntries; }
 

@@ -54,7 +54,7 @@ struct RearrangementSubtable
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum Flags
     {
       MarkFirst		= 0x8000,	/* If set, make the current glyph the first
@@ -204,7 +204,7 @@ struct ContextualSubtable
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum Flags
     {
       SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
@@ -249,7 +249,7 @@ struct ContextualSubtable
       {
 	if (entry->data.markIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
+	  const Lookup<GlyphID> &lookup = subs[(unsigned) entry->data.markIndex];
 	  replacement = lookup.get_value (buffer->info[mark].codepoint, driver->num_glyphs);
 	}
       }
@@ -274,7 +274,7 @@ struct ContextualSubtable
       {
 	if (entry->data.currentIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
+	  const Lookup<GlyphID> &lookup = subs[(unsigned) entry->data.currentIndex];
 	  replacement = lookup.get_value (buffer->info[idx].codepoint, driver->num_glyphs);
 	}
       }
@@ -424,7 +424,7 @@ struct LigatureSubtable
 
   struct driver_context_t
   {
-    static const bool in_place = false;
+    enum { in_place = false };
     enum
     {
       DontAdvance	= LigatureEntryT::DontAdvance,
@@ -660,7 +660,7 @@ struct InsertionSubtable
 
   struct driver_context_t
   {
-    static const bool in_place = false;
+    enum { in_place = false };
     enum Flags
     {
       SetMark		= 0x8000,	/* If set, mark the current glyph. */
@@ -1096,7 +1096,7 @@ struct Chain
 template <typename Types>
 struct mortmorx
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_morx;
+  enum { tableTag = HB_AAT_TAG_morx };
 
   inline bool has_data (void) const { return version != 0; }
 
@@ -1158,11 +1158,11 @@ struct mortmorx
 
 struct morx : mortmorx<ExtendedTypes>
 {
-  static const hb_tag_t tableTag	= HB_AAT_TAG_morx;
+  enum { tableTag = HB_AAT_TAG_morx };
 };
 struct mort : mortmorx<ObsoleteTypes>
 {
-  static const hb_tag_t tableTag	= HB_AAT_TAG_mort;
+  enum { tableTag = HB_AAT_TAG_mort };
 };
 
 

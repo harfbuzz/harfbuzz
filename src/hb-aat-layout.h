@@ -39,7 +39,7 @@ HB_BEGIN_DECLS
  * hb_aat_layout_feature_type_t:
  *
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 typedef enum
 {
@@ -92,7 +92,7 @@ typedef enum
  * hb_aat_layout_feature_selector_t:
  *
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 typedef enum
 {

@@ -99,7 +99,7 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
 
 struct avar
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_avar;
+  enum { tableTag = HB_OT_TAG_avar };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

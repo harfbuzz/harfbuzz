@@ -495,7 +495,8 @@ struct CmapSubtableLongSegmented
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    Supplier<CmapSubtableLongGroup> supplier (group_data, group_data.len);
+    Supplier<CmapSubtableLongGroup> supplier ((const OT::CmapSubtableLongGroup*) group_data,
+					      group_data.len);
     if (unlikely (!groups.serialize (c, supplier, group_data.len))) return_trace (false);
     return true;
   }
@@ -842,7 +843,7 @@ struct EncodingRecord
 
 struct cmap
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
+  enum { tableTag = HB_OT_TAG_cmap };
 
   struct subset_plan
   {

@@ -680,7 +680,7 @@ struct MathVariants
 
 struct MATH
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_MATH;
+  enum { tableTag = HB_OT_TAG_MATH };
 
   inline bool has_data (void) const { return version.to_int (); }
 

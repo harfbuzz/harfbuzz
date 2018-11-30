@@ -647,8 +647,8 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   bool is_cff = data->tables.lsearch (HB_TAG ('C','F','F',' ')) || data->tables.lsearch (HB_TAG ('C','F','F','2'));
   hb_tag_t sfnt_tag = is_cff ? OT::OpenTypeFontFile::CFFTag : OT::OpenTypeFontFile::TrueTypeTag;
 
-  Supplier<hb_tag_t>    tags_supplier  (&data->tables[0].tag, table_count, sizeof (data->tables[0]));
-  Supplier<hb_blob_t *> blobs_supplier (&data->tables[0].blob, table_count, sizeof (data->tables[0]));
+  Supplier<hb_tag_t>    tags_supplier  (&data->tables[0u].tag, table_count, data->tables.item_size);
+  Supplier<hb_blob_t *> blobs_supplier (&data->tables[0u].blob, table_count, data->tables.item_size);
   bool ret = f->serialize_single (&c,
 				  sfnt_tag,
 				  tags_supplier,

@@ -735,26 +735,26 @@ inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
 
 struct HbOpOr
 {
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
+  enum { passthru_left = true };
+  enum { passthru_right = true };
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
 };
 struct HbOpAnd
 {
-  static const bool passthru_left = false;
-  static const bool passthru_right = false;
+  enum { passthru_left = false };
+  enum { passthru_right = false };
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
 };
 struct HbOpMinus
 {
-  static const bool passthru_left = true;
-  static const bool passthru_right = false;
+  enum { passthru_left = true };
+  enum { passthru_right = false };
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
 };
 struct HbOpXor
 {
-  static const bool passthru_left = true;
-  static const bool passthru_right = true;
+  enum { passthru_left = true };
+  enum { passthru_right = true };
   template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
 };
 

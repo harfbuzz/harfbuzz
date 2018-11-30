@@ -45,7 +45,7 @@ struct head
 {
   friend struct OffsetTable;
 
-  static const hb_tag_t tableTag	= HB_OT_TAG_head;
+  enum { tableTag = HB_OT_TAG_head };
 
   inline unsigned int get_upem (void) const
   {

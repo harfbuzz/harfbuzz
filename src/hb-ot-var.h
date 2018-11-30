@@ -63,7 +63,7 @@ hb_ot_var_get_axis_count (hb_face_t *face);
  * hb_ot_var_axis_flags_t:
  * @HB_OT_VAR_AXIS_FLAG_HIDDEN: The axis should not be exposed directly in user interfaces.
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 typedef enum { /*< flags >*/
   HB_OT_VAR_AXIS_FLAG_HIDDEN	= 0x00000001u,
@@ -74,7 +74,7 @@ typedef enum { /*< flags >*/
 /**
  * hb_ot_var_axis_info_t:
  *
- * Since: REPLACEME
+ * Since: 2.2.0
  */
 typedef struct hb_ot_var_axis_info_t
 {

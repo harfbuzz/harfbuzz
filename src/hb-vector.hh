@@ -101,8 +101,8 @@ struct hb_vector_t
   inline hb_sorted_array_t<const Type> as_sorted_array (void) const
   { return hb_sorted_array (arrayZ(), len); }
 
-  template <typename T> inline operator  T * (void) { return arrayZ(); }
-  template <typename T> inline operator const T * (void) const { return arrayZ(); }
+  template <typename T> explicit_operator inline operator  T * (void) { return arrayZ(); }
+  template <typename T> explicit_operator inline operator const T * (void) const { return arrayZ(); }
 
   inline Type * operator  + (unsigned int i) { return arrayZ() + i; }
   inline const Type * operator  + (unsigned int i) const { return arrayZ() + i; }

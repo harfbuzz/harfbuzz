@@ -332,7 +332,7 @@ struct CBLC
 {
   friend struct CBDT;
 
-  static const hb_tag_t tableTag = HB_OT_TAG_CBLC;
+  enum { tableTag = HB_OT_TAG_CBLC };
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -378,7 +378,7 @@ struct CBLC
 
 struct CBDT
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_CBDT;
+  enum { tableTag = HB_OT_TAG_CBDT };
 
   struct accelerator_t
   {

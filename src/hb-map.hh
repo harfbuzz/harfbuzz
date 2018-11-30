@@ -168,7 +168,7 @@ struct hb_map_t
   inline hb_codepoint_t operator [] (unsigned int key) const
   { return get (key); }
 
-  static const hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
+  enum { INVALID = HB_MAP_VALUE_INVALID };
 
   inline void clear (void)
   {

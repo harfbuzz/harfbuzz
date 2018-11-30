@@ -110,12 +110,12 @@ typedef HBUINT32 BGRAColor;
 
 struct CPAL
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_CPAL;
+  enum { tableTag = HB_OT_TAG_CPAL };
 
   inline bool has_data (void) const { return numPalettes; }
 
   inline unsigned int get_size (void) const
-  { return min_size + numPalettes * sizeof (colorRecordIndicesZ[0]); }
+  { return min_size + numPalettes * sizeof (colorRecordIndicesZ[0u]); }
 
   inline unsigned int get_palette_count () const { return numPalettes; }
   inline unsigned int get_color_count () const { return numColors; }

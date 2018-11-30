@@ -151,10 +151,10 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
 
 struct name
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_name;
+  enum { tableTag = HB_OT_TAG_name };
 
   inline unsigned int get_size (void) const
-  { return min_size + count * nameRecordZ[0].min_size; }
+  { return min_size + count * nameRecordZ.item_size; }
 
   inline bool sanitize_records (hb_sanitize_context_t *c) const {
     TRACE_SANITIZE (this);
@@ -189,7 +189,7 @@ struct name
       this->names.init ();
       this->names.alloc (all_names.len);
 
-      for (uint16_t i = 0; i < all_names.len; i++)
+      for (unsigned int i = 0; i < all_names.len; i++)
       {
 	hb_ot_name_entry_t *entry = this->names.push ();
 

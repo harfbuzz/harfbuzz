@@ -211,7 +211,7 @@ struct KerxSubTableFormat1
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum
     {
       DontAdvance	= Format1EntryT::DontAdvance,
@@ -472,7 +472,7 @@ struct KerxSubTableFormat4
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    enum { in_place = true };
     enum Flags
     {
       Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
@@ -947,7 +947,7 @@ struct KerxTable
   {
     TRACE_SANITIZE (this);
     if (unlikely (!thiz()->version.sanitize (c) ||
-		  thiz()->version < T::minVersion ||
+		  (unsigned) thiz()->version < (unsigned) T::minVersion ||
 		  !thiz()->tableCount.sanitize (c)))
       return_trace (false);
 
@@ -982,8 +982,8 @@ struct kerx : KerxTable<kerx>
 {
   friend struct KerxTable<kerx>;
 
-  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
-  static const uint16_t minVersion = 2;
+  enum { tableTag = HB_AAT_TAG_kerx };
+  enum { minVersion = 2u };
 
   typedef KerxSubTableHeader SubTableHeader;
   typedef SubTableHeader::Types Types;

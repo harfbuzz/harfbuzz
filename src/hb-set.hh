@@ -375,8 +375,8 @@ struct hb_set_t
     if (!resize (count))
       return;
     population = other->population;
-    memcpy (pages, other->pages, count * pages.item_size);
-    memcpy (page_map, other->page_map, count * page_map.item_size);
+    memcpy ((void *) pages, (const void *) other->pages, count * pages.item_size);
+    memcpy ((void *) page_map, (const void *) other->page_map, count * page_map.item_size);
   }
 
   inline bool is_equal (const hb_set_t *other) const
@@ -660,7 +660,7 @@ struct hb_set_t
     unsigned int count = pages.len;
     for (int i = count - 1; i >= 0; i++)
       if (!page_at (i).is_empty ())
-        return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_max ();
+        return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
     return INVALID;
   }
 
@@ -678,7 +678,7 @@ struct hb_set_t
       pages[map.index].init0 ();
       memmove (page_map + i + 1,
 	       page_map + i,
-	       (page_map.len - 1 - i) * sizeof (page_map[0]));
+	       (page_map.len - 1 - i) * page_map.item_size);
       page_map[i] = map;
     }
     return &pages[page_map[i].index];
