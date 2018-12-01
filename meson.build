@@ -16,6 +16,7 @@ if cpp.get_id() == 'msvc'
       '/wd4244', # lossy type conversion (e.g. double -> int)
       '/wd4305', # truncating type conversion (e.g. double -> float)
       cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
+      '-DHB_DLL_EXPORT', # FIXME: shouldn't this be set only on the lib targets?
   ]
   add_project_arguments(msvc_args, language : 'c')
   add_project_arguments(msvc_args, language : 'cpp')
