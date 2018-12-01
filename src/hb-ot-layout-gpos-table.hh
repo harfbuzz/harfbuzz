@@ -625,8 +625,8 @@ struct PairSet
   inline bool intersects (const hb_set_t *glyphs,
 			  const ValueFormat *valueFormats) const
   {
-    unsigned int len1 = valueFormats[0u].get_len ();
-    unsigned int len2 = valueFormats[1u].get_len ();
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
@@ -644,8 +644,8 @@ struct PairSet
 			      const ValueFormat *valueFormats) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    unsigned int len1 = valueFormats[0u].get_len ();
-    unsigned int len2 = valueFormats[1u].get_len ();
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
@@ -658,8 +658,8 @@ struct PairSet
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int len1 = valueFormats[0u].get_len ();
-    unsigned int len2 = valueFormats[1u].get_len ();
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
     unsigned int count = len;
@@ -681,8 +681,8 @@ struct PairSet
       else
       {
 	/* Note the intentional use of "|" instead of short-circuit "||". */
-	if (valueFormats[0u].apply_value (c, this, &record->values[0u], buffer->cur_pos()) |
-	    valueFormats[1u].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
+	if (valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos()) |
+	    valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
 	  buffer->unsafe_to_break (buffer->idx, pos + 1);
 	if (len2)
 	  pos++;
@@ -698,7 +698,7 @@ struct PairSet
   {
     const void *base;
     const ValueFormat *valueFormats;
-    unsigned int len1; /* valueFormats[0u].get_len() */
+    unsigned int len1; /* valueFormats[0].get_len() */
     unsigned int stride; /* 1 + len1 + len2 */
   };
 
@@ -713,8 +713,8 @@ struct PairSet
 
     unsigned int count = len;
     const PairValueRecord *record = &firstPairValueRecord;
-    return_trace (closure->valueFormats[0u].sanitize_values_stride_unsafe (c, closure->base, &record->values[0u], count, closure->stride) &&
-		  closure->valueFormats[1u].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
+    return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride) &&
+		  closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
   }
 
   protected:
@@ -781,8 +781,8 @@ struct PairPosFormat1
 
     if (!c->check_struct (this)) return_trace (false);
 
-    unsigned int len1 = valueFormat[0u].get_len ();
-    unsigned int len2 = valueFormat[1u].get_len ();
+    unsigned int len1 = valueFormat[0].get_len ();
+    unsigned int len2 = valueFormat[1].get_len ();
     PairSet::sanitize_closure_t closure =
     {
       this,
@@ -799,10 +799,10 @@ struct PairPosFormat1
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  ValueFormat	valueFormat[2u];	/* [0u] Defines the types of data in
+  ValueFormat	valueFormat[2];		/* [0] Defines the types of data in
 					 * ValueRecord1--for the first glyph
 					 * in the pair--may be zero (0) */
-					/* [1u] Defines the types of data in
+					/* [1] Defines the types of data in
 					 * ValueRecord2--for the second glyph
 					 * in the pair--may be zero (0) */
   OffsetArrayOf<PairSet>
@@ -885,7 +885,7 @@ struct PairPosFormat2
     return_trace (c->check_range ((const void *) values,
 				  count,
 				  record_size) &&
-		  valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0u], count, stride) &&
+		  valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
 		  valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
   }
 
