@@ -233,7 +233,7 @@ struct CFFIndex
   inline unsigned int max_offset (void) const
   {
     unsigned int max = 0;
-    for (unsigned int i = 0; i < count + 1; i++)
+    for (unsigned int i = 0; i < count + 1u; i++)
     {
       unsigned int off = offset_at (i);
       if (off > max) max = off;
