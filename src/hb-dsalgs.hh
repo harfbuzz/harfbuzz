@@ -571,8 +571,9 @@ struct hb_array_t
   inline hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
-  inline Type& operator [] (unsigned int i) const
+  inline Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Null(Type);
     return arrayZ[i];
   }

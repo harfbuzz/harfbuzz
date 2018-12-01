@@ -78,14 +78,16 @@ struct hb_vector_t
   inline const Type * arrayZ (void) const
   { return arrayZ_ ? arrayZ_ : static_array; }
 
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len))
       return Crap (Type);
     return arrayZ()[i];
   }
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len))
       return Null(Type);
     return arrayZ()[i];
