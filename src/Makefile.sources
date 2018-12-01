@@ -175,7 +175,6 @@ HB_OT_sources = \
 	hb-cff1-interp-cs.hh \
 	hb-cff2-interp-cs.hh \
 	hb-cff-interp-dict-common.hh \
-	hb-ot-vorg-table.hh \
 	$(NULL)
 
 HB_OT_RAGEL_GENERATED_sources = \
@@ -236,30 +235,30 @@ HB_ICU_headers = hb-icu.h
 
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
-	hb-static.cc \
-	hb-subset.cc \
-	hb-subset.hh \
-	hb-subset-glyf.cc \
-	hb-subset-glyf.hh \
-	hb-subset-cff1.cc \
-	hb-subset-cff2.cc \
-	hb-subset-cff-common.cc \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
+	hb-static.cc \
+	hb-subset-cff-common.cc \
+	hb-subset-cff-common.hh \
+	hb-subset-cff1.cc \
+	hb-subset-cff1.hh \
+	hb-subset-cff2.cc \
+	hb-subset-cff2.hh \
+	hb-subset-glyf.cc \
+	hb-subset-glyf.hh \
+	hb-subset-glyf.hh \
 	hb-subset-input.cc \
 	hb-subset-input.hh \
 	hb-subset-plan.cc \
 	hb-subset-plan.hh \
+	hb-subset-plan.hh \
+	hb-subset.cc \
+	hb-subset.hh \
+	hb-subset.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
-	hb-subset-glyf.hh \
-	hb-subset-cff1.hh \
-	hb-subset-cff2.hh \
-	hb-subset-cff-common.hh \
-	hb-subset-plan.hh \
-	hb-subset.hh \
 	$(NULL)
 
 HB_GOBJECT_DIST_sources = hb-gobject-structs.cc
