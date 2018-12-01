@@ -1,23 +1,16 @@
-tests = [
-  ['basics.tests'],
-  ['full-font.tests'],
-  ['japanese.tests'],
-]
+tests = ['basics', 'full-font', 'japanese']
 
-# The test tries to run which unconditionally, windows doesn't agree
-if find_program('which', required: false).found()
-  foreach test_data : tests
-    fname = test_data[0]
+run_test = find_program('run-tests.py')
 
-    test_name = fname.split('.')[0].underscorify()
+foreach t : tests
+  fname = '@0@.tests'.format(t)
 
-    test(test_name, python3,
-      args: [
-        files('run-tests.py')[0],
-        hb_subset,
-        join_paths(meson.current_source_dir(), 'data/tests', fname),
-      ],
-      workdir: join_paths(meson.current_build_dir(), '..', '..'),
-    )
-  endforeach
-endif
+  test(t, run_test,
+    args: [
+      hb_subset,
+      join_paths(meson.current_source_dir(), 'data', 'tests', fname),
+    ],
+    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  )
+endforeach
+
