@@ -52,13 +52,19 @@ namespace OT {
  * Int types
  */
 
+template <bool is_signed> struct hb_signedness_int;
+template <> struct hb_signedness_int<false> { typedef unsigned int value; };
+template <> struct hb_signedness_int<true>  { typedef   signed int value; };
+
 /* Integer types in big-endian order and no alignment requirement */
 template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
-  inline void set (Type i) { v.set (i); }
-  inline operator Type (void) const { return v; }
+  typedef typename hb_signedness_int<hb_is_signed<Type>::value>::value wide_type;
+
+  inline void set (wide_type i) { v.set (i); }
+  inline operator wide_type (void) const { return v; }
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   inline bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
@@ -88,6 +94,8 @@ typedef IntType<uint16_t, 2> HBUINT16;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t,  2> HBINT16;	/* 16-bit signed integer. */
 typedef IntType<uint32_t, 4> HBUINT32;	/* 32-bit unsigned integer. */
 typedef IntType<int32_t,  4> HBINT32;	/* 32-bit signed integer. */
+/* Note: we cannot defined a signed HBINT24 because there's no corresponding C type.
+ * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
 typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
 
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
