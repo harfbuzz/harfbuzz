@@ -328,7 +328,7 @@ struct hb_auto_trace_t<0, ret_t>
 				   ...) HB_PRINTF_FUNC(6, 7) {}
 
   inline ret_t ret (ret_t v,
-		    const char *func HB_UNUSED = 0,
+		    const char *func HB_UNUSED = nullptr,
 		    unsigned int line HB_UNUSED = 0) { return v; }
 };
 
