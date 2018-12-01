@@ -40,6 +40,7 @@ struct hb_subset_plan_t
 
   bool drop_hints : 1;
   bool drop_layout : 1;
+  bool desubroutinize : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

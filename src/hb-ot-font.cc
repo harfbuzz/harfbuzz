@@ -34,6 +34,8 @@
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-cff1-table.hh"
+#include "hb-ot-cff2-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-kern-table.hh"
 #include "hb-ot-os2-table.hh"
@@ -181,6 +183,10 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   bool ret = ot_face->sbix->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->glyf->get_extents (glyph, extents);
+  if (!ret)
+    ret = ot_face->cff1->get_extents (glyph, extents);
+  if (!ret)
+    ret = ot_face->cff2->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->CBDT->get_extents (font, glyph, extents);
   // TODO Hook up side-bearings variations.

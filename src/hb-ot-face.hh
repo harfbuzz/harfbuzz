@@ -47,6 +47,8 @@
     HB_OT_ACCELERATOR(OT, post) \
     HB_OT_TABLE(OT, kern) \
     HB_OT_ACCELERATOR(OT, glyf) \
+    HB_OT_ACCELERATOR(OT, cff1) \
+    HB_OT_ACCELERATOR(OT, cff2) \
     HB_OT_TABLE(OT, VORG) \
     HB_OT_ACCELERATOR(OT, name) \
     HB_OT_TABLE(OT, OS2) \

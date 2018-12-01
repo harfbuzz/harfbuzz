@@ -43,6 +43,7 @@ struct hb_subset_input_t
 
   bool drop_hints : 1;
   bool drop_layout : 1;
+  bool desubroutinize : 1;
   /* TODO
    *
    * features

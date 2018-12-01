@@ -90,6 +90,7 @@ struct subset_consumer_t
   void finish (const font_options_t *font_opts)
   {
     hb_subset_input_set_drop_hints (input, subset_options.drop_hints);
+    hb_subset_input_set_desubroutinize (input, subset_options.desubroutinize);
 
     hb_face_t *face = hb_font_get_face (font);
 
