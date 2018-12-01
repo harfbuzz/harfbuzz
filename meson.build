@@ -5,6 +5,24 @@ project('harfbuzz', 'c', 'cpp',
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 
+if cpp.get_id() == 'msvc'
+  # Ignore several spurious warnings for things HarfBuzz does very commonly.
+  # If a warning is completely useless and spammy, use '/wdXXXX' to suppress it
+  # If a warning is harmless but hard to fix, use '/woXXXX' so it's shown once
+  # NOTE: Only add warnings here if you are sure they're spurious
+  msvc_args = [
+      '/wd4018', # implicit signed/unsigned conversion
+      '/wd4146', # unary minus on unsigned (beware INT_MIN)
+      '/wd4244', # lossy type conversion (e.g. double -> int)
+      '/wd4305', # truncating type conversion (e.g. double -> float)
+      cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
+  ]
+  add_project_arguments(msvc_args, language : 'c')
+  add_project_arguments(msvc_args, language : 'cpp')
+  # Disable SAFESEH with MSVC for libs that use external deps that are built with MinGW
+  # noseh_link_args = ['/SAFESEH:NO']
+endif
+
 python3 = import('python').find_installation('python3')
 
 check_headers = [
