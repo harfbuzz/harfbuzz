@@ -287,11 +287,15 @@ hb_ceil_to_4 (unsigned int v)
   return ((v - 1) | 3) + 1;
 }
 
-template <typename T> class hb_assert_unsigned_t;
-template <> class hb_assert_unsigned_t<unsigned char> {};
-template <> class hb_assert_unsigned_t<unsigned short> {};
-template <> class hb_assert_unsigned_t<unsigned int> {};
-template <> class hb_assert_unsigned_t<unsigned long> {};
+template <typename T> struct hb_is_signed;
+template <> struct hb_is_signed<signed char> { enum { value = true }; };
+template <> struct hb_is_signed<signed short> { enum { value = true }; };
+template <> struct hb_is_signed<signed int> { enum { value = true }; };
+template <> struct hb_is_signed<signed long> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned char> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned short> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned int> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned long> { enum { value = false }; };
 
 template <typename T> static inline bool
 hb_in_range (T u, T lo, T hi)
@@ -301,7 +305,7 @@ hb_in_range (T u, T lo, T hi)
    * one right now.  Declaring a variable won't work as HB_UNUSED
    * is unusable on some platforms and unused types are less likely
    * to generate a warning than unused variables. */
-  static_assert ((sizeof (hb_assert_unsigned_t<T>) >= 0), "");
+  static_assert (!hb_is_signed<T>::value, "");
 
   /* The casts below are important as if T is smaller than int,
    * the subtract results will become a signed int! */
