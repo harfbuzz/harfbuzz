@@ -66,7 +66,7 @@ struct IntType
   inline int cmp (Type2 a) const
   {
     Type b = v;
-    if (sizeof (Type) < sizeof (int) && sizeof (Type2) < sizeof (int))
+    if (Size < sizeof (int) && sizeof (Type2) < sizeof (int))
       return (int) a - (int) b;
     else
       return a < b ? -1 : a == b ? 0 : +1;
@@ -82,13 +82,13 @@ struct IntType
   DEFINE_SIZE_STATIC (Size);
 };
 
-typedef IntType<uint8_t,  1> HBUINT8;	/* 8-bit unsigned integer. */
-typedef IntType<int8_t,   1> HBINT8;	/* 8-bit signed integer. */
-typedef IntType<uint16_t, 2> HBUINT16;	/* 16-bit unsigned integer. */
-typedef IntType<int16_t,  2> HBINT16;	/* 16-bit signed integer. */
-typedef IntType<uint32_t, 4> HBUINT32;	/* 32-bit unsigned integer. */
-typedef IntType<int32_t,  4> HBINT32;	/* 32-bit signed integer. */
-typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
+typedef IntType<unsigned, 1> HBUINT8;	/* 8-bit unsigned integer. */
+typedef IntType<  signed, 1> HBINT8;	/* 8-bit signed integer. */
+typedef IntType<unsigned, 2> HBUINT16;	/* 16-bit unsigned integer. */
+typedef IntType<  signed, 2> HBINT16;	/* 16-bit signed integer. */
+typedef IntType<unsigned, 3> HBUINT24;	/* 24-bit unsigned integer. */
+typedef IntType<unsigned, 4> HBUINT32;	/* 32-bit unsigned integer. */
+typedef IntType<  signed, 4> HBINT32;	/* 32-bit signed integer. */
 
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;
