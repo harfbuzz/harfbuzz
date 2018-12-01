@@ -351,14 +351,16 @@ struct UnsizedArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
 
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     const Type *p = &arrayZ[i];
     if (unlikely (p < arrayZ)) return Null (Type); /* Overflowed. */
     return *p;
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     Type *p = &arrayZ[i];
     if (unlikely (p < arrayZ)) return Crap (Type); /* Overflowed. */
     return *p;
@@ -441,14 +443,16 @@ struct UnsizedOffsetArrayOf : UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null
 template <typename Type, typename OffsetType, bool has_null=true>
 struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
 {
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
     if (unlikely (p < this->arrayZ)) return Null (Type); /* Overflowed. */
     return this+*p;
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
     if (unlikely (p < this->arrayZ)) return Crap (Type); /* Overflowed. */
     return this+*p;
@@ -501,13 +505,15 @@ struct ArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
 
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Null (Type);
     return arrayZ[i];
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Crap (Type);
     return arrayZ[i];
   }
@@ -625,13 +631,15 @@ struct LOffsetLArrayOf : ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32> {};
 template <typename Type>
 struct OffsetListOf : OffsetArrayOf<Type>
 {
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Null (Type);
     return this+this->arrayZ[i];
   }
-  inline const Type& operator [] (unsigned int i)
+  inline const Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Crap (Type);
     return this+this->arrayZ[i];
   }
@@ -668,13 +676,15 @@ struct HeadlessArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
 
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Null (Type);
     return arrayZ[i-1];
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Crap (Type);
     return arrayZ[i-1];
   }
@@ -734,13 +744,15 @@ struct ArrayOfM1
 {
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOfM1, Type, LenType);
 
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Null (Type);
     return arrayZ[i];
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Crap (Type);
     return arrayZ[i];
   }
@@ -890,13 +902,15 @@ struct VarSizedBinSearchArrayOf
     return true;
   }
 
-  inline const Type& operator [] (unsigned int i) const
+  inline const Type& operator [] (int i_) const
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Null (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
-  inline Type& operator [] (unsigned int i)
+  inline Type& operator [] (int i_)
   {
+    unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Crap (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
