@@ -270,7 +270,7 @@ struct SingleSubst
       /* TODO(serialize) check for wrap-around */
       delta = substitutes[0] - glyphs[0];
       for (unsigned int i = 1; i < num_glyphs; i++)
-	if (delta != substitutes[i] - glyphs[i]) {
+	if (delta != (int) (substitutes[i] - glyphs[i])) {
 	  format = 2;
 	  break;
 	}
