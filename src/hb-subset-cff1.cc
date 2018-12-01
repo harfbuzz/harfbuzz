@@ -195,10 +195,10 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
       case OpCode_charset:
       case OpCode_Encoding:
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
-    
+
       case OpCode_Private:
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
-    
+
       case OpCode_version:
       case OpCode_Notice:
       case OpCode_Copyright:
@@ -290,7 +290,7 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
           return;
         }
         HB_FALLTHROUGH;
-        
+
       default:
         SUPER::flush_args_and_op (op, env, param);
         break;
@@ -576,7 +576,7 @@ struct cff_subset_plan {
   {
     if (unlikely (!sidmap.reset (acc.stringIndex->count)))
       return false;
-    
+
     for (unsigned int i = 0; i < NameDictValues::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
@@ -591,7 +591,7 @@ struct cff_subset_plan {
       for (unsigned int i = 0; i < orig_fdcount; i++)
         if (fdmap.includes (i))
           (void)sidmap.add (acc.fontDicts[i].fontName);
-  
+
     return true;
   }
 
@@ -622,7 +622,7 @@ struct cff_subset_plan {
 
     /* CFF header */
     final_size += OT::cff1::static_size;
-    
+
     /* Name INDEX */
     offsets.nameIndexOffset = final_size;
     final_size += acc.nameIndex->get_size ();
@@ -683,7 +683,7 @@ struct cff_subset_plan {
       offsets.stringIndexInfo.size = acc.stringIndex->calculate_serialized_size (offsets.stringIndexInfo.offSize, sidmap);
       final_size += offsets.stringIndexInfo.size;
     }
-    
+
     if (desubroutinize)
     {
       /* Flatten global & local subrs */
@@ -691,7 +691,7 @@ struct cff_subset_plan {
                     flattener(acc, plan->glyphs, plan->drop_hints);
       if (!flattener.flatten (subset_charstrings))
         return false;
-      
+
       /* no global/local subroutines */
       offsets.globalSubrsInfo.size = CFF1Subrs::calculate_serialized_size (1, 0, 0);
     }
@@ -926,7 +926,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   {
     assert (plan.offsets.globalSubrsInfo.offset != 0);
     assert (plan.offsets.globalSubrsInfo.offset == c.head - c.start);
-    
+
     CFF1Subrs *dest = c.start_embed <CFF1Subrs> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, plan.offsets.globalSubrsInfo.offSize, plan.subset_globalsubrs)))
@@ -973,7 +973,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   if (acc.fdSelect != &Null(CFF1FDSelect))
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
-    
+
     if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *acc.fdSelect, acc.fdCount,
                                               plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
                                               plan.subset_fdselect_ranges)))

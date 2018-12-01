@@ -237,7 +237,7 @@ template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename P
 struct CSOpSet : OpSet<ARG>
 {
   static inline void process_op (OpCode op, ENV &env, PARAM& param)
-  {  
+  {
     switch (op) {
 
       case OpCode_return:
@@ -480,7 +480,7 @@ struct PathProcs
       PATH::line (env, param, pt1);
     }
   }
-  
+
   static inline void hlineto (ENV &env, PARAM& param)
   {
     Point pt1;
@@ -879,7 +879,7 @@ struct CSInterpreter : Interpreter<ENV>
       if (SUPER::env.is_endchar ())
         break;
     }
-    
+
     return true;
   }
 

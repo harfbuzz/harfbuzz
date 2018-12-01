@@ -388,7 +388,7 @@ struct Charset1_2 {
         return (hb_codepoint_t)ranges[i].first + glyph;
       glyph -= (ranges[i].nLeft + 1);
     }
-  
+
     return 0;
   }
 
@@ -402,7 +402,7 @@ struct Charset1_2 {
         return glyph + (sid - ranges[i].first);
       glyph += (ranges[i].nLeft + 1);
     }
-  
+
     return 0;
   }
 
@@ -410,7 +410,7 @@ struct Charset1_2 {
   {
     unsigned int size = HBUINT8::static_size;
     int glyph = (int)num_glyphs;
-  
+
     assert (glyph > 0);
     glyph--;
     for (unsigned int i = 0; glyph > 0; i++)
@@ -577,7 +577,7 @@ struct CFF1StringIndex : CFF1Index
       count.set (0);
       return_trace (true);
     }
-    
+
     ByteStrArray bytesArray;
     bytesArray.init ();
     if (!bytesArray.resize (sidmap.get_count ()))
@@ -593,7 +593,7 @@ struct CFF1StringIndex : CFF1Index
     bytesArray.fini ();
     return_trace (result);
   }
-  
+
   /* in parallel to above */
   inline unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const Remap &sidmap) const
   {
@@ -754,7 +754,7 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
       case OpCode_BaseFontBlend:
         env.clear_args ();
         break;
-        
+
       case OpCode_CIDCount:
         dictval.cidCount = env.argStack.pop_uint ();
         env.clear_args ();
@@ -783,13 +783,13 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
         dictval.FDSelectOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
-    
+
       case OpCode_Private:
         dictval.privateDictInfo.offset = env.argStack.pop_uint ();
         dictval.privateDictInfo.size = env.argStack.pop_uint ();
         env.clear_args ();
         break;
-    
+
       default:
         env.last_offset = env.substr.offset;
         TopDictOpSet<CFF1TopDictVal>::process_op (op, env, dictval);
@@ -840,7 +840,7 @@ struct CFF1FontDictOpSet : DictOpSet
         dictval.privateDictInfo.size = env.argStack.pop_uint ();
         env.clear_args ();
         break;
-    
+
       default:
         DictOpSet::process_op (op, env);
         if (!env.argStack.is_empty ()) return;
@@ -1007,13 +1007,13 @@ struct cff1
       topDict.init ();
       fontDicts.init ();
       privateDicts.init ();
-      
+
       this->blob = sc.reference_table<cff1> (face);
 
       /* setup for run-time santization */
       sc.init (this->blob);
       sc.start_processing ();
-      
+
       const OT::cff1 *cff = this->blob->template as<OT::cff1> ();
 
       if (cff == &Null(OT::cff1))
@@ -1035,7 +1035,7 @@ struct cff1
         topDict.init ();
         if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
-      
+
       if (is_predef_charset ())
         charset = &Null(Charset);
       else
@@ -1113,7 +1113,7 @@ struct cff1
       {
         CFF1TopDictValues  *font = &topDict;
         PRIVDICTVAL  *priv = &privateDicts[0];
-        
+
         const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
         if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
         DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
@@ -1148,7 +1148,7 @@ struct cff1
       hb_codepoint_t sid = lookup_standard_encoding_for_sid (code);
       if (unlikely (sid == CFF_UNDEF_SID))
         return 0;
-      
+
       if (charset != &Null(Charset))
         return charset->get_glyph (sid, num_glyphs);
       else if ((topDict.CharsetOffset == ISOAdobeCharset)
@@ -1190,7 +1190,7 @@ struct cff1
     {
       SUPER::init (face);
       if (blob == nullptr) return;
-    
+
       const OT::cff1 *cff = this->blob->as<OT::cff1> ();
       encoding = &Null(Encoding);
       if (is_CID ())

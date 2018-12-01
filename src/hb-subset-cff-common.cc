@@ -71,7 +71,7 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
     {
       hb_codepoint_t  fd = src.get_fd (glyphs[i]);
       set->add (fd);
-      
+
       if (fd != prev_fd)
       {
         num_ranges++;
@@ -201,14 +201,14 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
       break;
     }
 #endif /* CFF_SERIALIZE_FDSELECT_0 */
-    
+
     case 3:
       return serialize_fdselect_3_4<FDSelect3> (c,
                                                 num_glyphs,
                                                 src,
                                                 size,
                                                 fdselect_ranges);
-    
+
     case 4:
       return serialize_fdselect_3_4<FDSelect4> (c,
                                                 num_glyphs,
@@ -219,6 +219,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
     default:
       assert(false);
   }
-  
+
   return_trace (true);
 }

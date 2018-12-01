@@ -350,10 +350,10 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 
     return_trace (true);
   }
-  
+
   inline static bool serialize_int4 (hb_serialize_context_t *c, int value)
   { return serialize_int<HBUINT32, 0, 0x7FFFFFFF> (c, OpCode_longintdict, value); }
-  
+
   inline static bool serialize_int2 (hb_serialize_context_t *c, int value)
   { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
 
@@ -591,7 +591,6 @@ struct ArgStack : Stack<ARG, 513>
 
   inline unsigned int pop_uint (void)
   {
-    
     int  i = pop_int ();
     if (unlikely (i < 0))
     {
@@ -775,7 +774,7 @@ struct OpSet
         env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.substr[0] + 108));
         env.substr.inc ();
         break;
-      
+
       case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
         env.argStack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - env.substr[0] - 108));

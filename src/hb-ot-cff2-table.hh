@@ -196,7 +196,7 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
         dictval.FDSelectOffset = env.argStack.pop_uint ();
         env.clear_args ();
         break;
-    
+
       default:
         SUPER::process_op (op, env, dictval);
         /* Record this operand below if stack is empty, otherwise done */
@@ -237,7 +237,7 @@ struct CFF2FontDictOpSet : DictOpSet
         dictval.privateDictInfo.size = env.argStack.pop_uint ();
         env.clear_args ();
         break;
-    
+
       default:
         SUPER::process_op (op, env);
         if (!env.argStack.is_empty ())
@@ -437,13 +437,13 @@ struct cff2
       topDict.init ();
       fontDicts.init ();
       privateDicts.init ();
-      
+
       this->blob = sc.reference_table<cff2> (face);
 
       /* setup for run-time santization */
       sc.init (this->blob);
       sc.start_processing ();
-      
+
       const OT::cff2 *cff2 = this->blob->template as<OT::cff2> ();
 
       if (cff2 == &Null(OT::cff2))
@@ -457,13 +457,13 @@ struct cff2
         topDict.init ();
         if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
       }
-      
+
       globalSubrs = &StructAtOffset<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
       varStore = &StructAtOffsetOrNull<CFF2VariationStore> (cff2, topDict.vstoreOffset);
       charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset);
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
       fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset);
-      
+
       if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
           (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
           (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||

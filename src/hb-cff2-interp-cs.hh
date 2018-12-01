@@ -83,7 +83,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
                     const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
-    
+
     coords = coords_;
     num_coords = num_coords_;
     varStore = acc.varStore;

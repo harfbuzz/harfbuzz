@@ -175,7 +175,7 @@ struct DictOpSet : OpSet<Number>
         case EXP_NEG:
           exp_neg = true;
           HB_FALLTHROUGH;
-          
+
         case EXP_POS:
           if (part == EXP_PART)
           {
@@ -191,7 +191,7 @@ struct DictOpSet : OpSet<Number>
             case INT_PART:
               int_part = (int_part * 10) + d;
               break;
-            
+
             case FRAC_PART:
               frac_part = (frac_part * 10) + d;
               frac_count++;
@@ -268,7 +268,7 @@ struct DictInterpreter : Interpreter<ENV>
       if (unlikely (SUPER::env.in_error ()))
         return false;
     }
-    
+
     return true;
   }
 

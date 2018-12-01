@@ -68,7 +68,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
     {
       case OpCode_vstore:
         return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
-    
+
       default:
         return CFFTopDict_OpSerializer<>::calculate_serialized_size (opstr);
     }
@@ -85,7 +85,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
       case OpCode_endchar:
         /* dummy opcodes in CFF2. ignore */
         break;
-    
+
       case OpCode_hstem:
       case OpCode_hstemhm:
       case OpCode_vstem:
@@ -98,7 +98,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
           return;
         }
         HB_FALLTHROUGH;
-        
+
       default:
         SUPER::flush_args_and_op (op, env, param);
         break;
@@ -148,7 +148,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     encoder.encode_int (arg.numValues);
     encoder.encode_op (OpCode_blendcs);
   }
- 
+
   static inline void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
@@ -267,7 +267,7 @@ struct cff2_subset_plan {
 
     /* CFF2 header */
     final_size += OT::cff2::static_size;
-    
+
     /* top dict */
     {
       CFF2TopDict_OpSerializer topSzr;
@@ -282,7 +282,7 @@ struct cff2_subset_plan {
                     flattener(acc, plan->glyphs, plan->drop_hints);
       if (!flattener.flatten (subset_charstrings))
         return false;
-      
+
       /* no global/local subroutines */
       offsets.globalSubrsInfo.size = CFF2Subrs::calculate_serialized_size (1, 0, 0);
     }
@@ -353,7 +353,7 @@ struct cff2_subset_plan {
                                   subset_fdselect_ranges,
                                   fdmap)))
         return false;
-      
+
       final_size += offsets.FDSelectInfo.size;
     }
     else
@@ -467,7 +467,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
       return false;
     }
   }
-  
+
   /* variation store */
   if (acc.varStore != &Null(CFF2VariationStore))
   {
@@ -484,7 +484,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   if (acc.fdSelect != &Null(CFF2FDSelect))
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
-    
+
     if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
                                               plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
                                               plan.subset_fdselect_ranges)))

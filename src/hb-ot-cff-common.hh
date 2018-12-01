@@ -137,7 +137,7 @@ struct CFFIndex
       this->offSize.set (offSize_);
       if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.len + 1))))
         return_trace (false);
-    
+
       /* serialize indices */
       unsigned int  offset = 1;
       unsigned int  i = 0;
@@ -276,7 +276,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     this->offSize.set (offSize_);
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
       return_trace (false);
-  
+
     /* serialize indices */
     unsigned int  offset = 1;
     unsigned int  i = 0;
@@ -481,7 +481,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     this->offSize.set (offSize_);
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.len + 1))))
       return_trace (false);
-    
+
     /* serialize font dict offsets */
     unsigned int  offset = 1;
     unsigned int fid = 0;
@@ -501,7 +501,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     }
     return_trace (true);
   }
-  
+
   /* used by CFF2 */
   template <typename DICTVAL, typename OP_SERIALIZER>
   inline bool serialize (hb_serialize_context_t *c,
@@ -518,7 +518,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     this->offSize.set (offSize_);
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
       return_trace (false);
-    
+
     /* serialize font dict offsets */
     unsigned int  offset = 1;
     unsigned int  fid = 0;
@@ -540,7 +540,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
       }
     return_trace (true);
   }
-  
+
   /* in parallel to above */
   template <typename OP_SERIALIZER, typename DICTVAL>
   inline static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
