@@ -869,7 +869,7 @@ struct SubrSubsetter
       {
         for (int i = pos - 1; i >= 0; i--)
         {
-          ParsedCSOp  &csop = str.values[i];
+          ParsedCSOp  &csop = str.values[static_cast<unsigned int>(i)];
           if (csop.for_drop ())
             break;
           csop.set_drop ();
