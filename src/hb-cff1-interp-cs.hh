@@ -58,9 +58,9 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     {
       if (has_width_)
       {
-        width = SUPER::argStack[0];
-        has_width = true;
-        arg_start = 1;
+	width = SUPER::argStack[0];
+	has_width = true;
+	arg_start = 1;
       }
     }
     processed_width = true;
@@ -74,11 +74,11 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 
   inline void set_in_seac (bool _in_seac) { in_seac = _in_seac; }
 
-  bool          processed_width;
-  bool          has_width;
+  bool	  processed_width;
+  bool	  has_width;
   unsigned int  arg_start;
-  Number        width;
-  bool          in_seac;
+  Number	width;
+  bool	  in_seac;
 
   private:
   typedef CSInterpEnv<Number, CFF1Subrs> SUPER;
@@ -94,21 +94,21 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
   {
     switch (op) {
       case OpCode_dotsection:
-        SUPER::flush_args_and_op (op, env, param);
-        break;
+	SUPER::flush_args_and_op (op, env, param);
+	break;
 
       case OpCode_endchar:
-        OPSET::check_width (op, env, param);
-        if (env.argStack.get_count () >= 4)
-        {
-          OPSET::process_seac (env, param);
-        }
-        OPSET::flush_args_and_op (op, env, param);
-        env.set_endchar (true);
-        break;
+	OPSET::check_width (op, env, param);
+	if (env.argStack.get_count () >= 4)
+	{
+	  OPSET::process_seac (env, param);
+	}
+	OPSET::flush_args_and_op (op, env, param);
+	env.set_endchar (true);
+	break;
 
       default:
-        SUPER::process_op (op, env, param);
+	SUPER::process_op (op, env, param);
     }
   }
 
@@ -119,24 +119,24 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
       bool  has_width = false;
       switch (op)
       {
-        case OpCode_endchar:
-        case OpCode_hstem:
-        case OpCode_hstemhm:
-        case OpCode_vstem:
-        case OpCode_vstemhm:
-        case OpCode_hintmask:
-        case OpCode_cntrmask:
-          has_width = ((env.argStack.get_count () & 1) != 0);
-          break;
-        case OpCode_hmoveto:
-        case OpCode_vmoveto:
-          has_width = (env.argStack.get_count () > 1);
-          break;
-        case OpCode_rmoveto:
-          has_width = (env.argStack.get_count () > 2);
-          break;
-        default:
-          return;
+	case OpCode_endchar:
+	case OpCode_hstem:
+	case OpCode_hstemhm:
+	case OpCode_vstem:
+	case OpCode_vstemhm:
+	case OpCode_hintmask:
+	case OpCode_cntrmask:
+	  has_width = ((env.argStack.get_count () & 1) != 0);
+	  break;
+	case OpCode_hmoveto:
+	case OpCode_vmoveto:
+	  has_width = (env.argStack.get_count () > 1);
+	  break;
+	case OpCode_rmoveto:
+	  has_width = (env.argStack.get_count () > 2);
+	  break;
+	default:
+	  return;
       }
       env.set_width (has_width);
     }

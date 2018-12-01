@@ -45,7 +45,7 @@ struct DictVal : OpStr
   {
   }
 
-  Number              single_val;
+  Number	      single_val;
 };
 
 typedef DictVal NumDictVal;
@@ -73,10 +73,10 @@ struct TopDictValues : DictValues<OPSTR>
     {
       case OpCode_CharStrings:
       case OpCode_FDArray:
-        return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
+	return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
 
       default:
-        return opstr.str.len;
+	return opstr.str.len;
     }
   }
 
@@ -90,16 +90,16 @@ struct DictOpSet : OpSet<Number>
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
-        env.argStack.push_longint_from_substr (env.substr);
-        break;
+	env.argStack.push_longint_from_substr (env.substr);
+	break;
 
       case OpCode_BCD:  /* real number */
-        env.argStack.push_real (parse_bcd (env.substr));
-        break;
+	env.argStack.push_real (parse_bcd (env.substr));
+	break;
 
       default:
-        OpSet<Number>::process_op (op, env);
-        break;
+	OpSet<Number>::process_op (op, env);
+	break;
     }
   }
 
@@ -123,84 +123,84 @@ struct DictOpSet : OpSet<Number>
       char d;
       if ((i & 1) == 0)
       {
-        if (!substr.avail ())
-        {
-          substr.set_error ();
-          return 0.0f;
-        }
-        byte = substr[0];
-        substr.inc ();
-        d = byte >> 4;
+	if (!substr.avail ())
+	{
+	  substr.set_error ();
+	  return 0.0f;
+	}
+	byte = substr[0];
+	substr.inc ();
+	d = byte >> 4;
       }
       else
-        d = byte & 0x0F;
+	d = byte & 0x0F;
 
       switch (d)
       {
-        case RESERVED:
-          substr.set_error ();
-          return v;
+	case RESERVED:
+	  substr.set_error ();
+	  return v;
 
-        case END:
-          value = (double)(neg? -int_part: int_part);
-          if (frac_count > 0)
-            value += (frac_part / pow (10.0, (double)frac_count));
-          if (exp_part != 0)
-          {
-            if (exp_neg)
-              value /= pow (10.0, (double)exp_part);
-            else
-              value *= pow (10.0, (double)exp_part);
-          }
-          return (float)value;
+	case END:
+	  value = (double)(neg? -int_part: int_part);
+	  if (frac_count > 0)
+	    value += (frac_part / pow (10.0, (double)frac_count));
+	  if (exp_part != 0)
+	  {
+	    if (exp_neg)
+	      value /= pow (10.0, (double)exp_part);
+	    else
+	      value *= pow (10.0, (double)exp_part);
+	  }
+	  return (float)value;
 
-        case NEG:
-          if (i != 0)
-          {
-            substr.set_error ();
-            return 0.0f;
-          }
-          neg = true;
-          break;
+	case NEG:
+	  if (i != 0)
+	  {
+	    substr.set_error ();
+	    return 0.0f;
+	  }
+	  neg = true;
+	  break;
 
-        case DECIMAL:
-          if (part != INT_PART)
-          {
-            substr.set_error ();
-            return v;
-          }
-          part = FRAC_PART;
-          break;
+	case DECIMAL:
+	  if (part != INT_PART)
+	  {
+	    substr.set_error ();
+	    return v;
+	  }
+	  part = FRAC_PART;
+	  break;
 
-        case EXP_NEG:
-          exp_neg = true;
-          HB_FALLTHROUGH;
+	case EXP_NEG:
+	  exp_neg = true;
+	  HB_FALLTHROUGH;
 
-        case EXP_POS:
-          if (part == EXP_PART)
-          {
-            substr.set_error ();
-            return v;
-          }
-          part = EXP_PART;
-          break;
+	case EXP_POS:
+	  if (part == EXP_PART)
+	  {
+	    substr.set_error ();
+	    return v;
+	  }
+	  part = EXP_PART;
+	  break;
 
-        default:
-          switch (part) {
-            default:
-            case INT_PART:
-              int_part = (int_part * 10) + d;
-              break;
+	default:
+	  switch (part) {
+	    default:
+	    case INT_PART:
+	      int_part = (int_part * 10) + d;
+	      break;
 
-            case FRAC_PART:
-              frac_part = (frac_part * 10) + d;
-              frac_count++;
-              break;
+	    case FRAC_PART:
+	      frac_part = (frac_part * 10) + d;
+	      frac_count++;
+	      break;
 
-            case EXP_PART:
-              exp_part = (exp_part * 10) + d;
-              break;
-          }
+	    case EXP_PART:
+	      exp_part = (exp_part * 10) + d;
+	      break;
+	  }
       }
     }
 
@@ -225,9 +225,9 @@ struct DictOpSet : OpSet<Number>
       case OpCode_ForceBold:
       case OpCode_LanguageGroup:
       case OpCode_ExpansionFactor:
-        return true;
+	return true;
       default:
-        return false;
+	return false;
     }
   }
 };
@@ -239,19 +239,19 @@ struct TopDictOpSet : DictOpSet
   {
     switch (op) {
       case OpCode_CharStrings:
-        dictval.charStringsOffset = env.argStack.pop_uint ();
-        env.clear_args ();
-        break;
+	dictval.charStringsOffset = env.argStack.pop_uint ();
+	env.clear_args ();
+	break;
       case OpCode_FDArray:
-        dictval.FDArrayOffset = env.argStack.pop_uint ();
-        env.clear_args ();
-        break;
+	dictval.FDArrayOffset = env.argStack.pop_uint ();
+	env.clear_args ();
+	break;
       case OpCode_FontMatrix:
-        env.clear_args ();
-        break;
+	env.clear_args ();
+	break;
       default:
-        DictOpSet::process_op (op, env);
-        break;
+	DictOpSet::process_op (op, env);
+	break;
     }
   }
 };
@@ -266,7 +266,7 @@ struct DictInterpreter : Interpreter<ENV>
     {
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
       if (unlikely (SUPER::env.in_error ()))
-        return false;
+	return false;
     }
 
     return true;

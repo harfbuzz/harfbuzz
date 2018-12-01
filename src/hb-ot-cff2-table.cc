@@ -96,8 +96,8 @@ struct CFF2PathProcs_Extents : PathProcs<CFF2PathProcs_Extents, CFF2CSInterpEnv,
 struct CFF2CSOpSet_Extents : CFF2CSOpSet<CFF2CSOpSet_Extents, ExtentsParam, CFF2PathProcs_Extents> {};
 
 bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
-                                           hb_codepoint_t glyph,
-                                           hb_glyph_extents_t *extents) const
+					   hb_codepoint_t glyph,
+					   hb_glyph_extents_t *extents) const
 {
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 

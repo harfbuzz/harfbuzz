@@ -52,7 +52,7 @@ struct BlendArg : Number
   inline void set_real (float v) { reset_blends (); Number::set_real (v); }
 
   inline void set_blends (unsigned int numValues_, unsigned int valueIndex_,
-                          unsigned int numBlends, const BlendArg *blends_)
+			  unsigned int numBlends, const BlendArg *blends_)
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
@@ -80,7 +80,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
   template <typename ACC>
   inline void init (const ByteStr &str, ACC &acc, unsigned int fd,
-                    const int *coords_=nullptr, unsigned int num_coords_=0)
+		    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
 
@@ -133,10 +133,10 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
       region_count = varStore->varStore.get_region_index_count (get_ivs ());
       if (do_blend)
       {
-        scalars.resize (region_count);
-        varStore->varStore.get_scalars (get_ivs (),
-                                        (int *)coords, num_coords,
-                                        &scalars[0], region_count);
+	scalars.resize (region_count);
+	varStore->varStore.get_scalars (get_ivs (),
+					(int *)coords, num_coords,
+					&scalars[0], region_count);
       }
       seen_blend = true;
     }
@@ -157,10 +157,10 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   }
 
   inline unsigned int get_region_count (void) const { return region_count; }
-  inline void         set_region_count (unsigned int region_count_) { region_count = region_count_; }
+  inline void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
   inline unsigned int get_ivs (void) const { return ivs; }
-  inline void         set_ivs (unsigned int ivs_) { ivs = ivs_; }
-  inline bool         seen_vsindex (void) const { return seen_vsindex_; }
+  inline void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  inline bool	 seen_vsindex (void) const { return seen_vsindex_; }
 
   protected:
   inline void blend_arg (BlendArg &arg)
@@ -169,13 +169,13 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     {
       if (likely (scalars.len == arg.deltas.len))
       {
-        float v = arg.to_real ();
-        for (unsigned int i = 0; i < scalars.len; i++)
-        {
-          v += scalars[i] * arg.deltas[i].to_real ();
-        }
-        arg.set_real (v);
-        arg.deltas.resize (0);
+	float v = arg.to_real ();
+	for (unsigned int i = 0; i < scalars.len; i++)
+	{
+	  v += scalars[i] * arg.deltas[i].to_real ();
+	}
+	arg.set_real (v);
+	arg.deltas.resize (0);
       }
     }
   }
@@ -183,13 +183,13 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
   protected:
   const int     *coords;
   unsigned int  num_coords;
-  const         CFF2VariationStore *varStore;
+  const	 CFF2VariationStore *varStore;
   unsigned int  region_count;
   unsigned int  ivs;
   hb_vector_t<float>  scalars;
-  bool          do_blend;
-  bool          seen_vsindex_;
-  bool          seen_blend;
+  bool	  do_blend;
+  bool	  seen_vsindex_;
+  bool	  seen_blend;
 
   typedef CSInterpEnv<BlendArg, CFF2Subrs> SUPER;
 };
@@ -201,30 +201,30 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
     switch (op) {
       case OpCode_callsubr:
       case OpCode_callgsubr:
-        /* a subroutine number shoudln't be a blended value */
-        if (unlikely (env.argStack.peek ().blending ()))
-        {
-          env.set_error ();
-          break;
-        }
-        SUPER::process_op (op, env, param);
-        break;
+	/* a subroutine number shoudln't be a blended value */
+	if (unlikely (env.argStack.peek ().blending ()))
+	{
+	  env.set_error ();
+	  break;
+	}
+	SUPER::process_op (op, env, param);
+	break;
 
       case OpCode_blendcs:
-        OPSET::process_blend (env, param);
-        break;
+	OPSET::process_blend (env, param);
+	break;
 
       case OpCode_vsindexcs:
-        if (unlikely (env.argStack.peek ().blending ()))
-        {
-          env.set_error ();
-          break;
-        }
-        OPSET::process_vsindex (env, param);
-        break;
+	if (unlikely (env.argStack.peek ().blending ()))
+	{
+	  env.set_error ();
+	  break;
+	}
+	OPSET::process_vsindex (env, param);
+	break;
 
       default:
-        SUPER::process_op (op, env, param);
+	SUPER::process_op (op, env, param);
     }
   }
 

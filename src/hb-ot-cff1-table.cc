@@ -276,8 +276,8 @@ struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1
 
     Bounds  base_bounds, accent_bounds;
     if (likely (!env.in_seac && base && accent
-               && _get_bounds (param.cff, base, base_bounds, true)
-               && _get_bounds (param.cff, accent, accent_bounds, true)))
+	       && _get_bounds (param.cff, base, base_bounds, true)
+	       && _get_bounds (param.cff, accent, accent_bounds, true)))
     {
       param.bounds.merge (base_bounds);
       accent_bounds.offset (delta);

@@ -44,13 +44,13 @@ using namespace CFF;
 
 bool
 hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
-                            unsigned int fdCount,
-                            const FDSelect &src, /* IN */
-                            unsigned int &subset_fd_count /* OUT */,
-                            unsigned int &subset_fdselect_size /* OUT */,
-                            unsigned int &subset_fdselect_format /* OUT */,
-                            hb_vector_t<code_pair> &fdselect_ranges /* OUT */,
-                            Remap &fdmap /* OUT */)
+			    unsigned int fdCount,
+			    const FDSelect &src, /* IN */
+			    unsigned int &subset_fd_count /* OUT */,
+			    unsigned int &subset_fdselect_size /* OUT */,
+			    unsigned int &subset_fdselect_format /* OUT */,
+			    hb_vector_t<code_pair> &fdselect_ranges /* OUT */,
+			    Remap &fdmap /* OUT */)
 {
   subset_fd_count = 0;
   subset_fdselect_size = 0;
@@ -74,10 +74,10 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
 
       if (fd != prev_fd)
       {
-        num_ranges++;
-        prev_fd = fd;
-        code_pair pair = { fd, i };
-        fdselect_ranges.push (pair);
+	num_ranges++;
+	prev_fd = fd;
+	code_pair pair = { fd, i };
+	fdselect_ranges.push (pair);
       }
     }
 
@@ -93,13 +93,13 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
       /* create a fdmap */
       if (!fdmap.reset (fdCount))
       {
-        hb_set_destroy (set);
-        return false;
+	hb_set_destroy (set);
+	return false;
       }
 
       hb_codepoint_t  fd = CFF_UNDEF_CODE;
       while (set->next (&fd))
-        fdmap.add (fd);
+	fdmap.add (fd);
       assert (fdmap.get_count () == subset_fd_count);
       hb_set_destroy (set);
     }
@@ -143,10 +143,10 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
 template <typename FDSELECT3_4>
 static inline bool
 serialize_fdselect_3_4 (hb_serialize_context_t *c,
-                          const unsigned int num_glyphs,
-                          const FDSelect &src,
-                          unsigned int size,
-                          const hb_vector_t<code_pair> &fdselect_ranges)
+			  const unsigned int num_glyphs,
+			  const FDSelect &src,
+			  unsigned int size,
+			  const hb_vector_t<code_pair> &fdselect_ranges)
 {
   TRACE_SERIALIZE (this);
   FDSELECT3_4 *p = c->allocate_size<FDSELECT3_4> (size);
@@ -167,12 +167,12 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
  **/
 bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,
-                          const unsigned int num_glyphs,
-                          const FDSelect &src,
-                          unsigned int fd_count,
-                          unsigned int fdselect_format,
-                          unsigned int size,
-                          const hb_vector_t<code_pair> &fdselect_ranges)
+			  const unsigned int num_glyphs,
+			  const FDSelect &src,
+			  unsigned int fd_count,
+			  unsigned int fdselect_format,
+			  unsigned int size,
+			  const hb_vector_t<code_pair> &fdselect_ranges)
 {
   TRACE_SERIALIZE (this);
   FDSelect  *p = c->allocate_min<FDSelect> ();
@@ -191,12 +191,12 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
       unsigned int  fd = fdselect_ranges[range_index++].code;
       for (unsigned int i = 0; i < num_glyphs; i++)
       {
-        if ((range_index < fdselect_ranges.len) &&
-            (i >= fdselect_ranges[range_index].glyph))
-        {
-          fd = fdselect_ranges[range_index++].code;
-        }
-        p->fds[i].set (fd);
+	if ((range_index < fdselect_ranges.len) &&
+	    (i >= fdselect_ranges[range_index].glyph))
+	{
+	  fd = fdselect_ranges[range_index++].code;
+	}
+	p->fds[i].set (fd);
       }
       break;
     }
@@ -204,17 +204,17 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
 
     case 3:
       return serialize_fdselect_3_4<FDSelect3> (c,
-                                                num_glyphs,
-                                                src,
-                                                size,
-                                                fdselect_ranges);
+						num_glyphs,
+						src,
+						size,
+						fdselect_ranges);
 
     case 4:
       return serialize_fdselect_3_4<FDSelect4> (c,
-                                                num_glyphs,
-                                                src,
-                                                size,
-                                                fdselect_ranges);
+						num_glyphs,
+						src,
+						size,
+						fdselect_ranges);
 
     default:
       assert(false);
