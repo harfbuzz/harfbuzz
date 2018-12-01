@@ -599,7 +599,7 @@ struct cff_subset_plan {
                       hb_subset_plan_t *plan)
   {
      /* make sure notdef is first */
-    if ((plan->glyphs.len == 0) || (plan->glyphs[0u] != 0)) return false;
+    if ((plan->glyphs.len == 0) || (plan->glyphs[0] != 0)) return false;
 
     final_size = 0;
     num_glyphs = plan->glyphs.len;
@@ -813,7 +813,7 @@ struct cff_subset_plan {
     }
 
     if (!acc.is_CID ())
-      offsets.privateDictInfo = fontdicts_mod[0u].privateDictInfo;
+      offsets.privateDictInfo = fontdicts_mod[0].privateDictInfo;
 
     return ((subset_charstrings.len == plan->glyphs.len)
            && (fontdicts_mod.len == subset_fdcount));

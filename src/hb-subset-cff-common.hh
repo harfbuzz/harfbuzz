@@ -120,7 +120,7 @@ struct StrEncoder
       set_error ();
       return;
     }
-    memcpy (&buff[offset], &str.str[0u], str.len);
+    memcpy (&buff[offset], &str.str[0], str.len);
   }
 
   inline bool is_error (void) const { return error; }
@@ -226,7 +226,7 @@ struct CFFFontDict_OpSerializer : OpSerializer
     {
       HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
       if (unlikely (d == nullptr)) return_trace (false);
-      memcpy (d, &opstr.str.str[0u], opstr.str.len);
+      memcpy (d, &opstr.str.str[0], opstr.str.len);
     }
     return_trace (true);
   }

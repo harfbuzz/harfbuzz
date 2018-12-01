@@ -93,7 +93,7 @@ struct VORG
       unsigned int  size = VertOriginMetric::static_size * subset_metrics.len;
       VertOriginMetric  *metrics = c.allocate_size<VertOriginMetric> (size);
       if (likely (metrics != nullptr))
-        memcpy (metrics, &subset_metrics[0u], size);
+        memcpy (metrics, &subset_metrics[0], size);
       else
         success = false;
     }
