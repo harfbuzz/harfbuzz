@@ -136,7 +136,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
         scalars.resize (region_count);
         varStore->varStore.get_scalars (get_ivs (),
                                         (int *)coords, num_coords,
-                                        &scalars[static_cast<unsigned int>(0)], region_count);
+                                        &scalars[0u], region_count);
       }
       seen_blend = true;
     }
