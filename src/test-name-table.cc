@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb.h"
+#include "hb.hh"
 #include "hb-ot.h"
 
 #include <stdlib.h>
