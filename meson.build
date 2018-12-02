@@ -1,6 +1,6 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.47.0',
-  version: '1.7.6')
+  version: '2.2.0')
 
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
