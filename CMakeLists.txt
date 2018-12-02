@@ -168,10 +168,6 @@ extract_make_variable(HB_BASE_headers ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_FALLBACK_sources ${SRCSOURCES})
 add_prefix_to_list(HB_FALLBACK_sources "${PROJECT_SOURCE_DIR}/src/")
-extract_make_variable(HB_OT_sources ${SRCSOURCES})
-add_prefix_to_list(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/")
-extract_make_variable(HB_OT_headers ${SRCSOURCES})
-add_prefix_to_list(HB_OT_headers "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_SUBSET_sources ${SRCSOURCES})
 add_prefix_to_list(HB_SUBSET_sources "${PROJECT_SOURCE_DIR}/src/")
@@ -180,13 +176,10 @@ extract_make_variable(HB_SUBSET_headers ${SRCSOURCES})
 add_prefix_to_list(HB_SUBSET_headers "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
-extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES})
 #if (IN_HB_DIST)
   add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
-  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
 #else ()
 #  add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
-#  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
 #endif ()
 
 extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
@@ -212,7 +205,7 @@ set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 ## Define ragel tasks
 # if (NOT IN_HB_DIST)
-#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
+#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources})
 #    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
 #    set (target_name ${CMAKE_MATCH_1})
 #    add_custom_command(OUTPUT ${ragel_output}
@@ -246,8 +239,6 @@ set (project_sources
   ${HB_BASE_RAGEL_GENERATED_sources}
 
   ${HB_FALLBACK_sources}
-  ${HB_OT_sources}
-  ${HB_OT_RAGEL_GENERATED_sources}
 )
 
 set (subset_project_sources
@@ -260,7 +251,6 @@ set (project_headers
   #${HB_VERSION_H}
 
   ${HB_BASE_headers}
-  ${HB_OT_headers}
 )
 
 set (subset_project_headers

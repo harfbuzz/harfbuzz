@@ -28,10 +28,6 @@ HBSOURCES =  $(HB_BASE_sources)
 HBSOURCES += $(HB_BASE_RAGEL_GENERATED_sources)
 HBHEADERS = $(HB_BASE_headers)
 
-HBSOURCES += $(HB_OT_sources)
-HBSOURCES += $(HB_OT_RAGEL_GENERATED_sources)
-HBHEADERS += $(HB_OT_headers)
-
 if HAVE_FALLBACK
 HBSOURCES += $(HB_FALLBACK_sources)
 endif
@@ -299,12 +295,10 @@ built-sources: $(BUILT_SOURCES)
 
 RAGEL_GENERATED = \
 	$(patsubst %,$(srcdir)/%,$(HB_BASE_RAGEL_GENERATED_sources)) \
-	$(patsubst %,$(srcdir)/%,$(HB_OT_RAGEL_GENERATED_sources)) \
 	$(NULL)
 BUILT_SOURCES += $(RAGEL_GENERATED)
 EXTRA_DIST += \
 	$(HB_BASE_RAGEL_sources) \
-	$(HB_OT_RAGEL_sources) \
 	$(NULL)
 # We decided to add ragel-generated files to git...
 #MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
