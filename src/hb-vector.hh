@@ -105,6 +105,8 @@ struct hb_vector_t
 
   template <typename T> explicit_operator inline operator  T * (void) { return arrayZ(); }
   template <typename T> explicit_operator inline operator const T * (void) const { return arrayZ(); }
+  inline operator hb_array_t<Type> (void) { return as_array (); }
+  inline operator hb_array_t<const Type> (void) const { as_array (); }
 
   inline Type * operator  + (unsigned int i) { return arrayZ() + i; }
   inline const Type * operator  + (unsigned int i) const { return arrayZ() + i; }

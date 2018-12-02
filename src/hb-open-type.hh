@@ -374,16 +374,17 @@ struct UnsizedArrayOf
     return *p;
   }
 
-  template <typename T> inline operator T * (void) { return arrayZ; }
-  template <typename T> inline operator const T * (void) const { return arrayZ; }
-
   inline unsigned int get_size (unsigned int len) const
   { return len * Type::static_size; }
 
+  template <typename T> inline operator T * (void) { return arrayZ; }
+  template <typename T> inline operator const T * (void) const { return arrayZ; }
   inline hb_array_t<Type> as_array (unsigned int len)
   { return hb_array (arrayZ, len); }
   inline hb_array_t<const Type> as_array (unsigned int len) const
   { return hb_array (arrayZ, len); }
+  inline operator hb_array_t<Type> (void) { return as_array (); }
+  inline operator hb_array_t<const Type> (void) const { as_array (); }
 
   template <typename T>
   inline Type &lsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
@@ -488,6 +489,8 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
   { return hb_sorted_array (this->arrayZ, len); }
   inline hb_sorted_array_t<const Type> as_array (unsigned int len) const
   { return hb_sorted_array (this->arrayZ, len); }
+  inline operator hb_sorted_array_t<Type> (void) { return as_array (); }
+  inline operator hb_sorted_array_t<const Type> (void) const { as_array (); }
 
   template <typename T>
   inline Type &bsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
@@ -533,6 +536,8 @@ struct ArrayOf
   { return hb_array (arrayZ, len); }
   inline hb_array_t<const Type> as_array (void) const
   { return hb_array (arrayZ, len); }
+  inline operator hb_array_t<Type> (void) { return as_array (); }
+  inline operator hb_array_t<const Type> (void) const { as_array (); }
 
   inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
@@ -802,6 +807,8 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   { return hb_sorted_array (this->arrayZ, this->len); }
   inline hb_sorted_array_t<const Type> as_array (void) const
   { return hb_sorted_array (this->arrayZ, this->len); }
+  inline operator hb_sorted_array_t<Type> (void) { return as_array (); }
+  inline operator hb_sorted_array_t<const Type> (void) const { as_array (); }
 
   inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
