@@ -504,7 +504,7 @@ struct StateTable
   };
 
   inline int new_state (unsigned int newState) const
-  { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / nClasses; }
+  { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
 
   inline unsigned int get_class (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
