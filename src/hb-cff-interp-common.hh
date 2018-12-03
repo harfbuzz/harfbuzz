@@ -218,80 +218,41 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op) ? 2: 1; 
 struct Number
 {
   inline void init (void)
-  { set_int (0); }
+  { set_real (0.0); }
   inline void fini (void)
   {}
 
-  inline void set_int (int v)	   { format = NumInt; u.int_val = v; }
-  inline int to_int (void) const	{ return is_int ()? u.int_val: (int)to_real (); }
-  inline void set_fixed (int32_t v)     { format = NumFixed; u.fixed_val = v; }
+  inline void set_int (int v)	   { value = (double)v; }
+  inline int to_int (void) const	{ return (int)value; }
+  inline void set_fixed (int32_t v)     { value = v / 65536.0; }
   inline int32_t to_fixed (void) const
   {
-    if (is_fixed ())
-      return u.fixed_val;
-    else if (is_real ())
-      return (int32_t)(u.real_val * 65536.0f);
-    else
-      return (int32_t)(u.int_val << 16);
+    return (int32_t)(value * 65536.0);
   }
-  inline void set_real (float v)	{ format = NumReal; u.real_val = v; }
+  inline void set_real (float v)	{ value = (double)v; }
   inline float to_real (void) const
   {
-    if (is_real ())
-      return u.real_val;
-    if (is_fixed ())
-      return u.fixed_val / 65536.0f;
-    else
-      return (float)u.int_val;
+    return (float)value;
   }
 
   inline int ceil (void) const
   {
-    switch (format)
-    {
-      default:
-      case NumInt:
-	return u.int_val;
-      case NumFixed:
-	return (u.fixed_val + 0xFFFF) >> 16;
-      case NumReal:
-	return (int)ceilf (u.real_val);
-    }
+    return (int)::ceil (value);
   }
 
   inline int floor (void) const
   {
-    switch (format)
-    {
-      default:
-      case NumInt:
-	return u.int_val;
-      case NumFixed:
-	return u.fixed_val >> 16;
-      case NumReal:
-	return (int)floorf (u.real_val);
-    }
+    return (int)::floor (value);
   }
 
   inline bool in_int_range (void) const
   {
-    if (is_int ())
-      return true;
-    if (is_fixed () && ((u.fixed_val & 0xFFFF) == 0))
-      return true;
-    else
-      return ((float)(int16_t)to_int () == u.real_val);
+    return ((double)(int16_t)to_int () == value);
   }
 
   inline bool operator > (const Number &n) const
   {
-    switch (format)
-    {
-      default:
-      case NumInt: return u.int_val > n.to_int ();
-      case NumFixed: return u.fixed_val > n.to_fixed ();
-      case NumReal: return u.real_val > n.to_real ();
-    }
+    return value > n.to_real ();
   }
 
   inline bool operator < (const Number &n) const
@@ -305,32 +266,13 @@ struct Number
 
   inline const Number &operator += (const Number &n)
   {
-    if (format == NumReal || n.format == NumReal)
-      set_real (to_real () + n.to_real ());
-    else if (format == NumFixed || n.format == NumFixed)
-      set_fixed (to_fixed () + n.to_fixed ());
-    else
-      set_int (to_int () + n.to_int ());
+    set_real (to_real () + n.to_real ());
 
     return *this;
   }
 
 protected:
-  enum NumFormat {
-    NumInt,
-    NumFixed,
-    NumReal
-  };
-  NumFormat  format;
-  union {
-    int     int_val;
-    int32_t fixed_val;
-    float   real_val;
-  } u;
-
-  inline bool  is_int (void) const { return format == NumInt; }
-  inline bool  is_fixed (void) const { return format == NumFixed; }
-  inline bool  is_real (void) const { return format == NumReal; }
+  double  value;
 };
 
 /* byte string */
