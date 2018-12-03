@@ -57,8 +57,7 @@
     <para>
       For example, on an Ubuntu or Debian system, you would run:
       <programlisting>
-	<command>sudo apt install</command> <package>gcc g++
-	libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
+	<command>sudo apt install</command> <package>gcc g++ libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
       </programlisting>
       On Fedora, RHEL, CentOS, or other Red-Hat&ndash;based systems, you would run:
       <programlisting>
@@ -184,8 +183,7 @@
       <para>If you are
 	using MacPorts, you should run:
       <programlisting>
-	<command>sudo port install</command> <package>autoconf
-	automake libtool pkgconfig ragel gtk-doc</package> 
+	<command>sudo port install</command> <package>autoconf automake libtool pkgconfig ragel gtk-doc</package> 
       </programlisting>
       to install the build dependencies.
       </para>
@@ -231,7 +229,7 @@
       <variablelist>
 	<?dbfo list-presentation="blocks"?> 
 	<varlistentry>
-	  <term>--with-libstdc++</term>
+	  <term><command>--with-libstdc++</command></term>
 	  <listitem>
 	    <para>
 	      Allow linking with libstdc++. <emphasis>(Default = no)</emphasis>
@@ -244,7 +242,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-glib</term>
+	  <term><command>--with-glib</command></term>
 	  <listitem>
 	    <para>
 	     Use <ulink url="https://developer.gnome.org/glib/">GLib</ulink>. <emphasis>(Default = auto)</emphasis>
@@ -260,7 +258,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-gobject</term>
+	  <term><command>--with-gobject</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://developer.gnome.org/gobject/stable/">GObject</ulink>. <emphasis>(Default = no)</emphasis>
@@ -276,7 +274,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-cairo</term>
+	  <term><command>--with-cairo</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://cairographics.org/">Cairo</ulink>. <emphasis>(Default = auto)</emphasis>
@@ -295,7 +293,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-fontconfig</term>
+	  <term><command>--with-fontconfig</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">Fontconfig</ulink>. <emphasis>(Default = auto)</emphasis>
@@ -315,7 +313,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-icu</term>
+	  <term><command>--with-icu</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://site.icu-project.org/home">ICU</ulink> library. <emphasis>(Default = auto)</emphasis>
@@ -333,7 +331,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-ucdn</term>
+	  <term><command>--with-ucdn</command></term>
 	  <listitem>
 	    <para>
 	      Use HarfBuzz's <ulink url="https://github.com/harfbuzz/harfbuzz/tree/master/src/hb-ucdn">built-in UCDN library</ulink>. <emphasis>(Default = auto)</emphasis>
@@ -351,7 +349,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-graphite2</term>
+	  <term><command>--with-graphite2</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://graphite.sil.org/">Graphite2</ulink> library. <emphasis>(Default = no)</emphasis>
@@ -365,7 +363,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-freetype</term>
+	  <term><command>--with-freetype</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://www.freetype.org/">FreeType</ulink> library. <emphasis>(Default = auto)</emphasis>
@@ -380,7 +378,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-uniscribe</term>
+	  <term><command>--with-uniscribe</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink
@@ -398,7 +396,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-directwrite</term>
+	  <term><command>--with-directwrite</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/directwrite/direct-write-portal">DirectWrite</ulink> library (experimental). <emphasis>(Default = no)</emphasis>
@@ -414,7 +412,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-coretext</term>
+	  <term><command>--with-coretext</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://developer.apple.com/documentation/coretext">CoreText</ulink> library. <emphasis>(Default = no)</emphasis>
