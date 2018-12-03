@@ -205,7 +205,14 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 }
 
 
-bool
+/*
+ * hb_aat_layout_has_substitution:
+ * @face:
+ *
+ * Returns:
+ * Since: REPLACEME
+ */
+hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
   return face->table.morx->has_data () ||
@@ -259,9 +266,14 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
   hb_ot_layout_delete_glyphs_inplace (buffer, is_deleted_glyph);
 }
 
-
-
-bool
+/*
+ * hb_aat_layout_has_positioning:
+ * @face:
+ *
+ * Returns:
+ * Since: REPLACEME
+ */
+hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
   return face->table.kerx->has_data ();

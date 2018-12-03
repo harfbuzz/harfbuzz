@@ -56,9 +56,6 @@ HB_INTERNAL void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 			   hb_aat_map_t *map);
 
-HB_INTERNAL bool
-hb_aat_layout_has_substitution (hb_face_t *face);
-
 HB_INTERNAL void
 hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
@@ -69,9 +66,6 @@ hb_aat_layout_zero_width_deleted_glyphs (hb_buffer_t *buffer);
 
 HB_INTERNAL void
 hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer);
-
-HB_INTERNAL bool
-hb_aat_layout_has_positioning (hb_face_t *face);
 
 HB_INTERNAL void
 hb_aat_layout_position (const hb_ot_shape_plan_t *plan,

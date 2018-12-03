@@ -12,6 +12,8 @@ hb_aat_layout_feature_type_get_name_id
 hb_aat_layout_feature_selector_t
 hb_aat_layout_feature_selector_info_t
 hb_aat_layout_feature_type_get_selector_infos
+hb_aat_layout_has_substitution
+hb_aat_layout_has_positioning
 </SECTION>
 
 <SECTION>

@@ -457,6 +457,22 @@ hb_aat_layout_feature_type_get_selector_infos (hb_face_t                        
 					       unsigned int                          *default_index   /* OUT.     May be NULL. */);
 
 
+/*
+ * morx/mort
+ */
+
+HB_EXTERN hb_bool_t
+hb_aat_layout_has_substitution (hb_face_t *face);
+
+
+/*
+ * kerx
+ */
+
+HB_EXTERN hb_bool_t
+hb_aat_layout_has_positioning (hb_face_t *face);
+
+
 HB_END_DECLS
 
 #endif /* HB_AAT_LAYOUT_H */
