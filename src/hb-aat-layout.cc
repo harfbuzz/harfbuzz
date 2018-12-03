@@ -296,7 +296,14 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 }
 
 
-bool
+/*
+ * hb_aat_layout_has_tracking:
+ * @face:
+ *
+ * Returns:
+ * Since: REPLACEME
+ */
+hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
   return face->table.trak->has_data ();

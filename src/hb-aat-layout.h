@@ -473,6 +473,14 @@ HB_EXTERN hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face);
 
 
+/*
+ * trak
+ */
+
+HB_EXTERN hb_bool_t
+hb_aat_layout_has_tracking (hb_face_t *face);
+
+
 HB_END_DECLS
 
 #endif /* HB_AAT_LAYOUT_H */
