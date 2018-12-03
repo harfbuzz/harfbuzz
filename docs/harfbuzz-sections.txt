@@ -7,13 +7,14 @@ HB_OT_H_IN
 <FILE>hb-aat-layout</FILE>
 HB_AAT_LAYOUT_NO_SELECTOR_INDEX
 hb_aat_layout_feature_type_t
-hb_aat_layout_get_feature_types
-hb_aat_layout_feature_type_get_name_id
 hb_aat_layout_feature_selector_t
 hb_aat_layout_feature_selector_info_t
+hb_aat_layout_feature_type_get_name_id
 hb_aat_layout_feature_type_get_selector_infos
-hb_aat_layout_has_substitution
+hb_aat_layout_get_feature_types
 hb_aat_layout_has_positioning
+hb_aat_layout_has_substitution
+hb_aat_layout_has_tracking
 </SECTION>
 
 <SECTION>

@@ -72,9 +72,6 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer);
 
-HB_INTERNAL bool
-hb_aat_layout_has_tracking (hb_face_t *face);
-
 HB_INTERNAL void
 hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
 		     hb_font_t *font,
