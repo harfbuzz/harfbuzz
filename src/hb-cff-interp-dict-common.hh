@@ -103,9 +103,9 @@ struct DictOpSet : OpSet<Number>
     }
   }
 
-  static inline float parse_bcd (SubByteStr& substr)
+  static inline double parse_bcd (SubByteStr& substr)
   {
-    float v = 0.0f;
+    double v = 0.0;
 
     bool    neg = false;
     double  int_part = 0;
@@ -126,7 +126,7 @@ struct DictOpSet : OpSet<Number>
 	if (!substr.avail ())
 	{
 	  substr.set_error ();
-	  return 0.0f;
+	  return 0.0;
 	}
 	byte = substr[0];
 	substr.inc ();
@@ -152,13 +152,13 @@ struct DictOpSet : OpSet<Number>
 	    else
 	      value *= pow (10.0, (double)exp_part);
 	  }
-	  return (float)value;
+	  return value;
 
 	case NEG:
 	  if (i != 0)
 	  {
 	    substr.set_error ();
-	    return 0.0f;
+	    return 0.0;
 	  }
 	  neg = true;
 	  break;

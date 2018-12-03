@@ -229,10 +229,10 @@ struct Number
   {
     return (int32_t)(value * 65536.0);
   }
-  inline void set_real (float v)	{ value = (double)v; }
-  inline float to_real (void) const
+  inline void set_real (double v)	{ value = (double)v; }
+  inline double to_real (void) const
   {
-    return (float)value;
+    return value;
   }
 
   inline int ceil (void) const
@@ -520,7 +520,7 @@ struct ArgStack : Stack<ARG, 513>
     n.set_fixed (v);
   }
 
-  inline void push_real (float v)
+  inline void push_real (double v)
   {
     ARG &n = S::push ();
     n.set_real (v);
