@@ -18,7 +18,7 @@
   <para>
     HarfBuzz can properly shape all of the world's major writing
     systems. It runs on all major operating systems and software
-    platforms and it supports the modern font formats in use
+    platforms and it supports the major font formats in use
     today.
   </para>
   <section id="what-is-text-shaping">
@@ -48,7 +48,8 @@
       url="http://www.microsoft.com/typography/otspec/">OpenType</ulink>. The
     OpenType specification defines a series of <ulink url="https://github.com/n8willis/opentype-shaping-documents">shaping models</ulink> for
     various scripts from around the world. These shaping models depend on
-    the font including certain features in its <literal>GSUB</literal>
+    the font incorporating certain features as
+    <emphasis>lookups</emphasis> in its <literal>GSUB</literal> 
     and <literal>GPOS</literal> tables.
     </para>
     <para>
@@ -65,7 +66,7 @@
       Text strings will usually be tagged with a script and language
       tag that provide the context needed to perform text shaping
       correctly.  The necessary <ulink
-      url="https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags">Script</ulink> 
+      url="https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags">script</ulink> 
       and <ulink
       url="https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags">language</ulink>
       tags are defined by OpenType.
@@ -126,8 +127,8 @@
         <para>
           Many OpenType fonts contain ligatures: combinations of
           characters that are rendered as a single unit. For instance,
-	  it is common for the <literal>fi</literal> letter
-	  combination to appear in print as the single ligature glyph
+	  it is common for the &quot;f, i&quot; letter
+	  sequence to appear in print as the single ligature glyph
 	  &quot;ﬁ&quot;.
 	</para>
 	<para>
