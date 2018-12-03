@@ -2,6 +2,22 @@ project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.47.0',
   version: '2.2.0')
 
+hb_version_arr = meson.project_version().split('.')
+hb_version_major = hb_version_arr[0].to_int()
+hb_version_minor = hb_version_arr[1].to_int()
+hb_version_micro = hb_version_arr[2].to_int()
+
+# libtool versioning
+hb_version_int = hb_version_major*10000 + hb_version_minor*100 + hb_version_micro
+if hb_version_minor % 2 == 1
+  hb_libtool_revision = 0                # for unstable releases
+else
+  hb_libtool_revision = hb_version_micro # for stable releases
+endif
+hb_libtool_age = hb_version_int - hb_libtool_revision
+hb_libtool_current = hb_libtool_age
+hb_libtool_version_info = '@0@:@1@:@2@'.format(hb_libtool_current, hb_libtool_revision, hb_libtool_age)
+
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 
