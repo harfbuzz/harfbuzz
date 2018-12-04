@@ -49,7 +49,7 @@ struct BlendArg : Number
 
   inline void set_int (int v) { reset_blends (); Number::set_int (v); }
   inline void set_fixed (int32_t v) { reset_blends (); Number::set_fixed (v); }
-  inline void set_real (float v) { reset_blends (); Number::set_real (v); }
+  inline void set_real (double v) { reset_blends (); Number::set_real (v); }
 
   inline void set_blends (unsigned int numValues_, unsigned int valueIndex_,
 			  unsigned int numBlends, const BlendArg *blends_)
@@ -169,10 +169,10 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     {
       if (likely (scalars.len == arg.deltas.len))
       {
-	float v = arg.to_real ();
+	double v = arg.to_real ();
 	for (unsigned int i = 0; i < scalars.len; i++)
 	{
-	  v += scalars[i] * arg.deltas[i].to_real ();
+	  v += (double)scalars[i] * arg.deltas[i].to_real ();
 	}
 	arg.set_real (v);
 	arg.deltas.resize (0);
