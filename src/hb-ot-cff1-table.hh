@@ -654,6 +654,7 @@ struct NameDictValues
   static inline enum NameDictValIndex name_op_to_index (OpCode op)
   {
     switch (op) {
+      default:
       case OpCode_version:
 	return version;
       case OpCode_Notice:
@@ -670,8 +671,6 @@ struct NameDictValues
 	return postscript;
       case OpCode_FontName:
 	return fontName;
-      default:
-	assert (0);
       }
   }
 
