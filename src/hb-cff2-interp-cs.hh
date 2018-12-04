@@ -169,7 +169,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     {
       if (likely (scalars.len == arg.deltas.len))
       {
-	float v = arg.to_real ();
+	double v = arg.to_real ();
 	for (unsigned int i = 0; i < scalars.len; i++)
 	{
 	  v += scalars[i] * arg.deltas[i].to_real ();

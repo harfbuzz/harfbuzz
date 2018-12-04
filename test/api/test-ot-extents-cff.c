@@ -171,7 +171,7 @@ test_extents_cff2_vsindex (void)
   g_assert_cmpint (extents.x_bearing, ==, 11);
   g_assert_cmpint (extents.y_bearing, ==, 656);
   g_assert_cmpint (extents.width, ==, 653);
-  g_assert_cmpint (extents.height, ==, -656);
+  g_assert_cmpint (extents.height, ==, -657);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);
   g_assert (result);

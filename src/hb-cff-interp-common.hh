@@ -229,7 +229,7 @@ struct Number
   {
     return (int32_t)(value * 65536.0);
   }
-  inline void set_real (double v)	{ value = (double)v; }
+  inline void set_real (double v)	{ value = v; }
   inline double to_real (void) const
   {
     return value;
