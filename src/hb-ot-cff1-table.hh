@@ -1093,7 +1093,7 @@ struct cff1
 	  CFF1FontDict_Interpreter font_interp;
 	  font_interp.env.init (fontDictStr);
 	  font = fontDicts.push ();
-	  if (font == &Crap(CFF1FontDictValues)) { fini (); return; }
+	  if (unlikely (font == &Crap(CFF1FontDictValues))) { fini (); return; }
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL  *priv = &privateDicts[i];

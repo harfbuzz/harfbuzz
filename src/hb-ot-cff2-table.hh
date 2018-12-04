@@ -486,7 +486,7 @@ struct cff2
 	CFF2FontDict_Interpreter font_interp;
 	font_interp.env.init (fontDictStr);
 	font = fontDicts.push ();
-	if (font == &Crap(CFF2FontDictValues)) { fini (); return; }
+	if (unlikely (font == &Crap(CFF2FontDictValues))) { fini (); return; }
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 
