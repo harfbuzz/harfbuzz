@@ -392,13 +392,15 @@ struct Charset1_2 {
     return 0;
   }
 
-  inline hb_codepoint_t get_glyph (hb_codepoint_t sid) const
+  inline hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
   {
     if (sid == 0) return 0;
     hb_codepoint_t  glyph = 1;
     for (unsigned int i = 0;; i++)
     {
-      if ((ranges[i].first <= sid) && sid <= ranges[i].first + ranges[i].nLeft)
+      if (glyph >= num_glyphs)
+      	return 0;
+      if ((ranges[i].first <= sid) && (sid <= ranges[i].first + ranges[i].nLeft))
 	return glyph + (sid - ranges[i].first);
       glyph += (ranges[i].nLeft + 1);
     }
@@ -550,9 +552,9 @@ struct Charset {
     if (format == 0)
       return u.format0.get_glyph (sid, num_glyphs);
     else if (format == 1)
-      return u.format1.get_glyph (sid);
+      return u.format1.get_glyph (sid, num_glyphs);
     else
-      return u.format2.get_glyph (sid);
+      return u.format2.get_glyph (sid, num_glyphs);
   }
 
   HBUINT8       format;
