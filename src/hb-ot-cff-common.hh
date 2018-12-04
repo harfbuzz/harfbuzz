@@ -208,7 +208,7 @@ struct CFFIndex
   inline unsigned int data_size (void) const
   { return HBINT8::static_size; }
 
-  ByteStr operator [] (unsigned int index) const
+  inline ByteStr operator [] (unsigned int index) const
   {
     if (likely (index < count))
       return ByteStr (data_base () + offset_at (index) - 1, offset_at (index + 1) - offset_at (index));
