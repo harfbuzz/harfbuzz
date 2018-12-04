@@ -1163,20 +1163,8 @@ struct hb_coretext_aat_face_data_t {};
 hb_coretext_aat_face_data_t *
 _hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
 {
-  static const hb_tag_t tags[] = {HB_CORETEXT_TAG_MORX, HB_CORETEXT_TAG_MORT, HB_CORETEXT_TAG_KERX};
-
-  for (unsigned int i = 0; i < ARRAY_LENGTH (tags); i++)
-  {
-    hb_blob_t *blob = face->reference_table (tags[i]);
-    if (hb_blob_get_length (blob))
-    {
-      hb_blob_destroy (blob);
-      return face->data.coretext ? (hb_coretext_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
-    }
-    hb_blob_destroy (blob);
-  }
-
-  return nullptr;
+  return hb_aat_layout_has_substitution (face) || hb_aat_layout_has_positioning (face) ?
+	 (hb_coretext_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : nullptr;
 }
 
 void
