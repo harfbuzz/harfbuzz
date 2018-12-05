@@ -65,7 +65,7 @@ struct BiasedSubrs
   inline void init (const SUBRS &subrs_)
   {
     subrs = &subrs_;
-    unsigned int  nSubrs = (subrs != nullptr)? subrs_.count: 0;
+    unsigned int  nSubrs = get_count ();
     if (nSubrs < 1240)
       bias = 107;
     else if (nSubrs < 33900)
