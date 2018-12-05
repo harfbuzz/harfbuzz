@@ -204,7 +204,7 @@ struct DictOpSet : OpSet<Number>
 	      break;
 
 	    case FRAC_PART:
-	      if (likely ((frac_count <= MAX_FRACT / 10)))
+	      if (likely ((fract_part <= MAX_FRACT / 10)))
 	      {
 		frac_part = (frac_part * 10) + d;
 		frac_count++;
