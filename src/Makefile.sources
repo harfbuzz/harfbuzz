@@ -1,6 +1,7 @@
 # Base and default-included sources and headers
 
 HB_BASE_sources = \
+	hb-aat-fdsc-table.hh \
 	hb-aat-layout-ankr-table.hh \
 	hb-aat-layout-bsln-table.hh \
 	hb-aat-layout-common.hh \
