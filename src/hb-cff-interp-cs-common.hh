@@ -65,7 +65,7 @@ struct BiasedSubrs
   inline void init (const SUBRS &subrs_)
   {
     subrs = &subrs_;
-    unsigned int  nSubrs = subrs_.count;
+    unsigned int  nSubrs = get_count ();
     if (nSubrs < 1240)
       bias = 107;
     else if (nSubrs < 33900)
@@ -76,8 +76,20 @@ struct BiasedSubrs
 
   inline void fini (void) {}
 
-  const SUBRS   *subrs;
+  inline unsigned int get_count (void) const { return (subrs == nullptr)? 0: subrs->count; }
+  inline unsigned int get_bias (void) const { return bias; }
+
+  inline ByteStr operator [] (unsigned int index) const
+  {
+    if (unlikely ((subrs == nullptr) || index >= subrs->count))
+      return Null(ByteStr);
+    else
+      return (*subrs)[index];
+  }
+
+  protected:
   unsigned int  bias;
+  const SUBRS   *subrs;
 };
 
 struct Point
@@ -137,8 +149,8 @@ struct CSInterpEnv : InterpEnv<ARG>
   inline bool popSubrNum (const BiasedSubrs<SUBRS>& biasedSubrs, unsigned int &subr_num)
   {
     int n = SUPER::argStack.pop_int ();
-    n += biasedSubrs.bias;
-    if (unlikely ((n < 0) || ((unsigned int)n >= biasedSubrs.subrs->count)))
+    n += biasedSubrs.get_bias ();
+    if (unlikely ((n < 0) || ((unsigned int)n >= biasedSubrs.get_count ())))
       return false;
 
     subr_num = (unsigned int)n;
@@ -158,7 +170,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     context.substr = SUPER::substr;
     callStack.push (context);
 
-    context.init ( (*biasedSubrs.subrs)[subr_num], type, subr_num);
+    context.init ( biasedSubrs[subr_num], type, subr_num);
     SUPER::substr = context.substr;
   }
 
