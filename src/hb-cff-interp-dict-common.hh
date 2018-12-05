@@ -108,7 +108,7 @@ struct DictOpSet : OpSet<Number>
   {
     bool    neg = false;
     double  int_part = 0;
-    int64_t frac_part = 0;
+    uint64_t frac_part = 0;
     uint32_t  frac_count = 0;
     bool    exp_neg = false;
     uint32_t  exp_part = 0;
@@ -206,7 +206,7 @@ struct DictOpSet : OpSet<Number>
 	    case FRAC_PART:
 	      if (likely ((frac_part <= MAX_FRACT / 10)))
 	      {
-		frac_part = (frac_part * 10) + d;
+		frac_part = (frac_part * 10) + (unsigned)d;
 		frac_count++;
 	      }
 	      break;
