@@ -146,7 +146,11 @@ struct DictOpSet : OpSet<Number>
 	case END:
 	  value = (double)(neg? -int_part: int_part);
 	  if (frac_count > 0)
-	    value += (frac_part / pow (10.0, (double)frac_count));
+	  {
+	    double frac = (frac_part / pow (10.0, (double)frac_count));
+	    if (neg) frac = -frac;
+	    value += frac;
+	  }
 	  if (unlikely (exp_overflow))
 	  {
 	    if (value == 0.0)
