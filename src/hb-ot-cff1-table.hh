@@ -1092,6 +1092,7 @@ struct cff1
 	  CFF1FontDict_Interpreter font_interp;
 	  font_interp.env.init (fontDictStr);
 	  font = fontDicts.push ();
+	  if (unlikely (font == &Crap(CFF1FontDictValues))) { fini (); return; }
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL  *priv = &privateDicts[i];
@@ -1131,7 +1132,7 @@ struct cff1
     {
       sc.end_processing ();
       topDict.fini ();
-      fontDicts.fini ();
+      fontDicts.fini_deep ();
       privateDicts.fini_deep ();
       hb_blob_destroy (blob);
       blob = nullptr;
