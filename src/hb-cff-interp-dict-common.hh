@@ -108,19 +108,19 @@ struct DictOpSet : OpSet<Number>
   {
     bool    neg = false;
     double  int_part = 0;
-    long    frac_part = 0;
-    unsigned int  frac_count = 0;
+    int64_t frac_part = 0;
+    uint32_t  frac_count = 0;
     bool    exp_neg = false;
-    unsigned int  exp_part = 0;
+    uint32_t  exp_part = 0;
     bool    exp_overflow = false;
     enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
     enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
-    const unsigned long MAX_FRACT = 0xFFFFFFFFFFFFFlu; /* 1^52-1 */
-    const unsigned int MAX_EXP = 0x7FFu; /* 1^11-1 */
+    const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFlu; /* 1^52-1 */
+    const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
 
     double  value = 0.0;
     unsigned char byte = 0;
-    for (unsigned int i = 0;; i++)
+    for (uint32_t i = 0;; i++)
     {
       char d;
       if ((i & 1) == 0)
