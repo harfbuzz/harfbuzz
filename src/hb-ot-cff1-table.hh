@@ -392,13 +392,15 @@ struct Charset1_2 {
     return 0;
   }
 
-  inline hb_codepoint_t get_glyph (hb_codepoint_t sid) const
+  inline hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
   {
     if (sid == 0) return 0;
     hb_codepoint_t  glyph = 1;
     for (unsigned int i = 0;; i++)
     {
-      if ((ranges[i].first <= sid) && sid <= ranges[i].first + ranges[i].nLeft)
+      if (glyph >= num_glyphs)
+      	return 0;
+      if ((ranges[i].first <= sid) && (sid <= ranges[i].first + ranges[i].nLeft))
 	return glyph + (sid - ranges[i].first);
       glyph += (ranges[i].nLeft + 1);
     }
@@ -550,9 +552,9 @@ struct Charset {
     if (format == 0)
       return u.format0.get_glyph (sid, num_glyphs);
     else if (format == 1)
-      return u.format1.get_glyph (sid);
+      return u.format1.get_glyph (sid, num_glyphs);
     else
-      return u.format2.get_glyph (sid);
+      return u.format2.get_glyph (sid, num_glyphs);
   }
 
   HBUINT8       format;
@@ -1092,6 +1094,7 @@ struct cff1
 	  CFF1FontDict_Interpreter font_interp;
 	  font_interp.env.init (fontDictStr);
 	  font = fontDicts.push ();
+	  if (unlikely (font == &Crap(CFF1FontDictValues))) { fini (); return; }
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL  *priv = &privateDicts[i];
@@ -1131,7 +1134,7 @@ struct cff1
     {
       sc.end_processing ();
       topDict.fini ();
-      fontDicts.fini ();
+      fontDicts.fini_deep ();
       privateDicts.fini_deep ();
       hb_blob_destroy (blob);
       blob = nullptr;

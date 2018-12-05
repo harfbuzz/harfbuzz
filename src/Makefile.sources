@@ -1,6 +1,7 @@
 # Base and default-included sources and headers
 
 HB_BASE_sources = \
+	hb-aat-fdsc-table.hh \
 	hb-aat-layout-ankr-table.hh \
 	hb-aat-layout-bsln-table.hh \
 	hb-aat-layout-common.hh \
@@ -59,6 +60,7 @@ HB_BASE_sources = \
 	hb-ot-face.cc \
 	hb-ot-face.hh \
 	hb-ot-font.cc \
+	hb-ot-gasp-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \

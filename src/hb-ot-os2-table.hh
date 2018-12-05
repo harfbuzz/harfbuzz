@@ -30,7 +30,7 @@
 #include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
 
-namespace OT {
+#include "hb-set.hh"
 
 /*
  * OS/2 and Windows Metrics
@@ -38,15 +38,64 @@ namespace OT {
  */
 #define HB_OT_TAG_OS2 HB_TAG('O','S','/','2')
 
-struct OS2
-{
-  enum { tableTag = HB_OT_TAG_OS2 };
 
+namespace OT {
+
+struct OS2V1Tail
+{
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
+
+  public:
+  HBUINT32	ulCodePageRange1;
+  HBUINT32	ulCodePageRange2;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct OS2V2Tail
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBINT16	sxHeight;
+  HBINT16	sCapHeight;
+  HBUINT16	usDefaultChar;
+  HBUINT16	usBreakChar;
+  HBUINT16	usMaxContext;
+  public:
+  DEFINE_SIZE_STATIC (10);
+};
+
+struct OS2V5Tail
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT16	usLowerOpticalPointSize;
+  HBUINT16	usUpperOpticalPointSize;
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
+struct OS2
+{
+  enum { tableTag = HB_OT_TAG_OS2 };
+
+  inline const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
+  inline const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
+  inline const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
@@ -125,10 +174,18 @@ struct OS2
     return (font_page_t) (fsSelection & 0xFF00);
   }
 
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
+    if (unlikely (version >= 1 && !v1X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 2 && !v2X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 5 && !v5X.sanitize (c))) return_trace (false);
+    return_trace (true);
+  }
+
   public:
   HBUINT16	version;
-
-  /* Version 0 */
   HBINT16	xAvgCharWidth;
   HBUINT16	usWeightClass;
   HBUINT16	usWidthClass;
@@ -155,24 +212,11 @@ struct OS2
   HBINT16	sTypoLineGap;
   HBUINT16	usWinAscent;
   HBUINT16	usWinDescent;
-
-  /* Version 1 */
-  //HBUINT32	ulCodePageRange1;
-  //HBUINT32	ulCodePageRange2;
-
-  /* Version 2 */
-  //HBINT16	sxHeight;
-  //HBINT16	sCapHeight;
-  //HBUINT16	usDefaultChar;
-  //HBUINT16	usBreakChar;
-  //HBUINT16	usMaxContext;
-
-  /* Version 5 */
-  //HBUINT16	usLowerOpticalPointSize;
-  //HBUINT16	usUpperOpticalPointSize;
-
+  OS2V1Tail	v1X;
+  OS2V2Tail	v2X;
+  OS2V5Tail	v5X;
   public:
-  DEFINE_SIZE_STATIC (78);
+  DEFINE_SIZE_MIN (78);
 };
 
 } /* namespace OT */
