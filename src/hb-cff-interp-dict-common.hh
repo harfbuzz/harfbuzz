@@ -28,6 +28,7 @@
 
 #include "hb-cff-interp-common.hh"
 #include <math.h>
+#include <float.h>
 
 namespace CFF {
 
@@ -105,20 +106,21 @@ struct DictOpSet : OpSet<Number>
 
   static inline double parse_bcd (SubByteStr& substr)
   {
-    double v = 0.0;
-
     bool    neg = false;
     double  int_part = 0;
-    long    frac_part = 0;
-    unsigned int  frac_count = 0;
+    uint64_t frac_part = 0;
+    uint32_t  frac_count = 0;
     bool    exp_neg = false;
-    unsigned int  exp_part = 0;
+    uint32_t  exp_part = 0;
+    bool    exp_overflow = false;
     enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
     enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
+    const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFllu; /* 1^52-1 */
+    const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
 
     double  value = 0.0;
     unsigned char byte = 0;
-    for (unsigned int i = 0;; i++)
+    for (uint32_t i = 0;; i++)
     {
       char d;
       if ((i & 1) == 0)
@@ -139,12 +141,25 @@ struct DictOpSet : OpSet<Number>
       {
 	case RESERVED:
 	  substr.set_error ();
-	  return v;
+	  return value;
 
 	case END:
 	  value = (double)(neg? -int_part: int_part);
 	  if (frac_count > 0)
-	    value += (frac_part / pow (10.0, (double)frac_count));
+	  {
+	    double frac = (frac_part / pow (10.0, (double)frac_count));
+	    if (neg) frac = -frac;
+	    value += frac;
+	  }
+	  if (unlikely (exp_overflow))
+	  {
+	    if (value == 0.0)
+	      return value;
+	    if (exp_neg)
+	      return neg? -DBL_MIN: DBL_MIN;
+	    else
+	      return neg? -DBL_MAX: DBL_MAX;
+	  }
 	  if (exp_part != 0)
 	  {
 	    if (exp_neg)
@@ -167,7 +182,7 @@ struct DictOpSet : OpSet<Number>
 	  if (part != INT_PART)
 	  {
 	    substr.set_error ();
-	    return v;
+	    return value;
 	  }
 	  part = FRAC_PART;
 	  break;
@@ -180,7 +195,7 @@ struct DictOpSet : OpSet<Number>
 	  if (part == EXP_PART)
 	  {
 	    substr.set_error ();
-	    return v;
+	    return value;
 	  }
 	  part = EXP_PART;
 	  break;
@@ -193,18 +208,26 @@ struct DictOpSet : OpSet<Number>
 	      break;
 
 	    case FRAC_PART:
-	      frac_part = (frac_part * 10) + d;
-	      frac_count++;
+	      if (likely ((frac_part <= MAX_FRACT / 10)))
+	      {
+		frac_part = (frac_part * 10) + (unsigned)d;
+		frac_count++;
+	      }
 	      break;
 
 	    case EXP_PART:
-	      exp_part = (exp_part * 10) + d;
+	      if (likely (exp_part * 10) + d <= MAX_EXP)
+	      {
+	      	exp_part = (exp_part * 10) + d;
+	      }
+	      else
+	      	exp_overflow = true;
 	      break;
 	  }
       }
     }
 
-    return v;
+    return value;
   }
 
   static inline bool is_hint_op (OpCode op)

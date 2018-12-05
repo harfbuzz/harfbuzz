@@ -391,8 +391,22 @@ struct SubByteStr
 
   inline operator ByteStr (void) const { return ByteStr (str, offset, str.len - offset); }
 
-  inline bool avail (unsigned int count=1) const { return str.check_limit (offset, count); }
-  inline void inc (unsigned int count=1) { offset += count; assert (count <= str.len); }
+  inline bool avail (unsigned int count=1) const
+  {
+    return (!in_error () && str.check_limit (offset, count));
+  }
+  inline void inc (unsigned int count=1)
+  {
+    if (likely (!in_error () && (offset <= str.len) && (offset + count <= str.len)))
+    {
+      offset += count;
+    }
+    else
+    {
+      offset = str.len;
+      set_error ();
+    }
+  }
 
   inline void set_error (void) { error = true; }
   inline bool in_error (void) const { return error; }
