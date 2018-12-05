@@ -115,7 +115,7 @@ struct DictOpSet : OpSet<Number>
     bool    exp_overflow = false;
     enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
     enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
-    const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFlu; /* 1^52-1 */
+    const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFllu; /* 1^52-1 */
     const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
 
     double  value = 0.0;
