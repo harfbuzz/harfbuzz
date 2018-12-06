@@ -235,6 +235,11 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
     env.process_blend ();
     k = env.get_region_count ();
     n = env.argStack.pop_uint ();
+    if (unlikely (env.argStack.get_count () < ((k+1) * n)))
+    {
+      env.set_error ();
+      return;
+    }
     /* copy the blend values into blend array of the default values */
     unsigned int start = env.argStack.get_count () - ((k+1) * n);
     for (unsigned int i = 0; i < n; i++)
