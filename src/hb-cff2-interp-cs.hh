@@ -52,7 +52,7 @@ struct BlendArg : Number
   inline void set_real (double v) { reset_blends (); Number::set_real (v); }
 
   inline void set_blends (unsigned int numValues_, unsigned int valueIndex_,
-			  unsigned int numBlends, const BlendArg *blends_)
+			  unsigned int numBlends, const hb_array_t<const BlendArg> &blends_)
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
@@ -235,15 +235,19 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
     env.process_blend ();
     k = env.get_region_count ();
     n = env.argStack.pop_uint ();
-    if (unlikely (env.argStack.get_count () < ((k+1) * n)))
+    /* copy the blend values into blend array of the default values */
+    unsigned int start = env.argStack.get_count () - ((k+1) * n);
+    /* let an obvious error case fail, but note CFF2 spec doesn't forbid n==0 */
+    if (unlikely (start > env.argStack.get_count ()))
     {
       env.set_error ();
       return;
     }
-    /* copy the blend values into blend array of the default values */
-    unsigned int start = env.argStack.get_count () - ((k+1) * n);
     for (unsigned int i = 0; i < n; i++)
-      env.argStack[start + i].set_blends (n, i, k, &env.argStack[start + n + (i * k)]);
+    {
+      const hb_array_t<const BlendArg>	blends = env.argStack.get_subarray (start + n + (i * k));
+      env.argStack[start + i].set_blends (n, i, k, blends);
+    }
 
     /* pop off blend values leaving default values now adorned with blend values */
     env.argStack.pop (k * n);

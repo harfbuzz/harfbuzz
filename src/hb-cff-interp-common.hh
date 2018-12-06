@@ -576,6 +576,11 @@ struct ArgStack : Stack<ARG, 513>
     return true;
   }
 
+  inline hb_array_t<const ARG> get_subarray (unsigned int start) const
+  {
+    return S::elements.sub_array (start);
+  }
+
   private:
   typedef Stack<ARG, 513> S;
 };
