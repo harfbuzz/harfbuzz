@@ -76,6 +76,22 @@ struct OS2V2Tail
 
 struct OS2V5Tail
 {
+  inline unsigned int get_optical_size () const
+  {
+    unsigned int lower_optical_size = usLowerOpticalPointSize;
+    unsigned int upper_optical_size = usUpperOpticalPointSize;
+
+    /* Per https://docs.microsoft.com/en-us/typography/opentype/spec/os2#lps */
+    if (lower_optical_size < upper_optical_size &&
+	lower_optical_size >= 1 &&
+	lower_optical_size <= 0xFFFE &&
+	upper_optical_size >= 2 &&
+	upper_optical_size <= 0xFFFF)
+      return (lower_optical_size + upper_optical_size) / 2;
+
+    return 12.f; // fallback
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

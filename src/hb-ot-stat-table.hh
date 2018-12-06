@@ -59,6 +59,8 @@ enum
 
 struct AxisValueFormat1
 {
+  inline float get_value () const { return value.to_float (); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -82,6 +84,8 @@ struct AxisValueFormat1
 
 struct AxisValueFormat2
 {
+  inline float get_value () const { return nominalValue.to_float (); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -109,6 +113,8 @@ struct AxisValueFormat2
 
 struct AxisValueFormat3
 {
+  inline float get_value () const { return value.to_float (); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -175,6 +181,19 @@ struct AxisValueFormat4
 
 struct AxisValue
 {
+  inline bool get_non_var_value (float *value) const
+  {
+    switch (u.format)
+    {
+    case 1:  *value = u.format1.get_value (); return true;
+    case 2:  *value = u.format2.get_value (); return true;
+    case 3:  *value = u.format3.get_value (); return true;
+    /* case 4:  *value = u.format4.get_value (); return true;
+       Not supported, or only format1 should be supported? */
+    default: return false;
+    }
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

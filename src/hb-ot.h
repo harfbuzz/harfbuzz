@@ -37,6 +37,7 @@
 #include "hb-ot-math.h"
 #include "hb-ot-name.h"
 #include "hb-ot-shape.h"
+#include "hb-ot-style.h"
 #include "hb-ot-var.h"
 
 HB_BEGIN_DECLS

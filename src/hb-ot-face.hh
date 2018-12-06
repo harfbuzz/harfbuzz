@@ -68,6 +68,7 @@
     HB_OT_TABLE(AAT, lcar) \
     HB_OT_TABLE(AAT, ltag) \
     HB_OT_TABLE(AAT, feat) \
+    HB_OT_TABLE(AAT, fdsc) \
     /* OpenType variations. */ \
     HB_OT_TABLE(OT, fvar) \
     HB_OT_TABLE(OT, avar) \
