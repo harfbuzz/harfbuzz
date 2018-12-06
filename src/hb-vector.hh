@@ -98,10 +98,28 @@ struct hb_vector_t
   inline hb_array_t<const Type> as_array (void) const
   { return hb_array (arrayZ(), len); }
 
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
+  { return as_array ().sub_array (start_offset, count);}
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
+  { return as_array ().sub_array (start_offset, count);}
+
   inline hb_sorted_array_t<Type> as_sorted_array (void)
   { return hb_sorted_array (arrayZ(), len); }
   inline hb_sorted_array_t<const Type> as_sorted_array (void) const
   { return hb_sorted_array (arrayZ(), len); }
+
+  inline hb_array_t<const Type> sorted_sub_array (unsigned int start_offset, unsigned int count) const
+  { return as_sorted_array ().sorted_sub_array (start_offset, count);}
+  inline hb_array_t<const Type> sorted_sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
+  { return as_sorted_array ().sorted_sub_array (start_offset, count);}
+  inline hb_array_t<Type> sorted_sub_array (unsigned int start_offset, unsigned int count)
+  { return as_sorted_array ().sorted_sub_array (start_offset, count);}
+  inline hb_array_t<Type> sorted_sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
+  { return as_sorted_array ().sorted_sub_array (start_offset, count);}
 
   template <typename T> explicit_operator inline operator  T * (void) { return arrayZ(); }
   template <typename T> explicit_operator inline operator const T * (void) const { return arrayZ(); }
