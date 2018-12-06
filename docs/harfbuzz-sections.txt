@@ -593,6 +593,13 @@ hb_ot_shape_glyphs_closure
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-style</FILE>
+hb_ot_style_flag_t
+hb_ot_style_info_t
+hb_ot_style_get
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-var</FILE>
 HB_OT_TAG_VAR_AXIS_ITALIC
 HB_OT_TAG_VAR_AXIS_OPTICAL_SIZE

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,43 +20,23 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
 #include "hb-ot-face.hh"
-
-#include "hb-ot-cff1-table.hh"
-#include "hb-ot-cff2-table.hh"
-#include "hb-ot-cmap-table.hh"
-#include "hb-ot-glyf-table.hh"
-#include "hb-ot-hmtx-table.hh"
-#include "hb-ot-kern-table.hh"
-#include "hb-ot-name-table.hh"
-#include "hb-ot-post-table.hh"
 #include "hb-ot-stat-table.hh"
-#include "hb-ot-color-cbdt-table.hh"
-#include "hb-ot-color-sbix-table.hh"
-#include "hb-ot-color-svg-table.hh"
-#include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-gsub-table.hh"
-#include "hb-ot-layout-gpos-table.hh"
 
-
-void hb_ot_face_t::init0 (hb_face_t *face)
+/**
+ * hb_ot_style_get:
+ *
+ * Since: REPLACEME
+ **/
+const hb_ot_style_info_t *
+hb_ot_style_get (hb_face_t    *face,
+		 unsigned int *num_entries /* OUT */)
 {
-  this->face = face;
-#define HB_OT_TABLE(Namespace, Type) Type.init0 ();
-#define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)
-  HB_OT_TABLES
-#undef HB_OT_ACCELERATOR
-#undef HB_OT_TABLE
-}
-void hb_ot_face_t::fini ()
-{
-#define HB_OT_TABLE(Namespace, Type) Type.fini ();
-#define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)
-  HB_OT_TABLES
-#undef HB_OT_ACCELERATOR
-#undef HB_OT_TABLE
+  const OT::STAT_accelerator_t &stat = *face->table.STAT;
+  if (num_entries) *num_entries = stat.styles.len;
+  return stat.styles.arrayZ ();
 }

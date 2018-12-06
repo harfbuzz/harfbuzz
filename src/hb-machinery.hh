@@ -114,6 +114,7 @@ static inline Type& StructAfter(TObject &X)
 
 #define DEFINE_SIZE_UNBOUNDED(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
+  enum { null_size = (size) }; \
   enum { min_size = (size) }
 
 #define DEFINE_SIZE_ARRAY(size, array) \

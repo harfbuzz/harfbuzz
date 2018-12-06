@@ -118,6 +118,7 @@ HB_BASE_sources = \
 	hb-ot-shape.cc \
 	hb-ot-shape.hh \
 	hb-ot-stat-table.hh \
+	hb-ot-style.cc \
 	hb-ot-tag-table.hh \
 	hb-ot-tag.cc \
 	hb-ot-var-avar-table.hh \
@@ -181,6 +182,7 @@ HB_BASE_headers = \
 	hb-ot-math.h \
 	hb-ot-name.h \
 	hb-ot-shape.h \
+	hb-ot-style.h \
 	hb-ot-var.h \
 	hb-ot.h \
 	hb-set.h \

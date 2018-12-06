@@ -40,10 +40,6 @@ namespace AAT {
 
 struct FontDescriptor
 {
-  bool has_data () const { return tag; }
-
-  int cmp (hb_tag_t a) const { return tag.cmp (a); }
-
   float get_value () const { return u.value.to_float (); }
 
   enum non_alphabetic_value_t {
@@ -62,7 +58,7 @@ struct FontDescriptor
     return_trace (c->check_struct (this));
   }
 
-  protected:
+  public:
   Tag		tag;		/* The 4-byte table tag name. */
   union {
   Fixed		value;		/* The value for the descriptor tag. */
@@ -76,30 +72,6 @@ struct fdsc
 {
   enum { tableTag = HB_AAT_TAG_fdsc };
 
-  enum {
-    Weight	 = HB_TAG ('w','g','h','t'),
-				/* Percent weight relative to regular weight.
-				 * (defaul value: 1.0) */
-    Width 	 = HB_TAG ('w','d','t','h'),
-				/* Percent width relative to regular width.
-				 * (default value: 1.0) */
-    Slant 	 = HB_TAG ('s','l','n','t'),
-				/* Angle of slant in degrees, where positive
-				 * is clockwise from straight up.
-				 * (default value: 0.0) */
-    OpticalSize  = HB_TAG ('o','p','s','z'),
-				/* Point size the font was designed for.
-				 * (default value: 12.0) */
-    NonAlphabetic= HB_TAG ('n','a','l','f')
-				/* These values are treated as integers,
-				 * not fixed32s. 0 means alphabetic, and greater
-				 * integers mean the font is non-alphabetic (e.g. symbols).
-				 * (default value: 0) */
-  };
-
-  const FontDescriptor &get_descriptor (hb_tag_t style) const
-  { return descriptors.lsearch (style); }
-
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -107,7 +79,7 @@ struct fdsc
 		  descriptors.sanitize (c));
   }
 
-  protected:
+  public:
   Fixed		version;	/* Version number of the font descriptors
 				 * table (0x00010000 for the current version). */
   LArrayOf<FontDescriptor>
