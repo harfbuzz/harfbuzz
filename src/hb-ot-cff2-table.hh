@@ -115,7 +115,7 @@ struct CFF2VariationStore
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)) && varStore.sanitize (c));
+    return_trace (likely (c->check_struct (this)) && c->check_range (&varStore, size) && varStore.sanitize (c));
   }
 
   inline bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
