@@ -588,16 +588,15 @@ struct hb_array_t
 
   inline unsigned int get_size (void) const { return len * sizeof (Type); }
 
-  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
-    if (!seg_count) return hb_array_t<Type> ();
-
     unsigned int count = len;
     if (unlikely (start_offset > count))
       count = 0;
     else
       count -= start_offset;
-    count = *seg_count = MIN (count, *seg_count);
+    if (seg_count)
+      count = *seg_count = MIN (count, *seg_count);
     return hb_array_t<Type> (arrayZ + start_offset, count);
   }
   inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const

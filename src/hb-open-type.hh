@@ -541,11 +541,11 @@ struct ArrayOf
 
   inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
-  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */) const
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
   { return as_array ().sub_array (start_offset, count);}
   inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
   { return as_array ().sub_array (start_offset, count);}
-  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */)
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count);}
 
   inline bool serialize (hb_serialize_context_t *c,
@@ -812,11 +812,11 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 
   inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
-  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */) const
+  inline hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
   { return as_array ().sub_array (start_offset, count);}
   inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
   { return as_array ().sub_array (start_offset, count);}
-  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count /* IN/OUT */)
+  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count);}
 
   template <typename T>
