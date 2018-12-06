@@ -1067,7 +1067,7 @@ struct cff1
       { fini (); return; }
 
       globalSubrs = &StructAtOffset<CFF1Subrs> (stringIndex, stringIndex->get_size ());
-      if ((globalSubrs != &Null (CFF1Subrs)) && !stringIndex->sanitize (&sc))
+      if ((globalSubrs != &Null (CFF1Subrs)) && !globalSubrs->sanitize (&sc))
       { fini (); return; }
 
       charStrings = &StructAtOffsetOrNull<CFF1CharStrings> (cff, topDict.charStringsOffset);

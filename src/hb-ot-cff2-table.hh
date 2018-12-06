@@ -466,6 +466,7 @@ struct cff2
 
       if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
 	  (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
+	  (globalSubrs == &Null(CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
 	  (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
 	  (((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
       { fini (); return; }
