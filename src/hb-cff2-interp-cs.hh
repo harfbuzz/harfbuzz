@@ -237,6 +237,12 @@ struct CFF2CSOpSet : CSOpSet<BlendArg, OPSET, CFF2CSInterpEnv, PARAM, PATH>
     n = env.argStack.pop_uint ();
     /* copy the blend values into blend array of the default values */
     unsigned int start = env.argStack.get_count () - ((k+1) * n);
+    /* let an obvious error case fail, but note CFF2 spec doesn't forbid n==0 */
+    if (unlikely (start > env.argStack.get_count ()))
+    {
+      env.set_error ();
+      return;
+    }
     for (unsigned int i = 0; i < n; i++)
     {
       const hb_array_t<const BlendArg>	blends = env.argStack.get_subarray (start + n + (i * k));
