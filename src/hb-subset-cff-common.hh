@@ -526,11 +526,19 @@ struct SubrSubsetParam
   }
 
   template <typename ENV>
-  inline void set_current_str (ENV &env)
+  inline void set_current_str (ENV &env, bool calling)
   {
     ParsedCStr  *parsed_str = get_parsed_str_for_context (env.context);
     if (likely (parsed_str != nullptr))
-      current_parsed_str = parsed_str;
+    {
+      /* If the called subroutine is parsed partially but not completely yet,
+       * it must be because we are calling it recursively.
+       * Handle it as an error. */
+      if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.len > 0)))
+      	env.set_error ();
+      else
+      	current_parsed_str = parsed_str;
+    }
     else
       env.set_error ();
   }
