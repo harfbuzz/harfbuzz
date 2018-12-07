@@ -715,6 +715,7 @@ struct InterpEnv
   {
 #ifndef HB_NDEBUG
     assert (n <= argStack.get_count ());
+#endif
     argStack.pop (n);
   }
 
