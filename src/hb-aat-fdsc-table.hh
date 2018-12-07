@@ -52,7 +52,7 @@ struct GXFontDescriptor
   DEFINE_SIZE_STATIC (8);
 };
 
-struct gasp
+struct fdsc
 {
   enum { tableTag = HB_AAT_TAG_fdsc };
 
