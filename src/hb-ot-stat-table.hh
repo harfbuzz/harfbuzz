@@ -57,25 +57,6 @@ enum
   // Reserved = 0xFFFC				/* Reserved for future use — set to zero. */
 };
 
-struct StatAxisRecord
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
-  }
-
-  protected:
-  Tag		axisTag;	/* A tag identifying the axis of design variation. */
-  NameID	axisNameID;	/* The name ID for entries in the 'name' table that
-				 * provide a display string for this axis. */
-  HBUINT16	axisOrdering;	/* A value that applications can use to determine
-				 * primary sorting of face names, or for ordering
-				 * of descriptors when composing family or face names. */
-  public:
-  DEFINE_SIZE_STATIC (8);
-};
-
 struct AxisValueFormat1
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -221,6 +202,25 @@ struct AxisValue
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
+};
+
+struct StatAxisRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this)));
+  }
+
+  protected:
+  Tag		tag;		/* A tag identifying the axis of design variation. */
+  NameID	nameID;		/* The name ID for entries in the 'name' table that
+				 * provide a display string for this axis. */
+  HBUINT16	ordering;	/* A value that applications can use to determine
+				 * primary sorting of face names, or for ordering
+				 * of descriptors when composing family or face names. */
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
 
 struct STAT
