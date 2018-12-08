@@ -112,10 +112,11 @@ struct OS2
     OBLIQUE		= 1u<<9
   };
 
-  inline bool is_italic (void) const  { return fsSelection & ITALIC; }
-  inline bool is_oblique (void) const { return fsSelection & OBLIQUE; }
+  inline bool is_italic (void) const       { return fsSelection & ITALIC; }
+  inline bool is_oblique (void) const      { return fsSelection & OBLIQUE; }
+  inline bool is_typo_metrics (void) const { return fsSelection & USE_TYPO_METRICS; }
 
-  enum us_width_class_t {
+  enum width_class_t {
     FWIDTH_ULTRA_CONDENSED	= 1, /* 50% */
     FWIDTH_EXTRA_CONDENSED	= 2, /* 62.5% */
     FWIDTH_CONDENSED		= 3, /* 75% */

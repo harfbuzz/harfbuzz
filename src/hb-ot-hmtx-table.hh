@@ -192,16 +192,12 @@ struct hmtxvmtx
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
       bool got_font_extents = false;
-      if (T::os2Tag != HB_TAG_NONE)
+      if (T::os2Tag != HB_TAG_NONE && face->table.OS2->is_typo_metrics ())
       {
-#define USE_TYPO_METRICS (1u<<7)
-	if (0 != (face->table.OS2->fsSelection & USE_TYPO_METRICS))
-	{
-	  ascender = abs (face->table.OS2->sTypoAscender);
-	  descender = -abs (face->table.OS2->sTypoDescender);
-	  line_gap = face->table.OS2->sTypoLineGap;
-	  got_font_extents = (ascender | descender) != 0;
-	}
+	ascender = abs (face->table.OS2->sTypoAscender);
+	descender = -abs (face->table.OS2->sTypoDescender);
+	line_gap = face->table.OS2->sTypoLineGap;
+	got_font_extents = (ascender | descender) != 0;
       }
 
       hb_blob_t *_hea_blob = hb_sanitize_context_t().reference_table<H> (face);
