@@ -28,6 +28,7 @@
 #define HB_AAT_LAYOUT_COMMON_HH
 
 #include "hb-aat-layout.hh"
+#include "hb-open-type.hh"
 
 
 namespace AAT {

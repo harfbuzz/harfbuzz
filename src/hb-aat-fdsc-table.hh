@@ -26,6 +26,7 @@
 #define HB_AAT_FDSC_TABLE_HH
 
 #include "hb-aat-layout-common.hh"
+#include "hb-open-type.hh"
 
 /*
  * fdsc -- Font descriptors
@@ -37,17 +38,36 @@
 namespace AAT {
 
 
-struct GXFontDescriptor
+struct FontDescriptor
 {
+  inline bool has_data () const { return tag; }
+
+  inline int cmp (hb_tag_t a) const { return tag.cmp (a); }
+
+  inline float get_value () const { return u.value.to_float (); }
+
+  enum non_alphabetic_value_t {
+    Alphabetic		= 0,
+    Dingbats		= 1,
+    PiCharacters	= 2,
+    Fleurons		= 3,
+    DecorativeBorders	= 4,
+    InternationalSymbols= 5,
+    MathSymbols		= 6
+  };
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  public:
+  protected:
   Tag		tag;		/* The 4-byte table tag name. */
+  union {
   Fixed		value;		/* The value for the descriptor tag. */
+  HBUINT32	nalfType;	/* If the tag is `nalf`, see non_alphabetic_value_t */
+  } u;
   public:
   DEFINE_SIZE_STATIC (8);
 };
@@ -77,6 +97,9 @@ struct fdsc
 				 * (default value: 0) */
   };
 
+  inline const FontDescriptor &get_descriptor (hb_tag_t style) const
+  { return descriptors.lsearch (style); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -87,7 +110,7 @@ struct fdsc
   protected:
   Fixed		version;	/* Version number of the font descriptors
 				 * table (0x00010000 for the current version). */
-  LArrayOf<GXFontDescriptor>
+  LArrayOf<FontDescriptor>
 		descriptors;	/* List of tagged-coordinate pairs style descriptors
 				 * that will be included to characterize this font.
 				 * Each descriptor consists of a <tag, value> pair.
