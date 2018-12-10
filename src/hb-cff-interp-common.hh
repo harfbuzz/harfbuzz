@@ -630,9 +630,6 @@ struct ParsedValues
   {
     VAL *val = values.push ();
     val->op = op;
-#ifndef HB_NDEBUG
-    assert (substr.offset >= opStart);
-#endif
     val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
@@ -641,9 +638,6 @@ struct ParsedValues
   {
     VAL *val = values.push (v);
     val->op = op;
-#ifndef HB_NDEBUG
-    assert (substr.offset >= opStart);
-#endif
     val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
@@ -713,9 +707,6 @@ struct InterpEnv
 
   inline void pop_n_args (unsigned int n)
   {
-#ifndef HB_NDEBUG
-    assert (n <= argStack.get_count ());
-#endif
     argStack.pop (n);
   }
 
