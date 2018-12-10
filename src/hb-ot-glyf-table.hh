@@ -271,11 +271,14 @@ struct glyf
     }
 
     enum simple_glyph_flag_t {
+      FLAG_ON_CURVE = 0x01,
       FLAG_X_SHORT = 0x02,
       FLAG_Y_SHORT = 0x04,
       FLAG_REPEAT = 0x08,
       FLAG_X_SAME = 0x10,
-      FLAG_Y_SAME = 0x20
+      FLAG_Y_SAME = 0x20,
+      FLAG_RESERVED1 = 0x40,
+      FLAG_RESERVED2 = 0x80
     };
 
     /* based on FontTools _g_l_y_f.py::trim */
