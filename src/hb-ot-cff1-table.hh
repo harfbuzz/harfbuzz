@@ -211,7 +211,8 @@ struct Encoding {
 	hb_codepoint_t code = code_ranges[i].code;
 	for (int left = (int)code_ranges[i].glyph; left >= 0; left--)
 	  fmt0->codes[glyph++].set (code++);
-	assert ((glyph <= 0x100) && (code <= 0x100));
+	if (unlikely (!((glyph <= 0x100) && (code <= 0x100))))
+	  return_trace (false);
       }
     }
     else
@@ -221,7 +222,8 @@ struct Encoding {
       fmt1->nRanges.set (code_ranges.len);
       for (unsigned int i = 0; i < code_ranges.len; i++)
       {
-	assert ((code_ranges[i].code <= 0xFF) && (code_ranges[i].glyph <= 0xFF));
+	if (unlikely (!((code_ranges[i].code <= 0xFF) && (code_ranges[i].glyph <= 0xFF))))
+	  return_trace (false);
 	fmt1->ranges[i].first.set (code_ranges[i].code);
 	fmt1->ranges[i].nLeft.set (code_ranges[i].glyph);
       }
@@ -490,7 +492,8 @@ struct Charset {
       if (unlikely (fmt1 == nullptr)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.len; i++)
       {
-	assert (sid_ranges[i].glyph <= 0xFF);
+      	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
+	  return_trace (false);
 	fmt1->ranges[i].first.set (sid_ranges[i].code);
 	fmt1->ranges[i].nLeft.set (sid_ranges[i].glyph);
       }
@@ -501,7 +504,8 @@ struct Charset {
       if (unlikely (fmt2 == nullptr)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.len; i++)
       {
-	assert (sid_ranges[i].glyph <= 0xFFFF);
+      	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
+	  return_trace (false);
 	fmt2->ranges[i].first.set (sid_ranges[i].code);
 	fmt2->ranges[i].nLeft.set (sid_ranges[i].glyph);
       }

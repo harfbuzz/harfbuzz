@@ -578,7 +578,6 @@ struct SubrRemap : Remap
   inline int biased_num (unsigned int old_num) const
   {
     hb_codepoint_t new_num = (*this)[old_num];
-    assert (new_num != CFF_UNDEF_CODE);
     return (int)new_num - bias;
   }
 

@@ -51,7 +51,7 @@ inline unsigned int calcOffSize(unsigned int dataSize)
     size++;
     offset >>= 8;
   }
-  assert (size <= 4);
+  /* format does not support size > 4; caller should handle it as an error */
   return size;
 }
 
