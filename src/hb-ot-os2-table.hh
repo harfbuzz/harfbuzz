@@ -93,9 +93,56 @@ struct OS2
 {
   enum { tableTag = HB_OT_TAG_OS2 };
 
+  inline bool has_data () const { return this != &Null (OS2); }
+
   inline const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
   inline const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
   inline const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
+
+  enum fs_selection_flag_t {
+    ITALIC		= 1u<<0,
+    UNDERSCORE		= 1u<<1,
+    NEGATIVE		= 1u<<2,
+    OUTLINED		= 1u<<3,
+    STRIKEOUT		= 1u<<4,
+    BOLD		= 1u<<5,
+    REGULAR		= 1u<<6,
+    USE_TYPO_METRICS	= 1u<<7,
+    WWS			= 1u<<8,
+    OBLIQUE		= 1u<<9
+  };
+
+  inline bool is_italic (void) const       { return fsSelection & ITALIC; }
+  inline bool is_oblique (void) const      { return fsSelection & OBLIQUE; }
+  inline bool is_typo_metrics (void) const { return fsSelection & USE_TYPO_METRICS; }
+
+  enum width_class_t {
+    FWIDTH_ULTRA_CONDENSED	= 1, /* 50% */
+    FWIDTH_EXTRA_CONDENSED	= 2, /* 62.5% */
+    FWIDTH_CONDENSED		= 3, /* 75% */
+    FWIDTH_SEMI_CONDENSED	= 4, /* 87.5% */
+    FWIDTH_NORMAL		= 5, /* 100% */
+    FWIDTH_SEMI_EXPANDED	= 6, /* 112.5% */
+    FWIDTH_EXPANDED		= 7, /* 125% */
+    FWIDTH_EXTRA_EXPANDED	= 8, /* 150% */
+    FWIDTH_ULTRA_EXPANDED	= 9  /* 200% */
+  };
+
+  inline float get_width () const
+  {
+    switch (usWidthClass) {
+    case FWIDTH_ULTRA_CONDENSED:return 50.f;
+    case FWIDTH_EXTRA_CONDENSED:return 62.5f;
+    case FWIDTH_CONDENSED:	return 75.f;
+    case FWIDTH_SEMI_CONDENSED:	return 87.5f;
+    default:
+    case FWIDTH_NORMAL:		return 100.f;
+    case FWIDTH_SEMI_EXPANDED:	return 112.5f;
+    case FWIDTH_EXPANDED:	return 125.f;
+    case FWIDTH_EXTRA_EXPANDED:	return 150.f;
+    case FWIDTH_ULTRA_EXPANDED:	return 200.f;
+    }
+  }
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
