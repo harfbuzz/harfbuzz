@@ -362,7 +362,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 	param.current_parsed_str->add_op (op, env.substr);
 	param.current_parsed_str->set_parsed ();
 	env.returnFromSubr ();
-	param.set_current_str (env);
+	param.set_current_str (env, false);
 	break;
 
       case OpCode_endchar:
@@ -395,7 +395,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
     env.callSubr (subrs, type);
     param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
-    param.set_current_str (env);
+    param.set_current_str (env, true);
   }
 
   private:

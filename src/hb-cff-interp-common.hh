@@ -332,8 +332,10 @@ struct ByteStr
   inline bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
 
   inline const HBUINT8& operator [] (unsigned int i) const {
-    assert (str && (i < len));
-    return (*str)[i];
+    if (likely (str && (i < len)))
+      return (*str)[i];
+    else
+      return Null(HBUINT8);
   }
 
   inline bool serialize (hb_serialize_context_t *c, const ByteStr &src)
@@ -628,7 +630,6 @@ struct ParsedValues
   {
     VAL *val = values.push ();
     val->op = op;
-    assert (substr.offset >= opStart);
     val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
@@ -637,7 +638,6 @@ struct ParsedValues
   {
     VAL *val = values.push (v);
     val->op = op;
-    assert (substr.offset >= opStart);
     val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
@@ -707,7 +707,6 @@ struct InterpEnv
 
   inline void pop_n_args (unsigned int n)
   {
-    assert (n <= argStack.get_count ());
     argStack.pop (n);
   }
 
