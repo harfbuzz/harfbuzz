@@ -60,10 +60,10 @@ try:
 						yield 0x10000 + (high_surrogate - 0xD800) * 0x400 + (cp - 0xDC00)
 						high_surrogate = None
 					else:
-						yield 0xFFFC
+						yield 0xFFFD
 				else:
 					if high_surrogate:
-						yield 0xFFFC
+						yield 0xFFFD
 						high_surrogate = None
 					if 0xD800 <= cp <= 0xDBFF:
 						high_surrogate = cp
@@ -71,7 +71,7 @@ try:
 						yield cp
 						high_surrogate = None
 			if high_surrogate:
-				yield 0xFFFC
+				yield 0xFFFD
 
 except NameError:
 	unichr = chr
