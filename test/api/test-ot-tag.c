@@ -202,11 +202,11 @@ test_language_two_way (const char *tag_s, const char *lang_s)
 {
   hb_language_t lang = hb_language_from_string (lang_s, -1);
   hb_tag_t tag = hb_tag_from_string (tag_s, -1);
+  hb_tag_t tag2;
+  unsigned int count = 1;
 
   g_test_message ("Testing language %s <-> tag %s", lang_s, tag_s);
 
-  hb_tag_t tag2;
-  unsigned int count = 1;
   hb_ot_tags_from_script_and_language (HB_SCRIPT_INVALID,
 				       lang,
 				       NULL, NULL, &count, &tag2);
@@ -223,11 +223,11 @@ test_tag_from_language (const char *tag_s, const char *lang_s)
 {
   hb_language_t lang = hb_language_from_string (lang_s, -1);
   hb_tag_t tag = hb_tag_from_string (tag_s, -1);
+  hb_tag_t tag2;
+  unsigned int count = 1;
 
   g_test_message ("Testing language %s -> tag %s", lang_s, tag_s);
 
-  hb_tag_t tag2;
-  unsigned int count = 1;
   hb_ot_tags_from_script_and_language (HB_SCRIPT_INVALID,
 				       lang,
 				       NULL, NULL, &count, &tag2);
@@ -467,9 +467,10 @@ test_tags (hb_script_t  script,
   unsigned int i;
   hb_tag_t *script_tags = malloc (script_count * sizeof (hb_tag_t));
   hb_tag_t *language_tags = malloc (language_count * sizeof (hb_tag_t));
+  hb_language_t lang;
   g_assert (script_tags);
   g_assert (language_tags);
-  hb_language_t lang = hb_language_from_string (lang_s, -1);
+  lang = hb_language_from_string (lang_s, -1);
   va_start (expected_tags, expected_language_count);
 
   hb_ot_tags_from_script_and_language (script, lang, &script_count, script_tags, &language_count, language_tags);

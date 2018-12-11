@@ -37,17 +37,19 @@ test_face (hb_face_t *face,
 	   hb_codepoint_t cp)
 {
   hb_font_t *font = hb_font_create (face);
+  hb_set_t *set;
+  hb_codepoint_t g;
+  hb_position_t x, y;
+  char buf[5] = {0};
+  unsigned int len;
+  hb_glyph_extents_t extents;
   hb_ot_font_set_funcs (font);
 
-  hb_set_t *set = hb_set_create ();
+  set = hb_set_create ();
   hb_face_collect_unicodes (face, set);
   hb_face_collect_variation_selectors (face, set);
   hb_face_collect_variation_unicodes (face, cp, set);
 
-  hb_codepoint_t g;
-  hb_position_t x, y;
-  hb_glyph_extents_t extents;
-  char buf[5] = {0};
   hb_font_get_nominal_glyph (font, cp, &g);
   hb_font_get_variation_glyph (font, cp, cp, &g);
   hb_font_get_glyph_h_advance (font, cp);
@@ -86,7 +88,7 @@ test_face (hb_face_t *face,
   hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
   hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
 
-  unsigned int len = sizeof (buf);
+  len = sizeof (buf);
   hb_ot_name_list_names (face, NULL);
   hb_ot_name_get_utf8 (face, cp, NULL, &len, buf);
   hb_ot_name_get_utf16 (face, cp, NULL, NULL, NULL);

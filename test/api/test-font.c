@@ -400,6 +400,7 @@ test_fontfuncs_parallels (void)
   hb_font_t *font0;
   hb_font_t *font1;
   hb_font_t *font2;
+  hb_codepoint_t glyph;
 
   blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
   face = hb_face_create (blob, 0);
@@ -424,7 +425,6 @@ test_fontfuncs_parallels (void)
   hb_font_funcs_destroy (ffuncs2);
 
   /* Just test that calling get_nominal_glyph doesn't infinite-loop. */
-  hb_codepoint_t glyph;
   hb_font_get_nominal_glyph (font2, 0x0020u, &glyph);
 
   hb_font_destroy (font2);
