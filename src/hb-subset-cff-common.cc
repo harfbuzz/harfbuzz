@@ -100,8 +100,9 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
       hb_codepoint_t  fd = CFF_UNDEF_CODE;
       while (set->next (&fd))
 	fdmap.add (fd);
-      assert (fdmap.get_count () == subset_fd_count);
       hb_set_destroy (set);
+      if (unlikely (fdmap.get_count () != subset_fd_count))
+      	return false;
     }
 
     /* update each font dict index stored as "code" in fdselect_ranges */
@@ -112,7 +113,8 @@ hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,
   /* determine which FDSelect format is most compact */
   if (subset_fd_count > 0xFF)
   {
-    assert (src.format == 4);
+    if (unlikely (src.format != 4))
+      return false;
     subset_fdselect_format = 4;
     subset_fdselect_size = FDSelect::min_size + FDSelect4::min_size + FDSelect4_Range::static_size * num_ranges + HBUINT32::static_size;
   }

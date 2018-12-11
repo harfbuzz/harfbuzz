@@ -175,11 +175,12 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
 	  OpStr supp_op;
 	  supp_op.op = op;
 	  supp_op.str.str = opstr.str.str + opstr.last_arg_offset;
-	  assert (opstr.str.len >= opstr.last_arg_offset + 3);
+	  if ( unlikely (!(opstr.str.len >= opstr.last_arg_offset + 3)))
+	    return_trace (false);
 	  supp_op.str.len = opstr.str.len - opstr.last_arg_offset;
-	return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::registry]) &&
-		      UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::ordering]) &&
-		      copy_opstr (c, supp_op));
+	  return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::registry]) &&
+			UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::ordering]) &&
+			copy_opstr (c, supp_op));
 	}
       default:
 	return_trace (CFFTopDict_OpSerializer<CFF1TopDictVal>::serialize (c, opstr, mod.offsets));
@@ -644,6 +645,8 @@ struct cff_subset_plan {
       CFF1TopDict_OpSerializer topSzr;
       unsigned int topDictSize = TopDict::calculate_serialized_size (topdict_mod, topSzr);
       offsets.topDictInfo.offSize = calcOffSize(topDictSize);
+      if (unlikely (offsets.topDictInfo.offSize > 4))
+      	return false;
       final_size += CFF1IndexOf<TopDict>::calculate_serialized_size<CFF1TopDictValuesMod>
 						(offsets.topDictInfo.offSize,
 						 &topdict_mod, 1, topdict_sizes, topSzr);
@@ -670,7 +673,8 @@ struct cff_subset_plan {
       /* SIDs for name strings in dicts are added before glyph names so they fit in 16-bit int range */
       if (unlikely (!collect_sids_in_dicts (acc)))
 	return false;
-      assert (sidmap.get_count () <= 0x8000);
+      if (unlikely (sidmap.get_count () > 0x8000))	/* assumption: a dict won't reference that many strings */
+      	return false;
       if (subset_charset)
 	offsets.charsetInfo.size = plan_subset_charset (acc, plan);
 
@@ -711,6 +715,8 @@ struct cff_subset_plan {
       /* global subrs */
       unsigned int dataSize = subset_globalsubrs.total_size ();
       offsets.globalSubrsInfo.offSize = calcOffSize (dataSize);
+      if (unlikely (offsets.globalSubrsInfo.offSize > 4))
+      	return false;
       offsets.globalSubrsInfo.size = CFF1Subrs::calculate_serialized_size (offsets.globalSubrsInfo.offSize, subset_globalsubrs.len, dataSize);
 
       /* local subrs */
@@ -732,6 +738,8 @@ struct cff_subset_plan {
 	  {
 	    offsets.localSubrsInfos[fd].offset = final_size;
 	    offsets.localSubrsInfos[fd].offSize = calcOffSize (dataSize);
+	    if (unlikely (offsets.localSubrsInfos[fd].offSize > 4))
+	      return false;
 	    offsets.localSubrsInfos[fd].size = CFF1Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].len, dataSize);
 	  }
 	}
@@ -775,6 +783,8 @@ struct cff_subset_plan {
 	  dictsSize += FontDict::calculate_serialized_size (acc.fontDicts[i], fontSzr);
 
       offsets.FDArrayInfo.offSize = calcOffSize (dictsSize);
+      if (unlikely (offsets.FDArrayInfo.offSize > 4))
+      	return false;
       final_size += CFF1Index::calculate_serialized_size (offsets.FDArrayInfo.offSize, subset_fdcount, dictsSize);
     }
 
@@ -783,6 +793,8 @@ struct cff_subset_plan {
       offsets.charStringsInfo.offset = final_size;
       unsigned int dataSize = subset_charstrings.total_size ();
       offsets.charStringsInfo.offSize = calcOffSize (dataSize);
+      if (unlikely (offsets.charStringsInfo.offSize > 4))
+      	return false;
       final_size += CFF1CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.len, dataSize);
     }
 
