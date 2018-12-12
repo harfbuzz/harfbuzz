@@ -1273,7 +1273,6 @@ struct SubstLookupSubTable
   inline typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
   {
     TRACE_DISPATCH (this, lookup_type);
-    if (unlikely (!c->may_dispatch (this, &u.sub_format))) return_trace (c->no_dispatch_return_value ());
     switch (lookup_type) {
     case Single:		return_trace (u.single.dispatch (c));
     case Multiple:		return_trace (u.multiple.dispatch (c));
@@ -1289,7 +1288,6 @@ struct SubstLookupSubTable
 
   protected:
   union {
-  HBUINT16			sub_format;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;
@@ -1300,7 +1298,7 @@ struct SubstLookupSubTable
   ReverseChainSingleSubst	reverseChainContextSingle;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, sub_format);
+  DEFINE_SIZE_MIN (0);
 };
 
 

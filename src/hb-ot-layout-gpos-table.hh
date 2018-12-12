@@ -1535,7 +1535,6 @@ struct PosLookupSubTable
   inline typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
   {
     TRACE_DISPATCH (this, lookup_type);
-    if (unlikely (!c->may_dispatch (this, &u.sub_format))) return_trace (c->no_dispatch_return_value ());
     switch (lookup_type) {
     case Single:		return_trace (u.single.dispatch (c));
     case Pair:			return_trace (u.pair.dispatch (c));
@@ -1552,7 +1551,6 @@ struct PosLookupSubTable
 
   protected:
   union {
-  HBUINT16		sub_format;
   SinglePos		single;
   PairPos		pair;
   CursivePos		cursive;
@@ -1564,7 +1562,7 @@ struct PosLookupSubTable
   ExtensionPos		extension;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, sub_format);
+  DEFINE_SIZE_MIN (0);
 };
 
 
