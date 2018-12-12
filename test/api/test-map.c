@@ -31,11 +31,12 @@ static void
 test_map_basic (void)
 {
   hb_map_t *empty = hb_map_get_empty ();
+  hb_map_t *m;
   g_assert (hb_map_is_empty (empty));
   g_assert (!hb_map_allocation_successful (empty));
   hb_map_destroy (empty);
 
-  hb_map_t *m = hb_map_create ();
+  m = hb_map_create ();
   g_assert (hb_map_allocation_successful (m));
   g_assert (hb_map_is_empty (m));
 
@@ -68,11 +69,12 @@ test_map_userdata (void)
 
   hb_user_data_key_t key[2];
   int *data = (int *) malloc (sizeof (int));
+  int *data2;
   *data = 3123;
   hb_map_set_user_data (m, &key[0], data, free, TRUE);
   g_assert_cmpint (*((int *) hb_map_get_user_data (m, &key[0])), ==, 3123);
 
-  int *data2 = (int *) malloc (sizeof (int));
+  data2 = (int *) malloc (sizeof (int));
   *data2 = 6343;
   hb_map_set_user_data (m, &key[0], data2, free, FALSE);
   g_assert_cmpint (*((int *) hb_map_get_user_data (m, &key[0])), ==, 3123);
@@ -86,10 +88,11 @@ static void
 test_map_refcount (void)
 {
   hb_map_t *m = hb_map_create ();
+  hb_map_t *m2;
   hb_map_set (m, 213, 223);
   g_assert_cmpint (hb_map_get (m, 213), ==, 223);
 
-  hb_map_t *m2 = hb_map_reference (m);
+  m2 = hb_map_reference (m);
   hb_map_destroy (m);
 
   /* We copied its reference so it is still usable after one destroy */

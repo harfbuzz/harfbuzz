@@ -317,6 +317,7 @@ test_hb_ot_color_glyph_get_layers (void)
 {
   hb_ot_color_layer_t layers[1];
   unsigned int count = 1;
+  unsigned int num_layers;
 
   g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 0, 0,
 						  NULL, NULL), ==, 0);
@@ -325,7 +326,6 @@ test_hb_ot_color_glyph_get_layers (void)
   g_assert_cmpuint (hb_ot_color_glyph_get_layers (cpal_v1, 2, 0,
 						  NULL, NULL), ==, 2);
 
-  unsigned int num_layers;
   num_layers = hb_ot_color_glyph_get_layers (cpal_v1, 2, 0, &count, layers);
 
   g_assert_cmpuint (num_layers, ==, 2);
@@ -382,13 +382,14 @@ static void
 test_hb_ot_color_svg (void)
 {
   hb_blob_t *blob;
+  unsigned int length;
+  const char *data;
 
   blob = hb_ot_color_glyph_reference_svg (svg, 0);
   g_assert (hb_blob_get_length (blob) == 0);
 
   blob = hb_ot_color_glyph_reference_svg (svg, 1);
-  unsigned int length;
-  const char *data = hb_blob_get_data (blob, &length);
+  data = hb_blob_get_data (blob, &length);
   g_assert_cmpuint (length, ==, 146);
   g_assert (strncmp (data, "<?xml", 4) == 0);
   g_assert (strncmp (data + 140, "</svg>", 5) == 0);
@@ -406,6 +407,7 @@ test_hb_ot_color_png (void)
   unsigned int length;
   const char *data;
   hb_glyph_extents_t extents;
+  hb_font_t *cbdt_font;
 
   /* sbix */
   hb_font_t *sbix_font;
@@ -431,7 +433,6 @@ test_hb_ot_color_png (void)
   hb_font_destroy (sbix_font);
 
   /* cbdt */
-  hb_font_t *cbdt_font;
   cbdt_font = hb_font_create (cbdt);
   blob = hb_ot_color_glyph_reference_png (cbdt_font, 0);
   g_assert (hb_blob_get_length (blob) == 0);

@@ -116,6 +116,7 @@ test_aat_has (void)
 int
 main (int argc, char **argv)
 {
+  unsigned int status;
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_aat_get_feature_types);
@@ -124,7 +125,7 @@ main (int argc, char **argv)
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");
   sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
-  unsigned int status = hb_test_run ();
+  status = hb_test_run ();
   hb_face_destroy (sbix);
   hb_face_destroy (face);
   return status;

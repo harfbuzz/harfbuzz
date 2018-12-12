@@ -287,10 +287,11 @@ hb_test_open_font_file (const char *font_path)
 #endif
 
   hb_blob_t *blob = hb_blob_create_from_file (path);
+  hb_face_t *face;
   if (hb_blob_get_length (blob) == 0)
     g_error ("Font %s not found.", path);
 
-  hb_face_t *face = hb_face_create (blob, 0);
+  face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
 
   g_free (path);
