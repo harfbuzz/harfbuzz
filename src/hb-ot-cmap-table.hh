@@ -847,7 +847,7 @@ struct cmap
 
   struct subset_plan
   {
-    inline size_t final_size () const
+    inline size_t final_size (void) const
     {
       return 4 // header
 	  +  8 * 3 // 3 EncodingRecord

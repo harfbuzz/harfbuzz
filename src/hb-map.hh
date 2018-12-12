@@ -156,14 +156,10 @@ struct hb_map_t
     return items[i].key == key ? items[i].value : INVALID;
   }
 
-  inline void del (hb_codepoint_t key)
-  {
-    set (key, INVALID);
-  }
+  inline void del (hb_codepoint_t key) { set (key, INVALID); }
+
   inline bool has (hb_codepoint_t key) const
-  {
-    return get (key) != INVALID;
-  }
+  { return get (key) != INVALID; }
 
   inline hb_codepoint_t operator [] (unsigned int key) const
   { return get (key); }
@@ -176,15 +172,9 @@ struct hb_map_t
     population = occupancy = 0;
   }
 
-  inline bool is_empty (void) const
-  {
-    return population == 0;
-  }
+  inline bool is_empty (void) const { return population == 0; }
 
-  inline unsigned int get_population () const
-  {
-    return population;
-  }
+  inline unsigned int get_population (void) const { return population; }
 
   protected:
 

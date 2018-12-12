@@ -56,10 +56,8 @@ struct DeviceRecord
       this->subset_plan = subset_plan;
     }
 
-    inline unsigned int len () const
-    {
-      return this->subset_plan->glyphs.len;
-    }
+    inline unsigned int len (void) const
+    { return this->subset_plan->glyphs.len; }
 
     inline const HBUINT8* operator [] (unsigned int i) const
     {

@@ -177,7 +177,7 @@ struct glyf
       const char *glyph_end;
       const CompositeGlyphHeader *current;
 
-      inline bool move_to_next ()
+      inline bool move_to_next (void)
       {
 	if (current->flags & CompositeGlyphHeader::MORE_COMPONENTS)
 	{

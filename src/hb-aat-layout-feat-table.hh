@@ -125,10 +125,10 @@ struct FeatureName
     return settings_table.len;
   }
 
-  inline hb_aat_layout_feature_type_t get_feature_type () const
+  inline hb_aat_layout_feature_type_t get_feature_type (void) const
   { return (hb_aat_layout_feature_type_t) (unsigned int) feature; }
 
-  inline hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
+  inline hb_ot_name_id_t get_feature_name_id (void) const { return nameIndex; }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {

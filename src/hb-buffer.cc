@@ -574,7 +574,7 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
     set_cluster (out_info[i], cluster);
 }
 void
-hb_buffer_t::delete_glyph ()
+hb_buffer_t::delete_glyph (void)
 {
   /* The logic here is duplicated in hb_ot_hide_default_ignorables(). */
 
@@ -727,7 +727,7 @@ hb_buffer_create (void)
 /**
  * hb_buffer_get_empty:
  *
- * 
+ *
  *
  * Return value: (transfer full):
  *
@@ -785,14 +785,14 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_user_data: (skip)
  * @buffer: an #hb_buffer_t.
- * @key: 
- * @data: 
- * @destroy: 
- * @replace: 
+ * @key:
+ * @data:
+ * @destroy:
+ * @replace:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -809,11 +809,11 @@ hb_buffer_set_user_data (hb_buffer_t        *buffer,
 /**
  * hb_buffer_get_user_data: (skip)
  * @buffer: an #hb_buffer_t.
- * @key: 
+ * @key:
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -863,9 +863,9 @@ hb_buffer_get_content_type (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_unicode_funcs:
  * @buffer: an #hb_buffer_t.
- * @unicode_funcs: 
+ * @unicode_funcs:
  *
- * 
+ *
  *
  * Since: 0.9.2
  **/
@@ -888,9 +888,9 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
  * hb_buffer_get_unicode_funcs:
  * @buffer: an #hb_buffer_t.
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.2
  **/
@@ -1094,7 +1094,7 @@ hb_buffer_set_flags (hb_buffer_t       *buffer,
  *
  * See hb_buffer_set_flags().
  *
- * Return value: 
+ * Return value:
  * The @buffer flags.
  *
  * Since: 0.9.7
@@ -1108,9 +1108,9 @@ hb_buffer_get_flags (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_cluster_level:
  * @buffer: an #hb_buffer_t.
- * @cluster_level: 
+ * @cluster_level:
  *
- * 
+ *
  *
  * Since: 0.9.42
  **/
@@ -1128,9 +1128,9 @@ hb_buffer_set_cluster_level (hb_buffer_t       *buffer,
  * hb_buffer_get_cluster_level:
  * @buffer: an #hb_buffer_t.
  *
- * 
  *
- * Return value: 
+ *
+ * Return value:
  *
  * Since: 0.9.42
  **/
@@ -1169,7 +1169,7 @@ hb_buffer_set_replacement_codepoint (hb_buffer_t    *buffer,
  *
  * See hb_buffer_set_replacement_codepoint().
  *
- * Return value: 
+ * Return value:
  * The @buffer replacement #hb_codepoint_t.
  *
  * Since: 0.9.31
@@ -1209,7 +1209,7 @@ hb_buffer_set_invisible_glyph (hb_buffer_t    *buffer,
  *
  * See hb_buffer_set_invisible_glyph().
  *
- * Return value: 
+ * Return value:
  * The @buffer invisible #hb_codepoint_t.
  *
  * Since: 2.0.0
@@ -1320,7 +1320,7 @@ hb_buffer_add (hb_buffer_t    *buffer,
  * Similar to hb_buffer_pre_allocate(), but clears any new items added at the
  * end.
  *
- * Return value: 
+ * Return value:
  * %true if @buffer memory allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
@@ -2000,7 +2000,7 @@ hb_buffer_diff (hb_buffer_t *buffer,
  * @user_data:
  * @destroy:
  *
- * 
+ *
  *
  * Since: 1.1.3
  **/

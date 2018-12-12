@@ -361,7 +361,9 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
 hb_ot_name_id_t
 hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
 					hb_aat_layout_feature_type_t  feature_type)
-{ return face->table.feat->get_feature_name_id (feature_type); }
+{
+  return face->table.feat->get_feature_name_id (feature_type);
+}
 
 /**
  * hb_aat_layout_feature_type_get_selectors:
