@@ -588,22 +588,20 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *extend_min (Type &obj)
+  inline Type *extend_size (Type &obj, unsigned int size)
   {
-    unsigned int size = obj.min_size;
-    assert (this->start <= (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    assert (this->start <= (char *) &obj);
+    assert ((char *) &obj <= this->head);
+    assert ((char *) &obj + size >= this->head);
     if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (&obj);
   }
 
   template <typename Type>
-  inline Type *extend (Type &obj)
-  {
-    unsigned int size = obj.get_size ();
-    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
-    return reinterpret_cast<Type *> (&obj);
-  }
+  inline Type *extend_min (Type &obj) { return extend_size (obj, obj.min_size); }
+
+  template <typename Type>
+  inline Type *extend (Type &obj) { return extend_size (obj, obj.get_size ()); }
 
   /* Output routines. */
   template <typename Type>
