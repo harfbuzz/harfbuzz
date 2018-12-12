@@ -139,6 +139,7 @@ struct hb_dispatch_context_t
   template <typename T, typename F>
   inline bool may_dispatch (const T *obj HB_UNUSED, const F *format HB_UNUSED) { return true; }
   static return_t no_dispatch_return_value (void) { return Context::default_return_value (); }
+  static bool stop_sublookup_iteration (const return_t r HB_UNUSED) { return false; }
 };
 
 

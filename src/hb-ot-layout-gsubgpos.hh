@@ -66,7 +66,6 @@ struct hb_closure_context_t :
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -162,7 +161,6 @@ struct hb_collect_glyphs_context_t :
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -665,7 +663,6 @@ struct hb_get_subtables_context_t :
     return HB_VOID;
   }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
 
   hb_get_subtables_context_t (array_t &array_) :
 			      array (array_),
