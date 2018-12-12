@@ -760,6 +760,14 @@ struct Lookup
     return_trace (true);
   }
 
+  /* Older compilers need this to NOT be locally defined in a function. */
+  template <typename TSubTable>
+  struct SubTableSanitizeWrapper : TSubTable
+  {
+    inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
+    { return this->dispatch (c, lookup_type); }
+  };
+
   template <typename TSubTable>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -771,7 +779,9 @@ struct Lookup
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
 
-    if (unlikely (!dispatch<TSubTable> (c))) return_trace (false);
+    if (unlikely (!CastR<OffsetArrayOf<SubTableSanitizeWrapper<TSubTable> > > (subTable)
+		   .sanitize (c, this, get_type ())))
+      return_trace (false);
 
     if (unlikely (get_type () == TSubTable::Extension))
     {
