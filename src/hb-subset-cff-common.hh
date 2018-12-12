@@ -507,11 +507,6 @@ struct SubrSubsetParam
     drop_hints = drop_hints_;
   }
 
-  inline bool is_valid (void) const
-  {
-    return (global_closure != nullptr) && (local_closure != nullptr);
-  }
-
   inline ParsedCStr *get_parsed_str_for_context (CallContext &context)
   {
     switch (context.type)
@@ -702,8 +697,6 @@ struct SubrSubsetter
 		  &parsed_global_subrs,  &parsed_local_subrs[fd],
 		  closures.global_closure, closures.local_closures[fd],
 		  drop_hints);
-      if (unlikely (!param.is_valid ()))
-      	return false;
 
       if (unlikely (!interp.interpret (param)))
 	return false;
@@ -725,8 +718,6 @@ struct SubrSubsetter
 		    &parsed_global_subrs,  &parsed_local_subrs[fd],
 		    closures.global_closure, closures.local_closures[fd],
 		    drop_hints);
-	if (unlikely (!param.is_valid ()))
-	  return false;
 
 	DropHintsParam  drop;
 	if (drop_hints_in_str (parsed_charstrings[i], param, drop))
