@@ -200,7 +200,12 @@ struct CFFIndex
   }
 
   inline unsigned int length_at (unsigned int index) const
-  { return offset_at (index + 1) - offset_at (index); }
+  {
+  	if (likely (offset_at (index + 1) >= offset_at (index))
+	  return offset_at (index + 1) - offset_at (index);
+	else
+	  return 0;
+  }
 
   inline const char *data_base (void) const
   { return (const char *)this + min_size + offset_array_size (); }
