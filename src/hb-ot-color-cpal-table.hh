@@ -117,8 +117,8 @@ struct CPAL
   inline unsigned int get_size (void) const
   { return min_size + numPalettes * sizeof (colorRecordIndicesZ[0]); }
 
-  inline unsigned int get_palette_count () const { return numPalettes; }
-  inline unsigned int get_color_count () const { return numColors; }
+  inline unsigned int get_palette_count (void) const { return numPalettes; }
+  inline unsigned int get_color_count (void) const   { return numColors; }
 
   inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
   { return v1 ().get_palette_flags (this, palette_index, numPalettes); }

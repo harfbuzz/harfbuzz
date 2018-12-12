@@ -46,25 +46,19 @@ struct TrackTableEntry
 {
   friend struct TrackData;
 
-  inline float get_track_value () const
-  {
-    return track.to_float ();
-  }
+  inline float get_track_value (void) const { return track.to_float (); }
 
-  inline int get_value (const void *base,
-			unsigned int index,
-			unsigned int nSizes) const
-  {
-    return (base+valuesZ).as_array (nSizes)[index];
-  }
+  inline int get_value (const void *base, unsigned int index,
+			unsigned int table_size) const
+  { return (base+valuesZ).as_array (table_size)[index]; }
 
   public:
   inline bool sanitize (hb_sanitize_context_t *c, const void *base,
-			unsigned int nSizes) const
+			unsigned int table_size) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
-			  (valuesZ.sanitize (c, base, nSizes))));
+			  (valuesZ.sanitize (c, base, table_size))));
   }
 
   protected:

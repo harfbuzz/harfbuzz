@@ -144,15 +144,9 @@ struct sbix
       num_glyphs = face->get_num_glyphs ();
     }
 
-    inline void fini (void)
-    {
-      table.destroy ();
-    }
+    inline void fini (void) { table.destroy (); }
 
-    inline bool has_data () const
-    {
-      return table->has_data ();
-    }
+    inline bool has_data (void) const { return table->has_data (); }
 
     inline bool get_extents (hb_font_t          *font,
 			     hb_codepoint_t      glyph,

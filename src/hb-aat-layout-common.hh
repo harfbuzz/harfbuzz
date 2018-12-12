@@ -513,10 +513,8 @@ struct StateTable
     return (this+classTable).get_class (glyph_id, num_glyphs, 1);
   }
 
-  inline const Entry<Extra> *get_entries () const
-  {
-    return (this+entryTable).arrayZ;
-  }
+  inline const Entry<Extra> *get_entries (void) const
+  { return (this+entryTable).arrayZ; }
 
   inline const Entry<Extra> *get_entryZ (int state, unsigned int klass) const
   {

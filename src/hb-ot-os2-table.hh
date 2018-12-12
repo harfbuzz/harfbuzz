@@ -1,5 +1,6 @@
 /*
  * Copyright © 2011,2012  Google, Inc.
+ * Copyright © 2018  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -93,13 +94,13 @@ struct OS2
 {
   enum { tableTag = HB_OT_TAG_OS2 };
 
-  inline bool has_data () const { return this != &Null (OS2); }
+  inline bool has_data (void) const { return this != &Null (OS2); }
 
   inline const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
   inline const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
   inline const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
 
-  enum fs_selection_flag_t {
+  enum selection_flag_t {
     ITALIC		= 1u<<0,
     UNDERSCORE		= 1u<<1,
     NEGATIVE		= 1u<<2,
@@ -128,7 +129,7 @@ struct OS2
     FWIDTH_ULTRA_EXPANDED	= 9  /* 200% */
   };
 
-  inline float get_width () const
+  inline float get_width (void) const
   {
     switch (usWidthClass) {
     case FWIDTH_ULTRA_CONDENSED:return 50.f;
@@ -214,12 +215,8 @@ struct OS2
   };
 
   // https://github.com/Microsoft/Font-Validator/blob/520aaae/OTFontFileVal/val_OS2.cs#L644-L681
-  inline font_page_t get_font_page () const
-  {
-    if (version != 0)
-      return (font_page_t) 0;
-    return (font_page_t) (fsSelection & 0xFF00);
-  }
+  inline font_page_t get_font_page (void) const
+  { return (font_page_t) (version == 0 ? fsSelection & 0xFF00 : 0); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

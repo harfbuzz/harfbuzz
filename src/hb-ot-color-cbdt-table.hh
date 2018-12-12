@@ -505,7 +505,7 @@ struct CBDT
       return hb_blob_get_empty ();
     }
 
-    inline bool has_data () const { return cbdt.get_length (); }
+    inline bool has_data (void) const { return cbdt.get_length (); }
 
     private:
     hb_blob_ptr_t<CBLC> cblc;

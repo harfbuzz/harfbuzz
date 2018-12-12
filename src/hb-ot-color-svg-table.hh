@@ -80,14 +80,9 @@ struct SVG
   struct accelerator_t
   {
     inline void init (hb_face_t *face)
-    {
-      table = hb_sanitize_context_t().reference_table<SVG> (face);
-    }
+    { table = hb_sanitize_context_t().reference_table<SVG> (face); }
 
-    inline void fini (void)
-    {
-      table.destroy ();
-    }
+    inline void fini (void) { table.destroy (); }
 
     inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
@@ -95,16 +90,14 @@ struct SVG
 							       table->svgDocEntries);
     }
 
-    inline bool has_data () const { return table->has_data (); }
+    inline bool has_data (void) const { return table->has_data (); }
 
     private:
     hb_blob_ptr_t<SVG> table;
   };
 
   inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
-  {
-    return (this+svgDocEntries).bsearch (glyph_id);
-  }
+  { return (this+svgDocEntries).bsearch (glyph_id); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

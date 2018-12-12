@@ -619,8 +619,7 @@ struct hb_array_t
     return not_found;
   }
   template <typename T>
-  inline const Type *lsearch (const T &x,
-			      const Type *not_found = nullptr) const
+  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -799,7 +798,7 @@ struct hb_vector_size_t
   { return process<HbOpAnd> (o); }
   inline hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process<HbOpXor> (o); }
-  inline hb_vector_size_t operator ~ () const
+  inline hb_vector_size_t operator ~ (void) const
   {
     hb_vector_size_t r;
 #if HB_VECTOR_SIZE && 0
