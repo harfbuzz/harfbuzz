@@ -262,7 +262,6 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
   inline Type& operator () (void *base) const
   {
-    if (unlikely (this->is_null ())) return Crap (Type);
     if (unlikely (this->is_null ())) return *_hb_has_null<Type, has_null>::get_crap ();
     return StructAtOffset<Type> (base, *this);
   }
