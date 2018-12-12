@@ -216,7 +216,7 @@ struct CFFIndex
   inline ByteStr operator [] (unsigned int index) const
   {
     if (likely (index < count))
-      return ByteStr (data_base () + offset_at (index) - 1, offset_at (index + 1) - offset_at (index));
+      return ByteStr (data_base () + offset_at (index) - 1, length_at (index));
     else
       return Null(ByteStr);
   }
