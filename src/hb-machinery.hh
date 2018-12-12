@@ -552,7 +552,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *start_embed (void) const
+  inline Type *start_embed (const Type *_ HB_UNUSED = nullptr) const
   {
     Type *ret = reinterpret_cast<Type *> (this->head);
     return ret;
