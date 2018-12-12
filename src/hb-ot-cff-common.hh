@@ -201,7 +201,7 @@ struct CFFIndex
 
   inline unsigned int length_at (unsigned int index) const
   {
-  	if (likely (offset_at (index + 1) >= offset_at (index))
+  	if (likely (offset_at (index + 1) >= offset_at (index)))
 	  return offset_at (index + 1) - offset_at (index);
 	else
 	  return 0;
