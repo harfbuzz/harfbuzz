@@ -670,6 +670,7 @@ struct subset_options_t : option_group_t
 {
   subset_options_t (option_parser_t *parser)
   {
+    keep_layout = false;
     drop_hints = false;
     desubroutinize = false;
 
@@ -678,6 +679,7 @@ struct subset_options_t : option_group_t
 
   void add_options (option_parser_t *parser);
 
+  hb_bool_t keep_layout;
   hb_bool_t drop_hints;
   hb_bool_t desubroutinize;
 };
