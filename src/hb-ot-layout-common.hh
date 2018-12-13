@@ -928,14 +928,15 @@ struct CoverageFormat2
     rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value.set (0);
     for (unsigned int i = 1; i < num_glyphs; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i]) {
+    {
+      if (glyphs[i - 1] + 1 != glyphs[i])
+      {
 	range++;
 	rangeRecord[range].start = glyphs[i];
 	rangeRecord[range].value.set (i);
-	rangeRecord[range].end = glyphs[i];
-      } else {
-	rangeRecord[range].end = glyphs[i];
       }
+      rangeRecord[range].end = glyphs[i];
+    }
     glyphs += num_glyphs;
     return_trace (true);
   }
@@ -1312,6 +1313,47 @@ struct ClassDefFormat2
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     return rangeRecord.bsearch (glyph_id).value;
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 hb_codepoint_t first_glyph,
+			 Supplier<HBUINT16> &glyphs,
+			 Supplier<HBUINT16> &klasses,
+			 unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    if (unlikely (!num_glyphs))
+    {
+      rangeRecord.len.set (0);
+      return_trace (true);
+    }
+
+    unsigned int num_ranges = 1;
+    for (unsigned int i = 1; i < num_glyphs; i++)
+      if (glyphs[i - 1] + 1 != glyphs[i] ||
+	  klasses[i - 1] != klasses[i])
+	num_ranges++;
+    rangeRecord.len.set (num_ranges);
+    if (unlikely (!c->extend (rangeRecord))) return_trace (false);
+
+    unsigned int range = 0;
+    rangeRecord[range].start = glyphs[0];
+    rangeRecord[range].value.set (klasses[0]);
+    for (unsigned int i = 1; i < num_glyphs; i++)
+    {
+      if (glyphs[i - 1] + 1 != glyphs[i] ||
+	  klasses[i - 1] != klasses[i])
+      {
+	range++;
+	rangeRecord[range].start = glyphs[i];
+	rangeRecord[range].value = klasses[i];
+      }
+      rangeRecord[range].end = glyphs[i];
+    }
+    glyphs += num_glyphs;
+    return_trace (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
