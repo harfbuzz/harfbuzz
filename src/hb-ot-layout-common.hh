@@ -1244,17 +1244,22 @@ struct ClassDefFormat1
     const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_vector_t<GlyphID> glyphs;
+    hb_vector_t<HBUINT16> klasses;
+
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
     for (hb_codepoint_t g = start; g < end; g++)
     {
+      unsigned int value = classValue[g - start];
+      if (!value) continue;
       if (!glyphset.has (g)) continue;
       glyphs.push()->set (glyph_map[g]);
+      klasses.push()->set (value);
     }
-    c->serializer->err (glyphs.in_error ());
+    c->serializer->err (glyphs.in_error () || klasses.in_error ());
 
     Supplier<GlyphID> glyphs_supplier (glyphs);
-    Supplier<HBUINT16> klasses_supplier (classValue.as_array ());
+    Supplier<HBUINT16> klasses_supplier (klasses);
     ClassDef_serialize (c->serializer,
 			glyphs_supplier,
 			klasses_supplier,
@@ -1391,7 +1396,7 @@ struct ClassDefFormat2
     const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_vector_t<GlyphID> glyphs;
-    hb_vector_t<GlyphID> klasses;
+    hb_vector_t<HBUINT16> klasses;
 
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1410,7 +1415,7 @@ struct ClassDefFormat2
     c->serializer->err (glyphs.in_error () || klasses.in_error ());
 
     Supplier<GlyphID> glyphs_supplier (glyphs);
-    Supplier<GlyphID> klasses_supplier (klasses);
+    Supplier<HBUINT16> klasses_supplier (klasses);
     ClassDef_serialize (c->serializer,
 			glyphs_supplier,
 			klasses_supplier,
