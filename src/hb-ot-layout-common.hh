@@ -1241,13 +1241,16 @@ struct ClassDefFormat1
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_vector_t<GlyphID> glyphs;
-    hb_codepoint_t first_glyph = startGlyph;
-    unsigned int count = classValue.len;
-    glyphs.resize (count);
-    for (unsigned i = 0; i < count; i++)
-      glyphs[i].set (glyph_map[first_glyph + i]);
+    hb_codepoint_t start = startGlyph;
+    hb_codepoint_t end   = start + classValue.len;
+    for (hb_codepoint_t g = start; g < end; g++)
+    {
+      if (!glyphset.has (g)) continue;
+      glyphs.push()->set (glyph_map[g]);
+    }
     c->serializer->err (glyphs.in_error ());
 
     Supplier<GlyphID> glyphs_supplier (glyphs);
