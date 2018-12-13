@@ -2710,6 +2710,7 @@ struct GSUBGPOS
     TRACE_SUBSET (this);
     struct GSUBGPOS *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
+
     out->scriptList.serialize_subset (c, this+scriptList, out);
     out->featureList.serialize_subset (c, this+featureList, out);
 
@@ -2722,6 +2723,7 @@ struct GSUBGPOS
 
     if (version.to_int () >= 0x00010001u)
      out->featureVars.serialize_subset (c, this+featureVars, out);
+
     return_trace (true);
   }
 

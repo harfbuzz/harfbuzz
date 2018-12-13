@@ -438,6 +438,26 @@ struct GDEF
 	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    struct GDEF *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+
+    out->glyphClassDef.serialize_subset (c, this+glyphClassDef, out);
+    out->attachList.set (0);//TODO(subset) serialize_subset (c, this+attachList, out);
+    out->ligCaretList.set (0);//TODO(subset) serialize_subset (c, this+ligCaretList, out);
+    out->markAttachClassDef.serialize_subset (c, this+markAttachClassDef, out);
+
+    if (version.to_int () >= 0x00010002u)
+      out->markGlyphSetsDef.set (0);// TODO(subset) serialize_subset (c, this+markGlyphSetsDef, out);
+
+    if (version.to_int () >= 0x00010003u)
+      out->varStore.set (0);// TODO(subset) serialize_subset (c, this+varStore, out);
+
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
