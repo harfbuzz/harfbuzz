@@ -110,14 +110,14 @@ struct SingleSubstFormat1
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
-      if (!c->plan->glyphset->has (iter.get_glyph ()))
-        continue;
+      if (!glyphset.has (iter.get_glyph ())) continue;
       from.push ()->set (glyph_map[iter.get_glyph ()]);
       to.push ()->set (glyph_map[(iter.get_glyph () + delta) & 0xFFFF]);
     }
@@ -217,13 +217,13 @@ struct SingleSubstFormat2
   inline bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
-      if (!c->plan->glyphset->has (iter.get_glyph ()))
-        continue;
+      if (!glyphset.has (iter.get_glyph ())) continue;
       from.push ()->set (glyph_map[iter.get_glyph ()]);
       to.push ()->set (glyph_map[substitute[iter.get_coverage ()]]);
     }

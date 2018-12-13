@@ -1190,6 +1190,11 @@ struct Coverage
  * Class Definition Table
  */
 
+static inline void ClassDef_serialize (hb_serialize_context_t *c,
+				       Supplier<GlyphID> &glyphs,
+				       Supplier<HBUINT16> &klasses,
+				       unsigned int num_glyphs);
+
 struct ClassDefFormat1
 {
   friend struct ClassDef;
@@ -1231,6 +1236,27 @@ struct ClassDefFormat1
     glyphs += num_glyphs;
     klasses += num_glyphs;
     return_trace (true);
+  }
+
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+    hb_vector_t<GlyphID> glyphs;
+    hb_codepoint_t first_glyph = startGlyph;
+    unsigned int count = classValue.len;
+    glyphs.resize (count);
+    for (unsigned i = 0; i < count; i++)
+      glyphs[i].set (glyph_map[first_glyph + i]);
+    c->serializer->err (glyphs.in_error ());
+
+    Supplier<GlyphID> glyphs_supplier (glyphs);
+    Supplier<HBUINT16> klasses_supplier (classValue.as_array ());
+    ClassDef_serialize (c->serializer,
+			glyphs_supplier,
+			klasses_supplier,
+			glyphs.len);
+    return_trace (glyphs.len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1356,6 +1382,39 @@ struct ClassDefFormat2
     return_trace (true);
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset;
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+    hb_vector_t<GlyphID> glyphs;
+    hb_vector_t<GlyphID> klasses;
+
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      unsigned int value = rangeRecord[i].value;
+      if (!value) continue;
+      hb_codepoint_t start = rangeRecord[i].start;
+      hb_codepoint_t end   = rangeRecord[i].end + 1;
+      for (hb_codepoint_t g = start; g < end; g++)
+      {
+	if (!glyphset.has (g)) continue;
+	glyphs.push ()->set (glyph_map[g]);
+	klasses.push ()->set (value);
+      }
+    }
+    c->serializer->err (glyphs.in_error () || klasses.in_error ());
+
+    Supplier<GlyphID> glyphs_supplier (glyphs);
+    Supplier<GlyphID> klasses_supplier (klasses);
+    ClassDef_serialize (c->serializer,
+			glyphs_supplier,
+			klasses_supplier,
+			glyphs.len);
+    return_trace (glyphs.len);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1469,6 +1528,16 @@ struct ClassDef
     }
   }
 
+  inline bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    switch (u.format) {
+    case 1: return_trace (u.format1.subset (c));
+    case 2: return_trace (u.format2.subset (c));
+    default:return_trace (false);
+    }
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1526,6 +1595,17 @@ struct ClassDef
   public:
   DEFINE_SIZE_UNION (2, format);
 };
+
+static inline void ClassDef_serialize (hb_serialize_context_t *c,
+				       Supplier<GlyphID> &glyphs,
+				       Supplier<HBUINT16> &klasses,
+				       unsigned int num_glyphs)
+{
+  c->start_embed<ClassDef> ()->serialize (c,
+					  glyphs,
+					  klasses,
+					  num_glyphs);
+}
 
 
 /*
