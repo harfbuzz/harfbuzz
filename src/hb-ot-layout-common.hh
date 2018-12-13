@@ -1197,6 +1197,40 @@ struct ClassDefFormat1
     return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 hb_codepoint_t first_glyph,
+			 Supplier<HBUINT16> &glyphs,
+			 Supplier<HBUINT16> &klasses,
+			 unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    if (unlikely (!num_glyphs))
+    {
+      startGlyph.set (0);
+      classValue.len.set (0);
+      return_trace (true);
+    }
+
+    hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
+    for (unsigned int i = 0; i < num_glyphs; i++)
+    {
+      glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
+      glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
+    }
+
+    startGlyph.set (glyph_min);
+    classValue.len.set (glyph_max - glyph_min + 1);
+    if (unlikely (!c->extend (classValue))) return_trace (false);
+
+    for (unsigned int i = 0; i < num_glyphs; i++)
+      classValue[glyphs[i] - glyph_min] = klasses[i];
+    glyphs += num_glyphs;
+    klasses += num_glyphs;
+    return_trace (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
