@@ -32,6 +32,13 @@
 
 #include "hb-unicode.hh"
 
+/* Workaround a Visual Studio 2010 x64 optimization bug */
+#if (defined (_M_X64) || defined (_M_AMD64)) && (defined (_MSC_VER) && (_MSC_VER >= 1600) && (_MSC_VER < 1700))
+#define HB_WORKAROUND_VS10_X64_OPT_BUG strtod ("10", nullptr);
+#else
+#define HB_WORKAROUND_VS10_X64_OPT_BUG
+#endif
+
 
 /**
  * SECTION: hb-unicode
@@ -302,6 +309,7 @@ hb_unicode_funcs_get_user_data (hb_unicode_funcs_t *ufuncs,
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {
+  HB_WORKAROUND_VS10_X64_OPT_BUG
   if (hb_object_is_immutable (ufuncs))
     return;
 
