@@ -1058,11 +1058,13 @@ struct Coverage
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
+
     unsigned int num_ranges = 1;
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
     u.format.set (num_glyphs * 2 < num_ranges * 3 ? 1 : 2);
+
     switch (u.format)
     {
     case 1: return_trace (u.format1.serialize (c, glyphs, num_glyphs));
@@ -1199,7 +1201,6 @@ struct ClassDefFormat1
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 hb_codepoint_t first_glyph,
 			 Supplier<HBUINT16> &glyphs,
 			 Supplier<HBUINT16> &klasses,
 			 unsigned int num_glyphs)
@@ -1316,7 +1317,6 @@ struct ClassDefFormat2
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 hb_codepoint_t first_glyph,
 			 Supplier<HBUINT16> &glyphs,
 			 Supplier<HBUINT16> &klasses,
 			 unsigned int num_glyphs)
@@ -1437,6 +1437,35 @@ struct ClassDef
     case 1: return u.format1.get_class (glyph_id);
     case 2: return u.format2.get_class (glyph_id);
     default:return 0;
+    }
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<HBUINT16> &klasses,
+			 unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
+    for (unsigned int i = 0; i < num_glyphs; i++)
+    {
+      glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
+      glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
+    }
+    unsigned int num_ranges = 1;
+    for (unsigned int i = 1; i < num_glyphs; i++)
+      if (glyphs[i - 1] + 1 != glyphs[i] ||
+	  klasses[i - 1] != klasses[i])
+	num_ranges++;
+    u.format.set (1 + (glyph_max - glyph_min + 1) < num_ranges * 3 ? 1 : 2);
+
+    switch (u.format)
+    {
+    case 1: return_trace (u.format1.serialize (c, glyphs, klasses, num_glyphs));
+    case 2: return_trace (u.format2.serialize (c, glyphs, klasses, num_glyphs));
+    default:return_trace (false);
     }
   }
 
