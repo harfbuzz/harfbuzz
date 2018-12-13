@@ -221,9 +221,9 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
     case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
       return plan->drop_hints;
     // Drop Layout Tables if requested.
-    case HB_TAG ('G', 'D', 'E', 'F'): /* temporary */
-    case HB_TAG ('G', 'P', 'O', 'S'): /* temporary */
-    case HB_TAG ('G', 'S', 'U', 'B'): /* temporary */
+    case HB_OT_TAG_GDEF:
+    case HB_OT_TAG_GPOS:
+    case HB_OT_TAG_GSUB:
       return plan->drop_layout;
     // Drop these tables below by default, list pulled
     // from fontTools:
