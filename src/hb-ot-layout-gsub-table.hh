@@ -123,8 +123,8 @@ struct SingleSubstFormat1
     }
     c->serializer->err (from.in_error () || to.in_error ());
 
-    Supplier<GlyphID> from_supplier (&from);
-    Supplier<GlyphID> to_supplier (&to);
+    Supplier<GlyphID> from_supplier (from);
+    Supplier<GlyphID> to_supplier (to);
     SingleSubst_serialize (c->serializer,
 			   from_supplier,
 			   to_supplier,
@@ -229,8 +229,8 @@ struct SingleSubstFormat2
     }
     c->serializer->err (from.in_error () || to.in_error ());
 
-    Supplier<GlyphID> from_supplier (&from);
-    Supplier<GlyphID> to_supplier (&to);
+    Supplier<GlyphID> from_supplier (from);
+    Supplier<GlyphID> to_supplier (to);
     SingleSubst_serialize (c->serializer,
 			   from_supplier,
 			   to_supplier,

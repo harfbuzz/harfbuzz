@@ -655,10 +655,16 @@ struct Supplier
     len = len_;
     stride = stride_;
   }
-  inline Supplier (const hb_vector_t<Type> *v)
+  inline Supplier (hb_array_t<const Type> v)
   {
-    head = (const Type *) *v;
-    len = v->len;
+    head = v.arrayZ;
+    len = v.len;
+    stride = sizeof (Type);
+  }
+  inline Supplier (const hb_vector_t<Type> &v)
+  {
+    head = (const Type *) v;
+    len = v.len;
     stride = sizeof (Type);
   }
 
