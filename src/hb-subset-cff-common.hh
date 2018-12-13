@@ -313,6 +313,8 @@ struct SubrFlattener
       hb_codepoint_t  glyph = glyphs[i];
       const ByteStr str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
+      if (unlikely (fd >= acc.fdCount))
+      	return false;
       CSInterpreter<ENV, OPSET, FlattenParam> interp;
       interp.env.init (str, acc, fd);
       FlattenParam  param = { flat_charstrings[i], drop_hints };
@@ -684,6 +686,8 @@ struct SubrSubsetter
       hb_codepoint_t  glyph = glyphs[i];
       const ByteStr str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
+      if (unlikely (fd >= acc.fdCount))
+      	return false;
 
       CSInterpreter<ENV, OPSET, SubrSubsetParam> interp;
       interp.env.init (str, acc, fd);
@@ -707,6 +711,8 @@ struct SubrSubsetter
       for (unsigned int i = 0; i < glyphs.len; i++)
       {
 	unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
+	if (unlikely (fd >= acc.fdCount))
+	  return false;
 	SubrSubsetParam  param;
 	param.init (&parsed_charstrings[i],
 		    &parsed_global_subrs,  &parsed_local_subrs[fd],
@@ -727,6 +733,8 @@ struct SubrSubsetter
       for (unsigned int i = 0; i < glyphs.len; i++)
       {
 	unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
+	if (unlikely (fd >= acc.fdCount))
+	  return false;
 	SubrSubsetParam  param;
 	param.init (&parsed_charstrings[i],
 		    &parsed_global_subrs,  &parsed_local_subrs[fd],
@@ -748,6 +756,8 @@ struct SubrSubsetter
     for (unsigned int i = 0; i < glyphs.len; i++)
     {
       unsigned int  fd = acc.fdSelect->get_fd (glyphs[i]);
+      if (unlikely (fd >= acc.fdCount))
+      	return false;
       if (unlikely (!encode_str (parsed_charstrings[i], fd, buffArray[i])))
 	return false;
     }
