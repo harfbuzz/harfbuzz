@@ -189,6 +189,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_VORG:
       result = _subset<const OT::VORG> (plan);
       break;
+    case HB_OT_TAG_GDEF:
+      result = _subset2<const OT::GDEF> (plan);
+      break;
     case HB_OT_TAG_GSUB:
       result = _subset2<const OT::GSUB> (plan);
       break;
