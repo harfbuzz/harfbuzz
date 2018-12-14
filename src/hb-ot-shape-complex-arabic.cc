@@ -31,6 +31,7 @@
 
 /* buffer var allocations */
 #define arabic_shaping_action() complex_var_u8_0() /* arabic shaping action */
+#define arabic_justification_priority() complex_var_u8_1() /* arabic justification priority */
 
 #define HB_BUFFER_SCRATCH_FLAG_ARABIC_HAS_STCH HB_BUFFER_SCRATCH_FLAG_COMPLEX0
 
@@ -76,6 +77,20 @@ enum hb_arabic_joining_type_t {
 
   JOINING_TYPE_T = 7,
   JOINING_TYPE_X = 8  /* means: use general-category to choose between U or T. */
+};
+
+enum hb_arabic_justification_priority_t {
+  JUSTIFICATION_NO_JUSTIFICATION= 0,   /* Justification can't be applied after this glyph */
+  JUSTIFICATION_ARABIC_SPACE	= 1,   /* This glyph represents a space inside arabic text */
+  JUSTIFICATION_CHARACTER	= 2,   /* Inter-character justification point follows this glyph */
+  JUSTIFICATION_SPACE		= 4,   /* This glyph represents a blank outside an Arabic run */
+  JUSTIFICATION_ARABIC_NORMAL	= 7,   /* Normal Middle-Of-Word glyph that connects to the right (begin) */
+  JUSTIFICATION_ARABIC_WAW	= 8,   /* Next character is final form of Waw/Ain/Qaf/Fa */
+  JUSTIFICATION_ARABIC_BA_RA	= 9,   /* Next two chars are Ba + Ra/Ya/AlefMaksura */
+  JUSTIFICATION_ARABIC_ALEF	= 10,  /* Next character is final form of Alef/Tah/Lam/Kaf/Gaf */
+  JUSTIFICATION_ARABIC_HAA_DAL	= 11,  /* Next character is final form of Haa/Dal/Taa Marbutah */
+  JUSTIFICATION_ARABIC_SEEN	= 12,  /* Initial or Medial form Of Seen/Sad */
+  JUSTIFICATION_ARABIC_KASHIDA	= 13   /* Kashida(U+640) in middle of word */
 };
 
 #include "hb-ot-shape-complex-arabic-table.hh"
@@ -284,6 +299,213 @@ data_destroy_arabic (void *data)
   free (data);
 }
 
+
+/*
+// these groups correspond to the groups defined in the Unicode standard.
+// Some of these groups are equal with regards to both joining and line breaking behaviour,
+// and thus have the same enum value
+//
+// I'm not sure the mapping of syriac to arabic enums is correct with regards to justification, but as
+// I couldn't find any better document I'll hope for the best.
+*/
+typedef enum {
+    /* NonJoining */
+    ArabicNone,
+    ArabicSpace,
+    /* Transparent */
+    Transparent,
+    /* Causing */
+    Center,
+    Kashida,
+
+    /* Arabic */
+    /* Dual */
+    Beh,
+    Noon,
+    Meem = Noon,
+    Heh = Noon,
+    KnottedHeh = Noon,
+    HehGoal = Noon,
+    SwashKaf = Noon,
+    Yeh,
+    Hah,
+    Seen,
+    Sad = Seen,
+    Tah,
+    Kaf = Tah,
+    Gaf = Tah,
+    Lam = Tah,
+    Ain,
+    Feh = Ain,
+    Qaf = Ain,
+    /* Right */
+    Alef,
+    Waw,
+    Dal,
+    TehMarbuta = Dal,
+    Reh,
+    HamzaOnHehGoal,
+    YehWithTail = HamzaOnHehGoal,
+    YehBarre = HamzaOnHehGoal,
+
+    /* Syriac */
+    /* Dual */
+    Beth = Beh,
+    Gamal = Ain,
+    Heth = Noon,
+    Teth = Hah,
+    Yudh = Noon,
+    Kaph = Noon,
+    Lamadh = Lam,
+    Mim = Noon,
+    Nun = Noon,
+    Semakh = Noon,
+    FinalSemakh = Noon,
+    SyriacE = Ain,
+    Pe = Ain,
+    ReversedPe = Hah,
+    Qaph = Noon,
+    Shin = Noon,
+    Fe = Ain,
+
+    /* Right */
+    Alaph = Alef,
+    Dalath = Dal,
+    He = Dal,
+    SyriacWaw = Waw,
+    Zain = Alef,
+    YudhHe = Waw,
+    Sadhe = HamzaOnHehGoal,
+    Taw = Dal,
+
+    /* Compiler bug? Otherwise ArabicGroupsEnd would be equal to Dal + 1. */
+    Dummy = HamzaOnHehGoal,
+    ArabicGroupsEnd
+} ArabicGroup;
+
+static const unsigned char arabic_group[0x150] = {
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+
+    ArabicNone, ArabicNone, Alef, Alef,
+    Waw, Alef, Yeh, Alef,
+    Beh, TehMarbuta, Beh, Beh,
+    Hah, Hah, Hah, Dal,
+
+    Dal, Reh, Reh, Seen,
+    Seen, Sad, Sad, Tah,
+    Tah, Ain, Ain, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+
+    /* 0x640 */
+    Kashida, Feh, Qaf, Kaf,
+    Lam, Meem, Noon, Heh,
+    Waw, Yeh, Yeh, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, Beh, Qaf,
+
+    Transparent, Alef, Alef, Alef,
+    ArabicNone, Alef, Waw, Waw,
+    Yeh, Beh, Beh, Beh,
+    Beh, Beh, Beh, Beh,
+
+    /* 0x680 */
+    Beh, Hah, Hah, Hah,
+    Hah, Hah, Hah, Hah,
+    Dal, Dal, Dal, Dal,
+    Dal, Dal, Dal, Dal,
+
+    Dal, Reh, Reh, Reh,
+    Reh, Reh, Reh, Reh,
+    Reh, Reh, Seen, Seen,
+    Seen, Sad, Sad, Tah,
+
+    Ain, Feh, Feh, Feh,
+    Feh, Feh, Feh, Qaf,
+    Qaf, Gaf, SwashKaf, Gaf,
+    Kaf, Kaf, Kaf, Gaf,
+
+    Gaf, Gaf, Gaf, Gaf,
+    Gaf, Lam, Lam, Lam,
+    Lam, Noon, Noon, Noon,
+    Noon, Noon, KnottedHeh, Hah,
+
+    /* 0x6c0 */
+    TehMarbuta, HehGoal, HamzaOnHehGoal, HamzaOnHehGoal,
+    Waw, Waw, Waw, Waw,
+    Waw, Waw, Waw, Waw,
+    Yeh, YehWithTail, Yeh, Waw,
+
+    Yeh, Yeh, YehBarre, YehBarre,
+    ArabicNone, TehMarbuta, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, ArabicNone, ArabicNone, Transparent,
+
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, ArabicNone, ArabicNone, Transparent,
+    Transparent, ArabicNone, Transparent, Transparent,
+    Transparent, Transparent, Dal, Reh,
+
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, Seen, Sad,
+    Ain, ArabicNone, ArabicNone, KnottedHeh,
+
+    /* 0x700 */
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+    ArabicNone, ArabicNone, ArabicNone, ArabicNone,
+
+    Alaph, Transparent, Beth, Gamal,
+    Gamal, Dalath, Dalath, He,
+    SyriacWaw, Zain, Heth, Teth,
+    Teth, Yudh, YudhHe, Kaph,
+
+    Lamadh, Mim, Nun, Semakh,
+    FinalSemakh, SyriacE, Pe, ReversedPe,
+    Sadhe, Qaph, Dalath, Shin,
+    Taw, Beth, Gamal, Dalath,
+
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, Transparent,
+    Transparent, Transparent, Transparent, ArabicNone,
+    ArabicNone, Zain, Kaph, Fe,
+};
+
+static ArabicGroup arabicGroup(unsigned short uc)
+{
+    if (uc >= 0x0600 && uc < 0x750)
+        return (ArabicGroup) arabic_group[uc-0x600];
+    else if (uc == 0x200d)
+        return Center;
+//     else if (HB_GetUnicodeCharCategory(uc) == HB_Separator_Space)
+//         return ArabicSpace;
+    else
+        return ArabicNone;
+}
+
 static void
 arabic_joining (hb_buffer_t *buffer)
 {
@@ -338,6 +560,91 @@ arabic_joining (hb_buffer_t *buffer)
     if (entry->prev_action != NONE && prev != (unsigned int) -1)
       info[prev].arabic_shaping_action() = entry->prev_action;
     break;
+  }
+
+  unsigned int last_pos = 0;
+  ArabicGroup last_group = ArabicNone;
+  ArabicGroup group = ArabicNone;
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    info[i].arabic_justification_priority() = JUSTIFICATION_NO_JUSTIFICATION;
+    group = arabicGroup(info[i].codepoint);
+    if (i == 0) continue;
+    if (info[i].arabic_shaping_action() == NONE) continue;
+    switch (last_group)
+    {
+    case Seen:
+      if (info[last_pos].arabic_shaping_action() == INIT ||
+	  info[last_pos].arabic_shaping_action() == MEDI)
+	info[i-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_SEEN;
+      break;
+    case Hah:
+      if (info[last_pos].arabic_shaping_action() == FINA)
+	info[last_pos-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_HAA_DAL;
+      break;
+    case Alef:
+      if (info[last_pos].arabic_shaping_action() == FINA)
+	info[last_pos-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_ALEF;
+      break;
+    case Ain:
+      if (info[last_pos].arabic_shaping_action() == FINA)
+	info[last_pos-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_WAW;
+      break;
+    case Noon:
+      if (info[last_pos].arabic_shaping_action() == FINA)
+	info[last_pos-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_NORMAL;
+      break;
+    default:
+      assert (true);
+    }
+    last_group = ArabicNone;
+    switch(group) {
+    case ArabicNone:
+    case Transparent:
+    /* ### Center should probably be treated as transparent when it comes to justification. */
+    case Center:
+      break;
+    case ArabicSpace:
+      info[i].arabic_justification_priority() = JUSTIFICATION_ARABIC_SPACE;
+      break;
+    case Kashida:
+      info[i].arabic_justification_priority() = JUSTIFICATION_ARABIC_KASHIDA;
+      break;
+    case Seen:
+      last_group = Seen;
+      break;
+    case Hah:
+    case Dal:
+      last_group = Hah;
+      break;
+    case Alef:
+    case Tah:
+      last_group = Alef;
+      break;
+    case Yeh:
+    case Reh:
+      if (info[i].arabic_shaping_action() == MEDI &&
+          arabicGroup(info[last_pos].codepoint) == Beh)
+	info[last_pos-1].arabic_justification_priority() = JUSTIFICATION_ARABIC_BA_RA;
+      break;
+    case Ain:
+    case Waw:
+      last_group = Ain;
+      break;
+    case Noon:
+    case Beh:
+    case HamzaOnHehGoal:
+      last_group = Noon;
+      break;
+    case ArabicGroupsEnd:
+      assert(false);
+    }
+    last_pos = i;
+  }
+  for (unsigned int i = 0; i < count; i++)
+  {
+    printf ("%d\n", info[i].arabic_shaping_action());
   }
 }
 
