@@ -39,16 +39,16 @@ struct hb_cache_t
   static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (hb_atomic_int_t)), "");
   static_assert (sizeof (hb_atomic_int_t) == sizeof (unsigned int), "");
 
-  inline void init (void) { clear (); }
-  inline void fini (void) {}
+  void init (void) { clear (); }
+  void fini (void) {}
 
-  inline void clear (void)
+  void clear (void)
   {
     for (unsigned i = 0; i < ARRAY_LENGTH (values); i++)
       values[i].set_relaxed (-1);
   }
 
-  inline bool get (unsigned int key, unsigned int *value) const
+  bool get (unsigned int key, unsigned int *value) const
   {
     unsigned int k = key & ((1u<<cache_bits)-1);
     unsigned int v = values[k].get_relaxed ();
@@ -59,7 +59,7 @@ struct hb_cache_t
     return true;
   }
 
-  inline bool set (unsigned int key, unsigned int value)
+  bool set (unsigned int key, unsigned int value)
   {
     if (unlikely ((key >> key_bits) || (value >> value_bits)))
       return false; /* Overflows */

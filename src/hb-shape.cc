@@ -57,7 +57,7 @@ static const char *nil_shaper_list[] = {nullptr};
 static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
 							      hb_shaper_list_lazy_loader_t>
 {
-  static inline const char ** create (void)
+  static const char ** create (void)
   {
     const char **shaper_list = (const char **) calloc (1 + HB_SHAPERS_COUNT, sizeof (const char *));
     if (unlikely (!shaper_list))
@@ -75,14 +75,10 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
 
     return shaper_list;
   }
-  static inline void destroy (const char **l)
-  {
-    free (l);
-  }
-  static inline const char ** get_null (void)
-  {
-    return nil_shaper_list;
-  }
+  static void destroy (const char **l)
+  { free (l); }
+  static const char ** get_null (void)
+  { return nil_shaper_list; }
 } static_shaper_list;
 
 #if HB_USE_ATEXIT

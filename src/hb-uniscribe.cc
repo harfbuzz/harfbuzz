@@ -205,7 +205,7 @@ struct hb_uniscribe_shaper_funcs_t
   SSOT ScriptShapeOpenType;
   SPOT ScriptPlaceOpenType;
 
-  inline void init (void)
+  void init (void)
   {
     HMODULE hinstLib;
     this->ScriptItemizeOpenType = nullptr;
@@ -237,7 +237,7 @@ static void free_static_uniscribe_shaper_funcs (void);
 static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
 									 hb_uniscribe_shaper_funcs_lazy_loader_t>
 {
-  static inline hb_uniscribe_shaper_funcs_t *create (void)
+  static hb_uniscribe_shaper_funcs_t *create (void)
   {
     hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
     if (unlikely (!funcs))
@@ -251,11 +251,11 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
 
     return funcs;
   }
-  static inline void destroy (hb_uniscribe_shaper_funcs_t *p)
+  static void destroy (hb_uniscribe_shaper_funcs_t *p)
   {
     free ((void *) p);
   }
-  static inline hb_uniscribe_shaper_funcs_t *get_null (void)
+  static hb_uniscribe_shaper_funcs_t *get_null (void)
   {
     return nullptr;
   }
@@ -288,9 +288,8 @@ struct active_feature_t {
 	   a->rec.lParameter < b->rec.lParameter ? -1 : a->rec.lParameter > b->rec.lParameter ? 1 :
 	   0;
   }
-  bool operator== (const active_feature_t *f) {
-    return cmp (this, f) == 0;
-  }
+  bool operator== (const active_feature_t *f)
+  { return cmp (this, f) == 0; }
 };
 
 struct feature_event_t {
@@ -298,7 +297,8 @@ struct feature_event_t {
   bool start;
   active_feature_t feature;
 
-  static int cmp (const void *pa, const void *pb) {
+  static int cmp (const void *pa, const void *pb)
+  {
     const feature_event_t *a = (const feature_event_t *) pa;
     const feature_event_t *b = (const feature_event_t *) pb;
     return a->index < b->index ? -1 : a->index > b->index ? 1 :

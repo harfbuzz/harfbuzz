@@ -36,15 +36,12 @@ struct hb_aat_map_t
 
   public:
 
-  inline void init (void)
+  void init (void)
   {
     memset (this, 0, sizeof (*this));
     chain_flags.init ();
   }
-  inline void fini (void)
-  {
-    chain_flags.fini ();
-  }
+  void fini (void) { chain_flags.fini (); }
 
   public:
   hb_vector_t<hb_mask_t, 1> chain_flags;

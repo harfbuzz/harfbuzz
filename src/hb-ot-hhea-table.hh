@@ -45,7 +45,7 @@ namespace OT {
 template <typename T>
 struct _hea
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && likely (version.major == 1));

@@ -45,7 +45,7 @@ using namespace OT;
 
 struct ActionSubrecordHeader
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -62,7 +62,7 @@ struct ActionSubrecordHeader
 
 struct DecompositionAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -91,7 +91,7 @@ struct DecompositionAction
 
 struct UnconditionalAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -109,7 +109,7 @@ struct UnconditionalAddGlyphAction
 
 struct ConditionalAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -134,7 +134,7 @@ struct ConditionalAddGlyphAction
 
 struct DuctileGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -160,7 +160,7 @@ struct DuctileGlyphAction
 
 struct RepeatedAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -178,9 +178,9 @@ struct RepeatedAddGlyphAction
 
 struct ActionSubrecord
 {
-  inline unsigned int get_length (void) const { return u.header.actionLength; }
+  unsigned int get_length (void) const { return u.header.actionLength; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -215,7 +215,7 @@ struct ActionSubrecord
 
 struct PostcompensationActionChain
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -291,7 +291,7 @@ struct JustWidthDeltaEntry
 
 struct WidthDeltaPair
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -328,7 +328,7 @@ struct JustificationCategory
 				 * glyph if nonzero. */
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -347,7 +347,7 @@ struct JustificationCategory
 
 struct JustificationHeader
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -384,7 +384,7 @@ struct just
 {
   enum { tableTag = HB_AAT_TAG_just };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
 

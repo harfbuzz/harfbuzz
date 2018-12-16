@@ -267,12 +267,12 @@ inline void *hb_atomic_ptr_impl_get (void ** const P)	{ void *v = *P; _hb_memory
 #define HB_ATOMIC_INT_INIT(V)          {V}
 struct hb_atomic_int_t
 {
-  inline void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
-  inline void set (int v_) { hb_atomic_int_impl_set (&v, v_); }
-  inline int get_relaxed (void) const { return hb_atomic_int_impl_get_relaxed (&v); }
-  inline int get (void) const { return hb_atomic_int_impl_get (&v); }
-  inline int inc (void) { return hb_atomic_int_impl_add (&v,  1); }
-  inline int dec (void) { return hb_atomic_int_impl_add (&v, -1); }
+  void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
+  void set (int v_) { hb_atomic_int_impl_set (&v, v_); }
+  int get_relaxed (void) const { return hb_atomic_int_impl_get_relaxed (&v); }
+  int get (void) const { return hb_atomic_int_impl_get (&v); }
+  int inc (void) { return hb_atomic_int_impl_add (&v,  1); }
+  int dec (void) { return hb_atomic_int_impl_add (&v, -1); }
 
   int v;
 };
@@ -284,14 +284,14 @@ struct hb_atomic_ptr_t
 {
   typedef typename hb_remove_pointer (P) T;
 
-  inline void init (T* v_ = nullptr) { set_relaxed (v_); }
-  inline void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
-  inline T *get_relaxed (void) const { return (T *) hb_atomic_ptr_impl_get_relaxed (&v); }
-  inline T *get (void) const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
-  inline bool cmpexch (const T *old, T *new_) const { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
+  void init (T* v_ = nullptr) { set_relaxed (v_); }
+  void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
+  T *get_relaxed (void) const { return (T *) hb_atomic_ptr_impl_get_relaxed (&v); }
+  T *get (void) const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
+  bool cmpexch (const T *old, T *new_) const { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
 
-  inline T * operator -> (void) const { return get (); }
-  template <typename C> inline operator C * (void) const { return get (); }
+  T * operator -> (void) const { return get (); }
+  template <typename C> operator C * (void) const { return get (); }
 
   T *v;
 };

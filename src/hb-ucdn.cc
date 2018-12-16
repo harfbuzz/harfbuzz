@@ -228,7 +228,7 @@ static void free_static_ucdn_funcs (void);
 
 static struct hb_ucdn_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_ucdn_unicode_funcs_lazy_loader_t>
 {
-  static inline hb_unicode_funcs_t *create (void)
+  static hb_unicode_funcs_t *create (void)
   {
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 

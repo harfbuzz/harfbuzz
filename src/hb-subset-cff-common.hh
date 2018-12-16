@@ -37,22 +37,22 @@ namespace CFF {
 /* Used for writing a temporary charstring */
 struct StrEncoder
 {
-  inline StrEncoder (StrBuff &buff_)
+  StrEncoder (StrBuff &buff_)
     : buff (buff_), error (false)
   {}
 
-  inline void reset (void)
+  void reset (void)
   {
     buff.resize (0);
   }
 
-  inline void encode_byte (unsigned char b)
+  void encode_byte (unsigned char b)
   {
     if (unlikely (buff.push ((const char)b) == &Crap(char)))
       set_error ();
   }
 
-  inline void encode_int (int v)
+  void encode_int (int v)
   {
     if ((-1131 <= v) && (v <= 1131))
     {
@@ -83,7 +83,7 @@ struct StrEncoder
     }
   }
 
-  inline void encode_num (const Number& n)
+  void encode_num (const Number& n)
   {
     if (n.in_int_range ())
     {
@@ -100,7 +100,7 @@ struct StrEncoder
     }
   }
 
-  inline void encode_op (OpCode op)
+  void encode_op (OpCode op)
   {
     if (Is_OpCode_ESC (op))
     {
@@ -111,7 +111,7 @@ struct StrEncoder
       encode_byte (op);
   }
 
-  inline void copy_str (const ByteStr &str)
+  void copy_str (const ByteStr &str)
   {
     unsigned int  offset = buff.len;
     buff.resize (offset + str.len);
@@ -123,17 +123,17 @@ struct StrEncoder
     memcpy (&buff[offset], &str.str[0], str.len);
   }
 
-  inline bool is_error (void) const { return error; }
+  bool is_error (void) const { return error; }
 
   protected:
-  inline void set_error (void) { error = true; }
+  void set_error (void) { error = true; }
 
   StrBuff &buff;
   bool    error;
 };
 
 struct CFFSubTableOffsets {
-  inline CFFSubTableOffsets (void)
+  CFFSubTableOffsets (void)
     : privateDictsOffset (0)
 
   {
@@ -145,7 +145,7 @@ struct CFFSubTableOffsets {
     localSubrsInfos.init ();
   }
 
-  inline ~CFFSubTableOffsets (void)
+  ~CFFSubTableOffsets (void)
   {
     localSubrsInfos.fini ();
   }
@@ -162,9 +162,9 @@ struct CFFSubTableOffsets {
 template <typename OPSTR=OpStr>
 struct CFFTopDict_OpSerializer : OpSerializer
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			 const OPSTR &opstr,
-			 const CFFSubTableOffsets &offsets) const
+  bool serialize (hb_serialize_context_t *c,
+		  const OPSTR &opstr,
+		  const CFFSubTableOffsets &offsets) const
   {
     TRACE_SERIALIZE (this);
 
@@ -185,7 +185,7 @@ struct CFFTopDict_OpSerializer : OpSerializer
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (const OPSTR &opstr) const
+  unsigned int calculate_serialized_size (const OPSTR &opstr) const
   {
     switch (opstr.op)
     {
@@ -202,9 +202,9 @@ struct CFFTopDict_OpSerializer : OpSerializer
 
 struct CFFFontDict_OpSerializer : OpSerializer
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			 const OpStr &opstr,
-			 const TableInfo &privateDictInfo) const
+  bool serialize (hb_serialize_context_t *c,
+		  const OpStr &opstr,
+		  const TableInfo &privateDictInfo) const
   {
     TRACE_SERIALIZE (this);
 
@@ -231,7 +231,7 @@ struct CFFFontDict_OpSerializer : OpSerializer
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  unsigned int calculate_serialized_size (const OpStr &opstr) const
   {
     if (opstr.op == OpCode_Private)
       return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
@@ -242,12 +242,12 @@ struct CFFFontDict_OpSerializer : OpSerializer
 
 struct CFFPrivateDict_OpSerializer : OpSerializer
 {
-  inline CFFPrivateDict_OpSerializer (bool desubroutinize_, bool drop_hints_)
+  CFFPrivateDict_OpSerializer (bool desubroutinize_, bool drop_hints_)
     : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 const OpStr &opstr,
-			 const unsigned int subrsOffset) const
+  bool serialize (hb_serialize_context_t *c,
+		  const OpStr &opstr,
+		  const unsigned int subrsOffset) const
   {
     TRACE_SERIALIZE (this);
 
@@ -264,8 +264,8 @@ struct CFFPrivateDict_OpSerializer : OpSerializer
       return_trace (copy_opstr (c, opstr));
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr,
-						 bool has_localsubr=true) const
+  unsigned int calculate_serialized_size (const OpStr &opstr,
+					  bool has_localsubr=true) const
   {
     if (drop_hints && DictOpSet::is_hint_op (opstr.op))
       return 0;
@@ -294,7 +294,7 @@ struct FlattenParam
 template <typename ACC, typename ENV, typename OPSET>
 struct SubrFlattener
 {
-  inline SubrFlattener (const ACC &acc_,
+  SubrFlattener (const ACC &acc_,
 			const hb_vector_t<hb_codepoint_t> &glyphs_,
 			bool drop_hints_)
     : acc (acc_),
@@ -302,7 +302,7 @@ struct SubrFlattener
       drop_hints (drop_hints_)
   {}
 
-  inline bool flatten (StrBuffArray &flat_charstrings)
+  bool flatten (StrBuffArray &flat_charstrings)
   {
     if (!flat_charstrings.resize (glyphs.len))
       return false;
@@ -331,14 +331,14 @@ struct SubrFlattener
 
 struct SubrClosures
 {
-  inline SubrClosures (void)
+  SubrClosures (void)
     : valid (false),
       global_closure (nullptr)
   {
     local_closures.init ();
   }
 
-  inline void init (unsigned int fd_count)
+  void init (unsigned int fd_count)
   {
     valid = true;
     global_closure = hb_set_create ();
@@ -355,7 +355,7 @@ struct SubrClosures
     }
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     hb_set_destroy (global_closure);
     for (unsigned int i = 0; i < local_closures.len; i++)
@@ -363,7 +363,7 @@ struct SubrClosures
     local_closures.fini ();
   }
 
-  inline void reset (void)
+  void reset (void)
   {
     hb_set_clear (global_closure);
     for (unsigned int i = 0; i < local_closures.len; i++)
@@ -378,7 +378,7 @@ struct SubrClosures
 
 struct ParsedCSOp : OpStr
 {
-  inline void init (unsigned int subr_num_ = 0)
+  void init (unsigned int subr_num_ = 0)
   {
     OpStr::init ();
     subr_num = subr_num_;
@@ -387,17 +387,17 @@ struct ParsedCSOp : OpStr
     skip_flag = false;
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     OpStr::fini ();
   }
 
-  inline bool for_drop (void) const { return drop_flag; }
-  inline void set_drop (void) { if (!for_keep ()) drop_flag = true; }
-  inline bool for_keep (void) const { return keep_flag; }
-  inline void set_keep (void) { keep_flag = true; }
-  inline bool for_skip (void) const { return skip_flag; }
-  inline void set_skip (void) { skip_flag = true; }
+  bool for_drop (void) const { return drop_flag; }
+  void set_drop (void) { if (!for_keep ()) drop_flag = true; }
+  bool for_keep (void) const { return keep_flag; }
+  void set_keep (void) { keep_flag = true; }
+  bool for_skip (void) const { return skip_flag; }
+  void set_skip (void) { skip_flag = true; }
 
   unsigned int  subr_num;
 
@@ -409,7 +409,7 @@ struct ParsedCSOp : OpStr
 
 struct ParsedCStr : ParsedValues<ParsedCSOp>
 {
-  inline void init (void)
+  void init (void)
   {
     SUPER::init ();
     parsed = false;
@@ -417,13 +417,13 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     has_prefix_ = false;
   }
 
-  inline void add_op (OpCode op, const SubByteStr& substr)
+  void add_op (OpCode op, const SubByteStr& substr)
   {
     if (!is_parsed ())
       SUPER::add_op (op, substr);
   }
 
-  inline void add_call_op (OpCode op, const SubByteStr& substr, unsigned int subr_num)
+  void add_call_op (OpCode op, const SubByteStr& substr, unsigned int subr_num)
   {
     if (!is_parsed ())
     {
@@ -437,28 +437,28 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     }
   }
 
-  inline void set_prefix (const Number &num, OpCode op = OpCode_Invalid)
+  void set_prefix (const Number &num, OpCode op = OpCode_Invalid)
   {
     has_prefix_ = true;
     prefix_op_ = op;
     prefix_num_ = num;
   }
 
-  inline bool at_end (unsigned int pos) const
+  bool at_end (unsigned int pos) const
   {
     return ((pos + 1 >= values.len) /* CFF2 */
 	|| (values[pos + 1].op == OpCode_return));
   }
 
-  inline bool is_parsed (void) const { return parsed; }
-  inline void set_parsed (void) { parsed = true; }
-  inline bool is_hint_dropped (void) const { return hint_dropped; }
-  inline void set_hint_dropped (void) { hint_dropped = true; }
-  inline bool is_vsindex_dropped (void) const { return vsindex_dropped; }
-  inline void set_vsindex_dropped (void) { vsindex_dropped = true; }
-  inline bool has_prefix (void) const { return has_prefix_; }
-  inline OpCode prefix_op (void) const { return prefix_op_; }
-  inline const Number &prefix_num (void) const { return prefix_num_; }
+  bool is_parsed (void) const { return parsed; }
+  void set_parsed (void) { parsed = true; }
+  bool is_hint_dropped (void) const { return hint_dropped; }
+  void set_hint_dropped (void) { hint_dropped = true; }
+  bool is_vsindex_dropped (void) const { return vsindex_dropped; }
+  void set_vsindex_dropped (void) { vsindex_dropped = true; }
+  bool has_prefix (void) const { return has_prefix_; }
+  OpCode prefix_op (void) const { return prefix_op_; }
+  const Number &prefix_num (void) const { return prefix_num_; }
 
   protected:
   bool    parsed;
@@ -474,18 +474,14 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
 
 struct ParsedCStrs : hb_vector_t<ParsedCStr>
 {
-  inline void init (unsigned int len_ = 0)
+  void init (unsigned int len_ = 0)
   {
     SUPER::init ();
     resize (len_);
     for (unsigned int i = 0; i < len; i++)
       (*this)[i].init ();
   }
-
-  inline void fini (void)
-  {
-    SUPER::fini_deep ();
-  }
+  void fini (void) { SUPER::fini_deep (); }
 
   private:
   typedef hb_vector_t<ParsedCStr> SUPER;
@@ -493,7 +489,7 @@ struct ParsedCStrs : hb_vector_t<ParsedCStr>
 
 struct SubrSubsetParam
 {
-  inline void init (ParsedCStr *parsed_charstring_,
+  void init (ParsedCStr *parsed_charstring_,
 		    ParsedCStrs *parsed_global_subrs_, ParsedCStrs *parsed_local_subrs_,
 		    hb_set_t *global_closure_, hb_set_t *local_closure_,
 		    bool drop_hints_)
@@ -507,7 +503,7 @@ struct SubrSubsetParam
     drop_hints = drop_hints_;
   }
 
-  inline ParsedCStr *get_parsed_str_for_context (CallContext &context)
+  ParsedCStr *get_parsed_str_for_context (CallContext &context)
   {
     switch (context.type)
     {
@@ -528,7 +524,7 @@ struct SubrSubsetParam
   }
 
   template <typename ENV>
-  inline void set_current_str (ENV &env, bool calling)
+  void set_current_str (ENV &env, bool calling)
   {
     ParsedCStr  *parsed_str = get_parsed_str_for_context (env.context);
     if (likely (parsed_str != nullptr))
@@ -557,7 +553,7 @@ struct SubrSubsetParam
 
 struct SubrRemap : Remap
 {
-  inline void create (hb_set_t *closure)
+  void create (hb_set_t *closure)
   {
     /* create a remapping of subroutine numbers from old to new.
      * no optimization based on usage counts. fonttools doesn't appear doing that either.
@@ -577,7 +573,7 @@ struct SubrRemap : Remap
       bias = 32768;
   }
 
-  inline hb_codepoint_t operator[] (unsigned int old_num) const
+  hb_codepoint_t operator[] (unsigned int old_num) const
   {
     if (old_num >= len)
       return CFF_UNDEF_CODE;
@@ -585,7 +581,7 @@ struct SubrRemap : Remap
       return Remap::operator[] (old_num);
   }
 
-  inline int biased_num (unsigned int old_num) const
+  int biased_num (unsigned int old_num) const
   {
     hb_codepoint_t new_num = (*this)[old_num];
     return (int)new_num - bias;
@@ -597,32 +593,29 @@ struct SubrRemap : Remap
 
 struct SubrRemaps
 {
-  inline SubrRemaps (void)
+  SubrRemaps (void)
   {
     global_remap.init ();
     local_remaps.init ();
   }
 
-  inline ~SubrRemaps (void)
-  {
-    fini ();
-  }
+  ~SubrRemaps (void) { fini (); }
 
-  inline void init (unsigned int fdCount)
+  void init (unsigned int fdCount)
   {
     local_remaps.resize (fdCount);
     for (unsigned int i = 0; i < fdCount; i++)
       local_remaps[i].init ();
   }
 
-  inline void create (SubrClosures& closures)
+  void create (SubrClosures& closures)
   {
     global_remap.create (closures.global_closure);
     for (unsigned int i = 0; i < local_remaps.len; i++)
       local_remaps[i].create (closures.local_closures[i]);
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     global_remap.fini ();
     local_remaps.fini_deep ();
@@ -635,14 +628,14 @@ struct SubrRemaps
 template <typename SUBSETTER, typename SUBRS, typename ACC, typename ENV, typename OPSET>
 struct SubrSubsetter
 {
-  inline SubrSubsetter (void)
+  SubrSubsetter (void)
   {
     parsed_charstrings.init ();
     parsed_global_subrs.init ();
     parsed_local_subrs.init ();
   }
 
-  inline ~SubrSubsetter (void)
+  ~SubrSubsetter (void)
   {
     closures.fini ();
     remaps.fini ();
@@ -665,7 +658,7 @@ struct SubrSubsetter
    * Assumption: a callsubr/callgsubr operator must immediately follow a (biased) subroutine number
    * within the same charstring/subroutine, e.g., not split across a charstring and a subroutine.
    */
-  inline bool subset (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, bool drop_hints)
+  bool subset (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, bool drop_hints)
   {
     closures.init (acc.fdCount);
     remaps.init (acc.fdCount);
@@ -749,7 +742,7 @@ struct SubrSubsetter
     return true;
   }
 
-  inline bool encode_charstrings (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, StrBuffArray &buffArray) const
+  bool encode_charstrings (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, StrBuffArray &buffArray) const
   {
     if (unlikely (!buffArray.resize (glyphs.len)))
       return false;
@@ -764,7 +757,7 @@ struct SubrSubsetter
     return true;
   }
 
-  inline bool encode_subrs (const ParsedCStrs &subrs, const SubrRemap& remap, unsigned int fd, StrBuffArray &buffArray) const
+  bool encode_subrs (const ParsedCStrs &subrs, const SubrRemap& remap, unsigned int fd, StrBuffArray &buffArray) const
   {
     unsigned int  count = remap.get_count ();
 
@@ -782,12 +775,12 @@ struct SubrSubsetter
     return true;
   }
 
-  inline bool encode_globalsubrs (StrBuffArray &buffArray)
+  bool encode_globalsubrs (StrBuffArray &buffArray)
   {
     return encode_subrs (parsed_global_subrs, remaps.global_remap, 0, buffArray);
   }
 
-  inline bool encode_localsubrs (unsigned int fd, StrBuffArray &buffArray) const
+  bool encode_localsubrs (unsigned int fd, StrBuffArray &buffArray) const
   {
     return encode_subrs (parsed_local_subrs[fd], remaps.local_remaps[fd], fd, buffArray);
   }
@@ -795,7 +788,7 @@ struct SubrSubsetter
   protected:
   struct DropHintsParam
   {
-    inline DropHintsParam (void)
+    DropHintsParam (void)
       : seen_moveto (false),
 	ends_in_hint (false),
 	vsindex_dropped (false) {}
@@ -805,9 +798,9 @@ struct SubrSubsetter
     bool  vsindex_dropped;
   };
 
-  inline bool drop_hints_in_subr (ParsedCStr &str, unsigned int pos,
-				 ParsedCStrs &subrs, unsigned int subr_num,
-				 const SubrSubsetParam &param, DropHintsParam &drop)
+  bool drop_hints_in_subr (ParsedCStr &str, unsigned int pos,
+			   ParsedCStrs &subrs, unsigned int subr_num,
+			   const SubrSubsetParam &param, DropHintsParam &drop)
   {
     drop.ends_in_hint = false;
     bool has_hint = drop_hints_in_str (subrs[subr_num], param, drop);
@@ -827,7 +820,7 @@ struct SubrSubsetter
   }
 
   /* returns true if it sees a hint op before the first moveto */
-  inline bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param, DropHintsParam &drop)
+  bool drop_hints_in_str (ParsedCStr &str, const SubrSubsetParam &param, DropHintsParam &drop)
   {
     bool  seen_hint = false;
 
@@ -900,16 +893,16 @@ struct SubrSubsetter
     return seen_hint;
   }
 
-  inline void collect_subr_refs_in_subr (ParsedCStr &str, unsigned int pos,
-					 unsigned int subr_num, ParsedCStrs &subrs,
-					 hb_set_t *closure,
-					 const SubrSubsetParam &param)
+  void collect_subr_refs_in_subr (ParsedCStr &str, unsigned int pos,
+				  unsigned int subr_num, ParsedCStrs &subrs,
+				  hb_set_t *closure,
+				  const SubrSubsetParam &param)
   {
     hb_set_add (closure, subr_num);
     collect_subr_refs_in_str (subrs[subr_num], param);
   }
 
-  inline void collect_subr_refs_in_str (ParsedCStr &str, const SubrSubsetParam &param)
+  void collect_subr_refs_in_str (ParsedCStr &str, const SubrSubsetParam &param)
   {
     for (unsigned int pos = 0; pos < str.values.len; pos++)
     {
@@ -935,7 +928,7 @@ struct SubrSubsetter
     }
   }
 
-  inline bool encode_str (const ParsedCStr &str, const unsigned int fd, StrBuff &buff) const
+  bool encode_str (const ParsedCStr &str, const unsigned int fd, StrBuff &buff) const
   {
     buff.init ();
     StrEncoder  encoder (buff);

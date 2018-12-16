@@ -38,12 +38,12 @@
 
 struct hb_blob_t
 {
-  inline void fini_shallow (void)
+  void fini_shallow (void)
   {
     destroy_user_data ();
   }
 
-  inline void destroy_user_data (void)
+  void destroy_user_data (void)
   {
     if (destroy)
     {
@@ -58,14 +58,12 @@ struct hb_blob_t
   HB_INTERNAL bool try_make_writable_inplace_unix (void);
 
   template <typename Type>
-  inline const Type* as (void) const
+  const Type* as (void) const
   {
     return length < hb_null_size (Type) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
-  inline hb_bytes_t as_bytes (void) const
-  {
-    return hb_bytes_t (data, length);
-  }
+  hb_bytes_t as_bytes (void) const
+  { return hb_bytes_t (data, length); }
 
   public:
   hb_object_header_t header;
@@ -88,16 +86,16 @@ struct hb_blob_ptr_t
 {
   typedef typename hb_remove_pointer (P) T;
 
-  inline hb_blob_ptr_t (hb_blob_t *b_ = nullptr) : b (b_) {}
-  inline hb_blob_t * operator = (hb_blob_t *b_) { return b = b_; }
-  inline const T * operator -> (void) const { return get (); }
-  inline const T & operator * (void) const { return *get (); }
-  template <typename C> inline operator const C * (void) const { return get (); }
-  inline operator const char * (void) const { return (const char *) get (); }
-  inline const T * get (void) const { return b->as<T> (); }
-  inline hb_blob_t * get_blob (void) const { return b.get_raw (); }
-  inline unsigned int get_length (void) const { return b.get ()->length; }
-  inline void destroy (void) { hb_blob_destroy (b.get ()); b = nullptr; }
+  hb_blob_ptr_t (hb_blob_t *b_ = nullptr) : b (b_) {}
+  hb_blob_t * operator = (hb_blob_t *b_) { return b = b_; }
+  const T * operator -> (void) const { return get (); }
+  const T & operator * (void) const { return *get (); }
+  template <typename C> operator const C * (void) const { return get (); }
+  operator const char * (void) const { return (const char *) get (); }
+  const T * get (void) const { return b->as<T> (); }
+  hb_blob_t * get_blob (void) const { return b.get_raw (); }
+  unsigned int get_length (void) const { return b.get ()->length; }
+  void destroy (void) { hb_blob_destroy (b.get ()); b = nullptr; }
 
   hb_nonnull_ptr_t<hb_blob_t> b;
 };

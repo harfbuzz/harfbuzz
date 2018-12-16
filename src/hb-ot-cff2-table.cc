@@ -31,7 +31,7 @@ using namespace CFF;
 
 struct ExtentsParam
 {
-  inline void init (void)
+  void init (void)
   {
     path_open = false;
     min_x.set_int (0x7FFFFFFF);
@@ -40,11 +40,11 @@ struct ExtentsParam
     max_y.set_int (-0x80000000);
   }
 
-  inline void start_path (void) { path_open = true; }
-  inline void end_path (void) { path_open = false; }
-  inline bool is_path_open (void) const { return path_open; }
+  void start_path (void) { path_open = true; }
+  void end_path (void) { path_open = false; }
+  bool is_path_open (void) const { return path_open; }
 
-  inline void update_bounds (const Point &pt)
+  void update_bounds (const Point &pt)
   {
     if (pt.x < min_x) min_x = pt.x;
     if (pt.x > max_x) max_x = pt.x;
@@ -61,13 +61,13 @@ struct ExtentsParam
 
 struct CFF2PathProcs_Extents : PathProcs<CFF2PathProcs_Extents, CFF2CSInterpEnv, ExtentsParam>
 {
-  static inline void moveto (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt)
+  static void moveto (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt)
   {
     param.end_path ();
     env.moveto (pt);
   }
 
-  static inline void line (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
+  static void line (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
   {
     if (!param.is_path_open ())
     {
@@ -78,7 +78,7 @@ struct CFF2PathProcs_Extents : PathProcs<CFF2PathProcs_Extents, CFF2CSInterpEnv,
     param.update_bounds (env.get_pt ());
   }
 
-  static inline void curve (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
+  static void curve (CFF2CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
   {
     if (!param.is_path_open ())
     {

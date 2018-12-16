@@ -51,7 +51,7 @@ typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
 
 struct CFF2FDSelect
 {
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
 
@@ -63,7 +63,7 @@ struct CFF2FDSelect
 			    u.format4.sanitize (c, fdcount))));
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
@@ -73,10 +73,10 @@ struct CFF2FDSelect
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (unsigned int num_glyphs) const
+  unsigned int calculate_serialized_size (unsigned int num_glyphs) const
   { return get_size (num_glyphs); }
 
-  inline unsigned int get_size (unsigned int num_glyphs) const
+  unsigned int get_size (unsigned int num_glyphs) const
   {
     unsigned int size = format.static_size;
     if (format == 0)
@@ -88,7 +88,7 @@ struct CFF2FDSelect
     return size;
   }
 
-  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
     if (this == &Null(CFF2FDSelect))
       return 0;
@@ -112,13 +112,13 @@ struct CFF2FDSelect
 
 struct CFF2VariationStore
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)) && c->check_range (&varStore, size) && varStore.sanitize (c));
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
+  bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
   {
     TRACE_SERIALIZE (this);
     unsigned int size_ = varStore->get_size ();
@@ -128,7 +128,7 @@ struct CFF2VariationStore
     return_trace (true);
   }
 
-  inline unsigned int get_size (void) const { return HBUINT16::static_size + size; }
+  unsigned int get_size (void) const { return HBUINT16::static_size + size; }
 
   HBUINT16	size;
   VariationStore  varStore;
@@ -138,19 +138,15 @@ struct CFF2VariationStore
 
 struct CFF2TopDictValues : TopDictValues<>
 {
-  inline void init (void)
+  void init (void)
   {
     TopDictValues<>::init ();
     vstoreOffset = 0;
     FDSelectOffset = 0;
   }
+  void fini (void) { TopDictValues<>::fini (); }
 
-  inline void fini (void)
-  {
-    TopDictValues<>::fini ();
-  }
-
-  inline unsigned int calculate_serialized_size (void) const
+  unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < get_count (); i++)
@@ -176,7 +172,7 @@ struct CFF2TopDictValues : TopDictValues<>
 
 struct CFF2TopDictOpSet : TopDictOpSet<>
 {
-  static inline void process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
+  static void process_op (OpCode op, NumInterpEnv& env, CFF2TopDictValues& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
@@ -213,13 +209,13 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
 
 struct CFF2FontDictValues : DictValues<OpStr>
 {
-  inline void init (void)
+  void init (void)
   {
     DictValues<OpStr>::init ();
     privateDictInfo.init ();
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     DictValues<OpStr>::fini ();
   }
@@ -229,7 +225,7 @@ struct CFF2FontDictValues : DictValues<OpStr>
 
 struct CFF2FontDictOpSet : DictOpSet
 {
-  static inline void process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
+  static void process_op (OpCode op, NumInterpEnv& env, CFF2FontDictValues& dictval)
   {
     switch (op) {
       case OpCode_Private:
@@ -256,7 +252,7 @@ struct CFF2FontDictOpSet : DictOpSet
 template <typename VAL>
 struct CFF2PrivateDictValues_Base : DictValues<VAL>
 {
-  inline void init (void)
+  void init (void)
   {
     DictValues<VAL>::init ();
     subrsOffset = 0;
@@ -264,12 +260,12 @@ struct CFF2PrivateDictValues_Base : DictValues<VAL>
     ivs = 0;
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     DictValues<VAL>::fini ();
   }
 
-  inline unsigned int calculate_serialized_size (void) const
+  unsigned int calculate_serialized_size (void) const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < DictValues<VAL>::get_count; i++)
@@ -290,14 +286,14 @@ typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
 struct CFF2PrivDictInterpEnv : NumInterpEnv
 {
-  inline void init (const ByteStr &str)
+  void init (const ByteStr &str)
   {
     NumInterpEnv::init (str);
     ivs = 0;
     seen_vsindex = false;
   }
 
-  inline void process_vsindex (void)
+  void process_vsindex (void)
   {
     if (likely (!seen_vsindex))
     {
@@ -306,8 +302,8 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
     seen_vsindex = true;
   }
 
-  inline unsigned int get_ivs (void) const { return ivs; }
-  inline void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  unsigned int get_ivs (void) const { return ivs; }
+  void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
 
   protected:
   unsigned int  ivs;
@@ -316,7 +312,7 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
 
 struct CFF2PrivateDictOpSet : DictOpSet
 {
-  static inline void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues& dictval)
+  static void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues& dictval)
   {
     NumDictVal val;
     val.init ();
@@ -366,7 +362,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
 
 struct CFF2PrivateDictOpSet_Subset : DictOpSet
 {
-  static inline void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
+  static void process_op (OpCode op, CFF2PrivDictInterpEnv& env, CFF2PrivateDictValues_Subset& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -422,7 +418,7 @@ struct cff2
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cff2;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -432,7 +428,7 @@ struct cff2
   template <typename PRIVOPSET, typename PRIVDICTVAL>
   struct accelerator_templ_t
   {
-    inline void init (hb_face_t *face)
+    void init (hb_face_t *face)
     {
       topDict.init ();
       fontDicts.init ();
@@ -505,7 +501,7 @@ struct cff2
       }
     }
 
-    inline void fini (void)
+    void fini (void)
     {
       sc.end_processing ();
       fontDicts.fini_deep ();
@@ -514,7 +510,7 @@ struct cff2
       blob = nullptr;
     }
 
-    inline bool is_valid (void) const { return blob != nullptr; }
+    bool is_valid (void) const { return blob != nullptr; }
 
     protected:
     hb_blob_t	       *blob;
@@ -544,7 +540,7 @@ struct cff2
 
   typedef accelerator_templ_t<CFF2PrivateDictOpSet_Subset, CFF2PrivateDictValues_Subset> accelerator_subset_t;
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *cff2_prime = nullptr;
 

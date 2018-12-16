@@ -47,10 +47,10 @@ struct hb_lockable_set_t
 {
   hb_vector_t <item_t, 1> items;
 
-  inline void init (void) { items.init (); }
+  void init (void) { items.init (); }
 
   template <typename T>
-  inline item_t *replace_or_insert (T v, lock_t &l, bool replace)
+  item_t *replace_or_insert (T v, lock_t &l, bool replace)
   {
     l.lock ();
     item_t *item = items.find (v);
@@ -73,7 +73,7 @@ struct hb_lockable_set_t
   }
 
   template <typename T>
-  inline void remove (T v, lock_t &l)
+  void remove (T v, lock_t &l)
   {
     l.lock ();
     item_t *item = items.find (v);
@@ -89,7 +89,7 @@ struct hb_lockable_set_t
   }
 
   template <typename T>
-  inline bool find (T v, item_t *i, lock_t &l)
+  bool find (T v, item_t *i, lock_t &l)
   {
     l.lock ();
     item_t *item = items.find (v);
@@ -100,7 +100,7 @@ struct hb_lockable_set_t
   }
 
   template <typename T>
-  inline item_t *find_or_insert (T v, lock_t &l)
+  item_t *find_or_insert (T v, lock_t &l)
   {
     l.lock ();
     item_t *item = items.find (v);
@@ -111,7 +111,7 @@ struct hb_lockable_set_t
     return item;
   }
 
-  inline void fini (lock_t &l)
+  void fini (lock_t &l)
   {
     if (!items.len) {
       /* No need for locking. */
@@ -145,14 +145,14 @@ struct hb_reference_count_t
 {
   mutable hb_atomic_int_t ref_count;
 
-  inline void init (int v = 1) { ref_count.set_relaxed (v); }
-  inline int get_relaxed (void) const { return ref_count.get_relaxed (); }
-  inline int inc (void) const { return ref_count.inc (); }
-  inline int dec (void) const { return ref_count.dec (); }
-  inline void fini (void) { ref_count.set_relaxed (HB_REFERENCE_COUNT_POISON_VALUE); }
+  void init (int v = 1) { ref_count.set_relaxed (v); }
+  int get_relaxed (void) const { return ref_count.get_relaxed (); }
+  int inc (void) const { return ref_count.inc (); }
+  int dec (void) const { return ref_count.dec (); }
+  void fini (void) { ref_count.set_relaxed (HB_REFERENCE_COUNT_POISON_VALUE); }
 
-  inline bool is_inert (void) const { return ref_count.get_relaxed () == HB_REFERENCE_COUNT_INERT_VALUE; }
-  inline bool is_valid (void) const { return ref_count.get_relaxed () > 0; }
+  bool is_inert (void) const { return ref_count.get_relaxed () == HB_REFERENCE_COUNT_INERT_VALUE; }
+  bool is_valid (void) const { return ref_count.get_relaxed () > 0; }
 };
 
 
@@ -165,8 +165,8 @@ struct hb_user_data_array_t
     void *data;
     hb_destroy_func_t destroy;
 
-    inline bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
-    inline bool operator == (hb_user_data_item_t &other) const { return key == other.key; }
+    bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
+    bool operator == (hb_user_data_item_t &other) const { return key == other.key; }
 
     void fini (void) { if (destroy) destroy (data); }
   };
@@ -174,7 +174,7 @@ struct hb_user_data_array_t
   hb_mutex_t lock;
   hb_lockable_set_t<hb_user_data_item_t, hb_mutex_t> items;
 
-  inline void init (void) { lock.init (); items.init (); }
+  void init (void) { lock.init (); items.init (); }
 
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
@@ -183,7 +183,7 @@ struct hb_user_data_array_t
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
-  inline void fini (void) { items.fini (lock); lock.fini (); }
+  void fini (void) { items.fini (lock); lock.fini (); }
 };
 
 

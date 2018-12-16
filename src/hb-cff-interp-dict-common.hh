@@ -37,14 +37,8 @@ using namespace OT;
 /* an opstr and the parsed out dict value(s) */
 struct DictVal : OpStr
 {
-  inline void init (void)
-  {
-    single_val.set_int (0);
-  }
-
-  inline void fini (void)
-  {
-  }
+  void init (void) { single_val.set_int (0); }
+  void fini (void) {}
 
   Number	      single_val;
 };
@@ -56,19 +50,19 @@ template <typename VAL> struct DictValues : ParsedValues<VAL> {};
 template <typename OPSTR=OpStr>
 struct TopDictValues : DictValues<OPSTR>
 {
-  inline void init (void)
+  void init (void)
   {
     DictValues<OPSTR>::init ();
     charStringsOffset = 0;
     FDArrayOffset = 0;
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     DictValues<OPSTR>::fini ();
   }
 
-  inline unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
+  unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
   {
     switch (opstr.op)
     {
@@ -87,7 +81,7 @@ struct TopDictValues : DictValues<OPSTR>
 
 struct DictOpSet : OpSet<Number>
 {
-  static inline void process_op (OpCode op, InterpEnv<Number>& env)
+  static void process_op (OpCode op, InterpEnv<Number>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
@@ -104,7 +98,7 @@ struct DictOpSet : OpSet<Number>
     }
   }
 
-  static inline double parse_bcd (SubByteStr& substr)
+  static double parse_bcd (SubByteStr& substr)
   {
     bool    neg = false;
     double  int_part = 0;
@@ -230,7 +224,7 @@ struct DictOpSet : OpSet<Number>
     return value;
   }
 
-  static inline bool is_hint_op (OpCode op)
+  static bool is_hint_op (OpCode op)
   {
     switch (op)
     {
@@ -258,7 +252,7 @@ struct DictOpSet : OpSet<Number>
 template <typename VAL=OpStr>
 struct TopDictOpSet : DictOpSet
 {
-  static inline void process_op (OpCode op, InterpEnv<Number>& env, TopDictValues<VAL> & dictval)
+  static void process_op (OpCode op, InterpEnv<Number>& env, TopDictValues<VAL> & dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
@@ -282,7 +276,7 @@ struct TopDictOpSet : DictOpSet
 template <typename OPSET, typename PARAM, typename ENV=NumInterpEnv>
 struct DictInterpreter : Interpreter<ENV>
 {
-  inline bool interpret (PARAM& param)
+  bool interpret (PARAM& param)
   {
     param.init ();
     while (SUPER::env.substr.avail ())

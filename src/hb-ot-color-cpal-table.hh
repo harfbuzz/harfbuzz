@@ -48,39 +48,36 @@ struct CPALV1Tail
   friend struct CPAL;
 
   private:
-  inline hb_ot_color_palette_flags_t
-  get_palette_flags (const void *base,
-		     unsigned int palette_index,
-		     unsigned int palette_count) const
+  hb_ot_color_palette_flags_t get_palette_flags (const void *base,
+						 unsigned int palette_index,
+						 unsigned int palette_count) const
   {
     if (!paletteFlagsZ) return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
     return (hb_ot_color_palette_flags_t) (uint32_t)
 	   (base+paletteFlagsZ).as_array (palette_count)[palette_index];
   }
 
-  inline hb_ot_name_id_t
-  get_palette_name_id (const void *base,
-		       unsigned int palette_index,
-		       unsigned int palette_count) const
+  hb_ot_name_id_t get_palette_name_id (const void *base,
+				       unsigned int palette_index,
+				       unsigned int palette_count) const
   {
     if (!paletteLabelsZ) return HB_OT_NAME_ID_INVALID;
     return (base+paletteLabelsZ).as_array (palette_count)[palette_index];
   }
 
-  inline hb_ot_name_id_t
-  get_color_name_id (const void *base,
-		     unsigned int color_index,
-		     unsigned int color_count) const
+  hb_ot_name_id_t get_color_name_id (const void *base,
+				     unsigned int color_index,
+				     unsigned int color_count) const
   {
     if (!colorLabelsZ) return HB_OT_NAME_ID_INVALID;
     return (base+colorLabelsZ).as_array (color_count)[color_index];
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c,
-			const void *base,
-			unsigned int palette_count,
-			unsigned int color_count) const
+  bool sanitize (hb_sanitize_context_t *c,
+		 const void *base,
+		 unsigned int palette_count,
+		 unsigned int color_count) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -112,27 +109,27 @@ struct CPAL
 {
   enum { tableTag = HB_OT_TAG_CPAL };
 
-  inline bool has_data (void) const { return numPalettes; }
+  bool has_data (void) const { return numPalettes; }
 
-  inline unsigned int get_size (void) const
+  unsigned int get_size (void) const
   { return min_size + numPalettes * sizeof (colorRecordIndicesZ[0]); }
 
-  inline unsigned int get_palette_count (void) const { return numPalettes; }
-  inline unsigned int get_color_count (void) const   { return numColors; }
+  unsigned int get_palette_count (void) const { return numPalettes; }
+  unsigned int get_color_count (void) const   { return numColors; }
 
-  inline hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
+  hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
   { return v1 ().get_palette_flags (this, palette_index, numPalettes); }
 
-  inline hb_ot_name_id_t get_palette_name_id (unsigned int palette_index) const
+  hb_ot_name_id_t get_palette_name_id (unsigned int palette_index) const
   { return v1 ().get_palette_name_id (this, palette_index, numPalettes); }
 
-  inline hb_ot_name_id_t get_color_name_id (unsigned int color_index) const
+  hb_ot_name_id_t get_color_name_id (unsigned int color_index) const
   { return v1 ().get_color_name_id (this, color_index, numColors); }
 
-  inline unsigned int get_palette_colors (unsigned int  palette_index,
-					  unsigned int  start_offset,
-					  unsigned int *color_count, /* IN/OUT.  May be NULL. */
-					  hb_color_t   *colors       /* OUT.     May be NULL. */) const
+  unsigned int get_palette_colors (unsigned int  palette_index,
+				   unsigned int  start_offset,
+				   unsigned int *color_count, /* IN/OUT.  May be NULL. */
+				   hb_color_t   *colors       /* OUT.     May be NULL. */) const
   {
     if (unlikely (palette_index >= numPalettes))
     {
@@ -156,14 +153,14 @@ struct CPAL
   }
 
   private:
-  inline const CPALV1Tail& v1 (void) const
+  const CPALV1Tail& v1 (void) const
   {
     if (version == 0) return Null(CPALV1Tail);
     return StructAfter<CPALV1Tail> (*this);
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&

@@ -67,7 +67,7 @@ struct hb_face_t
   };
   hb_atomic_ptr_t<plan_node_t> shape_plans;
 
-  inline hb_blob_t *reference_table (hb_tag_t tag) const
+  hb_blob_t *reference_table (hb_tag_t tag) const
   {
     hb_blob_t *blob;
 
@@ -81,7 +81,7 @@ struct hb_face_t
     return blob;
   }
 
-  inline HB_PURE_FUNC unsigned int get_upem (void) const
+  HB_PURE_FUNC unsigned int get_upem (void) const
   {
     unsigned int ret = upem.get_relaxed ();
     if (unlikely (!ret))
@@ -91,7 +91,7 @@ struct hb_face_t
     return ret;
   }
 
-  inline unsigned int get_num_glyphs (void) const
+  unsigned int get_num_glyphs (void) const
   {
     unsigned int ret = num_glyphs.get_relaxed ();
     if (unlikely (ret == (unsigned int) -1))

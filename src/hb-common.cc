@@ -247,11 +247,10 @@ struct hb_language_item_t {
   struct hb_language_item_t *next;
   hb_language_t lang;
 
-  inline bool operator == (const char *s) const {
-    return lang_equal (lang, s);
-  }
+  bool operator == (const char *s) const
+  { return lang_equal (lang, s); }
 
-  inline hb_language_item_t & operator = (const char *s) {
+  hb_language_item_t & operator = (const char *s) {
     /* If a custom allocated is used calling strdup() pairs
     badly with a call to the custom free() in fini() below.
     Therefore don't call strdup(), implement its behavior.
@@ -787,7 +786,7 @@ static void free_static_C_locale (void);
 static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (HB_LOCALE_T),
 							  hb_C_locale_lazy_loader_t>
 {
-  static inline HB_LOCALE_T create (void)
+  static HB_LOCALE_T create (void)
   {
     HB_LOCALE_T C_locale = HB_CREATE_LOCALE ("C");
 
@@ -797,11 +796,11 @@ static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (HB
 
     return C_locale;
   }
-  static inline void destroy (HB_LOCALE_T p)
+  static void destroy (HB_LOCALE_T p)
   {
     HB_FREE_LOCALE (p);
   }
-  static inline HB_LOCALE_T get_null (void)
+  static HB_LOCALE_T get_null (void)
   {
     return nullptr;
   }

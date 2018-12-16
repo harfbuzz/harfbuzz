@@ -307,7 +307,7 @@ static void free_static_icu_funcs (void);
 
 static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_icu_unicode_funcs_lazy_loader_t>
 {
-  static inline hb_unicode_funcs_t *create (void)
+  static hb_unicode_funcs_t *create (void)
   {
     void *user_data = nullptr;
 #if U_ICU_VERSION_MAJOR_NUM >= 49

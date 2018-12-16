@@ -284,7 +284,7 @@ struct hb_auto_trace_t
     _hb_debug_msg_va<max_level> (what, obj, func, true, plevel ? *plevel : 0, +1, message, ap);
     va_end (ap);
   }
-  inline ~hb_auto_trace_t (void)
+  ~hb_auto_trace_t (void)
   {
     _hb_warn_no_return<ret_t> (returned);
     if (!returned) {
@@ -293,9 +293,9 @@ struct hb_auto_trace_t
     if (plevel) --*plevel;
   }
 
-  inline ret_t ret (ret_t v,
-		    const char *func = "",
-		    unsigned int line = 0)
+  ret_t ret (ret_t v,
+	     const char *func = "",
+	     unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to return_trace().  This is a bug, please report.\n");
@@ -327,18 +327,18 @@ struct hb_auto_trace_t<0, ret_t>
 				   const char *message,
 				   ...) HB_PRINTF_FUNC(6, 7) {}
 
-  inline ret_t ret (ret_t v,
-		    const char *func HB_UNUSED = nullptr,
-		    unsigned int line HB_UNUSED = 0) { return v; }
+  ret_t ret (ret_t v,
+	     const char *func HB_UNUSED = nullptr,
+	     unsigned int line HB_UNUSED = 0) { return v; }
 };
 
 /* For disabled tracing; optimize out everything.
  * https://github.com/harfbuzz/harfbuzz/pull/605 */
 template <typename ret_t>
 struct hb_no_trace_t {
-  inline ret_t ret (ret_t v,
-		    const char *func HB_UNUSED = "",
-		    unsigned int line HB_UNUSED = 0) { return v; }
+  ret_t ret (ret_t v,
+	     const char *func HB_UNUSED = "",
+	     unsigned int line HB_UNUSED = 0) { return v; }
 };
 
 #define return_trace(RET) return trace.ret (RET, HB_FUNC, __LINE__)

@@ -41,7 +41,7 @@ namespace OT {
 
 struct GaspRange
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -59,10 +59,10 @@ struct gasp
 {
   enum { tableTag = HB_OT_TAG_gasp };
 
-  inline const GaspRange &get_gasp_range (unsigned int i) const
+  const GaspRange &get_gasp_range (unsigned int i) const
   { return gaspRanges[i]; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&

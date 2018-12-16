@@ -44,10 +44,10 @@ struct hb_kern_machine_t
 		       crossStream (crossStream_) {}
 
   HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
-  inline void kern (hb_font_t   *font,
-		    hb_buffer_t *buffer,
-		    hb_mask_t    kern_mask,
-		    bool         scale = true) const
+  void kern (hb_font_t   *font,
+	     hb_buffer_t *buffer,
+	     hb_mask_t    kern_mask,
+	     bool         scale = true) const
   {
     OT::hb_ot_apply_context_t c (1, font, buffer);
     c.set_lookup_mask (kern_mask);

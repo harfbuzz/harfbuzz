@@ -269,7 +269,7 @@ public:
     uint8_t mBidiLevel;
     bool mIsSideways;
 
-    inline bool ContainsTextPosition (uint32_t aTextPosition) const
+    bool ContainsTextPosition (uint32_t aTextPosition) const
     {
       return aTextPosition >= mTextStart &&
 	     aTextPosition <  mTextStart + mTextLength;

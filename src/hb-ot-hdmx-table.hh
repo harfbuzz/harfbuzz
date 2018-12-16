@@ -47,19 +47,19 @@ struct DeviceRecord
     unsigned int sizeDeviceRecord;
     hb_subset_plan_t *subset_plan;
 
-    inline void init (const DeviceRecord *source_device_record,
-		      unsigned int sizeDeviceRecord,
-		      hb_subset_plan_t   *subset_plan)
+    void init (const DeviceRecord *source_device_record,
+	       unsigned int sizeDeviceRecord,
+	       hb_subset_plan_t   *subset_plan)
     {
       this->source_device_record = source_device_record;
       this->sizeDeviceRecord = sizeDeviceRecord;
       this->subset_plan = subset_plan;
     }
 
-    inline unsigned int len (void) const
+    unsigned int len (void) const
     { return this->subset_plan->glyphs.len; }
 
-    inline const HBUINT8* operator [] (unsigned int i) const
+    const HBUINT8* operator [] (unsigned int i) const
     {
       if (unlikely (i >= len ())) return nullptr;
       hb_codepoint_t gid = this->subset_plan->glyphs [i];
@@ -70,12 +70,10 @@ struct DeviceRecord
     }
   };
 
-  static inline unsigned int get_size (unsigned int count)
-  {
-    return hb_ceil_to_4 (min_size + count * HBUINT8::static_size);
-  }
+  static unsigned int get_size (unsigned int count)
+  { return hb_ceil_to_4 (min_size + count * HBUINT8::static_size); }
 
-  inline bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
+  bool serialize (hb_serialize_context_t *c, const SubsetView &subset_view)
   {
     TRACE_SERIALIZE (this);
 
@@ -104,7 +102,7 @@ struct DeviceRecord
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int sizeDeviceRecord) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int sizeDeviceRecord) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -123,12 +121,10 @@ struct hdmx
 {
   enum { tableTag = HB_OT_TAG_hdmx };
 
-  inline unsigned int get_size (void) const
-  {
-    return min_size + numRecords * sizeDeviceRecord;
-  }
+  unsigned int get_size (void) const
+  { return min_size + numRecords * sizeDeviceRecord; }
 
-  inline const DeviceRecord& operator [] (unsigned int i) const
+  const DeviceRecord& operator [] (unsigned int i) const
   {
     /* XXX Null(DeviceRecord) is NOT safe as it's num-glyphs lengthed.
      * https://github.com/harfbuzz/harfbuzz/issues/1300 */
@@ -136,7 +132,7 @@ struct hdmx
     return StructAtOffset<DeviceRecord> (&this->firstDeviceRecord, i * sizeDeviceRecord);
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
+  bool serialize (hb_serialize_context_t *c, const hdmx *source_hdmx, hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
 
@@ -158,12 +154,12 @@ struct hdmx
     return_trace (true);
   }
 
-  static inline size_t get_subsetted_size (const hdmx *source_hdmx, hb_subset_plan_t *plan)
+  static size_t get_subsetted_size (const hdmx *source_hdmx, hb_subset_plan_t *plan)
   {
     return min_size + source_hdmx->numRecords * DeviceRecord::get_size (plan->glyphs.len);
   }
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     size_t dest_size = get_subsetted_size (this, plan);
     hdmx *dest = (hdmx *) malloc (dest_size);
@@ -194,7 +190,7 @@ struct hdmx
     return result;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&

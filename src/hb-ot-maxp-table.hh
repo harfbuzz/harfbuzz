@@ -41,7 +41,7 @@ namespace OT {
 
 struct maxpV1Tail
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -73,17 +73,17 @@ struct maxp
 {
   enum { tableTag = HB_OT_TAG_maxp };
 
-  inline unsigned int get_num_glyphs (void) const
+  unsigned int get_num_glyphs (void) const
   {
     return numGlyphs;
   }
 
-  inline void set_num_glyphs (unsigned int count)
+  void set_num_glyphs (unsigned int count)
   {
     numGlyphs.set (count);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -97,7 +97,7 @@ struct maxp
     return_trace (likely (version.major == 0 && version.minor == 0x5000u));
   }
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *maxp_blob = hb_sanitize_context_t().reference_table<maxp> (plan->source);
     hb_blob_t *maxp_prime_blob = hb_blob_copy_writable_or_fail (maxp_blob);
@@ -117,7 +117,7 @@ struct maxp
     return result;
   }
 
-  static inline void drop_hint_fields (hb_subset_plan_t *plan HB_UNUSED, maxp *maxp_prime)
+  static void drop_hint_fields (hb_subset_plan_t *plan HB_UNUSED, maxp *maxp_prime)
   {
     if (maxp_prime->version.major == 1)
     {

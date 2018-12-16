@@ -36,7 +36,7 @@ struct hb_utf8_t
 {
   typedef uint8_t codepoint_t;
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   next (const codepoint_t *text,
 	const codepoint_t *end,
 	hb_codepoint_t *unicode,
@@ -105,7 +105,7 @@ struct hb_utf8_t
     return text;
   }
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   prev (const codepoint_t *text,
 	const codepoint_t *start,
 	hb_codepoint_t *unicode,
@@ -122,13 +122,11 @@ struct hb_utf8_t
     return end - 1;
   }
 
-  static inline unsigned int
+  static unsigned int
   strlen (const codepoint_t *text)
-  {
-    return ::strlen ((const char *) text);
-  }
+  { return ::strlen ((const char *) text); }
 
-  static inline unsigned int
+  static unsigned int
   encode_len (hb_codepoint_t unicode)
   {
     if (unicode <   0x0080u) return 1;
@@ -138,7 +136,7 @@ struct hb_utf8_t
     return 3;
   }
 
-  static inline codepoint_t *
+  static codepoint_t *
   encode (codepoint_t *text,
 	  const codepoint_t *end,
 	  hb_codepoint_t unicode)
@@ -185,7 +183,7 @@ struct hb_utf16_xe_t
   static_assert (sizeof (TCodepoint) == 2, "");
   typedef TCodepoint codepoint_t;
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   next (const codepoint_t *text,
 	const codepoint_t *end,
 	hb_codepoint_t *unicode,
@@ -217,7 +215,7 @@ struct hb_utf16_xe_t
     return text;
   }
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   prev (const codepoint_t *text,
 	const codepoint_t *start,
 	hb_codepoint_t *unicode,
@@ -250,7 +248,7 @@ struct hb_utf16_xe_t
   }
 
 
-  static inline unsigned int
+  static unsigned int
   strlen (const codepoint_t *text)
   {
     unsigned int l = 0;
@@ -258,13 +256,13 @@ struct hb_utf16_xe_t
     return l;
   }
 
-  static inline unsigned int
+  static unsigned int
   encode_len (hb_codepoint_t unicode)
   {
     return unicode < 0x10000 ? 1 : 2;
   }
 
-  static inline codepoint_t *
+  static codepoint_t *
   encode (codepoint_t *text,
 	  const codepoint_t *end,
 	  hb_codepoint_t unicode)
@@ -293,7 +291,7 @@ struct hb_utf32_xe_t
   static_assert (sizeof (TCodepoint) == 4, "");
   typedef TCodepoint codepoint_t;
 
-  static inline const TCodepoint *
+  static const TCodepoint *
   next (const TCodepoint *text,
 	const TCodepoint *end HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -305,7 +303,7 @@ struct hb_utf32_xe_t
     return text;
   }
 
-  static inline const TCodepoint *
+  static const TCodepoint *
   prev (const TCodepoint *text,
 	const TCodepoint *start HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -317,7 +315,7 @@ struct hb_utf32_xe_t
     return text;
   }
 
-  static inline unsigned int
+  static unsigned int
   strlen (const TCodepoint *text)
   {
     unsigned int l = 0;
@@ -325,13 +323,13 @@ struct hb_utf32_xe_t
     return l;
   }
 
-  static inline unsigned int
+  static unsigned int
   encode_len (hb_codepoint_t unicode HB_UNUSED)
   {
     return 1;
   }
 
-  static inline codepoint_t *
+  static codepoint_t *
   encode (codepoint_t *text,
 	  const codepoint_t *end HB_UNUSED,
 	  hb_codepoint_t unicode)
@@ -351,7 +349,7 @@ struct hb_latin1_t
 {
   typedef uint8_t codepoint_t;
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   next (const codepoint_t *text,
 	const codepoint_t *end HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -361,7 +359,7 @@ struct hb_latin1_t
     return text;
   }
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   prev (const codepoint_t *text,
 	const codepoint_t *start HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -371,7 +369,7 @@ struct hb_latin1_t
     return text;
   }
 
-  static inline unsigned int
+  static unsigned int
   strlen (const codepoint_t *text)
   {
     unsigned int l = 0;
@@ -379,13 +377,13 @@ struct hb_latin1_t
     return l;
   }
 
-  static inline unsigned int
+  static unsigned int
   encode_len (hb_codepoint_t unicode HB_UNUSED)
   {
     return 1;
   }
 
-  static inline codepoint_t *
+  static codepoint_t *
   encode (codepoint_t *text,
 	  const codepoint_t *end HB_UNUSED,
 	  hb_codepoint_t unicode)
@@ -402,7 +400,7 @@ struct hb_ascii_t
 {
   typedef uint8_t codepoint_t;
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   next (const codepoint_t *text,
 	const codepoint_t *end HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -414,7 +412,7 @@ struct hb_ascii_t
     return text;
   }
 
-  static inline const codepoint_t *
+  static const codepoint_t *
   prev (const codepoint_t *text,
 	const codepoint_t *start HB_UNUSED,
 	hb_codepoint_t *unicode,
@@ -426,7 +424,7 @@ struct hb_ascii_t
     return text;
   }
 
-  static inline unsigned int
+  static unsigned int
   strlen (const codepoint_t *text)
   {
     unsigned int l = 0;
@@ -434,13 +432,13 @@ struct hb_ascii_t
     return l;
   }
 
-  static inline unsigned int
+  static unsigned int
   encode_len (hb_codepoint_t unicode HB_UNUSED)
   {
     return 1;
   }
 
-  static inline codepoint_t *
+  static codepoint_t *
   encode (codepoint_t *text,
 	  const codepoint_t *end HB_UNUSED,
 	  hb_codepoint_t unicode)

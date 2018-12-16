@@ -40,17 +40,17 @@ namespace OT {
 
 struct SVGDocumentIndexEntry
 {
-  inline int cmp (hb_codepoint_t g) const
+  int cmp (hb_codepoint_t g) const
   { return g < startGlyphID ? -1 : g > endGlyphID ? 1 : 0; }
 
-  inline hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
+  hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
   {
     return hb_blob_create_sub_blob (svg_blob,
 				    index_offset + (unsigned int) svgDoc,
 				    svgDocLength);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -75,31 +75,31 @@ struct SVG
 {
   enum { tableTag = HB_OT_TAG_SVG };
 
-  inline bool has_data (void) const { return svgDocEntries; }
+  bool has_data (void) const { return svgDocEntries; }
 
   struct accelerator_t
   {
-    inline void init (hb_face_t *face)
+    void init (hb_face_t *face)
     { table = hb_sanitize_context_t().reference_table<SVG> (face); }
 
-    inline void fini (void) { table.destroy (); }
+    void fini (void) { table.destroy (); }
 
-    inline hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
+    hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
       return table->get_glyph_entry (glyph_id).reference_blob (table.get_blob (),
 							       table->svgDocEntries);
     }
 
-    inline bool has_data (void) const { return table->has_data (); }
+    bool has_data (void) const { return table->has_data (); }
 
     private:
     hb_blob_ptr_t<SVG> table;
   };
 
-  inline const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
+  const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
   { return (this+svgDocEntries).bsearch (glyph_id); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&

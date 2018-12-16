@@ -484,7 +484,7 @@ static void free_static_ft_funcs (void);
 
 static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft_font_funcs_lazy_loader_t>
 {
-  static inline hb_font_funcs_t *create (void)
+  static hb_font_funcs_t *create (void)
   {
     hb_font_funcs_t *funcs = hb_font_funcs_create ();
 
@@ -751,7 +751,7 @@ static void free_static_ft_library (void);
 static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (FT_Library),
 							     hb_ft_library_lazy_loader_t>
 {
-  static inline FT_Library create (void)
+  static FT_Library create (void)
   {
     FT_Library l;
     if (FT_Init_FreeType (&l))
@@ -763,11 +763,11 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (
 
     return l;
   }
-  static inline void destroy (FT_Library l)
+  static void destroy (FT_Library l)
   {
     FT_Done_FreeType (l);
   }
-  static inline FT_Library get_null (void)
+  static FT_Library get_null (void)
   {
     return nullptr;
   }

@@ -44,7 +44,7 @@ namespace OT {
 
 struct OS2V1Tail
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -59,7 +59,7 @@ struct OS2V1Tail
 
 struct OS2V2Tail
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -77,7 +77,7 @@ struct OS2V2Tail
 
 struct OS2V5Tail
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -94,11 +94,11 @@ struct OS2
 {
   enum { tableTag = HB_OT_TAG_OS2 };
 
-  inline bool has_data (void) const { return this != &Null (OS2); }
+  bool has_data (void) const { return this != &Null (OS2); }
 
-  inline const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
-  inline const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
-  inline const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
+  const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
+  const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
+  const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
 
   enum selection_flag_t {
     ITALIC		= 1u<<0,
@@ -113,9 +113,9 @@ struct OS2
     OBLIQUE		= 1u<<9
   };
 
-  inline bool is_italic (void) const       { return fsSelection & ITALIC; }
-  inline bool is_oblique (void) const      { return fsSelection & OBLIQUE; }
-  inline bool is_typo_metrics (void) const { return fsSelection & USE_TYPO_METRICS; }
+  bool is_italic (void) const       { return fsSelection & ITALIC; }
+  bool is_oblique (void) const      { return fsSelection & OBLIQUE; }
+  bool is_typo_metrics (void) const { return fsSelection & USE_TYPO_METRICS; }
 
   enum width_class_t {
     FWIDTH_ULTRA_CONDENSED	= 1, /* 50% */
@@ -129,7 +129,7 @@ struct OS2
     FWIDTH_ULTRA_EXPANDED	= 9  /* 200% */
   };
 
-  inline float get_width (void) const
+  float get_width (void) const
   {
     switch (usWidthClass) {
     case FWIDTH_ULTRA_CONDENSED:return 50.f;
@@ -145,7 +145,7 @@ struct OS2
     }
   }
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *os2_blob = hb_sanitize_context_t ().reference_table<OS2> (plan->source);
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
@@ -170,8 +170,8 @@ struct OS2
     return result;
   }
 
-  inline void _update_unicode_ranges (const hb_set_t *codepoints,
-				      HBUINT32 ulUnicodeRange[4]) const
+  void _update_unicode_ranges (const hb_set_t *codepoints,
+			       HBUINT32 ulUnicodeRange[4]) const
   {
     for (unsigned int i = 0; i < 4; i++)
       ulUnicodeRange[i].set (0);
@@ -196,7 +196,7 @@ struct OS2
     }
   }
 
-  static inline void find_min_and_max_codepoint (const hb_set_t *codepoints,
+  static void find_min_and_max_codepoint (const hb_set_t *codepoints,
 						 uint16_t *min_cp, /* OUT */
 						 uint16_t *max_cp  /* OUT */)
   {
@@ -215,10 +215,10 @@ struct OS2
   };
 
   // https://github.com/Microsoft/Font-Validator/blob/520aaae/OTFontFileVal/val_OS2.cs#L644-L681
-  inline font_page_t get_font_page (void) const
+  font_page_t get_font_page (void) const
   { return (font_page_t) (version == 0 ? fsSelection & 0xFF00 : 0); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);

@@ -535,24 +535,24 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 
 struct hb_bytes_t
 {
-  inline hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
-  inline hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
-  inline hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
+  hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
+  hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
+  hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
   template <typename T>
-  inline hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len * sizeof (array.arrayZ[0])) {}
+  hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len * sizeof (array.arrayZ[0])) {}
 
-  inline operator const void * (void) const { return arrayZ; }
-  inline operator const char * (void) const { return arrayZ; }
+  operator const void * (void) const { return arrayZ; }
+  operator const char * (void) const { return arrayZ; }
 
-  inline void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+  void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
-  inline int cmp (const hb_bytes_t &a) const
+  int cmp (const hb_bytes_t &a) const
   {
     if (len != a.len)
       return (int) a.len - (int) len;
     return hb_memcmp (a.arrayZ, arrayZ, len);
   }
-  static inline int cmp (const void *pa, const void *pb)
+  static int cmp (const void *pa, const void *pb)
   {
     hb_bytes_t *a = (hb_bytes_t *) pa;
     hb_bytes_t *b = (hb_bytes_t *) pb;
@@ -571,24 +571,24 @@ struct hb_array_t
 {
   static_assert ((bool) (unsigned) hb_static_size (Type), "");
 
-  inline hb_array_t (void) : arrayZ (nullptr), len (0) {}
-  inline hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
-  inline hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+  hb_array_t (void) : arrayZ (nullptr), len (0) {}
+  hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
+  hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
 
-  inline Type& operator [] (int i_) const
+  Type& operator [] (int i_) const
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Null(Type);
     return arrayZ[i];
   }
 
-  template <typename T> inline operator  T * (void) const { return arrayZ; }
+  template <typename T> operator  T * (void) const { return arrayZ; }
 
-  inline Type * operator & (void) const { return arrayZ; }
+  Type * operator & (void) const { return arrayZ; }
 
-  inline unsigned int get_size (void) const { return len * sizeof (Type); }
+  unsigned int get_size (void) const { return len * sizeof (Type); }
 
-  inline hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
+  hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
     if (!start_offset && !seg_count)
       return *this;
@@ -602,14 +602,14 @@ struct hb_array_t
       count = *seg_count = MIN (count, *seg_count);
     return hb_array_t<Type> (arrayZ + start_offset, count);
   }
-  inline hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
 
-  inline hb_bytes_t as_bytes (void) const
+  hb_bytes_t as_bytes (void) const
   { return hb_bytes_t (arrayZ, len * sizeof (Type)); }
 
   template <typename T>
-  inline Type *lsearch (const T &x,
+  Type *lsearch (const T &x,
 			Type *not_found = nullptr)
   {
     unsigned int count = len;
@@ -619,7 +619,7 @@ struct hb_array_t
     return not_found;
   }
   template <typename T>
-  inline const Type *lsearch (const T &x, const Type *not_found = nullptr) const
+  const Type *lsearch (const T &x, const Type *not_found = nullptr) const
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -628,28 +628,28 @@ struct hb_array_t
     return not_found;
   }
 
-  inline hb_sorted_array_t<Type> qsort (int (*cmp)(const void*, const void*))
+  hb_sorted_array_t<Type> qsort (int (*cmp)(const void*, const void*))
   {
     ::qsort (arrayZ, len, sizeof (Type), cmp);
     return hb_sorted_array_t<Type> (*this);
   }
-  inline hb_sorted_array_t<Type> qsort (void)
+  hb_sorted_array_t<Type> qsort (void)
   {
     ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
-  inline void qsort (unsigned int start, unsigned int end)
+  void qsort (unsigned int start, unsigned int end)
   {
     end = MIN (end, len);
     assert (start <= end);
     ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
   }
 
-  inline void free (void)
+  void free (void)
   { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   template <typename hb_sanitize_context_t>
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   { return c->check_array (arrayZ, len); }
 
   public:
@@ -670,29 +670,29 @@ enum hb_bfind_not_found_t
 template <typename Type>
 struct hb_sorted_array_t : hb_array_t<Type>
 {
-  inline hb_sorted_array_t (void) : hb_array_t<Type> () {}
-  inline hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
-  inline hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
+  hb_sorted_array_t (void) : hb_array_t<Type> () {}
+  hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
+  hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
 
-  inline hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
+  hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
   { return hb_sorted_array_t<Type> (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
-  inline hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
 
   template <typename T>
-  inline Type *bsearch (const T &x, Type *not_found = nullptr)
+  Type *bsearch (const T &x, Type *not_found = nullptr)
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  inline const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  inline bool bfind (const T &x, unsigned int *i = nullptr,
+  bool bfind (const T &x, unsigned int *i = nullptr,
 		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
 		     unsigned int to_store = (unsigned int) -1) const
   {
@@ -773,13 +773,13 @@ struct HbOpXor
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
 {
-  inline elt_t& operator [] (unsigned int i) { return u.v[i]; }
-  inline const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
+  elt_t& operator [] (unsigned int i) { return u.v[i]; }
+  const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
 
-  inline void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
+  void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
 
   template <class Op>
-  inline hb_vector_size_t process (const hb_vector_size_t &o) const
+  hb_vector_size_t process (const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
 #if HB_VECTOR_SIZE
@@ -792,13 +792,13 @@ struct hb_vector_size_t
 	Op::process (r.u.v[i], u.v[i], o.u.v[i]);
     return r;
   }
-  inline hb_vector_size_t operator | (const hb_vector_size_t &o) const
+  hb_vector_size_t operator | (const hb_vector_size_t &o) const
   { return process<HbOpOr> (o); }
-  inline hb_vector_size_t operator & (const hb_vector_size_t &o) const
+  hb_vector_size_t operator & (const hb_vector_size_t &o) const
   { return process<HbOpAnd> (o); }
-  inline hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
+  hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process<HbOpXor> (o); }
-  inline hb_vector_size_t operator ~ (void) const
+  hb_vector_size_t operator ~ (void) const
   {
     hb_vector_size_t r;
 #if HB_VECTOR_SIZE && 0

@@ -57,7 +57,7 @@ struct hb_ot_map_t
     unsigned int auto_zwj : 1;
     unsigned int random : 1;
 
-    inline int cmp (const hb_tag_t tag_) const
+    int cmp (const hb_tag_t tag_) const
     { return tag_ < tag ? -1 : tag_ > tag ? 1 : 0; }
   };
 
@@ -83,7 +83,7 @@ struct hb_ot_map_t
     pause_func_t pause_func;
   };
 
-  inline void init (void)
+  void init (void)
   {
     memset (this, 0, sizeof (*this));
 
@@ -94,7 +94,7 @@ struct hb_ot_map_t
       stages[table_index].init ();
     }
   }
-  inline void fini (void)
+  void fini (void)
   {
     features.fini ();
     for (unsigned int table_index = 0; table_index < 2; table_index++)
@@ -104,36 +104,42 @@ struct hb_ot_map_t
     }
   }
 
-  inline hb_mask_t get_global_mask (void) const { return global_mask; }
+  hb_mask_t get_global_mask (void) const { return global_mask; }
 
-  inline hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr) const {
+  hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr) const
+  {
     const feature_map_t *map = features.bsearch (feature_tag);
     if (shift) *shift = map ? map->shift : 0;
     return map ? map->mask : 0;
   }
 
-  inline bool needs_fallback (hb_tag_t feature_tag) const {
+  bool needs_fallback (hb_tag_t feature_tag) const
+  {
     const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->needs_fallback : false;
   }
 
-  inline hb_mask_t get_1_mask (hb_tag_t feature_tag) const {
+  hb_mask_t get_1_mask (hb_tag_t feature_tag) const
+  {
     const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->_1_mask : 0;
   }
 
-  inline unsigned int get_feature_index (unsigned int table_index, hb_tag_t feature_tag) const {
+  unsigned int get_feature_index (unsigned int table_index, hb_tag_t feature_tag) const
+  {
     const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->index[table_index] : HB_OT_LAYOUT_NO_FEATURE_INDEX;
   }
 
-  inline unsigned int get_feature_stage (unsigned int table_index, hb_tag_t feature_tag) const {
+  unsigned int get_feature_stage (unsigned int table_index, hb_tag_t feature_tag) const
+  {
     const feature_map_t *map = features.bsearch (feature_tag);
     return map ? map->stage[table_index] : (unsigned int) -1;
   }
 
-  inline void get_stage_lookups (unsigned int table_index, unsigned int stage,
-				 const struct lookup_map_t **plookups, unsigned int *lookup_count) const {
+  void get_stage_lookups (unsigned int table_index, unsigned int stage,
+			  const struct lookup_map_t **plookups, unsigned int *lookup_count) const
+  {
     if (unlikely (stage == (unsigned int) -1)) {
       *plookups = nullptr;
       *lookup_count = 0;
@@ -203,20 +209,20 @@ struct hb_ot_map_builder_t
 				hb_ot_map_feature_flags_t flags=F_NONE,
 				unsigned int value=1);
 
-  inline void add_feature (const hb_ot_map_feature_t &feat)
+  void add_feature (const hb_ot_map_feature_t &feat)
   { add_feature (feat.tag, feat.flags); }
 
-  inline void enable_feature (hb_tag_t tag,
+  void enable_feature (hb_tag_t tag,
 			      hb_ot_map_feature_flags_t flags=F_NONE,
 			      unsigned int value=1)
   { add_feature (tag, F_GLOBAL | flags, value); }
 
-  inline void disable_feature (hb_tag_t tag)
+  void disable_feature (hb_tag_t tag)
   { add_feature (tag, F_GLOBAL, 0); }
 
-  inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
+  void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }
-  inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
+  void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (1, pause_func); }
 
   HB_INTERNAL void compile (hb_ot_map_t                  &m,

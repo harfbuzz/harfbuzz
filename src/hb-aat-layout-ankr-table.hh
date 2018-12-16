@@ -41,7 +41,7 @@ using namespace OT;
 
 struct Anchor
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -60,10 +60,10 @@ struct ankr
 {
   enum { tableTag = HB_AAT_TAG_ankr };
 
-  inline const Anchor &get_anchor (hb_codepoint_t glyph_id,
-				   unsigned int i,
-				   unsigned int num_glyphs,
-				   const char *end) const
+  const Anchor &get_anchor (hb_codepoint_t glyph_id,
+			    unsigned int i,
+			    unsigned int num_glyphs,
+			    const char *end) const
   {
     const Offset<HBUINT16, false> *offset = (this+lookupTable).get_value (glyph_id, num_glyphs);
     if (!offset)
@@ -75,7 +75,7 @@ struct ankr
     return anchors[i];
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
