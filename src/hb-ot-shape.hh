@@ -37,7 +37,7 @@ struct hb_ot_shape_plan_key_t
 {
   unsigned int variations_index[2];
 
-  inline void init (hb_face_t   *face,
+  void init (hb_face_t   *face,
 		    const int   *coords,
 		    unsigned int num_coords)
   {
@@ -49,7 +49,7 @@ struct hb_ot_shape_plan_key_t
 						  &variations_index[table_index]);
   }
 
-  inline bool equal (const hb_ot_shape_plan_key_t *other)
+  bool equal (const hb_ot_shape_plan_key_t *other)
   {
     return 0 == memcmp (this, other, sizeof (*this));
   }
@@ -85,7 +85,7 @@ struct hb_ot_shape_plan_t
   bool apply_morx : 1;
   bool apply_trak : 1;
 
-  inline void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
+  void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
   {
     unsigned int table_index;
     switch (table_tag) {

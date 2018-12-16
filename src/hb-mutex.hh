@@ -131,16 +131,16 @@ struct hb_mutex_t
 
   hb_mutex_impl_t m;
 
-  inline void init   (void) { hb_mutex_impl_init   (&m); }
-  inline void lock   (void) { hb_mutex_impl_lock   (&m); }
-  inline void unlock (void) { hb_mutex_impl_unlock (&m); }
-  inline void fini (void) { hb_mutex_impl_finish (&m); }
+  void init   (void) { hb_mutex_impl_init   (&m); }
+  void lock   (void) { hb_mutex_impl_lock   (&m); }
+  void unlock (void) { hb_mutex_impl_unlock (&m); }
+  void fini (void) { hb_mutex_impl_finish (&m); }
 };
 
 struct hb_lock_t
 {
-  inline hb_lock_t (hb_mutex_t &mutex_) : mutex (mutex_) { mutex.lock (); }
-  inline ~hb_lock_t (void) { mutex.unlock (); }
+  hb_lock_t (hb_mutex_t &mutex_) : mutex (mutex_) { mutex.lock (); }
+  ~hb_lock_t (void) { mutex.unlock (); }
   private:
   hb_mutex_t &mutex;
 };

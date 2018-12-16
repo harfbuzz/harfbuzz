@@ -163,13 +163,13 @@ hb_codepoint_t OT::cff1::lookup_standard_encoding_for_sid (hb_codepoint_t code)
 
 struct Bounds
 {
-  inline void init (void)
+  void init (void)
   {
     min.set_int (0x7FFFFFFF, 0x7FFFFFFF);
     max.set_int (-0x80000000, -0x80000000);
   }
 
-  inline void update (const Point &pt)
+  void update (const Point &pt)
   {
     if (pt.x < min.x) min.x = pt.x;
     if (pt.x > max.x) max.x = pt.x;
@@ -177,7 +177,7 @@ struct Bounds
     if (pt.y > max.y) max.y = pt.y;
   }
 
-  inline void merge (const Bounds &b)
+  void merge (const Bounds &b)
   {
     if (empty ())
       *this = b;
@@ -190,7 +190,7 @@ struct Bounds
     }
   }
 
-  inline void offset (const Point &delta)
+  void offset (const Point &delta)
   {
     if (!empty ())
     {
@@ -199,7 +199,7 @@ struct Bounds
     }
   }
 
-  inline bool  empty (void) const
+  bool  empty (void) const
   {
     return (min.x >= max.x) || (min.y >= max.y);
   }
@@ -210,16 +210,16 @@ struct Bounds
 
 struct ExtentsParam
 {
-  inline void init (const OT::cff1::accelerator_t *_cff)
+  void init (const OT::cff1::accelerator_t *_cff)
   {
     path_open = false;
     cff = _cff;
     bounds.init ();
   }
 
-  inline void start_path (void) { path_open = true; }
-  inline void end_path (void) { path_open = false; }
-  inline bool is_path_open (void) const { return path_open; }
+  void start_path (void) { path_open = true; }
+  void end_path (void) { path_open = false; }
+  bool is_path_open (void) const { return path_open; }
 
   bool    path_open;
   Bounds  bounds;
@@ -229,13 +229,13 @@ struct ExtentsParam
 
 struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv, ExtentsParam>
 {
-  static inline void moveto (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt)
+  static void moveto (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt)
   {
     param.end_path ();
     env.moveto (pt);
   }
 
-  static inline void line (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
+  static void line (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1)
   {
     if (!param.is_path_open ())
     {
@@ -246,7 +246,7 @@ struct CFF1PathProcs_Extents : PathProcs<CFF1PathProcs_Extents, CFF1CSInterpEnv,
     param.bounds.update (env.get_pt ());
   }
 
-  static inline void curve (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
+  static void curve (CFF1CSInterpEnv &env, ExtentsParam& param, const Point &pt1, const Point &pt2, const Point &pt3)
   {
     if (!param.is_path_open ())
     {
@@ -265,7 +265,7 @@ static bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyp
 
 struct CFF1CSOpSet_Extents : CFF1CSOpSet<CFF1CSOpSet_Extents, ExtentsParam, CFF1PathProcs_Extents>
 {
-  static inline void process_seac (CFF1CSInterpEnv &env, ExtentsParam& param)
+  static void process_seac (CFF1CSInterpEnv &env, ExtentsParam& param)
   {
     unsigned int  n = env.argStack.get_count ();
     Point delta;
@@ -338,14 +338,14 @@ bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extent
 
 struct GetSeacParam
 {
-  inline void init (const OT::cff1::accelerator_t *_cff)
+  void init (const OT::cff1::accelerator_t *_cff)
   {
     cff = _cff;
     base = 0;
     accent = 0;
   }
 
-  inline bool has_seac (void) const
+  bool has_seac (void) const
   { return base && accent; }
 
   const OT::cff1::accelerator_t *cff;
@@ -355,7 +355,7 @@ struct GetSeacParam
 
 struct CFF1CSOpSet_Seac : CFF1CSOpSet<CFF1CSOpSet_Seac, GetSeacParam>
 {
-  static inline void process_seac (CFF1CSInterpEnv &env, GetSeacParam& param)
+  static void process_seac (CFF1CSInterpEnv &env, GetSeacParam& param)
   {
     unsigned int  n = env.argStack.get_count ();
     hb_codepoint_t  base_char = (hb_codepoint_t)env.argStack[n-2].to_int ();

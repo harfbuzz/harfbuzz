@@ -42,12 +42,12 @@ struct lcar
 {
   enum { tableTag = HB_AAT_TAG_lcar };
 
-  inline unsigned int get_lig_carets (hb_font_t      *font,
-				      hb_direction_t  direction,
-				      hb_codepoint_t  glyph,
-				      unsigned int    start_offset,
-				      unsigned int   *caret_count /* IN/OUT */,
-				      hb_position_t  *caret_array /* OUT */) const
+  unsigned int get_lig_carets (hb_font_t      *font,
+			       hb_direction_t  direction,
+			       hb_codepoint_t  glyph,
+			       unsigned int    start_offset,
+			       unsigned int   *caret_count /* IN/OUT */,
+			       hb_position_t  *caret_array /* OUT */) const
   {
     const OffsetTo<LigCaretClassEntry>* entry_offset = lookup.get_value (glyph,
 									 font->face->get_num_glyphs ());
@@ -70,7 +70,7 @@ struct lcar
     return array.len;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&

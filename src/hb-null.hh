@@ -91,7 +91,7 @@ template <typename QType>
 struct NullHelper
 {
   typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
-  static inline const Type & get_null (void) { return Null<Type> (); }
+  static const Type & get_null (void) { return Null<Type> (); }
 };
 #define Null(Type) NullHelper<Type>::get_null ()
 
@@ -140,17 +140,17 @@ template <typename QType>
 struct CrapHelper
 {
   typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
-  static inline Type & get_crap (void) { return Crap<Type> (); }
+  static Type & get_crap (void) { return Crap<Type> (); }
 };
 #define Crap(Type) CrapHelper<Type>::get_crap ()
 
 template <typename Type>
 struct CrapOrNullHelper {
-  static inline Type & get (void) { return Crap(Type); }
+  static Type & get (void) { return Crap(Type); }
 };
 template <typename Type>
 struct CrapOrNullHelper<const Type> {
-  static inline const Type & get (void) { return Null(Type); }
+  static const Type & get (void) { return Null(Type); }
 };
 #define CrapOrNull(Type) CrapOrNullHelper<Type>::get ()
 
@@ -164,16 +164,16 @@ struct hb_nonnull_ptr_t
 {
   typedef typename hb_remove_pointer (P) T;
 
-  inline hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
-  inline T * operator = (T *v_) { return v = v_; }
-  inline T * operator -> (void) const { return get (); }
-  inline T & operator * (void) const { return *get (); }
-  inline T ** operator & (void) const { return &v; }
+  hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
+  T * operator = (T *v_) { return v = v_; }
+  T * operator -> (void) const { return get (); }
+  T & operator * (void) const { return *get (); }
+  T ** operator & (void) const { return &v; }
   /* Only auto-cast to const types. */
-  template <typename C> inline operator const C * (void) const { return get (); }
-  inline operator const char * (void) const { return (const char *) get (); }
-  inline T * get (void) const { return v ? v : const_cast<T *> (&Null(T)); }
-  inline T * get_raw (void) const { return v; }
+  template <typename C> operator const C * (void) const { return get (); }
+  operator const char * (void) const { return (const char *) get (); }
+  T * get (void) const { return v ? v : const_cast<T *> (&Null(T)); }
+  T * get_raw (void) const { return v; }
 
   T *v;
 };

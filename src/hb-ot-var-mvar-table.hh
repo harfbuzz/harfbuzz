@@ -35,7 +35,7 @@ namespace OT {
 
 struct VariationValueRecord
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -60,7 +60,7 @@ struct MVAR
 {
   enum { tableTag = HB_OT_TAG_MVAR };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
@@ -73,8 +73,8 @@ struct MVAR
 				  valueRecordSize));
   }
 
-  inline float get_var (hb_tag_t tag,
-			const int *coords, unsigned int coord_count) const
+  float get_var (hb_tag_t tag,
+		 const int *coords, unsigned int coord_count) const
   {
     const VariationValueRecord *record;
     record = (VariationValueRecord *) bsearch (&tag, valuesZ.arrayZ,
@@ -87,7 +87,7 @@ struct MVAR
   }
 
 protected:
-  static inline int tag_compare (const void *pa, const void *pb)
+  static int tag_compare (const void *pa, const void *pb)
   {
     const hb_tag_t *a = (const hb_tag_t *) pa;
     const Tag *b = (const Tag *) pb;

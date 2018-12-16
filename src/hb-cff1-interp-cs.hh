@@ -38,7 +38,7 @@ typedef BiasedSubrs<CFF1Subrs>   CFF1BiasedSubrs;
 struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 {
   template <typename ACC>
-  inline void init (const ByteStr &str, ACC &acc, unsigned int fd)
+  void init (const ByteStr &str, ACC &acc, unsigned int fd)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
@@ -47,12 +47,9 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     in_seac = false;
   }
 
-  inline void fini (void)
-  {
-    SUPER::fini ();
-  }
+  void fini (void) { SUPER::fini (); }
 
-  inline void set_width (bool has_width_)
+  void set_width (bool has_width_)
   {
     if (likely (!processed_width && (SUPER::argStack.get_count () > 0)))
     {
@@ -66,13 +63,13 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     processed_width = true;
   }
 
-  inline void clear_args (void)
+  void clear_args (void)
   {
     arg_start = 0;
     SUPER::clear_args ();
   }
 
-  inline void set_in_seac (bool _in_seac) { in_seac = _in_seac; }
+  void set_in_seac (bool _in_seac) { in_seac = _in_seac; }
 
   bool	  processed_width;
   bool	  has_width;
@@ -90,7 +87,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
   /* PostScript-originated legacy opcodes (OpCode_add etc) are unsupported */
   /* Type 1-originated deprecated opcodes, seac behavior of endchar and dotsection are supported */
 
-  static inline void process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
+  static void process_op (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
     switch (op) {
       case OpCode_dotsection:
@@ -112,7 +109,7 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
     }
   }
 
-  static inline void check_width (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
+  static void check_width (OpCode op, CFF1CSInterpEnv &env, PARAM& param)
   {
     if (!env.processed_width)
     {
@@ -142,11 +139,11 @@ struct CFF1CSOpSet : CSOpSet<Number, OPSET, CFF1CSInterpEnv, PARAM, PATH>
     }
   }
 
-  static inline void process_seac (CFF1CSInterpEnv &env, PARAM& param)
+  static void process_seac (CFF1CSInterpEnv &env, PARAM& param)
   {
   }
 
-  static inline void flush_args (CFF1CSInterpEnv &env, PARAM& param)
+  static void flush_args (CFF1CSInterpEnv &env, PARAM& param)
   {
     SUPER::flush_args (env, param);
     env.clear_args ();  /* pop off width */

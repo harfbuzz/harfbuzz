@@ -46,15 +46,15 @@ struct TrackTableEntry
 {
   friend struct TrackData;
 
-  inline float get_track_value (void) const { return track.to_float (); }
+  float get_track_value (void) const { return track.to_float (); }
 
-  inline int get_value (const void *base, unsigned int index,
-			unsigned int table_size) const
+  int get_value (const void *base, unsigned int index,
+		 unsigned int table_size) const
   { return (base+valuesZ).as_array (table_size)[index]; }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base,
-			unsigned int table_size) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base,
+		 unsigned int table_size) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -76,10 +76,10 @@ struct TrackTableEntry
 
 struct TrackData
 {
-  inline float interpolate_at (unsigned int idx,
-			       float target_size,
-			       const TrackTableEntry &trackTableEntry,
-			       const void *base) const
+  float interpolate_at (unsigned int idx,
+			float target_size,
+			const TrackTableEntry &trackTableEntry,
+			const void *base) const
   {
     unsigned int sizes = nSizes;
     hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
@@ -91,7 +91,7 @@ struct TrackData
 	   (1.f - t) * trackTableEntry.get_value (base, idx, sizes);
   }
 
-  inline int get_tracking (const void *base, float ptem) const
+  int get_tracking (const void *base, float ptem) const
   {
     /* CoreText points are CSS pixels (96 per inch),
      * NOT typographic points (72 per inch).
@@ -137,7 +137,7 @@ struct TrackData
 				  *trackTableEntry, base));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -162,9 +162,9 @@ struct trak
 {
   enum { tableTag = HB_AAT_TAG_trak };
 
-  inline bool has_data (void) const { return version.to_int (); }
+  bool has_data (void) const { return version.to_int (); }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -205,7 +205,7 @@ struct trak
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
 

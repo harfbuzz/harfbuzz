@@ -217,61 +217,45 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op) ? 2: 1; 
 
 struct Number
 {
-  inline void init (void)
-  { set_real (0.0); }
-  inline void fini (void)
-  {}
+  void init (void) { set_real (0.0); }
+  void fini (void) {}
 
-  inline void set_int (int v)	   { value = (double)v; }
-  inline int to_int (void) const	{ return (int)value; }
-  inline void set_fixed (int32_t v)     { value = v / 65536.0; }
-  inline int32_t to_fixed (void) const
+  void set_int (int v)       { value = (double) v; }
+  int to_int (void) const    { return (int) value; }
+  void set_fixed (int32_t v) { value = v / 65536.0; }
+  int32_t to_fixed (void) const
   {
     return (int32_t)(value * 65536.0);
   }
-  inline void set_real (double v)	{ value = v; }
-  inline double to_real (void) const
-  {
-    return value;
-  }
+  void set_real (double v)	{ value = v; }
+  double to_real (void) const   { return value; }
 
-  inline int ceil (void) const
-  {
-    return (int)::ceil (value);
-  }
+  int ceil (void) const  { return (int) ::ceil (value); }
+  int floor (void) const { return (int) ::floor (value); }
 
-  inline int floor (void) const
-  {
-    return (int)::floor (value);
-  }
+  bool in_int_range (void) const
+  { return ((double) (int16_t) to_int () == value); }
 
-  inline bool in_int_range (void) const
-  {
-    return ((double)(int16_t)to_int () == value);
-  }
+  bool operator > (const Number &n) const
+  { return value > n.to_real (); }
 
-  inline bool operator > (const Number &n) const
-  {
-    return value > n.to_real ();
-  }
-
-  inline bool operator < (const Number &n) const
+  bool operator < (const Number &n) const
   { return n > *this; }
 
-  inline bool operator >= (const Number &n) const
-  { return ! (*this < n); }
+  bool operator >= (const Number &n) const
+  { return !(*this < n); }
 
-  inline bool operator <= (const Number &n) const
-  { return ! (*this > n); }
+  bool operator <= (const Number &n) const
+  { return !(*this > n); }
 
-  inline const Number &operator += (const Number &n)
+  const Number &operator += (const Number &n)
   {
     set_real (to_real () + n.to_real ());
 
     return *this;
   }
 
-protected:
+  protected:
   double  value;
 };
 
@@ -280,7 +264,7 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 {
   // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
   template <typename INTTYPE, int minVal, int maxVal>
-  inline static bool serialize_int (hb_serialize_context_t *c, OpCode intOp, int value)
+  static bool serialize_int (hb_serialize_context_t *c, OpCode intOp, int value)
   {
     TRACE_SERIALIZE (this);
 
@@ -298,10 +282,10 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
     return_trace (true);
   }
 
-  inline static bool serialize_int4 (hb_serialize_context_t *c, int value)
+  static bool serialize_int4 (hb_serialize_context_t *c, int value)
   { return serialize_int<HBUINT32, 0, 0x7FFFFFFF> (c, OpCode_longintdict, value); }
 
-  inline static bool serialize_int2 (hb_serialize_context_t *c, int value)
+  static bool serialize_int2 (hb_serialize_context_t *c, int value)
   { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
 
   /* Defining null_size allows a Null object may be created. Should be safe because:
@@ -316,29 +300,30 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 
 struct ByteStr
 {
-  inline ByteStr (void)
+  ByteStr (void)
     : str (&Null(UnsizedByteStr)), len (0) {}
-  inline ByteStr (const UnsizedByteStr& s, unsigned int l)
+  ByteStr (const UnsizedByteStr& s, unsigned int l)
     : str (&s), len (l) {}
-  inline ByteStr (const char *s, unsigned int l=0)
+  ByteStr (const char *s, unsigned int l=0)
     : str ((const UnsizedByteStr *)s), len (l) {}
   /* sub-string */
-  inline ByteStr (const ByteStr &bs, unsigned int offset, unsigned int len_)
+  ByteStr (const ByteStr &bs, unsigned int offset, unsigned int len_)
   {
     str = (const UnsizedByteStr *)&bs.str[offset];
     len = len_;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
+  bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
 
-  inline const HBUINT8& operator [] (unsigned int i) const {
+  const HBUINT8& operator [] (unsigned int i) const
+  {
     if (likely (str && (i < len)))
       return (*str)[i];
     else
       return Null(HBUINT8);
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const ByteStr &src)
+  bool serialize (hb_serialize_context_t *c, const ByteStr &src)
   {
     TRACE_SERIALIZE (this);
     HBUINT8 *dest = c->allocate_size<HBUINT8> (src.len);
@@ -348,9 +333,9 @@ struct ByteStr
     return_trace (true);
   }
 
-  inline unsigned int get_size (void) const { return len; }
+  unsigned int get_size (void) const { return len; }
 
-  inline bool check_limit (unsigned int offset, unsigned int count) const
+  bool check_limit (unsigned int offset, unsigned int count) const
   { return (offset + count <= len); }
 
   const UnsizedByteStr *str;
@@ -359,29 +344,29 @@ struct ByteStr
 
 struct SubByteStr
 {
-  inline SubByteStr (void)
+  SubByteStr (void)
   { init (); }
 
-  inline void init (void)
+  void init (void)
   {
     str = ByteStr (0);
     offset = 0;
     error = false;
   }
 
-  inline void fini (void) {}
+  void fini (void) {}
 
-  inline SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
+  SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_), error (false) {}
 
-  inline void reset (const ByteStr &str_, unsigned int offset_ = 0)
+  void reset (const ByteStr &str_, unsigned int offset_ = 0)
   {
     str = str_;
     offset = offset_;
     error = false;
   }
 
-  inline const HBUINT8& operator [] (int i) {
+  const HBUINT8& operator [] (int i) {
     if (unlikely ((unsigned int)(offset + i) >= str.len))
     {
       set_error ();
@@ -391,13 +376,13 @@ struct SubByteStr
       return str[offset + i];
   }
 
-  inline operator ByteStr (void) const { return ByteStr (str, offset, str.len - offset); }
+  operator ByteStr (void) const { return ByteStr (str, offset, str.len - offset); }
 
-  inline bool avail (unsigned int count=1) const
+  bool avail (unsigned int count=1) const
   {
     return (!in_error () && str.check_limit (offset, count));
   }
-  inline void inc (unsigned int count=1)
+  void inc (unsigned int count=1)
   {
     if (likely (!in_error () && (offset <= str.len) && (offset + count <= str.len)))
     {
@@ -410,8 +395,8 @@ struct SubByteStr
     }
   }
 
-  inline void set_error (void) { error = true; }
-  inline bool in_error (void) const { return error; }
+  void set_error (void) { error = true; }
+  bool in_error (void) const { return error; }
 
   ByteStr       str;
   unsigned int  offset; /* beginning of the sub-string within str */
@@ -426,7 +411,7 @@ typedef hb_vector_t<ByteStr> ByteStrArray;
 template <typename ELEM, int LIMIT>
 struct Stack
 {
-  inline void init (void)
+  void init (void)
   {
     error = false;
     count = 0;
@@ -436,18 +421,18 @@ struct Stack
       elements[i].init ();
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     elements.fini_deep ();
   }
 
-  inline ELEM& operator [] (unsigned int i)
+  ELEM& operator [] (unsigned int i)
   {
     if (unlikely (i >= count)) set_error ();
     return elements[i];
   }
 
-  inline void push (const ELEM &v)
+  void push (const ELEM &v)
   {
     if (likely (count < elements.len))
       elements[count++] = v;
@@ -455,7 +440,7 @@ struct Stack
       set_error ();
   }
 
-  inline ELEM &push (void)
+  ELEM &push (void)
   {
     if (likely (count < elements.len))
       return elements[count++];
@@ -466,7 +451,7 @@ struct Stack
     }
   }
 
-  inline ELEM& pop (void)
+  ELEM& pop (void)
   {
     if (likely (count > 0))
       return elements[--count];
@@ -477,7 +462,7 @@ struct Stack
     }
   }
 
-  inline void pop (unsigned int n)
+  void pop (unsigned int n)
   {
     if (likely (count >= n))
       count -= n;
@@ -485,7 +470,7 @@ struct Stack
       set_error ();
   }
 
-  inline const ELEM& peek (void)
+  const ELEM& peek (void)
   {
     if (likely (count > 0))
       return elements[count-1];
@@ -496,7 +481,7 @@ struct Stack
     }
   }
 
-  inline void unpop (void)
+  void unpop (void)
   {
     if (likely (count < elements.len))
       count++;
@@ -504,13 +489,13 @@ struct Stack
       set_error ();
   }
 
-  inline void clear (void) { count = 0; }
+  void clear (void) { count = 0; }
 
-  inline bool in_error (void) const { return (error || elements.in_error ()); }
-  inline void set_error (void) { error = true; }
+  bool in_error (void) const { return (error || elements.in_error ()); }
+  void set_error (void) { error = true; }
 
-  inline unsigned int get_count (void) const { return count; }
-  inline bool is_empty (void) const { return count == 0; }
+  unsigned int get_count (void) const { return count; }
+  bool is_empty (void) const { return count == 0; }
 
   static const unsigned int kSizeLimit = LIMIT;
 
@@ -524,35 +509,35 @@ struct Stack
 template <typename ARG=Number>
 struct ArgStack : Stack<ARG, 513>
 {
-  inline void push_int (int v)
+  void push_int (int v)
   {
     ARG &n = S::push ();
     n.set_int (v);
   }
 
-  inline void push_fixed (int32_t v)
+  void push_fixed (int32_t v)
   {
     ARG &n = S::push ();
     n.set_fixed (v);
   }
 
-  inline void push_real (double v)
+  void push_real (double v)
   {
     ARG &n = S::push ();
     n.set_real (v);
   }
 
-  inline ARG& pop_num (void)
+  ARG& pop_num (void)
   {
     return this->pop ();
   }
 
-  inline int pop_int (void)
+  int pop_int (void)
   {
     return this->pop ().to_int ();
   }
 
-  inline unsigned int pop_uint (void)
+  unsigned int pop_uint (void)
   {
     int  i = pop_int ();
     if (unlikely (i < 0))
@@ -563,13 +548,13 @@ struct ArgStack : Stack<ARG, 513>
     return (unsigned)i;
   }
 
-  inline void push_longint_from_substr (SubByteStr& substr)
+  void push_longint_from_substr (SubByteStr& substr)
   {
     push_int ((substr[0] << 24) | (substr[1] << 16) | (substr[2] << 8) | (substr[3]));
     substr.inc (4);
   }
 
-  inline bool push_fixed_from_substr (SubByteStr& substr)
+  bool push_fixed_from_substr (SubByteStr& substr)
   {
     if (unlikely (!substr.avail (4)))
       return false;
@@ -578,7 +563,7 @@ struct ArgStack : Stack<ARG, 513>
     return true;
   }
 
-  inline hb_array_t<const ARG> get_subarray (unsigned int start) const
+  hb_array_t<const ARG> get_subarray (unsigned int start) const
   {
     return S::elements.sub_array (start);
   }
@@ -590,8 +575,8 @@ struct ArgStack : Stack<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct OpStr
 {
-  inline void init (void) {}
-  inline void fini (void) {}
+  void init (void) {}
+  void fini (void) {}
 
   OpCode  op;
   ByteStr str;
@@ -601,7 +586,7 @@ struct OpStr
 struct OpSerializer
 {
   protected:
-  inline bool copy_opstr (hb_serialize_context_t *c, const OpStr& opstr) const
+  bool copy_opstr (hb_serialize_context_t *c, const OpStr& opstr) const
   {
     TRACE_SERIALIZE (this);
 
@@ -615,18 +600,18 @@ struct OpSerializer
 template <typename VAL>
 struct ParsedValues
 {
-  inline void init (void)
+  void init (void)
   {
     opStart = 0;
     values.init ();
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     values.fini_deep ();
   }
 
-  inline void add_op (OpCode op, const SubByteStr& substr = SubByteStr ())
+  void add_op (OpCode op, const SubByteStr& substr = SubByteStr ())
   {
     VAL *val = values.push ();
     val->op = op;
@@ -634,7 +619,7 @@ struct ParsedValues
     opStart = substr.offset;
   }
 
-  inline void add_op (OpCode op, const SubByteStr& substr, const VAL &v)
+  void add_op (OpCode op, const SubByteStr& substr, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
@@ -642,16 +627,16 @@ struct ParsedValues
     opStart = substr.offset;
   }
 
-  inline bool has_op (OpCode op) const
+  bool has_op (OpCode op) const
   {
     for (unsigned int i = 0; i < get_count (); i++)
       if (get_value (i).op == op) return true;
     return false;
   }
 
-  inline unsigned get_count (void) const { return values.len; }
-  inline const VAL &get_value (unsigned int i) const { return values[i]; }
-  inline const VAL &operator [] (unsigned int i) const { return get_value (i); }
+  unsigned get_count (void) const { return values.len; }
+  const VAL &get_value (unsigned int i) const { return values[i]; }
+  const VAL &operator [] (unsigned int i) const { return get_value (i); }
 
   unsigned int       opStart;
   hb_vector_t<VAL>   values;
@@ -660,26 +645,26 @@ struct ParsedValues
 template <typename ARG=Number>
 struct InterpEnv
 {
-  inline void init (const ByteStr &str_)
+  void init (const ByteStr &str_)
   {
     substr.reset (str_);
     argStack.init ();
     error = false;
   }
 
-  inline void fini (void)
+  void fini (void)
   {
     argStack.fini ();
   }
 
-  inline bool in_error (void) const
+  bool in_error (void) const
   {
     return error || substr.in_error () || argStack.in_error ();
   }
 
-  inline void set_error (void) { error = true; }
+  void set_error (void) { error = true; }
 
-  inline OpCode fetch_op (void)
+  OpCode fetch_op (void)
   {
     OpCode  op = OpCode_Invalid;
     if (unlikely (!substr.avail ()))
@@ -695,22 +680,22 @@ struct InterpEnv
     return op;
   }
 
-  inline const ARG& eval_arg (unsigned int i)
+  const ARG& eval_arg (unsigned int i)
   {
     return argStack[i];
   }
 
-  inline ARG& pop_arg (void)
+  ARG& pop_arg (void)
   {
     return argStack.pop ();
   }
 
-  inline void pop_n_args (unsigned int n)
+  void pop_n_args (unsigned int n)
   {
     argStack.pop (n);
   }
 
-  inline void clear_args (void)
+  void clear_args (void)
   {
     pop_n_args (argStack.get_count ());
   }
@@ -726,7 +711,7 @@ typedef InterpEnv<> NumInterpEnv;
 template <typename ARG=Number>
 struct OpSet
 {
-  static inline void process_op (OpCode op, InterpEnv<ARG>& env)
+  static void process_op (OpCode op, InterpEnv<ARG>& env)
   {
     switch (op) {
       case OpCode_shortint:
@@ -764,9 +749,9 @@ struct OpSet
 template <typename ENV>
 struct Interpreter {
 
-  inline ~Interpreter(void) { fini (); }
+  ~Interpreter(void) { fini (); }
 
-  inline void fini (void) { env.fini (); }
+  void fini (void) { env.fini (); }
 
   ENV env;
 };

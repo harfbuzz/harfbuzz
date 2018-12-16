@@ -86,11 +86,9 @@ struct Record_sanitize_closure_t {
 template <typename Type>
 struct Record
 {
-  inline int cmp (hb_tag_t a) const {
-    return tag.cmp (a);
-  }
+  int cmp (hb_tag_t a) const { return tag.cmp (a); }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     const Record_sanitize_closure_t closure = {tag, base};
@@ -108,15 +106,15 @@ struct Record
 template <typename Type>
 struct RecordArrayOf : SortedArrayOf<Record<Type> >
 {
-  inline const OffsetTo<Type>& get_offset (unsigned int i) const
+  const OffsetTo<Type>& get_offset (unsigned int i) const
   { return (*this)[i].offset; }
-  inline OffsetTo<Type>& get_offset (unsigned int i)
+  OffsetTo<Type>& get_offset (unsigned int i)
   { return (*this)[i].offset; }
-  inline const Tag& get_tag (unsigned int i) const
+  const Tag& get_tag (unsigned int i) const
   { return (*this)[i].tag; }
-  inline unsigned int get_tags (unsigned int start_offset,
-				unsigned int *record_count /* IN/OUT */,
-				hb_tag_t     *record_tags /* OUT */) const
+  unsigned int get_tags (unsigned int start_offset,
+			 unsigned int *record_count /* IN/OUT */,
+			 hb_tag_t     *record_tags /* OUT */) const
   {
     if (record_count) {
       const Record<Type> *arr = this->sub_array (start_offset, record_count);
@@ -126,7 +124,7 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> >
     }
     return this->len;
   }
-  inline bool find_index (hb_tag_t tag, unsigned int *index) const
+  bool find_index (hb_tag_t tag, unsigned int *index) const
   {
     return this->bfind (tag, index, HB_BFIND_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
   }
@@ -135,10 +133,10 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> >
 template <typename Type>
 struct RecordListOf : RecordArrayOf<Type>
 {
-  inline const Type& operator [] (unsigned int i) const
+  const Type& operator [] (unsigned int i) const
   { return this+this->get_offset (i); }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     struct RecordListOf<Type> *out = c->serializer->embed (*this);
@@ -149,7 +147,7 @@ struct RecordListOf : RecordArrayOf<Type>
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (RecordArrayOf<Type>::sanitize (c, this));
@@ -159,23 +157,21 @@ struct RecordListOf : RecordArrayOf<Type>
 
 struct RangeRecord
 {
-  inline int cmp (hb_codepoint_t g) const {
-    return g < start ? -1 : g <= end ? 0 : +1 ;
-  }
+  int cmp (hb_codepoint_t g) const
+  { return g < start ? -1 : g <= end ? 0 : +1; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   { return glyphs->intersects (start, end); }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
-    return glyphs->add_range (start, end);
-  }
+  bool add_coverage (set_t *glyphs) const
+  { return glyphs->add_range (start, end); }
 
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
@@ -188,9 +184,9 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
 
 struct IndexArray : ArrayOf<Index>
 {
-  inline unsigned int get_indexes (unsigned int start_offset,
-				   unsigned int *_count /* IN/OUT */,
-				   unsigned int *_indexes /* OUT */) const
+  unsigned int get_indexes (unsigned int start_offset,
+			    unsigned int *_count /* IN/OUT */,
+			    unsigned int *_indexes /* OUT */) const
   {
     if (_count) {
       const HBUINT16 *arr = this->sub_array (start_offset, _count);
@@ -201,7 +197,7 @@ struct IndexArray : ArrayOf<Index>
     return this->len;
   }
 
-  inline void add_indexes_to (hb_set_t* output /* OUT */) const
+  void add_indexes_to (hb_set_t* output /* OUT */) const
   {
     output->add_array (arrayZ, len);
   }
@@ -215,33 +211,33 @@ struct Feature;
 
 struct LangSys
 {
-  inline unsigned int get_feature_count (void) const
+  unsigned int get_feature_count (void) const
   { return featureIndex.len; }
-  inline hb_tag_t get_feature_index (unsigned int i) const
+  hb_tag_t get_feature_index (unsigned int i) const
   { return featureIndex[i]; }
-  inline unsigned int get_feature_indexes (unsigned int start_offset,
-					   unsigned int *feature_count /* IN/OUT */,
-					   unsigned int *feature_indexes /* OUT */) const
+  unsigned int get_feature_indexes (unsigned int start_offset,
+				    unsigned int *feature_count /* IN/OUT */,
+				    unsigned int *feature_indexes /* OUT */) const
   { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
-  inline void add_feature_indexes_to (hb_set_t *feature_indexes) const
+  void add_feature_indexes_to (hb_set_t *feature_indexes) const
   { featureIndex.add_indexes_to (feature_indexes); }
 
-  inline bool has_required_feature (void) const { return reqFeatureIndex != 0xFFFFu; }
-  inline unsigned int get_required_feature_index (void) const
+  bool has_required_feature (void) const { return reqFeatureIndex != 0xFFFFu; }
+  unsigned int get_required_feature_index (void) const
   {
     if (reqFeatureIndex == 0xFFFFu)
       return Index::NOT_FOUND_INDEX;
    return reqFeatureIndex;;
   }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     return_trace (c->serializer->embed (*this));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c,
-			const Record_sanitize_closure_t * = nullptr) const
+  bool sanitize (hb_sanitize_context_t *c,
+		 const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && featureIndex.sanitize (c));
@@ -260,26 +256,26 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
 
 struct Script
 {
-  inline unsigned int get_lang_sys_count (void) const
+  unsigned int get_lang_sys_count (void) const
   { return langSys.len; }
-  inline const Tag& get_lang_sys_tag (unsigned int i) const
+  const Tag& get_lang_sys_tag (unsigned int i) const
   { return langSys.get_tag (i); }
-  inline unsigned int get_lang_sys_tags (unsigned int start_offset,
-					 unsigned int *lang_sys_count /* IN/OUT */,
-					 hb_tag_t     *lang_sys_tags /* OUT */) const
+  unsigned int get_lang_sys_tags (unsigned int start_offset,
+				  unsigned int *lang_sys_count /* IN/OUT */,
+				  hb_tag_t     *lang_sys_tags /* OUT */) const
   { return langSys.get_tags (start_offset, lang_sys_count, lang_sys_tags); }
-  inline const LangSys& get_lang_sys (unsigned int i) const
+  const LangSys& get_lang_sys (unsigned int i) const
   {
     if (i == Index::NOT_FOUND_INDEX) return get_default_lang_sys ();
     return this+langSys[i].offset;
   }
-  inline bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
+  bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
   { return langSys.find_index (tag, index); }
 
-  inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
-  inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
+  bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
+  const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     struct Script *out = c->serializer->embed (*this);
@@ -291,8 +287,8 @@ struct Script
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c,
-			const Record_sanitize_closure_t * = nullptr) const
+  bool sanitize (hb_sanitize_context_t *c,
+		 const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
     return_trace (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
@@ -315,7 +311,7 @@ typedef RecordListOf<Script> ScriptList;
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */
 struct FeatureParamsSize
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
@@ -427,7 +423,7 @@ struct FeatureParamsSize
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#ssxx */
 struct FeatureParamsStylisticSet
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     /* Right now minorVersion is at zero.  Which means, any table supports
@@ -461,7 +457,7 @@ struct FeatureParamsStylisticSet
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_ae#cv01-cv99 */
 struct FeatureParamsCharacterVariants
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -502,7 +498,7 @@ struct FeatureParamsCharacterVariants
 
 struct FeatureParams
 {
-  inline bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
+  bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
   {
     TRACE_SANITIZE (this);
     if (tag == HB_TAG ('s','i','z','e'))
@@ -514,21 +510,21 @@ struct FeatureParams
     return_trace (true);
   }
 
-  inline const FeatureParamsSize& get_size_params (hb_tag_t tag) const
+  const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null (FeatureParamsSize);
   }
 
-  inline const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
+  const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return u.stylisticSet;
     return Null (FeatureParamsStylisticSet);
   }
 
-  inline const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
+  const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
       return u.characterVariants;
@@ -547,21 +543,21 @@ struct FeatureParams
 
 struct Feature
 {
-  inline unsigned int get_lookup_count (void) const
+  unsigned int get_lookup_count (void) const
   { return lookupIndex.len; }
-  inline hb_tag_t get_lookup_index (unsigned int i) const
+  hb_tag_t get_lookup_index (unsigned int i) const
   { return lookupIndex[i]; }
-  inline unsigned int get_lookup_indexes (unsigned int start_index,
-					  unsigned int *lookup_count /* IN/OUT */,
-					  unsigned int *lookup_tags /* OUT */) const
+  unsigned int get_lookup_indexes (unsigned int start_index,
+				   unsigned int *lookup_count /* IN/OUT */,
+				   unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
-  inline void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
+  void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
   { lookupIndex.add_indexes_to (lookup_indexes); }
 
-  inline const FeatureParams &get_feature_params (void) const
+  const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     struct Feature *out = c->serializer->embed (*this);
@@ -570,8 +566,8 @@ struct Feature
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c,
-			const Record_sanitize_closure_t *closure = nullptr) const
+  bool sanitize (hb_sanitize_context_t *c,
+		 const Record_sanitize_closure_t *closure = nullptr) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
@@ -650,20 +646,20 @@ namespace OT {
 
 struct Lookup
 {
-  inline unsigned int get_subtable_count (void) const { return subTable.len; }
+  unsigned int get_subtable_count (void) const { return subTable.len; }
 
   template <typename TSubTable>
-  inline const TSubTable& get_subtable (unsigned int i) const
+  const TSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
 
   template <typename TSubTable>
-  inline const OffsetArrayOf<TSubTable>& get_subtables (void) const
+  const OffsetArrayOf<TSubTable>& get_subtables (void) const
   { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
   template <typename TSubTable>
-  inline OffsetArrayOf<TSubTable>& get_subtables (void)
+  OffsetArrayOf<TSubTable>& get_subtables (void)
   { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
 
-  inline unsigned int get_size (void) const
+  unsigned int get_size (void) const
   {
     const HBUINT16 &markFilteringSet = StructAfter<const HBUINT16> (subTable);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
@@ -671,12 +667,12 @@ struct Lookup
     return (const char *) &markFilteringSet - (const char *) this;
   }
 
-  inline unsigned int get_type (void) const { return lookupType; }
+  unsigned int get_type (void) const { return lookupType; }
 
   /* lookup_props is a 32-bit integer where the lower 16-bit is LookupFlag and
    * higher 16-bit is mark-filtering-set if the lookup uses one.
    * Not to be confused with glyph_props which is very similar. */
-  inline uint32_t get_props (void) const
+  uint32_t get_props (void) const
   {
     unsigned int flag = lookupFlag;
     if (unlikely (flag & LookupFlag::UseMarkFilteringSet))
@@ -688,7 +684,7 @@ struct Lookup
   }
 
   template <typename TSubTable, typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
+  typename context_t::return_t dispatch (context_t *c) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
@@ -701,10 +697,10 @@ struct Lookup
     return_trace (c->default_return_value ());
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 unsigned int lookup_type,
-			 uint32_t lookup_props,
-			 unsigned int num_subtables)
+  bool serialize (hb_serialize_context_t *c,
+		  unsigned int lookup_type,
+		  uint32_t lookup_props,
+		  unsigned int num_subtables)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -724,12 +720,12 @@ struct Lookup
   template <typename TSubTable>
   struct SubTableSubsetWrapper
   {
-    inline SubTableSubsetWrapper (const TSubTable &subtable_,
-				  unsigned int lookup_type_) :
-				    subtable (subtable_),
-				    lookup_type (lookup_type_) {}
+    SubTableSubsetWrapper (const TSubTable &subtable_,
+			   unsigned int lookup_type_) :
+			     subtable (subtable_),
+			     lookup_type (lookup_type_) {}
 
-    inline bool subset (hb_subset_context_t *c) const
+    bool subset (hb_subset_context_t *c) const
     { return subtable.dispatch (c, lookup_type); }
 
     private:
@@ -738,7 +734,7 @@ struct Lookup
   };
 
   template <typename TSubTable>
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     struct Lookup *out = c->serializer->embed (*this);
@@ -764,12 +760,12 @@ struct Lookup
   template <typename TSubTable>
   struct SubTableSanitizeWrapper : TSubTable
   {
-    inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
+    bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
     { return this->dispatch (c, lookup_type); }
   };
 
   template <typename TSubTable>
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
@@ -823,16 +819,16 @@ struct CoverageFormat1
   friend struct Coverage;
 
   private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     unsigned int i;
     glyphArray.bfind (glyph_id, &i, HB_BFIND_NOT_FOUND_STORE, NOT_COVERED);
     return i;
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<GlyphID> &glyphs,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<GlyphID> &glyphs,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -844,13 +840,13 @@ struct CoverageFormat1
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (glyphArray.sanitize (c));
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     unsigned int count = glyphArray.len;
@@ -859,23 +855,24 @@ struct CoverageFormat1
 	return true;
     return false;
   }
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   { return glyphs->has (glyphArray[index]); }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  bool add_coverage (set_t *glyphs) const
+  {
     return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len);
   }
 
   public:
   /* Older compilers need this to be public. */
   struct Iter {
-    inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
-    inline void fini (void) {}
-    inline bool more (void) { return i < c->glyphArray.len; }
-    inline void next (void) { i++; }
-    inline hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
-    inline unsigned int get_coverage (void) { return i; }
+    void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
+    void fini (void) {}
+    bool more (void) { return i < c->glyphArray.len; }
+    void next (void) { i++; }
+    hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
+    unsigned int get_coverage (void) { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -896,7 +893,7 @@ struct CoverageFormat2
   friend struct Coverage;
 
   private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     const RangeRecord &range = rangeRecord.bsearch (glyph_id);
     return likely (range.start <= range.end) ?
@@ -904,9 +901,9 @@ struct CoverageFormat2
 	   NOT_COVERED;
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<GlyphID> &glyphs,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<GlyphID> &glyphs,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -941,13 +938,13 @@ struct CoverageFormat2
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (rangeRecord.sanitize (c));
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     unsigned int count = rangeRecord.len;
@@ -956,7 +953,7 @@ struct CoverageFormat2
 	return true;
     return false;
   }
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     unsigned int i;
     unsigned int count = rangeRecord.len;
@@ -973,7 +970,8 @@ struct CoverageFormat2
   }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  bool add_coverage (set_t *glyphs) const
+  {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
@@ -985,7 +983,7 @@ struct CoverageFormat2
   /* Older compilers need this to be public. */
   struct Iter
   {
-    inline void init (const CoverageFormat2 &c_)
+    void init (const CoverageFormat2 &c_)
     {
       c = &c_;
       coverage = 0;
@@ -997,9 +995,9 @@ struct CoverageFormat2
 	i = c->rangeRecord.len;
       }
     }
-    inline void fini (void) {}
-    inline bool more (void) { return i < c->rangeRecord.len; }
-    inline void next (void)
+    void fini (void) {}
+    bool more (void) { return i < c->rangeRecord.len; }
+    void next (void)
     {
       if (j >= c->rangeRecord[i].end)
       {
@@ -1021,8 +1019,8 @@ struct CoverageFormat2
       coverage++;
       j++;
     }
-    inline hb_codepoint_t get_glyph (void) { return j; }
-    inline unsigned int get_coverage (void) { return coverage; }
+    hb_codepoint_t get_glyph (void) { return j; }
+    unsigned int get_coverage (void) { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1043,7 +1041,7 @@ struct CoverageFormat2
 
 struct Coverage
 {
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1.get_coverage (glyph_id);
@@ -1052,9 +1050,9 @@ struct Coverage
     }
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<GlyphID> &glyphs,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<GlyphID> &glyphs,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1073,7 +1071,7 @@ struct Coverage
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
@@ -1085,7 +1083,7 @@ struct Coverage
     }
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   {
     switch (u.format)
     {
@@ -1094,7 +1092,7 @@ struct Coverage
     default:return false;
     }
   }
-  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
+  bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     switch (u.format)
     {
@@ -1107,7 +1105,7 @@ struct Coverage
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const
+  bool add_coverage (set_t *glyphs) const
   {
     switch (u.format)
     {
@@ -1119,7 +1117,7 @@ struct Coverage
 
   struct Iter
   {
-    inline Iter (const Coverage &c_)
+    Iter (const Coverage &c_)
     {
       memset (this, 0, sizeof (*this));
       format = c_.u.format;
@@ -1130,7 +1128,7 @@ struct Coverage
       default:				     return;
       }
     }
-    inline bool more (void)
+    bool more (void)
     {
       switch (format)
       {
@@ -1139,7 +1137,7 @@ struct Coverage
       default:return false;
       }
     }
-    inline void next (void)
+    void next (void)
     {
       switch (format)
       {
@@ -1148,7 +1146,7 @@ struct Coverage
       default:			 break;
       }
     }
-    inline hb_codepoint_t get_glyph (void)
+    hb_codepoint_t get_glyph (void)
     {
       switch (format)
       {
@@ -1157,7 +1155,7 @@ struct Coverage
       default:return 0;
       }
     }
-    inline unsigned int get_coverage (void)
+    unsigned int get_coverage (void)
     {
       switch (format)
       {
@@ -1200,15 +1198,15 @@ struct ClassDefFormat1
   friend struct ClassDef;
 
   private:
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<HBUINT16> &glyphs,
-			 Supplier<HBUINT16> &klasses,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<HBUINT16> &glyphs,
+		  Supplier<HBUINT16> &klasses,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1238,7 +1236,7 @@ struct ClassDefFormat1
     return_trace (true);
   }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset;
@@ -1267,14 +1265,15 @@ struct ClassDefFormat1
     return_trace (glyphs.len);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && classValue.sanitize (c));
   }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  bool add_coverage (set_t *glyphs) const
+  {
     unsigned int start = 0;
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1296,14 +1295,15 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+  bool add_class (set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
       if (classValue[i] == klass) glyphs->add (startGlyph + i);
     return true;
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next()? */
     hb_codepoint_t start = startGlyph;
@@ -1313,7 +1313,8 @@ struct ClassDefFormat1
       if (classValue[iter - start]) return true;
     return false;
   }
-  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
+  bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  {
     unsigned int count = classValue.len;
     if (klass == 0)
     {
@@ -1345,15 +1346,15 @@ struct ClassDefFormat2
   friend struct ClassDef;
 
   private:
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     return rangeRecord.bsearch (glyph_id).value;
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<HBUINT16> &glyphs,
-			 Supplier<HBUINT16> &klasses,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<HBUINT16> &glyphs,
+		  Supplier<HBUINT16> &klasses,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1390,7 +1391,7 @@ struct ClassDefFormat2
     return_trace (true);
   }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset;
@@ -1423,14 +1424,14 @@ struct ClassDefFormat2
     return_trace (glyphs.len);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (rangeRecord.sanitize (c));
   }
 
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const
+  bool add_coverage (set_t *glyphs) const
   {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1441,7 +1442,7 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int klass) const
+  bool add_class (set_t *glyphs, unsigned int klass) const
   {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1453,7 +1454,7 @@ struct ClassDefFormat2
     return true;
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const
+  bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     unsigned int count = rangeRecord.len;
@@ -1462,7 +1463,7 @@ struct ClassDefFormat2
 	return true;
     return false;
   }
-  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
   {
     unsigned int count = rangeRecord.len;
     if (klass == 0)
@@ -1498,7 +1499,7 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
-  inline unsigned int get_class (hb_codepoint_t glyph_id) const
+  unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1.get_class (glyph_id);
@@ -1507,10 +1508,10 @@ struct ClassDef
     }
   }
 
-  inline bool serialize (hb_serialize_context_t *c,
-			 Supplier<GlyphID> &glyphs,
-			 Supplier<HBUINT16> &klasses,
-			 unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c,
+		  Supplier<GlyphID> &glyphs,
+		  Supplier<HBUINT16> &klasses,
+		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1536,7 +1537,7 @@ struct ClassDef
     }
   }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     switch (u.format) {
@@ -1546,7 +1547,7 @@ struct ClassDef
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
@@ -1560,7 +1561,8 @@ struct ClassDef
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline bool add_coverage (set_t *glyphs) const {
+  bool add_coverage (set_t *glyphs) const
+  {
     switch (u.format) {
     case 1: return u.format1.add_coverage (glyphs);
     case 2: return u.format2.add_coverage (glyphs);
@@ -1571,7 +1573,8 @@ struct ClassDef
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  inline bool add_class (set_t *glyphs, unsigned int klass) const {
+  bool add_class (set_t *glyphs, unsigned int klass) const
+  {
     switch (u.format) {
     case 1: return u.format1.add_class (glyphs, klass);
     case 2: return u.format2.add_class (glyphs, klass);
@@ -1579,14 +1582,16 @@ struct ClassDef
     }
   }
 
-  inline bool intersects (const hb_set_t *glyphs) const {
+  bool intersects (const hb_set_t *glyphs) const
+  {
     switch (u.format) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
     default:return false;
     }
   }
-  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
+  bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  {
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
@@ -1622,7 +1627,7 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 
 struct VarRegionAxis
 {
-  inline float evaluate (int coord) const
+  float evaluate (int coord) const
   {
     int start = startCoord, peak = peakCoord, end = endCoord;
 
@@ -1645,7 +1650,7 @@ struct VarRegionAxis
       return float (end - coord) / (end - peak);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -1663,7 +1668,7 @@ struct VarRegionAxis
 
 struct VarRegionList
 {
-  inline float evaluate (unsigned int region_index,
+  float evaluate (unsigned int region_index,
 			 const int *coords, unsigned int coord_len) const
   {
     if (unlikely (region_index >= regionCount))
@@ -1684,14 +1689,14 @@ struct VarRegionList
     return v;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
   }
 
-  inline unsigned int get_region_count (void) const
+  unsigned int get_region_count (void) const
   { return regionCount; }
 
   protected:
@@ -1705,16 +1710,16 @@ struct VarRegionList
 
 struct VarData
 {
-  inline unsigned int get_region_index_count (void) const
+  unsigned int get_region_index_count (void) const
   { return regionIndices.len; }
 
-  inline unsigned int get_row_size (void) const
+  unsigned int get_row_size (void) const
   { return shortCount + regionIndices.len; }
 
-  inline unsigned int get_size (void) const
+  unsigned int get_size (void) const
   { return itemCount * get_row_size (); }
 
-  inline float get_delta (unsigned int inner,
+  float get_delta (unsigned int inner,
 			  const int *coords, unsigned int coord_count,
 			  const VarRegionList &regions) const
   {
@@ -1746,7 +1751,7 @@ struct VarData
    return delta;
   }
 
-  inline void get_scalars (int *coords, unsigned int coord_count,
+  void get_scalars (int *coords, unsigned int coord_count,
                     const VarRegionList &regions,
                     float *scalars /*OUT */,
                     unsigned int num_scalars) const
@@ -1757,8 +1762,8 @@ struct VarData
      scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
    }
   }
-  
-  inline bool sanitize (hb_sanitize_context_t *c) const
+
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -1780,8 +1785,8 @@ struct VarData
 
 struct VariationStore
 {
-  inline float get_delta (unsigned int outer, unsigned int inner,
-			  const int *coords, unsigned int coord_count) const
+  float get_delta (unsigned int outer, unsigned int inner,
+		   const int *coords, unsigned int coord_count) const
   {
     if (unlikely (outer >= dataSets.len))
       return 0.;
@@ -1791,15 +1796,15 @@ struct VariationStore
 					     this+regions);
   }
 
-  inline float get_delta (unsigned int index,
-			  const int *coords, unsigned int coord_count) const
+  float get_delta (unsigned int index,
+		   const int *coords, unsigned int coord_count) const
   {
     unsigned int outer = index >> 16;
     unsigned int inner = index & 0xFFFF;
     return get_delta (outer, inner, coords, coord_count);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -1808,13 +1813,13 @@ struct VariationStore
 		  dataSets.sanitize (c, this));
   }
 
-  inline unsigned int get_region_index_count (unsigned int ivs) const
+  unsigned int get_region_index_count (unsigned int ivs) const
   { return (this+dataSets[ivs]).get_region_index_count (); }
 
-  inline void get_scalars (unsigned int ivs,
-            int *coords, unsigned int coord_count,
-            float *scalars /*OUT*/,
-            unsigned int num_scalars) const
+  void get_scalars (unsigned int ivs,
+		    int *coords, unsigned int coord_count,
+		    float *scalars /*OUT*/,
+		    unsigned int num_scalars) const
   {
     (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
                                       &scalars[0], num_scalars);
@@ -1837,13 +1842,13 @@ struct ConditionFormat1
   friend struct Condition;
 
   private:
-  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
     return filterRangeMinValue <= coord && coord <= filterRangeMaxValue;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -1860,7 +1865,7 @@ struct ConditionFormat1
 
 struct Condition
 {
-  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len) const
   {
     switch (u.format) {
     case 1: return u.format1.evaluate (coords, coord_len);
@@ -1868,7 +1873,7 @@ struct Condition
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
@@ -1889,7 +1894,7 @@ struct Condition
 
 struct ConditionSet
 {
-  inline bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1898,7 +1903,7 @@ struct ConditionSet
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (conditions.sanitize (c, this));
@@ -1914,7 +1919,7 @@ struct FeatureTableSubstitutionRecord
 {
   friend struct FeatureTableSubstitution;
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && feature.sanitize (c, base));
@@ -1929,7 +1934,7 @@ struct FeatureTableSubstitutionRecord
 
 struct FeatureTableSubstitution
 {
-  inline const Feature *find_substitute (unsigned int feature_index) const
+  const Feature *find_substitute (unsigned int feature_index) const
   {
     unsigned int count = substitutions.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1941,7 +1946,7 @@ struct FeatureTableSubstitution
     return nullptr;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
@@ -1961,7 +1966,7 @@ struct FeatureVariationRecord
 {
   friend struct FeatureVariations;
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (conditions.sanitize (c, base) &&
@@ -1981,7 +1986,7 @@ struct FeatureVariations
 {
   enum { NOT_FOUND_INDEX = 0xFFFFFFFFu };
 
-  inline bool find_index (const int *coords, unsigned int coord_len,
+  bool find_index (const int *coords, unsigned int coord_len,
 			  unsigned int *index) const
   {
     unsigned int count = varRecords.len;
@@ -1998,20 +2003,20 @@ struct FeatureVariations
     return false;
   }
 
-  inline const Feature *find_substitute (unsigned int variations_index,
-					 unsigned int feature_index) const
+  const Feature *find_substitute (unsigned int variations_index,
+				  unsigned int feature_index) const
   {
     const FeatureVariationRecord &record = varRecords[variations_index];
     return (this+record.substitutions).find_substitute (feature_index);
   }
 
-  inline bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     return_trace (c->serializer->embed (*this));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
@@ -2038,20 +2043,20 @@ struct HintingDevice
 
   private:
 
-  inline hb_position_t get_x_delta (hb_font_t *font) const
+  hb_position_t get_x_delta (hb_font_t *font) const
   { return get_delta (font->x_ppem, font->x_scale); }
 
-  inline hb_position_t get_y_delta (hb_font_t *font) const
+  hb_position_t get_y_delta (hb_font_t *font) const
   { return get_delta (font->y_ppem, font->y_scale); }
 
-  inline unsigned int get_size (void) const
+  unsigned int get_size (void) const
   {
     unsigned int f = deltaFormat;
     if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * HBUINT16::static_size;
     return HBUINT16::static_size * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && c->check_range (this, this->get_size ()));
@@ -2059,7 +2064,7 @@ struct HintingDevice
 
   private:
 
-  inline int get_delta (unsigned int ppem, int scale) const
+  int get_delta (unsigned int ppem, int scale) const
   {
     if (!ppem) return 0;
 
@@ -2069,7 +2074,7 @@ struct HintingDevice
 
     return (int) (pixels * (int64_t) scale / ppem);
   }
-  inline int get_delta_pixels (unsigned int ppem_size) const
+  int get_delta_pixels (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
     if (unlikely (f < 1 || f > 3))
@@ -2112,13 +2117,13 @@ struct VariationDevice
 
   private:
 
-  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
+  hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
   { return font->em_scalef_x (get_delta (font, store)); }
 
-  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
+  hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
   { return font->em_scalef_y (get_delta (font, store)); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -2126,7 +2131,7 @@ struct VariationDevice
 
   private:
 
-  inline float get_delta (hb_font_t *font, const VariationStore &store) const
+  float get_delta (hb_font_t *font, const VariationStore &store) const
   {
     return store.get_delta (outerIndex, innerIndex, font->coords, font->num_coords);
   }
@@ -2152,7 +2157,7 @@ struct DeviceHeader
 
 struct Device
 {
-  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store=Null (VariationStore)) const
+  hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store=Null (VariationStore)) const
   {
     switch (u.b.format)
     {
@@ -2164,7 +2169,7 @@ struct Device
       return 0;
     }
   }
-  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store=Null (VariationStore)) const
+  hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store=Null (VariationStore)) const
   {
     switch (u.b.format)
     {
@@ -2177,7 +2182,7 @@ struct Device
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.b.format.sanitize (c)) return_trace (false);

@@ -67,27 +67,27 @@ struct hb_unicode_funcs_t
   hb_unicode_funcs_t *parent;
 
 #define HB_UNICODE_FUNC_IMPLEMENT(return_type, name) \
-  inline return_type name (hb_codepoint_t unicode) { return func.name (this, unicode, user_data.name); }
+  return_type name (hb_codepoint_t unicode) { return func.name (this, unicode, user_data.name); }
 HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 #undef HB_UNICODE_FUNC_IMPLEMENT
 
-  inline hb_bool_t compose (hb_codepoint_t a, hb_codepoint_t b,
-			    hb_codepoint_t *ab)
+  hb_bool_t compose (hb_codepoint_t a, hb_codepoint_t b,
+		     hb_codepoint_t *ab)
   {
     *ab = 0;
     if (unlikely (!a || !b)) return false;
     return func.compose (this, a, b, ab, user_data.compose);
   }
 
-  inline hb_bool_t decompose (hb_codepoint_t ab,
-			      hb_codepoint_t *a, hb_codepoint_t *b)
+  hb_bool_t decompose (hb_codepoint_t ab,
+		       hb_codepoint_t *a, hb_codepoint_t *b)
   {
     *a = ab; *b = 0;
     return func.decompose (this, ab, a, b, user_data.decompose);
   }
 
-  inline unsigned int decompose_compatibility (hb_codepoint_t  u,
-					       hb_codepoint_t *decomposed)
+  unsigned int decompose_compatibility (hb_codepoint_t  u,
+					hb_codepoint_t *decomposed)
   {
     unsigned int ret = func.decompose_compatibility (this, u, decomposed, user_data.decompose_compatibility);
     if (ret == 1 && u == decomposed[0]) {
@@ -98,7 +98,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return ret;
   }
 
-  inline unsigned int
+  unsigned int
   modified_combining_class (hb_codepoint_t u)
   {
     /* XXX This hack belongs to the Myanmar shaper. */
@@ -117,14 +117,14 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return _hb_modified_combining_class[combining_class (u)];
   }
 
-  static inline hb_bool_t
+  static hb_bool_t
   is_variation_selector (hb_codepoint_t unicode)
   {
     /* U+180B..180D MONGOLIAN FREE VARIATION SELECTORs are handled in the
      * Arabic shaper.  No need to match them here. */
     return unlikely (hb_in_ranges<hb_codepoint_t> (unicode,
-				   0xFE00u, 0xFE0Fu, /* VARIATION SELECTOR-1..16 */
-				   0xE0100u, 0xE01EFu));  /* VARIATION SELECTOR-17..256 */
+						   0xFE00u, 0xFE0Fu, /* VARIATION SELECTOR-1..16 */
+						   0xE0100u, 0xE01EFu));  /* VARIATION SELECTOR-17..256 */
   }
 
   /* Default_Ignorable codepoints:
@@ -164,7 +164,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * E0100..E01EF  # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTOR-256
    * E01F0..E0FFF  # Cn [3600] <reserved-E01F0>..<reserved-E0FFF>
    */
-  static inline hb_bool_t
+  static hb_bool_t
   is_default_ignorable (hb_codepoint_t ch)
   {
     hb_codepoint_t plane = ch >> 16;
@@ -216,7 +216,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     SPACE_PUNCTUATION,
     SPACE_NARROW,
   };
-  static inline space_t
+  static space_t
   space_fallback_type (hb_codepoint_t u)
   {
     switch (u)

@@ -36,7 +36,7 @@ using namespace CFF;
 
 struct RemapSID : Remap
 {
-  inline unsigned int add (unsigned int sid)
+  unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
       return offset_sid (Remap::add (unoffset_sid (sid)));
@@ -44,7 +44,7 @@ struct RemapSID : Remap
       return sid;
   }
 
-  inline unsigned int operator[] (unsigned int sid) const
+  unsigned int operator[] (unsigned int sid) const
   {
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
@@ -54,14 +54,14 @@ struct RemapSID : Remap
 
   static const unsigned int num_std_strings = 391;
 
-  static inline bool is_std_std (unsigned int sid) { return sid < num_std_strings; }
-  static inline unsigned int offset_sid (unsigned int sid) { return sid + num_std_strings; }
-  static inline unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
+  static bool is_std_std (unsigned int sid) { return sid < num_std_strings; }
+  static unsigned int offset_sid (unsigned int sid) { return sid + num_std_strings; }
+  static unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
 };
 
 struct CFF1SubTableOffsets : CFFSubTableOffsets
 {
-  inline CFF1SubTableOffsets (void)
+  CFF1SubTableOffsets (void)
     : CFFSubTableOffsets (),
       nameIndexOffset (0),
       encodingOffset (0)
@@ -81,31 +81,28 @@ struct CFF1SubTableOffsets : CFFSubTableOffsets
 /* a copy of a parsed out CFF1TopDictValues augmented with additional operators */
 struct CFF1TopDictValuesMod : CFF1TopDictValues
 {
-  inline void init (const CFF1TopDictValues *base_= &Null(CFF1TopDictValues))
+  void init (const CFF1TopDictValues *base_= &Null(CFF1TopDictValues))
   {
     SUPER::init ();
     base = base_;
   }
 
-  inline void fini (void)
-  {
-    SUPER::fini ();
-  }
+  void fini (void) { SUPER::fini (); }
 
-  inline unsigned get_count (void) const
+  unsigned get_count (void) const
   {
     return base->get_count () + SUPER::get_count ();
   }
-  inline const CFF1TopDictVal &get_value (unsigned int i) const
+  const CFF1TopDictVal &get_value (unsigned int i) const
   {
     if (i < base->get_count ())
       return (*base)[i];
     else
       return SUPER::values[i - base->get_count ()];
   }
-  inline const CFF1TopDictVal &operator [] (unsigned int i) const { return get_value (i); }
+  const CFF1TopDictVal &operator [] (unsigned int i) const { return get_value (i); }
 
-  inline void reassignSIDs (const RemapSID& sidmap)
+  void reassignSIDs (const RemapSID& sidmap)
   {
     for (unsigned int i = 0; i < NameDictValues::ValCount; i++)
       nameSIDs[i] = sidmap[base->nameSIDs[i]];
@@ -118,7 +115,7 @@ struct CFF1TopDictValuesMod : CFF1TopDictValues
 
 struct TopDictModifiers
 {
-  inline TopDictModifiers (const CFF1SubTableOffsets &offsets_,
+  TopDictModifiers (const CFF1SubTableOffsets &offsets_,
 			   const unsigned int (&nameSIDs_)[NameDictValues::ValCount])
     : offsets (offsets_),
       nameSIDs (nameSIDs_)
@@ -130,9 +127,9 @@ struct TopDictModifiers
 
 struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			 const CFF1TopDictVal &opstr,
-			 const TopDictModifiers &mod) const
+  bool serialize (hb_serialize_context_t *c,
+		  const CFF1TopDictVal &opstr,
+		  const TopDictModifiers &mod) const
   {
     TRACE_SERIALIZE (this);
 
@@ -188,7 +185,7 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (const CFF1TopDictVal &opstr) const
+  unsigned int calculate_serialized_size (const CFF1TopDictVal &opstr) const
   {
     OpCode op = opstr.op;
     switch (op)
@@ -222,21 +219,21 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
 
 struct FontDictValuesMod
 {
-  inline void init (const CFF1FontDictValues *base_,
-		    unsigned int fontName_,
-		    const TableInfo &privateDictInfo_)
+  void init (const CFF1FontDictValues *base_,
+	     unsigned int fontName_,
+	     const TableInfo &privateDictInfo_)
   {
     base = base_;
     fontName = fontName_;
     privateDictInfo = privateDictInfo_;
   }
 
-  inline unsigned get_count (void) const
+  unsigned get_count (void) const
   {
     return base->get_count ();
   }
 
-  inline const OpStr &operator [] (unsigned int i) const { return (*base)[i]; }
+  const OpStr &operator [] (unsigned int i) const { return (*base)[i]; }
 
   const CFF1FontDictValues    *base;
   TableInfo		   privateDictInfo;
@@ -245,9 +242,9 @@ struct FontDictValuesMod
 
 struct CFF1FontDict_OpSerializer : CFFFontDict_OpSerializer
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			 const OpStr &opstr,
-			 const FontDictValuesMod &mod) const
+  bool serialize (hb_serialize_context_t *c,
+		  const OpStr &opstr,
+		  const FontDictValuesMod &mod) const
   {
     TRACE_SERIALIZE (this);
 
@@ -257,7 +254,7 @@ struct CFF1FontDict_OpSerializer : CFFFontDict_OpSerializer
       return_trace (SUPER::serialize (c, opstr, mod.privateDictInfo));
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  unsigned int calculate_serialized_size (const OpStr &opstr) const
   {
     if (opstr.op == OpCode_FontName)
       return OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_FontName);
@@ -271,7 +268,7 @@ struct CFF1FontDict_OpSerializer : CFFFontDict_OpSerializer
 
 struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 {
-  static inline void flush_args_and_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  static void flush_args_and_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
     if (env.arg_start > 0)
       flush_width (env, param);
@@ -297,7 +294,7 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 	break;
     }
   }
-  static inline void flush_args (CFF1CSInterpEnv &env, FlattenParam& param)
+  static void flush_args (CFF1CSInterpEnv &env, FlattenParam& param)
   {
     StrEncoder  encoder (param.flatStr);
     for (unsigned int i = env.arg_start; i < env.argStack.get_count (); i++)
@@ -305,20 +302,20 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
     SUPER::flush_args (env, param);
   }
 
-  static inline void flush_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  static void flush_op (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
     StrEncoder  encoder (param.flatStr);
     encoder.encode_op (op);
   }
 
-  static inline void flush_width (CFF1CSInterpEnv &env, FlattenParam& param)
+  static void flush_width (CFF1CSInterpEnv &env, FlattenParam& param)
   {
     assert (env.has_width);
     StrEncoder  encoder (param.flatStr);
     encoder.encode_num (env.width);
   }
 
-  static inline void flush_hintmask (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
+  static void flush_hintmask (OpCode op, CFF1CSInterpEnv &env, FlattenParam& param)
   {
     SUPER::flush_hintmask (op, env, param);
     if (!param.drop_hints)
@@ -336,7 +333,7 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
 struct RangeList : hb_vector_t<code_pair>
 {
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
-  inline bool finalize (unsigned int last_glyph)
+  bool finalize (unsigned int last_glyph)
   {
     bool  two_byte = false;
     for (unsigned int i = (*this).len; i > 0; i--)
@@ -354,7 +351,7 @@ struct RangeList : hb_vector_t<code_pair>
 
 struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetParam>
 {
-  static inline void process_op (OpCode op, CFF1CSInterpEnv &env, SubrSubsetParam& param)
+  static void process_op (OpCode op, CFF1CSInterpEnv &env, SubrSubsetParam& param)
   {
     switch (op) {
 
@@ -387,9 +384,9 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
   }
 
   protected:
-  static inline void process_call_subr (OpCode op, CSType type,
-					CFF1CSInterpEnv &env, SubrSubsetParam& param,
-					CFF1BiasedSubrs& subrs, hb_set_t *closure)
+  static void process_call_subr (OpCode op, CSType type,
+				 CFF1CSInterpEnv &env, SubrSubsetParam& param,
+				 CFF1BiasedSubrs& subrs, hb_set_t *closure)
   {
     SubByteStr    substr = env.substr;
     env.callSubr (subrs, type);
@@ -404,7 +401,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 
 struct CFF1SubrSubsetter : SubrSubsetter<CFF1SubrSubsetter, CFF1Subrs, const OT::cff1::accelerator_subset_t, CFF1CSInterpEnv, CFF1CSOpSet_SubrSubset>
 {
-  static inline void finalize_parsed_str (CFF1CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
+  static void finalize_parsed_str (CFF1CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
   {
     /* insert width at the beginning of the charstring as necessary */
     if (env.has_width)
@@ -426,7 +423,7 @@ struct CFF1SubrSubsetter : SubrSubsetter<CFF1SubrSubsetter, CFF1Subrs, const OT:
 };
 
 struct cff_subset_plan {
-  inline cff_subset_plan (void)
+  cff_subset_plan (void)
     : final_size (0),
       offsets (),
       orig_fdcount (0),
@@ -452,7 +449,7 @@ struct cff_subset_plan {
       topDictModSIDs[i] = CFF_UNDEF_SID;
   }
 
-  inline ~cff_subset_plan (void)
+  ~cff_subset_plan (void)
   {
     topdict_sizes.fini ();
     topdict_mod.fini ();
@@ -469,7 +466,7 @@ struct cff_subset_plan {
     fontdicts_mod.fini ();
   }
 
-  inline unsigned int plan_subset_encoding (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
+  unsigned int plan_subset_encoding (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
   {
     const Encoding *encoding = acc.encoding;
     unsigned int  size0, size1, supp_size;
@@ -530,7 +527,7 @@ struct cff_subset_plan {
 			subset_enc_supp_codes.len);
   }
 
-  inline unsigned int plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
+  unsigned int plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
   {
     unsigned int  size0, size_ranges;
     hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
@@ -573,7 +570,7 @@ struct cff_subset_plan {
 			subset_charset_format? subset_charset_ranges.len: plan->glyphs.len);
   }
 
-  inline bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
+  bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
   {
     if (unlikely (!sidmap.reset (acc.stringIndex->count)))
       return false;
@@ -596,7 +593,7 @@ struct cff_subset_plan {
     return true;
   }
 
-  inline bool create (const OT::cff1::accelerator_subset_t &acc,
+  bool create (const OT::cff1::accelerator_subset_t &acc,
 		      hb_subset_plan_t *plan)
   {
      /* make sure notdef is first */
@@ -831,7 +828,7 @@ struct cff_subset_plan {
 	   && (fontdicts_mod.len == subset_fdcount));
   }
 
-  inline unsigned int get_final_size (void) const  { return final_size; }
+  unsigned int get_final_size (void) const  { return final_size; }
 
   unsigned int	      final_size;
   hb_vector_t<unsigned int> topdict_sizes;

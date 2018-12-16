@@ -39,7 +39,7 @@ struct hb_aat_feature_mapping_t
   hb_aat_layout_feature_selector_t selectorToEnable;
   hb_aat_layout_feature_selector_t selectorToDisable;
 
-  static inline int cmp (const void *key_, const void *entry_)
+  static int cmp (const void *key_, const void *entry_)
   {
     hb_tag_t key = * (unsigned int *) key_;
     const hb_aat_feature_mapping_t * entry = (const hb_aat_feature_mapping_t *) entry_;

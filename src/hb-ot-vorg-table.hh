@@ -39,9 +39,9 @@ namespace OT {
 
 struct VertOriginMetric
 {
-  inline int cmp (hb_codepoint_t g) const { return glyph.cmp (g); }
+  int cmp (hb_codepoint_t g) const { return glyph.cmp (g); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -59,9 +59,9 @@ struct VORG
 {
   enum { tableTag = HB_OT_TAG_VORG };
 
-  inline bool has_data (void) const { return version.to_int (); }
+  bool has_data (void) const { return version.to_int (); }
 
-  inline int get_y_origin (hb_codepoint_t glyph) const
+  int get_y_origin (hb_codepoint_t glyph) const
   {
     unsigned int i;
     if (!vertYOrigins.bfind (glyph, &i))
@@ -69,11 +69,11 @@ struct VORG
     return vertYOrigins[i].vertOriginY;
   }
 
-  inline bool _subset (const hb_subset_plan_t *plan HB_UNUSED,
-                       const VORG *vorg_table,
-                       const hb_vector_t<VertOriginMetric> &subset_metrics,
-                       unsigned int dest_sz,
-                       void *dest) const
+  bool _subset (const hb_subset_plan_t *plan HB_UNUSED,
+		const VORG *vorg_table,
+		const hb_vector_t<VertOriginMetric> &subset_metrics,
+		unsigned int dest_sz,
+		void *dest) const
   {
     hb_serialize_context_t c (dest, dest_sz);
 
@@ -102,7 +102,7 @@ struct VORG
     return success;
   }
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *vorg_blob = hb_sanitize_context_t().reference_table<VORG> (plan->source);
     const VORG *vorg_table = vorg_blob->as<VORG> ();
@@ -159,7 +159,7 @@ struct VORG
     return success;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&

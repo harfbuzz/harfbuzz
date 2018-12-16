@@ -44,10 +44,10 @@ struct InstanceRecord
 {
   friend struct fvar;
 
-  inline hb_array_t<const Fixed> get_coordinates (unsigned int axis_count) const
+  hb_array_t<const Fixed> get_coordinates (unsigned int axis_count) const
   { return coordinatesZ.as_array (axis_count); }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int axis_count) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int axis_count) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -75,7 +75,7 @@ struct AxisRecord
     AXIS_FLAG_HIDDEN	= 0x0001,
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -98,9 +98,9 @@ struct fvar
 {
   enum { tableTag = HB_OT_TAG_fvar };
 
-  inline bool has_data (void) const { return version.to_int (); }
+  bool has_data (void) const { return version.to_int (); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
@@ -112,10 +112,9 @@ struct fvar
 		  c->check_range (get_instance (0), instanceCount, instanceSize));
   }
 
-  inline unsigned int get_axis_count (void) const
-  { return axisCount; }
+  unsigned int get_axis_count (void) const { return axisCount; }
 
-  inline void get_axis_deprecated (unsigned int axis_index,
+  void get_axis_deprecated (unsigned int axis_index,
 				   hb_ot_var_axis_t *info) const
   {
     const AxisRecord &axis = get_axes ()[axis_index];
@@ -127,8 +126,8 @@ struct fvar
     info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
   }
 
-  inline void get_axis_info (unsigned int axis_index,
-			     hb_ot_var_axis_info_t *info) const
+  void get_axis_info (unsigned int axis_index,
+		      hb_ot_var_axis_info_t *info) const
   {
     const AxisRecord &axis = get_axes ()[axis_index];
     info->axis_index = axis_index;
@@ -142,9 +141,9 @@ struct fvar
     info->reserved = 0;
   }
 
-  inline unsigned int get_axes_deprecated (unsigned int      start_offset,
-					   unsigned int     *axes_count /* IN/OUT */,
-					   hb_ot_var_axis_t *axes_array /* OUT */) const
+  unsigned int get_axes_deprecated (unsigned int      start_offset,
+				    unsigned int     *axes_count /* IN/OUT */,
+				    hb_ot_var_axis_t *axes_array /* OUT */) const
   {
     if (axes_count)
     {
@@ -164,9 +163,9 @@ struct fvar
     return axisCount;
   }
 
-  inline unsigned int get_axis_infos (unsigned int           start_offset,
-				      unsigned int          *axes_count /* IN/OUT */,
-				      hb_ot_var_axis_info_t *axes_array /* OUT */) const
+  unsigned int get_axis_infos (unsigned int           start_offset,
+			       unsigned int          *axes_count /* IN/OUT */,
+			       hb_ot_var_axis_info_t *axes_array /* OUT */) const
   {
     if (axes_count)
     {
@@ -186,9 +185,9 @@ struct fvar
     return axisCount;
   }
 
-  inline bool find_axis_deprecated (hb_tag_t tag,
-				    unsigned int *axis_index,
-				    hb_ot_var_axis_t *info) const
+  bool find_axis_deprecated (hb_tag_t tag,
+			     unsigned int *axis_index,
+			     hb_ot_var_axis_t *info) const
   {
     const AxisRecord *axes = get_axes ();
     unsigned int count = get_axis_count ();
@@ -205,8 +204,8 @@ struct fvar
     return false;
   }
 
-  inline bool find_axis_info (hb_tag_t tag,
-			      hb_ot_var_axis_info_t *info) const
+  bool find_axis_info (hb_tag_t tag,
+		       hb_ot_var_axis_info_t *info) const
   {
     const AxisRecord *axes = get_axes ();
     unsigned int count = get_axis_count ();
@@ -219,7 +218,7 @@ struct fvar
     return false;
   }
 
-  inline int normalize_axis_value (unsigned int axis_index, float v) const
+  int normalize_axis_value (unsigned int axis_index, float v) const
   {
     hb_ot_var_axis_info_t axis;
     get_axis_info (axis_index, &axis);
@@ -235,17 +234,17 @@ struct fvar
     return (int) (v * 16384.f + (v >= 0.f ? .5f : -.5f));
   }
 
-  inline unsigned int get_instance_count (void) const
+  unsigned int get_instance_count (void) const
   { return instanceCount; }
 
-  inline hb_ot_name_id_t get_instance_subfamily_name_id (unsigned int instance_index) const
+  hb_ot_name_id_t get_instance_subfamily_name_id (unsigned int instance_index) const
   {
     const InstanceRecord *instance = get_instance (instance_index);
     if (unlikely (!instance)) return HB_OT_NAME_ID_INVALID;
     return instance->subfamilyNameID;
   }
 
-  inline hb_ot_name_id_t get_instance_postscript_name_id (unsigned int instance_index) const
+  hb_ot_name_id_t get_instance_postscript_name_id (unsigned int instance_index) const
   {
     const InstanceRecord *instance = get_instance (instance_index);
     if (unlikely (!instance)) return HB_OT_NAME_ID_INVALID;
@@ -254,7 +253,7 @@ struct fvar
     return HB_OT_NAME_ID_INVALID;
   }
 
-  inline unsigned int get_instance_coords (unsigned int  instance_index,
+  unsigned int get_instance_coords (unsigned int  instance_index,
 					   unsigned int *coords_length, /* IN/OUT */
 					   float        *coords         /* OUT */) const
   {
@@ -277,10 +276,10 @@ struct fvar
   }
 
   protected:
-  inline hb_array_t<const AxisRecord> get_axes (void) const
+  hb_array_t<const AxisRecord> get_axes (void) const
   { return hb_array (&(this+firstAxis), axisCount); }
 
-  inline const InstanceRecord *get_instance (unsigned int i) const
+  const InstanceRecord *get_instance (unsigned int i) const
   {
     if (unlikely (i >= instanceCount)) return nullptr;
    return &StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),

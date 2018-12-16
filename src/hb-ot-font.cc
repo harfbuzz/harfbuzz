@@ -255,7 +255,7 @@ static void free_static_ot_funcs (void);
 
 static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_font_funcs_lazy_loader_t>
 {
-  static inline hb_font_funcs_t *create (void)
+  static hb_font_funcs_t *create (void)
   {
     hb_font_funcs_t *funcs = hb_font_funcs_create ();
 

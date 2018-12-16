@@ -47,7 +47,7 @@ struct head
 
   enum { tableTag = HB_OT_TAG_head };
 
-  inline unsigned int get_upem (void) const
+  unsigned int get_upem (void) const
   {
     unsigned int upem = unitsPerEm;
     /* If no valid head table found, assume 1000, which matches typical Type1 usage. */
@@ -63,11 +63,11 @@ struct head
     CONDENSED	= 1u<<5
   };
 
-  inline bool is_bold (void) const      { return macStyle & BOLD; }
-  inline bool is_italic (void) const    { return macStyle & ITALIC; }
-  inline bool is_condensed (void) const { return macStyle & CONDENSED; }
+  bool is_bold (void) const      { return macStyle & BOLD; }
+  bool is_italic (void) const    { return macStyle & ITALIC; }
+  bool is_condensed (void) const { return macStyle & CONDENSED; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&

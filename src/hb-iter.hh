@@ -65,28 +65,28 @@ struct Iter<T *>
   typedef T Value;
 
   /* Constructors. */
-  inline Iter (T *array_, int length_) :
+  Iter (T *array_, int length_) :
     array (array_), length (MAX (length_, 0)) {}
   template <unsigned int length_>
   explicit inline Iter (T (&array_)[length_]) :
     array (array_), length (length_) {}
 
   /* Emptiness. */
-  explicit_operator inline operator bool (void) const { return bool (length); }
+  explicit_operator operator bool (void) const { return bool (length); }
 
   /* Current item. */
-  inline T &operator * (void)
+  T &operator * (void)
   {
     if (unlikely (!length)) return CrapOrNull(T);
     return *array;
   }
-  inline T &operator -> (void)
+  T &operator -> (void)
   {
     return (operator *);
   }
 
   /* Next. */
-  inline Iter<T *> & operator ++ (void)
+  Iter<T *> & operator ++ (void)
   {
     if (unlikely (!length)) return *this;
     array++;
@@ -94,7 +94,7 @@ struct Iter<T *>
     return *this;
   }
   /* Might return void, or a copy of pre-increment iterator. */
-  inline void operator ++ (int)
+  void operator ++ (int)
   {
     if (unlikely (!length)) return;
     array++;
@@ -102,11 +102,11 @@ struct Iter<T *>
   }
 
   /* Some iterators might implement len(). */
-  inline unsigned int len (void) const { return length; }
+  unsigned int len (void) const { return length; }
 
   /* Some iterators might implement fast-forward.
    * Only implement it if it's constant-time. */
-  inline void operator += (unsigned int n)
+  void operator += (unsigned int n)
   {
     n = MIN (n, length);
     array += n;
@@ -115,7 +115,7 @@ struct Iter<T *>
 
   /* Some iterators might implement random-access.
    * Only implement it if it's constant-time. */
-  inline Iter<T *> & operator [] (unsigned int i)
+  Iter<T *> & operator [] (unsigned int i)
   {
     if (unlikely (i >= length)) return CrapOrNull(T);
     return array[i];

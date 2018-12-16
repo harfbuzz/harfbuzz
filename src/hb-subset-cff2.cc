@@ -36,7 +36,7 @@ using namespace CFF;
 
 struct CFF2SubTableOffsets : CFFSubTableOffsets
 {
-  inline CFF2SubTableOffsets (void)
+  CFF2SubTableOffsets (void)
     : CFFSubTableOffsets (),
       varStoreOffset (0)
   {}
@@ -46,9 +46,9 @@ struct CFF2SubTableOffsets : CFFSubTableOffsets
 
 struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			 const OpStr &opstr,
-			 const CFF2SubTableOffsets &offsets) const
+  bool serialize (hb_serialize_context_t *c,
+		  const OpStr &opstr,
+		  const CFF2SubTableOffsets &offsets) const
   {
     TRACE_SERIALIZE (this);
 
@@ -62,7 +62,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
     }
   }
 
-  inline unsigned int calculate_serialized_size (const OpStr &opstr) const
+  unsigned int calculate_serialized_size (const OpStr &opstr) const
   {
     switch (opstr.op)
     {
@@ -77,7 +77,7 @@ struct CFF2TopDict_OpSerializer : CFFTopDict_OpSerializer<>
 
 struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 {
-  static inline void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  static void flush_args_and_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
     {
@@ -105,7 +105,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     }
   }
 
-  static inline void flush_args (CFF2CSInterpEnv &env, FlattenParam& param)
+  static void flush_args (CFF2CSInterpEnv &env, FlattenParam& param)
   {
     for (unsigned int i = 0; i < env.argStack.get_count ();)
     {
@@ -130,7 +130,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     SUPER::flush_args (env, param);
   }
 
-  static inline void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)
+  static void flatten_blends (const BlendArg &arg, unsigned int i, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     /* flatten the default values */
     StrEncoder  encoder (param.flatStr);
@@ -157,7 +157,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     encoder.encode_op (OpCode_blendcs);
   }
 
-  static inline void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
+  static void flush_op (OpCode op, CFF2CSInterpEnv &env, FlattenParam& param)
   {
     switch (op)
     {
@@ -177,7 +177,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
 
 struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetParam>
 {
-  static inline void process_op (OpCode op, CFF2CSInterpEnv &env, SubrSubsetParam& param)
+  static void process_op (OpCode op, CFF2CSInterpEnv &env, SubrSubsetParam& param)
   {
     switch (op) {
 
@@ -208,9 +208,9 @@ struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetPa
   }
 
   protected:
-  static inline void process_call_subr (OpCode op, CSType type,
-					CFF2CSInterpEnv &env, SubrSubsetParam& param,
-					CFF2BiasedSubrs& subrs, hb_set_t *closure)
+  static void process_call_subr (OpCode op, CSType type,
+				 CFF2CSInterpEnv &env, SubrSubsetParam& param,
+				 CFF2BiasedSubrs& subrs, hb_set_t *closure)
   {
     SubByteStr    substr = env.substr;
     env.callSubr (subrs, type);
@@ -225,7 +225,7 @@ struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetPa
 
 struct CFF2SubrSubsetter : SubrSubsetter<CFF2SubrSubsetter, CFF2Subrs, const OT::cff2::accelerator_subset_t, CFF2CSInterpEnv, CFF2CSOpSet_SubrSubset>
 {
-  static inline void finalize_parsed_str (CFF2CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
+  static void finalize_parsed_str (CFF2CSInterpEnv &env, SubrSubsetParam& param, ParsedCStr &charstring)
   {
     /* vsindex is inserted at the beginning of the charstring as necessary */
     if (env.seen_vsindex ())
@@ -238,7 +238,7 @@ struct CFF2SubrSubsetter : SubrSubsetter<CFF2SubrSubsetter, CFF2Subrs, const OT:
 };
 
 struct cff2_subset_plan {
-  inline cff2_subset_plan (void)
+  cff2_subset_plan (void)
     : final_size (0),
       orig_fdcount (0),
       subset_fdcount(1),
@@ -254,7 +254,7 @@ struct cff2_subset_plan {
     privateDictInfos.init ();
   }
 
-  inline ~cff2_subset_plan (void)
+  ~cff2_subset_plan (void)
   {
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
@@ -264,7 +264,7 @@ struct cff2_subset_plan {
     privateDictInfos.fini ();
   }
 
-  inline bool create (const OT::cff2::accelerator_subset_t &acc,
+  bool create (const OT::cff2::accelerator_subset_t &acc,
 	      hb_subset_plan_t *plan)
   {
     final_size = 0;
@@ -412,7 +412,7 @@ struct cff2_subset_plan {
     return true;
   }
 
-  inline unsigned int get_final_size (void) const  { return final_size; }
+  unsigned int get_final_size (void) const  { return final_size; }
 
   unsigned int	final_size;
   CFF2SubTableOffsets offsets;

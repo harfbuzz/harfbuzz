@@ -69,17 +69,17 @@ struct RearrangementSubtable
       Verb		= 0x000F,	/* The type of rearrangement specified. */
     };
 
-    inline driver_context_t (const RearrangementSubtable *table HB_UNUSED) :
+    driver_context_t (const RearrangementSubtable *table HB_UNUSED) :
 	ret (false),
 	start (0), end (0) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+			const Entry<EntryData> *entry)
     {
       return (entry->flags & Verb) && start < end;
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    bool transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
@@ -163,7 +163,7 @@ struct RearrangementSubtable
     unsigned int end;
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -175,7 +175,7 @@ struct RearrangementSubtable
     return_trace (dc.ret);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (machine.sanitize (c));
@@ -213,7 +213,7 @@ struct ContextualSubtable
       Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
     };
 
-    inline driver_context_t (const ContextualSubtable *table_,
+    driver_context_t (const ContextualSubtable *table_,
 			     hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
@@ -222,8 +222,8 @@ struct ContextualSubtable
 	table (table_),
 	subs (table+table->substitutionTables) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver,
+			const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
@@ -232,8 +232,8 @@ struct ContextualSubtable
 
       return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    bool transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
@@ -311,7 +311,7 @@ struct ContextualSubtable
     const UnsizedOffsetListOf<Lookup<GlyphID>, HBUINT, false> &subs;
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -323,7 +323,7 @@ struct ContextualSubtable
     return_trace (dc.ret);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
 
@@ -384,10 +384,10 @@ struct LigatureEntry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
-  static inline bool performAction (const Entry<EntryData> *entry)
+  static bool performAction (const Entry<EntryData> *entry)
   { return entry->flags & PerformAction; }
 
-  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
+  static unsigned int ligActionIndex (const Entry<EntryData> *entry)
   { return entry->data.ligActionIndex; }
 };
 template <>
@@ -406,10 +406,10 @@ struct LigatureEntry<false>
 
   typedef void EntryData;
 
-  static inline bool performAction (const Entry<EntryData> *entry)
+  static bool performAction (const Entry<EntryData> *entry)
   { return entry->flags & Offset; }
 
-  static inline unsigned int ligActionIndex (const Entry<EntryData> *entry)
+  static unsigned int ligActionIndex (const Entry<EntryData> *entry)
   { return entry->flags & Offset; }
 };
 
@@ -441,8 +441,8 @@ struct LigatureSubtable
 					 * into the component table. */
     };
 
-    inline driver_context_t (const LigatureSubtable *table_,
-			     hb_aat_apply_context_t *c_) :
+    driver_context_t (const LigatureSubtable *table_,
+		      hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
 	table (table_),
@@ -451,13 +451,13 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+			const Entry<EntryData> *entry)
     {
       return LigatureEntryT::performAction (entry);
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    bool transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
@@ -567,7 +567,7 @@ struct LigatureSubtable
     unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -579,7 +579,7 @@ struct LigatureSubtable
     return_trace (dc.ret);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
@@ -603,7 +603,7 @@ struct LigatureSubtable
 template <typename Types>
 struct NoncontextualSubtable
 {
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -625,7 +625,7 @@ struct NoncontextualSubtable
     return_trace (ret);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (substitute.sanitize (c));
@@ -709,22 +709,22 @@ struct InsertionSubtable
 					 * marked location is 31 glyphs. */
     };
 
-    inline driver_context_t (const InsertionSubtable *table,
-			     hb_aat_apply_context_t *c_) :
+    driver_context_t (const InsertionSubtable *table,
+		      hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
 	mark_set (false),
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+			const Entry<EntryData> *entry)
     {
       return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    bool transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> *entry)
     {
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
@@ -809,7 +809,7 @@ struct InsertionSubtable
     const UnsizedArrayOf<GlyphID> &insertionAction;
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -821,7 +821,7 @@ struct InsertionSubtable
     return_trace (dc.ret);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
@@ -842,7 +842,7 @@ struct InsertionSubtable
 
 struct Feature
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -868,9 +868,9 @@ struct ChainSubtable
   template <typename T>
   friend struct Chain;
 
-  inline unsigned int get_size (void) const { return length; }
-  inline unsigned int get_type (void) const { return coverage & 0xFF; }
-  inline unsigned int get_coverage (void) const { return coverage >> (sizeof (HBUINT) * 8 - 8); }
+  unsigned int get_size (void) const { return length; }
+  unsigned int get_type (void) const { return coverage & 0xFF; }
+  unsigned int get_coverage (void) const { return coverage >> (sizeof (HBUINT) * 8 - 8); }
 
   enum Coverage
   {
@@ -897,7 +897,7 @@ struct ChainSubtable
   };
 
   template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
+  typename context_t::return_t dispatch (context_t *c) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
@@ -911,14 +911,14 @@ struct ChainSubtable
     }
   }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_sanitize_with_object_t with (&c->sanitizer, this);
     return_trace (dispatch (c));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||
@@ -950,7 +950,7 @@ struct Chain
 {
   typedef typename Types::HBUINT HBUINT;
 
-  inline hb_mask_t compile_flags (const hb_aat_map_builder_t *map) const
+  hb_mask_t compile_flags (const hb_aat_map_builder_t *map) const
   {
     hb_mask_t flags = defaultFlags;
     {
@@ -979,7 +979,7 @@ struct Chain
     return flags;
   }
 
-  inline void apply (hb_aat_apply_context_t *c,
+  void apply (hb_aat_apply_context_t *c,
 		     hb_mask_t flags) const
   {
     const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types> > (featureZ.as_array (featureCount));
@@ -1049,9 +1049,9 @@ struct Chain
     }
   }
 
-  inline unsigned int get_size (void) const { return length; }
+  unsigned int get_size (void) const { return length; }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
     if (!length.sanitize (c) ||
@@ -1098,10 +1098,10 @@ struct mortmorx
 {
   enum { tableTag = HB_AAT_TAG_morx };
 
-  inline bool has_data (void) const { return version != 0; }
+  bool has_data (void) const { return version != 0; }
 
-  inline void compile_flags (const hb_aat_map_builder_t *mapper,
-			     hb_aat_map_t *map) const
+  void compile_flags (const hb_aat_map_builder_t *mapper,
+		      hb_aat_map_t *map) const
   {
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
@@ -1112,7 +1112,7 @@ struct mortmorx
     }
   }
 
-  inline void apply (hb_aat_apply_context_t *c) const
+  void apply (hb_aat_apply_context_t *c) const
   {
     if (unlikely (!c->buffer->successful)) return;
     c->set_lookup_index (0);
@@ -1126,7 +1126,7 @@ struct mortmorx
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!version.sanitize (c) || !version || !chainCount.sanitize (c))
