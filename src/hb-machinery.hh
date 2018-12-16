@@ -834,7 +834,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   const Returned * operator -> (void) const { return get (); }
   const Returned & operator * (void) const { return *get (); }
-  explicit_operator operator bool (void) const
+  explicit_operator bool (void) const
   { return get_stored () != Funcs::get_null (); }
   template <typename C> operator const C * (void) const { return get (); }
 

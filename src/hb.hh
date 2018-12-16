@@ -137,14 +137,14 @@ struct _hb_alignof
 
 /* https://github.com/harfbuzz/harfbuzz/issues/1127 */
 #ifndef explicit_operator
-#define explicit_operator
+#define explicit_operator operator
 #endif
 
 #else /* __cplusplus >= 201103L */
 
 /* https://github.com/harfbuzz/harfbuzz/issues/1127 */
 #ifndef explicit_operator
-#define explicit_operator explicit
+#define explicit_operator explicit operator
 #endif
 
 #endif /* __cplusplus < 201103L */

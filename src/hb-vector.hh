@@ -121,8 +121,8 @@ struct hb_vector_t
   hb_array_t<Type> sorted_sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_sorted_array ().sorted_sub_array (start_offset, count);}
 
-  template <typename T> explicit_operator operator  T * (void) { return arrayZ(); }
-  template <typename T> explicit_operator operator const T * (void) const { return arrayZ(); }
+  template <typename T> explicit_operator T * (void) { return arrayZ(); }
+  template <typename T> explicit_operator const T * (void) const { return arrayZ(); }
   operator hb_array_t<Type> (void) { return as_array (); }
   operator hb_array_t<const Type> (void) const { as_array (); }
 
