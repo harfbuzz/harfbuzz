@@ -246,7 +246,7 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 
     if (flags & HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS)
     {
-      if (info[i].mask &HB_GLYPH_FLAG_DEFINED)
+      if (info[i].mask & HB_GLYPH_FLAG_DEFINED)
 	p += MAX (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "#%X", info[i].mask &HB_GLYPH_FLAG_DEFINED));
     }
 
