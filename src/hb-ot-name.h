@@ -73,7 +73,7 @@ enum
   HB_OT_NAME_ID_DARK_BACKGROUND		= 24,
   HB_OT_NAME_ID_VARIATIONS_PS_PREFIX	= 25,
 
-  HB_OT_NAME_ID_INVALID			= 0xFFFF,
+  HB_OT_NAME_ID_INVALID			= 0xFFFF
 };
 
 typedef unsigned int hb_ot_name_id_t;
