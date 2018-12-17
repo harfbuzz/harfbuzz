@@ -644,29 +644,26 @@ struct hb_serialize_context_t
 template <typename Type>
 struct Supplier
 {
-  Supplier (const Type *array, unsigned int len_, unsigned int stride_=sizeof (Type))
+  Supplier (const Type *array, unsigned int len_)
   {
     head = array;
     len = len_;
-    stride = stride_;
   }
   Supplier (hb_array_t<const Type> v)
   {
     head = v.arrayZ;
     len = v.len;
-    stride = sizeof (Type);
   }
   Supplier (const hb_vector_t<Type> &v)
   {
     head = (const Type *) v;
     len = v.len;
-    stride = sizeof (Type);
   }
 
   const Type operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Type ();
-    return * (const Type *) (const void *) ((const char *) head + stride * i);
+    return head[i];
   }
 
   Supplier<Type> & operator += (unsigned int count)
@@ -674,7 +671,7 @@ struct Supplier
     if (unlikely (count > len))
       count = len;
     len -= count;
-    head = (const Type *) (const void *) ((const char *) head + stride * count);
+    head += count;
     return *this;
   }
 
@@ -683,7 +680,6 @@ struct Supplier
   Supplier<Type>& operator= (const Supplier<Type> &); /* Disallow copy */
 
   unsigned int len;
-  unsigned int stride;
   const Type *head;
 };
 
