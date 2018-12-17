@@ -69,7 +69,8 @@ struct hb_sorted_array_t;
 template <typename Type>
 struct hb_array_t
 {
-  static_assert ((bool) (unsigned) hb_static_size (Type), "");
+  typedef Type ItemType;
+  enum { item_size = hb_static_size (Type) };
 
   hb_array_t (void) : arrayZ (nullptr), len (0) {}
   hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}

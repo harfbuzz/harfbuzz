@@ -34,10 +34,8 @@
 template <typename Type, unsigned int PreallocedCount=8>
 struct hb_vector_t
 {
-  static_assert ((bool) (unsigned) hb_static_size (Type), "");
-
   typedef Type ItemType;
-  enum { item_size = sizeof (Type) };
+  enum { item_size = hb_static_size (Type) };
 
   HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
   hb_vector_t (void) { init (); }

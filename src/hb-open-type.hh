@@ -352,9 +352,8 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null>
 template <typename Type>
 struct UnsizedArrayOf
 {
-  static_assert ((bool) (unsigned) hb_static_size (Type), "");
-
-  enum { item_size = Type::static_size };
+  typedef Type ItemType;
+  enum { item_size = hb_static_size (Type) };
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
 
@@ -509,9 +508,8 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
-  static_assert ((bool) (unsigned) hb_static_size (Type), "");
-
-  enum { item_size = Type::static_size };
+  typedef Type ItemType;
+  enum { item_size = hb_static_size (Type) };
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
 
