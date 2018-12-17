@@ -31,7 +31,7 @@ using namespace CFF;
 
 struct ExtentsParam
 {
-  void init (void)
+  void init ()
   {
     path_open = false;
     min_x.set_int (0x7FFFFFFF);
@@ -40,9 +40,9 @@ struct ExtentsParam
     max_y.set_int (-0x80000000);
   }
 
-  void start_path (void) { path_open = true; }
-  void end_path (void) { path_open = false; }
-  bool is_path_open (void) const { return path_open; }
+  void start_path ()         { path_open = true; }
+  void end_path ()           { path_open = false; }
+  bool is_path_open () const { return path_open; }
 
   void update_bounds (const Point &pt)
   {

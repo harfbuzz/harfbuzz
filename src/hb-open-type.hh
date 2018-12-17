@@ -64,7 +64,7 @@ struct IntType
   typedef typename hb_signedness_int<hb_is_signed<Type>::value>::value wide_type;
 
   void set (wide_type i) { v.set (i); }
-  operator wide_type (void) const { return v; }
+  operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
   static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
@@ -111,7 +111,7 @@ typedef HBUINT16 UFWORD;
 struct F2DOT14 : HBINT16
 {
   // 16384 means 1<<14
-  float to_float (void) const { return ((int32_t) v) / 16384.f; }
+  float to_float () const  { return ((int32_t) v) / 16384.f; }
   void set_float (float f) { v.set (round (f * 16384.f)); }
   public:
   DEFINE_SIZE_STATIC (2);
@@ -121,7 +121,7 @@ struct F2DOT14 : HBINT16
 struct Fixed : HBINT32
 {
   // 65536 means 1<<16
-  float to_float (void) const { return ((int32_t) v) / 65536.f; }
+  float to_float () const  { return ((int32_t) v) / 65536.f; }
   void set_float (float f) { v.set (round (f * 65536.f)); }
   public:
   DEFINE_SIZE_STATIC (4);
@@ -148,8 +148,8 @@ struct LONGDATETIME
 struct Tag : HBUINT32
 {
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  operator const char* (void) const { return reinterpret_cast<const char *> (&this->v); }
-  operator char* (void) { return reinterpret_cast<char *> (&this->v); }
+  operator const char* () const { return reinterpret_cast<const char *> (&this->v); }
+  operator char* ()             { return reinterpret_cast<char *> (&this->v); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -171,7 +171,7 @@ struct Offset : Type
 {
   typedef Type type;
 
-  bool is_null (void) const { return has_null && 0 == *this; }
+  bool is_null () const { return has_null && 0 == *this; }
 
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
@@ -219,7 +219,7 @@ struct CheckSum : HBUINT32
 template <typename FixedType=HBUINT16>
 struct FixedVersion
 {
-  uint32_t to_int (void) const { return (major << (sizeof (FixedType) * 8)) + minor; }
+  uint32_t to_int () const { return (major << (sizeof (FixedType) * 8)) + minor; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -242,14 +242,14 @@ struct FixedVersion
 template <typename Type, bool has_null>
 struct _hb_has_null
 {
-  static const Type *get_null (void) { return nullptr; }
-  static Type *get_crap (void) { return nullptr; }
+  static const Type *get_null () { return nullptr; }
+  static Type *get_crap ()       { return nullptr; }
 };
 template <typename Type>
 struct _hb_has_null<Type, true>
 {
-  static const Type *get_null (void) { return &Null(Type); }
-  static Type *get_crap (void) { return &Crap(Type); }
+  static const Type *get_null () { return &Null(Type); }
+  static Type *get_crap ()       { return &Crap(Type); }
 };
 
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
@@ -375,14 +375,14 @@ struct UnsizedArrayOf
   unsigned int get_size (unsigned int len) const
   { return len * Type::static_size; }
 
-  template <typename T> operator T * (void) { return arrayZ; }
-  template <typename T> operator const T * (void) const { return arrayZ; }
+  template <typename T> operator T * () { return arrayZ; }
+  template <typename T> operator const T * () const { return arrayZ; }
   hb_array_t<Type> as_array (unsigned int len)
   { return hb_array (arrayZ, len); }
   hb_array_t<const Type> as_array (unsigned int len) const
   { return hb_array (arrayZ, len); }
-  operator hb_array_t<Type> (void) { return as_array (); }
-  operator hb_array_t<const Type> (void) const { return as_array (); }
+  operator hb_array_t<Type> ()             { return as_array (); }
+  operator hb_array_t<const Type> () const { return as_array (); }
 
   template <typename T>
   Type &lsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
@@ -487,8 +487,8 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
   { return hb_sorted_array (this->arrayZ, len); }
   hb_sorted_array_t<const Type> as_array (unsigned int len) const
   { return hb_sorted_array (this->arrayZ, len); }
-  operator hb_sorted_array_t<Type> (void) { return as_array (); }
-  operator hb_sorted_array_t<const Type> (void) const { return as_array (); }
+  operator hb_sorted_array_t<Type> ()             { return as_array (); }
+  operator hb_sorted_array_t<const Type> () const { return as_array (); }
 
   template <typename T>
   Type &bsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
@@ -526,14 +526,14 @@ struct ArrayOf
     return arrayZ[i];
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return len.static_size + len * Type::static_size; }
 
-  hb_array_t<Type> as_array (void)
+  hb_array_t<Type> as_array ()
   { return hb_array (arrayZ, len); }
-  hb_array_t<const Type> as_array (void) const
+  hb_array_t<const Type> as_array () const
   { return hb_array (arrayZ, len); }
-  operator hb_array_t<Type> (void) { return as_array (); }
+  operator hb_array_t<Type> (void)             { return as_array (); }
   operator hb_array_t<const Type> (void) const { return as_array (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
@@ -697,7 +697,7 @@ struct HeadlessArrayOf
     if (unlikely (i >= lenP1 || !i)) return Crap (Type);
     return arrayZ[i-1];
   }
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return lenP1.static_size + (lenP1 ? lenP1 - 1 : 0) * Type::static_size; }
 
   bool serialize (hb_serialize_context_t *c,
@@ -765,7 +765,7 @@ struct ArrayOfM1
     if (unlikely (i > lenM1)) return Crap (Type);
     return arrayZ[i];
   }
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename T>
@@ -799,12 +799,12 @@ struct ArrayOfM1
 template <typename Type, typename LenType=HBUINT16>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
-  hb_sorted_array_t<Type> as_array (void)
+  hb_sorted_array_t<Type> as_array ()
   { return hb_sorted_array (this->arrayZ, this->len); }
-  hb_sorted_array_t<const Type> as_array (void) const
+  hb_sorted_array_t<const Type> as_array () const
   { return hb_sorted_array (this->arrayZ, this->len); }
-  operator hb_sorted_array_t<Type> (void) { return as_array (); }
-  operator hb_sorted_array_t<const Type> (void) const { return as_array (); }
+  operator hb_sorted_array_t<Type> ()             { return as_array (); }
+  operator hb_sorted_array_t<const Type> () const { return as_array (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
@@ -835,7 +835,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 template <typename LenType=HBUINT16>
 struct BinSearchHeader
 {
-  operator uint32_t (void) const { return len; }
+  operator uint32_t () const { return len; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -897,7 +897,7 @@ struct VarSizedBinSearchArrayOf
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
 
-  bool last_is_terminator (void) const
+  bool last_is_terminator () const
   {
     if (unlikely (!header.nUnits)) return false;
 
@@ -925,11 +925,9 @@ struct VarSizedBinSearchArrayOf
     if (unlikely (i >= get_length ())) return Crap (Type);
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
-  unsigned int get_length (void) const
-  {
-    return header.nUnits - last_is_terminator ();
-  }
-  unsigned int get_size (void) const
+  unsigned int get_length () const
+  { return header.nUnits - last_is_terminator (); }
+  unsigned int get_size () const
   { return header.static_size + header.nUnits * header.unitSize; }
 
   bool sanitize (hb_sanitize_context_t *c) const

@@ -83,10 +83,7 @@ struct output_buffer_t
     if (format.trace)
       hb_buffer_set_message_func (buffer, message_func, this, nullptr);
   }
-  void new_line (void)
-  {
-    line_no++;
-  }
+  void new_line () { line_no++; }
   void consume_text (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len,

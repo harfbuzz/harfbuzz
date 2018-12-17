@@ -38,13 +38,9 @@ namespace CFF {
 struct StrEncoder
 {
   StrEncoder (StrBuff &buff_)
-    : buff (buff_), error (false)
-  {}
+    : buff (buff_), error (false) {}
 
-  void reset (void)
-  {
-    buff.resize (0);
-  }
+  void reset () { buff.resize (0); }
 
   void encode_byte (unsigned char b)
   {
@@ -123,19 +119,17 @@ struct StrEncoder
     memcpy (&buff[offset], &str.str[0], str.len);
   }
 
-  bool is_error (void) const { return error; }
+  bool is_error () const { return error; }
 
   protected:
-  void set_error (void) { error = true; }
+  void set_error () { error = true; }
 
   StrBuff &buff;
   bool    error;
 };
 
 struct CFFSubTableOffsets {
-  CFFSubTableOffsets (void)
-    : privateDictsOffset (0)
-
+  CFFSubTableOffsets () : privateDictsOffset (0)
   {
     topDictInfo.init ();
     FDSelectInfo.init ();
@@ -145,10 +139,7 @@ struct CFFSubTableOffsets {
     localSubrsInfos.init ();
   }
 
-  ~CFFSubTableOffsets (void)
-  {
-    localSubrsInfos.fini ();
-  }
+  ~CFFSubTableOffsets () { localSubrsInfos.fini (); }
 
   TableInfo     topDictInfo;
   TableInfo     FDSelectInfo;
@@ -331,12 +322,8 @@ struct SubrFlattener
 
 struct SubrClosures
 {
-  SubrClosures (void)
-    : valid (false),
-      global_closure (nullptr)
-  {
-    local_closures.init ();
-  }
+  SubrClosures () : valid (false), global_closure (nullptr)
+  { local_closures.init (); }
 
   void init (unsigned int fd_count)
   {
@@ -355,7 +342,7 @@ struct SubrClosures
     }
   }
 
-  void fini (void)
+  void fini ()
   {
     hb_set_destroy (global_closure);
     for (unsigned int i = 0; i < local_closures.len; i++)
@@ -363,14 +350,14 @@ struct SubrClosures
     local_closures.fini ();
   }
 
-  void reset (void)
+  void reset ()
   {
     hb_set_clear (global_closure);
     for (unsigned int i = 0; i < local_closures.len; i++)
       hb_set_clear (local_closures[i]);
   }
 
-  bool is_valid (void) const { return valid; }
+  bool is_valid () const { return valid; }
   bool  valid;
   hb_set_t  *global_closure;
   hb_vector_t<hb_set_t *> local_closures;
@@ -387,17 +374,16 @@ struct ParsedCSOp : OpStr
     skip_flag = false;
   }
 
-  void fini (void)
-  {
-    OpStr::fini ();
-  }
+  void fini () { OpStr::fini (); }
 
-  bool for_drop (void) const { return drop_flag; }
-  void set_drop (void) { if (!for_keep ()) drop_flag = true; }
-  bool for_keep (void) const { return keep_flag; }
-  void set_keep (void) { keep_flag = true; }
-  bool for_skip (void) const { return skip_flag; }
-  void set_skip (void) { skip_flag = true; }
+  bool for_drop () const { return drop_flag; }
+  void set_drop ()       { if (!for_keep ()) drop_flag = true; }
+
+  bool for_keep () const { return keep_flag; }
+  void set_keep ()       { keep_flag = true; }
+
+  bool for_skip () const { return skip_flag; }
+  void set_skip ()       { skip_flag = true; }
 
   unsigned int  subr_num;
 
@@ -409,7 +395,7 @@ struct ParsedCSOp : OpStr
 
 struct ParsedCStr : ParsedValues<ParsedCSOp>
 {
-  void init (void)
+  void init ()
   {
     SUPER::init ();
     parsed = false;
@@ -450,15 +436,18 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
 	|| (values[pos + 1].op == OpCode_return));
   }
 
-  bool is_parsed (void) const { return parsed; }
-  void set_parsed (void) { parsed = true; }
-  bool is_hint_dropped (void) const { return hint_dropped; }
-  void set_hint_dropped (void) { hint_dropped = true; }
-  bool is_vsindex_dropped (void) const { return vsindex_dropped; }
-  void set_vsindex_dropped (void) { vsindex_dropped = true; }
-  bool has_prefix (void) const { return has_prefix_; }
-  OpCode prefix_op (void) const { return prefix_op_; }
-  const Number &prefix_num (void) const { return prefix_num_; }
+  bool is_parsed () const { return parsed; }
+  void set_parsed ()      { parsed = true; }
+
+  bool is_hint_dropped () const { return hint_dropped; }
+  void set_hint_dropped ()      { hint_dropped = true; }
+
+  bool is_vsindex_dropped () const { return vsindex_dropped; }
+  void set_vsindex_dropped ()      { vsindex_dropped = true; }
+
+  bool has_prefix () const          { return has_prefix_; }
+  OpCode prefix_op () const         { return prefix_op_; }
+  const Number &prefix_num () const { return prefix_num_; }
 
   protected:
   bool    parsed;
@@ -481,7 +470,7 @@ struct ParsedCStrs : hb_vector_t<ParsedCStr>
     for (unsigned int i = 0; i < len; i++)
       (*this)[i].init ();
   }
-  void fini (void) { SUPER::fini_deep (); }
+  void fini () { SUPER::fini_deep (); }
 
   private:
   typedef hb_vector_t<ParsedCStr> SUPER;
@@ -593,13 +582,13 @@ struct SubrRemap : Remap
 
 struct SubrRemaps
 {
-  SubrRemaps (void)
+  SubrRemaps ()
   {
     global_remap.init ();
     local_remaps.init ();
   }
 
-  ~SubrRemaps (void) { fini (); }
+  ~SubrRemaps () { fini (); }
 
   void init (unsigned int fdCount)
   {
@@ -615,7 +604,7 @@ struct SubrRemaps
       local_remaps[i].create (closures.local_closures[i]);
   }
 
-  void fini (void)
+  void fini ()
   {
     global_remap.fini ();
     local_remaps.fini_deep ();
@@ -628,14 +617,14 @@ struct SubrRemaps
 template <typename SUBSETTER, typename SUBRS, typename ACC, typename ENV, typename OPSET>
 struct SubrSubsetter
 {
-  SubrSubsetter (void)
+  SubrSubsetter ()
   {
     parsed_charstrings.init ();
     parsed_global_subrs.init ();
     parsed_local_subrs.init ();
   }
 
-  ~SubrSubsetter (void)
+  ~SubrSubsetter ()
   {
     closures.fini ();
     remaps.fini ();
@@ -788,7 +777,7 @@ struct SubrSubsetter
   protected:
   struct DropHintsParam
   {
-    DropHintsParam (void)
+    DropHintsParam ()
       : seen_moveto (false),
 	ends_in_hint (false),
 	vsindex_dropped (false) {}

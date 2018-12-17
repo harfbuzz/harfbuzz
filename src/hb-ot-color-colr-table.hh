@@ -89,7 +89,7 @@ struct COLR
 {
   enum { tableTag = HB_OT_TAG_COLR };
 
-  bool has_data (void) const { return numBaseGlyphs; }
+  bool has_data () const { return numBaseGlyphs; }
 
   unsigned int get_glyph_layers (hb_codepoint_t       glyph,
 				 unsigned int         start_offset,

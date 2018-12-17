@@ -36,7 +36,7 @@ using namespace CFF;
 
 struct CFF2SubTableOffsets : CFFSubTableOffsets
 {
-  CFF2SubTableOffsets (void)
+  CFF2SubTableOffsets ()
     : CFFSubTableOffsets (),
       varStoreOffset (0)
   {}
@@ -238,7 +238,7 @@ struct CFF2SubrSubsetter : SubrSubsetter<CFF2SubrSubsetter, CFF2Subrs, const OT:
 };
 
 struct cff2_subset_plan {
-  cff2_subset_plan (void)
+  cff2_subset_plan ()
     : final_size (0),
       orig_fdcount (0),
       subset_fdcount(1),
@@ -254,7 +254,7 @@ struct cff2_subset_plan {
     privateDictInfos.init ();
   }
 
-  ~cff2_subset_plan (void)
+  ~cff2_subset_plan ()
   {
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
@@ -412,7 +412,7 @@ struct cff2_subset_plan {
     return true;
   }
 
-  unsigned int get_final_size (void) const  { return final_size; }
+  unsigned int get_final_size () const  { return final_size; }
 
   unsigned int	final_size;
   CFF2SubTableOffsets offsets;

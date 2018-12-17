@@ -73,11 +73,9 @@ struct DeltaSetIndexMap
   }
 
   protected:
-  unsigned int get_width (void) const
-  { return ((format >> 4) & 3) + 1; }
+  unsigned int get_width () const          { return ((format >> 4) & 3) + 1; }
 
-  unsigned int get_inner_bitcount (void) const
-  { return (format & 0xF) + 1; }
+  unsigned int get_inner_bitcount () const { return (format & 0xF) + 1; }
 
   protected:
   HBUINT16	format;		/* A packed field that describes the compressed
@@ -123,8 +121,7 @@ struct HVARVVAR
     return (this+varStore).get_delta (varidx, coords, coord_count);
   }
 
-  bool has_sidebearing_deltas (void) const
-  { return lsbMap && rsbMap; }
+  bool has_sidebearing_deltas () const { return lsbMap && rsbMap; }
 
   protected:
   FixedVersion<>version;	/* Version of the metrics variation table

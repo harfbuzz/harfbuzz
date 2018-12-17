@@ -47,7 +47,7 @@ struct hb_lockable_set_t
 {
   hb_vector_t <item_t, 1> items;
 
-  void init (void) { items.init (); }
+  void init () { items.init (); }
 
   template <typename T>
   item_t *replace_or_insert (T v, lock_t &l, bool replace)
@@ -146,13 +146,13 @@ struct hb_reference_count_t
   mutable hb_atomic_int_t ref_count;
 
   void init (int v = 1) { ref_count.set_relaxed (v); }
-  int get_relaxed (void) const { return ref_count.get_relaxed (); }
-  int inc (void) const { return ref_count.inc (); }
-  int dec (void) const { return ref_count.dec (); }
-  void fini (void) { ref_count.set_relaxed (HB_REFERENCE_COUNT_POISON_VALUE); }
+  int get_relaxed () const { return ref_count.get_relaxed (); }
+  int inc () const { return ref_count.inc (); }
+  int dec () const { return ref_count.dec (); }
+  void fini () { ref_count.set_relaxed (HB_REFERENCE_COUNT_POISON_VALUE); }
 
-  bool is_inert (void) const { return ref_count.get_relaxed () == HB_REFERENCE_COUNT_INERT_VALUE; }
-  bool is_valid (void) const { return ref_count.get_relaxed () > 0; }
+  bool is_inert () const { return ref_count.get_relaxed () == HB_REFERENCE_COUNT_INERT_VALUE; }
+  bool is_valid () const { return ref_count.get_relaxed () > 0; }
 };
 
 
@@ -168,13 +168,13 @@ struct hb_user_data_array_t
     bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
     bool operator == (hb_user_data_item_t &other) const { return key == other.key; }
 
-    void fini (void) { if (destroy) destroy (data); }
+    void fini () { if (destroy) destroy (data); }
   };
 
   hb_mutex_t lock;
   hb_lockable_set_t<hb_user_data_item_t, hb_mutex_t> items;
 
-  void init (void) { lock.init (); items.init (); }
+  void init () { lock.init (); items.init (); }
 
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
@@ -183,7 +183,7 @@ struct hb_user_data_array_t
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
-  void fini (void) { items.fini (lock); lock.fini (); }
+  void fini () { items.fini (lock); lock.fini (); }
 };
 
 
@@ -219,7 +219,7 @@ static inline void hb_object_trace (const Type *obj, const char *function)
 }
 
 template <typename Type>
-static inline Type *hb_object_create (void)
+static inline Type *hb_object_create ()
 {
   Type *obj = (Type *) calloc (1, sizeof (Type));
 

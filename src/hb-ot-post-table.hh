@@ -118,7 +118,7 @@ struct post
 	   data += 1 + *data)
 	index_to_offset.push (data - pool);
     }
-    void fini (void)
+    void fini ()
     {
       index_to_offset.fini ();
       free (gids_sorted_by_name.get ());
@@ -180,7 +180,7 @@ struct post
 
     protected:
 
-    unsigned int get_glyph_count (void) const
+    unsigned int get_glyph_count () const
     {
       if (version == 0x00010000)
 	return NUM_FORMAT1_NAMES;

@@ -74,7 +74,7 @@ struct color_t
     color_t c = {(0xFFu<<24) | ((0xFFu*(x&1))<<16) | ((0xFFu*((x >> 1)&1))<<8) | (0xFFu*((x >> 2)&1))};
     return c;
   }
-  unsigned int to_ansi (void)
+  unsigned int to_ansi ()
   {
     return ((v >> 23) & 1) | ((v >> 14)&2) | ((v >> 5)&4);
   }
@@ -110,7 +110,7 @@ struct image_t
 		own_data (true),
 		data ((color_t *) malloc (sizeof (data[0]) * width * height)),
 		stride (width) {}
-  ~image_t (void)
+  ~image_t ()
   { if (own_data) free (data); }
 
   color_t &operator () (unsigned int x, unsigned int y)
@@ -161,7 +161,7 @@ struct biimage_t
 		height (height),
 		bg (0), fg (0), unicolor (true),
 		data ((uint8_t *) malloc (sizeof (data[0]) * width * height)) {}
-  ~biimage_t (void)
+  ~biimage_t ()
   { free (data); }
 
   void set (const image_t &image)

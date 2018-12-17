@@ -100,7 +100,7 @@ _hb_cg_font_release (void *data)
 
 
 static CTFontDescriptorRef
-get_last_resort_font_desc (void)
+get_last_resort_font_desc ()
 {
   // TODO Handle allocation failures?
   CTFontDescriptorRef last_resort = CTFontDescriptorCreateWithNameAndSize (CFSTR("LastResort"), 0);

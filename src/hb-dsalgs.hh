@@ -592,7 +592,7 @@ struct hb_vector_size_t
   { return process<HbOpAnd> (o); }
   hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process<HbOpXor> (o); }
-  hb_vector_size_t operator ~ (void) const
+  hb_vector_size_t operator ~ () const
   {
     hb_vector_size_t r;
 #if HB_VECTOR_SIZE && 0

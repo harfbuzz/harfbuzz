@@ -54,8 +54,7 @@ struct TTCHeader;
 
 typedef struct TableRecord
 {
-  int cmp (Tag t) const
-  { return -t.cmp (tag); }
+  int cmp (Tag t) const { return -t.cmp (tag); }
 
   static int cmp (const void *pa, const void *pb)
   {
@@ -83,12 +82,9 @@ typedef struct OffsetTable
 {
   friend struct OpenTypeFontFile;
 
-  unsigned int get_table_count (void) const
-  { return tables.len; }
+  unsigned int get_table_count () const { return tables.len; }
   const TableRecord& get_table (unsigned int i) const
-  {
-    return tables[i];
-  }
+  { return tables[i]; }
   unsigned int get_table_tags (unsigned int  start_offset,
 				      unsigned int *table_count, /* IN/OUT */
 				      hb_tag_t     *table_tags /* OUT */) const
@@ -214,7 +210,7 @@ struct TTCHeaderVersion1
 {
   friend struct TTCHeader;
 
-  unsigned int get_face_count (void) const { return table.len; }
+  unsigned int get_face_count () const { return table.len; }
   const OpenTypeFontFace& get_face (unsigned int i) const { return this+table[i]; }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -240,7 +236,7 @@ struct TTCHeader
 
   private:
 
-  unsigned int get_face_count (void) const
+  unsigned int get_face_count () const
   {
     switch (u.header.version.major) {
     case 2: /* version 2 is compatible with version 1 */
@@ -316,16 +312,14 @@ struct ResourceRecord
 
 struct ResourceTypeRecord
 {
-  unsigned int get_resource_count (void) const
+  unsigned int get_resource_count () const
   { return tag == HB_TAG_sfnt ? resCountM1 + 1 : 0; }
 
-  bool is_sfnt (void) const { return tag == HB_TAG_sfnt; }
+  bool is_sfnt () const { return tag == HB_TAG_sfnt; }
 
   const ResourceRecord& get_resource_record (unsigned int i,
 					     const void *type_base) const
-  {
-    return (type_base+resourcesZ).as_array (get_resource_count ())[i];
-  }
+  { return (type_base+resourcesZ).as_array (get_resource_count ())[i]; }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 const void *type_base,
@@ -350,7 +344,7 @@ struct ResourceTypeRecord
 
 struct ResourceMap
 {
-  unsigned int get_face_count (void) const
+  unsigned int get_face_count () const
   {
     unsigned int count = get_type_count ();
     for (unsigned int i = 0; i < count; i++)
@@ -387,7 +381,7 @@ struct ResourceMap
   }
 
   private:
-  unsigned int get_type_count (void) const { return (this+typeList).lenM1 + 1; }
+  unsigned int get_type_count () const { return (this+typeList).lenM1 + 1; }
 
   const ResourceTypeRecord& get_type_record (unsigned int i) const
   { return (this+typeList)[i]; }
@@ -408,7 +402,7 @@ struct ResourceMap
 
 struct ResourceForkHeader
 {
-  unsigned int get_face_count (void) const
+  unsigned int get_face_count () const
   { return (this+map).get_face_count (); }
 
   const OpenTypeFontFace& get_face (unsigned int idx,
@@ -456,9 +450,9 @@ struct OpenTypeFontFile
     Typ1Tag		= HB_TAG ('t','y','p','1')  /* Obsolete Apple Type1 font in SFNT container */
   };
 
-  hb_tag_t get_tag (void) const { return u.tag; }
+  hb_tag_t get_tag () const { return u.tag; }
 
-  unsigned int get_face_count (void) const
+  unsigned int get_face_count () const
   {
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */

@@ -36,13 +36,13 @@ static const hb_shaper_entry_t all_shapers[] = {
 };
 
 #if HB_USE_ATEXIT
-static void free_static_shapers (void);
+static void free_static_shapers ();
 #endif
 
 static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_t,
 							  hb_shapers_lazy_loader_t>
 {
-  static hb_shaper_entry_t *create (void)
+  static hb_shaper_entry_t *create ()
   {
     char *env = getenv ("HB_SHAPER_LIST");
     if (!env || !*env)
@@ -86,22 +86,20 @@ static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_
 
     return shapers;
   }
-  static void destroy (const hb_shaper_entry_t *p)
-  { free ((void *) p); }
-  static const hb_shaper_entry_t *get_null (void)
-  { return all_shapers; }
+  static void destroy (const hb_shaper_entry_t *p) { free ((void *) p); }
+  static const hb_shaper_entry_t *get_null ()      { return all_shapers; }
 } static_shapers;
 
 #if HB_USE_ATEXIT
 static
-void free_static_shapers (void)
+void free_static_shapers ()
 {
   static_shapers.free_instance ();
 }
 #endif
 
 const hb_shaper_entry_t *
-_hb_shapers_get (void)
+_hb_shapers_get ()
 {
   return static_shapers.get_unconst ();
 }

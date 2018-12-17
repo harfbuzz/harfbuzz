@@ -86,7 +86,7 @@ struct hb_font_funcs_t
 #define HB_FONT_FUNC_IMPLEMENT(name) +1
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
-		]) (void);
+		]) ();
   } get;
 };
 DECLARE_NULL_INSTANCE (hb_font_funcs_t);
@@ -176,14 +176,14 @@ struct hb_font_t
   /* has_* ... */
 #define HB_FONT_FUNC_IMPLEMENT(name) \
   bool \
-  has_##name##_func (void) \
+  has_##name##_func () \
   { \
     hb_font_funcs_t *funcs = this->klass; \
     unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, name) / sizeof (funcs->get.array[0]); \
     return has_func (i); \
   } \
   bool \
-  has_##name##_func_set (void) \
+  has_##name##_func_set () \
   { \
     hb_font_funcs_t *funcs = this->klass; \
     unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, name) / sizeof (funcs->get.array[0]); \

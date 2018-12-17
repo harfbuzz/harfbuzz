@@ -211,7 +211,7 @@ struct Feature;
 
 struct LangSys
 {
-  unsigned int get_feature_count (void) const
+  unsigned int get_feature_count () const
   { return featureIndex.len; }
   hb_tag_t get_feature_index (unsigned int i) const
   { return featureIndex[i]; }
@@ -222,8 +222,8 @@ struct LangSys
   void add_feature_indexes_to (hb_set_t *feature_indexes) const
   { featureIndex.add_indexes_to (feature_indexes); }
 
-  bool has_required_feature (void) const { return reqFeatureIndex != 0xFFFFu; }
-  unsigned int get_required_feature_index (void) const
+  bool has_required_feature () const { return reqFeatureIndex != 0xFFFFu; }
+  unsigned int get_required_feature_index () const
   {
     if (reqFeatureIndex == 0xFFFFu)
       return Index::NOT_FOUND_INDEX;
@@ -256,7 +256,7 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
 
 struct Script
 {
-  unsigned int get_lang_sys_count (void) const
+  unsigned int get_lang_sys_count () const
   { return langSys.len; }
   const Tag& get_lang_sys_tag (unsigned int i) const
   { return langSys.get_tag (i); }
@@ -272,8 +272,8 @@ struct Script
   bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
   { return langSys.find_index (tag, index); }
 
-  bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
-  const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
+  bool has_default_lang_sys () const           { return defaultLangSys != 0; }
+  const LangSys& get_default_lang_sys () const { return this+defaultLangSys; }
 
   bool subset (hb_subset_context_t *c) const
   {
@@ -543,7 +543,7 @@ struct FeatureParams
 
 struct Feature
 {
-  unsigned int get_lookup_count (void) const
+  unsigned int get_lookup_count () const
   { return lookupIndex.len; }
   hb_tag_t get_lookup_index (unsigned int i) const
   { return lookupIndex[i]; }
@@ -554,7 +554,7 @@ struct Feature
   void add_lookup_indexes_to (hb_set_t *lookup_indexes) const
   { lookupIndex.add_indexes_to (lookup_indexes); }
 
-  const FeatureParams &get_feature_params (void) const
+  const FeatureParams &get_feature_params () const
   { return this+featureParams; }
 
   bool subset (hb_subset_context_t *c) const
@@ -646,20 +646,20 @@ namespace OT {
 
 struct Lookup
 {
-  unsigned int get_subtable_count (void) const { return subTable.len; }
+  unsigned int get_subtable_count () const { return subTable.len; }
 
   template <typename TSubTable>
   const TSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
 
   template <typename TSubTable>
-  const OffsetArrayOf<TSubTable>& get_subtables (void) const
+  const OffsetArrayOf<TSubTable>& get_subtables () const
   { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
   template <typename TSubTable>
-  OffsetArrayOf<TSubTable>& get_subtables (void)
+  OffsetArrayOf<TSubTable>& get_subtables ()
   { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     const HBUINT16 &markFilteringSet = StructAfter<const HBUINT16> (subTable);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
@@ -667,12 +667,12 @@ struct Lookup
     return (const char *) &markFilteringSet - (const char *) this;
   }
 
-  unsigned int get_type (void) const { return lookupType; }
+  unsigned int get_type () const { return lookupType; }
 
   /* lookup_props is a 32-bit integer where the lower 16-bit is LookupFlag and
    * higher 16-bit is mark-filtering-set if the lookup uses one.
    * Not to be confused with glyph_props which is very similar. */
-  uint32_t get_props (void) const
+  uint32_t get_props () const
   {
     unsigned int flag = lookupFlag;
     if (unlikely (flag & LookupFlag::UseMarkFilteringSet))
@@ -868,11 +868,11 @@ struct CoverageFormat1
   /* Older compilers need this to be public. */
   struct Iter {
     void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
-    void fini (void) {}
-    bool more (void) { return i < c->glyphArray.len; }
-    void next (void) { i++; }
-    hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
-    unsigned int get_coverage (void) { return i; }
+    void fini () {}
+    bool more () { return i < c->glyphArray.len; }
+    void next () { i++; }
+    hb_codepoint_t get_glyph () { return c->glyphArray[i]; }
+    unsigned int get_coverage () { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -995,9 +995,9 @@ struct CoverageFormat2
 	i = c->rangeRecord.len;
       }
     }
-    void fini (void) {}
-    bool more (void) { return i < c->rangeRecord.len; }
-    void next (void)
+    void fini () {}
+    bool more () { return i < c->rangeRecord.len; }
+    void next ()
     {
       if (j >= c->rangeRecord[i].end)
       {
@@ -1019,8 +1019,8 @@ struct CoverageFormat2
       coverage++;
       j++;
     }
-    hb_codepoint_t get_glyph (void) { return j; }
-    unsigned int get_coverage (void) { return coverage; }
+    hb_codepoint_t get_glyph () { return j; }
+    unsigned int get_coverage () { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1128,7 +1128,7 @@ struct Coverage
       default:				     return;
       }
     }
-    bool more (void)
+    bool more ()
     {
       switch (format)
       {
@@ -1137,7 +1137,7 @@ struct Coverage
       default:return false;
       }
     }
-    void next (void)
+    void next ()
     {
       switch (format)
       {
@@ -1146,7 +1146,7 @@ struct Coverage
       default:			 break;
       }
     }
-    hb_codepoint_t get_glyph (void)
+    hb_codepoint_t get_glyph ()
     {
       switch (format)
       {
@@ -1155,7 +1155,7 @@ struct Coverage
       default:return 0;
       }
     }
-    unsigned int get_coverage (void)
+    unsigned int get_coverage ()
     {
       switch (format)
       {
@@ -1696,8 +1696,7 @@ struct VarRegionList
 		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
   }
 
-  unsigned int get_region_count (void) const
-  { return regionCount; }
+  unsigned int get_region_count () const { return regionCount; }
 
   protected:
   HBUINT16	axisCount;
@@ -1710,13 +1709,13 @@ struct VarRegionList
 
 struct VarData
 {
-  unsigned int get_region_index_count (void) const
+  unsigned int get_region_index_count () const
   { return regionIndices.len; }
 
-  unsigned int get_row_size (void) const
+  unsigned int get_row_size () const
   { return shortCount + regionIndices.len; }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return itemCount * get_row_size (); }
 
   float get_delta (unsigned int inner,
@@ -2049,7 +2048,7 @@ struct HintingDevice
   hb_position_t get_y_delta (hb_font_t *font) const
   { return get_delta (font->y_ppem, font->y_scale); }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     unsigned int f = deltaFormat;
     if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * HBUINT16::static_size;

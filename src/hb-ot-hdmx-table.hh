@@ -56,7 +56,7 @@ struct DeviceRecord
       this->subset_plan = subset_plan;
     }
 
-    unsigned int len (void) const
+    unsigned int len () const
     { return this->subset_plan->glyphs.len; }
 
     const HBUINT8* operator [] (unsigned int i) const
@@ -121,7 +121,7 @@ struct hdmx
 {
   enum { tableTag = HB_OT_TAG_hdmx };
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return min_size + numRecords * sizeDeviceRecord; }
 
   const DeviceRecord& operator [] (unsigned int i) const

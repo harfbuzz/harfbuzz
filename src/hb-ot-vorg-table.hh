@@ -59,7 +59,7 @@ struct VORG
 {
   enum { tableTag = HB_OT_TAG_VORG };
 
-  bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
   int get_y_origin (hb_codepoint_t glyph) const
   {

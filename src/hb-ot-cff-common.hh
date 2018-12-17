@@ -64,9 +64,9 @@ struct code_pair
 typedef hb_vector_t<char, 1> StrBuff;
 struct StrBuffArray : hb_vector_t<StrBuff>
 {
-  void fini (void) { SUPER::fini_deep (); }
+  void fini () { SUPER::fini_deep (); }
 
-  unsigned int total_size (void) const
+  unsigned int total_size () const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < len; i++)
@@ -94,7 +94,7 @@ struct CFFIndex
   static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)
   { return offSize * (count + 1); }
 
-  unsigned int offset_array_size (void) const
+  unsigned int offset_array_size () const
   { return calculate_offset_array_size (offSize, count); }
 
   static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
@@ -205,11 +205,10 @@ struct CFFIndex
 	  return 0;
   }
 
-  const char *data_base (void) const
+  const char *data_base () const
   { return (const char *)this + min_size + offset_array_size (); }
 
-  unsigned int data_size (void) const
-  { return HBINT8::static_size; }
+  unsigned int data_size () const { return HBINT8::static_size; }
 
   ByteStr operator [] (unsigned int index) const
   {
@@ -219,7 +218,7 @@ struct CFFIndex
       return Null(ByteStr);
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     if (this != &Null(CFFIndex))
     {
@@ -233,7 +232,7 @@ struct CFFIndex
   }
 
   protected:
-  unsigned int max_offset (void) const
+  unsigned int max_offset () const
   {
     unsigned int max = 0;
     for (unsigned int i = 0; i < count + 1u; i++)
@@ -407,7 +406,7 @@ struct PrivateDict : Dict {};
 
 struct TableInfo
 {
-  void init (void) { offSize = offset = size = 0; }
+  void init () { offSize = offset = size = 0; }
 
   unsigned int    offset;
   unsigned int    size;
@@ -418,9 +417,9 @@ struct TableInfo
  * set to CFF_UNDEF_CODE if excluded from subset */
 struct Remap : hb_vector_t<hb_codepoint_t>
 {
-  void init (void) { SUPER::init (); }
+  void init () { SUPER::init (); }
 
-  void fini (void) { SUPER::fini (); }
+  void fini () { SUPER::fini (); }
 
   bool reset (unsigned int size)
   {
@@ -456,8 +455,7 @@ struct Remap : hb_vector_t<hb_codepoint_t>
     return (*this)[i];
   }
 
-  hb_codepoint_t get_count (void) const
-  { return count; }
+  hb_codepoint_t get_count () const { return count; }
 
   protected:
   hb_codepoint_t  count;
@@ -603,7 +601,7 @@ struct FDSelect3_4_Range {
 
 template <typename GID_TYPE, typename FD_TYPE>
 struct FDSelect3_4 {
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return GID_TYPE::static_size * 2 + FDSelect3_4_Range<GID_TYPE, FD_TYPE>::static_size * nRanges; }
 
   bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
@@ -635,8 +633,8 @@ struct FDSelect3_4 {
     return (hb_codepoint_t)ranges[i - 1].fd;
   }
 
-  GID_TYPE &sentinel (void)  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
-  const GID_TYPE &sentinel (void) const  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
+  GID_TYPE &sentinel ()  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
+  const GID_TYPE &sentinel () const  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
 
   GID_TYPE	 nRanges;
   FDSelect3_4_Range<GID_TYPE, FD_TYPE>  ranges[VAR];

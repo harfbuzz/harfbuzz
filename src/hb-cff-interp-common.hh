@@ -217,23 +217,22 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op) ? 2: 1; 
 
 struct Number
 {
-  void init (void) { set_real (0.0); }
-  void fini (void) {}
+  void init () { set_real (0.0); }
+  void fini () {}
 
   void set_int (int v)       { value = (double) v; }
-  int to_int (void) const    { return (int) value; }
+  int to_int () const        { return (int) value; }
+
   void set_fixed (int32_t v) { value = v / 65536.0; }
-  int32_t to_fixed (void) const
-  {
-    return (int32_t)(value * 65536.0);
-  }
-  void set_real (double v)	{ value = v; }
-  double to_real (void) const   { return value; }
+  int32_t to_fixed () const  { return (int32_t) (value * 65536.0); }
 
-  int ceil (void) const  { return (int) ::ceil (value); }
-  int floor (void) const { return (int) ::floor (value); }
+  void set_real (double v)	 { value = v; }
+  double to_real () const    { return value; }
 
-  bool in_int_range (void) const
+  int ceil () const          { return (int) ::ceil (value); }
+  int floor () const         { return (int) ::floor (value); }
+
+  bool in_int_range () const
   { return ((double) (int16_t) to_int () == value); }
 
   bool operator > (const Number &n) const
@@ -300,7 +299,7 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 
 struct ByteStr
 {
-  ByteStr (void)
+  ByteStr ()
     : str (&Null(UnsizedByteStr)), len (0) {}
   ByteStr (const UnsizedByteStr& s, unsigned int l)
     : str (&s), len (l) {}
@@ -333,7 +332,7 @@ struct ByteStr
     return_trace (true);
   }
 
-  unsigned int get_size (void) const { return len; }
+  unsigned int get_size () const { return len; }
 
   bool check_limit (unsigned int offset, unsigned int count) const
   { return (offset + count <= len); }
@@ -344,17 +343,17 @@ struct ByteStr
 
 struct SubByteStr
 {
-  SubByteStr (void)
+  SubByteStr ()
   { init (); }
 
-  void init (void)
+  void init ()
   {
     str = ByteStr (0);
     offset = 0;
     error = false;
   }
 
-  void fini (void) {}
+  void fini () {}
 
   SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_), error (false) {}
@@ -376,7 +375,7 @@ struct SubByteStr
       return str[offset + i];
   }
 
-  operator ByteStr (void) const { return ByteStr (str, offset, str.len - offset); }
+  operator ByteStr () const { return ByteStr (str, offset, str.len - offset); }
 
   bool avail (unsigned int count=1) const
   {
@@ -395,8 +394,8 @@ struct SubByteStr
     }
   }
 
-  void set_error (void) { error = true; }
-  bool in_error (void) const { return error; }
+  void set_error ()      { error = true; }
+  bool in_error () const { return error; }
 
   ByteStr       str;
   unsigned int  offset; /* beginning of the sub-string within str */
@@ -411,7 +410,7 @@ typedef hb_vector_t<ByteStr> ByteStrArray;
 template <typename ELEM, int LIMIT>
 struct Stack
 {
-  void init (void)
+  void init ()
   {
     error = false;
     count = 0;
@@ -421,7 +420,7 @@ struct Stack
       elements[i].init ();
   }
 
-  void fini (void)
+  void fini ()
   {
     elements.fini_deep ();
   }
@@ -440,7 +439,7 @@ struct Stack
       set_error ();
   }
 
-  ELEM &push (void)
+  ELEM &push ()
   {
     if (likely (count < elements.len))
       return elements[count++];
@@ -451,7 +450,7 @@ struct Stack
     }
   }
 
-  ELEM& pop (void)
+  ELEM& pop ()
   {
     if (likely (count > 0))
       return elements[--count];
@@ -470,7 +469,7 @@ struct Stack
       set_error ();
   }
 
-  const ELEM& peek (void)
+  const ELEM& peek ()
   {
     if (likely (count > 0))
       return elements[count-1];
@@ -481,7 +480,7 @@ struct Stack
     }
   }
 
-  void unpop (void)
+  void unpop ()
   {
     if (likely (count < elements.len))
       count++;
@@ -489,13 +488,13 @@ struct Stack
       set_error ();
   }
 
-  void clear (void) { count = 0; }
+  void clear () { count = 0; }
 
-  bool in_error (void) const { return (error || elements.in_error ()); }
-  void set_error (void) { error = true; }
+  bool in_error () const { return (error || elements.in_error ()); }
+  void set_error ()      { error = true; }
 
-  unsigned int get_count (void) const { return count; }
-  bool is_empty (void) const { return count == 0; }
+  unsigned int get_count () const { return count; }
+  bool is_empty () const { return count == 0; }
 
   static const unsigned int kSizeLimit = LIMIT;
 
@@ -527,19 +526,13 @@ struct ArgStack : Stack<ARG, 513>
     n.set_real (v);
   }
 
-  ARG& pop_num (void)
-  {
-    return this->pop ();
-  }
+  ARG& pop_num () { return this->pop (); }
 
-  int pop_int (void)
-  {
-    return this->pop ().to_int ();
-  }
+  int pop_int ()  { return this->pop ().to_int (); }
 
-  unsigned int pop_uint (void)
+  unsigned int pop_uint ()
   {
-    int  i = pop_int ();
+    int i = pop_int ();
     if (unlikely (i < 0))
     {
       i = 0;
@@ -575,8 +568,8 @@ struct ArgStack : Stack<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct OpStr
 {
-  void init (void) {}
-  void fini (void) {}
+  void init () {}
+  void fini () {}
 
   OpCode  op;
   ByteStr str;
@@ -600,16 +593,12 @@ struct OpSerializer
 template <typename VAL>
 struct ParsedValues
 {
-  void init (void)
+  void init ()
   {
     opStart = 0;
     values.init ();
   }
-
-  void fini (void)
-  {
-    values.fini_deep ();
-  }
+  void fini () { values.fini_deep (); }
 
   void add_op (OpCode op, const SubByteStr& substr = SubByteStr ())
   {
@@ -634,7 +623,7 @@ struct ParsedValues
     return false;
   }
 
-  unsigned get_count (void) const { return values.len; }
+  unsigned get_count () const { return values.len; }
   const VAL &get_value (unsigned int i) const { return values[i]; }
   const VAL &operator [] (unsigned int i) const { return get_value (i); }
 
@@ -651,20 +640,14 @@ struct InterpEnv
     argStack.init ();
     error = false;
   }
+  void fini () { argStack.fini (); }
 
-  void fini (void)
-  {
-    argStack.fini ();
-  }
+  bool in_error () const
+  { return error || substr.in_error () || argStack.in_error (); }
 
-  bool in_error (void) const
-  {
-    return error || substr.in_error () || argStack.in_error ();
-  }
+  void set_error () { error = true; }
 
-  void set_error (void) { error = true; }
-
-  OpCode fetch_op (void)
+  OpCode fetch_op ()
   {
     OpCode  op = OpCode_Invalid;
     if (unlikely (!substr.avail ()))
@@ -685,7 +668,7 @@ struct InterpEnv
     return argStack[i];
   }
 
-  ARG& pop_arg (void)
+  ARG& pop_arg ()
   {
     return argStack.pop ();
   }
@@ -695,7 +678,7 @@ struct InterpEnv
     argStack.pop (n);
   }
 
-  void clear_args (void)
+  void clear_args ()
   {
     pop_n_args (argStack.get_count ());
   }
@@ -749,9 +732,9 @@ struct OpSet
 template <typename ENV>
 struct Interpreter {
 
-  ~Interpreter(void) { fini (); }
+  ~Interpreter() { fini (); }
 
-  void fini (void) { env.fini (); }
+  void fini () { env.fini (); }
 
   ENV env;
 };

@@ -35,7 +35,7 @@
  * Since: 1.8.0
  **/
 hb_subset_input_t *
-hb_subset_input_create_or_fail (void)
+hb_subset_input_create_or_fail ()
 {
   hb_subset_input_t *input = hb_object_create<hb_subset_input_t>();
 

@@ -71,8 +71,7 @@ struct SingleSubstFormat1
     }
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -180,8 +179,7 @@ struct SingleSubstFormat2
     }
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -415,8 +413,7 @@ struct MultipleSubstFormat1
       (this+sequence[i]).collect_glyphs (c);
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -609,8 +606,7 @@ struct AlternateSubstFormat1
     }
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -945,8 +941,7 @@ struct LigatureSubstFormat1
     }
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -1069,7 +1064,7 @@ struct ExtensionSubst : Extension<ExtensionSubst>
 {
   typedef struct SubstLookupSubTable SubTable;
 
-  bool is_reverse (void) const;
+  bool is_reverse () const;
 };
 
 
@@ -1146,8 +1141,7 @@ struct ReverseChainSingleSubstFormat1
     c->output->add_array (substitute.arrayZ, substitute.len);
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
@@ -1312,7 +1306,7 @@ struct SubstLookup : Lookup
   static bool lookup_type_is_reverse (unsigned int lookup_type)
   { return lookup_type == SubTable::ReverseChainSingle; }
 
-  bool is_reverse (void) const
+  bool is_reverse () const
   {
     unsigned int type = get_type ();
     if (unlikely (type == SubTable::Extension))
@@ -1498,7 +1492,7 @@ struct GSUB_accelerator_t : GSUB::accelerator_t {};
 
 /* Out-of-class implementation for methods recursing */
 
-/*static*/ inline bool ExtensionSubst::is_reverse (void) const
+/*static*/ inline bool ExtensionSubst::is_reverse () const
 {
   unsigned int type = get_type ();
   if (unlikely (type == SubTable::Extension))

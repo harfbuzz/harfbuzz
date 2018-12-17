@@ -61,7 +61,7 @@ struct hb_set_digest_lowest_bits_t
   static_assert ((shift < sizeof (hb_codepoint_t) * 8), "");
   static_assert ((shift + num_bits <= sizeof (hb_codepoint_t) * 8), "");
 
-  void init (void) { mask = 0; }
+  void init () { mask = 0; }
 
   void add (hb_codepoint_t g) { mask |= mask_for (g); }
 
@@ -110,7 +110,7 @@ struct hb_set_digest_lowest_bits_t
 template <typename head_t, typename tail_t>
 struct hb_set_digest_combiner_t
 {
-  void init (void)
+  void init ()
   {
     head.init ();
     tail.init ();

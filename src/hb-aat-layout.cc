@@ -167,10 +167,8 @@ AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (const hb_ot_shape_plan_t *p
   sanitizer.set_max_ops (HB_SANITIZE_MAX_OPS_MAX);
 }
 
-AAT::hb_aat_apply_context_t::~hb_aat_apply_context_t (void)
-{
-  sanitizer.end_processing ();
-}
+AAT::hb_aat_apply_context_t::~hb_aat_apply_context_t ()
+{ sanitizer.end_processing (); }
 
 void
 AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_,

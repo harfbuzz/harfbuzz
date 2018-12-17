@@ -44,7 +44,7 @@ namespace OT {
 
 struct BaseCoordFormat1
 {
-  hb_position_t get_coord (void) const { return coordinate; }
+  hb_position_t get_coord () const { return coordinate; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -61,7 +61,7 @@ struct BaseCoordFormat1
 
 struct BaseCoordFormat2
 {
-  hb_position_t get_coord (void) const
+  hb_position_t get_coord () const
   {
     /* TODO */
     return coordinate;
@@ -280,7 +280,7 @@ struct BaseLangSysRecord
 	   0;
   }
 
-  const MinMax &get_min_max (void) const
+  const MinMax &get_min_max () const
   { return this+minMax; }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -315,7 +315,7 @@ struct BaseScript
   const BaseCoord &get_base_coord (int baseline_tag_index) const
   { return (this+baseValues).get_base_coord (baseline_tag_index); }
 
-  bool is_empty (void) const { return !baseValues; }
+  bool is_empty () const { return !baseValues; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -469,7 +469,7 @@ struct BASE
   const Axis &get_axis (hb_direction_t direction) const
   { return HB_DIRECTION_IS_VERTICAL (direction) ? this+vAxis : this+hAxis; }
 
-  const VariationStore &get_var_store (void) const
+  const VariationStore &get_var_store () const
   { return version.to_int () < 0x00010001u ? Null (VariationStore) : this+varStore; }
 
   bool get_baseline (hb_font_t               *font,

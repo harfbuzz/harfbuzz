@@ -351,25 +351,25 @@ struct GDEF
     ComponentGlyph	= 4
   };
 
-  bool has_data (void) const { return version.to_int (); }
-  bool has_glyph_classes (void) const { return glyphClassDef != 0; }
+  bool has_data () const { return version.to_int (); }
+  bool has_glyph_classes () const { return glyphClassDef != 0; }
   unsigned int get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
   void get_glyphs_in_class (unsigned int klass, hb_set_t *glyphs) const
   { (this+glyphClassDef).add_class (glyphs, klass); }
 
-  bool has_mark_attachment_types (void) const { return markAttachClassDef != 0; }
+  bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
   unsigned int get_mark_attachment_type (hb_codepoint_t glyph) const
   { return (this+markAttachClassDef).get_class (glyph); }
 
-  bool has_attach_points (void) const { return attachList != 0; }
+  bool has_attach_points () const { return attachList != 0; }
   unsigned int get_attach_points (hb_codepoint_t glyph_id,
 				  unsigned int start_offset,
 				  unsigned int *point_count /* IN/OUT */,
 				  unsigned int *point_array /* OUT */) const
   { return (this+attachList).get_attach_points (glyph_id, start_offset, point_count, point_array); }
 
-  bool has_lig_carets (void) const { return ligCaretList != 0; }
+  bool has_lig_carets () const { return ligCaretList != 0; }
   unsigned int get_lig_carets (hb_font_t *font,
 			       hb_direction_t direction,
 			       hb_codepoint_t glyph_id,
@@ -380,12 +380,12 @@ struct GDEF
 					       direction, glyph_id, get_var_store(),
 					       start_offset, caret_count, caret_array); }
 
-  bool has_mark_sets (void) const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
+  bool has_mark_sets () const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
   bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
 
-  bool has_var_store (void) const { return version.to_int () >= 0x00010003u && varStore != 0; }
-  const VariationStore &get_var_store (void) const
+  bool has_var_store () const { return version.to_int () >= 0x00010003u && varStore != 0; }
+  const VariationStore &get_var_store () const
   { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
 
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
@@ -424,12 +424,12 @@ struct GDEF
       }
     }
 
-    void fini (void) { this->table.destroy (); }
+    void fini () { this->table.destroy (); }
 
     hb_blob_ptr_t<GDEF> table;
   };
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     return min_size +
 	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +

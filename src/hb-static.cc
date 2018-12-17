@@ -51,7 +51,7 @@ const unsigned char _hb_Null_AAT_Lookup[2] = {0xFF, 0xFF};
 
 
 unsigned int
-hb_face_t::load_num_glyphs (void) const
+hb_face_t::load_num_glyphs () const
 {
   hb_sanitize_context_t c = hb_sanitize_context_t ();
   c.set_num_glyphs (0); /* So we don't recurse ad infinitum. */
@@ -65,7 +65,7 @@ hb_face_t::load_num_glyphs (void) const
 }
 
 unsigned int
-hb_face_t::load_upem (void) const
+hb_face_t::load_upem () const
 {
   unsigned int ret = table.head->get_upem ();
   upem.set_relaxed (ret);

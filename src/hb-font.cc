@@ -523,7 +523,7 @@ static const hb_font_funcs_t _hb_font_funcs_default = {
  * Since: 0.9.2
  **/
 hb_font_funcs_t *
-hb_font_funcs_create (void)
+hb_font_funcs_create ()
 {
   hb_font_funcs_t *ffuncs;
 
@@ -545,7 +545,7 @@ hb_font_funcs_create (void)
  * Since: 0.9.2
  **/
 hb_font_funcs_t *
-hb_font_funcs_get_empty (void)
+hb_font_funcs_get_empty ()
 {
   return const_cast<hb_font_funcs_t *> (&_hb_font_funcs_default);
 }
@@ -1408,7 +1408,7 @@ hb_font_create_sub_font (hb_font_t *parent)
  * Since: 0.9.2
  **/
 hb_font_t *
-hb_font_get_empty (void)
+hb_font_get_empty ()
 {
   return const_cast<hb_font_t *> (&Null(hb_font_t));
 }

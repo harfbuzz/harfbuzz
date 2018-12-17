@@ -302,12 +302,12 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
 
 #if HB_USE_ATEXIT
-static void free_static_icu_funcs (void);
+static void free_static_icu_funcs ();
 #endif
 
 static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_icu_unicode_funcs_lazy_loader_t>
 {
-  static hb_unicode_funcs_t *create (void)
+  static hb_unicode_funcs_t *create ()
   {
     void *user_data = nullptr;
 #if U_ICU_VERSION_MAJOR_NUM >= 49
@@ -337,14 +337,14 @@ static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_
 
 #if HB_USE_ATEXIT
 static
-void free_static_icu_funcs (void)
+void free_static_icu_funcs ()
 {
   static_icu_funcs.free_instance ();
 }
 #endif
 
 hb_unicode_funcs_t *
-hb_icu_get_unicode_funcs (void)
+hb_icu_get_unicode_funcs ()
 {
   return static_icu_funcs.get_unconst ();
 }

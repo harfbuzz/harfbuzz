@@ -44,10 +44,10 @@ namespace OT {
 struct hb_intersects_context_t :
        hb_dispatch_context_t<hb_intersects_context_t, bool, 0>
 {
-  const char *get_name (void) { return "INTERSECTS"; }
+  const char *get_name () { return "INTERSECTS"; }
   template <typename T>
   return_t dispatch (const T &obj) { return obj.intersects (this->glyphs); }
-  static return_t default_return_value (void) { return false; }
+  static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
   const hb_set_t *glyphs;
@@ -61,11 +61,11 @@ struct hb_intersects_context_t :
 struct hb_closure_context_t :
        hb_dispatch_context_t<hb_closure_context_t, hb_void_t, HB_DEBUG_CLOSURE>
 {
-  const char *get_name (void) { return "CLOSURE"; }
+  const char *get_name () { return "CLOSURE"; }
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
-  static return_t default_return_value (void) { return HB_VOID; }
+  static return_t default_return_value () { return HB_VOID; }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -108,14 +108,11 @@ struct hb_closure_context_t :
 			  debug_depth (0),
 			  done_lookups (done_lookups_) {}
 
-  ~hb_closure_context_t (void)
-  {
-    flush ();
-  }
+  ~hb_closure_context_t () { flush (); }
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 
-  void flush (void)
+  void flush ()
   {
     hb_set_union (glyphs, out);
     hb_set_clear (out);
@@ -129,10 +126,10 @@ struct hb_closure_context_t :
 struct hb_would_apply_context_t :
        hb_dispatch_context_t<hb_would_apply_context_t, bool, HB_DEBUG_WOULD_APPLY>
 {
-  const char *get_name (void) { return "WOULD_APPLY"; }
+  const char *get_name () { return "WOULD_APPLY"; }
   template <typename T>
   return_t dispatch (const T &obj) { return obj.would_apply (this); }
-  static return_t default_return_value (void) { return false; }
+  static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
   hb_face_t *face;
@@ -156,11 +153,11 @@ struct hb_would_apply_context_t :
 struct hb_collect_glyphs_context_t :
        hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_void_t, HB_DEBUG_COLLECT_GLYPHS>
 {
-  const char *get_name (void) { return "COLLECT_GLYPHS"; }
+  const char *get_name () { return "COLLECT_GLYPHS"; }
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
-  static return_t default_return_value (void) { return HB_VOID; }
+  static return_t default_return_value () { return HB_VOID; }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -224,7 +221,7 @@ struct hb_collect_glyphs_context_t :
 			      recursed_lookups (hb_set_create ()),
 			      nesting_level_left (nesting_level_left_),
 			      debug_depth (0) {}
-  ~hb_collect_glyphs_context_t (void) { hb_set_destroy (recursed_lookups); }
+  ~hb_collect_glyphs_context_t () { hb_set_destroy (recursed_lookups); }
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
@@ -235,11 +232,11 @@ template <typename set_t>
 struct hb_add_coverage_context_t :
        hb_dispatch_context_t<hb_add_coverage_context_t<set_t>, const Coverage &, HB_DEBUG_GET_COVERAGE>
 {
-  const char *get_name (void) { return "GET_COVERAGE"; }
+  const char *get_name () { return "GET_COVERAGE"; }
   typedef const Coverage &return_t;
   template <typename T>
   return_t dispatch (const T &obj) { return obj.get_coverage (); }
-  static return_t default_return_value (void) { return Null(Coverage); }
+  static return_t default_return_value () { return Null(Coverage); }
   bool stop_sublookup_iteration (return_t r) const
   {
     r.add_coverage (set);
@@ -260,7 +257,7 @@ struct hb_ot_apply_context_t :
 {
   struct matcher_t
   {
-    matcher_t (void) :
+    matcher_t () :
 	     lookup_props (0),
 	     ignore_zwnj (false),
 	     ignore_zwj (false),
@@ -366,15 +363,13 @@ struct hb_ot_apply_context_t :
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
 
-    void reject (void) { num_items++; match_glyph_data--; }
+    void reject () { num_items++; match_glyph_data--; }
 
     matcher_t::may_skip_t
     may_skip (const hb_glyph_info_t &info) const
-    {
-      return matcher.may_skip (c, info);
-    }
+    { return matcher.may_skip (c, info); }
 
-    bool next (void)
+    bool next ()
     {
       assert (num_items > 0);
       while (idx + num_items < end)
@@ -401,7 +396,7 @@ struct hb_ot_apply_context_t :
       }
       return false;
     }
-    bool prev (void)
+    bool prev ()
     {
       assert (num_items > 0);
       while (idx > num_items - 1)
@@ -440,11 +435,11 @@ struct hb_ot_apply_context_t :
   };
 
 
-  const char *get_name (void) { return "APPLY"; }
+  const char *get_name () { return "APPLY"; }
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { return obj.apply (this); }
-  static return_t default_return_value (void) { return false; }
+  static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
   {
@@ -503,7 +498,7 @@ struct hb_ot_apply_context_t :
 			random (false),
 			random_state (1) { init_iters (); }
 
-  void init_iters (void)
+  void init_iters ()
   {
     iter_input.init (this, false);
     iter_context.init (this, true);
@@ -517,7 +512,7 @@ struct hb_ot_apply_context_t :
   void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
   void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; init_iters (); }
 
-  uint32_t random_number (void)
+  uint32_t random_number ()
   {
     /* http://www.cplusplus.com/reference/random/minstd_rand/ */
     random_state = random_state * 48271 % 2147483647;
@@ -651,7 +646,7 @@ struct hb_get_subtables_context_t :
   typedef hb_vector_t<hb_applicable_t, 2> array_t;
 
   /* Dispatch interface. */
-  const char *get_name (void) { return "GET_SUBTABLES"; }
+  const char *get_name () { return "GET_SUBTABLES"; }
   template <typename T>
   return_t dispatch (const T &obj)
   {
@@ -659,7 +654,7 @@ struct hb_get_subtables_context_t :
     entry->init (obj, apply_to<T>);
     return HB_VOID;
   }
-  static return_t default_return_value (void) { return HB_VOID; }
+  static return_t default_return_value () { return HB_VOID; }
 
   hb_get_subtables_context_t (array_t &array_) :
 			      array (array_),
@@ -1504,8 +1499,7 @@ struct ContextFormat1
     return_trace (rule_set.would_apply (c, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1622,8 +1616,7 @@ struct ContextFormat2
     return_trace (rule_set.would_apply (c, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1732,8 +1725,7 @@ struct ContextFormat3
     return_trace (context_would_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverageZ[0]; }
+  const Coverage &get_coverage () const { return this+coverageZ[0]; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -2171,8 +2163,7 @@ struct ChainContextFormat1
     return_trace (rule_set.would_apply (c, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -2304,8 +2295,7 @@ struct ChainContextFormat2
     return_trace (rule_set.would_apply (c, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -2451,7 +2441,7 @@ struct ChainContextFormat3
 						    lookup.len, lookup.arrayZ, lookup_context));
   }
 
-  const Coverage &get_coverage (void) const
+  const Coverage &get_coverage () const
   {
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     return this+input[0];
@@ -2547,10 +2537,10 @@ struct ChainContext
 template <typename T>
 struct ExtensionFormat1
 {
-  unsigned int get_type (void) const { return extensionLookupType; }
+  unsigned int get_type () const { return extensionLookupType; }
 
   template <typename X>
-  const X& get_subtable (void) const
+  const X& get_subtable () const
   {
     unsigned int offset = extensionOffset;
     if (unlikely (!offset)) return Null(typename T::SubTable);
@@ -2588,7 +2578,7 @@ struct ExtensionFormat1
 template <typename T>
 struct Extension
 {
-  unsigned int get_type (void) const
+  unsigned int get_type () const
   {
     switch (u.format) {
     case 1: return u.format1.get_type ();
@@ -2596,7 +2586,7 @@ struct Extension
     }
   }
   template <typename X>
-  const X& get_subtable (void) const
+  const X& get_subtable () const
   {
     switch (u.format) {
     case 1: return u.format1.template get_subtable<typename T::SubTable> ();
@@ -2639,7 +2629,7 @@ struct hb_ot_layout_lookup_accelerator_t
     OT::hb_get_subtables_context_t c_get_subtables (subtables);
     lookup.dispatch (&c_get_subtables);
   }
-  void fini (void) { subtables.fini (); }
+  void fini () { subtables.fini (); }
 
   bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
@@ -2659,8 +2649,8 @@ struct hb_ot_layout_lookup_accelerator_t
 
 struct GSUBGPOS
 {
-  bool has_data (void) const { return version.to_int (); }
-  unsigned int get_script_count (void) const
+  bool has_data () const { return version.to_int (); }
+  unsigned int get_script_count () const
   { return (this+scriptList).len; }
   const Tag& get_script_tag (unsigned int i) const
   { return (this+scriptList).get_tag (i); }
@@ -2673,7 +2663,7 @@ struct GSUBGPOS
   bool find_script_index (hb_tag_t tag, unsigned int *index) const
   { return (this+scriptList).find_index (tag, index); }
 
-  unsigned int get_feature_count (void) const
+  unsigned int get_feature_count () const
   { return (this+featureList).len; }
   hb_tag_t get_feature_tag (unsigned int i) const
   { return i == Index::NOT_FOUND_INDEX ? HB_TAG_NONE : (this+featureList).get_tag (i); }
@@ -2686,7 +2676,7 @@ struct GSUBGPOS
   bool find_feature_index (hb_tag_t tag, unsigned int *index) const
   { return (this+featureList).find_index (tag, index); }
 
-  unsigned int get_lookup_count (void) const
+  unsigned int get_lookup_count () const
   { return (this+lookupList).len; }
   const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
@@ -2732,7 +2722,7 @@ struct GSUBGPOS
     return_trace (true);
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     return min_size +
 	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
@@ -2773,7 +2763,7 @@ struct GSUBGPOS
 	this->accels[i].init (table->get_lookup (i));
     }
 
-    void fini (void)
+    void fini ()
     {
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].fini ();

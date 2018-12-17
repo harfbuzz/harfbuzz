@@ -98,7 +98,7 @@ struct fvar
 {
   enum { tableTag = HB_OT_TAG_fvar };
 
-  bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -112,7 +112,7 @@ struct fvar
 		  c->check_range (get_instance (0), instanceCount, instanceSize));
   }
 
-  unsigned int get_axis_count (void) const { return axisCount; }
+  unsigned int get_axis_count () const { return axisCount; }
 
   void get_axis_deprecated (unsigned int axis_index,
 				   hb_ot_var_axis_t *info) const
@@ -234,8 +234,7 @@ struct fvar
     return (int) (v * 16384.f + (v >= 0.f ? .5f : -.5f));
   }
 
-  unsigned int get_instance_count (void) const
-  { return instanceCount; }
+  unsigned int get_instance_count () const { return instanceCount; }
 
   hb_ot_name_id_t get_instance_subfamily_name_id (unsigned int instance_index) const
   {
@@ -276,7 +275,7 @@ struct fvar
   }
 
   protected:
-  hb_array_t<const AxisRecord> get_axes (void) const
+  hb_array_t<const AxisRecord> get_axes () const
   { return hb_array (&(this+firstAxis), axisCount); }
 
   const InstanceRecord *get_instance (unsigned int i) const

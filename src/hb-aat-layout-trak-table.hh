@@ -46,7 +46,7 @@ struct TrackTableEntry
 {
   friend struct TrackData;
 
-  float get_track_value (void) const { return track.to_float (); }
+  float get_track_value () const { return track.to_float (); }
 
   int get_value (const void *base, unsigned int index,
 		 unsigned int table_size) const
@@ -162,7 +162,7 @@ struct trak
 {
   enum { tableTag = HB_AAT_TAG_trak };
 
-  bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
   bool apply (hb_aat_apply_context_t *c) const
   {

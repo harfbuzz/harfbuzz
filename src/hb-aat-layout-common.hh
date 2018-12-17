@@ -419,17 +419,14 @@ struct Lookup
 /* Ugly hand-coded null objects for template Lookup<> :(. */
 extern HB_INTERNAL const unsigned char _hb_Null_AAT_Lookup[2];
 template <>
-/*static*/ inline const AAT::Lookup<OT::HBUINT16>& Null<AAT::Lookup<OT::HBUINT16> > (void) {
-  return *reinterpret_cast<const AAT::Lookup<OT::HBUINT16> *> (_hb_Null_AAT_Lookup);
-}
+/*static*/ inline const AAT::Lookup<OT::HBUINT16>& Null<AAT::Lookup<OT::HBUINT16> > ()
+{ return *reinterpret_cast<const AAT::Lookup<OT::HBUINT16> *> (_hb_Null_AAT_Lookup); }
 template <>
-/*static*/ inline const AAT::Lookup<OT::HBUINT32>& Null<AAT::Lookup<OT::HBUINT32> > (void) {
-  return *reinterpret_cast<const AAT::Lookup<OT::HBUINT32> *> (_hb_Null_AAT_Lookup);
-}
+/*static*/ inline const AAT::Lookup<OT::HBUINT32>& Null<AAT::Lookup<OT::HBUINT32> > ()
+{ return *reinterpret_cast<const AAT::Lookup<OT::HBUINT32> *> (_hb_Null_AAT_Lookup); }
 template <>
-/*static*/ inline const AAT::Lookup<OT::Offset<OT::HBUINT16, false> >& Null<AAT::Lookup<OT::Offset<OT::HBUINT16, false> > > (void) {
-  return *reinterpret_cast<const AAT::Lookup<OT::Offset<OT::HBUINT16, false> > *> (_hb_Null_AAT_Lookup);
-}
+/*static*/ inline const AAT::Lookup<OT::Offset<OT::HBUINT16, false> >& Null<AAT::Lookup<OT::Offset<OT::HBUINT16, false> > > ()
+{ return *reinterpret_cast<const AAT::Lookup<OT::Offset<OT::HBUINT16, false> > *> (_hb_Null_AAT_Lookup); }
 namespace AAT {
 
 enum { DELETED_GLYPH = 0xFFFF };
@@ -511,7 +508,7 @@ struct StateTable
     return (this+classTable).get_class (glyph_id, num_glyphs, 1);
   }
 
-  const Entry<Extra> *get_entries (void) const
+  const Entry<Extra> *get_entries () const
   { return (this+entryTable).arrayZ; }
 
   const Entry<Extra> *get_entryZ (int state, unsigned int klass) const
@@ -816,10 +813,10 @@ struct ankr;
 struct hb_aat_apply_context_t :
        hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
 {
-  const char *get_name (void) { return "APPLY"; }
+  const char *get_name () { return "APPLY"; }
   template <typename T>
   return_t dispatch (const T &obj) { return obj.apply (this); }
-  static return_t default_return_value (void) { return false; }
+  static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
   const hb_ot_shape_plan_t *plan;
@@ -839,7 +836,7 @@ struct hb_aat_apply_context_t :
 				      hb_buffer_t *buffer_,
 				      hb_blob_t *blob = const_cast<hb_blob_t *> (&Null(hb_blob_t)));
 
-  HB_INTERNAL ~hb_aat_apply_context_t (void);
+  HB_INTERNAL ~hb_aat_apply_context_t ();
 
   HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_, const char *ankr_end_);
 

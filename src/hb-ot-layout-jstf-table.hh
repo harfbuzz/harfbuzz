@@ -145,7 +145,7 @@ typedef SortedArrayOf<GlyphID> ExtenderGlyphs;
 
 struct JstfScript
 {
-  unsigned int get_lang_sys_count (void) const
+  unsigned int get_lang_sys_count () const
   { return langSys.len; }
   const Tag& get_lang_sys_tag (unsigned int i) const
   { return langSys.get_tag (i); }
@@ -161,8 +161,8 @@ struct JstfScript
   bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
   { return langSys.find_index (tag, index); }
 
-  bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
-  const JstfLangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
+  bool has_default_lang_sys () const               { return defaultLangSys != 0; }
+  const JstfLangSys& get_default_lang_sys () const { return this+defaultLangSys; }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 const Record_sanitize_closure_t * = nullptr) const
@@ -197,7 +197,7 @@ struct JSTF
 {
   enum { tableTag = HB_OT_TAG_JSTF };
 
-  unsigned int get_script_count (void) const
+  unsigned int get_script_count () const
   { return scriptList.len; }
   const Tag& get_script_tag (unsigned int i) const
   { return scriptList.get_tag (i); }

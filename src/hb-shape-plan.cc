@@ -247,7 +247,7 @@ bail:
  * Since: 0.9.7
  **/
 hb_shape_plan_t *
-hb_shape_plan_get_empty (void)
+hb_shape_plan_get_empty ()
 {
   return const_cast<hb_shape_plan_t *> (&Null(hb_shape_plan_t));
 }

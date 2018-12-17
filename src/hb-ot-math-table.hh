@@ -543,8 +543,7 @@ struct MathGlyphConstruction
 		  mathGlyphVariantRecord.sanitize (c));
   }
 
-  const MathGlyphAssembly &get_assembly (void) const
-  { return this+glyphAssembly; }
+  const MathGlyphAssembly &get_assembly () const { return this+glyphAssembly; }
 
   unsigned int get_variants (hb_direction_t direction,
 			     hb_font_t *font,
@@ -682,7 +681,7 @@ struct MATH
 {
   enum { tableTag = HB_OT_TAG_MATH };
 
-  bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -698,11 +697,9 @@ struct MATH
 				     hb_font_t		   *font) const
   { return (this+mathConstants).get_value (constant, font); }
 
-  const MathGlyphInfo &get_glyph_info (void) const
-  { return this+mathGlyphInfo; }
+  const MathGlyphInfo &get_glyph_info () const { return this+mathGlyphInfo; }
 
-  const MathVariants &get_variants (void) const
-  { return this+mathVariants; }
+  const MathVariants &get_variants () const    { return this+mathVariants; }
 
   protected:
   FixedVersion<>version;		/* Version of the MATH table

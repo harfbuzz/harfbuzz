@@ -128,7 +128,7 @@ struct CFF2VariationStore
     return_trace (true);
   }
 
-  unsigned int get_size (void) const { return HBUINT16::static_size + size; }
+  unsigned int get_size () const { return HBUINT16::static_size + size; }
 
   HBUINT16	size;
   VariationStore  varStore;
@@ -138,15 +138,15 @@ struct CFF2VariationStore
 
 struct CFF2TopDictValues : TopDictValues<>
 {
-  void init (void)
+  void init ()
   {
     TopDictValues<>::init ();
     vstoreOffset = 0;
     FDSelectOffset = 0;
   }
-  void fini (void) { TopDictValues<>::fini (); }
+  void fini () { TopDictValues<>::fini (); }
 
-  unsigned int calculate_serialized_size (void) const
+  unsigned int calculate_serialized_size () const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < get_count (); i++)
@@ -209,16 +209,12 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
 
 struct CFF2FontDictValues : DictValues<OpStr>
 {
-  void init (void)
+  void init ()
   {
     DictValues<OpStr>::init ();
     privateDictInfo.init ();
   }
-
-  void fini (void)
-  {
-    DictValues<OpStr>::fini ();
-  }
+  void fini () { DictValues<OpStr>::fini (); }
 
   TableInfo    privateDictInfo;
 };
@@ -252,20 +248,16 @@ struct CFF2FontDictOpSet : DictOpSet
 template <typename VAL>
 struct CFF2PrivateDictValues_Base : DictValues<VAL>
 {
-  void init (void)
+  void init ()
   {
     DictValues<VAL>::init ();
     subrsOffset = 0;
     localSubrs = &Null(CFF2Subrs);
     ivs = 0;
   }
+  void fini () { DictValues<VAL>::fini (); }
 
-  void fini (void)
-  {
-    DictValues<VAL>::fini ();
-  }
-
-  unsigned int calculate_serialized_size (void) const
+  unsigned int calculate_serialized_size () const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < DictValues<VAL>::get_count; i++)
@@ -293,7 +285,7 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
     seen_vsindex = false;
   }
 
-  void process_vsindex (void)
+  void process_vsindex ()
   {
     if (likely (!seen_vsindex))
     {
@@ -302,7 +294,7 @@ struct CFF2PrivDictInterpEnv : NumInterpEnv
     seen_vsindex = true;
   }
 
-  unsigned int get_ivs (void) const { return ivs; }
+  unsigned int get_ivs () const { return ivs; }
   void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
 
   protected:
@@ -501,7 +493,7 @@ struct cff2
       }
     }
 
-    void fini (void)
+    void fini ()
     {
       sc.end_processing ();
       fontDicts.fini_deep ();
@@ -510,7 +502,7 @@ struct cff2
       blob = nullptr;
     }
 
-    bool is_valid (void) const { return blob != nullptr; }
+    bool is_valid () const { return blob != nullptr; }
 
     protected:
     hb_blob_t	       *blob;

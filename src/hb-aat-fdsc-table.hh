@@ -40,11 +40,11 @@ namespace AAT {
 
 struct FontDescriptor
 {
-  bool has_data (void) const { return tag; }
+  bool has_data () const { return tag; }
 
   int cmp (hb_tag_t a) const { return tag.cmp (a); }
 
-  float get_value (void) const { return u.value.to_float (); }
+  float get_value () const { return u.value.to_float (); }
 
   enum non_alphabetic_value_t {
     Alphabetic		= 0,

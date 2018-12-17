@@ -189,7 +189,7 @@ hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
 }
 
 void
-hb_ot_shape_plan_t::fini (void)
+hb_ot_shape_plan_t::fini ()
 {
   if (shaper->data_destroy)
     shaper->data_destroy (const_cast<void *> (data));
