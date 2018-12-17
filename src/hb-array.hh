@@ -65,6 +65,8 @@ struct hb_array_t
 
   Type * operator & (void) const { return arrayZ; }
 
+  Type & operator * (void) { return (this->operator [])[0]; }
+
   hb_array_t<Type> & operator += (unsigned int count)
   {
     if (unlikely (count > len))
