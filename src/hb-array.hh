@@ -57,6 +57,15 @@ struct hb_array_t
 
   Type * operator & (void) const { return arrayZ; }
 
+  hb_array_t<Type> & operator += (unsigned int count)
+  {
+    if (unlikely (count > len))
+      count = len;
+    len -= count;
+    arrayZ += count;
+    return *this;
+  }
+
   unsigned int get_size (void) const { return len * item_size; }
 
   hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
@@ -239,15 +248,6 @@ struct Supplier : hb_array_t<const Type>
   {
     this->arrayZ = v.arrayZ;
     this->len = v.len;
-  }
-
-  Supplier<Type> & operator += (unsigned int count)
-  {
-    if (unlikely (count > this->len))
-      count = this->len;
-    this->len -= count;
-    this->arrayZ += count;
-    return *this;
   }
 
   private:
