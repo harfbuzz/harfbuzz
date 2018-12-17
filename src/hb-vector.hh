@@ -122,7 +122,7 @@ struct hb_vector_t
   template <typename T> explicit_operator T * (void) { return arrayZ(); }
   template <typename T> explicit_operator const T * (void) const { return arrayZ(); }
   operator hb_array_t<Type> (void) { return as_array (); }
-  operator hb_array_t<const Type> (void) const { as_array (); }
+  operator hb_array_t<const Type> (void) const { return as_array (); }
 
   Type * operator  + (unsigned int i) { return arrayZ() + i; }
   const Type * operator  + (unsigned int i) const { return arrayZ() + i; }

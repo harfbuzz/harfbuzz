@@ -122,10 +122,10 @@ typedef struct OffsetTable
 
   public:
 
+  template <typename item_t>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
-		  Supplier<hb_tag_t> &tags,
-		  Supplier<hb_blob_t *> &blobs,
+		  Supplier<item_t> &items,
 		  unsigned int table_count)
   {
     TRACE_SERIALIZE (this);
@@ -144,8 +144,8 @@ typedef struct OffsetTable
     for (unsigned int i = 0; i < table_count; i++)
     {
       TableRecord &rec = tables.arrayZ[i];
-      hb_blob_t *blob = blobs[i];
-      rec.tag.set (tags[i]);
+      hb_blob_t *blob = items[i].blob;
+      rec.tag.set (items[i].tag);
       rec.length.set (hb_blob_get_length (blob));
       rec.offset.serialize (c, this);
 
@@ -159,7 +159,7 @@ typedef struct OffsetTable
       c->align (4);
       const char *end = (const char *) c->head;
 
-      if (tags[i] == HB_OT_TAG_head && end - start >= head::static_size)
+      if (items[i].tag == HB_OT_TAG_head && end - start >= head::static_size)
       {
 	head *h = (head *) start;
 	checksum_adjustment = &h->checkSumAdjustment;
@@ -168,8 +168,7 @@ typedef struct OffsetTable
 
       rec.checkSum.set_for_data (start, end - start);
     }
-    tags += table_count;
-    blobs += table_count;
+    items += table_count;
 
     tables.qsort ();
 
@@ -489,16 +488,16 @@ struct OpenTypeFontFile
     }
   }
 
+  template <typename item_t>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
-			 Supplier<hb_tag_t> &tags,
-			 Supplier<hb_blob_t *> &blobs,
+			 Supplier<item_t> &items,
 			 unsigned int table_count)
   {
     TRACE_SERIALIZE (this);
     assert (sfnt_tag != TTCTag);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    return_trace (u.fontFace.serialize (c, sfnt_tag, tags, blobs, table_count));
+    return_trace (u.fontFace.serialize (c, sfnt_tag, items, table_count));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
