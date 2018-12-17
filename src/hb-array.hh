@@ -55,7 +55,7 @@ struct hb_array_t
   Type& operator [] (int i_) const
   {
     unsigned int i = (unsigned int) i_;
-    if (unlikely (i >= len)) return Null(Type);
+    if (unlikely (i >= len)) return CrapOrNull(Type);
     return arrayZ[i];
   }
 
