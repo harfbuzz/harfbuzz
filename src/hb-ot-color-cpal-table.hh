@@ -109,13 +109,13 @@ struct CPAL
 {
   enum { tableTag = HB_OT_TAG_CPAL };
 
-  bool has_data (void) const { return numPalettes; }
+  bool has_data () const { return numPalettes; }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return min_size + numPalettes * sizeof (colorRecordIndicesZ[0]); }
 
-  unsigned int get_palette_count (void) const { return numPalettes; }
-  unsigned int get_color_count (void) const   { return numColors; }
+  unsigned int get_palette_count () const { return numPalettes; }
+  unsigned int get_color_count () const   { return numColors; }
 
   hb_ot_color_palette_flags_t get_palette_flags (unsigned int palette_index) const
   { return v1 ().get_palette_flags (this, palette_index, numPalettes); }
@@ -153,7 +153,7 @@ struct CPAL
   }
 
   private:
-  const CPALV1Tail& v1 (void) const
+  const CPALV1Tail& v1 () const
   {
     if (version == 0) return Null(CPALV1Tail);
     return StructAfter<CPALV1Tail> (*this);

@@ -83,7 +83,7 @@ struct hb_ot_map_t
     pause_func_t pause_func;
   };
 
-  void init (void)
+  void init ()
   {
     memset (this, 0, sizeof (*this));
 
@@ -94,7 +94,7 @@ struct hb_ot_map_t
       stages[table_index].init ();
     }
   }
-  void fini (void)
+  void fini ()
   {
     features.fini ();
     for (unsigned int table_index = 0; table_index < 2; table_index++)
@@ -104,7 +104,7 @@ struct hb_ot_map_t
     }
   }
 
-  hb_mask_t get_global_mask (void) const { return global_mask; }
+  hb_mask_t get_global_mask () const { return global_mask; }
 
   hb_mask_t get_mask (hb_tag_t feature_tag, unsigned int *shift = nullptr) const
   {
@@ -203,7 +203,7 @@ struct hb_ot_map_builder_t
   HB_INTERNAL hb_ot_map_builder_t (hb_face_t *face_,
 				   const hb_segment_properties_t *props_);
 
-  HB_INTERNAL ~hb_ot_map_builder_t (void);
+  HB_INTERNAL ~hb_ot_map_builder_t ();
 
   HB_INTERNAL void add_feature (hb_tag_t tag,
 				hb_ot_map_feature_flags_t flags=F_NONE,

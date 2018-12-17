@@ -178,7 +178,7 @@ struct RepeatedAddGlyphAction
 
 struct ActionSubrecord
 {
-  unsigned int get_length (void) const { return u.header.actionLength; }
+  unsigned int get_length () const { return u.header.actionLength; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

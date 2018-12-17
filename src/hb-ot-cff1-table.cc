@@ -163,7 +163,7 @@ hb_codepoint_t OT::cff1::lookup_standard_encoding_for_sid (hb_codepoint_t code)
 
 struct Bounds
 {
-  void init (void)
+  void init ()
   {
     min.set_int (0x7FFFFFFF, 0x7FFFFFFF);
     max.set_int (-0x80000000, -0x80000000);
@@ -199,10 +199,8 @@ struct Bounds
     }
   }
 
-  bool  empty (void) const
-  {
-    return (min.x >= max.x) || (min.y >= max.y);
-  }
+  bool empty () const
+  { return (min.x >= max.x) || (min.y >= max.y); }
 
   Point min;
   Point max;
@@ -217,9 +215,9 @@ struct ExtentsParam
     bounds.init ();
   }
 
-  void start_path (void) { path_open = true; }
-  void end_path (void) { path_open = false; }
-  bool is_path_open (void) const { return path_open; }
+  void start_path ()         { path_open = true; }
+  void end_path ()           { path_open = false; }
+  bool is_path_open () const { return path_open; }
 
   bool    path_open;
   Bounds  bounds;
@@ -345,8 +343,7 @@ struct GetSeacParam
     accent = 0;
   }
 
-  bool has_seac (void) const
-  { return base && accent; }
+  bool has_seac () const { return base && accent; }
 
   const OT::cff1::accelerator_t *cff;
   hb_codepoint_t  base;

@@ -68,7 +68,7 @@ hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
   }
 }
 
-hb_ot_map_builder_t::~hb_ot_map_builder_t (void)
+hb_ot_map_builder_t::~hb_ot_map_builder_t ()
 {
   feature_infos.fini ();
   for (unsigned int table_index = 0; table_index < 2; table_index++)

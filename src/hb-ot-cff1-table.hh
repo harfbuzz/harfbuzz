@@ -74,7 +74,7 @@ struct Encoding0 {
       return CFF_UNDEF_CODE;
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return HBUINT8::static_size * (nCodes + 1); }
 
   HBUINT8     nCodes;
@@ -97,7 +97,7 @@ struct Encoding1_Range {
 };
 
 struct Encoding1 {
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return HBUINT8::static_size + Encoding1_Range::static_size * nRanges; }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -154,7 +154,7 @@ struct CFF1SuppEncData {
 	codes.push (supps[i].code);
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return HBUINT8::static_size + SuppEncoding::static_size * nSups; }
 
   HBUINT8	 nSups;
@@ -257,7 +257,7 @@ struct Encoding {
     return size;
   }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   {
     unsigned int size = min_size;
     if (table_format () == 0)
@@ -277,8 +277,8 @@ struct Encoding {
       return u.format1.get_code (glyph);
   }
 
-  uint8_t table_format (void) const { return (format & 0x7F); }
-  bool  has_supplement (void) const { return (format & 0x80) != 0; }
+  uint8_t table_format () const { return (format & 0x7F); }
+  bool  has_supplement () const { return (format & 0x80) != 0; }
 
   void get_supplement_codes (hb_codepoint_t sid, hb_vector_t<hb_codepoint_t> &codes) const
   {
@@ -288,7 +288,7 @@ struct Encoding {
   }
 
   protected:
-  const CFF1SuppEncData &suppEncData (void) const
+  const CFF1SuppEncData &suppEncData () const
   {
     if ((format & 0x7F) == 0)
       return StructAfter<CFF1SuppEncData> (u.format0.codes[u.format0.nCodes-1]);
@@ -619,7 +619,7 @@ struct CFF1StringIndex : CFF1Index
 
 struct CFF1TopDictInterpEnv : NumInterpEnv
 {
-  CFF1TopDictInterpEnv (void)
+  CFF1TopDictInterpEnv ()
     : NumInterpEnv(), prev_offset(0), last_offset(0) {}
 
   unsigned int prev_offset;
@@ -645,7 +645,7 @@ struct NameDictValues
       ValCount
   };
 
-  void init (void)
+  void init ()
   {
     for (unsigned int i = 0; i < ValCount; i++)
       values[i] = CFF_UNDEF_SID;
@@ -692,7 +692,7 @@ struct CFF1TopDictVal : OpStr
 
 struct CFF1TopDictValues : TopDictValues<CFF1TopDictVal>
 {
-  void init (void)
+  void init ()
   {
     TopDictValues<CFF1TopDictVal>::init ();
 
@@ -704,9 +704,9 @@ struct CFF1TopDictValues : TopDictValues<CFF1TopDictVal>
     FDSelectOffset = 0;
     privateDictInfo.init ();
   }
-  void fini (void) { TopDictValues<CFF1TopDictVal>::fini (); }
+  void fini () { TopDictValues<CFF1TopDictVal>::fini (); }
 
-  bool is_CID (void) const
+  bool is_CID () const
   { return nameSIDs[NameDictValues::registry] != CFF_UNDEF_SID; }
 
   NameDictValues  nameSIDs;
@@ -809,17 +809,13 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 
 struct CFF1FontDictValues : DictValues<OpStr>
 {
-  void init (void)
+  void init ()
   {
     DictValues<OpStr>::init ();
     privateDictInfo.init ();
     fontName = CFF_UNDEF_SID;
   }
-
-  void fini (void)
-  {
-    DictValues<OpStr>::fini ();
-  }
+  void fini () { DictValues<OpStr>::fini (); }
 
   TableInfo       privateDictInfo;
   unsigned int    fontName;
@@ -859,19 +855,15 @@ struct CFF1FontDictOpSet : DictOpSet
 template <typename VAL>
 struct CFF1PrivateDictValues_Base : DictValues<VAL>
 {
-  void init (void)
+  void init ()
   {
     DictValues<VAL>::init ();
     subrsOffset = 0;
     localSubrs = &Null(CFF1Subrs);
   }
+  void fini () { DictValues<VAL>::fini (); }
 
-  void fini (void)
-  {
-    DictValues<VAL>::fini ();
-  }
-
-  unsigned int calculate_serialized_size (void) const
+  unsigned int calculate_serialized_size () const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < DictValues<VAL>::get_count; i++)
@@ -1132,7 +1124,7 @@ struct cff1
       }
     }
 
-    void fini (void)
+    void fini ()
     {
       sc.end_processing ();
       topDict.fini ();
@@ -1142,10 +1134,10 @@ struct cff1
       blob = nullptr;
     }
 
-    bool is_valid (void) const { return blob != nullptr; }
-    bool is_CID (void) const { return topDict.is_CID (); }
+    bool is_valid () const { return blob != nullptr; }
+    bool is_CID () const { return topDict.is_CID (); }
 
-    bool is_predef_charset (void) const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
+    bool is_predef_charset () const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
 
     unsigned int std_code_to_glyph (hb_codepoint_t code) const
     {
@@ -1211,7 +1203,7 @@ struct cff1
       }
     }
 
-    bool is_predef_encoding (void) const { return topDict.EncodingOffset <= ExpertEncoding; }
+    bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
     hb_codepoint_t  glyph_to_code (hb_codepoint_t glyph) const
     {

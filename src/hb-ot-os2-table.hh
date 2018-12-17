@@ -94,11 +94,11 @@ struct OS2
 {
   enum { tableTag = HB_OT_TAG_OS2 };
 
-  bool has_data (void) const { return this != &Null (OS2); }
+  bool has_data () const { return this != &Null (OS2); }
 
-  const OS2V1Tail &v1 (void) const { return version >= 1 ? v1X : Null (OS2V1Tail); }
-  const OS2V2Tail &v2 (void) const { return version >= 2 ? v2X : Null (OS2V2Tail); }
-  const OS2V5Tail &v5 (void) const { return version >= 5 ? v5X : Null (OS2V5Tail); }
+  const OS2V1Tail &v1 () const { return version >= 1 ? v1X : Null (OS2V1Tail); }
+  const OS2V2Tail &v2 () const { return version >= 2 ? v2X : Null (OS2V2Tail); }
+  const OS2V5Tail &v5 () const { return version >= 5 ? v5X : Null (OS2V5Tail); }
 
   enum selection_flag_t {
     ITALIC		= 1u<<0,
@@ -113,9 +113,9 @@ struct OS2
     OBLIQUE		= 1u<<9
   };
 
-  bool is_italic (void) const       { return fsSelection & ITALIC; }
-  bool is_oblique (void) const      { return fsSelection & OBLIQUE; }
-  bool is_typo_metrics (void) const { return fsSelection & USE_TYPO_METRICS; }
+  bool is_italic () const       { return fsSelection & ITALIC; }
+  bool is_oblique () const      { return fsSelection & OBLIQUE; }
+  bool is_typo_metrics () const { return fsSelection & USE_TYPO_METRICS; }
 
   enum width_class_t {
     FWIDTH_ULTRA_CONDENSED	= 1, /* 50% */
@@ -129,7 +129,7 @@ struct OS2
     FWIDTH_ULTRA_EXPANDED	= 9  /* 200% */
   };
 
-  float get_width (void) const
+  float get_width () const
   {
     switch (usWidthClass) {
     case FWIDTH_ULTRA_CONDENSED:return 50.f;
@@ -215,7 +215,7 @@ struct OS2
   };
 
   // https://github.com/Microsoft/Font-Validator/blob/520aaae/OTFontFileVal/val_OS2.cs#L644-L681
-  font_page_t get_font_page (void) const
+  font_page_t get_font_page () const
   { return (font_page_t) (version == 0 ? fsSelection & 0xFF00 : 0); }
 
   bool sanitize (hb_sanitize_context_t *c) const

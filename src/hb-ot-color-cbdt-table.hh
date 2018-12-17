@@ -390,7 +390,7 @@ struct CBDT
       upem = hb_face_get_upem (face);
     }
 
-    void fini (void)
+    void fini ()
     {
       this->cblc.destroy ();
       this->cbdt.destroy ();
@@ -505,7 +505,7 @@ struct CBDT
       return hb_blob_get_empty ();
     }
 
-    bool has_data (void) const { return cbdt.get_length (); }
+    bool has_data () const { return cbdt.get_length (); }
 
     private:
     hb_blob_ptr_t<CBLC> cblc;

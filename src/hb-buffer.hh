@@ -166,7 +166,7 @@ struct hb_buffer_t
     assert (bits == (allocated_var_bits & bits));
 #endif
   }
-  void deallocate_var_all (void)
+  void deallocate_var_all ()
   {
 #ifndef HB_NDEBUG
     allocated_var_bits = 0;
@@ -179,34 +179,32 @@ struct hb_buffer_t
   hb_glyph_position_t &cur_pos (unsigned int i = 0) { return pos[idx + i]; }
   hb_glyph_position_t cur_pos (unsigned int i = 0) const { return pos[idx + i]; }
 
-  hb_glyph_info_t &prev (void) { return out_info[out_len ? out_len - 1 : 0]; }
-  hb_glyph_info_t prev (void) const { return out_info[out_len ? out_len - 1 : 0]; }
+  hb_glyph_info_t &prev ()      { return out_info[out_len ? out_len - 1 : 0]; }
+  hb_glyph_info_t prev () const { return out_info[out_len ? out_len - 1 : 0]; }
 
-  bool has_separate_output (void) const { return info != out_info; }
+  bool has_separate_output () const { return info != out_info; }
 
 
-  HB_INTERNAL void reset (void);
-  HB_INTERNAL void clear (void);
+  HB_INTERNAL void reset ();
+  HB_INTERNAL void clear ();
 
-  unsigned int backtrack_len (void) const
-  { return have_output? out_len : idx; }
-  unsigned int lookahead_len (void) const
-  { return len - idx; }
-  unsigned int next_serial (void) { return serial++; }
+  unsigned int backtrack_len () const { return have_output? out_len : idx; }
+  unsigned int lookahead_len () const { return len - idx; }
+  unsigned int next_serial () { return serial++; }
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
 			unsigned int    cluster);
   HB_INTERNAL void add_info (const hb_glyph_info_t &glyph_info);
 
   HB_INTERNAL void reverse_range (unsigned int start, unsigned int end);
-  HB_INTERNAL void reverse (void);
-  HB_INTERNAL void reverse_clusters (void);
-  HB_INTERNAL void guess_segment_properties (void);
+  HB_INTERNAL void reverse ();
+  HB_INTERNAL void reverse_clusters ();
+  HB_INTERNAL void guess_segment_properties ();
 
-  HB_INTERNAL void swap_buffers (void);
-  HB_INTERNAL void remove_output (void);
-  HB_INTERNAL void clear_output (void);
-  HB_INTERNAL void clear_positions (void);
+  HB_INTERNAL void swap_buffers ();
+  HB_INTERNAL void remove_output ();
+  HB_INTERNAL void clear_output ();
+  HB_INTERNAL void clear_positions ();
 
   HB_INTERNAL void replace_glyphs (unsigned int num_in,
 				   unsigned int num_out,
@@ -247,7 +245,7 @@ struct hb_buffer_t
     out_len++;
   }
   /* Copies glyph at idx to output but doesn't advance idx */
-  void copy_glyph (void)
+  void copy_glyph ()
   {
     if (unlikely (!make_room_for (0, 1))) return;
 
@@ -258,7 +256,7 @@ struct hb_buffer_t
   /* Copies glyph at idx to output and advance idx.
    * If there's no output, just advance idx. */
   void
-  next_glyph (void)
+  next_glyph ()
   {
     if (have_output)
     {
@@ -290,10 +288,7 @@ struct hb_buffer_t
     idx += n;
   }
   /* Advance idx without copying to output. */
-  void skip_glyph (void)
-  {
-    idx++;
-  }
+  void skip_glyph () { idx++; }
   void reset_masks (hb_mask_t mask)
   {
     for (unsigned int j = 0; j < len; j++)
@@ -316,7 +311,7 @@ struct hb_buffer_t
   HB_INTERNAL void merge_clusters_impl (unsigned int start, unsigned int end);
   HB_INTERNAL void merge_out_clusters (unsigned int start, unsigned int end);
   /* Merge clusters for deleting current glyph, and skip it. */
-  HB_INTERNAL void delete_glyph (void);
+  HB_INTERNAL void delete_glyph ();
 
   void unsafe_to_break (unsigned int start,
 			       unsigned int end)
@@ -350,7 +345,7 @@ struct hb_buffer_t
 
   HB_INTERNAL void sort (unsigned int start, unsigned int end, int(*compar)(const hb_glyph_info_t *, const hb_glyph_info_t *));
 
-  bool messaging (void) { return unlikely (message_func); }
+  bool messaging () { return unlikely (message_func); }
   bool message (hb_font_t *font, const char *fmt, ...) HB_PRINTF_FUNC(3, 4)
   {
     if (!messaging ())
@@ -398,9 +393,9 @@ struct hb_buffer_t
       }
   }
 
-  void unsafe_to_break_all (void)
+  void unsafe_to_break_all ()
   { unsafe_to_break_impl (0, len); }
-  void safe_to_break_all (void)
+  void safe_to_break_all ()
   {
     for (unsigned int i = 0; i < len; i++)
       info[i].mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;

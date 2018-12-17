@@ -35,13 +35,13 @@ using namespace OT;
 
 struct BlendArg : Number
 {
-  void init (void)
+  void init ()
   {
     Number::init ();
     deltas.init ();
   }
 
-  void fini (void)
+  void fini ()
   {
     Number::fini ();
     deltas.fini_deep ();
@@ -61,8 +61,8 @@ struct BlendArg : Number
       deltas[i] = blends_[i];
   }
 
-  bool blending (void) const { return deltas.len > 0; }
-  void reset_blends (void)
+  bool blending () const { return deltas.len > 0; }
+  void reset_blends ()
   {
     numValues = valueIndex = 0;
     deltas.resize (0);
@@ -94,13 +94,13 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     set_ivs (acc.privateDicts[fd].ivs);
   }
 
-  void fini (void)
+  void fini ()
   {
     scalars.fini ();
     SUPER::fini ();
   }
 
-  OpCode fetch_op (void)
+  OpCode fetch_op ()
   {
     if (this->substr.avail ())
       return SUPER::fetch_op ();
@@ -119,14 +119,14 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     return arg;
   }
 
-  const BlendArg& pop_arg (void)
+  const BlendArg& pop_arg ()
   {
     BlendArg  &arg = argStack.pop ();
     blend_arg (arg);
     return arg;
   }
 
-  void process_blend (void)
+  void process_blend ()
   {
     if (!seen_blend)
     {
@@ -142,7 +142,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     }
   }
 
-  void process_vsindex (void)
+  void process_vsindex ()
   {
     unsigned int  index = argStack.pop_uint ();
     if (unlikely (seen_vsindex () || seen_blend))
@@ -156,11 +156,11 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
     seen_vsindex_ = true;
   }
 
-  unsigned int get_region_count (void) const { return region_count; }
+  unsigned int get_region_count () const { return region_count; }
   void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
-  unsigned int get_ivs (void) const { return ivs; }
+  unsigned int get_ivs () const { return ivs; }
   void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
-  bool	 seen_vsindex (void) const { return seen_vsindex_; }
+  bool	 seen_vsindex () const { return seen_vsindex_; }
 
   protected:
   void blend_arg (BlendArg &arg)

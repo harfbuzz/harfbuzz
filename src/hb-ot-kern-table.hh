@@ -109,8 +109,8 @@ struct KernSubTableFormat3
 template <typename KernSubTableHeader>
 struct KernSubTable
 {
-  unsigned int get_size (void) const { return u.header.length; }
-  unsigned int get_type (void) const { return u.header.format; }
+  unsigned int get_size () const { return u.header.length; }
+  unsigned int get_type () const { return u.header.format; }
 
   int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
@@ -163,8 +163,8 @@ struct KernOTSubTableHeader
   enum { apple = false };
   typedef AAT::ObsoleteTypes Types;
 
-  unsigned int tuple_count (void) const { return 0; }
-  bool is_horizontal (void) const { return (coverage & Horizontal); }
+  unsigned int tuple_count () const { return 0; }
+  bool is_horizontal () const { return (coverage & Horizontal); }
 
   enum Coverage
   {
@@ -218,8 +218,8 @@ struct KernAATSubTableHeader
   enum { apple = true };
   typedef AAT::ObsoleteTypes Types;
 
-  unsigned int tuple_count (void) const { return 0; }
-  bool is_horizontal (void) const { return !(coverage & Vertical); }
+  unsigned int tuple_count () const { return 0; }
+  bool is_horizontal () const       { return !(coverage & Vertical); }
 
   enum Coverage
   {
@@ -271,10 +271,10 @@ struct kern
 {
   enum { tableTag = HB_OT_TAG_kern };
 
-  bool has_data (void) const { return u.version32; }
-  unsigned int get_type (void) const { return u.major; }
+  bool has_data () const { return u.version32; }
+  unsigned int get_type () const { return u.major; }
 
-  bool has_state_machine (void) const
+  bool has_state_machine () const
   {
     switch (get_type ()) {
     case 0: return u.ot.has_state_machine ();
@@ -283,7 +283,7 @@ struct kern
     }
   }
 
-  bool has_cross_stream (void) const
+  bool has_cross_stream () const
   {
     switch (get_type ()) {
     case 0: return u.ot.has_cross_stream ();

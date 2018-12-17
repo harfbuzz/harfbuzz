@@ -48,7 +48,7 @@ struct CallContext
     subr_num = subr_num_;
   }
 
-  void fini (void) {}
+  void fini () {}
 
   SubByteStr      substr;
   CSType	  type;
@@ -74,10 +74,10 @@ struct BiasedSubrs
       bias = 32768;
   }
 
-  void fini (void) {}
+  void fini () {}
 
-  unsigned int get_count (void) const { return (subrs == nullptr)? 0: subrs->count; }
-  unsigned int get_bias (void) const { return bias; }
+  unsigned int get_count () const { return (subrs == nullptr)? 0: subrs->count; }
+  unsigned int get_bias () const { return bias; }
 
   ByteStr operator [] (unsigned int index) const
   {
@@ -94,7 +94,7 @@ struct BiasedSubrs
 
 struct Point
 {
-  void init (void)
+  void init ()
   {
     x.init ();
     y.init ();
@@ -132,7 +132,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     globalSubrs.init (globalSubrs_);
     localSubrs.init (localSubrs_);
   }
-  void fini (void)
+  void fini ()
   {
     InterpEnv<ARG>::fini ();
 
@@ -141,7 +141,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     localSubrs.fini ();
   }
 
-  bool in_error (void) const
+  bool in_error () const
   {
     return callStack.in_error () || SUPER::in_error ();
   }
@@ -174,7 +174,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     SUPER::substr = context.substr;
   }
 
-  void returnFromSubr (void)
+  void returnFromSubr ()
   {
     if (unlikely (SUPER::substr.in_error ()))
       SUPER::set_error ();
@@ -182,7 +182,7 @@ struct CSInterpEnv : InterpEnv<ARG>
     SUPER::substr = context.substr;
   }
 
-  void determine_hintmask_size (void)
+  void determine_hintmask_size ()
   {
     if (!seen_hintmask)
     {
@@ -193,11 +193,11 @@ struct CSInterpEnv : InterpEnv<ARG>
   }
 
   void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
-  bool is_endchar (void) const { return endchar_flag; }
+  bool is_endchar () const { return endchar_flag; }
 
-  const Number &get_x (void) const { return pt.x; }
-  const Number &get_y (void) const { return pt.y; }
-  const Point &get_pt (void) const { return pt; }
+  const Number &get_x () const { return pt.x; }
+  const Number &get_y () const { return pt.y; }
+  const Point &get_pt () const { return pt; }
 
   void moveto (const Point &pt_ ) { pt = pt_; }
 

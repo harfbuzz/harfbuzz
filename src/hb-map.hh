@@ -45,16 +45,16 @@ inline uint32_t Hash (const T &v)
 struct hb_map_t
 {
   HB_NO_COPY_ASSIGN (hb_map_t);
-  hb_map_t (void) { init (); }
-  ~hb_map_t (void) { fini (); }
+  hb_map_t ()  { init (); }
+  ~hb_map_t () { fini (); }
 
   struct item_t
   {
     hb_codepoint_t key;
     hb_codepoint_t value;
 
-    bool is_unused (void) const { return key == INVALID; }
-    bool is_tombstone (void) const { return key != INVALID && value == INVALID; }
+    bool is_unused () const    { return key == INVALID; }
+    bool is_tombstone () const { return key != INVALID && value == INVALID; }
   };
 
   hb_object_header_t header;
@@ -65,7 +65,7 @@ struct hb_map_t
   unsigned int prime;
   item_t *items;
 
-  void init_shallow (void)
+  void init_shallow ()
   {
     successful = true;
     population = occupancy = 0;
@@ -73,24 +73,24 @@ struct hb_map_t
     prime = 0;
     items = nullptr;
   }
-  void init (void)
+  void init ()
   {
     hb_object_init (this);
     init_shallow ();
   }
-  void fini_shallow (void)
+  void fini_shallow ()
   {
     free (items);
     items = nullptr;
   }
-  void fini (void)
+  void fini ()
   {
     population = occupancy = 0;
     hb_object_fini (this);
     fini_shallow ();
   }
 
-  bool resize (void)
+  bool resize ()
   {
     if (unlikely (!successful)) return false;
 
@@ -166,15 +166,15 @@ struct hb_map_t
 
   enum { INVALID = HB_MAP_VALUE_INVALID };
 
-  void clear (void)
+  void clear ()
   {
     memset (items, 0xFF, ((size_t) mask + 1) * sizeof (item_t));
     population = occupancy = 0;
   }
 
-  bool is_empty (void) const { return population == 0; }
+  bool is_empty () const { return population == 0; }
 
-  unsigned int get_population (void) const { return population; }
+  unsigned int get_population () const { return population; }
 
   protected:
 

@@ -42,7 +42,7 @@ struct hb_array_t
   /*
    * Constructors.
    */
-  hb_array_t (void) : arrayZ (nullptr), len (0) {}
+  hb_array_t () : arrayZ (nullptr), len (0) {}
   hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
   template <unsigned int len_> hb_array_t (Type (&array_)[len_]) : arrayZ (array_), len (len_) {}
@@ -58,11 +58,11 @@ struct hb_array_t
     return arrayZ[i];
   }
 
-  explicit_operator bool (void) const { return len; }
-  Type * operator & (void) const { return arrayZ; }
-  Type & operator * (void) { return (this->operator [])[0]; }
-  operator hb_array_t<const Type> (void) { return hb_array_t<const Type> (arrayZ, len); }
-  template <typename T> operator T * (void) const { return arrayZ; }
+  explicit_operator bool () const { return len; }
+  Type * operator & () const { return arrayZ; }
+  Type & operator * () { return (this->operator [])[0]; }
+  operator hb_array_t<const Type> () { return hb_array_t<const Type> (arrayZ, len); }
+  template <typename T> operator T * () const { return arrayZ; }
 
   hb_array_t<Type> & operator += (unsigned int count)
   {
@@ -79,8 +79,8 @@ struct hb_array_t
     len -= count;
     return *this;
   }
-  hb_array_t<Type> & operator ++ (void) { *this += 1; }
-  hb_array_t<Type> & operator -- (void) { *this -= 1; }
+  hb_array_t<Type> & operator ++ () { *this += 1; }
+  hb_array_t<Type> & operator -- () { *this -= 1; }
   hb_array_t<Type> operator + (unsigned int count)
   { hb_array_t<Type> copy (*this); *this += count; return copy; }
   hb_array_t<Type> operator - (unsigned int count)
@@ -132,7 +132,7 @@ struct hb_array_t
     ::qsort (arrayZ, len, item_size, cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
-  hb_sorted_array_t<Type> qsort (void)
+  hb_sorted_array_t<Type> qsort ()
   {
     ::qsort (arrayZ, len, item_size, Type::cmp);
     return hb_sorted_array_t<Type> (*this);
@@ -148,7 +148,7 @@ struct hb_array_t
    * Other methods.
    */
 
-  unsigned int get_size (void) const { return len * item_size; }
+  unsigned int get_size () const { return len * item_size; }
 
   hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
@@ -168,7 +168,7 @@ struct hb_array_t
   { return sub_array (start_offset, &seg_count); }
 
   /* Only call if you allocated the underlying array using malloc() or similar. */
-  void free (void)
+  void free ()
   { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   template <typename hb_sanitize_context_t>
@@ -198,7 +198,7 @@ enum hb_bfind_not_found_t
 template <typename Type>
 struct hb_sorted_array_t : hb_array_t<Type>
 {
-  hb_sorted_array_t (void) : hb_array_t<Type> () {}
+  hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
   hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
 

@@ -250,12 +250,12 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 }
 
 #if HB_USE_ATEXIT
-static void free_static_ot_funcs (void);
+static void free_static_ot_funcs ();
 #endif
 
 static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot_font_funcs_lazy_loader_t>
 {
-  static hb_font_funcs_t *create (void)
+  static hb_font_funcs_t *create ()
   {
     hb_font_funcs_t *funcs = hb_font_funcs_create ();
 
@@ -285,14 +285,14 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 
 #if HB_USE_ATEXIT
 static
-void free_static_ot_funcs (void)
+void free_static_ot_funcs ()
 {
   static_ot_funcs.free_instance ();
 }
 #endif
 
 static hb_font_funcs_t *
-_hb_ot_get_font_funcs (void)
+_hb_ot_get_font_funcs ()
 {
   return static_ot_funcs.get_unconst ();
 }

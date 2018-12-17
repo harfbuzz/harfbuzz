@@ -66,7 +66,7 @@ struct NameRecord
     return HB_LANGUAGE_INVALID;
   }
 
-  uint16_t score (void) const
+  uint16_t score () const
   {
     /* Same order as in cmap::find_best_subtable(). */
     unsigned int p = platformID;
@@ -153,7 +153,7 @@ struct name
 {
   enum { tableTag = HB_OT_TAG_name };
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
@@ -218,7 +218,7 @@ struct name
       this->names.resize (j);
     }
 
-    void fini (void)
+    void fini ()
     {
       this->names.fini ();
       this->table.destroy ();

@@ -72,21 +72,18 @@ struct Iter<T *>
     array (array_), length (length_) {}
 
   /* Emptiness. */
-  explicit_operator bool (void) const { return length; }
+  explicit_operator bool () const { return length; }
 
   /* Current item. */
-  T &operator * (void)
+  T &operator * ()
   {
     if (unlikely (!length)) return CrapOrNull(T);
     return *array;
   }
-  T &operator -> (void)
-  {
-    return (operator *);
-  }
+  T &operator -> () { return (operator *); }
 
   /* Next. */
-  Iter<T *> & operator ++ (void)
+  Iter<T *> & operator ++ ()
   {
     if (unlikely (!length)) return *this;
     array++;
@@ -102,7 +99,7 @@ struct Iter<T *>
   }
 
   /* Some iterators might implement len(). */
-  unsigned int len (void) const { return length; }
+  unsigned int len () const { return length; }
 
   /* Some iterators might implement fast-forward.
    * Only implement it if it's constant-time. */
@@ -129,7 +126,7 @@ struct Iter<T *>
 /* XXX Remove
  * Just to test these compile. */
 static inline void
-m (void)
+m ()
 {
   const int src[10] = {};
   int dst[20];

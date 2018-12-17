@@ -188,7 +188,7 @@ hb_blob_copy_writable_or_fail (hb_blob_t *blob)
  * Since: 0.9.2
  **/
 hb_blob_t *
-hb_blob_get_empty (void)
+hb_blob_get_empty ()
 {
   return const_cast<hb_blob_t *> (&Null(hb_blob_t));
 }
@@ -378,7 +378,7 @@ hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
 
 
 bool
-hb_blob_t::try_make_writable_inplace_unix (void)
+hb_blob_t::try_make_writable_inplace_unix ()
 {
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT)
   uintptr_t pagesize = -1, mask, length;
@@ -421,7 +421,7 @@ hb_blob_t::try_make_writable_inplace_unix (void)
 }
 
 bool
-hb_blob_t::try_make_writable_inplace (void)
+hb_blob_t::try_make_writable_inplace ()
 {
   DEBUG_MSG_FUNC (BLOB, this, "making writable inplace\n");
 
@@ -436,7 +436,7 @@ hb_blob_t::try_make_writable_inplace (void)
 }
 
 bool
-hb_blob_t::try_make_writable (void)
+hb_blob_t::try_make_writable ()
 {
   if (hb_object_is_immutable (this))
     return false;

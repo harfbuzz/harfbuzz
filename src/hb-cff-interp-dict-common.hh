@@ -37,8 +37,8 @@ using namespace OT;
 /* an opstr and the parsed out dict value(s) */
 struct DictVal : OpStr
 {
-  void init (void) { single_val.set_int (0); }
-  void fini (void) {}
+  void init () { single_val.set_int (0); }
+  void fini () {}
 
   Number	      single_val;
 };
@@ -50,17 +50,13 @@ template <typename VAL> struct DictValues : ParsedValues<VAL> {};
 template <typename OPSTR=OpStr>
 struct TopDictValues : DictValues<OPSTR>
 {
-  void init (void)
+  void init ()
   {
     DictValues<OPSTR>::init ();
     charStringsOffset = 0;
     FDArrayOffset = 0;
   }
-
-  void fini (void)
-  {
-    DictValues<OPSTR>::fini ();
-  }
+  void fini () { DictValues<OPSTR>::fini (); }
 
   unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
   {

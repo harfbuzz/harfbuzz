@@ -92,7 +92,7 @@ HB_OT_TABLES
 struct hb_ot_face_t
 {
   HB_INTERNAL void init0 (hb_face_t *face);
-  HB_INTERNAL void fini (void);
+  HB_INTERNAL void fini ();
 
 #define HB_OT_TABLE_ORDER(Namespace, Type) \
     HB_PASTE (ORDER_, HB_PASTE (Namespace, HB_PASTE (_, Type)))

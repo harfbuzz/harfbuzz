@@ -73,10 +73,7 @@ struct maxp
 {
   enum { tableTag = HB_OT_TAG_maxp };
 
-  unsigned int get_num_glyphs (void) const
-  {
-    return numGlyphs;
-  }
+  unsigned int get_num_glyphs () const { return numGlyphs; }
 
   void set_num_glyphs (unsigned int count)
   {

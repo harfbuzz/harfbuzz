@@ -62,7 +62,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 
 
 static gchar *
-shapers_to_string (void)
+shapers_to_string ()
 {
   GString *shapers = g_string_new (nullptr);
   const char **shaper_list = hb_shape_list_shapers ();
@@ -95,7 +95,7 @@ show_version (const char *name G_GNUC_UNUSED,
 
 
 void
-option_parser_t::add_main_options (void)
+option_parser_t::add_main_options ()
 {
   GOptionEntry entries[] =
   {
@@ -638,7 +638,7 @@ output_options_t::add_options (option_parser_t *parser)
 
 
 hb_font_t *
-font_options_t::get_font (void) const
+font_options_t::get_font () const
 {
   if (font)
     return font;
@@ -795,7 +795,7 @@ text_options_t::get_line (unsigned int *len)
 
 
 FILE *
-output_options_t::get_file_handle (void)
+output_options_t::get_file_handle ()
 {
   if (fp)
     return fp;

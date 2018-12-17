@@ -51,7 +51,7 @@ void hb_ot_face_t::init0 (hb_face_t *face)
 #undef HB_OT_ACCELERATOR
 #undef HB_OT_TABLE
 }
-void hb_ot_face_t::fini (void)
+void hb_ot_face_t::fini ()
 {
 #define HB_OT_TABLE(Namespace, Type) Type.fini ();
 #define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)

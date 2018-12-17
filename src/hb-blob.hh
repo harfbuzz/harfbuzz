@@ -38,12 +38,9 @@
 
 struct hb_blob_t
 {
-  void fini_shallow (void)
-  {
-    destroy_user_data ();
-  }
+  void fini_shallow () { destroy_user_data (); }
 
-  void destroy_user_data (void)
+  void destroy_user_data ()
   {
     if (destroy)
     {
@@ -53,16 +50,16 @@ struct hb_blob_t
     }
   }
 
-  HB_INTERNAL bool try_make_writable (void);
-  HB_INTERNAL bool try_make_writable_inplace (void);
-  HB_INTERNAL bool try_make_writable_inplace_unix (void);
+  HB_INTERNAL bool try_make_writable ();
+  HB_INTERNAL bool try_make_writable_inplace ();
+  HB_INTERNAL bool try_make_writable_inplace_unix ();
 
   template <typename Type>
-  const Type* as (void) const
+  const Type* as () const
   {
     return length < hb_null_size (Type) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
-  hb_bytes_t as_bytes (void) const
+  hb_bytes_t as_bytes () const
   { return hb_bytes_t (data, length); }
 
   public:
@@ -88,14 +85,14 @@ struct hb_blob_ptr_t
 
   hb_blob_ptr_t (hb_blob_t *b_ = nullptr) : b (b_) {}
   hb_blob_t * operator = (hb_blob_t *b_) { return b = b_; }
-  const T * operator -> (void) const { return get (); }
-  const T & operator * (void) const { return *get (); }
-  template <typename C> operator const C * (void) const { return get (); }
-  operator const char * (void) const { return (const char *) get (); }
-  const T * get (void) const { return b->as<T> (); }
-  hb_blob_t * get_blob (void) const { return b.get_raw (); }
-  unsigned int get_length (void) const { return b.get ()->length; }
-  void destroy (void) { hb_blob_destroy (b.get ()); b = nullptr; }
+  const T * operator -> () const { return get (); }
+  const T & operator * () const  { return *get (); }
+  template <typename C> operator const C * () const { return get (); }
+  operator const char * () const { return (const char *) get (); }
+  const T * get () const { return b->as<T> (); }
+  hb_blob_t * get_blob () const { return b.get_raw (); }
+  unsigned int get_length () const { return b.get ()->length; }
+  void destroy () { hb_blob_destroy (b.get ()); b = nullptr; }
 
   hb_nonnull_ptr_t<hb_blob_t> b;
 };

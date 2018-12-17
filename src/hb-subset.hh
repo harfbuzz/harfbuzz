@@ -39,10 +39,10 @@
 struct hb_subset_context_t :
        hb_dispatch_context_t<hb_subset_context_t, bool, HB_DEBUG_SUBSET>
 {
-  const char *get_name (void) { return "SUBSET"; }
+  const char *get_name () { return "SUBSET"; }
   template <typename T>
   bool dispatch (const T &obj) { return obj.subset (this); }
-  static bool default_return_value (void) { return true; }
+  static bool default_return_value () { return true; }
 
   hb_subset_plan_t *plan;
   hb_serialize_context_t *serializer;

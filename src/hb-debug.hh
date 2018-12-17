@@ -56,12 +56,12 @@ union hb_options_union_t {
 static_assert ((sizeof (hb_atomic_int_t) >= sizeof (hb_options_union_t)), "");
 
 HB_INTERNAL void
-_hb_options_init (void);
+_hb_options_init ();
 
 extern HB_INTERNAL hb_atomic_int_t _hb_options;
 
 static inline hb_options_t
-hb_options (void)
+hb_options ()
 {
   /* Make a local copy, so we can access bitfield threadsafely. */
   hb_options_union_t u;
@@ -284,7 +284,7 @@ struct hb_auto_trace_t
     _hb_debug_msg_va<max_level> (what, obj, func, true, plevel ? *plevel : 0, +1, message, ap);
     va_end (ap);
   }
-  ~hb_auto_trace_t (void)
+  ~hb_auto_trace_t ()
   {
     _hb_warn_no_return<ret_t> (returned);
     if (!returned) {

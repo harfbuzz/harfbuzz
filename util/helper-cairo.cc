@@ -66,7 +66,7 @@ static FT_Library ft_library;
 
 #ifdef HAVE_ATEXIT
 static inline
-void free_ft_library (void)
+void free_ft_library ()
 {
   FT_Done_FreeType (ft_library);
 }

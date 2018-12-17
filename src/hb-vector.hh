@@ -38,8 +38,8 @@ struct hb_vector_t
   enum { item_size = hb_static_size (Type) };
 
   HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
-  hb_vector_t (void) { init (); }
-  ~hb_vector_t (void) { fini (); }
+  hb_vector_t ()  { init (); }
+  ~hb_vector_t () { fini (); }
 
   unsigned int len;
   private:
@@ -48,21 +48,21 @@ struct hb_vector_t
   Type static_array[PreallocedCount];
   public:
 
-  void init (void)
+  void init ()
   {
     len = 0;
     allocated = ARRAY_LENGTH (static_array);
     arrayZ_ = nullptr;
   }
 
-  void fini (void)
+  void fini ()
   {
     if (arrayZ_)
       free (arrayZ_);
     arrayZ_ = nullptr;
     allocated = len = 0;
   }
-  void fini_deep (void)
+  void fini_deep ()
   {
     Type *array = arrayZ();
     unsigned int count = len;
@@ -71,10 +71,8 @@ struct hb_vector_t
     fini ();
   }
 
-  Type * arrayZ (void)
-  { return arrayZ_ ? arrayZ_ : static_array; }
-  const Type * arrayZ (void) const
-  { return arrayZ_ ? arrayZ_ : static_array; }
+  Type * arrayZ ()             { return arrayZ_ ? arrayZ_ : static_array; }
+  const Type * arrayZ () const { return arrayZ_ ? arrayZ_ : static_array; }
 
   Type& operator [] (int i_)
   {
@@ -91,9 +89,9 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
-  hb_array_t<Type> as_array (void)
+  hb_array_t<Type> as_array ()
   { return hb_array (arrayZ(), len); }
-  hb_array_t<const Type> as_array (void) const
+  hb_array_t<const Type> as_array () const
   { return hb_array (arrayZ(), len); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
@@ -105,9 +103,9 @@ struct hb_vector_t
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count);}
 
-  hb_sorted_array_t<Type> as_sorted_array (void)
+  hb_sorted_array_t<Type> as_sorted_array ()
   { return hb_sorted_array (arrayZ(), len); }
-  hb_sorted_array_t<const Type> as_sorted_array (void) const
+  hb_sorted_array_t<const Type> as_sorted_array () const
   { return hb_sorted_array (arrayZ(), len); }
 
   hb_array_t<const Type> sorted_sub_array (unsigned int start_offset, unsigned int count) const
@@ -119,15 +117,15 @@ struct hb_vector_t
   hb_array_t<Type> sorted_sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_sorted_array ().sorted_sub_array (start_offset, count);}
 
-  template <typename T> explicit_operator T * (void) { return arrayZ(); }
-  template <typename T> explicit_operator const T * (void) const { return arrayZ(); }
-  operator hb_array_t<Type> (void) { return as_array (); }
-  operator hb_array_t<const Type> (void) const { return as_array (); }
+  template <typename T> explicit_operator T * () { return arrayZ(); }
+  template <typename T> explicit_operator const T * () const { return arrayZ(); }
+  operator hb_array_t<Type> ()             { return as_array (); }
+  operator hb_array_t<const Type> () const { return as_array (); }
 
   Type * operator  + (unsigned int i) { return arrayZ() + i; }
   const Type * operator  + (unsigned int i) const { return arrayZ() + i; }
 
-  Type *push (void)
+  Type *push ()
   {
     if (unlikely (!resize (len + 1)))
       return &Crap(Type);
@@ -140,7 +138,7 @@ struct hb_vector_t
     return p;
   }
 
-  bool in_error (void) const { return allocated == 0; }
+  bool in_error () const { return allocated == 0; }
 
   /* Allocate for size but don't adjust len. */
   bool alloc (unsigned int size)
@@ -197,7 +195,7 @@ struct hb_vector_t
     return true;
   }
 
-  void pop (void)
+  void pop ()
   {
     if (!len) return;
     len--;

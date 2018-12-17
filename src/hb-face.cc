@@ -224,7 +224,7 @@ hb_face_create (hb_blob_t    *blob,
  * Since: 0.9.2
  **/
 hb_face_t *
-hb_face_get_empty (void)
+hb_face_get_empty ()
 {
   return const_cast<hb_face_t *> (&Null(hb_face_t));
 }
@@ -603,7 +603,7 @@ struct hb_face_builder_data_t
 };
 
 static hb_face_builder_data_t *
-_hb_face_builder_data_create (void)
+_hb_face_builder_data_create ()
 {
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) calloc (1, sizeof (hb_face_builder_data_t));
   if (unlikely (!data))
@@ -692,7 +692,7 @@ _hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void 
  * Since: 1.9.0
  **/
 hb_face_t *
-hb_face_builder_create (void)
+hb_face_builder_create ()
 {
   hb_face_builder_data_t *data = _hb_face_builder_data_create ();
   if (unlikely (!data)) return hb_face_get_empty ();

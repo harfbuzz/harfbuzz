@@ -44,7 +44,7 @@ struct SettingName
   int cmp (hb_aat_layout_feature_selector_t key) const
   { return (int) key - (int) setting; }
 
-  hb_aat_layout_feature_selector_t get_selector (void) const
+  hb_aat_layout_feature_selector_t get_selector () const
   { return (hb_aat_layout_feature_selector_t) (unsigned) setting; }
 
   void get_info (hb_aat_layout_feature_selector_info_t *s,
@@ -125,10 +125,10 @@ struct FeatureName
     return settings_table.len;
   }
 
-  hb_aat_layout_feature_type_t get_feature_type (void) const
+  hb_aat_layout_feature_type_t get_feature_type () const
   { return (hb_aat_layout_feature_type_t) (unsigned int) feature; }
 
-  hb_ot_name_id_t get_feature_name_id (void) const { return nameIndex; }
+  hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -157,7 +157,7 @@ struct feat
 {
   enum { tableTag = HB_AAT_TAG_feat };
 
-  bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
   unsigned int get_feature_types (unsigned int                  start_offset,
 				  unsigned int                 *count,

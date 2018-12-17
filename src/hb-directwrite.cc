@@ -59,8 +59,8 @@ public:
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) (void)  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) (void) { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // IDWriteFontFileLoader methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -88,8 +88,8 @@ public:
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) (void)  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) (void) { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // IDWriteFontFileStream methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -253,8 +253,8 @@ public:
 
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) (void) { return 1; }
-  IFACEMETHOD_ (ULONG, Release) (void) { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
+  IFACEMETHOD_ (ULONG, Release) () { return 1; }
 
   // A single contiguous run of characters containing the same analysis
   // results.
@@ -283,7 +283,7 @@ public:
 		const wchar_t* localeName, DWRITE_READING_DIRECTION readingDirection)
 	       : mText (text), mTextLength (textLength), mLocaleName (localeName),
 		 mReadingDirection (readingDirection), mCurrentRun (nullptr) {}
-  ~TextAnalysis (void)
+  ~TextAnalysis ()
   {
     // delete runs, except mRunHead which is part of the TextAnalysis object
     for (Run *run = mRunHead.nextRun; run;)
@@ -360,7 +360,7 @@ public:
   }
 
   IFACEMETHODIMP_ (DWRITE_READING_DIRECTION)
-  GetParagraphReadingDirection (void) { return mReadingDirection; }
+  GetParagraphReadingDirection () { return mReadingDirection; }
 
   IFACEMETHODIMP GetLocaleName (uint32_t textPosition, uint32_t* textLength,
 				wchar_t const** localeName)

@@ -61,7 +61,7 @@ struct RemapSID : Remap
 
 struct CFF1SubTableOffsets : CFFSubTableOffsets
 {
-  CFF1SubTableOffsets (void)
+  CFF1SubTableOffsets ()
     : CFFSubTableOffsets (),
       nameIndexOffset (0),
       encodingOffset (0)
@@ -87,12 +87,9 @@ struct CFF1TopDictValuesMod : CFF1TopDictValues
     base = base_;
   }
 
-  void fini (void) { SUPER::fini (); }
+  void fini () { SUPER::fini (); }
 
-  unsigned get_count (void) const
-  {
-    return base->get_count () + SUPER::get_count ();
-  }
+  unsigned get_count () const { return base->get_count () + SUPER::get_count (); }
   const CFF1TopDictVal &get_value (unsigned int i) const
   {
     if (i < base->get_count ())
@@ -228,10 +225,7 @@ struct FontDictValuesMod
     privateDictInfo = privateDictInfo_;
   }
 
-  unsigned get_count (void) const
-  {
-    return base->get_count ();
-  }
+  unsigned get_count () const { return base->get_count (); }
 
   const OpStr &operator [] (unsigned int i) const { return (*base)[i]; }
 
@@ -423,7 +417,7 @@ struct CFF1SubrSubsetter : SubrSubsetter<CFF1SubrSubsetter, CFF1Subrs, const OT:
 };
 
 struct cff_subset_plan {
-  cff_subset_plan (void)
+  cff_subset_plan ()
     : final_size (0),
       offsets (),
       orig_fdcount (0),
@@ -449,7 +443,7 @@ struct cff_subset_plan {
       topDictModSIDs[i] = CFF_UNDEF_SID;
   }
 
-  ~cff_subset_plan (void)
+  ~cff_subset_plan ()
   {
     topdict_sizes.fini ();
     topdict_mod.fini ();
@@ -828,7 +822,7 @@ struct cff_subset_plan {
 	   && (fontdicts_mod.len == subset_fdcount));
   }
 
-  unsigned int get_final_size (void) const  { return final_size; }
+  unsigned int get_final_size () const  { return final_size; }
 
   unsigned int	      final_size;
   hb_vector_t<unsigned int> topdict_sizes;

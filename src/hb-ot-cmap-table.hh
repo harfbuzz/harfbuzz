@@ -226,9 +226,9 @@ struct CmapSubtableFormat4
 
   struct accelerator_t
   {
-    accelerator_t (void) {}
+    accelerator_t () {}
     accelerator_t (const CmapSubtableFormat4 *subtable) { init (subtable); }
-    ~accelerator_t (void) { fini (); }
+    ~accelerator_t () { fini (); }
 
     void init (const CmapSubtableFormat4 *subtable)
     {
@@ -240,7 +240,7 @@ struct CmapSubtableFormat4
       glyphIdArray = idRangeOffset + segCount;
       glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2;
     }
-    void fini (void) {}
+    void fini () {}
 
     bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
     {
@@ -846,7 +846,7 @@ struct cmap
 
   struct subset_plan
   {
-    size_t final_size (void) const
+    size_t final_size () const
     {
       return 4 // header
 	  +  8 * 3 // 3 EncodingRecord
@@ -1031,7 +1031,7 @@ struct cmap
       }
     }
 
-    void fini (void) { this->table.destroy (); }
+    void fini () { this->table.destroy (); }
 
     bool get_nominal_glyph (hb_codepoint_t  unicode,
 				   hb_codepoint_t *glyph) const

@@ -868,9 +868,9 @@ struct ChainSubtable
   template <typename T>
   friend struct Chain;
 
-  unsigned int get_size (void) const { return length; }
-  unsigned int get_type (void) const { return coverage & 0xFF; }
-  unsigned int get_coverage (void) const { return coverage >> (sizeof (HBUINT) * 8 - 8); }
+  unsigned int get_size () const     { return length; }
+  unsigned int get_type () const     { return coverage & 0xFF; }
+  unsigned int get_coverage () const { return coverage >> (sizeof (HBUINT) * 8 - 8); }
 
   enum Coverage
   {
@@ -1049,7 +1049,7 @@ struct Chain
     }
   }
 
-  unsigned int get_size (void) const { return length; }
+  unsigned int get_size () const { return length; }
 
   bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
   {
@@ -1098,7 +1098,7 @@ struct mortmorx
 {
   enum { tableTag = HB_AAT_TAG_morx };
 
-  bool has_data (void) const { return version != 0; }
+  bool has_data () const { return version != 0; }
 
   void compile_flags (const hb_aat_map_builder_t *mapper,
 		      hb_aat_map_t *map) const

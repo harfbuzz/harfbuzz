@@ -66,8 +66,7 @@ struct hb_glyph_pair_t
 
 struct KernPair
 {
-  int get_kerning (void) const
-  { return value; }
+  int get_kerning () const { return value; }
 
   int cmp (const hb_glyph_pair_t &o) const
   {
@@ -635,7 +634,7 @@ struct KerxSubTableFormat6
     ValuesAreLong	= 0x00000001,
   };
 
-  bool is_long (void) const { return flags & ValuesAreLong; }
+  bool is_long () const { return flags & ValuesAreLong; }
 
   int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  hb_aat_apply_context_t *c) const
@@ -743,8 +742,8 @@ struct KerxSubTableHeader
 {
   typedef ExtendedTypes Types;
 
-  unsigned int tuple_count (void) const { return tupleCount; }
-  bool is_horizontal (void) const { return !(coverage & Vertical); }
+  unsigned int tuple_count () const { return tupleCount; }
+  bool is_horizontal () const       { return !(coverage & Vertical); }
 
   enum Coverage
   {
@@ -778,8 +777,8 @@ struct KerxSubTable
 {
   friend struct kerx;
 
-  unsigned int get_size (void) const { return u.header.length; }
-  unsigned int get_type (void) const { return u.header.coverage & u.header.SubtableType; }
+  unsigned int get_size () const { return u.header.length; }
+  unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
 
   template <typename context_t>
   typename context_t::return_t dispatch (context_t *c) const
@@ -829,9 +828,9 @@ template <typename T>
 struct KerxTable
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  const T* thiz (void) const { return static_cast<const T *> (this); }
+  const T* thiz () const { return static_cast<const T *> (this); }
 
-  bool has_state_machine (void) const
+  bool has_state_machine () const
   {
     typedef typename T::SubTable SubTable;
 
@@ -846,7 +845,7 @@ struct KerxTable
     return false;
   }
 
-  bool has_cross_stream (void) const
+  bool has_cross_stream () const
   {
     typedef typename T::SubTable SubTable;
 
@@ -989,7 +988,7 @@ struct kerx : KerxTable<kerx>
   typedef SubTableHeader::Types Types;
   typedef KerxSubTable SubTable;
 
-  bool has_data (void) const { return version; }
+  bool has_data () const { return version; }
 
   protected:
   HBUINT16	version;	/* The version number of the extended kerning table

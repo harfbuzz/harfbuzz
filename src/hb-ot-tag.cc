@@ -503,7 +503,7 @@ hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
 
 #ifdef MAIN
 static inline void
-test_langs_sorted (void)
+test_langs_sorted ()
 {
   for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages); i++)
   {
@@ -518,7 +518,7 @@ test_langs_sorted (void)
 }
 
 int
-main (void)
+main ()
 {
   test_langs_sorted ();
   return 0;

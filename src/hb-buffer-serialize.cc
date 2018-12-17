@@ -44,7 +44,7 @@ static const char *serialize_formats[] = {
  * Since: 0.9.7
  **/
 const char **
-hb_buffer_serialize_list_formats (void)
+hb_buffer_serialize_list_formats ()
 {
   return serialize_formats;
 }

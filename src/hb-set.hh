@@ -40,8 +40,8 @@
 struct hb_set_t
 {
   HB_NO_COPY_ASSIGN (hb_set_t);
-  hb_set_t (void) { init (); }
-  ~hb_set_t (void) { fini (); }
+  hb_set_t ()  { init (); }
+  ~hb_set_t () { fini (); }
 
   struct page_map_t
   {
@@ -53,13 +53,13 @@ struct hb_set_t
 
   struct page_t
   {
-    void init0 (void) { v.clear (); }
-    void init1 (void) { v.clear (0xFF); }
+    void init0 () { v.clear (); }
+    void init1 () { v.clear (0xFF); }
 
-    unsigned int len (void) const
+    unsigned int len () const
     { return ARRAY_LENGTH_CONST (v); }
 
-    bool is_empty (void) const
+    bool is_empty () const
     {
       for (unsigned int i = 0; i < len (); i++)
         if (v[i])
@@ -93,7 +93,7 @@ struct hb_set_t
       return 0 == hb_memcmp (&v, &other->v, sizeof (v));
     }
 
-    unsigned int get_population (void) const
+    unsigned int get_population () const
     {
       unsigned int pop = 0;
       for (unsigned int i = 0; i < len (); i++)
@@ -145,14 +145,14 @@ struct hb_set_t
       *codepoint = INVALID;
       return false;
     }
-    hb_codepoint_t get_min (void) const
+    hb_codepoint_t get_min () const
     {
       for (unsigned int i = 0; i < len (); i++)
         if (v[i])
 	  return i * ELT_BITS + elt_get_min (v[i]);
       return INVALID;
     }
-    hb_codepoint_t get_max (void) const
+    hb_codepoint_t get_max () const
     {
       for (int i = len () - 1; i >= 0; i--)
         if (v[i])
@@ -189,25 +189,25 @@ struct hb_set_t
   hb_vector_t<page_map_t, 1> page_map;
   hb_vector_t<page_t, 1> pages;
 
-  void init_shallow (void)
+  void init_shallow ()
   {
     successful = true;
     population = 0;
     page_map.init ();
     pages.init ();
   }
-  void init (void)
+  void init ()
   {
     hb_object_init (this);
     init_shallow ();
   }
-  void fini_shallow (void)
+  void fini_shallow ()
   {
     population = 0;
     page_map.fini ();
     pages.fini ();
   }
-  void fini (void)
+  void fini ()
   {
     hb_object_fini (this);
     fini_shallow ();
@@ -225,7 +225,7 @@ struct hb_set_t
     return true;
   }
 
-  void clear (void)
+  void clear ()
   {
     if (unlikely (hb_object_is_immutable (this)))
       return;
@@ -234,7 +234,7 @@ struct hb_set_t
     page_map.resize (0);
     pages.resize (0);
   }
-  bool is_empty (void) const
+  bool is_empty () const
   {
     unsigned int count = pages.len;
     for (unsigned int i = 0; i < count; i++)
@@ -243,7 +243,7 @@ struct hb_set_t
     return true;
   }
 
-  void dirty (void) { population = (unsigned int) -1; }
+  void dirty () { population = (unsigned int) -1; }
 
   void add (hb_codepoint_t g)
   {
@@ -634,7 +634,7 @@ struct hb_set_t
     return true;
   }
 
-  unsigned int get_population (void) const
+  unsigned int get_population () const
   {
     if (population != (unsigned int) -1)
       return population;
@@ -647,7 +647,7 @@ struct hb_set_t
     population = pop;
     return pop;
   }
-  hb_codepoint_t get_min (void) const
+  hb_codepoint_t get_min () const
   {
     unsigned int count = pages.len;
     for (unsigned int i = 0; i < count; i++)
@@ -655,7 +655,7 @@ struct hb_set_t
         return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
     return INVALID;
   }
-  hb_codepoint_t get_max (void) const
+  hb_codepoint_t get_max () const
   {
     unsigned int count = pages.len;
     for (int i = count - 1; i >= 0; i++)

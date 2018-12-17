@@ -47,7 +47,7 @@ struct hb_shaper_entry_t {
 };
 
 HB_INTERNAL const hb_shaper_entry_t *
-_hb_shapers_get (void);
+_hb_shapers_get ();
 
 
 template <typename Data, unsigned int WheresData, typename T>
@@ -98,7 +98,7 @@ template <enum hb_shaper_order_t order, typename Object> struct hb_shaper_object
 	  typedef HB_SHAPER_DATA_TYPE(shaper, object) Type; \
 	  static Type* create (hb_##object##_t *data) \
 	  { return HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (data); } \
-	  static Type *get_null (void) { return nullptr; } \
+	  static Type *get_null () { return nullptr; } \
 	  static void destroy (Type *p) { HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (p); } \
 	}; \
 	\
@@ -115,7 +115,7 @@ struct hb_shaper_object_dataset_t
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
   }
-  void fini (void)
+  void fini ()
   {
 #define HB_SHAPER_IMPLEMENT(shaper) shaper.fini ();
 #include "hb-shaper-list.hh"

@@ -98,7 +98,7 @@ struct hb_ot_shape_plan_t
 
   HB_INTERNAL bool init0 (hb_face_t                     *face,
 			  const hb_shape_plan_key_t     *key);
-  HB_INTERNAL void fini (void);
+  HB_INTERNAL void fini ();
 
   HB_INTERNAL void substitute (hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;

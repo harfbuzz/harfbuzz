@@ -234,7 +234,7 @@ struct hmtxvmtx
       var_table = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
     }
 
-    void fini (void)
+    void fini ()
     {
       table.destroy ();
       var_table.destroy ();

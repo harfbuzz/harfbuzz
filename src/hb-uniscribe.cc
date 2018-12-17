@@ -205,7 +205,7 @@ struct hb_uniscribe_shaper_funcs_t
   SSOT ScriptShapeOpenType;
   SPOT ScriptPlaceOpenType;
 
-  void init (void)
+  void init ()
   {
     HMODULE hinstLib;
     this->ScriptItemizeOpenType = nullptr;
@@ -232,12 +232,12 @@ struct hb_uniscribe_shaper_funcs_t
 };
 
 
-static void free_static_uniscribe_shaper_funcs (void);
+static void free_static_uniscribe_shaper_funcs ();
 
 static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
 									 hb_uniscribe_shaper_funcs_lazy_loader_t>
 {
-  static hb_uniscribe_shaper_funcs_t *create (void)
+  static hb_uniscribe_shaper_funcs_t *create ()
   {
     hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
     if (unlikely (!funcs))
@@ -255,7 +255,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
   {
     free ((void *) p);
   }
-  static hb_uniscribe_shaper_funcs_t *get_null (void)
+  static hb_uniscribe_shaper_funcs_t *get_null ()
   {
     return nullptr;
   }
@@ -263,14 +263,14 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
 
 #if HB_USE_ATEXIT
 static
-void free_static_uniscribe_shaper_funcs (void)
+void free_static_uniscribe_shaper_funcs ()
 {
   static_uniscribe_shaper_funcs.free_instance ();
 }
 #endif
 
 static hb_uniscribe_shaper_funcs_t *
-hb_uniscribe_shaper_get_funcs (void)
+hb_uniscribe_shaper_get_funcs ()
 {
   return static_uniscribe_shaper_funcs.get_unconst ();
 }

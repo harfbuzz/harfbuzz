@@ -39,10 +39,10 @@ struct hb_cache_t
   static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (hb_atomic_int_t)), "");
   static_assert (sizeof (hb_atomic_int_t) == sizeof (unsigned int), "");
 
-  void init (void) { clear (); }
-  void fini (void) {}
+  void init () { clear (); }
+  void fini () {}
 
-  void clear (void)
+  void clear ()
   {
     for (unsigned i = 0; i < ARRAY_LENGTH (values); i++)
       values[i].set_relaxed (-1);

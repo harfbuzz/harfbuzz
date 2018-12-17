@@ -215,7 +215,7 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 /* HarfBuzz-Internal API */
 
 void
-hb_buffer_t::reset (void)
+hb_buffer_t::reset ()
 {
   if (unlikely (hb_object_is_immutable (this)))
     return;
@@ -230,7 +230,7 @@ hb_buffer_t::reset (void)
 }
 
 void
-hb_buffer_t::clear (void)
+hb_buffer_t::clear ()
 {
   if (unlikely (hb_object_is_immutable (this)))
     return;
@@ -287,7 +287,7 @@ hb_buffer_t::add_info (const hb_glyph_info_t &glyph_info)
 
 
 void
-hb_buffer_t::remove_output (void)
+hb_buffer_t::remove_output ()
 {
   if (unlikely (hb_object_is_immutable (this)))
     return;
@@ -300,7 +300,7 @@ hb_buffer_t::remove_output (void)
 }
 
 void
-hb_buffer_t::clear_output (void)
+hb_buffer_t::clear_output ()
 {
   if (unlikely (hb_object_is_immutable (this)))
     return;
@@ -313,7 +313,7 @@ hb_buffer_t::clear_output (void)
 }
 
 void
-hb_buffer_t::clear_positions (void)
+hb_buffer_t::clear_positions ()
 {
   if (unlikely (hb_object_is_immutable (this)))
     return;
@@ -328,7 +328,7 @@ hb_buffer_t::clear_positions (void)
 }
 
 void
-hb_buffer_t::swap_buffers (void)
+hb_buffer_t::swap_buffers ()
 {
   if (unlikely (!successful)) return;
 
@@ -480,7 +480,7 @@ hb_buffer_t::reverse_range (unsigned int start,
 }
 
 void
-hb_buffer_t::reverse (void)
+hb_buffer_t::reverse ()
 {
   if (unlikely (!len))
     return;
@@ -489,7 +489,7 @@ hb_buffer_t::reverse (void)
 }
 
 void
-hb_buffer_t::reverse_clusters (void)
+hb_buffer_t::reverse_clusters ()
 {
   unsigned int i, start, count, last_cluster;
 
@@ -574,7 +574,7 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
     set_cluster (out_info[i], cluster);
 }
 void
-hb_buffer_t::delete_glyph (void)
+hb_buffer_t::delete_glyph ()
 {
   /* The logic here is duplicated in hb_ot_hide_default_ignorables(). */
 
@@ -636,7 +636,7 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
 }
 
 void
-hb_buffer_t::guess_segment_properties (void)
+hb_buffer_t::guess_segment_properties ()
 {
   assert (content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
 	  (!len && content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
@@ -709,7 +709,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
  * Since: 0.9.2
  **/
 hb_buffer_t *
-hb_buffer_create (void)
+hb_buffer_create ()
 {
   hb_buffer_t *buffer;
 
@@ -734,7 +734,7 @@ hb_buffer_create (void)
  * Since: 0.9.2
  **/
 hb_buffer_t *
-hb_buffer_get_empty (void)
+hb_buffer_get_empty ()
 {
   return const_cast<hb_buffer_t *> (&Null(hb_buffer_t));
 }

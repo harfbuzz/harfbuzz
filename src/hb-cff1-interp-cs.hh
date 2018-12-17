@@ -47,7 +47,7 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     in_seac = false;
   }
 
-  void fini (void) { SUPER::fini (); }
+  void fini () { SUPER::fini (); }
 
   void set_width (bool has_width_)
   {
@@ -63,7 +63,7 @@ struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
     processed_width = true;
   }
 
-  void clear_args (void)
+  void clear_args ()
   {
     arg_start = 0;
     SUPER::clear_args ();

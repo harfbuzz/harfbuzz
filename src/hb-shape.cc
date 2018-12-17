@@ -49,7 +49,7 @@
 
 
 #if HB_USE_ATEXIT
-static void free_static_shaper_list (void);
+static void free_static_shaper_list ();
 #endif
 
 static const char *nil_shaper_list[] = {nullptr};
@@ -57,7 +57,7 @@ static const char *nil_shaper_list[] = {nullptr};
 static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
 							      hb_shaper_list_lazy_loader_t>
 {
-  static const char ** create (void)
+  static const char ** create ()
   {
     const char **shaper_list = (const char **) calloc (1 + HB_SHAPERS_COUNT, sizeof (const char *));
     if (unlikely (!shaper_list))
@@ -77,13 +77,13 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
   }
   static void destroy (const char **l)
   { free (l); }
-  static const char ** get_null (void)
+  static const char ** get_null ()
   { return nil_shaper_list; }
 } static_shaper_list;
 
 #if HB_USE_ATEXIT
 static
-void free_static_shaper_list (void)
+void free_static_shaper_list ()
 {
   static_shaper_list.free_instance ();
 }
@@ -101,7 +101,7 @@ void free_static_shaper_list (void)
  * Since: 0.9.2
  **/
 const char **
-hb_shape_list_shapers (void)
+hb_shape_list_shapers ()
 {
   return static_shaper_list.get_unconst ();
 }

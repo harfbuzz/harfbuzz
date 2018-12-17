@@ -153,7 +153,7 @@ struct glyf
     HBUINT16 flags;
     GlyphID  glyphIndex;
 
-    unsigned int get_size (void) const
+    unsigned int get_size () const
     {
       unsigned int size = min_size;
       // arg1 and 2 are int16
@@ -177,7 +177,7 @@ struct glyf
       const char *glyph_end;
       const CompositeGlyphHeader *current;
 
-      bool move_to_next (void)
+      bool move_to_next ()
       {
 	if (current->flags & CompositeGlyphHeader::MORE_COMPONENTS)
 	{
@@ -244,7 +244,7 @@ struct glyf
       num_glyphs = MAX (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
     }
 
-    void fini (void)
+    void fini ()
     {
       loca_table.destroy ();
       glyf_table.destroy ();

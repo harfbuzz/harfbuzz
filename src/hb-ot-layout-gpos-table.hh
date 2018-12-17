@@ -98,10 +98,8 @@ struct ValueFormat : HBUINT16
 					 * PosTable (may be NULL) */
 #endif
 
-  unsigned int get_len (void) const
-  { return hb_popcount ((unsigned int) *this); }
-  unsigned int get_size (void) const
-  { return get_len () * Value::static_size; }
+  unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
+  unsigned int get_size () const { return get_len () * Value::static_size; }
 
   bool apply_value (hb_ot_apply_context_t   *c,
 		    const void           *base,
@@ -191,7 +189,7 @@ struct ValueFormat : HBUINT16
 
   public:
 
-  bool has_device (void) const
+  bool has_device () const
   {
     unsigned int format = *this;
     return (format & devices) != 0;
@@ -479,8 +477,7 @@ struct SinglePosFormat1
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -535,8 +532,7 @@ struct SinglePosFormat2
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -754,8 +750,7 @@ struct PairPosFormat1
       (this+pairSet[i]).collect_glyphs (c, valueFormat);
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -830,8 +825,7 @@ struct PairPosFormat2
     if (unlikely (!(this+classDef2).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -982,8 +976,7 @@ struct CursivePosFormat1
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+coverage; }
+  const Coverage &get_coverage () const { return this+coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1150,8 +1143,7 @@ struct MarkBasePosFormat1
     if (unlikely (!(this+baseCoverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+markCoverage; }
+  const Coverage &get_coverage () const { return this+markCoverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1273,8 +1265,7 @@ struct MarkLigPosFormat1
     if (unlikely (!(this+ligatureCoverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+markCoverage; }
+  const Coverage &get_coverage () const { return this+markCoverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1395,8 +1386,7 @@ struct MarkMarkPosFormat1
     if (unlikely (!(this+mark2Coverage).add_coverage (c->input))) return;
   }
 
-  const Coverage &get_coverage (void) const
-  { return this+mark1Coverage; }
+  const Coverage &get_coverage () const { return this+mark1Coverage; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1576,7 +1566,7 @@ struct PosLookup : Lookup
   const SubTable& get_subtable (unsigned int i) const
   { return Lookup::get_subtable<SubTable> (i); }
 
-  bool is_reverse (void) const
+  bool is_reverse () const
   {
     return false;
   }
