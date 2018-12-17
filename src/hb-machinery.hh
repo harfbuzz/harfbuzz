@@ -654,11 +654,6 @@ struct Supplier : hb_array_t<const Type>
     this->arrayZ = v.arrayZ;
     this->len = v.len;
   }
-  Supplier (const hb_vector_t<Type> &v)
-  {
-    this->arrayZ = (const Type *) v;
-    this->len = v.len;
-  }
 
   Supplier<Type> & operator += (unsigned int count)
   {
