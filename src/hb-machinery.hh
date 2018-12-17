@@ -637,38 +637,6 @@ struct hb_serialize_context_t
 };
 
 
-/*
- * Supplier
- */
-
-template <typename Type>
-struct Supplier : hb_array_t<const Type>
-{
-  Supplier (const Type *array, unsigned int len_)
-  {
-    this->arrayZ = array;
-    this->len = len_;
-  }
-  Supplier (hb_array_t<const Type> v)
-  {
-    this->arrayZ = v.arrayZ;
-    this->len = v.len;
-  }
-
-  Supplier<Type> & operator += (unsigned int count)
-  {
-    if (unlikely (count > this->len))
-      count = this->len;
-    this->len -= count;
-    this->arrayZ += count;
-    return *this;
-  }
-
-  private:
-  Supplier (const Supplier<Type> &); /* Disallow copy */
-  Supplier<Type>& operator= (const Supplier<Type> &); /* Disallow copy */
-};
-
 
 /*
  * Big-endian integers.
