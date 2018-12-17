@@ -35,6 +35,15 @@
 #include "config.h"
 #endif
 
+#include <math.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
@@ -51,15 +60,6 @@
 #define HB_AAT_H_IN
 
 #include "hb-aat.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdarg.h>
 
 #if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
 #include <intrin.h>
