@@ -41,6 +41,8 @@ struct hb_bytes_t
   operator const void * (void) const { return arrayZ; }
   operator const char * (void) const { return arrayZ; }
 
+  explicit_operator bool (void) const { return len; }
+
   void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
 
   int cmp (const hb_bytes_t &a) const
@@ -79,6 +81,8 @@ struct hb_array_t
     if (unlikely (i >= len)) return Null(Type);
     return arrayZ[i];
   }
+
+  explicit_operator bool (void) const { return len; }
 
   template <typename T> operator  T * (void) const { return arrayZ; }
 
