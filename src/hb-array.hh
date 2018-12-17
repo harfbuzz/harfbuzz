@@ -39,10 +39,17 @@ struct hb_array_t
   typedef Type ItemType;
   enum { item_size = hb_static_size (Type) };
 
+  /*
+   * Constructors.
+   */
   hb_array_t (void) : arrayZ (nullptr), len (0) {}
   hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   hb_array_t (hb_array_t<const Type> o) : arrayZ (o.arrayZ), len (o.len) {}
   hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+
+  /*
+   * Operators.
+   */
 
   Type& operator [] (int i_) const
   {
@@ -66,24 +73,23 @@ struct hb_array_t
     return *this;
   }
 
-  unsigned int get_size (void) const { return len * item_size; }
+  /*
+   * Compare, Sort, and Search.
+   */
 
-  hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
+  /* Note: our compare is NOT lexicographic; it also does NOT call Type::cmp. */
+  int cmp (const hb_array_t<Type> &a) const
   {
-    if (!start_offset && !seg_count)
-      return *this;
-
-    unsigned int count = len;
-    if (unlikely (start_offset > count))
-      count = 0;
-    else
-      count -= start_offset;
-    if (seg_count)
-      count = *seg_count = MIN (count, *seg_count);
-    return hb_array_t<Type> (arrayZ + start_offset, count);
+    if (len != a.len)
+      return (int) a.len - (int) len;
+    return hb_memcmp (a.arrayZ, arrayZ, get_size ());
   }
-  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
-  { return sub_array (start_offset, &seg_count); }
+  static int cmp (const void *pa, const void *pb)
+  {
+    hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
+    hb_array_t<Type> *b = (hb_array_t<Type> *) pb;
+    return b->cmp (*a);
+  }
 
   template <typename T>
   Type *lsearch (const T &x, Type *not_found = nullptr)
@@ -121,25 +127,40 @@ struct hb_array_t
     ::qsort (arrayZ + start, end - start, item_size, Type::cmp);
   }
 
+  /*
+   * Other methods.
+   */
+
+  unsigned int get_size (void) const { return len * item_size; }
+
+  hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
+  {
+    if (!start_offset && !seg_count)
+      return *this;
+
+    unsigned int count = len;
+    if (unlikely (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    if (seg_count)
+      count = *seg_count = MIN (count, *seg_count);
+    return hb_array_t<Type> (arrayZ + start_offset, count);
+  }
+  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
+  { return sub_array (start_offset, &seg_count); }
+
+  /* Only call if you allocated the underlying array using malloc() or similar. */
   void free (void)
   { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
-
-  int cmp (const hb_array_t<Type> &a) const
-  {
-    if (len != a.len)
-      return (int) a.len - (int) len;
-    return hb_memcmp (a.arrayZ, arrayZ, get_size ());
-  }
-  static int cmp (const void *pa, const void *pb)
-  {
-    hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
-    hb_array_t<Type> *b = (hb_array_t<Type> *) pb;
-    return b->cmp (*a);
-  }
 
   template <typename hb_sanitize_context_t>
   bool sanitize (hb_sanitize_context_t *c) const
   { return c->check_array (arrayZ, len); }
+
+  /*
+   * Members
+   */
 
   public:
   Type *arrayZ;
