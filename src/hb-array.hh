@@ -60,12 +60,9 @@ struct hb_array_t
   }
 
   explicit_operator bool (void) const { return len; }
-
-  template <typename T> operator T * (void) const { return arrayZ; }
-
   Type * operator & (void) const { return arrayZ; }
-
   Type & operator * (void) { return (this->operator [])[0]; }
+  template <typename T> operator T * (void) const { return arrayZ; }
 
   hb_array_t<Type> & operator += (unsigned int count)
   {
@@ -75,6 +72,23 @@ struct hb_array_t
     arrayZ += count;
     return *this;
   }
+  hb_array_t<Type> & operator -= (unsigned int count)
+  {
+    if (unlikely (count > len))
+      count = len;
+    len -= count;
+    return *this;
+  }
+  hb_array_t<Type> & operator ++ (void) { *this += 1; }
+  hb_array_t<Type> & operator -- (void) { *this -= 1; }
+  hb_array_t<Type> operator + (unsigned int count)
+  { hb_array_t<Type> copy (*this); *this += count; return copy; }
+  hb_array_t<Type> operator - (unsigned int count)
+  { hb_array_t<Type> copy (*this); *this -= count; return copy; }
+  hb_array_t<Type>  operator ++ (int)
+  { hb_array_t<Type> copy (*this); ++*this; return copy; }
+  hb_array_t<Type>  operator -- (int)
+  { hb_array_t<Type> copy (*this); --*this; return copy; }
 
   /*
    * Compare, Sort, and Search.
