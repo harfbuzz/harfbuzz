@@ -21,7 +21,6 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
  * Google Author(s): Behdad Esfahbod
  */
 
@@ -29,6 +28,7 @@
 #define HB_VECTOR_HH
 
 #include "hb.hh"
+#include "hb-array.hh"
 
 
 template <typename Type, unsigned int PreallocedCount=8>

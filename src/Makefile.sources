@@ -16,6 +16,7 @@ HB_BASE_sources = \
 	hb-aat-ltag-table.hh \
 	hb-aat-map.cc \
 	hb-aat-map.hh \
+	hb-array.hh \
 	hb-atomic.hh \
 	hb-blob.cc \
 	hb-blob.hh \

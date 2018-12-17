@@ -33,6 +33,7 @@
 #include "hb-blob.hh"
 
 #include "hb-iter.hh"
+#include "hb-array.hh"
 #include "hb-vector.hh"
 
 
