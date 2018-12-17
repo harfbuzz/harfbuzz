@@ -30,39 +30,6 @@
 #include "hb.hh"
 
 
-struct hb_bytes_t
-{
-  hb_bytes_t (void) : arrayZ (nullptr), len (0) {}
-  hb_bytes_t (const char *bytes_, unsigned int len_) : arrayZ (bytes_), len (len_) {}
-  hb_bytes_t (const void *bytes_, unsigned int len_) : arrayZ ((const char *) bytes_), len (len_) {}
-  template <typename T>
-  hb_bytes_t (const T& array) : arrayZ ((const char *) array.arrayZ), len (array.len * sizeof (array.arrayZ[0])) {}
-
-  operator const void * (void) const { return arrayZ; }
-  operator const char * (void) const { return arrayZ; }
-
-  explicit_operator bool (void) const { return len; }
-
-  void free (void) { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
-
-  int cmp (const hb_bytes_t &a) const
-  {
-    if (len != a.len)
-      return (int) a.len - (int) len;
-    return hb_memcmp (a.arrayZ, arrayZ, len);
-  }
-  static int cmp (const void *pa, const void *pb)
-  {
-    hb_bytes_t *a = (hb_bytes_t *) pa;
-    hb_bytes_t *b = (hb_bytes_t *) pb;
-    return b->cmp (*a);
-  }
-
-  const char *arrayZ;
-  unsigned int len;
-};
-
-
 template <typename Type>
 struct hb_sorted_array_t;
 
@@ -85,11 +52,11 @@ struct hb_array_t
 
   explicit_operator bool (void) const { return len; }
 
-  template <typename T> operator  T * (void) const { return arrayZ; }
+  template <typename T> operator T * (void) const { return arrayZ; }
 
   Type * operator & (void) const { return arrayZ; }
 
-  unsigned int get_size (void) const { return len * sizeof (Type); }
+  unsigned int get_size (void) const { return len * item_size; }
 
   hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
@@ -108,12 +75,8 @@ struct hb_array_t
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
 
-  hb_bytes_t as_bytes (void) const
-  { return hb_bytes_t (arrayZ, len * sizeof (Type)); }
-
   template <typename T>
-  Type *lsearch (const T &x,
-			Type *not_found = nullptr)
+  Type *lsearch (const T &x, Type *not_found = nullptr)
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -131,25 +94,38 @@ struct hb_array_t
     return not_found;
   }
 
-  hb_sorted_array_t<Type> qsort (int (*cmp)(const void*, const void*))
+  hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
   {
-    ::qsort (arrayZ, len, sizeof (Type), cmp);
+    ::qsort (arrayZ, len, item_size, cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
   hb_sorted_array_t<Type> qsort (void)
   {
-    ::qsort (arrayZ, len, sizeof (Type), Type::cmp);
+    ::qsort (arrayZ, len, item_size, Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
   void qsort (unsigned int start, unsigned int end)
   {
     end = MIN (end, len);
     assert (start <= end);
-    ::qsort (arrayZ + start, end - start, sizeof (Type), Type::cmp);
+    ::qsort (arrayZ + start, end - start, item_size, Type::cmp);
   }
 
   void free (void)
   { ::free ((void *) arrayZ); arrayZ = nullptr; len = 0; }
+
+  int cmp (const hb_array_t<Type> &a) const
+  {
+    if (len != a.len)
+      return (int) a.len - (int) len;
+    return hb_memcmp (a.arrayZ, arrayZ, get_size ());
+  }
+  static int cmp (const void *pa, const void *pb)
+  {
+    hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
+    hb_array_t<Type> *b = (hb_array_t<Type> *) pb;
+    return b->cmp (*a);
+  }
 
   template <typename hb_sanitize_context_t>
   bool sanitize (hb_sanitize_context_t *c) const
@@ -241,6 +217,9 @@ struct hb_sorted_array_t : hb_array_t<Type>
 template <typename T>
 inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
 { return hb_sorted_array_t<T> (array, len); }
+
+
+typedef hb_array_t<const char> hb_bytes_t;
 
 
 #endif /* HB_ARRAY_HH */

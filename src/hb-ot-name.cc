@@ -66,12 +66,12 @@ hb_ot_name_list_names (hb_face_t    *face,
 
 template <typename in_utf_t, typename out_utf_t>
 static inline unsigned int
-hb_ot_name_convert_utf (const hb_bytes_t                *bytes,
+hb_ot_name_convert_utf (hb_bytes_t                       bytes,
 			unsigned int                    *text_size /* IN/OUT */,
 			typename out_utf_t::codepoint_t *text /* OUT */)
 {
-  unsigned int src_len = bytes->len / sizeof (typename in_utf_t::codepoint_t);
-  const typename in_utf_t::codepoint_t *src = (const typename in_utf_t::codepoint_t *) bytes->arrayZ;
+  unsigned int src_len = bytes.len / sizeof (typename in_utf_t::codepoint_t);
+  const typename in_utf_t::codepoint_t *src = (const typename in_utf_t::codepoint_t *) bytes.arrayZ;
   const typename in_utf_t::codepoint_t *src_end = src + src_len;
 
   typename out_utf_t::codepoint_t *dst = text;
@@ -129,10 +129,10 @@ hb_ot_name_get_utf (hb_face_t       *face,
     hb_bytes_t bytes = name.get_name (idx);
 
     if (width == 2) /* UTF16-BE */
-      return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (&bytes, text_size, text);
+      return hb_ot_name_convert_utf<hb_utf16_be_t, utf_t> (bytes, text_size, text);
 
     if (width == 1) /* ASCII */
-      return hb_ot_name_convert_utf<hb_ascii_t, utf_t> (&bytes, text_size, text);
+      return hb_ot_name_convert_utf<hb_ascii_t, utf_t> (bytes, text_size, text);
   }
 
   if (text_size)

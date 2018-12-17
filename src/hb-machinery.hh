@@ -619,7 +619,7 @@ struct hb_serialize_context_t
       memcpy (p, this->start, len);
     else
       return hb_bytes_t ();
-    return hb_bytes_t (p, len);
+    return hb_bytes_t ((char *) p, len);
   }
   hb_blob_t *copy_blob (void) const
   {

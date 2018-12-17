@@ -182,7 +182,7 @@ struct name
     {
       this->table = hb_sanitize_context_t().reference_table<name> (face);
       assert (this->table.get_length () >= this->table->stringOffset);
-      this->pool = (this->table+this->table->stringOffset).arrayZ;
+      this->pool = (const char *) (const void *) (this->table+this->table->stringOffset);
       this->pool_len = this->table.get_length () - this->table->stringOffset;
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
@@ -248,12 +248,12 @@ struct name
     {
       const hb_array_t<const NameRecord> all_names (table->nameRecordZ.arrayZ, table->count);
       const NameRecord &record = all_names[idx];
-      const hb_array_t<const char> string_pool ((const char *) pool, pool_len);
-      return string_pool.sub_array (record.offset, record.length).as_bytes ();
+      const hb_bytes_t string_pool (pool, pool_len);
+      return string_pool.sub_array (record.offset, record.length);
     }
 
     private:
-    const void *pool;
+    const char *pool;
     unsigned int pool_len;
     public:
     hb_blob_ptr_t<name> table;
