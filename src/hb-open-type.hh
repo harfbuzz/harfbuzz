@@ -382,7 +382,7 @@ struct UnsizedArrayOf
   hb_array_t<const Type> as_array (unsigned int len) const
   { return hb_array (arrayZ, len); }
   operator hb_array_t<Type> (void) { return as_array (); }
-  operator hb_array_t<const Type> (void) const { as_array (); }
+  operator hb_array_t<const Type> (void) const { return as_array (); }
 
   template <typename T>
   Type &lsearch (unsigned int len, const T &x, Type &not_found = Crap (Type))
@@ -534,7 +534,7 @@ struct ArrayOf
   hb_array_t<const Type> as_array (void) const
   { return hb_array (arrayZ, len); }
   operator hb_array_t<Type> (void) { return as_array (); }
-  operator hb_array_t<const Type> (void) const { as_array (); }
+  operator hb_array_t<const Type> (void) const { return as_array (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
