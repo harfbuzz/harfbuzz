@@ -54,7 +54,7 @@ struct Iter;
 template <typename T>
 struct Iter
 {
-  explicit inline Iter (const T &c);
+  Iter (const T &c);
 };
 #endif
 
@@ -68,7 +68,7 @@ struct Iter<T *>
   Iter (T *array_, int length_) :
     array (array_), length (MAX (length_, 0)) {}
   template <unsigned int length_>
-  explicit inline Iter (T (&array_)[length_]) :
+  Iter (T (&array_)[length_]) :
     array (array_), length (length_) {}
 
   /* Emptiness. */

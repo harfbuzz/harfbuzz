@@ -46,6 +46,7 @@ struct hb_array_t
   hb_array_t (const hb_array_t &o) : arrayZ (o.arrayZ), len (o.len) {}
   hb_array_t (hb_array_t<const Type> o) : arrayZ (o.arrayZ), len (o.len) {}
   hb_array_t (Type *array_, unsigned int len_) : arrayZ (array_), len (len_) {}
+  template <unsigned int len_> hb_array_t (Type (&array_)[len_]) : arrayZ (array_), len (len_) {}
 
   /*
    * Operators.
