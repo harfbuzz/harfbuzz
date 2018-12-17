@@ -143,7 +143,7 @@ static_assert ((sizeof (LONG) == sizeof (int)), "");
 static inline int _hb_fetch_and_add (int *AI, int V)
 {
   _hb_memory_w_barrier ();
-  int result = atomic_add_int_nv ((uint_t *) AI, V);
+  int result = atomic_add_int_nv ((uint_t *) AI, V) -V;
   _hb_memory_r_barrier ();
   return result;
 }
