@@ -61,6 +61,7 @@ struct hb_array_t
   explicit_operator bool (void) const { return len; }
   Type * operator & (void) const { return arrayZ; }
   Type & operator * (void) { return (this->operator [])[0]; }
+  operator hb_array_t<const Type> (void) { return hb_array_t<const Type> (arrayZ, len); }
   template <typename T> operator T * (void) const { return arrayZ; }
 
   hb_array_t<Type> & operator += (unsigned int count)
