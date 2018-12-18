@@ -36,8 +36,8 @@ namespace OT {
 
 
 static inline void SingleSubst_serialize (hb_serialize_context_t *c,
-					  Supplier<GlyphID> &glyphs,
-					  Supplier<GlyphID> &substitutes,
+					  hb_supplier_t<GlyphID> &glyphs,
+					  hb_supplier_t<GlyphID> &substitutes,
 					  unsigned int num_glyphs);
 
 struct SingleSubstFormat1
@@ -95,7 +95,7 @@ struct SingleSubstFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs,
 		  int delta)
   {
@@ -122,8 +122,8 @@ struct SingleSubstFormat1
     }
     c->serializer->err (from.in_error () || to.in_error ());
 
-    Supplier<GlyphID> from_supplier (from);
-    Supplier<GlyphID> to_supplier (to);
+    hb_supplier_t<GlyphID> from_supplier (from);
+    hb_supplier_t<GlyphID> to_supplier (to);
     SingleSubst_serialize (c->serializer,
 			   from_supplier,
 			   to_supplier,
@@ -201,8 +201,8 @@ struct SingleSubstFormat2
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<GlyphID> &substitutes,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &substitutes,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -227,8 +227,8 @@ struct SingleSubstFormat2
     }
     c->serializer->err (from.in_error () || to.in_error ());
 
-    Supplier<GlyphID> from_supplier (from);
-    Supplier<GlyphID> to_supplier (to);
+    hb_supplier_t<GlyphID> from_supplier (from);
+    hb_supplier_t<GlyphID> to_supplier (to);
     SingleSubst_serialize (c->serializer,
 			   from_supplier,
 			   to_supplier,
@@ -257,8 +257,8 @@ struct SingleSubstFormat2
 struct SingleSubst
 {
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<GlyphID> &substitutes,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &substitutes,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -305,8 +305,8 @@ struct SingleSubst
 
 static inline void
 SingleSubst_serialize (hb_serialize_context_t *c,
-		       Supplier<GlyphID> &glyphs,
-		       Supplier<GlyphID> &substitutes,
+		       hb_supplier_t<GlyphID> &glyphs,
+		       hb_supplier_t<GlyphID> &substitutes,
 		       unsigned int num_glyphs)
 {
   c->start_embed<SingleSubst> ()->serialize (c,
@@ -364,7 +364,7 @@ struct Sequence
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -432,10 +432,10 @@ struct MultipleSubstFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<unsigned int> &substitute_len_list,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<unsigned int> &substitute_len_list,
 		  unsigned int num_glyphs,
-		  Supplier<GlyphID> &substitute_glyphs_list)
+		  hb_supplier_t<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -477,10 +477,10 @@ struct MultipleSubstFormat1
 struct MultipleSubst
 {
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<unsigned int> &substitute_len_list,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<unsigned int> &substitute_len_list,
 		  unsigned int num_glyphs,
-		  Supplier<GlyphID> &substitute_glyphs_list)
+		  hb_supplier_t<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
@@ -552,7 +552,7 @@ struct AlternateSet
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -625,10 +625,10 @@ struct AlternateSubstFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<unsigned int> &alternate_len_list,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<unsigned int> &alternate_len_list,
 		  unsigned int num_glyphs,
-		  Supplier<GlyphID> &alternate_glyphs_list)
+		  hb_supplier_t<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -670,10 +670,10 @@ struct AlternateSubstFormat1
 struct AlternateSubst
 {
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<unsigned int> &alternate_len_list,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<unsigned int> &alternate_len_list,
 		  unsigned int num_glyphs,
-		  Supplier<GlyphID> &alternate_glyphs_list)
+		  hb_supplier_t<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
@@ -786,7 +786,7 @@ struct Ligature
 
   bool serialize (hb_serialize_context_t *c,
 		  GlyphID ligature,
-		  Supplier<GlyphID> &components, /* Starting from second */
+		  hb_supplier_t<GlyphID> &components, /* Starting from second */
 		  unsigned int num_components /* Including first component */)
   {
     TRACE_SERIALIZE (this);
@@ -867,10 +867,10 @@ struct LigatureSet
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &ligatures,
-		  Supplier<unsigned int> &component_count_list,
+		  hb_supplier_t<GlyphID> &ligatures,
+		  hb_supplier_t<unsigned int> &component_count_list,
 		  unsigned int num_ligatures,
-		  Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+		  hb_supplier_t<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -965,12 +965,12 @@ struct LigatureSubstFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &first_glyphs,
-		  Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+		  hb_supplier_t<GlyphID> &first_glyphs,
+		  hb_supplier_t<unsigned int> &ligature_per_first_glyph_count_list,
 		  unsigned int num_first_glyphs,
-		  Supplier<GlyphID> &ligatures_list,
-		  Supplier<unsigned int> &component_count_list,
-		  Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+		  hb_supplier_t<GlyphID> &ligatures_list,
+		  hb_supplier_t<unsigned int> &component_count_list,
+		  hb_supplier_t<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1014,12 +1014,12 @@ struct LigatureSubstFormat1
 struct LigatureSubst
 {
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &first_glyphs,
-		  Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+		  hb_supplier_t<GlyphID> &first_glyphs,
+		  hb_supplier_t<unsigned int> &ligature_per_first_glyph_count_list,
 		  unsigned int num_first_glyphs,
-		  Supplier<GlyphID> &ligatures_list,
-		  Supplier<unsigned int> &component_count_list,
-		  Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+		  hb_supplier_t<GlyphID> &ligatures_list,
+		  hb_supplier_t<unsigned int> &component_count_list,
+		  hb_supplier_t<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
@@ -1372,8 +1372,8 @@ struct SubstLookup : Lookup
 
   bool serialize_single (hb_serialize_context_t *c,
 			 uint32_t lookup_props,
-		         Supplier<GlyphID> &glyphs,
-		         Supplier<GlyphID> &substitutes,
+		         hb_supplier_t<GlyphID> &glyphs,
+		         hb_supplier_t<GlyphID> &substitutes,
 		         unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1383,10 +1383,10 @@ struct SubstLookup : Lookup
 
   bool serialize_multiple (hb_serialize_context_t *c,
 			   uint32_t lookup_props,
-			   Supplier<GlyphID> &glyphs,
-			   Supplier<unsigned int> &substitute_len_list,
+			   hb_supplier_t<GlyphID> &glyphs,
+			   hb_supplier_t<unsigned int> &substitute_len_list,
 			   unsigned int num_glyphs,
-			   Supplier<GlyphID> &substitute_glyphs_list)
+			   hb_supplier_t<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Multiple, lookup_props, 1))) return_trace (false);
@@ -1399,10 +1399,10 @@ struct SubstLookup : Lookup
 
   bool serialize_alternate (hb_serialize_context_t *c,
 			    uint32_t lookup_props,
-			    Supplier<GlyphID> &glyphs,
-			    Supplier<unsigned int> &alternate_len_list,
+			    hb_supplier_t<GlyphID> &glyphs,
+			    hb_supplier_t<unsigned int> &alternate_len_list,
 			    unsigned int num_glyphs,
-			    Supplier<GlyphID> &alternate_glyphs_list)
+			    hb_supplier_t<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Alternate, lookup_props, 1))) return_trace (false);
@@ -1415,12 +1415,12 @@ struct SubstLookup : Lookup
 
   bool serialize_ligature (hb_serialize_context_t *c,
 			   uint32_t lookup_props,
-			   Supplier<GlyphID> &first_glyphs,
-			   Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+			   hb_supplier_t<GlyphID> &first_glyphs,
+			   hb_supplier_t<unsigned int> &ligature_per_first_glyph_count_list,
 			   unsigned int num_first_glyphs,
-			   Supplier<GlyphID> &ligatures_list,
-			   Supplier<unsigned int> &component_count_list,
-			   Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+			   hb_supplier_t<GlyphID> &ligatures_list,
+			   hb_supplier_t<unsigned int> &component_count_list,
+			   hb_supplier_t<GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Ligature, lookup_props, 1))) return_trace (false);

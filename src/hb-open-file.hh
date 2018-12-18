@@ -121,7 +121,7 @@ typedef struct OffsetTable
   template <typename item_t>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
-		  Supplier<item_t> &items,
+		  hb_supplier_t<item_t> &items,
 		  unsigned int table_count)
   {
     TRACE_SERIALIZE (this);
@@ -485,7 +485,7 @@ struct OpenTypeFontFile
   template <typename item_t>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
-			 Supplier<item_t> &items,
+			 hb_supplier_t<item_t> &items,
 			 unsigned int table_count)
   {
     TRACE_SERIALIZE (this);

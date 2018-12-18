@@ -269,10 +269,10 @@ inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
 
 typedef hb_array_t<const char> hb_bytes_t;
 
-template <typename Type> struct Supplier : hb_array_t<const Type>
+template <typename Type> struct hb_supplier_t : hb_array_t<const Type>
 {
-  Supplier (const Type *array, unsigned int len) : hb_array_t<const Type> (array, len) {}
-  Supplier (hb_array_t<const Type> v) : hb_array_t<const Type> (v) {}
+  hb_supplier_t (const Type *array, unsigned int len) : hb_array_t<const Type> (array, len) {}
+  hb_supplier_t (hb_array_t<const Type> v) : hb_array_t<const Type> (v) {}
 };
 
 

@@ -827,7 +827,7 @@ struct CoverageFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -902,7 +902,7 @@ struct CoverageFormat2
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1051,7 +1051,7 @@ struct Coverage
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
+		  hb_supplier_t<GlyphID> &glyphs,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1189,8 +1189,8 @@ struct Coverage
  */
 
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       Supplier<GlyphID> &glyphs,
-				       Supplier<HBUINT16> &klasses,
+				       hb_supplier_t<GlyphID> &glyphs,
+				       hb_supplier_t<HBUINT16> &klasses,
 				       unsigned int num_glyphs);
 
 struct ClassDefFormat1
@@ -1204,8 +1204,8 @@ struct ClassDefFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<HBUINT16> &glyphs,
-		  Supplier<HBUINT16> &klasses,
+		  hb_supplier_t<HBUINT16> &glyphs,
+		  hb_supplier_t<HBUINT16> &klasses,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1256,8 +1256,8 @@ struct ClassDefFormat1
     }
     c->serializer->err (glyphs.in_error () || klasses.in_error ());
 
-    Supplier<GlyphID> glyphs_supplier (glyphs);
-    Supplier<HBUINT16> klasses_supplier (klasses);
+    hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
+    hb_supplier_t<HBUINT16> klasses_supplier (klasses);
     ClassDef_serialize (c->serializer,
 			glyphs_supplier,
 			klasses_supplier,
@@ -1352,8 +1352,8 @@ struct ClassDefFormat2
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<HBUINT16> &glyphs,
-		  Supplier<HBUINT16> &klasses,
+		  hb_supplier_t<HBUINT16> &glyphs,
+		  hb_supplier_t<HBUINT16> &klasses,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1415,8 +1415,8 @@ struct ClassDefFormat2
     }
     c->serializer->err (glyphs.in_error () || klasses.in_error ());
 
-    Supplier<GlyphID> glyphs_supplier (glyphs);
-    Supplier<HBUINT16> klasses_supplier (klasses);
+    hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
+    hb_supplier_t<HBUINT16> klasses_supplier (klasses);
     ClassDef_serialize (c->serializer,
 			glyphs_supplier,
 			klasses_supplier,
@@ -1509,8 +1509,8 @@ struct ClassDef
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<GlyphID> &glyphs,
-		  Supplier<HBUINT16> &klasses,
+		  hb_supplier_t<GlyphID> &glyphs,
+		  hb_supplier_t<HBUINT16> &klasses,
 		  unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1610,8 +1610,8 @@ struct ClassDef
 };
 
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       Supplier<GlyphID> &glyphs,
-				       Supplier<HBUINT16> &klasses,
+				       hb_supplier_t<GlyphID> &glyphs,
+				       hb_supplier_t<HBUINT16> &klasses,
 				       unsigned int num_glyphs)
 {
   c->start_embed<ClassDef> ()->serialize (c,

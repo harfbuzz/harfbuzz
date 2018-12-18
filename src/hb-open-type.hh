@@ -554,7 +554,7 @@ struct ArrayOf
     return_trace (true);
   }
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<Type> &items,
+		  hb_supplier_t<Type> &items,
 		  unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
@@ -701,7 +701,7 @@ struct HeadlessArrayOf
   { return lenP1.static_size + (lenP1 ? lenP1 - 1 : 0) * Type::static_size; }
 
   bool serialize (hb_serialize_context_t *c,
-		  Supplier<Type> &items,
+		  hb_supplier_t<Type> &items,
 		  unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
