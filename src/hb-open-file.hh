@@ -121,8 +121,7 @@ typedef struct OffsetTable
   template <typename item_t>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
-		  hb_supplier_t<item_t> &items,
-		  unsigned int table_count)
+		  hb_array_t<item_t> items)
   {
     TRACE_SERIALIZE (this);
     /* Alloc 12 for the OTHeader. */
@@ -131,13 +130,13 @@ typedef struct OffsetTable
     sfnt_version.set (sfnt_tag);
     /* Take space for numTables, searchRange, entrySelector, RangeShift
      * and the TableRecords themselves.  */
-    if (unlikely (!tables.serialize (c, table_count))) return_trace (false);
+    if (unlikely (!tables.serialize (c, items.len))) return_trace (false);
 
     const char *dir_end = (const char *) c->head;
     HBUINT32 *checksum_adjustment = nullptr;
 
     /* Write OffsetTables, alloc for and write actual table blobs. */
-    for (unsigned int i = 0; i < table_count; i++)
+    for (unsigned int i = 0; i < tables.len; i++)
     {
       TableRecord &rec = tables.arrayZ[i];
       hb_blob_t *blob = items[i].blob;
@@ -164,7 +163,6 @@ typedef struct OffsetTable
 
       rec.checkSum.set_for_data (start, end - start);
     }
-    items += table_count;
 
     tables.qsort ();
 
@@ -175,7 +173,7 @@ typedef struct OffsetTable
       /* The following line is a slower version of the following block. */
       //checksum.set_for_data (this, (const char *) c->head - (const char *) this);
       checksum.set_for_data (this, dir_end - (const char *) this);
-      for (unsigned int i = 0; i < table_count; i++)
+      for (unsigned int i = 0; i < items.len; i++)
       {
 	TableRecord &rec = tables.arrayZ[i];
 	checksum.set (checksum + rec.checkSum);
@@ -485,13 +483,12 @@ struct OpenTypeFontFile
   template <typename item_t>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
-			 hb_supplier_t<item_t> &items,
-			 unsigned int table_count)
+			 hb_array_t<item_t> items)
   {
     TRACE_SERIALIZE (this);
     assert (sfnt_tag != TTCTag);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    return_trace (u.fontFace.serialize (c, sfnt_tag, items, table_count));
+    return_trace (u.fontFace.serialize (c, sfnt_tag, items));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

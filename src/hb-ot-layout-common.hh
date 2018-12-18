@@ -827,17 +827,10 @@ struct CoverageFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<GlyphID> &glyphs,
-		  unsigned int num_glyphs)
+		  hb_array_t<const GlyphID> glyphs)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
-    glyphArray.len.set (num_glyphs);
-    if (unlikely (!c->extend (glyphArray))) return_trace (false);
-    for (unsigned int i = 0; i < num_glyphs; i++)
-      glyphArray[i] = glyphs[i];
-    glyphs += num_glyphs;
-    return_trace (true);
+    return_trace (glyphArray.serialize (c, glyphs));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -902,20 +895,19 @@ struct CoverageFormat2
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<GlyphID> &glyphs,
-		  unsigned int num_glyphs)
+		  hb_array_t<const GlyphID> glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!num_glyphs))
+    if (unlikely (!glyphs.len))
     {
       rangeRecord.len.set (0);
       return_trace (true);
     }
 
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
     rangeRecord.len.set (num_ranges);
@@ -924,7 +916,7 @@ struct CoverageFormat2
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value.set (0);
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i])
       {
@@ -934,7 +926,6 @@ struct CoverageFormat2
       }
       rangeRecord[range].end = glyphs[i];
     }
-    glyphs += num_glyphs;
     return_trace (true);
   }
 
@@ -1051,22 +1042,21 @@ struct Coverage
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<GlyphID> &glyphs,
-		  unsigned int num_glyphs)
+		  hb_array_t<const GlyphID> glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
-    u.format.set (num_glyphs * 2 < num_ranges * 3 ? 1 : 2);
+    u.format.set (glyphs.len * 2 < num_ranges * 3 ? 1 : 2);
 
     switch (u.format)
     {
-    case 1: return_trace (u.format1.serialize (c, glyphs, num_glyphs));
-    case 2: return_trace (u.format2.serialize (c, glyphs, num_glyphs));
+    case 1: return_trace (u.format1.serialize (c, glyphs));
+    case 2: return_trace (u.format2.serialize (c, glyphs));
     default:return_trace (false);
     }
   }
@@ -1189,9 +1179,8 @@ struct Coverage
  */
 
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       hb_supplier_t<GlyphID> &glyphs,
-				       hb_supplier_t<HBUINT16> &klasses,
-				       unsigned int num_glyphs);
+				       hb_array_t<const GlyphID> glyphs,
+				       hb_array_t<const HBUINT16> klasses);
 
 struct ClassDefFormat1
 {
@@ -1204,14 +1193,13 @@ struct ClassDefFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<HBUINT16> &glyphs,
-		  hb_supplier_t<HBUINT16> &klasses,
-		  unsigned int num_glyphs)
+		  hb_array_t<const HBUINT16> glyphs,
+		  hb_array_t<const HBUINT16> klasses)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!num_glyphs))
+    if (unlikely (!glyphs.len))
     {
       startGlyph.set (0);
       classValue.len.set (0);
@@ -1219,7 +1207,7 @@ struct ClassDefFormat1
     }
 
     hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
-    for (unsigned int i = 0; i < num_glyphs; i++)
+    for (unsigned int i = 0; i < glyphs.len; i++)
     {
       glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
       glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
@@ -1229,10 +1217,9 @@ struct ClassDefFormat1
     classValue.len.set (glyph_max - glyph_min + 1);
     if (unlikely (!c->extend (classValue))) return_trace (false);
 
-    for (unsigned int i = 0; i < num_glyphs; i++)
+    for (unsigned int i = 0; i < glyphs.len; i++)
       classValue[glyphs[i] - glyph_min] = klasses[i];
-    glyphs += num_glyphs;
-    klasses += num_glyphs;
+
     return_trace (true);
   }
 
@@ -1255,13 +1242,7 @@ struct ClassDefFormat1
       klasses.push()->set (value);
     }
     c->serializer->propagate_error (glyphs, klasses);
-
-    hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
-    hb_supplier_t<HBUINT16> klasses_supplier (klasses);
-    ClassDef_serialize (c->serializer,
-			glyphs_supplier,
-			klasses_supplier,
-			glyphs.len);
+    ClassDef_serialize (c->serializer, glyphs, klasses);
     return_trace (glyphs.len);
   }
 
@@ -1352,21 +1333,20 @@ struct ClassDefFormat2
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<HBUINT16> &glyphs,
-		  hb_supplier_t<HBUINT16> &klasses,
-		  unsigned int num_glyphs)
+		  hb_array_t<const HBUINT16> glyphs,
+		  hb_array_t<const HBUINT16> klasses)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!num_glyphs))
+    if (unlikely (!glyphs.len))
     {
       rangeRecord.len.set (0);
       return_trace (true);
     }
 
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
 	num_ranges++;
@@ -1376,7 +1356,7 @@ struct ClassDefFormat2
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value.set (klasses[0]);
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
@@ -1387,7 +1367,6 @@ struct ClassDefFormat2
       }
       rangeRecord[range].end = glyphs[i];
     }
-    glyphs += num_glyphs;
     return_trace (true);
   }
 
@@ -1414,13 +1393,7 @@ struct ClassDefFormat2
       }
     }
     c->serializer->propagate_error (glyphs, klasses);
-
-    hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
-    hb_supplier_t<HBUINT16> klasses_supplier (klasses);
-    ClassDef_serialize (c->serializer,
-			glyphs_supplier,
-			klasses_supplier,
-			glyphs.len);
+    ClassDef_serialize (c->serializer, glyphs, klasses);
     return_trace (glyphs.len);
   }
 
@@ -1509,21 +1482,20 @@ struct ClassDef
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<GlyphID> &glyphs,
-		  hb_supplier_t<HBUINT16> &klasses,
-		  unsigned int num_glyphs)
+		  hb_array_t<const GlyphID> glyphs,
+		  hb_array_t<const HBUINT16> klasses)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
-    for (unsigned int i = 0; i < num_glyphs; i++)
+    for (unsigned int i = 0; i < glyphs.len; i++)
     {
       glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
       glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
     }
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < num_glyphs; i++)
+    for (unsigned int i = 1; i < glyphs.len; i++)
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
 	num_ranges++;
@@ -1531,8 +1503,8 @@ struct ClassDef
 
     switch (u.format)
     {
-    case 1: return_trace (u.format1.serialize (c, glyphs, klasses, num_glyphs));
-    case 2: return_trace (u.format2.serialize (c, glyphs, klasses, num_glyphs));
+    case 1: return_trace (u.format1.serialize (c, glyphs, klasses));
+    case 2: return_trace (u.format2.serialize (c, glyphs, klasses));
     default:return_trace (false);
     }
   }
@@ -1610,15 +1582,9 @@ struct ClassDef
 };
 
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       hb_supplier_t<GlyphID> &glyphs,
-				       hb_supplier_t<HBUINT16> &klasses,
-				       unsigned int num_glyphs)
-{
-  c->start_embed<ClassDef> ()->serialize (c,
-					  glyphs,
-					  klasses,
-					  num_glyphs);
-}
+				       hb_array_t<const GlyphID> glyphs,
+				       hb_array_t<const HBUINT16> klasses)
+{ c->start_embed<ClassDef> ()->serialize (c, glyphs, klasses); }
 
 
 /*

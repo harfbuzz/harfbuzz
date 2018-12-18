@@ -553,15 +553,12 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<Type> &items,
-		  unsigned int items_len)
+  bool serialize (hb_serialize_context_t *c, hb_array_t<const Type> items)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!serialize (c, items_len))) return_trace (false);
-    for (unsigned int i = 0; i < items_len; i++)
+    if (unlikely (!serialize (c, items.len))) return_trace (false);
+    for (unsigned int i = 0; i < items.len; i++)
       arrayZ[i] = items[i];
-    items += items_len;
     return_trace (true);
   }
 
@@ -701,17 +698,14 @@ struct HeadlessArrayOf
   { return lenP1.static_size + (lenP1 ? lenP1 - 1 : 0) * Type::static_size; }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_supplier_t<Type> &items,
-		  unsigned int items_len)
+		  hb_array_t<const Type> items)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    lenP1.set (items_len); /* TODO(serialize) Overflow? */
-    if (unlikely (!items_len)) return_trace (true);
+    lenP1.set (items.len + 1); /* TODO(serialize) Overflow? */
     if (unlikely (!c->extend (*this))) return_trace (false);
-    for (unsigned int i = 0; i < items_len - 1; i++)
+    for (unsigned int i = 0; i < items.len; i++)
       arrayZ[i] = items[i];
-    items += items_len - 1;
     return_trace (true);
   }
 

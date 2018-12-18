@@ -79,8 +79,6 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
    * May not be good-enough for presidential candidate interviews, but good-enough for us... */
   hb_stable_sort (&glyphs[0], num_glyphs, (int(*)(const OT::GlyphID*, const OT::GlyphID *)) OT::GlyphID::cmp, &substitutes[0]);
 
-  hb_supplier_t<OT::GlyphID> glyphs_supplier      (glyphs, num_glyphs);
-  hb_supplier_t<OT::GlyphID> substitutes_supplier (substitutes, num_glyphs);
 
   /* Each glyph takes four bytes max, and there's some overhead. */
   char buf[(SHAPING_TABLE_LAST - SHAPING_TABLE_FIRST + 1) * 4 + 128];
@@ -88,9 +86,8 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_single (&c,
 				       OT::LookupFlag::IgnoreMarks,
-				       glyphs_supplier,
-				       substitutes_supplier,
-				       num_glyphs);
+				       hb_array (glyphs, num_glyphs),
+				       hb_array (substitutes, num_glyphs));
   c.end_serialize ();
   /* TODO sanitize the results? */
 
@@ -155,11 +152,6 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   if (!num_ligatures)
     return nullptr;
 
-  hb_supplier_t<OT::GlyphID>  first_glyphs_supplier                      (first_glyphs, num_first_glyphs);
-  hb_supplier_t<unsigned int> ligature_per_first_glyph_count_supplier    (ligature_per_first_glyph_count_list, num_first_glyphs);
-  hb_supplier_t<OT::GlyphID>  ligatures_supplier                         (ligature_list, num_ligatures);
-  hb_supplier_t<unsigned int> component_count_supplier                   (component_count_list, num_ligatures);
-  hb_supplier_t<OT::GlyphID>  component_supplier                         (component_list, num_ligatures);
 
   /* 16 bytes per ligature ought to be enough... */
   char buf[ARRAY_LENGTH_CONST (ligature_list) * 16 + 128];
@@ -167,12 +159,11 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
 					 OT::LookupFlag::IgnoreMarks,
-					 first_glyphs_supplier,
-					 ligature_per_first_glyph_count_supplier,
-					 num_first_glyphs,
-					 ligatures_supplier,
-					 component_count_supplier,
-					 component_supplier);
+					 hb_array (first_glyphs, num_first_glyphs),
+					 hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
+					 hb_array (ligature_list, num_ligatures),
+					 hb_array (component_count_list, num_ligatures),
+					 hb_array (component_list, num_ligatures));
   c.end_serialize ();
   /* TODO sanitize the results? */
 

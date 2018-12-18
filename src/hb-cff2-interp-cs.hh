@@ -52,7 +52,7 @@ struct BlendArg : Number
   void set_real (double v) { reset_blends (); Number::set_real (v); }
 
   void set_blends (unsigned int numValues_, unsigned int valueIndex_,
-			  unsigned int numBlends, const hb_array_t<const BlendArg> &blends_)
+			  unsigned int numBlends, hb_array_t<const BlendArg> blends_)
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
