@@ -642,6 +642,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
     return nullptr;
 
   hb_serialize_context_t c (buf, face_length);
+  c.propagate_error (data->tables);
   OT::OpenTypeFontFile *f = c.start_serialize<OT::OpenTypeFontFile> ();
 
   bool is_cff = data->tables.lsearch (HB_TAG ('C','F','F',' ')) || data->tables.lsearch (HB_TAG ('C','F','F','2'));
