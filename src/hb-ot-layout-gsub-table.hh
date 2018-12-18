@@ -120,7 +120,7 @@ struct SingleSubstFormat1
       from.push ()->set (glyph_map[iter.get_glyph ()]);
       to.push ()->set (glyph_map[(iter.get_glyph () + delta) & 0xFFFF]);
     }
-    c->serializer->err (from.in_error () || to.in_error ());
+    c->serializer->propagate_error (from, to);
 
     hb_supplier_t<GlyphID> from_supplier (from);
     hb_supplier_t<GlyphID> to_supplier (to);
@@ -225,7 +225,7 @@ struct SingleSubstFormat2
       from.push ()->set (glyph_map[iter.get_glyph ()]);
       to.push ()->set (glyph_map[substitute[iter.get_coverage ()]]);
     }
-    c->serializer->err (from.in_error () || to.in_error ());
+    c->serializer->propagate_error (from, to);
 
     hb_supplier_t<GlyphID> from_supplier (from);
     hb_supplier_t<GlyphID> to_supplier (to);

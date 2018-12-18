@@ -508,14 +508,31 @@ struct hb_serialize_context_t
     reset ();
   }
 
+  bool in_error () const { return !this->successful; }
+
   void reset ()
   {
-    this->ran_out_of_room = false;
+    this->successful = true;
     this->head = this->start;
     this->debug_depth = 0;
   }
 
-  bool err (bool e) { return this->ran_out_of_room = this->ran_out_of_room || e; }
+  bool propagate_error (bool e)
+  { return this->successful = this->successful && e; }
+  template <typename T> bool propagate_error (const T &obj)
+  { return this->successful = this->successful && !obj.in_error (); }
+  template <typename T> bool propagate_error (const T *obj)
+  { return this->successful = this->successful && !obj->in_error (); }
+  template <typename T1, typename T2> bool propagate_error (T1 &o1, T2 &o2)
+  { return propagate_error (o1) && propagate_error (o2); }
+  template <typename T1, typename T2> bool propagate_error (T1 *o1, T2 *o2)
+  { return propagate_error (o1) && propagate_error (o2); }
+  template <typename T1, typename T2, typename T3>
+  bool propagate_error (T1 &o1, T2 &o2, T3 &o3)
+  { return propagate_error (o1) && propagate_error (o2, o3); }
+  template <typename T1, typename T2, typename T3>
+  bool propagate_error (T1 *o1, T2 *o2, T3 *o3)
+  { return propagate_error (o1) && propagate_error (o2, o3); }
 
   /* To be called around main operation. */
   template <typename Type>
@@ -534,7 +551,7 @@ struct hb_serialize_context_t
 		     "end [%p..%p] serialized %d bytes; %s",
 		     this->start, this->end,
 		     (int) (this->head - this->start),
-		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
+		     this->successful ? "successful" : "UNSUCCESSFUL");
   }
 
   unsigned int length () const { return this->head - this->start; }
@@ -556,8 +573,8 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *allocate_size (unsigned int size)
   {
-    if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
-      this->ran_out_of_room = true;
+    if (unlikely (!this->successful || this->end - this->head < ptrdiff_t (size))) {
+      this->successful = false;
       return nullptr;
     }
     memset (this->head, 0, size);
@@ -602,7 +619,7 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *copy () const
   {
-    assert (!this->ran_out_of_room);
+    assert (this->successful);
     unsigned int len = this->head - this->start;
     void *p = malloc (len);
     if (p)
@@ -611,7 +628,7 @@ struct hb_serialize_context_t
   }
   hb_bytes_t copy_bytes () const
   {
-    assert (!this->ran_out_of_room);
+    assert (this->successful);
     unsigned int len = this->head - this->start;
     void *p = malloc (len);
     if (p)
@@ -622,7 +639,7 @@ struct hb_serialize_context_t
   }
   hb_blob_t *copy_blob () const
   {
-    assert (!this->ran_out_of_room);
+    assert (this->successful);
     return hb_blob_create (this->start,
 			   this->head - this->start,
 			   HB_MEMORY_MODE_DUPLICATE,
@@ -632,7 +649,7 @@ struct hb_serialize_context_t
   public:
   unsigned int debug_depth;
   char *start, *end, *head;
-  bool ran_out_of_room;
+  bool successful;
 };
 
 

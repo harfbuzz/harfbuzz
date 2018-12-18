@@ -1254,7 +1254,7 @@ struct ClassDefFormat1
       glyphs.push()->set (glyph_map[g]);
       klasses.push()->set (value);
     }
-    c->serializer->err (glyphs.in_error () || klasses.in_error ());
+    c->serializer->propagate_error (glyphs, klasses);
 
     hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
     hb_supplier_t<HBUINT16> klasses_supplier (klasses);
@@ -1413,7 +1413,7 @@ struct ClassDefFormat2
 	klasses.push ()->set (value);
       }
     }
-    c->serializer->err (glyphs.in_error () || klasses.in_error ());
+    c->serializer->propagate_error (glyphs, klasses);
 
     hb_supplier_t<GlyphID> glyphs_supplier (glyphs);
     hb_supplier_t<HBUINT16> klasses_supplier (klasses);

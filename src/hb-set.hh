@@ -213,6 +213,8 @@ struct hb_set_t
     fini_shallow ();
   }
 
+  bool in_error () const { return !successful; }
+
   bool resize (unsigned int count)
   {
     if (unlikely (!successful)) return false;

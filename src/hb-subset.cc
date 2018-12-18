@@ -83,7 +83,7 @@ _subset2 (hb_subset_plan_t *plan)
     hb_serialize_context_t serializer ((void *) buf, buf_size);
     hb_subset_context_t c (plan, &serializer);
     result = table->subset (&c);
-    if (serializer.ran_out_of_room)
+    if (serializer.in_error ())
     {
       buf_size += (buf_size >> 1) + 32;
       DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.", HB_UNTAG (tag), buf_size);

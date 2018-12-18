@@ -90,6 +90,8 @@ struct hb_map_t
     fini_shallow ();
   }
 
+  bool in_error () const { return !successful; }
+
   bool resize ()
   {
     if (unlikely (!successful)) return false;
