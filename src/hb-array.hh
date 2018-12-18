@@ -271,8 +271,13 @@ typedef hb_array_t<const char> hb_bytes_t;
 
 template <typename Type> struct hb_supplier_t : hb_array_t<const Type>
 {
+  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (hb_supplier_t, Type);
+
   hb_supplier_t (const Type *array, unsigned int len) : hb_array_t<const Type> (array, len) {}
   hb_supplier_t (hb_array_t<const Type> v) : hb_array_t<const Type> (v) {}
+
+  /* Make sure no one calls the custom & operator on us. */
+  Type * operator & () const;
 };
 
 
