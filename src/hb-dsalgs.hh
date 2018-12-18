@@ -234,6 +234,15 @@ hb_ctz (T v)
  * Tiny stuff.
  */
 
+template <typename T>
+T* hb_addressof (T& arg)
+{
+  /* https://en.cppreference.com/w/cpp/memory/addressof */
+  return reinterpret_cast<T*>(
+	   &const_cast<char&>(
+	      reinterpret_cast<const volatile char&>(arg)));
+}
+
 /* ASCII tag/character handling */
 static inline bool ISALPHA (unsigned char c)
 { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
