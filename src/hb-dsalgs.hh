@@ -235,7 +235,7 @@ hb_ctz (T v)
  */
 
 template <typename T>
-T* hb_addressof (T& arg)
+static inline T* hb_addressof (T& arg)
 {
   /* https://en.cppreference.com/w/cpp/memory/addressof */
   return reinterpret_cast<T*>(
