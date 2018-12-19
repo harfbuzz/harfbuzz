@@ -235,10 +235,11 @@ test_subset_cff1_expert (void)
   hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_expert.2D,F6E9,FB00.otf");
 
   hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_test;
   hb_set_add (codepoints, 0x2D);
   hb_set_add (codepoints, 0xF6E9);
   hb_set_add (codepoints, 0xFB00);
-  hb_face_t *face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -253,10 +254,11 @@ test_subset_cff1_seac (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
   hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_seac.C0.otf");
+  hb_face_t *face_test;
 
   hb_set_t *codepoints = hb_set_create ();
   hb_set_add (codepoints, 0xC0);  /* Agrave */
-  hb_face_t *face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  face_test = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
@@ -273,10 +275,12 @@ test_subset_cff1_dotsection (void)
   hb_face_t *face_subset = hb_test_open_font_file ("fonts/cff1_dotsect.nohints.otf");
 
   hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_test;
   hb_set_add (codepoints, 0x69);  /* i */
-  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  input = hb_subset_test_create_input (codepoints);
   hb_subset_input_set_drop_hints (input, true);
-  hb_face_t *face_test = hb_subset_test_create_subset (face, input);
+  face_test = hb_subset_test_create_subset (face, input);
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (face_subset, face_test, HB_TAG ('C','F','F',' '));
