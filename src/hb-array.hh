@@ -268,6 +268,7 @@ inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
 
 
 typedef hb_array_t<const char> hb_bytes_t;
+typedef hb_array_t<const unsigned char> hb_ubytes_t;
 
 
 #endif /* HB_ARRAY_HH */
