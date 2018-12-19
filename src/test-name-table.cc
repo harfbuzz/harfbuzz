@@ -63,5 +63,7 @@ main (int argc, char **argv)
     printf ("%s\n", buf);
   }
 
+  hb_face_destroy (face);
+
   return count ? 0 : 1;
 }
