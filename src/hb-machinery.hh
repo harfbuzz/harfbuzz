@@ -386,8 +386,10 @@ struct hb_sanitize_context_t :
   }
 
   template <typename Type, typename ValueType>
-  bool try_set (const Type *obj, const ValueType &v) {
-    if (this->may_edit (obj, obj->static_size)) {
+  bool try_set (const Type *obj, const ValueType &v)
+  {
+    if (this->may_edit (obj, hb_static_size (Type)))
+    {
       const_cast<Type *> (obj)->set (v);
       return true;
     }
