@@ -1206,12 +1206,8 @@ struct ClassDefFormat1
       return_trace (true);
     }
 
-    hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
-    for (unsigned int i = 0; i < glyphs.len; i++)
-    {
-      glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
-      glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
-    }
+    hb_codepoint_t glyph_min = glyphs[0];
+    hb_codepoint_t glyph_max = glyphs[glyphs.len - 1];
 
     startGlyph.set (glyph_min);
     classValue.len.set (glyph_max - glyph_min + 1);
@@ -1488,18 +1484,22 @@ struct ClassDef
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    hb_codepoint_t glyph_min = (hb_codepoint_t) -1, glyph_max = 0;
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    unsigned int format = 2;
+    if (glyphs.len)
     {
-      glyph_min = MIN<hb_codepoint_t> (glyph_min, glyphs[i]);
-      glyph_max = MAX<hb_codepoint_t> (glyph_max, glyphs[i]);
+      hb_codepoint_t glyph_min = glyphs[0];
+      hb_codepoint_t glyph_max = glyphs[glyphs.len - 1];
+
+      unsigned int num_ranges = 1;
+      for (unsigned int i = 1; i < glyphs.len; i++)
+	if (glyphs[i - 1] + 1 != glyphs[i] ||
+	    klasses[i - 1] != klasses[i])
+	  num_ranges++;
+
+      if (1 + (glyph_max - glyph_min + 1) < num_ranges * 3)
+        format = 1;
     }
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < glyphs.len; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i] ||
-	  klasses[i - 1] != klasses[i])
-	num_ranges++;
-    u.format.set (1 + (glyph_max - glyph_min + 1) < num_ranges * 3 ? 1 : 2);
+    u.format.set (format);
 
     switch (u.format)
     {
