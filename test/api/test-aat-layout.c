@@ -105,10 +105,11 @@ static void
 test_aat_has (void)
 {
   hb_face_t *morx = hb_test_open_font_file ("fonts/aat-morx.ttf");
+  hb_face_t *trak;
   g_assert (hb_aat_layout_has_substitution (morx));
   hb_face_destroy (morx);
 
-  hb_face_t *trak = hb_test_open_font_file ("fonts/aat-trak.ttf");
+  trak = hb_test_open_font_file ("fonts/aat-trak.ttf");
   g_assert (hb_aat_layout_has_tracking (trak));
   hb_face_destroy (trak);
 }
