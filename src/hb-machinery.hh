@@ -350,18 +350,17 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
-  bool check_array (const T *base,
-			   unsigned int len) const
+  bool check_array (const T *base, unsigned int len) const
   {
-    return this->check_range (base, len, T::static_size);
+    return this->check_range (base, len, hb_static_size (T));
   }
 
   template <typename T>
   bool check_array (const T *base,
-			   unsigned int a,
-			   unsigned int b) const
+		    unsigned int a,
+		    unsigned int b) const
   {
-    return this->check_range (base, a, b, T::static_size);
+    return this->check_range (base, a, b, hb_static_size (T));
   }
 
   template <typename Type>
