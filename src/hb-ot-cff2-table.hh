@@ -179,7 +179,7 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
 	{
 	  DictVal val;
 	  val.init ();
-	  dictval.add_op (op, env.substr);
+	  dictval.add_op (op, env.str_ref);
 	  env.clear_args ();
 	}
 	break;
@@ -201,7 +201,7 @@ struct CFF2TopDictOpSet : TopDictOpSet<>
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr);
+    dictval.add_op (op, env.str_ref);
   }
 
   typedef TopDictOpSet<> SUPER;
@@ -238,7 +238,7 @@ struct CFF2FontDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr);
+    dictval.add_op (op, env.str_ref);
   }
 
   private:
@@ -348,7 +348,7 @@ struct CFF2PrivateDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr, val);
+    dictval.add_op (op, env.str_ref, val);
   }
 };
 
@@ -390,7 +390,7 @@ struct CFF2PrivateDictOpSet_Subset : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr);
+    dictval.add_op (op, env.str_ref);
   }
 
   private:

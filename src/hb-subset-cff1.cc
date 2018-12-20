@@ -315,7 +315,7 @@ struct CFF1CSOpSet_Flatten : CFF1CSOpSet<CFF1CSOpSet_Flatten, FlattenParam>
     {
       StrEncoder  encoder (param.flatStr);
       for (unsigned int i = 0; i < env.hintmask_size; i++)
-	encoder.encode_byte (env.substr[i]);
+	encoder.encode_byte (env.str_ref[i]);
     }
   }
 
@@ -349,14 +349,14 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
     switch (op) {
 
       case OpCode_return:
-	param.current_parsed_str->add_op (op, env.substr);
+	param.current_parsed_str->add_op (op, env.str_ref);
 	param.current_parsed_str->set_parsed ();
 	env.returnFromSubr ();
 	param.set_current_str (env, false);
 	break;
 
       case OpCode_endchar:
-	param.current_parsed_str->add_op (op, env.substr);
+	param.current_parsed_str->add_op (op, env.str_ref);
 	param.current_parsed_str->set_parsed ();
 	SUPER::process_op (op, env, param);
 	break;
@@ -371,7 +371,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 
       default:
 	SUPER::process_op (op, env, param);
-	param.current_parsed_str->add_op (op, env.substr);
+	param.current_parsed_str->add_op (op, env.str_ref);
 	break;
     }
   }
@@ -381,9 +381,9 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 				 CFF1CSInterpEnv &env, SubrSubsetParam& param,
 				 CFF1BiasedSubrs& subrs, hb_set_t *closure)
   {
-    byte_str_ref_t    substr = env.substr;
+    byte_str_ref_t    str_ref = env.str_ref;
     env.callSubr (subrs, type);
-    param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
+    param.current_parsed_str->add_call_op (op, str_ref, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env, true);
   }

@@ -403,13 +403,13 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     has_prefix_ = false;
   }
 
-  void add_op (OpCode op, const byte_str_ref_t& substr)
+  void add_op (OpCode op, const byte_str_ref_t& str_ref)
   {
     if (!is_parsed ())
-      SUPER::add_op (op, substr);
+      SUPER::add_op (op, str_ref);
   }
 
-  void add_call_op (OpCode op, const byte_str_ref_t& substr, unsigned int subr_num)
+  void add_call_op (OpCode op, const byte_str_ref_t& str_ref, unsigned int subr_num)
   {
     if (!is_parsed ())
     {
@@ -419,7 +419,7 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
 
       ParsedCSOp val;
       val.init (subr_num);
-      SUPER::add_op (op, substr, val);
+      SUPER::add_op (op, str_ref, val);
     }
   }
 

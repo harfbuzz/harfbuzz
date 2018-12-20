@@ -81,11 +81,11 @@ struct DictOpSet : OpSet<Number>
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
-	env.argStack.push_longint_from_substr (env.substr);
+	env.argStack.push_longint_from_substr (env.str_ref);
 	break;
 
       case OpCode_BCD:  /* real number */
-	env.argStack.push_real (parse_bcd (env.substr));
+	env.argStack.push_real (parse_bcd (env.str_ref));
 	break;
 
       default:
@@ -94,7 +94,7 @@ struct DictOpSet : OpSet<Number>
     }
   }
 
-  static double parse_bcd (byte_str_ref_t& substr)
+  static double parse_bcd (byte_str_ref_t& str_ref)
   {
     bool    neg = false;
     double  int_part = 0;
@@ -115,13 +115,13 @@ struct DictOpSet : OpSet<Number>
       char d;
       if ((i & 1) == 0)
       {
-	if (!substr.avail ())
+	if (!str_ref.avail ())
 	{
-	  substr.set_error ();
+	  str_ref.set_error ();
 	  return 0.0;
 	}
-	byte = substr[0];
-	substr.inc ();
+	byte = str_ref[0];
+	str_ref.inc ();
 	d = byte >> 4;
       }
       else
@@ -130,7 +130,7 @@ struct DictOpSet : OpSet<Number>
       switch (d)
       {
 	case RESERVED:
-	  substr.set_error ();
+	  str_ref.set_error ();
 	  return value;
 
 	case END:
@@ -162,7 +162,7 @@ struct DictOpSet : OpSet<Number>
 	case NEG:
 	  if (i != 0)
 	  {
-	    substr.set_error ();
+	    str_ref.set_error ();
 	    return 0.0;
 	  }
 	  neg = true;
@@ -171,7 +171,7 @@ struct DictOpSet : OpSet<Number>
 	case DECIMAL:
 	  if (part != INT_PART)
 	  {
-	    substr.set_error ();
+	    str_ref.set_error ();
 	    return value;
 	  }
 	  part = FRAC_PART;
@@ -184,7 +184,7 @@ struct DictOpSet : OpSet<Number>
 	case EXP_POS:
 	  if (part == EXP_PART)
 	  {
-	    substr.set_error ();
+	    str_ref.set_error ();
 	    return value;
 	  }
 	  part = EXP_PART;
@@ -275,7 +275,7 @@ struct DictInterpreter : Interpreter<ENV>
   bool interpret (PARAM& param)
   {
     param.init ();
-    while (SUPER::env.substr.avail ())
+    while (SUPER::env.str_ref.avail ())
     {
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
       if (unlikely (SUPER::env.in_error ()))

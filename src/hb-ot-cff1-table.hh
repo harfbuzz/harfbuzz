@@ -794,7 +794,7 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 	break;
 
       default:
-	env.last_offset = env.substr.offset;
+	env.last_offset = env.str_ref.offset;
 	TopDictOpSet<CFF1TopDictVal>::process_op (op, env, dictval);
 	/* Record this operand below if stack is empty, otherwise done */
 	if (!env.argStack.is_empty ()) return;
@@ -803,7 +803,7 @@ struct CFF1TopDictOpSet : TopDictOpSet<CFF1TopDictVal>
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr, val);
+    dictval.add_op (op, env.str_ref, val);
   }
 };
 
@@ -848,7 +848,7 @@ struct CFF1FontDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr);
+    dictval.add_op (op, env.str_ref);
   }
 };
 
@@ -924,7 +924,7 @@ struct CFF1PrivateDictOpSet : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr, val);
+    dictval.add_op (op, env.str_ref, val);
   }
 };
 
@@ -966,7 +966,7 @@ struct CFF1PrivateDictOpSet_Subset : DictOpSet
 
     if (unlikely (env.in_error ())) return;
 
-    dictval.add_op (op, env.substr);
+    dictval.add_op (op, env.str_ref);
   }
 };
 

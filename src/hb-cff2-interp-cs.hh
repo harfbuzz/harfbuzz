@@ -102,7 +102,7 @@ struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 
   OpCode fetch_op ()
   {
-    if (this->substr.avail ())
+    if (this->str_ref.avail ())
       return SUPER::fetch_op ();
 
     /* make up return or endchar op */

@@ -43,14 +43,14 @@ struct CallContext
 {
   void init (const byte_str_ref_t substr_=byte_str_ref_t (), CSType type_=CSType_CharString, unsigned int subr_num_=0)
   {
-    substr = substr_;
+    str_ref = substr_;
     type = type_;
     subr_num = subr_num_;
   }
 
   void fini () {}
 
-  byte_str_ref_t      substr;
+  byte_str_ref_t      str_ref;
   CSType	  type;
   unsigned int    subr_num;
 };
@@ -167,19 +167,19 @@ struct CSInterpEnv : InterpEnv<ARG>
       SUPER::set_error ();
       return;
     }
-    context.substr = SUPER::substr;
+    context.str_ref = SUPER::str_ref;
     callStack.push (context);
 
     context.init ( biasedSubrs[subr_num], type, subr_num);
-    SUPER::substr = context.substr;
+    SUPER::str_ref = context.str_ref;
   }
 
   void returnFromSubr ()
   {
-    if (unlikely (SUPER::substr.in_error ()))
+    if (unlikely (SUPER::str_ref.in_error ()))
       SUPER::set_error ();
     context = callStack.pop ();
-    SUPER::substr = context.substr;
+    SUPER::str_ref = context.str_ref;
   }
 
   void determine_hintmask_size ()
@@ -262,7 +262,7 @@ struct CSOpSet : OpSet<ARG>
 	break;
 
       case OpCode_fixedcs:
-	env.argStack.push_fixed_from_substr (env.substr);
+	env.argStack.push_fixed_from_substr (env.str_ref);
 	break;
 
       case OpCode_callsubr:
@@ -385,10 +385,10 @@ struct CSOpSet : OpSet<ARG>
   static void process_hintmask (OpCode op, ENV &env, PARAM& param)
   {
     env.determine_hintmask_size ();
-    if (likely (env.substr.avail (env.hintmask_size)))
+    if (likely (env.str_ref.avail (env.hintmask_size)))
     {
       OPSET::flush_hintmask (op, env, param);
-      env.substr.inc (env.hintmask_size);
+      env.str_ref.inc (env.hintmask_size);
     }
   }
 

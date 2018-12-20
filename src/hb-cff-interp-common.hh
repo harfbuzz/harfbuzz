@@ -522,18 +522,18 @@ struct ArgStack : Stack<ARG, 513>
     return (unsigned)i;
   }
 
-  void push_longint_from_substr (byte_str_ref_t& substr)
+  void push_longint_from_substr (byte_str_ref_t& str_ref)
   {
-    push_int ((substr[0] << 24) | (substr[1] << 16) | (substr[2] << 8) | (substr[3]));
-    substr.inc (4);
+    push_int ((str_ref[0] << 24) | (str_ref[1] << 16) | (str_ref[2] << 8) | (str_ref[3]));
+    str_ref.inc (4);
   }
 
-  bool push_fixed_from_substr (byte_str_ref_t& substr)
+  bool push_fixed_from_substr (byte_str_ref_t& str_ref)
   {
-    if (unlikely (!substr.avail (4)))
+    if (unlikely (!str_ref.avail (4)))
       return false;
-    push_fixed ((int32_t)*(const HBUINT32*)&substr[0]);
-    substr.inc (4);
+    push_fixed ((int32_t)*(const HBUINT32*)&str_ref[0]);
+    str_ref.inc (4);
     return true;
   }
 
@@ -581,20 +581,20 @@ struct ParsedValues
   }
   void fini () { values.fini_deep (); }
 
-  void add_op (OpCode op, const byte_str_ref_t& substr = byte_str_ref_t ())
+  void add_op (OpCode op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
   {
     VAL *val = values.push ();
     val->op = op;
-    val->str = substr.str.sub_str (opStart, substr.offset - opStart);
-    opStart = substr.offset;
+    val->str = str_ref.str.sub_str (opStart, str_ref.offset - opStart);
+    opStart = str_ref.offset;
   }
 
-  void add_op (OpCode op, const byte_str_ref_t& substr, const VAL &v)
+  void add_op (OpCode op, const byte_str_ref_t& str_ref, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
-    val->str = substr.sub_str ( opStart, substr.offset - opStart);
-    opStart = substr.offset;
+    val->str = str_ref.sub_str ( opStart, str_ref.offset - opStart);
+    opStart = str_ref.offset;
   }
 
   bool has_op (OpCode op) const
@@ -617,30 +617,30 @@ struct InterpEnv
 {
   void init (const byte_str_t &str_)
   {
-    substr.reset (str_);
+    str_ref.reset (str_);
     argStack.init ();
     error = false;
   }
   void fini () { argStack.fini (); }
 
   bool in_error () const
-  { return error || substr.in_error () || argStack.in_error (); }
+  { return error || str_ref.in_error () || argStack.in_error (); }
 
   void set_error () { error = true; }
 
   OpCode fetch_op ()
   {
     OpCode  op = OpCode_Invalid;
-    if (unlikely (!substr.avail ()))
+    if (unlikely (!str_ref.avail ()))
       return OpCode_Invalid;
-    op = (OpCode)(unsigned char)substr[0];
+    op = (OpCode)(unsigned char)str_ref[0];
     if (op == OpCode_escape) {
-      if (unlikely (!substr.avail ()))
+      if (unlikely (!str_ref.avail ()))
 	return OpCode_Invalid;
-      op = Make_OpCode_ESC(substr[1]);
-      substr.inc ();
+      op = Make_OpCode_ESC(str_ref[1]);
+      str_ref.inc ();
     }
-    substr.inc ();
+    str_ref.inc ();
     return op;
   }
 
@@ -664,7 +664,7 @@ struct InterpEnv
     pop_n_args (argStack.get_count ());
   }
 
-  byte_str_ref_t    substr;
+  byte_str_ref_t    str_ref;
   ArgStack<ARG> argStack;
   protected:
   bool	  error;
@@ -679,20 +679,20 @@ struct OpSet
   {
     switch (op) {
       case OpCode_shortint:
-	env.argStack.push_int ((int16_t)((env.substr[0] << 8) | env.substr[1]));
-	env.substr.inc (2);
+	env.argStack.push_int ((int16_t)((env.str_ref[0] << 8) | env.str_ref[1]));
+	env.str_ref.inc (2);
 	break;
 
       case OpCode_TwoBytePosInt0: case OpCode_TwoBytePosInt1:
       case OpCode_TwoBytePosInt2: case OpCode_TwoBytePosInt3:
-	env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.substr[0] + 108));
-	env.substr.inc ();
+	env.argStack.push_int ((int16_t)((op - OpCode_TwoBytePosInt0) * 256 + env.str_ref[0] + 108));
+	env.str_ref.inc ();
 	break;
 
       case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-	env.argStack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - env.substr[0] - 108));
-	env.substr.inc ();
+	env.argStack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - env.str_ref[0] - 108));
+	env.str_ref.inc ();
 	break;
 
       default:
