@@ -105,7 +105,7 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   unsigned int fd = fdSelect->get_fd (glyph);
   CFF2CSInterpreter<CFF2CSOpSet_Extents, ExtentsParam> interp;
-  const ByteStr str = (*charStrings)[glyph];
+  const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, coords, num_coords);
   ExtentsParam  param;
   param.init ();

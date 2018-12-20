@@ -278,7 +278,7 @@ typedef CFF2PrivateDictValues_Base<NumDictVal> CFF2PrivateDictValues;
 
 struct CFF2PrivDictInterpEnv : NumInterpEnv
 {
-  void init (const ByteStr &str)
+  void init (const byte_str_t &str)
   {
     NumInterpEnv::init (str);
     ivs = 0;
@@ -438,7 +438,7 @@ struct cff2
       { fini (); return; }
 
       { /* parse top dict */
-	ByteStr topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
+	byte_str_t topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
 	if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
 	CFF2TopDict_Interpreter top_interp;
 	top_interp.env.init (topDictStr);
@@ -469,7 +469,7 @@ struct cff2
       /* parse font dicts and gather private dicts */
       for (unsigned int i = 0; i < fdCount; i++)
       {
-	const ByteStr fontDictStr = (*fdArray)[i];
+	const byte_str_t fontDictStr = (*fdArray)[i];
 	if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
 	CFF2FontDictValues  *font;
 	CFF2FontDict_Interpreter font_interp;
@@ -479,14 +479,14 @@ struct cff2
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 
-	const ByteStr privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
+	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	DictInterpreter<PRIVOPSET, PRIVDICTVAL, CFF2PrivDictInterpEnv>  priv_interp;
 	priv_interp.env.init(privDictStr);
 	privateDicts[i].init ();
 	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
-	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (privDictStr.str, privateDicts[i].subrsOffset);
+	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset);
 	if (privateDicts[i].localSubrs != &Null(CFF2Subrs) &&
 	  unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
 	{ fini (); return; }

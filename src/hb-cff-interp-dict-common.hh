@@ -94,7 +94,7 @@ struct DictOpSet : OpSet<Number>
     }
   }
 
-  static double parse_bcd (SubByteStr& substr)
+  static double parse_bcd (byte_str_ref_t& substr)
   {
     bool    neg = false;
     double  int_part = 0;

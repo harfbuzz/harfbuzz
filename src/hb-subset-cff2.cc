@@ -212,7 +212,7 @@ struct CFF2CSOpSet_SubrSubset : CFF2CSOpSet<CFF2CSOpSet_SubrSubset, SubrSubsetPa
 				 CFF2CSInterpEnv &env, SubrSubsetParam& param,
 				 CFF2BiasedSubrs& subrs, hb_set_t *closure)
   {
-    SubByteStr    substr = env.substr;
+    byte_str_ref_t    substr = env.substr;
     env.callSubr (subrs, type);
     param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);

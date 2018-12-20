@@ -61,7 +61,7 @@ struct code_pair
   hb_codepoint_t  glyph;
 };
 
-typedef hb_vector_t<char, 1> StrBuff;
+typedef hb_vector_t<unsigned char, 1> StrBuff;
 struct StrBuffArray : hb_vector_t<StrBuff>
 {
   void fini () { SUPER::fini_deep (); }
@@ -117,7 +117,7 @@ struct CFFIndex
 
   bool serialize (hb_serialize_context_t *c,
 		  unsigned int offSize_,
-		  const ByteStrArray &byteArray)
+		  const byte_str_array_t &byteArray)
   {
     TRACE_SERIALIZE (this);
     if (byteArray.len == 0)
@@ -148,10 +148,11 @@ struct CFFIndex
       /* serialize data */
       for (unsigned int i = 0; i < byteArray.len; i++)
       {
-	ByteStr  *dest = c->start_embed<ByteStr> ();
-	if (unlikely (dest == nullptr ||
-		      !dest->serialize (c, byteArray[i])))
+      	const byte_str_t &bs = byteArray[i];
+	unsigned char  *dest = c->allocate_size<unsigned char> (bs.len);
+	if (unlikely (dest == nullptr))
 	  return_trace (false);
+	memcpy (dest, &bs[0], bs.len);
       }
     }
     return_trace (true);
@@ -161,12 +162,12 @@ struct CFFIndex
 		  unsigned int offSize_,
 		  const StrBuffArray &buffArray)
   {
-    ByteStrArray  byteArray;
+    byte_str_array_t  byteArray;
     byteArray.init ();
     byteArray.resize (buffArray.len);
     for (unsigned int i = 0; i < byteArray.len; i++)
     {
-      byteArray[i] = ByteStr (buffArray[i].arrayZ (), buffArray[i].len);
+      byteArray[i] = byte_str_t (buffArray[i].arrayZ (), buffArray[i].len);
     }
     bool result = this->serialize (c, offSize_, byteArray);
     byteArray.fini ();
@@ -205,17 +206,17 @@ struct CFFIndex
 	  return 0;
   }
 
-  const char *data_base () const
-  { return (const char *)this + min_size + offset_array_size (); }
+  const unsigned char *data_base () const
+  { return (const unsigned char *)this + min_size + offset_array_size (); }
 
   unsigned int data_size () const { return HBINT8::static_size; }
 
-  ByteStr operator [] (unsigned int index) const
+  byte_str_t operator [] (unsigned int index) const
   {
     if (likely (index < count))
-      return ByteStr (data_base () + offset_at (index) - 1, length_at (index));
+      return byte_str_t (data_base () + offset_at (index) - 1, length_at (index));
     else
-      return Null(ByteStr);
+      return Null(byte_str_t);
   }
 
   unsigned int get_size () const
@@ -255,11 +256,11 @@ struct CFFIndex
 template <typename COUNT, typename TYPE>
 struct CFFIndexOf : CFFIndex<COUNT>
 {
-  const ByteStr operator [] (unsigned int index) const
+  const byte_str_t operator [] (unsigned int index) const
   {
     if (likely (index < CFFIndex<COUNT>::count))
-      return ByteStr (CFFIndex<COUNT>::data_base () + CFFIndex<COUNT>::offset_at (index) - 1, CFFIndex<COUNT>::length_at (index));
-    return Null(ByteStr);
+      return byte_str_t (CFFIndex<COUNT>::data_base () + CFFIndex<COUNT>::offset_at (index) - 1, CFFIndex<COUNT>::length_at (index));
+    return Null(byte_str_t);
   }
 
   template <typename DATA, typename PARAM1, typename PARAM2>

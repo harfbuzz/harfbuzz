@@ -293,7 +293,7 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, Boun
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
   CFF1CSInterpreter<CFF1CSOpSet_Extents, ExtentsParam> interp;
-  const ByteStr str = (*cff->charStrings)[glyph];
+  const byte_str_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
   ExtentsParam  param;
@@ -369,7 +369,7 @@ bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_code
 
   unsigned int fd = fdSelect->get_fd (glyph);
   CFF1CSInterpreter<CFF1CSOpSet_Seac, GetSeacParam> interp;
-  const ByteStr str = (*charStrings)[glyph];
+  const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd);
   GetSeacParam  param;
   param.init (this);

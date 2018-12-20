@@ -584,7 +584,7 @@ struct CFF1StringIndex : CFF1Index
       return_trace (true);
     }
 
-    ByteStrArray bytesArray;
+    byte_str_array_t bytesArray;
     bytesArray.init ();
     if (!bytesArray.resize (sidmap.get_count ()))
       return_trace (false);
@@ -1023,7 +1023,7 @@ struct cff1
       { fini (); return; }
 
       { /* parse top dict */
-	const ByteStr topDictStr = (*topDictIndex)[0];
+	const byte_str_t topDictStr = (*topDictIndex)[0];
 	if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
 	CFF1TopDict_Interpreter top_interp;
 	top_interp.env.init (topDictStr);
@@ -1082,7 +1082,7 @@ struct cff1
       {
 	for (unsigned int i = 0; i < fdCount; i++)
 	{
-	  ByteStr fontDictStr = (*fdArray)[i];
+	  byte_str_t fontDictStr = (*fdArray)[i];
 	  if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
 	  CFF1FontDictValues  *font;
 	  CFF1FontDict_Interpreter font_interp;
@@ -1092,14 +1092,14 @@ struct cff1
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL  *priv = &privateDicts[i];
-	  const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
+	  const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
 	  if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	  DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	  priv_interp.env.init (privDictStr);
 	  priv->init ();
 	  if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
-	  priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
+	  priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
 	  if (priv->localSubrs != &Null(CFF1Subrs) &&
 	      unlikely (!priv->localSubrs->sanitize (&sc)))
 	  { fini (); return; }
@@ -1110,14 +1110,14 @@ struct cff1
 	CFF1TopDictValues  *font = &topDict;
 	PRIVDICTVAL  *priv = &privateDicts[0];
 
-	const ByteStr privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
+	const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	DictInterpreter<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	priv_interp.env.init (privDictStr);
 	priv->init ();
 	if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
-	priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (privDictStr.str, priv->subrsOffset);
+	priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
 	if (priv->localSubrs != &Null(CFF1Subrs) &&
 	    unlikely (!priv->localSubrs->sanitize (&sc)))
 	{ fini (); return; }

@@ -79,7 +79,7 @@ typedef BiasedSubrs<CFF2Subrs>   CFF2BiasedSubrs;
 struct CFF2CSInterpEnv : CSInterpEnv<BlendArg, CFF2Subrs>
 {
   template <typename ACC>
-  void init (const ByteStr &str, ACC &acc, unsigned int fd,
+  void init (const byte_str_t &str, ACC &acc, unsigned int fd,
 		    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);

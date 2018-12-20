@@ -41,7 +41,7 @@ enum CSType {
 
 struct CallContext
 {
-  void init (const SubByteStr substr_=SubByteStr (), CSType type_=CSType_CharString, unsigned int subr_num_=0)
+  void init (const byte_str_ref_t substr_=byte_str_ref_t (), CSType type_=CSType_CharString, unsigned int subr_num_=0)
   {
     substr = substr_;
     type = type_;
@@ -50,7 +50,7 @@ struct CallContext
 
   void fini () {}
 
-  SubByteStr      substr;
+  byte_str_ref_t      substr;
   CSType	  type;
   unsigned int    subr_num;
 };
@@ -79,10 +79,10 @@ struct BiasedSubrs
   unsigned int get_count () const { return (subrs == nullptr)? 0: subrs->count; }
   unsigned int get_bias () const { return bias; }
 
-  ByteStr operator [] (unsigned int index) const
+  byte_str_t operator [] (unsigned int index) const
   {
     if (unlikely ((subrs == nullptr) || index >= subrs->count))
-      return Null(ByteStr);
+      return Null(byte_str_t);
     else
       return (*subrs)[index];
   }
@@ -118,7 +118,7 @@ struct Point
 template <typename ARG, typename SUBRS>
 struct CSInterpEnv : InterpEnv<ARG>
 {
-  void init (const ByteStr &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
+  void init (const byte_str_t &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
   {
     InterpEnv<ARG>::init (str);
 

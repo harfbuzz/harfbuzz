@@ -290,92 +290,73 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
   /* Defining null_size allows a Null object may be created. Should be safe because:
    * A descendent struct Dict uses a Null pointer to indicate a missing table,
    * checked before access.
-   * ByteStr, a wrapper struct pairing a byte pointer along with its length, always
+   * byte_str_t, a wrapper struct pairing a byte pointer along with its length, always
    * checks the length before access. A Null pointer is used as the initial pointer
    * along with zero length by the default ctor.
    */
   DEFINE_SIZE_MIN(0);
 };
 
-struct ByteStr
+/* Holder of a section of byte string within a CFFIndex entry */
+struct byte_str_t : hb_ubytes_t
 {
-  ByteStr ()
-    : str (&Null(UnsizedByteStr)), len (0) {}
-  ByteStr (const UnsizedByteStr& s, unsigned int l)
-    : str (&s), len (l) {}
-  ByteStr (const char *s, unsigned int l=0)
-    : str ((const UnsizedByteStr *)s), len (l) {}
+  byte_str_t ()
+    : hb_ubytes_t () {}
+  byte_str_t (const UnsizedByteStr& s, unsigned int l)
+    : hb_ubytes_t ((const unsigned char*)&s, l) {}
+  byte_str_t (const unsigned char *s, unsigned int l)
+    : hb_ubytes_t (s, l) {}
+  byte_str_t (const hb_ubytes_t &ub)	/* conversion from hb_ubytes_t */
+    : hb_ubytes_t (ub) {}
+  
   /* sub-string */
-  ByteStr (const ByteStr &bs, unsigned int offset, unsigned int len_)
-  {
-    str = (const UnsizedByteStr *)&bs.str[offset];
-    len = len_;
-  }
-
-  bool sanitize (hb_sanitize_context_t *c) const { return str->sanitize (c, len); }
-
-  const HBUINT8& operator [] (unsigned int i) const
-  {
-    if (likely (str && (i < len)))
-      return (*str)[i];
-    else
-      return Null(HBUINT8);
-  }
-
-  bool serialize (hb_serialize_context_t *c, const ByteStr &src)
-  {
-    TRACE_SERIALIZE (this);
-    HBUINT8 *dest = c->allocate_size<HBUINT8> (src.len);
-    if (unlikely (dest == nullptr))
-      return_trace (false);
-    memcpy (dest, src.str, src.len);
-    return_trace (true);
-  }
-
-  unsigned int get_size () const { return len; }
+  byte_str_t sub_str (unsigned int offset, unsigned int len_) const
+  { return byte_str_t (hb_ubytes_t::sub_array (offset, len_)); }
 
   bool check_limit (unsigned int offset, unsigned int count) const
   { return (offset + count <= len); }
-
-  const UnsizedByteStr *str;
-  unsigned int len;
 };
 
-struct SubByteStr
+/* A byte string associated with the current offset and an error condition */
+struct byte_str_ref_t
 {
-  SubByteStr ()
+  byte_str_ref_t ()
   { init (); }
 
   void init ()
   {
-    str = ByteStr (0);
+    str = byte_str_t ();
     offset = 0;
     error = false;
   }
 
   void fini () {}
 
-  SubByteStr (const ByteStr &str_, unsigned int offset_ = 0)
+  byte_str_ref_t (const byte_str_t &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_), error (false) {}
 
-  void reset (const ByteStr &str_, unsigned int offset_ = 0)
+  void reset (const byte_str_t &str_, unsigned int offset_ = 0)
   {
     str = str_;
     offset = offset_;
     error = false;
   }
 
-  const HBUINT8& operator [] (int i) {
+  const unsigned char& operator [] (int i) {
     if (unlikely ((unsigned int)(offset + i) >= str.len))
     {
       set_error ();
-      return Null(HBUINT8);
+      return Null(unsigned char);
     }
     else
       return str[offset + i];
   }
 
-  operator ByteStr () const { return ByteStr (str, offset, str.len - offset); }
+  /* Conversion to byte_str_t */
+  operator byte_str_t () const { return str.sub_str (offset, str.len - offset); }
+
+  byte_str_t sub_str (unsigned int offset_, unsigned int len_) const
+  { return str.sub_str (offset_, len_); }
 
   bool avail (unsigned int count=1) const
   {
@@ -397,14 +378,14 @@ struct SubByteStr
   void set_error ()      { error = true; }
   bool in_error () const { return error; }
 
-  ByteStr       str;
+  byte_str_t       str;
   unsigned int  offset; /* beginning of the sub-string within str */
 
   protected:
   bool	  error;
 };
 
-typedef hb_vector_t<ByteStr> ByteStrArray;
+typedef hb_vector_t<byte_str_t> byte_str_array_t;
 
 /* stack */
 template <typename ELEM, int LIMIT>
@@ -541,13 +522,13 @@ struct ArgStack : Stack<ARG, 513>
     return (unsigned)i;
   }
 
-  void push_longint_from_substr (SubByteStr& substr)
+  void push_longint_from_substr (byte_str_ref_t& substr)
   {
     push_int ((substr[0] << 24) | (substr[1] << 16) | (substr[2] << 8) | (substr[3]));
     substr.inc (4);
   }
 
-  bool push_fixed_from_substr (SubByteStr& substr)
+  bool push_fixed_from_substr (byte_str_ref_t& substr)
   {
     if (unlikely (!substr.avail (4)))
       return false;
@@ -572,7 +553,7 @@ struct OpStr
   void fini () {}
 
   OpCode  op;
-  ByteStr str;
+  byte_str_t str;
 };
 
 /* base of OP_SERIALIZER */
@@ -585,7 +566,7 @@ struct OpSerializer
 
     HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
     if (unlikely (d == nullptr)) return_trace (false);
-    memcpy (d, &opstr.str.str[0], opstr.str.len);
+    memcpy (d, &opstr.str[0], opstr.str.len);
     return_trace (true);
   }
 };
@@ -600,19 +581,19 @@ struct ParsedValues
   }
   void fini () { values.fini_deep (); }
 
-  void add_op (OpCode op, const SubByteStr& substr = SubByteStr ())
+  void add_op (OpCode op, const byte_str_ref_t& substr = byte_str_ref_t ())
   {
     VAL *val = values.push ();
     val->op = op;
-    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
+    val->str = substr.str.sub_str (opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
 
-  void add_op (OpCode op, const SubByteStr& substr, const VAL &v)
+  void add_op (OpCode op, const byte_str_ref_t& substr, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
-    val->str = ByteStr (substr.str, opStart, substr.offset - opStart);
+    val->str = substr.sub_str ( opStart, substr.offset - opStart);
     opStart = substr.offset;
   }
 
@@ -634,7 +615,7 @@ struct ParsedValues
 template <typename ARG=Number>
 struct InterpEnv
 {
-  void init (const ByteStr &str_)
+  void init (const byte_str_t &str_)
   {
     substr.reset (str_);
     argStack.init ();
@@ -683,7 +664,7 @@ struct InterpEnv
     pop_n_args (argStack.get_count ());
   }
 
-  SubByteStr    substr;
+  byte_str_ref_t    substr;
   ArgStack<ARG> argStack;
   protected:
   bool	  error;

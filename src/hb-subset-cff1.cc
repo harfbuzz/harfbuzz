@@ -168,10 +168,9 @@ struct CFF1TopDict_OpSerializer : CFFTopDict_OpSerializer<CFF1TopDictVal>
 	   * for supplement, the original byte string is copied along with the op code */
 	  OpStr supp_op;
 	  supp_op.op = op;
-	  supp_op.str.str = opstr.str.str + opstr.last_arg_offset;
 	  if ( unlikely (!(opstr.str.len >= opstr.last_arg_offset + 3)))
 	    return_trace (false);
-	  supp_op.str.len = opstr.str.len - opstr.last_arg_offset;
+	  supp_op.str = byte_str_t (&opstr.str + opstr.last_arg_offset, opstr.str.len - opstr.last_arg_offset);
 	  return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::registry]) &&
 			UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[NameDictValues::ordering]) &&
 			copy_opstr (c, supp_op));
@@ -382,7 +381,7 @@ struct CFF1CSOpSet_SubrSubset : CFF1CSOpSet<CFF1CSOpSet_SubrSubset, SubrSubsetPa
 				 CFF1CSInterpEnv &env, SubrSubsetParam& param,
 				 CFF1BiasedSubrs& subrs, hb_set_t *closure)
   {
-    SubByteStr    substr = env.substr;
+    byte_str_ref_t    substr = env.substr;
     env.callSubr (subrs, type);
     param.current_parsed_str->add_call_op (op, substr, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
@@ -871,9 +870,6 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 				void *dest)
 {
   hb_serialize_context_t c (dest, dest_sz);
-
-  char RETURN_OP[1] = { OpCode_return };
-  const ByteStr NULL_SUBR (RETURN_OP, 1);
 
   OT::cff1 *cff = c.start_serialize<OT::cff1> ();
   if (unlikely (!c.extend_min (*cff)))

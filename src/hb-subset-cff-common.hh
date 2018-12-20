@@ -44,7 +44,7 @@ struct StrEncoder
 
   void encode_byte (unsigned char b)
   {
-    if (unlikely (buff.push ((const char)b) == &Crap(char)))
+    if (unlikely (buff.push (b) == &Crap(unsigned char)))
       set_error ();
   }
 
@@ -107,7 +107,7 @@ struct StrEncoder
       encode_byte (op);
   }
 
-  void copy_str (const ByteStr &str)
+  void copy_str (const byte_str_t &str)
   {
     unsigned int  offset = buff.len;
     buff.resize (offset + str.len);
@@ -116,7 +116,7 @@ struct StrEncoder
       set_error ();
       return;
     }
-    memcpy (&buff[offset], &str.str[0], str.len);
+    memcpy (&buff[offset], &str[0], str.len);
   }
 
   bool is_error () const { return error; }
@@ -217,7 +217,7 @@ struct CFFFontDict_OpSerializer : OpSerializer
     {
       HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
       if (unlikely (d == nullptr)) return_trace (false);
-      memcpy (d, &opstr.str.str[0], opstr.str.len);
+      memcpy (d, &opstr.str[0], opstr.str.len);
     }
     return_trace (true);
   }
@@ -302,7 +302,7 @@ struct SubrFlattener
     for (unsigned int i = 0; i < glyphs.len; i++)
     {
       hb_codepoint_t  glyph = glyphs[i];
-      const ByteStr str = (*acc.charStrings)[glyph];
+      const byte_str_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
       	return false;
@@ -403,13 +403,13 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
     has_prefix_ = false;
   }
 
-  void add_op (OpCode op, const SubByteStr& substr)
+  void add_op (OpCode op, const byte_str_ref_t& substr)
   {
     if (!is_parsed ())
       SUPER::add_op (op, substr);
   }
 
-  void add_call_op (OpCode op, const SubByteStr& substr, unsigned int subr_num)
+  void add_call_op (OpCode op, const byte_str_ref_t& substr, unsigned int subr_num)
   {
     if (!is_parsed ())
     {
@@ -666,7 +666,7 @@ struct SubrSubsetter
     for (unsigned int i = 0; i < glyphs.len; i++)
     {
       hb_codepoint_t  glyph = glyphs[i];
-      const ByteStr str = (*acc.charStrings)[glyph];
+      const byte_str_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
       	return false;

@@ -38,7 +38,7 @@ typedef BiasedSubrs<CFF1Subrs>   CFF1BiasedSubrs;
 struct CFF1CSInterpEnv : CSInterpEnv<Number, CFF1Subrs>
 {
   template <typename ACC>
-  void init (const ByteStr &str, ACC &acc, unsigned int fd)
+  void init (const byte_str_t &str, ACC &acc, unsigned int fd)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
