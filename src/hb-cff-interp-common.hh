@@ -215,7 +215,7 @@ inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op) ? 2: 1; 
 #define OpCode_Invalid		0xFFFFu
 
 
-struct Number
+struct number_t
 {
   void init () { set_real (0.0); }
   void fini () {}
@@ -235,19 +235,19 @@ struct Number
   bool in_int_range () const
   { return ((double) (int16_t) to_int () == value); }
 
-  bool operator > (const Number &n) const
+  bool operator > (const number_t &n) const
   { return value > n.to_real (); }
 
-  bool operator < (const Number &n) const
+  bool operator < (const number_t &n) const
   { return n > *this; }
 
-  bool operator >= (const Number &n) const
+  bool operator >= (const number_t &n) const
   { return !(*this < n); }
 
-  bool operator <= (const Number &n) const
+  bool operator <= (const number_t &n) const
   { return !(*this > n); }
 
-  const Number &operator += (const Number &n)
+  const number_t &operator += (const number_t &n)
   {
     set_real (to_real () + n.to_real ());
 
@@ -389,7 +389,7 @@ typedef hb_vector_t<byte_str_t> byte_str_array_t;
 
 /* stack */
 template <typename ELEM, int LIMIT>
-struct Stack
+struct stack_t
 {
   void init ()
   {
@@ -486,8 +486,8 @@ struct Stack
 };
 
 /* argument stack */
-template <typename ARG=Number>
-struct ArgStack : Stack<ARG, 513>
+template <typename ARG=number_t>
+struct arg_stack_t : stack_t<ARG, 513>
 {
   void push_int (int v)
   {
@@ -543,11 +543,11 @@ struct ArgStack : Stack<ARG, 513>
   }
 
   private:
-  typedef Stack<ARG, 513> S;
+  typedef stack_t<ARG, 513> S;
 };
 
 /* an operator prefixed by its operands in a byte string */
-struct OpStr
+struct op_str_t
 {
   void init () {}
   void fini () {}
@@ -557,10 +557,10 @@ struct OpStr
 };
 
 /* base of OP_SERIALIZER */
-struct OpSerializer
+struct op_serializer_t
 {
   protected:
-  bool copy_opstr (hb_serialize_context_t *c, const OpStr& opstr) const
+  bool copy_opstr (hb_serialize_context_t *c, const op_str_t& opstr) const
   {
     TRACE_SERIALIZE (this);
 
@@ -572,7 +572,7 @@ struct OpSerializer
 };
 
 template <typename VAL>
-struct ParsedValues
+struct parsed_values_t
 {
   void init ()
   {
@@ -612,8 +612,8 @@ struct ParsedValues
   hb_vector_t<VAL>   values;
 };
 
-template <typename ARG=Number>
-struct InterpEnv
+template <typename ARG=number_t>
+struct interp_env_t
 {
   void init (const byte_str_t &str_)
   {
@@ -665,17 +665,17 @@ struct InterpEnv
   }
 
   byte_str_ref_t    str_ref;
-  ArgStack<ARG> argStack;
+  arg_stack_t<ARG> argStack;
   protected:
   bool	  error;
 };
 
-typedef InterpEnv<> NumInterpEnv;
+typedef interp_env_t<> num_interp_env_t;
 
-template <typename ARG=Number>
-struct OpSet
+template <typename ARG=number_t>
+struct opset_t
 {
-  static void process_op (OpCode op, InterpEnv<ARG>& env)
+  static void process_op (OpCode op, interp_env_t<ARG>& env)
   {
     switch (op) {
       case OpCode_shortint:
@@ -711,9 +711,9 @@ struct OpSet
 };
 
 template <typename ENV>
-struct Interpreter {
+struct interpreter_t {
 
-  ~Interpreter() { fini (); }
+  ~interpreter_t() { fini (); }
 
   void fini () { env.fini (); }
 

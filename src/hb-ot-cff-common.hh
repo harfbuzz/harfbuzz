@@ -55,14 +55,14 @@ inline unsigned int calcOffSize(unsigned int dataSize)
   return size;
 }
 
-struct code_pair
+struct code_pair_t
 {
   hb_codepoint_t  code;
   hb_codepoint_t  glyph;
 };
 
-typedef hb_vector_t<unsigned char, 1> StrBuff;
-struct StrBuffArray : hb_vector_t<StrBuff>
+typedef hb_vector_t<unsigned char, 1> str_buff_t;
+struct str_buff_vec_t : hb_vector_t<str_buff_t>
 {
   void fini () { SUPER::fini_deep (); }
 
@@ -75,7 +75,7 @@ struct StrBuffArray : hb_vector_t<StrBuff>
   }
 
   private:
-  typedef hb_vector_t<StrBuff> SUPER;
+  typedef hb_vector_t<str_buff_t> SUPER;
 };
 
 /* CFF INDEX */
@@ -160,7 +160,7 @@ struct CFFIndex
 
   bool serialize (hb_serialize_context_t *c,
 		  unsigned int offSize_,
-		  const StrBuffArray &buffArray)
+		  const str_buff_vec_t &buffArray)
   {
     byte_str_array_t  byteArray;
     byteArray.init ();
@@ -405,7 +405,7 @@ struct TopDict : Dict {};
 struct FontDict : Dict {};
 struct PrivateDict : Dict {};
 
-struct TableInfo
+struct table_info_t
 {
   void init () { offSize = offset = size = 0; }
 
@@ -416,7 +416,7 @@ struct TableInfo
 
 /* used to remap font index or SID from fullset to subset.
  * set to CFF_UNDEF_CODE if excluded from subset */
-struct Remap : hb_vector_t<hb_codepoint_t>
+struct remap_t : hb_vector_t<hb_codepoint_t>
 {
   void init () { SUPER::init (); }
 
@@ -508,9 +508,9 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
 		  unsigned int offSize_,
 		  const hb_vector_t<DICTVAL> &fontDicts,
 		  unsigned int fdCount,
-		  const Remap &fdmap,
+		  const remap_t &fdmap,
 		  OP_SERIALIZER& opszr,
-		  const hb_vector_t<TableInfo> &privateInfos)
+		  const hb_vector_t<table_info_t> &privateInfos)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -546,7 +546,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
 						 const hb_vector_t<DICTVAL> &fontDicts,
 						 unsigned int fdCount,
-						 const Remap &fdmap,
+						 const remap_t &fdmap,
 						 OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;
