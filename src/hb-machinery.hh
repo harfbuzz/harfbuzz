@@ -599,6 +599,8 @@ struct hb_serialize_context_t
     memcpy (ret, &obj, size);
     return ret;
   }
+  template <typename Type>
+  hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
 
   template <typename Type>
   Type *extend_size (Type &obj, unsigned int size)
