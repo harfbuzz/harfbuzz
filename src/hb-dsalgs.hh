@@ -305,13 +305,14 @@ template <> struct hb_is_signed<unsigned char> { enum { value = false }; };
 template <> struct hb_is_signed<unsigned short> { enum { value = false }; };
 template <> struct hb_is_signed<unsigned int> { enum { value = false }; };
 template <> struct hb_is_signed<unsigned long> { enum { value = false }; };
-
-/* We need to define hb_is_signed for the typedefs we use on pre-Visual Studio 2010
- * for the int8_t type, since __int8/__int64 is not considered the same as char/long.
- * The previous lines will suffice for the other types, though.  Note that somehow,
- * usigned __int8 is considered equal to unsigned char.
+/* We need to define hb_is_signed for the typedefs we use on pre-Visual
+ * Studio 2010 for the int8_t type, since __int8/__int64 is not considered
+ * the same as char/long.  The previous lines will suffice for the other
+ * types, though.  Note that somehow, unsigned __int8 is considered same
+ * as unsigned char.
+ * https://github.com/harfbuzz/harfbuzz/pull/1499
  */
-#if defined (_MSC_VER) && (_MSC_VER < 1600)
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
 template <> struct hb_is_signed<__int8> { enum { value = true }; };
 #endif
 
