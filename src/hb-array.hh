@@ -182,9 +182,12 @@ struct hb_array_t
   Type *arrayZ;
   unsigned int len;
 };
-template <typename T>
-inline hb_array_t<T> hb_array (T *array, unsigned int len)
+template <typename T> inline hb_array_t<T>
+hb_array (T *array, unsigned int len)
 { return hb_array_t<T> (array, len); }
+template <typename T, unsigned int len_> inline hb_array_t<T>
+hb_array (T (&array_)[len_])
+{ return hb_array_t<T> (array_); }
 
 
 enum hb_bfind_not_found_t
@@ -200,6 +203,7 @@ struct hb_sorted_array_t : hb_array_t<Type>
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
   hb_sorted_array_t (Type *array_, unsigned int len_) : hb_array_t<Type> (array_, len_) {}
+  template <unsigned int len_> hb_sorted_array_t (Type (&array_)[len_]) : hb_array_t<Type> (array_) {}
 
   hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
   { return hb_sorted_array_t<Type> (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
@@ -261,9 +265,12 @@ struct hb_sorted_array_t : hb_array_t<Type>
     return false;
   }
 };
-template <typename T>
-inline hb_sorted_array_t<T> hb_sorted_array (T *array, unsigned int len)
+template <typename T> inline hb_sorted_array_t<T>
+hb_sorted_array (T *array, unsigned int len)
 { return hb_sorted_array_t<T> (array, len); }
+template <typename T, unsigned int len_> inline hb_sorted_array_t<T>
+hb_sorted_array (T (&array_)[len_])
+{ return hb_sorted_array_t<T> (array_); }
 
 
 typedef hb_array_t<const char> hb_bytes_t;
