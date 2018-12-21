@@ -628,7 +628,7 @@ struct cff1_top_dict_interp_env_t : num_interp_env_t
 
 struct name_dict_values_t
 {
-  enum NameDictValIndex
+  enum name_dict_val_index_t
   {
       version,
       notice,
@@ -657,7 +657,7 @@ struct name_dict_values_t
   unsigned int operator[] (unsigned int i) const
   { assert (i < ValCount); return values[i]; }
 
-  static enum NameDictValIndex name_op_to_index (OpCode op)
+  static enum name_dict_val_index_t name_op_to_index (op_code_t op)
   {
     switch (op) {
       default: // can't happen - just make some compiler happy
@@ -722,7 +722,7 @@ struct cff1_top_dict_values_t : top_dict_values_t<cff1_top_dict_val_t>
 
 struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
 {
-  static void process_op (OpCode op, cff1_top_dict_interp_env_t& env, cff1_top_dict_values_t& dictval)
+  static void process_op (op_code_t op, cff1_top_dict_interp_env_t& env, cff1_top_dict_values_t& dictval)
   {
     cff1_top_dict_val_t  val;
     val.last_arg_offset = (env.last_offset-1) - dictval.opStart;  /* offset to the last argument */
@@ -823,7 +823,7 @@ struct cff1_font_dict_values_t : dict_values_t<op_str_t>
 
 struct cff1_font_dict_opset_t : dict_opset_t
 {
-  static void process_op (OpCode op, num_interp_env_t& env, cff1_font_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff1_font_dict_values_t& dictval)
   {
     switch (op) {
       case OpCode_FontName:
@@ -883,7 +883,7 @@ typedef cff1_private_dict_values_base_t<num_dict_val_t> cff1_private_dict_values
 
 struct cff1_private_dict_opset_t : dict_opset_t
 {
-  static void process_op (OpCode op, num_interp_env_t& env, cff1_private_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff1_private_dict_values_t& dictval)
   {
     num_dict_val_t val;
     val.init ();
@@ -930,7 +930,7 @@ struct cff1_private_dict_opset_t : dict_opset_t
 
 struct cff1_private_dict_opset_subset : dict_opset_t
 {
-  static void process_op (OpCode op, num_interp_env_t& env, cff1_private_dict_values_subset_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff1_private_dict_values_subset_t& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:

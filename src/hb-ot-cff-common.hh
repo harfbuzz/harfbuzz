@@ -364,7 +364,7 @@ struct Dict : UnsizedByteStr
   }
 
   template <typename INTTYPE, int minVal, int maxVal>
-  static bool serialize_int_op (hb_serialize_context_t *c, OpCode op, int value, OpCode intOp)
+  static bool serialize_int_op (hb_serialize_context_t *c, op_code_t op, int value, op_code_t intOp)
   {
     // XXX: not sure why but LLVM fails to compile the following 'unlikely' macro invocation
     if (/*unlikely*/ (!serialize_int<INTTYPE, minVal, maxVal> (c, intOp, value)))
@@ -384,18 +384,18 @@ struct Dict : UnsizedByteStr
     return_trace (true);
   }
 
-  static bool serialize_uint4_op (hb_serialize_context_t *c, OpCode op, int value)
+  static bool serialize_uint4_op (hb_serialize_context_t *c, op_code_t op, int value)
   { return serialize_int_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longintdict); }
 
-  static bool serialize_uint2_op (hb_serialize_context_t *c, OpCode op, int value)
+  static bool serialize_uint2_op (hb_serialize_context_t *c, op_code_t op, int value)
   { return serialize_int_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
 
-  static bool serialize_offset4_op (hb_serialize_context_t *c, OpCode op, int value)
+  static bool serialize_offset4_op (hb_serialize_context_t *c, op_code_t op, int value)
   {
     return serialize_uint4_op (c, op, value);
   }
 
-  static bool serialize_offset2_op (hb_serialize_context_t *c, OpCode op, int value)
+  static bool serialize_offset2_op (hb_serialize_context_t *c, op_code_t op, int value)
   {
     return serialize_uint2_op (c, op, value);
   }

@@ -33,7 +33,7 @@ namespace CFF {
 
 using namespace OT;
 
-enum CSType {
+enum cs_type_t {
   CSType_CharString,
   CSType_GlobalSubr,
   CSType_LocalSubr
@@ -41,7 +41,7 @@ enum CSType {
 
 struct call_context_t
 {
-  void init (const byte_str_ref_t substr_=byte_str_ref_t (), CSType type_=CSType_CharString, unsigned int subr_num_=0)
+  void init (const byte_str_ref_t substr_=byte_str_ref_t (), cs_type_t type_=CSType_CharString, unsigned int subr_num_=0)
   {
     str_ref = substr_;
     type = type_;
@@ -51,7 +51,7 @@ struct call_context_t
   void fini () {}
 
   byte_str_ref_t      str_ref;
-  CSType	  type;
+  cs_type_t	  type;
   unsigned int    subr_num;
 };
 
@@ -157,7 +157,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     return true;
   }
 
-  void callSubr (const biased_subrs_t<SUBRS>& biasedSubrs, CSType type)
+  void callSubr (const biased_subrs_t<SUBRS>& biasedSubrs, cs_type_t type)
   {
     unsigned int subr_num;
 
@@ -248,7 +248,7 @@ struct path_procs_null_t
 template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=path_procs_null_t<ENV, PARAM> >
 struct cs_opset_t : opset_t<ARG>
 {
-  static void process_op (OpCode op, ENV &env, PARAM& param)
+  static void process_op (op_code_t op, ENV &env, PARAM& param)
   {
     switch (op) {
 
@@ -370,19 +370,19 @@ struct cs_opset_t : opset_t<ARG>
     }
   }
 
-  static void process_hstem (OpCode op, ENV &env, PARAM& param)
+  static void process_hstem (op_code_t op, ENV &env, PARAM& param)
   {
     env.hstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void process_vstem (OpCode op, ENV &env, PARAM& param)
+  static void process_vstem (op_code_t op, ENV &env, PARAM& param)
   {
     env.vstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void process_hintmask (OpCode op, ENV &env, PARAM& param)
+  static void process_hintmask (op_code_t op, ENV &env, PARAM& param)
   {
     env.determine_hintmask_size ();
     if (likely (env.str_ref.avail (env.hintmask_size)))
@@ -392,15 +392,15 @@ struct cs_opset_t : opset_t<ARG>
     }
   }
 
-  static void process_post_flex (OpCode op, ENV &env, PARAM& param)
+  static void process_post_flex (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void check_width (OpCode op, ENV &env, PARAM& param)
+  static void check_width (op_code_t op, ENV &env, PARAM& param)
   {}
 
-  static void process_post_move (OpCode op, ENV &env, PARAM& param)
+  static void process_post_move (op_code_t op, ENV &env, PARAM& param)
   {
     if (!env.seen_moveto)
     {
@@ -410,12 +410,12 @@ struct cs_opset_t : opset_t<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void process_post_path (OpCode op, ENV &env, PARAM& param)
+  static void process_post_path (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void flush_args_and_op (OpCode op, ENV &env, PARAM& param)
+  static void flush_args_and_op (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args (env, param);
     OPSET::flush_op (op, env, param);
@@ -426,16 +426,16 @@ struct cs_opset_t : opset_t<ARG>
     env.pop_n_args (env.argStack.get_count ());
   }
 
-  static void flush_op (OpCode op, ENV &env, PARAM& param)
+  static void flush_op (op_code_t op, ENV &env, PARAM& param)
   {
   }
 
-  static void flush_hintmask (OpCode op, ENV &env, PARAM& param)
+  static void flush_hintmask (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static bool is_number_op (OpCode op)
+  static bool is_number_op (op_code_t op)
   {
     switch (op)
     {

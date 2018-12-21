@@ -87,7 +87,7 @@ struct cff1_cs_opset_t : cs_opset_t<number_t, OPSET, cff1_cs_interp_env_t, PARAM
   /* PostScript-originated legacy opcodes (OpCode_add etc) are unsupported */
   /* Type 1-originated deprecated opcodes, seac behavior of endchar and dotsection are supported */
 
-  static void process_op (OpCode op, cff1_cs_interp_env_t &env, PARAM& param)
+  static void process_op (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
   {
     switch (op) {
       case OpCode_dotsection:
@@ -109,7 +109,7 @@ struct cff1_cs_opset_t : cs_opset_t<number_t, OPSET, cff1_cs_interp_env_t, PARAM
     }
   }
 
-  static void check_width (OpCode op, cff1_cs_interp_env_t &env, PARAM& param)
+  static void check_width (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
   {
     if (!env.processed_width)
     {

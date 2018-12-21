@@ -151,7 +151,7 @@ struct cff2_top_dict_values_t : top_dict_values_t<>
     unsigned int size = 0;
     for (unsigned int i = 0; i < get_count (); i++)
     {
-      OpCode op = get_value (i).op;
+      op_code_t op = get_value (i).op;
       switch (op)
       {
 	case OpCode_vstore:
@@ -172,7 +172,7 @@ struct cff2_top_dict_values_t : top_dict_values_t<>
 
 struct cff2_top_dict_opset_t : top_dict_opset_t<>
 {
-  static void process_op (OpCode op, num_interp_env_t& env, cff2_top_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff2_top_dict_values_t& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
@@ -221,7 +221,7 @@ struct cff2_font_dict_values_t : dict_values_t<op_str_t>
 
 struct cff2_font_dict_opset_t : dict_opset_t
 {
-  static void process_op (OpCode op, num_interp_env_t& env, cff2_font_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff2_font_dict_values_t& dictval)
   {
     switch (op) {
       case OpCode_Private:
@@ -304,7 +304,7 @@ struct cff2_priv_dict_interp_env_t : num_interp_env_t
 
 struct cff2_private_dict_opset_t : dict_opset_t
 {
-  static void process_op (OpCode op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_t& dictval)
+  static void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_t& dictval)
   {
     num_dict_val_t val;
     val.init ();
@@ -354,7 +354,7 @@ struct cff2_private_dict_opset_t : dict_opset_t
 
 struct cff2_private_dict_opset_subset_t : dict_opset_t
 {
-  static void process_op (OpCode op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_subset_t& dictval)
+  static void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_subset_t& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:

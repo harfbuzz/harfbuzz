@@ -77,7 +77,7 @@ struct top_dict_values_t : dict_values_t<OPSTR>
 
 struct dict_opset_t : opset_t<number_t>
 {
-  static void process_op (OpCode op, interp_env_t<number_t>& env)
+  static void process_op (op_code_t op, interp_env_t<number_t>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
@@ -220,7 +220,7 @@ struct dict_opset_t : opset_t<number_t>
     return value;
   }
 
-  static bool is_hint_op (OpCode op)
+  static bool is_hint_op (op_code_t op)
   {
     switch (op)
     {
@@ -248,7 +248,7 @@ struct dict_opset_t : opset_t<number_t>
 template <typename VAL=op_str_t>
 struct top_dict_opset_t : dict_opset_t
 {
-  static void process_op (OpCode op, interp_env_t<number_t>& env, top_dict_values_t<VAL> & dictval)
+  static void process_op (op_code_t op, interp_env_t<number_t>& env, top_dict_values_t<VAL> & dictval)
   {
     switch (op) {
       case OpCode_CharStrings:

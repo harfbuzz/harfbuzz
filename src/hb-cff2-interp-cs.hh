@@ -100,7 +100,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     SUPER::fini ();
   }
 
-  OpCode fetch_op ()
+  op_code_t fetch_op ()
   {
     if (this->str_ref.avail ())
       return SUPER::fetch_op ();
@@ -196,7 +196,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 template <typename OPSET, typename PARAM, typename PATH=path_procs_null_t<cff2_cs_interp_env_t, PARAM> >
 struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PARAM, PATH>
 {
-  static void process_op (OpCode op, cff2_cs_interp_env_t &env, PARAM& param)
+  static void process_op (op_code_t op, cff2_cs_interp_env_t &env, PARAM& param)
   {
     switch (op) {
       case OpCode_callsubr:

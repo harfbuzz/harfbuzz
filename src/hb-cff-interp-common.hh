@@ -30,7 +30,7 @@ namespace CFF {
 
 using namespace OT;
 
-typedef unsigned int OpCode;
+typedef unsigned int op_code_t;
 
 
 /* === Dict operators === */
@@ -88,11 +88,11 @@ typedef unsigned int OpCode;
 
 /* Two byte escape operators 12, (0-41) */
 #define OpCode_ESC_Base		256
-#define Make_OpCode_ESC(byte2)	((OpCode)(OpCode_ESC_Base + (byte2)))
+#define Make_OpCode_ESC(byte2)	((op_code_t)(OpCode_ESC_Base + (byte2)))
 
-inline OpCode Unmake_OpCode_ESC (OpCode op)  { return (OpCode)(op - OpCode_ESC_Base); }
-inline bool Is_OpCode_ESC (OpCode op) { return op >= OpCode_ESC_Base; }
-inline unsigned int OpCode_Size (OpCode op) { return Is_OpCode_ESC (op) ? 2: 1; }
+inline op_code_t Unmake_OpCode_ESC (op_code_t op)  { return (op_code_t)(op - OpCode_ESC_Base); }
+inline bool Is_OpCode_ESC (op_code_t op) { return op >= OpCode_ESC_Base; }
+inline unsigned int OpCode_Size (op_code_t op) { return Is_OpCode_ESC (op) ? 2: 1; }
 
 #define OpCode_Copyright	Make_OpCode_ESC(0) /* CFF Top */
 #define OpCode_isFixedPitch	Make_OpCode_ESC(1) /* CFF Top (false) */
@@ -263,7 +263,7 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 {
   // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
   template <typename INTTYPE, int minVal, int maxVal>
-  static bool serialize_int (hb_serialize_context_t *c, OpCode intOp, int value)
+  static bool serialize_int (hb_serialize_context_t *c, op_code_t intOp, int value)
   {
     TRACE_SERIALIZE (this);
 
@@ -552,7 +552,7 @@ struct op_str_t
   void init () {}
   void fini () {}
 
-  OpCode  op;
+  op_code_t  op;
   byte_str_t str;
 };
 
@@ -581,7 +581,7 @@ struct parsed_values_t
   }
   void fini () { values.fini_deep (); }
 
-  void add_op (OpCode op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
+  void add_op (op_code_t op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
   {
     VAL *val = values.push ();
     val->op = op;
@@ -589,7 +589,7 @@ struct parsed_values_t
     opStart = str_ref.offset;
   }
 
-  void add_op (OpCode op, const byte_str_ref_t& str_ref, const VAL &v)
+  void add_op (op_code_t op, const byte_str_ref_t& str_ref, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
@@ -597,7 +597,7 @@ struct parsed_values_t
     opStart = str_ref.offset;
   }
 
-  bool has_op (OpCode op) const
+  bool has_op (op_code_t op) const
   {
     for (unsigned int i = 0; i < get_count (); i++)
       if (get_value (i).op == op) return true;
@@ -628,12 +628,12 @@ struct interp_env_t
 
   void set_error () { error = true; }
 
-  OpCode fetch_op ()
+  op_code_t fetch_op ()
   {
-    OpCode  op = OpCode_Invalid;
+    op_code_t  op = OpCode_Invalid;
     if (unlikely (!str_ref.avail ()))
       return OpCode_Invalid;
-    op = (OpCode)(unsigned char)str_ref[0];
+    op = (op_code_t)(unsigned char)str_ref[0];
     if (op == OpCode_escape) {
       if (unlikely (!str_ref.avail ()))
 	return OpCode_Invalid;
@@ -675,7 +675,7 @@ typedef interp_env_t<> num_interp_env_t;
 template <typename ARG=number_t>
 struct opset_t
 {
-  static void process_op (OpCode op, interp_env_t<ARG>& env)
+  static void process_op (op_code_t op, interp_env_t<ARG>& env)
   {
     switch (op) {
       case OpCode_shortint:

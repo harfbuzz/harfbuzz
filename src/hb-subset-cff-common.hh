@@ -96,7 +96,7 @@ struct str_encoder_t
     }
   }
 
-  void encode_op (OpCode op)
+  void encode_op (op_code_t op)
   {
     if (Is_OpCode_ESC (op))
     {
@@ -403,13 +403,13 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
     has_prefix_ = false;
   }
 
-  void add_op (OpCode op, const byte_str_ref_t& str_ref)
+  void add_op (op_code_t op, const byte_str_ref_t& str_ref)
   {
     if (!is_parsed ())
       SUPER::add_op (op, str_ref);
   }
 
-  void add_call_op (OpCode op, const byte_str_ref_t& str_ref, unsigned int subr_num)
+  void add_call_op (op_code_t op, const byte_str_ref_t& str_ref, unsigned int subr_num)
   {
     if (!is_parsed ())
     {
@@ -423,7 +423,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
     }
   }
 
-  void set_prefix (const number_t &num, OpCode op = OpCode_Invalid)
+  void set_prefix (const number_t &num, op_code_t op = OpCode_Invalid)
   {
     has_prefix_ = true;
     prefix_op_ = op;
@@ -446,7 +446,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   void set_vsindex_dropped ()      { vsindex_dropped = true; }
 
   bool has_prefix () const          { return has_prefix_; }
-  OpCode prefix_op () const         { return prefix_op_; }
+  op_code_t prefix_op () const         { return prefix_op_; }
   const number_t &prefix_num () const { return prefix_num_; }
 
   protected:
@@ -454,7 +454,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   bool    hint_dropped;
   bool    vsindex_dropped;
   bool    has_prefix_;
-  OpCode  prefix_op_;
+  op_code_t  prefix_op_;
   number_t  prefix_num_;
 
   private:

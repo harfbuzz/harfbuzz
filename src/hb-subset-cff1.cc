@@ -130,7 +130,7 @@ struct cff1_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<cff1_top_dic
   {
     TRACE_SERIALIZE (this);
 
-    OpCode op = opstr.op;
+    op_code_t op = opstr.op;
     switch (op)
     {
       case OpCode_charset:
@@ -183,7 +183,7 @@ struct cff1_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<cff1_top_dic
 
   unsigned int calculate_serialized_size (const cff1_top_dict_val_t &opstr) const
   {
-    OpCode op = opstr.op;
+    op_code_t op = opstr.op;
     switch (op)
     {
       case OpCode_charset:
@@ -261,7 +261,7 @@ struct cff1_font_dict_op_serializer_t : cff_font_dict_op_serializer_t
 
 struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatten_param_t>
 {
-  static void flush_args_and_op (OpCode op, cff1_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_args_and_op (op_code_t op, cff1_cs_interp_env_t &env, flatten_param_t& param)
   {
     if (env.arg_start > 0)
       flush_width (env, param);
@@ -295,7 +295,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
     SUPER::flush_args (env, param);
   }
 
-  static void flush_op (OpCode op, cff1_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_op (op_code_t op, cff1_cs_interp_env_t &env, flatten_param_t& param)
   {
     str_encoder_t  encoder (param.flatStr);
     encoder.encode_op (op);
@@ -308,7 +308,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
     encoder.encode_num (env.width);
   }
 
-  static void flush_hintmask (OpCode op, cff1_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_hintmask (op_code_t op, cff1_cs_interp_env_t &env, flatten_param_t& param)
   {
     SUPER::flush_hintmask (op, env, param);
     if (!param.drop_hints)
@@ -344,7 +344,7 @@ struct range_list_t : hb_vector_t<code_pair_t>
 
 struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t, subr_subset_param_t>
 {
-  static void process_op (OpCode op, cff1_cs_interp_env_t &env, subr_subset_param_t& param)
+  static void process_op (op_code_t op, cff1_cs_interp_env_t &env, subr_subset_param_t& param)
   {
     switch (op) {
 
@@ -377,7 +377,7 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
   }
 
   protected:
-  static void process_call_subr (OpCode op, CSType type,
+  static void process_call_subr (op_code_t op, cs_type_t type,
 				 cff1_cs_interp_env_t &env, subr_subset_param_t& param,
 				 cff1_biased_subrs_t& subrs, hb_set_t *closure)
   {

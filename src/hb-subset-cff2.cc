@@ -77,7 +77,7 @@ struct cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
 
 struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatten_param_t>
 {
-  static void flush_args_and_op (OpCode op, cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     switch (op)
     {
@@ -157,7 +157,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     encoder.encode_op (OpCode_blendcs);
   }
 
-  static void flush_op (OpCode op, cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     switch (op)
     {
@@ -177,7 +177,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 
 struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t, subr_subset_param_t>
 {
-  static void process_op (OpCode op, cff2_cs_interp_env_t &env, subr_subset_param_t& param)
+  static void process_op (op_code_t op, cff2_cs_interp_env_t &env, subr_subset_param_t& param)
   {
     switch (op) {
 
@@ -208,7 +208,7 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
   }
 
   protected:
-  static void process_call_subr (OpCode op, CSType type,
+  static void process_call_subr (op_code_t op, cs_type_t type,
 				 cff2_cs_interp_env_t &env, subr_subset_param_t& param,
 				 cff2_biased_subrs_t& subrs, hb_set_t *closure)
   {
