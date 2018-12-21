@@ -36,7 +36,7 @@ struct hb_sorted_array_t;
 template <typename Type>
 struct hb_array_t
 {
-  typedef Type item_type_t;
+  typedef Type item_t;
   enum { item_size = hb_static_size (Type) };
 
   /*
