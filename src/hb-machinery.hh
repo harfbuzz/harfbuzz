@@ -667,7 +667,6 @@ template <typename Type>
 struct BEInt<Type, 1>
 {
   public:
-  typedef Type type;
   void set (Type V)      { v = V; }
   operator Type () const { return v; }
   private: uint8_t v;
@@ -676,7 +675,6 @@ template <typename Type>
 struct BEInt<Type, 2>
 {
   public:
-  typedef Type type;
   void set (Type V)
   {
     v[0] = (V >>  8) & 0xFF;
@@ -705,7 +703,6 @@ template <typename Type>
 struct BEInt<Type, 3>
 {
   public:
-  typedef Type type;
   void set (Type V)
   {
     v[0] = (V >> 16) & 0xFF;
