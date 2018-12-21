@@ -44,31 +44,31 @@
 template <typename Iter, typename Item = typename Iter::__item_type__>
 struct hb_iter_t
 {
-  typedef Iter type_t;
-  typedef Item item_type_t;
+  typedef Iter iter_t;
+  typedef Item item_t;
 
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */ 
-  const type_t* thiz () const { return static_cast<const type_t *> (this); }
-        type_t* thiz ()       { return static_cast<      type_t *> (this); }
+  const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
+        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
 
   /* Operators. */
-  operator type_t () { return iter(); }
+  operator iter_t () { return iter(); }
   explicit_operator bool () const { return more (); }
-  item_type_t& operator * () { return item (); }
-  item_type_t& operator [] (unsigned i) { return item (i); }
-  type_t& operator += (unsigned count) { forward (count); return *thiz(); }
-  type_t& operator ++ () { next (); return *thiz(); }
-  type_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
-  type_t& operator -- () { prev (); return *thiz(); }
-  type_t operator + (unsigned count) { type_t c (*thiz()); c += count; return c; }
-  type_t operator ++ (int) { type_t c (*thiz()); ++*thiz(); return c; }
-  type_t operator - (unsigned count) { type_t c (*thiz()); c -= count; return c; }
-  type_t operator -- (int) { type_t c (*thiz()); --*thiz(); return c; }
+  item_t& operator * () { return item (); }
+  item_t& operator [] (unsigned i) { return item (i); }
+  iter_t& operator += (unsigned count) { forward (count); return *thiz(); }
+  iter_t& operator ++ () { next (); return *thiz(); }
+  iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
+  iter_t& operator -- () { prev (); return *thiz(); }
+  iter_t operator + (unsigned count) { iter_t c (*thiz()); c += count; return c; }
+  iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
+  iter_t operator - (unsigned count) { iter_t c (*thiz()); c -= count; return c; }
+  iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
 
   /* Methods. */
-  type_t iter () const { return *thiz(); }
-  item_type_t& item () const { return thiz()->__item__ (); }
-  item_type_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
+  iter_t iter () const { return *thiz(); }
+  item_t& item () const { return thiz()->__item__ (); }
+  item_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
   bool more () const { return thiz()->__more__ (); }
   void next () { thiz()->__next__ (); }
   void forward (unsigned n) { thiz()->__forward__ (n); }
@@ -81,12 +81,12 @@ struct hb_iter_t
    */
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
-  item_type_t& __item__ () const { return thiz()->item_at (0); }
-  item_type_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
+  item_t& __item__ () const { return thiz()->item_at (0); }
+  item_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
 
   /* Termination: Implement __more__() or __end__(). */
   bool __more__ () const { return item () != thiz()->__end__ (); }
-  const item_type_t& __end__ () const { return type_t::__sentinel__; }
+  const item_t& __end__ () const { return iter_t::__sentinel__; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { thiz()->forward (1); }
@@ -98,7 +98,7 @@ struct hb_iter_t
 
   /* Population: Implement __len__() if known. */
   unsigned __len__ () const
-  { type_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
+  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 };
 
 
