@@ -58,16 +58,22 @@ struct hb_iter_t
   item_type_t& operator [] (unsigned i) { return item (i); }
   type_t& operator += (unsigned count) { forward (count); return thiz(); }
   type_t& operator ++ () { next (); return thiz(); }
+  type_t& operator -= (unsigned count) { rewind (count); return thiz(); }
+  type_t& operator -- () { prev (); return thiz(); }
   type_t operator + (unsigned count) { type_t c (*thiz()); c += count; return c; }
-  type_t operator ++ (int) { type_t c (*thiz()); ++*this; return c; }
+  type_t operator ++ (int) { type_t c (*thiz()); ++*thiz(); return c; }
+  type_t operator - (unsigned count) { type_t c (*thiz()); c -= count; return c; }
+  type_t operator -- (int) { type_t c (*thiz()); --*thiz(); return c; }
 
   /* Methods. */
   type_t iter () const { return *thiz(); }
   item_type_t item () const { return thiz()->__item__ (); }
   item_type_t item (unsigned i) const { return thiz()->__item__ (i); }
   bool more () const { return thiz()->__more__ (); }
-  void next () { thiz()->next (); }
+  void next () { thiz()->__next__ (); }
   void forward (unsigned n) { thiz()->__forward__ (n); }
+  void prev () { thiz()->__prev__ (); }
+  void rewind (unsigned n) { thiz()->__rewind__ (n); }
   unsigned len () const { return thiz()->__len__ (); }
 
   /*
@@ -88,6 +94,10 @@ struct hb_iter_t
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { thiz()->forward (1); }
   void __forward__ (unsigned n) { while (n--) next (); }
+
+  /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
+  void __prev__ () { thiz()->rewind (1); }
+  void __rewind__ (unsigned n) { while (n--) prev (); }
 
   /* Population: Implement __len__() if known. */
   unsigned __len__ () const
