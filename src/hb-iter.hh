@@ -34,113 +34,65 @@
  *
  * The goal of this template is to make the same iterator interface
  * available to all types, and make it very easy and compact to use.
- * Iterator objects are small, light-weight, objects that can be
+ * hb_iter_tator objects are small, light-weight, objects that can be
  * copied by value.  If the collection / object being iterated on
- * is writable, then the iterator points to lvalues, otherwise it
+ * is writable, then the iterator returns lvalues, otherwise it
  * returns rvalues.
- *
- * The way to declare, initialize, and use iterators, eg.:
- *
- *   Iter<const int *> s (src);
- *   Iter<int *> t (dst);
- *   for (; s && t; s++, t++)
- *     *s = *t;
  */
 
-template <typename T>
-struct Iter;
-
-#if 0
-template <typename T>
-struct Iter
+/* Base class for all iterators. */
+template <typename Iter>
+struct hb_iter_t
 {
-  Iter (const T &c);
-};
-#endif
+  typedef Iter type_t;
+  typedef typename Iter::__type__ item_type_t;
 
-template <typename T>
-struct Iter<T *>
-{
-  /* Type of items. */
-  typedef T Value;
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */ 
+  const type_t* thiz () const { return static_cast<const type_t *> (this); }
+        type_t* thiz ()       { return static_cast<      type_t *> (this); }
 
-  /* Constructors. */
-  Iter (T *array_, int length_) :
-    array (array_), length (MAX (length_, 0)) {}
-  template <unsigned int length_>
-  Iter (T (&array_)[length_]) :
-    array (array_), length (length_) {}
+  /* Operators. */
+  operator type_t () { return iter(); }
+  explicit_operator bool () const { return more (); }
+  item_type_t& operator * () { return item (); }
+  item_type_t& operator [] (unsigned i) { return item (i); }
+  type_t& operator += (unsigned count) { forward (count); return thiz(); }
+  type_t& operator ++ () { next (); return thiz(); }
+  type_t operator + (unsigned count) { type_t c (*thiz()); c += count; return c; }
+  type_t operator ++ (int) { type_t c (*thiz()); ++*this; return c; }
 
-  /* Emptiness. */
-  explicit_operator bool () const { return length; }
+  /* Methods. */
+  type_t iter () const { return *thiz(); }
+  item_type_t item () const { return thiz()->__item__ (); }
+  item_type_t item (unsigned i) const { return thiz()->__item__ (i); }
+  bool more () const { return thiz()->__more__ (); }
+  void next () { thiz()->next (); }
+  void forward (unsigned n) { thiz()->__forward__ (n); }
+  unsigned len () const { return thiz()->__len__ (); }
 
-  /* Current item. */
-  T &operator * ()
-  {
-    if (unlikely (!length)) return CrapOrNull(T);
-    return *array;
-  }
-  T &operator -> () { return (operator *); }
+  /*
+   * Subclasses overrides:
+   */
 
-  /* Next. */
-  Iter<T *> & operator ++ ()
-  {
-    if (unlikely (!length)) return *this;
-    array++;
-    length--;
-    return *this;
-  }
-  /* Might return void, or a copy of pre-increment iterator. */
-  void operator ++ (int)
-  {
-    if (unlikely (!length)) return;
-    array++;
-    length--;
-  }
+  /* Item type. */
+  //typedef ... __type__;
 
-  /* Some iterators might implement len(). */
-  unsigned int len () const { return length; }
+  /* Access: Implement __item__(), or __item__(n) if random-access. */
+  item_type_t __item__ () const { return thiz()->item (0); }
+  item_type_t __item__ (unsigned i) const { return *(thiz() + i); }
 
-  /* Some iterators might implement fast-forward.
-   * Only implement it if it's constant-time. */
-  void operator += (unsigned int n)
-  {
-    n = MIN (n, length);
-    array += n;
-    length -= n;
-  }
+  /* Termination: Implement __more__() or __end__(). */
+  bool __more__ () const { return item () != thiz()->__end__ (); }
+  const item_type_t& __end__ () const { return type_t::__sentinel__; }
 
-  /* Some iterators might implement random-access.
-   * Only implement it if it's constant-time. */
-  Iter<T *> & operator [] (unsigned int i)
-  {
-    if (unlikely (i >= length)) return CrapOrNull(T);
-    return array[i];
-  }
+  /* Advancing: Implement __next__(), or __forward__() if random-access. */
+  void __next__ () { thiz()->forward (1); }
+  void __forward__ (unsigned n) { while (n--) next (); }
 
-  private:
-  T *array;
-  unsigned int length;
+  /* Population: Implement __len__() if known. */
+  unsigned __len__ () const
+  { type_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 };
 
-/* XXX Remove
- * Just to test these compile. */
-static inline void
-m ()
-{
-  const int src[10] = {};
-  int dst[20];
-
-  Iter<const int *> s (src);
-  Iter<const int *> s2 (src, 5);
-  Iter<int *> t (dst);
-
-  s2 = s;
-
-  for (; s && t; ++s, ++t)
-   {
-    *t = *s;
-   }
-}
 
 #endif /* HB_ITER_HH */

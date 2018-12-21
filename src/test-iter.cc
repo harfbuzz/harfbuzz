@@ -29,5 +29,21 @@
 int
 main (int argc, char **argv)
 {
+  const int src[10] = {};
+  int dst[20];
+
+#if 0
+  hb_iter_t<const int *> s (src);
+  hb_iter_t<const int *> s2 (src, 5);
+  hb_iter_t<int *> t (dst);
+
+  s2 = s;
+
+  for (; s && t; ++s, ++t)
+   {
+    *t = *s;
+   }
+#endif
+
   return 0;
 }
