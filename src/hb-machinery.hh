@@ -390,7 +390,7 @@ struct hb_sanitize_context_t :
   {
     if (this->may_edit (obj, hb_static_size (Type)))
     {
-      const_cast<Type *> (obj)->set (v);
+      hb_assign (* const_cast<Type *> (obj), v);
       return true;
     }
     return false;
@@ -599,6 +599,8 @@ struct hb_serialize_context_t
     memcpy (ret, &obj, size);
     return ret;
   }
+  template <typename Type>
+  hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
 
   template <typename Type>
   Type *extend_size (Type &obj, unsigned int size)
@@ -665,7 +667,6 @@ template <typename Type>
 struct BEInt<Type, 1>
 {
   public:
-  typedef Type type;
   void set (Type V)      { v = V; }
   operator Type () const { return v; }
   private: uint8_t v;
@@ -674,7 +675,6 @@ template <typename Type>
 struct BEInt<Type, 2>
 {
   public:
-  typedef Type type;
   void set (Type V)
   {
     v[0] = (V >>  8) & 0xFF;
@@ -703,7 +703,6 @@ template <typename Type>
 struct BEInt<Type, 3>
 {
   public:
-  typedef Type type;
   void set (Type V)
   {
     v[0] = (V >> 16) & 0xFF;

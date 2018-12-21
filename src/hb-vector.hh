@@ -34,7 +34,7 @@
 template <typename Type, unsigned int PreallocedCount=8>
 struct hb_vector_t
 {
-  typedef Type ItemType;
+  typedef Type item_t;
   enum { item_size = hb_static_size (Type) };
 
   HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
@@ -88,6 +88,8 @@ struct hb_vector_t
       return Null(Type);
     return arrayZ()[i];
   }
+
+  explicit_operator bool () const { return len; }
 
   hb_array_t<Type> as_array ()
   { return hb_array (arrayZ(), len); }

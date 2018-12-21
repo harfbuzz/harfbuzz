@@ -59,7 +59,10 @@ struct hb_null_size
 { enum { value = _hb_null_size<T, _hb_bool_type<true> >::value }; };
 #define hb_null_size(T) hb_null_size<T>::value
 
-/* This doesn't belong here, but since is copy/paste from above, put it here. */
+/* These doesn't belong here, but since is copy/paste from above, put it here. */
+
+/* hb_static_size (T)
+ * Returns T::static_size if T::min_size is defined, or sizeof (T) otherwise. */
 
 template <typename T, typename B>
 struct _hb_static_size
@@ -72,6 +75,25 @@ template <typename T>
 struct hb_static_size
 { enum { value = _hb_static_size<T, _hb_bool_type<true> >::value }; };
 #define hb_static_size(T) hb_static_size<T>::value
+
+
+/* hb_assign (obj, value)
+ * Calls obj.set (value) if obj.min_size is defined and value has different type
+ * from obj, or obj = v otherwise. */
+
+template <typename T, typename V, typename B>
+struct _hb_assign
+{ static inline void value (T &o, const V v) { o = v; } };
+template <typename T, typename V>
+struct _hb_assign<T, V, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
+{ static inline void value (T &o, const V v) { o.set (v); } };
+template <typename T>
+struct _hb_assign<T, T, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
+{ static inline void value (T &o, const T v) { o = v; } };
+
+template <typename T, typename V>
+static inline void hb_assign (T &o, const V v)
+{ _hb_assign<T, V, _hb_bool_type<true> >::value (o, v); };
 
 
 /*

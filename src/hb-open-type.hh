@@ -352,7 +352,7 @@ static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null>
 template <typename Type>
 struct UnsizedArrayOf
 {
-  typedef Type ItemType;
+  typedef Type item_t;
   enum { item_size = hb_static_size (Type) };
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
@@ -508,7 +508,7 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
-  typedef Type ItemType;
+  typedef Type item_t;
   enum { item_size = hb_static_size (Type) };
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
@@ -553,12 +553,13 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  bool serialize (hb_serialize_context_t *c, hb_array_t<const Type> items)
+  template <typename T>
+  bool serialize (hb_serialize_context_t *c, hb_array_t<const T> items)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!serialize (c, items.len))) return_trace (false);
     for (unsigned int i = 0; i < items.len; i++)
-      arrayZ[i] = items[i];
+      hb_assign (arrayZ[i], items[i]);
     return_trace (true);
   }
 
