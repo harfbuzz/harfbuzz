@@ -44,6 +44,21 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
   hb_array_t<T> arr;
 };
 
+template <typename T>
+struct some_array_t
+{
+  some_array_t (hb_array_t<T> arr_) : arr (arr_) {}
+
+  typedef array_iter_t<T> iter_t;
+  array_iter_t<T> iter () { return array_iter_t<T> (arr); }
+  operator array_iter_t<T> () { return iter (); }
+  operator hb_iter_t<array_iter_t<T> > () { return iter (); }
+
+  private:
+  hb_array_t<T> arr;
+};
+
+
 template <typename I, typename V> inline void
 hb_fill (hb_iter_t<I> i, const V &v)
 {
@@ -71,10 +86,13 @@ main (int argc, char **argv)
   array_iter_t<const int> s2 (v); /* Implicit conversion from vector. */
   array_iter_t<int> t (dst);
 
+  some_array_t<const int> a (src);
+
   s2 = s;
 
   hb_fill (t, 42);
   hb_copy (t, s);
+  hb_copy (t, a.iter ());
 
   return 0;
 }
