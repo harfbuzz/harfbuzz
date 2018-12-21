@@ -33,6 +33,7 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
 {
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 
+  typedef T __item_type__;
   T& __item_at__ (unsigned i) const { return arr[i]; }
   bool __more__ () const { return arr.len; }
   void __forward__ (unsigned n) { arr += n; }
@@ -42,6 +43,18 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
   private:
   hb_array_t<T> arr;
 };
+
+template <typename S, typename D> static inline bool
+copy (D &d, hb_iter_t<S> &s)
+{
+  typename S::iter_t is = s.iter ();
+  typename D::iter_t id = d.iter ();
+
+  for (; d && s; ++d, ++s)
+    *d = *s;
+
+  return !d;
+}
 
 int
 main (int argc, char **argv)
@@ -56,10 +69,7 @@ main (int argc, char **argv)
 
   s2 = s;
 
-  for (; s && t; ++s, ++t)
-   {
-    *t = *s;
-   }
+  copy (t, s);
 
   return 0;
 }
