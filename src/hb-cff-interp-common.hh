@@ -315,7 +315,7 @@ struct byte_str_t : hb_ubytes_t
   ~byte_str_t () {}
   
   /* Copy assignment operator */
-  byte_str_t &operator=(byte_str_t &bs)
+  byte_str_t &operator=(const byte_str_t &bs)
   {
     return *this; /* test */
   }
