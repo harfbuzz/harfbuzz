@@ -36,7 +36,6 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>, hb_iter_mixin_t<array_iter_
 
   typedef T __item_type__;
   T& __item_at__ (unsigned i) const { return arr[i]; }
-  bool __more__ () const { return arr.length; }
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }
   unsigned __len__ () const { return arr.length; }

@@ -75,11 +75,11 @@ struct hb_iter_t
   item_t& item () const { return thiz()->__item__ (); }
   item_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
   bool more () const { return thiz()->__more__ (); }
+  unsigned len () const { return thiz()->__len__ (); }
   void next () { thiz()->__next__ (); }
   void forward (unsigned n) { thiz()->__forward__ (n); }
   void prev () { thiz()->__prev__ (); }
   void rewind (unsigned n) { thiz()->__rewind__ (n); }
-  unsigned len () const { return thiz()->__len__ (); }
   bool random_access () const { return thiz()->__random_access__ (); }
 
   protected:
@@ -102,9 +102,10 @@ struct hb_iter_mixin_t
   item_t& __item__ () const { return thiz()->item_at (0); }
   item_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
 
-  /* Termination: Implement __more__(), or __end__() and operator ==. */
-  bool __more__ () const { return !(*thiz() == thiz()->__end__ ()); }
-  iter_t __end__ () const;
+  /* Termination: Implement __more__(), or __len__() if random-access. */
+  bool __more__ () const { return thiz()->__len__ (); }
+  unsigned __len__ () const
+  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { thiz()->forward (1); }
@@ -114,11 +115,7 @@ struct hb_iter_mixin_t
   void __prev__ () { thiz()->rewind (1); }
   void __rewind__ (unsigned n) { while (n--) thiz()->prev (); }
 
-  /* Population: Implement __len__() if known. */
-  unsigned __len__ () const
-  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
-
-  /* Random access: Return true if len(), forward(), item_at() are fast. */
+  /* Random access: Return true if item_at(), len(), forward() are fast. */
   bool __random_access__ () const { return false; }
 };
 
