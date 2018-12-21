@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-array.hh"
+#include "hb-null.hh"
 
 
 template <typename Type, unsigned int PreallocedCount=8>

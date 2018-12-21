@@ -28,6 +28,7 @@
 #define HB_ITER_HH
 
 #include "hb.hh"
+#include "hb-null.hh"
 
 
 /* Unified iterator object.

@@ -24,6 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
 #include "hb-iter.hh"
 
 #include "hb-array.hh"

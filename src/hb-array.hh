@@ -28,13 +28,16 @@
 #define HB_ARRAY_HH
 
 #include "hb.hh"
+#include "hb-dsalgs.hh"
+#include "hb-iter.hh"
+#include "hb-null.hh"
 
 
 template <typename Type>
 struct hb_sorted_array_t;
 
 template <typename Type>
-struct hb_array_t
+struct hb_array_t// : hb_iter_t<hb_array_t<Type>, Type>
 {
   typedef Type item_t;
   enum { item_size = hb_static_size (Type) };

@@ -28,7 +28,6 @@
 #define HB_DSALGS_HH
 
 #include "hb.hh"
-
 #include "hb-null.hh"
 
 
