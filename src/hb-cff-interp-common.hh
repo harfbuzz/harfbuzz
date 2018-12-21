@@ -310,6 +310,15 @@ struct byte_str_t : hb_ubytes_t
     : hb_ubytes_t (s, l) {}
   byte_str_t (const hb_ubytes_t &ub)	/* conversion from hb_ubytes_t */
     : hb_ubytes_t (ub) {}
+
+  /* Destructor */
+  ~byte_str_t () {}
+  
+  /* Copy assignment operator */
+  byte_str_t &operator=(byte_str_t &bs)
+  {
+    return *this; /* test */
+  }
   
   /* sub-string */
   byte_str_t sub_str (unsigned int offset, unsigned int len_) const
