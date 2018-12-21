@@ -121,6 +121,8 @@ hb_script_from_iso15924_tag
 hb_script_from_string
 hb_script_to_iso15924_tag
 hb_script_get_horizontal_direction
+hb_script_get_justification_character
+hb_script_get_properties
 hb_language_from_string
 hb_language_to_string
 hb_language_get_default
@@ -133,6 +135,7 @@ hb_mask_t
 hb_position_t
 hb_tag_t
 hb_script_t
+hb_script_properties_flags_t
 hb_user_data_key_t
 hb_var_int_t
 HB_TAG

@@ -174,6 +174,21 @@ test_types_script (void)
   g_assert_cmpint (hb_script_get_horizontal_direction (HB_SCRIPT_ARABIC), ==, HB_DIRECTION_RTL);
   g_assert_cmpint (hb_script_get_horizontal_direction (HB_SCRIPT_OLD_ITALIC), ==, HB_DIRECTION_INVALID);
   g_assert_cmpint (hb_script_get_horizontal_direction (hb_script_from_iso15924_tag (wWyZ)), ==, HB_DIRECTION_LTR);
+
+  g_assert_cmpuint (hb_script_get_justification_character (HB_SCRIPT_ARABIC), ==, 0x0640);
+  g_assert_cmpuint (hb_script_get_justification_character (HB_SCRIPT_OGHAM), ==, 0x1680);
+  g_assert_cmpuint (hb_script_get_justification_character (HB_SCRIPT_LATIN), ==, 0x0020);
+  g_assert_cmpuint (hb_script_get_justification_character (HB_SCRIPT_UNKNOWN), ==, 0x0020);
+
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_SCRIPT_ARABIC) & HB_SCRIPT_FLAG_IS_CURSIVE_WRITING), ==, 1);
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_SCRIPT_LATIN) & HB_SCRIPT_FLAG_IS_CURSIVE_WRITING), ==, 0);
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_SCRIPT_UNKNOWN) & HB_SCRIPT_FLAG_IS_CURSIVE_WRITING), ==, 0);
+
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_TAG ('C','a','k','m')) & HB_SCRIPT_FLAG_IS_DISCRETE_WRITING), ==, 1);
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_TAG ('C','a','k','m')) & HB_SCRIPT_FLAG_IS_BLOCK_WRITING), ==, 0);
+
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_TAG ('E','g','y','p')) & HB_SCRIPT_FLAG_IS_DISCRETE_WRITING), ==, 1);
+  g_assert_cmpuint (!!(hb_script_get_properties (HB_TAG ('E','g','y','p')) & HB_SCRIPT_FLAG_IS_BLOCK_WRITING), ==, 1);
 }
 
 static void

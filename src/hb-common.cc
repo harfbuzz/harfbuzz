@@ -590,6 +590,212 @@ hb_script_get_horizontal_direction (hb_script_t script)
 }
 
 
+/**
+ * hb_script_get_justification_character:
+ * @script:
+ *
+ *
+ *
+ * Return value:
+ *
+ * Since: REPLACEME
+ **/
+hb_codepoint_t
+hb_script_get_justification_character (hb_script_t script)
+{
+  switch (script)
+  {
+  case HB_SCRIPT_ARABIC:
+  case HB_SCRIPT_MANDAIC:
+  case HB_SCRIPT_SYRIAC:
+  case HB_SCRIPT_MANICHAEAN:
+  case HB_SCRIPT_PSALTER_PAHLAVI:
+    return 0x0640; /* Tatweel */
+  case HB_SCRIPT_OGHAM:
+    return 0x1680; /* Ogham Space Mark */
+  default:
+    return 0x0020; /* Space */
+  }
+}
+
+struct hb_script_properties_record {
+  hb_tag_t	tag;
+  unsigned int	flags;
+};
+
+/* Meaning of the bits are in #hb_script_properties_flags_t
+ *
+ * Extracted with https://gist.github.com/ebraminio/727689919dbc485e023fe054bdd7c19b
+ * Sort the result (needs a little) after an update, please
+ */
+static hb_script_properties_record script_properties[] =
+{
+  {HB_TAG ('A','d','l','m'), 0x06},
+  {HB_TAG ('A','g','h','b'), 0x06},
+  {HB_TAG ('A','h','o','m'), 0x06},
+  {HB_TAG ('A','r','a','b'), 0x62},
+  {HB_TAG ('A','r','m','i'), 0x06},
+  {HB_TAG ('A','r','m','n'), 0x06},
+  {HB_TAG ('A','v','s','t'), 0x06},
+  {HB_TAG ('B','a','l','i'), 0x05},
+  {HB_TAG ('B','a','m','u'), 0x07},
+  {HB_TAG ('B','a','s','s'), 0x06},
+  {HB_TAG ('B','a','t','k'), 0x06},
+  {HB_TAG ('B','e','n','g'), 0x23},
+  {HB_TAG ('B','h','k','s'), 0x06},
+  {HB_TAG ('B','o','p','o'), 0x0C},
+  {HB_TAG ('B','r','a','h'), 0x06},
+  {HB_TAG ('B','r','a','i'), 0x06},
+  {HB_TAG ('B','u','g','i'), 0x06},
+  {HB_TAG ('B','u','h','d'), 0x04},
+  {HB_TAG ('C','a','k','m'), 0x07},
+  {HB_TAG ('C','a','n','s'), 0x06},
+  {HB_TAG ('C','a','r','i'), 0x04},
+  {HB_TAG ('C','h','a','m'), 0x07},
+  {HB_TAG ('C','h','e','r'), 0x06},
+  {HB_TAG ('C','o','p','t'), 0x06},
+  {HB_TAG ('C','p','r','t'), 0x04},
+  {HB_TAG ('C','y','r','l'), 0x06},
+  {HB_TAG ('D','e','v','a'), 0x23},
+  {HB_TAG ('D','s','r','t'), 0x06},
+  {HB_TAG ('D','u','p','l'), 0x62},
+  {HB_TAG ('E','g','y','p'), 0x0C},
+  {HB_TAG ('E','l','b','a'), 0x06},
+  {HB_TAG ('E','t','h','i'), 0x06},
+  {HB_TAG ('G','e','o','r'), 0x06},
+  {HB_TAG ('G','l','a','g'), 0x06},
+  {HB_TAG ('G','o','t','h'), 0x06},
+  {HB_TAG ('G','r','a','n'), 0x07},
+  {HB_TAG ('G','r','e','k'), 0x06},
+  {HB_TAG ('G','u','j','r'), 0x07},
+  {HB_TAG ('G','u','r','u'), 0x23},
+  {HB_TAG ('H','a','n','g'), 0x0F},
+  {HB_TAG ('H','a','n','i'), 0x0C},
+  {HB_TAG ('H','a','n','o'), 0x04},
+  {HB_TAG ('H','a','t','r'), 0x06},
+  {HB_TAG ('H','e','b','r'), 0x07},
+  {HB_TAG ('H','i','r','a'), 0x0C},
+  {HB_TAG ('H','l','u','w'), 0x06},
+  {HB_TAG ('H','m','n','g'), 0x06},
+  {HB_TAG ('H','u','n','g'), 0x06},
+  {HB_TAG ('I','t','a','l'), 0x06},
+  {HB_TAG ('J','a','v','a'), 0x05},
+  {HB_TAG ('K','a','l','i'), 0x06},
+  {HB_TAG ('K','a','n','a'), 0x0C},
+  {HB_TAG ('K','h','a','r'), 0x05},
+  {HB_TAG ('K','h','m','r'), 0x15},
+  {HB_TAG ('K','h','o','j'), 0x07},
+  {HB_TAG ('K','n','d','a'), 0x07},
+  {HB_TAG ('K','t','h','i'), 0x23},
+  {HB_TAG ('L','a','n','a'), 0x05},
+  {HB_TAG ('L','a','o','o'), 0x15},
+  {HB_TAG ('L','a','t','n'), 0x06},
+  {HB_TAG ('L','e','p','c'), 0x07},
+  {HB_TAG ('L','i','m','b'), 0x07},
+  {HB_TAG ('L','i','n','a'), 0x0C},
+  {HB_TAG ('L','i','n','b'), 0x0C},
+  {HB_TAG ('L','i','s','u'), 0x06},
+  {HB_TAG ('L','y','c','i'), 0x06},
+  {HB_TAG ('L','y','d','i'), 0x06},
+  {HB_TAG ('M','a','h','j'), 0x06},
+  {HB_TAG ('M','a','n','d'), 0x62},
+  {HB_TAG ('M','a','n','i'), 0x62},
+  {HB_TAG ('M','a','r','c'), 0x06},
+  {HB_TAG ('M','e','n','d'), 0x06},
+  {HB_TAG ('M','e','r','c'), 0x06},
+  {HB_TAG ('M','e','r','o'), 0x0E},
+  {HB_TAG ('M','l','y','m'), 0x07},
+  {HB_TAG ('M','o','d','i'), 0x23},
+  {HB_TAG ('M','o','n','g'), 0x62},
+  {HB_TAG ('M','r','o','o'), 0x06},
+  {HB_TAG ('M','t','e','i'), 0x07},
+  {HB_TAG ('M','u','l','t'), 0x06},
+  {HB_TAG ('M','y','m','r'), 0x07},
+  {HB_TAG ('N','a','r','b'), 0x06},
+  {HB_TAG ('N','b','a','t'), 0x07},
+  {HB_TAG ('N','e','w','a'), 0x06},
+  {HB_TAG ('N','k','o','o'), 0x62},
+  {HB_TAG ('O','g','a','m'), 0x22},
+  {HB_TAG ('O','l','c','k'), 0x06},
+  {HB_TAG ('O','r','k','h'), 0x06},
+  {HB_TAG ('O','r','y','a'), 0x07},
+  {HB_TAG ('O','s','g','e'), 0x06},
+  {HB_TAG ('O','s','m','a'), 0x06},
+  {HB_TAG ('P','a','l','m'), 0x07},
+  {HB_TAG ('P','a','u','c'), 0x06},
+  {HB_TAG ('P','e','r','m'), 0x06},
+  {HB_TAG ('P','h','a','g'), 0x62},
+  {HB_TAG ('P','h','l','i'), 0x06},
+  {HB_TAG ('P','h','l','p'), 0x62},
+  {HB_TAG ('P','h','n','x'), 0x04},
+  {HB_TAG ('P','l','r','d'), 0x05},
+  {HB_TAG ('P','r','t','i'), 0x06},
+  {HB_TAG ('R','j','n','g'), 0x05},
+  {HB_TAG ('R','u','n','r'), 0x04},
+  {HB_TAG ('S','a','m','r'), 0x06},
+  {HB_TAG ('S','a','r','b'), 0x06},
+  {HB_TAG ('S','a','u','r'), 0x07},
+  {HB_TAG ('S','g','n','w'), 0x06},
+  {HB_TAG ('S','h','a','w'), 0x06},
+  {HB_TAG ('S','h','r','d'), 0x07},
+  {HB_TAG ('S','i','d','d'), 0x0D},
+  {HB_TAG ('S','i','n','d'), 0x07},
+  {HB_TAG ('S','i','n','h'), 0x07},
+  {HB_TAG ('S','o','r','a'), 0x07},
+  {HB_TAG ('S','u','n','d'), 0x07},
+  {HB_TAG ('S','y','l','o'), 0x23},
+  {HB_TAG ('S','y','r','c'), 0x62},
+  {HB_TAG ('T','a','g','b'), 0x06},
+  {HB_TAG ('T','a','k','r'), 0x07},
+  {HB_TAG ('T','a','l','e'), 0x06},
+  {HB_TAG ('T','a','l','u'), 0x07},
+  {HB_TAG ('T','a','m','l'), 0x07},
+  {HB_TAG ('T','a','n','g'), 0x06},
+  {HB_TAG ('T','a','v','t'), 0x15},
+  {HB_TAG ('T','e','l','u'), 0x07},
+  {HB_TAG ('T','f','n','g'), 0x07},
+  {HB_TAG ('T','g','l','g'), 0x06},
+  {HB_TAG ('T','h','a','a'), 0x07},
+  {HB_TAG ('T','h','a','i'), 0x15},
+  {HB_TAG ('T','i','b','t'), 0x07},
+  {HB_TAG ('T','i','r','h'), 0x23},
+  {HB_TAG ('U','g','a','r'), 0x0C},
+  {HB_TAG ('V','a','i','i'), 0x06},
+  {HB_TAG ('W','a','r','a'), 0x06},
+  {HB_TAG ('X','p','e','o'), 0x0E},
+  {HB_TAG ('X','s','u','x'), 0x0C},
+  {HB_TAG ('Y','i','i','i'), 0x0C},
+  {HB_TAG ('Z','i','n','h'), 0x01},
+  {HB_TAG ('Z','y','y','y'), 0x06},
+  {HB_TAG ('Z','z','z','z'), 0x00}
+};
+
+static int _tag_compare (const void *pa, const void *pb)
+{
+  return (* (const hb_tag_t *) pa) - (* (const hb_tag_t *) pb);
+}
+
+/**
+ * hb_script_get_properties:
+ * @script:
+ *
+ *
+ *
+ * Return value:
+ *
+ * Since: REPLACEME
+ **/
+hb_script_properties_flags_t
+hb_script_get_properties (hb_script_t script)
+{
+  hb_script_properties_record *result = (hb_script_properties_record *)
+					hb_bsearch (&script, script_properties,
+						    ARRAY_LENGTH_CONST (script_properties),
+						    sizeof (script_properties[0]),
+						    _tag_compare);
+  return (hb_script_properties_flags_t) result->flags;
+}
+
 /* hb_user_data_array_t */
 
 bool

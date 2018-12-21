@@ -389,6 +389,31 @@ hb_script_to_iso15924_tag (hb_script_t script);
 HB_EXTERN hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script);
 
+HB_EXTERN hb_codepoint_t
+hb_script_get_justification_character (hb_script_t script);
+
+/**
+ * hb_script_properties_flags_t:
+ *
+ * See https://docs.microsoft.com/en-us/windows/desktop/api/dwrite_1/ns-dwrite_1-dwrite_script_properties
+ *
+ * Since: REPLACEME
+ */
+typedef enum { /*< flags >*/
+  HB_SCRIPT_FLAG_RESTRICT_CARET_TO_CLUSTERS	= 1u<<0,
+  HB_SCRIPT_FLAG_USES_WORD_DIVIDERS		= 1u<<1,
+  HB_SCRIPT_FLAG_IS_DISCRETE_WRITING		= 1u<<2,
+  HB_SCRIPT_FLAG_IS_BLOCK_WRITING		= 1u<<3,
+  HB_SCRIPT_FLAG_IS_DISTRIBUTED_WITHIN_CLUSTER	= 1u<<4,
+  HB_SCRIPT_FLAG_IS_CONNECTED_WRITING		= 1u<<5,
+  HB_SCRIPT_FLAG_IS_CURSIVE_WRITING		= 1u<<6,
+
+  _HB_SCRIPT_FLAG_MAX_VALUE			= 0x7FFFFFFFu /*< skip >*/
+} hb_script_properties_flags_t;
+
+HB_EXTERN hb_script_properties_flags_t
+hb_script_get_properties (hb_script_t script);
+
 
 /* User data */
 
