@@ -1,3 +1,18 @@
+Overview of changes leading to 2.3.0
+Thursday, December 20, 2018
+====================================
+- Fix regression on big-endian architectures.  Ouch!
+- Misc bug and build fixes.
+- Fix subsetting of simple GSUB/GDEF.
+- Merge CFF / CFF2 support contributed by Adobe.  This mostly involves
+  the subsetter, but also get_glyph_extents on CFF fonts.
+
+New API in hb-aat.h:
++hb_aat_layout_has_substitution()
++hb_aat_layout_has_positioning()
++hb_aat_layout_has_tracking()
+
+
 Overview of changes leading to 2.2.0
 Thursday, November 29, 2018
 ====================================

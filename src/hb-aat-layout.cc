@@ -209,7 +209,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
  * @face:
  *
  * Returns:
- * Since: REPLACEME
+ * Since: 2.3.0
  */
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
@@ -270,7 +270,7 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
  * @face:
  *
  * Returns:
- * Since: REPLACEME
+ * Since: 2.3.0
  */
 hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face)
@@ -300,7 +300,7 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
  * @face:
  *
  * Returns:
- * Since: REPLACEME
+ * Since: 2.3.0
  */
 hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face)
