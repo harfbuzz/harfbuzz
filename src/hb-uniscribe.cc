@@ -706,7 +706,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < range_records.len; i++)
     {
       range_record_t *range = &range_records[i];
-      range->props.potfRecords = feature_records + reinterpret_cast<uintptr_t> (range->props.potfRecords);
+      range->props.potfRecords = (OPENTYPE_FEATURE_RECORD *) feature_records + reinterpret_cast<uintptr_t> (range->props.potfRecords);
     }
   }
 
