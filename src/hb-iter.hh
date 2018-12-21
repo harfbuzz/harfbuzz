@@ -84,9 +84,9 @@ struct hb_iter_t
   item_t& __item__ () const { return thiz()->item_at (0); }
   item_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
 
-  /* Termination: Implement __more__() or __end__(). */
-  bool __more__ () const { return item () != thiz()->__end__ (); }
-  const item_t& __end__ () const { return iter_t::__sentinel__; }
+  /* Termination: Implement __more__(), or __end__() and operator ==. */
+  bool __more__ () const { return !(*thiz() == thiz()->__end__ ()); }
+  iter_t __end__ () const;
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { thiz()->forward (1); }
