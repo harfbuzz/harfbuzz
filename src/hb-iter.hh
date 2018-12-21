@@ -105,6 +105,11 @@ struct hb_iter_t
 
   /* Random access: Return true if len(), forward(), item_at() are fast. */
   bool __random_access__ () const { return false; }
+
+  protected:
+  hb_iter_t () {}
+  hb_iter_t (const hb_iter_t &o) {}
+  void operator = (const hb_iter_t &o) {}
 };
 
 
