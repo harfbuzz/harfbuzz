@@ -72,7 +72,7 @@ hb_copy (hb_iter_t<D> &id, hb_iter_t<S> &is)
 {
   for (; id && is; ++id, ++is)
     *id = *is;
-  return !id;
+  return !is;
 }
 
 int
