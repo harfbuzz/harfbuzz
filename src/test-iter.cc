@@ -39,6 +39,7 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }
   unsigned __len__ () const { return arr.len; }
+  bool __random_access__ () const { return true; }
 
   private:
   hb_array_t<T> arr;

@@ -75,6 +75,7 @@ struct hb_iter_t
   void prev () { thiz()->__prev__ (); }
   void rewind (unsigned n) { thiz()->__rewind__ (n); }
   unsigned len () const { return thiz()->__len__ (); }
+  bool random_access () const { return thiz()->__random_access__ (); }
 
   /*
    * Subclasses overrides:
@@ -99,6 +100,9 @@ struct hb_iter_t
   /* Population: Implement __len__() if known. */
   unsigned __len__ () const
   { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
+
+  /* Random access: Return true if len(), forward(), item_at() are fast. */
+  bool __random_access__ () const { return false; }
 };
 
 
