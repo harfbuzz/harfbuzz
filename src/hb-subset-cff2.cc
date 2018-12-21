@@ -138,7 +138,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     {
       const BlendArg &arg1 = env.argStack[i + j];
       if (unlikely (!((arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
-	      (arg1.deltas.len == env.get_region_count ())))))
+	      (arg1.deltas.length == env.get_region_count ())))))
       {
       	env.set_error ();
       	return;
@@ -149,7 +149,7 @@ struct CFF2CSOpSet_Flatten : CFF2CSOpSet<CFF2CSOpSet_Flatten, FlattenParam>
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const BlendArg &arg1 = env.argStack[i + j];
-      for (unsigned int k = 0; k < arg1.deltas.len; k++)
+      for (unsigned int k = 0; k < arg1.deltas.length; k++)
 	encoder.encode_num (arg1.deltas[k]);
     }
     /* flatten the number of values followed by blend operator */
@@ -310,7 +310,7 @@ struct cff2_subset_plan {
       /* global subrs */
       unsigned int dataSize = subset_globalsubrs.total_size ();
       offsets.globalSubrsInfo.offSize = calcOffSize (dataSize);
-      offsets.globalSubrsInfo.size = CFF2Subrs::calculate_serialized_size (offsets.globalSubrsInfo.offSize, subset_globalsubrs.len, dataSize);
+      offsets.globalSubrsInfo.size = CFF2Subrs::calculate_serialized_size (offsets.globalSubrsInfo.offSize, subset_globalsubrs.length, dataSize);
 
       /* local subrs */
       if (!offsets.localSubrsInfos.resize (orig_fdcount))
@@ -331,7 +331,7 @@ struct cff2_subset_plan {
 	  {
 	    offsets.localSubrsInfos[fd].offset = final_size;
 	    offsets.localSubrsInfos[fd].offSize = calcOffSize (dataSize);
-	    offsets.localSubrsInfos[fd].size = CFF2Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].len, dataSize);
+	    offsets.localSubrsInfos[fd].size = CFF2Subrs::calculate_serialized_size (offsets.localSubrsInfos[fd].offSize, subset_localsubrs[fd].length, dataSize);
 	  }
 	}
       }
@@ -372,7 +372,7 @@ struct cff2_subset_plan {
       offsets.FDArrayInfo.offset = final_size;
       CFFFontDict_OpSerializer fontSzr;
       unsigned int dictsSize = 0;
-      for (unsigned int i = 0; i < acc.fontDicts.len; i++)
+      for (unsigned int i = 0; i < acc.fontDicts.length; i++)
 	if (fdmap.includes (i))
 	  dictsSize += FontDict::calculate_serialized_size (acc.fontDicts[i], fontSzr);
 
@@ -385,7 +385,7 @@ struct cff2_subset_plan {
       offsets.charStringsInfo.offset = final_size;
       unsigned int dataSize = subset_charstrings.total_size ();
       offsets.charStringsInfo.offSize = calcOffSize (dataSize);
-      final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.len, dataSize);
+      final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.length, dataSize);
     }
 
     /* private dicts & local subrs */
@@ -493,7 +493,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   {
     assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
 
-    if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.len, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
+    if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.length, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
 					      plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
 					      plan.subset_fdselect_ranges)))
     {
@@ -531,7 +531,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 
   /* private dicts & local subrs */
   assert (plan.offsets.privateDictsOffset == c.head - c.start);
-  for (unsigned int i = 0; i < acc.privateDicts.len; i++)
+  for (unsigned int i = 0; i < acc.privateDicts.length; i++)
   {
     if (plan.fdmap.includes (i))
     {

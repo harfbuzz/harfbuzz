@@ -120,7 +120,7 @@ struct SingleSubstFormat1
     }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
-    return_trace (from.len);
+    return_trace (from.length);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -218,7 +218,7 @@ struct SingleSubstFormat2
     }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
-    return_trace (from.len);
+    return_trace (from.length);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -249,12 +249,12 @@ struct SingleSubst
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 2;
     int delta = 0;
-    if (glyphs.len)
+    if (glyphs.length)
     {
       format = 1;
       /* TODO(serialize) check for wrap-around */
       delta = substitutes[0] - glyphs[0];
-      for (unsigned int i = 1; i < glyphs.len; i++)
+      for (unsigned int i = 1; i < glyphs.length; i++)
 	if (delta != (int) (substitutes[i] - glyphs[i])) {
 	  format = 2;
 	  break;
@@ -414,8 +414,8 @@ struct MultipleSubstFormat1
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!sequence.serialize (c, glyphs.len))) return_trace (false);
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    if (unlikely (!sequence.serialize (c, glyphs.length))) return_trace (false);
+    for (unsigned int i = 0; i < glyphs.length; i++)
     {
       unsigned int substitute_len = substitute_len_list[i];
       if (unlikely (!sequence[i].serialize (c, this)
@@ -604,8 +604,8 @@ struct AlternateSubstFormat1
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!alternateSet.serialize (c, glyphs.len))) return_trace (false);
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    if (unlikely (!alternateSet.serialize (c, glyphs.length))) return_trace (false);
+    for (unsigned int i = 0; i < glyphs.length; i++)
     {
       unsigned int alternate_len = alternate_len_list[i];
       if (unlikely (!alternateSet[i].serialize (c, this)
@@ -845,8 +845,8 @@ struct LigatureSet
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!ligature.serialize (c, ligatures.len))) return_trace (false);
-    for (unsigned int i = 0; i < ligatures.len; i++)
+    if (unlikely (!ligature.serialize (c, ligatures.length))) return_trace (false);
+    for (unsigned int i = 0; i < ligatures.length; i++)
     {
       unsigned int component_count = MAX<int> (component_count_list[i] - 1, 0);
       if (unlikely (!ligature[i].serialize (c, this)
@@ -947,8 +947,8 @@ struct LigatureSubstFormat1
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!ligatureSet.serialize (c, first_glyphs.len))) return_trace (false);
-    for (unsigned int i = 0; i < first_glyphs.len; i++)
+    if (unlikely (!ligatureSet.serialize (c, first_glyphs.length))) return_trace (false);
+    for (unsigned int i = 0; i < first_glyphs.length; i++)
     {
       unsigned int ligature_count = ligature_per_first_glyph_count_list[i];
       if (unlikely (!ligatureSet[i].serialize (c, this)

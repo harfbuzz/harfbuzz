@@ -416,7 +416,7 @@ struct Stack
     count = 0;
     elements.init ();
     elements.resize (kSizeLimit);
-    for (unsigned int i = 0; i < elements.len; i++)
+    for (unsigned int i = 0; i < elements.length; i++)
       elements[i].init ();
   }
 
@@ -433,7 +433,7 @@ struct Stack
 
   void push (const ELEM &v)
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       elements[count++] = v;
     else
       set_error ();
@@ -441,7 +441,7 @@ struct Stack
 
   ELEM &push ()
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       return elements[count++];
     else
     {
@@ -482,7 +482,7 @@ struct Stack
 
   void unpop ()
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       count++;
     else
       set_error ();
@@ -623,7 +623,7 @@ struct ParsedValues
     return false;
   }
 
-  unsigned get_count () const { return values.len; }
+  unsigned get_count () const { return values.length; }
   const VAL &get_value (unsigned int i) const { return values[i]; }
   const VAL &operator [] (unsigned int i) const { return get_value (i); }
 

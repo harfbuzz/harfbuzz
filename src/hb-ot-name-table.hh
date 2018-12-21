@@ -188,9 +188,9 @@ struct name
 						    this->table->count);
 
       this->names.init ();
-      this->names.alloc (all_names.len);
+      this->names.alloc (all_names.length);
 
-      for (unsigned int i = 0; i < all_names.len; i++)
+      for (unsigned int i = 0; i < all_names.length; i++)
       {
 	hb_ot_name_entry_t *entry = this->names.push ();
 
@@ -204,7 +204,7 @@ struct name
       /* Walk and pick best only for each name_id,language pair,
        * while dropping unsupported encodings. */
       unsigned int j = 0;
-      for (unsigned int i = 0; i < this->names.len; i++)
+      for (unsigned int i = 0; i < this->names.length; i++)
       {
         if (this->names[i].entry_score == UNSUPPORTED ||
 	    this->names[i].language == HB_LANGUAGE_INVALID)
@@ -232,7 +232,7 @@ struct name
       const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)
 					hb_bsearch (&key,
 						    this->names.arrayZ(),
-						    this->names.len,
+						    this->names.length,
 						    sizeof (key),
 						    _hb_ot_name_entry_cmp_key);
       if (!entry)

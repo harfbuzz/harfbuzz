@@ -220,7 +220,7 @@ struct hb_set_t
     if (unlikely (!successful)) return false;
     if (!pages.resize (count) || !page_map.resize (count))
     {
-      pages.resize (page_map.len);
+      pages.resize (page_map.length);
       successful = false;
       return false;
     }
@@ -238,7 +238,7 @@ struct hb_set_t
   }
   bool is_empty () const
   {
-    unsigned int count = pages.len;
+    unsigned int count = pages.length;
     for (unsigned int i = 0; i < count; i++)
       if (!pages[i].is_empty ())
         return false;
@@ -373,7 +373,7 @@ struct hb_set_t
   void set (const hb_set_t *other)
   {
     if (unlikely (!successful)) return;
-    unsigned int count = other->pages.len;
+    unsigned int count = other->pages.length;
     if (!resize (count))
       return;
     population = other->population;
@@ -386,8 +386,8 @@ struct hb_set_t
     if (get_population () != other->get_population ())
       return false;
 
-    unsigned int na = pages.len;
-    unsigned int nb = other->pages.len;
+    unsigned int na = pages.length;
+    unsigned int nb = other->pages.length;
 
     unsigned int a = 0, b = 0;
     for (; a < na && b < nb; )
@@ -429,8 +429,8 @@ struct hb_set_t
 
     dirty ();
 
-    unsigned int na = pages.len;
-    unsigned int nb = other->pages.len;
+    unsigned int na = pages.length;
+    unsigned int nb = other->pages.length;
     unsigned int next_page = na;
 
     unsigned int count = 0, newCount = 0;
@@ -461,7 +461,7 @@ struct hb_set_t
     if (Op::passthru_right)
       count += nb - b;
 
-    if (count > pages.len)
+    if (count > pages.length)
       if (!resize (count))
         return;
     newCount = count;
@@ -517,7 +517,7 @@ struct hb_set_t
 	page_at (count).v = other->page_at (b).v;
       }
     assert (!count);
-    if (pages.len > newCount)
+    if (pages.length > newCount)
       resize (newCount);
   }
 
@@ -547,7 +547,7 @@ struct hb_set_t
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
     page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
-    if (i < page_map.len && page_map[i].major == map.major)
+    if (i < page_map.length && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].next (codepoint))
       {
@@ -556,7 +556,7 @@ struct hb_set_t
       }
       i++;
     }
-    for (; i < page_map.len; i++)
+    for (; i < page_map.length; i++)
     {
       hb_codepoint_t m = pages[page_map[i].index].get_min ();
       if (m != INVALID)
@@ -578,7 +578,7 @@ struct hb_set_t
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
     page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
-    if (i < page_map.len && page_map[i].major == map.major)
+    if (i < page_map.length && page_map[i].major == map.major)
     {
       if (pages[page_map[i].index].previous (codepoint))
       {
@@ -642,7 +642,7 @@ struct hb_set_t
       return population;
 
     unsigned int pop = 0;
-    unsigned int count = pages.len;
+    unsigned int count = pages.length;
     for (unsigned int i = 0; i < count; i++)
       pop += pages[i].get_population ();
 
@@ -651,7 +651,7 @@ struct hb_set_t
   }
   hb_codepoint_t get_min () const
   {
-    unsigned int count = pages.len;
+    unsigned int count = pages.length;
     for (unsigned int i = 0; i < count; i++)
       if (!page_at (i).is_empty ())
         return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
@@ -659,7 +659,7 @@ struct hb_set_t
   }
   hb_codepoint_t get_max () const
   {
-    unsigned int count = pages.len;
+    unsigned int count = pages.length;
     for (int i = count - 1; i >= 0; i++)
       if (!page_at (i).is_empty ())
         return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
@@ -670,17 +670,17 @@ struct hb_set_t
 
   page_t *page_for_insert (hb_codepoint_t g)
   {
-    page_map_t map = {get_major (g), pages.len};
+    page_map_t map = {get_major (g), pages.length};
     unsigned int i;
     if (!page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST))
     {
-      if (!resize (pages.len + 1))
+      if (!resize (pages.length + 1))
 	return nullptr;
 
       pages[map.index].init0 ();
       memmove (page_map + i + 1,
 	       page_map + i,
-	       (page_map.len - 1 - i) * page_map.item_size);
+	       (page_map.length - 1 - i) * page_map.item_size);
       page_map[i] = map;
     }
     return &pages[page_map[i].index];

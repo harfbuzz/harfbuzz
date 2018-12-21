@@ -55,7 +55,7 @@ struct lcar
     if (caret_count)
     {
       hb_array_t<const HBINT16> arr = array.sub_array (start_offset, caret_count);
-      unsigned int count = arr.len;
+      unsigned int count = arr.length;
       for (unsigned int i = 0; i < count; ++i)
 	switch (format)
 	{

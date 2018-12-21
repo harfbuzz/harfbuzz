@@ -268,7 +268,7 @@ struct fvar
     {
       hb_array_t<const Fixed> instanceCoords = instance->get_coordinates (axisCount)
 							 .sub_array (0, *coords_length);
-      for (unsigned int i = 0; i < instanceCoords.len; i++)
+      for (unsigned int i = 0; i < instanceCoords.length; i++)
         coords[i] = instanceCoords.arrayZ[i].to_float ();
     }
     return axisCount;

@@ -130,7 +130,7 @@ typedef struct OffsetTable
     sfnt_version.set (sfnt_tag);
     /* Take space for numTables, searchRange, entrySelector, RangeShift
      * and the TableRecords themselves.  */
-    if (unlikely (!tables.serialize (c, items.len))) return_trace (false);
+    if (unlikely (!tables.serialize (c, items.length))) return_trace (false);
 
     const char *dir_end = (const char *) c->head;
     HBUINT32 *checksum_adjustment = nullptr;
@@ -173,7 +173,7 @@ typedef struct OffsetTable
       /* The following line is a slower version of the following block. */
       //checksum.set_for_data (this, (const char *) c->head - (const char *) this);
       checksum.set_for_data (this, dir_end - (const char *) this);
-      for (unsigned int i = 0; i < items.len; i++)
+      for (unsigned int i = 0; i < items.length; i++)
       {
 	TableRecord &rec = tables.arrayZ[i];
 	checksum.set (checksum + rec.checkSum);

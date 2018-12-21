@@ -199,14 +199,14 @@ struct Encoding {
     TRACE_SERIALIZE (this);
     Encoding *dest = c->extend_min (*this);
     if (unlikely (dest == nullptr)) return_trace (false);
-    dest->format.set (format | ((supp_codes.len > 0)? 0x80: 0));
+    dest->format.set (format | ((supp_codes.length > 0)? 0x80: 0));
     if (format == 0)
     {
       Encoding0 *fmt0 = c->allocate_size<Encoding0> (Encoding0::min_size + HBUINT8::static_size * enc_count);
     if (unlikely (fmt0 == nullptr)) return_trace (false);
       fmt0->nCodes.set (enc_count);
       unsigned int glyph = 0;
-      for (unsigned int i = 0; i < code_ranges.len; i++)
+      for (unsigned int i = 0; i < code_ranges.length; i++)
       {
 	hb_codepoint_t code = code_ranges[i].code;
 	for (int left = (int)code_ranges[i].glyph; left >= 0; left--)
@@ -217,10 +217,10 @@ struct Encoding {
     }
     else
     {
-      Encoding1 *fmt1 = c->allocate_size<Encoding1> (Encoding1::min_size + Encoding1_Range::static_size * code_ranges.len);
+      Encoding1 *fmt1 = c->allocate_size<Encoding1> (Encoding1::min_size + Encoding1_Range::static_size * code_ranges.length);
       if (unlikely (fmt1 == nullptr)) return_trace (false);
-      fmt1->nRanges.set (code_ranges.len);
-      for (unsigned int i = 0; i < code_ranges.len; i++)
+      fmt1->nRanges.set (code_ranges.length);
+      for (unsigned int i = 0; i < code_ranges.length; i++)
       {
 	if (unlikely (!((code_ranges[i].code <= 0xFF) && (code_ranges[i].glyph <= 0xFF))))
 	  return_trace (false);
@@ -228,12 +228,12 @@ struct Encoding {
 	fmt1->ranges[i].nLeft.set (code_ranges[i].glyph);
       }
     }
-    if (supp_codes.len > 0)
+    if (supp_codes.length > 0)
     {
-      CFF1SuppEncData *suppData = c->allocate_size<CFF1SuppEncData> (CFF1SuppEncData::min_size + SuppEncoding::static_size * supp_codes.len);
+      CFF1SuppEncData *suppData = c->allocate_size<CFF1SuppEncData> (CFF1SuppEncData::min_size + SuppEncoding::static_size * supp_codes.length);
       if (unlikely (suppData == nullptr)) return_trace (false);
-      suppData->nSups.set (supp_codes.len);
-      for (unsigned int i = 0; i < supp_codes.len; i++)
+      suppData->nSups.set (supp_codes.length);
+      for (unsigned int i = 0; i < supp_codes.length; i++)
       {
 	suppData->supps[i].code.set (supp_codes[i].code);
 	suppData->supps[i].glyph.set (supp_codes[i].glyph); /* actually SID */
@@ -478,7 +478,7 @@ struct Charset {
       Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::min_size + HBUINT16::static_size * (num_glyphs - 1));
     if (unlikely (fmt0 == nullptr)) return_trace (false);
       unsigned int glyph = 0;
-      for (unsigned int i = 0; i < sid_ranges.len; i++)
+      for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
 	hb_codepoint_t sid = sid_ranges[i].code;
 	for (int left = (int)sid_ranges[i].glyph; left >= 0; left--)
@@ -487,9 +487,9 @@ struct Charset {
     }
     else if (format == 1)
     {
-      Charset1 *fmt1 = c->allocate_size<Charset1> (Charset1::min_size + Charset1_Range::static_size * sid_ranges.len);
+      Charset1 *fmt1 = c->allocate_size<Charset1> (Charset1::min_size + Charset1_Range::static_size * sid_ranges.length);
       if (unlikely (fmt1 == nullptr)) return_trace (false);
-      for (unsigned int i = 0; i < sid_ranges.len; i++)
+      for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
       	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
 	  return_trace (false);
@@ -499,9 +499,9 @@ struct Charset {
     }
     else /* format 2 */
     {
-      Charset2 *fmt2 = c->allocate_size<Charset2> (Charset2::min_size + Charset2_Range::static_size * sid_ranges.len);
+      Charset2 *fmt2 = c->allocate_size<Charset2> (Charset2::min_size + Charset2_Range::static_size * sid_ranges.length);
       if (unlikely (fmt2 == nullptr)) return_trace (false);
-      for (unsigned int i = 0; i < sid_ranges.len; i++)
+      for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
       	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
 	  return_trace (false);

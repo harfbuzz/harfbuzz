@@ -94,7 +94,7 @@ struct hmtxvmtx
     /* All the trailing glyphs with the same advance can use one LongMetric
      * and just keep LSB */
     hb_vector_t<hb_codepoint_t> &gids = plan->glyphs;
-    unsigned int num_advances = gids.len;
+    unsigned int num_advances = gids.length;
     unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
     while (num_advances > 1 &&
 	   last_advance == _mtx.get_advance (gids[num_advances - 2]))
@@ -104,14 +104,14 @@ struct hmtxvmtx
 
     /* alloc the new table */
     size_t dest_sz = num_advances * 4
-		  + (gids.len - num_advances) * 2;
+		  + (gids.length - num_advances) * 2;
     void *dest = (void *) malloc (dest_sz);
     if (unlikely (!dest))
     {
       return false;
     }
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
-    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, gids.len - num_advances, (unsigned int) dest_sz);
+    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, gids.length - num_advances, (unsigned int) dest_sz);
 
     const char *source_table = hb_blob_get_data (_mtx.table.get_blob (), nullptr);
     // Copy everything over
@@ -120,7 +120,7 @@ struct hmtxvmtx
     char * dest_pos = (char *) dest;
 
     bool failed = false;
-    for (unsigned int i = 0; i < gids.len; i++)
+    for (unsigned int i = 0; i < gids.length; i++)
     {
       /* the last metric or the one for gids[i] */
       LongMetric *src_metric = old_metrics + MIN ((hb_codepoint_t) _mtx.num_advances - 1, gids[i]);

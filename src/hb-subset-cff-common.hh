@@ -109,9 +109,9 @@ struct StrEncoder
 
   void copy_str (const ByteStr &str)
   {
-    unsigned int  offset = buff.len;
+    unsigned int  offset = buff.length;
     buff.resize (offset + str.len);
-    if (unlikely (buff.len < offset + str.len))
+    if (unlikely (buff.length < offset + str.len))
     {
       set_error ();
       return;
@@ -295,11 +295,11 @@ struct SubrFlattener
 
   bool flatten (StrBuffArray &flat_charstrings)
   {
-    if (!flat_charstrings.resize (glyphs.len))
+    if (!flat_charstrings.resize (glyphs.length))
       return false;
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    for (unsigned int i = 0; i < glyphs.length; i++)
       flat_charstrings[i].init ();
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    for (unsigned int i = 0; i < glyphs.length; i++)
     {
       hb_codepoint_t  glyph = glyphs[i];
       const ByteStr str = (*acc.charStrings)[glyph];
@@ -334,7 +334,7 @@ struct SubrClosures
     if (!local_closures.resize (fd_count))
       valid = false;
 
-    for (unsigned int i = 0; i < local_closures.len; i++)
+    for (unsigned int i = 0; i < local_closures.length; i++)
     {
       local_closures[i] = hb_set_create ();
       if (local_closures[i] == hb_set_get_empty ())
@@ -345,7 +345,7 @@ struct SubrClosures
   void fini ()
   {
     hb_set_destroy (global_closure);
-    for (unsigned int i = 0; i < local_closures.len; i++)
+    for (unsigned int i = 0; i < local_closures.length; i++)
       hb_set_destroy (local_closures[i]);
     local_closures.fini ();
   }
@@ -353,7 +353,7 @@ struct SubrClosures
   void reset ()
   {
     hb_set_clear (global_closure);
-    for (unsigned int i = 0; i < local_closures.len; i++)
+    for (unsigned int i = 0; i < local_closures.length; i++)
       hb_set_clear (local_closures[i]);
   }
 
@@ -432,7 +432,7 @@ struct ParsedCStr : ParsedValues<ParsedCSOp>
 
   bool at_end (unsigned int pos) const
   {
-    return ((pos + 1 >= values.len) /* CFF2 */
+    return ((pos + 1 >= values.length) /* CFF2 */
 	|| (values[pos + 1].op == OpCode_return));
   }
 
@@ -467,7 +467,7 @@ struct ParsedCStrs : hb_vector_t<ParsedCStr>
   {
     SUPER::init ();
     resize (len_);
-    for (unsigned int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < length; i++)
       (*this)[i].init ();
   }
   void fini () { SUPER::fini_deep (); }
@@ -500,12 +500,12 @@ struct SubrSubsetParam
 	return parsed_charstring;
 
       case CSType_LocalSubr:
-	if (likely (context.subr_num < parsed_local_subrs->len))
+	if (likely (context.subr_num < parsed_local_subrs->length))
 	  return &(*parsed_local_subrs)[context.subr_num];
 	break;
 
       case CSType_GlobalSubr:
-	if (likely (context.subr_num < parsed_global_subrs->len))
+	if (likely (context.subr_num < parsed_global_subrs->length))
 	  return &(*parsed_global_subrs)[context.subr_num];
 	break;
     }
@@ -521,7 +521,7 @@ struct SubrSubsetParam
       /* If the called subroutine is parsed partially but not completely yet,
        * it must be because we are calling it recursively.
        * Handle it as an error. */
-      if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.len > 0)))
+      if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.length > 0)))
       	env.set_error ();
       else
       	current_parsed_str = parsed_str;
@@ -548,7 +548,7 @@ struct SubrRemap : Remap
      * no optimization based on usage counts. fonttools doesn't appear doing that either.
      */
     reset (closure->get_max () + 1);
-    for (hb_codepoint_t old_num = 0; old_num < len; old_num++)
+    for (hb_codepoint_t old_num = 0; old_num < length; old_num++)
     {
       if (hb_set_has (closure, old_num))
 	add (old_num);
@@ -564,7 +564,7 @@ struct SubrRemap : Remap
 
   hb_codepoint_t operator[] (unsigned int old_num) const
   {
-    if (old_num >= len)
+    if (old_num >= length)
       return CFF_UNDEF_CODE;
     else
       return Remap::operator[] (old_num);
@@ -600,7 +600,7 @@ struct SubrRemaps
   void create (SubrClosures& closures)
   {
     global_remap.create (closures.global_closure);
-    for (unsigned int i = 0; i < local_remaps.len; i++)
+    for (unsigned int i = 0; i < local_remaps.length; i++)
       local_remaps[i].create (closures.local_closures[i]);
   }
 
@@ -652,7 +652,7 @@ struct SubrSubsetter
     closures.init (acc.fdCount);
     remaps.init (acc.fdCount);
 
-    parsed_charstrings.init (glyphs.len);
+    parsed_charstrings.init (glyphs.length);
     parsed_global_subrs.init (acc.globalSubrs->count);
     parsed_local_subrs.resize (acc.fdCount);
     for (unsigned int i = 0; i < acc.fdCount; i++)
@@ -663,7 +663,7 @@ struct SubrSubsetter
       return false;
 
     /* phase 1 & 2 */
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    for (unsigned int i = 0; i < glyphs.length; i++)
     {
       hb_codepoint_t  glyph = glyphs[i];
       const ByteStr str = (*acc.charStrings)[glyph];
@@ -690,7 +690,7 @@ struct SubrSubsetter
     if (drop_hints)
     {
       /* mark hint ops and arguments for drop */
-      for (unsigned int i = 0; i < glyphs.len; i++)
+      for (unsigned int i = 0; i < glyphs.length; i++)
       {
 	unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
 	if (unlikely (fd >= acc.fdCount))
@@ -712,7 +712,7 @@ struct SubrSubsetter
 
       /* after dropping hints recreate closures of actually used subrs */
       closures.reset ();
-      for (unsigned int i = 0; i < glyphs.len; i++)
+      for (unsigned int i = 0; i < glyphs.length; i++)
       {
 	unsigned int fd = acc.fdSelect->get_fd (glyphs[i]);
 	if (unlikely (fd >= acc.fdCount))
@@ -733,9 +733,9 @@ struct SubrSubsetter
 
   bool encode_charstrings (ACC &acc, const hb_vector_t<hb_codepoint_t> &glyphs, StrBuffArray &buffArray) const
   {
-    if (unlikely (!buffArray.resize (glyphs.len)))
+    if (unlikely (!buffArray.resize (glyphs.length)))
       return false;
-    for (unsigned int i = 0; i < glyphs.len; i++)
+    for (unsigned int i = 0; i < glyphs.length; i++)
     {
       unsigned int  fd = acc.fdSelect->get_fd (glyphs[i]);
       if (unlikely (fd >= acc.fdCount))
@@ -752,7 +752,7 @@ struct SubrSubsetter
 
     if (unlikely (!buffArray.resize (count)))
       return false;
-    for (unsigned int old_num = 0; old_num < subrs.len; old_num++)
+    for (unsigned int old_num = 0; old_num < subrs.length; old_num++)
     {
       hb_codepoint_t new_num = remap[old_num];
       if (new_num != CFF_UNDEF_CODE)
@@ -813,7 +813,7 @@ struct SubrSubsetter
   {
     bool  seen_hint = false;
 
-    for (unsigned int pos = 0; pos < str.values.len; pos++)
+    for (unsigned int pos = 0; pos < str.values.length; pos++)
     {
       bool  has_hint = false;
       switch (str.values[pos].op)
@@ -893,7 +893,7 @@ struct SubrSubsetter
 
   void collect_subr_refs_in_str (ParsedCStr &str, const SubrSubsetParam &param)
   {
-    for (unsigned int pos = 0; pos < str.values.len; pos++)
+    for (unsigned int pos = 0; pos < str.values.length; pos++)
     {
       if (!str.values[pos].for_drop ())
       {

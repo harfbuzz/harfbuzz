@@ -557,8 +557,8 @@ struct ArrayOf
   bool serialize (hb_serialize_context_t *c, hb_array_t<const T> items)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!serialize (c, items.len))) return_trace (false);
-    for (unsigned int i = 0; i < items.len; i++)
+    if (unlikely (!serialize (c, items.length))) return_trace (false);
+    for (unsigned int i = 0; i < items.length; i++)
       hb_assign (arrayZ[i], items[i]);
     return_trace (true);
   }
@@ -703,9 +703,9 @@ struct HeadlessArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    lenP1.set (items.len + 1); /* TODO(serialize) Overflow? */
+    lenP1.set (items.length + 1); /* TODO(serialize) Overflow? */
     if (unlikely (!c->extend (*this))) return_trace (false);
-    for (unsigned int i = 0; i < items.len; i++)
+    for (unsigned int i = 0; i < items.length; i++)
       arrayZ[i] = items[i];
     return_trace (true);
   }
