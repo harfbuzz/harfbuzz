@@ -309,8 +309,6 @@ struct byte_str_t : hb_ubytes_t
   byte_str_t (const hb_ubytes_t &ub)	/* conversion from hb_ubytes_t */
     : hb_ubytes_t (ub) {}
   
-  void init (void) { str(); }
-  
   /* sub-string */
   byte_str_t sub_str (unsigned int offset, unsigned int len_) const
   { return byte_str_t (hb_ubytes_t::sub_array (offset, len_)); }
@@ -327,7 +325,7 @@ struct byte_str_ref_t
 
   void init ()
   {
-    str.init ();
+    str = byte_str_t ();
     offset = 0;
     error = false;
   }
