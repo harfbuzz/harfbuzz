@@ -48,9 +48,10 @@ main (int argc, char **argv)
 {
   const int src[10] = {};
   int dst[20];
+  hb_vector_t<int> v;
 
-  array_iter_t<const int> s (src);
-  array_iter_t<const int> s2 (src);
+  array_iter_t<const int> s (src); /* Implicit conversion from static array. */
+  array_iter_t<const int> s2 (v); /* Implicit conversion from vector. */
   array_iter_t<int> t (dst);
 
   s2 = s;
