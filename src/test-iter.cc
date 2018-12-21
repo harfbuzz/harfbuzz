@@ -30,7 +30,7 @@
 #include "hb-array.hh"
 
 template <typename T>
-struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
+struct array_iter_t : hb_iter_t<array_iter_t<T>, T>, hb_iter_mixin_t<array_iter_t<T>, T>
 {
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 

@@ -49,9 +49,11 @@ struct hb_iter_t
   typedef iter_t const_iter_t;
   typedef Item item_t;
 
-  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */ 
+  private:
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
         iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+  public:
 
   /* Operators. */
   operator iter_t () { return iter(); }
@@ -80,9 +82,21 @@ struct hb_iter_t
   unsigned len () const { return thiz()->__len__ (); }
   bool random_access () const { return thiz()->__random_access__ (); }
 
-  /*
-   * Subclasses overrides:
-   */
+  protected:
+  hb_iter_t () {}
+  hb_iter_t (const hb_iter_t &o) {}
+  void operator = (const hb_iter_t &o) {}
+};
+
+/* Mixin to fill in what the subclass doesn't provide. */
+template <typename iter_t, typename item_t = typename iter_t::__item_type__>
+struct hb_iter_mixin_t
+{
+  private:
+  /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
+  const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
+        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+  public:
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
   item_t& __item__ () const { return thiz()->item_at (0); }
@@ -94,11 +108,11 @@ struct hb_iter_t
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { thiz()->forward (1); }
-  void __forward__ (unsigned n) { while (n--) next (); }
+  void __forward__ (unsigned n) { while (n--) thiz()->next (); }
 
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
   void __prev__ () { thiz()->rewind (1); }
-  void __rewind__ (unsigned n) { while (n--) prev (); }
+  void __rewind__ (unsigned n) { while (n--) thiz()->prev (); }
 
   /* Population: Implement __len__() if known. */
   unsigned __len__ () const
@@ -106,11 +120,6 @@ struct hb_iter_t
 
   /* Random access: Return true if len(), forward(), item_at() are fast. */
   bool __random_access__ () const { return false; }
-
-  protected:
-  hb_iter_t () {}
-  hb_iter_t (const hb_iter_t &o) {}
-  void operator = (const hb_iter_t &o) {}
 };
 
 
