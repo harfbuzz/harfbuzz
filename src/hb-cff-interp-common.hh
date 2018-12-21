@@ -302,6 +302,8 @@ struct byte_str_t : hb_ubytes_t
 {
   byte_str_t ()
     : hb_ubytes_t () {}
+  byte_str_t (const byte_str_t &bs)
+    : hb_ubytes_t (bs) {}
   byte_str_t (const UnsizedByteStr& s, unsigned int l)
     : hb_ubytes_t ((const unsigned char*)&s, l) {}
   byte_str_t (const unsigned char *s, unsigned int l)
