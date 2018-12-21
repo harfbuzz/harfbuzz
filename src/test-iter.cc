@@ -60,14 +60,14 @@ struct some_array_t
 
 
 template <typename I, typename V> inline void
-hb_fill (hb_iter_t<I> i, const V &v)
+hb_fill (hb_iter_t<I> &i, const V &v)
 {
   for (; i; i++)
     hb_assign (*i, v);
 }
 
 template <typename S, typename D> inline bool
-hb_copy (hb_iter_t<D> id, hb_iter_t<S> is)
+hb_copy (hb_iter_t<D> &id, hb_iter_t<S> &is)
 {
   for (; id && is; ++id, ++is)
     *id = *is;
@@ -91,7 +91,7 @@ main (int argc, char **argv)
 
   hb_fill (t, 42);
   hb_copy (t, s);
-  hb_copy (t, a.iter ());
+ // hb_copy (t, a.iter ());
 
   return 0;
 }
