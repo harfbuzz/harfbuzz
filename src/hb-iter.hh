@@ -45,6 +45,7 @@ template <typename Iter, typename Item = typename Iter::__item_type__>
 struct hb_iter_t
 {
   typedef Iter iter_t;
+  typedef iter_t const_iter_t;
   typedef Item item_t;
 
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */ 
@@ -67,6 +68,7 @@ struct hb_iter_t
 
   /* Methods. */
   iter_t iter () const { return *thiz(); }
+  const_iter_t const_iter () const { return iter (); }
   item_t& item () const { return thiz()->__item__ (); }
   item_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
   bool more () const { return thiz()->__more__ (); }
