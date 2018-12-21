@@ -60,10 +60,10 @@ struct some_array_t
 };
 
 
-template <typename I, typename V> inline void
-hb_fill (hb_iter_t<I> &i, const V &v)
+template <typename C, typename V> inline void
+hb_fill (const C& c, const V &v)
 {
-  for (; i; i++)
+  for (typename C::iter_t i (c); i; i++)
     hb_assign (*i, v);
 }
 
