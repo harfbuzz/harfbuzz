@@ -21,45 +21,13 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Garret Rieger
+ * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-os2-unicode-ranges.hh"
-
-static void
-test (hb_codepoint_t cp, unsigned int bit)
-{
-  if (OT::_hb_ot_os2_get_unicode_range_bit (cp) != bit)
-  {
-    fprintf (stderr, "got incorrect bit (%d) for cp 0x%X. Should have been %d.",
-             OT::_hb_ot_os2_get_unicode_range_bit (cp),
-             cp,
-             bit);
-    abort();
-  }
-}
-
-static void
-test_get_unicode_range_bit ()
-{
-  test (0x0000, 0);
-  test (0x0042, 0);
-  test (0x007F, 0);
-  test (0x0080, 1);
-
-  test (0x30A0, 50);
-  test (0x30B1, 50);
-  test (0x30FF, 50);
-
-  test (0x10FFFD, 90);
-
-  test (0x30000, -1);
-  test (0x110000, -1);
-}
+#include "hb-iter.hh"
 
 int
-main ()
+main (int argc, char **argv)
 {
-  test_get_unicode_range_bit ();
   return 0;
 }

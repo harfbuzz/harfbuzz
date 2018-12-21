@@ -384,8 +384,11 @@ dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
 
-check_PROGRAMS += test-ot-tag test-unicode-ranges
-TESTS += test-ot-tag test-unicode-ranges
+compiled_tests = test-iter test-ot-tag test-unicode-ranges
+check_PROGRAMS += $(compiled_tests)
+TESTS += $(compiled_tests)
+
+test_iter_SOURCES = test-iter.cc
 
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
