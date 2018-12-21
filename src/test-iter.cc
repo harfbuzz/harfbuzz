@@ -44,16 +44,23 @@ struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
   hb_array_t<T> arr;
 };
 
-template <typename S, typename D> static inline bool
-copy (D &d, hb_iter_t<S> &s)
+template <typename C, typename V> inline void
+hb_fill (const C &c, const V &v)
+{
+  for (typename C::iter_t i = c.iter (); i; i++)
+    hb_assign (*i, v);
+}
+
+template <typename S, typename D> inline bool
+hb_copy (const D &d, const S &s)
 {
   typename S::iter_t is = s.iter ();
   typename D::iter_t id = d.iter ();
 
-  for (; d && s; ++d, ++s)
-    *d = *s;
+  for (; id && is; ++id, ++is)
+    *id = *is;
 
-  return !d;
+  return !id;
 }
 
 int
@@ -69,7 +76,8 @@ main (int argc, char **argv)
 
   s2 = s;
 
-  copy (t, s);
+  hb_fill (t, 42);
+  hb_copy (t, s);
 
   return 0;
 }
