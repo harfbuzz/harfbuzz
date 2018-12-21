@@ -388,13 +388,16 @@ compiled_tests = test-iter test-ot-tag test-unicode-ranges
 check_PROGRAMS += $(compiled_tests)
 TESTS += $(compiled_tests)
 
-test_iter_SOURCES = test-iter.cc
+test_iter_SOURCES = test-iter.cc hb-static.cc
+test_iter_CPPFLAGS = $(HBCFLAGS) -DMAIN
+test_iter_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_unicode_ranges_SOURCES = test-unicode-ranges.cc
+test_unicode_ranges_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_unicode_ranges_LDADD = libharfbuzz.la $(HBLIBS)
 
 TESTS_ENVIRONMENT = \

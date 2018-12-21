@@ -41,11 +41,11 @@
  */
 
 /* Base class for all iterators. */
-template <typename Iter>
+template <typename Iter, typename Item = typename Iter::__item_type__>
 struct hb_iter_t
 {
   typedef Iter type_t;
-  typedef typename Iter::__type__ item_type_t;
+  typedef Item item_type_t;
 
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */ 
   const type_t* thiz () const { return static_cast<const type_t *> (this); }
@@ -56,10 +56,10 @@ struct hb_iter_t
   explicit_operator bool () const { return more (); }
   item_type_t& operator * () { return item (); }
   item_type_t& operator [] (unsigned i) { return item (i); }
-  type_t& operator += (unsigned count) { forward (count); return thiz(); }
-  type_t& operator ++ () { next (); return thiz(); }
-  type_t& operator -= (unsigned count) { rewind (count); return thiz(); }
-  type_t& operator -- () { prev (); return thiz(); }
+  type_t& operator += (unsigned count) { forward (count); return *thiz(); }
+  type_t& operator ++ () { next (); return *thiz(); }
+  type_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
+  type_t& operator -- () { prev (); return *thiz(); }
   type_t operator + (unsigned count) { type_t c (*thiz()); c += count; return c; }
   type_t operator ++ (int) { type_t c (*thiz()); ++*thiz(); return c; }
   type_t operator - (unsigned count) { type_t c (*thiz()); c -= count; return c; }
@@ -67,8 +67,8 @@ struct hb_iter_t
 
   /* Methods. */
   type_t iter () const { return *thiz(); }
-  item_type_t item () const { return thiz()->__item__ (); }
-  item_type_t item (unsigned i) const { return thiz()->__item__ (i); }
+  item_type_t& item () const { return thiz()->__item__ (); }
+  item_type_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
   bool more () const { return thiz()->__more__ (); }
   void next () { thiz()->__next__ (); }
   void forward (unsigned n) { thiz()->__forward__ (n); }
@@ -80,12 +80,9 @@ struct hb_iter_t
    * Subclasses overrides:
    */
 
-  /* Item type. */
-  //typedef ... __type__;
-
-  /* Access: Implement __item__(), or __item__(n) if random-access. */
-  item_type_t __item__ () const { return thiz()->item (0); }
-  item_type_t __item__ (unsigned i) const { return *(thiz() + i); }
+  /* Access: Implement __item__(), or __item_at__() if random-access. */
+  item_type_t& __item__ () const { return thiz()->item_at (0); }
+  item_type_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
 
   /* Termination: Implement __more__() or __end__(). */
   bool __more__ () const { return item () != thiz()->__end__ (); }

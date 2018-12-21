@@ -26,16 +26,32 @@
 
 #include "hb-iter.hh"
 
+#include "hb-array.hh"
+
+template <typename T>
+struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
+{
+  array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
+
+  T& __item_at__ (unsigned i) const { return arr[i]; }
+  bool __more__ () const { return arr.len; }
+  void __forward__ (unsigned n) { arr += n; }
+  void __rewind__ (unsigned n) { arr -= n; }
+  unsigned __len__ () const { return arr.len; }
+
+  private:
+  hb_array_t<T> arr;
+};
+
 int
 main (int argc, char **argv)
 {
   const int src[10] = {};
   int dst[20];
 
-#if 0
-  hb_iter_t<const int *> s (src);
-  hb_iter_t<const int *> s2 (src, 5);
-  hb_iter_t<int *> t (dst);
+  array_iter_t<const int> s (src);
+  array_iter_t<const int> s2 (src);
+  array_iter_t<int> t (dst);
 
   s2 = s;
 
@@ -43,7 +59,6 @@ main (int argc, char **argv)
    {
     *t = *s;
    }
-#endif
 
   return 0;
 }
