@@ -113,4 +113,22 @@ struct hb_iter_t
 };
 
 
+/* Functions operating on iterators or iteratables. */
+
+template <typename C, typename V> inline void
+hb_fill (const C& c, const V &v)
+{
+  for (typename C::iter_t i (c); i; i++)
+    hb_assign (*i, v);
+}
+
+template <typename S, typename D> inline bool
+hb_copy (hb_iter_t<D> &id, hb_iter_t<S> &is)
+{
+  for (; id && is; ++id, ++is)
+    *id = *is;
+  return !is;
+}
+
+
 #endif /* HB_ITER_HH */

@@ -59,22 +59,6 @@ struct some_array_t
   hb_array_t<T> arr;
 };
 
-
-template <typename C, typename V> inline void
-hb_fill (const C& c, const V &v)
-{
-  for (typename C::iter_t i (c); i; i++)
-    hb_assign (*i, v);
-}
-
-template <typename S, typename D> inline bool
-hb_copy (hb_iter_t<D> &id, hb_iter_t<S> &is)
-{
-  for (; id && is; ++id, ++is)
-    *id = *is;
-  return !is;
-}
-
 int
 main (int argc, char **argv)
 {
