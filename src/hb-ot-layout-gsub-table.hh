@@ -841,7 +841,7 @@ struct LigatureSet
   bool serialize (hb_serialize_context_t *c,
 		  hb_array_t<const GlyphID> ligatures,
 		  hb_array_t<const unsigned int> component_count_list,
-		  hb_array_t<const GlyphID> component_list /* Starting from second for each ligature */)
+		  hb_array_t<const GlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -958,8 +958,6 @@ struct LigatureSubstFormat1
 					       component_list))) return_trace (false);
       ligatures_list += ligature_count;
       component_count_list += ligature_count;
-      for (unsigned int i = 0; i < ligature_count; i++)
-	component_list += MAX<int> (component_count_list[i] - 1, 0);
     }
     return_trace (coverage.serialize (c, this).serialize (c, first_glyphs));
   }
