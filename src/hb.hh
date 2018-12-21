@@ -550,6 +550,7 @@ template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
 #include "hb-atomic.hh"
 #include "hb-debug.hh"
 #include "hb-dsalgs.hh"
+#include "hb-iter.hh"
 #include "hb-mutex.hh"
 #include "hb-null.hh"
 #include "hb-object.hh"
