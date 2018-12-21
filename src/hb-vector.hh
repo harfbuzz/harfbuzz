@@ -89,6 +89,8 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
+  explicit_operator bool () const { return len; }
+
   hb_array_t<Type> as_array ()
   { return hb_array (arrayZ(), len); }
   hb_array_t<const Type> as_array () const
