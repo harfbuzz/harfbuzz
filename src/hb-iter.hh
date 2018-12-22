@@ -96,7 +96,7 @@ struct hb_sorted_iter_t : hb_iter_t<Iter, Item>
 {
   protected:
   hb_sorted_iter_t () {}
-  hb_sorted_iter_t (const hb_sorted_iter_t &o) {}
+  hb_sorted_iter_t (const hb_sorted_iter_t &o) : hb_iter_t<Iter, Item> () {}
   void operator = (const hb_sorted_iter_t &o) {}
 };
 
