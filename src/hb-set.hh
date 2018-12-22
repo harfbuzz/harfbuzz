@@ -688,8 +688,10 @@ struct hb_set_t
     hb_codepoint_t v;
     unsigned l;
   };
-  const_iter_t const_iter () { return const_iter_t (*this); }
-  operator const_iter_t () { return const_iter (); }
+  const_iter_t const_iter () const { return const_iter_t (*this); }
+  operator const_iter_t () const { return const_iter (); }
+  typedef const_iter_t iter_t;
+  iter_t iter () const { return const_iter (); }
 
   protected:
 

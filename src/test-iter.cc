@@ -28,6 +28,8 @@
 #include "hb-iter.hh"
 
 #include "hb-array.hh"
+#include "hb-set.hh"
+
 
 template <typename T>
 struct array_iter_t : hb_iter_t<array_iter_t<T>, T>, hb_iter_mixin_t<array_iter_t<T>, T>
