@@ -38,7 +38,7 @@ typedef biased_subrs_t<CFF1Subrs>   cff1_biased_subrs_t;
 struct cff1_cs_interp_env_t : cs_interp_env_t<number_t, CFF1Subrs>
 {
   template <typename ACC>
-  void init (const byte_str_t &str, ACC &acc, unsigned int fd)
+  inline void init (const byte_str_t &str, ACC &acc, unsigned int fd)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
     processed_width = false;
@@ -47,9 +47,9 @@ struct cff1_cs_interp_env_t : cs_interp_env_t<number_t, CFF1Subrs>
     in_seac = false;
   }
 
-  void fini () { SUPER::fini (); }
+  inline void fini () { SUPER::fini (); }
 
-  void set_width (bool has_width_)
+  inline void set_width (bool has_width_)
   {
     if (likely (!processed_width && (SUPER::argStack.get_count () > 0)))
     {
@@ -63,13 +63,13 @@ struct cff1_cs_interp_env_t : cs_interp_env_t<number_t, CFF1Subrs>
     processed_width = true;
   }
 
-  void clear_args ()
+  inline void clear_args ()
   {
     arg_start = 0;
     SUPER::clear_args ();
   }
 
-  void set_in_seac (bool _in_seac) { in_seac = _in_seac; }
+  inline void set_in_seac (bool _in_seac) { in_seac = _in_seac; }
 
   bool	  processed_width;
   bool	  has_width;
@@ -87,7 +87,7 @@ struct cff1_cs_opset_t : cs_opset_t<number_t, OPSET, cff1_cs_interp_env_t, PARAM
   /* PostScript-originated legacy opcodes (OpCode_add etc) are unsupported */
   /* Type 1-originated deprecated opcodes, seac behavior of endchar and dotsection are supported */
 
-  static void process_op (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
+  static inline void process_op (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
   {
     switch (op) {
       case OpCode_dotsection:
@@ -109,7 +109,7 @@ struct cff1_cs_opset_t : cs_opset_t<number_t, OPSET, cff1_cs_interp_env_t, PARAM
     }
   }
 
-  static void check_width (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
+  static inline void check_width (op_code_t op, cff1_cs_interp_env_t &env, PARAM& param)
   {
     if (!env.processed_width)
     {
@@ -139,11 +139,11 @@ struct cff1_cs_opset_t : cs_opset_t<number_t, OPSET, cff1_cs_interp_env_t, PARAM
     }
   }
 
-  static void process_seac (cff1_cs_interp_env_t &env, PARAM& param)
+  static inline void process_seac (cff1_cs_interp_env_t &env, PARAM& param)
   {
   }
 
-  static void flush_args (cff1_cs_interp_env_t &env, PARAM& param)
+  static inline void flush_args (cff1_cs_interp_env_t &env, PARAM& param)
   {
     SUPER::flush_args (env, param);
     env.clear_args ();  /* pop off width */

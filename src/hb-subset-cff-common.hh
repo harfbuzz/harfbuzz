@@ -37,18 +37,18 @@ namespace CFF {
 /* Used for writing a temporary charstring */
 struct str_encoder_t
 {
-  str_encoder_t (str_buff_t &buff_)
+  inline str_encoder_t (str_buff_t &buff_)
     : buff (buff_), error (false) {}
 
-  void reset () { buff.resize (0); }
+  inline void reset () { buff.resize (0); }
 
-  void encode_byte (unsigned char b)
+  inline void encode_byte (unsigned char b)
   {
     if (unlikely (buff.push (b) == &Crap(unsigned char)))
       set_error ();
   }
 
-  void encode_int (int v)
+  inline void encode_int (int v)
   {
     if ((-1131 <= v) && (v <= 1131))
     {
@@ -79,7 +79,7 @@ struct str_encoder_t
     }
   }
 
-  void encode_num (const number_t& n)
+  inline void encode_num (const number_t& n)
   {
     if (n.in_int_range ())
     {
@@ -96,7 +96,7 @@ struct str_encoder_t
     }
   }
 
-  void encode_op (op_code_t op)
+  inline void encode_op (op_code_t op)
   {
     if (Is_OpCode_ESC (op))
     {
@@ -107,7 +107,7 @@ struct str_encoder_t
       encode_byte (op);
   }
 
-  void copy_str (const byte_str_t &str)
+  inline void copy_str (const byte_str_t &str)
   {
     unsigned int  offset = buff.len;
     buff.resize (offset + str.len);
@@ -119,17 +119,17 @@ struct str_encoder_t
     memcpy (&buff[offset], &str[0], str.len);
   }
 
-  bool is_error () const { return error; }
+  inline bool is_error () const { return error; }
 
   protected:
-  void set_error () { error = true; }
+  inline void set_error () { error = true; }
 
   str_buff_t &buff;
   bool    error;
 };
 
 struct cff_sub_table_offsets_t {
-  cff_sub_table_offsets_t () : privateDictsOffset (0)
+  inline cff_sub_table_offsets_t () : privateDictsOffset (0)
   {
     topDictInfo.init ();
     FDSelectInfo.init ();
@@ -139,23 +139,23 @@ struct cff_sub_table_offsets_t {
     localSubrsInfos.init ();
   }
 
-  ~cff_sub_table_offsets_t () { localSubrsInfos.fini (); }
+  inline ~cff_sub_table_offsets_t () { localSubrsInfos.fini (); }
 
-  table_info_t     topDictInfo;
-  table_info_t     FDSelectInfo;
-  table_info_t     FDArrayInfo;
-  table_info_t     charStringsInfo;
-  unsigned int  privateDictsOffset;
-  table_info_t     globalSubrsInfo;
+  table_info_t	topDictInfo;
+  table_info_t	FDSelectInfo;
+  table_info_t	FDArrayInfo;
+  table_info_t	charStringsInfo;
+  unsigned int	privateDictsOffset;
+  table_info_t	globalSubrsInfo;
   hb_vector_t<table_info_t>  localSubrsInfos;
 };
 
 template <typename OPSTR=op_str_t>
 struct cff_top_dict_op_serializer_t : op_serializer_t
 {
-  bool serialize (hb_serialize_context_t *c,
-		  const OPSTR &opstr,
-		  const cff_sub_table_offsets_t &offsets) const
+  inline bool serialize (hb_serialize_context_t *c,
+			const OPSTR &opstr,
+			const cff_sub_table_offsets_t &offsets) const
   {
     TRACE_SERIALIZE (this);
 
@@ -176,7 +176,7 @@ struct cff_top_dict_op_serializer_t : op_serializer_t
     return_trace (true);
   }
 
-  unsigned int calculate_serialized_size (const OPSTR &opstr) const
+  inline unsigned int calculate_serialized_size (const OPSTR &opstr) const
   {
     switch (opstr.op)
     {
@@ -193,9 +193,9 @@ struct cff_top_dict_op_serializer_t : op_serializer_t
 
 struct cff_font_dict_op_serializer_t : op_serializer_t
 {
-  bool serialize (hb_serialize_context_t *c,
-		  const op_str_t &opstr,
-		  const table_info_t &privateDictInfo) const
+  inline bool serialize (hb_serialize_context_t *c,
+			const op_str_t &opstr,
+			const table_info_t &privateDictInfo) const
   {
     TRACE_SERIALIZE (this);
 
@@ -222,7 +222,7 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     return_trace (true);
   }
 
-  unsigned int calculate_serialized_size (const op_str_t &opstr) const
+  inline unsigned int calculate_serialized_size (const op_str_t &opstr) const
   {
     if (opstr.op == OpCode_Private)
       return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
@@ -233,12 +233,12 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
 
 struct cff_private_dict_op_serializer_t : op_serializer_t
 {
-  cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
+  inline cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
     : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
 
-  bool serialize (hb_serialize_context_t *c,
-		  const op_str_t &opstr,
-		  const unsigned int subrsOffset) const
+  inline bool serialize (hb_serialize_context_t *c,
+			const op_str_t &opstr,
+			const unsigned int subrsOffset) const
   {
     TRACE_SERIALIZE (this);
 
@@ -255,8 +255,8 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
       return_trace (copy_opstr (c, opstr));
   }
 
-  unsigned int calculate_serialized_size (const op_str_t &opstr,
-					  bool has_localsubr=true) const
+  inline unsigned int calculate_serialized_size (const op_str_t &opstr,
+						bool has_localsubr=true) const
   {
     if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
       return 0;
@@ -278,22 +278,22 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
 
 struct flatten_param_t
 {
-  str_buff_t     &flatStr;
-  bool	drop_hints;
+  str_buff_t	&flatStr;
+  bool		drop_hints;
 };
 
 template <typename ACC, typename ENV, typename OPSET>
 struct subr_flattener_t
 {
-  subr_flattener_t (const ACC &acc_,
-			const hb_vector_t<hb_codepoint_t> &glyphs_,
-			bool drop_hints_)
+  inline subr_flattener_t (const ACC &acc_,
+			  const hb_vector_t<hb_codepoint_t> &glyphs_,
+			  bool drop_hints_)
     : acc (acc_),
       glyphs (glyphs_),
       drop_hints (drop_hints_)
   {}
 
-  bool flatten (str_buff_vec_t &flat_charstrings)
+  inline bool flatten (str_buff_vec_t &flat_charstrings)
   {
     if (!flat_charstrings.resize (glyphs.len))
       return false;
@@ -322,10 +322,10 @@ struct subr_flattener_t
 
 struct subr_closures_t
 {
-  subr_closures_t () : valid (false), global_closure (nullptr)
+  inline subr_closures_t () : valid (false), global_closure (nullptr)
   { local_closures.init (); }
 
-  void init (unsigned int fd_count)
+  inline void init (unsigned int fd_count)
   {
     valid = true;
     global_closure = hb_set_create ();
@@ -342,7 +342,7 @@ struct subr_closures_t
     }
   }
 
-  void fini ()
+  inline void fini ()
   {
     hb_set_destroy (global_closure);
     for (unsigned int i = 0; i < local_closures.len; i++)
@@ -365,7 +365,7 @@ struct subr_closures_t
 
 struct parsed_cs_op_t : op_str_t
 {
-  void init (unsigned int subr_num_ = 0)
+  inline void init (unsigned int subr_num_ = 0)
   {
     op_str_t::init ();
     subr_num = subr_num_;
@@ -374,16 +374,16 @@ struct parsed_cs_op_t : op_str_t
     skip_flag = false;
   }
 
-  void fini () { op_str_t::fini (); }
+  inline void fini () { op_str_t::fini (); }
 
-  bool for_drop () const { return drop_flag; }
-  void set_drop ()       { if (!for_keep ()) drop_flag = true; }
+  inline bool for_drop () const { return drop_flag; }
+  inline void set_drop ()       { if (!for_keep ()) drop_flag = true; }
 
-  bool for_keep () const { return keep_flag; }
-  void set_keep ()       { keep_flag = true; }
+  inline bool for_keep () const { return keep_flag; }
+  inline void set_keep ()       { keep_flag = true; }
 
-  bool for_skip () const { return skip_flag; }
-  void set_skip ()       { skip_flag = true; }
+  inline bool for_skip () const { return skip_flag; }
+  inline void set_skip ()       { skip_flag = true; }
 
   unsigned int  subr_num;
 
