@@ -684,7 +684,7 @@ struct hb_collect_features_context_t
       feature_indexes (feature_indexes_),
       script_count(0),langsys_count(0) {}
 
-  bool inline visited (const OT::Script &s)
+  bool visited (const OT::Script &s)
   {
     /* We might have Null() object here.  Don't want to involve
      * that in the memoize.  So, detect empty objects and return. */
@@ -697,7 +697,7 @@ struct hb_collect_features_context_t
 
     return visited (s, visited_script);
   }
-  bool inline visited (const OT::LangSys &l)
+  bool visited (const OT::LangSys &l)
   {
     /* We might have Null() object here.  Don't want to involve
      * that in the memoize.  So, detect empty objects and return. */
@@ -713,7 +713,7 @@ struct hb_collect_features_context_t
 
   private:
   template <typename T>
-  bool inline visited (const T &p, hb_set_t &visited_set)
+  bool visited (const T &p, hb_set_t &visited_set)
   {
     hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) &p - (uintptr_t) &g);
      if (visited_set.has (delta))
