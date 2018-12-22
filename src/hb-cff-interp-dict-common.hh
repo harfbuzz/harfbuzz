@@ -37,8 +37,8 @@ using namespace OT;
 /* an opstr and the parsed out dict value(s) */
 struct dict_val_t : op_str_t
 {
-  inline void init () { single_val.set_int (0); }
-  inline void fini () {}
+  void init () { single_val.set_int (0); }
+  void fini () {}
 
   number_t	      single_val;
 };
@@ -50,15 +50,15 @@ template <typename VAL> struct dict_values_t : parsed_values_t<VAL> {};
 template <typename OPSTR=op_str_t>
 struct top_dict_values_t : dict_values_t<OPSTR>
 {
-  inline void init ()
+  void init ()
   {
     dict_values_t<OPSTR>::init ();
     charStringsOffset = 0;
     FDArrayOffset = 0;
   }
-  inline void fini () { dict_values_t<OPSTR>::fini (); }
+  void fini () { dict_values_t<OPSTR>::fini (); }
 
-  inline unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
+  unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
   {
     switch (opstr.op)
     {
@@ -77,7 +77,7 @@ struct top_dict_values_t : dict_values_t<OPSTR>
 
 struct dict_opset_t : opset_t<number_t>
 {
-  static inline void process_op (op_code_t op, interp_env_t<number_t>& env)
+  static void process_op (op_code_t op, interp_env_t<number_t>& env)
   {
     switch (op) {
       case OpCode_longintdict:  /* 5-byte integer */
@@ -96,19 +96,19 @@ struct dict_opset_t : opset_t<number_t>
 
   static double parse_bcd (byte_str_ref_t& str_ref)
   {
-    bool	neg = false;
-    double	int_part = 0;
-    uint64_t	frac_part = 0;
-    uint32_t	frac_count = 0;
-    bool	exp_neg = false;
-    uint32_t	exp_part = 0;
-    bool	exp_overflow = false;
+    bool    neg = false;
+    double  int_part = 0;
+    uint64_t frac_part = 0;
+    uint32_t  frac_count = 0;
+    bool    exp_neg = false;
+    uint32_t  exp_part = 0;
+    bool    exp_overflow = false;
     enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
     enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
     const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
     const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
 
-    double	value = 0.0;
+    double  value = 0.0;
     unsigned char byte = 0;
     for (uint32_t i = 0;; i++)
     {
@@ -220,7 +220,7 @@ struct dict_opset_t : opset_t<number_t>
     return value;
   }
 
-  static inline bool is_hint_op (op_code_t op)
+  static bool is_hint_op (op_code_t op)
   {
     switch (op)
     {
@@ -248,7 +248,7 @@ struct dict_opset_t : opset_t<number_t>
 template <typename VAL=op_str_t>
 struct top_dict_opset_t : dict_opset_t
 {
-  static inline void process_op (op_code_t op, interp_env_t<number_t>& env, top_dict_values_t<VAL> & dictval)
+  static void process_op (op_code_t op, interp_env_t<number_t>& env, top_dict_values_t<VAL> & dictval)
   {
     switch (op) {
       case OpCode_CharStrings:
@@ -272,7 +272,7 @@ struct top_dict_opset_t : dict_opset_t
 template <typename OPSET, typename PARAM, typename ENV=num_interp_env_t>
 struct dict_interpreter_t : interpreter_t<ENV>
 {
-  inline bool interpret (PARAM& param)
+  bool interpret (PARAM& param)
   {
     param.init ();
     while (SUPER::env.str_ref.avail ())

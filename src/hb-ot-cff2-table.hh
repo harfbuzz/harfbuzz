@@ -51,7 +51,7 @@ typedef FDSelect3_4_Range<HBUINT32, HBUINT16> FDSelect4_Range;
 
 struct CFF2FDSelect
 {
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
 
@@ -63,7 +63,7 @@ struct CFF2FDSelect
 			    u.format4.sanitize (c, fdcount))));
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
+  bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
@@ -73,10 +73,10 @@ struct CFF2FDSelect
     return_trace (true);
   }
 
-  inline unsigned int calculate_serialized_size (unsigned int num_glyphs) const
+  unsigned int calculate_serialized_size (unsigned int num_glyphs) const
   { return get_size (num_glyphs); }
 
-  inline unsigned int get_size (unsigned int num_glyphs) const
+  unsigned int get_size (unsigned int num_glyphs) const
   {
     unsigned int size = format.static_size;
     if (format == 0)
@@ -88,7 +88,7 @@ struct CFF2FDSelect
     return size;
   }
 
-  inline hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
     if (this == &Null(CFF2FDSelect))
       return 0;
@@ -110,43 +110,43 @@ struct CFF2FDSelect
   DEFINE_SIZE_MIN (2);
 };
 
-struct cff2_variation_store_t
+struct CFF2VariationStore
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)) && c->check_range (&varStore, size) && varStore.sanitize (c));
   }
 
-  inline bool serialize (hb_serialize_context_t *c, const cff2_variation_store_t *varStore)
+  bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
   {
     TRACE_SERIALIZE (this);
     unsigned int size_ = varStore->get_size ();
-    cff2_variation_store_t *dest = c->allocate_size<cff2_variation_store_t> (size_);
+    CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (size_);
     if (unlikely (dest == nullptr)) return_trace (false);
     memcpy (dest, varStore, size_);
     return_trace (true);
   }
 
-  inline unsigned int get_size () const { return HBUINT16::static_size + size; }
+  unsigned int get_size () const { return HBUINT16::static_size + size; }
 
-  HBUINT16		size;
-  VariationStore	varStore;
+  HBUINT16	size;
+  VariationStore  varStore;
 
   DEFINE_SIZE_MIN (2 + VariationStore::min_size);
 };
 
 struct cff2_top_dict_values_t : top_dict_values_t<>
 {
-  inline void init ()
+  void init ()
   {
     top_dict_values_t<>::init ();
     vstoreOffset = 0;
     FDSelectOffset = 0;
   }
-  inline void fini () { top_dict_values_t<>::fini (); }
+  void fini () { top_dict_values_t<>::fini (); }
 
-  inline unsigned int calculate_serialized_size () const
+  unsigned int calculate_serialized_size () const
   {
     unsigned int size = 0;
     for (unsigned int i = 0; i < get_count (); i++)
@@ -172,7 +172,7 @@ struct cff2_top_dict_values_t : top_dict_values_t<>
 
 struct cff2_top_dict_opset_t : top_dict_opset_t<>
 {
-  static inline void process_op (op_code_t op, num_interp_env_t& env, cff2_top_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff2_top_dict_values_t& dictval)
   {
     switch (op) {
       case OpCode_FontMatrix:
@@ -221,7 +221,7 @@ struct cff2_font_dict_values_t : dict_values_t<op_str_t>
 
 struct cff2_font_dict_opset_t : dict_opset_t
 {
-  static inline void process_op (op_code_t op, num_interp_env_t& env, cff2_font_dict_values_t& dictval)
+  static void process_op (op_code_t op, num_interp_env_t& env, cff2_font_dict_values_t& dictval)
   {
     switch (op) {
       case OpCode_Private:
@@ -304,7 +304,7 @@ struct cff2_priv_dict_interp_env_t : num_interp_env_t
 
 struct cff2_private_dict_opset_t : dict_opset_t
 {
-  static inline void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_t& dictval)
+  static void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_t& dictval)
   {
     num_dict_val_t val;
     val.init ();
@@ -354,7 +354,7 @@ struct cff2_private_dict_opset_t : dict_opset_t
 
 struct cff2_private_dict_opset_subset_t : dict_opset_t
 {
-  static inline void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_subset_t& dictval)
+  static void process_op (op_code_t op, cff2_priv_dict_interp_env_t& env, cff2_private_dict_values_subset_t& dictval)
   {
     switch (op) {
       case OpCode_BlueValues:
@@ -410,7 +410,7 @@ struct cff2
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cff2;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
@@ -420,7 +420,7 @@ struct cff2
   template <typename PRIVOPSET, typename PRIVDICTVAL>
   struct accelerator_templ_t
   {
-    inline void init (hb_face_t *face)
+    void init (hb_face_t *face)
     {
       topDict.init ();
       fontDicts.init ();
@@ -447,12 +447,12 @@ struct cff2
       }
 
       globalSubrs = &StructAtOffset<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
-      varStore = &StructAtOffsetOrNull<cff2_variation_store_t> (cff2, topDict.vstoreOffset);
+      varStore = &StructAtOffsetOrNull<CFF2VariationStore> (cff2, topDict.vstoreOffset);
       charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset);
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
       fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset);
 
-      if (((varStore != &Null(cff2_variation_store_t)) && unlikely (!varStore->sanitize (&sc))) ||
+      if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
 	  (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
 	  (globalSubrs == &Null(CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
 	  (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
@@ -493,7 +493,7 @@ struct cff2
       }
     }
 
-    inline void fini ()
+    void fini ()
     {
       sc.end_processing ();
       fontDicts.fini_deep ();
@@ -502,25 +502,25 @@ struct cff2
       blob = nullptr;
     }
 
-    inline bool is_valid () const { return blob != nullptr; }
+    bool is_valid () const { return blob != nullptr; }
 
     protected:
-    hb_blob_t			*blob;
-    hb_sanitize_context_t	sc;
+    hb_blob_t	       *blob;
+    hb_sanitize_context_t   sc;
 
     public:
-    cff2_top_dict_values_t	topDict;
-    const CFF2Subrs		*globalSubrs;
-    const cff2_variation_store_t  *varStore;
-    const CFF2CharStrings	*charStrings;
-    const CFF2FDArray		*fdArray;
-    const CFF2FDSelect		*fdSelect;
-    unsigned int		fdCount;
+    cff2_top_dict_values_t	 topDict;
+    const CFF2Subrs	   *globalSubrs;
+    const CFF2VariationStore  *varStore;
+    const CFF2CharStrings     *charStrings;
+    const CFF2FDArray	 *fdArray;
+    const CFF2FDSelect	*fdSelect;
+    unsigned int	      fdCount;
 
-    hb_vector_t<cff2_font_dict_values_t>	fontDicts;
-    hb_vector_t<PRIVDICTVAL>	privateDicts;
+    hb_vector_t<cff2_font_dict_values_t>     fontDicts;
+    hb_vector_t<PRIVDICTVAL>  privateDicts;
 
-    unsigned int		num_glyphs;
+    unsigned int	    num_glyphs;
   };
 
   struct accelerator_t : accelerator_templ_t<cff2_private_dict_opset_t, cff2_private_dict_values_t>
@@ -532,7 +532,7 @@ struct cff2
 
   typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;
 
-  inline bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
     hb_blob_t *cff2_prime = nullptr;
 

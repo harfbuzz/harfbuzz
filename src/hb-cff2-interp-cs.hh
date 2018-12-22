@@ -35,23 +35,23 @@ using namespace OT;
 
 struct blend_arg_t : number_t
 {
-  inline void init ()
+  void init ()
   {
     number_t::init ();
     deltas.init ();
   }
 
-  inline void fini ()
+  void fini ()
   {
     number_t::fini ();
     deltas.fini_deep ();
   }
 
-  inline void set_int (int v) { reset_blends (); number_t::set_int (v); }
-  inline void set_fixed (int32_t v) { reset_blends (); number_t::set_fixed (v); }
-  inline void set_real (double v) { reset_blends (); number_t::set_real (v); }
+  void set_int (int v) { reset_blends (); number_t::set_int (v); }
+  void set_fixed (int32_t v) { reset_blends (); number_t::set_fixed (v); }
+  void set_real (double v) { reset_blends (); number_t::set_real (v); }
 
-  inline void set_blends (unsigned int numValues_, unsigned int valueIndex_,
+  void set_blends (unsigned int numValues_, unsigned int valueIndex_,
 			  unsigned int numBlends, hb_array_t<const blend_arg_t> blends_)
   {
     numValues = numValues_;
@@ -61,8 +61,8 @@ struct blend_arg_t : number_t
       deltas[i] = blends_[i];
   }
 
-  inline bool blending () const { return deltas.len > 0; }
-  inline void reset_blends ()
+  bool blending () const { return deltas.len > 0; }
+  void reset_blends ()
   {
     numValues = valueIndex = 0;
     deltas.resize (0);
@@ -79,7 +79,7 @@ typedef biased_subrs_t<CFF2Subrs>   cff2_biased_subrs_t;
 struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 {
   template <typename ACC>
-  inline void init (const byte_str_t &str, ACC &acc, unsigned int fd,
+  void init (const byte_str_t &str, ACC &acc, unsigned int fd,
 		    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
@@ -90,17 +90,17 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     seen_blend = false;
     seen_vsindex_ = false;
     scalars.init ();
-    do_blend = (coords != nullptr) && num_coords && (varStore != &Null(cff2_variation_store_t));
+    do_blend = (coords != nullptr) && num_coords && (varStore != &Null(CFF2VariationStore));
     set_ivs (acc.privateDicts[fd].ivs);
   }
 
-  inline void fini ()
+  void fini ()
   {
     scalars.fini ();
     SUPER::fini ();
   }
 
-  inline op_code_t fetch_op ()
+  op_code_t fetch_op ()
   {
     if (this->str_ref.avail ())
       return SUPER::fetch_op ();
@@ -112,21 +112,21 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
       return OpCode_return;
   }
 
-  inline const blend_arg_t& eval_arg (unsigned int i)
+  const blend_arg_t& eval_arg (unsigned int i)
   {
     blend_arg_t  &arg = argStack[i];
     blend_arg (arg);
     return arg;
   }
 
-  inline const blend_arg_t& pop_arg ()
+  const blend_arg_t& pop_arg ()
   {
     blend_arg_t  &arg = argStack.pop ();
     blend_arg (arg);
     return arg;
   }
 
-  inline void process_blend ()
+  void process_blend ()
   {
     if (!seen_blend)
     {
@@ -142,7 +142,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     }
   }
 
-  inline void process_vsindex ()
+  void process_vsindex ()
   {
     unsigned int  index = argStack.pop_uint ();
     if (unlikely (seen_vsindex () || seen_blend))
@@ -156,14 +156,14 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     seen_vsindex_ = true;
   }
 
-  inline unsigned int get_region_count () const { return region_count; }
-  inline void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
-  inline unsigned int get_ivs () const { return ivs; }
-  inline void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
-  inline bool	 seen_vsindex () const { return seen_vsindex_; }
+  unsigned int get_region_count () const { return region_count; }
+  void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
+  unsigned int get_ivs () const { return ivs; }
+  void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  bool	 seen_vsindex () const { return seen_vsindex_; }
 
   protected:
-  inline void blend_arg (blend_arg_t &arg)
+  void blend_arg (blend_arg_t &arg)
   {
     if (do_blend && arg.blending ())
     {
@@ -183,7 +183,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
   protected:
   const int     *coords;
   unsigned int  num_coords;
-  const cff2_variation_store_t *varStore;
+  const	 CFF2VariationStore *varStore;
   unsigned int  region_count;
   unsigned int  ivs;
   hb_vector_t<float>  scalars;
@@ -196,7 +196,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 template <typename OPSET, typename PARAM, typename PATH=path_procs_null_t<cff2_cs_interp_env_t, PARAM> >
 struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PARAM, PATH>
 {
-  static inline void process_op (op_code_t op, cff2_cs_interp_env_t &env, PARAM& param)
+  static void process_op (op_code_t op, cff2_cs_interp_env_t &env, PARAM& param)
   {
     switch (op) {
       case OpCode_callsubr:
@@ -228,7 +228,7 @@ struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PA
     }
   }
 
-  static inline void process_blend (cff2_cs_interp_env_t &env, PARAM& param)
+  static void process_blend (cff2_cs_interp_env_t &env, PARAM& param)
   {
     unsigned int n, k;
 
@@ -253,7 +253,7 @@ struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PA
     env.argStack.pop (k * n);
   }
 
-  static inline void process_vsindex (cff2_cs_interp_env_t &env, PARAM& param)
+  static void process_vsindex (cff2_cs_interp_env_t &env, PARAM& param)
   {
     env.process_vsindex ();
     env.clear_args ();

@@ -41,7 +41,7 @@ enum cs_type_t {
 
 struct call_context_t
 {
-  inline void init (const byte_str_ref_t substr_=byte_str_ref_t (), cs_type_t type_=CSType_CharString, unsigned int subr_num_=0)
+  void init (const byte_str_ref_t substr_=byte_str_ref_t (), cs_type_t type_=CSType_CharString, unsigned int subr_num_=0)
   {
     str_ref = substr_;
     type = type_;
@@ -62,7 +62,7 @@ struct call_stack_t : stack_t<call_context_t, kMaxCallLimit> {};
 template <typename SUBRS>
 struct biased_subrs_t
 {
-  inline void init (const SUBRS &subrs_)
+  void init (const SUBRS &subrs_)
   {
     subrs = &subrs_;
     unsigned int  nSubrs = get_count ();
@@ -74,12 +74,12 @@ struct biased_subrs_t
       bias = 32768;
   }
 
-  inline void fini () {}
+  void fini () {}
 
-  inline unsigned int get_count () const { return (subrs == nullptr)? 0: subrs->count; }
-  inline unsigned int get_bias () const { return bias; }
+  unsigned int get_count () const { return (subrs == nullptr)? 0: subrs->count; }
+  unsigned int get_bias () const { return bias; }
 
-  inline byte_str_t operator [] (unsigned int index) const
+  byte_str_t operator [] (unsigned int index) const
   {
     if (unlikely ((subrs == nullptr) || index >= subrs->count))
       return Null(byte_str_t);
@@ -94,22 +94,22 @@ struct biased_subrs_t
 
 struct point_t
 {
-  inline void init ()
+  void init ()
   {
     x.init ();
     y.init ();
   }
 
-  inline void set_int (int _x, int _y)
+  void set_int (int _x, int _y)
   {
     x.set_int (_x);
     y.set_int (_y);
   }
 
-  inline void move_x (const number_t &dx) { x += dx; }
-  inline void move_y (const number_t &dy) { y += dy; }
-  inline void move (const number_t &dx, const number_t &dy) { move_x (dx); move_y (dy); }
-  inline void move (const point_t &d) { move_x (d.x); move_y (d.y); }
+  void move_x (const number_t &dx) { x += dx; }
+  void move_y (const number_t &dy) { y += dy; }
+  void move (const number_t &dx, const number_t &dy) { move_x (dx); move_y (dy); }
+  void move (const point_t &d) { move_x (d.x); move_y (d.y); }
 
   number_t  x;
   number_t  y;
@@ -118,7 +118,7 @@ struct point_t
 template <typename ARG, typename SUBRS>
 struct cs_interp_env_t : interp_env_t<ARG>
 {
-  inline void init (const byte_str_t &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
+  void init (const byte_str_t &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
   {
     interp_env_t<ARG>::init (str);
 
@@ -132,7 +132,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     globalSubrs.init (globalSubrs_);
     localSubrs.init (localSubrs_);
   }
-  inline void fini ()
+  void fini ()
   {
     interp_env_t<ARG>::fini ();
 
@@ -141,12 +141,12 @@ struct cs_interp_env_t : interp_env_t<ARG>
     localSubrs.fini ();
   }
 
-  inline bool in_error () const
+  bool in_error () const
   {
     return callStack.in_error () || SUPER::in_error ();
   }
 
-  inline bool popSubrNum (const biased_subrs_t<SUBRS>& biasedSubrs, unsigned int &subr_num)
+  bool popSubrNum (const biased_subrs_t<SUBRS>& biasedSubrs, unsigned int &subr_num)
   {
     int n = SUPER::argStack.pop_int ();
     n += biasedSubrs.get_bias ();
@@ -157,7 +157,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     return true;
   }
 
-  inline void callSubr (const biased_subrs_t<SUBRS>& biasedSubrs, cs_type_t type)
+  void callSubr (const biased_subrs_t<SUBRS>& biasedSubrs, cs_type_t type)
   {
     unsigned int subr_num;
 
@@ -174,7 +174,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     SUPER::str_ref = context.str_ref;
   }
 
-  inline void returnFromSubr ()
+  void returnFromSubr ()
   {
     if (unlikely (SUPER::str_ref.in_error ()))
       SUPER::set_error ();
@@ -182,7 +182,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     SUPER::str_ref = context.str_ref;
   }
 
-  inline void determine_hintmask_size ()
+  void determine_hintmask_size ()
   {
     if (!seen_hintmask)
     {
@@ -192,14 +192,14 @@ struct cs_interp_env_t : interp_env_t<ARG>
     }
   }
 
-  inline void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
-  inline bool is_endchar () const { return endchar_flag; }
+  void set_endchar (bool endchar_flag_) { endchar_flag = endchar_flag_; }
+  bool is_endchar () const { return endchar_flag; }
 
-  inline const number_t &get_x () const { return pt.x; }
-  inline const number_t &get_y () const { return pt.y; }
-  inline const point_t &get_pt () const { return pt; }
+  const number_t &get_x () const { return pt.x; }
+  const number_t &get_y () const { return pt.y; }
+  const point_t &get_pt () const { return pt; }
 
-  inline void moveto (const point_t &pt_ ) { pt = pt_; }
+  void moveto (const point_t &pt_ ) { pt = pt_; }
 
   public:
   call_context_t   context;
@@ -210,7 +210,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
   unsigned int  hstem_count;
   unsigned int  vstem_count;
   unsigned int  hintmask_size;
-  call_stack_t	callStack;
+  call_stack_t	    callStack;
   biased_subrs_t<SUBRS>   globalSubrs;
   biased_subrs_t<SUBRS>   localSubrs;
 
@@ -223,32 +223,32 @@ struct cs_interp_env_t : interp_env_t<ARG>
 template <typename ENV, typename PARAM>
 struct path_procs_null_t
 {
-  static inline void rmoveto (ENV &env, PARAM& param) {}
-  static inline void hmoveto (ENV &env, PARAM& param) {}
-  static inline void vmoveto (ENV &env, PARAM& param) {}
-  static inline void rlineto (ENV &env, PARAM& param) {}
-  static inline void hlineto (ENV &env, PARAM& param) {}
-  static inline void vlineto (ENV &env, PARAM& param) {}
-  static inline void rrcurveto (ENV &env, PARAM& param) {}
-  static inline void rcurveline (ENV &env, PARAM& param) {}
-  static inline void rlinecurve (ENV &env, PARAM& param) {}
-  static inline void vvcurveto (ENV &env, PARAM& param) {}
-  static inline void hhcurveto (ENV &env, PARAM& param) {}
-  static inline void vhcurveto (ENV &env, PARAM& param) {}
-  static inline void hvcurveto (ENV &env, PARAM& param) {}
-  static inline void moveto (ENV &env, PARAM& param, const point_t &pt) {}
-  static inline void line (ENV &env, PARAM& param, const point_t &pt1) {}
-  static inline void curve (ENV &env, PARAM& param, const point_t &pt1, const point_t &pt2, const point_t &pt3) {}
-  static inline void hflex (ENV &env, PARAM& param) {}
-  static inline void flex (ENV &env, PARAM& param) {}
-  static inline void hflex1 (ENV &env, PARAM& param) {}
-  static inline void flex1 (ENV &env, PARAM& param) {}
+  static void rmoveto (ENV &env, PARAM& param) {}
+  static void hmoveto (ENV &env, PARAM& param) {}
+  static void vmoveto (ENV &env, PARAM& param) {}
+  static void rlineto (ENV &env, PARAM& param) {}
+  static void hlineto (ENV &env, PARAM& param) {}
+  static void vlineto (ENV &env, PARAM& param) {}
+  static void rrcurveto (ENV &env, PARAM& param) {}
+  static void rcurveline (ENV &env, PARAM& param) {}
+  static void rlinecurve (ENV &env, PARAM& param) {}
+  static void vvcurveto (ENV &env, PARAM& param) {}
+  static void hhcurveto (ENV &env, PARAM& param) {}
+  static void vhcurveto (ENV &env, PARAM& param) {}
+  static void hvcurveto (ENV &env, PARAM& param) {}
+  static void moveto (ENV &env, PARAM& param, const point_t &pt) {}
+  static void line (ENV &env, PARAM& param, const point_t &pt1) {}
+  static void curve (ENV &env, PARAM& param, const point_t &pt1, const point_t &pt2, const point_t &pt3) {}
+  static void hflex (ENV &env, PARAM& param) {}
+  static void flex (ENV &env, PARAM& param) {}
+  static void hflex1 (ENV &env, PARAM& param) {}
+  static void flex1 (ENV &env, PARAM& param) {}
 };
 
 template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=path_procs_null_t<ENV, PARAM> >
 struct cs_opset_t : opset_t<ARG>
 {
-  static inline void process_op (op_code_t op, ENV &env, PARAM& param)
+  static void process_op (op_code_t op, ENV &env, PARAM& param)
   {
     switch (op) {
 
@@ -370,19 +370,19 @@ struct cs_opset_t : opset_t<ARG>
     }
   }
 
-  static inline void process_hstem (op_code_t op, ENV &env, PARAM& param)
+  static void process_hstem (op_code_t op, ENV &env, PARAM& param)
   {
     env.hstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_vstem (op_code_t op, ENV &env, PARAM& param)
+  static void process_vstem (op_code_t op, ENV &env, PARAM& param)
   {
     env.vstem_count += env.argStack.get_count () / 2;
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_hintmask (op_code_t op, ENV &env, PARAM& param)
+  static void process_hintmask (op_code_t op, ENV &env, PARAM& param)
   {
     env.determine_hintmask_size ();
     if (likely (env.str_ref.avail (env.hintmask_size)))
@@ -392,15 +392,15 @@ struct cs_opset_t : opset_t<ARG>
     }
   }
 
-  static inline void process_post_flex (op_code_t op, ENV &env, PARAM& param)
+  static void process_post_flex (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void check_width (op_code_t op, ENV &env, PARAM& param)
+  static void check_width (op_code_t op, ENV &env, PARAM& param)
   {}
 
-  static inline void process_post_move (op_code_t op, ENV &env, PARAM& param)
+  static void process_post_move (op_code_t op, ENV &env, PARAM& param)
   {
     if (!env.seen_moveto)
     {
@@ -410,27 +410,27 @@ struct cs_opset_t : opset_t<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void process_post_path (op_code_t op, ENV &env, PARAM& param)
+  static void process_post_path (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static inline void flush_args_and_op (op_code_t op, ENV &env, PARAM& param)
+  static void flush_args_and_op (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args (env, param);
     OPSET::flush_op (op, env, param);
   }
 
-  static inline void flush_args (ENV &env, PARAM& param)
+  static void flush_args (ENV &env, PARAM& param)
   {
     env.pop_n_args (env.argStack.get_count ());
   }
 
-  static inline void flush_op (op_code_t op, ENV &env, PARAM& param)
+  static void flush_op (op_code_t op, ENV &env, PARAM& param)
   {
   }
 
-  static inline void flush_hintmask (op_code_t op, ENV &env, PARAM& param)
+  static void flush_hintmask (op_code_t op, ENV &env, PARAM& param)
   {
     OPSET::flush_args_and_op (op, env, param);
   }
@@ -460,7 +460,7 @@ struct cs_opset_t : opset_t<ARG>
 template <typename PATH, typename ENV, typename PARAM>
 struct path_procs_t
 {
-  static inline void rmoveto (ENV &env, PARAM& param)
+  static void rmoveto (ENV &env, PARAM& param)
   {
     point_t pt1 = env.get_pt ();
     const number_t &dy = env.pop_arg ();
@@ -469,21 +469,21 @@ struct path_procs_t
     PATH::moveto (env, param, pt1);
   }
 
-  static inline void hmoveto (ENV &env, PARAM& param)
+  static void hmoveto (ENV &env, PARAM& param)
   {
     point_t pt1 = env.get_pt ();
     pt1.move_x (env.pop_arg ());
     PATH::moveto (env, param, pt1);
   }
 
-  static inline void vmoveto (ENV &env, PARAM& param)
+  static void vmoveto (ENV &env, PARAM& param)
   {
     point_t pt1 = env.get_pt ();
     pt1.move_y (env.pop_arg ());
     PATH::moveto (env, param, pt1);
   }
 
-  static inline void rlineto (ENV &env, PARAM& param)
+  static void rlineto (ENV &env, PARAM& param)
   {
     for (unsigned int i = 0; i + 2 <= env.argStack.get_count (); i += 2)
     {
@@ -493,7 +493,7 @@ struct path_procs_t
     }
   }
 
-  static inline void hlineto (ENV &env, PARAM& param)
+  static void hlineto (ENV &env, PARAM& param)
   {
     point_t pt1;
     unsigned int i = 0;
@@ -513,7 +513,7 @@ struct path_procs_t
     }
   }
 
-  static inline void vlineto (ENV &env, PARAM& param)
+  static void vlineto (ENV &env, PARAM& param)
   {
     point_t pt1;
     unsigned int i = 0;
@@ -533,7 +533,7 @@ struct path_procs_t
     }
   }
 
-  static inline void rrcurveto (ENV &env, PARAM& param)
+  static void rrcurveto (ENV &env, PARAM& param)
   {
     for (unsigned int i = 0; i + 6 <= env.argStack.get_count (); i += 6)
     {
@@ -547,7 +547,7 @@ struct path_procs_t
     }
   }
 
-  static inline void rcurveline (ENV &env, PARAM& param)
+  static void rcurveline (ENV &env, PARAM& param)
   {
     unsigned int i = 0;
     for (; i + 6 <= env.argStack.get_count (); i += 6)
@@ -568,7 +568,7 @@ struct path_procs_t
     }
   }
 
-  static inline void rlinecurve (ENV &env, PARAM& param)
+  static void rlinecurve (ENV &env, PARAM& param)
   {
     unsigned int i = 0;
     unsigned int line_limit = (env.argStack.get_count () % 6);
@@ -590,7 +590,7 @@ struct path_procs_t
     }
   }
 
-  static inline void vvcurveto (ENV &env, PARAM& param)
+  static void vvcurveto (ENV &env, PARAM& param)
   {
     unsigned int i = 0;
     point_t pt1 = env.get_pt ();
@@ -608,7 +608,7 @@ struct path_procs_t
     }
   }
 
-  static inline void hhcurveto (ENV &env, PARAM& param)
+  static void hhcurveto (ENV &env, PARAM& param)
   {
     unsigned int i = 0;
     point_t pt1 = env.get_pt ();
@@ -626,7 +626,7 @@ struct path_procs_t
     }
   }
 
-  static inline void vhcurveto (ENV &env, PARAM& param)
+  static void vhcurveto (ENV &env, PARAM& param)
   {
     point_t pt1, pt2, pt3;
     unsigned int i = 0;
@@ -687,7 +687,7 @@ struct path_procs_t
     }
   }
 
-  static inline void hvcurveto (ENV &env, PARAM& param)
+  static void hvcurveto (ENV &env, PARAM& param)
   {
     point_t pt1, pt2, pt3;
     unsigned int i = 0;
@@ -749,16 +749,16 @@ struct path_procs_t
   }
 
   /* default actions to be overridden */
-  static inline void moveto (ENV &env, PARAM& param, const point_t &pt)
+  static void moveto (ENV &env, PARAM& param, const point_t &pt)
   { env.moveto (pt); }
 
-  static inline void line (ENV &env, PARAM& param, const point_t &pt1)
+  static void line (ENV &env, PARAM& param, const point_t &pt1)
   { PATH::moveto (env, param, pt1); }
 
-  static inline void curve (ENV &env, PARAM& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  static void curve (ENV &env, PARAM& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   { PATH::moveto (env, param, pt3); }
 
-  static inline void hflex (ENV &env, PARAM& param)
+  static void hflex (ENV &env, PARAM& param)
   {
     if (likely (env.argStack.get_count () == 7))
     {
@@ -782,7 +782,7 @@ struct path_procs_t
       env.set_error ();
   }
 
-  static inline void flex (ENV &env, PARAM& param)
+  static void flex (ENV &env, PARAM& param)
   {
     if (likely (env.argStack.get_count () == 13))
     {
@@ -805,7 +805,7 @@ struct path_procs_t
       env.set_error ();
   }
 
-  static inline void hflex1 (ENV &env, PARAM& param)
+  static void hflex1 (ENV &env, PARAM& param)
   {
     if (likely (env.argStack.get_count () == 9))
     {
@@ -829,7 +829,7 @@ struct path_procs_t
       env.set_error ();
   }
 
-  static inline void flex1 (ENV &env, PARAM& param)
+  static void flex1 (ENV &env, PARAM& param)
   {
     if (likely (env.argStack.get_count () == 11))
     {
@@ -868,7 +868,7 @@ struct path_procs_t
   }
 
   protected:
-  static inline void curve2 (ENV &env, PARAM& param,
+  static void curve2 (ENV &env, PARAM& param,
 		      const point_t &pt1, const point_t &pt2, const point_t &pt3,
 		      const point_t &pt4, const point_t &pt5, const point_t &pt6)
   {
@@ -880,7 +880,7 @@ struct path_procs_t
 template <typename ENV, typename OPSET, typename PARAM>
 struct cs_interpreter_t : interpreter_t<ENV>
 {
-  inline bool interpret (PARAM& param)
+  bool interpret (PARAM& param)
   {
     SUPER::env.set_endchar (false);
 
@@ -902,4 +902,3 @@ struct cs_interpreter_t : interpreter_t<ENV>
 } /* namespace CFF */
 
 #endif /* HB_CFF_INTERP_CS_COMMON_HH */
-

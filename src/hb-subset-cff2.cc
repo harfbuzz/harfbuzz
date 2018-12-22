@@ -36,9 +36,9 @@ using namespace CFF;
 
 struct cff2_sub_table_offsets_t : cff_sub_table_offsets_t
 {
-  inline cff2_sub_table_offsets_t ()
-	: cff_sub_table_offsets_t (),
-	  varStoreOffset (0)
+  cff2_sub_table_offsets_t ()
+    : cff_sub_table_offsets_t (),
+      varStoreOffset (0)
   {}
 
   unsigned int  varStoreOffset;
@@ -46,9 +46,9 @@ struct cff2_sub_table_offsets_t : cff_sub_table_offsets_t
 
 struct cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
 {
-  inline bool serialize (hb_serialize_context_t *c,
-			const op_str_t &opstr,
-			const cff2_sub_table_offsets_t &offsets) const
+  bool serialize (hb_serialize_context_t *c,
+		  const op_str_t &opstr,
+		  const cff2_sub_table_offsets_t &offsets) const
   {
     TRACE_SERIALIZE (this);
 
@@ -77,7 +77,7 @@ struct cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
 
 struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatten_param_t>
 {
-  static inline void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     switch (op)
     {
@@ -105,7 +105,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     }
   }
 
-  static inline void flush_args (cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_args (cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     for (unsigned int i = 0; i < env.argStack.get_count ();)
     {
@@ -130,7 +130,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     SUPER::flush_args (env, param);
   }
 
-  static inline void flatten_blends (const blend_arg_t &arg, unsigned int i, cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flatten_blends (const blend_arg_t &arg, unsigned int i, cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     /* flatten the default values */
     str_encoder_t  encoder (param.flatStr);
@@ -157,7 +157,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     encoder.encode_op (OpCode_blendcs);
   }
 
-  static inline void flush_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
+  static void flush_op (op_code_t op, cff2_cs_interp_env_t &env, flatten_param_t& param)
   {
     switch (op)
     {
@@ -177,7 +177,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 
 struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t, subr_subset_param_t>
 {
-  static inline void process_op (op_code_t op, cff2_cs_interp_env_t &env, subr_subset_param_t& param)
+  static void process_op (op_code_t op, cff2_cs_interp_env_t &env, subr_subset_param_t& param)
   {
     switch (op) {
 
@@ -208,9 +208,9 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
   }
 
   protected:
-  static inline void process_call_subr (op_code_t op, cs_type_t type,
-				       cff2_cs_interp_env_t &env, subr_subset_param_t& param,
-				       cff2_biased_subrs_t& subrs, hb_set_t *closure)
+  static void process_call_subr (op_code_t op, cs_type_t type,
+				 cff2_cs_interp_env_t &env, subr_subset_param_t& param,
+				 cff2_biased_subrs_t& subrs, hb_set_t *closure)
   {
     byte_str_ref_t    str_ref = env.str_ref;
     env.callSubr (subrs, type);
@@ -225,7 +225,7 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
 
 struct cff2_subr_subsetter_t : subr_subsetter_t<cff2_subr_subsetter_t, CFF2Subrs, const OT::cff2::accelerator_subset_t, cff2_cs_interp_env_t, cff2_cs_opset_subr_subset_t>
 {
-  static inline void finalize_parsed_str (cff2_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
+  static void finalize_parsed_str (cff2_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
   {
     /* vsindex is inserted at the beginning of the charstring as necessary */
     if (env.seen_vsindex ())
@@ -238,7 +238,7 @@ struct cff2_subr_subsetter_t : subr_subsetter_t<cff2_subr_subsetter_t, CFF2Subrs
 };
 
 struct cff2_subset_plan {
-  inline cff2_subset_plan ()
+  cff2_subset_plan ()
     : final_size (0),
       orig_fdcount (0),
       subset_fdcount(1),
@@ -254,7 +254,7 @@ struct cff2_subset_plan {
     privateDictInfos.init ();
   }
 
-  inline ~cff2_subset_plan ()
+  ~cff2_subset_plan ()
   {
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
@@ -264,8 +264,8 @@ struct cff2_subset_plan {
     privateDictInfos.fini ();
   }
 
-  inline bool create (const OT::cff2::accelerator_subset_t &acc,
-		      hb_subset_plan_t *plan)
+  bool create (const OT::cff2::accelerator_subset_t &acc,
+	      hb_subset_plan_t *plan)
   {
     final_size = 0;
     orig_fdcount = acc.fdArray->count;
@@ -342,7 +342,7 @@ struct cff2_subset_plan {
     final_size += offsets.globalSubrsInfo.size;
 
     /* variation store */
-    if (acc.varStore != &Null(cff2_variation_store_t))
+    if (acc.varStore != &Null(CFF2VariationStore))
     {
       offsets.varStoreOffset = final_size;
       final_size += acc.varStore->get_size ();
@@ -412,26 +412,26 @@ struct cff2_subset_plan {
     return true;
   }
 
-  inline unsigned int get_final_size () const  { return final_size; }
+  unsigned int get_final_size () const  { return final_size; }
 
-  unsigned int			final_size;
-  cff2_sub_table_offsets_t	offsets;
+  unsigned int	final_size;
+  cff2_sub_table_offsets_t offsets;
 
-  unsigned int			orig_fdcount;
-  unsigned int			subset_fdcount;
-  unsigned int			subset_fdselect_format;
-  hb_vector_t<code_pair_t>	subset_fdselect_ranges;
+  unsigned int    orig_fdcount;
+  unsigned int    subset_fdcount;
+  unsigned int    subset_fdselect_format;
+  hb_vector_t<code_pair_t>   subset_fdselect_ranges;
 
   remap_t   fdmap;
 
-  str_buff_vec_t		subset_charstrings;
-  str_buff_vec_t		subset_globalsubrs;
-  hb_vector_t<str_buff_vec_t>	subset_localsubrs;
-  hb_vector_t<table_info_t>	privateDictInfos;
+  str_buff_vec_t	    subset_charstrings;
+  str_buff_vec_t	    subset_globalsubrs;
+  hb_vector_t<str_buff_vec_t> subset_localsubrs;
+  hb_vector_t<table_info_t>  privateDictInfos;
 
   bool	    drop_hints;
   bool	    desubroutinize;
-  cff2_subr_subsetter_t		subr_subsetter;
+  cff2_subr_subsetter_t       subr_subsetter;
 };
 
 static inline bool _write_cff2 (const cff2_subset_plan &plan,
@@ -477,10 +477,10 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   }
 
   /* variation store */
-  if (acc.varStore != &Null(cff2_variation_store_t))
+  if (acc.varStore != &Null(CFF2VariationStore))
   {
     assert (plan.offsets.varStoreOffset == c.head - c.start);
-    cff2_variation_store_t *dest = c.start_embed<cff2_variation_store_t> ();
+    CFF2VariationStore *dest = c.start_embed<CFF2VariationStore> ();
     if (unlikely (!dest->serialize (&c, acc.varStore)))
     {
       DEBUG_MSG (SUBSET, nullptr, "failed to serialize CFF2 Variation Store");
