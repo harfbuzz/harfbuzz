@@ -668,6 +668,26 @@ struct hb_set_t
 
   static  const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
+  /*
+   * Iterator implementation.
+   */
+  struct iter_t
+  {
+    iter_t (const hb_set_t &s_) : s (s_), v (INVALID) { __next__ (); }
+
+    typedef hb_codepoint_t __item_type__;
+    hb_codepoint_t __item__ () const { return v; }
+    bool __more__ () const { return v != INVALID; }
+    void __next__ () { s.next (&v); }
+    void __prev__ () { s.previous (&v); }
+
+    protected:
+    const hb_set_t &s;
+    hb_codepoint_t v;
+  };
+  iter_t iter () { return iter_t (*this); }
+  operator iter_t () { return iter (); }
+
   protected:
 
   page_t *page_for_insert (hb_codepoint_t g)
