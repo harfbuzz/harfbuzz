@@ -668,6 +668,8 @@ struct hb_set_t
 
   static  const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
+  protected:
+
   page_t *page_for_insert (hb_codepoint_t g)
   {
     page_map_t map = {get_major (g), pages.length};
