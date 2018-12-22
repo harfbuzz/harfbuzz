@@ -671,7 +671,7 @@ struct hb_set_t
   /*
    * Iterator implementation.
    */
-  struct iter_t
+  struct iter_t : hb_sorted_iter_t<iter_t, hb_codepoint_t>
   {
     iter_t (const hb_set_t &s_) : s (s_), v (INVALID) { __next__ (); }
 
