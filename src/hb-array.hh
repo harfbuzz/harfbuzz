@@ -37,11 +37,10 @@ template <typename Type>
 struct hb_sorted_array_t;
 
 template <typename Type>
-struct hb_array_t// : hb_iter_t<hb_array_t<Type>, Type>
+struct hb_array_t :
+	hb_iter_t<hb_array_t<Type>, Type>,
+	hb_iter_mixin_t<hb_array_t<Type>, Type>
 {
-  typedef Type item_t;
-  enum { item_size = hb_static_size (Type) };
-
   /*
    * Constructors.
    */
@@ -49,48 +48,37 @@ struct hb_array_t// : hb_iter_t<hb_array_t<Type>, Type>
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
 
-  /*
-   * Operators.
-   */
 
-  Type& operator [] (int i_) const
+  /*
+   * Iterator implementation.
+   */
+  typedef Type __item_type__;
+  Type& __item_at__ (unsigned i) const
   {
-    unsigned int i = (unsigned int) i_;
-    if (unlikely (i >= length)) return CrapOrNull(Type);
+    if (unlikely (i >= length)) return CrapOrNull (Type);
     return arrayZ[i];
   }
+  void __forward__ (unsigned n)
+  {
+    if (unlikely (n > length))
+      n = length;
+    length -= n;
+    arrayZ += n;
+  }
+  void __rewind__ (unsigned n)
+  {
+    if (unlikely (n > length))
+      n = length;
+    length -= n;
+  }
+  unsigned __len__ () const { return length; }
+  bool __random_access__ () const { return true; }
 
-  explicit_operator bool () const { return length; }
+  /* Extra operators.
+   */
   Type * operator & () const { return arrayZ; }
-  Type & operator * () { return (this->operator [])[0]; }
   operator hb_array_t<const Type> () { return hb_array_t<const Type> (arrayZ, length); }
   template <typename T> operator T * () const { return arrayZ; }
-
-  hb_array_t<Type> & operator += (unsigned int count)
-  {
-    if (unlikely (count > length))
-      count = length;
-    length -= count;
-    arrayZ += count;
-    return *this;
-  }
-  hb_array_t<Type> & operator -= (unsigned int count)
-  {
-    if (unlikely (count > length))
-      count = length;
-    length -= count;
-    return *this;
-  }
-  hb_array_t<Type> & operator ++ () { *this += 1; }
-  hb_array_t<Type> & operator -- () { *this -= 1; }
-  hb_array_t<Type> operator + (unsigned int count)
-  { hb_array_t<Type> copy (*this); *this += count; return copy; }
-  hb_array_t<Type> operator - (unsigned int count)
-  { hb_array_t<Type> copy (*this); *this -= count; return copy; }
-  hb_array_t<Type>  operator ++ (int)
-  { hb_array_t<Type> copy (*this); ++*this; return copy; }
-  hb_array_t<Type>  operator -- (int)
-  { hb_array_t<Type> copy (*this); --*this; return copy; }
 
   /*
    * Compare, Sort, and Search.
@@ -131,26 +119,26 @@ struct hb_array_t// : hb_iter_t<hb_array_t<Type>, Type>
 
   hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
   {
-    ::qsort (arrayZ, length, item_size, cmp_);
+    ::qsort (arrayZ, length, this->item_size, cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
   hb_sorted_array_t<Type> qsort ()
   {
-    ::qsort (arrayZ, length, item_size, Type::cmp);
+    ::qsort (arrayZ, length, this->item_size, Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
   void qsort (unsigned int start, unsigned int end)
   {
     end = MIN (end, length);
     assert (start <= end);
-    ::qsort (arrayZ + start, end - start, item_size, Type::cmp);
+    ::qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
   }
 
   /*
    * Other methods.
    */
 
-  unsigned int get_size () const { return length * item_size; }
+  unsigned int get_size () const { return length * this->item_size; }
 
   hb_array_t<Type> sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
@@ -201,7 +189,10 @@ enum hb_bfind_not_found_t
 };
 
 template <typename Type>
-struct hb_sorted_array_t : hb_array_t<Type>
+struct hb_sorted_array_t :
+	hb_iter_t<hb_sorted_array_t<Type>, Type>,
+	hb_array_t<Type>,
+	hb_iter_mixin_t<hb_sorted_array_t<Type>, Type>
 {
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}

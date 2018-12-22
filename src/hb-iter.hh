@@ -48,6 +48,7 @@ struct hb_iter_t
   typedef Iter iter_t;
   typedef iter_t const_iter_t;
   typedef Item item_t;
+  enum { item_size = hb_static_size (Item) };
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -58,8 +59,8 @@ struct hb_iter_t
   /* Operators. */
   operator iter_t () { return iter(); }
   explicit_operator bool () const { return more (); }
-  item_t& operator * () { return item (); }
-  item_t& operator [] (unsigned i) { return item (i); }
+  item_t& operator * () const { return item (); }
+  item_t& operator [] (unsigned i) const { return item_at (i); }
   iter_t& operator += (unsigned count) { forward (count); return *thiz(); }
   iter_t& operator ++ () { next (); return *thiz(); }
   iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
