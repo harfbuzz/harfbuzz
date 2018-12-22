@@ -145,9 +145,9 @@ struct hb_ot_map_t
       *lookup_count = 0;
       return;
     }
-    assert (stage <= stages[table_index].len);
+    assert (stage <= stages[table_index].length);
     unsigned int start = stage ? stages[table_index][stage - 1].last_lookup : 0;
-    unsigned int end   = stage < stages[table_index].len ? stages[table_index][stage].last_lookup : lookups[table_index].len;
+    unsigned int end   = stage < stages[table_index].length ? stages[table_index][stage].last_lookup : lookups[table_index].length;
     *plookups = end == start ? nullptr : &lookups[table_index][start];
     *lookup_count = end - start;
   }

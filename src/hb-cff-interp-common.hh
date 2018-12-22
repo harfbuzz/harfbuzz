@@ -314,7 +314,7 @@ struct byte_str_t : hb_ubytes_t
   { return byte_str_t (hb_ubytes_t::sub_array (offset, len_)); }
 
   bool check_limit (unsigned int offset, unsigned int count) const
-  { return (offset + count <= len); }
+  { return (offset + count <= length); }
 };
 
 /* A byte string associated with the current offset and an error condition */
@@ -343,7 +343,7 @@ struct byte_str_ref_t
   }
 
   const unsigned char& operator [] (int i) {
-    if (unlikely ((unsigned int)(offset + i) >= str.len))
+    if (unlikely ((unsigned int)(offset + i) >= str.length))
     {
       set_error ();
       return Null(unsigned char);
@@ -353,7 +353,7 @@ struct byte_str_ref_t
   }
 
   /* Conversion to byte_str_t */
-  operator byte_str_t () const { return str.sub_str (offset, str.len - offset); }
+  operator byte_str_t () const { return str.sub_str (offset, str.length - offset); }
 
   byte_str_t sub_str (unsigned int offset_, unsigned int len_) const
   { return str.sub_str (offset_, len_); }
@@ -364,13 +364,13 @@ struct byte_str_ref_t
   }
   void inc (unsigned int count=1)
   {
-    if (likely (!in_error () && (offset <= str.len) && (offset + count <= str.len)))
+    if (likely (!in_error () && (offset <= str.length) && (offset + count <= str.length)))
     {
       offset += count;
     }
     else
     {
-      offset = str.len;
+      offset = str.length;
       set_error ();
     }
   }
@@ -397,7 +397,7 @@ struct stack_t
     count = 0;
     elements.init ();
     elements.resize (kSizeLimit);
-    for (unsigned int i = 0; i < elements.len; i++)
+    for (unsigned int i = 0; i < elements.length; i++)
       elements[i].init ();
   }
 
@@ -414,7 +414,7 @@ struct stack_t
 
   void push (const ELEM &v)
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       elements[count++] = v;
     else
       set_error ();
@@ -422,7 +422,7 @@ struct stack_t
 
   ELEM &push ()
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       return elements[count++];
     else
     {
@@ -463,7 +463,7 @@ struct stack_t
 
   void unpop ()
   {
-    if (likely (count < elements.len))
+    if (likely (count < elements.length))
       count++;
     else
       set_error ();
@@ -564,9 +564,9 @@ struct op_serializer_t
   {
     TRACE_SERIALIZE (this);
 
-    HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.len);
+    HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.length);
     if (unlikely (d == nullptr)) return_trace (false);
-    memcpy (d, &opstr.str[0], opstr.str.len);
+    memcpy (d, &opstr.str[0], opstr.str.length);
     return_trace (true);
   }
 };
@@ -604,7 +604,7 @@ struct parsed_values_t
     return false;
   }
 
-  unsigned get_count () const { return values.len; }
+  unsigned get_count () const { return values.length; }
   const VAL &get_value (unsigned int i) const { return values[i]; }
   const VAL &operator [] (unsigned int i) const { return get_value (i); }
 

@@ -69,8 +69,8 @@ struct str_buff_vec_t : hb_vector_t<str_buff_t>
   unsigned int total_size () const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < len; i++)
-      size += (*this)[i].len;
+    for (unsigned int i = 0; i < length; i++)
+      size += (*this)[i].length;
     return size;
   }
 
@@ -120,7 +120,7 @@ struct CFFIndex
 		  const byte_str_array_t &byteArray)
   {
     TRACE_SERIALIZE (this);
-    if (byteArray.len == 0)
+    if (byteArray.length == 0)
     {
       COUNT *dest = c->allocate_min<COUNT> ();
       if (unlikely (dest == nullptr)) return_trace (false);
@@ -130,15 +130,15 @@ struct CFFIndex
     {
       /* serialize CFFIndex header */
       if (unlikely (!c->extend_min (*this))) return_trace (false);
-      this->count.set (byteArray.len);
+      this->count.set (byteArray.length);
       this->offSize.set (offSize_);
-      if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.len + 1))))
+      if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
 	return_trace (false);
 
       /* serialize indices */
       unsigned int  offset = 1;
       unsigned int  i = 0;
-      for (; i < byteArray.len; i++)
+      for (; i < byteArray.length; i++)
       {
 	set_offset_at (i, offset);
 	offset += byteArray[i].get_size ();
@@ -146,13 +146,13 @@ struct CFFIndex
       set_offset_at (i, offset);
 
       /* serialize data */
-      for (unsigned int i = 0; i < byteArray.len; i++)
+      for (unsigned int i = 0; i < byteArray.length; i++)
       {
       	const byte_str_t &bs = byteArray[i];
-	unsigned char  *dest = c->allocate_size<unsigned char> (bs.len);
+	unsigned char  *dest = c->allocate_size<unsigned char> (bs.length);
 	if (unlikely (dest == nullptr))
 	  return_trace (false);
-	memcpy (dest, &bs[0], bs.len);
+	memcpy (dest, &bs[0], bs.length);
       }
     }
     return_trace (true);
@@ -164,10 +164,10 @@ struct CFFIndex
   {
     byte_str_array_t  byteArray;
     byteArray.init ();
-    byteArray.resize (buffArray.len);
-    for (unsigned int i = 0; i < byteArray.len; i++)
+    byteArray.resize (buffArray.length);
+    for (unsigned int i = 0; i < byteArray.length; i++)
     {
-      byteArray[i] = byte_str_t (buffArray[i].arrayZ (), buffArray[i].len);
+      byteArray[i] = byte_str_t (buffArray[i].arrayZ (), buffArray[i].length);
     }
     bool result = this->serialize (c, offSize_, byteArray);
     byteArray.fini ();
@@ -426,7 +426,7 @@ struct remap_t : hb_vector_t<hb_codepoint_t>
   {
     if (unlikely (!SUPER::resize (size)))
       return false;
-    for (unsigned int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < length; i++)
       (*this)[i] = CFF_UNDEF_CODE;
     count = 0;
     return true;
@@ -437,14 +437,14 @@ struct remap_t : hb_vector_t<hb_codepoint_t>
     if (unlikely (!SUPER::resize (size)))
       return false;
     unsigned int i;
-    for (i = 0; i < len; i++)
+    for (i = 0; i < length; i++)
       (*this)[i] = i;
     count = i;
     return true;
   }
 
   bool excludes (hb_codepoint_t id) const
-  { return (id < len) && ((*this)[id] == CFF_UNDEF_CODE); }
+  { return (id < length) && ((*this)[id] == CFF_UNDEF_CODE); }
 
   bool includes (hb_codepoint_t id) const
   { return !excludes (id); }
@@ -477,15 +477,15 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (fontDicts.len);
+    this->count.set (fontDicts.length);
     this->offSize.set (offSize_);
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.len + 1))))
+    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
       return_trace (false);
 
     /* serialize font dict offsets */
     unsigned int  offset = 1;
     unsigned int fid = 0;
-    for (; fid < fontDicts.len; fid++)
+    for (; fid < fontDicts.length; fid++)
     {
       CFFIndexOf<COUNT, FontDict>::set_offset_at (fid, offset);
       offset += FontDict::calculate_serialized_size (fontDicts[fid], opszr);
@@ -493,7 +493,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     CFFIndexOf<COUNT, FontDict>::set_offset_at (fid, offset);
 
     /* serialize font dicts */
-    for (unsigned int i = 0; i < fontDicts.len; i++)
+    for (unsigned int i = 0; i < fontDicts.length; i++)
     {
       FontDict *dict = c->start_embed<FontDict> ();
       if (unlikely (!dict->serialize (c, fontDicts[i], opszr, fontDicts[i])))
@@ -522,7 +522,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     /* serialize font dict offsets */
     unsigned int  offset = 1;
     unsigned int  fid = 0;
-    for (unsigned i = 0; i < fontDicts.len; i++)
+    for (unsigned i = 0; i < fontDicts.length; i++)
       if (fdmap.includes (i))
       {
 	CFFIndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
@@ -531,7 +531,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     CFFIndexOf<COUNT, FontDict>::set_offset_at (fid, offset);
 
     /* serialize font dicts */
-    for (unsigned int i = 0; i < fontDicts.len; i++)
+    for (unsigned int i = 0; i < fontDicts.length; i++)
       if (fdmap.includes (i))
       {
 	FontDict *dict = c->start_embed<FontDict> ();

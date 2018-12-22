@@ -2636,7 +2636,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
   bool apply (hb_ot_apply_context_t *c) const
   {
-    for (unsigned int i = 0; i < subtables.len; i++)
+    for (unsigned int i = 0; i < subtables.length; i++)
       if (subtables[i].apply (c))
 	return true;
     return false;

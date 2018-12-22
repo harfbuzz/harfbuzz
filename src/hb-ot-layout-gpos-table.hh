@@ -177,13 +177,13 @@ struct ValueFormat : HBUINT16
   { return *CastP<OffsetTo<Device> > (value); }
   static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
-    if (worked) *worked |= *value;
+    if (worked) *worked |= bool (*value);
     return *CastP<OffsetTo<Device> > (value);
   }
 
   static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
-    if (worked) *worked |= *value;
+    if (worked) *worked |= bool (*value);
     return *CastP<HBINT16> (value);
   }
 

@@ -1423,7 +1423,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   OT::hb_ot_apply_context_t c (table_index, font, buffer);
   c.set_recurse_func (Proxy::Lookup::apply_recurse_func);
 
-  for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
+  for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
     for (; i < stage->last_lookup; i++)
     {

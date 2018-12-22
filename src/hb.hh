@@ -545,13 +545,17 @@ template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
 #define hb_remove_pointer(T) hb_remove_pointer<T>::value
 
 
-/* Headers we include for everyone.  Keep sorted.  They express dependency amongst
- * themselves, but no other file should include them.*/
+/* Headers we include for everyone.  Keep topologically sorted by dependency.
+ * They express dependency amongst themselves, but no other file should include
+ * them directly.*/
 #include "hb-atomic.hh"
-#include "hb-debug.hh"
-#include "hb-dsalgs.hh"
 #include "hb-mutex.hh"
 #include "hb-null.hh"
-#include "hb-object.hh"
+#include "hb-dsalgs.hh"	// Requires: hb-null
+#include "hb-iter.hh"	// Requires: hb-null
+#include "hb-debug.hh"	// Requires: hb-atomic hb-dsalgs
+#include "hb-array.hh"	// Requires: hb-dsalgs hb-iter hb-null
+#include "hb-vector.hh"	// Requires: hb-array hb-null
+#include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 
 #endif /* HB_HH */

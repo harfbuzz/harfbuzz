@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-array.hh"
+#include "hb-null.hh"
 
 
 template <typename Type, unsigned int PreallocedCount=8>
@@ -41,7 +42,7 @@ struct hb_vector_t
   hb_vector_t ()  { init (); }
   ~hb_vector_t () { fini (); }
 
-  unsigned int len;
+  unsigned int length;
   private:
   unsigned int allocated; /* == 0 means allocation failed. */
   Type *arrayZ_;
@@ -50,7 +51,7 @@ struct hb_vector_t
 
   void init ()
   {
-    len = 0;
+    length = 0;
     allocated = ARRAY_LENGTH (static_array);
     arrayZ_ = nullptr;
   }
@@ -60,41 +61,41 @@ struct hb_vector_t
     if (arrayZ_)
       free (arrayZ_);
     arrayZ_ = nullptr;
-    allocated = len = 0;
+    allocated = length = 0;
   }
   void fini_deep ()
   {
     Type *array = arrayZ();
-    unsigned int count = len;
+    unsigned int count = length;
     for (unsigned int i = 0; i < count; i++)
       array[i].fini ();
     fini ();
   }
 
-  Type * arrayZ ()             { return arrayZ_ ? arrayZ_ : static_array; }
   const Type * arrayZ () const { return arrayZ_ ? arrayZ_ : static_array; }
+        Type * arrayZ ()       { return arrayZ_ ? arrayZ_ : static_array; }
 
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
-    if (unlikely (i >= len))
+    if (unlikely (i >= length))
       return Crap (Type);
     return arrayZ()[i];
   }
   const Type& operator [] (int i_) const
   {
     unsigned int i = (unsigned int) i_;
-    if (unlikely (i >= len))
+    if (unlikely (i >= length))
       return Null(Type);
     return arrayZ()[i];
   }
 
-  explicit_operator bool () const { return len; }
+  explicit_operator bool () const { return length; }
 
   hb_array_t<Type> as_array ()
-  { return hb_array (arrayZ(), len); }
+  { return hb_array (arrayZ(), length); }
   hb_array_t<const Type> as_array () const
-  { return hb_array (arrayZ(), len); }
+  { return hb_array (arrayZ(), length); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
@@ -106,9 +107,9 @@ struct hb_vector_t
   { return as_array ().sub_array (start_offset, count);}
 
   hb_sorted_array_t<Type> as_sorted_array ()
-  { return hb_sorted_array (arrayZ(), len); }
+  { return hb_sorted_array (arrayZ(), length); }
   hb_sorted_array_t<const Type> as_sorted_array () const
-  { return hb_sorted_array (arrayZ(), len); }
+  { return hb_sorted_array (arrayZ(), length); }
 
   hb_array_t<const Type> sorted_sub_array (unsigned int start_offset, unsigned int count) const
   { return as_sorted_array ().sorted_sub_array (start_offset, count);}
@@ -129,9 +130,9 @@ struct hb_vector_t
 
   Type *push ()
   {
-    if (unlikely (!resize (len + 1)))
+    if (unlikely (!resize (length + 1)))
       return &Crap(Type);
-    return &arrayZ()[len - 1];
+    return &arrayZ()[length - 1];
   }
   Type *push (const Type& v)
   {
@@ -142,7 +143,7 @@ struct hb_vector_t
 
   bool in_error () const { return allocated == 0; }
 
-  /* Allocate for size but don't adjust len. */
+  /* Allocate for size but don't adjust length. */
   bool alloc (unsigned int size)
   {
     if (unlikely (!allocated))
@@ -163,7 +164,7 @@ struct hb_vector_t
     {
       new_array = (Type *) calloc (new_allocated, sizeof (Type));
       if (new_array)
-        memcpy (new_array, static_array, len * sizeof (Type));
+        memcpy (new_array, static_array, length * sizeof (Type));
     }
     else
     {
@@ -190,42 +191,42 @@ struct hb_vector_t
     if (!alloc (size))
       return false;
 
-    if (size > len)
-      memset (arrayZ() + len, 0, (size - len) * sizeof (*arrayZ()));
+    if (size > length)
+      memset (arrayZ() + length, 0, (size - length) * sizeof (*arrayZ()));
 
-    len = size;
+    length = size;
     return true;
   }
 
   void pop ()
   {
-    if (!len) return;
-    len--;
+    if (!length) return;
+    length--;
   }
 
   void remove (unsigned int i)
   {
-    if (unlikely (i >= len))
+    if (unlikely (i >= length))
       return;
     Type *array = arrayZ();
     memmove (static_cast<void *> (&array[i]),
 	     static_cast<void *> (&array[i + 1]),
-	     (len - i - 1) * sizeof (Type));
-    len--;
+	     (length - i - 1) * sizeof (Type));
+    length--;
   }
 
   void shrink (int size_)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
-     if (size < len)
-       len = size;
+     if (size < length)
+       length = size;
   }
 
   template <typename T>
   Type *find (T v)
   {
     Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < length; i++)
       if (array[i] == v)
 	return &array[i];
     return nullptr;
@@ -234,7 +235,7 @@ struct hb_vector_t
   const Type *find (T v) const
   {
     const Type *array = arrayZ();
-    for (unsigned int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < length; i++)
       if (array[i] == v)
 	return &array[i];
     return nullptr;

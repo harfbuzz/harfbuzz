@@ -24,21 +24,22 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
 #include "hb-iter.hh"
 
 #include "hb-array.hh"
 
 template <typename T>
-struct array_iter_t : hb_iter_t<array_iter_t<T>, T>
+struct array_iter_t : hb_iter_t<array_iter_t<T>, T>, hb_iter_mixin_t<array_iter_t<T>, T>
 {
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 
   typedef T __item_type__;
   T& __item_at__ (unsigned i) const { return arr[i]; }
-  bool __more__ () const { return arr.len; }
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }
-  unsigned __len__ () const { return arr.len; }
+  unsigned __len__ () const { return arr.length; }
+  bool __random_access__ () const { return true; }
 
   private:
   hb_array_t<T> arr;
@@ -57,22 +58,6 @@ struct some_array_t
   private:
   hb_array_t<T> arr;
 };
-
-
-template <typename I, typename V> inline void
-hb_fill (hb_iter_t<I> &i, const V &v)
-{
-  for (; i; i++)
-    hb_assign (*i, v);
-}
-
-template <typename S, typename D> inline bool
-hb_copy (hb_iter_t<D> &id, hb_iter_t<S> &is)
-{
-  for (; id && is; ++id, ++is)
-    *id = *is;
-  return !id;
-}
 
 int
 main (int argc, char **argv)

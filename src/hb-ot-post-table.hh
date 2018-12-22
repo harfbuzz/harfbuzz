@@ -114,7 +114,7 @@ struct post
 
       const uint8_t *end = (const uint8_t *) (const void *) table + table_length;
       for (const uint8_t *data = pool;
-	   index_to_offset.len < 65535 && data < end && data + *data < end;
+	   index_to_offset.length < 65535 && data < end && data + *data < end;
 	   data += 1 + *data)
 	index_to_offset.push (data - pool);
     }
@@ -129,9 +129,9 @@ struct post
 			 char *buf, unsigned int buf_len) const
     {
       hb_bytes_t s = find_glyph_name (glyph);
-      if (!s.len) return false;
+      if (!s.length) return false;
       if (!buf_len) return true;
-      unsigned int len = MIN (buf_len - 1, s.len);
+      unsigned int len = MIN (buf_len - 1, s.length);
       strncpy (buf, s.arrayZ, len);
       buf[len] = '\0';
       return true;
@@ -226,7 +226,7 @@ struct post
 	return format1_names (index);
       index -= NUM_FORMAT1_NAMES;
 
-      if (index >= index_to_offset.len)
+      if (index >= index_to_offset.length)
 	return hb_bytes_t ();
       unsigned int offset = index_to_offset[index];
 

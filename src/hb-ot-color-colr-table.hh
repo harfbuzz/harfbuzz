@@ -104,14 +104,14 @@ struct COLR
     if (count)
     {
       hb_array_t<const LayerRecord> segment_layers = glyph_layers.sub_array (start_offset, *count);
-      *count = segment_layers.len;
-      for (unsigned int i = 0; i < segment_layers.len; i++)
+      *count = segment_layers.length;
+      for (unsigned int i = 0; i < segment_layers.length; i++)
       {
         layers[i].glyph = segment_layers.arrayZ[i].glyphId;
         layers[i].color_index = segment_layers.arrayZ[i].colorIdx;
       }
     }
-    return glyph_layers.len;
+    return glyph_layers.length;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

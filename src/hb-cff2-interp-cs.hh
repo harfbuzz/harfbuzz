@@ -61,7 +61,7 @@ struct blend_arg_t : number_t
       deltas[i] = blends_[i];
   }
 
-  bool blending () const { return deltas.len > 0; }
+  bool blending () const { return deltas.length > 0; }
   void reset_blends ()
   {
     numValues = valueIndex = 0;
@@ -167,10 +167,10 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
   {
     if (do_blend && arg.blending ())
     {
-      if (likely (scalars.len == arg.deltas.len))
+      if (likely (scalars.length == arg.deltas.length))
       {
 	double v = arg.to_real ();
-	for (unsigned int i = 0; i < scalars.len; i++)
+	for (unsigned int i = 0; i < scalars.length; i++)
 	{
 	  v += (double)scalars[i] * arg.deltas[i].to_real ();
 	}

@@ -67,7 +67,7 @@ struct top_dict_values_t : dict_values_t<OPSTR>
 	return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
 
       default:
-	return opstr.str.len;
+	return opstr.str.length;
     }
   }
 

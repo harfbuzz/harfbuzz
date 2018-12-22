@@ -264,7 +264,7 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
       if (dict_values_t<VAL>::get_value (i).op == OpCode_Subrs)
 	size += OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
       else
-	size += dict_values_t<VAL>::get_value (i).str.len;
+	size += dict_values_t<VAL>::get_value (i).str.length;
     return size;
   }
 
