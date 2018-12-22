@@ -673,17 +673,20 @@ struct hb_set_t
    */
   struct iter_t : hb_sorted_iter_t<iter_t, hb_codepoint_t>
   {
-    iter_t (const hb_set_t &s_) : s (s_), v (INVALID) { __next__ (); }
+    iter_t (const hb_set_t &s_) :
+      s (s_), v (INVALID), l (s.get_population () + 1) { __next__ (); }
 
     typedef hb_codepoint_t __item_type__;
     hb_codepoint_t __item__ () const { return v; }
     bool __more__ () const { return v != INVALID; }
-    void __next__ () { s.next (&v); }
+    void __next__ () { s.next (&v); if (l) l--; }
     void __prev__ () { s.previous (&v); }
+    unsigned __len__ () { return l; }
 
     protected:
     const hb_set_t &s;
     hb_codepoint_t v;
+    unsigned l;
   };
   iter_t iter () { return iter_t (*this); }
   operator iter_t () { return iter (); }
