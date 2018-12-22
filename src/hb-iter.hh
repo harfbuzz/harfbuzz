@@ -89,6 +89,17 @@ struct hb_iter_t
   void operator = (const hb_iter_t &o) {}
 };
 
+/* Base class for sorted iterators.  Does not enforce anything.
+ * Just for class taxonomy and requirements. */
+template <typename Iter, typename Item = typename Iter::__item_type__>
+struct hb_sorted_iter_t : hb_iter_t<Iter, Item>
+{
+  protected:
+  hb_sorted_iter_t () {}
+  hb_sorted_iter_t (const hb_sorted_iter_t &o) {}
+  void operator = (const hb_sorted_iter_t &o) {}
+};
+
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_type__>
 struct hb_iter_mixin_t

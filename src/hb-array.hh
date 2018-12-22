@@ -190,7 +190,7 @@ enum hb_bfind_not_found_t
 
 template <typename Type>
 struct hb_sorted_array_t :
-	hb_iter_t<hb_sorted_array_t<Type>, Type>,
+	hb_sorted_iter_t<hb_sorted_array_t<Type>, Type>,
 	hb_array_t<Type>,
 	hb_iter_mixin_t<hb_sorted_array_t<Type>, Type>
 {
