@@ -505,22 +505,22 @@ struct cff2
     bool is_valid () const { return blob != nullptr; }
 
     protected:
-    hb_blob_t	       *blob;
-    hb_sanitize_context_t   sc;
+    hb_blob_t			*blob;
+    hb_sanitize_context_t	sc;
 
     public:
-    cff2_top_dict_values_t	 topDict;
-    const CFF2Subrs	   *globalSubrs;
-    const CFF2VariationStore  *varStore;
-    const CFF2CharStrings     *charStrings;
-    const CFF2FDArray	 *fdArray;
-    const CFF2FDSelect	*fdSelect;
-    unsigned int	      fdCount;
+    cff2_top_dict_values_t	topDict;
+    const CFF2Subrs		*globalSubrs;
+    const CFF2VariationStore	*varStore;
+    const CFF2CharStrings	*charStrings;
+    const CFF2FDArray		*fdArray;
+    const CFF2FDSelect		*fdSelect;
+    unsigned int		fdCount;
 
     hb_vector_t<cff2_font_dict_values_t>     fontDicts;
     hb_vector_t<PRIVDICTVAL>  privateDicts;
 
-    unsigned int	    num_glyphs;
+    unsigned int	      num_glyphs;
   };
 
   struct accelerator_t : accelerator_templ_t<cff2_private_dict_opset_t, cff2_private_dict_values_t>

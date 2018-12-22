@@ -72,10 +72,10 @@ struct cff1_sub_table_offsets_t : cff_sub_table_offsets_t
   }
 
   unsigned int  nameIndexOffset;
-  table_info_t     stringIndexInfo;
+  table_info_t	stringIndexInfo;
   unsigned int  encodingOffset;
-  table_info_t     charsetInfo;
-  table_info_t     privateDictInfo;
+  table_info_t	charsetInfo;
+  table_info_t	privateDictInfo;
 };
 
 /* a copy of a parsed out cff1_top_dict_values_t augmented with additional operators */
@@ -824,9 +824,9 @@ struct cff_subset_plan {
   unsigned int get_final_size () const  { return final_size; }
 
   unsigned int	      final_size;
-  hb_vector_t<unsigned int> topdict_sizes;
-  cff1_top_dict_values_mod_t      topdict_mod;
-  cff1_sub_table_offsets_t       offsets;
+  hb_vector_t<unsigned int>	topdict_sizes;
+  cff1_top_dict_values_mod_t	topdict_mod;
+  cff1_sub_table_offsets_t	offsets;
 
   unsigned int    num_glyphs;
   unsigned int    orig_fdcount;
@@ -838,28 +838,28 @@ struct cff_subset_plan {
    * set to CFF_UNDEF_CODE if excluded from subset */
   remap_t   fdmap;
 
-  str_buff_vec_t	    subset_charstrings;
-  str_buff_vec_t	    subset_globalsubrs;
-  hb_vector_t<str_buff_vec_t> subset_localsubrs;
+  str_buff_vec_t		subset_charstrings;
+  str_buff_vec_t		subset_globalsubrs;
+  hb_vector_t<str_buff_vec_t>	subset_localsubrs;
   hb_vector_t<font_dict_values_mod_t>  fontdicts_mod;
 
-  bool		    drop_hints;
+  bool		drop_hints;
 
-  bool		    gid_renum;
-  bool		    subset_encoding;
-  uint8_t		 subset_enc_format;
-  unsigned int	    subset_enc_num_codes;
-  range_list_t	       subset_enc_code_ranges;
+  bool		gid_renum;
+  bool		subset_encoding;
+  uint8_t	subset_enc_format;
+  unsigned int	subset_enc_num_codes;
+  range_list_t	subset_enc_code_ranges;
   hb_vector_t<code_pair_t>  subset_enc_supp_codes;
 
-  uint8_t		 subset_charset_format;
-  range_list_t	       subset_charset_ranges;
-  bool		    subset_charset;
+  uint8_t	subset_charset_format;
+  range_list_t	subset_charset_ranges;
+  bool		subset_charset;
 
-  remap_sid_t		sidmap;
-  unsigned int	    topDictModSIDs[name_dict_values_t::ValCount];
+  remap_sid_t	sidmap;
+  unsigned int	topDictModSIDs[name_dict_values_t::ValCount];
 
-  bool		    desubroutinize;
+  bool		desubroutinize;
   cff1_subr_subsetter_t       subr_subsetter;
 };
 
@@ -1050,9 +1050,9 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 
 static bool
 _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
-		const char		      *data,
-		hb_subset_plan_t		*plan,
-		hb_blob_t		       **prime /* OUT */)
+		const char		*data,
+		hb_subset_plan_t	*plan,
+		hb_blob_t		**prime /* OUT */)
 {
   cff_subset_plan cff_plan;
 

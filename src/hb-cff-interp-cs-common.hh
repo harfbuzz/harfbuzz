@@ -50,7 +50,7 @@ struct call_context_t
 
   void fini () {}
 
-  byte_str_ref_t      str_ref;
+  byte_str_ref_t  str_ref;
   cs_type_t	  type;
   unsigned int    subr_num;
 };
@@ -210,7 +210,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
   unsigned int  hstem_count;
   unsigned int  vstem_count;
   unsigned int  hintmask_size;
-  call_stack_t	    callStack;
+  call_stack_t	callStack;
   biased_subrs_t<SUBRS>   globalSubrs;
   biased_subrs_t<SUBRS>   localSubrs;
 

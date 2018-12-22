@@ -454,8 +454,8 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   bool    hint_dropped;
   bool    vsindex_dropped;
   bool    has_prefix_;
-  op_code_t  prefix_op_;
-  number_t  prefix_num_;
+  op_code_t	prefix_op_;
+  number_t 	prefix_num_;
 
   private:
   typedef parsed_values_t<parsed_cs_op_t> SUPER;
@@ -530,11 +530,11 @@ struct subr_subset_param_t
       env.set_error ();
   }
 
-  parsed_cs_str_t    *current_parsed_str;
+  parsed_cs_str_t	*current_parsed_str;
 
-  parsed_cs_str_t    *parsed_charstring;
-  parsed_cs_str_vec_t   *parsed_global_subrs;
-  parsed_cs_str_vec_t   *parsed_local_subrs;
+  parsed_cs_str_t	*parsed_charstring;
+  parsed_cs_str_vec_t	*parsed_global_subrs;
+  parsed_cs_str_vec_t	*parsed_local_subrs;
   hb_set_t      *global_closure;
   hb_set_t      *local_closure;
   bool	  drop_hints;
