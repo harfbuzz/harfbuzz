@@ -286,12 +286,9 @@ template <typename ACC, typename ENV, typename OPSET>
 struct subr_flattener_t
 {
   subr_flattener_t (const ACC &acc_,
-			const hb_vector_t<hb_codepoint_t> &glyphs_,
-			bool drop_hints_)
-    : acc (acc_),
-      glyphs (glyphs_),
-      drop_hints (drop_hints_)
-  {}
+		    const hb_vector_t<hb_codepoint_t> &glyphs_,
+		    bool drop_hints_) : acc (acc_), glyphs (glyphs_),
+					drop_hints (drop_hints_) {}
 
   bool flatten (str_buff_vec_t &flat_charstrings)
   {
@@ -479,9 +476,9 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 struct subr_subset_param_t
 {
   void init (parsed_cs_str_t *parsed_charstring_,
-		    parsed_cs_str_vec_t *parsed_global_subrs_, parsed_cs_str_vec_t *parsed_local_subrs_,
-		    hb_set_t *global_closure_, hb_set_t *local_closure_,
-		    bool drop_hints_)
+	     parsed_cs_str_vec_t *parsed_global_subrs_, parsed_cs_str_vec_t *parsed_local_subrs_,
+	     hb_set_t *global_closure_, hb_set_t *local_closure_,
+	     bool drop_hints_)
   {
     parsed_charstring = parsed_charstring_;
     current_parsed_str = parsed_charstring;
