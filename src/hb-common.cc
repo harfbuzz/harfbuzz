@@ -1121,6 +1121,59 @@ hb_variation_to_string (hb_variation_t *variation,
   buf[len] = '\0';
 }
 
+/**
+ * hb_color_get_alpha:
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+uint8_t
+(hb_color_get_alpha) (hb_color_t color)
+{
+  return hb_color_get_alpha (color);
+}
+
+/**
+ * hb_color_get_red:
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+uint8_t
+(hb_color_get_red) (hb_color_t color)
+{
+  return hb_color_get_red (color);
+}
+
+/**
+ * hb_color_get_green:
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+uint8_t
+(hb_color_get_green) (hb_color_t color)
+{
+  return hb_color_get_green (color);
+}
+
+/**
+ * hb_color_get_blue:
+ *
+ *
+ *
+ * Since: REPLACEME
+ */
+uint8_t
+(hb_color_get_blue) (hb_color_t color)
+{
+  return hb_color_get_blue (color);
+}
+
+
 /* If there is no visibility control, then hb-static.cc will NOT
  * define anything.  Instead, we get it to define one set in here
  * only, so only libharfbuzz.so defines them, not other libs. */
