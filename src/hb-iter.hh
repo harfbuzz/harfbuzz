@@ -85,8 +85,8 @@ struct hb_iter_t
 
   protected:
   hb_iter_t () {}
-  hb_iter_t (const hb_iter_t &o) {}
-  void operator = (const hb_iter_t &o) {}
+  hb_iter_t (const hb_iter_t &o HB_UNUSED) {}
+  void operator = (const hb_iter_t &o HB_UNUSED) {}
 };
 
 /* Base class for sorted iterators.  Does not enforce anything.
@@ -96,8 +96,8 @@ struct hb_sorted_iter_t : hb_iter_t<Iter, Item>
 {
   protected:
   hb_sorted_iter_t () {}
-  hb_sorted_iter_t (const hb_sorted_iter_t &o) : hb_iter_t<Iter, Item> () {}
-  void operator = (const hb_sorted_iter_t &o) {}
+  hb_sorted_iter_t (const hb_sorted_iter_t &o) : hb_iter_t<Iter, Item> (o) {}
+  void operator = (const hb_sorted_iter_t &o HB_UNUSED) {}
 };
 
 /* Mixin to fill in what the subclass doesn't provide. */

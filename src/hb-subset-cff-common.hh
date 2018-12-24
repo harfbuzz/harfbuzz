@@ -965,7 +965,8 @@ struct subr_subsetter_t
   private:
   typedef typename SUBRS::count_type subr_count_type;
 };
-};  /* namespace CFF */
+
+} /* namespace CFF */
 
 HB_INTERNAL bool
 hb_plan_subset_cff_fdselect (const hb_vector_t<hb_codepoint_t> &glyphs,

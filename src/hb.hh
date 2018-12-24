@@ -468,7 +468,8 @@ typedef uint64_t hb_vector_size_impl_t;
 	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
-	}
+	} \
+	static_assert (true, "")
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:

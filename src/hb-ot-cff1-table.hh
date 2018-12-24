@@ -976,7 +976,7 @@ typedef dict_interpreter_t<cff1_font_dict_opset_t, cff1_font_dict_values_t> cff1
 typedef CFF1Index CFF1NameIndex;
 typedef CFF1IndexOf<TopDict> CFF1TopDictIndex;
 
-}; /* namespace CFF */
+} /* namespace CFF */
 
 namespace OT {
 

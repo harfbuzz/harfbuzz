@@ -707,22 +707,22 @@ struct ExtendedTypes
 
   template <typename T>
   static unsigned int offsetToIndex (unsigned int offset,
-				     const void *base,
-				     const T *array)
+				     const void *base HB_UNUSED,
+				     const T *array HB_UNUSED)
   {
     return offset;
   }
   template <typename T>
   static unsigned int byteOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+					 const void *base HB_UNUSED,
+					 const T *array HB_UNUSED)
   {
     return offset / 2;
   }
   template <typename T>
   static unsigned int wordOffsetToIndex (unsigned int offset,
-					 const void *base,
-					 const T *array)
+					 const void *base HB_UNUSED,
+					 const T *array HB_UNUSED)
   {
     return offset;
   }

@@ -400,7 +400,7 @@ struct cff2_private_dict_opset_subset_t : dict_opset_t
 typedef dict_interpreter_t<cff2_top_dict_opset_t, cff2_top_dict_values_t> cff2_top_dict_interpreter_t;
 typedef dict_interpreter_t<cff2_font_dict_opset_t, cff2_font_dict_values_t> cff2_font_dict_interpreter_t;
 
-}; /* namespace CFF */
+} /* namespace CFF */
 
 namespace OT {
 
