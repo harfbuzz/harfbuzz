@@ -64,6 +64,8 @@ struct IntType
   typedef typename hb_signedness_int<hb_is_signed<Type>::value>::value wide_type;
 
   void set (wide_type i) { v.set (i); }
+  template <typename T>
+  IntType<Type, Size>& operator = (const T& v) { set (v); return *this; }
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
