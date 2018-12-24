@@ -32,7 +32,7 @@
 #include "hb-null.hh"
 
 
-template <typename Type, unsigned int PreallocedCount=8>
+template <typename Type, unsigned int PreallocedCount=2>
 struct hb_vector_t
 {
   typedef Type item_t;
