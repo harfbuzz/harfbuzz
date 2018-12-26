@@ -65,9 +65,9 @@ struct hb_iter_t
   iter_t& operator ++ () { next (); return *thiz(); }
   iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
   iter_t& operator -- () { prev (); return *thiz(); }
-  iter_t operator + (unsigned count) { iter_t c (*thiz()); c += count; return c; }
+  iter_t operator + (unsigned count) const { iter_t c (*thiz()); c += count; return c; }
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
-  iter_t operator - (unsigned count) { iter_t c (*thiz()); c -= count; return c; }
+  iter_t operator - (unsigned count) const { iter_t c (*thiz()); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
 
   /* Methods. */
@@ -112,7 +112,7 @@ struct hb_iter_mixin_t
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
   item_t& __item__ () const { return thiz()->item_at (0); }
-  item_t& __item_at__ (unsigned i) const { return *(thiz() + i); }
+  item_t& __item_at__ (unsigned i) const { return *(*thiz() + i); }
 
   /* Termination: Implement __more__(), or __len__() if random-access. */
   bool __more__ () const { return thiz()->__len__ (); }
@@ -129,6 +129,11 @@ struct hb_iter_mixin_t
 
   /* Random access: Return true if item_at(), len(), forward() are fast. */
   bool __random_access__ () const { return false; }
+
+  protected:
+  hb_iter_mixin_t () {}
+  hb_iter_mixin_t (const hb_iter_mixin_t &o HB_UNUSED) {}
+  void operator = (const hb_iter_mixin_t &o HB_UNUSED) {}
 };
 
 

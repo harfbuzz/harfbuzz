@@ -61,6 +61,27 @@ struct some_array_t
   hb_array_t<T> arr;
 };
 
+
+template <typename Iterator> static void
+test_iterator (Iterator it)
+{
+  /* Iterate over a copy of it. */
+  for (auto c = it.iter (); c; c++)
+    *c;
+
+  it += it.len () + 10;
+  it = it + 10;
+
+  assert (*it == it[0]);
+}
+
+template <typename Iterable> static void
+test_iterable (Iterable &lst)
+{
+  // Test that can take iterator from.
+  test_iterator (lst.iter ());
+}
+
 int
 main (int argc, char **argv)
 {
@@ -79,6 +100,10 @@ main (int argc, char **argv)
   hb_fill (t, 42);
   hb_copy (t, s);
  // hb_copy (t, a.iter ());
+
+  test_iterable (v);
+  hb_set_t st;
+  test_iterable (st);
 
   return 0;
 }
