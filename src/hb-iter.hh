@@ -28,6 +28,7 @@
 #define HB_ITER_HH
 
 #include "hb.hh"
+#include "hb-dsalgs.hh" // for hb_addressof
 #include "hb-null.hh"
 
 
@@ -60,6 +61,7 @@ struct hb_iter_t
   operator iter_t () { return iter(); }
   explicit_operator bool () const { return more (); }
   item_t& operator * () const { return item (); }
+  item_t* operator -> () const { return hb_addressof (item ()); }
   item_t& operator [] (signed i) const { return item_at ((unsigned) i); }
   iter_t& operator += (unsigned count) { forward (count); return *thiz(); }
   iter_t& operator ++ () { next (); return *thiz(); }

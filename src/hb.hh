@@ -631,7 +631,7 @@ template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
 #include "hb-mutex.hh"
 #include "hb-null.hh"
 #include "hb-dsalgs.hh"	// Requires: hb-null
-#include "hb-iter.hh"	// Requires: hb-null
+#include "hb-iter.hh"	// Requires: hb-dsalgs hb-null
 #include "hb-debug.hh"	// Requires: hb-atomic hb-dsalgs
 #include "hb-array.hh"	// Requires: hb-dsalgs hb-iter hb-null
 #include "hb-vector.hh"	// Requires: hb-array hb-null
