@@ -94,6 +94,14 @@ struct hb_vector_t
   hb_array_t<const Type> as_array () const
   { return hb_array (arrayZ(), length); }
 
+  /* Iterator. */
+  typedef hb_array_t<const Type> const_iter_t;
+  const_iter_t const_iter () const { return as_array (); }
+  operator const_iter_t () const { return const_iter (); }
+  typedef hb_array_t<Type> iter_t;
+  iter_t iter () { return as_array (); }
+  operator iter_t () { return iter (); }
+
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
@@ -119,8 +127,6 @@ struct hb_vector_t
 
   template <typename T> explicit_operator T * () { return arrayZ(); }
   template <typename T> explicit_operator const T * () const { return arrayZ(); }
-  operator hb_array_t<Type> ()             { return as_array (); }
-  operator hb_array_t<const Type> () const { return as_array (); }
 
   Type * operator  + (unsigned int i) { return arrayZ() + i; }
   const Type * operator  + (unsigned int i) const { return arrayZ() + i; }
