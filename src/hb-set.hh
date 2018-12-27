@@ -671,11 +671,11 @@ struct hb_set_t
   /*
    * Iterator implementation.
    */
-  struct const_iter_t :
-    hb_sorted_iter_t<const_iter_t, const hb_codepoint_t>,
-    hb_iter_mixin_t<const_iter_t, const hb_codepoint_t>
+  struct iter_t :
+    hb_sorted_iter_t<iter_t, const hb_codepoint_t>,
+    hb_iter_mixin_t<iter_t, const hb_codepoint_t>
   {
-    const_iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
+    iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
       s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
 
     typedef hb_codepoint_t __item_type__;
@@ -690,10 +690,8 @@ struct hb_set_t
     hb_codepoint_t v;
     unsigned l;
   };
-  const_iter_t const_iter () const { return const_iter_t (*this); }
-  operator const_iter_t () const { return const_iter (); }
-  typedef const_iter_t iter_t;
-  iter_t iter () const { return const_iter (); }
+  iter_t iter () const { return iter_t (*this); }
+  operator iter_t () const { return iter (); }
 
   protected:
 
