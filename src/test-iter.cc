@@ -65,6 +65,8 @@ struct some_array_t
 template <typename Iterator> static void
 test_iterator (Iterator it)
 {
+  Iterator default_constructed;
+
   /* Iterate over a copy of it. */
   for (auto c = it.iter (); c; c++)
     *c;
