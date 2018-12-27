@@ -64,8 +64,8 @@ struct hb_closure_context_t :
   const char *get_name () { return "CLOSURE"; }
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
-  static return_t default_return_value () { return HB_VOID; }
+  return_t dispatch (const T &obj) { obj.closure (this); return hb_void_t (); }
+  static return_t default_return_value () { return hb_void_t (); }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -156,8 +156,8 @@ struct hb_collect_glyphs_context_t :
   const char *get_name () { return "COLLECT_GLYPHS"; }
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
-  static return_t default_return_value () { return HB_VOID; }
+  return_t dispatch (const T &obj) { obj.collect_glyphs (this); return hb_void_t (); }
+  static return_t default_return_value () { return hb_void_t (); }
   void recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -652,9 +652,9 @@ struct hb_get_subtables_context_t :
   {
     hb_applicable_t *entry = array.push();
     entry->init (obj, apply_to<T>);
-    return HB_VOID;
+    return hb_void_t ();
   }
-  static return_t default_return_value () { return HB_VOID; }
+  static return_t default_return_value () { return hb_void_t (); }
 
   hb_get_subtables_context_t (array_t &array_) :
 			      array (array_),
