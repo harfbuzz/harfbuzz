@@ -32,13 +32,13 @@
 #include "hb-null.hh"
 
 
-template <typename Type, unsigned int PreallocedCount=2>
+template <typename Type>
 struct hb_vector_t
 {
   typedef Type item_t;
   enum { item_size = hb_static_size (Type) };
 
-  HB_NO_COPY_ASSIGN_TEMPLATE2 (hb_vector_t, Type, PreallocedCount);
+  HB_NO_COPY_ASSIGN_TEMPLATE (hb_vector_t, Type);
   hb_vector_t ()  { init (); }
   ~hb_vector_t () { fini (); }
 
@@ -46,13 +46,11 @@ struct hb_vector_t
   private:
   int allocated; /* == -1 means allocation failed. */
   Type *arrayZ_;
-  Type static_array[PreallocedCount];
   public:
 
   void init ()
   {
-    length = 0;
-    allocated = ARRAY_LENGTH (static_array);
+    allocated = length = 0;
     arrayZ_ = nullptr;
   }
 
@@ -71,8 +69,8 @@ struct hb_vector_t
     fini ();
   }
 
-  const Type * arrayZ () const { return arrayZ_ ? arrayZ_ : static_array; }
-        Type * arrayZ ()       { return arrayZ_ ? arrayZ_ : static_array; }
+  const Type * arrayZ () const { return arrayZ_; }
+        Type * arrayZ ()       { return arrayZ_; }
 
   Type& operator [] (int i_)
   {
@@ -158,22 +156,12 @@ struct hb_vector_t
       new_allocated += (new_allocated >> 1) + 8;
 
     Type *new_array = nullptr;
-
-    if (!arrayZ_)
-    {
-      new_array = (Type *) calloc (new_allocated, sizeof (Type));
-      if (new_array)
-        memcpy (new_array, static_array, length * sizeof (Type));
-    }
-    else
-    {
-      bool overflows =
-	(int) new_allocated < 0 ||
-        (new_allocated < allocated) ||
-	hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
-      if (likely (!overflows))
-        new_array = (Type *) realloc (arrayZ_, new_allocated * sizeof (Type));
-    }
+    bool overflows =
+      (int) new_allocated < 0 ||
+      (new_allocated < allocated) ||
+      hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
+    if (likely (!overflows))
+      new_array = (Type *) realloc (arrayZ_, new_allocated * sizeof (Type));
 
     if (unlikely (!new_array))
     {

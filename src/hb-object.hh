@@ -45,7 +45,7 @@
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
-  hb_vector_t <item_t, 1> items;
+  hb_vector_t<item_t> items;
 
   void init () { items.init (); }
 

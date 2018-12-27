@@ -482,7 +482,7 @@ struct stack_t
   protected:
   bool error;
   unsigned int count;
-  hb_vector_t<ELEM, kSizeLimit> elements;
+  hb_vector_t<ELEM> elements;
 };
 
 /* argument stack */

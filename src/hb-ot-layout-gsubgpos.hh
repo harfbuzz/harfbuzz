@@ -643,7 +643,7 @@ struct hb_get_subtables_context_t :
     hb_set_digest_t digest;
   };
 
-  typedef hb_vector_t<hb_applicable_t, 2> array_t;
+  typedef hb_vector_t<hb_applicable_t> array_t;
 
   /* Dispatch interface. */
   const char *get_name () { return "GET_SUBTABLES"; }

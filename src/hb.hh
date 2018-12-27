@@ -377,6 +377,9 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 #define HB_NO_COPY_ASSIGN(TypeName) \
   TypeName(const TypeName&); \
   void operator=(const TypeName&)
+#define HB_NO_COPY_ASSIGN_TEMPLATE(TypeName, T) \
+  TypeName(const TypeName<T>&); \
+  void operator=(const TypeName<T>&)
 #define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
   TypeName(const TypeName<T1, T2>&); \
   void operator=(const TypeName<T1, T2>&)

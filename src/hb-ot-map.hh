@@ -167,9 +167,9 @@ struct hb_ot_map_t
 
   hb_mask_t global_mask;
 
-  hb_vector_t<feature_map_t, 8> features;
-  hb_vector_t<lookup_map_t, 16> lookups[2]; /* GSUB/GPOS */
-  hb_vector_t<stage_map_t, 4> stages[2]; /* GSUB/GPOS */
+  hb_vector_t<feature_map_t> features;
+  hb_vector_t<lookup_map_t> lookups[2]; /* GSUB/GPOS */
+  hb_vector_t<stage_map_t> stages[2]; /* GSUB/GPOS */
 };
 
 enum hb_ot_map_feature_flags_t
@@ -275,8 +275,8 @@ struct hb_ot_map_builder_t
   private:
 
   unsigned int current_stage[2]; /* GSUB/GPOS */
-  hb_vector_t<feature_info_t, 32> feature_infos;
-  hb_vector_t<stage_info_t, 8> stages[2]; /* GSUB/GPOS */
+  hb_vector_t<feature_info_t> feature_infos;
+  hb_vector_t<stage_info_t> stages[2]; /* GSUB/GPOS */
 };
 
 

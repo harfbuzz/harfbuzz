@@ -61,7 +61,7 @@ struct code_pair_t
   hb_codepoint_t  glyph;
 };
 
-typedef hb_vector_t<unsigned char, 1> str_buff_t;
+typedef hb_vector_t<unsigned char> str_buff_t;
 struct str_buff_vec_t : hb_vector_t<str_buff_t>
 {
   void fini () { SUPER::fini_deep (); }

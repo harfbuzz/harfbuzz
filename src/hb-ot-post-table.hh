@@ -241,7 +241,7 @@ struct post
     hb_blob_ptr_t<post> table;
     uint32_t version;
     const ArrayOf<HBUINT16> *glyphNameIndex;
-    hb_vector_t<uint32_t, 1> index_to_offset;
+    hb_vector_t<uint32_t> index_to_offset;
     const uint8_t *pool;
     hb_atomic_ptr_t<uint16_t *> gids_sorted_by_name;
   };
