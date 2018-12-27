@@ -60,7 +60,7 @@ hb_ot_name_list_names (hb_face_t    *face,
 {
   const OT::name_accelerator_t &name = *face->table.name;
   if (num_entries) *num_entries = name.names.length;
-  return name.names.arrayZ();
+  return (const hb_ot_name_entry_t *) name.names;
 }
 
 

@@ -231,7 +231,7 @@ struct name
       const hb_ot_name_entry_t key = {name_id, {0}, language};
       const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)
 					hb_bsearch (&key,
-						    this->names.arrayZ(),
+						    (const hb_ot_name_entry_t *) this->names,
 						    this->names.length,
 						    sizeof (key),
 						    _hb_ot_name_entry_cmp_key);
