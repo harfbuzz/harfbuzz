@@ -37,6 +37,23 @@ typedef const struct _hb_void_t *hb_void_t;
 
 
 /*
+ * Pair
+ */
+
+template <typename T1, typename T2>
+struct hb_pair_t
+{
+  hb_pair_t (const T1& a, const T2& b) : first (a), second (b) {}
+  hb_pair_t (const hb_pair_t<T1, T2>& o) : hb_pair_t (o.first, o.second) {}
+
+  T1 first;
+  T2 second;
+};
+template <typename T1, typename T2> static inline hb_pair_t<T1, T2>
+hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
+
+
+/*
  * Bithacks.
  */
 
