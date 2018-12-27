@@ -853,19 +853,18 @@ struct CoverageFormat1
 
   template <typename set_t>
   bool add_coverage (set_t *glyphs) const
-  {
-    return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len);
-  }
+  { return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len); }
 
   public:
   /* Older compilers need this to be public. */
-  struct Iter {
+  struct Iter
+  {
     void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
     void fini () {}
-    bool more () { return i < c->glyphArray.len; }
+    bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
-    hb_codepoint_t get_glyph () { return c->glyphArray[i]; }
-    unsigned int get_coverage () { return i; }
+    hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
+    unsigned int get_coverage () const { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -987,7 +986,7 @@ struct CoverageFormat2
       }
     }
     void fini () {}
-    bool more () { return i < c->rangeRecord.len; }
+    bool more () const { return i < c->rangeRecord.len; }
     void next ()
     {
       if (j >= c->rangeRecord[i].end)
@@ -1010,8 +1009,8 @@ struct CoverageFormat2
       coverage++;
       j++;
     }
-    hb_codepoint_t get_glyph () { return j; }
-    unsigned int get_coverage () { return coverage; }
+    hb_codepoint_t get_glyph () const { return j; }
+    unsigned int get_coverage () const { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1118,7 +1117,7 @@ struct Coverage
       default:				     return;
       }
     }
-    bool more ()
+    bool more () const
     {
       switch (format)
       {
@@ -1136,7 +1135,7 @@ struct Coverage
       default:			 break;
       }
     }
-    hb_codepoint_t get_glyph ()
+    hb_codepoint_t get_glyph () const
     {
       switch (format)
       {
@@ -1145,7 +1144,7 @@ struct Coverage
       default:return 0;
       }
     }
-    unsigned int get_coverage ()
+    unsigned int get_coverage () const
     {
       switch (format)
       {
