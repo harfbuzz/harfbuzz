@@ -62,7 +62,7 @@ struct hb_iter_t
   explicit_operator bool () const { return more (); }
   item_t& operator * () const { return item (); }
   item_t* operator -> () const { return hb_addressof (item ()); }
-  item_t& operator [] (signed i) const { return item_at ((unsigned) i); }
+  item_t& operator [] (unsigned i) const { return item_at (i); }
   iter_t& operator += (unsigned count) { forward (count); return *thiz(); }
   iter_t& operator ++ () { next (); return *thiz(); }
   iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
