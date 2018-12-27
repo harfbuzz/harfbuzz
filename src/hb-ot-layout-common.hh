@@ -900,7 +900,7 @@ struct CoverageFormat2
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!glyphs.length))
+    if (unlikely (!glyphs))
     {
       rangeRecord.len.set (0);
       return_trace (true);
@@ -1199,7 +1199,7 @@ struct ClassDefFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!glyphs.length))
+    if (unlikely (!glyphs))
     {
       startGlyph.set (0);
       classValue.len.set (0);
@@ -1239,7 +1239,7 @@ struct ClassDefFormat1
     }
     c->serializer->propagate_error (glyphs, klasses);
     ClassDef_serialize (c->serializer, glyphs, klasses);
-    return_trace (glyphs.length);
+    return_trace ((bool) glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1335,7 +1335,7 @@ struct ClassDefFormat2
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!glyphs.length))
+    if (unlikely (!glyphs))
     {
       rangeRecord.len.set (0);
       return_trace (true);
@@ -1390,7 +1390,7 @@ struct ClassDefFormat2
     }
     c->serializer->propagate_error (glyphs, klasses);
     ClassDef_serialize (c->serializer, glyphs, klasses);
-    return_trace (glyphs.length);
+    return_trace ((bool) glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1485,7 +1485,7 @@ struct ClassDef
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     unsigned int format = 2;
-    if (glyphs.length)
+    if (likely (glyphs))
     {
       hb_codepoint_t glyph_min = glyphs[0];
       hb_codepoint_t glyph_max = glyphs[glyphs.length - 1];
