@@ -994,15 +994,15 @@ struct CoverageFormat2
 	i++;
 	if (more ())
 	{
-	  hb_codepoint_t old = j;
+	  unsigned int old = coverage;
 	  j = c->rangeRecord[i].start;
-	  if (unlikely (j <= old))
+	  coverage = c->rangeRecord[i].value;
+	  if (unlikely (coverage <= old))
 	  {
 	    /* Broken table. Skip. Important to avoid DoS. */
 	   i = c->rangeRecord.len;
 	   return;
 	  }
-	  coverage = c->rangeRecord[i].value;
 	}
 	return;
       }
