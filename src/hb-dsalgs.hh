@@ -41,7 +41,7 @@ struct hb_pair_t
   typedef hb_pair_t<T1, T2> pair_t;
 
   hb_pair_t (const T1& a, const T2& b) : first (a), second (b) {}
-  hb_pair_t (const pair_t& o) : hb_pair_t (o.first, o.second) {}
+  hb_pair_t (const pair_t& o) : first (o.first), second (o.second) {}
 
   bool operator == (const pair_t& o) const { return first == o.first && second == o.second; }
 
