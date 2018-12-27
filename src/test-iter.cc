@@ -78,7 +78,7 @@ test_iterator (Iterator it)
 }
 
 template <typename Iterable> static void
-test_iterable (Iterable &lst)
+test_iterable (Iterable &lst = Null(Iterable))
 {
   // Test that can take iterator from.
   test_iterator (lst.iter ());
