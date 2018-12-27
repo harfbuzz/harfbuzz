@@ -1105,7 +1105,7 @@ struct Coverage
   }
 
   struct Iter :
-    hb_iter_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >,
+    hb_sorted_iter_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >,
     hb_iter_mixin_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >
   {
     Iter (const Coverage &c_)
