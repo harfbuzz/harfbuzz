@@ -556,13 +556,15 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  template <typename T>
-  bool serialize (hb_serialize_context_t *c, hb_array_t<const T> items)
+  template <typename Iter>
+  bool serialize (hb_serialize_context_t *c, const hb_iter_t<Iter>& items)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!serialize (c, items.length))) return_trace (false);
-    for (unsigned int i = 0; i < items.length; i++)
-      hb_assign (arrayZ[i], items[i]);
+    unsigned count = items.len ();
+    if (unlikely (!serialize (c, count))) return_trace (false);
+    auto iter = items.iter ();
+    for (unsigned i = 0; i < count; i++, iter++)
+      hb_assign (arrayZ[i], *iter);
     return_trace (true);
   }
 
