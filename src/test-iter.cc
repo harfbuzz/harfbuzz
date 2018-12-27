@@ -109,6 +109,8 @@ main (int argc, char **argv)
   test_iterable (v);
   hb_set_t st;
   test_iterable (st);
+  hb_sorted_array_t<int> sa;
+  test_iterable (sa);
 
   return 0;
 }

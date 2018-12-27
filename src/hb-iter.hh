@@ -80,6 +80,24 @@ struct hb_iter_t
   void operator = (const hb_iter_t &o HB_UNUSED) {}
 };
 
+#define HB_ITER_USING(Name) \
+  using Name::iter; \
+  using Name::operator bool; \
+  using Name::len; \
+  using Name::operator ->; \
+  using Name::operator *; \
+  using Name::operator []; \
+  using Name::operator +=; \
+  using Name::operator ++; \
+  using Name::operator -=; \
+  using Name::operator --; \
+  using Name::operator +; \
+  using Name::operator -; \
+  using Name::is_random_access; \
+  static_assert (true, "")
+
+
+
 /* Base class for sorted iterators.  Does not enforce anything.
  * Just for class taxonomy and requirements. */
 template <typename Iter, typename Item = typename Iter::__item_type__>
