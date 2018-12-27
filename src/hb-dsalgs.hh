@@ -31,10 +31,6 @@
 #include "hb-null.hh"
 
 
-/* Void! For when we need a expression-type of void. */
-struct hb_void_t { typedef void value; };
-
-
 /*
  * Pair
  */
