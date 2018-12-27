@@ -71,6 +71,7 @@ test_iterator (Iterator it)
 
   it += it.len () + 10;
   it = it + 10;
+  it = 10 + it;
 
   assert (*it == it[0]);
 

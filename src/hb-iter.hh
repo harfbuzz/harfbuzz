@@ -67,6 +67,7 @@ struct hb_iter_t
   iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
   iter_t& operator -- () { prev (); return *thiz(); }
   iter_t operator + (unsigned count) const { iter_t c (*thiz()); c += count; return c; }
+  friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { iter_t c (*thiz()); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
