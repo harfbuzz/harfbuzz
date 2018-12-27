@@ -1108,7 +1108,7 @@ struct Coverage
     hb_sorted_iter_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >,
     hb_iter_mixin_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >
   {
-    Iter (const Coverage &c_)
+    Iter (const Coverage &c_ = Null(Coverage))
     {
       memset (this, 0, sizeof (*this));
       format = c_.u.format;
@@ -1137,7 +1137,7 @@ struct Coverage
       default:			 break;
       }
     }
-    typedef hb_pair_t<unsigned, hb_codepoint_t> __item_type__;
+    typedef const hb_pair_t<unsigned, hb_codepoint_t> __item_type__;
     __item_type__ __item__ () const { return hb_pair (get_coverage (), get_glyph ()); }
 
     hb_codepoint_t get_glyph () const
@@ -1155,7 +1155,7 @@ struct Coverage
       {
       case 1: return u.format1.get_coverage ();
       case 2: return u.format2.get_coverage ();
-      default:return -1;
+      default:return NOT_COVERED;
       }
     }
 

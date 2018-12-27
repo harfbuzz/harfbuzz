@@ -29,6 +29,7 @@
 
 #include "hb-array.hh"
 #include "hb-set.hh"
+#include "hb-ot-layout-common.hh"
 
 
 template <typename T>
@@ -81,7 +82,7 @@ test_iterator (Iterator it)
 }
 
 template <typename Iterable> static void
-test_iterable (Iterable &lst = Null(Iterable))
+test_iterable (const Iterable &lst = Null(Iterable))
 {
   // Test that can take iterator from.
   test_iterator (lst.iter ());
@@ -111,6 +112,12 @@ main (int argc, char **argv)
   test_iterable (st);
   hb_sorted_array_t<int> sa;
   test_iterable (sa);
+
+  test_iterable<hb_array_t<int> > ();
+  test_iterable<hb_sorted_array_t<const int> > ();
+  test_iterable<hb_vector_t<float> > ();
+  test_iterable<hb_set_t> ();
+  test_iterable<OT::Coverage> ();
 
   return 0;
 }

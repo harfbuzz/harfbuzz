@@ -42,8 +42,12 @@ struct hb_void_t { typedef void value; };
 template <typename T1, typename T2>
 struct hb_pair_t
 {
+  typedef hb_pair_t<T1, T2> pair_t;
+
   hb_pair_t (const T1& a, const T2& b) : first (a), second (b) {}
-  hb_pair_t (const hb_pair_t<T1, T2>& o) : hb_pair_t (o.first, o.second) {}
+  hb_pair_t (const pair_t& o) : hb_pair_t (o.first, o.second) {}
+
+  bool operator == (const pair_t& o) const { return first == o.first && second == o.second; }
 
   T1 first;
   T2 second;
