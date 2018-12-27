@@ -57,31 +57,21 @@ struct hb_iter_t
   public:
 
   /* Operators. */
-  operator iter_t () { return iter(); }
-  explicit_operator bool () const { return more (); }
-  item_t& operator * () const { return item (); }
-  item_t* operator -> () const { return hb_addressof (item ()); }
-  item_t& operator [] (unsigned i) const { return item_at (i); }
-  iter_t& operator += (unsigned count) { forward (count); return *thiz(); }
-  iter_t& operator ++ () { next (); return *thiz(); }
-  iter_t& operator -= (unsigned count) { rewind (count); return *thiz(); }
-  iter_t& operator -- () { prev (); return *thiz(); }
+  iter_t iter () const { return *thiz(); }
+  explicit_operator bool () const { return thiz()->__more__ (); }
+  unsigned len () const { return thiz()->__len__ (); }
+  item_t* operator -> () const { return hb_addressof (*thiz()); }
+  item_t& operator * () const { return thiz()->__item__ (); }
+  item_t& operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
+  iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
+  iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
+  iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
+  iter_t& operator -- () { thiz()->__prev__ (); return *thiz(); }
   iter_t operator + (unsigned count) const { iter_t c (*thiz()); c += count; return c; }
   friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { iter_t c (*thiz()); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
-
-  /* Methods. */
-  iter_t iter () const { return *thiz(); }
-  item_t& item () const { return thiz()->__item__ (); }
-  item_t& item_at (unsigned i) const { return thiz()->__item_at__ (i); }
-  bool more () const { return thiz()->__more__ (); }
-  unsigned len () const { return thiz()->__len__ (); }
-  void next () { thiz()->__next__ (); }
-  void forward (unsigned n) { thiz()->__forward__ (n); }
-  void prev () { thiz()->__prev__ (); }
-  void rewind (unsigned n) { thiz()->__rewind__ (n); }
   constexpr bool is_random_access () const { return thiz()->__random_access__ (); }
 
   protected:
@@ -112,23 +102,23 @@ struct hb_iter_mixin_t
   public:
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
-  item_t& __item__ () const { return thiz()->item_at (0); }
+  item_t& __item__ () const { return (*thiz())[0]; }
   item_t& __item_at__ (unsigned i) const { return *(*thiz() + i); }
 
   /* Termination: Implement __more__(), or __len__() if random-access. */
-  bool __more__ () const { return thiz()->__len__ (); }
+  bool __more__ () const { return thiz()->len (); }
   unsigned __len__ () const
   { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
-  void __next__ () { thiz()->forward (1); }
-  void __forward__ (unsigned n) { while (n--) thiz()->next (); }
+  void __next__ () { *thiz() += 1; }
+  void __forward__ (unsigned n) { while (n--) ++*thiz(); }
 
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
-  void __prev__ () { thiz()->rewind (1); }
-  void __rewind__ (unsigned n) { while (n--) thiz()->prev (); }
+  void __prev__ () { *thiz() -= 1; }
+  void __rewind__ (unsigned n) { while (n--) --*thiz(); }
 
-  /* Random access: Return true if item_at(), len(), forward() are fast. */
+  /* Random access: Implement if __item_at__(), __len__(), __forward__() are. */
   constexpr bool __random_access__ () const { return false; }
 
   protected:
