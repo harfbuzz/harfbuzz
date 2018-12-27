@@ -44,7 +44,7 @@ struct hb_vector_t
 
   unsigned int length;
   private:
-  unsigned int allocated; /* == 0 means allocation failed. */
+  int allocated; /* == -1 means allocation failed. */
   Type *arrayZ_;
   Type static_array[PreallocedCount];
   public:
@@ -60,8 +60,7 @@ struct hb_vector_t
   {
     if (arrayZ_)
       free (arrayZ_);
-    arrayZ_ = nullptr;
-    allocated = length = 0;
+    init ();
   }
   void fini_deep ()
   {
@@ -141,12 +140,12 @@ struct hb_vector_t
     return p;
   }
 
-  bool in_error () const { return allocated == 0; }
+  bool in_error () const { return allocated < 0; }
 
   /* Allocate for size but don't adjust length. */
   bool alloc (unsigned int size)
   {
-    if (unlikely (!allocated))
+    if (unlikely (allocated < 0))
       return false;
 
     if (likely (size <= allocated))
@@ -168,14 +167,17 @@ struct hb_vector_t
     }
     else
     {
-      bool overflows = (new_allocated < allocated) || hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
+      bool overflows =
+	(int) new_allocated < 0 ||
+        (new_allocated < allocated) ||
+	hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
       if (likely (!overflows))
         new_array = (Type *) realloc (arrayZ_, new_allocated * sizeof (Type));
     }
 
     if (unlikely (!new_array))
     {
-      allocated = 0;
+      allocated = -1;
       return false;
     }
 
