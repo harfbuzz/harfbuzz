@@ -1104,7 +1104,9 @@ struct Coverage
     }
   }
 
-  struct Iter
+  struct Iter :
+    hb_iter_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >,
+    hb_iter_mixin_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >
   {
     Iter (const Coverage &c_)
     {
@@ -1117,7 +1119,7 @@ struct Coverage
       default:				     return;
       }
     }
-    bool more () const
+    bool __more__ () const
     {
       switch (format)
       {
@@ -1126,7 +1128,7 @@ struct Coverage
       default:return false;
       }
     }
-    void next ()
+    void __next__ ()
     {
       switch (format)
       {
@@ -1135,6 +1137,9 @@ struct Coverage
       default:			 break;
       }
     }
+    typedef hb_pair_t<unsigned, hb_codepoint_t> __item_type__;
+    __item_type__ __item__ () const { return hb_pair (get_coverage (), get_glyph ()); }
+
     hb_codepoint_t get_glyph () const
     {
       switch (format)
@@ -1161,6 +1166,7 @@ struct Coverage
     CoverageFormat1::Iter	format1;
     } u;
   };
+  Iter iter () const { return Iter (*this); }
 
   protected:
   union {

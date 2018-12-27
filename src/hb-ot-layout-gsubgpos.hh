@@ -1438,7 +1438,7 @@ struct ContextFormat1
     };
 
     unsigned int count = ruleSet.len;
-    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
+    for (auto iter = (this+coverage).iter (); iter; iter++)
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -1457,7 +1457,7 @@ struct ContextFormat1
     };
 
     unsigned int count = ruleSet.len;
-    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
+    for (auto iter = (this+coverage).iter (); iter; iter++)
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -2091,7 +2091,7 @@ struct ChainContextFormat1
     };
 
     unsigned int count = ruleSet.len;
-    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
+    for (auto iter = (this+coverage).iter (); iter; iter++)
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
@@ -2110,7 +2110,7 @@ struct ChainContextFormat1
     };
 
     unsigned int count = ruleSet.len;
-    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
+    for (auto iter = (this+coverage).iter (); iter; iter++)
     {
       if (unlikely (iter.get_coverage () >= count))
 	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
