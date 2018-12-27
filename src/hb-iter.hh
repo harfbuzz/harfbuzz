@@ -83,7 +83,7 @@ struct hb_iter_t
   void forward (unsigned n) { thiz()->__forward__ (n); }
   void prev () { thiz()->__prev__ (); }
   void rewind (unsigned n) { thiz()->__rewind__ (n); }
-  bool random_access () const { return thiz()->__random_access__ (); }
+  constexpr bool is_random_access () const { return thiz()->__random_access__ (); }
 
   protected:
   hb_iter_t () {}
@@ -130,7 +130,7 @@ struct hb_iter_mixin_t
   void __rewind__ (unsigned n) { while (n--) thiz()->prev (); }
 
   /* Random access: Return true if item_at(), len(), forward() are fast. */
-  bool __random_access__ () const { return false; }
+  constexpr bool __random_access__ () const { return false; }
 
   protected:
   hb_iter_mixin_t () {}
