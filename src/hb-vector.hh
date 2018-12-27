@@ -89,18 +89,17 @@ struct hb_vector_t
 
   explicit_operator bool () const { return length; }
 
-  hb_array_t<Type> as_array ()
-  { return hb_array (arrayZ(), length); }
-  hb_array_t<const Type> as_array () const
-  { return hb_array (arrayZ(), length); }
+  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ(), length); }
+  hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
 
   /* Iterator. */
-  typedef hb_array_t<Type> iter_t;
-  iter_t iter () { return as_array (); }
-  operator iter_t () { return iter (); }
   typedef hb_array_t<const Type> const_iter_t;
+  typedef hb_array_t<      Type>       iter_t;
+  const_iter_t  iter () const { return as_array (); }
   const_iter_t citer () const { return as_array (); }
-  operator const_iter_t () const { return citer (); }
+        iter_t  iter ()       { return as_array (); }
+  operator       iter_t ()       { return iter (); }
+  operator const_iter_t () const { return iter (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
