@@ -496,6 +496,7 @@ struct cff2
     void fini ()
     {
       sc.end_processing ();
+      topDict.fini ();
       fontDicts.fini_deep ();
       privateDicts.fini_deep ();
       hb_blob_destroy (blob);
