@@ -146,7 +146,7 @@ struct hb_vector_t
     if (unlikely (allocated < 0))
       return false;
 
-    if (likely (size <= allocated))
+    if (likely (size <= (unsigned) allocated))
       return true;
 
     /* Reallocate */
@@ -158,7 +158,7 @@ struct hb_vector_t
     Type *new_array = nullptr;
     bool overflows =
       (int) new_allocated < 0 ||
-      (new_allocated < allocated) ||
+      (new_allocated < (unsigned) allocated) ||
       hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
     if (likely (!overflows))
       new_array = (Type *) realloc (arrayZ_, new_allocated * sizeof (Type));
