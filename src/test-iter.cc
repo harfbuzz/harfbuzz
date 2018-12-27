@@ -33,11 +33,13 @@
 
 
 template <typename T>
-struct array_iter_t : hb_iter_t<array_iter_t<T>, T>, hb_iter_mixin_t<array_iter_t<T>, T>
+struct array_iter_t :
+  hb_iter_t<array_iter_t<T>, T&>,
+  hb_iter_mixin_t<array_iter_t<T>, T&>
 {
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 
-  typedef T __item_type__;
+  typedef T& __item_type__;
   T& __item_at__ (unsigned i) const { return arr[i]; }
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }

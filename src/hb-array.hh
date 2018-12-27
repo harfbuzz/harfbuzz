@@ -38,8 +38,8 @@ struct hb_sorted_array_t;
 
 template <typename Type>
 struct hb_array_t :
-	hb_iter_t<hb_array_t<Type>, Type>,
-	hb_iter_mixin_t<hb_array_t<Type>, Type>
+	hb_iter_t<hb_array_t<Type>, Type&>,
+	hb_iter_mixin_t<hb_array_t<Type>, Type&>
 {
   /*
    * Constructors.
@@ -52,7 +52,7 @@ struct hb_array_t :
   /*
    * Iterator implementation.
    */
-  typedef Type __item_type__;
+  typedef Type& __item_type__;
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);

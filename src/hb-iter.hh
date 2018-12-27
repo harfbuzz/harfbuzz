@@ -60,9 +60,10 @@ struct hb_iter_t
   iter_t iter () const { return *thiz(); }
   explicit_operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
-  item_t* operator -> () const { return hb_addressof (*thiz()); }
-  item_t& operator * () const { return thiz()->__item__ (); }
-  item_t& operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
+  /* TODO enable_if item_t is reference type only. */
+  typename hb_remove_reference (item_t)* operator -> () const { return hb_addressof (*thiz()); }
+  item_t operator * () const { return thiz()->__item__ (); }
+  item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
   iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
   iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
   iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
@@ -120,8 +121,8 @@ struct hb_iter_mixin_t
   public:
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
-  item_t& __item__ () const { return (*thiz())[0]; }
-  item_t& __item_at__ (unsigned i) const { return *(*thiz() + i); }
+  item_t __item__ () const { return (*thiz())[0]; }
+  item_t __item_at__ (unsigned i) const { return *(*thiz() + i); }
 
   /* Termination: Implement __more__(), or __len__() if random-access. */
   bool __more__ () const { return thiz()->len (); }

@@ -672,14 +672,14 @@ struct hb_set_t
    * Iterator implementation.
    */
   struct iter_t :
-    hb_sorted_iter_t<iter_t, const hb_codepoint_t>,
-    hb_iter_mixin_t<iter_t, const hb_codepoint_t>
+    hb_sorted_iter_t<iter_t, hb_codepoint_t>,
+    hb_iter_mixin_t<iter_t, hb_codepoint_t>
   {
     iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
       s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
 
     typedef hb_codepoint_t __item_type__;
-    const hb_codepoint_t& __item__ () const { return v; }
+    hb_codepoint_t __item__ () const { return v; }
     bool __more__ () const { return v != INVALID; }
     void __next__ () { s->next (&v); if (l) l--; }
     void __prev__ () { s->previous (&v); }
