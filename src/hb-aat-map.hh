@@ -74,7 +74,7 @@ struct hb_aat_map_builder_t
 	     (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
     }
 
-    int cmp (unsigned int ty) const
+    int cmp (hb_aat_layout_feature_type_t ty) const
     {
       return (type != ty) ? (type < ty ? -1 : 1) : 0;
     }
