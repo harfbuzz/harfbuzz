@@ -30,11 +30,27 @@
 #include "hb.hh"
 
 
+/*
+ * C++ Template Meta-programming.
+ */
+
+
 /* Void! For when we need a expression-type of void. */
 struct hb_void_t { typedef void value; };
 
 struct hb_true_t { enum { value = true }; };
 struct hb_false_t { enum { value = false }; };
+
+
+
+template<bool B, class T = void>
+struct hb_enable_if {};
+
+template<class T>
+struct hb_enable_if<true, T> { typedef T type; };
+
+#define hb_enable_if(Cond) hb_enable_if<Code>::type* = nullptr
+#define hb_enable_if_t(Type, Cond) hb_enable_if<(Cond), Type>::type
 
 
 #endif /* HB_META_HH */
