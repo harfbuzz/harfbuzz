@@ -55,6 +55,7 @@ struct hb_iter_t
   typedef Iter iter_t;
   typedef Item item_t;
   enum { item_size = hb_static_size (Item) };
+  enum { is_iter = true };
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -88,6 +89,10 @@ struct hb_iter_t
 };
 
 #define HB_ITER_USING(Name) \
+  using typename Name::iter_t; \
+  using typename Name::item_t; \
+  using Name::item_size; \
+  using Name::is_iter; \
   using Name::iter; \
   using Name::operator bool; \
   using Name::len; \
@@ -154,16 +159,47 @@ struct hb_iter_mixin_t
  * Meta-programming predicates.
  */
 
-template<class T, typename B>
+/* hb_is_iterable() */
+
+template<typename T, typename B>
 struct _hb_is_iterable
 { enum { value = false }; };
-template<class T>
+template<typename T>
 struct _hb_is_iterable<T, hb_bool_tt<true || sizeof (hb_declval<T> ().iter ())> >
 { enum { value = true }; };
 
-template<class T>
+template<typename T>
 struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; };
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
+
+
+/* hb_is_iterator() */
+
+/* The following SFINAE fails to match template parameters to hb_iter_t<>.
+ * As such, just check for member is_iter being there. */
+# if 0
+template<typename T = void> char
+_hb_is_iterator (T *) {};
+template<typename Iter, typename Item> int
+_hb_is_iterator (hb_iter_t<Iter, Item> *) {};
+static_assert (sizeof (char) != sizeof (int), "");
+
+template<typename T>
+struct hb_is_iterator { enum {
+  value = sizeof (int) == sizeof (_hb_is_iterator (hb_declval<T*> ()))
+}; };
+#endif
+
+template<typename T, typename B>
+struct _hb_is_iterator
+{ enum { value = false }; };
+template<typename T>
+struct _hb_is_iterator<T, hb_bool_tt<true || sizeof (T::is_iter)> >
+{ enum { value = true }; };
+
+template<typename T>
+struct hb_is_iterator { enum { value = _hb_is_iterator<T, hb_true_t>::value }; };
+#define hb_is_iterator(Iterator) hb_is_iterator<Iterator>::value
 
 
 /*

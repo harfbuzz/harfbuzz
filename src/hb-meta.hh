@@ -48,10 +48,10 @@ typedef hb_bool_tt<true> hb_true_t;
 typedef hb_bool_tt<false> hb_false_t;
 
 
-template<bool B, class T = void>
+template<bool B, typename T = void>
 struct hb_enable_if {};
 
-template<class T>
+template<typename T>
 struct hb_enable_if<true, T> { typedef T type; };
 
 #define hb_enable_if(Cond) typename hb_enable_if<Cond>::type* = nullptr

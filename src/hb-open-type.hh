@@ -552,17 +552,18 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
+  template <typename Iterator,
+	    hb_enable_if (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-		  const Iterable& items)
+		  Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
     if (unlikely (!serialize (c, count))) return_trace (false);
-    auto iter = items.iter ();
-    for (unsigned i = 0; i < count; i++, iter++)
-      hb_assign (arrayZ[i], *iter);
+    /* TODO Umm. Just exhaust the iterator instead?  Being extra
+     * cautious right now.. */
+    for (unsigned i = 0; i < count; i++, items++)
+      hb_assign (arrayZ[i], *items);
     return_trace (true);
   }
 
