@@ -58,4 +58,35 @@ struct hb_enable_if<true, T> { typedef T type; };
 #define hb_enable_if_t(Type, Cond) hb_enable_if<(Cond), Type>::type
 
 
+/*
+ * Meta-functions.
+ */
+
+template <typename T> struct hb_is_signed;
+template <> struct hb_is_signed<signed char> { enum { value = true }; };
+template <> struct hb_is_signed<signed short> { enum { value = true }; };
+template <> struct hb_is_signed<signed int> { enum { value = true }; };
+template <> struct hb_is_signed<signed long> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned char> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned short> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned int> { enum { value = false }; };
+template <> struct hb_is_signed<unsigned long> { enum { value = false }; };
+/* We need to define hb_is_signed for the typedefs we use on pre-Visual
+ * Studio 2010 for the int8_t type, since __int8/__int64 is not considered
+ * the same as char/long.  The previous lines will suffice for the other
+ * types, though.  Note that somehow, unsigned __int8 is considered same
+ * as unsigned char.
+ * https://github.com/harfbuzz/harfbuzz/pull/1499
+ */
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+template <> struct hb_is_signed<__int8> { enum { value = true }; };
+#endif
+#define hb_is_signed(T) hb_is_signed<T>::value
+
+template <bool is_signed> struct hb_signedness_int;
+template <> struct hb_signedness_int<false> { typedef unsigned int value; };
+template <> struct hb_signedness_int<true>  { typedef   signed int value; };
+#define hb_signedness_int(T) hb_signedness_int<T>::value
+
+
 #endif /* HB_META_HH */

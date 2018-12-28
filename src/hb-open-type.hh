@@ -52,16 +52,12 @@ namespace OT {
  * Int types
  */
 
-template <bool is_signed> struct hb_signedness_int;
-template <> struct hb_signedness_int<false> { typedef unsigned int value; };
-template <> struct hb_signedness_int<true>  { typedef   signed int value; };
-
 /* Integer types in big-endian order and no alignment requirement */
 template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
-  typedef typename hb_signedness_int<hb_is_signed<Type>::value>::value wide_type;
+  typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
 
   void set (wide_type i) { v.set (i); }
   operator wide_type () const { return v; }
