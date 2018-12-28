@@ -50,7 +50,7 @@ template <typename T, typename B>
 struct _hb_null_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_null_size<T, hb_bool_tt<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_null_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
 { enum { value = T::null_size }; };
 
 template <typename T>
@@ -67,7 +67,7 @@ template <typename T, typename B>
 struct _hb_static_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_static_size<T, hb_bool_tt<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_static_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
 { enum { value = T::static_size }; };
 
 template <typename T>
@@ -84,10 +84,10 @@ template <typename T, typename V, typename B>
 struct _hb_assign
 { static inline void value (T &o, const V v) { o = v; } };
 template <typename T, typename V>
-struct _hb_assign<T, V, hb_bool_tt<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_assign<T, V, hb_bool_tt<true || sizeof (T::min_size)> >
 { static inline void value (T &o, const V v) { o.set (v); } };
 template <typename T>
-struct _hb_assign<T, T, hb_bool_tt<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_assign<T, T, hb_bool_tt<true || sizeof (T::min_size)> >
 { static inline void value (T &o, const T v) { o = v; } };
 
 template <typename T, typename V>

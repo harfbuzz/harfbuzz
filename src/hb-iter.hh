@@ -158,11 +158,11 @@ template<class T, typename B>
 struct _hb_is_iterable
 { enum { value = false }; };
 template<class T>
-struct _hb_is_iterable<T, hb_bool_tt<(bool) sizeof (hb_declval<T> ().iter ())> >
+struct _hb_is_iterable<T, hb_bool_tt<true || sizeof (hb_declval<T> ().iter ())> >
 { enum { value = true }; };
+
 template<class T>
 struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; };
-
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
 
