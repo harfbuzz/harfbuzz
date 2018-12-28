@@ -35,7 +35,7 @@
  */
 
 
-template <typename T> static T hb_declval ();
+template <typename T> static inline T hb_declval ();
 
 
 /* Void!  For when we need a expression-type of void. */
