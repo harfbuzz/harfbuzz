@@ -35,12 +35,17 @@
  */
 
 
-/* Void! For when we need a expression-type of void. */
+template <typename T> static T hb_declval ();
+
+
+/* Void!  For when we need a expression-type of void. */
 struct hb_void_t { typedef void value; };
 
-struct hb_true_t { enum { value = true }; };
-struct hb_false_t { enum { value = false }; };
-
+/* Bool!  For when we need to evaluate type-dependent expressions
+ * in a template argument. */
+template <bool b> struct hb_bool_tt { enum { value = b }; };
+typedef hb_bool_tt<true> hb_true_t;
+typedef hb_bool_tt<false> hb_false_t;
 
 
 template<bool B, class T = void>
@@ -49,7 +54,7 @@ struct hb_enable_if {};
 template<class T>
 struct hb_enable_if<true, T> { typedef T type; };
 
-#define hb_enable_if(Cond) hb_enable_if<Code>::type* = nullptr
+#define hb_enable_if(Cond) typename hb_enable_if<Cond>::type* = nullptr
 #define hb_enable_if_t(Type, Cond) hb_enable_if<(Cond), Type>::type
 
 

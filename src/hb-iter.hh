@@ -43,6 +43,11 @@
  * returns rvalues.
  */
 
+
+/*
+ * Base classes for iterators.
+ */
+
 /* Base class for all iterators. */
 template <typename Iter, typename Item = typename Iter::__item_type__>
 struct hb_iter_t
@@ -98,8 +103,6 @@ struct hb_iter_t
   using Name::is_random_access; \
   static_assert (true, "")
 
-
-
 /* Base class for sorted iterators.  Does not enforce anything.
  * Just for class taxonomy and requirements. */
 template <typename Iter, typename Item = typename Iter::__item_type__>
@@ -147,8 +150,25 @@ struct hb_iter_mixin_t
   void operator = (const hb_iter_mixin_t &o HB_UNUSED) {}
 };
 
+/*
+ * Meta-programming predicates.
+ */
 
-/* Functions operating on iterators or iteratables. */
+template<class T, typename B>
+struct _hb_is_iterable
+{ enum { value = false }; };
+template<class T>
+struct _hb_is_iterable<T, hb_bool_tt<(bool) sizeof (hb_declval<T> ().iter ())> >
+{ enum { value = true }; };
+template<class T>
+struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; };
+
+#define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
+
+
+/*
+ * Algorithms operating on iterators or iteratables.
+ */
 
 template <typename C, typename V> inline void
 hb_fill (const C& c, const V &v)

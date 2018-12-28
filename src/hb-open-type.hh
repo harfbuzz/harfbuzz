@@ -556,8 +556,10 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  template <typename Iter>
-  bool serialize (hb_serialize_context_t *c, const hb_iter_t<Iter>& items)
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  bool serialize (hb_serialize_context_t *c,
+		  const Iterable& items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
