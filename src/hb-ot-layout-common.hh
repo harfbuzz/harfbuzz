@@ -857,7 +857,7 @@ struct CoverageFormat1
 
   public:
   /* Older compilers need this to be public. */
-  struct Iter
+  struct iter_t
   {
     void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
     void fini () {}
@@ -971,7 +971,7 @@ struct CoverageFormat2
 
   public:
   /* Older compilers need this to be public. */
-  struct Iter
+  struct iter_t
   {
     void init (const CoverageFormat2 &c_)
     {
@@ -1104,11 +1104,11 @@ struct Coverage
     }
   }
 
-  struct Iter :
-    hb_sorted_iter_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >,
-    hb_iter_mixin_t<Iter, const hb_pair_t<unsigned, hb_codepoint_t> >
+  struct iter_t :
+    hb_sorted_iter_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >,
+    hb_iter_mixin_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >
   {
-    Iter (const Coverage &c_ = Null(Coverage))
+    iter_t (const Coverage &c_ = Null(Coverage))
     {
       memset (this, 0, sizeof (*this));
       format = c_.u.format;
@@ -1162,11 +1162,11 @@ struct Coverage
     private:
     unsigned int format;
     union {
-    CoverageFormat2::Iter	format2; /* Put this one first since it's larger; helps shut up compiler. */
-    CoverageFormat1::Iter	format1;
+    CoverageFormat2::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
+    CoverageFormat1::iter_t	format1;
     } u;
   };
-  Iter iter () const { return Iter (*this); }
+  iter_t iter () const { return iter_t (*this); }
 
   protected:
   union {
