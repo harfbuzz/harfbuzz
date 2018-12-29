@@ -55,7 +55,7 @@ template<typename T>
 struct hb_enable_if<true, T> { typedef T type; };
 
 #define hb_enable_if(Cond) typename hb_enable_if<Cond>::type* = nullptr
-#define hb_enable_if_t(Type, Cond) hb_enable_if<(Cond), Type>::type
+#define hb_enable_if_t(Cond, Type) typename hb_enable_if<(Cond), Type>::type
 
 
 /*
