@@ -11,7 +11,7 @@ import re
 import sys
 
 try:
-	reload(sys)
+  reload(sys)
   sys.setdefaultencoding('utf-8')
 except NameError:
   pass  # Python 3
