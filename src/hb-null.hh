@@ -111,7 +111,7 @@ static inline Type const & Null () {
 template <typename QType>
 struct NullHelper
 {
-  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  typedef hb_remove_const (hb_remove_reference (QType)) Type;
   static const Type & get_null () { return Null<Type> (); }
 };
 #define Null(Type) NullHelper<Type>::get_null ()
@@ -160,7 +160,7 @@ static inline Type& Crap () {
 template <typename QType>
 struct CrapHelper
 {
-  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  typedef hb_remove_const (hb_remove_reference (QType)) Type;
   static Type & get_crap () { return Crap<Type> (); }
 };
 #define Crap(Type) CrapHelper<Type>::get_crap ()
@@ -183,7 +183,7 @@ struct CrapOrNullHelper<const Type> {
 template <typename P>
 struct hb_nonnull_ptr_t
 {
-  typedef typename hb_remove_pointer (P) T;
+  typedef hb_remove_pointer (P) T;
 
   hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
   T * operator = (T *v_)   { return v = v_; }
