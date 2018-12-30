@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# flake8: noqa
+
 from __future__ import print_function, division, absolute_import
 
 import io, sys
@@ -160,6 +162,8 @@ globals().update(property_values)
 
 
 def is_BASE(U, UISC, UGC):
+	global Number, Consonant, Consonant_Head_Letter, Tone_Letter, Vowel_Independent, Lo, Avagraha
+	global Bindu, Consonant_Final, Consonant_Medial, Consonant_Subjoined, Vowel, Vowel_Dependent
 	return (UISC in [Number, Consonant, Consonant_Head_Letter,
 			#SPEC-DRAFT Consonant_Placeholder,
 			Tone_Letter,
@@ -168,25 +172,30 @@ def is_BASE(U, UISC, UGC):
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
 					Consonant_Subjoined, Vowel, Vowel_Dependent]))
 def is_BASE_IND(U, UISC, UGC):
+	global Consonant_Dead, Modifying_Letter, Po
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
 		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
+	global Brahmi_Joining_Number
 	return UISC == Brahmi_Joining_Number
 def is_BASE_OTHER(U, UISC, UGC):
+	global Consonant_Placeholder
 	if UISC == Consonant_Placeholder: return True #SPEC-DRAFT
 	#SPEC-DRAFT return U in [0x00A0, 0x00D7, 0x2015, 0x2022, 0x25CC, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 	return U in [0x2015, 0x2022, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 def is_CGJ(U, UISC, UGC):
 	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
+	global Consonant_Initial_Postfixed, Consonant_Succeeding_Repha
 	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
 	return ((UISC == Consonant_Final and UGC != Lo) or
 		UISC == Consonant_Initial_Postfixed or
 		UISC == Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
+	global Syllable_Modifier
 	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
 	return  UISC == Syllable_Modifier
 def is_CONS_MED(U, UISC, UGC):
@@ -194,25 +203,32 @@ def is_CONS_MED(U, UISC, UGC):
 def is_CONS_MOD(U, UISC, UGC):
 	return UISC in [Nukta, Gemination_Mark, Consonant_Killer]
 def is_CONS_SUB(U, UISC, UGC):
+	global Consonant_Killer
 	#SPEC-DRAFT return UISC == Consonant_Subjoined
 	return UISC == Consonant_Subjoined and UGC != Lo
 def is_CONS_WITH_STACKER(U, UISC, UGC):
+	global Consonant_With_Stacker
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
+	global Virama, Invisible_Stacker
 	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
 def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
 	# https://github.com/harfbuzz/harfbuzz/issues/1102
 	# https://github.com/harfbuzz/harfbuzz/issues/1379
 	return U in [0x11046, 0x1134D]
 def is_HALANT_NUM(U, UISC, UGC):
+	global Number_Joiner
 	return UISC == Number_Joiner
 def is_ZWNJ(U, UISC, UGC):
+	global Non_Joiner
 	return UISC == Non_Joiner
 def is_ZWJ(U, UISC, UGC):
+	global Joiner
 	return UISC == Joiner
 def is_Word_Joiner(U, UISC, UGC):
 	return U == 0x2060
 def is_OTHER(U, UISC, UGC):
+	global Other
 	#SPEC-OUTDATED return UGC == Zs # or any other SCRIPT_COMMON characters
 	return (UISC == Other
 		and not is_SYM_MOD(U, UISC, UGC)
@@ -223,8 +239,10 @@ def is_OTHER(U, UISC, UGC):
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
+	global Consonant_Preceding_Repha, Consonant_Prefixed
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SYM(U, UISC, UGC):
+	global So, Sc
 	if U == 0x25CC: return False #SPEC-DRAFT
 	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
 	return UGC in [So, Sc]
@@ -233,10 +251,12 @@ def is_SYM_MOD(U, UISC, UGC):
 def is_VARIATION_SELECTOR(U, UISC, UGC):
 	return 0xFE00 <= U <= 0xFE0F
 def is_VOWEL(U, UISC, UGC):
+	global Pure_Killer
 	# https://github.com/roozbehp/unicode-data/issues/6
 	return (UISC == Pure_Killer or
 		(UGC != Lo and UISC in [Vowel, Vowel_Dependent] and U not in [0xAA29]))
 def is_VOWEL_MOD(U, UISC, UGC):
+	global Register_Shifter, Visarga
 	# https://github.com/roozbehp/unicode-data/issues/6
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
 		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
@@ -309,6 +329,8 @@ use_positions = {
 }
 
 def map_to_use(data):
+	global Cantillation_Mark, Gemination_Mark, Not_Applicable, Nukta, Tone_Mark, Visual_Order_Left
+	global Top, Left, Bottom, Right
 	out = {}
 	items = use_mapping.items()
 	for U,(UISC,UIPC,UGC,UBlock) in data.items():
