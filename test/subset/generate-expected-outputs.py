@@ -3,6 +3,8 @@
 # Pre-generates the expected output subset files (via fonttools) for
 # specified subset test suite(s).
 
+from __future__ import print_function, division, absolute_import
+
 import io
 import os
 import sys
