@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# flake8: noqa
+
 from __future__ import print_function, division, absolute_import
 
 import io, sys
