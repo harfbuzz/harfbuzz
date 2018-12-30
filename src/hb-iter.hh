@@ -75,7 +75,8 @@ struct hb_iter_t
   iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
   iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
   iter_t& operator -- () { thiz()->__prev__ (); return *thiz(); }
-  iter_t operator + (unsigned count) const { iter_t c (*thiz()); c += count; return c; }
+  //TODO(C++11)iter_t operator + (unsigned count) const { iter_t c (*thiz()); c += count; return c; }
+  //TODO(C++11)friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { iter_t c (*thiz()); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
@@ -102,7 +103,7 @@ struct hb_iter_t
   using Name::operator ++; \
   using Name::operator -=; \
   using Name::operator --; \
-  using Name::operator +; \
+  /*TODO(C++11)using Name::operator +;*/ \
   using Name::operator -; \
   using Name::is_random_access; \
   static_assert (true, "")

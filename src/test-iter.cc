@@ -74,8 +74,9 @@ test_iterator (Iterator it)
   for (auto c = it.iter (); c; c++)
     *c;
 
-  it += it.len () + 10;
-  it = it + 10;
+  it += it.len ();
+  //TODO(C++11)it = it + 10;
+  //TODO(C++11)it = 10 + it;
 
   assert (*it == it[0]);
 
