@@ -55,7 +55,7 @@ class SubsetTestSuite:
 		if not os.path.exists(output_dir):
 			os.mkdir(output_dir)
 		if not os.path.isdir(output_dir):
-			raise Error("%s is not a directory." % output_dir)
+			raise Exception("%s is not a directory." % output_dir)
 
 		return output_dir
 

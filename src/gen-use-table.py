@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+# flake8: noqa
 
 from __future__ import print_function, division, absolute_import
 
-import io, sys
+import io
+import sys
 
 if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
