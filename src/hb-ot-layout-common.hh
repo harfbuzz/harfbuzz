@@ -826,8 +826,10 @@ struct CoverageFormat1
     return i;
   }
 
-  bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const GlyphID> glyphs)
+  template <typename Iterator>
+    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+  bool) serialize (hb_serialize_context_t *c,
+		   Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     return_trace (glyphArray.serialize (c, glyphs));
@@ -893,8 +895,10 @@ struct CoverageFormat2
 	   NOT_COVERED;
   }
 
-  bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const GlyphID> glyphs)
+  template <typename Iterator>
+    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+  bool) serialize (hb_serialize_context_t *c,
+		   Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1040,8 +1044,10 @@ struct Coverage
     }
   }
 
-  bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const GlyphID> glyphs)
+  template <typename Iterator>
+    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+  bool) serialize (hb_serialize_context_t *c,
+		   Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);

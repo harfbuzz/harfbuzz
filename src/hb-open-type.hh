@@ -553,7 +553,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename Iterator>
-  hb_enable_if_t (hb_is_iterator (Iterator, Type),
+    hb_enable_if_t (hb_is_iterator (Iterator, Type),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator items)
   {
