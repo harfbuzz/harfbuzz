@@ -3,6 +3,7 @@
 from __future__ import print_function, division, absolute_import
 
 import io, sys
+from collections import namedtuple
 
 if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
@@ -149,72 +150,70 @@ class PropertyValue(object):
 	def __hash__(self):
 		return hash(str(self))
 
-property_values = {}
-
+p = {}
 for name in property_names:
 	value = PropertyValue(name)
-	assert value not in property_values
-	assert value not in globals()
-	property_values[name] = value
-globals().update(property_values)
-
+	assert value not in p
+	p[name] = value
+# turn dict into object
+p = namedtuple('Struct', p.keys())(*p.values())
 
 def is_BASE(U, UISC, UGC):
-	return (UISC in [Number, Consonant, Consonant_Head_Letter,
-			#SPEC-DRAFT Consonant_Placeholder,
-			Tone_Letter,
-			Vowel_Independent #SPEC-DRAFT
+	return (UISC in [p.Number, p.Consonant, p.Consonant_Head_Letter,
+			#SPEC-DRAFT p.Consonant_Placeholder,
+			p.Tone_Letter,
+			p.Vowel_Independent #SPEC-DRAFT
 			] or
-		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
-					Consonant_Subjoined, Vowel, Vowel_Dependent]))
+		(UGC == p.Lo and UISC in [p.Avagraha, p.Bindu, p.Consonant_Final, p.Consonant_Medial,
+					p.Consonant_Subjoined, p.Vowel, p.Vowel_Dependent]))
 def is_BASE_IND(U, UISC, UGC):
-	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
-	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
+	#SPEC-DRAFT return (UISC in [p.Consonant_Dead, p.Modifying_Letter] or UGC == Po)
+	return (UISC in [p.Consonant_Dead, p.Modifying_Letter] or
+		(UGC == p.Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
-	return UISC == Brahmi_Joining_Number
+	return UISC == p.Brahmi_Joining_Number
 def is_BASE_OTHER(U, UISC, UGC):
-	if UISC == Consonant_Placeholder: return True #SPEC-DRAFT
+	if UISC == p.Consonant_Placeholder: return True #SPEC-DRAFT
 	#SPEC-DRAFT return U in [0x00A0, 0x00D7, 0x2015, 0x2022, 0x25CC, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 	return U in [0x2015, 0x2022, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 def is_CGJ(U, UISC, UGC):
 	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
-	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
-	return ((UISC == Consonant_Final and UGC != Lo) or
-		UISC == Consonant_Initial_Postfixed or
-		UISC == Consonant_Succeeding_Repha)
+	# p.Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
+	return ((UISC == p.Consonant_Final and UGC != p.Lo) or
+		UISC == p.Consonant_Initial_Postfixed or
+		UISC == p.Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
-	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
-	return  UISC == Syllable_Modifier
+	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, p.Syllable_Modifier]
+	return  UISC == p.Syllable_Modifier
 def is_CONS_MED(U, UISC, UGC):
-	return UISC == Consonant_Medial and UGC != Lo
+	return UISC == p.Consonant_Medial and UGC != p.Lo
 def is_CONS_MOD(U, UISC, UGC):
-	return UISC in [Nukta, Gemination_Mark, Consonant_Killer]
+	return UISC in [p.Nukta, p.Gemination_Mark, p.Consonant_Killer]
 def is_CONS_SUB(U, UISC, UGC):
-	#SPEC-DRAFT return UISC == Consonant_Subjoined
-	return UISC == Consonant_Subjoined and UGC != Lo
+	#SPEC-DRAFT return UISC == p.Consonant_Subjoined
+	return UISC == p.Consonant_Subjoined and UGC != p.Lo
 def is_CONS_WITH_STACKER(U, UISC, UGC):
-	return UISC == Consonant_With_Stacker
+	return UISC == p.Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
-	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
+	return UISC in [p.Virama, p.Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
 def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
 	# https://github.com/harfbuzz/harfbuzz/issues/1102
 	# https://github.com/harfbuzz/harfbuzz/issues/1379
 	return U in [0x11046, 0x1134D]
 def is_HALANT_NUM(U, UISC, UGC):
-	return UISC == Number_Joiner
+	return UISC == p.Number_Joiner
 def is_ZWNJ(U, UISC, UGC):
-	return UISC == Non_Joiner
+	return UISC == p.Non_Joiner
 def is_ZWJ(U, UISC, UGC):
-	return UISC == Joiner
+	return UISC == p.Joiner
 def is_Word_Joiner(U, UISC, UGC):
 	return U == 0x2060
 def is_OTHER(U, UISC, UGC):
-	#SPEC-OUTDATED return UGC == Zs # or any other SCRIPT_COMMON characters
-	return (UISC == Other
+	#SPEC-OUTDATED return UGC == p.Zs # or any other SCRIPT_COMMON characters
+	return (UISC == p.Other
 		and not is_SYM_MOD(U, UISC, UGC)
 		and not is_CGJ(U, UISC, UGC)
 		and not is_Word_Joiner(U, UISC, UGC)
@@ -223,23 +222,23 @@ def is_OTHER(U, UISC, UGC):
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
-	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
+	return UISC in [p.Consonant_Preceding_Repha, p.Consonant_Prefixed]
 def is_SYM(U, UISC, UGC):
 	if U == 0x25CC: return False #SPEC-DRAFT
-	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
-	return UGC in [So, Sc]
+	#SPEC-DRAFT return UGC in [p.So, p.Sc] or UISC == Symbol_Letter
+	return UGC in [p.So, p.Sc]
 def is_SYM_MOD(U, UISC, UGC):
 	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
 def is_VARIATION_SELECTOR(U, UISC, UGC):
 	return 0xFE00 <= U <= 0xFE0F
 def is_VOWEL(U, UISC, UGC):
 	# https://github.com/roozbehp/unicode-data/issues/6
-	return (UISC == Pure_Killer or
-		(UGC != Lo and UISC in [Vowel, Vowel_Dependent] and U not in [0xAA29]))
+	return (UISC == p.Pure_Killer or
+		(UGC != p.Lo and UISC in [p.Vowel, p.Vowel_Dependent] and U not in [0xAA29]))
 def is_VOWEL_MOD(U, UISC, UGC):
 	# https://github.com/roozbehp/unicode-data/issues/6
-	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
-		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
+	return (UISC in [p.Tone_Mark, p.Cantillation_Mark, p.Register_Shifter, p.Visarga] or
+		(UGC != p.Lo and (UISC == p.Bindu or U in [0xAA29])))
 
 use_mapping = {
 	'B':	is_BASE,
@@ -271,35 +270,35 @@ use_mapping = {
 
 use_positions = {
 	'F': {
-		'Abv': [Top],
-		'Blw': [Bottom],
-		'Pst': [Right],
+		'Abv': [p.Top],
+		'Blw': [p.Bottom],
+		'Pst': [p.Right],
 	},
 	'M': {
-		'Abv': [Top],
-		'Blw': [Bottom, Bottom_And_Left],
-		'Pst': [Right],
-		'Pre': [Left],
+		'Abv': [p.Top],
+		'Blw': [p.Bottom, p.Bottom_And_Left],
+		'Pst': [p.Right],
+		'Pre': [p.Left],
 	},
 	'CM': {
-		'Abv': [Top],
-		'Blw': [Bottom],
+		'Abv': [p.Top],
+		'Blw': [p.Bottom],
 	},
 	'V': {
-		'Abv': [Top, Top_And_Bottom, Top_And_Bottom_And_Right, Top_And_Right],
-		'Blw': [Bottom, Overstruck, Bottom_And_Right],
-		'Pst': [Right, Top_And_Left, Top_And_Left_And_Right, Left_And_Right],
-		'Pre': [Left],
+		'Abv': [p.Top, p.Top_And_Bottom, p.Top_And_Bottom_And_Right, p.Top_And_Right],
+		'Blw': [p.Bottom, p.Overstruck, p.Bottom_And_Right],
+		'Pst': [p.Right, p.Top_And_Left, p.Top_And_Left_And_Right, p.Left_And_Right],
+		'Pre': [p.Left],
 	},
 	'VM': {
-		'Abv': [Top],
-		'Blw': [Bottom, Overstruck],
-		'Pst': [Right],
-		'Pre': [Left],
+		'Abv': [p.Top],
+		'Blw': [p.Bottom, p.Overstruck],
+		'Pst': [p.Right],
+		'Pre': [p.Left],
 	},
 	'SM': {
-		'Abv': [Top],
-		'Blw': [Bottom],
+		'Abv': [p.Top],
+		'Blw': [p.Bottom],
 	},
 	'H': None,
 	'HVM': None,
@@ -316,48 +315,48 @@ def map_to_use(data):
 		# Resolve Indic_Syllabic_Category
 
 		# TODO: These don't have UISC assigned in Unicode 8.0, but have UIPC
-		if U == 0x17DD: UISC = Vowel_Dependent
-		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
+		if U == 0x17DD: UISC = p.Vowel_Dependent
+		if 0x1CE2 <= U <= 0x1CE8: UISC = p.Cantillation_Mark
 
 		# Tibetan:
 		# TODO: These don't have UISC assigned in Unicode 11.0, but have UIPC
-		if 0x0F18 <= U <= 0x0F19 or 0x0F3E <= U <= 0x0F3F: UISC = Vowel_Dependent
-		if 0x0F86 <= U <= 0x0F87: UISC = Tone_Mark
+		if 0x0F18 <= U <= 0x0F19 or 0x0F3E <= U <= 0x0F3F: UISC = p.Vowel_Dependent
+		if 0x0F86 <= U <= 0x0F87: UISC = p.Tone_Mark
 		# Overrides to allow NFC order matching syllable
 		# https://github.com/harfbuzz/harfbuzz/issues/1012
 		if UBlock == 'Tibetan' and is_VOWEL (U, UISC, UGC):
-			if UIPC == Top:
-				UIPC = Bottom
+			if UIPC == p.Top:
+				UIPC = p.Bottom
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
 		# also  https://github.com/harfbuzz/harfbuzz/issues/1012
 		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
-			if UIPC == Top:
-				UIPC = Bottom
-			elif UIPC == Bottom:
-				UIPC = Top
+			if UIPC == p.Top:
+				UIPC = p.Bottom
+			elif UIPC == p.Bottom:
+				UIPC = p.Top
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/627
-		if 0x1BF2 <= U <= 0x1BF3: UISC = Nukta; UIPC = Bottom
+		if 0x1BF2 <= U <= 0x1BF3: UISC = p.Nukta; UIPC = p.Bottom
 
 		# TODO: U+1CED should only be allowed after some of
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
-		if U == 0x1CED: UISC = Tone_Mark
+		if U == 0x1CED: UISC = p.Tone_Mark
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/525
-		if U == 0x1A7F: UISC = Consonant_Final; UIPC = Bottom
+		if U == 0x1A7F: UISC = p.Consonant_Final; UIPC = p.Bottom
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/609
-		if U == 0x20F0: UISC = Cantillation_Mark; UIPC = Top
+		if U == 0x20F0: UISC = p.Cantillation_Mark; UIPC = p.Top
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/626
-		if U == 0xA8B4: UISC = Consonant_Medial
+		if U == 0xA8B4: UISC = p.Consonant_Medial
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
-		if U == 0x11134: UISC = Gemination_Mark
+		if U == 0x11134: UISC = p.Gemination_Mark
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1399
-		if U == 0x111C9: UISC = Consonant_Final
+		if U == 0x111C9: UISC = p.Consonant_Final
 
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
@@ -366,28 +365,28 @@ def map_to_use(data):
 		# Resolve Indic_Positional_Category
 
 		# TODO: Not in Unicode 8.0 yet, but in spec.
-		if U == 0x1B6C: UIPC = Bottom
+		if U == 0x1B6C: UIPC = p.Bottom
 
 		# TODO: These should die, but have UIPC in Unicode 8.0
-		if U in [0x953, 0x954]: UIPC = Not_Applicable
+		if U in [0x953, 0x954]: UIPC = p.Not_Applicable
 
 		# TODO: In USE's override list but not in Unicode 11.0
-		if U == 0x103C: UIPC = Left
+		if U == 0x103C: UIPC = p.Left
 
 		# TODO: These are not in USE's override list that we have, nor are they in Unicode 11.0
-		if 0xA926 <= U <= 0xA92A: UIPC = Top
-		if U == 0x111CA: UIPC = Bottom
-		if U == 0x11300: UIPC = Top
+		if 0xA926 <= U <= 0xA92A: UIPC = p.Top
+		if U == 0x111CA: UIPC = p.Bottom
+		if U == 0x11300: UIPC = p.Top
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1037
-		if U == 0x11302: UIPC = Top
-		if U == 0x1133C: UIPC = Bottom
-		if U == 0x1171E: UIPC = Left # Correct?!
-		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
-		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
+		if U == 0x11302: UIPC = p.Top
+		if U == 0x1133C: UIPC = p.Bottom
+		if U == 0x1171E: UIPC = p.Left # Correct?!
+		if 0x1CF2 <= U <= 0x1CF3: UIPC = p.Right
+		if 0x1CF8 <= U <= 0x1CF9: UIPC = p.Top
 		# https://github.com/roozbehp/unicode-data/issues/8
-		if U == 0x0A51: UIPC = Bottom
+		if U == 0x0A51: UIPC = p.Bottom
 
-		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
+		assert (UIPC in [p.Not_Applicable, p.Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
 
 		pos_mapping = use_positions.get(USE, None)
