@@ -119,19 +119,22 @@ struct hb_array_t :
 
   hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
   {
-    ::qsort (arrayZ, length, this->item_size, cmp_);
+    if (likely (length))
+      ::qsort (arrayZ, length, this->item_size, cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
   hb_sorted_array_t<Type> qsort ()
   {
-    ::qsort (arrayZ, length, this->item_size, Type::cmp);
+    if (likely (length))
+      ::qsort (arrayZ, length, this->item_size, Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
   void qsort (unsigned int start, unsigned int end)
   {
     end = MIN (end, length);
     assert (start <= end);
-    ::qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
+    if (likely (start < end))
+      ::qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
   }
 
   /*
