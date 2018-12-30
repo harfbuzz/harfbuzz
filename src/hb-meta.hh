@@ -37,6 +37,16 @@
 
 template <typename T> static inline T hb_declval ();
 
+template <typename T> struct hb_remove_const { typedef T value; };
+template <typename T> struct hb_remove_const<const T> { typedef T value; };
+#define hb_remove_const(T) hb_remove_const<T>::value
+template <typename T> struct hb_remove_reference { typedef T value; };
+template <typename T> struct hb_remove_reference<T &> { typedef T value; };
+#define hb_remove_reference(T) hb_remove_reference<T>::value
+template <typename T> struct hb_remove_pointer { typedef T value; };
+template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
+#define hb_remove_pointer(T) hb_remove_pointer<T>::value
+
 
 /* Void!  For when we need a expression-type of void. */
 struct hb_void_t { typedef void value; };

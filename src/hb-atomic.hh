@@ -33,6 +33,7 @@
 #define HB_ATOMIC_HH
 
 #include "hb.hh"
+#include "hb-meta.hh"
 
 
 /*

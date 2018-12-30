@@ -612,24 +612,12 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
 
 
-/* Some really basic things everyone wants. */
-template <typename T> struct hb_remove_const { typedef T value; };
-template <typename T> struct hb_remove_const<const T> { typedef T value; };
-#define hb_remove_const(T) hb_remove_const<T>::value
-template <typename T> struct hb_remove_reference { typedef T value; };
-template <typename T> struct hb_remove_reference<T &> { typedef T value; };
-#define hb_remove_reference(T) hb_remove_reference<T>::value
-template <typename T> struct hb_remove_pointer { typedef T value; };
-template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
-#define hb_remove_pointer(T) hb_remove_pointer<T>::value
-
-
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
-#include "hb-atomic.hh"
 #include "hb-meta.hh"
 #include "hb-mutex.hh"
+#include "hb-atomic.hh"	// Requires: hb-meta
 #include "hb-null.hh"	// Requires: hb-meta
 #include "hb-dsalgs.hh"	// Requires: hb-null
 #include "hb-iter.hh"	// Requires: hb-dsalgs hb-meta hb-null
