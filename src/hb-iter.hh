@@ -177,29 +177,23 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 
 /* The following SFINAE fails to match template parameters to hb_iter_t<>.
  * As such, just check for member is_iter being there. */
-# if 0
-template<typename T = void> char
-_hb_is_iterator (T *) {};
+template<typename Iter = void, typename Item = void> char
+_hb_is_iterator (...) {};
 template<typename Iter, typename Item> int
 _hb_is_iterator (hb_iter_t<Iter, Item> *) {};
+template<typename Iter, typename Item> int
+_hb_is_iterator (hb_iter_t<Iter, const Item> *) {};
+template<typename Iter, typename Item> int
+_hb_is_iterator (hb_iter_t<Iter, Item&> *) {};
+template<typename Iter, typename Item> int
+_hb_is_iterator (hb_iter_t<Iter, const Item&> *) {};
 static_assert (sizeof (char) != sizeof (int), "");
 
-template<typename T>
+template<typename Iter, typename Item>
 struct hb_is_iterator { enum {
-  value = sizeof (int) == sizeof (_hb_is_iterator (hb_declval<T*> ()))
+  value = sizeof (int) == sizeof (_hb_is_iterator (hb_declval<Iter*> ()))
 }; };
-#endif
-
-template<typename T, typename B>
-struct _hb_is_iterator
-{ enum { value = false }; };
-template<typename T>
-struct _hb_is_iterator<T, hb_bool_tt<true || sizeof (T::is_iter)> >
-{ enum { value = true }; };
-
-template<typename T>
-struct hb_is_iterator { enum { value = _hb_is_iterator<T, hb_true_t>::value }; };
-#define hb_is_iterator(Iterator) hb_is_iterator<Iterator>::value
+#define hb_is_iterator(Iter, Item) hb_is_iterator<Iter, Item>::value
 
 
 /*
