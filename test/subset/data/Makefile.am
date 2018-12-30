@@ -5,7 +5,7 @@ EXTRA_DIST =
 CLEANFILES =
 SUBDIRS =
 
-EXTRA_DIST = \
+EXTRA_DIST += \
 	$(TESTS) \
 	expected/basics \
 	expected/full-font \
