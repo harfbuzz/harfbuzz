@@ -323,7 +323,7 @@ workflows:
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
       #- macos-llvm-gcc-4.2
-      - macos-notest-apple-gcc-i686-4.2
+      #- macos-notest-apple-gcc-i686-4.2
       - macos-notest-ios
 
       # both autotools and cmake
