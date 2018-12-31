@@ -1208,7 +1208,7 @@ struct ClassDefFormat1
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const HBUINT16> glyphs,
+		  hb_array_t<const GlyphID> glyphs,
 		  hb_array_t<const HBUINT16> klasses)
   {
     TRACE_SERIALIZE (this);

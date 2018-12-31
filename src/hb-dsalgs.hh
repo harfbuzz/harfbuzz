@@ -497,8 +497,8 @@ static inline void hb_sort_r(void *base, size_t nel, size_t width,
 }
 
 
-template <typename T, typename T2> static inline void
-hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), T2 *array2)
+template <typename T, typename T2, typename T3> static inline void
+hb_stable_sort (T *array, unsigned int len, int(*compar)(const T2 *, const T2 *), T3 *array2)
 {
   for (unsigned int i = 1; i < len; i++)
   {
@@ -515,8 +515,8 @@ hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), 
     }
     if (array2)
     {
-      T2 t = array2[i];
-      memmove (&array2[j + 1], &array2[j], (i - j) * sizeof (T2));
+      T3 t = array2[i];
+      memmove (&array2[j + 1], &array2[j], (i - j) * sizeof (T3));
       array2[j] = t;
     }
   }

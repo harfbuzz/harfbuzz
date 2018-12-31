@@ -151,7 +151,7 @@ struct Tag : HBUINT32
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-typedef HBUINT16 GlyphID;
+struct GlyphID : HBUINT16 {};
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
