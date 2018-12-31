@@ -55,7 +55,8 @@ struct hb_iter_t
   typedef Iter iter_t;
   typedef Item item_t;
   enum { item_size = hb_static_size (Item) };
-  enum { is_iter = true };
+  enum { is_iterator = true };
+  enum { is_random_access_iterator = false };
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -80,7 +81,6 @@ struct hb_iter_t
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { iter_t c (*thiz()); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
-  constexpr bool is_random_access () const { return thiz()->__random_access__ (); }
 
   protected:
   hb_iter_t () {}
@@ -92,7 +92,8 @@ struct hb_iter_t
   using typename Name::iter_t; \
   using typename Name::item_t; \
   using Name::item_size; \
-  using Name::is_iter; \
+  using Name::is_iterator; \
+  using Name::is_random_access_iterator; \
   using Name::iter; \
   using Name::operator bool; \
   using Name::len; \
@@ -105,7 +106,6 @@ struct hb_iter_t
   using Name::operator --; \
   using Name::operator +; \
   using Name::operator -; \
-  using Name::is_random_access; \
   static_assert (true, "")
 
 /* Base class for sorted iterators.  Does not enforce anything.
@@ -145,9 +145,6 @@ struct hb_iter_mixin_t
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
   void __prev__ () { *thiz() -= 1; }
   void __rewind__ (unsigned n) { while (n--) --*thiz(); }
-
-  /* Random access: Implement if __item_at__(), __len__(), __forward__() are. */
-  constexpr bool __random_access__ () const { return false; }
 
   protected:
   hb_iter_mixin_t () {}

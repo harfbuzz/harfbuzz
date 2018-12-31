@@ -53,6 +53,7 @@ struct hb_array_t :
    * Iterator implementation.
    */
   typedef Type& __item_type__;
+  enum { is_random_access_iterator = true };
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
@@ -72,7 +73,6 @@ struct hb_array_t :
     length -= n;
   }
   unsigned __len__ () const { return length; }
-  bool __random_access__ () const { return true; }
 
   /* Extra operators.
    */

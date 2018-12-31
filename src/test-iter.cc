@@ -40,11 +40,11 @@ struct array_iter_t :
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 
   typedef T& __item_type__;
+  enum { is_random_access_iterator = true };
   T& __item_at__ (unsigned i) const { return arr[i]; }
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }
   unsigned __len__ () const { return arr.length; }
-  bool __random_access__ () const { return true; }
 
   private:
   hb_array_t<T> arr;
