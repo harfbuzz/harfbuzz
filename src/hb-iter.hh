@@ -199,7 +199,7 @@ struct hb_is_sorted_iterator { enum {
  */
 
 template <typename C, typename V> inline void
-hb_fill (const C& c, const V &v)
+hb_fill (C& c, const V &v)
 {
   for (typename C::iter_t i (c); i; i++)
     hb_assign (*i, v);
