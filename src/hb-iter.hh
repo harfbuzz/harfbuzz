@@ -175,10 +175,7 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 
 /* hb_is_iterator() */
 
-/* The following SFINAE fails to match template parameters to hb_iter_t<>.
- * As such, just check for member is_iter being there. */
-template<typename Iter = void, typename Item = void> char
-_hb_is_iterator (...) {};
+template<typename Iter = void, typename Item = void> char _hb_is_iterator (...) {};
 template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, Item> *) {};
 template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, const Item> *) {};
 template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, Item&> *) {};
