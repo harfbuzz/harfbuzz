@@ -908,9 +908,11 @@ struct CoverageFormat2
       rangeRecord.len.set (0);
       return_trace (true);
     }
+    /* TODO(iter) Port to non-random-access iterator interface. */
+    unsigned int count = glyphs.len ();
 
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < glyphs.length; i++)
+    for (unsigned int i = 1; i < count; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
     rangeRecord.len.set (num_ranges);
@@ -919,7 +921,7 @@ struct CoverageFormat2
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value.set (0);
-    for (unsigned int i = 1; i < glyphs.length; i++)
+    for (unsigned int i = 1; i < count; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i])
       {
@@ -1052,11 +1054,13 @@ struct Coverage
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
+    /* TODO(iter) Port to non-random-access iterator interface. */
+    unsigned int count = glyphs.len ();
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < glyphs.length; i++)
+    for (unsigned int i = 1; i < count; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
-    u.format.set (glyphs.length * 2 < num_ranges * 3 ? 1 : 2);
+    u.format.set (count * 2 < num_ranges * 3 ? 1 : 2);
 
     switch (u.format)
     {
