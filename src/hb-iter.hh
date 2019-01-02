@@ -163,11 +163,11 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 
 /* hb_is_iterator() / hb_is_sorted_iterator() */
 
-template<typename Item = void> char _hb_is_iterator (...) {};
-template<typename Item> int _hb_is_iterator (hb_iter_of_t<Item> *) {};
-template<typename Item> int _hb_is_iterator (hb_iter_of_t<const Item> *) {};
-template<typename Item> int _hb_is_iterator (hb_iter_of_t<Item&> *) {};
-template<typename Item> int _hb_is_iterator (hb_iter_of_t<const Item&> *) {};
+template<typename Item = void> char _hb_is_iterator (...) { return 0; };
+template<typename Item> int _hb_is_iterator (hb_iter_of_t<Item> *) { return 0; };
+template<typename Item> int _hb_is_iterator (hb_iter_of_t<const Item> *) { return 0; };
+template<typename Item> int _hb_is_iterator (hb_iter_of_t<Item&> *) { return 0; };
+template<typename Item> int _hb_is_iterator (hb_iter_of_t<const Item&> *) { return 0; };
 static_assert (sizeof (char) != sizeof (int), "");
 template<typename Iter, typename Item>
 struct hb_is_iterator { enum {
