@@ -57,6 +57,7 @@ struct hb_iter_t
   enum { item_size = hb_static_size (Item) };
   enum { is_iterator = true };
   enum { is_random_access_iterator = false };
+  enum { is_sorted_iterator = false };
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -93,7 +94,6 @@ struct hb_iter_t
   using typename Name::item_t; \
   using Name::item_size; \
   using Name::is_iterator; \
-  using Name::is_random_access_iterator; \
   using Name::iter; \
   using Name::operator bool; \
   using Name::len; \
@@ -107,17 +107,6 @@ struct hb_iter_t
   using Name::operator +; \
   using Name::operator -; \
   static_assert (true, "")
-
-/* Base class for sorted iterators.  Does not enforce anything.
- * Just for class taxonomy and requirements. */
-template <typename Iter, typename Item = typename Iter::__item_type__>
-struct hb_sorted_iter_t : hb_iter_t<Iter, Item>
-{
-  protected:
-  hb_sorted_iter_t () {}
-  hb_sorted_iter_t (const hb_sorted_iter_t &o) : hb_iter_t<Iter, Item> (o) {}
-  void operator = (const hb_sorted_iter_t &o HB_UNUSED) {}
-};
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_type__>
@@ -183,16 +172,9 @@ struct hb_is_iterator { enum {
   value = sizeof (int) == sizeof (_hb_is_iterator (hb_declval<Iter*> ())) }; };
 #define hb_is_iterator(Iter, Item) hb_is_iterator<Iter, Item>::value
 
-template<typename Iter = void, typename Item = void> char _hb_is_sorted_iterator (...) {};
-template<typename Iter, typename Item> int _hb_is_sorted_iterator (hb_sorted_iter_t<Iter, Item> *) {};
-template<typename Iter, typename Item> int _hb_is_sorted_iterator (hb_sorted_iter_t<Iter, const Item> *) {};
-template<typename Iter, typename Item> int _hb_is_sorted_iterator (hb_sorted_iter_t<Iter, Item&> *) {};
-template<typename Iter, typename Item> int _hb_is_sorted_iterator (hb_sorted_iter_t<Iter, const Item&> *) {};
-static_assert (sizeof (char) != sizeof (int), "");
-template<typename Iter, typename Item>
-struct hb_is_sorted_iterator { enum {
-  value = sizeof (int) == sizeof (_hb_is_sorted_iterator (hb_declval<Iter*> ())) }; };
-#define hb_is_sorted_iterator(Iter, Item) hb_is_sorted_iterator<Iter, Item>::value
+#define hb_is_sorted_iterator(Iter, Item) \
+  hb_is_iterator (Iter, Item) && \
+  Iter::is_sorted_iterator
 
 /*
  * Algorithms operating on iterators or iteratables.

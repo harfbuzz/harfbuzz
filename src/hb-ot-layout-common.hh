@@ -1115,9 +1115,10 @@ struct Coverage
   }
 
   struct iter_t :
-    hb_sorted_iter_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >,
+    hb_iter_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >,
     hb_iter_mixin_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >
   {
+    enum { is_sorted_iterator = true };
     iter_t (const Coverage &c_ = Null(Coverage))
     {
       memset (this, 0, sizeof (*this));

@@ -193,11 +193,13 @@ enum hb_bfind_not_found_t
 
 template <typename Type>
 struct hb_sorted_array_t :
-	hb_sorted_iter_t<hb_sorted_array_t<Type>, Type&>,
+	hb_iter_t<hb_sorted_array_t<Type>, Type&>,
 	hb_array_t<Type>
 {
-  typedef hb_sorted_iter_t<hb_sorted_array_t<Type>, Type&> iter_base_t;
+  typedef hb_iter_t<hb_sorted_array_t<Type>, Type&> iter_base_t;
   HB_ITER_USING (iter_base_t);
+  enum { is_random_access_iterator = true };
+  enum { is_sorted_iterator = true };
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}

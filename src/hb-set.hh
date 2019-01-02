@@ -672,9 +672,10 @@ struct hb_set_t
    * Iterator implementation.
    */
   struct iter_t :
-    hb_sorted_iter_t<iter_t, hb_codepoint_t>,
+    hb_iter_t<iter_t, hb_codepoint_t>,
     hb_iter_mixin_t<iter_t, hb_codepoint_t>
   {
+    enum { is_sorted_iterator = true };
     iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
       s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
 
