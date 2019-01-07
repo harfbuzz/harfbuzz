@@ -80,7 +80,7 @@ test_iterator (Iterator it)
 
   assert (*it == it[0]);
 
-  if (it.is_random_access ()) {}
+  if (it.is_random_access_iterator) {}
 }
 
 template <typename Iterable> static void
