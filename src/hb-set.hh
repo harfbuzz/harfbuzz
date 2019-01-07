@@ -186,7 +186,7 @@ struct hb_set_t
   hb_object_header_t header;
   bool successful; /* Allocations successful */
   mutable unsigned int population;
-  hb_vector_t<page_map_t> page_map;
+  hb_sorted_vector_t<page_map_t> page_map;
   hb_vector_t<page_t> pages;
 
   void init_shallow ()

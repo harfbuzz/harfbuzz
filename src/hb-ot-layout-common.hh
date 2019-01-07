@@ -827,7 +827,7 @@ struct CoverageFormat1
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {
@@ -896,7 +896,7 @@ struct CoverageFormat2
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {
@@ -1047,7 +1047,7 @@ struct Coverage
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {
@@ -1240,7 +1240,7 @@ struct ClassDefFormat1
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
-    hb_vector_t<GlyphID> glyphs;
+    hb_sorted_vector_t<GlyphID> glyphs;
     hb_vector_t<HBUINT16> klasses;
 
     hb_codepoint_t start = startGlyph;

@@ -88,7 +88,7 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_single (&c,
 				       OT::LookupFlag::IgnoreMarks,
-				       hb_array (glyphs, num_glyphs),
+				       hb_sorted_array (glyphs, num_glyphs),
 				       hb_array (substitutes, num_glyphs));
   c.end_serialize ();
   /* TODO sanitize the results? */
@@ -163,7 +163,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
 					 OT::LookupFlag::IgnoreMarks,
-					 hb_array (first_glyphs, num_first_glyphs),
+					 hb_sorted_array (first_glyphs, num_first_glyphs),
 					 hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
 					 hb_array (ligature_list, num_ligatures),
 					 hb_array (component_count_list, num_ligatures),
