@@ -161,15 +161,19 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 
 /* hb_is_iterator() / hb_is_sorted_iterator() */
 
-template<typename Iter = void, typename Item = void> char _hb_is_iterator (...) { return 0; };
-template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, Item> *) { return 0; };
-template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, const Item> *) { return 0; };
-template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, Item&> *) { return 0; };
-template<typename Iter, typename Item> int _hb_is_iterator (hb_iter_t<Iter, const Item&> *) { return 0; };
-static_assert (sizeof (char) != sizeof (int), "");
+template <typename Iter>
+struct _hb_is_iterator
+{
+  char operator () (...) { return 0; };
+  template<typename Item> int operator () (hb_iter_t<Iter, Item> *) { return 0; };
+  template<typename Item> int operator () (hb_iter_t<Iter, const Item> *) { return 0; };
+  template<typename Item> int operator () (hb_iter_t<Iter, Item&> *) { return 0; };
+  template<typename Item> int operator () (hb_iter_t<Iter, const Item&> *) { return 0; };
+  static_assert (sizeof (char) != sizeof (int), "");
+};
 template<typename Iter, typename Item>
 struct hb_is_iterator { enum {
-  value = sizeof (int) == sizeof (_hb_is_iterator (hb_declval<Iter*> ())) }; };
+  value = sizeof (int) == sizeof (hb_declval<_hb_is_iterator<Iter>> () (hb_declval<Iter*> ())) }; };
 #define hb_is_iterator(Iter, Item) hb_is_iterator<Iter, Item>::value
 
 #define hb_is_sorted_iterator(Iter, Item) \
