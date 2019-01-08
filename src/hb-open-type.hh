@@ -806,13 +806,13 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   operator hb_sorted_array_t<Type> ()             { return as_array (); }
   operator hb_sorted_array_t<const Type> () const { return as_array (); }
 
-  hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
+  hb_sorted_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
-  hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
+  hb_sorted_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
   { return as_array ().sub_array (start_offset, count);}
-  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
+  hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
   { return as_array ().sub_array (start_offset, count);}
-  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
+  hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count);}
 
   bool serialize (hb_serialize_context_t *c, unsigned int items_len)
