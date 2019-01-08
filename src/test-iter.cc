@@ -66,7 +66,7 @@ struct some_array_t
 
 
 template <typename Iter> static
-  hb_enable_if_t (hb_is_iterator (Iter, typename Iter::item_t),
+  hb_enable_if_t (hb_is_iterator (Iter),
 void)
 test_iterator (Iter it)
 {

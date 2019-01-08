@@ -827,7 +827,7 @@ struct CoverageFormat1
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {
@@ -896,7 +896,7 @@ struct CoverageFormat2
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {
@@ -1047,7 +1047,7 @@ struct Coverage
   }
 
   template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const GlyphID),
+    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
   bool) serialize (hb_serialize_context_t *c,
 		   Iterator glyphs)
   {

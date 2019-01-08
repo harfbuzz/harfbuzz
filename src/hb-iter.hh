@@ -162,7 +162,7 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 /* hb_is_iterator() / hb_is_sorted_iterator() */
 
 template <typename Iter>
-struct _hb_is_iterator
+struct _hb_is_iterator_of
 {
   char operator () (...) { return 0; };
   template<typename Item> int operator () (hb_iter_t<Iter, Item> *) { return 0; };
@@ -172,13 +172,16 @@ struct _hb_is_iterator
   static_assert (sizeof (char) != sizeof (int), "");
 };
 template<typename Iter, typename Item>
-struct hb_is_iterator { enum {
-  value = sizeof (int) == sizeof (hb_declval (_hb_is_iterator<Iter>) (hb_declval (Iter*))) }; };
-#define hb_is_iterator(Iter, Item) hb_is_iterator<Iter, Item>::value
+struct hb_is_iterator_of { enum {
+  value = sizeof (int) == sizeof (hb_declval (_hb_is_iterator_of<Iter>) (hb_declval (Iter*))) }; };
+#define hb_is_iterator_of(Iter, Item) hb_is_iterator_of<Iter, Item>::value
+#define hb_is_iterator(Iter) hb_is_iterator_of (Iter, typename Iter::item_t)
 
-#define hb_is_sorted_iterator(Iter, Item) \
-  hb_is_iterator (Iter, Item) && \
+#define hb_is_sorted_iterator_of(Iter, Item) \
+  hb_is_iterator_of (Iter, Item) && \
   Iter::is_sorted_iterator
+#define hb_is_sorted_iterator(Iter) \
+  hb_is_sorted_iterator_of (Iter, typename Iter::item_t)
 
 /*
  * Algorithms operating on iterators or iteratables.
