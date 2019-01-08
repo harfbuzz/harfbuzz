@@ -121,5 +121,8 @@ main (int argc, char **argv)
   test_iterable<hb_set_t> ();
   test_iterable<OT::Coverage> ();
 
+  hb_array_t<hb_vector_t<int> > pa;
+  pa->as_array ();
+
   return 0;
 }
