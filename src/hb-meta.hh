@@ -37,18 +37,18 @@
 
 template <typename T> static inline T hb_declval ();
 
-template <typename T> struct hb_match_const { typedef T type; enum { matched = false }; };
-template <typename T> struct hb_match_const<const T> { typedef T type; enum { matched = true }; };
+template <typename T> struct hb_match_const { typedef T type; enum { value = false }; };
+template <typename T> struct hb_match_const<const T> { typedef T type; enum { value = true }; };
 #define hb_remove_const(T) typename hb_match_const<T>::type
-#define hb_is_const(T) hb_match_const<T>::matched
-template <typename T> struct hb_match_reference { typedef T type; enum { matched = false }; };
-template <typename T> struct hb_match_reference<T &> { typedef T type; enum { matched = true }; };
+#define hb_is_const(T) hb_match_const<T>::value
+template <typename T> struct hb_match_reference { typedef T type; enum { value = false }; };
+template <typename T> struct hb_match_reference<T &> { typedef T type; enum { value = true }; };
 #define hb_remove_reference(T) typename hb_match_reference<T>::type
-#define hb_is_reference(T) hb_match_reference<T>::matched
-template <typename T> struct hb_match_pointer { typedef T type; enum { matched = false }; };
-template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { matched = true }; };
+#define hb_is_reference(T) hb_match_reference<T>::value
+template <typename T> struct hb_match_pointer { typedef T type; enum { value = false }; };
+template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { value = true }; };
 #define hb_remove_pointer(T) typename hb_match_pointer<T>::type
-#define hb_is_pointer(T) hb_match_pointer<T>::matched
+#define hb_is_pointer(T) hb_match_pointer<T>::value
 
 
 /* Void!  For when we need a expression-type of void. */
