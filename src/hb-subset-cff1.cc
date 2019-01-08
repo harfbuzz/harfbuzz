@@ -453,7 +453,7 @@ struct cff_subset_plan {
     subset_localsubrs.fini_deep ();
     fontdicts_mod.fini ();
     subset_enc_code_ranges.fini ();
-    subset_enc_supp_codes.init ();
+    subset_enc_supp_codes.fini ();
     subset_charset_ranges.fini ();
     sidmap.fini ();
     fontdicts_mod.fini ();
