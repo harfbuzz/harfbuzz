@@ -65,6 +65,10 @@ struct hb_iter_t
         iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
   public:
 
+  /* TODO:
+   * Port operators below to use hb_enable_if to sniff which method implements
+   * an operator and use it, and remove hb_iter_mixin_t completely. */
+
   /* Operators. */
   iter_t iter () const { return *thiz(); }
   explicit_operator bool () const { return thiz()->__more__ (); }
