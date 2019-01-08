@@ -36,6 +36,7 @@
 
 
 template <typename T> static inline T hb_declval ();
+#define hb_declval(T) (hb_declval<T> ())
 
 template <typename T> struct hb_match_const { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_const<const T> { typedef T type; enum { value = true }; };

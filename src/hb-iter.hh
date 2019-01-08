@@ -173,7 +173,7 @@ struct _hb_is_iterator
 };
 template<typename Iter, typename Item>
 struct hb_is_iterator { enum {
-  value = sizeof (int) == sizeof (hb_declval<_hb_is_iterator<Iter> > () (hb_declval<Iter*> ())) }; };
+  value = sizeof (int) == sizeof (hb_declval (_hb_is_iterator<Iter>) (hb_declval (Iter*))) }; };
 #define hb_is_iterator(Iter, Item) hb_is_iterator<Iter, Item>::value
 
 #define hb_is_sorted_iterator(Iter, Item) \
