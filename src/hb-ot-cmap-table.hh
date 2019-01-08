@@ -83,7 +83,7 @@ struct CmapSubtableFormat4
 
   bool serialize (hb_serialize_context_t *c,
 		  const hb_subset_plan_t *plan,
-		  const hb_vector_t<segment_plan> &segments)
+		  const hb_sorted_vector_t<segment_plan> &segments)
   {
     TRACE_SERIALIZE (this);
 
@@ -154,7 +154,7 @@ struct CmapSubtableFormat4
     return_trace (true);
   }
 
-  static size_t get_sub_table_size (const hb_vector_t<segment_plan> &segments)
+  static size_t get_sub_table_size (const hb_sorted_vector_t<segment_plan> &segments)
   {
     size_t segment_size = 0;
     for (unsigned int i = 0; i < segments.length; i++)
@@ -177,7 +177,7 @@ struct CmapSubtableFormat4
   }
 
   static bool create_sub_table_plan (const hb_subset_plan_t *plan,
-				     hb_vector_t<segment_plan> *segments)
+				     hb_sorted_vector_t<segment_plan> *segments)
   {
     segment_plan *segment = nullptr;
     hb_codepoint_t last_gid = 0;
@@ -491,7 +491,7 @@ struct CmapSubtableLongSegmented
   }
 
   bool serialize (hb_serialize_context_t *c,
-		  const hb_vector_t<CmapSubtableLongGroup> &group_data)
+		  const hb_sorted_vector_t<CmapSubtableLongGroup> &group_data)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -519,7 +519,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
 
   bool serialize (hb_serialize_context_t *c,
-		  const hb_vector_t<CmapSubtableLongGroup> &groups)
+		  const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
   {
     if (unlikely (!c->extend_min (*this))) return false;
 
@@ -530,13 +530,13 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     return CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups);
   }
 
-  static size_t get_sub_table_size (const hb_vector_t<CmapSubtableLongGroup> &groups)
+  static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
   {
     return 16 + 12 * groups.length;
   }
 
   static bool create_sub_table_plan (const hb_subset_plan_t *plan,
-				     hb_vector_t<CmapSubtableLongGroup> *groups)
+				     hb_sorted_vector_t<CmapSubtableLongGroup> *groups)
   {
     CmapSubtableLongGroup *group = nullptr;
 
@@ -853,8 +853,8 @@ struct cmap
 	  +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
-    hb_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
-    hb_vector_t<CmapSubtableLongGroup> format12_groups;
+    hb_sorted_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
+    hb_sorted_vector_t<CmapSubtableLongGroup> format12_groups;
   };
 
   bool _create_plan (const hb_subset_plan_t *plan,

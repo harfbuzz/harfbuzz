@@ -815,6 +815,23 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count);}
 
+  bool serialize (hb_serialize_context_t *c, unsigned int items_len)
+  {
+    TRACE_SERIALIZE (this);
+    bool ret = ArrayOf<Type, LenType>::serialize (c, items_len);
+    return_trace (ret);
+  }
+  template <typename Iterator>
+    hb_enable_if_t (hb_is_sorted_iterator (Iterator, const Type),
+  bool) serialize (hb_serialize_context_t *c,
+		   Iterator items)
+  {
+    TRACE_SERIALIZE (this);
+    bool ret = ArrayOf<Type, LenType>::serialize (c, items);
+    return_trace (ret);
+  }
+
+
   template <typename T>
   Type &bsearch (const T &x, Type &not_found = Crap (Type))
   { return *as_array ().bsearch (x, &not_found); }
