@@ -65,10 +65,12 @@ struct some_array_t
 };
 
 
-template <typename Iterator> static void
-test_iterator (Iterator it)
+template <typename Iter> static
+  hb_enable_if_t (hb_is_iterator (Iter, typename Iter::item_t),
+void)
+test_iterator (Iter it)
 {
-  Iterator default_constructed;
+  Iter default_constructed;
 
   /* Iterate over a copy of it. */
   for (auto c = it.iter (); c; c++)
@@ -83,7 +85,9 @@ test_iterator (Iterator it)
   if (it.is_random_access_iterator) {}
 }
 
-template <typename Iterable> static void
+template <typename Iterable> static
+  hb_enable_if_t (hb_is_iterable (Iterable),
+void)
 test_iterable (const Iterable &lst = Null(Iterable))
 {
   // Test that can take iterator from.
