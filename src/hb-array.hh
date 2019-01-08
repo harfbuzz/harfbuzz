@@ -46,6 +46,7 @@ struct hb_array_t :
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
+  template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
 
@@ -204,6 +205,7 @@ struct hb_sorted_array_t :
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
+  template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_sorted_array_t (const hb_sorted_array_t<hb_remove_const (Type)> &o) : hb_array_t<Type> (o) {}
   hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}
   template <unsigned int length_> hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
