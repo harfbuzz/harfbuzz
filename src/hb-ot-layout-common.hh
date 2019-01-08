@@ -66,7 +66,6 @@ namespace OT {
 #define NOT_COVERED		((unsigned int) -1)
 
 
-
 /*
  *
  * OpenType Layout Common Table Formats
@@ -1037,6 +1036,9 @@ struct CoverageFormat2
 
 struct Coverage
 {
+  enum { SENTINEL = NOT_COVERED };
+  unsigned int operator[] (hb_codepoint_t glyph_id) { return get_coverage (glyph_id); }
+
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -1484,6 +1486,9 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
+  enum { SENTINEL = 0 };
+  unsigned int operator[] (hb_codepoint_t glyph_id) { return get_class (glyph_id); }
+
   unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
