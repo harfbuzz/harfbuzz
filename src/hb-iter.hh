@@ -159,7 +159,7 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
 
-/* hb_is_iterator() / hb_is_sorted_iterator() */
+/* hb_is_iterator() / hb_is_random_access_iterator() / hb_is_sorted_iterator() */
 
 template <typename Iter>
 struct _hb_is_iterator_of
@@ -177,9 +177,13 @@ struct hb_is_iterator_of { enum {
 #define hb_is_iterator_of(Iter, Item) hb_is_iterator_of<Iter, Item>::value
 #define hb_is_iterator(Iter) hb_is_iterator_of (Iter, typename Iter::item_t)
 
+#define hb_is_random_access_iterator_of(Iter, Item) \
+  hb_is_iterator_of (Iter, Item) && Iter::is_random_access_iterator
+#define hb_is_random_access_iterator(Iter) \
+  hb_is_random_access_iterator_of (Iter, typename Iter::item_t)
+
 #define hb_is_sorted_iterator_of(Iter, Item) \
-  hb_is_iterator_of (Iter, Item) && \
-  Iter::is_sorted_iterator
+  hb_is_iterator_of (Iter, Item) && Iter::is_sorted_iterator
 #define hb_is_sorted_iterator(Iter) \
   hb_is_sorted_iterator_of (Iter, typename Iter::item_t)
 
