@@ -158,6 +158,9 @@ template<typename T>
 struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; };
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
+/* TODO Add hb_is_iterable_of().
+ * TODO Add random_access / sorted variants. */
+
 
 /* hb_is_iterator() / hb_is_random_access_iterator() / hb_is_sorted_iterator() */
 
