@@ -529,12 +529,19 @@ struct ArrayOf
   unsigned int get_size () const
   { return len.static_size + len * Type::static_size; }
 
-  hb_array_t<Type> as_array ()
-  { return hb_array (arrayZ, len); }
-  hb_array_t<const Type> as_array () const
-  { return hb_array (arrayZ, len); }
-  operator hb_array_t<Type> (void)             { return as_array (); }
-  operator hb_array_t<const Type> (void) const { return as_array (); }
+  explicit_operator bool () const { return len; }
+
+  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, len); }
+  hb_array_t<const Type> as_array () const { return hb_array (arrayZ, len); }
+
+  /* Iterator. */
+  typedef hb_array_t<const Type> const_iter_t;
+  typedef hb_array_t<      Type>       iter_t;
+  const_iter_t  iter () const { return as_array (); }
+  const_iter_t citer () const { return as_array (); }
+        iter_t  iter ()       { return as_array (); }
+  operator       iter_t ()       { return iter (); }
+  operator const_iter_t () const { return iter (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
@@ -799,12 +806,17 @@ struct ArrayOfM1
 template <typename Type, typename LenType=HBUINT16>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
-  hb_sorted_array_t<Type> as_array ()
-  { return hb_sorted_array (this->arrayZ, this->len); }
-  hb_sorted_array_t<const Type> as_array () const
-  { return hb_sorted_array (this->arrayZ, this->len); }
-  operator hb_sorted_array_t<Type> ()             { return as_array (); }
-  operator hb_sorted_array_t<const Type> () const { return as_array (); }
+  hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->len); }
+  hb_sorted_array_t<const Type> as_array () const { return hb_sorted_array (this->arrayZ, this->len); }
+
+  /* Iterator. */
+  typedef hb_sorted_array_t<const Type> const_iter_t;
+  typedef hb_sorted_array_t<      Type>       iter_t;
+  const_iter_t  iter () const { return as_array (); }
+  const_iter_t citer () const { return as_array (); }
+        iter_t  iter ()       { return as_array (); }
+  operator       iter_t ()       { return iter (); }
+  operator const_iter_t () const { return iter (); }
 
   hb_sorted_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
