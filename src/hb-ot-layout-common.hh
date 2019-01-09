@@ -864,7 +864,6 @@ struct CoverageFormat1
     bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
     hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
-    unsigned int get_coverage () const { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -1016,7 +1015,6 @@ struct CoverageFormat2
       j++;
     }
     hb_codepoint_t get_glyph () const { return j; }
-    unsigned int get_coverage () const { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1165,15 +1163,6 @@ struct Coverage
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
       default:return 0;
-      }
-    }
-    unsigned int get_coverage () const
-    {
-      switch (format)
-      {
-      case 1: return u.format1.get_coverage ();
-      case 2: return u.format2.get_coverage ();
-      default:return NOT_COVERED;
       }
     }
 
