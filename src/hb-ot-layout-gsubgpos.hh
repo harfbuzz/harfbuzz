@@ -1436,16 +1436,10 @@ struct ContextFormat1
       {intersects_glyph},
       nullptr
     };
-
-    unsigned int count = ruleSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (glyphs->has (iter.get_glyph ()) &&
-	  (this+ruleSet[iter.get_coverage ()]).intersects (glyphs, lookup_context))
-	return true;
-    }
+    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
+      if (glyphs->has (it->first))
+        if ((this+it->second).intersects (glyphs, lookup_context))
+	  return true;
     return false;
   }
 
@@ -1455,15 +1449,9 @@ struct ContextFormat1
       {intersects_glyph},
       nullptr
     };
-
-    unsigned int count = ruleSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	(this+ruleSet[iter.get_coverage ()]).closure (c, lookup_context);
-    }
+    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
+      if (c->glyphs->has (it->first))
+        (this+it->second).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2089,16 +2077,10 @@ struct ChainContextFormat1
       {intersects_glyph},
       {nullptr, nullptr, nullptr}
     };
-
-    unsigned int count = ruleSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (glyphs->has (iter.get_glyph ()) &&
-	  (this+ruleSet[iter.get_coverage ()]).intersects (glyphs, lookup_context))
-	return true;
-    }
+    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
+      if (glyphs->has (it->first))
+        if ((this+it->second).intersects (glyphs, lookup_context))
+	  return true;
     return false;
   }
 
@@ -2108,15 +2090,9 @@ struct ChainContextFormat1
       {intersects_glyph},
       {nullptr, nullptr, nullptr}
     };
-
-    unsigned int count = ruleSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	(this+ruleSet[iter.get_coverage ()]).closure (c, lookup_context);
-    }
+    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
+      if (c->glyphs->has (it->first))
+        (this+it->second).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
