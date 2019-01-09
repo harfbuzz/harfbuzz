@@ -56,13 +56,13 @@ hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 static struct
 {
   template <typename Pair> typename Pair::first_t
-  operator () (const Pair& pair) { return pair.first; }
+  operator () (const Pair& pair) const { return pair.first; }
 } hb_first;
 
 static struct
 {
   template <typename Pair> typename Pair::second_t
-  operator () (const Pair& pair) { return pair.second; }
+  operator () (const Pair& pair) const { return pair.second; }
 } hb_second;
 
 
