@@ -240,6 +240,45 @@ inline hb_map_iter_factory_t<Proj>
 hb_map (Proj f)
 { return hb_map_iter_factory_t<Proj> (f); }
 
+template <typename Iter, typename Pred, typename Proj,
+	 hb_enable_if (hb_is_iterator (Iter))>
+struct hb_filter_iter_t :
+  hb_iter_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>,
+  hb_iter_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
+{
+  hb_filter_iter_t (const Iter& it, Pred p, Proj f) : it (it), p (p), f (f)
+  { while (it && !p (f (*it))) ++it; }
+
+  typedef typename Iter::item_t __item_t__;
+  enum { is_sorted_iterator = Iter::is_sorted_iterator };
+  __item_t__ __item__ () const { return *it; }
+  bool __more__ () const { return it; }
+  void __next__ () { do ++it; while (it && !p (f (*it))); }
+  void __prev__ () { --it; }
+
+  private:
+  Iter it;
+  Pred p;
+  Proj f;
+};
+template <typename Pred, typename Proj>
+struct hb_filter_iter_factory_t
+{
+  hb_filter_iter_factory_t (Pred p, Proj f) : p (p), f (f) {}
+
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> operator () (const Iterable &c)
+  { return hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> (c.iter (), p, f); }
+
+  private:
+  Pred p;
+  Proj f;
+};
+template <typename Pred, typename Proj>
+inline hb_filter_iter_factory_t<Pred, Proj>
+hb_filter (Pred p, Proj f)
+{ return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 
 /* hb_zip() */
 
