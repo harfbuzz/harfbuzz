@@ -210,7 +210,7 @@ template <typename Iter, typename Proj,
 struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>, decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
 {
-  hb_map_iter_t (const Iter& it, Proj f) : it (it), f (f) {}
+  hb_map_iter_t (const Iter& it, Proj&& f) : it (it), f (f) {}
 
   typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
   enum { is_random_access_iterator = Iter::is_random_access_iterator };
@@ -230,7 +230,7 @@ struct hb_map_iter_t :
 template <typename Proj>
 struct hb_map_iter_factory_t
 {
-  hb_map_iter_factory_t (Proj f) : f (f) {}
+  hb_map_iter_factory_t (Proj&& f) : f (f) {}
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
@@ -242,7 +242,7 @@ struct hb_map_iter_factory_t
 };
 template <typename Proj>
 inline hb_map_iter_factory_t<Proj>
-hb_map (Proj f)
+hb_map (Proj&& f)
 { return hb_map_iter_factory_t<Proj> (f); }
 
 template <typename Iter, typename Pred, typename Proj,
@@ -251,7 +251,7 @@ struct hb_filter_iter_t :
   hb_iter_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>,
   hb_iter_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
 {
-  hb_filter_iter_t (const Iter& it_, Pred p, Proj f) : it (it_), p (p), f (f)
+  hb_filter_iter_t (const Iter& it_, Pred&& p, Proj&& f) : it (it_), p (p), f (f)
   { while (it && !p (f (*it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
@@ -269,7 +269,7 @@ struct hb_filter_iter_t :
 template <typename Pred, typename Proj>
 struct hb_filter_iter_factory_t
 {
-  hb_filter_iter_factory_t (Pred p, Proj f) : p (p), f (f) {}
+  hb_filter_iter_factory_t (Pred&& p, Proj&& f) : p (p), f (f) {}
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
@@ -282,7 +282,7 @@ struct hb_filter_iter_factory_t
 };
 template <typename Pred, typename Proj>
 inline hb_filter_iter_factory_t<Pred, Proj>
-hb_filter (Pred p, Proj f)
+hb_filter (Pred&& p, Proj&& f)
 { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 
 /* hb_zip() */
