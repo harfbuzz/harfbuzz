@@ -135,9 +135,11 @@ struct SingleSubstFormat2
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
-      if (c->glyphs->has (it->first))
-        c->output->add (it->second);
+    for (auto it = hb_zip (this+coverage, substitute)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second);
+	 it; ++it)
+      c->output->add (*it);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
