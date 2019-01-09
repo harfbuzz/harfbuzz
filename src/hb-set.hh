@@ -69,7 +69,7 @@ struct hb_set_t
 
     void add (hb_codepoint_t g) { elt (g) |= mask (g); }
     void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
-    bool has (hb_codepoint_t g) const { return !!(elt (g) & mask (g)); }
+    bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
 
     void add_range (hb_codepoint_t a, hb_codepoint_t b)
     {
@@ -357,15 +357,22 @@ struct hb_set_t
     for (unsigned int i = a; i < b + 1; i++)
       del (i);
   }
-  bool has (hb_codepoint_t g) const
+  bool get (hb_codepoint_t g) const
   {
     const page_t *page = page_for (g);
     if (!page)
       return false;
-    return page->has (g);
+    return page->get (g);
   }
-  bool intersects (hb_codepoint_t first,
-			  hb_codepoint_t last) const
+
+  /* Map interface. */
+  enum { SENTINEL = false };
+  typedef bool value_t;
+  value_t operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  bool operator () (hb_codepoint_t k) const { return has (k); }
+
+  bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {
     hb_codepoint_t c = first - 1;
     return next (&c) && c <= last;

@@ -1037,9 +1037,14 @@ struct CoverageFormat2
 
 struct Coverage
 {
+  /* Map interface. */
   enum { SENTINEL = NOT_COVERED };
-  unsigned int operator[] (hb_codepoint_t glyph_id) { return get_coverage (glyph_id); }
+  typedef unsigned int value_t;
+  value_t operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  bool operator () (hb_codepoint_t k) const { return has (k); }
 
+  unsigned int get (hb_codepoint_t k) const { return get_coverage (k); }
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -1486,9 +1491,14 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
+  /* Map interface. */
   enum { SENTINEL = 0 };
-  unsigned int operator[] (hb_codepoint_t glyph_id) { return get_class (glyph_id); }
+  typedef unsigned int value_t;
+  value_t operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  bool operator () (hb_codepoint_t k) const { return has (k); }
 
+  unsigned int get (hb_codepoint_t k) const { return get_class (k); }
   unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
