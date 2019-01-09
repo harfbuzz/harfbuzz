@@ -202,11 +202,11 @@ struct hb_is_iterator_of { enum {
 /* hb_zip() */
 
 template <typename A, typename B>
-struct hb_zip_t :
-  hb_iter_t<hb_zip_t<A, B>, hb_pair_t<typename A::item_t, typename B::item_t> >
+struct hb_zip_iter_t :
+  hb_iter_t<hb_zip_iter_t<A, B>, hb_pair_t<typename A::item_t, typename B::item_t> >
 {
-  hb_zip_t () {}
-  hb_zip_t (A a, B b) : a (a), b (b) {}
+  hb_zip_iter_t () {}
+  hb_zip_iter_t (A a, B b) : a (a), b (b) {}
 
   typedef hb_pair_t<typename A::item_t, typename B::item_t> __item_t__;
   enum { is_random_access_iterator =
@@ -231,9 +231,9 @@ struct hb_zip_t :
 
 template <typename A, typename B,
 	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
-inline hb_zip_t<typename A::iter_t, typename B::iter_t>
+inline hb_zip_iter_t<typename A::iter_t, typename B::iter_t>
 hb_zip (A& a, B &b)
-{ return hb_zip_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
+{ return hb_zip_iter_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
 
 
 /*
