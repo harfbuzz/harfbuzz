@@ -24,8 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_DSALGS_HH
-#define HB_DSALGS_HH
+#ifndef HB_ALGS_HH
+#define HB_ALGS_HH
 
 #include "hb.hh"
 #include "hb-null.hh"
@@ -638,4 +638,4 @@ struct hb_vector_size_t
 };
 
 
-#endif /* HB_DSALGS_HH */
+#endif /* HB_ALGS_HH */

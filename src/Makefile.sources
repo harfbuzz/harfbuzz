@@ -16,6 +16,7 @@ HB_BASE_sources = \
 	hb-aat-ltag-table.hh \
 	hb-aat-map.cc \
 	hb-aat-map.hh \
+	hb-algs.hh \
 	hb-array.hh \
 	hb-atomic.hh \
 	hb-blob.cc \
@@ -31,7 +32,6 @@ HB_BASE_sources = \
 	hb-cff2-interp-cs.hh \
 	hb-common.cc \
 	hb-debug.hh \
-	hb-dsalgs.hh \
 	hb-face.cc \
 	hb-face.hh \
 	hb-font.cc \

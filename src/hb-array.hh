@@ -28,7 +28,7 @@
 #define HB_ARRAY_HH
 
 #include "hb.hh"
-#include "hb-dsalgs.hh"
+#include "hb-algs.hh"
 #include "hb-iter.hh"
 #include "hb-null.hh"
 

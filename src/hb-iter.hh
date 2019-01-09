@@ -28,7 +28,7 @@
 #define HB_ITER_HH
 
 #include "hb.hh"
-#include "hb-dsalgs.hh" // for hb_addressof
+#include "hb-algs.hh" // for hb_addressof
 #include "hb-meta.hh"
 #include "hb-null.hh"
 

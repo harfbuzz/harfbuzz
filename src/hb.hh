@@ -619,10 +619,10 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #include "hb-mutex.hh"
 #include "hb-atomic.hh"	// Requires: hb-meta
 #include "hb-null.hh"	// Requires: hb-meta
-#include "hb-dsalgs.hh"	// Requires: hb-null
-#include "hb-iter.hh"	// Requires: hb-dsalgs hb-meta hb-null
-#include "hb-debug.hh"	// Requires: hb-atomic hb-dsalgs
-#include "hb-array.hh"	// Requires: hb-dsalgs hb-iter hb-null
+#include "hb-algs.hh"	// Requires: hb-null
+#include "hb-iter.hh"	// Requires: hb-algs hb-meta hb-null
+#include "hb-debug.hh"	// Requires: hb-algs hb-atomic
+#include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null
 #include "hb-vector.hh"	// Requires: hb-array hb-null
 #include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 
