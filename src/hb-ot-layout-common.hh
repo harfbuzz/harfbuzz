@@ -1249,9 +1249,9 @@ struct ClassDefFormat1
     hb_codepoint_t end   = start + classValue.len;
     for (hb_codepoint_t g = start; g < end; g++)
     {
+      if (!glyphset.has (g)) continue;
       unsigned int value = classValue[g - start];
       if (!value) continue;
-      if (!glyphset.has (g)) continue;
       glyphs.push()->set (glyph_map[g]);
       klasses.push()->set (value);
     }
