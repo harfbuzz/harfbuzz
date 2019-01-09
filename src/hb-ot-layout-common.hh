@@ -1002,9 +1002,12 @@ struct CoverageFormat2
 	  unsigned int old = coverage;
 	  j = c->rangeRecord[i].start;
 	  coverage = c->rangeRecord[i].value;
-	  if (unlikely (coverage <= old))
+	  if (unlikely (coverage != old + 1))
 	  {
-	    /* Broken table. Skip. Important to avoid DoS. */
+	    /* Broken table. Skip. Important to avoid DoS.
+	     * Also, our callers depend on coverage being
+	     * consecutive and monotonically increasing,
+	     * ie. iota(). */
 	   i = c->rangeRecord.len;
 	   return;
 	  }
