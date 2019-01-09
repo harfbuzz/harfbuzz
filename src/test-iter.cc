@@ -65,9 +65,9 @@ struct some_array_t
 };
 
 
-template <typename Iter> static
-  hb_enable_if_t (hb_is_iterator (Iter),
-void)
+template <typename Iter,
+	  hb_enable_if (hb_is_iterator (Iter))>
+static void
 test_iterator (Iter it)
 {
   Iter default_constructed;
@@ -85,9 +85,9 @@ test_iterator (Iter it)
   if (it.is_random_access_iterator) {}
 }
 
-template <typename Iterable> static
-  hb_enable_if_t (hb_is_iterable (Iterable),
-void)
+template <typename Iterable,
+	 hb_enable_if (hb_is_iterable (Iterable))>
+static void
 test_iterable (const Iterable &lst = Null(Iterable))
 {
   // Test that can take iterator from.

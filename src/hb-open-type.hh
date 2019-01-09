@@ -559,10 +559,9 @@ struct ArrayOf
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
-  template <typename Iterator>
-    hb_enable_if_t (hb_is_iterator_of (Iterator, const Type),
-  bool) serialize (hb_serialize_context_t *c,
-		   Iterator items)
+  template <typename Iterator,
+	    hb_enable_if (hb_is_iterator_of (Iterator, const Type))>
+  bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
@@ -831,10 +830,9 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     bool ret = ArrayOf<Type, LenType>::serialize (c, items_len);
     return_trace (ret);
   }
-  template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const Type),
-  bool) serialize (hb_serialize_context_t *c,
-		   Iterator items)
+  template <typename Iterator,
+	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const Type))>
+  bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     bool ret = ArrayOf<Type, LenType>::serialize (c, items);

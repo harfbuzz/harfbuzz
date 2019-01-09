@@ -825,10 +825,9 @@ struct CoverageFormat1
     return i;
   }
 
-  template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
-  bool) serialize (hb_serialize_context_t *c,
-		   Iterator glyphs)
+  template <typename Iterator,
+	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+  bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     return_trace (glyphArray.serialize (c, glyphs));
@@ -894,10 +893,9 @@ struct CoverageFormat2
 	   NOT_COVERED;
   }
 
-  template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
-  bool) serialize (hb_serialize_context_t *c,
-		   Iterator glyphs)
+  template <typename Iterator,
+	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+  bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1051,10 +1049,9 @@ struct Coverage
     }
   }
 
-  template <typename Iterator>
-    hb_enable_if_t (hb_is_sorted_iterator_of (Iterator, const GlyphID),
-  bool) serialize (hb_serialize_context_t *c,
-		   Iterator glyphs)
+  template <typename Iterator,
+	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+  bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);

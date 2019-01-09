@@ -197,18 +197,18 @@ struct hb_is_iterator_of { enum {
  * Algorithms operating on iterators or iteratables.
  */
 
-template <typename C, typename V> inline
-  hb_enable_if_t (hb_is_iterable (C),
-void)
+template <typename C, typename V,
+	  hb_enable_if (hb_is_iterable (C))>
+inline void
 hb_fill (C& c, const V &v)
 {
   for (typename C::iter_t i (c); i; i++)
     hb_assign (*i, v);
 }
 
-template <typename S, typename D> inline
-  hb_enable_if_t (hb_is_iterator (S) && hb_is_iterator (D),
-bool)
+template <typename S, typename D,
+	  hb_enable_if (hb_is_iterator (S) && hb_is_iterator (D))>
+inline bool
 hb_copy (D id, S is)
 {
   for (; id && is; ++id, ++is)
@@ -245,9 +245,9 @@ struct hb_zip_t :
   B b;
 };
 
-template <typename A, typename B> inline
-typename hb_enable_if<hb_is_iterable (A) && hb_is_iterable (B),
-hb_zip_t<typename A::iter_t, typename B::iter_t> >::type
+template <typename A, typename B,
+	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
+inline hb_zip_t<typename A::iter_t, typename B::iter_t>
 hb_zip (A& a, B &b)
 { return hb_zip_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
 
