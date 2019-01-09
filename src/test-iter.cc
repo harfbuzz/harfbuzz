@@ -105,7 +105,7 @@ main (int argc, char **argv)
   array_iter_t<const int> s2 (v); /* Implicit conversion from vector. */
   array_iter_t<int> t (dst);
 
-  assert (hb_is_random_access_iterator (array_iter_t<int>));
+  static_assert (hb_is_random_access_iterator (array_iter_t<int>), "");
 
   some_array_t<const int> a (src);
 
