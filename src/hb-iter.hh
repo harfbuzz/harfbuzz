@@ -198,6 +198,48 @@ struct hb_is_iterator_of { enum {
  * Adaptors, combiners, etc.
  */
 
+/* hb_map(), hb_filter(), hb_reduce() */
+
+template <typename Iter, typename Proj,
+	 hb_enable_if (hb_is_iterator (Iter))>
+struct hb_map_iter_t :
+  hb_iter_t<hb_map_iter_t<Iter, Proj>, decltype (f (*hb_declval (typename Iter::item_t)))>
+{
+  hb_map_iter_t (const Iter& it, Proj f) : it (it), f (f) {}
+
+  typedef decltype (f (*hb_declval (typename Iter::item_t))) __item_t__;
+  enum { is_random_access_iterator = Iter::is_random_access_iterator };
+  __item_t__ __item__ () const { return f (*it); }
+  __item_t__ __item_at__ (unsigned i) const { return f (it[i]); }
+  bool __more__ () const { return it; }
+  unsigned __len__ () const { return it.len (); }
+  void __next__ () { ++it; }
+  void __forward__ (unsigned n) { it += n; }
+  void __prev__ () { --it; }
+  void __rewind__ (unsigned n) { it -= n; }
+
+  private:
+  Iter it;
+  Proj f;
+};
+template <typename Proj>
+struct hb_map_iter_factory_t
+{
+  hb_map_iter_factory_t (Proj f) : f (f) {}
+
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  hb_map_iter_t<typename Iterable::iter_t, Proj> operator () (const Iterable &c)
+  { return hb_map_iter_t<typename Iterable::iter_t, Proj> (c.iter (), f); }
+
+  private:
+  Proj f;
+};
+template <typename Proj>
+inline hb_map_iter_factory_t<Proj>
+hb_map (Proj f)
+{ return hb_map_iter_factory_t<Proj> (f); }
+
 
 /* hb_zip() */
 
@@ -228,7 +270,6 @@ struct hb_zip_iter_t :
   A a;
   B b;
 };
-
 template <typename A, typename B,
 	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
 inline hb_zip_iter_t<typename A::iter_t, typename B::iter_t>
