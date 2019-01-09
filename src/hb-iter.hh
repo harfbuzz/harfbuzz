@@ -193,29 +193,13 @@ struct hb_is_iterator_of { enum {
 #define hb_is_sorted_iterator(Iter) \
   hb_is_sorted_iterator_of (Iter, typename Iter::item_t)
 
+
 /*
- * Algorithms operating on iterators or iteratables.
+ * Adaptors, combiners, etc.
  */
 
-template <typename C, typename V,
-	  hb_enable_if (hb_is_iterable (C))>
-inline void
-hb_fill (C& c, const V &v)
-{
-  for (typename C::iter_t i (c); i; i++)
-    hb_assign (*i, v);
-}
 
-template <typename S, typename D,
-	  hb_enable_if (hb_is_iterator (S) && hb_is_iterator (D))>
-inline bool
-hb_copy (D id, S is)
-{
-  for (; id && is; ++id, ++is)
-    *id = *is;
-  return !is;
-}
-
+/* hb_zip() */
 
 template <typename A, typename B>
 struct hb_zip_t :
@@ -250,5 +234,30 @@ template <typename A, typename B,
 inline hb_zip_t<typename A::iter_t, typename B::iter_t>
 hb_zip (A& a, B &b)
 { return hb_zip_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
+
+
+/*
+ * Algorithms operating on iterators.
+ */
+
+template <typename C, typename V,
+	  hb_enable_if (hb_is_iterable (C))>
+inline void
+hb_fill (C& c, const V &v)
+{
+  for (typename C::iter_t i (c); i; i++)
+    hb_assign (*i, v);
+}
+
+template <typename S, typename D,
+	  hb_enable_if (hb_is_iterator (S) && hb_is_iterator (D))>
+inline bool
+hb_copy (D id, S is)
+{
+  for (; id && is; ++id, ++is)
+    *id = *is;
+  return !is;
+}
+
 
 #endif /* HB_ITER_HH */
