@@ -93,13 +93,12 @@ struct hb_vector_t
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
 
   /* Iterator. */
-  typedef hb_array_t<const Type> const_iter_t;
-  typedef hb_array_t<      Type>       iter_t;
-  const_iter_t  iter () const { return as_array (); }
-  const_iter_t citer () const { return as_array (); }
-        iter_t  iter ()       { return as_array (); }
-  operator       iter_t ()       { return iter (); }
-  operator const_iter_t () const { return iter (); }
+  typedef hb_array_t<const Type>   iter_t;
+  typedef hb_array_t<      Type> writer_t;
+    iter_t   iter () const { return as_array (); }
+  writer_t writer ()       { return as_array (); }
+  operator   iter_t () const { return   iter (); }
+  operator writer_t ()       { return writer (); }
 
   hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count);}
