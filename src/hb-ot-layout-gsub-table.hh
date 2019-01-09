@@ -351,22 +351,16 @@ struct MultipleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int count = sequence.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	(this+sequence[iter.get_coverage ()]).closure (c);
-    }
+    for (auto it = hb_zip (this+coverage, sequence); it; ++it)
+      if (c->glyphs->has (it->first))
+        (this+it->second).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    unsigned int count = sequence.len;
-    for (unsigned int i = 0; i < count; i++)
-      (this+sequence[i]).collect_glyphs (c);
+    for (auto it = hb_zip (this+coverage, sequence); it; ++it)
+      (this+it->second).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -531,26 +525,16 @@ struct AlternateSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int count = alternateSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	(this+alternateSet[iter.get_coverage ()]).closure (c);
-    }
+    for (auto it = hb_zip (this+coverage, alternateSet); it; ++it)
+      if (c->glyphs->has (it->first))
+        (this+it->second).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    unsigned int count = alternateSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      (this+alternateSet[iter.get_coverage ()]).collect_glyphs (c);
-    }
+    for (auto it = hb_zip (this+coverage, alternateSet); it; ++it)
+      (this+it->second).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
