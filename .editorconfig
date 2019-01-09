@@ -7,9 +7,12 @@ end_of_line = lf
 insert_final_newline = true
 
 [*.{c,cc,h,hh}]
-indent_size = 2
-indent_style = space
 tab_width = 8
+indent_style = tab
+# This should be the following but as VSCode and Atom don't support it, disabled for now
+# https://github.com/Microsoft/vscode/issues/44438
+# indent_size = 2
+# indent_style = space
 
 [*.{py,sh}]
 indent_style = tab
