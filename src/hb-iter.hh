@@ -218,4 +218,38 @@ hb_copy (D id, S is)
 }
 
 
+template <typename A, typename B>
+struct hb_zip_t :
+  hb_iter_t<hb_zip_t<A, B>, hb_pair_t<typename A::item_t, typename B::item_t> >
+{
+  hb_zip_t () {}
+  hb_zip_t (A a, B b) : a (a), b (b) {}
+
+  typedef hb_pair_t<typename A::item_t, typename B::item_t> __item_t__;
+  enum { is_random_access_iterator =
+	   A::is_random_access_iterator &&
+	   B::is_random_access_iterator };
+  enum { is_sorted_iterator =
+	   A::is_sorted_iterator &&
+	   B::is_sorted_iterator };
+  __item_t__ __item__ () const { return __item_t__ (*a, *b); }
+  __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
+  bool __more__ () const { return a && b; }
+  unsigned __len__ () const { return MIN (a.len (), b.len ()); }
+  void __next__ () { ++a; ++b; }
+  void __forward__ (unsigned n) { a += n; b += n; }
+  void __prev__ () { --a; --b; }
+  void __rewind__ (unsigned n) { a -= n; b -= n; }
+
+  private:
+  A a;
+  B b;
+};
+
+template <typename A, typename B> inline
+typename hb_enable_if<hb_is_iterable (A) && hb_is_iterable (B),
+hb_zip_t<typename A::iter_t, typename B::iter_t> >::type
+hb_zip (A& a, B &b)
+{ return hb_zip_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
+
 #endif /* HB_ITER_HH */
