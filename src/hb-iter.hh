@@ -94,8 +94,8 @@ struct hb_iter_t
 };
 
 #define HB_ITER_USING(Name) \
-  using typename Name::iter_t; \
-  using typename Name::item_t; \
+  using iter_t = typename Name::iter_t; \
+  using item_t = typename Name::item_t; \
   using Name::item_size; \
   using Name::is_iterator; \
   using Name::iter; \
