@@ -232,7 +232,7 @@ struct hb_zip_iter_t :
 template <typename A, typename B,
 	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
 inline hb_zip_iter_t<typename A::iter_t, typename B::iter_t>
-hb_zip (A& a, B &b)
+hb_zip (const A& a, const B &b)
 { return hb_zip_iter_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
 
 
