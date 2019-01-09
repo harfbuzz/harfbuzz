@@ -198,20 +198,25 @@ struct hb_is_iterator_of { enum {
  * Adaptors, combiners, etc.
  */
 
+template <typename Lhs, typename Rhs,
+	  hb_enable_if (hb_is_iterator (Lhs))>
+static inline decltype (hb_declval (Rhs) (hb_declval (Lhs)))
+operator | (Lhs lhs, const Rhs &rhs) { return rhs (lhs); }
+
 /* hb_map(), hb_filter(), hb_reduce() */
 
 template <typename Iter, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
-  hb_iter_t<hb_map_iter_t<Iter, Proj>, decltype (f (*hb_declval (typename Iter::item_t)))>
+  hb_iter_t<hb_map_iter_t<Iter, Proj>, decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
 {
   hb_map_iter_t (const Iter& it, Proj f) : it (it), f (f) {}
 
-  typedef decltype (f (*hb_declval (typename Iter::item_t))) __item_t__;
+  typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
   enum { is_random_access_iterator = Iter::is_random_access_iterator };
   __item_t__ __item__ () const { return f (*it); }
   __item_t__ __item_at__ (unsigned i) const { return f (it[i]); }
-  bool __more__ () const { return it; }
+  bool __more__ () const { return bool (it); }
   unsigned __len__ () const { return it.len (); }
   void __next__ () { ++it; }
   void __forward__ (unsigned n) { it += n; }
@@ -229,7 +234,7 @@ struct hb_map_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_map_iter_t<typename Iterable::iter_t, Proj> operator () (const Iterable &c)
+  hb_map_iter_t<typename Iterable::iter_t, Proj> operator () (const Iterable &c) const
   { return hb_map_iter_t<typename Iterable::iter_t, Proj> (c.iter (), f); }
 
   private:
@@ -246,13 +251,13 @@ struct hb_filter_iter_t :
   hb_iter_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>,
   hb_iter_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
 {
-  hb_filter_iter_t (const Iter& it, Pred p, Proj f) : it (it), p (p), f (f)
+  hb_filter_iter_t (const Iter& it_, Pred p, Proj f) : it (it_), p (p), f (f)
   { while (it && !p (f (*it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
   enum { is_sorted_iterator = Iter::is_sorted_iterator };
   __item_t__ __item__ () const { return *it; }
-  bool __more__ () const { return it; }
+  bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !p (f (*it))); }
   void __prev__ () { --it; }
 
@@ -268,7 +273,7 @@ struct hb_filter_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> operator () (const Iterable &c)
+  hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> operator () (const Iterable &c) const
   { return hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> (c.iter (), p, f); }
 
   private:
