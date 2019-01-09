@@ -100,12 +100,12 @@ struct SingleSubstFormat1
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (!glyphset.has (iter.get_glyph ())) continue;
-      from.push ()->set (glyph_map[iter.get_glyph ()]);
-      to.push ()->set (glyph_map[(iter.get_glyph () + delta) & 0xFFFF]);
-    }
+    for (auto it = (this+coverage).iter (); it; ++it)
+      if (glyphset.has (*it))
+      {
+	from.push ()->set (glyph_map[*it]);
+	to.push ()->set (glyph_map[(*it + delta) & 0xFFFF]);
+      }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
@@ -186,12 +186,12 @@ struct SingleSubstFormat2
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (!glyphset.has (iter.get_glyph ())) continue;
-      from.push ()->set (glyph_map[iter.get_glyph ()]);
-      to.push ()->set (glyph_map[substitute[iter.get_coverage ()]]);
-    }
+    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
+      if (glyphset.has (it->first))
+      {
+	from.push ()->set (glyph_map[it->first]);
+	to.push ()->set (glyph_map[it->second]);
+      }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
