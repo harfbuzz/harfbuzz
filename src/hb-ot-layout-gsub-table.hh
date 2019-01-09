@@ -48,7 +48,7 @@ struct SingleSubstFormat1
   {
     for (auto it = (this+coverage).iter (); it; ++it)
       if (c->glyphs->has (*it))
-        c->out->add ((*it + deltaGlyphID) & 0xFFFFu);
+        c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -137,7 +137,7 @@ struct SingleSubstFormat2
   {
     for (auto it = hb_zip (this+coverage, substitute); it; ++it)
       if (c->glyphs->has (it->first))
-        c->out->add (it->second);
+        c->output->add (it->second);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -276,7 +276,7 @@ struct Sequence
   {
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
-      c->out->add (substitute[i]);
+      c->output->add (substitute[i]);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -456,7 +456,7 @@ struct AlternateSet
   {
     unsigned int count = alternates.len;
     for (unsigned int i = 0; i < count; i++)
-      c->out->add (alternates[i]);
+      c->output->add (alternates[i]);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -642,7 +642,7 @@ struct Ligature
     for (unsigned int i = 1; i < count; i++)
       if (!c->glyphs->has (component[i]))
         return;
-    c->out->add (ligGlyph);
+    c->output->add (ligGlyph);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -1012,7 +1012,7 @@ struct ReverseChainSingleSubstFormat1
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     for (auto it = hb_zip (this+coverage, substitute); it; ++it)
       if (c->glyphs->has (it->first))
-        c->out->add (it->second);
+        c->output->add (it->second);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
