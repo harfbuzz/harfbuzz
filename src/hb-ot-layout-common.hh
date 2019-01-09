@@ -1120,8 +1120,8 @@ struct Coverage
   }
 
   struct iter_t :
-    hb_iter_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >,
-    hb_iter_mixin_t<iter_t, const hb_pair_t<unsigned, hb_codepoint_t> >
+    hb_iter_t<iter_t, hb_codepoint_t>,
+    hb_iter_mixin_t<iter_t, hb_codepoint_t>
   {
     enum { is_sorted_iterator = true };
     iter_t (const Coverage &c_ = Null(Coverage))
@@ -1153,8 +1153,8 @@ struct Coverage
       default:			 break;
       }
     }
-    typedef const hb_pair_t<unsigned, hb_codepoint_t> __item_t__;
-    __item_t__ __item__ () const { return hb_pair (get_coverage (), get_glyph ()); }
+    typedef hb_codepoint_t __item_t__;
+    __item_t__ __item__ () const { return get_glyph (); }
 
     hb_codepoint_t get_glyph () const
     {
