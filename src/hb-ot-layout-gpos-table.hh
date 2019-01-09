@@ -722,15 +722,10 @@ struct PairPosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    unsigned int count = pairSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (glyphs->has (iter.get_glyph ()) &&
-	  (this+pairSet[iter.get_coverage ()]).intersects (glyphs, valueFormat))
-	return true;
-    }
+    for (auto it = hb_zip (this+coverage, pairSet); it; ++it)
+      if (glyphs->has (it->first))
+        if ((this+it->second).intersects (glyphs, valueFormat))
+	  return true;
     return false;
   }
 

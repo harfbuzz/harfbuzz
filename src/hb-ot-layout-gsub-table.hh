@@ -46,26 +46,16 @@ struct SingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      /* TODO Switch to range-based API to work around malicious fonts.
-       * https://github.com/harfbuzz/harfbuzz/issues/363 */
-      hb_codepoint_t glyph_id = iter.get_glyph ();
-      if (c->glyphs->has (glyph_id))
-	c->out->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
-    }
+    for (auto it = (this+coverage).iter (); it; ++it)
+      if (c->glyphs->has (*it))
+        c->out->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      /* TODO Switch to range-based API to work around malicious fonts.
-       * https://github.com/harfbuzz/harfbuzz/issues/363 */
-      hb_codepoint_t glyph_id = iter.get_glyph ();
-      c->output->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
-    }
+    for (auto it = (this+coverage).iter (); it; ++it)
+      c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -831,40 +821,25 @@ struct LigatureSubstFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    unsigned int count = ligatureSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (glyphs->has (iter.get_glyph ()) &&
-	  (this+ligatureSet[iter.get_coverage ()]).intersects (glyphs))
-        return true;
-    }
+    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
+      if (glyphs->has (it->first))
+        if ((this+it->second).intersects (glyphs))
+	  return true;
     return false;
   }
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int count = ligatureSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	(this+ligatureSet[iter.get_coverage ()]).closure (c);
-    }
+    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
+      if (c->glyphs->has (it->first))
+        (this+it->second).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    unsigned int count = ligatureSet.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      (this+ligatureSet[iter.get_coverage ()]).collect_glyphs (c);
-    }
+    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
+      (this+it->second).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -1035,14 +1010,9 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    count = substitute.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	c->out->add (substitute[iter.get_coverage ()]);
-    }
+    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
+      if (c->glyphs->has (it->first))
+        c->out->add (it->second);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
