@@ -145,26 +145,16 @@ struct SingleSubstFormat2
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int count = substitute.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (c->glyphs->has (iter.get_glyph ()))
-	c->out->add (substitute[iter.get_coverage ()]);
-    }
+    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
+      if (c->glyphs->has (it->first))
+        c->out->add (it->second);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    unsigned int count = substitute.len;
-    for (/*TODO(C++11)auto*/Coverage::iter_t iter = (this+coverage).iter (); iter; iter++)
-    {
-      if (unlikely (iter.get_coverage () >= count))
-        break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      c->output->add (substitute[iter.get_coverage ()]);
-    }
+    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
+      c->output->add (it->second);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
