@@ -38,6 +38,8 @@
 template <typename T1, typename T2>
 struct hb_pair_t
 {
+  typedef T1 first_t;
+  typedef T2 second_t;
   typedef hb_pair_t<T1, T2> pair_t;
 
   hb_pair_t (const T1& a, const T2& b) : first (a), second (b) {}
@@ -51,6 +53,11 @@ struct hb_pair_t
 template <typename T1, typename T2> static inline hb_pair_t<T1, T2>
 hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 
+template <typename Pair> inline typename Pair::first_t
+hb_first (const Pair& pair) { return pair.first; }
+
+template <typename Pair> inline typename Pair::second_t
+hb_second (const Pair& pair) { return pair.second; }
 
 /*
  * Bithacks.
