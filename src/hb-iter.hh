@@ -73,7 +73,6 @@ struct hb_iter_t
   iter_t iter () const { return *thiz(); }
   explicit_operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
-  template <typename U = item_t, hb_enable_if (hb_is_reference (U))>
   hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
