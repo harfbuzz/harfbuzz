@@ -59,6 +59,7 @@ hb_first (const Pair& pair) { return pair.first; }
 template <typename Pair> inline typename Pair::second_t
 hb_second (const Pair& pair) { return pair.second; }
 
+
 /*
  * Bithacks.
  */
@@ -256,8 +257,8 @@ hb_ctz (T v)
  * Tiny stuff.
  */
 
-template <typename T>
-static inline T* hb_addressof (const T& arg)
+template <typename T> static inline T*
+hb_addressof (const T& arg)
 {
   /* https://en.cppreference.com/w/cpp/memory/addressof */
   return reinterpret_cast<T*>(
@@ -496,9 +497,10 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
   }
 }
 
-static inline void hb_sort_r(void *base, size_t nel, size_t width,
-			     int (*compar)(const void *_a, const void *_b, void *_arg),
-			     void *arg)
+static inline void
+hb_sort_r (void *base, size_t nel, size_t width,
+	   int (*compar)(const void *_a, const void *_b, void *_arg),
+	   void *arg)
 {
     sort_r_simple(base, nel, width, compar, arg);
 }
