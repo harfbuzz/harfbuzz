@@ -171,7 +171,7 @@ struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; }
 template <typename Iter>
 struct _hb_is_iterator_of
 {
-  char operator () (...) { return 0; };
+  char operator () (...) { return 0; }
   template<typename Item> int operator () (hb_iter_t<Iter, Item> *) { return 0; }
   template<typename Item> int operator () (hb_iter_t<Iter, const Item> *) { return 0; }
   template<typename Item> int operator () (hb_iter_t<Iter, Item&> *) { return 0; }
