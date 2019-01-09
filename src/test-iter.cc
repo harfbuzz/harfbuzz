@@ -39,7 +39,7 @@ struct array_iter_t :
 {
   array_iter_t (hb_array_t<T> arr_) : arr (arr_) {}
 
-  typedef T& __item_type__;
+  typedef T& __item_t__;
   enum { is_random_access_iterator = true };
   T& __item_at__ (unsigned i) const { return arr[i]; }
   void __forward__ (unsigned n) { arr += n; }

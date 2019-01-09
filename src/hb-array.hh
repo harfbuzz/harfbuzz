@@ -54,7 +54,7 @@ struct hb_array_t :
   /*
    * Iterator implementation.
    */
-  typedef Type& __item_type__;
+  typedef Type& __item_t__;
   enum { is_random_access_iterator = true };
   Type& __item_at__ (unsigned i) const
   {

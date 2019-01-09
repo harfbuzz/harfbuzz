@@ -1153,8 +1153,8 @@ struct Coverage
       default:			 break;
       }
     }
-    typedef const hb_pair_t<unsigned, hb_codepoint_t> __item_type__;
-    __item_type__ __item__ () const { return hb_pair (get_coverage (), get_glyph ()); }
+    typedef const hb_pair_t<unsigned, hb_codepoint_t> __item_t__;
+    __item_t__ __item__ () const { return hb_pair (get_coverage (), get_glyph ()); }
 
     hb_codepoint_t get_glyph () const
     {

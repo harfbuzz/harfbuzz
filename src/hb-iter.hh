@@ -49,7 +49,7 @@
  */
 
 /* Base class for all iterators. */
-template <typename Iter, typename Item = typename Iter::__item_type__>
+template <typename Iter, typename Item = typename Iter::__item_t__>
 struct hb_iter_t
 {
   typedef Iter iter_t;
@@ -113,7 +113,7 @@ struct hb_iter_t
   static_assert (true, "")
 
 /* Mixin to fill in what the subclass doesn't provide. */
-template <typename iter_t, typename item_t = typename iter_t::__item_type__>
+template <typename iter_t, typename item_t = typename iter_t::__item_t__>
 struct hb_iter_mixin_t
 {
   private:
