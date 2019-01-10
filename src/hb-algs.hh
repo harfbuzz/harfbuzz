@@ -31,9 +31,11 @@
 #include "hb-null.hh"
 
 
-/*
- * Pair
- */
+static HB_UNUSED struct
+{
+  template <typename T> T
+  operator () (const T& v) const { return v; }
+} hb_identity;
 
 template <typename T1, typename T2>
 struct hb_pair_t
