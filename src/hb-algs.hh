@@ -31,6 +31,10 @@
 #include "hb-null.hh"
 
 
+template <typename T>
+inline typename T::iter_t
+hb_iter (const T& c) { return c.iter (); }
+
 static HB_UNUSED struct hb_identity_t
 {
   template <typename T> T

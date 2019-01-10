@@ -46,7 +46,7 @@ struct SingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = (this+coverage).iter ()
+    for (auto it = hb_iter (this+coverage)
 		 | hb_filter (*c->glyphs); it; ++it)
       c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
@@ -54,7 +54,7 @@ struct SingleSubstFormat1
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = (this+coverage).iter (); it; ++it)
+    for (auto it = hb_iter (this+coverage); it; ++it)
       c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
 
@@ -100,7 +100,7 @@ struct SingleSubstFormat1
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
-    for (auto it = (this+coverage).iter ()
+    for (auto it = hb_iter (this+coverage)
 		 | hb_filter (glyphset); it; ++it)
     {
       from.push ()->set (glyph_map[*it]);
