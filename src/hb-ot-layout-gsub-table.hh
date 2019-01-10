@@ -46,9 +46,9 @@ struct SingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = (this+coverage).iter (); it; ++it)
-      if (c->glyphs->has (*it))
-        c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
+    for (auto it = (this+coverage).iter ()
+		 | hb_filter (*c->glyphs); it; ++it)
+      c->output->add ((*it + deltaGlyphID) & 0xFFFFu);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -100,12 +100,12 @@ struct SingleSubstFormat1
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
-    for (auto it = (this+coverage).iter (); it; ++it)
-      if (glyphset.has (*it))
-      {
-	from.push ()->set (glyph_map[*it]);
-	to.push ()->set (glyph_map[(*it + delta) & 0xFFFF]);
-      }
+    for (auto it = (this+coverage).iter ()
+		 | hb_filter (glyphset); it; ++it)
+    {
+      from.push ()->set (glyph_map[*it]);
+      to.push ()->set (glyph_map[(*it + delta) & 0xFFFF]);
+    }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
@@ -137,16 +137,16 @@ struct SingleSubstFormat2
   {
     for (auto it = hb_zip (this+coverage, substitute)
 		 | hb_filter (*c->glyphs, hb_first)
-		 | hb_map (hb_second);
-	 it; ++it)
+		 | hb_map (hb_second); it; ++it)
       c->output->add (*it);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
-      c->output->add (it->second);
+    for (auto it = hb_zip (this+coverage, substitute)
+		 | hb_map (hb_second); it; ++it)
+      c->output->add (*it);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -188,8 +188,8 @@ struct SingleSubstFormat2
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
-    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
-      if (glyphset.has (it->first))
+    for (auto it = hb_zip (this+coverage, substitute)
+		 | hb_filter (glyphset, hb_first); it; ++it)
       {
 	from.push ()->set (glyph_map[it->first]);
 	to.push ()->set (glyph_map[it->second]);
@@ -343,16 +343,18 @@ struct MultipleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, sequence); it; ++it)
-      if (c->glyphs->has (it->first))
-        (this+it->second).closure (c);
+    for (auto it = hb_zip (this+coverage, sequence)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, sequence); it; ++it)
-      (this+it->second).collect_glyphs (c);
+    for (auto it = hb_zip (this+coverage, sequence)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -517,16 +519,17 @@ struct AlternateSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, alternateSet); it; ++it)
-      if (c->glyphs->has (it->first))
-        (this+it->second).closure (c);
+    for (auto it = hb_zip (this+coverage, alternateSet)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, alternateSet); it; ++it)
-      (this+it->second).collect_glyphs (c);
+    for (auto it = hb_zip (this+coverage, alternateSet)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -823,25 +826,28 @@ struct LigatureSubstFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
-      if (glyphs->has (it->first))
-        if ((this+it->second).intersects (glyphs))
-	  return true;
+    for (auto it = hb_zip (this+coverage, ligatureSet)
+		 | hb_filter (*glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      if ((this+*it).intersects (glyphs))
+	return true;
     return false;
   }
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
-      if (c->glyphs->has (it->first))
-        (this+it->second).closure (c);
+    for (auto it = hb_zip (this+coverage, ligatureSet)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).closure (c);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, ligatureSet); it; ++it)
-      (this+it->second).collect_glyphs (c);
+    for (auto it = hb_zip (this+coverage, ligatureSet)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).collect_glyphs (c);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -1012,9 +1018,10 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    for (auto it = hb_zip (this+coverage, substitute); it; ++it)
-      if (c->glyphs->has (it->first))
-        c->output->add (it->second);
+    for (auto it = hb_zip (this+coverage, substitute)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      c->output->add (*it);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
