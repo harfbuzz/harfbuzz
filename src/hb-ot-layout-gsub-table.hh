@@ -190,10 +190,10 @@ struct SingleSubstFormat2
     hb_vector_t<GlyphID> to;
     for (auto it = hb_zip (this+coverage, substitute)
 		 | hb_filter (glyphset, hb_first); it; ++it)
-      {
-	from.push ()->set (glyph_map[it->first]);
-	to.push ()->set (glyph_map[it->second]);
-      }
+    {
+      from.push ()->set (glyph_map[it->first]);
+      to.push ()->set (glyph_map[it->second]);
+    }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
