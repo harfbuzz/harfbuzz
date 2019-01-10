@@ -1436,10 +1436,11 @@ struct ContextFormat1
       {intersects_glyph},
       nullptr
     };
-    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
-      if (glyphs->has (it->first))
-        if ((this+it->second).intersects (glyphs, lookup_context))
-	  return true;
+    for (auto it = hb_zip (this+coverage, ruleSet)
+		 | hb_filter (*glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      if ((this+*it).intersects (glyphs, lookup_context))
+	return true;
     return false;
   }
 
@@ -1449,9 +1450,10 @@ struct ContextFormat1
       {intersects_glyph},
       nullptr
     };
-    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
-      if (c->glyphs->has (it->first))
-        (this+it->second).closure (c, lookup_context);
+    for (auto it = hb_zip (this+coverage, ruleSet)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2077,10 +2079,11 @@ struct ChainContextFormat1
       {intersects_glyph},
       {nullptr, nullptr, nullptr}
     };
-    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
-      if (glyphs->has (it->first))
-        if ((this+it->second).intersects (glyphs, lookup_context))
-	  return true;
+    for (auto it = hb_zip (this+coverage, ruleSet)
+		 | hb_filter (*glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      if ((this+*it).intersects (glyphs, lookup_context))
+	return true;
     return false;
   }
 
@@ -2090,9 +2093,10 @@ struct ChainContextFormat1
       {intersects_glyph},
       {nullptr, nullptr, nullptr}
     };
-    for (auto it = hb_zip (this+coverage, ruleSet); it; ++it)
-      if (c->glyphs->has (it->first))
-        (this+it->second).closure (c, lookup_context);
+    for (auto it = hb_zip (this+coverage, ruleSet)
+		 | hb_filter (*c->glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      (this+*it).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const

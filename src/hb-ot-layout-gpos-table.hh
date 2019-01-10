@@ -722,10 +722,11 @@ struct PairPosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    for (auto it = hb_zip (this+coverage, pairSet); it; ++it)
-      if (glyphs->has (it->first))
-        if ((this+it->second).intersects (glyphs, valueFormat))
-	  return true;
+    for (auto it = hb_zip (this+coverage, pairSet)
+		 | hb_filter (*glyphs, hb_first)
+		 | hb_map (hb_second); it; ++it)
+      if ((this+*it).intersects (glyphs, valueFormat))
+	return true;
     return false;
   }
 
