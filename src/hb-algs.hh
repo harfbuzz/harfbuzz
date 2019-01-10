@@ -53,13 +53,13 @@ struct hb_pair_t
 template <typename T1, typename T2> static inline hb_pair_t<T1, T2>
 hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 
-static struct
+static HB_UNUSED struct
 {
   template <typename Pair> typename Pair::first_t
   operator () (const Pair& pair) const { return pair.first; }
 } hb_first;
 
-static struct
+static HB_UNUSED struct
 {
   template <typename Pair> typename Pair::second_t
   operator () (const Pair& pair) const { return pair.second; }
