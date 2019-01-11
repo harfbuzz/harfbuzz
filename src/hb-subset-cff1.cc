@@ -456,7 +456,6 @@ struct cff_subset_plan {
     subset_enc_supp_codes.fini ();
     subset_charset_ranges.fini ();
     sidmap.fini ();
-    fontdicts_mod.fini ();
   }
 
   unsigned int plan_subset_encoding (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
