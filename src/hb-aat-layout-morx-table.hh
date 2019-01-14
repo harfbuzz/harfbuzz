@@ -330,7 +330,8 @@ struct ContextualSubtable
     unsigned int num_entries = 0;
     if (unlikely (!machine.sanitize (c, &num_entries))) return_trace (false);
 
-    if (!Types::extended) return_trace (true);
+    if (!Types::extended)
+      return_trace (substitutionTables.sanitize (c, this, 0));
 
     unsigned int num_lookups = 0;
 
