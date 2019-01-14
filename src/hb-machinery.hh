@@ -269,9 +269,10 @@ struct hb_sanitize_context_t :
 
     const char *obj_start = (const char *) obj;
     const char *obj_end = (const char *) obj + obj->get_size ();
-    assert (obj_start <= obj_end); /* Must not overflow. */
 
-    if (unlikely (obj_end < this->start || this->end < obj_start))
+    if (unlikely (obj_end < obj_start /* Overflow. */ ||
+		  obj_end < this->start ||
+		  this->end < obj_start))
       this->start = this->end = nullptr;
     else
     {
