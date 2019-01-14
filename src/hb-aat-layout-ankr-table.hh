@@ -69,8 +69,8 @@ struct ankr
     if (!offset)
       return Null(Anchor);
     const GlyphAnchors &anchors = StructAtOffset<GlyphAnchors> (&(this+anchorData), *offset);
-    /* TODO Use sanitizer; to avoid overflows and more. */
-    if (unlikely ((const char *) &anchors + anchors.get_size () > end))
+    if (unlikely (end - (const char *) &anchors < anchors.len.static_size ||
+		  end - (const char *) &anchors < anchors.get_size ()))
       return Null(Anchor);
     return anchors[i];
   }
@@ -80,7 +80,8 @@ struct ankr
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  version == 0 &&
-			  lookupTable.sanitize (c, this)));
+			  lookupTable.sanitize (c, this) &&
+			  anchorData.sanitize (c, this) /* Just one byte. */));
   }
 
   protected:
