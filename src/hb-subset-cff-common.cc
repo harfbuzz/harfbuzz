@@ -153,7 +153,7 @@ serialize_fdselect_3_4 (hb_serialize_context_t *c,
   TRACE_SERIALIZE (this);
   FDSELECT3_4 *p = c->allocate_size<FDSELECT3_4> (size);
   if (unlikely (p == nullptr)) return_trace (false);
-  p->nRanges.set (fdselect_ranges.length);
+  p->nRanges ().set (fdselect_ranges.length);
   for (unsigned int i = 0; i < fdselect_ranges.length; i++)
   {
     p->ranges[i].first.set (fdselect_ranges[i].glyph);
