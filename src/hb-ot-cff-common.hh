@@ -588,10 +588,10 @@ struct FDSelect0 {
 
 template <typename GID_TYPE, typename FD_TYPE>
 struct FDSelect3_4_Range {
-  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  bool sanitize (hb_sanitize_context_t *c, const void */*nullptr*/, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && (first < c->get_num_glyphs ()) && (fd < fdcount)));
+    return_trace (first < c->get_num_glyphs () && (fd < fdcount));
   }
 
   GID_TYPE    first;
@@ -603,21 +603,21 @@ struct FDSelect3_4_Range {
 template <typename GID_TYPE, typename FD_TYPE>
 struct FDSelect3_4 {
   unsigned int get_size () const
-  { return GID_TYPE::static_size * 2 + FDSelect3_4_Range<GID_TYPE, FD_TYPE>::static_size * nRanges; }
+  { return GID_TYPE::static_size * 2 + ranges.get_size (); }
 
   bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this) && (nRanges > 0) && (ranges[0].first == 0))))
+    if (unlikely (!c->check_struct (this) || !ranges.sanitize (c, nullptr, fdcount) ||
+    		  (nRanges () == 0) || ranges[0].first != 0))
       return_trace (false);
 
-    for (unsigned int i = 0; i < nRanges; i++)
+    for (unsigned int i = 1; i < nRanges (); i++)
     {
-      if (unlikely (!ranges[i].sanitize (c, fdcount)))
-	return_trace (false);
-      if ((0 < i) && unlikely (ranges[i - 1].first >= ranges[i].first))
-	return_trace (false);
+      if (unlikely (ranges[i - 1].first >= ranges[i].first))
+	  return_trace (false);
     }
+
     if (unlikely (!sentinel().sanitize (c) || (sentinel() != c->get_num_glyphs ())))
       return_trace (false);
 
@@ -627,18 +627,19 @@ struct FDSelect3_4 {
   hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
     unsigned int i;
-    for (i = 1; i < nRanges; i++)
+    for (i = 1; i < nRanges (); i++)
       if (glyph < ranges[i].first)
 	break;
 
     return (hb_codepoint_t)ranges[i - 1].fd;
   }
 
-  GID_TYPE &sentinel ()  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
-  const GID_TYPE &sentinel () const  { return StructAfter<GID_TYPE> (ranges[nRanges - 1]); }
+  GID_TYPE &nRanges () { return ranges.len; }
+  GID_TYPE nRanges () const { return ranges.len; }
+  GID_TYPE &sentinel ()  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
+  const GID_TYPE &sentinel () const  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
 
-  GID_TYPE	 nRanges;
-  FDSelect3_4_Range<GID_TYPE, FD_TYPE>  ranges[VAR];
+  ArrayOf<FDSelect3_4_Range<GID_TYPE, FD_TYPE>, GID_TYPE> ranges;
   /* GID_TYPE sentinel */
 
   DEFINE_SIZE_ARRAY (GID_TYPE::static_size, ranges);
