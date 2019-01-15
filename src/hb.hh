@@ -59,10 +59,6 @@
 # define __EXTENSIONS__ 1
 #endif
 
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-
 #if defined (_MSC_VER) && defined (HB_DLL_EXPORT)
 #define HB_EXTERN __declspec (dllexport) extern
 #endif
