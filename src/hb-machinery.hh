@@ -268,16 +268,12 @@ struct hb_sanitize_context_t :
     if (!obj) return;
 
     const char *obj_start = (const char *) obj;
-    const char *obj_end = (const char *) obj + obj->get_size ();
-
-    if (unlikely (obj_end < obj_start /* Overflow. */ ||
-		  obj_end < this->start ||
-		  this->end < obj_start))
+    if (unlikely (obj_start < this->start || this->end <= obj_start))
       this->start = this->end = nullptr;
     else
     {
-      this->start = MAX (this->start, obj_start);
-      this->end   = MIN (this->end  , obj_end  );
+      this->start = obj_start;
+      this->end   = obj_start + MIN<uintptr_t> (this->end - obj_start, obj->get_size ());
     }
   }
 
