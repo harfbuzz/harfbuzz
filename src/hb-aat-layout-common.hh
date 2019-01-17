@@ -394,7 +394,7 @@ struct Lookup
     case 4: return_trace (u.format4.sanitize (c, base));
     case 6: return_trace (u.format6.sanitize (c, base));
     case 8: return_trace (u.format8.sanitize (c, base));
-    case 10: return_trace (false); /* No need to support format10 apparently */
+    case 10: return_trace (false); /* We don't support format10 here currently. */
     default:return_trace (true);
     }
   }
