@@ -33,10 +33,12 @@
 // Enable
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
+#pragma GCC diagnostic warning "-Wunused"
 #pragma GCC diagnostic warning "-Wcast-align"
 // Disable
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma GCC diagnostic ignored "-Wunused-parameter" // TODO Fix
+#pragma GCC diagnostic ignored "-Wshadow" // TODO fix
 #endif
 
 #ifdef HAVE_CONFIG_H
