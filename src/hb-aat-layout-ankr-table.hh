@@ -62,8 +62,7 @@ struct ankr
 
   const Anchor &get_anchor (hb_codepoint_t glyph_id,
 			    unsigned int i,
-			    unsigned int num_glyphs,
-			    const char *end) const
+			    unsigned int num_glyphs) const
   {
     const OffsetTo<GlyphAnchors, HBUINT16, false> *offset = (this+lookupTable).get_value (glyph_id, num_glyphs);
     if (!offset)

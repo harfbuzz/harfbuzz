@@ -825,7 +825,6 @@ struct hb_aat_apply_context_t :
   hb_buffer_t *buffer;
   hb_sanitize_context_t sanitizer;
   const ankr *ankr_table;
-  const char *ankr_end;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
@@ -838,7 +837,7 @@ struct hb_aat_apply_context_t :
 
   HB_INTERNAL ~hb_aat_apply_context_t ();
 
-  HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_, const char *ankr_end_);
+  HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_);
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
 };
