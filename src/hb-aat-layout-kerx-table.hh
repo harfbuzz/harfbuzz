@@ -374,7 +374,7 @@ struct KerxSubTableFormat1
   protected:
   KernSubTableHeader				header;
   StateTable<Types, EntryData>			machine;
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>kernAction;
+  NNOffsetTo<UnsizedArrayOf<FWORD>, HBUINT>	kernAction;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 5 * sizeof (HBUINT));
 };
@@ -443,13 +443,13 @@ struct KerxSubTableFormat2
   protected:
   KernSubTableHeader	header;
   HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
+  NNOffsetTo<typename Types::ClassTypeWide, HBUINT>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
+  NNOffsetTo<typename Types::ClassTypeWide, HBUINT>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>
+  NNOffsetTo<UnsizedArrayOf<FWORD>, HBUINT>
 			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
@@ -719,18 +719,18 @@ struct KerxSubTableFormat6
   {
     struct Long
     {
-      LOffsetTo<Lookup<HBUINT32>, false>	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT32>, false>	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD32>, false>	array;
+      LNNOffsetTo<Lookup<HBUINT32> >		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT32> >		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD32> >	array;
     } l;
     struct Short
     {
-      LOffsetTo<Lookup<HBUINT16>, false>	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT16>, false>	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD>, false>	array;
+      LNNOffsetTo<Lookup<HBUINT16> >		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT16> >		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD> >	array;
     } s;
   } u;
-  LOffsetTo<UnsizedArrayOf<FWORD>, false>	vector;
+  LNNOffsetTo<UnsizedArrayOf<FWORD> >	vector;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };
