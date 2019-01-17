@@ -455,6 +455,8 @@ num = 0
 offset = 0
 starts = []
 ends = []
+print ('#pragma GCC diagnostic push')
+print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
 for k,v in sorted(use_mapping.items()):
 	if k in use_positions and use_positions[k]: continue
 	print ("#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:]))
@@ -463,6 +465,7 @@ for k,v in sorted(use_positions.items()):
 	for suf in v.keys():
 		tag = k + suf
 		print ("#define %s	USE_%s" % (tag, tag))
+print ('#pragma GCC diagnostic pop')
 print ("")
 print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
 for u in uu:
