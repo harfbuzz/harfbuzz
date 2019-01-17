@@ -50,7 +50,7 @@ struct FTStringRange
   }
 
   protected:
-  OffsetTo<UnsizedArrayOf<HBUINT8>, HBUINT16, false>
+  NNOffsetTo<UnsizedArrayOf<HBUINT8> >
 		tag;		/* Offset from the start of the table to
 				 * the beginning of the string */
   HBUINT16	length;		/* String length (in bytes) */

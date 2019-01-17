@@ -125,9 +125,9 @@ struct COLR
   protected:
   HBUINT16	version;	/* Table version number (starts at 0). */
   HBUINT16	numBaseGlyphs;	/* Number of Base Glyph Records. */
-  LOffsetTo<SortedUnsizedArrayOf<BaseGlyphRecord>, false>
+  LNNOffsetTo<SortedUnsizedArrayOf<BaseGlyphRecord> >
 		baseGlyphsZ;	/* Offset to Base Glyph records. */
-  LOffsetTo<UnsizedArrayOf<LayerRecord>, false>
+  LNNOffsetTo<UnsizedArrayOf<LayerRecord> >
 		layersZ;	/* Offset to Layer Records. */
   HBUINT16	numLayers;	/* Number of Layer Records. */
   public:

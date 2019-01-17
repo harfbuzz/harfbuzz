@@ -66,7 +66,7 @@ struct TrackTableEntry
   NameID	trackNameID;	/* The 'name' table index for this track.
 				 * (a short word or phrase like "loose"
 				 * or "very tight") */
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>
+  NNOffsetTo<UnsizedArrayOf<FWORD> >
 		valuesZ;	/* Offset from start of tracking table to
 				 * per-size tracking values for this track. */
 

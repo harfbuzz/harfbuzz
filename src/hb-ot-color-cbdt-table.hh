@@ -283,7 +283,7 @@ struct BitmapSizeTable
   }
 
   protected:
-  LOffsetTo<IndexSubtableArray, false>
+  LNNOffsetTo<IndexSubtableArray>
 			indexSubtableArrayOffset;
   HBUINT32		indexTablesSize;
   HBUINT32		numberOfIndexSubtables;

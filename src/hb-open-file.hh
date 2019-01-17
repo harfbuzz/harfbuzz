@@ -298,7 +298,7 @@ struct ResourceRecord
   HBINT16	nameOffset;	/* Offset from beginning of resource name list
 				 * to resource name, -1 means there is none. */
   HBUINT8	attrs;		/* Resource attributes */
-  OffsetTo<LArrayOf<HBUINT8>, HBUINT24, false>
+  NNOffsetTo<LArrayOf<HBUINT8>, HBUINT24>
 		offset;		/* Offset from beginning of data block to
 				 * data for this resource */
   HBUINT32	reserved;	/* Reserved for handle to resource */
@@ -333,7 +333,7 @@ struct ResourceTypeRecord
   protected:
   Tag		tag;		/* Resource type. */
   HBUINT16	resCountM1;	/* Number of resources minus 1. */
-  OffsetTo<UnsizedArrayOf<ResourceRecord>, HBUINT16, false>
+  NNOffsetTo<UnsizedArrayOf<ResourceRecord> >
 		resourcesZ;	/* Offset from beginning of resource type list
 				 * to reference item list for this type. */
   public:
@@ -389,7 +389,7 @@ struct ResourceMap
   HBUINT32	reserved1;	/* Reserved for handle to next resource map */
   HBUINT16	resreved2;	/* Reserved for file reference number */
   HBUINT16	attrs;		/* Resource fork attribute */
-  OffsetTo<ArrayOfM1<ResourceTypeRecord>, HBUINT16, false>
+  NNOffsetTo<ArrayOfM1<ResourceTypeRecord> >
 		typeList;	/* Offset from beginning of map to
 				 * resource type list */
   Offset16	nameList;	/* Offset from beginning of map to
@@ -421,10 +421,10 @@ struct ResourceForkHeader
   }
 
   protected:
-  LOffsetTo<UnsizedArrayOf<HBUINT8>, false>
+  LNNOffsetTo<UnsizedArrayOf<HBUINT8> >
 		data;		/* Offset from beginning of resource fork
 				 * to resource data */
-  LOffsetTo<ResourceMap, false>
+  LNNOffsetTo<ResourceMap >
 		map;		/* Offset from beginning of resource fork
 				 * to resource map */
   HBUINT32	dataLen;	/* Length of resource data */

@@ -263,7 +263,7 @@ struct name
   /* We only implement format 0 for now. */
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
-  OffsetTo<UnsizedArrayOf<HBUINT8>, HBUINT16, false>
+  NNOffsetTo<UnsizedArrayOf<HBUINT8> >
 		stringOffset;		/* Offset to start of string storage (from start of table). */
   UnsizedArrayOf<NameRecord>
 		nameRecordZ;		/* The name records where count is the number of records. */

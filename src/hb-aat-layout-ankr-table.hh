@@ -64,7 +64,7 @@ struct ankr
 			    unsigned int i,
 			    unsigned int num_glyphs) const
   {
-    const OffsetTo<GlyphAnchors, HBUINT16, false> *offset = (this+lookupTable).get_value (glyph_id, num_glyphs);
+    const NNOffsetTo<GlyphAnchors> *offset = (this+lookupTable).get_value (glyph_id, num_glyphs);
     if (!offset)
       return Null(Anchor);
     const GlyphAnchors &anchors = &(this+anchorData) + *offset;
@@ -82,9 +82,9 @@ struct ankr
   protected:
   HBUINT16	version; 	/* Version number (set to zero) */
   HBUINT16	flags;		/* Flags (currently unused; set to zero) */
-  LOffsetTo<Lookup<OffsetTo<GlyphAnchors, HBUINT16, false> > >
+  LOffsetTo<Lookup<NNOffsetTo<GlyphAnchors> > >
 		lookupTable;	/* Offset to the table's lookup table */
-  LOffsetTo<HBUINT8, false>
+  LNNOffsetTo<HBUINT8>
 		anchorData;	/* Offset to the glyph data table */
 
   public:
