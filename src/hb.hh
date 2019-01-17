@@ -30,7 +30,13 @@
 #define HB_HH
 
 #ifndef HB_NO_GCC_PRAGMAS
+// Enable
+#pragma GCC diagnostic warning "-Wall"
+#pragma GCC diagnostic warning "-Wextra"
 #pragma GCC diagnostic warning "-Wcast-align"
+// Disable
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wunused-parameter" // TODO Fix
 #endif
 
 #ifdef HAVE_CONFIG_H
