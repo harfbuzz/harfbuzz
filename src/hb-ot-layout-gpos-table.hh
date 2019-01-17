@@ -84,16 +84,16 @@ struct ValueFormat : HBUINT16
   HBINT16		yAdvance;		/* Vertical adjustment for advance--in
 					 * design units (only used for vertical
 					 * writing) */
-  Offset	xPlaDevice;		/* Offset to Device table for
+  OffsetTo<Device>	xPlaDevice;	/* Offset to Device table for
 					 * horizontal placement--measured from
 					 * beginning of PosTable (may be NULL) */
-  Offset	yPlaDevice;		/* Offset to Device table for vertical
+  OffsetTo<Device>	yPlaDevice;	/* Offset to Device table for vertical
 					 * placement--measured from beginning
 					 * of PosTable (may be NULL) */
-  Offset	xAdvDevice;		/* Offset to Device table for
+  OffsetTo<Device>	xAdvDevice;	/* Offset to Device table for
 					 * horizontal advance--measured from
 					 * beginning of PosTable (may be NULL) */
-  Offset	yAdvDevice;		/* Offset to Device table for vertical
+  OffsetTo<Device>	yAdvDevice;	/* Offset to Device table for vertical
 					 * advance--measured from beginning of
 					 * PosTable (may be NULL) */
 #endif
