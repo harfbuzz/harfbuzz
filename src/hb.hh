@@ -29,7 +29,7 @@
 #ifndef HB_HH
 #define HB_HH
 
-#ifndef HB_NO_GCC_PRAGMAS
+#ifndef HB_NO_DIAGNOSTIC_PRAGMAS
 // Enable
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
