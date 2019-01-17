@@ -30,16 +30,28 @@
 #define HB_HH
 
 #ifndef HB_NO_DIAGNOSTIC_PRAGMAS
-// Enable
+/* Rules:
+ * - We set all pragmas under GCC, even clang-specific ones.  Clang
+ *   still reads them.
+ * - Within each category, keep sorted.
+ */
+/* Setup */
+#pragma GCC diagnostic ignored "-Wpragmas" // Must be first
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
-#pragma GCC diagnostic warning "-Wunused"
-#pragma GCC diagnostic warning "-Wcast-align"
-// Disable
+//#pragma GCC diagnostic warning "-Weverything"
+/* Error */
+#pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wunused"
+/* Warning */
+/* Ignored */
+#pragma GCC diagnostic ignored "-Wconversion" // TODO fix
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
+#pragma GCC diagnostic ignored "-Wshadow" // TODO fix
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #pragma GCC diagnostic ignored "-Wunused-parameter" // TODO Fix
-#pragma GCC diagnostic ignored "-Wshadow" // TODO fix
 #endif
 
 #ifdef HAVE_CONFIG_H
