@@ -36,14 +36,30 @@
  * - Within each category, keep sorted.
  */
 /* Setup */
-#pragma GCC diagnostic ignored "-Wpragmas" // Must be first
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
+#pragma GCC diagnostic ignored "-Wpragmas" // Must be exactly here!
 //#pragma GCC diagnostic warning "-Weverything"
 /* Error */
 #pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wformat=2"
+#pragma GCC diagnostic error   "-Winit-self"
+#pragma GCC diagnostic error   "-Wimplicit-function-declaration"
+#pragma GCC diagnostic error   "-Wmissing-braces"
+#pragma GCC diagnostic error   "-Wmissing-noreturn"
+#pragma GCC diagnostic error   "-Wpointer-arith"
+#pragma GCC diagnostic error   "-Wredundant-decls"
+#pragma GCC diagnostic error   "-Wswitch-enum"
 #pragma GCC diagnostic error   "-Wunused"
+#pragma GCC diagnostic error   "-Wwrite-strings"
 /* Warning */
+#pragma GCC diagnostic warning "-Wdisabled-optimization"
+#pragma GCC diagnostic warning "-Wlogical-op"
+#pragma GCC diagnostic warning "-Wmissing-format-attribute"
+#pragma GCC diagnostic warning "-Wsign-compare"
+#pragma GCC diagnostic warning "-Wundef"
+#pragma GCC diagnostic warning "-Wunsafe-loop-optimizations"
+#pragma GCC diagnostic warning "-Wvla"
 /* Ignored */
 #pragma GCC diagnostic ignored "-Wconversion" // TODO fix
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
