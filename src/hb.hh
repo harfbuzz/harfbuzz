@@ -29,6 +29,10 @@
 #ifndef HB_HH
 #define HB_HH
 
+#ifndef HB_NO_GCC_PRAGMAS
+#pragma GCC diagnostic warning "-Wcast-align"
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

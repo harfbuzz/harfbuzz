@@ -102,9 +102,6 @@ if test "x$GCC" = "xyes"; then
 	# by overriding CXXFLAGS.
 	CXXFLAGS="-fno-rtti $CXXFLAGS -fno-exceptions -fno-threadsafe-statics"
 
-	# Assorted warnings
-	CXXFLAGS="$CXXFLAGS -Wcast-align"
-
 	case "$host" in
 		*-*-mingw*)
 		;;
