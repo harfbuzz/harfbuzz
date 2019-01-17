@@ -83,7 +83,7 @@ struct ankr
   protected:
   HBUINT16	version; 	/* Version number (set to zero) */
   HBUINT16	flags;		/* Flags (currently unused; set to zero) */
-  LOffsetTo<Lookup<OffsetTo<GlyphAnchors, HBUINT16, false> >, false>
+  LOffsetTo<Lookup<OffsetTo<GlyphAnchors, HBUINT16, false> > >
 		lookupTable;	/* Offset to the table's lookup table */
   LOffsetTo<HBUINT8, false>
 		anchorData;	/* Offset to the glyph data table */
