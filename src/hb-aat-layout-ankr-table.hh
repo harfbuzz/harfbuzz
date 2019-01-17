@@ -69,7 +69,8 @@ struct ankr
     if (!offset)
       return Null(Anchor);
     const GlyphAnchors &anchors = StructAtOffset<GlyphAnchors> (&(this+anchorData), *offset);
-    if (unlikely (end - (const char *) &anchors < anchors.len.static_size ||
+    if (unlikely (end < (const char *) &anchors ||
+		  end - (const char *) &anchors < anchors.len.static_size ||
 		  end - (const char *) &anchors < anchors.get_size ()))
       return Null(Anchor);
     return anchors[i];
