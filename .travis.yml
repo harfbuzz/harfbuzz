@@ -6,8 +6,6 @@ language: cpp
 env:
   global:
     - CPPFLAGS=""
-    - CFLAGS="-Werror -Werror=unused -Werror=unused-function"
-    - CXXFLAGS="-Werror -Werror=unused -Werror=unused-function -Wno-deprecated-register" # glib uses register and clang raises a warning
     - CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
     - NOCONFIGURE=1
     # COVERITY_SCAN_TOKEN
