@@ -79,6 +79,7 @@
 #pragma GCC diagnostic warning "-Wformat=2"
 #pragma GCC diagnostic warning "-Wignored-pragma-optimize"
 #pragma GCC diagnostic warning "-Wlogical-op"
+#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
 #pragma GCC diagnostic warning "-Wsign-compare"
 #pragma GCC diagnostic warning "-Wundef"
