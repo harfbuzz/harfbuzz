@@ -516,7 +516,6 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   const hb_directwrite_face_data_t *face_data = face->data.directwrite;
-  const hb_directwrite_font_data_t *font_data = font->data.directwrite;
   IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
   IDWriteFontFace *fontFace = face_data->fontFace;
 
