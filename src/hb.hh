@@ -52,6 +52,7 @@
 /* Error.  Should never happen. */
 #pragma GCC diagnostic error   "-Wc++11-narrowing"
 #pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
