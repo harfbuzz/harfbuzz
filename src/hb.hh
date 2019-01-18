@@ -62,6 +62,7 @@
 #pragma GCC diagnostic error   "-Wold-style-definition"
 #pragma GCC diagnostic error   "-Wpointer-arith"
 #pragma GCC diagnostic error   "-Wredundant-decls"
+#pragma GCC diagnostic error   "-Wreorder"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
