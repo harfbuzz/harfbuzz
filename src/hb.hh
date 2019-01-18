@@ -30,6 +30,7 @@
 #define HB_HH
 
 #ifndef HB_NO_DIAGNOSTIC_PRAGMAS
+#if defined(__GNUC__) || defined(__clang__)
 /* Rules:
  *
  * - All pragmas are declared GCC even if they are clang ones.  Otherwise GCC
@@ -102,6 +103,8 @@
 #pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+
+#endif
 #endif
 
 #ifdef HAVE_CONFIG_H
