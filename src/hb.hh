@@ -208,7 +208,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
 #endif // static_assert
 
-#ifdef __GNUC__
+#if defined(__GNUC__)
 #if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8))
 #define thread_local __thread
 #endif
@@ -258,7 +258,7 @@ struct _hb_alignof
 #define __attribute__(x)
 #endif
 
-#if __GNUC__ >= 3
+#if defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_PURE_FUNC	__attribute__((pure))
 #define HB_CONST_FUNC	__attribute__((const))
 #define HB_PRINTF_FUNC(format_idx, arg_idx) __attribute__((__format__ (__printf__, format_idx, arg_idx)))
@@ -267,7 +267,7 @@ struct _hb_alignof
 #define HB_CONST_FUNC
 #define HB_PRINTF_FUNC(format_idx, arg_idx)
 #endif
-#if __GNUC__ >= 4
+#if defined(__GNUC__) && (__GNUC__ >= 4)
 #define HB_UNUSED	__attribute__((unused))
 #elif defined(_MSC_VER) /* https://github.com/harfbuzz/harfbuzz/issues/635 */
 #define HB_UNUSED __pragma(warning(suppress: 4100 4101))
@@ -290,7 +290,7 @@ struct _hb_alignof
 # endif
 #endif
 
-#if __GNUC__ >= 3
+#if defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_FUNC __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
 #define HB_FUNC __FUNCSIG__
@@ -322,7 +322,7 @@ struct _hb_alignof
 #if defined(__clang__) && __cplusplus >= 201103L
    /* clang's fallthrough annotations are only available starting in C++11. */
 #  define HB_FALLTHROUGH [[clang::fallthrough]]
-#elif __GNUC__ >= 7
+#elif defined(__GNUC__) && (__GNUC__ >= 7)
    /* GNU fallthrough attribute is available from GCC7 */
 #  define HB_FALLTHROUGH __attribute__((fallthrough))
 #elif defined(_MSC_VER)
