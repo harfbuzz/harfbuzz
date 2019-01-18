@@ -961,13 +961,13 @@ retry:
 
   /* Calculate visual-clusters.  That's what we ship. */
   for (unsigned int i = 0; i < glyphs_len; i++)
-    vis_clusters[i] = -1;
+    vis_clusters[i] = (uint32_t) -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphs_len; i++)
-    if (vis_clusters[i] == -1)
+    if (vis_clusters[i] == (uint32_t) -1)
       vis_clusters[i] = vis_clusters[i - 1];
 
 #undef utf16_index
