@@ -65,7 +65,6 @@
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
 #pragma GCC diagnostic warning "-Wsign-compare"
 #pragma GCC diagnostic warning "-Wundef"
-#pragma GCC diagnostic warning "-Wunsafe-loop-optimizations"
 #pragma GCC diagnostic warning "-Wvla"
 /* Ignored */
 #pragma GCC diagnostic ignored "-Wconversion" // TODO fix
@@ -77,7 +76,8 @@
 #pragma GCC diagnostic ignored "-Wshadow" // TODO fix
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
-#pragma GCC diagnostic ignored "-Wunused-parameter" // TODO Fix
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations" // TODO fix
+#pragma GCC diagnostic ignored "-Wunused-parameter" // TODO fix
 #endif
 
 #ifdef HAVE_CONFIG_H
