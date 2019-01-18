@@ -46,7 +46,6 @@ struct SingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
       /* TODO Switch to range-based API to work around malicious fonts.
@@ -147,7 +146,6 @@ struct SingleSubstFormat2
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = substitute.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
@@ -298,7 +296,6 @@ struct Sequence
 {
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
       c->out->add (substitute[i]);
@@ -369,7 +366,6 @@ struct MultipleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = sequence.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
@@ -490,7 +486,6 @@ struct AlternateSet
 {
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = alternates.len;
     for (unsigned int i = 0; i < count; i++)
       c->out->add (alternates[i]);
@@ -555,7 +550,6 @@ struct AlternateSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = alternateSet.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
@@ -690,7 +684,6 @@ struct Ligature
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = component.lenP1;
     for (unsigned int i = 1; i < count; i++)
       if (!c->glyphs->has (component[i]))
@@ -798,7 +791,6 @@ struct LigatureSet
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
       (this+ligature[i]).closure (c);
@@ -891,7 +883,6 @@ struct LigatureSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     unsigned int count = ligatureSet.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
@@ -1068,7 +1059,6 @@ struct ReverseChainSingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE (this);
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int count;
@@ -1302,9 +1292,8 @@ struct SubstLookup : Lookup
 
   hb_closure_context_t::return_t closure (hb_closure_context_t *c, unsigned int this_index) const
   {
-    TRACE_CLOSURE (this);
     if (!c->should_visit_lookup (this_index))
-      return_trace (HB_VOID);
+      return hb_closure_context_t::default_return_value ();
 
     c->set_recurse_func (dispatch_closure_recurse_func);
 
@@ -1312,7 +1301,7 @@ struct SubstLookup : Lookup
 
     c->flush ();
 
-    return_trace (ret);
+    return ret;
   }
 
   hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
