@@ -58,7 +58,6 @@ struct SingleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
     {
@@ -158,7 +157,6 @@ struct SingleSubstFormat2
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     unsigned int count = substitute.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
@@ -302,10 +300,7 @@ struct Sequence
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
-  {
-    TRACE_COLLECT_GLYPHS (this);
-    c->output->add_array (substitute.arrayZ, substitute.len);
-  }
+  { c->output->add_array (substitute.arrayZ, substitute.len); }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -378,7 +373,6 @@ struct MultipleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     unsigned int count = sequence.len;
     for (unsigned int i = 0; i < count; i++)
@@ -492,10 +486,7 @@ struct AlternateSet
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
-  {
-    TRACE_COLLECT_GLYPHS (this);
-    c->output->add_array (alternates.arrayZ, alternates.len);
-  }
+  { c->output->add_array (alternates.arrayZ, alternates.len); }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -562,7 +553,6 @@ struct AlternateSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     unsigned int count = alternateSet.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
@@ -693,7 +683,6 @@ struct Ligature
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     c->input->add_array (component.arrayZ, component.lenP1 ? component.lenP1 - 1 : 0);
     c->output->add (ligGlyph);
   }
@@ -798,7 +787,6 @@ struct LigatureSet
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
       (this+ligature[i]).collect_glyphs (c);
@@ -895,7 +883,6 @@ struct LigatureSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     unsigned int count = ligatureSet.len;
     for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
@@ -1086,7 +1073,6 @@ struct ReverseChainSingleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
 
     unsigned int count;
@@ -1306,9 +1292,8 @@ struct SubstLookup : Lookup
 
   hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    TRACE_COLLECT_GLYPHS (this);
     c->set_recurse_func (dispatch_recurse_func<hb_collect_glyphs_context_t>);
-    return_trace (dispatch (c));
+    return dispatch (c);
   }
 
   template <typename set_t>
