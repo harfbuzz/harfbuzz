@@ -31,70 +31,74 @@
 
 #ifndef HB_NO_DIAGNOSTIC_PRAGMAS
 /* Rules:
- * - If GCC understands a warning, we declare it as GCC.  Otherwise, clang.
+ *
+ * - All pragmas are declared GCC even if they are clang ones.  Otherwise GCC
+ *   nags, even though we instruct it to ignore -Wunknown-pragmas. ¯\_(ツ)_/¯
+ *
  * - Within each category, keep sorted.
+ *
  * - Warnings whose scope can be expanded in future compiler versions shall
  *   be declared as "warning".  Otherwise, either ignored or error.
  */
 
-/* Setup */
-#pragma GCC   diagnostic warning "-Wall"
-#pragma GCC   diagnostic warning "-Wextra"
-#pragma GCC   diagnostic ignored "-Wpragmas"
-#pragma GCC   diagnostic ignored "-Wunknown-pragmas"
-#pragma clang diagnostic ignored "-Wunknown-warning-option"
-//#pragma GCC   diagnostic warning "-Weverything"
+/* Setup.  Don't sort order within this category. */
+#pragma GCC diagnostic warning "-Wall"
+#pragma GCC diagnostic warning "-Wextra"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+//#pragma GCC diagnostic warning "-Weverything"
 
 /* Error.  Should never happen. */
-#pragma clang diagnostic error   "-Wc++11-narrowing"
-#pragma clang diagnostic error   "-Wstring-conversion"
-#pragma clang diagnostic error   "-Wtautological-overlap-compare"
-#pragma GCC   diagnostic error   "-Wcast-align"
-#pragma GCC   diagnostic error   "-Wformat-security"
-#pragma GCC   diagnostic error   "-Wimplicit-function-declaration"
-#pragma GCC   diagnostic error   "-Winit-self"
-#pragma GCC   diagnostic error   "-Wmissing-braces"
-#pragma GCC   diagnostic error   "-Wmissing-declarations"
-#pragma GCC   diagnostic error   "-Wmissing-prototypes"
-#pragma GCC   diagnostic error   "-Wnested-externs"
-#pragma GCC   diagnostic error   "-Wold-style-definition"
-#pragma GCC   diagnostic error   "-Wpointer-arith"
-#pragma GCC   diagnostic error   "-Wredundant-decls"
-#pragma GCC   diagnostic error   "-Wstrict-prototypes"
-#pragma GCC   diagnostic error   "-Wswitch-enum"
-#pragma GCC   diagnostic error   "-Wunneeded-internal-declaration"
-#pragma GCC   diagnostic error   "-Wunused"
-#pragma GCC   diagnostic error   "-Wunused-local-typedefs"
-#pragma GCC   diagnostic error   "-Wunused-value"
-#pragma GCC   diagnostic error   "-Wunused-variable"
-#pragma GCC   diagnostic error   "-Wwrite-strings"
+#pragma GCC diagnostic error   "-Wc++11-narrowing"
+#pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wformat-security"
+#pragma GCC diagnostic error   "-Wimplicit-function-declaration"
+#pragma GCC diagnostic error   "-Winit-self"
+#pragma GCC diagnostic error   "-Wmissing-braces"
+#pragma GCC diagnostic error   "-Wmissing-declarations"
+#pragma GCC diagnostic error   "-Wmissing-prototypes"
+#pragma GCC diagnostic error   "-Wnested-externs"
+#pragma GCC diagnostic error   "-Wold-style-definition"
+#pragma GCC diagnostic error   "-Wpointer-arith"
+#pragma GCC diagnostic error   "-Wredundant-decls"
+#pragma GCC diagnostic error   "-Wstrict-prototypes"
+#pragma GCC diagnostic error   "-Wstring-conversion"
+#pragma GCC diagnostic error   "-Wswitch-enum"
+#pragma GCC diagnostic error   "-Wtautological-overlap-compare"
+#pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
+#pragma GCC diagnostic error   "-Wunused"
+#pragma GCC diagnostic error   "-Wunused-local-typedefs"
+#pragma GCC diagnostic error   "-Wunused-value"
+#pragma GCC diagnostic error   "-Wunused-variable"
+#pragma GCC diagnostic error   "-Wwrite-strings"
 
 /* Warning.  To be investigated if happens. */
-#pragma clang diagnostic warning "-Wignored-pragma-optimize"
-#pragma GCC   diagnostic warning "-Wbuiltin-macro-redefined"
-#pragma GCC   diagnostic warning "-Wdisabled-optimization"
-#pragma GCC   diagnostic warning "-Wformat=2"
-#pragma GCC   diagnostic warning "-Wlogical-op"
-#pragma GCC   diagnostic warning "-Wmissing-format-attribute"
-#pragma GCC   diagnostic warning "-Wsign-compare"
-#pragma GCC   diagnostic warning "-Wundef"
-#pragma GCC   diagnostic warning "-Wvla"
+#pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
+#pragma GCC diagnostic warning "-Wdisabled-optimization"
+#pragma GCC diagnostic warning "-Wformat=2"
+#pragma GCC diagnostic warning "-Wignored-pragma-optimize"
+#pragma GCC diagnostic warning "-Wlogical-op"
+#pragma GCC diagnostic warning "-Wmissing-format-attribute"
+#pragma GCC diagnostic warning "-Wsign-compare"
+#pragma GCC diagnostic warning "-Wundef"
+#pragma GCC diagnostic warning "-Wvla"
 
 /* Ignored currently, but should be fixed at some point. */
-#pragma GCC   diagnostic ignored "-Wconversion"			// TODO fix
-#pragma GCC   diagnostic ignored "-Wformat-signedness"		// TODO fix
-#pragma GCC   diagnostic ignored "-Wshadow"			// TODO fix
-#pragma GCC   diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
-#pragma GCC   diagnostic ignored "-Wunused-parameter"		// TODO fix
+#pragma GCC diagnostic ignored "-Wconversion"			// TODO fix
+#pragma GCC diagnostic ignored "-Wformat-signedness"		// TODO fix
+#pragma GCC diagnostic ignored "-Wshadow"			// TODO fix
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
+#pragma GCC diagnostic ignored "-Wunused-parameter"		// TODO fix
 
 /* Ignored intentionally. */
-#pragma clang diagnostic ignored "-Wclass-memaccess"
-#pragma GCC   diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC   diagnostic ignored "-Wformat-zero-length"
-#pragma GCC   diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC   diagnostic ignored "-Wpacked" // Erratic impl in clang
-#pragma GCC   diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC   diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
 #ifdef HAVE_CONFIG_H
