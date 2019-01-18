@@ -51,6 +51,9 @@
  * hb_font_funcs_t
  */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align" // API taking in *_stride needs it
+
 static hb_bool_t
 hb_font_get_font_h_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
@@ -2036,3 +2039,5 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 					  trampoline,
 					  trampoline_destroy);
 }
+
+#pragma GCC diagnostic pop
