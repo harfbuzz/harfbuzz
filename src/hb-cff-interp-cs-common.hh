@@ -127,6 +127,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     seen_hintmask = false;
     hstem_count = 0;
     vstem_count = 0;
+    hintmask_size = 0;
     pt.init ();
     callStack.init ();
     globalSubrs.init (globalSubrs_);
