@@ -817,7 +817,7 @@ retry:
 				     script_tags,
 				     &item_count);
   if (unlikely (FAILED (hr)))
-    FAIL ("ScriptItemizeOpenType() failed: 0x%08xL", hr);
+    FAIL ("ScriptItemizeOpenType() failed: 0x%08lx", hr);
 
 #undef MAX_ITEMS
 
@@ -916,7 +916,7 @@ retry:
     }
     if (unlikely (FAILED (hr)))
     {
-      FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
+      FAIL ("ScriptShapeOpenType() failed: 0x%08lx", hr);
     }
 
     for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
@@ -942,7 +942,7 @@ retry:
 				     offsets + glyphs_offset,
 				     nullptr);
     if (unlikely (FAILED (hr)))
-      FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
+      FAIL ("ScriptPlaceOpenType() failed: 0x%08lx", hr);
 
     if (DEBUG_ENABLED (UNISCRIBE))
       fprintf (stderr, "Item %d RTL %d LayoutRTL %d LogicalOrder %d ScriptTag %c%c%c%c\n",
