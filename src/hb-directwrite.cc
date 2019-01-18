@@ -133,8 +133,8 @@ struct hb_directwrite_face_data_t
 {
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
-  IDWriteFontFileStream *fontFileStream;
-  IDWriteFontFileLoader *fontFileLoader;
+  DWriteFontFileStream *fontFileStream;
+  DWriteFontFileLoader *fontFileLoader;
   IDWriteFontFace *fontFace;
   hb_blob_t *faceBlob;
 };
