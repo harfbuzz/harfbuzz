@@ -38,7 +38,8 @@
 /* Setup */
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
-#pragma GCC diagnostic ignored "-Wpragmas" // Must be exactly here!
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
 //#pragma GCC diagnostic warning "-Weverything"
 /* Error */
 #pragma GCC diagnostic error   "-Wcast-align"
