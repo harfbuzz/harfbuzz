@@ -42,7 +42,6 @@
 //#pragma GCC diagnostic warning "-Weverything"
 /* Error */
 #pragma GCC diagnostic error   "-Wcast-align"
-#pragma GCC diagnostic error   "-Wclass-memaccess"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Winit-self"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
@@ -67,6 +66,7 @@
 #pragma GCC diagnostic warning "-Wundef"
 #pragma GCC diagnostic warning "-Wvla"
 /* Ignored */
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wconversion" // TODO fix
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #pragma GCC diagnostic ignored "-Wformat-signedness" // TODO fix
