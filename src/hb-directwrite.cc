@@ -281,7 +281,7 @@ public:
 public:
   TextAnalysis (const wchar_t* text, uint32_t textLength,
 		const wchar_t* localeName, DWRITE_READING_DIRECTION readingDirection)
-	       : mText (text), mTextLength (textLength), mLocaleName (localeName),
+	       : mTextLength (textLength), mText (text), mLocaleName (localeName),
 		 mReadingDirection (readingDirection), mCurrentRun (nullptr) {}
   ~TextAnalysis ()
   {
