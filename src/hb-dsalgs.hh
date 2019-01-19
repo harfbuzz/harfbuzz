@@ -106,7 +106,7 @@ hb_bit_storage (T v)
     _BitScanReverse (&where, v);
     return 1 + where;
   }
-# if _WIN64
+# if defined(_WIN64)
   if (sizeof (T) <= 8)
   {
     unsigned long where;
@@ -180,7 +180,7 @@ hb_ctz (T v)
     _BitScanForward (&where, v);
     return where;
   }
-# if _WIN64
+# if defined(_WIN64)
   if (sizeof (T) <= 8)
   {
     unsigned long where;
