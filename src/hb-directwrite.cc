@@ -71,6 +71,8 @@ public:
     *fontFileStream = mFontFileStream;
     return S_OK;
   }
+
+  virtual ~DWriteFontFileLoader() {}
 };
 
 class DWriteFontFileStream : public IDWriteFontFileStream
@@ -122,6 +124,8 @@ public:
 
   virtual HRESULT STDMETHODCALLTYPE
   GetLastWriteTime (OUT UINT64* lastWriteTime) { return E_NOTIMPL; }
+
+  virtual ~DWriteFontFileStream() {}
 };
 
 
