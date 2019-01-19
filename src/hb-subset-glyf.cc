@@ -119,13 +119,9 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 				     hb_vector_t<unsigned int>     *instruction_ranges /* OUT */)
 {
   unsigned int total = 0;
-  hb_codepoint_t max_new_gid = 0;
   for (unsigned int i = 0; i < plan->glyphs.length; i++)
   {
     hb_codepoint_t next_glyph = plan->glyphs[i];
-    hb_codepoint_t new_gid_for_next_glyph;
-    if (plan->new_gid_for_old_gid (next_glyph, &new_gid_for_next_glyph))
-      max_new_gid = MAX (max_new_gid, new_gid_for_next_glyph);
 
     unsigned int start_offset, end_offset;
     if (unlikely (!(glyf.get_offsets (next_glyph, &start_offset, &end_offset) &&
@@ -156,7 +152,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 
   *glyf_size = total;
   loca_data->is_short = (total <= 131070);
-  loca_data->size = (max_new_gid + 2)
+  loca_data->size = (plan->num_glyphs + 1)
       * (loca_data->is_short ? sizeof (OT::HBUINT16) : sizeof (OT::HBUINT32));
 
   DEBUG_MSG(SUBSET, nullptr, "preparing to subset glyf: final size %d, loca size %d, using %s loca",

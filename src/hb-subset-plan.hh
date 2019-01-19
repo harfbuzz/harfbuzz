@@ -50,6 +50,7 @@ struct hb_subset_plan_t
 
   hb_map_t *codepoint_to_glyph;
   hb_map_t *glyph_map;
+  unsigned int num_glyphs;
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;
