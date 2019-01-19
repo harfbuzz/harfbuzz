@@ -45,11 +45,14 @@ struct hb_subset_plan_t
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
 
+  // The glyph subset
   hb_vector_t<hb_codepoint_t> glyphs;
   hb_set_t *glyphset;
-
   hb_map_t *codepoint_to_glyph;
+
+  // Old -> New glyph id mapping
   hb_map_t *glyph_map;
+  hb_map_t *reverse_glyph_map;
   unsigned int num_glyphs;
 
   // Plan is only good for a specific source/dest so keep them with it
@@ -74,6 +77,17 @@ struct hb_subset_plan_t
       return false;
 
     *new_gid = gid;
+    return true;
+  }
+
+  bool old_gid_for_new_gid (hb_codepoint_t  new_gid,
+			    hb_codepoint_t *old_gid) const
+  {
+    hb_codepoint_t gid = reverse_glyph_map->get (new_gid);
+    if (gid == HB_MAP_VALUE_INVALID)
+      return false;
+
+    *old_gid = gid;
     return true;
   }
 

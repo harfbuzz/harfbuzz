@@ -159,13 +159,20 @@ static void
 _create_old_gid_to_new_gid_map (bool                               retain_gids,
 				const hb_vector_t<hb_codepoint_t> &glyphs,
                                 hb_map_t                          *glyph_map, /* OUT */
+                                hb_map_t                          *reverse_glyph_map, /* OUT */
                                 unsigned int                      *num_glyphs /* OUT */)
 {
   for (unsigned int i = 0; i < glyphs.length; i++) {
     if (!retain_gids)
+    {
       glyph_map->set (glyphs[i], i);
+      reverse_glyph_map->set (i, glyphs[i]);
+    }
     else
+    {
       glyph_map->set (glyphs[i], glyphs[i]);
+      reverse_glyph_map->set (glyphs[i], glyphs[i]);
+    }
   }
   if (!retain_gids || glyphs.length == 0)
   {
@@ -202,6 +209,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create();
   plan->glyph_map = hb_map_create();
+  plan->reverse_glyph_map = hb_map_create();
   plan->glyphset = _populate_gids_to_retain (face,
 					     input->unicodes,
 					     !plan->drop_layout,
@@ -212,6 +220,7 @@ hb_subset_plan_create (hb_face_t           *face,
   _create_old_gid_to_new_gid_map (input->retain_gids,
 				  plan->glyphs,
 				  plan->glyph_map,
+                                  plan->reverse_glyph_map,
                                   &plan->num_glyphs);
 
   return plan;
@@ -233,6 +242,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);
   hb_map_destroy (plan->glyph_map);
+  hb_map_destroy (plan->reverse_glyph_map);
   hb_set_destroy (plan->glyphset);
 
   free (plan);
