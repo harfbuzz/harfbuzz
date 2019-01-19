@@ -132,7 +132,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 		    glyf.remove_padding (start_offset, &end_offset))))
     {
       DEBUG_MSG(SUBSET, nullptr, "Invalid gid %d", next_glyph);
-      continue;
+      start_offset = end_offset = 0;
     }
 
     bool is_zero_length = end_offset - start_offset < OT::glyf::GlyphHeader::static_size;
@@ -242,9 +242,9 @@ _write_glyf_and_loca_prime (const hb_subset_plan_t        *plan,
     if (glyf_prime_data_next + length > glyf_prime_data + glyf_prime_size)
     {
       DEBUG_MSG(SUBSET,
-		 nullptr,
-		 "WARNING: Attempted to write an out of bounds glyph entry for gid %d (length %d)",
-		 i, length);
+                nullptr,
+                "WARNING: Attempted to write an out of bounds glyph entry for gid %d (length %d)",
+                i, length);
       return false;
     }
 
