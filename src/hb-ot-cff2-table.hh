@@ -408,7 +408,7 @@ using namespace CFF;
 
 struct cff2
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_cff2;
+  enum { tableTag = HB_OT_TAG_cff2 };
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
