@@ -666,7 +666,7 @@ struct hb_set_t
     return INVALID;
   }
 
-  static const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
+  static constexpr hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
   /*
    * Iterator implementation.
