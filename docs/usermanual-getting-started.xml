@@ -275,14 +275,14 @@
     </orderedlist>
     <programlisting language="C">
       for (i = 0; i &lt; glyph_count; ++i) {
-      &nbsp;&nbsp;glyphid = glyph_info[i].codepoint;
-      &nbsp;&nbsp;x_offset = glyph_pos[i].x_offset / 64.0;
-      &nbsp;&nbsp;y_offset = glyph_pos[i].y_offset / 64.0;
-      &nbsp;&nbsp;x_advance = glyph_pos[i].x_advance / 64.0;
-      &nbsp;&nbsp;y_advance = glyph_pos[i].y_advance / 64.0;
-      &nbsp;&nbsp;draw_glyph(glyphid, cursor_x + x_offset, cursor_y + y_offset);
-      &nbsp;&nbsp;cursor_x += x_advance;
-      &nbsp;&nbsp;cursor_y += y_advance;
+          glyphid = glyph_info[i].codepoint;
+          x_offset = glyph_pos[i].x_offset / 64.0;
+          y_offset = glyph_pos[i].y_offset / 64.0;
+          x_advance = glyph_pos[i].x_advance / 64.0;
+          y_advance = glyph_pos[i].y_advance / 64.0;
+          draw_glyph(glyphid, cursor_x + x_offset, cursor_y + y_offset);
+          cursor_x += x_advance;
+          cursor_y += y_advance;
       }
     </programlisting>
     <orderedlist numeration="arabic">
