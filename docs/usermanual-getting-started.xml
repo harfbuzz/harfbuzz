@@ -223,7 +223,7 @@
     <orderedlist numeration="arabic">
       <listitem override="2">
 	<para>
-          Guess the script, language and direction of the buffer.
+          Set the script, language and direction of the buffer.
 	</para>
       </listitem>
     </orderedlist>
