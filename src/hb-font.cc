@@ -139,13 +139,10 @@ hb_font_get_nominal_glyphs_default (hb_font_t *font,
     for (unsigned int i = 0; i < count; i++)
     {
       if (!font->get_nominal_glyph (*first_unicode, first_glyph))
-        return i;
+	return i;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-      first_unicode = (hb_codepoint_t *) &StructAtOffset<char> (first_unicode, unicode_stride);
-      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
-#pragma GCC diagnostic pop
+      first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     }
     return count;
   }
@@ -241,11 +238,8 @@ hb_font_get_glyph_h_advances_default (hb_font_t* font,
     for (unsigned int i = 0; i < count; i++)
     {
       *first_advance = font->get_glyph_h_advance (*first_glyph);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
-      first_advance = (hb_position_t *) &StructAtOffset<char> (first_advance, advance_stride);
-#pragma GCC diagnostic pop
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
     return;
   }
@@ -256,10 +250,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t* font,
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_x_distance (*first_advance);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-    first_advance = (hb_position_t *) &StructAtOffset<char> (first_advance, advance_stride);
-#pragma GCC diagnostic pop
+    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 }
 
@@ -279,11 +270,8 @@ hb_font_get_glyph_v_advances_default (hb_font_t* font,
     for (unsigned int i = 0; i < count; i++)
     {
       *first_advance = font->get_glyph_v_advance (*first_glyph);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
-      first_advance = (hb_position_t *) &StructAtOffset<char> (first_advance, advance_stride);
-#pragma GCC diagnostic pop
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
     return;
   }
@@ -294,10 +282,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t* font,
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_y_distance (*first_advance);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-    first_advance = (hb_position_t *) &StructAtOffset<char> (first_advance, advance_stride);
-#pragma GCC diagnostic pop
+    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 }
 

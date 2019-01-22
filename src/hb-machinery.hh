@@ -64,6 +64,22 @@ static inline const Type& StructAtOffset(const void *P, unsigned int offset)
 template<typename Type>
 static inline Type& StructAtOffset(void *P, unsigned int offset)
 { return * reinterpret_cast<Type*> ((char *) P + offset); }
+template<typename Type>
+static inline const Type& StructAtOffsetUnaligned(const void *P, unsigned int offset)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  return * reinterpret_cast<Type*> ((char *) P + offset);
+#pragma GCC diagnostic pop
+}
+template<typename Type>
+static inline Type& StructAtOffsetUnaligned(void *P, unsigned int offset)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  return * reinterpret_cast<Type*> ((char *) P + offset);
+#pragma GCC diagnostic pop
+}
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
