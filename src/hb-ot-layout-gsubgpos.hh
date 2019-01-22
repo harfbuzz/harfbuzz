@@ -2664,7 +2664,7 @@ struct GSUBGPOS
   { return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
 	   .find_index (coords, num_coords, index); }
   const Feature& get_feature_variation (unsigned int feature_index,
-					       unsigned int variations_index) const
+					unsigned int variations_index) const
   {
     if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
 	version.to_int () >= 0x00010001u)
