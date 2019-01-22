@@ -48,7 +48,7 @@ struct hb_iter_t
   typedef Iter iter_t;
   typedef iter_t const_iter_t;
   typedef Item item_t;
-  enum { item_size = hb_static_size (Item) };
+  static constexpr unsigned item_size = hb_static_size (Item);
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */

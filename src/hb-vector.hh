@@ -36,7 +36,7 @@ template <typename Type>
 struct hb_vector_t
 {
   typedef Type item_t;
-  enum { item_size = hb_static_size (Type) };
+  static constexpr unsigned item_size = hb_static_size (Type);
 
   HB_NO_COPY_ASSIGN_TEMPLATE (hb_vector_t, Type);
   hb_vector_t ()  { init (); }
