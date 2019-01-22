@@ -108,7 +108,7 @@ typedef union _hb_var_int_t {
 typedef uint32_t hb_tag_t;
 
 #define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
-#define HB_UNTAG(tag)   (((tag)>>24)&0xFF), (((tag)>>16)&0xFF), (((tag)>>8)&0xFF), ((tag)&0xFF)
+#define HB_UNTAG(tag)   (uint8_t)(((tag)>>24)&0xFF), (uint8_t)(((tag)>>16)&0xFF), (uint8_t)(((tag)>>8)&0xFF), (uint8_t)((tag)&0xFF)
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
