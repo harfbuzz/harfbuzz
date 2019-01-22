@@ -230,8 +230,8 @@ hb_ft_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-    first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_unicode = (hb_codepoint_t *) &StructAtOffset<char> (first_unicode, unicode_stride);
+    first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
 #pragma GCC diagnostic pop
   }
   /* We don't need to do ft_font->symbol dance here, since HB calls the singular
@@ -297,7 +297,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     *first_advance = (v * mult + (1<<9)) >> 10;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
     first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
   }

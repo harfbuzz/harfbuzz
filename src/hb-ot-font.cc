@@ -114,7 +114,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
     *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font));
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
     first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
   }
@@ -137,7 +137,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font));
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
     first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
   }

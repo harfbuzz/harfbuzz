@@ -143,8 +143,8 @@ hb_font_get_nominal_glyphs_default (hb_font_t *font,
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-      first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_unicode = (hb_codepoint_t *) &StructAtOffset<char> (first_unicode, unicode_stride);
+      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
 #pragma GCC diagnostic pop
     }
     return count;
@@ -243,7 +243,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t* font,
       *first_advance = font->get_glyph_h_advance (*first_glyph);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
     }
@@ -281,7 +281,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t* font,
       *first_advance = font->get_glyph_v_advance (*first_glyph);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
     }

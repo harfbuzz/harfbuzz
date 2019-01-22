@@ -1056,8 +1056,8 @@ struct cmap
       {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-	first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-	first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+	first_unicode = (hb_codepoint_t *) &StructAtOffset<char> (first_unicode, unicode_stride);
+	first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
 #pragma GCC diagnostic pop
       }
       return done;
