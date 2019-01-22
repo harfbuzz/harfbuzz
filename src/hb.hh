@@ -74,6 +74,7 @@
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
 #pragma GCC diagnostic error   "-Wunused-value"
 #pragma GCC diagnostic error   "-Wunused-variable"
+#pragma GCC diagnostic error   "-Wvla"
 #pragma GCC diagnostic error   "-Wwrite-strings"
 
 /* Warning.  To be investigated if happens. */
@@ -86,7 +87,6 @@
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
 #pragma GCC diagnostic warning "-Wsign-compare"
 #pragma GCC diagnostic warning "-Wundef"
-#pragma GCC diagnostic warning "-Wvla"
 
 /* Ignored currently, but should be fixed at some point. */
 #pragma GCC diagnostic ignored "-Wconversion"			// TODO fix
