@@ -298,7 +298,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
     first_glyph = (hb_codepoint_t *) &StructAtOffset<char> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+    first_advance = (hb_position_t *) &StructAtOffset<char> (first_advance, advance_stride);
 #pragma GCC diagnostic pop
   }
 }
