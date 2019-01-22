@@ -65,6 +65,7 @@
 #pragma GCC diagnostic error   "-Wpointer-arith"
 #pragma GCC diagnostic error   "-Wredundant-decls"
 #pragma GCC diagnostic error   "-Wreorder"
+#pragma GCC diagnostic error   "-Wsign-compare"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
@@ -85,7 +86,6 @@
 #pragma GCC diagnostic warning "-Wlogical-op"
 #pragma GCC diagnostic warning "-Wmaybe-uninitialized"
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
-#pragma GCC diagnostic warning "-Wsign-compare"
 #pragma GCC diagnostic warning "-Wundef"
 
 /* Ignored currently, but should be fixed at some point. */
