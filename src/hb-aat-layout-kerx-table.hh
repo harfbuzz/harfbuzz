@@ -980,7 +980,7 @@ struct kerx : KerxTable<kerx>
   friend struct KerxTable<kerx>;
 
   static constexpr hb_tag_t tableTag = HB_AAT_TAG_kerx;
-  enum { minVersion = 2u };
+  static constexpr unsigned minVersion = 2u;
 
   typedef KerxSubTableHeader SubTableHeader;
   typedef SubTableHeader::Types Types;

@@ -1949,7 +1949,7 @@ struct FeatureVariationRecord
 
 struct FeatureVariations
 {
-  enum { NOT_FOUND_INDEX = 0xFFFFFFFFu };
+  static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
 
   bool find_index (const int *coords, unsigned int coord_len,
 			  unsigned int *index) const
