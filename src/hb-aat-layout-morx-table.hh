@@ -54,7 +54,7 @@ struct RearrangementSubtable
 
   struct driver_context_t
   {
-    enum { in_place = true };
+    static constexpr bool in_place = true;
     enum Flags
     {
       MarkFirst		= 0x8000,	/* If set, make the current glyph the first
@@ -204,7 +204,7 @@ struct ContextualSubtable
 
   struct driver_context_t
   {
-    enum { in_place = true };
+    static constexpr bool in_place = true;
     enum Flags
     {
       SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
@@ -425,7 +425,7 @@ struct LigatureSubtable
 
   struct driver_context_t
   {
-    enum { in_place = false };
+    static constexpr bool in_place = false;
     enum
     {
       DontAdvance	= LigatureEntryT::DontAdvance,
@@ -661,7 +661,7 @@ struct InsertionSubtable
 
   struct driver_context_t
   {
-    enum { in_place = false };
+    static constexpr bool in_place = false;
     enum Flags
     {
       SetMark		= 0x8000,	/* If set, mark the current glyph. */

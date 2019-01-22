@@ -1300,7 +1300,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 struct GSUBProxy
 {
   enum { table_index = 0u };
-  enum { inplace = false };
+  static constexpr bool inplace = false;
   typedef OT::SubstLookup Lookup;
 
   GSUBProxy (hb_face_t *face) :
@@ -1314,7 +1314,7 @@ struct GSUBProxy
 struct GPOSProxy
 {
   enum { table_index = 1u };
-  enum { inplace = true };
+  static constexpr bool inplace = true;
   typedef OT::PosLookup Lookup;
 
   GPOSProxy (hb_face_t *face) :

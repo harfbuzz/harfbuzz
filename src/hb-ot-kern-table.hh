@@ -160,7 +160,7 @@ struct KernSubTable
 
 struct KernOTSubTableHeader
 {
-  enum { apple = false };
+  static constexpr bool apple = false;
   typedef AAT::ObsoleteTypes Types;
 
   unsigned int tuple_count () const { return 0; }
@@ -215,7 +215,7 @@ struct KernOT : AAT::KerxTable<KernOT>
 
 struct KernAATSubTableHeader
 {
-  enum { apple = true };
+  static constexpr bool apple = true;
   typedef AAT::ObsoleteTypes Types;
 
   unsigned int tuple_count () const { return 0; }

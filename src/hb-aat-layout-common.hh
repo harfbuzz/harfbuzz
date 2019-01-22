@@ -669,7 +669,7 @@ struct ClassTable
 
 struct ObsoleteTypes
 {
-  enum { extended = false };
+  static constexpr bool extended = false;
   typedef HBUINT16 HBUINT;
   typedef HBUINT8 HBUSHORT;
   typedef ClassTable<HBUINT8> ClassTypeNarrow;
@@ -699,7 +699,7 @@ struct ObsoleteTypes
 };
 struct ExtendedTypes
 {
-  enum { extended = true };
+  static constexpr bool extended = true;
   typedef HBUINT32 HBUINT;
   typedef HBUINT16 HBUSHORT;
   typedef Lookup<HBUINT16> ClassTypeNarrow;
