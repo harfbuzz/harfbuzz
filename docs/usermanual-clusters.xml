@@ -684,7 +684,7 @@
       <para>
 	There may be other problems encountered with ligatures under
 	level 2, such as if the direction of the text is forced to
-	opposite of its natural direction (for example, Arabic text
+	the opposite of its natural direction (for example, Arabic text
 	that is forced into left-to-right directionality). But,
 	generally speaking, these other scenarios are minor corner
 	cases that are too obscure for most client programs to need to
