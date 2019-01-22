@@ -1601,7 +1601,7 @@ struct PosLookup : Lookup
 
 struct GPOS : GSUBGPOS
 {
-  enum { tableTag = HB_OT_TAG_GPOS };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_GPOS;
 
   const PosLookup& get_lookup (unsigned int i) const
   { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }

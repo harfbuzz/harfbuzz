@@ -323,14 +323,14 @@ struct hmtxvmtx
 };
 
 struct hmtx : hmtxvmtx<hmtx, hhea> {
-  enum { tableTag = HB_OT_TAG_hmtx };
-  enum { variationsTag = HB_OT_TAG_HVAR };
-  enum { os2Tag = HB_OT_TAG_OS2 };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_hmtx;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_HVAR;
+  static constexpr hb_tag_t os2Tag = HB_OT_TAG_OS2;
 };
 struct vmtx : hmtxvmtx<vmtx, vhea> {
-  enum { tableTag = HB_OT_TAG_vmtx };
-  enum { variationsTag = HB_OT_TAG_VVAR };
-  enum { os2Tag = HB_TAG_NONE };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_vmtx;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_VVAR;
+  static constexpr hb_tag_t os2Tag = HB_TAG_NONE;
 };
 
 struct hmtx_accelerator_t : hmtx::accelerator_t {};

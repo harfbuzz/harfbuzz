@@ -1097,7 +1097,7 @@ struct Chain
 template <typename Types>
 struct mortmorx
 {
-  enum { tableTag = HB_AAT_TAG_morx };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_morx;
 
   bool has_data () const { return version != 0; }
 
@@ -1159,11 +1159,11 @@ struct mortmorx
 
 struct morx : mortmorx<ExtendedTypes>
 {
-  enum { tableTag = HB_AAT_TAG_morx };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_morx;
 };
 struct mort : mortmorx<ObsoleteTypes>
 {
-  enum { tableTag = HB_AAT_TAG_mort };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_mort;
 };
 
 

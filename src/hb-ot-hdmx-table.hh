@@ -119,7 +119,7 @@ struct DeviceRecord
 
 struct hdmx
 {
-  enum { tableTag = HB_OT_TAG_hdmx };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_hdmx;
 
   unsigned int get_size () const
   { return min_size + numRecords * sizeDeviceRecord; }

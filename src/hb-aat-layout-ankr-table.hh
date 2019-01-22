@@ -58,7 +58,7 @@ typedef LArrayOf<Anchor> GlyphAnchors;
 
 struct ankr
 {
-  enum { tableTag = HB_AAT_TAG_ankr };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_ankr;
 
   const Anchor &get_anchor (hb_codepoint_t glyph_id,
 			    unsigned int i,

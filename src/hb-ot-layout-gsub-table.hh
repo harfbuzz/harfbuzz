@@ -1410,7 +1410,7 @@ struct SubstLookup : Lookup
 
 struct GSUB : GSUBGPOS
 {
-  enum { tableTag = HB_OT_TAG_GSUB };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_GSUB;
 
   const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }

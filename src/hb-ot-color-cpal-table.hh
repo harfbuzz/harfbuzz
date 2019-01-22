@@ -107,7 +107,7 @@ typedef HBUINT32 BGRAColor;
 
 struct CPAL
 {
-  enum { tableTag = HB_OT_TAG_CPAL };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_CPAL;
 
   bool has_data () const { return numPalettes; }
 
