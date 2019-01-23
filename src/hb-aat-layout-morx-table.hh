@@ -729,6 +729,8 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
+      unsigned mark_loc = buffer->out_len;
+
       if (entry->data.markedInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & MarkedInsertCount);
@@ -753,6 +755,9 @@ struct InsertionSubtable
 
 	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
       }
+
+      if (flags & SetMark)
+	mark = mark_loc;
 
       if (entry->data.currentInsertIndex != 0xFFFF)
       {
@@ -790,9 +795,6 @@ struct InsertionSubtable
 	 */
 	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
-
-      if (flags & SetMark)
-	mark = buffer->out_len;
 
       return true;
     }
