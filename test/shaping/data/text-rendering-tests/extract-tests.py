@@ -48,7 +48,7 @@ for elt in html.findall(".//*[@class='expected'][@ft:id]", namespaces):
 		opts = opts + ' --variations=%s' % variations
 	print ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
 
-for elt in html.findall(".//*[@class='should-not-crash'][@ft:id]", namespaces):
+for elt in html.findall(".//*[@class='expected-no-crash'][@ft:id]", namespaces):
 	found = True
 	name = elt.get(ns('ft:id'))
 	text = elt.get(ns('ft:render'))

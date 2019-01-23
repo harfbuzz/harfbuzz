@@ -714,7 +714,6 @@ struct InsertionSubtable
 		      hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
-	mark_set (false),
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
@@ -730,7 +729,9 @@ struct InsertionSubtable
       hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry->flags;
 
-      if (entry->data.markedInsertIndex != 0xFFFF && mark_set)
+      unsigned mark_loc = buffer->out_len;
+
+      if (entry->data.markedInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry->data.markedInsertIndex;
@@ -754,6 +755,9 @@ struct InsertionSubtable
 
 	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
       }
+
+      if (flags & SetMark)
+	mark = mark_loc;
 
       if (entry->data.currentInsertIndex != 0xFFFF)
       {
@@ -792,12 +796,6 @@ struct InsertionSubtable
 	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
 
-      if (flags & SetMark)
-      {
-	mark_set = true;
-	mark = buffer->out_len;
-      }
-
       return true;
     }
 
@@ -805,7 +803,6 @@ struct InsertionSubtable
     bool ret;
     private:
     hb_aat_apply_context_t *c;
-    bool mark_set;
     unsigned int mark;
     const UnsizedArrayOf<GlyphID> &insertionAction;
   };
