@@ -51,6 +51,7 @@ TESTS = \
 	tests/MORX-29.tests \
 	tests/MORX-2.tests \
 	tests/MORX-30.tests \
+	tests/MORX-31.tests \
 	tests/MORX-32.tests \
 	tests/MORX-33.tests \
 	tests/MORX-34.tests \
@@ -61,6 +62,7 @@ TESTS = \
 	tests/MORX-39.tests \
 	tests/MORX-3.tests \
 	tests/MORX-40.tests \
+	tests/MORX-41.tests \
 	tests/MORX-4.tests \
 	tests/MORX-5.tests \
 	tests/MORX-6.tests \
