@@ -753,7 +753,7 @@ struct StateTableDriver
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTable<Types, EntryData>::CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
-      const Entry<EntryData> *entry = &machine.get_entry (state, klass);
+      const Entry<EntryData> &entry = machine.get_entry (state, klass);
 
       /* Unsafe-to-break before this if not in state 0, as things might
        * go differently if we start from state 0 here.
@@ -764,15 +764,15 @@ struct StateTableDriver
 	/* If there's no action and we're just epsilon-transitioning to state 0,
 	 * safe to break. */
 	if (c->is_actionable (this, entry) ||
-	    !(entry->newState == StateTable<Types, EntryData>::STATE_START_OF_TEXT &&
-	      entry->flags == context_t::DontAdvance))
+	    !(entry.newState == StateTable<Types, EntryData>::STATE_START_OF_TEXT &&
+	      entry.flags == context_t::DontAdvance))
 	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
 
       /* Unsafe-to-break if end-of-text would kick in here. */
       if (buffer->idx + 2 <= buffer->len)
       {
-	const Entry<EntryData> *end_entry = &machine.get_entry (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
+	const Entry<EntryData> &end_entry = machine.get_entry (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
 	if (c->is_actionable (this, end_entry))
 	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2);
       }
@@ -780,13 +780,13 @@ struct StateTableDriver
       if (unlikely (!c->transition (this, entry)))
 	break;
 
-      state = machine.new_state (entry->newState);
+      state = machine.new_state (entry.newState);
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
       if (buffer->idx == buffer->len)
 	break;
 
-      if (!(entry->flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
+      if (!(entry.flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
 	buffer->next_glyph ();
     }
 

@@ -170,11 +170,11 @@ struct Format1Entry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
-  static bool performAction (const Entry<EntryData> *entry)
-  { return entry->data.kernActionIndex != 0xFFFF; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.data.kernActionIndex != 0xFFFF; }
 
-  static unsigned int kernActionIndex (const Entry<EntryData> *entry)
-  { return entry->data.kernActionIndex; }
+  static unsigned int kernActionIndex (const Entry<EntryData> &entry)
+  { return entry.data.kernActionIndex; }
 };
 template <>
 struct Format1Entry<false>
@@ -192,11 +192,11 @@ struct Format1Entry<false>
 
   typedef void EntryData;
 
-  static bool performAction (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 
-  static unsigned int kernActionIndex (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static unsigned int kernActionIndex (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 };
 
 template <typename KernSubTableHeader>
@@ -228,15 +228,15 @@ struct KerxSubTableFormat1
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
       return Format1EntryT::performAction (entry);
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
+      unsigned int flags = entry.flags;
 
       if (flags & Format1EntryT::Reset)
 	depth = 0;
@@ -498,16 +498,16 @@ struct KerxSubTableFormat4
 	mark (0) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
-      return entry->data.ankrActionIndex != 0xFFFF;
+      return entry.data.ankrActionIndex != 0xFFFF;
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
-      if (mark_set && entry->data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
+      if (mark_set && entry.data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
       {
 	hb_glyph_position_t &o = buffer->cur_pos();
 	switch (action_type)
@@ -515,7 +515,7 @@ struct KerxSubTableFormat4
 	  case 0: /* Control Point Actions.*/
 	  {
 	    /* indexed into glyph outline. */
-	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
 	    if (!c->sanitizer.check_array (data, 2))
 	      return false;
 	    HB_UNUSED unsigned int markControlPoint = *data++;
@@ -542,7 +542,7 @@ struct KerxSubTableFormat4
 	  case 1: /* Anchor Point Actions. */
 	  {
 	   /* Indexed into 'ankr' table. */
-	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
 	    if (!c->sanitizer.check_array (data, 2))
 	      return false;
 	    unsigned int markAnchorPoint = *data++;
@@ -561,7 +561,7 @@ struct KerxSubTableFormat4
 
 	  case 2: /* Control Point Coordinate Actions. */
 	  {
-	    const FWORD *data = (const FWORD *) &ankrData[entry->data.ankrActionIndex];
+	    const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex];
 	    if (!c->sanitizer.check_array (data, 4))
 	      return false;
 	    int markX = *data++;
@@ -579,7 +579,7 @@ struct KerxSubTableFormat4
 	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
       }
 
-      if (entry->flags & Mark)
+      if (entry.flags & Mark)
       {
 	mark_set = true;
 	mark = buffer->idx;

@@ -74,15 +74,15 @@ struct RearrangementSubtable
 	start (0), end (0) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
-      return (entry->flags & Verb) && start < end;
+      return (entry.flags & Verb) && start < end;
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
+      unsigned int flags = entry.flags;
 
       if (flags & MarkFirst)
 	start = buffer->idx;
@@ -223,17 +223,17 @@ struct ContextualSubtable
 	subs (table+table->substitutionTables) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
       if (buffer->idx == buffer->len && !mark_set)
         return false;
 
-      return entry->data.markIndex != 0xFFFF || entry->data.currentIndex != 0xFFFF;
+      return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
@@ -247,15 +247,15 @@ struct ContextualSubtable
       replacement = nullptr;
       if (Types::extended)
       {
-	if (entry->data.markIndex != 0xFFFF)
+	if (entry.data.markIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.markIndex];
+	  const Lookup<GlyphID> &lookup = subs[entry.data.markIndex];
 	  replacement = lookup.get_value (buffer->info[mark].codepoint, driver->num_glyphs);
 	}
       }
       else
       {
-	unsigned int offset = entry->data.markIndex + buffer->info[mark].codepoint;
+	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
 	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
 	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
@@ -272,15 +272,15 @@ struct ContextualSubtable
       unsigned int idx = MIN (buffer->idx, buffer->len - 1);
       if (Types::extended)
       {
-	if (entry->data.currentIndex != 0xFFFF)
+	if (entry.data.currentIndex != 0xFFFF)
 	{
-	  const Lookup<GlyphID> &lookup = subs[entry->data.currentIndex];
+	  const Lookup<GlyphID> &lookup = subs[entry.data.currentIndex];
 	  replacement = lookup.get_value (buffer->info[idx].codepoint, driver->num_glyphs);
 	}
       }
       else
       {
-	unsigned int offset = entry->data.currentIndex + buffer->info[idx].codepoint;
+	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
 	const UnsizedArrayOf<GlyphID> &subs_old = (const UnsizedArrayOf<GlyphID> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
 	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
@@ -292,7 +292,7 @@ struct ContextualSubtable
 	ret = true;
       }
 
-      if (entry->flags & SetMark)
+      if (entry.flags & SetMark)
       {
 	mark_set = true;
 	mark = buffer->idx;
@@ -385,11 +385,11 @@ struct LigatureEntry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
-  static bool performAction (const Entry<EntryData> *entry)
-  { return entry->flags & PerformAction; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.flags & PerformAction; }
 
-  static unsigned int ligActionIndex (const Entry<EntryData> *entry)
-  { return entry->data.ligActionIndex; }
+  static unsigned int ligActionIndex (const Entry<EntryData> &entry)
+  { return entry.data.ligActionIndex; }
 };
 template <>
 struct LigatureEntry<false>
@@ -407,11 +407,11 @@ struct LigatureEntry<false>
 
   typedef void EntryData;
 
-  static bool performAction (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 
-  static unsigned int ligActionIndex (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static unsigned int ligActionIndex (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 };
 
 
@@ -453,17 +453,17 @@ struct LigatureSubtable
 	match_length (0) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
       return LigatureEntryT::performAction (entry);
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
-      if (entry->flags & LigatureEntryT::SetComponent)
+      if (entry.flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
 	  return false;
@@ -718,23 +718,23 @@ struct InsertionSubtable
 	insertionAction (table+table->insertionAction) {}
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> *entry)
+			const Entry<EntryData> &entry)
     {
-      return (entry->flags & (CurrentInsertCount | MarkedInsertCount)) &&
-	     (entry->data.currentInsertIndex != 0xFFFF ||entry->data.markedInsertIndex != 0xFFFF);
+      return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
+	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
     }
     bool transition (StateTableDriver<Types, EntryData> *driver,
-		     const Entry<EntryData> *entry)
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
+      unsigned int flags = entry.flags;
 
       unsigned mark_loc = buffer->out_len;
 
-      if (entry->data.markedInsertIndex != 0xFFFF)
+      if (entry.data.markedInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & MarkedInsertCount);
-	unsigned int start = entry->data.markedInsertIndex;
+	unsigned int start = entry.data.markedInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
@@ -759,10 +759,10 @@ struct InsertionSubtable
       if (flags & SetMark)
 	mark = mark_loc;
 
-      if (entry->data.currentInsertIndex != 0xFFFF)
+      if (entry.data.currentInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & CurrentInsertCount) >> 5;
-	unsigned int start = entry->data.currentInsertIndex;
+	unsigned int start = entry.data.currentInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
 
