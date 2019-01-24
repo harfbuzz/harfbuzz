@@ -481,7 +481,7 @@ struct LigatureSubtable
 	  return;
 
 	if (buffer->idx >= buffer->len)
-	  return; // TODO Work on previous instead?
+	  return; /* TODO Work on previous instead? */
 
 	unsigned int cursor = match_length;
 
