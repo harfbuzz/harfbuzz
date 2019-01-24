@@ -511,9 +511,10 @@ struct StateTable
   const Entry<Extra> *get_entries () const
   { return (this+entryTable).arrayZ; }
 
-  const Entry<Extra> *get_entryZ (int state, unsigned int klass) const
+  const Entry<Extra> &get_entry (int state, unsigned int klass) const
   {
-    if (unlikely (klass >= nClasses)) return nullptr;
+    if (unlikely (klass >= nClasses))
+      klass = StateTable<Types, Entry<Extra> >::CLASS_OUT_OF_BOUNDS;
 
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
@@ -521,7 +522,7 @@ struct StateTable
     unsigned int entry = states[state * nClasses + klass];
     DEBUG_MSG (APPLY, nullptr, "e%u", entry);
 
-    return &entries[entry];
+    return entries[entry];
   }
 
   bool sanitize (hb_sanitize_context_t *c,
@@ -752,9 +753,7 @@ struct StateTableDriver
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTable<Types, EntryData>::CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
-      const Entry<EntryData> *entry = machine.get_entryZ (state, klass);
-      if (unlikely (!entry))
-	break;
+      const Entry<EntryData> *entry = &machine.get_entry (state, klass);
 
       /* Unsafe-to-break before this if not in state 0, as things might
        * go differently if we start from state 0 here.
@@ -773,7 +772,7 @@ struct StateTableDriver
       /* Unsafe-to-break if end-of-text would kick in here. */
       if (buffer->idx + 2 <= buffer->len)
       {
-	const Entry<EntryData> *end_entry = machine.get_entryZ (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
+	const Entry<EntryData> *end_entry = &machine.get_entry (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
 	if (c->is_actionable (this, end_entry))
 	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2);
       }
