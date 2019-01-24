@@ -435,7 +435,8 @@ hb_set_unicode_props (hb_buffer_t *buffer)
      * FF9E..FF9F    ; Other_Grapheme_Extend # Lm   [2] HALFWIDTH KATAKANA VOICED SOUND MARK..HALFWIDTH KATAKANA SEMI-VOICED SOUND MARK
      * E0020..E007F  ; Other_Grapheme_Extend # Cf  [96] TAG SPACE..CANCEL TAG
      *
-     * ZWNJ is special, we decide about that seprately.  Ignore Katakana.
+     * ZWNJ is special, we don't want to merge it as there's no need, and keeping
+     * it separate results in more granular clusters.  Ignore Katakana for now.
      * Tags are used for Emoji sub-region flag sequences:
      * https://github.com/harfbuzz/harfbuzz/issues/1556
      */
