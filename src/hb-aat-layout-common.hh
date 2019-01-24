@@ -778,7 +778,7 @@ struct StateTableDriver
       }
 
       if (unlikely (!c->transition (this, entry)))
-	break;
+	;//break; Ignore error.
 
       state = machine.new_state (entry.newState);
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
