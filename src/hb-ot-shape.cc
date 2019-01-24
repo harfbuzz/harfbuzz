@@ -891,7 +891,8 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
 					&pos[i].y_offset);
 
   if (c->plan->fallback_mark_positioning)
-    _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer);
+    _hb_ot_shape_fallback_mark_position (c->plan, c->font, c->buffer,
+					 adjust_offsets_when_zeroing);
 }
 
 static inline void
