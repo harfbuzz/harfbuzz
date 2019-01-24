@@ -529,6 +529,7 @@ struct StateTable
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) &&
+		    nClasses >= 4 /* Ensure pre-defined classes fit.  */ &&
 		    classTable.sanitize (c, this)))) return_trace (false);
 
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
@@ -773,7 +774,7 @@ struct StateTableDriver
       /* Unsafe-to-break if end-of-text would kick in here. */
       if (buffer->idx + 2 <= buffer->len)
       {
-	const Entry<EntryData> *end_entry = machine.get_entryZ (state, 0);
+	const Entry<EntryData> *end_entry = machine.get_entryZ (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
 	if (c->is_actionable (this, end_entry))
 	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2);
       }
