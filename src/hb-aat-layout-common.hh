@@ -572,7 +572,7 @@ struct StateTable
 				       -min_state,
 				       row_stride)))
 	  return_trace (false);
-	if ((c->max_ops -= state_neg - min_state) < 0)
+	if ((c->max_ops -= state_neg - min_state) <= 0)
 	  return_trace (false);
 	{ /* Sweep new states. */
 	  const HBUSHORT *stop = &states[min_state * num_classes];
@@ -591,7 +591,7 @@ struct StateTable
 				       max_state + 1,
 				       row_stride)))
 	  return_trace (false);
-	if ((c->max_ops -= max_state - state_pos + 1) < 0)
+	if ((c->max_ops -= max_state - state_pos + 1) <= 0)
 	  return_trace (false);
 	{ /* Sweep new states. */
 	  if (unlikely (hb_unsigned_mul_overflows ((max_state + 1), num_classes)))
@@ -607,7 +607,7 @@ struct StateTable
 
       if (unlikely (!c->check_array (entries, num_entries)))
 	return_trace (false);
-      if ((c->max_ops -= num_entries - entry) < 0)
+      if ((c->max_ops -= num_entries - entry) <= 0)
 	return_trace (false);
       { /* Sweep new entries. */
 	const Entry<Extra> *stop = &entries[num_entries];
@@ -746,7 +746,6 @@ struct StateTableDriver
       buffer->clear_output ();
 
     int state = StateTable<Types, EntryData>::STATE_START_OF_TEXT;
-    bool last_was_dont_advance = false;
     for (buffer->idx = 0; buffer->successful;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
@@ -782,15 +781,13 @@ struct StateTableDriver
       if (unlikely (!c->transition (this, entry)))
 	break;
 
-      last_was_dont_advance = (entry->flags & context_t::DontAdvance) && buffer->max_ops-- > 0;
-
       state = machine.new_state (entry->newState);
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
       if (buffer->idx == buffer->len)
 	break;
 
-      if (!last_was_dont_advance)
+      if (!(entry->flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
 	buffer->next_glyph ();
     }
 
