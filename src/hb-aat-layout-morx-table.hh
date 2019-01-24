@@ -461,14 +461,11 @@ struct LigatureSubtable
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
       if (entry.flags & LigatureEntryT::SetComponent)
       {
-        if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
-	  match_length = 0; /* TODO Use a ring buffer instead. */
-
 	/* Never mark same index twice, in case DontAdvance was used... */
-	if (match_length && match_positions[match_length - 1] == buffer->out_len)
+	if (match_length && match_positions[(match_length - 1u) % ARRAY_LENGTH (match_positions)] == buffer->out_len)
 	  match_length--;
 
-	match_positions[match_length++] = buffer->out_len;
+	match_positions[match_length++ % ARRAY_LENGTH (match_positions)] = buffer->out_len;
 	DEBUG_MSG (APPLY, nullptr, "Set component at %u", buffer->out_len);
       }
 
@@ -502,7 +499,7 @@ struct LigatureSubtable
 	  }
 
 	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
-	  buffer->move_to (match_positions[--cursor]);
+	  buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]);
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
 	  action = *actionData;
@@ -530,17 +527,17 @@ struct LigatureSubtable
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
 	    buffer->replace_glyph (lig);
 
-	    unsigned int lig_end = match_positions[match_length - 1] + 1;
+	    unsigned int lig_end = match_positions[(match_length - 1) % ARRAY_LENGTH (match_positions)] + 1;
 	    /* Now go and delete all subsequent components. */
 	    while (match_length - 1 > cursor)
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
-	      buffer->move_to (match_positions[--match_length]);
+	      buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]);
 	      buffer->replace_glyph (DELETED_GLYPH);
 	    }
 
 	    buffer->move_to (lig_end);
-	    buffer->merge_out_clusters (match_positions[cursor], buffer->out_len);
+	    buffer->merge_out_clusters (match_positions[cursor % ARRAY_LENGTH (match_positions)], buffer->out_len);
 	  }
 
 	  actionData++;
