@@ -527,9 +527,9 @@ struct LigatureSubtable
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
 	    buffer->replace_glyph (lig);
 
-	    unsigned int lig_end = match_positions[(match_length - 1) % ARRAY_LENGTH (match_positions)] + 1;
+	    unsigned int lig_end = match_positions[(match_length - 1u) % ARRAY_LENGTH (match_positions)] + 1u;
 	    /* Now go and delete all subsequent components. */
-	    while (match_length - 1 > cursor)
+	    while (match_length - 1u > cursor)
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]);
