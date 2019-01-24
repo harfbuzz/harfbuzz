@@ -232,7 +232,7 @@ struct KerxSubTableFormat1
     {
       return Format1EntryT::performAction (entry);
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -259,7 +259,7 @@ struct KerxSubTableFormat1
 	if (!c->sanitizer.check_array (actions, depth, tuple_count))
 	{
 	  depth = 0;
-	  return false;
+	  return;
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
@@ -334,8 +334,6 @@ struct KerxSubTableFormat1
 	  }
 	}
       }
-
-      return true;
     }
 
     private:
@@ -502,7 +500,7 @@ struct KerxSubTableFormat4
     {
       return entry.data.ankrActionIndex != 0xFFFF;
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -516,8 +514,7 @@ struct KerxSubTableFormat4
 	  {
 	    /* indexed into glyph outline. */
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 2))
-	      return false;
+	    if (!c->sanitizer.check_array (data, 2)) return;
 	    HB_UNUSED unsigned int markControlPoint = *data++;
 	    HB_UNUSED unsigned int currControlPoint = *data++;
 	    hb_position_t markX = 0;
@@ -532,7 +529,7 @@ struct KerxSubTableFormat4
 							      currControlPoint,
 							      HB_DIRECTION_LTR /*XXX*/,
 							      &currX, &currY))
-	      return true; /* True, such that the machine continues. */
+	      return;
 
 	    o.x_offset = markX - currX;
 	    o.y_offset = markY - currY;
@@ -543,8 +540,7 @@ struct KerxSubTableFormat4
 	  {
 	   /* Indexed into 'ankr' table. */
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 2))
-	      return false;
+	    if (!c->sanitizer.check_array (data, 2)) return;
 	    unsigned int markAnchorPoint = *data++;
 	    unsigned int currAnchorPoint = *data++;
 	    const Anchor &markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
@@ -562,8 +558,7 @@ struct KerxSubTableFormat4
 	  case 2: /* Control Point Coordinate Actions. */
 	  {
 	    const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 4))
-	      return false;
+	    if (!c->sanitizer.check_array (data, 4)) return;
 	    int markX = *data++;
 	    int markY = *data++;
 	    int currX = *data++;
@@ -584,8 +579,6 @@ struct KerxSubTableFormat4
 	mark_set = true;
 	mark = buffer->idx;
       }
-
-      return true;
     }
 
     private:

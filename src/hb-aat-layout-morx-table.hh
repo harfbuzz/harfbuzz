@@ -78,7 +78,7 @@ struct RearrangementSubtable
     {
       return (entry.flags & Verb) && start < end;
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -152,8 +152,6 @@ struct RearrangementSubtable
 	  }
 	}
       }
-
-      return true;
     }
 
     public:
@@ -232,7 +230,7 @@ struct ContextualSubtable
 
       return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -240,7 +238,7 @@ struct ContextualSubtable
       /* Looks like CoreText applies neither mark nor current substitution for
        * end-of-text if mark was not explicitly set. */
       if (buffer->idx == buffer->len && !mark_set)
-        return true;
+        return;
 
       const GlyphID *replacement;
 
@@ -297,8 +295,6 @@ struct ContextualSubtable
 	mark_set = true;
 	mark = buffer->idx;
       }
-
-      return true;
     }
 
     public:
@@ -457,7 +453,7 @@ struct LigatureSubtable
     {
       return LigatureEntryT::performAction (entry);
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -466,7 +462,7 @@ struct LigatureSubtable
       if (entry.flags & LigatureEntryT::SetComponent)
       {
         if (unlikely (match_length >= ARRAY_LENGTH (match_positions)))
-	  return false;
+	  match_length = 0; /* TODO Use a ring buffer instead. */
 
 	/* Never mark same index twice, in case DontAdvance was used... */
 	if (match_length && match_positions[match_length - 1] == buffer->out_len)
@@ -482,10 +478,10 @@ struct LigatureSubtable
 	unsigned int end = buffer->out_len;
 
 	if (unlikely (!match_length))
-	  return true;
+	  return;
 
 	if (buffer->idx >= buffer->len)
-	  return false; // TODO Work on previous instead?
+	  return; // TODO Work on previous instead?
 
 	unsigned int cursor = match_length;
 
@@ -508,7 +504,7 @@ struct LigatureSubtable
 	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
 	  buffer->move_to (match_positions[--cursor]);
 
-	  if (unlikely (!actionData->sanitize (&c->sanitizer))) return false;
+	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
 	  action = *actionData;
 
 	  uint32_t uoffset = action & LigActionOffset;
@@ -518,7 +514,7 @@ struct LigatureSubtable
 	  unsigned int component_idx = buffer->cur().codepoint + offset;
 	  component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
 	  const HBUINT16 &componentData = component[component_idx];
-	  if (unlikely (!componentData.sanitize (&c->sanitizer))) return false;
+	  if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
 	  ligature_idx += componentData;
 
 	  DEBUG_MSG (APPLY, nullptr, "Action store %u last %u",
@@ -528,7 +524,7 @@ struct LigatureSubtable
 	  {
 	    ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
 	    const GlyphID &ligatureData = ligature[ligature_idx];
-	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) return false;
+	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) break;
 	    hb_codepoint_t lig = ligatureData;
 
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
@@ -552,8 +548,6 @@ struct LigatureSubtable
 	while (!(action & LigActionLast));
 	buffer->move_to (end);
       }
-
-      return true;
     }
 
     public:
@@ -723,7 +717,7 @@ struct InsertionSubtable
       return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
     }
-    bool transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
@@ -736,7 +730,7 @@ struct InsertionSubtable
 	unsigned int count = (flags & MarkedInsertCount);
 	unsigned int start = entry.data.markedInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
-	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
 
 	bool before = flags & MarkedInsertBefore;
 
@@ -764,7 +758,7 @@ struct InsertionSubtable
 	unsigned int count = (flags & CurrentInsertCount) >> 5;
 	unsigned int start = entry.data.currentInsertIndex;
 	const GlyphID *glyphs = &insertionAction[start];
-	if (unlikely (!c->sanitizer.check_array (glyphs, count))) return false;
+	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
 
 	bool before = flags & CurrentInsertBefore;
 
@@ -795,8 +789,6 @@ struct InsertionSubtable
 	 */
 	buffer->move_to ((flags & DontAdvance) ? end : end + count);
       }
-
-      return true;
     }
 
     public:
