@@ -115,28 +115,28 @@ static inline Type& StructAfter(TObject &X)
   unsigned int get_size () const { return (size); } \
   static constexpr unsigned null_size = (size); \
   static constexpr unsigned min_size = (size); \
-  enum { static_size = (size) }
+  static constexpr unsigned static_size = (size)
 
 #define DEFINE_SIZE_UNION(size, _member) \
   DEFINE_COMPILES_ASSERTION ((void) this->u._member.static_size) \
   DEFINE_INSTANCE_ASSERTION (sizeof(this->u._member) == (size)) \
   static constexpr unsigned null_size = (size); \
-  enum { min_size = (size) }
+  static constexpr unsigned min_size = (size)
 
 #define DEFINE_SIZE_MIN(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
   static constexpr unsigned null_size = (size); \
-  enum { min_size = (size) }
+  static constexpr unsigned min_size = (size)
 
 #define DEFINE_SIZE_UNBOUNDED(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
-  enum { min_size = (size) }
+  static constexpr unsigned min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + VAR * sizeof ((array)[0])) \
   static constexpr unsigned null_size = (size); \
-  enum { min_size = (size) }
+  static constexpr unsigned min_size = (size)
 
 #define DEFINE_SIZE_ARRAY_SIZED(size, array) \
   unsigned int get_size () const { return (size - (array).min_size + (array).get_size ()); } \
