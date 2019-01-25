@@ -60,7 +60,7 @@ struct FTStringRange
 
 struct ltag
 {
-  enum { tableTag = HB_AAT_TAG_ltag };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_ltag;
 
   hb_language_t get_language (unsigned int i) const
   {

@@ -841,7 +841,7 @@ struct EncodingRecord
 
 struct cmap
 {
-  enum { tableTag = HB_OT_TAG_cmap };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
   struct subset_plan
   {
@@ -1054,11 +1054,8 @@ struct cmap
 	   done < count && get_glyph_funcZ (get_glyph_data, *first_unicode, first_glyph);
 	   done++)
       {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-	first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-	first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-#pragma GCC diagnostic pop
+	first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);
+	first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       }
       return done;
     }

@@ -882,7 +882,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 
   /* name INDEX */
   {
-    assert (cff->nameIndex == c.head - c.start);
+    assert (cff->nameIndex == (unsigned) (c.head - c.start));
     CFF1NameIndex *dest = c.start_embed<CFF1NameIndex> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, *acc.nameIndex)))
@@ -894,7 +894,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 
   /* top dict INDEX */
   {
-    assert (plan.offsets.topDictInfo.offset == c.head - c.start);
+    assert (plan.offsets.topDictInfo.offset == (unsigned) (c.head - c.start));
     CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict> > ();
     if (dest == nullptr) return false;
     cff1_top_dict_op_serializer_t topSzr;
@@ -910,7 +910,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 
   /* String INDEX */
   {
-    assert (plan.offsets.stringIndexInfo.offset == c.head - c.start);
+    assert (plan.offsets.stringIndexInfo.offset == (unsigned) (c.head - c.start));
     CFF1StringIndex *dest = c.start_embed<CFF1StringIndex> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, *acc.stringIndex, plan.offsets.stringIndexInfo.offSize, plan.sidmap)))
@@ -923,7 +923,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* global subrs */
   {
     assert (plan.offsets.globalSubrsInfo.offset != 0);
-    assert (plan.offsets.globalSubrsInfo.offset == c.head - c.start);
+    assert (plan.offsets.globalSubrsInfo.offset == (unsigned) (c.head - c.start));
 
     CFF1Subrs *dest = c.start_embed <CFF1Subrs> ();
     if (unlikely (dest == nullptr)) return false;
@@ -937,7 +937,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* Encoding */
   if (plan.subset_encoding)
   {
-    assert (plan.offsets.encodingOffset == c.head - c.start);
+    assert (plan.offsets.encodingOffset == (unsigned) (c.head - c.start));
     Encoding *dest = c.start_embed<Encoding> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c,
@@ -954,7 +954,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* Charset */
   if (plan.subset_charset)
   {
-    assert (plan.offsets.charsetInfo.offset == c.head - c.start);
+    assert (plan.offsets.charsetInfo.offset == (unsigned) (c.head - c.start));
     Charset *dest = c.start_embed<Charset> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c,
@@ -970,7 +970,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* FDSelect */
   if (acc.fdSelect != &Null(CFF1FDSelect))
   {
-    assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
+    assert (plan.offsets.FDSelectInfo.offset == (unsigned) (c.head - c.start));
 
     if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.length, *acc.fdSelect, acc.fdCount,
 					      plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
@@ -984,7 +984,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* FDArray (FD Index) */
   if (acc.fdArray != &Null(CFF1FDArray))
   {
-    assert (plan.offsets.FDArrayInfo.offset == c.head - c.start);
+    assert (plan.offsets.FDArrayInfo.offset == (unsigned) (c.head - c.start));
     CFF1FDArray  *fda = c.start_embed<CFF1FDArray> ();
     if (unlikely (fda == nullptr)) return false;
     cff1_font_dict_op_serializer_t  fontSzr;
@@ -999,7 +999,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
 
   /* CharStrings */
   {
-    assert (plan.offsets.charStringsInfo.offset == c.head - c.start);
+    assert (plan.offsets.charStringsInfo.offset == (unsigned) (c.head - c.start));
     CFF1CharStrings  *cs = c.start_embed<CFF1CharStrings> ();
     if (unlikely (cs == nullptr)) return false;
     if (unlikely (!cs->serialize (&c, plan.offsets.charStringsInfo.offSize, plan.subset_charstrings)))
@@ -1010,7 +1010,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   }
 
   /* private dicts & local subrs */
-  assert (plan.offsets.privateDictInfo.offset == c.head - c.start);
+  assert (plan.offsets.privateDictInfo.offset == (unsigned) (c.head - c.start));
   for (unsigned int i = 0; i < acc.privateDicts.length; i++)
   {
     if (plan.fdmap.includes (i))

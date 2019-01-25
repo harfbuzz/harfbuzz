@@ -57,7 +57,7 @@ struct VertOriginMetric
 
 struct VORG
 {
-  enum { tableTag = HB_OT_TAG_VORG };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_VORG;
 
   bool has_data () const { return version.to_int (); }
 

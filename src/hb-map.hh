@@ -163,7 +163,7 @@ struct hb_map_t
   static constexpr hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
 
   /* Map interface. */
-  enum { SENTINEL = INVALID };
+  static constexpr hb_codepoint_t SENTINEL = INVALID;
   typedef hb_codepoint_t value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }

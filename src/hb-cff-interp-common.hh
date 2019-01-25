@@ -477,7 +477,7 @@ struct stack_t
   unsigned int get_count () const { return count; }
   bool is_empty () const { return count == 0; }
 
-  enum { kSizeLimit = LIMIT };
+  static constexpr unsigned kSizeLimit = LIMIT;
 
   protected:
   bool error;

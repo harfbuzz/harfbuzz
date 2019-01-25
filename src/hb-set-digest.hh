@@ -48,8 +48,8 @@
 template <typename mask_t, unsigned int shift>
 struct hb_set_digest_lowest_bits_t
 {
-  enum { mask_bytes = sizeof (mask_t) };
-  enum { mask_bits = sizeof (mask_t) * 8 };
+  static constexpr unsigned mask_bytes = sizeof (mask_t);
+  static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
   enum { num_bits = 0
 		  + (mask_bytes >= 1 ? 3 : 0)
 		  + (mask_bytes >= 2 ? 1 : 0)

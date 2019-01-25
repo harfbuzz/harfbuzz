@@ -423,6 +423,18 @@
 	    </para>
 	  </listitem>
 	</varlistentry>	
+
+	<varlistentry>
+	  <term><command>--enable-gtk-doc</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://www.gtk.org/gtk-doc/">GTK-Doc</ulink>. <emphasis>(Default = no)</emphasis>
+	    </para>
+	    <para>
+	      This option enables the building of the documentation.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </section>
     

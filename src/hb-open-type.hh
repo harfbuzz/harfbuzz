@@ -156,7 +156,7 @@ struct GlyphID : HBUINT16 {};
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
-  enum { NOT_FOUND_INDEX = 0xFFFFu };
+  static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFu;
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
@@ -353,7 +353,7 @@ template <typename Type>
 struct UnsizedArrayOf
 {
   typedef Type item_t;
-  enum { item_size = hb_static_size (Type) };
+  static constexpr unsigned item_size = hb_static_size (Type);
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
 
@@ -509,7 +509,7 @@ template <typename Type, typename LenType=HBUINT16>
 struct ArrayOf
 {
   typedef Type item_t;
-  enum { item_size = hb_static_size (Type) };
+  static constexpr unsigned item_size = hb_static_size (Type);
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
 
@@ -689,7 +689,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type, typename LenType=HBUINT16>
 struct HeadlessArrayOf
 {
-  enum { item_size = Type::static_size };
+  static constexpr unsigned item_size = Type::static_size;
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
 
@@ -918,7 +918,7 @@ struct VarSizedBinSearchHeader
 template <typename Type>
 struct VarSizedBinSearchArrayOf
 {
-  enum { item_size = Type::static_size };
+  static constexpr unsigned item_size = Type::static_size;
 
   HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
 

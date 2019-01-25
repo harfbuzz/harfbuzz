@@ -29,7 +29,7 @@
 #ifndef HB_HH
 #define HB_HH
 
-#ifndef HB_NO_DIAGNOSTIC_PRAGMAS
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
 #if defined(__GNUC__) || defined(__clang__)
 /* Rules:
  *
@@ -43,14 +43,21 @@
  */
 
 /* Setup.  Don't sort order within this category. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic warning "-Wextra"
+#endif
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#endif
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
 //#pragma GCC diagnostic warning "-Weverything"
+#endif
 
 /* Error.  Should never happen. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR
 #pragma GCC diagnostic error   "-Wc++11-narrowing"
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
@@ -65,6 +72,7 @@
 #pragma GCC diagnostic error   "-Wpointer-arith"
 #pragma GCC diagnostic error   "-Wredundant-decls"
 #pragma GCC diagnostic error   "-Wreorder"
+#pragma GCC diagnostic error   "-Wsign-compare"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
@@ -74,9 +82,12 @@
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
 #pragma GCC diagnostic error   "-Wunused-value"
 #pragma GCC diagnostic error   "-Wunused-variable"
+#pragma GCC diagnostic error   "-Wvla"
 #pragma GCC diagnostic error   "-Wwrite-strings"
+#endif
 
 /* Warning.  To be investigated if happens. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
 #pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
 #pragma GCC diagnostic warning "-Wdisabled-optimization"
 #pragma GCC diagnostic warning "-Wformat=2"
@@ -84,18 +95,20 @@
 #pragma GCC diagnostic warning "-Wlogical-op"
 #pragma GCC diagnostic warning "-Wmaybe-uninitialized"
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
-#pragma GCC diagnostic warning "-Wsign-compare"
 #pragma GCC diagnostic warning "-Wundef"
-#pragma GCC diagnostic warning "-Wvla"
+#endif
 
 /* Ignored currently, but should be fixed at some point. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
 #pragma GCC diagnostic ignored "-Wconversion"			// TODO fix
 #pragma GCC diagnostic ignored "-Wformat-signedness"		// TODO fix
 #pragma GCC diagnostic ignored "-Wshadow"			// TODO fix
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
 #pragma GCC diagnostic ignored "-Wunused-parameter"		// TODO fix
+#endif
 
 /* Ignored intentionally. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
@@ -103,6 +116,7 @@
 #pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
 
 #endif
 #endif

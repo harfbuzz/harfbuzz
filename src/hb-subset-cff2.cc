@@ -453,7 +453,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 
   /* top dict */
   {
-    assert (cff2->topDict == c.head - c.start);
+    assert (cff2->topDict == (unsigned) (c.head - c.start));
     cff2->topDictSize.set (plan.offsets.topDictInfo.size);
     TopDict &dict = cff2 + cff2->topDict;
     cff2_top_dict_op_serializer_t topSzr;
@@ -466,7 +466,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 
   /* global subrs */
   {
-    assert (cff2->topDict + plan.offsets.topDictInfo.size == c.head - c.start);
+    assert (cff2->topDict + plan.offsets.topDictInfo.size == (unsigned) (c.head - c.start));
     CFF2Subrs *dest = c.start_embed <CFF2Subrs> ();
     if (unlikely (dest == nullptr)) return false;
     if (unlikely (!dest->serialize (&c, plan.offsets.globalSubrsInfo.offSize, plan.subset_globalsubrs)))
@@ -479,7 +479,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   /* variation store */
   if (acc.varStore != &Null(CFF2VariationStore))
   {
-    assert (plan.offsets.varStoreOffset == c.head - c.start);
+    assert (plan.offsets.varStoreOffset == (unsigned) (c.head - c.start));
     CFF2VariationStore *dest = c.start_embed<CFF2VariationStore> ();
     if (unlikely (!dest->serialize (&c, acc.varStore)))
     {
@@ -491,7 +491,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   /* FDSelect */
   if (acc.fdSelect != &Null(CFF2FDSelect))
   {
-    assert (plan.offsets.FDSelectInfo.offset == c.head - c.start);
+    assert (plan.offsets.FDSelectInfo.offset == (unsigned) (c.head - c.start));
 
     if (unlikely (!hb_serialize_cff_fdselect (&c, glyphs.length, *(const FDSelect *)acc.fdSelect, acc.fdArray->count,
 					      plan.subset_fdselect_format, plan.offsets.FDSelectInfo.size,
@@ -504,7 +504,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 
   /* FDArray (FD Index) */
   {
-    assert (plan.offsets.FDArrayInfo.offset == c.head - c.start);
+    assert (plan.offsets.FDArrayInfo.offset == (unsigned) (c.head - c.start));
     CFF2FDArray  *fda = c.start_embed<CFF2FDArray> ();
     if (unlikely (fda == nullptr)) return false;
     cff_font_dict_op_serializer_t  fontSzr;
@@ -519,7 +519,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
 
   /* CharStrings */
   {
-    assert (plan.offsets.charStringsInfo.offset == c.head - c.start);
+    assert (plan.offsets.charStringsInfo.offset == (unsigned) (c.head - c.start));
     CFF2CharStrings  *cs = c.start_embed<CFF2CharStrings> ();
     if (unlikely (cs == nullptr)) return false;
     if (unlikely (!cs->serialize (&c, plan.offsets.charStringsInfo.offSize, plan.subset_charstrings)))
@@ -530,7 +530,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   }
 
   /* private dicts & local subrs */
-  assert (plan.offsets.privateDictsOffset == c.head - c.start);
+  assert (plan.offsets.privateDictsOffset == (unsigned) (c.head - c.start));
   for (unsigned int i = 0; i < acc.privateDicts.length; i++)
   {
     if (plan.fdmap.includes (i))

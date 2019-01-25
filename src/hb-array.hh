@@ -55,7 +55,7 @@ struct hb_array_t :
    * Iterator implementation.
    */
   typedef Type& __item_t__;
-  enum { is_random_access_iterator = true };
+  static constexpr bool is_random_access_iterator = true;
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
@@ -200,8 +200,8 @@ struct hb_sorted_array_t :
 {
   typedef hb_iter_t<hb_sorted_array_t<Type>, Type&> iter_base_t;
   HB_ITER_USING (iter_base_t);
-  enum { is_random_access_iterator = true };
-  enum { is_sorted_iterator = true };
+  static constexpr bool is_random_access_iterator = true;
+  static constexpr bool is_sorted_iterator = true;
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}

@@ -1,6 +1,3 @@
-tests/MORX-31.tests
-tests/MORX-41.tests
-
 # Non-Unicode cmap
 tests/CMAP-3.tests
 

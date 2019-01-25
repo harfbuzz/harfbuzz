@@ -161,7 +161,7 @@ struct hb_set_t
     }
 
     typedef unsigned long long elt_t;
-    enum { PAGE_BITS = 512 };
+    static constexpr unsigned PAGE_BITS = 512;
     static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
 
     static unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
@@ -169,10 +169,10 @@ struct hb_set_t
 
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
-    enum { ELT_BITS = sizeof (elt_t) * 8 };
-    enum { ELT_MASK = ELT_BITS - 1 };
-    enum { BITS = sizeof (vector_t) * 8 };
-    enum { MASK = BITS - 1 };
+    static constexpr unsigned ELT_BITS = sizeof (elt_t) * 8;
+    static constexpr unsigned ELT_MASK = ELT_BITS - 1;
+    static constexpr unsigned BITS = sizeof (vector_t) * 8;
+    static constexpr unsigned MASK = BITS - 1;
     static_assert ((unsigned) PAGE_BITS == (unsigned) BITS, "");
 
     elt_t &elt (hb_codepoint_t g) { return v[(g & MASK) / ELT_BITS]; }
@@ -366,7 +366,7 @@ struct hb_set_t
   }
 
   /* Map interface. */
-  enum { SENTINEL = false };
+  static constexpr bool SENTINEL = false;
   typedef bool value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
@@ -682,7 +682,7 @@ struct hb_set_t
     hb_iter_t<iter_t, hb_codepoint_t>,
     hb_iter_mixin_t<iter_t, hb_codepoint_t>
   {
-    enum { is_sorted_iterator = true };
+    static constexpr bool is_sorted_iterator = true;
     iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
       s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
 

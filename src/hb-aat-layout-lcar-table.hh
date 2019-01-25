@@ -40,7 +40,7 @@ typedef ArrayOf<HBINT16> LigCaretClassEntry;
 
 struct lcar
 {
-  enum { tableTag = HB_AAT_TAG_lcar };
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_lcar;
 
   unsigned int get_lig_carets (hb_font_t      *font,
 			       hb_direction_t  direction,

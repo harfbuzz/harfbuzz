@@ -984,7 +984,7 @@ using namespace CFF;
 
 struct cff1
 {
-  enum { tableTag = HB_OT_TAG_cff1 };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_cff1;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

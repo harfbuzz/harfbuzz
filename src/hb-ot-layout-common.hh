@@ -1036,7 +1036,7 @@ struct CoverageFormat2
 struct Coverage
 {
   /* Map interface. */
-  enum { SENTINEL = NOT_COVERED };
+  static constexpr unsigned SENTINEL = NOT_COVERED;
   typedef unsigned int value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
@@ -1123,7 +1123,7 @@ struct Coverage
     hb_iter_t<iter_t, hb_codepoint_t>,
     hb_iter_mixin_t<iter_t, hb_codepoint_t>
   {
-    enum { is_sorted_iterator = true };
+    static constexpr bool is_sorted_iterator = true;
     iter_t (const Coverage &c_ = Null(Coverage))
     {
       memset (this, 0, sizeof (*this));
@@ -1481,7 +1481,7 @@ struct ClassDefFormat2
 struct ClassDef
 {
   /* Map interface. */
-  enum { SENTINEL = 0 };
+  static constexpr unsigned SENTINEL = 0;
   typedef unsigned int value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
@@ -1969,7 +1969,7 @@ struct FeatureVariationRecord
 
 struct FeatureVariations
 {
-  enum { NOT_FOUND_INDEX = 0xFFFFFFFFu };
+  static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
 
   bool find_index (const int *coords, unsigned int coord_len,
 			  unsigned int *index) const

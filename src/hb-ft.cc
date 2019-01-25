@@ -228,11 +228,8 @@ hb_ft_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
        done < count && (*first_glyph = FT_Get_Char_Index (ft_font->ft_face, *first_unicode));
        done++)
   {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-    first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-#pragma GCC diagnostic pop
+    first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);
+    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
   }
   /* We don't need to do ft_font->symbol dance here, since HB calls the singular
    * nominal_glyph() for what we don't handle here. */
@@ -295,11 +292,8 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     }
 
     *first_advance = (v * mult + (1<<9)) >> 10;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
-#pragma GCC diagnostic pop
+    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 }
 

@@ -96,7 +96,7 @@ struct AxisRecord
 
 struct fvar
 {
-  enum { tableTag = HB_OT_TAG_fvar };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_fvar;
 
   bool has_data () const { return version.to_int (); }
 

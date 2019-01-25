@@ -54,10 +54,10 @@ struct hb_iter_t
 {
   typedef Iter iter_t;
   typedef Item item_t;
-  enum { item_size = hb_static_size (Item) };
-  enum { is_iterator = true };
-  enum { is_random_access_iterator = false };
-  enum { is_sorted_iterator = false };
+  static constexpr unsigned item_size = hb_static_size (Item);
+  static constexpr bool is_iterator = true;
+  static constexpr bool is_random_access_iterator = false;
+  static constexpr bool is_sorted_iterator = false;
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -213,7 +213,7 @@ struct hb_map_iter_t :
   hb_map_iter_t (const Iter& it, Proj&& f) : it (it), f (f) {}
 
   typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
-  enum { is_random_access_iterator = Iter::is_random_access_iterator };
+  static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
   __item_t__ __item__ () const { return f (*it); }
   __item_t__ __item_at__ (unsigned i) const { return f (it[i]); }
   bool __more__ () const { return bool (it); }
@@ -255,7 +255,7 @@ struct hb_filter_iter_t :
   { while (it && !p (f (*it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
-  enum { is_sorted_iterator = Iter::is_sorted_iterator };
+  static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !p (f (*it))); }
@@ -295,12 +295,12 @@ struct hb_zip_iter_t :
   hb_zip_iter_t (A a, B b) : a (a), b (b) {}
 
   typedef hb_pair_t<typename A::item_t, typename B::item_t> __item_t__;
-  enum { is_random_access_iterator =
+  static constexpr bool is_random_access_iterator =
 	   A::is_random_access_iterator &&
-	   B::is_random_access_iterator };
-  enum { is_sorted_iterator =
+	   B::is_random_access_iterator;
+  static constexpr bool is_sorted_iterator =
 	   A::is_sorted_iterator &&
-	   B::is_sorted_iterator };
+	   B::is_sorted_iterator;
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
   bool __more__ () const { return a && b; }

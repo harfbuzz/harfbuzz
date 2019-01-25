@@ -151,7 +151,7 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
 
 struct name
 {
-  enum { tableTag = HB_OT_TAG_name };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_name;
 
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }

@@ -225,7 +225,7 @@ struct StatAxisRecord
 
 struct STAT
 {
-  enum { tableTag = HB_OT_TAG_STAT };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_STAT;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

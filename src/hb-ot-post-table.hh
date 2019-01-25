@@ -71,7 +71,7 @@ struct postV2Tail
 
 struct post
 {
-  enum { tableTag = HB_OT_TAG_post };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_post;
 
   bool subset (hb_subset_plan_t *plan) const
   {
