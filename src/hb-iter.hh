@@ -30,7 +30,6 @@
 #include "hb.hh"
 #include "hb-algs.hh" // for hb_addressof
 #include "hb-meta.hh"
-#include "hb-null.hh"
 
 
 /* Unified iterator object.
@@ -155,7 +154,7 @@ template<typename T, typename B>
 struct _hb_is_iterable
 { enum { value = false }; };
 template<typename T>
-struct _hb_is_iterable<T, hb_bool_tt<true || sizeof (Null(T).iter ())> >
+struct _hb_is_iterable<T, hb_bool_tt<true || sizeof (hb_declval (T).iter ())> >
 { enum { value = true }; };
 
 template<typename T>
