@@ -65,6 +65,7 @@
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
+#pragma GCC diagnostic error   "-Winjected-class-name"
 #pragma GCC diagnostic error   "-Wmissing-braces"
 #pragma GCC diagnostic error   "-Wmissing-declarations"
 #pragma GCC diagnostic error   "-Wmissing-prototypes"
