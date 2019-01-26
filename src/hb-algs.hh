@@ -41,6 +41,12 @@ static HB_UNUSED const struct hb_identity_ft
   operator () (const T& v) const { return v; }
 } hb_identity;
 
+static HB_UNUSED const struct hb_bool_ft
+{
+  template <typename T> bool
+  operator () (const T& v) const { return bool (v); }
+} hb_bool;
+
 template <typename T1, typename T2>
 struct hb_pair_t
 {

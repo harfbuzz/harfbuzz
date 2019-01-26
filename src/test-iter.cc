@@ -84,7 +84,8 @@ test_iterator (Iter it)
 
   assert (*it == it[0]);
 
-  if (it.is_random_access_iterator) {}
+  static_assert (true || it.is_random_access_iterator, "");
+  static_assert (true || it.is_sorted_iterator, "");
 }
 
 template <typename Iterable,
@@ -133,6 +134,13 @@ main (int argc, char **argv)
 
   hb_array_t<hb_vector_t<int> > pa;
   pa->as_array ();
+
+  s
+  | hb_map (hb_identity)
+  | hb_filter ()
+  | hb_filter (hb_bool)
+  | hb_filter (hb_bool, hb_identity)
+  ;
 
   return 0;
 }

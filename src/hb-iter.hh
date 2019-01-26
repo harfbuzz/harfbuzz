@@ -281,9 +281,9 @@ struct hb_filter_iter_factory_t
   Pred p;
   Proj f;
 };
-template <typename Pred, typename Proj = const hb_identity_ft&>
+template <typename Pred = const hb_bool_ft&, typename Proj = const hb_identity_ft&>
 inline hb_filter_iter_factory_t<Pred, Proj>
-hb_filter (Pred&& p, Proj&& f = hb_identity)
+hb_filter (Pred&& p = hb_bool, Proj&& f = hb_identity)
 { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 
 /* hb_zip() */
