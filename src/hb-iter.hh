@@ -69,6 +69,7 @@ struct hb_iter_t
 
   /* Operators. */
   iter_t iter () const { return *thiz(); }
+  iter_t operator + () const { return *thiz(); }
   explicit_operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
   hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }

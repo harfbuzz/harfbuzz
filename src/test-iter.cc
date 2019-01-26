@@ -135,7 +135,7 @@ main (int argc, char **argv)
   hb_array_t<hb_vector_t<int> > pa;
   pa->as_array ();
 
-  s
+  + s
   | hb_map (hb_identity)
   | hb_filter ()
   | hb_filter (hb_bool)
