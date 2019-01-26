@@ -72,6 +72,8 @@ test_iterator (Iter it)
 {
   Iter default_constructed;
 
+  assert (!default_constructed);
+
   /* Iterate over a copy of it. */
   for (auto c = it.iter (); c; c++)
     *c;
