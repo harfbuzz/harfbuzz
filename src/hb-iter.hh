@@ -91,9 +91,6 @@ struct hb_iter_t
   void operator = (const hb_iter_t &o HB_UNUSED) {}
 };
 
-/* Returns iterator type of a type. */
-#define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
-
 #define HB_ITER_USING(Name) \
   using item_t = typename Name::item_t; \
   using Name::item_size; \
@@ -111,6 +108,13 @@ struct hb_iter_t
   using Name::operator +; \
   using Name::operator -; \
   static_assert (true, "")
+
+/* Returns iterator type of a type. */
+#define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
+
+template <typename T>
+inline hb_iter_t (T)
+hb_iter (const T& c) { return c.iter (); }
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
