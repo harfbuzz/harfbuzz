@@ -280,7 +280,7 @@ struct hb_filter_iter_factory_t
   Pred p;
   Proj f;
 };
-template <typename Pred, typename Proj = hb_identity_t&>
+template <typename Pred, typename Proj = const hb_identity_t&>
 inline hb_filter_iter_factory_t<Pred, Proj>
 hb_filter (Pred&& p, Proj&& f = hb_identity)
 { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
