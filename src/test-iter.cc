@@ -78,6 +78,10 @@ test_iterator (Iter it)
   for (auto c = it.iter (); c; c++)
     *c;
 
+  /* Same. */
+  for (auto c = +it; c; c++)
+    *c;
+
   it += it.len ();
   it = it + 10;
   it = 10 + it;
