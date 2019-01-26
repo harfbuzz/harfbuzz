@@ -49,10 +49,9 @@
  */
 
 /* Base class for all iterators. */
-template <typename Iter, typename Item = typename Iter::__item_t__>
+template <typename iter_t, typename Item = typename iter_t::__item_t__>
 struct hb_iter_t
 {
-  typedef Iter iter_t;
   typedef Item item_t;
   static constexpr unsigned item_size = hb_static_size (Item);
   static constexpr bool is_iterator = true;
@@ -92,8 +91,10 @@ struct hb_iter_t
   void operator = (const hb_iter_t &o HB_UNUSED) {}
 };
 
+/* Returns iterator type of a type. */
+#define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
+
 #define HB_ITER_USING(Name) \
-  using iter_t = typename Name::iter_t; \
   using item_t = typename Name::item_t; \
   using Name::item_size; \
   using Name::is_iterator; \
@@ -227,6 +228,7 @@ struct hb_map_iter_t :
   Iter it;
   Proj f;
 };
+
 template <typename Proj>
 struct hb_map_iter_factory_t
 {
@@ -234,8 +236,8 @@ struct hb_map_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_map_iter_t<typename Iterable::iter_t, Proj> operator () (const Iterable &c) const
-  { return hb_map_iter_t<typename Iterable::iter_t, Proj> (c.iter (), f); }
+  hb_map_iter_t<hb_iter_t (Iterable), Proj> operator () (const Iterable &c) const
+  { return hb_map_iter_t<hb_iter_t (Iterable), Proj> (c.iter (), f); }
 
   private:
   Proj f;
@@ -273,8 +275,8 @@ struct hb_filter_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> operator () (const Iterable &c) const
-  { return hb_filter_iter_t<typename Iterable::iter_t, Pred, Proj> (c.iter (), p, f); }
+  hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj> operator () (const Iterable &c) const
+  { return hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj> (c.iter (), p, f); }
 
   private:
   Pred p;
@@ -316,9 +318,9 @@ struct hb_zip_iter_t :
 };
 template <typename A, typename B,
 	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
-inline hb_zip_iter_t<typename A::iter_t, typename B::iter_t>
+inline hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
 hb_zip (const A& a, const B &b)
-{ return hb_zip_iter_t<typename A::iter_t, typename B::iter_t> (a.iter (), b.iter ()); }
+{ return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
 
 
 /*
@@ -330,7 +332,7 @@ template <typename C, typename V,
 inline void
 hb_fill (C& c, const V &v)
 {
-  for (typename C::iter_t i (c); i; i++)
+  for (auto i = c.iter (); i; i++)
     hb_assign (*i, v);
 }
 
