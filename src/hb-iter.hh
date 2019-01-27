@@ -112,9 +112,20 @@ struct hb_iter_t
 /* Returns iterator type of a type. */
 #define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
 
+
+/* TODO Change to function-object. */
+
 template <typename T>
 inline hb_iter_t (T)
 hb_iter (const T& c) { return c.iter (); }
+
+/* Specialization for C arrays. */
+template <typename> struct hb_array_t;
+template <typename Type> inline hb_array_t<Type>
+hb_iter (Type *array, unsigned int length) { return hb_array_t<Type> (array, length); }
+template <typename Type, unsigned int length> hb_array_t<Type>
+hb_iter (Type (&array)[length]) { return hb_iter (array, length); }
+
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>

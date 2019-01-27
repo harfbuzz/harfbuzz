@@ -45,11 +45,10 @@ struct hb_array_t :
    * Constructors.
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
-  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
+  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
-
 
   /*
    * Iterator implementation.
@@ -184,7 +183,6 @@ hb_array (T *array, unsigned int length)
 template <typename T, unsigned int length_> inline hb_array_t<T>
 hb_array (T (&array_)[length_])
 { return hb_array_t<T> (array_); }
-
 
 enum hb_bfind_not_found_t
 {

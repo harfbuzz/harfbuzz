@@ -118,6 +118,9 @@ main (int argc, char **argv)
 
   s2 = s;
 
+  hb_iter (src);
+  hb_iter (src, 2);
+
   hb_fill (t, 42);
   hb_copy (t, s);
  // hb_copy (t, a.iter ());
@@ -139,7 +142,7 @@ main (int argc, char **argv)
   hb_array_t<hb_vector_t<int> > pa;
   pa->as_array ();
 
-  + hb_iter (s)
+  + hb_iter (src)
   | hb_map (hb_identity)
   | hb_filter ()
   | hb_filter (hb_bool)
