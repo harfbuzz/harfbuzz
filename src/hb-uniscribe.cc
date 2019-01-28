@@ -215,9 +215,12 @@ struct hb_uniscribe_shaper_funcs_t
     hinstLib = GetModuleHandle (TEXT ("usp10.dll"));
     if (hinstLib)
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
       this->ScriptItemizeOpenType = (SIOT) GetProcAddress (hinstLib, "ScriptItemizeOpenType");
       this->ScriptShapeOpenType   = (SSOT) GetProcAddress (hinstLib, "ScriptShapeOpenType");
       this->ScriptPlaceOpenType   = (SPOT) GetProcAddress (hinstLib, "ScriptPlaceOpenType");
+#pragma GCC diagnostic pop
     }
     if (!this->ScriptItemizeOpenType ||
 	!this->ScriptShapeOpenType   ||
