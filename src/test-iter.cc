@@ -149,5 +149,9 @@ main (int argc, char **argv)
   | hb_filter (hb_bool, hb_identity)
   ;
 
+  t << 1;
+  long vl;
+  s >> vl;
+
   return 0;
 }

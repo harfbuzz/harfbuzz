@@ -84,6 +84,10 @@ struct hb_iter_t
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { auto c = thiz()->iter (); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
+  template <typename T>
+  iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
+  template <typename T>
+  iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
 
   protected:
   hb_iter_t () {}
