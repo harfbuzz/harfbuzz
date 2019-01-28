@@ -56,7 +56,7 @@ struct SmallGlyphMetrics
     extents->x_bearing = bearingX;
     extents->y_bearing = bearingY;
     extents->width = width;
-    extents->height = -height;
+    extents->height = - (hb_position_t) height;
   }
 
   HBUINT8	height;
