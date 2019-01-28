@@ -1035,11 +1035,12 @@ struct CoverageFormat2
 
 struct Coverage
 {
-  /* Map interface. */
+  /* Has interface. */
   static constexpr unsigned SENTINEL = NOT_COVERED;
   typedef unsigned int value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
   unsigned int get (hb_codepoint_t k) const { return get_coverage (k); }
@@ -1480,12 +1481,13 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
-  /* Map interface. */
+  /* Has interface. */
   static constexpr unsigned SENTINEL = 0;
   typedef unsigned int value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
-  bool operator () (hb_codepoint_t k) const { return has (k); }
+  /* Projection. */
+  hb_codepoint_t operator () (hb_codepoint_t k) const { return get (k); }
 
   unsigned int get (hb_codepoint_t k) const { return get_class (k); }
   unsigned int get_class (hb_codepoint_t glyph_id) const

@@ -162,12 +162,13 @@ struct hb_map_t
 
   static constexpr hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
 
-  /* Map interface. */
+  /* Has interface. */
   static constexpr hb_codepoint_t SENTINEL = INVALID;
   typedef hb_codepoint_t value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
-  bool operator () (hb_codepoint_t k) const { return has (k); }
+  /* Projection. */
+  hb_codepoint_t operator () (hb_codepoint_t k) const { return get (k); }
 
   void clear ()
   {

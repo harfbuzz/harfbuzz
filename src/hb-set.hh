@@ -365,11 +365,12 @@ struct hb_set_t
     return page->get (g);
   }
 
-  /* Map interface. */
+  /* Has interface. */
   static constexpr bool SENTINEL = false;
   typedef bool value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
