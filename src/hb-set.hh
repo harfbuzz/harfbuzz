@@ -373,6 +373,9 @@ struct hb_set_t
   /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
+  /* Sink interface. */
+  hb_set_t& operator << (hb_codepoint_t v) { add (v); return *this; }
+
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {
     hb_codepoint_t c = first - 1;

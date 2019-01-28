@@ -89,6 +89,9 @@ struct hb_vector_t
 
   explicit_operator bool () const { return length; }
 
+  /* Sink interface. */
+  hb_vector_t& operator << (const Type &v) { push (v); return *this; }
+
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ(), length); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
 
