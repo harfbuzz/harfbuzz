@@ -31,17 +31,17 @@
 #include "hb-null.hh"
 
 
-static HB_UNUSED const struct hb_identity_ft
+static const struct hb_identity_ft
 {
   template <typename T> T
   operator () (const T& v) const { return v; }
-} hb_identity;
+} hb_identity HB_UNUSED;
 
-static HB_UNUSED const struct hb_bool_ft
+static const struct hb_bool_ft
 {
   template <typename T> bool
   operator () (const T& v) const { return bool (v); }
-} hb_bool;
+} hb_bool HB_UNUSED;
 
 template <typename T1, typename T2>
 struct hb_pair_t
@@ -61,17 +61,17 @@ struct hb_pair_t
 template <typename T1, typename T2> static inline hb_pair_t<T1, T2>
 hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 
-static HB_UNUSED const struct hb_first_ft
+static const struct hb_first_ft
 {
   template <typename Pair> typename Pair::first_t
   operator () (const Pair& pair) const { return pair.first; }
-} hb_first;
+} hb_first HB_UNUSED;
 
-static HB_UNUSED const struct hb_second_ft
+static const struct hb_second_ft
 {
   template <typename Pair> typename Pair::second_t
   operator () (const Pair& pair) const { return pair.second; }
-} hb_second;
+} hb_second HB_UNUSED;
 
 
 /*
