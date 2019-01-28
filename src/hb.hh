@@ -30,6 +30,9 @@
 #define HB_HH
 
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
+#if defined(_MSC_VER)
+#pragma warning( disable: 4068 ) /* Unknown pragma */
+#endif
 #if defined(__GNUC__) || defined(__clang__)
 /* Rules:
  *
