@@ -156,7 +156,8 @@ _populate_gids_to_retain (hb_face_t *face,
 }
 
 static void
-_create_old_gid_to_new_gid_map (bool                               retain_gids,
+_create_old_gid_to_new_gid_map (const hb_face_t                   *face,
+                                bool                               retain_gids,
 				const hb_vector_t<hb_codepoint_t> &glyphs,
                                 hb_map_t                          *glyph_map, /* OUT */
                                 hb_map_t                          *reverse_glyph_map, /* OUT */
@@ -180,7 +181,7 @@ _create_old_gid_to_new_gid_map (bool                               retain_gids,
   }
   else
   {
-    *num_glyphs = glyphs[glyphs.length - 1] + 1;
+    *num_glyphs = face->get_num_glyphs ();
   }
 }
 
@@ -217,7 +218,8 @@ hb_subset_plan_create (hb_face_t           *face,
                                               plan->codepoint_to_glyph,
                                               &plan->glyphs_deprecated);
 
-  _create_old_gid_to_new_gid_map (input->retain_gids,
+  _create_old_gid_to_new_gid_map (face,
+                                  input->retain_gids,
 				  plan->glyphs_deprecated,
 				  plan->glyph_map,
                                   plan->reverse_glyph_map,
