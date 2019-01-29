@@ -31,13 +31,13 @@
 #include "hb-null.hh"
 
 
-static const struct hb_identity_ft
+static const struct
 {
   template <typename T> T
   operator () (const T& v) const { return v; }
 } hb_identity HB_UNUSED;
 
-static const struct hb_bool_ft
+static const struct
 {
   template <typename T> bool
   operator () (const T& v) const { return bool (v); }
@@ -61,13 +61,13 @@ struct hb_pair_t
 template <typename T1, typename T2> static inline hb_pair_t<T1, T2>
 hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 
-static const struct hb_first_ft
+static const struct
 {
   template <typename Pair> decltype (hb_declval (Pair).first)
   operator () (const Pair& pair) const { return pair.first; }
 } hb_first HB_UNUSED;
 
-static const struct hb_second_ft
+static const struct
 {
   template <typename Pair> decltype (hb_declval (Pair).second)
   operator () (const Pair& pair) const { return pair.second; }
