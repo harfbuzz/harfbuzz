@@ -64,7 +64,7 @@ struct hb_iter_t
 
   /* TODO:
    * Port operators below to use hb_enable_if to sniff which method implements
-   * an operator and use it, and remove hb_iter_mixin_t completely. */
+   * an operator and use it, and remove hb_iter_fallback_mixin_t completely. */
 
   /* Operators. */
   iter_t iter () const { return *thiz(); }
@@ -132,7 +132,7 @@ hb_iter (Type (&array)[length]) { return hb_iter (array, length); }
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
-struct hb_iter_mixin_t
+struct hb_iter_fallback_mixin_t
 {
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -158,9 +158,9 @@ struct hb_iter_mixin_t
   void __rewind__ (unsigned n) { while (n--) --*thiz(); }
 
   protected:
-  hb_iter_mixin_t () {}
-  hb_iter_mixin_t (const hb_iter_mixin_t &o HB_UNUSED) {}
-  void operator = (const hb_iter_mixin_t &o HB_UNUSED) {}
+  hb_iter_fallback_mixin_t () {}
+  hb_iter_fallback_mixin_t (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
+  void operator = (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
 };
 
 /*
@@ -269,7 +269,7 @@ template <typename Iter, typename Pred, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
 struct hb_filter_iter_t :
   hb_iter_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>,
-  hb_iter_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
+  hb_iter_fallback_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
 {
   hb_filter_iter_t (const Iter& it_, Pred&& p, Proj&& f) : it (it_), p (p), f (f)
   { while (it && !p (f (*it))) ++it; }

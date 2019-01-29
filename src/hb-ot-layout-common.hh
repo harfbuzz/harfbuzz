@@ -1122,7 +1122,7 @@ struct Coverage
 
   struct iter_t :
     hb_iter_t<iter_t, hb_codepoint_t>,
-    hb_iter_mixin_t<iter_t, hb_codepoint_t>
+    hb_iter_fallback_mixin_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
     iter_t (const Coverage &c_ = Null(Coverage))
