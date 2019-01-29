@@ -469,11 +469,11 @@ struct cff_subset_plan {
     supp_size = 0;
     supp_codes.init ();
 
-    subset_enc_num_codes = plan->glyphs.length - 1;
+    subset_enc_num_codes = plan->glyphs_deprecated.length - 1;
     unsigned int glyph;
-    for (glyph = 1; glyph < plan->glyphs.length; glyph++)
+    for (glyph = 1; glyph < plan->glyphs_deprecated.length; glyph++)
     {
-      hb_codepoint_t  orig_glyph = plan->glyphs[glyph];
+      hb_codepoint_t  orig_glyph = plan->glyphs_deprecated[glyph];
       code = acc.glyph_to_code (orig_glyph);
       if (code == CFF_UNDEF_CODE)
       {
@@ -526,9 +526,9 @@ struct cff_subset_plan {
 
     subset_charset_ranges.resize (0);
     unsigned int glyph;
-    for (glyph = 1; glyph < plan->glyphs.length; glyph++)
+    for (glyph = 1; glyph < plan->glyphs_deprecated.length; glyph++)
     {
-      hb_codepoint_t  orig_glyph = plan->glyphs[glyph];
+      hb_codepoint_t  orig_glyph = plan->glyphs_deprecated[glyph];
       sid = acc.glyph_to_sid (orig_glyph);
 
       if (!acc.is_CID ())
@@ -544,7 +544,7 @@ struct cff_subset_plan {
 
     bool two_byte = subset_charset_ranges.finalize (glyph);
 
-    size0 = Charset0::min_size + HBUINT16::static_size * (plan->glyphs.length - 1);
+    size0 = Charset0::min_size + HBUINT16::static_size * (plan->glyphs_deprecated.length - 1);
     if (!two_byte)
       size_ranges = Charset1::min_size + Charset1_Range::static_size * subset_charset_ranges.length;
     else
@@ -559,7 +559,7 @@ struct cff_subset_plan {
 
     return Charset::calculate_serialized_size (
 			subset_charset_format,
-			subset_charset_format? subset_charset_ranges.length: plan->glyphs.length);
+			subset_charset_format? subset_charset_ranges.length: plan->glyphs_deprecated.length);
   }
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
@@ -589,19 +589,19 @@ struct cff_subset_plan {
 		      hb_subset_plan_t *plan)
   {
      /* make sure notdef is first */
-    if ((plan->glyphs.length == 0) || (plan->glyphs[0] != 0)) return false;
+    if ((plan->glyphs_deprecated.length == 0) || (plan->glyphs_deprecated[0] != 0)) return false;
 
     final_size = 0;
-    num_glyphs = plan->glyphs.length;
+    num_glyphs = plan->glyphs_deprecated.length;
     orig_fdcount = acc.fdCount;
     drop_hints = plan->drop_hints;
     desubroutinize = plan->desubroutinize;
 
     /* check whether the subset renumbers any glyph IDs */
     gid_renum = false;
-    for (unsigned int glyph = 0; glyph < plan->glyphs.length; glyph++)
+    for (unsigned int glyph = 0; glyph < plan->glyphs_deprecated.length; glyph++)
     {
-      if (plan->glyphs[glyph] != glyph) {
+      if (plan->glyphs_deprecated[glyph] != glyph) {
 	gid_renum = true;
 	break;
       }
@@ -644,7 +644,7 @@ struct cff_subset_plan {
     /* Determine re-mapping of font index as fdmap among other info */
     if (acc.fdSelect != &Null(CFF1FDSelect))
     {
-	if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
+	if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs_deprecated,
 				  orig_fdcount,
 				  *acc.fdSelect,
 				  subset_fdcount,
@@ -681,7 +681,7 @@ struct cff_subset_plan {
     {
       /* Flatten global & local subrs */
       subr_flattener_t<const OT::cff1::accelerator_subset_t, cff1_cs_interp_env_t, cff1_cs_opset_flatten_t>
-		    flattener(acc, plan->glyphs, plan->drop_hints);
+		    flattener(acc, plan->glyphs_deprecated, plan->drop_hints);
       if (!flattener.flatten (subset_charstrings))
 	return false;
 
@@ -691,11 +691,11 @@ struct cff_subset_plan {
     else
     {
       /* Subset subrs: collect used subroutines, leaving all unused ones behind */
-      if (!subr_subsetter.subset (acc, plan->glyphs, plan->drop_hints))
+      if (!subr_subsetter.subset (acc, plan->glyphs_deprecated, plan->drop_hints))
 	return false;
 
       /* encode charstrings, global subrs, local subrs with new subroutine numbers */
-      if (!subr_subsetter.encode_charstrings (acc, plan->glyphs, subset_charstrings))
+      if (!subr_subsetter.encode_charstrings (acc, plan->glyphs_deprecated, subset_charstrings))
 	return false;
 
       if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
@@ -784,7 +784,7 @@ struct cff_subset_plan {
       offsets.charStringsInfo.offSize = calcOffSize (dataSize);
       if (unlikely (offsets.charStringsInfo.offSize > 4))
       	return false;
-      final_size += CFF1CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.length, dataSize);
+      final_size += CFF1CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs_deprecated.length, dataSize);
     }
 
     /* private dicts & local subrs */
@@ -816,7 +816,7 @@ struct cff_subset_plan {
     if (!acc.is_CID ())
       offsets.privateDictInfo = fontdicts_mod[0].privateDictInfo;
 
-    return ((subset_charstrings.length == plan->glyphs.length)
+    return ((subset_charstrings.length == plan->glyphs_deprecated.length)
 	   && (fontdicts_mod.length == subset_fdcount));
   }
 
@@ -1064,7 +1064,7 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
   unsigned int  cff_prime_size = cff_plan.get_final_size ();
   char *cff_prime_data = (char *) calloc (1, cff_prime_size);
 
-  if (unlikely (!_write_cff1 (cff_plan, acc, plan->glyphs,
+  if (unlikely (!_write_cff1 (cff_plan, acc, plan->glyphs_deprecated,
 			      cff_prime_size, cff_prime_data))) {
     DEBUG_MSG(SUBSET, nullptr, "Failed to write a subset cff.");
     free (cff_prime_data);
