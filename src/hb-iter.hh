@@ -132,6 +132,19 @@ template <typename Type, unsigned int length> hb_array_t<Type>
 hb_iter (Type (&array)[length]) { return hb_iter (array, length); }
 
 
+template <template<typename iter_t, typename item_t> class mixin_t,
+	  typename iter_t,
+	  typename item_t = typename iter_t::__item_t__>
+struct hb_iter_with_mixin_t :
+  hb_iter_t<iter_t, item_t>,
+  mixin_t<iter_t, item_t>
+{
+  protected:
+  hb_iter_with_mixin_t () {}
+  hb_iter_with_mixin_t (const hb_iter_with_mixin_t &o HB_UNUSED) {}
+  void operator = (const hb_iter_with_mixin_t &o HB_UNUSED) {}
+};
+
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
 struct hb_iter_fallback_mixin_t
@@ -270,8 +283,9 @@ hb_map (Proj&& f)
 template <typename Iter, typename Pred, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
 struct hb_filter_iter_t :
-  hb_iter_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>,
-  hb_iter_fallback_mixin_t<hb_filter_iter_t<Iter, Pred, Proj>, typename Iter::item_t>
+  hb_iter_with_mixin_t<hb_iter_fallback_mixin_t,
+		       hb_filter_iter_t<Iter, Pred, Proj>,
+		       typename Iter::item_t>
 {
   hb_filter_iter_t (const Iter& it_, Pred&& p, Proj&& f) : it (it_), p (p), f (f)
   { while (it && !p (f (*it))) ++it; }

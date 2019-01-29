@@ -683,8 +683,9 @@ struct hb_set_t
    * Iterator implementation.
    */
   struct iter_t :
-    hb_iter_t<iter_t, hb_codepoint_t>,
-    hb_iter_fallback_mixin_t<iter_t, hb_codepoint_t>
+    hb_iter_with_mixin_t<hb_iter_fallback_mixin_t,
+			 iter_t,
+			 hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
     iter_t (const hb_set_t &s_ = Null(hb_set_t)) :

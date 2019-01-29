@@ -38,8 +38,9 @@ struct hb_sorted_array_t;
 
 template <typename Type>
 struct hb_array_t :
-	hb_iter_t<hb_array_t<Type>, Type&>,
-	hb_iter_fallback_mixin_t<hb_array_t<Type>, Type&>
+  hb_iter_with_mixin_t<hb_iter_fallback_mixin_t,
+		       hb_array_t<Type>,
+		       Type&>
 {
   /*
    * Constructors.
