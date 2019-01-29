@@ -55,9 +55,12 @@ matrix:
         - export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
       script:
         - ./autogen.sh
-        - ./configure $CONFIGURE_OPTS --with-coretext
+        - ./configure $CONFIGURE_OPTS --with-coretext --enable-code-coverage
         - make
         - make check || .ci/fail.sh
+      after_success:
+        - bash .ci/run-coveralls.sh # coveralls.io code coverage
+        - bash <(curl -s https://codecov.io/bash) # codecov.io code coverage
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
