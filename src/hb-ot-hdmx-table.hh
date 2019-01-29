@@ -57,7 +57,7 @@ struct DeviceRecord
     }
 
     unsigned int len () const
-    { return this->subset_plan->num_glyphs; }
+    { return this->subset_plan->num_output_glyphs (); }
 
     const HBUINT8* operator [] (unsigned int new_gid) const
     {
@@ -143,7 +143,7 @@ struct hdmx
 
     this->version.set (source_hdmx->version);
     this->numRecords.set (source_hdmx->numRecords);
-    this->sizeDeviceRecord.set (DeviceRecord::get_size (plan->num_glyphs));
+    this->sizeDeviceRecord.set (DeviceRecord::get_size (plan->num_output_glyphs ()));
 
     for (unsigned int i = 0; i < source_hdmx->numRecords; i++)
     {
@@ -159,7 +159,7 @@ struct hdmx
 
   static size_t get_subsetted_size (const hdmx *source_hdmx, hb_subset_plan_t *plan)
   {
-    return min_size + source_hdmx->numRecords * DeviceRecord::get_size (plan->num_glyphs);
+    return min_size + source_hdmx->numRecords * DeviceRecord::get_size (plan->num_output_glyphs ());
   }
 
   bool subset (hb_subset_plan_t *plan) const

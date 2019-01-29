@@ -108,10 +108,7 @@ struct hmtxvmtx
     DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes",
               HB_UNTAG(T::tableTag), num_advances, num_output_glyphs - num_advances, (unsigned int) dest_sz);
 
-    const char *source_table = hb_blob_get_data (_mtx.table.get_blob (), nullptr);
     // Copy everything over
-    LongMetric * old_metrics = (LongMetric *) source_table;
-    FWORD *lsbs = (FWORD *) (old_metrics + _mtx.num_advances);
     char * dest_pos = (char *) dest;
 
     bool failed = false;
@@ -131,12 +128,12 @@ struct hmtxvmtx
       bool has_advance = i < num_advances;
       if (has_advance)
       {
-        ((LongMetric *) dest_pos)->advance = advance;
-        ((LongMetric *) dest_pos)->sb = side_bearing;
+        ((LongMetric *) dest_pos)->advance.set (advance);
+        ((LongMetric *) dest_pos)->sb.set (side_bearing);
       }
       else
       {
-        *((FWORD *) dest_pos) = side_bearing;
+        ((FWORD *) dest_pos)->set (side_bearing);
       }
       dest_pos += (has_advance ? 4 : 2);
     }
