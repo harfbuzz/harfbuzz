@@ -60,7 +60,6 @@ struct hb_subset_plan_t
   hb_face_t *source;
   hb_face_t *dest;
 
- private:
   unsigned int _num_output_glyphs;
   hb_set_t *_glyphset;
 

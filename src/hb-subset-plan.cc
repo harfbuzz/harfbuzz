@@ -204,21 +204,21 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->drop_layout = input->drop_layout;
   plan->desubroutinize = input->desubroutinize;
   plan->unicodes = hb_set_create();
-  plan->glyphs.init();
+  plan->glyphs_deprecated.init();
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create();
   plan->glyph_map = hb_map_create();
   plan->reverse_glyph_map = hb_map_create();
-  plan->glyphset = _populate_gids_to_retain (face,
-					     input->unicodes,
-					     !plan->drop_layout,
-					     plan->unicodes,
-					     plan->codepoint_to_glyph,
-					     &plan->glyphs);
+  plan->_glyphset = _populate_gids_to_retain (face,
+                                              input->unicodes,
+                                              !plan->drop_layout,
+                                              plan->unicodes,
+                                              plan->codepoint_to_glyph,
+                                              &plan->glyphs_deprecated);
 
   _create_old_gid_to_new_gid_map (input->retain_gids,
-				  plan->glyphs,
+				  plan->glyphs_deprecated,
 				  plan->glyph_map,
                                   plan->reverse_glyph_map,
                                   &plan->_num_output_glyphs);
@@ -237,13 +237,13 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
-  plan->glyphs.fini ();
+  plan->glyphs_deprecated.fini ();
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);
   hb_map_destroy (plan->glyph_map);
   hb_map_destroy (plan->reverse_glyph_map);
-  hb_set_destroy (plan->glyphset);
+  hb_set_destroy (plan->_glyphset);
 
   free (plan);
 }
