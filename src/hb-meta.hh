@@ -31,9 +31,21 @@
 
 
 /*
- * C++ Template Meta-programming.
+ * C++ template meta-programming & fundamentals used with them.
  */
 
+
+template <typename T> static inline T*
+hb_addressof (const T& arg)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  /* https://en.cppreference.com/w/cpp/memory/addressof */
+  return reinterpret_cast<T*>(
+	   &const_cast<char&>(
+	      reinterpret_cast<const volatile char&>(arg)));
+#pragma GCC diagnostic pop
+}
 
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
