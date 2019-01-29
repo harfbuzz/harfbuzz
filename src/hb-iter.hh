@@ -110,6 +110,8 @@ struct hb_iter_t
   using Name::operator --; \
   using Name::operator +; \
   using Name::operator -; \
+  using Name::operator >>; \
+  using Name::operator <<; \
   static_assert (true, "")
 
 /* Returns iterator type of a type. */
