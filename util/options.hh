@@ -74,10 +74,13 @@ struct option_parser_t
 
     add_main_options ();
   }
+
+  static void _g_free_g_func (void *p, void * G_GNUC_UNUSED) { g_free (p); }
+
   ~option_parser_t ()
   {
     g_option_context_free (context);
-    g_ptr_array_foreach (to_free, (GFunc) g_free, nullptr);
+    g_ptr_array_foreach (to_free, _g_free_g_func, nullptr);
     g_ptr_array_free (to_free, TRUE);
   }
 

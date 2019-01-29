@@ -30,6 +30,9 @@
 #define HB_HH
 
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
+#if defined(_MSC_VER)
+#pragma warning( disable: 4068 ) /* Unknown pragma */
+#endif
 #if defined(__GNUC__) || defined(__clang__)
 /* Rules:
  *
@@ -60,6 +63,7 @@
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR
 #pragma GCC diagnostic error   "-Wc++11-narrowing"
 #pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
