@@ -49,7 +49,7 @@ matrix:
         - brew update;
           # Workaround Travis/brew bug
         - brew uninstall libtool && brew install libtool
-        - brew install ragel freetype glib gobject-introspection cairo graphite2 || true
+        - brew install lcov ragel freetype glib gobject-introspection cairo graphite2 || true
         - brew upgrade icu4c || true
         - export PATH="/usr/local/opt/icu4c/sbin:/usr/local/opt/icu4c/bin:$PATH"
         - export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
