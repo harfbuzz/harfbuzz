@@ -63,13 +63,13 @@ hb_pair (T1 a, T2 b) { return hb_pair_t<T1, T2> (a, b); }
 
 static const struct hb_first_ft
 {
-  template <typename Pair> typename Pair::first_t
+  template <typename Pair> decltype (hb_declval (Pair).first)
   operator () (const Pair& pair) const { return pair.first; }
 } hb_first HB_UNUSED;
 
 static const struct hb_second_ft
 {
-  template <typename Pair> typename Pair::second_t
+  template <typename Pair> decltype (hb_declval (Pair).second)
   operator () (const Pair& pair) const { return pair.second; }
 } hb_second HB_UNUSED;
 
