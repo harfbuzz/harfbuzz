@@ -221,7 +221,7 @@ hb_subset_plan_create (hb_face_t           *face,
 				  plan->glyphs,
 				  plan->glyph_map,
                                   plan->reverse_glyph_map,
-                                  &plan->num_glyphs);
+                                  &plan->_num_output_glyphs);
 
   return plan;
 }

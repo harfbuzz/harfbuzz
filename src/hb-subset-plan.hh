@@ -76,7 +76,7 @@ struct hb_subset_plan_t
    * The total number of output glyphs in the final subset.
    */
   inline unsigned int
-  num_output_glyphs ()
+  num_output_glyphs () const
   {
     return _num_output_glyphs;
   }
