@@ -58,21 +58,6 @@ struct loca_data_t
               size);
     return false;
   }
-
-  inline bool
-  _add_empty_glyphs_to_loca (hb_codepoint_t from_gid,
-                             hb_codepoint_t to_gid,
-                             unsigned int   offset)
-  {
-    bool success = true;
-    while (from_gid < to_gid)
-    {
-      success = success && _write_loca_entry (from_gid,
-                                              offset);
-      from_gid++;
-    }
-    return success;
-  }
 };
 
 /**
@@ -119,10 +104,10 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 				     hb_vector_t<unsigned int>     *instruction_ranges /* OUT */)
 {
   unsigned int total = 0;
-  for (unsigned int i = 0; i < plan->glyphs.length; i++)
-  {
-    hb_codepoint_t next_glyph = plan->glyphs[i];
 
+  hb_codepoint_t next_glyph = HB_SET_VALUE_INVALID;
+  while (plan->glyphset ()->next (&next_glyph))
+  {
     unsigned int start_offset, end_offset;
     if (unlikely (!(glyf.get_offsets (next_glyph, &start_offset, &end_offset) &&
 		    glyf.remove_padding (start_offset, &end_offset))))
@@ -152,7 +137,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
 
   *glyf_size = total;
   loca_data->is_short = (total <= 131070);
-  loca_data->size = (plan->num_glyphs + 1)
+  loca_data->size = (plan->num_output_glyphs () + 1)
       * (loca_data->is_short ? sizeof (OT::HBUINT16) : sizeof (OT::HBUINT32));
 
   DEBUG_MSG(SUBSET, nullptr, "preparing to subset glyf: final size %d, loca size %d, using %s loca",
@@ -207,26 +192,27 @@ _write_glyf_and_loca_prime (const hb_subset_plan_t        *plan,
 			    char                          *glyf_prime_data /* OUT */,
 			    loca_data_t                   *loca_prime /* OUT */)
 {
-  const hb_vector_t<hb_codepoint_t> &glyph_ids = plan->glyphs;
   char *glyf_prime_data_next = glyf_prime_data;
 
   bool success = true;
-  unsigned int current_gid = 0;
-  for (unsigned int i = 0; i < glyph_ids.length; i++)
-  {
-    hb_codepoint_t next_gid = current_gid;
-    success = success && plan->new_gid_for_old_gid (glyph_ids[i], &next_gid);
 
-    // If we are retaining existing gids then there will potentially be gaps
-    // in the loca table between glyphs. Fill in this gap with glyphs that have
-    // no outlines.
-    success = success && loca_prime->_add_empty_glyphs_to_loca (current_gid,
-                                                                next_gid,
-                                                                glyf_prime_data_next - glyf_prime_data);
-    current_gid = next_gid;
+
+  unsigned int i = 0;
+  hb_codepoint_t new_gid;
+  for (new_gid = 0; new_gid < plan->num_output_glyphs (); new_gid++)
+  {
+    hb_codepoint_t old_gid;
+    if (!plan->old_gid_for_new_gid (new_gid, &old_gid))
+    {
+      // Empty glyph, add a loca entry and carry on.
+      loca_prime->_write_loca_entry (new_gid,
+                                     glyf_prime_data_next - glyf_prime_data);
+      continue;
+    }
+
 
     unsigned int start_offset, end_offset;
-    if (unlikely (!(glyf.get_offsets (glyph_ids[i], &start_offset, &end_offset) &&
+    if (unlikely (!(glyf.get_offsets (old_gid, &start_offset, &end_offset) &&
 		    glyf.remove_padding (start_offset, &end_offset))))
       end_offset = start_offset = 0;
 
@@ -260,18 +246,19 @@ _write_glyf_and_loca_prime (const hb_subset_plan_t        *plan,
 	memset (glyf_prime_data_next + instruction_start - start_offset - 2, 0, 2);
     }
 
-    success = success && loca_prime->_write_loca_entry (current_gid,
+    success = success && loca_prime->_write_loca_entry (new_gid,
                                                         glyf_prime_data_next - glyf_prime_data);
     _update_components (plan, glyf_prime_data_next, length);
 
     // TODO: don't align to two bytes if using long loca.
     glyf_prime_data_next += length + (length % 2); // Align to 2 bytes for short loca.
-    current_gid++;
+
+    i++;
   }
 
   // loca table has n+1 entries where the last entry signifies the end location of the last
   // glyph.
-  success = success && loca_prime->_write_loca_entry (current_gid,
+  success = success && loca_prime->_write_loca_entry (new_gid,
                                                       glyf_prime_data_next - glyf_prime_data);
   return success;
 }
