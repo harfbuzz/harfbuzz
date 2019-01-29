@@ -11,7 +11,6 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.13.0 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
-AX_CODE_COVERAGE
 
 # Initialize libtool
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -64,6 +63,20 @@ AC_ARG_WITH([libstdc++],
 	[with_libstdcxx=$withval],
 	[with_libstdcxx=no])
 AM_CONDITIONAL(WITH_LIBSTDCXX, [test "x$with_libstdcxx" = "xyes"])
+
+AC_ARG_ENABLE([code-coverage],
+	[AS_HELP_STRING([--enable-code-coverage],
+			[Whether to enable code coverage support @<:@default=no@:>@])],,
+	[enable_code_coverage=no])
+
+if test "x$enable_code_coverage" = "xyes"; then
+	CODE_COVERAGE_CFLAGS="-O0 -g --coverage"
+	CODE_COVERAGE_LDFLAGS="--coverage"
+
+	AC_SUBST([CODE_COVERAGE_CFLAGS])
+	AC_SUBST([CODE_COVERAGE_LDFLAGS])
+
+fi
 
 # Documentation
 have_gtk_doc=false
