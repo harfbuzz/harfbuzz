@@ -73,7 +73,7 @@ jobs:
 
   clang-O3-O0:
     docker:
-      - image: multiarch/crossbuild
+      - image: ubuntu:18.10
     steps:
       - checkout
       - run: apt update || true
