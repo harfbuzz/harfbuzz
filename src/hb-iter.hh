@@ -172,7 +172,9 @@ struct hb_iter_with_fallback_t :
 {
   protected:
   hb_iter_with_fallback_t () {}
-  hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) {}
+  hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) :
+    hb_iter_t<iter_t, item_t> (o),
+    hb_iter_fallback_mixin_t<iter_t, item_t> (o) {}
   void operator = (const hb_iter_with_fallback_t &o HB_UNUSED) {}
 };
 
