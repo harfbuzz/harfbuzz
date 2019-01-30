@@ -95,7 +95,7 @@ struct SingleSubstFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset;
+    const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
@@ -184,7 +184,7 @@ struct SingleSubstFormat2
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset;
+    const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;

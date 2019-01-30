@@ -675,6 +675,7 @@ struct subset_options_t : option_group_t
   {
     keep_layout = false;
     drop_hints = false;
+    retain_gids = false;
     desubroutinize = false;
 
     add_options (parser);
@@ -684,6 +685,7 @@ struct subset_options_t : option_group_t
 
   hb_bool_t keep_layout;
   hb_bool_t drop_hints;
+  hb_bool_t retain_gids;
   hb_bool_t desubroutinize;
 };
 
