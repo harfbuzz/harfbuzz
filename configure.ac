@@ -58,6 +58,9 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
+cxx_version=`$CXX --version`
+AC_SUBST(cxx_version)
+
 AC_ARG_WITH([libstdc++],
 	[AS_HELP_STRING([--with-libstdc++=@<:@yes/no@:>@],
 			[Allow linking with libstdc++ @<:@default=no@:>@])],
@@ -518,6 +521,9 @@ AC_OUTPUT
 AC_MSG_NOTICE([
 
 Build configuration:
+
+C++ compiler version:
+${cxx_version}
 
 Unicode callbacks (you want at least one):
 	Builtin (UCDN):		${have_ucdn}
