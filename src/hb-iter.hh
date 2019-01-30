@@ -240,7 +240,8 @@ operator | (Lhs lhs, const Rhs &rhs) { return rhs (lhs); }
 template <typename Iter, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
-  hb_iter_t<hb_map_iter_t<Iter, Proj>, decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
+  hb_iter_t<hb_map_iter_t<Iter, Proj>,
+	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
 {
   hb_map_iter_t (const Iter& it, Proj&& f) : it (it), f (f) {}
 
@@ -267,7 +268,8 @@ struct hb_map_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_map_iter_t<hb_iter_t (Iterable), Proj> operator () (const Iterable &c) const
+  hb_map_iter_t<hb_iter_t (Iterable), Proj>
+  operator () (const Iterable &c) const
   { return hb_map_iter_t<hb_iter_t (Iterable), Proj> (c.iter (), f); }
 
   private:
@@ -306,14 +308,16 @@ struct hb_filter_iter_factory_t
 
   template <typename Iterable,
 	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj> operator () (const Iterable &c) const
+  hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj>
+  operator () (const Iterable &c) const
   { return hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj> (c.iter (), p, f); }
 
   private:
   Pred p;
   Proj f;
 };
-template <typename Pred = decltype ((hb_bool)), typename Proj = decltype ((hb_identity))>
+template <typename Pred = decltype ((hb_bool)),
+	  typename Proj = decltype ((hb_identity))>
 inline hb_filter_iter_factory_t<Pred, Proj>
 hb_filter (Pred&& p = hb_bool, Proj&& f = hb_identity)
 { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
@@ -322,18 +326,19 @@ hb_filter (Pred&& p = hb_bool, Proj&& f = hb_identity)
 
 template <typename A, typename B>
 struct hb_zip_iter_t :
-  hb_iter_t<hb_zip_iter_t<A, B>, hb_pair_t<typename A::item_t, typename B::item_t> >
+  hb_iter_t<hb_zip_iter_t<A, B>,
+	    hb_pair_t<typename A::item_t, typename B::item_t> >
 {
   hb_zip_iter_t () {}
   hb_zip_iter_t (A a, B b) : a (a), b (b) {}
 
   typedef hb_pair_t<typename A::item_t, typename B::item_t> __item_t__;
   static constexpr bool is_random_access_iterator =
-	   A::is_random_access_iterator &&
-	   B::is_random_access_iterator;
+    A::is_random_access_iterator &&
+    B::is_random_access_iterator;
   static constexpr bool is_sorted_iterator =
-	   A::is_sorted_iterator &&
-	   B::is_sorted_iterator;
+    A::is_sorted_iterator &&
+    B::is_sorted_iterator;
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
   bool __more__ () const { return a && b; }
