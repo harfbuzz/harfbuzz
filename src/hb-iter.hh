@@ -71,6 +71,10 @@ struct hb_iter_t
   iter_t operator + () const { return *thiz(); }
   explicit_operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
+  /* The following can only be enabled if item_t is reference type.  Otherwise
+   * it will be returning pointer to temporary rvalue. */
+  template <typename T = item_t,
+	    hb_enable_if (hb_is_reference (T))>
   hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
