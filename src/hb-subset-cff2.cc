@@ -287,7 +287,7 @@ struct cff2_subset_plan {
     {
       /* Flatten global & local subrs */
       subr_flattener_t<const OT::cff2::accelerator_subset_t, cff2_cs_interp_env_t, cff2_cs_opset_flatten_t>
-		    flattener(acc, plan->glyphs, plan->drop_hints);
+		    flattener(acc, plan->glyphs_deprecated, plan->drop_hints);
       if (!flattener.flatten (subset_charstrings))
 	return false;
 
@@ -297,11 +297,11 @@ struct cff2_subset_plan {
     else
     {
       /* Subset subrs: collect used subroutines, leaving all unused ones behind */
-      if (!subr_subsetter.subset (acc, plan->glyphs, plan->drop_hints))
+      if (!subr_subsetter.subset (acc, plan->glyphs_deprecated, plan->drop_hints))
 	return false;
 
       /* encode charstrings, global subrs, local subrs with new subroutine numbers */
-      if (!subr_subsetter.encode_charstrings (acc, plan->glyphs, subset_charstrings))
+      if (!subr_subsetter.encode_charstrings (acc, plan->glyphs_deprecated, subset_charstrings))
 	return false;
 
       if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
@@ -352,7 +352,7 @@ struct cff2_subset_plan {
     if (acc.fdSelect != &Null(CFF2FDSelect))
     {
       offsets.FDSelectInfo.offset = final_size;
-      if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs,
+      if (unlikely (!hb_plan_subset_cff_fdselect (plan->glyphs_deprecated,
 				  orig_fdcount,
 				  *(const FDSelect *)acc.fdSelect,
 				  subset_fdcount,
@@ -385,7 +385,7 @@ struct cff2_subset_plan {
       offsets.charStringsInfo.offset = final_size;
       unsigned int dataSize = subset_charstrings.total_size ();
       offsets.charStringsInfo.offSize = calcOffSize (dataSize);
-      final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs.length, dataSize);
+      final_size += CFF2CharStrings::calculate_serialized_size (offsets.charStringsInfo.offSize, plan->glyphs_deprecated.length, dataSize);
     }
 
     /* private dicts & local subrs */
@@ -584,7 +584,7 @@ _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
   unsigned int  cff2_prime_size = cff2_plan.get_final_size ();
   char *cff2_prime_data = (char *) calloc (1, cff2_prime_size);
 
-  if (unlikely (!_write_cff2 (cff2_plan, acc, plan->glyphs,
+  if (unlikely (!_write_cff2 (cff2_plan, acc, plan->glyphs_deprecated,
 			      cff2_prime_size, cff2_prime_data))) {
     DEBUG_MSG(SUBSET, nullptr, "Failed to write a subset cff2.");
     free (cff2_prime_data);
