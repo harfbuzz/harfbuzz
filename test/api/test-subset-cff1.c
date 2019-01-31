@@ -290,6 +290,52 @@ test_subset_cff1_dotsection (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_cff1_retaingids (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/SourceSansPro-Regular.ac.retaingids.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'c');
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_retain_gids (input, true);
+  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_ac);
+}
+
+static void
+test_subset_cff1_j_retaingids (void)
+{
+  hb_face_t *face_41_3041_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+  hb_face_t *face_41_4c2e = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,4C2E.retaingids.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_41_3041_4c2e_subset;
+  hb_set_add (codepoints, 0x41);
+  hb_set_add (codepoints, 0x4C2E);
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_retain_gids (input, true);
+  face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_41_4c2e, face_41_3041_4c2e_subset, HB_TAG ('C','F','F',' '));
+
+  hb_face_destroy (face_41_3041_4c2e_subset);
+  hb_face_destroy (face_41_3041_4c2e);
+  hb_face_destroy (face_41_4c2e);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -307,6 +353,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff1_expert);
   hb_test_add (test_subset_cff1_seac);
   hb_test_add (test_subset_cff1_dotsection);
+  hb_test_add (test_subset_cff1_retaingids);
+  hb_test_add (test_subset_cff1_j_retaingids);
 
   return hb_test_run ();
 }

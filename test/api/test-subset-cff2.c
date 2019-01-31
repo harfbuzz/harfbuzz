@@ -138,6 +138,29 @@ test_subset_cff2_desubr_strip_hints (void)
   hb_face_destroy (face_ac);
 }
 
+static void
+test_subset_cff2_retaingids (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/AdobeVFPrototype.ac.retaingids.otf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_subset_input_t *input;
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'c');
+  input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_retain_gids (input, true);
+  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('C', 'F', 'F', '2'));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_ac);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -148,6 +171,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cff2_strip_hints);
   hb_test_add (test_subset_cff2_desubr);
   hb_test_add (test_subset_cff2_desubr_strip_hints);
+  hb_test_add (test_subset_cff2_retaingids);
 
   return hb_test_run ();
 }
