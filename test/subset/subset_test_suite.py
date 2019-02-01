@@ -34,7 +34,7 @@ class Test:
 		return font_base_name_parts[1]
 
 	def applicable(self):
-		return self.profile_path.find("desubroutinize") < 0 or self.get_font_extension() == "otf"
+		return self.profile_path.find("desubroutinize") < 0 and self.profile_path.find("retain-gids") < 0 or self.get_font_extension() == ".otf"
 
 # A group of tests to perform on the subsetter. Each test
 # Identifies a font a subsetting profile, and a subset to be cut.

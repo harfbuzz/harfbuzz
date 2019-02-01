@@ -476,24 +476,20 @@ struct cff_subset_plan {
     unsigned int glyph;
     for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
     {
-      hb_codepoint_t  orig_glyph;
-      if (!plan->old_gid_for_new_gid (glyph, &orig_glyph))
+      hb_codepoint_t  old_glyph;
+      if (!plan->old_gid_for_new_gid (glyph, &old_glyph))
       {
-	/* pretend a missing glyph has the last code + 1
-	 * as an attempt to minimize the number of ranges */
-	code = last_code + 1;
+      	/* Retain the code for the old missing glyph ID */
+	old_glyph = glyph;
       }
-      else
+      code = acc.glyph_to_code (old_glyph);
+      if (code == CFF_UNDEF_CODE)
       {
-	code = acc.glyph_to_code (orig_glyph);
-	if (code == CFF_UNDEF_CODE)
-	{
-	  subset_enc_num_codes = glyph - 1;
-	  break;
-	}
+	subset_enc_num_codes = glyph - 1;
+	break;
       }
 
-      if (code != last_code + 1)
+      if ((last_code == CFF_UNDEF_CODE) || (code != last_code + 1))
       {
 	code_pair_t pair = { code, glyph };
 	subset_enc_code_ranges.push (pair);
@@ -502,7 +498,7 @@ struct cff_subset_plan {
 
       if (encoding != &Null(Encoding))
       {
-	hb_codepoint_t  sid = acc.glyph_to_sid (orig_glyph);
+	hb_codepoint_t  sid = acc.glyph_to_sid (old_glyph);
 	encoding->get_supplement_codes (sid, supp_codes);
 	for (unsigned int i = 0; i < supp_codes.length; i++)
 	{
@@ -540,22 +536,18 @@ struct cff_subset_plan {
     unsigned int glyph;
     for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
     {
-      hb_codepoint_t  orig_glyph;
-      if (!plan->old_gid_for_new_gid (glyph, &orig_glyph))
+      hb_codepoint_t  old_glyph;
+      if (!plan->old_gid_for_new_gid (glyph, &old_glyph))
       {
-	/* pretend a missing glyph has the last sid + 1
-	 * as an attempt to minimize the number of ranges */
-	sid = last_sid + 1;
+      	/* Retain the SID for the old missing glyph ID */
+	old_glyph = glyph;
       }
-      else
-      {
-      	sid = acc.glyph_to_sid (orig_glyph);
+      sid = acc.glyph_to_sid (old_glyph);
 
-      	if (!acc.is_CID ())
-	  sid = sidmap.add (sid);
-      }
+      if (!acc.is_CID ())
+	sid = sidmap.add (sid);
 
-      if (sid != last_sid + 1)
+      if ((last_sid == CFF_UNDEF_CODE) || (sid != last_sid + 1))
       {
 	code_pair_t pair = { sid, glyph };
 	subset_charset_ranges.push (pair);
