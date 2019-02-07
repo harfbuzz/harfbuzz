@@ -66,21 +66,17 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
     hb_set_t  *set = hb_set_create ();
     if (set == &Null (hb_set_t))
       return false;
-    hb_codepoint_t  prev_fd = 0;
+    hb_codepoint_t  prev_fd = CFF_UNDEF_CODE;
     for (hb_codepoint_t i = 0; i < subset_num_glyphs; i++)
     {
       hb_codepoint_t	glyph;
       hb_codepoint_t  	fd;
       if (!plan->old_gid_for_new_gid (i, &glyph))
       {
-	/* for a missing glyph, use the same fd as the previous
-	 * as an attempt to minimize the number of ranges */
-	fd = prev_fd;
+	/* fonttools retains FDSelect & font dicts for missing glyphs. do the same */
+	glyph = i;
       }
-      else
-      {
-      	fd = src.get_fd (glyph);
-      }
+      fd = src.get_fd (glyph);
       set->add (fd);
 
       if (fd != prev_fd)
