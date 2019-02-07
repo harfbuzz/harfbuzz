@@ -66,7 +66,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
     hb_set_t  *set = hb_set_create ();
     if (set == &Null (hb_set_t))
       return false;
-    hb_codepoint_t  prev_fd = CFF_UNDEF_CODE;
+    hb_codepoint_t  prev_fd = 0;
     for (hb_codepoint_t i = 0; i < subset_num_glyphs; i++)
     {
       hb_codepoint_t	glyph;
@@ -75,7 +75,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
       {
 	/* for a missing glyph, use the same fd as the previous
 	 * as an attempt to minimize the number of ranges */
-	fd = (prev_fd == CFF_UNDEF_CODE)? 0: prev_fd;
+	fd = prev_fd;
       }
       else
       {
