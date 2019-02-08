@@ -70,14 +70,15 @@ jobs:
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make -j32 CPPFLAGS="-Werror"
       - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
-      
-  void-notest:
-    docker:
-      - image: voidlinux/voidlinux
-    steps:
-      - checkout
-      - run: xbps-install -Suy freetype gettext gcc glib graphite pkg-config ragel libtool autoconf automake make
-      - run: ./autogen.sh && make -j32 && make check
+
+  ## Doesn't play well with CircleCI apparently
+  #void-notest:
+  #  docker:
+  #    - image: voidlinux/voidlinux
+  #  steps:
+  #    - checkout
+  #    - run: xbps-install -Suy freetype gettext gcc glib graphite pkg-config ragel libtool autoconf automake make
+  #    - run: ./autogen.sh && make -j32 && make check
 
   clang-O3-O0:
     docker:
@@ -315,7 +316,7 @@ workflows:
       # autotools based builds
       - alpine-O3-NOMMAP
       - archlinux-py3-all
-      - void-notest
+      #- void-notest
       - gcc-valgrind
       - clang-O3-O0
       - clang-everything
