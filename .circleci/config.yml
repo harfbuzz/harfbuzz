@@ -52,7 +52,7 @@ jobs:
       - image: alpine
     steps:
       - checkout
-      - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev
+      - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev python
       # C??FLAGS are not needed for a regular build
       - run: CFLAGS="-O3" CXXFLAGS="-O3 -DHB_NO_MMAP" ./autogen.sh
       - run: make -j32
@@ -60,16 +60,25 @@ jobs:
 
   archlinux-py3-all:
     docker:
-      - image: base/devel
+      - image: archlinux/base
     steps:
       - checkout
-      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip
+      - run: pacman --noconfirm -Syu freetype2 cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip make which base-devel
       - run: pip install flake8 fonttools
       - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
       # C??FLAGS are not needed for a regular build
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make -j32 CPPFLAGS="-Werror"
       - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
+
+  ## Doesn't play well with CircleCI apparently
+  #void-notest:
+  #  docker:
+  #    - image: voidlinux/voidlinux
+  #  steps:
+  #    - checkout
+  #    - run: xbps-install -Suy freetype gettext gcc glib graphite pkg-config ragel libtool autoconf automake make
+  #    - run: ./autogen.sh && make -j32 && make check
 
   clang-O3-O0:
     docker:
@@ -307,6 +316,7 @@ workflows:
       # autotools based builds
       - alpine-O3-NOMMAP
       - archlinux-py3-all
+      #- void-notest
       - gcc-valgrind
       - clang-O3-O0
       - clang-everything
