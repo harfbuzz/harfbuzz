@@ -797,10 +797,12 @@ struct subr_subsetter_t
     drop_hints_param_t ()
       : seen_moveto (false),
 	ends_in_hint (false),
+	all_dropped (false),
 	vsindex_dropped (false) {}
 
     bool  seen_moveto;
     bool  ends_in_hint;
+    bool  all_dropped;
     bool  vsindex_dropped;
   };
 
@@ -811,7 +813,7 @@ struct subr_subsetter_t
     drop.ends_in_hint = false;
     bool has_hint = drop_hints_in_str (subrs[subr_num], param, drop);
 
-    /* if this subr ends with a stem hint (i.e., not a number a potential argument for moveto),
+    /* if this subr ends with a stem hint (i.e., not a number; potential argument for moveto),
      * then this entire subroutine must be a hint. drop its call. */
     if (drop.ends_in_hint)
     {
@@ -820,6 +822,10 @@ struct subr_subsetter_t
        * otherwise reset the flag */
       if (!str.at_end (pos))
 	drop.ends_in_hint = false;
+    }
+    else if (drop.all_dropped)
+    {
+      str.values[pos].set_drop ();
     }
 
     return has_hint;
@@ -839,7 +845,6 @@ struct subr_subsetter_t
 	  has_hint = drop_hints_in_subr (str, pos,
 					*param.parsed_local_subrs, str.values[pos].subr_num,
 					param, drop);
-
 	  break;
 
 	case OpCode_callgsubr:
@@ -893,6 +898,23 @@ struct subr_subsetter_t
 	    drop.vsindex_dropped = true;
 	}
 	seen_hint |= has_hint;
+      }
+    }
+
+    /* Raise all_dropped flag if all operators except return are dropped from a subr.
+     * It may happen even after seeing the first moveto if a subr contains
+     * only (usually one) hintmask operator, then calls to this subr can be dropped.
+     */
+    drop.all_dropped = true;
+    for (unsigned int pos = 0; pos < str.values.length; pos++)
+    {
+      parsed_cs_op_t  &csop = str.values[pos];
+      if (csop.op == OpCode_return)
+      	break;
+      if (!csop.for_drop ())
+      {
+      	drop.all_dropped = false;
+      	break;
       }
     }
 
