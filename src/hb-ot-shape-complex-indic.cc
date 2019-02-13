@@ -1199,9 +1199,14 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	      goto search;
 	    }
 	  }
-	  /* -> If ZWNJ follows this halant, position is moved after it. */
-	  if (info[new_pos + 1].indic_category() == OT_ZWNJ)
-	    new_pos++;
+	  /* -> If ZWNJ follows this halant, position is moved after it.
+	   *
+	   * IMPLEMENTATION NOTES:
+	   *
+	   * This is taken care of by the state-machine. A Halant,ZWNJ is a terminating
+	   * sequence for a consonant syllable; any pre-base matras occurring after it
+	   * will belong to the subsequent syllable.
+	   */
 	}
       }
       else
