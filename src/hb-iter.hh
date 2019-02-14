@@ -430,6 +430,17 @@ static const struct
   { return hb_sink_t<Sink&> (*s); }
 } hb_sink HB_UNUSED;
 
+static const struct
+{
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  void
+  operator () (Iter it) const
+  {
+    for (; it; ++it)
+      (void) *it;
+  }
+} hb_drain HB_UNUSED;
 
 /*
  * Algorithms operating on iterators.

@@ -149,7 +149,12 @@ main (int argc, char **argv)
   ;
 
   + hb_iter (src)
-  | hb_apply (&st);
+  | hb_apply (&st)
+  ;
+
+  + hb_iter (src)
+  | hb_drain
+  ;
 
   t << 1;
   long vl;
