@@ -135,18 +135,18 @@ struct SingleSubstFormat2
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, substitute)
-		 | hb_filter (*c->glyphs, hb_first)
-		 | hb_map (hb_second); it; ++it)
-      c->output->add (*it);
+    + hb_zip (this+coverage, substitute)
+    | hb_filter (*c->glyphs, hb_first)
+    | hb_map (hb_second)
+    | hb_sink (*c->output);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, substitute)
-		 | hb_map (hb_second); it; ++it)
-      c->output->add (*it);
+    + hb_zip (this+coverage, substitute)
+    | hb_map (hb_second)
+    | hb_sink (*c->output);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -1018,10 +1018,10 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    for (auto it = hb_zip (this+coverage, substitute)
-		 | hb_filter (*c->glyphs, hb_first)
-		 | hb_map (hb_second); it; ++it)
-      c->output->add (*it);
+    + hb_zip (this+coverage, substitute)
+    | hb_filter (*c->glyphs, hb_first)
+    | hb_map (hb_second)
+    | hb_sink (*c->output);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
