@@ -272,11 +272,11 @@ struct hb_map_iter_factory_t
 {
   hb_map_iter_factory_t (Proj&& f) : f (f) {}
 
-  template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_map_iter_t<hb_iter_t (Iterable), Proj>
-  operator () (const Iterable &c) const
-  { return hb_map_iter_t<hb_iter_t (Iterable), Proj> (c.iter (), f); }
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  hb_map_iter_t<Iter, Proj>
+  operator () (Iter it) const
+  { return hb_map_iter_t<Iter, Proj> (it, f); }
 
   private:
   Proj f;
