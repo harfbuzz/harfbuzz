@@ -383,11 +383,12 @@ struct hb_sink_t
   private:
   Sink s;
 };
-template <typename Sink>
-inline hb_sink_t<Sink>
-hb_sink (Sink&& s)
-{ return hb_sink_t<Sink> (s); }
-
+static const struct
+{
+  template <typename Sink> hb_sink_t<Sink>
+  operator () (Sink&& s) const
+  { return hb_sink_t<Sink> (s); }
+} hb_sink HB_UNUSED;
 
 
 /*
