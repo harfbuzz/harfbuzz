@@ -358,11 +358,14 @@ struct hb_zip_iter_t :
   A a;
   B b;
 };
-template <typename A, typename B,
-	  hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
-inline hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
-hb_zip (const A& a, const B &b)
-{ return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
+static const struct
+{
+  template <typename A, typename B,
+	    hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
+  hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
+  operator () (const A& a, const B &b) const
+  { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
+} hb_zip HB_UNUSED;
 
 /* hb_sink() */
 
