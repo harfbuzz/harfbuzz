@@ -22,18 +22,6 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
-  macos-notest-ios:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install cmake
-      # not needed to be a framework but we like to test that also
-      # TODO: wrong way of targeting iOS as it doesn't point to iOS headers thus building
-      # CoreText support is not possible, after the fix feel free HB_IOS from CMake altogether
-      - run: cmake -DBUILD_FRAMEWORK=ON -H. -Bbuild -GXcode -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_SUBSET=OFF -DHB_BUILD_TESTS=OFF
-      - run: cd build && xcodebuild -sdk iphoneos12.0 -configuration Release build -arch arm64
-
   distcheck:
     docker:
       - image: ubuntu:17.10
@@ -308,7 +296,6 @@ workflows:
       # macOS
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
-      - macos-notest-ios
 
       # both autotools and cmake
       - distcheck
