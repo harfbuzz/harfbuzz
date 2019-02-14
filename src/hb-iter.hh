@@ -364,6 +364,31 @@ inline hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
 hb_zip (const A& a, const B &b)
 { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
 
+/* hb_sink() */
+
+template <typename Sink>
+struct hb_sink_t
+{
+  hb_sink_t (Sink&& s) : s (s) {}
+
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  void
+  operator () (const Iterable &c) const
+  {
+    for (auto it = c.iter (); it; ++it)
+      s << *it;
+  }
+
+  private:
+  Sink s;
+};
+template <typename Sink>
+inline hb_sink_t<Sink>
+hb_sink (Sink&& s)
+{ return hb_sink_t<Sink> (s); }
+
+
 
 /*
  * Algorithms operating on iterators.
