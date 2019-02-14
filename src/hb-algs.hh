@@ -327,11 +327,6 @@ hb_ceil_to_4 (unsigned int v)
 template <typename T> static inline bool
 hb_in_range (T u, T lo, T hi)
 {
-  /* The sizeof() is here to force template instantiation.
-   * I'm sure there are better ways to do this but can't think of
-   * one right now.  Declaring a variable won't work as HB_UNUSED
-   * is unusable on some platforms and unused types are less likely
-   * to generate a warning than unused variables. */
   static_assert (!hb_is_signed<T>::value, "");
 
   /* The casts below are important as if T is smaller than int,
