@@ -388,6 +388,10 @@ static const struct
   template <typename Sink> hb_sink_t<Sink>
   operator () (Sink&& s) const
   { return hb_sink_t<Sink> (s); }
+
+  template <typename Sink> hb_sink_t<Sink&>
+  operator () (Sink *s) const
+  { return hb_sink_t<Sink&> (*s); }
 } hb_sink HB_UNUSED;
 
 

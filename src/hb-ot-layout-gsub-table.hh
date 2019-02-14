@@ -138,7 +138,7 @@ struct SingleSubstFormat2
     + hb_zip (this+coverage, substitute)
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_sink (*c->output)
+    | hb_sink (c->output)
     ;
   }
 
@@ -147,7 +147,7 @@ struct SingleSubstFormat2
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     + hb_zip (this+coverage, substitute)
     | hb_map (hb_second)
-    | hb_sink (*c->output)
+    | hb_sink (c->output)
     ;
   }
 
@@ -1023,7 +1023,7 @@ struct ReverseChainSingleSubstFormat1
     + hb_zip (this+coverage, substitute)
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_sink (*c->output)
+    | hb_sink (c->output)
     ;
   }
 
