@@ -842,18 +842,20 @@ struct LigatureSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    for (auto it = hb_zip (this+coverage, ligatureSet)
-		 | hb_filter (*c->glyphs, hb_first)
-		 | hb_map (hb_second); it; ++it)
-      (this+*it).closure (c);
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (*c->glyphs, hb_first)
+    | hb_map (hb_second)
+    | hb_apply ([&](const OffsetTo<LigatureSet> &_) { (this+_).closure (c); })
+    ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-    for (auto it = hb_zip (this+coverage, ligatureSet)
-		 | hb_map (hb_second); it; ++it)
-      (this+*it).collect_glyphs (c);
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_map (hb_second)
+    | hb_apply ([&](const OffsetTo<LigatureSet> &_) { (this+_).collect_glyphs (c); })
+    ;
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
