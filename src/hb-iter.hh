@@ -322,11 +322,14 @@ struct hb_filter_iter_factory_t
   Pred p;
   Proj f;
 };
-template <typename Pred = decltype ((hb_bool)),
-	  typename Proj = decltype ((hb_identity))>
-inline hb_filter_iter_factory_t<Pred, Proj>
-hb_filter (Pred&& p = hb_bool, Proj&& f = hb_identity)
-{ return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
+static const struct
+{
+  template <typename Pred = decltype ((hb_bool)),
+	    typename Proj = decltype ((hb_identity))>
+  hb_filter_iter_factory_t<Pred, Proj>
+  operator () (Pred&& p = hb_bool, Proj&& f = hb_identity) const
+  { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
+} hb_filter HB_UNUSED;
 
 /* hb_zip() */
 
