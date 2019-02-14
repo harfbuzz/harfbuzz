@@ -1374,9 +1374,8 @@ struct RuleSet
   void closure (hb_closure_context_t *c,
 		ContextClosureLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      (this+rule[i]).closure (c, lookup_context);
+    for (auto it = hb_iter (rule); it; ++it)
+      (this+*it).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c,
@@ -2023,9 +2022,8 @@ struct ChainRuleSet
   }
   void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      (this+rule[i]).closure (c, lookup_context);
+    for (auto it = hb_iter (rule); it; ++it)
+      (this+*it).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c, ChainContextCollectGlyphsLookupContext &lookup_context) const
