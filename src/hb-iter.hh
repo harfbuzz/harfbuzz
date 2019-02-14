@@ -370,6 +370,36 @@ static const struct
   { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
 } hb_zip HB_UNUSED;
 
+/* hb_apply() */
+
+template <typename Appl>
+struct hb_apply_t
+{
+  hb_apply_t (Appl&& a) : a (a) {}
+
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  void
+  operator () (Iter it) const
+  {
+    for (; it; ++it)
+      a (*it);
+  }
+
+  private:
+  Appl a;
+};
+static const struct
+{
+  template <typename Appl> hb_apply_t<Appl>
+  operator () (Appl&& a) const
+  { return hb_apply_t<Appl> (a); }
+
+  template <typename Appl> hb_apply_t<Appl&>
+  operator () (Appl *a) const
+  { return hb_apply_t<Appl&> (*a); }
+} hb_apply HB_UNUSED;
+
 /* hb_sink() */
 
 template <typename Sink>
