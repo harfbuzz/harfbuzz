@@ -270,7 +270,7 @@ struct hb_map_iter_t :
 template <typename Proj>
 struct hb_map_iter_factory_t
 {
-  hb_map_iter_factory_t (Proj&& f) : f (f) {}
+  hb_map_iter_factory_t (Proj f) : f (f) {}
 
   template <typename Iter,
 	    hb_enable_if (hb_is_iterator (Iter))>
@@ -310,7 +310,7 @@ struct hb_filter_iter_t :
 template <typename Pred, typename Proj>
 struct hb_filter_iter_factory_t
 {
-  hb_filter_iter_factory_t (Pred&& p, Proj&& f) : p (p), f (f) {}
+  hb_filter_iter_factory_t (Pred p, Proj f) : p (p), f (f) {}
 
   template <typename Iter,
 	    hb_enable_if (hb_is_iterator (Iter))>
@@ -375,7 +375,7 @@ static const struct
 template <typename Appl>
 struct hb_apply_t
 {
-  hb_apply_t (Appl&& a) : a (a) {}
+  hb_apply_t (Appl a) : a (a) {}
 
   template <typename Iter,
 	    hb_enable_if (hb_is_iterator (Iter))>
