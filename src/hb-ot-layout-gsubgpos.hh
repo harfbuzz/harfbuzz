@@ -706,8 +706,8 @@ static inline bool intersects_array (const hb_set_t *glyphs,
 				     intersects_func_t intersects_func,
 				     const void *intersects_data)
 {
-  for (unsigned int i = 0; i < count; i++)
-    if (likely (!intersects_func (glyphs, values[i], intersects_data)))
+  for (auto it = hb_iter (values, count); it; ++it)
+    if (likely (!intersects_func (glyphs, *it, intersects_data)))
       return false;
   return true;
 }
@@ -734,8 +734,8 @@ static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 				  collect_glyphs_func_t collect_func,
 				  const void *collect_data)
 {
-  for (unsigned int i = 0; i < count; i++)
-    collect_func (glyphs, values[i], collect_data);
+  for (auto it = hb_iter (values, count); it; ++it)
+    collect_func (glyphs, *it, collect_data);
 }
 
 
@@ -1380,19 +1380,17 @@ struct RuleSet
   void collect_glyphs (hb_collect_glyphs_context_t *c,
 		       ContextCollectGlyphsLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      (this+rule[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (rule); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c,
 		    ContextApplyLookupContext &lookup_context) const
   {
     TRACE_WOULD_APPLY (this);
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
+    for (auto it = hb_iter (rule); it; ++it)
     {
-      if ((this+rule[i]).would_apply (c, lookup_context))
+      if ((this+*it).would_apply (c, lookup_context))
 	return_trace (true);
     }
     return_trace (false);
@@ -1402,10 +1400,9 @@ struct RuleSet
 	      ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
+    for (auto it = hb_iter (rule); it; ++it)
     {
-      if ((this+rule[i]).apply (c, lookup_context))
+      if ((this+*it).apply (c, lookup_context))
 	return_trace (true);
     }
     return_trace (false);
@@ -1463,9 +1460,8 @@ struct ContextFormat1
       nullptr
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      (this+ruleSet[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (ruleSet); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
@@ -2026,17 +2022,15 @@ struct ChainRuleSet
 
   void collect_glyphs (hb_collect_glyphs_context_t *c, ChainContextCollectGlyphsLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      (this+rule[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (rule); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_WOULD_APPLY (this);
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      if ((this+rule[i]).would_apply (c, lookup_context))
+    for (auto it = hb_iter (rule); it; ++it)
+      if ((this+*it).would_apply (c, lookup_context))
 	return_trace (true);
 
     return_trace (false);
@@ -2045,9 +2039,8 @@ struct ChainRuleSet
   bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      if ((this+rule[i]).apply (c, lookup_context))
+    for (auto it = hb_iter (rule); it; ++it)
+      if ((this+*it).apply (c, lookup_context))
 	return_trace (true);
 
     return_trace (false);
@@ -2104,9 +2097,8 @@ struct ChainContextFormat1
       {nullptr, nullptr, nullptr}
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      (this+ruleSet[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (ruleSet); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
