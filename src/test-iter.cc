@@ -145,6 +145,7 @@ main (int argc, char **argv)
   | hb_filter ()
   | hb_filter (hb_bool)
   | hb_filter (hb_bool, hb_identity)
+  | hb_sink (st)
   ;
 
   t << 1;

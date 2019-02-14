@@ -371,12 +371,12 @@ struct hb_sink_t
 {
   hb_sink_t (Sink&& s) : s (s) {}
 
-  template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
   void
-  operator () (const Iterable &c) const
+  operator () (Iter it) const
   {
-    for (auto it = c.iter (); it; ++it)
+    for (; it; ++it)
       s << *it;
   }
 
