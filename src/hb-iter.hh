@@ -312,11 +312,11 @@ struct hb_filter_iter_factory_t
 {
   hb_filter_iter_factory_t (Pred&& p, Proj&& f) : p (p), f (f) {}
 
-  template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
-  hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj>
-  operator () (const Iterable &c) const
-  { return hb_filter_iter_t<hb_iter_t (Iterable), Pred, Proj> (c.iter (), p, f); }
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  hb_filter_iter_t<Iter, Pred, Proj>
+  operator () (Iter it) const
+  { return hb_filter_iter_t<Iter, Pred, Proj> (it, p, f); }
 
   private:
   Pred p;
