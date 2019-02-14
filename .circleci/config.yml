@@ -315,7 +315,7 @@ workflows:
 
       # cmake based builds
       - cmake-gcc
-      - cmake-oracledeveloperstudio
+      #- cmake-oracledeveloperstudio
 
       # crosscompiles
       # they can't be test thus are without tests
