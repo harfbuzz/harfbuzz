@@ -1364,9 +1364,8 @@ struct RuleSet
   bool intersects (const hb_set_t *glyphs,
 		   ContextClosureLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      if ((this+rule[i]).intersects (glyphs, lookup_context))
+    for (auto it = hb_iter (rule); it; ++it)
+      if ((this+*it).intersects (glyphs, lookup_context))
 	return true;
     return false;
   }
@@ -2014,9 +2013,8 @@ struct ChainRuleSet
 {
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
-    unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++)
-      if ((this+rule[i]).intersects (glyphs, lookup_context))
+    for (auto it = hb_iter (rule); it; ++it)
+      if ((this+*it).intersects (glyphs, lookup_context))
 	return true;
     return false;
   }
