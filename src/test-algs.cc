@@ -42,6 +42,7 @@ main (int argc, char **argv)
   assert (pc.second == 3);
 
   auto q = p;
+  assert (&q != &p);
   q.second = 4;
   assert (i == 4);
 
