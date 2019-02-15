@@ -7,7 +7,7 @@ jobs:
       xcode: "9.2.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel freetype glib cairo
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
       - run: make -j4
       - run: make check || .ci/fail.sh
@@ -17,7 +17,7 @@ jobs:
       xcode: "10.1.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget pkg-config libtool ragel freetype glib cairo
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
       - run: make -j4
       - run: make check || .ci/fail.sh
@@ -86,7 +86,7 @@ jobs:
     steps:
       - checkout
       - run: apt update || true
-      - run: apt install -y wget ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt install -y wget autoconf automake libtool pkg-config ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j32 && cd ..
       - run: CFLAGS="-O3" CXXFLAGS="-O3" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
