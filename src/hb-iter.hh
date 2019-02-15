@@ -367,7 +367,7 @@ static const struct
 	    hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
   hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
   operator () (const A& a, const B &b) const
-  { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (a.iter (), b.iter ()); }
+  { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (hb_iter (a), hb_iter (b)); }
 } hb_zip HB_UNUSED;
 
 /* hb_apply() */
@@ -451,7 +451,7 @@ template <typename C, typename V,
 inline void
 hb_fill (C& c, const V &v)
 {
-  for (auto i = c.iter (); i; i++)
+  for (auto i = hb_iter (c); i; i++)
     hb_assign (*i, v);
 }
 

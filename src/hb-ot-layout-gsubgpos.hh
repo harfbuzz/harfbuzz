@@ -1572,9 +1572,8 @@ struct ContextFormat2
       &class_def
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      (this+ruleSet[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (ruleSet); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
@@ -2219,9 +2218,8 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      (this+ruleSet[i]).collect_glyphs (c, lookup_context);
+    for (auto it = hb_iter (ruleSet); it; ++it)
+      (this+*it).collect_glyphs (c, lookup_context);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
