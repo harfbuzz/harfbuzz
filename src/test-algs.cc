@@ -41,5 +41,9 @@ main (int argc, char **argv)
   auto pc = hb_pair (1, c);
   assert (pc.second == 3);
 
+  auto q = p;
+  q.second = 4;
+  assert (i == 4);
+
   return 0;
 }
