@@ -33,9 +33,6 @@ class Test:
 		font_base_name_parts = os.path.splitext(font_base_name)
 		return font_base_name_parts[1]
 
-	def applicable(self):
-		return self.profile_path.find("desubroutinize") < 0 or self.get_font_extension() == "otf"
-
 # A group of tests to perform on the subsetter. Each test
 # Identifies a font a subsetting profile, and a subset to be cut.
 class SubsetTestSuite:
@@ -65,9 +62,7 @@ class SubsetTestSuite:
 			for profile in self.profiles:
 				profile = os.path.join(self._base_path(), "profiles", profile)
 				for subset in self.subsets:
-					test = Test(font, profile, subset)
-					if test.applicable():
-						yield test
+					yield Test(font, profile, subset)
 
 	def _base_path(self):
 		return os.path.dirname(os.path.dirname(self.test_path))
