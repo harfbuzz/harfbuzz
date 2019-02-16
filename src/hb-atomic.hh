@@ -185,7 +185,7 @@ static inline bool _hb_compare_and_swap_ptr (void **P, void *O, void *N)
 #endif
 
 
-#elif !defined(HB_NO_MT) && defined(_AIX) && defined(__IBMCPP__)
+#elif !defined(HB_NO_MT) && defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__))
 
 #include <builtins.h>
 
