@@ -281,10 +281,13 @@ struct hb_map_iter_factory_t
   private:
   Proj f;
 };
-template <typename Proj>
-inline hb_map_iter_factory_t<Proj>
-hb_map (Proj&& f)
-{ return hb_map_iter_factory_t<Proj> (f); }
+static const struct
+{
+  template <typename Proj>
+  hb_map_iter_factory_t<Proj>
+  operator () (Proj&& f) const
+  { return hb_map_iter_factory_t<Proj> (f); }
+} hb_map HB_UNUSED;
 
 template <typename Iter, typename Pred, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
