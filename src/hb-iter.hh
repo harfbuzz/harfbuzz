@@ -339,7 +339,7 @@ struct hb_zip_iter_t :
 	    hb_pair_t<typename A::item_t, typename B::item_t> >
 {
   hb_zip_iter_t () {}
-  hb_zip_iter_t (A a, B b) : a (a), b (b) {}
+  hb_zip_iter_t (const A& a, const B& b) : a (a), b (b) {}
 
   typedef hb_pair_t<typename A::item_t, typename B::item_t> __item_t__;
   static constexpr bool is_random_access_iterator =
@@ -366,9 +366,44 @@ static const struct
   template <typename A, typename B,
 	    hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
   hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
-  operator () (const A& a, const B &b) const
+  operator () (A& a, B &b) const
   { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (hb_iter (a), hb_iter (b)); }
 } hb_zip HB_UNUSED;
+
+/* hb_enumerate */
+
+template <typename Iter,
+	 hb_enable_if (hb_is_iterator (Iter))>
+struct hb_enumerate_iter_t :
+  hb_iter_t<hb_enumerate_iter_t<Iter>,
+	    hb_pair_t<unsigned, typename Iter::item_t> >
+{
+  hb_enumerate_iter_t (const Iter& it) : i (0), it (it) {}
+
+  typedef hb_pair_t<unsigned, typename Iter::item_t> __item_t__;
+  static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
+  static constexpr bool is_sorted_iterator = true;
+  __item_t__ __item__ () const { return __item_t__ (+i, *it); }
+  __item_t__ __item_at__ (unsigned j) const { return __item_t__ (i + j, it[j]); }
+  bool __more__ () const { return bool (it); }
+  unsigned __len__ () const { return it.len (); }
+  void __next__ () { ++i; ++it; }
+  void __forward__ (unsigned n) { i += n; it += n; }
+  void __prev__ () { --i; --it; }
+  void __rewind__ (unsigned n) { i -= n; it -= n; }
+
+  private:
+  unsigned i;
+  Iter it;
+};
+static const struct
+{
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  hb_enumerate_iter_t<hb_iter_t (Iterable)>
+  operator () (Iterable& it) const
+  { return hb_enumerate_iter_t<hb_iter_t (Iterable)> (hb_iter (it)); }
+} hb_enumerate HB_UNUSED;
 
 /* hb_apply() */
 

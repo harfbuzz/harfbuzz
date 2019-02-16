@@ -1533,10 +1533,9 @@ struct ContextFormat2
       &class_def
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (class_def.intersects_class (glyphs, i) &&
-	  (this+ruleSet[i]).intersects (glyphs, lookup_context))
+    for (auto it = hb_enumerate (ruleSet); it; ++it)
+      if (class_def.intersects_class (glyphs, (*it).first) &&
+	  (this+(*it).second).intersects (glyphs, lookup_context))
 	return true;
 
     return false;
@@ -1554,12 +1553,9 @@ struct ContextFormat2
       &class_def
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (class_def.intersects_class (c->glyphs, i)) {
-	const RuleSet &rule_set = this+ruleSet[i];
-	rule_set.closure (c, lookup_context);
-      }
+    for (auto it = hb_enumerate (ruleSet); it; ++it)
+      if (class_def.intersects_class (c->glyphs, (*it).first))
+	(this+(*it).second).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2171,10 +2167,9 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (input_class_def.intersects_class (glyphs, i) &&
-	  (this+ruleSet[i]).intersects (glyphs, lookup_context))
+    for (auto it = hb_enumerate (ruleSet); it; ++it)
+      if (input_class_def.intersects_class (glyphs, (*it).first) &&
+	  (this+(*it).second).intersects (glyphs, lookup_context))
 	return true;
 
     return false;
@@ -2195,12 +2190,9 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    unsigned int count = ruleSet.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (input_class_def.intersects_class (c->glyphs, i)) {
-	const ChainRuleSet &rule_set = this+ruleSet[i];
-	rule_set.closure (c, lookup_context);
-      }
+    for (auto it = hb_enumerate (ruleSet); it; ++it)
+      if (input_class_def.intersects_class (c->glyphs, (*it).first))
+	(this+(*it).second).closure (c, lookup_context);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
