@@ -1389,10 +1389,8 @@ struct RuleSet
   {
     TRACE_WOULD_APPLY (this);
     for (auto it = hb_iter (rule); it; ++it)
-    {
       if ((this+*it).would_apply (c, lookup_context))
 	return_trace (true);
-    }
     return_trace (false);
   }
 
@@ -1401,10 +1399,8 @@ struct RuleSet
   {
     TRACE_APPLY (this);
     for (auto it = hb_iter (rule); it; ++it)
-    {
       if ((this+*it).apply (c, lookup_context))
 	return_trace (true);
-    }
     return_trace (false);
   }
 
