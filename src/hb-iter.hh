@@ -130,7 +130,7 @@ static const struct
 {
   template <typename T>
   hb_iter_t (T)
-  operator () (const T& c) const
+  operator () (T&& c) const
   { return c.iter (); }
 
   /* Specialization for C arrays. */
@@ -489,6 +489,50 @@ static const struct
       (void) *it;
   }
 } hb_drain HB_UNUSED;
+
+/* hb-all, hb-any, hb-none. */
+
+static const struct
+{
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  bool
+  operator () (Iterable&& c) const
+  {
+    for (auto it = hb_iter (c); it; ++it)
+      if (!*it)
+	return false;
+    return true;
+  }
+} hb_all HB_UNUSED;
+
+static const struct
+{
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  bool
+  operator () (Iterable&& c) const
+  {
+    for (auto it = hb_iter (c); it; ++it)
+      if (it)
+	return true;
+    return false;
+  }
+} hb_any HB_UNUSED;
+
+static const struct
+{
+  template <typename Iterable,
+	    hb_enable_if (hb_is_iterable (Iterable))>
+  bool
+  operator () (Iterable&& c) const
+  {
+    for (auto it = hb_iter (c); it; ++it)
+      if (it)
+	return false;
+    return true;
+  }
+} hb_none HB_UNUSED;
 
 /*
  * Algorithms operating on iterators.
