@@ -124,16 +124,26 @@ struct hb_iter_t
 
 /* TODO Change to function-object. */
 
-template <typename T>
-inline hb_iter_t (T)
-hb_iter (const T& c) { return c.iter (); }
-
-/* Specialization for C arrays. */
 template <typename> struct hb_array_t;
-template <typename Type> inline hb_array_t<Type>
-hb_iter (Type *array, unsigned int length) { return hb_array_t<Type> (array, length); }
-template <typename Type, unsigned int length> hb_array_t<Type>
-hb_iter (Type (&array)[length]) { return hb_iter (array, length); }
+
+static const struct
+{
+  template <typename T>
+  hb_iter_t (T)
+  operator () (const T& c) const
+  { return c.iter (); }
+
+  /* Specialization for C arrays. */
+
+  template <typename Type> inline hb_array_t<Type>
+  operator () (Type *array, unsigned int length) const
+  { return hb_array_t<Type> (array, length); }
+
+  template <typename Type, unsigned int length> hb_array_t<Type>
+  operator () (Type (&array)[length]) const
+  { return hb_array_t<Type> (array, length); }
+
+} hb_iter HB_UNUSED;
 
 
 /* Mixin to fill in what the subclass doesn't provide. */
