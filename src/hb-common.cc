@@ -974,7 +974,40 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  *
  * Parses a string into a #hb_feature_t.
  *
- * TODO: document the syntax here.
+ * The format for specifying feature strings follows. All valid CSS
+ * font-feature-settings values other than 'normal' and 'inherited' are also
+ * accepted, though, not documented below.
+ *
+ * The range indices refer to the positions between Unicode characters. The
+ * position before the first character is always 0.
+ *
+ * The format is Python-esque.  Here is how it all works:
+ *
+ * <informaltable pgwide='1' align='left' frame='none'>
+ * <tgroup cols='5'>
+ * <thead>
+ * <row><entry>Syntax</entry>    <entry>Value</entry> <entry>Start</entry> <entry>End</entry></row>
+ * </thead>
+ * <tbody>
+ * <row><entry>Setting value:</entry></row>
+ * <row><entry>kern</entry>      <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>+kern</entry>     <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>-kern</entry>     <entry>0</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature off</entry></row>
+ * <row><entry>kern=0</entry>    <entry>0</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature off</entry></row>
+ * <row><entry>kern=1</entry>    <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>aalt=2</entry>    <entry>2</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Choose 2nd alternate</entry></row>
+ * <row><entry>Setting index:</entry></row>
+ * <row><entry>kern[]</entry>    <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>kern[:]</entry>   <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>kern[5:]</entry>  <entry>1</entry>     <entry>5</entry>      <entry>∞</entry>   <entry>Turn feature on, partial</entry></row>
+ * <row><entry>kern[:5]</entry>  <entry>1</entry>     <entry>0</entry>      <entry>5</entry>   <entry>Turn feature on, partial</entry></row>
+ * <row><entry>kern[3:5]</entry> <entry>1</entry>     <entry>3</entry>      <entry>5</entry>   <entry>Turn feature on, range</entry></row>
+ * <row><entry>kern[3]</entry>   <entry>1</entry>     <entry>3</entry>      <entry>3+1</entry> <entry>Turn feature on, single char</entry></row>
+ * <row><entry>Mixing it all:</entry></row>
+ * <row><entry>aalt[3:5]=2</entry> <entry>2</entry>   <entry>3</entry>      <entry>5</entry>   <entry>Turn 2nd alternate on for range</entry></row>
+ * </tbody>
+ * </tgroup>
+ * </informaltable>
  *
  * Return value:
  * %true if @str is successfully parsed, %false otherwise.
