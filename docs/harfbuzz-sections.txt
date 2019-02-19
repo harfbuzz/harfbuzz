@@ -124,11 +124,14 @@ hb_script_get_horizontal_direction
 hb_language_from_string
 hb_language_to_string
 hb_language_get_default
+hb_feature_from_string
+hb_feature_to_string
 hb_bool_t
 hb_codepoint_t
 hb_destroy_func_t
 hb_direction_t
 hb_language_t
+hb_feature_t
 hb_mask_t
 hb_position_t
 hb_tag_t
@@ -147,6 +150,8 @@ HB_DIRECTION_IS_HORIZONTAL
 HB_DIRECTION_IS_VALID
 HB_DIRECTION_IS_VERTICAL
 HB_LANGUAGE_INVALID
+HB_FEATURE_GLOBAL_END
+HB_FEATURE_GLOBAL_START
 <SUBSECTION Private>
 HB_BEGIN_DECLS
 HB_END_DECLS
@@ -649,11 +654,6 @@ hb_set_union
 
 <SECTION>
 <FILE>hb-shape</FILE>
-HB_FEATURE_GLOBAL_END
-HB_FEATURE_GLOBAL_START
-hb_feature_t
-hb_feature_from_string
-hb_feature_to_string
 hb_shape
 hb_shape_full
 hb_shape_list_shapers
