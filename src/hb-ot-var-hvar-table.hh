@@ -159,7 +159,7 @@ struct index_map_subset_plan_t
 	continue;
       }
       if (v != last_val) break;
-  
+
       last_gid = gid;
     }
 
