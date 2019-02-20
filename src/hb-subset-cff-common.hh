@@ -541,19 +541,18 @@ struct subr_subset_param_t
   bool	  drop_hints;
 };
 
-struct subr_remap_t : remap_t
+struct subr_remap_t : hb_map2_t
 {
   void create (hb_set_t *closure)
   {
     /* create a remapping of subroutine numbers from old to new.
      * no optimization based on usage counts. fonttools doesn't appear doing that either.
      */
-    reset (closure->get_max () + 1);
-    for (hb_codepoint_t old_num = 0; old_num < length; old_num++)
-    {
-      if (hb_set_has (closure, old_num))
-	add (old_num);
-    }
+    hb_codepoint_t max = closure->get_max ();
+    if (max != HB_MAP_VALUE_INVALID)
+      for (hb_codepoint_t old_num = 0; old_num <= max; old_num++)
+	if (closure->has (old_num))
+	  add (old_num);
 
     if (get_count () < 1240)
       bias = 107;
@@ -561,14 +560,6 @@ struct subr_remap_t : remap_t
       bias = 1131;
     else
       bias = 32768;
-  }
-
-  hb_codepoint_t operator[] (unsigned int old_num) const
-  {
-    if (old_num >= length)
-      return CFF_UNDEF_CODE;
-    else
-      return remap_t::operator[] (old_num);
   }
 
   int biased_num (unsigned int old_num) const
@@ -687,8 +678,8 @@ struct subr_subsetter_t
       if (unlikely (!interp.interpret (param)))
 	return false;
 
-      /* finalize parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
-      SUBSETTER::finalize_parsed_str (interp.env, param, parsed_charstrings[i]);
+      /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
+      SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
     }
 
     if (plan->drop_hints)
@@ -1021,7 +1012,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			    unsigned int &subset_fdselect_size /* OUT */,
 			    unsigned int &subset_fdselect_format /* OUT */,
 			    hb_vector_t<CFF::code_pair_t> &fdselect_ranges /* OUT */,
-			    CFF::remap_t &fdmap /* OUT */);
+			    CFF::hb_map2_t &fdmap /* OUT */);
 
 HB_INTERNAL bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,

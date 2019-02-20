@@ -45,6 +45,7 @@
 #include "hb-ot-vorg-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
+#include "hb-ot-var-hvar-table.hh"
 
 
 static unsigned int
@@ -197,6 +198,9 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     case HB_OT_TAG_GPOS:
       result = _subset2<const OT::GPOS> (plan);
+      break;
+    case HB_OT_TAG_HVAR:
+      result = _subset2<const OT::HVAR> (plan);
       break;
 
     default:
