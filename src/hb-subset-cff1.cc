@@ -34,12 +34,12 @@
 
 using namespace CFF;
 
-struct remap_sid_t : remap_t
+struct remap_sid_t : hb_map2_t
 {
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
-      return offset_sid (remap_t::add (unoffset_sid (sid)));
+      return offset_sid (hb_map2_t::add (unoffset_sid (sid)));
     else
       return sid;
   }
@@ -49,7 +49,7 @@ struct remap_sid_t : remap_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (remap_t::operator [] (unoffset_sid (sid)));
+      return offset_sid (hb_map2_t::operator [] (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -326,7 +326,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
 struct range_list_t : hb_vector_t<code_pair_t>
 {
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
-  bool finalize (unsigned int last_glyph)
+  bool complete (unsigned int last_glyph)
   {
     bool  two_byte = false;
     for (unsigned int i = (*this).length; i > 0; i--)
@@ -397,7 +397,7 @@ struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs
   cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc, const hb_subset_plan_t *plan)
     : subr_subsetter_t (acc, plan) {}
 
-  static void finalize_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
+  static void complete_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
   {
     /* insert width at the beginning of the charstring as necessary */
     if (env.has_width)
@@ -510,7 +510,7 @@ struct cff_subset_plan {
     }
     supp_codes.fini ();
 
-    subset_enc_code_ranges.finalize (glyph);
+    subset_enc_code_ranges.complete (glyph);
 
     assert (subset_enc_num_codes <= 0xFF);
     size0 = Encoding0::min_size + HBUINT8::static_size * subset_enc_num_codes;
@@ -555,7 +555,7 @@ struct cff_subset_plan {
       last_sid = sid;
     }
 
-    bool two_byte = subset_charset_ranges.finalize (glyph);
+    bool two_byte = subset_charset_ranges.complete (glyph);
 
     size0 = Charset0::min_size + HBUINT16::static_size * (plan->num_output_glyphs () - 1);
     if (!two_byte)
@@ -577,9 +577,6 @@ struct cff_subset_plan {
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
   {
-    if (unlikely (!sidmap.reset (acc.stringIndex->count)))
-      return false;
-
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
@@ -592,7 +589,7 @@ struct cff_subset_plan {
 
     if (acc.fdArray != &Null(CFF1FDArray))
       for (unsigned int i = 0; i < orig_fdcount; i++)
-	if (fdmap.includes (i))
+	if (fdmap.has (i))
 	  (void)sidmap.add (acc.fontDicts[i].fontName);
 
     return true;
@@ -735,7 +732,7 @@ struct cff_subset_plan {
       {
 	subset_localsubrs[fd].init ();
 	offsets.localSubrsInfos[fd].init ();
-	if (fdmap.includes (fd))
+	if (fdmap.has (fd))
 	{
 	  if (!subr_subsetter.encode_localsubrs (fd, subset_localsubrs[fd]))
 	    return false;
@@ -786,7 +783,7 @@ struct cff_subset_plan {
       cff1_font_dict_op_serializer_t fontSzr;
       unsigned int dictsSize = 0;
       for (unsigned int i = 0; i < acc.fontDicts.length; i++)
-	if (fdmap.includes (i))
+	if (fdmap.has (i))
 	  dictsSize += FontDict::calculate_serialized_size (acc.fontDicts[i], fontSzr);
 
       offsets.FDArrayInfo.offSize = calcOffSize (dictsSize);
@@ -809,7 +806,7 @@ struct cff_subset_plan {
     offsets.privateDictInfo.offset = final_size;
     for (unsigned int i = 0; i < orig_fdcount; i++)
     {
-      if (fdmap.includes (i))
+      if (fdmap.has (i))
       {
 	bool  has_localsubrs = offsets.localSubrsInfos[i].size > 0;
 	cff_private_dict_op_serializer_t privSzr (desubroutinize, plan->drop_hints);
@@ -853,7 +850,7 @@ struct cff_subset_plan {
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to CFF_UNDEF_CODE if excluded from subset */
-  remap_t   fdmap;
+  hb_map2_t   fdmap;
 
   str_buff_vec_t		subset_charstrings;
   str_buff_vec_t		subset_globalsubrs;
@@ -1030,7 +1027,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   assert (plan.offsets.privateDictInfo.offset == (unsigned) (c.head - c.start));
   for (unsigned int i = 0; i < acc.privateDicts.length; i++)
   {
-    if (plan.fdmap.includes (i))
+    if (plan.fdmap.has (i))
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;

@@ -104,7 +104,7 @@ struct CFFIndex
     else
       return min_size + calculate_offset_array_size (offSize, count) + dataSize;
   }
-
+ 
   bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
   {
     TRACE_SERIALIZE (this);
@@ -414,57 +414,6 @@ struct table_info_t
   unsigned int    offSize;
 };
 
-/* used to remap font index or SID from fullset to subset.
- * set to CFF_UNDEF_CODE if excluded from subset */
-struct remap_t : hb_vector_t<hb_codepoint_t>
-{
-  void init () { SUPER::init (); }
-
-  void fini () { SUPER::fini (); }
-
-  bool reset (unsigned int size)
-  {
-    if (unlikely (!SUPER::resize (size)))
-      return false;
-    for (unsigned int i = 0; i < length; i++)
-      (*this)[i] = CFF_UNDEF_CODE;
-    count = 0;
-    return true;
-  }
-
-  bool identity (unsigned int size)
-  {
-    if (unlikely (!SUPER::resize (size)))
-      return false;
-    unsigned int i;
-    for (i = 0; i < length; i++)
-      (*this)[i] = i;
-    count = i;
-    return true;
-  }
-
-  bool excludes (hb_codepoint_t id) const
-  { return (id < length) && ((*this)[id] == CFF_UNDEF_CODE); }
-
-  bool includes (hb_codepoint_t id) const
-  { return !excludes (id); }
-
-  unsigned int add (unsigned int i)
-  {
-    if ((*this)[i] == CFF_UNDEF_CODE)
-      (*this)[i] = count++;
-    return (*this)[i];
-  }
-
-  hb_codepoint_t get_count () const { return count; }
-
-  protected:
-  hb_codepoint_t  count;
-
-  private:
-  typedef hb_vector_t<hb_codepoint_t> SUPER;
-};
-
 template <typename COUNT>
 struct FDArray : CFFIndexOf<COUNT, FontDict>
 {
@@ -508,7 +457,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
 		  unsigned int offSize_,
 		  const hb_vector_t<DICTVAL> &fontDicts,
 		  unsigned int fdCount,
-		  const remap_t &fdmap,
+		  const hb_map2_t &fdmap,
 		  OP_SERIALIZER& opszr,
 		  const hb_vector_t<table_info_t> &privateInfos)
   {
@@ -523,7 +472,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     unsigned int  offset = 1;
     unsigned int  fid = 0;
     for (unsigned i = 0; i < fontDicts.length; i++)
-      if (fdmap.includes (i))
+      if (fdmap.has (i))
       {
 	CFFIndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
 	offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
@@ -532,7 +481,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
 
     /* serialize font dicts */
     for (unsigned int i = 0; i < fontDicts.length; i++)
-      if (fdmap.includes (i))
+      if (fdmap.has (i))
       {
 	FontDict *dict = c->start_embed<FontDict> ();
 	if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]])))
@@ -546,12 +495,12 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
 						 const hb_vector_t<DICTVAL> &fontDicts,
 						 unsigned int fdCount,
-						 const remap_t &fdmap,
+						 const hb_map2_t &fdmap,
 						 OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;
     for (unsigned int i = 0; i < fontDicts.len; i++)
-      if (fdmap.includes (i))
+      if (fdmap.has (i))
 	dictsSize += FontDict::calculate_serialized_size (fontDicts[i], opszr);
 
     offSize_ = calcOffSize (dictsSize);
