@@ -1741,8 +1741,9 @@ struct VarRegionList
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->allocate_size<VarRegionList> (src->get_size ()))) return_trace (false);
-    memcpy (this, src, src->get_size ());
+    unsigned int size = src->get_size ();
+    if (unlikely (!c->allocate_size<VarRegionList> (size))) return_trace (false);
+    memcpy (this, src, size);
     return_trace (true);
   }
 
@@ -1831,14 +1832,14 @@ struct VarData
     shortCount.set (src->shortCount);
     
     unsigned int row_size = src->get_row_size ();
-    if (unlikely (!c->allocate_size<HBUINT8> (src->regionIndices.get_size () + row_size * remap.get_count ())))
+    if (unlikely (!c->allocate_size<HBUINT8> (src->regionIndices.get_size () + (row_size * remap.get_count ()))))
       return_trace (false);
 
     memcpy (&regionIndices, &src->regionIndices, src->regionIndices.get_size ());
     HBUINT8 *p = get_delta_bytes ();
     for (unsigned int i = 0; i < remap.get_count (); i++)
     {
-      memcpy (p, src->get_delta_bytes () + remap.new_to_old (i) * row_size, row_size);
+      memcpy (p, src->get_delta_bytes () + (row_size * remap.new_to_old (i)), row_size);
       p += row_size;
     }
 
@@ -1899,7 +1900,8 @@ struct VariationStore
   		  const hb_array_t <hb_map2_t> &inner_remaps)
   {
     TRACE_SUBSET (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    unsigned int size = min_size + HBUINT32::static_size * inner_remaps.length;
+    if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format.set (1);
     if (unlikely (!regions.serialize (c, this)
 		    .serialize (c, &(src+src->regions)))) return_trace (false);
@@ -1908,9 +1910,6 @@ struct VariationStore
      * OffsetListOf::subset () can take a custom param to be passed to VarData::serialize ()
      */
     dataSets.len.set (inner_remaps.length);
-    if (unlikely (!c->allocate_size<HBUINT32> (inner_remaps.length)))
-      return_trace (false);
-
     for (unsigned int i = 0; i < inner_remaps.length; i++)
     {
       if (unlikely (!dataSets[i].serialize (c, this)
