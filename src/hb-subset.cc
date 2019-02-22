@@ -202,6 +202,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_HVAR:
       result = _subset2<const OT::HVAR> (plan);
       break;
+    case HB_OT_TAG_VVAR:
+      result = _subset2<const OT::VVAR> (plan);
+      break;
 
     default:
       hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
