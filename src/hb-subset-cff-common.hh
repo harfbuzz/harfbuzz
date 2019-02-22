@@ -572,15 +572,15 @@ struct subr_remap_t : hb_map2_t
   int bias;
 };
 
-struct subr_remap_ts
+struct subr_remaps_t
 {
-  subr_remap_ts ()
+  subr_remaps_t ()
   {
     global_remap.init ();
     local_remaps.init ();
   }
 
-  ~subr_remap_ts () { fini (); }
+  ~subr_remaps_t () { fini (); }
 
   void init (unsigned int fdCount)
   {
@@ -996,7 +996,7 @@ struct subr_subsetter_t
   parsed_cs_str_vec_t		parsed_global_subrs;
   hb_vector_t<parsed_cs_str_vec_t>  parsed_local_subrs;
 
-  subr_remap_ts			remaps;
+  subr_remaps_t			remaps;
 
   private:
   typedef typename SUBRS::count_type subr_count_type;
