@@ -1587,6 +1587,9 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       hb_array_t<const HBUINT16> klasses)
 { c->start_embed<ClassDef> ()->serialize (c, glyphs, klasses); }
 
+/* Bi-directional map.
+ * nww ids are assigned incrementally & contiguous; old ids may be random & sparse
+ * all mappings unique & no duplicate */
 struct hb_map2_t
 {
   hb_map2_t () { init (); }
@@ -1597,71 +1600,68 @@ struct hb_map2_t
     count = 0;
     old_to_new_map.init ();
     new_to_old_map.init ();
-    set.init ();
   }
 
   void fini (void)
   {
     old_to_new_map.fini ();
     new_to_old_map.fini ();
-    set.fini ();
   }
 
-  bool has (hb_codepoint_t id) const { return set.has (id); }
+  bool has (hb_codepoint_t _old) const { return old_to_new_map.has (_old); }
 
-  hb_codepoint_t add (hb_codepoint_t i)
+  hb_codepoint_t add (hb_codepoint_t _old)
   {
-    hb_codepoint_t	v = old_to_new_map[i];
-    if (v == HB_MAP_VALUE_INVALID)
+    hb_codepoint_t	_new = old_to_new_map[_old];
+    if (_new == HB_MAP_VALUE_INVALID)
     {
-      set.add (i);
-      v = count++;
-      old_to_new_map.set (i, v);
-      new_to_old_map.set (v, i);
+      _new = count++;
+      old_to_new_map.set (_old, _new);
+      new_to_old_map.set (_new, _old);
     }
-    return v;
+    return _new;
   }
 
   /* returns HB_MAP_VALUE_INVALID if unmapped */
-  hb_codepoint_t operator [] (hb_codepoint_t i) const { return old_to_new (i); }
-  hb_codepoint_t old_to_new (hb_codepoint_t i) const { return old_to_new_map[i]; }
-  hb_codepoint_t new_to_old (hb_codepoint_t i) const { return new_to_old_map[i]; }
+  hb_codepoint_t operator [] (hb_codepoint_t _old) const { return old_to_new (_old); }
+  hb_codepoint_t old_to_new (hb_codepoint_t _old) const { return old_to_new_map[_old]; }
+  hb_codepoint_t new_to_old (hb_codepoint_t _new) const { return new_to_old_map[_new]; }
 
   bool identity (unsigned int size)
   {
     hb_codepoint_t i;
     old_to_new_map.clear ();
     new_to_old_map.clear ();
-    set.clear ();
     for (i = 0; i < size; i++)
     {
       old_to_new_map.set (i, i);
       new_to_old_map.set (i, i);
-      set.add (i);
     }
     count = i;
-    return old_to_new_map.successful && new_to_old_map.successful && set.successful;
+    return old_to_new_map.successful && new_to_old_map.successful;
   }
 
   /* Optional: after finished adding all mappings in a random order,
-   * reorder outputs in the same order as the inputs. */
+   * reassign new ids to old ids so that they are in the same order. */
   void reorder (void)
   {
-    for (hb_codepoint_t	i = HB_SET_VALUE_INVALID, count = 0; set.next (&i); count++)
+    hb_codepoint_t	_new = 0;
+    for (hb_codepoint_t _old = 0; _new < count; _old++)
     {
-       new_to_old_map.set (count, i);
-       old_to_new_map.set (i, count);
+      if (!has (_old)) continue;
+      new_to_old_map.set (_new, _old);
+      old_to_new_map.set (_old, _new);
+      _old++;
+      _new++;
     }
   }
 
   unsigned int get_count () const { return count; }
-  unsigned int get_bits () const { return count? hb_bit_storage (count - 1): 0; }
 
   protected:
   unsigned int  count;
   hb_map_t	old_to_new_map;
   hb_map_t	new_to_old_map;
-  hb_set_t	set;
 };
 
 /*
