@@ -49,20 +49,20 @@ struct DeltaSetIndexMap
   {
     unsigned int width = plan.get_width ();
     unsigned int inner_bit_count = plan.get_inner_bit_count ();
-    auto map = plan.get_output_map ();
+    const hb_array_t<const unsigned int> output_map = plan.get_output_map ();
 
     TRACE_SERIALIZE (this);
-    if (unlikely (map.length && ((((inner_bit_count-1)&~0xF)!=0) || (((width-1)&~0x3)!=0))))
+    if (unlikely (output_map.length && ((((inner_bit_count-1)&~0xF)!=0) || (((width-1)&~0x3)!=0))))
       return_trace (false);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     format.set (((width-1)<<4)|(inner_bit_count-1));
-    mapCount.set (map.length);
-    HBUINT8 *p = c->allocate_size<HBUINT8> (width * map.length);
+    mapCount.set (output_map.length);
+    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
     if (unlikely (!p)) return_trace (false);
-    for (unsigned int i = 0; i < map.length; i++)
+    for (unsigned int i = 0; i < output_map.length; i++)
     {
-      unsigned int v = map[i];
+      unsigned int v = output_map[i];
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
       unsigned int u = (outer << inner_bit_count)|inner;
