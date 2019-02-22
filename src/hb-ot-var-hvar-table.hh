@@ -122,6 +122,7 @@ struct DeltaSetIndexMap
 struct index_map_subset_plan_t
 {
   void init (const DeltaSetIndexMap &index_map,
+	     hb_map2_t		    &outer_remap,
 	     hb_vector_t<hb_map2_t> &inner_remaps,
 	     const hb_subset_plan_t *plan)
   {
@@ -171,6 +172,7 @@ struct index_map_subset_plan_t
       unsigned int v = index_map.map (old_gid);
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
+      outer_remap.add (outer);
       if (inner > max_inners[outer]) max_inners[outer] = inner;
       inner_remaps[outer].add (inner);
     }
@@ -184,10 +186,12 @@ struct index_map_subset_plan_t
 
   void remap (const hb_subset_plan_t *plan,
 	      const DeltaSetIndexMap *input_map,
+	      const hb_map2_t &outer_remap,
 	      const hb_vector_t<hb_map2_t> &inner_remaps)
   {
     for (unsigned int i = 0; i < max_inners.length; i++)
     {
+      if (inner_remaps[i].get_count () == 0) continue;
       unsigned int bit_count = hb_bit_storage (inner_remaps[i][max_inners[i]]);
       if (bit_count > inner_bit_count) inner_bit_count = bit_count;
     }
@@ -199,7 +203,7 @@ struct index_map_subset_plan_t
       (void)plan->old_gid_for_new_gid (gid, &old_gid);
       unsigned int v = input_map->map (old_gid);
       unsigned int outer = v >> 16;
-      output_map[gid] = (outer << 16) | (inner_remaps[outer][v & 0xFFFF]);
+      output_map[gid] = (outer_remap[outer] << 16) | (inner_remaps[outer][v & 0xFFFF]);
     }
   }
 
@@ -240,13 +244,14 @@ struct hvarvvar_subset_plan_t
       inner_remaps[i].init ();
 
     for (unsigned int i = 0; i < index_maps.length; i++)
-      index_map_plans[i].init (*index_maps[i], inner_remaps, plan);
+      index_map_plans[i].init (*index_maps[i], outer_remap, inner_remaps, plan);
 
+    outer_remap.reorder ();
     for (unsigned int i = 0; i < inner_remaps.length; i++)
       if (inner_remaps[i].get_count () > 0) inner_remaps[i].reorder ();
 
     for (unsigned int i = 0; i < index_maps.length; i++)
-      index_map_plans[i].remap (plan, index_maps[i], inner_remaps);
+      index_map_plans[i].remap (plan, index_maps[i], outer_remap, inner_remaps);
   }
 
   void fini (void)
@@ -255,6 +260,7 @@ struct hvarvvar_subset_plan_t
     index_map_plans.fini_deep ();
   }
 
+  hb_map2_t			outer_remap;
   hb_vector_t<hb_map2_t>	inner_remaps;
   hb_vector_t<index_map_subset_plan_t>
   				index_map_plans;
@@ -294,19 +300,26 @@ struct HVARVVAR
 		  rsbMap.sanitize (c, this));
   }
 
+  void listup_index_maps (hb_vector_t<const DeltaSetIndexMap *> &index_maps) const
+  {
+    index_maps.push (&(this+advMap));
+    index_maps.push (&(this+lsbMap));
+    index_maps.push (&(this+rsbMap));
+  }
+
   bool serialize_index_maps (hb_serialize_context_t *c,
 			     const hb_array_t<index_map_subset_plan_t> &im_plans)
   {
     TRACE_SUBSET (this);
-    if (im_plans[ADV_INDEX].get_map_count () == 0)
+    if (!im_plans[ADV_INDEX].get_map_count ())
       advMap.set (0);
     else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[ADV_INDEX])))
       return_trace (false);
-    if (im_plans[LSB_INDEX].get_map_count () == 0)
+    if (!im_plans[LSB_INDEX].get_map_count ())
       lsbMap.set (0);
     else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[LSB_INDEX])))
       return_trace (false);
-    if (im_plans[RSB_INDEX].get_map_count () == 0)
+    if (!im_plans[RSB_INDEX].get_map_count ())
       rsbMap.set (0);
     else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[RSB_INDEX])))
       return_trace (false);
@@ -322,9 +335,7 @@ struct HVARVVAR
     hb_vector_t<const DeltaSetIndexMap *>
 				index_maps;
 
-    index_maps.push (&(this+advMap));
-    index_maps.push (&(this+lsbMap));
-    index_maps.push (&(this+rsbMap));
+    ((T*)this)->listup_index_maps (index_maps);
     hvar_plan.init (index_maps.as_array (), this+varStore, c->plan);
 
     T *out = c->serializer->allocate_min<T> ();
@@ -378,6 +389,26 @@ struct VVAR : HVARVVAR {
     TRACE_SANITIZE (this);
     return_trace (static_cast<const HVARVVAR *> (this)->sanitize (c) &&
 		  vorgMap.sanitize (c, this));
+  }
+
+  void listup_index_maps (hb_vector_t<const DeltaSetIndexMap *> &index_maps) const
+  {
+    HVARVVAR::listup_index_maps (index_maps);
+    index_maps.push (&(this+vorgMap));
+  }
+
+  bool serialize_index_maps (hb_serialize_context_t *c,
+			     const hb_array_t<index_map_subset_plan_t> &im_plans)
+  {
+    TRACE_SUBSET (this);
+    if (unlikely (!HVARVVAR::serialize_index_maps (c, im_plans)))
+      return_trace (false);
+    if (!im_plans[VORG_INDEX].get_map_count ())
+      vorgMap.set (0);
+    else if (unlikely (!vorgMap.serialize (c, this).serialize (c, im_plans[VORG_INDEX])))
+      return_trace (false);
+
+    return_trace (true);
   }
 
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
