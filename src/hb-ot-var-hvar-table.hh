@@ -122,8 +122,8 @@ struct DeltaSetIndexMap
 struct index_map_subset_plan_t
 {
   void init (const DeltaSetIndexMap &index_map,
-	     hb_map2_t		    &outer_remap,
-	     hb_vector_t<hb_map2_t> &inner_remaps,
+	     hb_bimap_t		    &outer_remap,
+	     hb_vector_t<hb_bimap_t> &inner_remaps,
 	     const hb_subset_plan_t *plan)
   {
     map_count = 0;
@@ -186,8 +186,8 @@ struct index_map_subset_plan_t
 
   void remap (const hb_subset_plan_t *plan,
 	      const DeltaSetIndexMap *input_map,
-	      const hb_map2_t &outer_remap,
-	      const hb_vector_t<hb_map2_t> &inner_remaps)
+	      const hb_bimap_t &outer_remap,
+	      const hb_vector_t<hb_bimap_t> &inner_remaps)
   {
     for (unsigned int i = 0; i < max_inners.length; i++)
     {
@@ -260,8 +260,8 @@ struct hvarvvar_subset_plan_t
     index_map_plans.fini_deep ();
   }
 
-  hb_map2_t			outer_remap;
-  hb_vector_t<hb_map2_t>	inner_remaps;
+  hb_bimap_t			outer_remap;
+  hb_vector_t<hb_bimap_t>	inner_remaps;
   hb_vector_t<index_map_subset_plan_t>
   				index_map_plans;
   const VariationStore		*var_store;

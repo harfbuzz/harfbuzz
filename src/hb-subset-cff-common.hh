@@ -541,7 +541,7 @@ struct subr_subset_param_t
   bool	  drop_hints;
 };
 
-struct subr_remap_t : hb_map2_t
+struct subr_remap_t : hb_bimap_t
 {
   void create (hb_set_t *closure)
   {
@@ -1012,7 +1012,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 			    unsigned int &subset_fdselect_size /* OUT */,
 			    unsigned int &subset_fdselect_format /* OUT */,
 			    hb_vector_t<CFF::code_pair_t> &fdselect_ranges /* OUT */,
-			    CFF::hb_map2_t &fdmap /* OUT */);
+			    hb_bimap_t &fdmap /* OUT */);
 
 HB_INTERNAL bool
 hb_serialize_cff_fdselect (hb_serialize_context_t *c,

@@ -33,6 +33,7 @@
 #include "hb-ot-layout.hh"
 #include "hb-open-type.hh"
 #include "hb-set.hh"
+#include "hb-bimap.hh"
 
 
 #ifndef HB_MAX_NESTING_LEVEL
@@ -1586,83 +1587,6 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       hb_array_t<const HBUINT16> klasses)
 { c->start_embed<ClassDef> ()->serialize (c, glyphs, klasses); }
 
-/* Bi-directional map.
- * nww ids are assigned incrementally & contiguous; old ids may be random & sparse
- * all mappings unique & no duplicate */
-struct hb_map2_t
-{
-  hb_map2_t () { init (); }
-  ~hb_map2_t () { fini (); }
-
-  void init (void)
-  {
-    count = 0;
-    old_to_new_map.init ();
-    new_to_old_map.init ();
-  }
-
-  void fini (void)
-  {
-    old_to_new_map.fini ();
-    new_to_old_map.fini ();
-  }
-
-  bool has (hb_codepoint_t _old) const { return old_to_new_map.has (_old); }
-
-  hb_codepoint_t add (hb_codepoint_t _old)
-  {
-    hb_codepoint_t	_new = old_to_new_map[_old];
-    if (_new == HB_MAP_VALUE_INVALID)
-    {
-      _new = count++;
-      old_to_new_map.set (_old, _new);
-      new_to_old_map.set (_new, _old);
-    }
-    return _new;
-  }
-
-  /* returns HB_MAP_VALUE_INVALID if unmapped */
-  hb_codepoint_t operator [] (hb_codepoint_t _old) const { return old_to_new (_old); }
-  hb_codepoint_t old_to_new (hb_codepoint_t _old) const { return old_to_new_map[_old]; }
-  hb_codepoint_t new_to_old (hb_codepoint_t _new) const { return new_to_old_map[_new]; }
-
-  bool identity (unsigned int size)
-  {
-    hb_codepoint_t i;
-    old_to_new_map.clear ();
-    new_to_old_map.clear ();
-    for (i = 0; i < size; i++)
-    {
-      old_to_new_map.set (i, i);
-      new_to_old_map.set (i, i);
-    }
-    count = i;
-    return old_to_new_map.successful && new_to_old_map.successful;
-  }
-
-  /* Optional: after finished adding all mappings in a random order,
-   * reassign new ids to old ids so that they are in the same order. */
-  void reorder (void)
-  {
-    hb_codepoint_t	_new = 0;
-    for (hb_codepoint_t _old = 0; _new < count; _old++)
-    {
-      if (!has (_old)) continue;
-      new_to_old_map.set (_new, _old);
-      old_to_new_map.set (_old, _new);
-      _old++;
-      _new++;
-    }
-  }
-
-  unsigned int get_count () const { return count; }
-
-  protected:
-  unsigned int  count;
-  hb_map_t	old_to_new_map;
-  hb_map_t	new_to_old_map;
-};
-
 /*
  * Item Variation Store
  */
@@ -1824,7 +1748,7 @@ struct VarData
 
   bool serialize (hb_serialize_context_t *c,
 		  const VarData *src,
-		  const hb_map2_t &remap)
+		  const hb_bimap_t &remap)
   {
     TRACE_SUBSET (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -1839,7 +1763,7 @@ struct VarData
     HBUINT8 *p = get_delta_bytes ();
     for (unsigned int i = 0; i < remap.get_count (); i++)
     {
-      memcpy (p, src->get_delta_bytes () + (row_size * remap.new_to_old (i)), row_size);
+      memcpy (p, src->get_delta_bytes () + (row_size * remap.to_old (i)), row_size);
       p += row_size;
     }
 
@@ -1897,7 +1821,7 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-  		  const hb_array_t <hb_map2_t> &inner_remaps)
+  		  const hb_array_t <hb_bimap_t> &inner_remaps)
   {
     TRACE_SUBSET (this);
     unsigned int size = min_size + HBUINT32::static_size * inner_remaps.length;
