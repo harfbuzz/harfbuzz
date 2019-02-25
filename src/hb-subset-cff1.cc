@@ -34,12 +34,12 @@
 
 using namespace CFF;
 
-struct remap_sid_t : hb_map2_t
+struct remap_sid_t : hb_bimap_t
 {
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
-      return offset_sid (hb_map2_t::add (unoffset_sid (sid)));
+      return offset_sid (hb_bimap_t::add (unoffset_sid (sid)));
     else
       return sid;
   }
@@ -49,7 +49,7 @@ struct remap_sid_t : hb_map2_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (hb_map2_t::operator [] (unoffset_sid (sid)));
+      return offset_sid (hb_bimap_t::operator [] (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -850,7 +850,7 @@ struct cff_subset_plan {
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to CFF_UNDEF_CODE if excluded from subset */
-  hb_map2_t   fdmap;
+  hb_bimap_t   fdmap;
 
   str_buff_vec_t		subset_charstrings;
   str_buff_vec_t		subset_globalsubrs;

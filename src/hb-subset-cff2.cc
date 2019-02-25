@@ -425,7 +425,7 @@ struct cff2_subset_plan {
   unsigned int    subset_fdselect_format;
   hb_vector_t<code_pair_t>   subset_fdselect_ranges;
 
-  hb_map2_t   fdmap;
+  hb_bimap_t   fdmap;
 
   str_buff_vec_t	    subset_charstrings;
   str_buff_vec_t	    subset_globalsubrs;

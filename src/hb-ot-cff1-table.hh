@@ -570,7 +570,7 @@ struct Charset {
 struct CFF1StringIndex : CFF1Index
 {
   bool serialize (hb_serialize_context_t *c, const CFF1StringIndex &strings,
-		  unsigned int offSize_, const hb_map2_t &sidmap)
+		  unsigned int offSize_, const hb_bimap_t &sidmap)
   {
     TRACE_SERIALIZE (this);
     if (unlikely ((strings.count == 0) || (sidmap.get_count () == 0)))
@@ -598,7 +598,7 @@ struct CFF1StringIndex : CFF1Index
   }
 
   /* in parallel to above */
-  unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_map2_t &sidmap) const
+  unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_bimap_t &sidmap) const
   {
     offSize = 0;
     if ((count == 0) || (sidmap.get_count () == 0))
