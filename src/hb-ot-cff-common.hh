@@ -457,7 +457,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
 		  unsigned int offSize_,
 		  const hb_vector_t<DICTVAL> &fontDicts,
 		  unsigned int fdCount,
-		  const hb_map2_t &fdmap,
+		  const hb_bimap_t &fdmap,
 		  OP_SERIALIZER& opszr,
 		  const hb_vector_t<table_info_t> &privateInfos)
   {
@@ -495,7 +495,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
 						 const hb_vector_t<DICTVAL> &fontDicts,
 						 unsigned int fdCount,
-						 const hb_map2_t &fdmap,
+						 const hb_bimap_t &fdmap,
 						 OP_SERIALIZER& opszr)
   {
     unsigned int dictsSize = 0;
