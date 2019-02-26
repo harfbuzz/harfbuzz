@@ -178,7 +178,7 @@ struct index_map_subset_plan_t
     }
   }
 
-  void fini (void)
+  void fini ()
   {
     max_inners.fini ();
     output_map.fini ();
@@ -207,14 +207,14 @@ struct index_map_subset_plan_t
     }
   }
 
-  unsigned int get_inner_bit_count (void) const { return inner_bit_count; }
-  unsigned int get_width (void) const { return ((outer_bit_count + inner_bit_count + 7) / 8); }
-  unsigned int get_map_count (void) const { return map_count; }
+  unsigned int get_inner_bit_count () const { return inner_bit_count; }
+  unsigned int get_width () const { return ((outer_bit_count + inner_bit_count + 7) / 8); }
+  unsigned int get_map_count () const { return map_count; }
 
-  unsigned int get_size (void) const
+  unsigned int get_size () const
   { return (map_count? (DeltaSetIndexMap::min_size + get_width () * map_count): 0); }
 
-  hb_array_t<const unsigned int> get_output_map (void) const { return output_map.as_array (); }
+  hb_array_t<const unsigned int> get_output_map () const { return output_map.as_array (); }
 
   protected:
   unsigned int	map_count;
@@ -254,7 +254,7 @@ struct hvarvvar_subset_plan_t
       index_map_plans[i].remap (plan, index_maps[i], outer_remap, inner_remaps);
   }
 
-  void fini (void)
+  void fini ()
   {
     inner_remaps.fini_deep ();
     index_map_plans.fini_deep ();

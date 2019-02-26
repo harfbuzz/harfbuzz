@@ -38,14 +38,14 @@ struct hb_bimap_t
   hb_bimap_t () { init (); }
   ~hb_bimap_t () { fini (); }
 
-  void init (void)
+  void init ()
   {
     count = 0;
     old_to_new.init ();
     new_to_old.init ();
   }
 
-  void fini (void)
+  void fini ()
   {
     old_to_new.fini ();
     new_to_old.fini ();
@@ -90,7 +90,7 @@ struct hb_bimap_t
 
   /* Optional: after finished adding all mappings in a random order,
    * reassign new ids to old ids so that both are in the same order. */
-  void reorder (void)
+  void reorder ()
   {
     new_to_old.qsort (cmp_id);
     for (hb_codepoint_t _new = 0; _new < count; _new++)
