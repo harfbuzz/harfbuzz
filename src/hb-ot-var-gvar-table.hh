@@ -173,7 +173,7 @@ struct GlyphVarData
       current_tuple = &var_data->get_tuple_var_header ();
       data_offset = 0;
     }
-  
+
     bool is_valid () const
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
@@ -223,7 +223,7 @@ struct GlyphVarData
   TupleVarCount		tupleVarCount;
   OffsetTo<HBUINT8>	data;
   /* TupleVarHeader tupleVarHeaders[] */
-  
+
   public:
   DEFINE_SIZE_MIN (4);
 };
@@ -292,7 +292,7 @@ struct gvar
 	((HBUINT32 *)subset_offsets)[gid].set (glyph_offset);
       else
       	((HBUINT16 *)subset_offsets)[gid].set (glyph_offset / 2);
-      
+
       if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
       subset_data += length;
       glyph_offset += length;
@@ -380,7 +380,7 @@ struct gvar
 
     protected:
     typedef glyf::accelerator_t glyf_acc_t;
-    
+
     static float infer_delta (float target_val, float pre_val, float fol_val,
 			      float pre_delta, float fol_delta)
     {
@@ -395,7 +395,7 @@ struct gvar
       float r = (target_val - pre_val) / (fol_val - pre_val);
       return (1.f - r) * pre_delta + r * fol_delta;
     }
-    
+
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
 				 const hb_array_t<contour_point_t> points,
@@ -572,7 +572,7 @@ struct gvar
     {
       float advance = 0.f;
       if (coord_count != gvar_table->axisCount) return advance;
-    
+
       hb_vector_t<contour_point_t>	points;
       points.resize (glyf_acc_t::PHANTOM_COUNT);
 
