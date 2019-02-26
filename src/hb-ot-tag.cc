@@ -302,7 +302,7 @@ parse_private_use_subtag (const char     *private_use_subtag,
     {
       char tag[4];
       int i;
-      s += strlen (prefix);
+      s += strlen (prefix) + 1;
       for (i = 0; i < 4 && ISALNUM (s[i]); i++)
 	tag[i] = normalize (s[i]);
       if (i)
