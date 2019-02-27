@@ -150,10 +150,75 @@ struct gvar
   { return sanitize_shallow (c); }
 
   bool subset (hb_subset_context_t *c) const
-  { return true; } // TOOD
+  {
+    TRACE_SUBSET (this);
+
+    gvar *out = c->serializer->allocate_min<gvar> ();
+    if (unlikely (!out)) return_trace (false);
+
+    out->version.major.set (1);
+    out->version.minor.set (0);
+    out->axisCount.set (axisCount);
+    out->sharedTupleCount.set (sharedTupleCount);
+
+    unsigned int num_glyphs = c->plan->num_output_glyphs ();
+    out->glyphCount.set (num_glyphs);
+
+    unsigned int subset_data_size = 0;
+    for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+    {
+      unsigned int old_gid;
+      if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
+      subset_data_size += get_data_length (old_gid);
+    }
+
+    bool long_offset = subset_data_size & ~0xFFFFu;
+    out->flags.set (long_offset? 1: 0);
+
+    HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset?HBUINT32::static_size: HBUINT16::static_size) * (num_glyphs+1));
+    if (!subset_offsets) return_trace (false);
+
+    char *subset_data = c->serializer->allocate_size<char>(subset_data_size);
+    if (!subset_data) return_trace (false);
+    out->dataZ.set (subset_data - (char *)out);
+
+    unsigned int glyph_offset = 0;
+    for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+    {
+      unsigned int old_gid;
+      unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid)? get_data_length (old_gid): 0;
+
+      if (long_offset)
+	((HBUINT32 *)subset_offsets)[gid].set (glyph_offset);
+      else
+      	((HBUINT16 *)subset_offsets)[gid].set (glyph_offset / 2);
+      
+      if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
+      subset_data += length;
+      glyph_offset += length;
+    }
+    if (long_offset)
+      ((HBUINT32 *)subset_offsets)[num_glyphs].set (glyph_offset);
+    else
+      ((HBUINT16 *)subset_offsets)[num_glyphs].set (glyph_offset / 2);
+
+    /* shared tuples */
+    if (!sharedTupleCount || !sharedTuples)
+      out->sharedTuples.set (0);
+    else
+    {
+      unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
+      F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
+      if (!tuples) return_trace (false);
+      out->sharedTuples.set ((char *)tuples - (char *)out);
+      memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
+    }
+
+    return_trace (true);
+  }
 
   protected:
-  const GlyphVarData *get_glyph_var_data (unsigned int gid, unsigned int *length/*OUT*/) const
+  const GlyphVarData *get_glyph_var_data (unsigned int gid) const
   {
     unsigned int start_offset = get_offset (gid);
     unsigned int end_offset = get_offset (gid+1);
@@ -161,17 +226,10 @@ struct gvar
     if ((start_offset == end_offset) ||
 	unlikely ((start_offset > get_offset (glyphCount)) ||
 		  (start_offset + GlyphVarData::min_size > end_offset)))
-    {
-      *length = 0;
       return &Null(GlyphVarData);
-    }
     const GlyphVarData *var_data = &(((unsigned char *)this+start_offset)+dataZ);
     if (unlikely (!var_data->check_size (axisCount, end_offset - start_offset)))
-    {
-      *length = 0;
       return &Null (GlyphVarData);
-    }
-    *length = end_offset - start_offset;
     return var_data;
   }
 
@@ -185,6 +243,9 @@ struct gvar
       return get_short_offset_array ()[gid] * 2;
   }
 
+  unsigned int get_data_length (unsigned int gid) const
+  { return get_offset (gid+1) - get_offset (gid); }
+
   const HBUINT32 *get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
 
@@ -192,7 +253,7 @@ struct gvar
   FixedVersion<>		version;		/* Version of gvar table. Set to 0x00010000u. */
   HBUINT16			axisCount;
   HBUINT16			sharedTupleCount;
-  LOffsetTo<F2DOT14>		sharedTuples;		/* Actually LOffsetTo<UnsizedArrayOf<Tupple>> */
+  LOffsetTo<F2DOT14>		sharedTuples;		/* LOffsetTo<UnsizedArrayOf<Tupple>> */
   HBUINT16			glyphCount;
   HBUINT16			flags;
   LOffsetTo<GlyphVarData>	dataZ;			/* Array of GlyphVarData */
