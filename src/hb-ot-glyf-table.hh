@@ -22,6 +22,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Google Author(s): Behdad Esfahbod
+ * Adobe Author(s): Michiharu Ariza
  */
 
 #ifndef HB_OT_GLYF_TABLE_HH
@@ -280,6 +281,156 @@ struct glyf
       FLAG_RESERVED1 = 0x40,
       FLAG_RESERVED2 = 0x80
     };
+
+    enum phantom_point_index_t {
+      PHANTOM_LEFT = 0,
+      PHANTOM_RIGHT = 1,
+      PHANTOM_TOP = 2,
+      PHANTOM_BOTTOM = 3,
+      PHANTOM_COUNT = 4
+    };
+
+    struct contour_point_t
+    {
+      void init () { flag = 0; x = y = 0.0f; }
+      uint8_t	flag;
+      float	x, y;
+    };
+
+    struct range_checker_t
+    {
+      range_checker_t (const void *_table, unsigned int _start_offset, unsigned int _end_offset)
+      	: table ((const char*)_table), start_offset (_start_offset), end_offset (_end_offset) {}
+
+      template <typename T>
+      bool in_range (const T *p) const
+      {
+	return ((const char *) p) >= table + start_offset
+	    && ((const char *) (p + T::static_size)) <= table + end_offset;
+      }
+
+      protected:
+      const char *table;
+      const unsigned int start_offset;
+      const unsigned int end_offset;
+    };
+
+    struct x_setter_t
+    {
+      void set (contour_point_t &point, float v) const { point.x = v; }
+      bool is_short (uint8_t flag) const { return (flag & FLAG_X_SHORT) != 0; }
+      bool is_same (uint8_t flag) const { return (flag & FLAG_X_SAME) != 0; }
+    };
+
+    struct y_setter_t
+    {
+      void set (contour_point_t &point, float v) const { point.y = v; }
+      bool is_short (uint8_t flag) const { return (flag & FLAG_Y_SHORT) != 0; }
+      bool is_same (uint8_t flag) const { return (flag & FLAG_Y_SAME) != 0; }
+    };
+
+    template <typename T>
+    static bool read_points (const HBUINT8 *&p /* IN/OUT */,
+			     hb_vector_t<contour_point_t> &_points /* IN/OUT */,
+			     const range_checker_t &checker)
+    {
+      const T coord_setter;
+      float v = 0;
+      for (unsigned int i = 0; i < _points.length - PHANTOM_COUNT; i++)
+      {
+      	uint8_t flag = _points[i].flag;
+      	if (coord_setter.is_short (flag))
+      	{
+	  if (unlikely (!checker.in_range (p))) return false;
+	  if (coord_setter.is_same (flag))
+	    v += *p++;
+	  else
+	    v -= *p++;
+	}
+	else
+	{
+	  if (unlikely (!checker.in_range ((const HBUINT16 *)p))) return false;
+	  if (!coord_setter.is_same (flag))
+	  {
+	    v = *(const HBINT16 *)p;
+	    p += HBINT16::static_size;
+	  }
+	}
+	coord_setter.set (_points[i], v);
+      }
+      return true;
+    };
+
+    /* for a simple glyph, return contour end points, flags, along with coordinate points
+     * for a composite glyph, return pseudo component points
+     * in both cases points trailed with four phantom points
+     */
+    bool get_contour_points (hb_codepoint_t glyph,
+			     bool phantom_only,
+			     hb_vector_t<contour_point_t> &_points /* OUT */,
+			     hb_vector_t<unsigned int> &_end_points /* OUT */) const
+    {
+      unsigned int num_points = 0;
+      unsigned int start_offset, end_offset;
+      if (unlikely (!get_offsets (glyph, &start_offset, &end_offset)))
+      	return false;
+      if (end_offset - start_offset < GlyphHeader::static_size)
+      	return false;
+
+      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
+      if (unlikely (glyph_header.numberOfContours < 0)) return false;
+      int16_t num_contours = (int16_t) glyph_header.numberOfContours;
+      const HBUINT16 *end_pts = &StructAfter<HBUINT16, GlyphHeader> (glyph_header);
+
+      range_checker_t checker (glyf_table, start_offset, end_offset);
+      num_points = 0;
+      if (num_contours > 0)
+      {
+	if (unlikely (!checker.in_range (&end_pts[num_contours + 1]))) return false;
+	num_points = end_pts[num_contours - 1] + 1;
+      }
+      else if (num_contours < 0)
+      {
+	CompositeGlyphHeader::Iterator composite;
+	if (!get_composite (glyph, &composite)) return false;
+	do
+	{
+	  num_points++;
+	} while (composite.move_to_next());
+      }
+
+      _points.resize (num_points + PHANTOM_COUNT);
+      for (unsigned int i = 0; i < _points.length; i++) _points[i].init ();
+      if ((num_contours <= 0) || phantom_only) return true;
+		
+      /* Read simple glyph points if !phantom_only */
+      _end_points.resize (num_contours);
+
+      for (int16_t i = 0; i < num_contours; i++)
+      	_end_points[i] = end_pts[i];
+
+      /* Skip instructions */
+      const HBUINT8 *p = &StructAtOffset<HBUINT8> (&end_pts[num_contours+1], end_pts[num_contours]);
+
+      /* Read flags */
+      for (unsigned int i = 0; i < num_points; i++)
+      {
+      	if (unlikely (!checker.in_range (p))) return false;
+      	uint8_t flag = *p++;
+	_points[i].flag = flag;
+	if ((flag & FLAG_REPEAT) != 0)
+	{
+	  if (unlikely (!checker.in_range (p))) return false;
+	  unsigned int repeat_count = *p++;
+	  while ((repeat_count-- > 0) && (++i < num_points))
+	    _points[i].flag = flag;
+	}
+      }
+
+      /* Read x & y coordinates */
+      return (!read_points<x_setter_t> (p, _points, checker) &&
+	      !read_points<y_setter_t> (p, _points, checker));
+    }
 
     /* based on FontTools _g_l_y_f.py::trim */
     bool remove_padding (unsigned int start_offset,
