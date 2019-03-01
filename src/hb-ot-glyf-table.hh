@@ -411,7 +411,7 @@ struct glyf
       _points.resize (num_points + PHANTOM_COUNT);
       for (unsigned int i = 0; i < _points.length; i++) _points[i].init ();
       if ((num_contours <= 0) || phantom_only) return true;
-		
+
       /* Read simple glyph points if !phantom_only */
       _end_points.resize (num_contours);
 
