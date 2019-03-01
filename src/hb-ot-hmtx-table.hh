@@ -31,6 +31,7 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-ot-var-gvar-table.hh"
 
 /*
  * hmtx -- Horizontal Metrics
@@ -163,6 +164,7 @@ struct hmtxvmtx
     void init (hb_face_t *face,
                unsigned int default_advance_ = 0)
     {
+      memset (this, 0, sizeof (*this));
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
       bool got_font_extents = false;
@@ -206,12 +208,24 @@ struct hmtxvmtx
       }
 
       var_table = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
+
+      /* If a TrueType variable font has no HVAR/VVAR table, gvar & glyf table is required for metrics calculation */
+      if (var_table.get_blob () == hb_blob_get_empty ())
+      {
+      	hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t().reference_table<fvar> (face, HB_OT_TAG_fvar);
+      	if (fvar_table.get_blob () != hb_blob_get_empty ())
+      	{
+	  gvar_accel.init (face);
+	}
+	fvar_table.destroy ();
+      }
     }
 
     void fini ()
     {
       table.destroy ();
       var_table.destroy ();
+      gvar_accel.fini ();
     }
 
     /* TODO Add variations version. */
@@ -249,7 +263,13 @@ struct hmtxvmtx
       unsigned int advance = get_advance (glyph);
       if (likely (glyph < num_metrics))
       {
-	advance += (font->num_coords ? var_table->get_advance_var (glyph, font->coords, font->num_coords) : 0); // TODO Optimize?!
+      	if (font->num_coords)
+      	{
+	  if (var_table.get_blob () != hb_blob_get_empty ())
+	    advance += var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+	  else
+	    advance += gvar_accel.get_advance_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+	}
       }
       return advance;
     }
@@ -294,6 +314,7 @@ struct hmtxvmtx
     private:
     hb_blob_ptr_t<hmtxvmtx> table;
     hb_blob_ptr_t<HVARVVAR> var_table;
+    gvar::accelerator_t	    gvar_accel;
   };
 
   protected:
