@@ -96,6 +96,7 @@ _remove_invalid_gids (hb_set_t *glyphs,
 static hb_set_t *
 _populate_gids_to_retain (hb_face_t *face,
 			  const hb_set_t *unicodes,
+                          const hb_set_t *input_glyphs_to_retain,
 			  bool close_over_gsub,
 			  hb_set_t *unicodes_to_retain,
 			  hb_map_t *codepoint_to_glyph,
@@ -110,6 +111,7 @@ _populate_gids_to_retain (hb_face_t *face,
 
   hb_set_t *initial_gids_to_retain = hb_set_create ();
   initial_gids_to_retain->add (0); // Not-def
+  hb_set_union (initial_gids_to_retain, input_glyphs_to_retain);
 
   hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   while (unicodes->next (&cp))
@@ -213,6 +215,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->reverse_glyph_map = hb_map_create();
   plan->_glyphset = _populate_gids_to_retain (face,
                                               input->unicodes,
+                                              input->glyphs,
                                               !plan->drop_layout,
                                               plan->unicodes,
                                               plan->codepoint_to_glyph,
