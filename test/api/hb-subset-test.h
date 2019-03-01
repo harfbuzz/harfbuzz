@@ -48,11 +48,20 @@ typedef short bool;
 HB_BEGIN_DECLS
 
 static inline hb_subset_input_t *
-hb_subset_test_create_input(const hb_set_t  *codepoints)
+hb_subset_test_create_input (const hb_set_t *codepoints)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t * input_codepoints = hb_subset_input_unicode_set (input);
   hb_set_union (input_codepoints, codepoints);
+  return input;
+}
+
+static inline hb_subset_input_t *
+hb_subset_test_create_input_from_glyphs (const hb_set_t *glyphs)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t * input_glyphs  = hb_subset_input_glyph_set (input);
+  hb_set_union (input_glyphs, glyphs);
   return input;
 }
 
