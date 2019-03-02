@@ -359,7 +359,7 @@ struct glyf
 	coord_setter.set (_points[i], v);
       }
       return true;
-    };
+    }
 
     /* for a simple glyph, return contour end points, flags, along with coordinate points
      * for a composite glyph, return pseudo component points

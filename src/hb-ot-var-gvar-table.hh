@@ -177,7 +177,7 @@ struct GlyphVarData
       return (index < var_data->tupleVarCount.get_count ()) &&
 	     in_range (current_tuple) &&
 	     current_tuple->get_size (axis_count);
-    };
+    }
 
     bool move_to_next ()
     {
@@ -345,7 +345,6 @@ struct gvar
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
 
   typedef glyf::accelerator_t::contour_point_t contour_point_t;
-  typedef glyf::accelerator_t::phantom_point_index_t pp_t;
   typedef glyf::accelerator_t::range_checker_t range_checker_t;
 
   public:
@@ -439,8 +438,8 @@ struct gvar
       if (!glyf_accel.get_contour_points (glyph, true, points, end_points)) return false;
       if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
 
-      for (unsigned int i = 0; i < pp_t::PHANTOM_COUNT; i++)
-      	phantoms[i] = points[points.length - pp_t::PHANTOM_COUNT + i];
+      for (unsigned int i = 0; i < glyf::accelerator_t::PHANTOM_COUNT; i++)
+      	phantoms[i] = points[points.length - glyf::accelerator_t::PHANTOM_COUNT + i];
 
       glyf::CompositeGlyphHeader::Iterator composite;
       if (!glyf_accel.get_composite (glyph, &composite)) return true;	/* simple glyph */
@@ -462,15 +461,15 @@ struct gvar
       if (coord_count != gvar_table->axisCount) return advance;
     
       hb_vector_t<contour_point_t>	points;
-      points.resize (pp_t::PHANTOM_COUNT);
+      points.resize (glyf::accelerator_t::PHANTOM_COUNT);
 
       if (!get_var_metrics (glyph, coords, coord_count, points))
       	return advance;
 
       if (vertical)
-      	return -(points[pp_t::PHANTOM_BOTTOM].y - points[pp_t::PHANTOM_TOP].y);	// is this sign correct?
+      	return -(points[glyf::accelerator_t::PHANTOM_BOTTOM].y - points[glyf::accelerator_t::PHANTOM_TOP].y);	// is this sign correct?
       else
-      	return points[pp_t::PHANTOM_RIGHT].x - points[pp_t::PHANTOM_LEFT].x;
+      	return points[glyf::accelerator_t::PHANTOM_RIGHT].x - points[glyf::accelerator_t::PHANTOM_LEFT].x;
     }
 
     protected:
