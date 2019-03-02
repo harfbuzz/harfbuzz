@@ -104,7 +104,7 @@ struct CFFIndex
     else
       return min_size + calculate_offset_array_size (offSize, count) + dataSize;
   }
- 
+
   bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
   {
     TRACE_SERIALIZE (this);
