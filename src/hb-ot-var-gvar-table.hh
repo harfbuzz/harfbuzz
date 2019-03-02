@@ -265,7 +265,7 @@ struct gvar
     unsigned int subset_data_size = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
-      unsigned int old_gid;
+      hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
       subset_data_size += get_glyph_var_data_length (old_gid);
     }
@@ -283,7 +283,7 @@ struct gvar
     unsigned int glyph_offset = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
-      unsigned int old_gid;
+      hb_codepoint_t old_gid;
       unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid)? get_glyph_var_data_length (old_gid): 0;
 
       if (long_offset)
