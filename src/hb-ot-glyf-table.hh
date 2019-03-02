@@ -334,7 +334,7 @@ struct glyf
 			     hb_vector_t<contour_point_t> &_points /* IN/OUT */,
 			     const range_checker_t &checker)
     {
-      const T coord_setter;
+      T coord_setter;
       float v = 0;
       for (unsigned int i = 0; i < _points.length - PHANTOM_COUNT; i++)
       {
