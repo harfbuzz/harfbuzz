@@ -101,7 +101,7 @@ struct TupleVarHeader
       	int start = start_tuple[i];
       	int end = end_tuple[i];
 	if (unlikely (start > peak || peak > end ||
-		      start < 0 && end > 0 && peak)) continue;
+		      (start < 0 && end > 0 && peak))) continue;
 	if (v < start || v > end) return 0.f;
 	if (v < peak)
 	{ if (peak != start) scalar *= (float)(v - start) / (peak - start); }
@@ -356,7 +356,7 @@ struct gvar
       memset (this, 0, sizeof (accelerator_t));
 
       gvar_table = hb_sanitize_context_t ().reference_table<gvar> (face);
-      glyf.init (face);
+      glyf_accel.init (face);
       hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t ().reference_table<fvar> (face);
       unsigned int axis_count = fvar_table->get_axis_count ();
       fvar_table.destroy ();
@@ -374,7 +374,7 @@ struct gvar
     void fini ()
     {
       gvar_table.destroy ();
-      glyf.fini ();
+      glyf_accel.fini ();
     }
 
     bool apply_deltas_to_points (hb_codepoint_t glyph,
@@ -436,14 +436,14 @@ struct gvar
     {
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
-      if (!glyf.get_contour_points (glyph, true, points, end_points)) return false;
+      if (!glyf_accel.get_contour_points (glyph, true, points, end_points)) return false;
       if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
 
       for (unsigned int i = 0; i < pp_t::PHANTOM_COUNT; i++)
       	phantoms[i] = points[points.length - pp_t::PHANTOM_COUNT + i];
 
       glyf::CompositeGlyphHeader::Iterator composite;
-      if (!glyf.get_composite (glyph, &composite)) return true;	/* simple glyph */
+      if (!glyf_accel.get_composite (glyph, &composite)) return true;	/* simple glyph */
       do
       {
 	/* TODO: support component scale/transformation */
@@ -574,7 +574,7 @@ struct gvar
     private:
     hb_blob_ptr_t<gvar>		gvar_table;
     hb_vector_t<F2DOT14>	shared_tuples;
-    glyf::accelerator_t		glyf;
+    glyf::accelerator_t		glyf_accel;
   };
 
   protected:
