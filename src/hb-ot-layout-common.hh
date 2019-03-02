@@ -1587,6 +1587,7 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       hb_array_t<const HBUINT16> klasses)
 { c->start_embed<ClassDef> ()->serialize (c, glyphs, klasses); }
 
+
 /*
  * Item Variation Store
  */
@@ -2240,6 +2241,7 @@ struct Device
   public:
   DEFINE_SIZE_UNION (6, b);
 };
+
 
 } /* namespace OT */
 
