@@ -212,6 +212,7 @@ print ('  if (processed)')
 print ('  {')
 print ('    if (buffer->idx < count)')
 print ('      buffer->next_glyph ();')
+print ('    buffer->swap_buffers ();')
 print ('  }')
 print ('}')
 
