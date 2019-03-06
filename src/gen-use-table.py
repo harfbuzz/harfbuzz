@@ -384,7 +384,6 @@ def map_to_use(data):
 		if U == 0x11302: UIPC = Top
 		if U == 0x1133C: UIPC = Bottom
 		if U == 0x1171E: UIPC = Left # Correct?!
-		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
 		# https://github.com/roozbehp/unicode-data/issues/8
 		if U == 0x0A51: UIPC = Bottom

@@ -9,8 +9,8 @@
  * # Copied from https://docs.microsoft.com/en-us/typography/script-development/use
  * # On October 23, 2018; with documentd dated 02/07/2018.
  *
- * # Scripts-11.0.0.txt
- * # Date: 2018-02-21, 05:34:31 GMT
+ * # Scripts-12.0.0.txt
+ * # Date: 2019-01-28, 22:16:47 GMT
  */
 
 #include "hb-ot-shape-complex-vowel-constraints.hh"
