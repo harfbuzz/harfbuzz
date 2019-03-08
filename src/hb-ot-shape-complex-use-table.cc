@@ -261,7 +261,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 17A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 17B0 */     B,     B,     B,     B,     O,     O,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VPst,  VPst,
   /* 17C0 */  VPst,  VPre,  VPre,  VPre,  VPst,  VPst, VMAbv, VMPst,  VPst, VMAbv, VMAbv,    FM,  FAbv, CMAbv,    FM,    FM,
-  /* 17D0 */    FM,  VAbv,     H,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     B,  VAbv,     O,     O,
+  /* 17D0 */    FM,  VAbv,     H,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     B,    FM,     O,     O,
   /* 17E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x1900u 1936
