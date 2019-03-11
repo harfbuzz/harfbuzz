@@ -287,7 +287,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  * @HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE:
  *                      flag indicating that a dotted circle should
  *                      not be inserted in the rendering of incorrect
- *                      character sequences (such at <0905 093E>).
+ *                      character sequences (such at <0905 093E>). Since: REPLACEME
  *
  * Since: 0.9.20
  */
