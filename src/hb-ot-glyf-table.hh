@@ -306,7 +306,7 @@ struct glyf
       bool in_range (const T *p) const
       {
 	return ((const char *) p) >= table + start_offset
-	    && ((const char *) (p + T::static_size)) <= table + end_offset;
+	    && ((const char *) p + T::static_size) <= table + end_offset;
       }
 
       protected:
@@ -366,9 +366,9 @@ struct glyf
      * in both cases points trailed with four phantom points
      */
     bool get_contour_points (hb_codepoint_t glyph,
-			     bool phantom_only,
 			     hb_vector_t<contour_point_t> &_points /* OUT */,
-			     hb_vector_t<unsigned int> &_end_points /* OUT */) const
+			     hb_vector_t<unsigned int> &_end_points /* OUT */,
+			     const bool phantom_only=false) const
     {
       unsigned int num_points = 0;
       unsigned int start_offset, end_offset;
@@ -377,8 +377,17 @@ struct glyf
       if (end_offset - start_offset < GlyphHeader::static_size)
       	return false;
 
+      glyf::CompositeGlyphHeader::Iterator composite;
+      if (get_composite (glyph, &composite))
+      {
+      	/* For a composite glyph, add one pseudo point for each component */
+	do { num_points++; } while (composite.move_to_next());
+	_points.resize (num_points + PHANTOM_COUNT);
+	for (unsigned int i = 0; i < _points.length; i++) _points[i].init ();
+	return true;
+      }
+
       const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
-      if (unlikely (glyph_header.numberOfContours < 0)) return false;
       int16_t num_contours = (int16_t) glyph_header.numberOfContours;
       const HBUINT16 *end_pts = &StructAfter<HBUINT16, GlyphHeader> (glyph_header);
 
@@ -428,8 +437,8 @@ struct glyf
       }
 
       /* Read x & y coordinates */
-      return (!read_points<x_setter_t> (p, _points, checker) &&
-	      !read_points<y_setter_t> (p, _points, checker));
+      return (read_points<x_setter_t> (p, _points, checker) &&
+	      read_points<y_setter_t> (p, _points, checker));
     }
 
     /* based on FontTools _g_l_y_f.py::trim */

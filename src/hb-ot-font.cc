@@ -42,6 +42,7 @@
 #include "hb-ot-post-table.hh"
 #include "hb-ot-stat-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-vorg-table.hh"
+#include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 
@@ -181,6 +182,8 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 {
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
   bool ret = ot_face->sbix->get_extents (font, glyph, extents);
+  if (!ret)
+    ret = ot_face->gvar->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->glyf->get_extents (glyph, extents);
   if (!ret)
