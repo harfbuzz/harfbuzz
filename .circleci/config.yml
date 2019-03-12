@@ -22,6 +22,16 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
+  macos-10.14.3-aat-fonts:
+    macos:
+      xcode: "10.2.0"
+    steps:
+      - checkout
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
+      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
+      - run: make -j4
+      - run: make check || .ci/fail.sh
+
   macos-notest-ios:
     macos:
       xcode: "10.0.0"
@@ -308,6 +318,7 @@ workflows:
       # macOS
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
+      - macos-10.14.3-aat-fonts
       - macos-notest-ios
 
       # both autotools and cmake
