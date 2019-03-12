@@ -31,6 +31,8 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 
+#include <float.h>
+
 /*
  * gvar -- Glyph Variation Table
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gvar
@@ -376,6 +378,24 @@ struct gvar
       glyf_accel.fini ();
     }
 
+    protected:
+    typedef glyf::accelerator_t glyf_acc_t;
+    
+    static float infer_delta (float target_val, float pre_val, float fol_val,
+			      float pre_delta, float fol_delta)
+    {
+      if (pre_val == fol_val)
+      	return (pre_delta == fol_delta)? pre_delta: 0.f;
+      else if (target_val <= MIN (pre_val, fol_val))
+      	return (pre_val < fol_val) ? pre_delta: fol_delta;
+      else if (target_val >= MAX (pre_val, fol_val))
+      	return (pre_val > fol_val)? pre_delta: fol_delta;
+
+      /* linear interpolation */
+      float r = (target_val - pre_val) / (fol_val - pre_val);
+      return (1.f - r) * pre_delta + r * fol_delta;
+    }
+    
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
 				 const hb_array_t<contour_point_t> points,
@@ -390,6 +410,11 @@ struct gvar
 					     gvar_table->axisCount,
 					     &iterator))
 	return false;
+
+      hb_vector_t<contour_point_t>	deltas;	/* flag is used to indicate referenced point */
+      deltas.resize (points.length);
+      for (unsigned int i = 0; i < deltas.length; i++)
+      	deltas[i].init ();
 
       do {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, coord_count, shared_tuples.as_array ());
@@ -419,11 +444,48 @@ struct gvar
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
 	  unsigned int pt_index = apply_to_all? i: indices[i];
-	  points[pt_index].x += x_deltas[i] * scalar;
-	  points[pt_index].y += y_deltas[i] * scalar;
+	  deltas[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	  deltas[pt_index].x += x_deltas[i] * scalar;
+	  deltas[pt_index].y += y_deltas[i] * scalar;
 	}
 	/* TODO: interpolate untouched points for glyph extents */
       } while (iterator.move_to_next ());
+
+      /* infer deltas for unreferenced points */
+      unsigned int start_point = 0;
+      for (unsigned int c = 0; c < end_points.length; c++)
+      {
+	unsigned int end_point = end_points[c];
+	for (unsigned int i = start_point; i < end_point; i++)
+	{
+	  if (deltas[i].flag) continue;
+	  /* search in both directions within the contour for a pair of referenced points */
+	  unsigned int pre;
+	  for (pre = i;;)
+	  {
+	    if (pre-- <= start_point) pre = end_point;
+	    if (pre == i || deltas[pre].flag) break;
+	  }
+	  if (pre == i) continue;	/* no (preceeding) referenced point was found */
+	  unsigned int fol;
+	  for (fol = i;;)
+	  {
+	    if (fol++ >= end_point) fol = start_point;
+	    if (fol == i || deltas[fol].flag) break;
+	  }
+	  assert (fol != i);
+	  deltas[i].x = infer_delta (points[i].x, points[pre].x, points[fol].x, deltas[pre].x, deltas[fol].x);
+	  deltas[i].y = infer_delta (points[i].y, points[pre].y, points[fol].y, deltas[pre].y, deltas[fol].y);
+	}
+	start_point = end_point + 1;
+      }
+
+      /* apply accumulated / inferred deltas to points */
+      for (unsigned int i = 0; i < points.length; i++)
+      {
+	points[i].x += deltas[i].x;
+	points[i].y += deltas[i].y;
+      }
 
       return true;
     }
@@ -435,11 +497,11 @@ struct gvar
     {
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
-      if (!glyf_accel.get_contour_points (glyph, true, points, end_points)) return false;
+      if (!glyf_accel.get_contour_points (glyph, points, end_points, true/*phantom_only*/)) return false;
       if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
 
-      for (unsigned int i = 0; i < glyf::accelerator_t::PHANTOM_COUNT; i++)
-      	phantoms[i] = points[points.length - glyf::accelerator_t::PHANTOM_COUNT + i];
+      for (unsigned int i = 0; i < glyf_acc_t::PHANTOM_COUNT; i++)
+      	phantoms[i] = points[points.length - glyf_acc_t::PHANTOM_COUNT + i];
 
       glyf::CompositeGlyphHeader::Iterator composite;
       if (!glyf_accel.get_composite (glyph, &composite)) return true;	/* simple glyph */
@@ -453,6 +515,57 @@ struct gvar
       return true;
     }
 
+    struct bounds_t
+    {
+      bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
+
+      void add (const contour_point_t &p)
+      {
+      	min.x = MIN (min.x, p.x);
+      	min.y = MIN (min.y, p.y);
+      	max.x = MAX (max.x, p.x);
+      	max.y = MAX (max.y, p.y);
+      }
+
+      void _union (const bounds_t &b)
+      { add (b.min); add (b.max); }
+
+      contour_point_t	min;
+      contour_point_t	max;
+    };
+
+    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
+    bool get_bounds_var (hb_codepoint_t glyph,
+			 const int *coords, unsigned int coord_count,
+			 bounds_t &bounds) const
+    {
+      hb_vector_t<contour_point_t>	points;
+      hb_vector_t<unsigned int>		end_points;
+      if (!glyf_accel.get_contour_points (glyph, points, end_points)) return false;
+      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
+
+      glyf::CompositeGlyphHeader::Iterator composite;
+      if (!glyf_accel.get_composite (glyph, &composite))
+      {
+      	/* simple glyph */
+	for (unsigned int i = 0; i + glyf_acc_t::PHANTOM_COUNT < points.length; i++)
+	  bounds.add (points[i]);
+	return true;
+      }
+      /* composite glyph */
+      do
+      {
+	bounds_t	comp_bounds;
+	if (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))
+	  return false;
+
+	/* TODO: support component scale/transformation */
+	bounds._union (comp_bounds);
+      } while (composite.move_to_next());
+      return true;
+    }
+
+    public:
     float get_advance_var (hb_codepoint_t glyph,
 			   const int *coords, unsigned int coord_count,
 			   bool vertical) const
@@ -461,15 +574,48 @@ struct gvar
       if (coord_count != gvar_table->axisCount) return advance;
     
       hb_vector_t<contour_point_t>	points;
-      points.resize (glyf::accelerator_t::PHANTOM_COUNT);
+      points.resize (glyf_acc_t::PHANTOM_COUNT);
 
       if (!get_var_metrics (glyph, coords, coord_count, points))
       	return advance;
 
       if (vertical)
-      	return -(points[glyf::accelerator_t::PHANTOM_BOTTOM].y - points[glyf::accelerator_t::PHANTOM_TOP].y);	// is this sign correct?
+      	return -(points[glyf_acc_t::PHANTOM_BOTTOM].y - points[glyf_acc_t::PHANTOM_TOP].y);	// is this sign correct?
       else
-      	return points[glyf::accelerator_t::PHANTOM_RIGHT].x - points[glyf::accelerator_t::PHANTOM_LEFT].x;
+      	return points[glyf_acc_t::PHANTOM_RIGHT].x - points[glyf_acc_t::PHANTOM_LEFT].x;
+    }
+
+    bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
+		      hb_glyph_extents_t *extents) const
+    {
+      unsigned int coord_count;
+      const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
+      if (!coords || coord_count != gvar_table->axisCount) return false;	/* fallback on glyf */
+
+      bounds_t	bounds;
+      if (unlikely (!get_bounds_var (glyph, coords, coord_count, bounds))) return false;
+
+      if (bounds.min.x >= bounds.max.x)
+      {
+	extents->width = 0;
+	extents->x_bearing = 0;
+      }
+      else
+      {
+	extents->x_bearing = (int32_t)floorf (bounds.min.x);
+	extents->width = (int32_t)ceilf (bounds.max.x) - extents->x_bearing;
+      }
+      if (bounds.min.y >= bounds.max.y)
+      {
+	extents->height = 0;
+	extents->y_bearing = 0;
+      }
+      else
+      {
+	extents->y_bearing = (int32_t)ceilf (bounds.max.y);
+	extents->height = (int32_t)floorf (bounds.min.y) - extents->y_bearing;
+      }
+      return true;
     }
 
     protected:
@@ -589,6 +735,8 @@ struct gvar
   public:
   DEFINE_SIZE_MIN (20);
 };
+
+struct gvar_accelerator_t : gvar::accelerator_t {};
 
 } /* namespace OT */
 
