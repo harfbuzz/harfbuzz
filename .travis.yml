@@ -46,13 +46,7 @@ matrix:
     - os: osx
       compiler: clang
       install:
-        - brew update;
-          # Workaround Travis/brew bug
-        - brew uninstall libtool && brew install libtool
-        - brew install ragel freetype glib gobject-introspection cairo graphite2 || true
-        - brew upgrade icu4c || true
-        - export PATH="/usr/local/opt/icu4c/sbin:/usr/local/opt/icu4c/bin:$PATH"
-        - export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
+        - brew link --force icu4c
       script:
         - ./autogen.sh
         - ./configure $CONFIGURE_OPTS --with-coretext
@@ -76,6 +70,14 @@ addons:
       - libicu-dev # for extra unicode functions
       - libgraphite2-dev # for extra shapers
       #- libgirepository1.0-dev # for gobject-introspection
+  homebrew:
+    packages:
+      - cairo
+      - freetype
+      - glib
+      - graphite2
+      - icu4c
+      #- gobject-introspection
 
   coverity_scan:
     project:
