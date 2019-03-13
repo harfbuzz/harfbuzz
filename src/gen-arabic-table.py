@@ -40,7 +40,7 @@ def read_blocks(f):
 		for u in range (start, end + 1):
 			blocks[u] = t
 
-def print_joining_table(f):
+def print_joining_table(f, categories):
 
 	values = {}
 	for line in f:
@@ -71,7 +71,6 @@ def print_joining_table(f):
 		print ("#define %s	%s" % (short, value))
 
 	uu = sorted(values.keys())
-	num = len(values)
 	all_blocks = set([blocks[u] for u in uu])
 
 	last = -100000
@@ -96,7 +95,7 @@ def print_joining_table(f):
 		for u in range(start, end+1):
 
 			block = blocks.get(u, last_block)
-			value = values.get(u, "JOINING_TYPE_X")
+			value = values.get(u, "JOINING_TYPE_T" if categories.get(u, 'Cn') in {'Cf', 'Me', 'Mn'} else "JOINING_TYPE_U")
 
 			if block != last_block or u == start:
 				if u != start:
@@ -118,8 +117,7 @@ def print_joining_table(f):
 
 		offset += end - start + 1
 	print ()
-	occupancy = num * 100. / offset
-	print ("}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy))
+	print ("}; /* Table items: %d */" % offset)
 	print ()
 
 	page_bits = 12;
@@ -148,14 +146,18 @@ def print_joining_table(f):
 		print ("#undef %s" % (short))
 	print ()
 
-def print_shaping_table(f):
+def read_unicode_data(f):
 
 	shapes = {}
 	ligatures = {}
 	names = {}
+	categories = {}
 	for line in f:
 
 		fields = [x.strip () for x in line.split (';')]
+		c = int (fields[0], 16)
+		categories[c] = fields[2]
+
 		if fields[5][0:1] != '<':
 			continue
 
@@ -165,7 +167,7 @@ def print_shaping_table(f):
 		if not shape in ['initial', 'medial', 'isolated', 'final']:
 			continue
 
-		c = int (fields[0], 16)
+
 		if len (items) != 1:
 			# We only care about lam-alef ligatures
 			if len (items) != 2 or items[0] != 0x0644 or items[1] not in [0x0622, 0x0623, 0x0625, 0x0627]:
@@ -186,6 +188,9 @@ def print_shaping_table(f):
 			if items[0] not in shapes:
 				shapes[items[0]] = {}
 			shapes[items[0]][shape] = c
+	return shapes, ligatures, names, categories
+
+def print_shaping_table(f, shapes, ligatures, names):
 
 	print ()
 	print ("static const uint16_t shaping_table[][4] =")
@@ -258,8 +263,9 @@ print ("#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH")
 print ()
 
 read_blocks (files[2])
-print_joining_table (files[0])
-print_shaping_table (files[1])
+shapes, ligatures, names, categories = read_unicode_data (files[1])
+print_joining_table (files[0], categories)
+print_shaping_table (files[1], shapes, ligatures, names)
 
 print ()
 print ("#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */")

@@ -34,20 +34,20 @@ static const uint8_t joining_table[] =
 
   /* Arabic */
 
-  /* 0600 */ U,U,U,U,U,U,X,X,U,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0600 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,T,T,T,T,T,T,T,T,T,T,T,U,T,U,U,U,
   /* 0620 */ D,U,R,R,R,R,D,R,D,R,D,D,D,D,D,R,R,R,R,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 0640 */ C,D,D,D,D,D,D,D,R,D,D,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0660 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,D,D,X,R,R,R,U,R,R,R,D,D,D,D,D,D,D,D,
+  /* 0640 */ C,D,D,D,D,D,D,D,R,D,D,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,
+  /* 0660 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,D,D,T,R,R,R,U,R,R,R,D,D,D,D,D,D,D,D,
   /* 0680 */ D,D,D,D,D,D,D,D,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,D,D,D,D,D,D,
   /* 06A0 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 06C0 */ R,D,D,R,R,R,R,R,R,R,R,R,D,R,D,R,D,D,R,R,X,R,X,X,X,X,X,X,X,U,X,X,
-  /* 06E0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,R,R,X,X,X,X,X,X,X,X,X,X,D,D,D,X,X,D,
+  /* 06C0 */ R,D,D,R,R,R,R,R,R,R,R,R,D,R,D,R,D,D,R,R,U,R,T,T,T,T,T,T,T,U,U,T,
+  /* 06E0 */ T,T,T,T,T,U,U,T,T,U,T,T,T,T,R,R,U,U,U,U,U,U,U,U,U,U,D,D,D,U,U,D,
 
   /* Syriac */
 
-  /* 0700 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,T,A,X,D,D,D,DR,DR,R,R,R,D,D,D,D,R,D,
-  /* 0720 */ D,D,D,D,D,D,D,D,R,D,DR,D,R,D,D,DR,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0740 */ X,X,X,X,X,X,X,X,X,X,X,X,X,R,D,D,
+  /* 0700 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,T,A,T,D,D,D,DR,DR,R,R,R,D,D,D,D,R,D,
+  /* 0720 */ D,D,D,D,D,D,D,D,R,D,DR,D,R,D,D,DR,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,
+  /* 0740 */ T,T,T,T,T,T,T,T,T,T,T,U,U,R,D,D,
 
   /* Arabic Supplement */
 
@@ -56,53 +56,53 @@ static const uint8_t joining_table[] =
 
   /* FILLER */
 
-  /* 0780 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 07A0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0780 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 07A0 */ U,U,U,U,U,U,T,T,T,T,T,T,T,T,T,T,T,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
 
   /* NKo */
 
-  /* 07C0 */ X,X,X,X,X,X,X,X,X,X,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 07E0 */ D,D,D,D,D,D,D,D,D,D,D,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,C,X,X,X,X,X,
+  /* 07C0 */ U,U,U,U,U,U,U,U,U,U,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* 07E0 */ D,D,D,D,D,D,D,D,D,D,D,T,T,T,T,T,T,T,T,T,U,U,U,U,U,U,C,U,U,T,U,U,
 
   /* FILLER */
 
-  /* 0800 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0820 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0800 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,T,T,T,T,U,T,T,T,T,T,
+  /* 0820 */ T,T,T,T,U,T,T,T,U,T,T,T,T,T,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
 
   /* Mandaic */
 
-  /* 0840 */ R,D,D,D,D,D,R,R,D,R,D,D,D,D,D,D,D,D,D,D,R,D,U,U,U,X,X,X,X,X,X,X,
+  /* 0840 */ R,D,D,D,D,D,R,R,D,R,D,D,D,D,D,D,D,D,D,D,R,D,U,U,U,T,T,T,U,U,U,U,
 
   /* Syriac Supplement */
 
-  /* 0860 */ D,U,D,D,D,D,U,R,D,R,R,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0880 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0860 */ D,U,D,D,D,D,U,R,D,R,R,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 0880 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
 
   /* Arabic Extended-A */
 
-  /* 08A0 */ D,D,D,D,D,D,D,D,D,D,R,R,R,U,R,D,D,R,R,D,D,X,D,D,D,R,D,D,D,D,X,X,
-  /* 08C0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 08E0 */ X,X,U,
+  /* 08A0 */ D,D,D,D,D,D,D,D,D,D,R,R,R,U,R,D,D,R,R,D,D,U,D,D,D,R,D,D,D,D,U,U,
+  /* 08C0 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,T,T,T,T,T,T,T,T,T,T,T,T,T,
+  /* 08E0 */ T,T,U,
 
 #define joining_offset_0x1806u 739
 
   /* Mongolian */
 
-  /* 1800 */             U,D,X,X,C,X,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 1800 */             U,D,U,U,C,T,T,T,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
   /* 1820 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
   /* 1840 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 1860 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,X,X,X,X,X,X,X,
+  /* 1860 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,U,U,U,U,U,U,U,
   /* 1880 */ U,U,U,U,U,T,T,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 18A0 */ D,D,D,D,D,D,D,D,D,X,D,
+  /* 18A0 */ D,D,D,D,D,D,D,D,D,T,D,
 
 #define joining_offset_0x200cu 904
 
   /* General Punctuation */
 
-  /* 2000 */                         U,C,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 2020 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 2040 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 2060 */ X,X,X,X,X,X,U,U,U,U,
+  /* 2000 */                         U,C,T,T,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 2020 */ U,U,U,U,U,U,U,U,U,U,T,T,T,T,T,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 2040 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 2060 */ T,T,T,T,T,U,U,U,U,U,
 
 #define joining_offset_0xa840u 998
 
@@ -116,14 +116,14 @@ static const uint8_t joining_table[] =
   /* Manichaean */
 
   /* 10AC0 */ D,D,D,D,D,R,U,R,U,R,R,U,U,L,R,R,R,R,R,D,D,D,D,L,D,D,D,D,D,R,D,D,
-  /* 10AE0 */ D,R,U,U,R,X,X,X,X,X,X,D,D,D,D,R,
+  /* 10AE0 */ D,R,U,U,R,T,T,U,U,U,U,D,D,D,D,R,
 
 #define joining_offset_0x10b80u 1098
 
   /* Psalter Pahlavi */
 
-  /* 10B80 */ D,R,D,R,R,R,D,D,D,R,D,D,R,D,R,R,D,R,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 10BA0 */ X,X,X,X,X,X,X,X,X,R,R,R,R,D,D,U,
+  /* 10B80 */ D,R,D,R,R,R,D,D,D,R,D,D,R,D,R,R,D,R,U,U,U,U,U,U,U,U,U,U,U,U,U,U,
+  /* 10BA0 */ U,U,U,U,U,U,U,U,U,R,R,R,R,D,D,U,
 
 #define joining_offset_0x10d00u 1146
 
@@ -137,14 +137,14 @@ static const uint8_t joining_table[] =
   /* Sogdian */
 
   /* 10F20 */                                 D,D,D,R,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 10F40 */ D,D,D,D,D,U,X,X,X,X,X,X,X,X,X,X,X,D,D,D,R,
+  /* 10F40 */ D,D,D,D,D,U,T,T,T,T,T,T,T,T,T,T,T,D,D,D,R,
 
 #define joining_offset_0x110bdu 1219
 
   /* Kaithi */
 
-  /* 110A0 */                                                           U,X,X,
-  /* 110C0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,U,
+  /* 110A0 */                                                           U,U,U,
+  /* 110C0 */ U,U,U,U,U,U,U,U,U,U,U,U,U,U,
 
 #define joining_offset_0x1e900u 1236
 
@@ -152,9 +152,9 @@ static const uint8_t joining_table[] =
 
   /* 1E900 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
   /* 1E920 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 1E940 */ D,D,D,D,X,X,X,X,X,X,X,T,
+  /* 1E940 */ D,D,D,D,T,T,T,T,T,T,T,T,
 
-}; /* Table items: 1312; occupancy: 56% */
+}; /* Table items: 1312 */
 
 
 static unsigned int
