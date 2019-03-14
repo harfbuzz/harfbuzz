@@ -109,7 +109,7 @@ struct fvar
 		  axisSize == 20 && /* Assumed in our code. */
 		  instanceSize >= axisCount * 4 + 4 &&
 		  get_axes ().sanitize (c) &&
-		  c->check_range (get_instance (0), instanceCount, instanceSize));
+		  (instanceCount == 0 || c->check_range (get_instance (0), instanceCount, instanceSize)));
   }
 
   unsigned int get_axis_count () const { return axisCount; }
@@ -281,8 +281,8 @@ struct fvar
   const InstanceRecord *get_instance (unsigned int i) const
   {
     if (unlikely (i >= instanceCount)) return nullptr;
-   return &StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),
-					   i * instanceSize);
+    return &StructAtOffset<InstanceRecord> (&StructAfter<InstanceRecord> (get_axes ()),
+					    i * instanceSize);
   }
 
   protected:
