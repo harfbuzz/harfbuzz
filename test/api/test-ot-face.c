@@ -110,12 +110,21 @@ test_ot_face_empty (void)
   test_face (hb_face_get_empty (), 0);
 }
 
+static void
+test_ot_var_axis_on_zero_named_instance ()
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Zycon.ttf");
+  g_assert (hb_ot_var_get_axis_count (face));
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_ot_face_empty);
+  hb_test_add (test_ot_var_axis_on_zero_named_instance);
 
   return hb_test_run();
 }
