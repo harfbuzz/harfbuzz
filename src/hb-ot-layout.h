@@ -95,13 +95,13 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face);
 
 /**
  * hb_ot_layout_get_glyph_class:
- * @HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED:
- * @HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH:
- * @HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE: 
- * @HB_OT_LAYOUT_GLYPH_CLASS_MARK:
- * @HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT: 
+ * @HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED: Glyphs not matching the other classifications
+ * @HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH: Spacing, single characters, capable of accepting marks
+ * @HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE: Glyphs that represent ligation of multiple characters
+ * @HB_OT_LAYOUT_GLYPH_CLASS_MARK: Non-spacing, combining glyphs that represent marks
+ * @HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT: Spacing glyphs that represent part of a single character
  *
- * The layout classes defined for glyphs.
+ * The GDEF classes defined for glyphs.
  *
  **/
 typedef enum {
