@@ -93,6 +93,17 @@ hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
 HB_EXTERN hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face);
 
+/**
+ * hb_ot_layout_get_glyph_class:
+ * @HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED:
+ * @HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH:
+ * @HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE: 
+ * @HB_OT_LAYOUT_GLYPH_CLASS_MARK:
+ * @HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT: 
+ *
+ * The layout classes defined for glyphs.
+ *
+ **/
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 1,
