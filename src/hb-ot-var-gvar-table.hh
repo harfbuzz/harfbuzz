@@ -119,9 +119,9 @@ struct TupleVarHeader
 
   unsigned int get_data_size () const { return varDataSize; }
 
-  bool has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple) != 0; }
-  bool has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion) != 0; }
-  bool has_private_points () const { return (tupleIndex & TuppleIndex::PrivatePointNumbers) != 0; }
+  bool has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple); }
+  bool has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion); }
+  bool has_private_points () const { return (tupleIndex & TuppleIndex::PrivatePointNumbers); }
   unsigned int get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
 
   protected:
@@ -144,7 +144,7 @@ struct TupleVarHeader
 
 struct TupleVarCount : HBUINT16
 {
-  bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers) != 0; }
+  bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
   unsigned int get_count () const { return (*this) & CountMask; }
 
   protected:
@@ -249,7 +249,7 @@ struct GlyphVarData
 
     if (!check.in_range (p)) return false;
     uint16_t count = *p++;
-    if ((count & POINTS_ARE_WORDS) != 0)
+    if (count & POINTS_ARE_WORDS)
     {
       if (!check.in_range (p)) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
@@ -263,7 +263,7 @@ struct GlyphVarData
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
-      if ((control & POINTS_ARE_WORDS) != 0)
+      if (control & POINTS_ARE_WORDS)
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
@@ -304,12 +304,12 @@ struct GlyphVarData
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
-      if ((control & DELTAS_ARE_ZERO) != 0)
+      if (control & DELTAS_ARE_ZERO)
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	  deltas[i] = 0;
       }
-      else if ((control & DELTAS_ARE_WORDS) != 0)
+      else if (control & DELTAS_ARE_WORDS)
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
@@ -518,6 +518,7 @@ struct gvar
       if (unlikely (coord_count != gvar_table->axisCount)) return false;
 
       const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
+      if (var_data == &Null(GlyphVarData)) return true;
       hb_vector_t <unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
       if (!GlyphVarData::get_tuple_iterator (var_data,
@@ -624,10 +625,13 @@ struct gvar
       if (!glyf_accel.get_composite (glyph, &composite)) return true;	/* simple glyph */
       do
       {
-	/* TODO: support component scale/transformation */
-	if (((composite.current->flags & glyf::CompositeGlyphHeader::USE_MY_METRICS) != 0) &&
-	    !get_var_metrics (composite.current->glyphIndex, coords, coord_count, phantoms))
-	  return false;
+	if (composite.current->flags & glyf::CompositeGlyphHeader::USE_MY_METRICS)
+	{
+	  if (!get_var_metrics (composite.current->glyphIndex, coords, coord_count, phantoms))
+	    return false;
+	  for (unsigned int j = 0; j < phantoms.length; j++)
+	    composite.current->transform_point (phantoms[j].x, phantoms[j].y);
+	}
       } while (composite.move_to_next());
       return true;
     }
@@ -677,7 +681,8 @@ struct gvar
 	if (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))
 	  return false;
 
-	/* TODO: support component scale/transformation */
+	composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
+	composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
 	bounds._union (comp_bounds);
       } while (composite.move_to_next());
       return true;

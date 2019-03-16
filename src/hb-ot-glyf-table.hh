@@ -172,6 +172,44 @@ struct glyf
       return size;
     }
 
+    void transform_point (float &x, float &y) const
+    {
+      int tx, ty;
+      const HBINT8 *p = &StructAfter<const HBINT8> (glyphIndex);
+      if (flags & ARG_1_AND_2_ARE_WORDS)
+      {
+	tx = *(const HBINT16 *)p;
+	p += HBINT16::static_size;
+	ty = *(const HBINT16 *)p;
+	p += HBINT16::static_size;
+      }
+      else
+      {
+	tx = *p++;
+	ty = *p++;
+      }
+      if (!(flags & ARGS_ARE_XY_VALUES)) tx = ty = 0;	/* TODO: anchor point unsupported for now */
+
+      if (flags & WE_HAVE_A_SCALE)
+      {
+	float scale = ((const F2DOT14*)p)->to_float ();
+	x *= scale;
+	y *= scale;
+      }
+      else if (flags & WE_HAVE_AN_X_AND_Y_SCALE)
+      {
+	x *= ((const F2DOT14*)p)[0].to_float ();
+	y *= ((const F2DOT14*)p)[1].to_float ();
+      }
+      else if (flags & WE_HAVE_A_TWO_BY_TWO)
+      {
+	float x_ = x * ((const F2DOT14*)p)[0].to_float () + y * ((const F2DOT14*)p)[1].to_float ();
+	y 	 = x * ((const F2DOT14*)p)[2].to_float () + y * ((const F2DOT14*)p)[3].to_float ();
+	x = x_;
+      }
+      if (tx | ty) { x += tx; y += ty; }
+    }
+
     struct Iterator
     {
       const char *glyph_start;
@@ -341,7 +379,8 @@ struct glyf
       	uint8_t flag = points_[i].flag;
       	if (coord_setter.is_short (flag))
       	{
-	  if (unlikely (!checker.in_range (p))) return false;
+	  if (unlikely (!checker.in_range (p)))
+	    return false;
 	  if (coord_setter.is_same (flag))
 	    v += *p++;
 	  else
@@ -349,9 +388,10 @@ struct glyf
 	}
 	else
 	{
-	  if (unlikely (!checker.in_range ((const HBUINT16 *)p))) return false;
 	  if (!coord_setter.is_same (flag))
 	  {
+	    if (unlikely (!checker.in_range ((const HBUINT16 *)p)))
+	      return false;
 	    v += *(const HBINT16 *)p;
 	    p += HBINT16::static_size;
 	  }
