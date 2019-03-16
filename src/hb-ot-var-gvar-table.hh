@@ -159,21 +159,36 @@ struct TupleVarCount : HBUINT16
 
 struct GlyphVarData
 {
+  typedef glyf::accelerator_t::range_checker_t range_checker_t;
+
   const TupleVarHeader &get_tuple_var_header (void) const
   { return StructAfter<TupleVarHeader>(data); }
 
   struct tuple_iterator_t
   {
-    void init (const GlyphVarData *_var_data, unsigned int _length, unsigned int _axis_count)
+    void init (const GlyphVarData *var_data_, unsigned int length_, unsigned int axis_count_)
     {
-      var_data = _var_data;
-      length = _length;
+      var_data = var_data_;
+      length = length_;
       index = 0;
-      axis_count = _axis_count;
+      axis_count = axis_count_;
       current_tuple = &var_data->get_tuple_var_header ();
       data_offset = 0;
     }
   
+    bool get_shared_indices (hb_vector_t<unsigned int> &shared_indices /* OUT */)
+    {
+      if (var_data->has_shared_point_numbers ())
+      {
+	range_checker_t checker (var_data, 0, length);
+	const HBUINT8 *base = &(var_data+var_data->data);
+	const HBUINT8 *p = base;
+	if (!unpack_points (p, shared_indices, checker)) return false;
+	data_offset = p - base;
+      }
+      return true;
+    }
+
     bool is_valid () const
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
@@ -211,13 +226,113 @@ struct GlyphVarData
   static bool get_tuple_iterator (const GlyphVarData *var_data,
   				  unsigned int length,
   				  unsigned int axis_count,
+  				  hb_vector_t<unsigned int> &shared_indices /* OUT */,
   				  tuple_iterator_t *iterator /* OUT */)
   {
     iterator->init (var_data, length, axis_count);
+    if (!iterator->get_shared_indices (shared_indices))
+      return false;
     return iterator->is_valid ();
   }
 
   bool has_shared_point_numbers () const { return tupleVarCount.has_shared_point_numbers (); }
+
+  static bool unpack_points (const HBUINT8 *&p /* IN/OUT */,
+			     hb_vector_t<unsigned int> &points /* OUT */,
+			     const range_checker_t &check)
+  {
+    enum packed_point_flag_t
+    {
+      POINTS_ARE_WORDS = 0x80,
+      POINT_RUN_COUNT_MASK = 0x7F
+    };
+
+    if (!check.in_range (p)) return false;
+    uint16_t count = *p++;
+    if ((count & POINTS_ARE_WORDS) != 0)
+    {
+      if (!check.in_range (p)) return false;
+      count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
+    }
+    points.resize (count);
+
+    uint16_t i = 0;
+    while (i < count)
+    {
+      if (!check.in_range (p)) return false;
+      uint16_t j;
+      uint8_t control = *p++;
+      uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
+      if ((control & POINTS_ARE_WORDS) != 0)
+      {
+	for (j = 0; j < run_count && i < count; j++, i++)
+	{
+	  if (!check.in_range ((const HBUINT16 *)p)) return false;
+	  points[i] = *(const HBUINT16 *)p;
+	  p += HBUINT16::static_size;
+	}
+      }
+      else
+      {
+	for (j = 0; j < run_count && i < count; j++, i++)
+	{
+	  if (!check.in_range (p)) return false;
+	  points[i] = *p++;
+	}
+      }
+      if (j < run_count) return false;
+    }
+    return true;
+  }
+
+  static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
+			     hb_vector_t<int> &deltas /* IN/OUT */,
+			     const range_checker_t &check)
+  {
+    enum packed_delta_flag_t
+    {
+      DELTAS_ARE_ZERO	= 0x80,
+      DELTAS_ARE_WORDS = 0x40,
+      DELTA_RUN_COUNT_MASK = 0x3F
+    };
+
+    unsigned int i = 0;
+    unsigned int count = deltas.length;
+    while (i < count)
+    {
+      if (!check.in_range (p)) return false;
+      uint16_t j;
+      uint8_t control = *p++;
+      uint16_t run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      if ((control & DELTAS_ARE_ZERO) != 0)
+      {
+	for (j = 0; j < run_count && i < count; j++, i++)
+	  deltas[i] = 0;
+      }
+      else if ((control & DELTAS_ARE_WORDS) != 0)
+      {
+	for (j = 0; j < run_count && i < count; j++, i++)
+	{
+	  if (!check.in_range ((const HBUINT16 *)p))
+	    return false;
+	  deltas[i] = *(const HBINT16 *)p;
+	  p += HBUINT16::static_size;
+	}
+      }
+      else
+      {
+	for (j = 0; j < run_count && i < count; j++, i++)
+	{
+	  if (!check.in_range (p))
+	    return false;
+	  deltas[i] = *(const HBINT8 *)p++;
+	}
+      }
+      if (j < run_count)
+	return false;
+    }
+    return true;
+  }
 
   protected:
   TupleVarCount		tupleVarCount;
@@ -347,7 +462,6 @@ struct gvar
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
 
   typedef glyf::accelerator_t::contour_point_t contour_point_t;
-  typedef glyf::accelerator_t::range_checker_t range_checker_t;
 
   public:
   struct accelerator_t
@@ -404,10 +518,12 @@ struct gvar
       if (unlikely (coord_count != gvar_table->axisCount)) return false;
 
       const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
+      hb_vector_t <unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
       if (!GlyphVarData::get_tuple_iterator (var_data,
 					     gvar_table->get_glyph_var_data_length (glyph),
 					     gvar_table->axisCount,
+					     shared_indices,
 					     &iterator))
 	return false;
 
@@ -421,25 +537,26 @@ struct gvar
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
-	if (unlikely (!iterator.in_range (p, length))) return false;
+	if (unlikely (!iterator.in_range (p, length)))
+	  return false;
 
-	range_checker_t checker (p, 0, length);
-	hb_vector_t <unsigned int>	shared_indices;
-	if (var_data->has_shared_point_numbers () &&
-	    !unpack_points (p, shared_indices, checker)) return false;
+	GlyphVarData::range_checker_t checker (p, 0, length);
 	hb_vector_t <unsigned int>	private_indices;
 	if (iterator.current_tuple->has_private_points () &&
-	    !unpack_points (p, private_indices, checker)) return false;
+	    !GlyphVarData::unpack_points (p, private_indices, checker))
+	  return false;
 	const hb_array_t<unsigned int> &indices = shared_indices.length? shared_indices: private_indices;
 
       	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all? points.length: indices.length;
 	hb_vector_t <int>	x_deltas;
 	x_deltas.resize (num_deltas);
-	if (!unpack_deltas (p, x_deltas, checker)) return false;
+	if (!GlyphVarData::unpack_deltas (p, x_deltas, checker))
+	  return false;
 	hb_vector_t <int>	y_deltas;
 	y_deltas.resize (num_deltas);
-	if (!unpack_deltas (p, y_deltas, checker)) return false;
+	if (!GlyphVarData::unpack_deltas (p, y_deltas, checker))
+	  return false;
 
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
@@ -448,7 +565,6 @@ struct gvar
 	  deltas[pt_index].x += x_deltas[i] * scalar;
 	  deltas[pt_index].y += y_deltas[i] * scalar;
 	}
-	/* TODO: interpolate untouched points for glyph extents */
       } while (iterator.move_to_next ());
 
       /* infer deltas for unreferenced points */
@@ -460,22 +576,22 @@ struct gvar
 	{
 	  if (deltas[i].flag) continue;
 	  /* search in both directions within the contour for a pair of referenced points */
-	  unsigned int pre;
-	  for (pre = i;;)
+	  unsigned int prev;
+	  for (prev = i;;)
 	  {
-	    if (pre-- <= start_point) pre = end_point;
-	    if (pre == i || deltas[pre].flag) break;
+	    if (prev-- <= start_point) prev = end_point;
+	    if (prev == i || deltas[prev].flag) break;
 	  }
-	  if (pre == i) continue;	/* no (preceeding) referenced point was found */
-	  unsigned int fol;
-	  for (fol = i;;)
+	  if (prev == i) continue;	/* no (previous) referenced point was found */
+	  unsigned int next;
+	  for (next = i;;)
 	  {
-	    if (fol++ >= end_point) fol = start_point;
-	    if (fol == i || deltas[fol].flag) break;
+	    if (next++ >= end_point) next = start_point;
+	    if (next == i || deltas[next].flag) break;
 	  }
-	  assert (fol != i);
-	  deltas[i].x = infer_delta (points[i].x, points[pre].x, points[fol].x, deltas[pre].x, deltas[fol].x);
-	  deltas[i].y = infer_delta (points[i].y, points[pre].y, points[fol].y, deltas[pre].y, deltas[fol].y);
+	  assert (next != i);
+	  deltas[i].x = infer_delta (points[i].x, points[prev].x, points[next].x, deltas[prev].x, deltas[next].x);
+	  deltas[i].y = infer_delta (points[i].y, points[prev].y, points[next].y, deltas[prev].y, deltas[next].y);
 	}
 	start_point = end_point + 1;
       }
@@ -498,7 +614,8 @@ struct gvar
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
       if (!glyf_accel.get_contour_points (glyph, points, end_points, true/*phantom_only*/)) return false;
-      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
+      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))
+      	return false;
 
       for (unsigned int i = 0; i < glyf_acc_t::PHANTOM_COUNT; i++)
       	phantoms[i] = points[points.length - glyf_acc_t::PHANTOM_COUNT + i];
@@ -542,14 +659,15 @@ struct gvar
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
       if (!glyf_accel.get_contour_points (glyph, points, end_points)) return false;
-      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ())) return false;
+      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))
+      	return false;
 
       glyf::CompositeGlyphHeader::Iterator composite;
       if (!glyf_accel.get_composite (glyph, &composite))
       {
       	/* simple glyph */
 	for (unsigned int i = 0; i + glyf_acc_t::PHANTOM_COUNT < points.length; i++)
-	  bounds.add (points[i]);
+	  bounds.add (points[i]);	/* TODO: need to check ON_CURVE or flatten? */
 	return true;
       }
       /* composite glyph */
@@ -621,100 +739,6 @@ struct gvar
     protected:
     const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
     { return gvar_table->get_glyph_var_data (glyph); }
-
-    static bool unpack_points (const HBUINT8 *&p /* IN/OUT */,
-			       hb_vector_t<unsigned int> &points /* OUT */,
-			       const range_checker_t &check)
-    {
-      enum packed_point_flag_t
-      {
-	POINTS_ARE_WORDS = 0x80,
-	POINT_RUN_COUNT_MASK = 0x7F
-      };
-
-      if (!check.in_range (p)) return false;
-      uint16_t count = *p++;
-      if ((count & POINTS_ARE_WORDS) != 0)
-      {
-      	if (!check.in_range (p)) return false;
-      	count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
-      }
-      points.resize (count);
-
-      uint16_t i = 0;
-      while (i < count)
-      {
-	if (!check.in_range (p)) return false;
-	uint16_t j;
-	uint8_t control = *p++;
-	uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
-	if ((control & POINTS_ARE_WORDS) != 0)
-	{
-	  for (j = 0; j < run_count && i < count; j++, i++)
-	  {
-	    if (!check.in_range ((const HBUINT16 *)p)) return false;
-	    points[i] = *(const HBUINT16 *)p;
-	    p += HBUINT16::static_size;
-	  }
-	}
-	else
-	{
-	  for (j = 0; j < run_count && i < count; j++, i++)
-	  {
-	    if (!check.in_range (p)) return false;
-	    points[i] = *p++;
-	  }
-	}
-	if (j < run_count) return false;
-      }
-      return true;
-    }
-
-    static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
-			       hb_vector_t<int> &deltas /* IN/OUT */,
-			       const range_checker_t &check)
-    {
-      enum packed_delta_flag_t
-      {
-	DELTAS_ARE_ZERO	= 0x80,
-	DELTAS_ARE_WORDS = 0x40,
-	DELTA_RUN_COUNT_MASK = 0x3F
-      };
-
-      unsigned int i = 0;
-      unsigned int count = deltas.length;
-      while (i < count)
-      {
-	if (!check.in_range (p)) return false;
-	uint16_t j;
-	uint8_t control = *p++;
-	uint16_t run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
-	if ((control & DELTAS_ARE_ZERO) != 0)
-	{
-	  for (j = 0; j < run_count && i < count; j++, i++)
-	    deltas[i] = 0;
-	}
-	else if ((control & DELTAS_ARE_WORDS) != 0)
-	{
-	  for (j = 0; j < run_count && i < count; j++, i++)
-	  {
-	    if (!check.in_range ((const HBUINT16 *)p)) return false;
-	    deltas[i] = *(const HBINT16 *)p;
-	    p += HBUINT16::static_size;
-	  }
-	}
-	else
-	{
-	  for (j = 0; j < run_count && i < count; j++, i++)
-	  {
-	    if (!check.in_range (p)) return false;
-	    deltas[i] = *(const HBINT8 *)p++;
-	  }
-	}
-	if (j < run_count) return false;
-      }
-      return true;
-    }
 
     private:
     hb_blob_ptr_t<gvar>		gvar_table;

@@ -1,0 +1,72 @@
+/*
+ * Copyright © 2019 Adobe Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Adobe Author(s): Michiharu Ariza
+ */
+
+#include "hb-test.h"
+#include <hb-ot.h>
+
+/* Unit tests for glyph advance widths and extents of TrueType variable fonts */
+
+static void
+test_extents_tt_var (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.abc.ttf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 60);
+  g_assert_cmpint (extents.y_bearing, ==, 490);
+  g_assert_cmpint (extents.width, ==, 344);
+  g_assert_cmpint (extents.height, ==, -502);
+
+  float coords[1] = { 500.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+  result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 49);
+  g_assert_cmpint (extents.y_bearing, ==, 501);
+  g_assert_cmpint (extents.width, ==, 393);
+  g_assert_cmpint (extents.height, ==, -513);
+
+  hb_font_destroy (font);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+
+  hb_test_add (test_extents_tt_var);
+
+  return hb_test_run ();
+}

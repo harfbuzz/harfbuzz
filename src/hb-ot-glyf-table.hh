@@ -299,8 +299,8 @@ struct glyf
 
     struct range_checker_t
     {
-      range_checker_t (const void *_table, unsigned int _start_offset, unsigned int _end_offset)
-      	: table ((const char*)_table), start_offset (_start_offset), end_offset (_end_offset) {}
+      range_checker_t (const void *table_, unsigned int start_offset_, unsigned int end_offset_)
+      	: table ((const char*)table_), start_offset (start_offset_), end_offset (end_offset_) {}
 
       template <typename T>
       bool in_range (const T *p) const
@@ -331,14 +331,14 @@ struct glyf
 
     template <typename T>
     static bool read_points (const HBUINT8 *&p /* IN/OUT */,
-			     hb_vector_t<contour_point_t> &_points /* IN/OUT */,
+			     hb_vector_t<contour_point_t> &points_ /* IN/OUT */,
 			     const range_checker_t &checker)
     {
       T coord_setter;
       float v = 0;
-      for (unsigned int i = 0; i < _points.length - PHANTOM_COUNT; i++)
+      for (unsigned int i = 0; i < points_.length - PHANTOM_COUNT; i++)
       {
-      	uint8_t flag = _points[i].flag;
+      	uint8_t flag = points_[i].flag;
       	if (coord_setter.is_short (flag))
       	{
 	  if (unlikely (!checker.in_range (p))) return false;
@@ -352,11 +352,11 @@ struct glyf
 	  if (unlikely (!checker.in_range ((const HBUINT16 *)p))) return false;
 	  if (!coord_setter.is_same (flag))
 	  {
-	    v = *(const HBINT16 *)p;
+	    v += *(const HBINT16 *)p;
 	    p += HBINT16::static_size;
 	  }
 	}
-	coord_setter.set (_points[i], v);
+	coord_setter.set (points_[i], v);
       }
       return true;
     }
@@ -366,7 +366,7 @@ struct glyf
      * in both cases points trailed with four phantom points
      */
     bool get_contour_points (hb_codepoint_t glyph,
-			     hb_vector_t<contour_point_t> &_points /* OUT */,
+			     hb_vector_t<contour_point_t> &points_ /* OUT */,
 			     hb_vector_t<unsigned int> &_end_points /* OUT */,
 			     const bool phantom_only=false) const
     {
@@ -382,8 +382,8 @@ struct glyf
       {
       	/* For a composite glyph, add one pseudo point for each component */
 	do { num_points++; } while (composite.move_to_next());
-	_points.resize (num_points + PHANTOM_COUNT);
-	for (unsigned int i = 0; i < _points.length; i++) _points[i].init ();
+	points_.resize (num_points + PHANTOM_COUNT);
+	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
 	return true;
       }
 
@@ -408,8 +408,8 @@ struct glyf
 	} while (composite.move_to_next());
       }
 
-      _points.resize (num_points + PHANTOM_COUNT);
-      for (unsigned int i = 0; i < _points.length; i++) _points[i].init ();
+      points_.resize (num_points + PHANTOM_COUNT);
+      for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
       if ((num_contours <= 0) || phantom_only) return true;
 		
       /* Read simple glyph points if !phantom_only */
@@ -426,19 +426,19 @@ struct glyf
       {
       	if (unlikely (!checker.in_range (p))) return false;
       	uint8_t flag = *p++;
-	_points[i].flag = flag;
+	points_[i].flag = flag;
 	if ((flag & FLAG_REPEAT) != 0)
 	{
 	  if (unlikely (!checker.in_range (p))) return false;
 	  unsigned int repeat_count = *p++;
 	  while ((repeat_count-- > 0) && (++i < num_points))
-	    _points[i].flag = flag;
+	    points_[i].flag = flag;
 	}
       }
 
       /* Read x & y coordinates */
-      return (read_points<x_setter_t> (p, _points, checker) &&
-	      read_points<y_setter_t> (p, _points, checker));
+      return (read_points<x_setter_t> (p, points_, checker) &&
+	      read_points<y_setter_t> (p, points_, checker));
     }
 
     /* based on FontTools _g_l_y_f.py::trim */
