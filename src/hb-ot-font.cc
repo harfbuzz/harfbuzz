@@ -158,10 +158,10 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   }
 
   hb_glyph_extents_t extents = {0};
-  if (ot_face->glyf->get_extents (glyph, &extents))
+  if (ot_face->glyf->get_extents (font, glyph, &extents))
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-    hb_position_t tsb = vmtx.get_side_bearing (glyph);
+    hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
     *y = font->em_scale_y (extents.y_bearing + tsb);
     return true;
   }
@@ -183,9 +183,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
   bool ret = ot_face->sbix->get_extents (font, glyph, extents);
   if (!ret)
-    ret = ot_face->gvar->get_extents (font, glyph, extents);
-  if (!ret)
-    ret = ot_face->glyf->get_extents (glyph, extents);
+    ret = ot_face->glyf->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->cff1->get_extents (glyph, extents);
   if (!ret)

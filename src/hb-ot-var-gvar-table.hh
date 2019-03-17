@@ -41,6 +41,31 @@
 
 namespace OT {
 
+struct contour_point_t
+{
+  void init () { flag = 0; x = y = 0.0f; }
+  uint8_t	flag;
+  float		x, y;
+};
+
+struct range_checker_t
+{
+  range_checker_t (const void *table_, unsigned int start_offset_, unsigned int end_offset_)
+    : table ((const char*)table_), start_offset (start_offset_), end_offset (end_offset_) {}
+
+  template <typename T>
+  bool in_range (const T *p) const
+  {
+    return ((const char *) p) >= table + start_offset
+	&& ((const char *) p + T::static_size) <= table + end_offset;
+  }
+
+  protected:
+  const char *table;
+  const unsigned int start_offset;
+  const unsigned int end_offset;
+};
+
 struct Tuple : UnsizedArrayOf<F2DOT14> {};
 
 struct TuppleIndex : HBUINT16
@@ -159,8 +184,6 @@ struct TupleVarCount : HBUINT16
 
 struct GlyphVarData
 {
-  typedef glyf::accelerator_t::range_checker_t range_checker_t;
-
   const TupleVarHeader &get_tuple_var_header (void) const
   { return StructAfter<TupleVarHeader>(data); }
 
@@ -448,8 +471,6 @@ struct gvar
   const HBUINT32 *get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
 
-  typedef glyf::accelerator_t::contour_point_t contour_point_t;
-
   public:
   struct accelerator_t
   {
@@ -458,7 +479,6 @@ struct gvar
       memset (this, 0, sizeof (accelerator_t));
 
       gvar_table = hb_sanitize_context_t ().reference_table<gvar> (face);
-      glyf_accel.init (face);
       hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t ().reference_table<fvar> (face);
       unsigned int axis_count = fvar_table->get_axis_count ();
       fvar_table.destroy ();
@@ -476,7 +496,6 @@ struct gvar
     void fini ()
     {
       gvar_table.destroy ();
-      glyf_accel.fini ();
     }
 
     protected:
@@ -528,7 +547,7 @@ struct gvar
 	if (unlikely (!iterator.in_range (p, length)))
 	  return false;
 
-	GlyphVarData::range_checker_t checker (p, 0, length);
+	range_checker_t checker (p, 0, length);
 	hb_vector_t <unsigned int>	private_indices;
 	if (iterator.current_tuple->has_private_points () &&
 	    !GlyphVarData::unpack_points (p, private_indices, checker))
@@ -594,85 +613,22 @@ struct gvar
       return true;
     }
 
-    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
-    bool get_var_metrics (hb_codepoint_t glyph,
-			  const int *coords, unsigned int coord_count,
-			  hb_vector_t<contour_point_t> &phantoms) const
+    unsigned int get_axis_count () const { return gvar_table->axisCount; }
+
+    protected:
+    static float infer_delta (float target_val, float prev_val, float next_val,
+			      float prev_delta, float next_delta)
     {
-      hb_vector_t<contour_point_t>	points;
-      hb_vector_t<unsigned int>		end_points;
-      if (!glyf_accel.get_contour_points (glyph, points, end_points, true/*phantom_only*/)) return false;
-      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))
-      	return false;
+      if (prev_val == next_val)
+      	return (prev_delta == next_delta)? prev_delta: 0.f;
+      else if (target_val <= MIN (prev_val, next_val))
+      	return (prev_val < next_val) ? prev_delta: next_delta;
+      else if (target_val >= MAX (prev_val, next_val))
+      	return (prev_val > next_val)? prev_delta: next_delta;
 
-      for (unsigned int i = 0; i < glyf_acc_t::PHANTOM_COUNT; i++)
-      	phantoms[i] = points[points.length - glyf_acc_t::PHANTOM_COUNT + i];
-
-      glyf::CompositeGlyphHeader::Iterator composite;
-      if (!glyf_accel.get_composite (glyph, &composite)) return true;	/* simple glyph */
-      do
-      {
-	if (composite.current->flags & glyf::CompositeGlyphHeader::USE_MY_METRICS)
-	{
-	  if (!get_var_metrics (composite.current->glyphIndex, coords, coord_count, phantoms))
-	    return false;
-	  for (unsigned int j = 0; j < phantoms.length; j++)
-	    composite.current->transform_point (phantoms[j].x, phantoms[j].y);
-	}
-      } while (composite.move_to_next());
-      return true;
-    }
-
-    struct bounds_t
-    {
-      bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
-
-      void add (const contour_point_t &p)
-      {
-      	min.x = MIN (min.x, p.x);
-      	min.y = MIN (min.y, p.y);
-      	max.x = MAX (max.x, p.x);
-      	max.y = MAX (max.y, p.y);
-      }
-
-      void _union (const bounds_t &b)
-      { add (b.min); add (b.max); }
-
-      contour_point_t	min;
-      contour_point_t	max;
-    };
-
-    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
-    bool get_bounds_var (hb_codepoint_t glyph,
-			 const int *coords, unsigned int coord_count,
-			 bounds_t &bounds) const
-    {
-      hb_vector_t<contour_point_t>	points;
-      hb_vector_t<unsigned int>		end_points;
-      if (!glyf_accel.get_contour_points (glyph, points, end_points)) return false;
-      if (!apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))
-      	return false;
-
-      glyf::CompositeGlyphHeader::Iterator composite;
-      if (!glyf_accel.get_composite (glyph, &composite))
-      {
-      	/* simple glyph */
-	for (unsigned int i = 0; i + glyf_acc_t::PHANTOM_COUNT < points.length; i++)
-	  bounds.add (points[i]);	/* TODO: need to check ON_CURVE or flatten? */
-	return true;
-      }
-      /* composite glyph */
-      do
-      {
-	bounds_t	comp_bounds;
-	if (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))
-	  return false;
-
-	composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
-	composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
-	bounds._union (comp_bounds);
-      } while (composite.move_to_next());
-      return true;
+      /* linear interpolation */
+      float r = (target_val - prev_val) / (next_val - prev_val);
+      return (1.f - r) * prev_delta + r * next_delta;
     }
 
     public:
@@ -735,7 +691,6 @@ struct gvar
     private:
     hb_blob_ptr_t<gvar>		gvar_table;
     hb_vector_t<F2DOT14>	shared_tuples;
-    glyf::accelerator_t		glyf_accel;
   };
 
   protected:

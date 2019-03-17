@@ -30,6 +30,8 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-head-table.hh"
+#include "hb-ot-hmtx-table.hh"
+#include "hb-ot-var-gvar-table.hh"
 #include "hb-subset-glyf.hh"
 
 namespace OT {
@@ -222,8 +224,7 @@ struct glyf
 	{
 	  const CompositeGlyphHeader *possible =
 	    &StructAfter<CompositeGlyphHeader, CompositeGlyphHeader> (*current);
-	  if (!in_range (possible))
-	    return false;
+	  if (unlikely (!in_range (possible))) return false;
 	  current = possible;
 	  return true;
 	}
@@ -281,12 +282,19 @@ struct glyf
       glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
 
       num_glyphs = MAX (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
+
+      gvar_accel.init (face);
+      hmtx_accel.init (face);
+      vmtx_accel.init (face);
     }
 
     void fini ()
     {
       loca_table.destroy ();
       glyf_table.destroy ();
+      gvar_accel.fini ();
+      hmtx_accel.fini ();
+      vmtx_accel.fini ();
     }
 
     /*
@@ -328,30 +336,15 @@ struct glyf
       PHANTOM_COUNT = 4
     };
 
-    struct contour_point_t
+    protected:
+    const GlyphHeader &get_header (hb_codepoint_t glyph) const
     {
-      void init () { flag = 0; x = y = 0.0f; }
-      uint8_t	flag;
-      float	x, y;
-    };
+      unsigned int start_offset, end_offset;
+      if (!get_offsets (glyph, &start_offset, &end_offset) || end_offset - start_offset < GlyphHeader::static_size)
+	return Null(GlyphHeader);
 
-    struct range_checker_t
-    {
-      range_checker_t (const void *table_, unsigned int start_offset_, unsigned int end_offset_)
-      	: table ((const char*)table_), start_offset (start_offset_), end_offset (end_offset_) {}
-
-      template <typename T>
-      bool in_range (const T *p) const
-      {
-	return ((const char *) p) >= table + start_offset
-	    && ((const char *) p + T::static_size) <= table + end_offset;
-      }
-
-      protected:
-      const char *table;
-      const unsigned int start_offset;
-      const unsigned int end_offset;
-    };
+      return StructAtOffset<GlyphHeader> (glyf_table, start_offset);
+    }
 
     struct x_setter_t
     {
@@ -379,8 +372,7 @@ struct glyf
       	uint8_t flag = points_[i].flag;
       	if (coord_setter.is_short (flag))
       	{
-	  if (unlikely (!checker.in_range (p)))
-	    return false;
+	  if (unlikely (!checker.in_range (p))) return false;
 	  if (coord_setter.is_same (flag))
 	    v += *p++;
 	  else
@@ -390,8 +382,7 @@ struct glyf
 	{
 	  if (!coord_setter.is_same (flag))
 	  {
-	    if (unlikely (!checker.in_range ((const HBUINT16 *)p)))
-	      return false;
+	    if (unlikely (!checker.in_range ((const HBUINT16 *)p))) return false;
 	    v += *(const HBINT16 *)p;
 	    p += HBINT16::static_size;
 	  }
@@ -401,23 +392,35 @@ struct glyf
       return true;
     }
 
+    void init_phantom_points (hb_codepoint_t glyph, hb_array_t<contour_point_t> &phantoms /* IN/OUT */) const
+    {
+      const GlyphHeader &header = get_header (glyph);
+      int h_delta = (int)header.xMin - hmtx_accel.get_side_bearing (glyph);
+      int v_delta = (int)header.yMax - vmtx_accel.get_side_bearing (glyph);
+      unsigned int h_adv = hmtx_accel.get_advance (glyph);
+      unsigned int v_adv = vmtx_accel.get_advance (glyph);
+
+      phantoms[PHANTOM_LEFT].x = h_delta;
+      phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
+      phantoms[PHANTOM_TOP].y = v_delta;
+      phantoms[PHANTOM_BOTTOM].y = -v_adv + v_delta;
+    }
+
     /* for a simple glyph, return contour end points, flags, along with coordinate points
      * for a composite glyph, return pseudo component points
      * in both cases points trailed with four phantom points
      */
     bool get_contour_points (hb_codepoint_t glyph,
 			     hb_vector_t<contour_point_t> &points_ /* OUT */,
-			     hb_vector_t<unsigned int> &_end_points /* OUT */,
+			     hb_vector_t<unsigned int> &end_points_ /* OUT */,
 			     const bool phantom_only=false) const
     {
       unsigned int num_points = 0;
       unsigned int start_offset, end_offset;
-      if (unlikely (!get_offsets (glyph, &start_offset, &end_offset)))
-      	return false;
-      if (end_offset - start_offset < GlyphHeader::static_size)
-      	return false;
+      if (unlikely (!get_offsets (glyph, &start_offset, &end_offset))) return false;
+      if (unlikely (end_offset - start_offset < GlyphHeader::static_size)) return false;
 
-      glyf::CompositeGlyphHeader::Iterator composite;
+      CompositeGlyphHeader::Iterator composite;
       if (get_composite (glyph, &composite))
       {
       	/* For a composite glyph, add one pseudo point for each component */
@@ -441,7 +444,7 @@ struct glyf
       else if (num_contours < 0)
       {
 	CompositeGlyphHeader::Iterator composite;
-	if (!get_composite (glyph, &composite)) return false;
+	if (unlikely (!get_composite (glyph, &composite))) return false;
 	do
 	{
 	  num_points++;
@@ -453,10 +456,10 @@ struct glyf
       if ((num_contours <= 0) || phantom_only) return true;
 
       /* Read simple glyph points if !phantom_only */
-      _end_points.resize (num_contours);
+      end_points_.resize (num_contours);
 
       for (int16_t i = 0; i < num_contours; i++)
-      	_end_points[i] = end_pts[i];
+      	end_points_[i] = end_pts[i];
 
       /* Skip instructions */
       const HBUINT8 *p = &StructAtOffset<HBUINT8> (&end_pts[num_contours+1], end_pts[num_contours]);
@@ -481,6 +484,126 @@ struct glyf
 	      read_points<y_setter_t> (p, points_, checker));
     }
 
+    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
+    bool get_var_metrics (hb_codepoint_t glyph,
+			  const int *coords, unsigned int coord_count,
+			  hb_vector_t<contour_point_t> &phantoms /* OUT */) const
+    {
+      hb_vector_t<contour_point_t>	points;
+      hb_vector_t<unsigned int>		end_points;
+      if (unlikely (!get_contour_points (glyph, points, end_points, true/*phantom_only*/))) return false;
+      hb_array_t<contour_point_t>	phantoms_array = points.sub_array (points.length-PHANTOM_COUNT, PHANTOM_COUNT);
+      init_phantom_points (glyph, phantoms_array);
+      if (unlikely (!gvar_accel.apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
+
+      for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
+      	phantoms[i] = points[points.length - PHANTOM_COUNT + i];
+
+      CompositeGlyphHeader::Iterator composite;
+      if (!get_composite (glyph, &composite)) return true;	/* simple glyph */
+      do
+      {
+	if (composite.current->flags & CompositeGlyphHeader::USE_MY_METRICS)
+	{
+	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count, phantoms))) return false;
+	  for (unsigned int j = 0; j < phantoms.length; j++)
+	    composite.current->transform_point (phantoms[j].x, phantoms[j].y);
+	}
+      } while (composite.move_to_next());
+      return true;
+    }
+
+    struct bounds_t
+    {
+      bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
+
+      void add (const contour_point_t &p)
+      {
+      	min.x = MIN (min.x, p.x);
+      	min.y = MIN (min.y, p.y);
+      	max.x = MAX (max.x, p.x);
+      	max.y = MAX (max.y, p.y);
+      }
+
+      void _union (const bounds_t &b)
+      { add (b.min); add (b.max); }
+
+      contour_point_t	min;
+      contour_point_t	max;
+    };
+
+    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
+    bool get_bounds_var (hb_codepoint_t glyph,
+			 const int *coords, unsigned int coord_count,
+			 bounds_t &bounds) const
+    {
+      hb_vector_t<contour_point_t>	points;
+      hb_vector_t<unsigned int>		end_points;
+      if (unlikely (!get_contour_points (glyph, points, end_points))) return false;
+      hb_array_t<contour_point_t>	phantoms_array = points.sub_array (points.length-PHANTOM_COUNT, PHANTOM_COUNT);
+      init_phantom_points (glyph, phantoms_array);
+      if (unlikely (!gvar_accel.apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
+
+      CompositeGlyphHeader::Iterator composite;
+      if (!get_composite (glyph, &composite))
+      {
+      	/* simple glyph */
+	for (unsigned int i = 0; i + PHANTOM_COUNT < points.length; i++)
+	  bounds.add (points[i]);	/* TODO: need to check ON_CURVE or flatten? */
+	return true;
+      }
+      /* composite glyph */
+      do
+      {
+	bounds_t	comp_bounds;
+	if (unlikely (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))) return false;
+
+	composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
+	composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
+	bounds._union (comp_bounds);
+      } while (composite.move_to_next());
+
+      /* Shift bounds by the updated left side bearing (vertically too?) */
+      {
+      	float x_delta = points[points.length - PHANTOM_COUNT + PHANTOM_LEFT].x;
+      	bounds.min.x -= x_delta;
+      	bounds.max.x -= x_delta;
+      }
+
+      return true;
+    }
+
+    bool get_extents_var (hb_codepoint_t glyph,
+			  const int *coords, unsigned int coord_count,
+			  hb_glyph_extents_t *extents) const
+    {
+      bounds_t	bounds;
+      if (unlikely (!get_bounds_var (glyph, coords, coord_count, bounds))) return false;
+
+      if (bounds.min.x >= bounds.max.x)
+      {
+	extents->width = 0;
+	extents->x_bearing = 0;
+      }
+      else
+      {
+	extents->x_bearing = (int32_t)floorf (bounds.min.x);
+	extents->width = (int32_t)ceilf (bounds.max.x) - extents->x_bearing;
+      }
+      if (bounds.min.y >= bounds.max.y)
+      {
+	extents->height = 0;
+	extents->y_bearing = 0;
+      }
+      else
+      {
+	extents->y_bearing = (int32_t)ceilf (bounds.max.y);
+	extents->height = (int32_t)floorf (bounds.min.y) - extents->y_bearing;
+      }
+      return true;
+    }
+
+    public:
     /* based on FontTools _g_l_y_f.py::trim */
     bool remove_padding (unsigned int start_offset,
 				unsigned int *end_offset) const
@@ -640,8 +763,40 @@ struct glyf
       return true;
     }
 
-    bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    float get_advance_var (hb_codepoint_t glyph,
+			   const int *coords, unsigned int coord_count,
+			   bool vertical) const
     {
+      float advance = 0.f;
+      if (coord_count != gvar_accel.get_axis_count ()) return advance;
+    
+      hb_vector_t<contour_point_t>	phantoms;
+      phantoms.resize (PHANTOM_COUNT);
+
+      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms))) return advance;
+
+      if (vertical)
+      	return -(phantoms[PHANTOM_BOTTOM].y - phantoms[PHANTOM_TOP].y);	// is this sign correct?
+      else
+      	return phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x;
+    }
+
+    int get_side_bearing_var (hb_codepoint_t glyph, const int *coords, unsigned int coord_count, bool vertical) const
+    {
+      hb_vector_t<contour_point_t>	phantoms;
+      phantoms.resize (PHANTOM_COUNT);
+
+      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms))) return 0;
+      return (int)(vertical? -ceilf (phantoms[PHANTOM_TOP].y): floorf (phantoms[PHANTOM_LEFT].x));
+    }
+
+    bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    {
+      unsigned int coord_count;
+      const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
+      if (coords && coord_count > 0 && coord_count == gvar_accel.get_axis_count ())
+      	return get_extents_var (glyph, coords, coord_count, extents);
+
       unsigned int start_offset, end_offset;
       if (!get_offsets (glyph, &start_offset, &end_offset))
 	return false;
@@ -664,6 +819,11 @@ struct glyf
     unsigned int num_glyphs;
     hb_blob_ptr_t<loca> loca_table;
     hb_blob_ptr_t<glyf> glyf_table;
+
+    /* variable font support */
+    gvar::accelerator_t		gvar_accel;
+    hmtx::accelerator_t		hmtx_accel;
+    vmtx::accelerator_t		vmtx_accel;
   };
 
   protected:
