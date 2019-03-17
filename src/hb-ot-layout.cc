@@ -497,8 +497,8 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @script_tags: Array of #hb_tag_t script tags
- * @script_index: The index of the requested script tag
- * @chosen_script: #hb_tag_t of the script tag requested
+ * @script_index: (out): The index of the requested script tag
+ * @chosen_script: (out): #hb_tag_t of the script tag requested
  *
  * Deprecated
  **/
@@ -506,8 +506,8 @@ hb_bool_t
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
-				  unsigned int   *script_index,
-				  hb_tag_t       *chosen_script)
+				  unsigned int   *script_index  /* OUT */,
+				  hb_tag_t       *chosen_script /* OUT */)
 {
   const hb_tag_t *t;
   for (t = script_tags; *t; t++);
