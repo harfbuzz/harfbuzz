@@ -72,7 +72,6 @@
     HB_OT_TABLE(OT, fvar) \
     HB_OT_TABLE(OT, avar) \
     HB_OT_TABLE(OT, MVAR) \
-    HB_OT_ACCELERATOR(OT, gvar) \
     /* OpenType math. */ \
     HB_OT_TABLE(OT, MATH) \
     /* OpenType color fonts. */ \

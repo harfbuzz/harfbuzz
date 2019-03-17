@@ -359,7 +359,15 @@ struct HVARVVAR
     return (this+varStore).get_delta (varidx, coords, coord_count);
   }
 
-  bool has_sidebearing_deltas () const { return lsbMap && rsbMap; }
+  float get_side_bearing_var (hb_codepoint_t glyph,
+			      const int *coords, unsigned int coord_count) const
+  {
+    if (!has_side_bearing_deltas ()) return 0.f;
+    unsigned int varidx = (this+lsbMap).map (glyph);
+    return (this+varStore).get_delta (varidx, coords, coord_count);
+  }
+
+  bool has_side_bearing_deltas () const { return lsbMap && rsbMap; }
 
   protected:
   FixedVersion<>version;	/* Version of the metrics variation table

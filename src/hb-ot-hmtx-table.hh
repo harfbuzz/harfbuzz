@@ -31,7 +31,6 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
-#include "hb-ot-var-gvar-table.hh"
 
 /*
  * hmtx -- Horizontal Metrics
@@ -115,7 +114,7 @@ struct hmtxvmtx
     bool failed = false;
     for (unsigned int i = 0; i < num_output_glyphs; i++)
     {
-      unsigned int side_bearing = 0;
+      int side_bearing = 0;
       unsigned int advance = 0;
       hb_codepoint_t old_gid;
       if (plan->old_gid_for_new_gid (i, &old_gid))
@@ -208,28 +207,16 @@ struct hmtxvmtx
       }
 
       var_table = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
-
-      /* If a TrueType variable font has no HVAR/VVAR table, gvar & glyf table is required for metrics calculation */
-      if (var_table.get_blob () == hb_blob_get_empty ())
-      {
-      	hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t().reference_table<fvar> (face, HB_OT_TAG_fvar);
-      	if (fvar_table.get_blob () != hb_blob_get_empty ())
-      	{
-	  gvar_accel.init (face);
-	}
-	fvar_table.destroy ();
-      }
     }
 
     void fini ()
     {
       table.destroy ();
       var_table.destroy ();
-      gvar_accel.fini ();
     }
 
     /* TODO Add variations version. */
-    unsigned int get_side_bearing (hb_codepoint_t glyph) const
+    int get_side_bearing (hb_codepoint_t glyph) const
     {
       if (glyph < num_advances)
         return table->longMetricZ[glyph].sb;
@@ -239,6 +226,22 @@ struct hmtxvmtx
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_advances];
       return bearings[glyph - num_advances];
+    }
+
+    int get_side_bearing (hb_font_t *font, hb_codepoint_t glyph) const
+    {
+      int side_bearing = get_side_bearing (glyph);
+      if (likely (glyph < num_metrics))
+      {
+	if (font->num_coords)
+	{
+	  if (var_table.get_blob () != hb_blob_get_empty ())
+	    side_bearing += var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+	  else
+	    side_bearing = get_side_bearing_var_tt (font, glyph);
+	}
+      }
+      return side_bearing;
     }
 
     unsigned int get_advance (hb_codepoint_t glyph) const
@@ -268,7 +271,7 @@ struct hmtxvmtx
 	  if (var_table.get_blob () != hb_blob_get_empty ())
 	    advance += var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
 	  else
-	    advance += gvar_accel.get_advance_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+	    advance = get_advance_var_tt (font, glyph);
 	}
       }
       return advance;
@@ -290,6 +293,9 @@ struct hmtxvmtx
     }
 
     private:
+    int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
+    unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
+
     unsigned int _advance_for_new_gid (const hb_subset_plan_t *plan,
                                        hb_codepoint_t new_gid) const
     {
@@ -314,7 +320,6 @@ struct hmtxvmtx
     private:
     hb_blob_ptr_t<hmtxvmtx> table;
     hb_blob_ptr_t<HVARVVAR> var_table;
-    gvar::accelerator_t	    gvar_accel;
   };
 
   protected:
