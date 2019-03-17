@@ -35,10 +35,10 @@ int hmtxvmtx<T, H>::accelerator_t::get_side_bearing_var_tt (hb_font_t *font, hb_
   glyf::accelerator_t glyf_accel;
   glyf_accel.init (font->face);
 
-  int side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+  float side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
   glyf_accel.fini ();
 
-  return side_bearing;
+  return (int)side_bearing;
 }
 
 template <typename T, typename H>
@@ -47,10 +47,10 @@ unsigned int hmtxvmtx<T, H>::accelerator_t::get_advance_var_tt (hb_font_t *font,
   glyf::accelerator_t glyf_accel;
   glyf_accel.init (font->face);
 
-  unsigned int advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+  float advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
   glyf_accel.fini ();
 
-  return advance;
+  return (unsigned int)advance;
 }
 
 template int hmtxvmtx<hmtx, hhea>::accelerator_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
