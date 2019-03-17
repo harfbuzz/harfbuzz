@@ -66,7 +66,8 @@
  * hb_ot_layout_has_kerning:
  * @face: The #hb_face_t to work on
  *
- * Tests whether a face includes any kerning data. Examines the 'kern' table.
+ * Tests whether a face includes any kerning data in the 'kern' table.
+ * Does NOT test for kerning lookups in the GPOS table.
  *
  * Return value: true if data found, false otherwise
  *
@@ -82,7 +83,8 @@ hb_ot_layout_has_kerning (hb_face_t *face)
  * hb_ot_layout_has_machine_kerning:
  * @face: The #hb_face_t to work on
  *
- * Tests whether a face includes any state-machine kerning.
+ * Tests whether a face includes any state-machine kerning in the 'kern' table.
+ * Does NOT examine the GPOS table.
  *
  * Return value: true if data found, false otherwise
  *
@@ -101,7 +103,9 @@ hb_ot_layout_has_machine_kerning (hb_face_t *face)
  * Tests whether a face has any cross-stream kerning (i.e., kerns
  * that make adjustments perpendicular to the direction of the text
  * flow: Y adjustments in horizontal text or X adjustments in 
- * vertical text).
+ * vertical text) in the 'kern' table.
+ *
+ * Does NOT examine the GPOS table.
  *
  * Return value: true is data found, false otherwise
  *
