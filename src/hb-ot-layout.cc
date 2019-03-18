@@ -843,7 +843,7 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
  * @start_offset: The offset into the feature-tag array to start returning
  * @feature_count: (inout): The number of feature tags to return as input;
  *                 The number of feature tags returned in the array as output
- * @feature_tags: (out ) The array of #hb_tag_t feature tags found for the query
+ * @feature_tags: (out): The array of #hb_tag_t feature tags found for the query
  *
  * Fetches a list of all features in the specified face's GSUB table
  * or GPOS table, underneath the specified script and language. The list
@@ -1589,15 +1589,15 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
  * @face: #hb_face_t to work upon
  * @table_tag: table tag to query, "GSUB" or "GPOS".
  * @feature_index: index of feature to query.
- * @label_id: (out): (allow-none): The ‘name’ table name ID that specifies a string
+ * @label_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
  *            for a user-interface label for this feature. (May be NULL.)
- * @tooltip_id: (out): (allow-none): The ‘name’ table name ID that specifies a string
+ * @tooltip_id: (out) (allow-none): The ‘name’ table name ID that specifies a string
  *              that an application can use for tooltip text for this
  *              feature. (May be NULL.)
- * @sample_id: (out): (allow-none): The ‘name’ table name ID that specifies sample text
+ * @sample_id: (out) (allow-none): The ‘name’ table name ID that specifies sample text
  *             that illustrates the effect of this feature. (May be NULL.)
- * @num_named_parameters: (out): (allow-none):  Number of named parameters. (May be zero.)
- * @first_param_id: (out): (allow-none): The first ‘name’ table name ID used to specify
+ * @num_named_parameters: (out) (allow-none):  Number of named parameters. (May be zero.)
+ * @first_param_id: (out) (allow-none): The first ‘name’ table name ID used to specify
  *                  strings for user-interface labels for the feature
  *                  parameters. (Must be zero if numParameters is zero.)
  *
