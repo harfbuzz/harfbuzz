@@ -44,6 +44,9 @@ namespace OT {
 struct contour_point_t
 {
   void init () { flag = 0; x = y = 0.0f; }
+
+  void offset (const contour_point_t &p) { x += p.x; y += p.y; }
+  
   uint8_t	flag;
   float		x, y;
 };
