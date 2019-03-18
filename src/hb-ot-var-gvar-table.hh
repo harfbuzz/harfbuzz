@@ -279,6 +279,7 @@ struct GlyphVarData
     }
     points.resize (count);
 
+    unsigned int n = 0;
     uint16_t i = 0;
     while (i < count)
     {
@@ -291,7 +292,8 @@ struct GlyphVarData
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
 	  if (!check.in_range ((const HBUINT16 *)p)) return false;
-	  points[i] = *(const HBUINT16 *)p;
+	  n += *(const HBUINT16 *)p;
+	  points[i] = n;
 	  p += HBUINT16::static_size;
 	}
       }
@@ -300,7 +302,8 @@ struct GlyphVarData
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
 	  if (!check.in_range (p)) return false;
-	  points[i] = *p++;
+	  n += *p++;
+	  points[i] = n;
 	}
       }
       if (j < run_count) return false;
