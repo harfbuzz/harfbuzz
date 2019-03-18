@@ -513,9 +513,9 @@ struct glyf
       return true;
     }
 
-    struct bounds_t
+    struct contour_bounds_t
     {
-      bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
+      contour_bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
 
       void add (const contour_point_t &p)
       {
@@ -525,8 +525,14 @@ struct glyf
       	max.y = MAX (max.y, p.y);
       }
 
-      void _union (const bounds_t &b)
-      { add (b.min); add (b.max); }
+      void merge (const contour_bounds_t &b)
+      {
+	if (empty ()) { *this = b; return; }
+	add (b.min);
+	add (b.max);
+      }
+
+      bool empty () const { return (min.x >= max.x) || (min.y >= max.y); }
 
       contour_point_t	min;
       contour_point_t	max;
@@ -535,7 +541,7 @@ struct glyf
     /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
     bool get_bounds_var (hb_codepoint_t glyph,
 			 const int *coords, unsigned int coord_count,
-			 bounds_t &bounds) const
+			 contour_bounds_t &bounds) const
     {
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
@@ -555,12 +561,12 @@ struct glyf
       /* composite glyph */
       do
       {
-	bounds_t	comp_bounds;
+	contour_bounds_t	comp_bounds;
 	if (unlikely (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))) return false;
 
 	composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
 	composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
-	bounds._union (comp_bounds);
+	bounds.merge (comp_bounds);
       } while (composite.move_to_next());
 
       /* Shift bounds by the updated left side bearing (vertically too?) */
@@ -577,7 +583,7 @@ struct glyf
 			  const int *coords, unsigned int coord_count,
 			  hb_glyph_extents_t *extents) const
     {
-      bounds_t	bounds;
+      contour_bounds_t	bounds;
       if (unlikely (!get_bounds_var (glyph, coords, coord_count, bounds))) return false;
 
       if (bounds.min.x >= bounds.max.x)

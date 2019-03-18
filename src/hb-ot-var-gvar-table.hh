@@ -575,6 +575,11 @@ struct gvar
       } while (iterator.move_to_next ());
 
       /* infer deltas for unreferenced points */
+      hb_vector_t<contour_point_t> orig_points;
+      orig_points.resize (points.length);
+      for (unsigned int i = 0; i < orig_points.length; i++)
+      	orig_points[i] = points[i];
+
       unsigned int start_point = 0;
       for (unsigned int c = 0; c < end_points.length; c++)
       {
@@ -597,8 +602,8 @@ struct gvar
 	    if (next == i || deltas[next].flag) break;
 	  }
 	  assert (next != i);
-	  deltas[i].x = infer_delta (points[i].x, points[prev].x, points[next].x, deltas[prev].x, deltas[next].x);
-	  deltas[i].y = infer_delta (points[i].y, points[prev].y, points[next].y, deltas[prev].y, deltas[next].y);
+	  deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	  deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
 	}
 	start_point = end_point + 1;
       }
