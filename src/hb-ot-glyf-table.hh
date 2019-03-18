@@ -487,14 +487,15 @@ struct glyf
     /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
     bool get_var_metrics (hb_codepoint_t glyph,
 			  const int *coords, unsigned int coord_count,
-			  hb_vector_t<contour_point_t> &phantoms /* OUT */) const
+			  hb_array_t<contour_point_t> phantoms /* OUT */) const
     {
       hb_vector_t<contour_point_t>	points;
       hb_vector_t<unsigned int>		end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points, true/*phantom_only*/))) return false;
       hb_array_t<contour_point_t>	phantoms_array = points.sub_array (points.length-PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (glyph, phantoms_array);
-      if (unlikely (!gvar_accel.apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
+      if (unlikely (!gvar_accel.apply_deltas_to_points (glyph, coords, coord_count,
+      							points.as_array (), end_points.as_array ()))) return false;
 
       for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
       	phantoms[i] = points[points.length - PHANTOM_COUNT + i];
@@ -505,7 +506,8 @@ struct glyf
       {
 	if (composite.current->flags & CompositeGlyphHeader::USE_MY_METRICS)
 	{
-	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count, phantoms))) return false;
+	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count,
+					  phantoms.sub_array (0, 2)))) return false;
 	  for (unsigned int j = 0; j < phantoms.length; j++)
 	    composite.current->transform_point (phantoms[j].x, phantoms[j].y);
 	}
@@ -524,6 +526,8 @@ struct glyf
       	max.x = MAX (max.x, p.x);
       	max.y = MAX (max.y, p.y);
       }
+
+      void offset (const contour_point_t &p) { min.offset (p); max.offset (p); }
 
       void merge (const contour_bounds_t &b)
       {
@@ -550,24 +554,33 @@ struct glyf
       init_phantom_points (glyph, phantoms_array);
       if (unlikely (!gvar_accel.apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
 
+      unsigned int comp_index = 0;
       CompositeGlyphHeader::Iterator composite;
       if (!get_composite (glyph, &composite))
       {
       	/* simple glyph */
 	for (unsigned int i = 0; i + PHANTOM_COUNT < points.length; i++)
 	  bounds.add (points[i]);	/* TODO: need to check ON_CURVE or flatten? */
-	return true;
       }
-      /* composite glyph */
-      do
+      else
       {
-	contour_bounds_t	comp_bounds;
-	if (unlikely (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))) return false;
+	/* composite glyph */
+	do
+	{
+	  contour_bounds_t	comp_bounds;
+	  if (unlikely (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))) return false;
 
-	composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
-	composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
-	bounds.merge (comp_bounds);
-      } while (composite.move_to_next());
+	  /* Apply offset & scaling */
+	  composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
+	  composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
+	  
+	  /* Apply offset adjustments from gvar */
+	  comp_bounds.offset (points[comp_index]);
+	  
+	  bounds.merge (comp_bounds);
+	  comp_index++;
+	} while (composite.move_to_next());
+      }
 
       /* Shift bounds by the updated left side bearing (vertically too?) */
       {
@@ -779,7 +792,7 @@ struct glyf
       hb_vector_t<contour_point_t>	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms))) return advance;
+      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms.as_array ()))) return advance;
 
       if (vertical)
       	return -(phantoms[PHANTOM_BOTTOM].y - phantoms[PHANTOM_TOP].y);	// is this sign correct?
