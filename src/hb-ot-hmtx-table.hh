@@ -221,7 +221,6 @@ struct hmtxvmtx
       var_table.destroy ();
     }
 
-    /* TODO Add variations version. */
     int get_side_bearing (hb_codepoint_t glyph) const
     {
       if (glyph < num_advances)

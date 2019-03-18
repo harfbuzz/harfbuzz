@@ -61,12 +61,49 @@ test_extents_tt_var (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.abc.ttf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_position_t x, y;
+  hb_font_get_glyph_advance_for_direction(font, 1, HB_DIRECTION_LTR, &x, &y);
+
+  g_assert_cmpint (x, ==, 486);
+  g_assert_cmpint (y, ==, 0);
+
+  hb_font_get_glyph_advance_for_direction(font, 1, HB_DIRECTION_TTB, &x, &y);
+
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, -1000);
+
+  float coords[1] = { 500.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+  hb_font_get_glyph_advance_for_direction(font, 1, HB_DIRECTION_LTR, &x, &y);
+
+  g_assert_cmpint (x, ==, 510);
+  g_assert_cmpint (y, ==, 0);
+
+  hb_font_get_glyph_advance_for_direction(font, 1, HB_DIRECTION_TTB, &x, &y);
+
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, -1000);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_extents_tt_var);
+  hb_test_add (test_advance_tt_var);
 
   return hb_test_run ();
 }
