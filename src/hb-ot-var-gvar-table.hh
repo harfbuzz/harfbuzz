@@ -511,6 +511,34 @@ struct gvar
       gvar_table.destroy ();
     }
 
+    private:
+    struct x_getter { static float get (const contour_point_t &p) { return p.x; } };
+    struct y_getter { static float get (const contour_point_t &p) { return p.y; } };
+
+    template <typename T>
+    static float infer_delta (const hb_array_t<contour_point_t> points,
+			      const hb_array_t<contour_point_t> deltas,
+			      unsigned int target, unsigned int prev, unsigned int next)
+    {
+      float target_val = T::get (points[target]);
+      float prev_val = T::get (points[prev]);
+      float next_val = T::get (points[next]);
+      float prev_delta = T::get (deltas[prev]);
+      float next_delta = T::get (deltas[next]);
+
+      if (prev_val == next_val)
+      	return (prev_delta == next_delta)? prev_delta: 0.f;
+      else if (target_val <= MIN (prev_val, next_val))
+      	return (prev_val < next_val) ? prev_delta: next_delta;
+      else if (target_val >= MAX (prev_val, next_val))
+      	return (prev_val > next_val)? prev_delta: next_delta;
+
+      /* linear interpolation */
+      float r = (target_val - prev_val) / (next_val - prev_val);
+      return (1.f - r) * prev_delta + r * next_delta;
+    }
+
+    public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
 				 const hb_array_t<contour_point_t> points,
@@ -570,6 +598,11 @@ struct gvar
       } while (iterator.move_to_next ());
 
       /* infer deltas for unreferenced points */
+      hb_vector_t<contour_point_t> orig_points;
+      orig_points.resize (points.length);
+      for (unsigned int i = 0; i < orig_points.length; i++)
+      	orig_points[i] = points[i];
+
       unsigned int start_point = 0;
       for (unsigned int c = 0; c < end_points.length; c++)
       {
@@ -592,8 +625,8 @@ struct gvar
 	    if (next == i || deltas[next].flag) break;
 	  }
 	  assert (next != i);
-	  deltas[i].x = infer_delta (points[i].x, points[prev].x, points[next].x, deltas[prev].x, deltas[next].x);
-	  deltas[i].y = infer_delta (points[i].y, points[prev].y, points[next].y, deltas[prev].y, deltas[next].y);
+	  deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	  deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
 	}
 	start_point = end_point + 1;
       }
@@ -611,21 +644,6 @@ struct gvar
     unsigned int get_axis_count () const { return gvar_table->axisCount; }
 
     protected:
-    static float infer_delta (float target_val, float prev_val, float next_val,
-			      float prev_delta, float next_delta)
-    {
-      if (prev_val == next_val)
-      	return (prev_delta == next_delta)? prev_delta: 0.f;
-      else if (target_val <= MIN (prev_val, next_val))
-      	return (prev_val < next_val) ? prev_delta: next_delta;
-      else if (target_val >= MAX (prev_val, next_val))
-      	return (prev_val > next_val)? prev_delta: next_delta;
-
-      /* linear interpolation */
-      float r = (target_val - prev_val) / (next_val - prev_val);
-      return (1.f - r) * prev_delta + r * next_delta;
-    }
-    
     const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
     { return gvar_table->get_glyph_var_data (glyph); }
 
