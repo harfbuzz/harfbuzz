@@ -502,6 +502,7 @@ struct gvar
     void fini ()
     {
       gvar_table.destroy ();
+      shared_tuples.fini ();
     }
 
     protected:

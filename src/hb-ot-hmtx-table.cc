@@ -29,33 +29,26 @@
 
 namespace OT {
 
-template <typename T, typename H>
-int hmtxvmtx<T, H>::accelerator_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const
+int hmtxvmtx_accelerator_base_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical)
 {
   glyf::accelerator_t glyf_accel;
   glyf_accel.init (font->face);
 
-  float side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+  float side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, vertical);
   glyf_accel.fini ();
 
   return (int)side_bearing;
 }
 
-template <typename T, typename H>
-unsigned int hmtxvmtx<T, H>::accelerator_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph) const
+unsigned int hmtxvmtx_accelerator_base_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical)
 {
   glyf::accelerator_t glyf_accel;
   glyf_accel.init (font->face);
 
-  float advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, T::tableTag==HB_OT_TAG_vmtx);
+  float advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, vertical);
   glyf_accel.fini ();
 
   return (unsigned int)advance;
 }
-
-template int hmtxvmtx<hmtx, hhea>::accelerator_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
-template int hmtxvmtx<vmtx, vhea>::accelerator_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
-template unsigned int hmtxvmtx<hmtx, hhea>::accelerator_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
-template unsigned int hmtxvmtx<vmtx, vhea>::accelerator_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
 
 }

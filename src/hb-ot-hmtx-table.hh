@@ -53,6 +53,12 @@ struct LongMetric
   DEFINE_SIZE_STATIC (4);
 };
 
+struct hmtxvmtx_accelerator_base_t
+{
+  HB_INTERNAL static int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
+  HB_INTERNAL static unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
+};
+
 template <typename T, typename H>
 struct hmtxvmtx
 {
@@ -156,7 +162,7 @@ struct hmtxvmtx
     return success;
   }
 
-  struct accelerator_t
+  struct accelerator_t : hmtxvmtx_accelerator_base_t
   {
     friend struct hmtxvmtx;
 
@@ -238,7 +244,7 @@ struct hmtxvmtx
 	  if (var_table.get_blob () != hb_blob_get_empty ())
 	    side_bearing += var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
 	  else
-	    side_bearing = get_side_bearing_var_tt (font, glyph);
+	    side_bearing = get_side_bearing_var_tt (font, glyph, T::tableTag==HB_OT_TAG_vmtx);
 	}
       }
       return side_bearing;
@@ -271,7 +277,7 @@ struct hmtxvmtx
 	  if (var_table.get_blob () != hb_blob_get_empty ())
 	    advance += var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
 	  else
-	    advance = get_advance_var_tt (font, glyph);
+	    advance = get_advance_var_tt (font, glyph, T::tableTag==HB_OT_TAG_vmtx);
 	}
       }
       return advance;
@@ -293,9 +299,6 @@ struct hmtxvmtx
     }
 
     private:
-    int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
-    unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph) const;
-
     unsigned int _advance_for_new_gid (const hb_subset_plan_t *plan,
                                        hb_codepoint_t new_gid) const
     {
