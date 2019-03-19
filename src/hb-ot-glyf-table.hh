@@ -418,7 +418,13 @@ struct glyf
       unsigned int num_points = 0;
       unsigned int start_offset, end_offset;
       if (unlikely (!get_offsets (glyph, &start_offset, &end_offset))) return false;
-      if (unlikely (end_offset - start_offset < GlyphHeader::static_size)) return false;
+      if (unlikely (end_offset - start_offset < GlyphHeader::static_size))
+      {
+      	/* empty glyph */
+	points_.resize (PHANTOM_COUNT);
+	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
+      	return true;
+      }
 
       CompositeGlyphHeader::Iterator composite;
       if (get_composite (glyph, &composite))

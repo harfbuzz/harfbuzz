@@ -37,7 +37,7 @@ int hmtxvmtx_accelerator_base_t::get_side_bearing_var_tt (hb_font_t *font, hb_co
   float side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, vertical);
   glyf_accel.fini ();
 
-  return (int)side_bearing;
+  return (int)roundf (side_bearing);
 }
 
 unsigned int hmtxvmtx_accelerator_base_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical)
@@ -48,7 +48,7 @@ unsigned int hmtxvmtx_accelerator_base_t::get_advance_var_tt (hb_font_t *font, h
   float advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, vertical);
   glyf_accel.fini ();
 
-  return (unsigned int)advance;
+  return (unsigned int)roundf (advance);
 }
 
 }
