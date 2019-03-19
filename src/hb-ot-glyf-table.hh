@@ -788,22 +788,24 @@ struct glyf
       return true;
     }
 
-    float get_advance_var (hb_codepoint_t glyph,
-			   const int *coords, unsigned int coord_count,
-			   bool vertical) const
+    unsigned int get_advance_var (hb_codepoint_t glyph,
+				  const int *coords, unsigned int coord_count,
+				  bool vertical) const
     {
-      float advance = 0.f;
-      if (coord_count != gvar_accel.get_axis_count ()) return advance;
-    
+      bool success = false;
       hb_vector_t<contour_point_t>	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms.as_array ()))) return advance;
+      if (likely (coord_count == gvar_accel.get_axis_count ()))
+	success = get_var_metrics (glyph, coords, coord_count, phantoms.as_array ());
+
+      if (unlikely (!success))
+	return vertical? vmtx_accel.get_advance (glyph): hmtx_accel.get_advance (glyph);
 
       if (vertical)
-      	return -(phantoms[PHANTOM_BOTTOM].y - phantoms[PHANTOM_TOP].y);	// is this sign correct?
+      	return (unsigned int)roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y);
       else
-      	return phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x;
+      	return (unsigned int)roundf (phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x);
     }
 
     int get_side_bearing_var (hb_codepoint_t glyph, const int *coords, unsigned int coord_count, bool vertical) const
@@ -811,7 +813,9 @@ struct glyf
       hb_vector_t<contour_point_t>	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms))) return 0;
+      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms)))
+	return vertical? vmtx_accel.get_side_bearing (glyph): hmtx_accel.get_side_bearing (glyph);
+
       return (int)(vertical? -ceilf (phantoms[PHANTOM_TOP].y): floorf (phantoms[PHANTOM_LEFT].x));
     }
 
