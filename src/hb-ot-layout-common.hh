@@ -1757,7 +1757,8 @@ struct VarData
     shortCount.set (src->shortCount);
 
     unsigned int row_size = src->get_row_size ();
-    if (unlikely (!c->allocate_size<HBUINT8> (src->regionIndices.get_size () + (row_size * remap.get_count ()))))
+    unsigned int size = src->regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (row_size * remap.get_count ());
+    if (unlikely (!c->allocate_size<HBUINT8> (size)))
       return_trace (false);
 
     memcpy (&regionIndices, &src->regionIndices, src->regionIndices.get_size ());

@@ -50,6 +50,8 @@ TEST_PROGS = \
 	test-subset-vmtx \
 	test-subset-cff1 \
 	test-subset-cff2 \
+	test-subset-gvar \
+	test-subset-hvar \
 	test-unicode \
 	test-version \
 	$(NULL)
