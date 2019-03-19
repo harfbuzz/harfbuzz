@@ -422,6 +422,18 @@ struct gvar
     HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset? 4: 2) * (num_glyphs+1));
     if (!subset_offsets) return_trace (false);
 
+    /* shared tuples */
+    if (!sharedTupleCount || !sharedTuples)
+      out->sharedTuples.set (0);
+    else
+    {
+      unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
+      F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
+      if (!tuples) return_trace (false);
+      out->sharedTuples.set ((char *)tuples - (char *)out);
+      memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
+    }
+
     char *subset_data = c->serializer->allocate_size<char>(subset_data_size);
     if (!subset_data) return_trace (false);
     out->dataZ.set (subset_data - (char *)out);
@@ -445,18 +457,6 @@ struct gvar
       ((HBUINT32 *)subset_offsets)[num_glyphs].set (glyph_offset);
     else
       ((HBUINT16 *)subset_offsets)[num_glyphs].set (glyph_offset / 2);
-
-    /* shared tuples */
-    if (!sharedTupleCount || !sharedTuples)
-      out->sharedTuples.set (0);
-    else
-    {
-      unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
-      F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
-      if (!tuples) return_trace (false);
-      out->sharedTuples.set ((char *)tuples - (char *)out);
-      memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
-    }
 
     return_trace (true);
   }

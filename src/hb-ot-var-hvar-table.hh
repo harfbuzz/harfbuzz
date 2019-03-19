@@ -134,7 +134,14 @@ struct index_map_subset_plan_t
 
     /* Identity map */
     if (&index_map == &Null(DeltaSetIndexMap))
+    {
+      outer_remap.add (0);
+      hb_codepoint_t old_gid;
+      for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
+      	if (plan->old_gid_for_new_gid (gid, &old_gid))
+	  inner_remaps[0].add (old_gid);
       return;
+    }
 
     unsigned int	last_val = (unsigned int)-1;
     hb_codepoint_t	last_gid = (hb_codepoint_t)-1;
@@ -189,6 +196,11 @@ struct index_map_subset_plan_t
 	      const hb_bimap_t &outer_remap,
 	      const hb_vector_t<hb_bimap_t> &inner_remaps)
   {
+    /* Leave output_map empty for an identity map */
+    /* TODO: if retain_gids, convert identity to a customized map, or not subset varstore? */
+    if (input_map == &Null(DeltaSetIndexMap))
+      return;
+
     for (unsigned int i = 0; i < max_inners.length; i++)
     {
       if (inner_remaps[i].get_count () == 0) continue;
@@ -214,6 +226,7 @@ struct index_map_subset_plan_t
   unsigned int get_size () const
   { return (map_count? (DeltaSetIndexMap::min_size + get_width () * map_count): 0); }
 
+  bool is_identity () const { return get_output_map ().length == 0; }
   hb_array_t<const unsigned int> get_output_map () const { return output_map.as_array (); }
 
   protected:
@@ -311,15 +324,15 @@ struct HVARVVAR
 			     const hb_array_t<index_map_subset_plan_t> &im_plans)
   {
     TRACE_SUBSET (this);
-    if (!im_plans[ADV_INDEX].get_map_count ())
+    if (im_plans[ADV_INDEX].is_identity ())
       advMap.set (0);
     else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[ADV_INDEX])))
       return_trace (false);
-    if (!im_plans[LSB_INDEX].get_map_count ())
+    if (im_plans[LSB_INDEX].is_identity ())
       lsbMap.set (0);
     else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[LSB_INDEX])))
       return_trace (false);
-    if (!im_plans[RSB_INDEX].get_map_count ())
+    if (im_plans[RSB_INDEX].is_identity ())
       rsbMap.set (0);
     else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[RSB_INDEX])))
       return_trace (false);
