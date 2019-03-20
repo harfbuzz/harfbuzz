@@ -121,7 +121,16 @@ struct DeltaSetIndexMap
 
 struct index_map_subset_plan_t
 {
+  enum index_map_index_t {
+    ADV_INDEX,
+    LSB_INDEX,
+    RSB_INDEX,
+    TSB_INDEX,
+    VORG_INDEX
+  };
+
   void init (const DeltaSetIndexMap &index_map,
+	     unsigned int 	    im_index,
 	     hb_bimap_t		    &outer_remap,
 	     hb_vector_t<hb_bimap_t> &inner_remaps,
 	     const hb_subset_plan_t *plan)
@@ -132,14 +141,18 @@ struct index_map_subset_plan_t
     max_inners.init ();
     output_map.init ();
 
-    /* Identity map */
     if (&index_map == &Null(DeltaSetIndexMap))
     {
-      outer_remap.add (0);
-      hb_codepoint_t old_gid;
-      for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
-      	if (plan->old_gid_for_new_gid (gid, &old_gid))
-	  inner_remaps[0].add (old_gid);
+      /* Advance width index map is required. If its offset is missing,
+       * treat it as an indentity map. */
+      if (im_index == ADV_INDEX)
+      {
+	outer_remap.add (0);
+	hb_codepoint_t old_gid;
+	for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
+	  if (plan->old_gid_for_new_gid (gid, &old_gid))
+	    inner_remaps[0].add (old_gid);
+      }
       return;
     }
 
@@ -257,7 +270,7 @@ struct hvarvvar_subset_plan_t
       inner_remaps[i].init ();
 
     for (unsigned int i = 0; i < index_maps.length; i++)
-      index_map_plans[i].init (*index_maps[i], outer_remap, inner_remaps, plan);
+      index_map_plans[i].init (*index_maps[i], i, outer_remap, inner_remaps, plan);
 
     outer_remap.reorder ();
     for (unsigned int i = 0; i < inner_remaps.length; i++)
@@ -294,14 +307,6 @@ struct HVARVVAR
   static constexpr hb_tag_t HVARTag = HB_OT_TAG_HVAR;
   static constexpr hb_tag_t VVARTag = HB_OT_TAG_VVAR;
 
-  enum index_map_index_t {
-    ADV_INDEX,
-    LSB_INDEX,
-    RSB_INDEX,
-    TSB_INDEX,
-    VORG_INDEX
-  };
-
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -324,17 +329,17 @@ struct HVARVVAR
 			     const hb_array_t<index_map_subset_plan_t> &im_plans)
   {
     TRACE_SUBSET (this);
-    if (im_plans[ADV_INDEX].is_identity ())
+    if (im_plans[index_map_subset_plan_t::ADV_INDEX].is_identity ())
       advMap.set (0);
-    else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[ADV_INDEX])))
+    else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::ADV_INDEX])))
       return_trace (false);
-    if (im_plans[LSB_INDEX].is_identity ())
+    if (im_plans[index_map_subset_plan_t::LSB_INDEX].is_identity ())
       lsbMap.set (0);
-    else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[LSB_INDEX])))
+    else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::LSB_INDEX])))
       return_trace (false);
-    if (im_plans[RSB_INDEX].is_identity ())
+    if (im_plans[index_map_subset_plan_t::RSB_INDEX].is_identity ())
       rsbMap.set (0);
-    else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[RSB_INDEX])))
+    else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::RSB_INDEX])))
       return_trace (false);
 
     return_trace (true);
@@ -424,9 +429,9 @@ struct VVAR : HVARVVAR {
     TRACE_SUBSET (this);
     if (unlikely (!HVARVVAR::serialize_index_maps (c, im_plans)))
       return_trace (false);
-    if (!im_plans[VORG_INDEX].get_map_count ())
+    if (!im_plans[index_map_subset_plan_t::VORG_INDEX].get_map_count ())
       vorgMap.set (0);
-    else if (unlikely (!vorgMap.serialize (c, this).serialize (c, im_plans[VORG_INDEX])))
+    else if (unlikely (!vorgMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::VORG_INDEX])))
       return_trace (false);
 
     return_trace (true);
