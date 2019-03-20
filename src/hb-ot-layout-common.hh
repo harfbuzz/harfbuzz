@@ -1761,13 +1761,15 @@ struct VarData
     if (unlikely (!c->allocate_size<HBUINT8> (size)))
       return_trace (false);
 
-    memcpy (&regionIndices, &src->regionIndices, src->regionIndices.get_size ());
-    HBUINT8 *p = get_delta_bytes ();
-    for (unsigned int i = 0; i < remap.get_count (); i++)
-    {
-      memcpy (p, src->get_delta_bytes () + (row_size * remap.to_old (i)), row_size);
-      p += row_size;
-    }
+    memcpy (&regionIndices[0], &src->regionIndices[0], src->regionIndices.get_size ()-HBUINT16::static_size);
+
+    for (unsigned int i = 0; i < itemCount; i++)
+      for (unsigned int r = 0; r < regionIndices.len; r++)
+      {
+      	hb_codepoint_t	old = remap.to_old (i);
+      	if (unlikely (old >= src->itemCount)) return_trace (false);
+      	set_item_delta (i, r, src->get_item_delta (old, r));
+      }
 
     return_trace (true);
   }
@@ -1781,6 +1783,24 @@ struct VarData
 
   HBUINT8 *get_delta_bytes ()
   { return &StructAfter<HBUINT8> (regionIndices); }
+
+  int16_t get_item_delta (unsigned int item, unsigned int region) const
+  {
+    const HBINT8 *p = (const HBINT8 *)get_delta_bytes () + item * get_row_size ();
+    if (region < shortCount)
+      return ((const HBINT16 *)p)[region];
+    else
+      return (p + HBINT16::static_size * shortCount)[region - shortCount];
+  }
+
+  void set_item_delta (unsigned int item, unsigned int region, int16_t delta)
+  {
+    HBINT8 *p = (HBINT8 *)get_delta_bytes () + item * get_row_size ();
+    if (region < shortCount)
+      ((HBINT16 *)p)[region].set (delta);
+    else
+      (p + HBINT16::static_size * shortCount)[region - shortCount].set (delta);
+  }
 
   protected:
   HBUINT16		itemCount;
