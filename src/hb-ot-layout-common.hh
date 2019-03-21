@@ -1762,8 +1762,8 @@ struct VarData
       {
 	unsigned int old = remap.to_old (i);
 	if (unlikely (old >= src->itemCount)) return_trace (false);
-	int16_t hi = get_item_delta (old, short_count - 1) & 0xFF00;
-	if (hi != 0 && hi != 0xFF00) goto found_short;
+	int16_t delta = get_item_delta (old, short_count - 1);
+	if (-128 <= delta && delta <= 127) goto found_short;
       }
     
 found_short:
