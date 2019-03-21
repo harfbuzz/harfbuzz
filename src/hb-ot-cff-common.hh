@@ -474,6 +474,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     for (unsigned i = 0; i < fontDicts.length; i++)
       if (fdmap.has (i))
       {
+      	if (unlikely (fid >= fdCount)) return_trace (false);
 	CFFIndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
 	offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
       }
