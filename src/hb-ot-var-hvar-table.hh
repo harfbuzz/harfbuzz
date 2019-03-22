@@ -123,9 +123,8 @@ struct index_map_subset_plan_t
 {
   enum index_map_index_t {
     ADV_INDEX,
-    LSB_INDEX,
-    RSB_INDEX,
-    TSB_INDEX,
+    LSB_INDEX,	/* dual as TSB */
+    RSB_INDEX,	/* dual as BSB */
     VORG_INDEX
   };
 
@@ -217,7 +216,7 @@ struct index_map_subset_plan_t
     for (unsigned int i = 0; i < max_inners.length; i++)
     {
       if (inner_remaps[i].get_count () == 0) continue;
-      unsigned int bit_count = hb_bit_storage (inner_remaps[i][max_inners[i]]);
+      unsigned int bit_count = (max_inners[i]==0)? 1: hb_bit_storage (inner_remaps[i][max_inners[i]]);
       if (bit_count > inner_bit_count) inner_bit_count = bit_count;
     }
 
