@@ -52,6 +52,7 @@ TEST_PROGS = \
 	test-subset-cff2 \
 	test-subset-gvar \
 	test-subset-hvar \
+	test-subset-vvar \
 	test-unicode \
 	test-version \
 	$(NULL)
@@ -68,6 +69,7 @@ test_subset_cff1_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cff2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_gvar_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_hvar_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_vvar_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
