@@ -277,9 +277,8 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
  *
  * Fetches the GDEF class of the requested glyph in the specified face.
  *
- * Return value: Glyph class (UnclassifiedGlyph, BaseGlyph, LigatureGlyph, MarkGlyph,
- *               ComponentGlyph) of the given code point in the GDEF table of the
- *               face.
+ * Return value: The #hb_ot_layout_glyph_class_t glyph class of the given code 
+ * point in the GDEF table of the face.
  *
  * Since: 0.9.7
  **/
@@ -500,7 +499,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
  * @script_index: (out): The index of the requested script tag
  * @chosen_script: (out): #hb_tag_t of the script tag requested
  *
- * Deprecated
+ * Deprecated since 2.0.0
  **/
 hb_bool_t
 hb_ot_layout_table_choose_script (hb_face_t      *face,
@@ -1354,7 +1353,6 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
  * @font: #hb_font_t to use
  * @buffer: #hb_buffer_t buffer to work upon
  *
- * Begins  
  *
  **/
 void
@@ -1532,11 +1530,18 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * @face: #hb_face_t to work upon
  * @design_size: (out): The design size of the face
  * @subfamily_id: (out): The identifier of the face within the font subfamily
- * @subfamily_name_id: (out): The  ‘name’ table name ID of the face within the font subfamily
+ * @subfamily_name_id: (out): The ‘name’ table name ID of the face within the font subfamily
  * @range_start: (out): The small end of the recommended size range for the face
  * @range_end: (out): The big end of the recommended size range for the face
  *
- * Fetches optical-size feature data (i.e., the `size` feature from GPOS).
+ * Fetches optical-size feature data (i.e., the `size` feature from GPOS). Note that
+ * the subfamily_id and the subfamily name string (accessible via the subfamily_name_id)
+ * as used here are defined as pertaining only to fonts within a font family that differ
+ * specifically in their respective size ranges; other ways to differentiate fonts within
+ * a subfamily are not covered by the `size` feature.
+ * 
+ * For more information on this distinction, see the `size` documentation at
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-39size39
  *
  * Return value: true if data found, false otherwise
  *
@@ -1946,7 +1951,7 @@ typedef enum {
  * hb_ot_layout_get_baseline:
  * @font: The #hb_font_t to work upon
  * @baseline: The #hb_ot_layout_baseline_t to query
- * @direction: The #hb_direction_t text direction to use
+ * @direction: The #hb_direction_t text direction to use (horizontal or vertical)
  * @script_tag:  #hb_tag_t of the script to use
  * @language_tag: #hb_tag_t of the language to use
  * @coord: (out): The position of the requested baseline
