@@ -142,10 +142,6 @@ _populate_gids_to_retain (hb_face_t *face,
 
   _remove_invalid_gids (all_gids_to_retain, face->get_num_glyphs ());
 
-  //glyphs->alloc (all_gids_to_retain->get_population ());
-  //gid = HB_SET_VALUE_INVALID;
-  //while (all_gids_to_retain->next (&gid))
-    //glyphs->push (gid);
 
   cff.fini ();
   glyf.fini ();
@@ -207,7 +203,6 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->drop_layout = input->drop_layout;
   plan->desubroutinize = input->desubroutinize;
   plan->unicodes = hb_set_create();
-  //plan->glyphs_deprecated.init();
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create();
@@ -240,7 +235,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
-  //plan->glyphs_deprecated.fini ();
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);
