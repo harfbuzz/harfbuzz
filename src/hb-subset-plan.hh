@@ -54,7 +54,7 @@ struct hb_subset_plan_t
   hb_map_t *reverse_glyph_map;
 
   // Deprecated members:
-  hb_vector_t<hb_codepoint_t> glyphs_deprecated;
+  //hb_vector_t<hb_codepoint_t> glyphs_deprecated;
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;
