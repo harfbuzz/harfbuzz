@@ -543,8 +543,9 @@ struct glyf
     bool get_var_metrics (hb_codepoint_t glyph,
 			  const int *coords, unsigned int coord_count,
 			  contour_point_vector_t &phantoms /* OUT */,
-			  unsigned int depth) const
+			  unsigned int depth=0) const
     {
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t	points;
       hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points, true/*phantom_only*/))) return false;
@@ -562,9 +563,8 @@ struct glyf
       {
 	if (composite.current->flags & CompositeGlyphHeader::USE_MY_METRICS)
 	{
-	  if (unlikely (depth >= HB_MAX_NESTING_LEVEL ||
-	  		!get_var_metrics (composite.current->glyphIndex, coords, coord_count,
-					  phantoms, depth+1))) return false;
+	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count,
+					  phantoms, depth))) return false;
 
 	  composite.current->transform_points (phantoms);
 	}
@@ -596,8 +596,9 @@ struct glyf
     bool get_points_var (hb_codepoint_t glyph,
 			 const int *coords, unsigned int coord_count,
 			 contour_point_vector_t &all_points /* OUT */,
-			 unsigned int depth) const
+			 unsigned int depth=0) const
     {
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t	points;
       hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points))) return false;
@@ -619,9 +620,8 @@ struct glyf
 	do
 	{
 	  contour_point_vector_t comp_points;
-	  if (unlikely (depth >= HB_MAX_NESTING_LEVEL ||
-	  		!get_points_var (composite.current->glyphIndex, coords, coord_count,
-	  				 comp_points, depth+1))) return false;
+	  if (unlikely (!get_points_var (composite.current->glyphIndex, coords, coord_count,
+	  				 comp_points))) return false;
 
 	  /* Apply component transformation & translation */
 	  composite.current->transform_points (comp_points);
@@ -665,7 +665,7 @@ struct glyf
 			  hb_glyph_extents_t *extents) const
     {
       contour_point_vector_t all_points;
-      if (unlikely (!get_points_var (glyph, coords, coord_count, all_points, 0))) return false;
+      if (unlikely (!get_points_var (glyph, coords, coord_count, all_points))) return false;
 
       contour_bounds_t	bounds;
       for (unsigned int i = 0; i < all_points.length; i++)
@@ -863,7 +863,7 @@ struct glyf
       phantoms.resize (PHANTOM_COUNT);
 
       if (likely (coord_count == gvar_accel.get_axis_count ()))
-	success = get_var_metrics (glyph, coords, coord_count, phantoms, 0);
+	success = get_var_metrics (glyph, coords, coord_count, phantoms);
 
       if (unlikely (!success))
 	return vertical? vmtx_accel.get_advance (glyph): hmtx_accel.get_advance (glyph);
@@ -879,7 +879,7 @@ struct glyf
       contour_point_vector_t	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms, 0)))
+      if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms)))
 	return vertical? vmtx_accel.get_side_bearing (glyph): hmtx_accel.get_side_bearing (glyph);
 
       return (int)(vertical? -ceilf (phantoms[PHANTOM_TOP].y): floorf (phantoms[PHANTOM_LEFT].x));
