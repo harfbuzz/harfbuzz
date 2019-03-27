@@ -539,11 +539,13 @@ struct glyf
 	      read_points<y_setter_t> (p, points_, checker));
     }
 
-    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
+    /* Note: Recursively calls itself. */
     bool get_var_metrics (hb_codepoint_t glyph,
 			  const int *coords, unsigned int coord_count,
-			  contour_point_vector_t &phantoms /* OUT */) const
+			  contour_point_vector_t &phantoms /* OUT */,
+			  unsigned int depth=0) const
     {
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t	points;
       hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points, true/*phantom_only*/))) return false;
@@ -562,7 +564,7 @@ struct glyf
 	if (composite.current->flags & CompositeGlyphHeader::USE_MY_METRICS)
 	{
 	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count,
-					  phantoms))) return false;
+					  phantoms, depth))) return false;
 
 	  composite.current->transform_points (phantoms);
 	}
@@ -593,8 +595,10 @@ struct glyf
      */
     bool get_points_var (hb_codepoint_t glyph,
 			 const int *coords, unsigned int coord_count,
-			 contour_point_vector_t &all_points /* OUT */) const
+			 contour_point_vector_t &all_points /* OUT */,
+			 unsigned int depth=0) const
     {
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t	points;
       hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points))) return false;
