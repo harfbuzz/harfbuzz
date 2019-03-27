@@ -133,6 +133,38 @@ test_advance_tt_var_hvarvvar (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var_anchor (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.anchor.ttf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  hb_bool_t result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 56);
+  g_assert_cmpint (extents.y_bearing, ==, 672);
+  g_assert_cmpint (extents.width, ==, 556);
+  g_assert_cmpint (extents.height, ==, -684);
+
+  float coords[1] = { 500.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+  result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 50);
+  g_assert_cmpint (extents.y_bearing, ==, 668);
+  g_assert_cmpint (extents.width, ==, 593);
+  g_assert_cmpint (extents.height, ==, -680);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -141,6 +173,7 @@ main (int argc, char **argv)
   hb_test_add (test_extents_tt_var);
   hb_test_add (test_advance_tt_var_nohvar);
   hb_test_add (test_advance_tt_var_hvarvvar);
+  hb_test_add (test_advance_tt_var_anchor);
 
   return hb_test_run ();
 }
