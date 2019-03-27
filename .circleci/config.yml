@@ -261,7 +261,6 @@ jobs:
       - image: dockcross/base
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
       - run: make -j32
@@ -271,7 +270,6 @@ jobs:
       - image: dockcross/android-arm
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -280,7 +278,6 @@ jobs:
       - image: dockcross/browser-asmjs
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -289,7 +286,6 @@ jobs:
       - image: dockcross/linux-arm64
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -298,7 +294,6 @@ jobs:
       - image: dockcross/linux-mips
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -307,7 +302,6 @@ jobs:
   #    - image: dockcross/windows-x64
   #  steps:
   #    - checkout
-  #    - run: apt update && apt install ragel
   #    - run: cmake -Bbuild -H. -GNinja
   #    - run: ninja -Cbuild
 
