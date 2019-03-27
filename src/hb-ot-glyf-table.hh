@@ -34,6 +34,8 @@
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-subset-glyf.hh"
 
+#include <float.h>
+
 namespace OT {
 
 
@@ -174,8 +176,50 @@ struct glyf
       return size;
     }
 
-    void transform_point (float &x, float &y) const
+    bool is_anchored () const { return (flags & ARGS_ARE_XY_VALUES) == 0; }
+    void get_anchor_points (unsigned int &point1, unsigned int &point2) const
     {
+      const HBUINT8 *p = &StructAfter<const HBUINT8> (glyphIndex);
+      if (flags & ARG_1_AND_2_ARE_WORDS)
+      {
+	point1 = ((const HBUINT16 *)p)[0];
+	point2 = ((const HBUINT16 *)p)[1];
+      }
+      else
+      {
+	point1 = p[0];
+	point2 = p[1];
+      }
+    }
+ 
+    void transform_points (contour_point_vector_t &points) const
+    {
+      float matrix[4];
+      contour_point_t trans;
+      if (get_transformation (matrix, trans))
+      {
+	if (scaled_offsets ())
+	{
+	  points.translate (trans);
+	  points.transform (matrix);
+	}
+	else
+	{
+	  points.transform (matrix);
+	  points.translate (trans);
+	}
+      }
+    }
+
+    protected:
+    bool scaled_offsets () const
+    { return (flags & (SCALED_COMPONENT_OFFSET|UNSCALED_COMPONENT_OFFSET)) == SCALED_COMPONENT_OFFSET; }
+
+    bool get_transformation (float (&matrix)[4], contour_point_t &trans) const
+    {
+      matrix[0] = matrix[3] = 1.f;
+      matrix[1] = matrix[2] = 0.f;
+      
       int tx, ty;
       const HBINT8 *p = &StructAfter<const HBINT8> (glyphIndex);
       if (flags & ARG_1_AND_2_ARE_WORDS)
@@ -190,28 +234,33 @@ struct glyf
 	tx = *p++;
 	ty = *p++;
       }
-      if (!(flags & ARGS_ARE_XY_VALUES)) tx = ty = 0;	/* TODO: anchor point unsupported for now */
+      if (is_anchored ()) tx = ty = 0;
+
+      trans.init ((float)tx, (float)ty);
 
       if (flags & WE_HAVE_A_SCALE)
       {
-	float scale = ((const F2DOT14*)p)->to_float ();
-	x *= scale;
-	y *= scale;
+	matrix[0] = matrix[3] = ((const F2DOT14*)p)->to_float ();
+	return true;
       }
       else if (flags & WE_HAVE_AN_X_AND_Y_SCALE)
       {
-	x *= ((const F2DOT14*)p)[0].to_float ();
-	y *= ((const F2DOT14*)p)[1].to_float ();
+	matrix[0] = ((const F2DOT14*)p)[0].to_float ();
+	matrix[3] = ((const F2DOT14*)p)[1].to_float ();
+	return true;
       }
       else if (flags & WE_HAVE_A_TWO_BY_TWO)
       {
-	float x_ = x * ((const F2DOT14*)p)[0].to_float () + y * ((const F2DOT14*)p)[1].to_float ();
-	y 	 = x * ((const F2DOT14*)p)[2].to_float () + y * ((const F2DOT14*)p)[3].to_float ();
-	x = x_;
+	matrix[0] = ((const F2DOT14*)p)[0].to_float ();
+	matrix[1] = ((const F2DOT14*)p)[1].to_float ();
+	matrix[2] = ((const F2DOT14*)p)[2].to_float ();
+	matrix[3] = ((const F2DOT14*)p)[3].to_float ();
+	return true;
       }
-      if (tx | ty) { x += tx; y += ty; }
+      return tx || ty;
     }
 
+    public:
     struct Iterator
     {
       const char *glyph_start;
@@ -362,7 +411,7 @@ struct glyf
 
     template <typename T>
     static bool read_points (const HBUINT8 *&p /* IN/OUT */,
-			     hb_vector_t<contour_point_t> &points_ /* IN/OUT */,
+			     contour_point_vector_t &points_ /* IN/OUT */,
 			     const range_checker_t &checker)
     {
       T coord_setter;
@@ -411,7 +460,7 @@ struct glyf
      * in both cases points trailed with four phantom points
      */
     bool get_contour_points (hb_codepoint_t glyph,
-			     hb_vector_t<contour_point_t> &points_ /* OUT */,
+			     contour_point_vector_t &points_ /* OUT */,
 			     hb_vector_t<unsigned int> &end_points_ /* OUT */,
 			     const bool phantom_only=false) const
     {
@@ -493,10 +542,10 @@ struct glyf
     /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
     bool get_var_metrics (hb_codepoint_t glyph,
 			  const int *coords, unsigned int coord_count,
-			  hb_array_t<contour_point_t> phantoms /* OUT */) const
+			  contour_point_vector_t &phantoms /* OUT */) const
     {
-      hb_vector_t<contour_point_t>	points;
-      hb_vector_t<unsigned int>		end_points;
+      contour_point_vector_t	points;
+      hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points, true/*phantom_only*/))) return false;
       hb_array_t<contour_point_t>	phantoms_array = points.sub_array (points.length-PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (glyph, phantoms_array);
@@ -513,9 +562,9 @@ struct glyf
 	if (composite.current->flags & CompositeGlyphHeader::USE_MY_METRICS)
 	{
 	  if (unlikely (!get_var_metrics (composite.current->glyphIndex, coords, coord_count,
-					  phantoms.sub_array (0, 2)))) return false;
-	  for (unsigned int j = 0; j < phantoms.length; j++)
-	    composite.current->transform_point (phantoms[j].x, phantoms[j].y);
+					  phantoms))) return false;
+
+	  composite.current->transform_points (phantoms);
 	}
       } while (composite.move_to_next());
       return true;
@@ -533,28 +582,21 @@ struct glyf
       	max.y = MAX (max.y, p.y);
       }
 
-      void offset (const contour_point_t &p) { min.offset (p); max.offset (p); }
-
-      void merge (const contour_bounds_t &b)
-      {
-	if (empty ()) { *this = b; return; }
-	add (b.min);
-	add (b.max);
-      }
-
       bool empty () const { return (min.x >= max.x) || (min.y >= max.y); }
 
       contour_point_t	min;
       contour_point_t	max;
     };
 
-    /* Note: Recursively calls itself. Who's checking recursively nested composite glyph BTW? */
-    bool get_bounds_var (hb_codepoint_t glyph,
+    /* Note: Recursively calls itself.
+     * all_points does not include phantom points
+     */
+    bool get_points_var (hb_codepoint_t glyph,
 			 const int *coords, unsigned int coord_count,
-			 contour_bounds_t &bounds) const
+			 contour_point_vector_t &all_points /* OUT */) const
     {
-      hb_vector_t<contour_point_t>	points;
-      hb_vector_t<unsigned int>		end_points;
+      contour_point_vector_t	points;
+      hb_vector_t<unsigned int>	end_points;
       if (unlikely (!get_contour_points (glyph, points, end_points))) return false;
       hb_array_t<contour_point_t>	phantoms_array = points.sub_array (points.length-PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (glyph, phantoms_array);
@@ -565,34 +607,50 @@ struct glyf
       if (!get_composite (glyph, &composite))
       {
       	/* simple glyph */
-	for (unsigned int i = 0; i + PHANTOM_COUNT < points.length; i++)
-	  bounds.add (points[i]);	/* TODO: need to check ON_CURVE or flatten? */
+      	if (likely (points.length >= PHANTOM_COUNT))
+	  all_points.extend (points.sub_array (0, points.length - PHANTOM_COUNT));
       }
       else
       {
 	/* composite glyph */
 	do
 	{
-	  contour_bounds_t	comp_bounds;
-	  if (unlikely (!get_bounds_var (composite.current->glyphIndex, coords, coord_count, comp_bounds))) return false;
+	  contour_point_vector_t comp_points;
+	  if (unlikely (!get_points_var (composite.current->glyphIndex, coords, coord_count,
+	  				 comp_points))) return false;
 
-	  /* Apply offset & scaling */
-	  composite.current->transform_point (comp_bounds.min.x, comp_bounds.min.y);
-	  composite.current->transform_point (comp_bounds.max.x, comp_bounds.max.y);
+	  /* Apply component transformation & translation */
+	  composite.current->transform_points (comp_points);
 	  
-	  /* Apply offset adjustments from gvar */
-	  comp_bounds.offset (points[comp_index]);
-	  
-	  bounds.merge (comp_bounds);
+	  /* Apply translatation from gvar */
+	  comp_points.translate (points[comp_index]);
+
+	  if (composite.current->is_anchored ())
+	  {
+	    unsigned int p1, p2;
+	    composite.current->get_anchor_points (p1, p2);
+	    if (likely (p1 < all_points.length && p2 < comp_points.length))
+	    {
+	      contour_point_t	delta;
+	      delta.init (all_points[p1].x - comp_points[p2].x,
+	      		  all_points[p1].y - comp_points[p2].y);
+
+	      comp_points.translate (delta);
+	    }
+	  }
+	  all_points.extend (comp_points.as_array ());
+
 	  comp_index++;
 	} while (composite.move_to_next());
       }
 
-      /* Shift bounds by the updated left side bearing (vertically too?) */
       {
-      	float x_delta = points[points.length - PHANTOM_COUNT + PHANTOM_LEFT].x;
-      	bounds.min.x -= x_delta;
-      	bounds.max.x -= x_delta;
+	/* Undocumented rasterizer behavior:
+	 * Shift points horizontally by the updated left side bearing
+	 */
+	contour_point_t delta;
+	delta.init (points[points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
+	if (delta.x != 0.f) all_points.translate (delta);
       }
 
       return true;
@@ -602,8 +660,12 @@ struct glyf
 			  const int *coords, unsigned int coord_count,
 			  hb_glyph_extents_t *extents) const
     {
+      contour_point_vector_t all_points;
+      if (unlikely (!get_points_var (glyph, coords, coord_count, all_points))) return false;
+
       contour_bounds_t	bounds;
-      if (unlikely (!get_bounds_var (glyph, coords, coord_count, bounds))) return false;
+      for (unsigned int i = 0; i < all_points.length; i++)
+      	bounds.add (all_points[i]);
 
       if (bounds.min.x >= bounds.max.x)
       {
@@ -793,11 +855,11 @@ struct glyf
 				  bool vertical) const
     {
       bool success = false;
-      hb_vector_t<contour_point_t>	phantoms;
+      contour_point_vector_t	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
       if (likely (coord_count == gvar_accel.get_axis_count ()))
-	success = get_var_metrics (glyph, coords, coord_count, phantoms.as_array ());
+	success = get_var_metrics (glyph, coords, coord_count, phantoms);
 
       if (unlikely (!success))
 	return vertical? vmtx_accel.get_advance (glyph): hmtx_accel.get_advance (glyph);
@@ -810,7 +872,7 @@ struct glyf
 
     int get_side_bearing_var (hb_codepoint_t glyph, const int *coords, unsigned int coord_count, bool vertical) const
     {
-      hb_vector_t<contour_point_t>	phantoms;
+      contour_point_vector_t	phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
       if (unlikely (!get_var_metrics (glyph, coords, coord_count, phantoms)))

@@ -31,8 +31,6 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 
-#include <float.h>
-
 /*
  * gvar -- Glyph Variation Table
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gvar
@@ -43,12 +41,40 @@ namespace OT {
 
 struct contour_point_t
 {
-  void init () { flag = 0; x = y = 0.0f; }
+  void init (float x_=0.f, float y_=0.f) { flag = 0; x = x_; y = y_; }
 
-  void offset (const contour_point_t &p) { x += p.x; y += p.y; }
+  void translate (const contour_point_t &p) { x += p.x; y += p.y; }
   
   uint8_t	flag;
   float		x, y;
+};
+
+struct contour_point_vector_t : hb_vector_t<contour_point_t>
+{
+  void extend (const hb_array_t<contour_point_t> &a)
+  {
+    unsigned int old_len = length;
+    resize (old_len + a.length);
+    for (unsigned int i = 0; i < a.length; i++)
+      (*this)[old_len + i] = a[i];
+  }
+
+  void transform (const float (&matrix)[4])
+  {
+    for (unsigned int i = 0; i < length; i++)
+    {
+      contour_point_t &p = (*this)[i];
+      float x_ = p.x * matrix[0] + p.y * matrix[1];
+	   p.y = p.x * matrix[2] + p.y * matrix[3];
+      p.x = x_;
+    }
+  }
+
+  void translate (const contour_point_t& delta)
+  {
+    for (unsigned int i = 0; i < length; i++)
+      (*this)[i].translate (delta);
+  }
 };
 
 struct range_checker_t
@@ -541,7 +567,7 @@ struct gvar
 					     &iterator))
 	return false;
 
-      hb_vector_t<contour_point_t>	deltas;	/* flag is used to indicate referenced point */
+      contour_point_vector_t	deltas;	/* flag is used to indicate referenced point */
       deltas.resize (points.length);
       for (unsigned int i = 0; i < deltas.length; i++)
       	deltas[i].init ();
@@ -582,7 +608,7 @@ struct gvar
       } while (iterator.move_to_next ());
 
       /* infer deltas for unreferenced points */
-      hb_vector_t<contour_point_t> orig_points;
+      contour_point_vector_t orig_points;
       orig_points.resize (points.length);
       for (unsigned int i = 0; i < orig_points.length; i++)
       	orig_points[i] = points[i];
