@@ -27,8 +27,9 @@ jobs:
       xcode: "10.2.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c
+      - run: brew link --force icu4c
+      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext
       - run: make -j4
       - run: make check || .ci/fail.sh
 
