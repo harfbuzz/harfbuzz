@@ -45,16 +45,6 @@ matrix:
         - make
         - make check || .ci/fail.sh
 
-    - os: osx
-      compiler: clang
-      install:
-        - brew link --force icu4c
-      script:
-        - ./autogen.sh
-        - ./configure $CONFIGURE_OPTS --with-coretext
-        - make
-        - make check || .ci/fail.sh
-
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz-bots-chatter@googlegroups.com
@@ -76,14 +66,6 @@ addons:
       - libicu-dev # for extra unicode functions
       - libgraphite2-dev # for extra shapers
       #- libgirepository1.0-dev # for gobject-introspection
-  homebrew:
-    packages:
-      - cairo
-      - freetype
-      - glib
-      - graphite2
-      - icu4c
-      #- gobject-introspection
 
   coverity_scan:
     project:

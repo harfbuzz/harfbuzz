@@ -368,7 +368,8 @@ def map_to_use(data):
 		# TODO: These are not in USE's override list that we have, nor are they in Unicode 12.0
 		if 0xA926 <= U <= 0xA92A: UIPC = Top
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1037
-		if U == 0x11302: UIPC = Top
+		#  and https://github.com/harfbuzz/harfbuzz/issues/1631
+		if U in [0x11302, 0x11303, 0x114C1]: UIPC = Top
 		if U == 0x1171E: UIPC = Left
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
 
