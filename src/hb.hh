@@ -214,7 +214,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
  * Compiler attributes
  */
 
-#if __cplusplus < 201103L
+#if __cplusplus < 201103L && !defined(_MSC_VER)
 
 #ifndef nullptr
 #define nullptr NULL
