@@ -182,6 +182,7 @@ struct index_map_subset_plan_t
       last_gid = gid;
     }
 
+    if (last_gid == (hb_codepoint_t)-1) return;
     map_count = last_gid;
     for (gid = 0; gid < map_count; gid++)
     {
