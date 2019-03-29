@@ -6,3 +6,5 @@
 ../fonts/1735326da89f0818cd8c51a0600e9789812c0f94.ttf::U+0A51:[uni25CC=0+1044|udaatguru=0+0]
 ../fonts/1735326da89f0818cd8c51a0600e9789812c0f94.ttf::U+25CC,U+0A51:[uni25CC=0+1044|udaatguru=0+0]
 ../fonts/81c368a33816fb20e9f647e8f24e2180f4720263.ttf:--no-glyph-names:U+0C80,U+0C82:[1=0+502|2=0+502]
+../fonts/f75c4b05a0a4d67c1a808081ae3d74a9c66509e8.ttf::U+0A20,U+0A75,U+0A47:[tthaguru=0+1352|yakashguru=0@-90,0+0|eematraguru=0@-411,0+0]
+../fonts/f75c4b05a0a4d67c1a808081ae3d74a9c66509e8.ttf::U+0A20,U+0A75,U+0A42:[tthaguru=0+1352|yakashuuguru=0+0]
