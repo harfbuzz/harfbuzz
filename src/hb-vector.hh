@@ -87,7 +87,7 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
-  explicit_operator bool () const { return length; }
+  explicit operator bool () const { return length; }
 
   /* Sink interface. */
   hb_vector_t& operator << (const Type &v) { push (v); return *this; }
@@ -117,8 +117,8 @@ struct hb_vector_t
   hb_sorted_array_t<const Type> as_sorted_array () const
   { return hb_sorted_array (arrayZ(), length); }
 
-  template <typename T> explicit_operator T * () { return arrayZ(); }
-  template <typename T> explicit_operator const T * () const { return arrayZ(); }
+  template <typename T> explicit operator T * () { return arrayZ(); }
+  template <typename T> explicit operator const T * () const { return arrayZ(); }
 
   Type * operator  + (unsigned int i) { return arrayZ() + i; }
   const Type * operator  + (unsigned int i) const { return arrayZ() + i; }

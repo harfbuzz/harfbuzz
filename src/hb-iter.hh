@@ -69,7 +69,7 @@ struct hb_iter_t
   /* Operators. */
   iter_t iter () const { return *thiz(); }
   iter_t operator + () const { return *thiz(); }
-  explicit_operator bool () const { return thiz()->__more__ (); }
+  explicit operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
   /* The following can only be enabled if item_t is reference type.  Otherwise
    * it will be returning pointer to temporary rvalue. */

@@ -529,7 +529,7 @@ struct ArrayOf
   unsigned int get_size () const
   { return len.static_size + len * Type::static_size; }
 
-  explicit_operator bool () const { return len; }
+  explicit operator bool () const { return len; }
 
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, len); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ, len); }
