@@ -218,6 +218,13 @@ typedef struct {
   hb_tag_t tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
 } LangTag;
 
+static int
+langtag_compare_first_component (const LangTag a,
+				 const char   *b)
+{
+  return lang_compare_first_component (b, a.language);
+}
+
 #include "hb-ot-tag-table.hh"
 
 /* The corresponding languages IDs for the following IDs are unclear,
@@ -263,9 +270,9 @@ hb_ot_tags_from_language (const char   *lang_str,
 	  ISALPHA (s[1]))
 	lang_str = s + 1;
     }
-    lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
-				    ARRAY_LENGTH (ot_languages), sizeof (LangTag),
-				    lang_compare_first_component);
+    lang_tag = hb_sorted_array_t<const LangTag> (ot_languages).bsearch (lang_str,
+									nullptr,
+									langtag_compare_first_component);
     if (lang_tag)
     {
       unsigned int i;

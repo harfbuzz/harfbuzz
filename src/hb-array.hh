@@ -208,28 +208,34 @@ struct hb_sorted_array_t :
   { return sub_array (start_offset, &seg_count); }
 
   template <typename T>
+  static int compar (const Type a, const T b)
+  {
+    return a.cmp (b);
+  }
+  template <typename T>
   Type *bsearch (const T &x, Type *not_found = nullptr)
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  const Type *bsearch (const T &x, const Type *not_found = nullptr, int (*cmp)(const Type, const T) = compar) const
   {
     unsigned int i;
-    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
+    return bfind (x, &i, HB_BFIND_NOT_FOUND_DONT_STORE, (unsigned int) -1, cmp) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
   bool bfind (const T &x, unsigned int *i = nullptr,
 		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
-		     unsigned int to_store = (unsigned int) -1) const
+		     unsigned int to_store = (unsigned int) -1,
+		     int (*cmp)(const Type, const T) = compar) const
   {
     int min = 0, max = (int) this->length - 1;
     const Type *array = this->arrayZ;
     while (min <= max)
     {
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (x);
+      int c = cmp (array[mid], x);
       if (c < 0)
         max = mid - 1;
       else if (c > 0)
@@ -253,7 +259,7 @@ struct hb_sorted_array_t :
 	  break;
 
 	case HB_BFIND_NOT_FOUND_STORE_CLOSEST:
-	  if (max < 0 || (max < (int) this->length && array[max].cmp (x) > 0))
+	  if (max < 0 || (max < (int) this->length && cmp (array[max], x) > 0))
 	    max++;
 	  *i = max;
 	  break;
