@@ -616,7 +616,7 @@ struct PairSet
   friend struct PairPosFormat1;
 
   bool intersects (const hb_set_t *glyphs,
-			  const ValueFormat *valueFormats) const
+		   const ValueFormat *valueFormats) const
   {
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
@@ -722,16 +722,14 @@ struct PairPosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    unsigned int count = pairSet.len;
-    for (Coverage::Iter iter (this+coverage); iter.more (); iter.next ())
-    {
-      if (unlikely (iter.get_coverage () >= count))
-	break; /* Work around malicious fonts. https://github.com/harfbuzz/harfbuzz/issues/363 */
-      if (glyphs->has (iter.get_glyph ()) &&
-	  (this+pairSet[iter.get_coverage ()]).intersects (glyphs, valueFormat))
-	return true;
-    }
-    return false;
+    return
+    + hb_zip (this+coverage, pairSet)
+    | hb_filter (*glyphs, hb_first)
+    | hb_map (hb_second)
+    | hb_map ([&] (const OffsetTo<PairSet> &_) -> bool
+	      { return (this+_).intersects (glyphs, valueFormat); })
+    | hb_any
+    ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const

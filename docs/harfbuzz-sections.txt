@@ -217,6 +217,14 @@ hb_coretext_font_get_ct_font
 </SECTION>
 
 <SECTION>
+<FILE>hb-directwrite</FILE>
+hb_directwrite_face_create
+hb_directwrite_face_get_font_face
+<SUBSECTION Private>
+hb_directwrite_shape_experimental_width
+</SECTION>
+
+<SECTION>
 <FILE>hb-face</FILE>
 hb_face_count
 hb_face_t
@@ -715,8 +723,6 @@ hb_unicode_script_func_t
 <FILE>hb-uniscribe</FILE>
 hb_uniscribe_font_get_hfont
 hb_uniscribe_font_get_logfontw
-<SUBSECTION Private>
-hb_directwrite_shape_experimental_width
 </SECTION>
 
 <SECTION>

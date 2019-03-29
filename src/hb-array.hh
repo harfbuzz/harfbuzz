@@ -28,7 +28,7 @@
 #define HB_ARRAY_HH
 
 #include "hb.hh"
-#include "hb-dsalgs.hh"
+#include "hb-algs.hh"
 #include "hb-iter.hh"
 #include "hb-null.hh"
 
@@ -37,22 +37,22 @@ template <typename Type>
 struct hb_sorted_array_t;
 
 template <typename Type>
-struct hb_array_t :
-	hb_iter_t<hb_array_t<Type>, Type>,
-	hb_iter_mixin_t<hb_array_t<Type>, Type>
+struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 {
   /*
    * Constructors.
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
+  template <typename U = Type, hb_enable_if (hb_is_const (U))>
+  hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
-
 
   /*
    * Iterator implementation.
    */
-  typedef Type __item_type__;
+  typedef Type& __item_t__;
+  static constexpr bool is_random_access_iterator = true;
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
@@ -72,7 +72,6 @@ struct hb_array_t :
     length -= n;
   }
   unsigned __len__ () const { return length; }
-  bool __random_access__ () const { return true; }
 
   /* Extra operators.
    */
@@ -183,7 +182,6 @@ template <typename T, unsigned int length_> inline hb_array_t<T>
 hb_array (T (&array_)[length_])
 { return hb_array_t<T> (array_); }
 
-
 enum hb_bfind_not_found_t
 {
   HB_BFIND_NOT_FOUND_DONT_STORE,
@@ -193,12 +191,18 @@ enum hb_bfind_not_found_t
 
 template <typename Type>
 struct hb_sorted_array_t :
-	hb_sorted_iter_t<hb_sorted_array_t<Type>, Type>,
-	hb_array_t<Type>,
-	hb_iter_mixin_t<hb_sorted_array_t<Type>, Type>
+	hb_iter_t<hb_sorted_array_t<Type>, Type&>,
+	hb_array_t<Type>
 {
+  typedef hb_iter_t<hb_sorted_array_t<Type>, Type&> iter_base_t;
+  HB_ITER_USING (iter_base_t);
+  static constexpr bool is_random_access_iterator = true;
+  static constexpr bool is_sorted_iterator = true;
+
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
+  template <typename U = Type, hb_enable_if (hb_is_const (U))>
+  hb_sorted_array_t (const hb_sorted_array_t<hb_remove_const (Type)> &o) : hb_array_t<Type> (o) {}
   hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}
   template <unsigned int length_> hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
 

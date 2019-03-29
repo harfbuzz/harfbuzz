@@ -443,15 +443,15 @@ struct GDEF
     if (unlikely (!out)) return_trace (false);
 
     out->glyphClassDef.serialize_subset (c, this+glyphClassDef, out);
-    out->attachList.set (0);//TODO(subset) serialize_subset (c, this+attachList, out);
-    out->ligCaretList.set (0);//TODO(subset) serialize_subset (c, this+ligCaretList, out);
+    out->attachList = 0;//TODO(subset) serialize_subset (c, this+attachList, out);
+    out->ligCaretList = 0;//TODO(subset) serialize_subset (c, this+ligCaretList, out);
     out->markAttachClassDef.serialize_subset (c, this+markAttachClassDef, out);
 
     if (version.to_int () >= 0x00010002u)
-      out->markGlyphSetsDef.set (0);// TODO(subset) serialize_subset (c, this+markGlyphSetsDef, out);
+      out->markGlyphSetsDef = 0;// TODO(subset) serialize_subset (c, this+markGlyphSetsDef, out);
 
     if (version.to_int () >= 0x00010003u)
-      out->varStore.set (0);// TODO(subset) serialize_subset (c, this+varStore, out);
+      out->varStore = 0;// TODO(subset) serialize_subset (c, this+varStore, out);
 
     return_trace (true);
   }

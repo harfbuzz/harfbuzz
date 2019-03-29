@@ -30,14 +30,6 @@
 #include "hb.hh"
 
 
-template <typename T>
-inline uint32_t Hash (const T &v)
-{
-  /* Knuth's multiplicative method: */
-  return (uint32_t) v * 2654435761u;
-}
-
-
 /*
  * hb_map_t
  */
@@ -160,13 +152,15 @@ struct hb_map_t
 
   void del (hb_codepoint_t key) { set (key, INVALID); }
 
-  bool has (hb_codepoint_t key) const
-  { return get (key) != INVALID; }
-
-  hb_codepoint_t operator [] (unsigned int key) const
-  { return get (key); }
-
   static constexpr hb_codepoint_t INVALID = HB_MAP_VALUE_INVALID;
+
+  /* Has interface. */
+  static constexpr hb_codepoint_t SENTINEL = INVALID;
+  typedef hb_codepoint_t value_t;
+  value_t operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  /* Projection. */
+  hb_codepoint_t operator () (hb_codepoint_t k) const { return get (k); }
 
   void clear ()
   {
@@ -182,7 +176,7 @@ struct hb_map_t
 
   unsigned int bucket_for (hb_codepoint_t key) const
   {
-    unsigned int i = Hash (key) % prime;
+    unsigned int i = hb_hash (key) % prime;
     unsigned int step = 0;
     unsigned int tombstone = INVALID;
     while (!items[i].is_unused ())
