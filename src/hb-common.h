@@ -358,7 +358,7 @@ typedef enum
   /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
 
   /*
-   * Since REPLACEME
+   * Since 2.4.0
    */
   /*12.0*/HB_SCRIPT_ELYMAIC			= HB_TAG ('E','l','y','m'),
   /*12.0*/HB_SCRIPT_NANDINAGARI			= HB_TAG ('N','a','n','d'),

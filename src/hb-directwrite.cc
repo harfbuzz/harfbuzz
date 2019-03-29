@@ -846,10 +846,23 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 				     features, num_features, 0);
 }
 
-/*
- * Public [experimental] API
- */
-
+/**
+ * hb_directwrite_shape_experimental_width:
+ * Experimental API to test DirectWrite's justification algorithm.
+ *
+ * It inserts Kashida at wrong order so don't use the API ever.
+ *
+ * It doesn't work with cygwin/msys due to header bugs so one
+ * should use MSVC toolchain in order to use it for now.
+ *
+ * @font:
+ * @buffer:
+ * @features:
+ * @num_features:
+ * @width:
+ *
+ * Since: 1.4.2
+ **/
 hb_bool_t
 hb_directwrite_shape_experimental_width (hb_font_t          *font,
 					 hb_buffer_t        *buffer,
@@ -918,7 +931,8 @@ _hb_directwrite_font_release (void *data)
 /**
  * hb_directwrite_face_create:
  * @font_face:
- * Since: REPLACEME
+ *
+ * Since: 2.4.0
  **/
 hb_face_t *
 hb_directwrite_face_create (IDWriteFontFace *font_face)
@@ -927,4 +941,16 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
     font_face->AddRef ();
   return hb_face_create_for_tables (reference_table, font_face,
 				    _hb_directwrite_font_release);
+}
+
+/**
+* hb_directwrite_face_get_font_face:
+* @face:
+*
+* Since: REPLACEME
+**/
+IDWriteFontFace *
+hb_directwrite_face_get_font_face (hb_face_t *face)
+{
+  return face->data.directwrite->fontFace;
 }

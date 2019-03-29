@@ -28,6 +28,7 @@
 #define HB_NULL_HH
 
 #include "hb.hh"
+#include "hb-meta.hh"
 
 
 /*
@@ -45,18 +46,16 @@
  * https://stackoverflow.com/questions/7776448/sfinae-tried-with-bool-gives-compiler-error-template-argument-tvalue-invol
  */
 
-template<bool> struct _hb_bool_type {};
-
 template <typename T, typename B>
 struct _hb_null_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_null_size<T, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_null_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
 { enum { value = T::null_size }; };
 
 template <typename T>
 struct hb_null_size
-{ enum { value = _hb_null_size<T, _hb_bool_type<true> >::value }; };
+{ enum { value = _hb_null_size<T, hb_true_t>::value }; };
 #define hb_null_size(T) hb_null_size<T>::value
 
 /* These doesn't belong here, but since is copy/paste from above, put it here. */
@@ -68,32 +67,13 @@ template <typename T, typename B>
 struct _hb_static_size
 { enum { value = sizeof (T) }; };
 template <typename T>
-struct _hb_static_size<T, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
+struct _hb_static_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
 { enum { value = T::static_size }; };
 
 template <typename T>
 struct hb_static_size
-{ enum { value = _hb_static_size<T, _hb_bool_type<true> >::value }; };
+{ enum { value = _hb_static_size<T, hb_true_t>::value }; };
 #define hb_static_size(T) hb_static_size<T>::value
-
-
-/* hb_assign (obj, value)
- * Calls obj.set (value) if obj.min_size is defined and value has different type
- * from obj, or obj = v otherwise. */
-
-template <typename T, typename V, typename B>
-struct _hb_assign
-{ static inline void value (T &o, const V v) { o = v; } };
-template <typename T, typename V>
-struct _hb_assign<T, V, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
-{ static inline void value (T &o, const V v) { o.set (v); } };
-template <typename T>
-struct _hb_assign<T, T, _hb_bool_type<(bool) (1 + (unsigned int) T::min_size)> >
-{ static inline void value (T &o, const T v) { o = v; } };
-
-template <typename T, typename V>
-static inline void hb_assign (T &o, const V v)
-{ _hb_assign<T, V, _hb_bool_type<true> >::value (o, v); }
 
 
 /*
@@ -115,7 +95,7 @@ struct Null {
 template <typename QType>
 struct NullHelper
 {
-  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  typedef hb_remove_const (hb_remove_reference (QType)) Type;
   static const Type & get_null () { return Null<Type>::get_null (); }
 };
 #define Null(Type) NullHelper<Type>::get_null ()
@@ -168,7 +148,7 @@ static inline Type& Crap () {
 template <typename QType>
 struct CrapHelper
 {
-  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  typedef hb_remove_const (hb_remove_reference (QType)) Type;
   static Type & get_crap () { return Crap<Type> (); }
 };
 #define Crap(Type) CrapHelper<Type>::get_crap ()
@@ -191,7 +171,7 @@ struct CrapOrNullHelper<const Type> {
 template <typename P>
 struct hb_nonnull_ptr_t
 {
-  typedef typename hb_remove_pointer (P) T;
+  typedef hb_remove_pointer (P) T;
 
   hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
   T * operator = (T *v_)   { return v = v_; }

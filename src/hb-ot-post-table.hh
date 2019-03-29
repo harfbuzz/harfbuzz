@@ -88,7 +88,7 @@ struct post
       return false;
     }
 
-    post_prime->version.major.set (3); // Version 3 does not have any glyph names.
+    post_prime->version.major = 3; // Version 3 does not have any glyph names.
     bool result = plan->add_table (HB_OT_TAG_post, post_prime_blob);
     hb_blob_destroy (post_prime_blob);
 

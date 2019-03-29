@@ -106,7 +106,7 @@ typedef struct OffsetTable
   bool find_table_index (hb_tag_t tag, unsigned int *table_index) const
   {
     Tag t;
-    t.set (tag);
+    t = tag;
     return tables.bfind (t, table_index, HB_BFIND_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
   }
   const TableRecord& get_table_by_tag (hb_tag_t tag) const
@@ -127,7 +127,7 @@ typedef struct OffsetTable
     /* Alloc 12 for the OTHeader. */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     /* Write sfntVersion (bytes 0..3). */
-    sfnt_version.set (sfnt_tag);
+    sfnt_version = sfnt_tag;
     /* Take space for numTables, searchRange, entrySelector, RangeShift
      * and the TableRecords themselves.  */
     if (unlikely (!tables.serialize (c, items.length))) return_trace (false);
@@ -140,8 +140,8 @@ typedef struct OffsetTable
     {
       TableRecord &rec = tables.arrayZ[i];
       hb_blob_t *blob = items[i].blob;
-      rec.tag.set (items[i].tag);
-      rec.length.set (hb_blob_get_length (blob));
+      rec.tag = items[i].tag;
+      rec.length = hb_blob_get_length (blob);
       rec.offset.serialize (c, this);
 
       /* Allocate room for the table and copy it. */
@@ -159,7 +159,7 @@ typedef struct OffsetTable
       {
 	head *h = (head *) start;
 	checksum_adjustment = &h->checkSumAdjustment;
-	checksum_adjustment->set (0);
+	*checksum_adjustment = 0;
       }
 
       rec.checkSum.set_for_data (start, end - start);
@@ -177,10 +177,10 @@ typedef struct OffsetTable
       for (unsigned int i = 0; i < items.length; i++)
       {
 	TableRecord &rec = tables.arrayZ[i];
-	checksum.set (checksum + rec.checkSum);
+	checksum = checksum + rec.checkSum;
       }
 
-      checksum_adjustment->set (0xB1B0AFBAu - checksum);
+      *checksum_adjustment = 0xB1B0AFBAu - checksum;
     }
 
     return_trace (true);

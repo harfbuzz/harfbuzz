@@ -84,7 +84,7 @@ struct hb_aat_map_builder_t
   hb_face_t *face;
 
   public:
-  hb_vector_t<feature_info_t> features;
+  hb_sorted_vector_t<feature_info_t> features;
 };
 
 

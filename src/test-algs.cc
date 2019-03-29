@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2019  Facebook, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,46 +21,30 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Behdad Esfahbod
+ * Facebook Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_H_IN
-#error "Include <hb.h> instead."
-#endif
-
-#ifndef HB_VERSION_H
-#define HB_VERSION_H
-
-#include "hb-common.h"
-
-HB_BEGIN_DECLS
+#include "hb.hh"
+#include "hb-algs.hh"
 
 
-#define HB_VERSION_MAJOR 2
-#define HB_VERSION_MINOR 4
-#define HB_VERSION_MICRO 0
+int
+main (int argc, char **argv)
+{
+  int i = 1;
+  auto p = hb_pair (1, i);
 
-#define HB_VERSION_STRING "2.4.0"
+  p.second = 2;
+  assert (i == 2);
 
-#define HB_VERSION_ATLEAST(major,minor,micro) \
-	((major)*10000+(minor)*100+(micro) <= \
-	 HB_VERSION_MAJOR*10000+HB_VERSION_MINOR*100+HB_VERSION_MICRO)
+  const int c = 3;
+  auto pc = hb_pair (1, c);
+  assert (pc.second == 3);
 
+  auto q = p;
+  assert (&q != &p);
+  q.second = 4;
+  assert (i == 4);
 
-HB_EXTERN void
-hb_version (unsigned int *major,
-	    unsigned int *minor,
-	    unsigned int *micro);
-
-HB_EXTERN const char *
-hb_version_string (void);
-
-HB_EXTERN hb_bool_t
-hb_version_atleast (unsigned int major,
-		    unsigned int minor,
-		    unsigned int micro);
-
-
-HB_END_DECLS
-
-#endif /* HB_VERSION_H */
+  return 0;
+}
