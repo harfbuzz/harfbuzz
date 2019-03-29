@@ -145,6 +145,14 @@ static const struct
 
 } hb_iter HB_UNUSED;
 
+static const struct
+{
+  template <typename T>
+  unsigned
+  operator () (T&& c) const
+  { return hb_iter (c).len (); }
+} hb_len HB_UNUSED;
+
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>

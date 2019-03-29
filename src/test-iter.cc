@@ -158,6 +158,8 @@ main (int argc, char **argv)
   | hb_drain
   ;
 
+  hb_len (src);
+
   t << 1;
   long vl;
   s >> vl;
