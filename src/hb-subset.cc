@@ -43,6 +43,7 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-ot-vorg-table.hh"
+#include "hb-ot-name-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 
@@ -157,6 +158,9 @@ _subset_table (hb_subset_plan_t *plan,
       break;
     case HB_OT_TAG_hdmx:
       result = _subset<const OT::hdmx> (plan);
+      break;
+    case HB_OT_TAG_name:
+      result = _subset<const OT::name> (plan);
       break;
     case HB_OT_TAG_head:
       // TODO that won't work well if there is no glyf
