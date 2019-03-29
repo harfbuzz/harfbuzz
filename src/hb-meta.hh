@@ -104,5 +104,19 @@ template <> struct hb_signedness_int<false> { typedef unsigned int value; };
 template <> struct hb_signedness_int<true>  { typedef   signed int value; };
 #define hb_signedness_int(T) hb_signedness_int<T>::value
 
+template <typename T> struct hb_is_integer { enum { value = false }; };
+template <> struct hb_is_integer<char> { enum { value = true }; };
+template <> struct hb_is_integer<signed char> { enum { value = true }; };
+template <> struct hb_is_integer<unsigned char> { enum { value = true }; };
+template <> struct hb_is_integer<signed short> { enum { value = true }; };
+template <> struct hb_is_integer<unsigned short> { enum { value = true }; };
+template <> struct hb_is_integer<signed int> { enum { value = true }; };
+template <> struct hb_is_integer<unsigned int> { enum { value = true }; };
+template <> struct hb_is_integer<signed long> { enum { value = true }; };
+template <> struct hb_is_integer<unsigned long> { enum { value = true }; };
+template <> struct hb_is_integer<signed long long> { enum { value = true }; };
+template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
+#define hb_is_integer(T) hb_is_integer<T>::value
+
 
 #endif /* HB_META_HH */
