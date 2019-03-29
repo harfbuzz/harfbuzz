@@ -96,13 +96,6 @@ HB_MARK_AS_FLAG_T (hb_ot_layout_glyph_props_flags_t);
  * GSUB/GPOS
  */
 
-HB_INTERNAL bool
-hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
-					   unsigned int          lookup_index,
-					   const hb_codepoint_t *glyphs,
-					   unsigned int          glyphs_length,
-					   bool                  zero_context);
-
 
 /* Should be called before all the substitute_lookup's are done. */
 HB_INTERNAL void

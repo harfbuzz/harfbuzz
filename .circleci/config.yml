@@ -22,6 +22,16 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
+  macos-10.14.3-aat-fonts:
+    macos:
+      xcode: "10.2.0"
+    steps:
+      - checkout
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
+      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
+      - run: make -j4
+      - run: make check || .ci/fail.sh
+
   distcheck:
     docker:
       - image: ubuntu:17.10
@@ -239,8 +249,8 @@ jobs:
       - image: dockcross/base
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
+      - run: echo "#""!""/bin/true" > /usr/bin/ragel && chmod +x /usr/bin/ragel
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
       - run: make -j32
 
@@ -249,7 +259,6 @@ jobs:
       - image: dockcross/android-arm
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -258,7 +267,6 @@ jobs:
       - image: dockcross/browser-asmjs
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -267,7 +275,6 @@ jobs:
       - image: dockcross/linux-arm64
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -276,7 +283,6 @@ jobs:
       - image: dockcross/linux-mips
     steps:
       - checkout
-      - run: apt update && apt install ragel
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
@@ -285,7 +291,6 @@ jobs:
   #    - image: dockcross/windows-x64
   #  steps:
   #    - checkout
-  #    - run: apt update && apt install ragel
   #    - run: cmake -Bbuild -H. -GNinja
   #    - run: ninja -Cbuild
 
@@ -296,6 +301,7 @@ workflows:
       # macOS
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
+      - macos-10.14.3-aat-fonts
 
       # both autotools and cmake
       - distcheck
