@@ -639,7 +639,7 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #include "hb-mutex.hh"
 #include "hb-atomic.hh"	// Requires: hb-meta
 #include "hb-null.hh"	// Requires: hb-meta
-#include "hb-algs.hh"	// Requires: hb-null
+#include "hb-algs.hh"	// Requires: hb-meta hb-null
 #include "hb-iter.hh"	// Requires: hb-meta
 #include "hb-debug.hh"	// Requires: hb-algs hb-atomic
 #include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null

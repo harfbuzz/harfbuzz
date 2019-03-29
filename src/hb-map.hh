@@ -30,14 +30,6 @@
 #include "hb.hh"
 
 
-template <typename T>
-inline uint32_t Hash (const T &v)
-{
-  /* Knuth's multiplicative method: */
-  return (uint32_t) v * 2654435761u;
-}
-
-
 /*
  * hb_map_t
  */
@@ -184,7 +176,7 @@ struct hb_map_t
 
   unsigned int bucket_for (hb_codepoint_t key) const
   {
-    unsigned int i = Hash (key) % prime;
+    unsigned int i = hb_hash (key) % prime;
     unsigned int step = 0;
     unsigned int tombstone = INVALID;
     while (!items[i].is_unused ())
