@@ -158,6 +158,59 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
+  size_t get_subsetted_size(const name *source_name, hb_subset_plan_t *plan, hb_set_t *name_record_ids_to_retain) const
+  {
+    size_t result = min_size;
+    result += count * NameRecord::static_size;
+
+    hb_face_t *face = plan->source;
+    accelerator_t acc;
+    acc.init (face);
+
+    for(unsigned int i = 0; i<count; i++)
+    {
+      result += acc.get_name(i).get_size();
+      if(format == 0 && (unsigned int)nameRecordZ[i].nameID <=25)
+      {
+        name_record_ids_to_retain->add(i);
+      }
+    }
+
+    acc.fini();
+
+    return result;
+  }
+
+  void serialize(void *dest, const void *source, size_t dest_size) const
+  {
+    memcpy(dest, source, dest_size);
+  }
+
+  bool subset(hb_subset_plan_t *plan) const
+  {
+    hb_set_t *name_record_ids_to_retain = hb_set_create();
+    size_t dest_size = get_subsetted_size(this, plan, name_record_ids_to_retain);
+    name *dest = (name *) malloc (dest_size);
+    if(unlikely (!dest))
+    {
+      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for name subset output.",
+                (unsigned long) dest_size);
+      return false;
+    }
+
+    serialize(dest, this, dest_size);
+    hb_set_destroy(name_record_ids_to_retain);
+
+    hb_blob_t *name_prime_blob = hb_blob_create((const char *) dest,
+                                                dest_size,
+                                                HB_MEMORY_MODE_READONLY,
+                                                dest,
+                                                free);
+    bool result = plan->add_table (HB_OT_TAG_name, name_prime_blob);
+    hb_blob_destroy (name_prime_blob);
+
+    return result;
+  }
   bool sanitize_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
