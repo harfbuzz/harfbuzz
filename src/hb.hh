@@ -215,58 +215,10 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
  * Compiler attributes
  */
 
-/* https://github.com/harfbuzz/harfbuzz/issues/1634 */
-#if __cplusplus < 201103L && !defined(_MSC_VER)
-
-#ifndef nullptr
-#define nullptr NULL
-#endif
-
-#ifndef constexpr
-#define constexpr const
-#endif
-
-#ifndef static_assert
-#define static_assert(e, msg) \
-	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
-#endif // static_assert
-
-#if defined(__GNUC__)
-#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8))
-#define thread_local __thread
-#endif
-#else
-#define thread_local
-#endif
-
-template <typename T>
-struct _hb_alignof
-{
-  struct s
-  {
-    char c;
-    T t;
-  };
-  static constexpr size_t value = offsetof (s, t);
-};
-#ifndef alignof
-#define alignof(x) (_hb_alignof<x>::value)
-#endif
-
-/* https://github.com/harfbuzz/harfbuzz/issues/1127 */
-#ifndef explicit_operator
-#define explicit_operator operator
-#endif
-
-#else /* __cplusplus >= 201103L */
-
 /* https://github.com/harfbuzz/harfbuzz/issues/1127 */
 #ifndef explicit_operator
 #define explicit_operator explicit operator
 #endif
-
-#endif /* __cplusplus < 201103L */
-
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
@@ -461,45 +413,12 @@ static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
-
-#if __cplusplus >= 201103L
-
-/* We only enable these with C++11 or later, since earlier language
- * does not allow structs with constructors in unions, and we need
- * those. */
-
-#define HB_NO_COPY_ASSIGN(TypeName) \
-  TypeName(const TypeName&); \
-  void operator=(const TypeName&)
-#define HB_NO_COPY_ASSIGN_TEMPLATE(TypeName, T) \
-  TypeName(const TypeName<T>&); \
-  void operator=(const TypeName<T>&)
-#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
-  TypeName(const TypeName<T1, T2>&); \
-  void operator=(const TypeName<T1, T2>&)
-#define HB_NO_CREATE_COPY_ASSIGN(TypeName) \
-  TypeName(); \
-  TypeName(const TypeName&); \
-  void operator=(const TypeName&)
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) \
-  TypeName(); \
-  TypeName(const TypeName<T>&); \
-  void operator=(const TypeName<T>&)
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
-  TypeName(); \
-  TypeName(const TypeName<T1, T2>&); \
-  void operator=(const TypeName<T1, T2>&)
-
-#else /* __cpluspplus >= 201103L */
-
 #define HB_NO_COPY_ASSIGN(TypeName) static_assert (true, "")
 #define HB_NO_COPY_ASSIGN_TEMPLATE(TypeName, T) static_assert (true, "")
 #define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
 #define HB_NO_CREATE_COPY_ASSIGN(TypeName) static_assert (true, "")
 #define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) static_assert (true, "")
 #define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
-
-#endif /* __cpluspplus >= 201103L */
 
 
 /*
