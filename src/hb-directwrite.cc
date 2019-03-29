@@ -918,7 +918,7 @@ _hb_directwrite_font_release (void *data)
 /**
  * hb_directwrite_face_create:
  * @font_face:
- * Since: REPLACEME
+ * Since: 2.4.0
  **/
 hb_face_t *
 hb_directwrite_face_create (IDWriteFontFace *font_face)
