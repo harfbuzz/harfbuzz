@@ -227,6 +227,19 @@ struct GlyphVarData
       current_tuple = &var_data->get_tuple_var_header ();
       data_offset = 0;
     }
+  
+    bool get_shared_indices (hb_vector_t<unsigned int> &shared_indices /* OUT */)
+    {
+      if (var_data->has_shared_point_numbers ())
+      {
+	range_checker_t checker (var_data, 0, length);
+	const HBUINT8 *base = &(var_data+var_data->data);
+	const HBUINT8 *p = base;
+	if (!unpack_points (p, shared_indices, checker)) return false;
+	data_offset = p - base;
+      }
+      return true;
+    }
 
     bool is_valid () const
     {
@@ -380,7 +393,7 @@ struct GlyphVarData
   TupleVarCount		tupleVarCount;
   OffsetTo<HBUINT8>	data;
   /* TupleVarHeader tupleVarHeaders[] */
-
+  
   public:
   DEFINE_SIZE_MIN (4);
 };
@@ -461,7 +474,7 @@ struct gvar
 	((HBUINT32 *)subset_offsets)[gid].set (glyph_offset);
       else
       	((HBUINT16 *)subset_offsets)[gid].set (glyph_offset / 2);
-
+      
       if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
       subset_data += length;
       glyph_offset += length;
@@ -537,24 +550,34 @@ struct gvar
       shared_tuples.fini ();
     }
 
-    protected:
-    typedef glyf::accelerator_t glyf_acc_t;
+    private:
+    struct x_getter { static float get (const contour_point_t &p) { return p.x; } };
+    struct y_getter { static float get (const contour_point_t &p) { return p.y; } };
 
-    static float infer_delta (float target_val, float pre_val, float fol_val,
-			      float pre_delta, float fol_delta)
+    template <typename T>
+    static float infer_delta (const hb_array_t<contour_point_t> points,
+			      const hb_array_t<contour_point_t> deltas,
+			      unsigned int target, unsigned int prev, unsigned int next)
     {
-      if (pre_val == fol_val)
-      	return (pre_delta == fol_delta)? pre_delta: 0.f;
-      else if (target_val <= MIN (pre_val, fol_val))
-      	return (pre_val < fol_val) ? pre_delta: fol_delta;
-      else if (target_val >= MAX (pre_val, fol_val))
-      	return (pre_val > fol_val)? pre_delta: fol_delta;
+      float target_val = T::get (points[target]);
+      float prev_val = T::get (points[prev]);
+      float next_val = T::get (points[next]);
+      float prev_delta = T::get (deltas[prev]);
+      float next_delta = T::get (deltas[next]);
+
+      if (prev_val == next_val)
+      	return (prev_delta == next_delta)? prev_delta: 0.f;
+      else if (target_val <= MIN (prev_val, next_val))
+      	return (prev_val < next_val) ? prev_delta: next_delta;
+      else if (target_val >= MAX (prev_val, next_val))
+      	return (prev_val > next_val)? prev_delta: next_delta;
 
       /* linear interpolation */
-      float r = (target_val - pre_val) / (fol_val - pre_val);
-      return (1.f - r) * pre_delta + r * fol_delta;
+      float r = (target_val - prev_val) / (next_val - prev_val);
+      return (1.f - r) * prev_delta + r * next_delta;
     }
 
+    public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
 				 const hb_array_t<contour_point_t> points,
@@ -659,75 +682,7 @@ struct gvar
 
     unsigned int get_axis_count () const { return gvar_table->axisCount; }
 
-    protected:
-    static float infer_delta (float target_val, float prev_val, float next_val,
-			      float prev_delta, float next_delta)
-    {
-      if (prev_val == next_val)
-      	return (prev_delta == next_delta)? prev_delta: 0.f;
-      else if (target_val <= MIN (prev_val, next_val))
-      	return (prev_val < next_val) ? prev_delta: next_delta;
-      else if (target_val >= MAX (prev_val, next_val))
-      	return (prev_val > next_val)? prev_delta: next_delta;
-
-      /* linear interpolation */
-      float r = (target_val - prev_val) / (next_val - prev_val);
-      return (1.f - r) * prev_delta + r * next_delta;
     }
-
-    public:
-    float get_advance_var (hb_codepoint_t glyph,
-			   const int *coords, unsigned int coord_count,
-			   bool vertical) const
-    {
-      float advance = 0.f;
-      if (coord_count != gvar_table->axisCount) return advance;
-
-      hb_vector_t<contour_point_t>	points;
-      points.resize (glyf_acc_t::PHANTOM_COUNT);
-
-      if (!get_var_metrics (glyph, coords, coord_count, points))
-      	return advance;
-
-      if (vertical)
-      	return -(points[glyf_acc_t::PHANTOM_BOTTOM].y - points[glyf_acc_t::PHANTOM_TOP].y);	// is this sign correct?
-      else
-      	return points[glyf_acc_t::PHANTOM_RIGHT].x - points[glyf_acc_t::PHANTOM_LEFT].x;
-    }
-
-    bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
-		      hb_glyph_extents_t *extents) const
-    {
-      unsigned int coord_count;
-      const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
-      if (!coords || coord_count != gvar_table->axisCount) return false;	/* fallback on glyf */
-
-      bounds_t	bounds;
-      if (unlikely (!get_bounds_var (glyph, coords, coord_count, bounds))) return false;
-
-      if (bounds.min.x >= bounds.max.x)
-      {
-	extents->width = 0;
-	extents->x_bearing = 0;
-      }
-      else
-      {
-	extents->x_bearing = (int32_t)floorf (bounds.min.x);
-	extents->width = (int32_t)ceilf (bounds.max.x) - extents->x_bearing;
-      }
-      if (bounds.min.y >= bounds.max.y)
-      {
-	extents->height = 0;
-	extents->y_bearing = 0;
-      }
-      else
-      {
-	extents->y_bearing = (int32_t)ceilf (bounds.max.y);
-	extents->height = (int32_t)floorf (bounds.min.y) - extents->y_bearing;
-      }
-      return true;
-    }
-
     protected:
     const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
     { return gvar_table->get_glyph_var_data (glyph); }

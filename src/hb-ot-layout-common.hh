@@ -1754,10 +1754,23 @@ struct VarData
     TRACE_SUBSET (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     itemCount.set (remap.get_count ());
-    shortCount.set (src->shortCount);
+    
+    /* Optimize short count */
+    unsigned int short_count = src->shortCount;
+    for (; short_count > 0; short_count--)
+      for (unsigned int i = 0; i < remap.get_count (); i++)
+      {
+	unsigned int old = remap.to_old (i);
+	if (unlikely (old >= src->itemCount)) return_trace (false);
+	int16_t delta = src->get_item_delta (old, short_count - 1);
+	if (delta < -128 || 127 < delta) goto found_short;
+      }
+    
+found_short:
+    shortCount.set (short_count);
+    regionIndices.len.set (src->regionIndices.len);
 
-    unsigned int row_size = src->get_row_size ();
-    unsigned int size = src->regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (row_size * remap.get_count ());
+    unsigned int size = src->regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (get_row_size () * itemCount);
     if (unlikely (!c->allocate_size<HBUINT8> (size)))
       return_trace (false);
 
@@ -1862,7 +1875,7 @@ struct VariationStore
 		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i])))
       	return_trace (false);
     }
-
+    
     return_trace (true);
   }
 
