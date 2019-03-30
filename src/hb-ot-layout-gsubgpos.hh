@@ -124,7 +124,7 @@ struct hb_closure_context_t :
 
 
 struct hb_would_apply_context_t :
-       hb_dispatch_context_t<hb_would_apply_context_t, bool, HB_DEBUG_WOULD_APPLY>
+       hb_dispatch_context_t<hb_would_apply_context_t, bool, 0>
 {
   const char *get_name () { return "WOULD_APPLY"; }
   template <typename T>
@@ -1318,10 +1318,12 @@ struct Rule
   bool would_apply (hb_would_apply_context_t *c,
 		    ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY (this);
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord> >
 						       (inputZ.as_array (inputCount ? inputCount - 1 : 0));
-    return_trace (context_would_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
+    return context_would_apply_lookup (c,
+				       inputCount, inputZ.arrayZ,
+				       lookupCount, lookupRecord.arrayZ,
+				       lookup_context);
   }
 
   bool apply (hb_ot_apply_context_t *c,
@@ -1387,11 +1389,10 @@ struct RuleSet
   bool would_apply (hb_would_apply_context_t *c,
 		    ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY (this);
     for (auto it = hb_iter (rule); it; ++it)
       if ((this+*it).would_apply (c, lookup_context))
-	return_trace (true);
-    return_trace (false);
+	return true;
+    return false;
   }
 
   bool apply (hb_ot_apply_context_t *c,
@@ -1462,14 +1463,12 @@ struct ContextFormat1
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const RuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
     struct ContextApplyLookupContext lookup_context = {
       {match_glyph},
       nullptr
     };
-    return_trace (rule_set.would_apply (c, lookup_context));
+    return rule_set.would_apply (c, lookup_context);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -1570,8 +1569,6 @@ struct ContextFormat2
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const ClassDef &class_def = this+classDef;
     unsigned int index = class_def.get_class (c->glyphs[0]);
     const RuleSet &rule_set = this+ruleSet[index];
@@ -1579,7 +1576,7 @@ struct ContextFormat2
       {match_class},
       &class_def
     };
-    return_trace (rule_set.would_apply (c, lookup_context));
+    return rule_set.would_apply (c, lookup_context);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -1679,14 +1676,15 @@ struct ContextFormat3
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     struct ContextApplyLookupContext lookup_context = {
       {match_coverage},
       this
     };
-    return_trace (context_would_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
+    return context_would_apply_lookup (c,
+				       glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+				       lookupCount, lookupRecord,
+				       lookup_context);
   }
 
   const Coverage &get_coverage () const { return this+coverageZ[0]; }
@@ -1942,15 +1940,14 @@ struct ChainRule
   bool would_apply (hb_would_apply_context_t *c,
 		    ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY (this);
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16> > (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return_trace (chain_context_would_apply_lookup (c,
-						    backtrack.len, backtrack.arrayZ,
-						    input.lenP1, input.arrayZ,
-						    lookahead.len, lookahead.arrayZ, lookup.len,
-						    lookup.arrayZ, lookup_context));
+    return chain_context_would_apply_lookup (c,
+					     backtrack.len, backtrack.arrayZ,
+					     input.lenP1, input.arrayZ,
+					     lookahead.len, lookahead.arrayZ, lookup.len,
+					     lookup.arrayZ, lookup_context);
   }
 
   bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -2019,12 +2016,11 @@ struct ChainRuleSet
 
   bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY (this);
     for (auto it = hb_iter (rule); it; ++it)
       if ((this+*it).would_apply (c, lookup_context))
-	return_trace (true);
+	return true;
 
-    return_trace (false);
+    return false;
   }
 
   bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -2094,14 +2090,12 @@ struct ChainContextFormat1
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const ChainRuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_glyph},
       {nullptr, nullptr, nullptr}
     };
-    return_trace (rule_set.would_apply (c, lookup_context));
+    return rule_set.would_apply (c, lookup_context);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -2212,8 +2206,6 @@ struct ChainContextFormat2
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
@@ -2226,7 +2218,7 @@ struct ChainContextFormat2
        &input_class_def,
        &lookahead_class_def}
     };
-    return_trace (rule_set.would_apply (c, lookup_context));
+    return rule_set.would_apply (c, lookup_context);
   }
 
   const Coverage &get_coverage () const { return this+coverage; }
@@ -2357,8 +2349,6 @@ struct ChainContextFormat3
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
-
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
@@ -2366,11 +2356,11 @@ struct ChainContextFormat3
       {match_coverage},
       {this, this, this}
     };
-    return_trace (chain_context_would_apply_lookup (c,
-						    backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-						    input.len, (const HBUINT16 *) input.arrayZ + 1,
-						    lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
-						    lookup.len, lookup.arrayZ, lookup_context));
+    return chain_context_would_apply_lookup (c,
+					     backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
+					     input.len, (const HBUINT16 *) input.arrayZ + 1,
+					     lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+					     lookup.len, lookup.arrayZ, lookup_context);
   }
 
   const Coverage &get_coverage () const

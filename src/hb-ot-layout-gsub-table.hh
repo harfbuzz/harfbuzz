@@ -66,10 +66,7 @@ struct SingleSubstFormat1
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
-  {
-    TRACE_WOULD_APPLY (this);
-    return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
-  }
+  { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -162,10 +159,7 @@ struct SingleSubstFormat2
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
-  {
-    TRACE_WOULD_APPLY (this);
-    return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
-  }
+  { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -374,10 +368,7 @@ struct MultipleSubstFormat1
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
-  {
-    TRACE_WOULD_APPLY (this);
-    return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
-  }
+  { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -551,10 +542,7 @@ struct AlternateSubstFormat1
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
-  {
-    TRACE_WOULD_APPLY (this);
-    return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
-  }
+  { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -671,15 +659,14 @@ struct Ligature
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
     if (c->len != component.lenP1)
-      return_trace (false);
+      return false;
 
     for (unsigned int i = 1; i < c->len; i++)
       if (likely (c->glyphs[i] != component[i]))
-	return_trace (false);
+	return false;
 
-    return_trace (true);
+    return true;
   }
 
   bool apply (hb_ot_apply_context_t *c) const
@@ -776,15 +763,14 @@ struct LigatureSet
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const Ligature &lig = this+ligature[i];
       if (lig.would_apply (c))
-        return_trace (true);
+        return true;
     }
-    return_trace (false);
+    return false;
   }
 
   bool apply (hb_ot_apply_context_t *c) const
@@ -872,12 +858,11 @@ struct LigatureSubstFormat1
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->glyphs[0]);
-    if (likely (index == NOT_COVERED)) return_trace (false);
+    if (likely (index == NOT_COVERED)) return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
-    return_trace (lig_set.would_apply (c));
+    return lig_set.would_apply (c);
   }
 
   bool apply (hb_ot_apply_context_t *c) const
@@ -1056,10 +1041,7 @@ struct ReverseChainSingleSubstFormat1
   const Coverage &get_coverage () const { return this+coverage; }
 
   bool would_apply (hb_would_apply_context_t *c) const
-  {
-    TRACE_WOULD_APPLY (this);
-    return_trace (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
-  }
+  { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -1268,10 +1250,9 @@ struct SubstLookup : Lookup
   bool would_apply (hb_would_apply_context_t *c,
 		    const hb_ot_layout_lookup_accelerator_t *accel) const
   {
-    TRACE_WOULD_APPLY (this);
-    if (unlikely (!c->len))  return_trace (false);
-    if (!accel->may_have (c->glyphs[0]))  return_trace (false);
-      return_trace (dispatch (c));
+    if (unlikely (!c->len)) return false;
+    if (!accel->may_have (c->glyphs[0])) return false;
+      return dispatch (c);
   }
 
   static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
