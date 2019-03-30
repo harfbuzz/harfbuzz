@@ -305,7 +305,7 @@ struct hb_filter_iter_t :
   hb_iter_with_fallback_t<hb_filter_iter_t<Iter, Pred, Proj>,
 			  typename Iter::item_t>
 {
-  hb_filter_iter_t (const Iter& it_, Pred&& p, Proj&& f) : it (it_), p (p), f (f)
+  hb_filter_iter_t (const Iter& it_, Pred p, Proj f) : it (it_), p (p), f (f)
   { while (it && !p (f (*it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
