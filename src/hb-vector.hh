@@ -90,7 +90,8 @@ struct hb_vector_t
   explicit operator bool () const { return length; }
 
   /* Sink interface. */
-  hb_vector_t& operator << (const Type &v) { push (v); return *this; }
+  template <typename T>
+  hb_vector_t& operator << (const T& v) { push (v); return *this; }
 
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ(), length); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
@@ -129,7 +130,8 @@ struct hb_vector_t
       return &Crap(Type);
     return &arrayZ()[length - 1];
   }
-  Type *push (const Type& v)
+  template <typename T>
+  Type *push (const T& v)
   {
     Type *p = push ();
     *p = v;
