@@ -32,16 +32,6 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
-  macos-notest-ios:
-    macos:
-      xcode: "10.2.0"
-    steps:
-      - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
-      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
-      - run: make -j4
-      - run: make check || .ci/fail.sh
-
   distcheck:
     docker:
       - image: ubuntu:17.10
@@ -312,7 +302,6 @@ workflows:
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
       - macos-10.14.3-aat-fonts
-      - macos-notest-ios
 
       # both autotools and cmake
       - distcheck

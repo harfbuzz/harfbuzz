@@ -931,7 +931,8 @@ _hb_directwrite_font_release (void *data)
 /**
  * hb_directwrite_face_create:
  * @font_face:
- * Since: REPLACEME
+ *
+ * Since: 2.4.0
  **/
 hb_face_t *
 hb_directwrite_face_create (IDWriteFontFace *font_face)
@@ -940,4 +941,16 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
     font_face->AddRef ();
   return hb_face_create_for_tables (reference_table, font_face,
 				    _hb_directwrite_font_release);
+}
+
+/**
+* hb_directwrite_face_get_font_face:
+* @face:
+*
+* Since: REPLACEME
+**/
+IDWriteFontFace *
+hb_directwrite_face_get_font_face (hb_face_t *face)
+{
+  return face->data.directwrite->fontFace;
 }

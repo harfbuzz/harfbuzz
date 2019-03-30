@@ -95,7 +95,7 @@ struct Null {
 template <typename QType>
 struct NullHelper
 {
-  typedef typename hb_remove_const (typename hb_remove_reference (QType)) Type;
+  typedef hb_remove_const (hb_remove_reference (QType)) Type;
   static const Type & get_null () { return Null<Type>::get_null (); }
 };
 #define Null(Type) NullHelper<Type>::get_null ()
