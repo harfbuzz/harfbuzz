@@ -56,8 +56,8 @@ struct DeltaSetIndexMap
       return_trace (false);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    format.set (((width-1)<<4)|(inner_bit_count-1));
-    mapCount.set (output_map.length);
+    format = ((width-1)<<4)|(inner_bit_count-1);
+    mapCount = output_map.length;
     HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
     if (unlikely (!p)) return_trace (false);
     for (unsigned int i = 0; i < output_map.length; i++)
@@ -68,7 +68,7 @@ struct DeltaSetIndexMap
       unsigned int u = (outer << inner_bit_count)|inner;
       for (unsigned int w = width; w > 0;)
       {
-	p[--w].set (u);
+	p[--w] = u;
 	u >>= 8;
       }
       p += width;
@@ -330,15 +330,15 @@ struct HVARVVAR
   {
     TRACE_SUBSET (this);
     if (im_plans[index_map_subset_plan_t::ADV_INDEX].is_identity ())
-      advMap.set (0);
+      advMap = 0;
     else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::ADV_INDEX])))
       return_trace (false);
     if (im_plans[index_map_subset_plan_t::LSB_INDEX].is_identity ())
-      lsbMap.set (0);
+      lsbMap = 0;
     else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::LSB_INDEX])))
       return_trace (false);
     if (im_plans[index_map_subset_plan_t::RSB_INDEX].is_identity ())
-      rsbMap.set (0);
+      rsbMap = 0;
     else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::RSB_INDEX])))
       return_trace (false);
 
@@ -359,8 +359,8 @@ struct HVARVVAR
     T *out = c->serializer->allocate_min<T> ();
     if (unlikely (!out)) return_trace (false);
 
-    out->version.major.set (1);
-    out->version.minor.set (0);
+    out->version.major = 1;
+    out->version.minor = 0;
 
     if (!unlikely (out->varStore.serialize (c->serializer, out)
 		     .serialize (c->serializer, hvar_plan.var_store, hvar_plan.inner_remaps.as_array ())))
@@ -430,7 +430,7 @@ struct VVAR : HVARVVAR {
     if (unlikely (!HVARVVAR::serialize_index_maps (c, im_plans)))
       return_trace (false);
     if (!im_plans[index_map_subset_plan_t::VORG_INDEX].get_map_count ())
-      vorgMap.set (0);
+      vorgMap = 0;
     else if (unlikely (!vorgMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::VORG_INDEX])))
       return_trace (false);
 

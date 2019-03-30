@@ -426,13 +426,13 @@ struct gvar
     gvar *out = c->serializer->allocate_min<gvar> ();
     if (unlikely (!out)) return_trace (false);
 
-    out->version.major.set (1);
-    out->version.minor.set (0);
-    out->axisCount.set (axisCount);
-    out->sharedTupleCount.set (sharedTupleCount);
+    out->version.major = 1;
+    out->version.minor = 0;
+    out->axisCount = axisCount;
+    out->sharedTupleCount = sharedTupleCount;
 
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
-    out->glyphCount.set (num_glyphs);
+    out->glyphCount = num_glyphs;
 
     unsigned int subset_data_size = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
@@ -443,26 +443,26 @@ struct gvar
     }
 
     bool long_offset = subset_data_size & ~0xFFFFu;
-    out->flags.set (long_offset? 1: 0);
+    out->flags = long_offset? 1: 0;
 
     HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset? 4: 2) * (num_glyphs+1));
     if (!subset_offsets) return_trace (false);
 
     /* shared tuples */
     if (!sharedTupleCount || !sharedTuples)
-      out->sharedTuples.set (0);
+      out->sharedTuples = 0;
     else
     {
       unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
       if (!tuples) return_trace (false);
-      out->sharedTuples.set ((char *)tuples - (char *)out);
+      out->sharedTuples = (char *)tuples - (char *)out;
       memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
     }
 
     char *subset_data = c->serializer->allocate_size<char>(subset_data_size);
     if (!subset_data) return_trace (false);
-    out->dataZ.set (subset_data - (char *)out);
+    out->dataZ = subset_data - (char *)out;
 
     unsigned int glyph_offset = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
@@ -471,18 +471,18 @@ struct gvar
       unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid)? get_glyph_var_data_length (old_gid): 0;
 
       if (long_offset)
-	((HBUINT32 *)subset_offsets)[gid].set (glyph_offset);
+	((HBUINT32 *)subset_offsets)[gid] = glyph_offset;
       else
-      	((HBUINT16 *)subset_offsets)[gid].set (glyph_offset / 2);
+      	((HBUINT16 *)subset_offsets)[gid] = glyph_offset / 2;
       
       if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
       subset_data += length;
       glyph_offset += length;
     }
     if (long_offset)
-      ((HBUINT32 *)subset_offsets)[num_glyphs].set (glyph_offset);
+      ((HBUINT32 *)subset_offsets)[num_glyphs] = glyph_offset;
     else
-      ((HBUINT16 *)subset_offsets)[num_glyphs].set (glyph_offset / 2);
+      ((HBUINT16 *)subset_offsets)[num_glyphs] = glyph_offset / 2;
 
     return_trace (true);
   }
