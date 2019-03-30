@@ -682,7 +682,11 @@ template <typename Type>
 struct BEInt<Type, 1>
 {
   public:
-  void set (Type V)      { v = V; }
+  BEInt<Type, 1>& operator = (Type V)
+  {
+    v = V;
+    return *this;
+  }
   operator Type () const { return v; }
   private: uint8_t v;
 };
@@ -690,10 +694,11 @@ template <typename Type>
 struct BEInt<Type, 2>
 {
   public:
-  void set (Type V)
+  BEInt<Type, 2>& operator = (Type V)
   {
     v[0] = (V >>  8) & 0xFF;
     v[1] = (V      ) & 0xFF;
+    return *this;
   }
   operator Type () const
   {
@@ -718,11 +723,12 @@ template <typename Type>
 struct BEInt<Type, 3>
 {
   public:
-  void set (Type V)
+  BEInt<Type, 3>& operator = (Type V)
   {
     v[0] = (V >> 16) & 0xFF;
     v[1] = (V >>  8) & 0xFF;
     v[2] = (V      ) & 0xFF;
+    return *this;
   }
   operator Type () const
   {
@@ -737,12 +743,13 @@ struct BEInt<Type, 4>
 {
   public:
   typedef Type type;
-  void set (Type V)
+  BEInt<Type, 4>& operator = (Type V)
   {
     v[0] = (V >> 24) & 0xFF;
     v[1] = (V >> 16) & 0xFF;
     v[2] = (V >>  8) & 0xFF;
     v[3] = (V      ) & 0xFF;
+    return *this;
   }
   operator Type () const
   {

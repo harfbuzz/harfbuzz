@@ -59,8 +59,8 @@ struct IntType
   typedef Type type;
   typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
 
-  IntType<Type, Size>& operator = (wide_type i) { v.set (i); return *this; }
-  void set (wide_type i) { v.set (i); }
+  IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
+  void set (wide_type i) { v = i; }
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
@@ -109,7 +109,7 @@ struct F2DOT14 : HBINT16
 {
   // 16384 means 1<<14
   float to_float () const  { return ((int32_t) v) / 16384.f; }
-  void set_float (float f) { v.set (round (f * 16384.f)); }
+  void set_float (float f) { v = round (f * 16384.f); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
@@ -119,7 +119,7 @@ struct Fixed : HBINT32
 {
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
-  void set_float (float f) { v.set (round (f * 65536.f)); }
+  void set_float (float f) { v = round (f * 65536.f); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
