@@ -763,14 +763,11 @@ struct LigatureSet
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    unsigned int num_ligs = ligature.len;
-    for (unsigned int i = 0; i < num_ligs; i++)
-    {
-      const Ligature &lig = this+ligature[i];
-      if (lig.would_apply (c))
-        return true;
-    }
-    return false;
+    return
+    + hb_iter (ligature)
+    | hb_map ([&] (const OffsetTo<Ligature> &_) -> bool { return (this+_).would_apply (c); })
+    | hb_any
+    ;
   }
 
   bool apply (hb_ot_apply_context_t *c) const
