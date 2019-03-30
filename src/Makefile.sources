@@ -32,6 +32,7 @@ HB_BASE_sources = \
 	hb-cff2-interp-cs.hh \
 	hb-common.cc \
 	hb-debug.hh \
+	hb-dispatch.hh \
 	hb-face.cc \
 	hb-face.hh \
 	hb-font.cc \
@@ -128,6 +129,7 @@ HB_BASE_sources = \
 	hb-ot-var-mvar-table.hh \
 	hb-ot-var.cc \
 	hb-ot-vorg-table.hh \
+	hb-sanitize.hh \
 	hb-serialize.hh \
 	hb-set-digest.hh \
 	hb-set.cc \
