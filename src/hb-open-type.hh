@@ -335,9 +335,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
   DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 /* Partial specializations. */
-template <typename Type,                               bool has_null=true> struct   LOffsetTo : OffsetTo<Type, HBUINT32,   has_null> {};
-template <typename Type, typename OffsetType=HBUINT16                    > struct  NNOffsetTo : OffsetTo<Type, OffsetType, false> {};
-template <typename Type                                                  > struct LNNOffsetTo : OffsetTo<Type, HBUINT32,   false> {};
+template <typename Type, bool has_null=true>
+using LOffsetTo = OffsetTo<Type, HBUINT32, has_null>;
+template <typename Type, typename OffsetType=HBUINT16>
+using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
+template <typename Type>
+using LNNOffsetTo = LOffsetTo<Type, false>;
 
 template <typename Base, typename OffsetType, bool has_null, typename Type>
 static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
@@ -444,7 +447,7 @@ struct UnsizedArrayOf
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
-struct UnsizedOffsetArrayOf : UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null> > {};
+using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null> >;
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
 template <typename Type, typename OffsetType, bool has_null=true>
@@ -633,16 +636,17 @@ struct ArrayOf
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
-template <typename Type> struct LArrayOf : ArrayOf<Type, HBUINT32> {};
-typedef ArrayOf<HBUINT8, HBUINT8> PString;
+template <typename Type>
+using LArrayOf = ArrayOf<Type, HBUINT32>;
+using PString = ArrayOf<HBUINT8, HBUINT8>;
 
 /* Array of Offset's */
 template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type, HBUINT16> > {};
+using OffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT16> >;
 template <typename Type>
-struct LOffsetArrayOf : ArrayOf<OffsetTo<Type, HBUINT32> > {};
+using LOffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT32> >;
 template <typename Type>
-struct LOffsetLArrayOf : ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32> {};
+using LOffsetLArrayOf = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32>;
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
@@ -890,7 +894,7 @@ struct BinSearchHeader
 };
 
 template <typename Type, typename LenType=HBUINT16>
-struct BinSearchArrayOf : SortedArrayOf<Type, BinSearchHeader<LenType> > {};
+using BinSearchArrayOf = SortedArrayOf<Type, BinSearchHeader<LenType> >;
 
 
 struct VarSizedBinSearchHeader
