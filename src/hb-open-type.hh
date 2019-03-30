@@ -59,7 +59,7 @@ struct IntType
   typedef Type type;
   typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
 
-  //TODO(C++11)IntType<Type, Size>& operator = (wide_type v) { set (v); return *this; }
+  IntType<Type, Size>& operator = (wide_type i) { v.set (i); return *this; }
   void set (wide_type i) { v.set (i); }
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
