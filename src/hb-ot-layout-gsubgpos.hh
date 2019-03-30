@@ -1565,9 +1565,14 @@ struct ContextFormat2
       &class_def
     };
 
-    for (auto it = hb_enumerate (ruleSet); it; ++it)
-      if (class_def.intersects_class (c->glyphs, (*it).first))
-	(this+(*it).second).closure (c, lookup_context);
+    return
+    + hb_enumerate (ruleSet)
+    | hb_filter ([&] (unsigned _) -> bool
+		 { return class_def.intersects_class (c->glyphs, _); },
+		 hb_first)
+    | hb_map (hb_second)
+    | hb_apply ([&] (const OffsetTo<RuleSet> &_) { (this+_).closure (c, lookup_context); })
+    ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2186,12 +2191,13 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    for (auto it = hb_enumerate (ruleSet); it; ++it)
-      if (input_class_def.intersects_class (glyphs, (*it).first) &&
-	  (this+(*it).second).intersects (glyphs, lookup_context))
-	return true;
-
-    return false;
+    return
+    + hb_enumerate (ruleSet)
+    | hb_filter ([&] (const hb_pair_t<unsigned, const OffsetTo<ChainRuleSet> &> p) -> bool
+		 { return input_class_def.intersects_class (glyphs, p.first) &&
+			  (this+p.second).intersects (glyphs, lookup_context); })
+    | hb_any
+    ;
   }
   void closure (hb_closure_context_t *c) const
   {
@@ -2209,9 +2215,14 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    for (auto it = hb_enumerate (ruleSet); it; ++it)
-      if (input_class_def.intersects_class (c->glyphs, (*it).first))
-	(this+(*it).second).closure (c, lookup_context);
+    return
+    + hb_enumerate (ruleSet)
+    | hb_filter ([&] (unsigned _) -> bool
+		 { return input_class_def.intersects_class (c->glyphs, _); },
+		 hb_first)
+    | hb_map (hb_second)
+    | hb_apply ([&] (const OffsetTo<ChainRuleSet> &_) { (this+_).closure (c, lookup_context); })
+    ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
