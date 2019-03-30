@@ -498,7 +498,13 @@ struct gvar
   }
 
   unsigned int get_glyph_var_data_length (unsigned int glyph) const
-  { return get_offset (glyph+1) - get_offset (glyph); }
+  {
+    unsigned int end_offset = get_offset (glyph+1);
+    unsigned int start_offset = get_offset (glyph);
+    if (unlikely (start_offset > end_offset || end_offset > get_offset(glyphCount)))
+      return 0;
+    return end_offset - start_offset;
+  }
 
   const HBUINT32 *get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
