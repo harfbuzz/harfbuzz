@@ -60,7 +60,6 @@ struct IntType
   typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
 
   IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
-  void set (wide_type i) { v = i; }
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
@@ -107,6 +106,7 @@ typedef HBUINT16 UFWORD;
 /* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
 struct F2DOT14 : HBINT16
 {
+  F2DOT14& operator = (uint16_t i ) { HBINT16::operator= (i); return *this; }
   // 16384 means 1<<14
   float to_float () const  { return ((int32_t) v) / 16384.f; }
   void set_float (float f) { v = round (f * 16384.f); }
@@ -117,6 +117,7 @@ struct F2DOT14 : HBINT16
 /* 32-bit signed fixed-point number (16.16). */
 struct Fixed : HBINT32
 {
+  Fixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
   void set_float (float f) { v = round (f * 65536.f); }
@@ -144,6 +145,7 @@ struct LONGDATETIME
  * system, feature, or baseline */
 struct Tag : HBUINT32
 {
+  Tag& operator = (uint32_t i) { HBUINT32::operator= (i); return *this; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   operator const char* () const { return reinterpret_cast<const char *> (&this->v); }
   operator char* ()             { return reinterpret_cast<char *> (&this->v); }
@@ -152,11 +154,15 @@ struct Tag : HBUINT32
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-struct GlyphID : HBUINT16 {};
+struct GlyphID : HBUINT16
+{
+  GlyphID& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
+};
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
   static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFu;
+  Index& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
@@ -166,6 +172,8 @@ typedef Index NameID;
 template <typename Type, bool has_null=true>
 struct Offset : Type
 {
+  Offset& operator = (typename Type::type i) { Type::operator= (i); return *this; }
+
   typedef Type type;
 
   bool is_null () const { return has_null && 0 == *this; }
@@ -173,7 +181,7 @@ struct Offset : Type
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
     void *t = c->start_embed<void> ();
-    this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
+    *this = (char *) t - (char *) base; /* TODO(serialize) Overflow? */
     return t;
   }
 
@@ -188,6 +196,8 @@ typedef Offset<HBUINT32> Offset32;
 /* CheckSum */
 struct CheckSum : HBUINT32
 {
+  CheckSum& operator = (uint32_t i) { HBUINT32::operator= (i); return *this; }
+
   /* This is reference implementation from the spec. */
   static uint32_t CalcTableChecksum (const HBUINT32 *Table, uint32_t Length)
   {
@@ -202,7 +212,7 @@ struct CheckSum : HBUINT32
 
   /* Note: data should be 4byte aligned and have 4byte padding at the end. */
   void set_for_data (const void *data, unsigned int length)
-  { set (CalcTableChecksum ((const HBUINT32 *) data, length)); }
+  { *this = CalcTableChecksum ((const HBUINT32 *) data, length); }
 
   public:
   DEFINE_SIZE_STATIC (4);
@@ -252,6 +262,8 @@ struct _hb_has_null<Type, true>
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
+  OffsetTo& operator = (typename OffsetType::type i) { OffsetType::operator= (i); return *this; }
+
   const Type& operator () (const void *base) const
   {
     if (unlikely (this->is_null ())) return *_hb_has_null<Type, has_null>::get_null ();
@@ -273,12 +285,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
   {
     if (&src == &Null (T))
     {
-      this->set (0);
+      *this = 0;
       return;
     }
     serialize (c->serializer, base);
     if (!src.subset (c))
-      this->set (0);
+      *this = 0;
   }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
@@ -558,7 +570,7 @@ struct ArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    len.set (items_len); /* TODO(serialize) Overflow? */
+    len = items_len; /* TODO(serialize) Overflow? */
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
@@ -717,7 +729,7 @@ struct HeadlessArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    lenP1.set (items.length + 1); /* TODO(serialize) Overflow? */
+    lenP1 = items.length + 1; /* TODO(serialize) Overflow? */
     if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items.length; i++)
       arrayZ[i] = items[i];
@@ -872,15 +884,16 @@ struct BinSearchHeader
     return_trace (c->check_struct (this));
   }
 
-  void set (unsigned int v)
+  BinSearchHeader& operator = (unsigned int v)
   {
-    len.set (v);
+    len = v;
     assert (len == v);
-    entrySelector.set (MAX (1u, hb_bit_storage (v)) - 1);
-    searchRange.set (16 * (1u << entrySelector));
-    rangeShift.set (v * 16 > searchRange
-		    ? 16 * v - searchRange
-		    : 0);
+    entrySelector = MAX (1u, hb_bit_storage (v)) - 1;
+    searchRange = 16 * (1u << entrySelector);
+    rangeShift = v * 16 > searchRange
+		 ? 16 * v - searchRange
+		 : 0;
+    return *this;
   }
 
   protected:

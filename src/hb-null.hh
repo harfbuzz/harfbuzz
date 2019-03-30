@@ -83,12 +83,6 @@ struct hb_static_size
 template <typename T, typename V, typename B>
 struct _hb_assign
 { static inline void value (T &o, const V v) { o = v; } };
-template <typename T, typename V>
-struct _hb_assign<T, V, hb_bool_tt<true || sizeof (T::min_size)> >
-{ static inline void value (T &o, const V v) { o.set (v); } };
-template <typename T>
-struct _hb_assign<T, T, hb_bool_tt<true || sizeof (T::min_size)> >
-{ static inline void value (T &o, const T v) { o = v; } };
 
 template <typename T, typename V>
 static inline void hb_assign (T &o, const V v)

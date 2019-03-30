@@ -88,7 +88,7 @@ struct SingleSubstFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
-    deltaGlyphID.set (delta); /* TODO(serialize) overflow? */
+    deltaGlyphID = delta; /* TODO(serialize) overflow? */
     return_trace (true);
   }
 
@@ -103,8 +103,8 @@ struct SingleSubstFormat1
     for (auto it = hb_iter (this+coverage)
 		 | hb_filter (glyphset); it; ++it)
     {
-      from.push ()->set (glyph_map[*it]);
-      to.push ()->set (glyph_map[(*it + delta) & 0xFFFF]);
+      from.push (glyph_map[*it]);
+      to.push (glyph_map[(*it + delta) & 0xFFFF]);
     }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
@@ -193,8 +193,8 @@ struct SingleSubstFormat2
     for (auto it = hb_zip (this+coverage, substitute)
 		 | hb_filter (glyphset, hb_first); it; ++it)
     {
-      from.push ()->set (glyph_map[(*it).first]);
-      to.push ()->set (glyph_map[(*it).second]);
+      from.push (glyph_map[(*it).first]);
+      to.push (glyph_map[(*it).second]);
     }
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
@@ -240,7 +240,7 @@ struct SingleSubst
 	  break;
 	}
     }
-    u.format.set (format);
+    u.format = format;
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c, glyphs, delta));
     case 2: return_trace (u.format2.serialize (c, glyphs, substitutes));
@@ -433,7 +433,7 @@ struct MultipleSubst
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 1;
-    u.format.set (format);
+    u.format = format;
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c, glyphs, substitute_len_list, substitute_glyphs_list));
     default:return_trace (false);
@@ -610,7 +610,7 @@ struct AlternateSubst
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 1;
-    u.format.set (format);
+    u.format = format;
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c, glyphs, alternate_len_list, alternate_glyphs_list));
     default:return_trace (false);
@@ -942,7 +942,7 @@ struct LigatureSubst
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 1;
-    u.format.set (format);
+    u.format = format;
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c,
 					       first_glyphs,

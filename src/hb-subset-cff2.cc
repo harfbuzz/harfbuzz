@@ -451,14 +451,14 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     return false;
 
   /* header */
-  cff2->version.major.set (0x02);
-  cff2->version.minor.set (0x00);
-  cff2->topDict.set (OT::cff2::static_size);
+  cff2->version.major = 0x02;
+  cff2->version.minor = 0x00;
+  cff2->topDict = OT::cff2::static_size;
 
   /* top dict */
   {
     assert (cff2->topDict == (unsigned) (c.head - c.start));
-    cff2->topDictSize.set (plan.offsets.topDictInfo.size);
+    cff2->topDictSize = plan.offsets.topDictInfo.size;
     TopDict &dict = cff2 + cff2->topDict;
     cff2_top_dict_op_serializer_t topSzr;
     if (unlikely (!dict.serialize (&c, acc.topDict, topSzr, plan.offsets)))

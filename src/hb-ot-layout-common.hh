@@ -561,7 +561,7 @@ struct Feature
     TRACE_SUBSET (this);
     struct Feature *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    out->featureParams.set (0); /* TODO(subset) FeatureParams. */
+    out->featureParams = 0; /* TODO(subset) FeatureParams. */
     return_trace (true);
   }
 
@@ -599,7 +599,7 @@ struct Feature
 
       OffsetTo<FeatureParams> new_offset;
       /* Check that it did not overflow. */
-      new_offset.set (new_offset_int);
+      new_offset = new_offset_int;
       if (new_offset == new_offset_int &&
 	  c->try_set (&featureParams, new_offset) &&
 	  !featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE))
@@ -703,14 +703,14 @@ struct Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    lookupType.set (lookup_type);
-    lookupFlag.set (lookup_props & 0xFFFFu);
+    lookupType = lookup_type;
+    lookupFlag = lookup_props & 0xFFFFu;
     if (unlikely (!subTable.serialize (c, num_subtables))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       if (unlikely (!c->extend (*this))) return_trace (false);
       HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
-      markFilteringSet.set (lookup_props >> 16);
+      markFilteringSet = lookup_props >> 16;
     }
     return_trace (true);
   }
@@ -901,7 +901,7 @@ struct CoverageFormat2
 
     if (unlikely (!glyphs))
     {
-      rangeRecord.len.set (0);
+      rangeRecord.len = 0;
       return_trace (true);
     }
     /* TODO(iter) Port to non-random-access iterator interface. */
@@ -911,19 +911,19 @@ struct CoverageFormat2
     for (unsigned int i = 1; i < count; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
-    rangeRecord.len.set (num_ranges);
+    rangeRecord.len = num_ranges;
     if (unlikely (!c->extend (rangeRecord))) return_trace (false);
 
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
-    rangeRecord[range].value.set (0);
+    rangeRecord[range].value = 0;
     for (unsigned int i = 1; i < count; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i])
       {
 	range++;
 	rangeRecord[range].start = glyphs[i];
-	rangeRecord[range].value.set (i);
+	rangeRecord[range].value = i;
       }
       rangeRecord[range].end = glyphs[i];
     }
@@ -1066,7 +1066,7 @@ struct Coverage
     for (unsigned int i = 1; i < count; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
 	num_ranges++;
-    u.format.set (count * 2 < num_ranges * 3 ? 1 : 2);
+    u.format = count * 2 < num_ranges * 3 ? 1 : 2;
 
     switch (u.format)
     {
@@ -1212,16 +1212,16 @@ struct ClassDefFormat1
 
     if (unlikely (!glyphs))
     {
-      startGlyph.set (0);
-      classValue.len.set (0);
+      startGlyph = 0;
+      classValue.len = 0;
       return_trace (true);
     }
 
     hb_codepoint_t glyph_min = glyphs[0];
     hb_codepoint_t glyph_max = glyphs[glyphs.length - 1];
 
-    startGlyph.set (glyph_min);
-    classValue.len.set (glyph_max - glyph_min + 1);
+    startGlyph = glyph_min;
+    classValue.len = glyph_max - glyph_min + 1;
     if (unlikely (!c->extend (classValue))) return_trace (false);
 
     for (unsigned int i = 0; i < glyphs.length; i++)
@@ -1245,8 +1245,8 @@ struct ClassDefFormat1
       if (!glyphset.has (g)) continue;
       unsigned int value = classValue[g - start];
       if (!value) continue;
-      glyphs.push()->set (glyph_map[g]);
-      klasses.push()->set (value);
+      glyphs.push(glyph_map[g]);
+      klasses.push(value);
     }
     c->serializer->propagate_error (glyphs, klasses);
     ClassDef_serialize (c->serializer, glyphs, klasses);
@@ -1348,7 +1348,7 @@ struct ClassDefFormat2
 
     if (unlikely (!glyphs))
     {
-      rangeRecord.len.set (0);
+      rangeRecord.len = 0;
       return_trace (true);
     }
 
@@ -1357,12 +1357,12 @@ struct ClassDefFormat2
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
 	num_ranges++;
-    rangeRecord.len.set (num_ranges);
+    rangeRecord.len = num_ranges;
     if (unlikely (!c->extend (rangeRecord))) return_trace (false);
 
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
-    rangeRecord[range].value.set (klasses[0]);
+    rangeRecord[range].value = klasses[0];
     for (unsigned int i = 1; i < glyphs.length; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i] ||
@@ -1395,8 +1395,8 @@ struct ClassDefFormat2
       for (hb_codepoint_t g = start; g < end; g++)
       {
 	if (!glyphset.has (g)) continue;
-	glyphs.push ()->set (glyph_map[g]);
-	klasses.push ()->set (value);
+	glyphs.push (glyph_map[g]);
+	klasses.push (value);
       }
     }
     c->serializer->propagate_error (glyphs, klasses);
@@ -1519,7 +1519,7 @@ struct ClassDef
       if (1 + (glyph_max - glyph_min + 1) < num_ranges * 3)
         format = 1;
     }
-    u.format.set (format);
+    u.format = format;
 
     switch (u.format)
     {

@@ -396,18 +396,18 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   memcpy(new_sfnt_data, orig_sfnt_data, length);
 
   OT::name &name = StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
-  name.format.set (0);
-  name.count.set (ARRAY_LENGTH (name_IDs));
-  name.stringOffset.set (name.get_size ());
+  name.format = 0;
+  name.count = ARRAY_LENGTH (name_IDs);
+  name.stringOffset = name.get_size ();
   for (unsigned int i = 0; i < ARRAY_LENGTH (name_IDs); i++)
   {
     OT::NameRecord &record = name.nameRecordZ[i];
-    record.platformID.set (3);
-    record.encodingID.set (1);
-    record.languageID.set (0x0409u); /* English */
-    record.nameID.set (name_IDs[i]);
-    record.length.set (name_str_len * 2);
-    record.offset.set (0);
+    record.platformID = 3;
+    record.encodingID = 1;
+    record.languageID = 0x0409u; /* English */
+    record.nameID = name_IDs[i];
+    record.length = name_str_len * 2;
+    record.offset = 0;
   }
 
   /* Copy string data from new_name, converting wchar_t to UTF16BE. */
@@ -431,8 +431,8 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     {
       OT::TableRecord &record = const_cast<OT::TableRecord &> (face.get_table (index));
       record.checkSum.set_for_data (&name, padded_name_table_length);
-      record.offset.set (name_table_offset);
-      record.length.set (name_table_length);
+      record.offset = name_table_offset;
+      record.length = name_table_length;
     }
     else if (face_index == 0) /* Fail if first face doesn't have 'name' table. */
     {

@@ -124,14 +124,14 @@ struct CFFIndex
     {
       COUNT *dest = c->allocate_min<COUNT> ();
       if (unlikely (dest == nullptr)) return_trace (false);
-      dest->set (0);
+      *dest = 0;
     }
     else
     {
       /* serialize CFFIndex header */
       if (unlikely (!c->extend_min (*this))) return_trace (false);
-      this->count.set (byteArray.length);
-      this->offSize.set (offSize_);
+      this->count = byteArray.length;
+      this->offSize = offSize_;
       if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
 	return_trace (false);
 
@@ -181,7 +181,7 @@ struct CFFIndex
     for (; size; size--)
     {
       --p;
-      p->set (offset & 0xFF);
+      *p = offset & 0xFF;
       offset >>= 8;
     }
   }
@@ -275,8 +275,8 @@ struct CFFIndexOf : CFFIndex<COUNT>
     TRACE_SERIALIZE (this);
     /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (dataArrayLen);
-    this->offSize.set (offSize_);
+    this->count = dataArrayLen;
+    this->offSize = offSize_;
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
       return_trace (false);
 
@@ -376,11 +376,11 @@ struct Dict : UnsizedByteStr
     if (unlikely (p == nullptr)) return_trace (false);
     if (Is_OpCode_ESC (op))
     {
-      p->set (OpCode_escape);
+      *p = OpCode_escape;
       op = Unmake_OpCode_ESC (op);
       p++;
     }
-    p->set (op);
+    *p = op;
     return_trace (true);
   }
 
@@ -477,8 +477,8 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (fontDicts.length);
-    this->offSize.set (offSize_);
+    this->count = fontDicts.length;
+    this->offSize = offSize_;
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
       return_trace (false);
 
@@ -514,8 +514,8 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    this->count.set (fdCount);
-    this->offSize.set (offSize_);
+    this->count = fdCount;
+    this->offSize = offSize_;
     if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
       return_trace (false);
 

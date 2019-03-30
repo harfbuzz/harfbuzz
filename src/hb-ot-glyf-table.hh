@@ -112,7 +112,7 @@ struct glyf
       return false;
 
     head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
-    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
+    head_prime->indexToLocFormat = use_short_loca ? 0 : 1;
     bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 
     hb_blob_destroy (head_prime_blob);

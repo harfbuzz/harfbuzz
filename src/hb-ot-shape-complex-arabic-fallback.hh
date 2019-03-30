@@ -66,8 +66,8 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
 	u_glyph > 0xFFFFu || s_glyph > 0xFFFFu)
       continue;
 
-    glyphs[num_glyphs].set (u_glyph);
-    substitutes[num_glyphs].set (s_glyph);
+    glyphs[num_glyphs] = u_glyph;
+    substitutes[num_glyphs] = s_glyph;
 
     num_glyphs++;
   }
@@ -120,7 +120,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
     hb_codepoint_t first_glyph;
     if (!hb_font_get_glyph (font, first_u, 0, &first_glyph))
       continue;
-    first_glyphs[num_first_glyphs].set (first_glyph);
+    first_glyphs[num_first_glyphs] = first_glyph;
     ligature_per_first_glyph_count_list[num_first_glyphs] = 0;
     first_glyphs_indirection[num_first_glyphs] = first_glyph_idx;
     num_first_glyphs++;
@@ -146,9 +146,9 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 
       ligature_per_first_glyph_count_list[i]++;
 
-      ligature_list[num_ligatures].set (ligature_glyph);
+      ligature_list[num_ligatures] = ligature_glyph;
       component_count_list[num_ligatures] = 2;
-      component_list[num_ligatures].set (second_glyph);
+      component_list[num_ligatures] = second_glyph;
       num_ligatures++;
     }
   }
