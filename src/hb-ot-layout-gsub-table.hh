@@ -842,12 +842,14 @@ struct LigatureSubstFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    for (auto it = hb_zip (this+coverage, ligatureSet)
-		 | hb_filter (*glyphs, hb_first)
-		 | hb_map (hb_second); it; ++it)
-      if ((this+*it).intersects (glyphs))
-	return true;
-    return false;
+    return
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (*glyphs, hb_first)
+    | hb_map (hb_second)
+    | hb_map ([&] (const OffsetTo<LigatureSet> &_) -> bool
+	      { return (this+_).intersects (glyphs); })
+    | hb_any
+    ;
   }
 
   void closure (hb_closure_context_t *c) const
