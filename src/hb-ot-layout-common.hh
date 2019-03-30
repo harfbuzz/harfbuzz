@@ -1773,7 +1773,7 @@ struct VarData
   {
     TRACE_SUBSET (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    itemCount.set (remap.get_count ());
+    itemCount = remap.get_count ();
     
     /* Optimize short count */
     unsigned int short_count = src->shortCount;
@@ -1787,8 +1787,8 @@ struct VarData
       }
     
 found_short:
-    shortCount.set (short_count);
-    regionIndices.len.set (src->regionIndices.len);
+    shortCount = short_count;
+    regionIndices.len = src->regionIndices.len;
 
     unsigned int size = src->regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (get_row_size () * itemCount);
     if (unlikely (!c->allocate_size<HBUINT8> (size)))
@@ -1830,9 +1830,9 @@ found_short:
   {
     HBINT8 *p = (HBINT8 *)get_delta_bytes () + item * get_row_size ();
     if (region < shortCount)
-      ((HBINT16 *)p)[region].set (delta);
+      ((HBINT16 *)p)[region] = delta;
     else
-      (p + HBINT16::static_size * shortCount)[region - shortCount].set (delta);
+      (p + HBINT16::static_size * shortCount)[region - shortCount] = delta;
   }
 
   protected:
@@ -1881,14 +1881,14 @@ struct VariationStore
     TRACE_SUBSET (this);
     unsigned int size = min_size + HBUINT32::static_size * inner_remaps.length;
     if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
-    format.set (1);
+    format = 1;
     if (unlikely (!regions.serialize (c, this)
 		    .serialize (c, &(src+src->regions)))) return_trace (false);
 
     /* TODO: The following code could be simplified when
      * OffsetListOf::subset () can take a custom param to be passed to VarData::serialize ()
      */
-    dataSets.len.set (inner_remaps.length);
+    dataSets.len = inner_remaps.length;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
     {
       if (unlikely (!dataSets[i].serialize (c, this)
