@@ -137,7 +137,7 @@ main (int argc, char **argv)
 
   test_iterator (hb_zip (st, v));
 
-  hb_any (hb_zip (st, v));
+  hb_any (st);
 
   hb_array_t<hb_vector_t<int> > pa;
   pa->as_array ();

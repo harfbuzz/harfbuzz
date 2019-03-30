@@ -552,7 +552,7 @@ static const struct
   operator () (Iterable&& c) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (it)
+      if (*it)
 	return true;
     return false;
   }
@@ -566,7 +566,7 @@ static const struct
   operator () (Iterable&& c) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (it)
+      if (*it)
 	return false;
     return true;
   }
