@@ -66,9 +66,9 @@ template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { valu
 static const struct
 {
   template <typename T>
-  T& operator () (T v) { return v; }
+  T operator () (T v) const { return v; }
   template <typename T>
-  T& operator () (T *v) { return *v; }
+  T& operator () (T *v) const { return *v; }
 } hb_deref_pointer HB_UNUSED;
 
 

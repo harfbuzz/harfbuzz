@@ -51,6 +51,8 @@ struct hb_hashmap_t
     K key;
     V value;
 
+    bool operator== (K o) { return hb_deref_pointer (key) == hb_deref_pointer (o); }
+    bool operator== (const item_t &o) { return *this == o.key; }
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
   };
@@ -153,7 +155,7 @@ struct hb_hashmap_t
   {
     if (unlikely (!items)) return vINVALID;
     unsigned int i = bucket_for (key);
-    return items[i].key == key ? items[i].value : vINVALID;
+    return items[i] == key ? items[i].value : vINVALID;
   }
 
   void del (K key) { set (key, vINVALID); }
@@ -185,7 +187,7 @@ struct hb_hashmap_t
     unsigned int tombstone = (unsigned) -1;
     while (!items[i].is_unused ())
     {
-      if (items[i].key == key)
+      if (items[i] == key)
         return i;
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
         tombstone = i;
