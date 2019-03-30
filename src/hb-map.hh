@@ -34,6 +34,8 @@
  * hb_hashmap_t
  */
 
+/* TODO if K/V is signed integer, -1 is not a good default.
+ * Don't know how to get to -MAX using bit work. */
 template <typename K, typename V,
 	  K kINVALID = hb_is_pointer (K) ? 0 : (K) -1,
 	  V vINVALID = hb_is_pointer (V) ? 0 : (V) -1>
