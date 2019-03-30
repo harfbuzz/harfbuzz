@@ -51,6 +51,7 @@ struct hb_serialize_context_t
   void reset ()
   {
     this->successful = true;
+    this->ran_out_of_room = false;
     this->head = this->start;
     this->debug_depth = 0;
   }
@@ -111,7 +112,11 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *allocate_size (unsigned int size)
   {
-    if (unlikely (!this->successful || this->end - this->head < ptrdiff_t (size))) {
+    if (unlikely (!this->successful)) return nullptr;
+
+    if (this->end - this->head < ptrdiff_t (size))
+    {
+      this->ran_out_of_room = true;
       this->successful = false;
       return nullptr;
     }
@@ -190,6 +195,7 @@ struct hb_serialize_context_t
   unsigned int debug_depth;
   char *start, *end, *head;
   bool successful;
+  bool ran_out_of_room;
 };
 
 
