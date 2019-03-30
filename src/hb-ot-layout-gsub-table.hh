@@ -659,10 +659,7 @@ struct Ligature
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int count = component.lenP1;
-    for (unsigned int i = 1; i < count; i++)
-      if (!c->glyphs->has (component[i]))
-        return;
+    if (!intersects (c->glyphs)) return;
     c->output->add (ligGlyph);
   }
 
@@ -1024,20 +1021,9 @@ struct ReverseChainSingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
+    if (!intersects (c->glyphs)) return;
+
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-
-    unsigned int count;
-
-    count = backtrack.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!(this+backtrack[i]).intersects (c->glyphs))
-        return;
-
-    count = lookahead.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!(this+lookahead[i]).intersects (c->glyphs))
-        return;
-
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
 
     + hb_zip (this+coverage, substitute)
