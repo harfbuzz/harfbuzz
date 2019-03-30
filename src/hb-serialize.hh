@@ -53,6 +53,7 @@ struct hb_serialize_context_t
     this->successful = true;
     this->ran_out_of_room = false;
     this->head = this->start;
+    this->tail = this->end;
     this->debug_depth = 0;
   }
 
@@ -114,7 +115,7 @@ struct hb_serialize_context_t
   {
     if (unlikely (!this->successful)) return nullptr;
 
-    if (this->end - this->head < ptrdiff_t (size))
+    if (this->tail - this->head < ptrdiff_t (size))
     {
       this->ran_out_of_room = true;
       this->successful = false;
@@ -192,8 +193,8 @@ struct hb_serialize_context_t
   }
 
   public:
+  char *start, *head, *tail, *end;
   unsigned int debug_depth;
-  char *start, *end, *head;
   bool successful;
   bool ran_out_of_room;
 };
