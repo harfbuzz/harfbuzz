@@ -152,7 +152,7 @@ hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
  * hb_subset_input_set_retain_gids:
  * @subset_input: a subset_input.
  * @retain_gids: If true the subsetter will not renumber glyph ids.
- * Since: REPLACEME
+ * Since: 2.4.0
  **/
 HB_EXTERN void
 hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
@@ -164,7 +164,7 @@ hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
 /**
  * hb_subset_input_get_retain_gids:
  * Returns: value of retain_gids.
- * Since: REPLACEME
+ * Since: 2.4.0
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input)

@@ -33,12 +33,13 @@ HarfBuzz release walk-through checklist:
    That's what happened to 2.0.0 going out with 1.8.0 hb-version.h...  So, that's
    a clue.
 
-7. "make release-files".  Enter your GPG password.  This creates a sha256 hash
-   and signs it.
-
-8. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
+7. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
    as well as any REPLACEME changes you made.  The commit message is simply the
    release number.  Eg. "1.4.7"
+
+8. "make dist" again to get a tarball with your new commit in the ChangeLog.  Then
+   "make release-files".  Enter your GPG password.  This creates a sha256 hash
+   and signs it.  Check the size of the three resulting files.
 
 9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
    GPG password again.

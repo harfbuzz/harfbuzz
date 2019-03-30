@@ -88,8 +88,8 @@ struct DeviceRecord
       return_trace (false);
     }
 
-    this->pixelSize.set (subset_view.source_device_record->pixelSize);
-    this->maxWidth.set (subset_view.source_device_record->maxWidth);
+    this->pixelSize = subset_view.source_device_record->pixelSize;
+    this->maxWidth = subset_view.source_device_record->maxWidth;
 
     for (unsigned int i = 0; i < subset_view.len (); i++)
     {
@@ -99,7 +99,7 @@ struct DeviceRecord
 	DEBUG_MSG(SUBSET, nullptr, "HDMX width for new gid %d is missing.", i);
 	return_trace (false);
       }
-      widthsZ[i].set (*width);
+      widthsZ[i] = *width;
     }
 
     return_trace (true);
@@ -141,9 +141,9 @@ struct hdmx
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
-    this->version.set (source_hdmx->version);
-    this->numRecords.set (source_hdmx->numRecords);
-    this->sizeDeviceRecord.set (DeviceRecord::get_size (plan->num_output_glyphs ()));
+    this->version = source_hdmx->version;
+    this->numRecords = source_hdmx->numRecords;
+    this->sizeDeviceRecord = DeviceRecord::get_size (plan->num_output_glyphs ());
 
     for (unsigned int i = 0; i < source_hdmx->numRecords; i++)
     {

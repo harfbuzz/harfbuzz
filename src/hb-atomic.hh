@@ -33,6 +33,7 @@
 #define HB_ATOMIC_HH
 
 #include "hb.hh"
+#include "hb-meta.hh"
 
 
 /*
@@ -282,7 +283,7 @@ struct hb_atomic_int_t
 template <typename P>
 struct hb_atomic_ptr_t
 {
-  typedef typename hb_remove_pointer (P) T;
+  typedef hb_remove_pointer (P) T;
 
   void init (T* v_ = nullptr) { set_relaxed (v_); }
   void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }

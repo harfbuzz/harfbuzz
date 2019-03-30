@@ -117,7 +117,7 @@ struct glyf
       return false;
 
     head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
-    head_prime->indexToLocFormat.set (use_short_loca ? 0 : 1);
+    head_prime->indexToLocFormat = use_short_loca ? 0 : 1;
     bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 
     hb_blob_destroy (head_prime_blob);
@@ -191,7 +191,7 @@ struct glyf
 	point2 = p[1];
       }
     }
- 
+
     void transform_points (contour_point_vector_t &points) const
     {
       float matrix[4];
@@ -219,7 +219,7 @@ struct glyf
     {
       matrix[0] = matrix[3] = 1.f;
       matrix[1] = matrix[2] = 0.f;
-      
+
       int tx, ty;
       const HBINT8 *p = &StructAfter<const HBINT8> (glyphIndex);
       if (flags & ARG_1_AND_2_ARE_WORDS)
@@ -625,7 +625,7 @@ struct glyf
 
 	  /* Apply component transformation & translation */
 	  composite.current->transform_points (comp_points);
-	  
+
 	  /* Apply translatation from gvar */
 	  comp_points.translate (points[comp_index]);
 

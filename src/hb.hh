@@ -68,6 +68,7 @@
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
+#pragma GCC diagnostic error   "-Winjected-class-name"
 #pragma GCC diagnostic error   "-Wmissing-braces"
 #pragma GCC diagnostic error   "-Wmissing-declarations"
 #pragma GCC diagnostic error   "-Wmissing-prototypes"
@@ -460,13 +461,6 @@ static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
-
-#if __cplusplus >= 201103L
-
-/* We only enable these with C++11 or later, since earlier language
- * does not allow structs with constructors in unions, and we need
- * those. */
-
 #define HB_NO_COPY_ASSIGN(TypeName) \
   TypeName(const TypeName&); \
   void operator=(const TypeName&)
@@ -488,17 +482,6 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   TypeName(); \
   TypeName(const TypeName<T1, T2>&); \
   void operator=(const TypeName<T1, T2>&)
-
-#else /* __cpluspplus >= 201103L */
-
-#define HB_NO_COPY_ASSIGN(TypeName) static_assert (true, "")
-#define HB_NO_COPY_ASSIGN_TEMPLATE(TypeName, T) static_assert (true, "")
-#define HB_NO_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
-#define HB_NO_CREATE_COPY_ASSIGN(TypeName) static_assert (true, "")
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) static_assert (true, "")
-#define HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) static_assert (true, "")
-
-#endif /* __cpluspplus >= 201103L */
 
 
 /*
@@ -631,28 +614,17 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
 
 
-/* Some really basic things everyone wants. */
-template <typename T> struct hb_remove_const { typedef T value; };
-template <typename T> struct hb_remove_const<const T> { typedef T value; };
-#define hb_remove_const(T) hb_remove_const<T>::value
-template <typename T> struct hb_remove_reference { typedef T value; };
-template <typename T> struct hb_remove_reference<T &> { typedef T value; };
-#define hb_remove_reference(T) hb_remove_reference<T>::value
-template <typename T> struct hb_remove_pointer { typedef T value; };
-template <typename T> struct hb_remove_pointer<T *> { typedef T value; };
-#define hb_remove_pointer(T) hb_remove_pointer<T>::value
-
-
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
-#include "hb-atomic.hh"
+#include "hb-meta.hh"
 #include "hb-mutex.hh"
-#include "hb-null.hh"
-#include "hb-dsalgs.hh"	// Requires: hb-null
-#include "hb-iter.hh"	// Requires: hb-null
-#include "hb-debug.hh"	// Requires: hb-atomic hb-dsalgs
-#include "hb-array.hh"	// Requires: hb-dsalgs hb-iter hb-null
+#include "hb-atomic.hh"	// Requires: hb-meta
+#include "hb-null.hh"	// Requires: hb-meta
+#include "hb-algs.hh"	// Requires: hb-meta hb-null
+#include "hb-iter.hh"	// Requires: hb-meta
+#include "hb-debug.hh"	// Requires: hb-algs hb-atomic
+#include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null
 #include "hb-vector.hh"	// Requires: hb-array hb-null
 #include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 

@@ -272,11 +272,11 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 
     HBUINT8 *p = c->allocate_size<HBUINT8> (1);
     if (unlikely (p == nullptr)) return_trace (false);
-    p->set (intOp);
+    *p = intOp;
 
     INTTYPE *ip = c->allocate_size<INTTYPE> (INTTYPE::static_size);
     if (unlikely (ip == nullptr)) return_trace (false);
-    ip->set ((unsigned int)value);
+    *ip = (unsigned int) value;
 
     return_trace (true);
   }

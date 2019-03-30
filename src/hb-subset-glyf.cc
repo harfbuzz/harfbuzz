@@ -43,9 +43,9 @@ struct loca_data_t
     if ((id + 1) * entry_size <= size)
     {
       if (is_short) {
-        ((OT::HBUINT16*) data) [id].set (offset / 2);
+        ((OT::HBUINT16*) data) [id] = offset / 2;
       } else {
-        ((OT::HBUINT32*) data) [id].set (offset);
+        ((OT::HBUINT32*) data) [id] = offset;
       }
       return true;
     }
@@ -164,7 +164,7 @@ _update_components (const hb_subset_plan_t *plan,
 				      &new_gid))
 	continue;
 
-      ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex.set (new_gid);
+      ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex = new_gid;
     } while (iterator.move_to_next ());
   }
 }
@@ -178,7 +178,7 @@ static bool _remove_composite_instruction_flag (char *glyf_prime, unsigned int l
   do {
     glyph = composite_it.current;
     OT::HBUINT16 *flags = const_cast<OT::HBUINT16 *> (&glyph->flags);
-    flags->set ( (uint16_t) *flags & ~OT::glyf::CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS);
+    *flags = (uint16_t) *flags & ~OT::glyf::CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS;
   } while (composite_it.move_to_next ());
   return true;
 }
