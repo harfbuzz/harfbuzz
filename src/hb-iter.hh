@@ -478,6 +478,8 @@ static const struct
   { return hb_sink_t<Sink&> (*s); }
 } hb_sink HB_UNUSED;
 
+/* hb-drain: hb_sink to void / blackhole / /dev/null. */
+
 static const struct
 {
   template <typename Iter,
@@ -489,6 +491,42 @@ static const struct
       (void) *it;
   }
 } hb_drain HB_UNUSED;
+
+/* hb_unzip(): unzip and sink to two sinks. */
+
+template <typename Sink1, typename Sink2>
+struct hb_unzip_t
+{
+  hb_unzip_t (Sink1&& s1, Sink2&& s2) : s1 (s1), s2 (s2) {}
+
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  void
+  operator () (Iter it) const
+  {
+    for (; it; ++it)
+    {
+      const auto &v = *it;
+      s1 << v.first;
+      s2 << v.second;
+    }
+  }
+
+  private:
+  Sink1 s1;
+  Sink2 s2;
+};
+static const struct
+{
+  template <typename Sink1, typename Sink2> hb_unzip_t<Sink1, Sink2>
+  operator () (Sink1&& s1, Sink2&& s2) const
+  { return hb_unzip_t<Sink1, Sink2> (s1, s2); }
+
+  template <typename Sink1, typename Sink2> hb_unzip_t<Sink1&, Sink2&>
+  operator () (Sink1 *s1, Sink2 *s2) const
+  { return hb_unzip_t<Sink1&, Sink2&> (*s1, *s2); }
+} hb_unzip HB_UNUSED;
+
 
 /* hb-all, hb-any, hb-none. */
 
