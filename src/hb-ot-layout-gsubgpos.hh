@@ -1544,12 +1544,13 @@ struct ContextFormat2
       &class_def
     };
 
-    for (auto it = hb_enumerate (ruleSet); it; ++it)
-      if (class_def.intersects_class (glyphs, (*it).first) &&
-	  (this+(*it).second).intersects (glyphs, lookup_context))
-	return true;
-
-    return false;
+    return
+    + hb_enumerate (ruleSet)
+    | hb_filter ([&] (const hb_pair_t<unsigned, const OffsetTo<RuleSet> &> p) -> bool
+		 { return class_def.intersects_class (glyphs, p.first) &&
+			  (this+p.second).intersects (glyphs, lookup_context); })
+    | hb_any
+    ;
   }
 
   void closure (hb_closure_context_t *c) const
