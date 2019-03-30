@@ -753,25 +753,25 @@ struct LigatureSet
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    unsigned int num_ligs = ligature.len;
-    for (unsigned int i = 0; i < num_ligs; i++)
-      if ((this+ligature[i]).intersects (glyphs))
-        return true;
-    return false;
+    return
+    + hb_iter (ligature)
+    | hb_map ([&] (const OffsetTo<Ligature> &_) -> bool { return (this+_).intersects (glyphs); })
+    | hb_any
+    ;
   }
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned int num_ligs = ligature.len;
-    for (unsigned int i = 0; i < num_ligs; i++)
-      (this+ligature[i]).closure (c);
+    + hb_iter (ligature)
+    | hb_apply ([&] (const OffsetTo<Ligature> &_) { (this+_).closure (c); })
+    ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    unsigned int num_ligs = ligature.len;
-    for (unsigned int i = 0; i < num_ligs; i++)
-      (this+ligature[i]).collect_glyphs (c);
+    + hb_iter (ligature)
+    | hb_apply ([&] (const OffsetTo<Ligature> &_) { (this+_).collect_glyphs (c); })
+    ;
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
