@@ -742,7 +742,6 @@ template <typename Type>
 struct BEInt<Type, 4>
 {
   public:
-  typedef Type type;
   BEInt<Type, 4>& operator = (Type V)
   {
     v[0] = (V >> 24) & 0xFF;
