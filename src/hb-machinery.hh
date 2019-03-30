@@ -500,8 +500,7 @@ struct hb_sanitize_context_t :
 struct hb_sanitize_with_object_t
 {
   template <typename T>
-  hb_sanitize_with_object_t (hb_sanitize_context_t *c,
-				    const T& obj) : c (c)
+  hb_sanitize_with_object_t (hb_sanitize_context_t *c, const T& obj) : c (c)
   { c->set_object (obj); }
   ~hb_sanitize_with_object_t ()
   { c->reset_object (); }
