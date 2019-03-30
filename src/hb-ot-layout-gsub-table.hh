@@ -56,6 +56,7 @@ struct SingleSubstFormat1
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+
     + hb_iter (this+coverage)
     | hb_map ([&] (hb_codepoint_t g) -> hb_codepoint_t { return (g + deltaGlyphID) & 0xFFFFu; })
     | hb_sink (c->output)
@@ -856,6 +857,7 @@ struct LigatureSubstFormat1
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+
     + hb_zip (this+coverage, ligatureSet)
     | hb_map (hb_second)
     | hb_apply ([&] (const OffsetTo<LigatureSet> &_) { (this+_).collect_glyphs (c); })
@@ -1030,6 +1032,7 @@ struct ReverseChainSingleSubstFormat1
         return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+
     + hb_zip (this+coverage, substitute)
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
