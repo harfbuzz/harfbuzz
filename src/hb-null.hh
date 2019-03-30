@@ -76,19 +76,6 @@ struct hb_static_size
 #define hb_static_size(T) hb_static_size<T>::value
 
 
-/* hb_assign (obj, value)
- * Calls obj.set (value) if obj.min_size is defined and value has different type
- * from obj, or obj = v otherwise. */
-
-template <typename T, typename V, typename B>
-struct _hb_assign
-{ static inline void value (T &o, const V v) { o = v; } };
-
-template <typename T, typename V>
-static inline void hb_assign (T &o, const V v)
-{ _hb_assign<T, V, hb_true_t>::value (o, v); }
-
-
 /*
  * Null()
  */

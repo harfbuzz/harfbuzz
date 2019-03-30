@@ -405,7 +405,7 @@ struct hb_sanitize_context_t :
   {
     if (this->may_edit (obj, hb_static_size (Type)))
     {
-      hb_assign (* const_cast<Type *> (obj), v);
+      * const_cast<Type *> (obj) = v;
       return true;
     }
     return false;

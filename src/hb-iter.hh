@@ -544,7 +544,7 @@ inline void
 hb_fill (C& c, const V &v)
 {
   for (auto i = hb_iter (c); i; i++)
-    hb_assign (*i, v);
+    *i = v;
 }
 
 template <typename S, typename D,

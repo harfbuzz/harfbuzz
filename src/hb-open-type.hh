@@ -584,7 +584,7 @@ struct ArrayOf
     /* TODO Umm. Just exhaust the iterator instead?  Being extra
      * cautious right now.. */
     for (unsigned i = 0; i < count; i++, items++)
-      hb_assign (arrayZ[i], *items);
+      arrayZ[i] = *items;
     return_trace (true);
   }
 
