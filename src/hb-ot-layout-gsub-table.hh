@@ -102,15 +102,18 @@ struct SingleSubstFormat1
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
+
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
-    for (auto it = hb_iter (this+coverage)
-		 | hb_filter (glyphset); it; ++it)
-    {
-      from.push (glyph_map[*it]);
-      to.push (glyph_map[(*it + delta) & 0xFFFF]);
-    }
+
+    + hb_iter (this+coverage)
+    | hb_filter (glyphset)
+    | hb_map ([&] (hb_codepoint_t g) -> hb_pair_t<hb_codepoint_t, hb_codepoint_t>
+	      { return hb_pair<hb_codepoint_t, hb_codepoint_t> (glyph_map[g],
+								glyph_map[(g + delta) & 0xFFFF]); })
+    | hb_unzip (from, to);
+
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
@@ -193,14 +196,16 @@ struct SingleSubstFormat2
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
+
     hb_sorted_vector_t<GlyphID> from;
     hb_vector_t<GlyphID> to;
-    for (auto it = hb_zip (this+coverage, substitute)
-		 | hb_filter (glyphset, hb_first); it; ++it)
-    {
-      from.push (glyph_map[(*it).first]);
-      to.push (glyph_map[(*it).second]);
-    }
+
+    + hb_zip (this+coverage, substitute)
+    | hb_filter (glyphset, hb_first)
+    | hb_map ([&] (hb_pair_t<hb_codepoint_t, const GlyphID &> p) -> hb_pair_t<hb_codepoint_t, hb_codepoint_t>
+	      { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
+    | hb_unzip (from, to);
+
     c->serializer->propagate_error (from, to);
     SingleSubst_serialize (c->serializer, from, to);
     return_trace (from.length);
