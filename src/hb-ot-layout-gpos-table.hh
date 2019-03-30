@@ -616,7 +616,7 @@ struct PairSet
   friend struct PairPosFormat1;
 
   bool intersects (const hb_set_t *glyphs,
-			  const ValueFormat *valueFormats) const
+		   const ValueFormat *valueFormats) const
   {
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
