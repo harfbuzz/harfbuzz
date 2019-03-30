@@ -259,7 +259,7 @@ struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>,
 	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
 {
-  hb_map_iter_t (const Iter& it, Proj&& f) : it (it), f (f) {}
+  hb_map_iter_t (const Iter& it, Proj f) : it (it), f (f) {}
 
   typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
