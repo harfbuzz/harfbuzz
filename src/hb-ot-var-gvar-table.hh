@@ -682,7 +682,6 @@ struct gvar
 
     unsigned int get_axis_count () const { return gvar_table->axisCount; }
 
-    }
     protected:
     const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
     { return gvar_table->get_glyph_var_data (glyph); }
