@@ -45,6 +45,13 @@ struct hb_vector_t
     alloc (o.length);
     hb_iter (o) | hb_sink (this);
   }
+  hb_vector_t (hb_vector_t &&o)
+  {
+    allocated = o.allocated;
+    length = o.length;
+    arrayZ_ = o.arrayZ_;
+    o.init ();
+  }
   ~hb_vector_t () { fini (); }
 
   unsigned int length;
@@ -81,6 +88,15 @@ struct hb_vector_t
     reset ();
     alloc (o.length);
     hb_iter (o) | hb_sink (this);
+    return *this;
+  }
+  hb_vector_t& operator = (hb_vector_t &&o)
+  {
+    fini ();
+    allocated = o.allocated;
+    length = o.length;
+    arrayZ_ = o.arrayZ_;
+    o.init ();
     return *this;
   }
 
