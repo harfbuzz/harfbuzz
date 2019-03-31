@@ -155,6 +155,11 @@ main (int argc, char **argv)
   ;
 
   + hb_iter (src)
+  | hb_map ([&] (int i) -> int { return 1; })
+  | hb_reduce ([&] (int acc, int cur) -> int { return acc + cur; }, 2)
+  ;
+
+  + hb_iter (src)
   | hb_drain
   ;
 

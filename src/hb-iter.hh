@@ -344,6 +344,34 @@ static const struct
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 } hb_filter HB_UNUSED;
 
+template <typename Redu, typename TValue>
+struct hb_reduce_t
+{
+  hb_reduce_t (Redu r, TValue init_value) : r (r), init_value (init_value) {}
+
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter))>
+  TValue
+  operator () (Iter it) const
+  {
+    TValue value = init_value;
+    for (; it; ++it)
+      value = r (*it, value);
+    return value;
+  }
+
+  private:
+  Redu r;
+  TValue init_value;
+};
+static const struct
+{
+  template <typename Redu, typename TValue> hb_reduce_t<Redu, TValue>
+  operator () (Redu&& r, TValue init_value) const
+  { return hb_reduce_t<Redu, TValue> (r, init_value); }
+} hb_reduce HB_UNUSED;
+
+
 /* hb_zip() */
 
 template <typename A, typename B>
