@@ -35,6 +35,8 @@
  * Dispatch
  */
 
+#define DISPATCH_MAX_SUBTABLES 64
+
 template <typename Context, typename Return, unsigned int MaxDebugDepth>
 struct hb_dispatch_context_t
 {
@@ -52,6 +54,7 @@ struct hb_dispatch_context_t
   { return obj.dispatch (thiz (), hb_forward<Ts> (ds)...); }
   static return_t no_dispatch_return_value () { return Context::default_return_value (); }
   static bool stop_sublookup_iteration (const return_t r HB_UNUSED) { return false; }
+  int max_subtables = DISPATCH_MAX_SUBTABLES;
 };
 
 

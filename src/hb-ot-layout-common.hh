@@ -692,6 +692,7 @@ struct Lookup
     TRACE_DISPATCH (this, lookup_type);
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
+      if (c->max_subtables-- < 0) break;
       typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type, hb_forward<Ts> (ds)...);
       if (c->stop_sublookup_iteration (r))
 	return_trace (r);
