@@ -249,13 +249,18 @@ struct hb_serialize_context_t
   hb_bytes_t copy_bytes () const
   {
     assert (this->successful);
-    unsigned int len = this->head - this->start;
-    void *p = malloc (len);
+    /* Copy both items from head side and tail side... */
+    unsigned int len = (this->head - this->start)
+		     + (this->end  - this->tail);
+    char *p = (char *) malloc (len);
     if (p)
-      memcpy (p, this->start, len);
+    {
+      memcpy (p, this->start, this->head - this->start);
+      memcpy (p + (this->head - this->start), this->tail, this->end - this->tail);
+    }
     else
       return hb_bytes_t ();
-    return hb_bytes_t ((char *) p, len);
+    return hb_bytes_t (p, len);
   }
   template <typename Type>
   Type *copy () const
