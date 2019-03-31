@@ -100,6 +100,11 @@ struct hb_vector_t
     return *this;
   }
 
+  hb_bytes_t as_bytes () const { return hb_bytes_t ((const char *) arrayZ_,
+						    length * item_size); }
+
+  uint32_t hash () const { return as_bytes ().hash (); }
+
   const Type * arrayZ () const { return arrayZ_; }
         Type * arrayZ ()       { return arrayZ_; }
 

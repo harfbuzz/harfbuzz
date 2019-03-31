@@ -58,6 +58,11 @@ struct hb_serialize_context_t
 	  && 0 == memcmp (head, o.head, tail - head)
 	  && 0 == memcmp (&links, &o.links, links.get_size ());
     }
+    uint32_t hash () const
+    {
+      return hb_bytes_t (head, tail - head).hash () ^
+	     links.as_bytes ().hash ();
+    }
 
     struct link_t
     {
