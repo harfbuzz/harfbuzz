@@ -574,7 +574,7 @@ struct glyf
 
     struct contour_bounds_t
     {
-      contour_bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = FLT_MIN; }
+      contour_bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = -FLT_MAX; }
 
       void add (const contour_point_t &p)
       {
