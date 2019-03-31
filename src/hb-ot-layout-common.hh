@@ -921,12 +921,13 @@ struct CoverageFormat2
     {
       if (glyphs[i - 1] + 1 != glyphs[i])
       {
+	rangeRecord[range].end = glyphs[i - 1];
 	range++;
 	rangeRecord[range].start = glyphs[i];
 	rangeRecord[range].value = i;
       }
-      rangeRecord[range].end = glyphs[i];
     }
+    rangeRecord[range].end = glyphs[count - 1];
     return_trace (true);
   }
 
@@ -1352,8 +1353,9 @@ struct ClassDefFormat2
       return_trace (true);
     }
 
+    unsigned int count = glyphs.len ();
     unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < glyphs.length; i++)
+    for (unsigned int i = 1; i < count; i++)
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
 	num_ranges++;
@@ -1363,17 +1365,18 @@ struct ClassDefFormat2
     unsigned int range = 0;
     rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value = klasses[0];
-    for (unsigned int i = 1; i < glyphs.length; i++)
+    for (unsigned int i = 1; i < count; i++)
     {
       if (glyphs[i - 1] + 1 != glyphs[i] ||
 	  klasses[i - 1] != klasses[i])
       {
+	rangeRecord[range].end = glyphs[i - 1];
 	range++;
 	rangeRecord[range].start = glyphs[i];
 	rangeRecord[range].value = klasses[i];
       }
-      rangeRecord[range].end = glyphs[i];
     }
+    rangeRecord[range].end = glyphs[count - 1];
     return_trace (true);
   }
 
@@ -1510,8 +1513,9 @@ struct ClassDef
       hb_codepoint_t glyph_min = glyphs[0];
       hb_codepoint_t glyph_max = glyphs[glyphs.length - 1];
 
+      unsigned int count = glyphs.len ();
       unsigned int num_ranges = 1;
-      for (unsigned int i = 1; i < glyphs.length; i++)
+      for (unsigned int i = 1; i < count; i++)
 	if (glyphs[i - 1] + 1 != glyphs[i] ||
 	    klasses[i - 1] != klasses[i])
 	  num_ranges++;
