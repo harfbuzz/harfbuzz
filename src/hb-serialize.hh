@@ -122,8 +122,11 @@ struct hb_serialize_context_t
     /* TODO Propagate errors. */
 
     assert (current.length == 1);
-    /* TODO Enable when callers are updated. */
-    //pop_pack ();
+
+    /* Only "pack" if there exist other objects... Otherwise, don't bother.
+     * Saves a copy. */
+    if (packed.length > 1)
+      pop_pack ();
   }
 
   template <typename Type>
