@@ -111,7 +111,7 @@ struct hb_serialize_context_t
     assert (!current.length);
     return push<Type> ();
   }
-  objidx_t end_serialize ()
+  void end_serialize ()
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
 		     "end [%p..%p] serialized %u bytes; %s",
@@ -122,7 +122,8 @@ struct hb_serialize_context_t
     /* TODO Propagate errors. */
 
     assert (current.length == 1);
-    return pop_pack ();
+    /* TODO Enable when callers are updated. */
+    //pop_pack ();
   }
 
   template <typename Type>
