@@ -38,8 +38,13 @@ struct hb_vector_t
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
 
-  HB_NO_COPY_ASSIGN_TEMPLATE (hb_vector_t, Type);
   hb_vector_t ()  { init (); }
+  hb_vector_t (const hb_vector_t &o)
+  {
+    init ();
+    alloc (o.length);
+    hb_iter (o) | hb_sink (this);
+  }
   ~hb_vector_t () { fini (); }
 
   unsigned int length;
@@ -67,6 +72,16 @@ struct hb_vector_t
     for (unsigned int i = 0; i < count; i++)
       array[i].fini ();
     fini ();
+  }
+
+  void reset () { resize (0); }
+
+  hb_vector_t& operator = (const hb_vector_t &o)
+  {
+    reset ();
+    alloc (o.length);
+    hb_iter (o) | hb_sink (this);
+    return *this;
   }
 
   const Type * arrayZ () const { return arrayZ_; }
