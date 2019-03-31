@@ -109,7 +109,7 @@ struct hb_vector_t
 
   /* Sink interface. */
   template <typename T>
-  hb_vector_t& operator << (const T& v) { push (v); return *this; }
+  hb_vector_t& operator << (T&& v) { push (hb_forward<T> (v)); return *this; }
 
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ(), length); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
@@ -149,10 +149,10 @@ struct hb_vector_t
     return &arrayZ()[length - 1];
   }
   template <typename T>
-  Type *push (const T& v)
+  Type *push (T&& v)
   {
     Type *p = push ();
-    *p = v;
+    *p = hb_forward<T> (v);
     return p;
   }
 
@@ -209,7 +209,7 @@ struct hb_vector_t
   Type pop ()
   {
     if (!length) return Null(Type);
-    return arrayZ()[--length];
+    return hb_move (arrayZ()[--length]); /* Does this move actually work? */
   }
 
   void remove (unsigned int i)

@@ -151,7 +151,7 @@ struct hb_serialize_context_t
     obj.head = tail;
     obj.tail = tail + len;
 
-    packed.push (obj);
+    packed.push (hb_move (obj));
 
     /* TODO Handle error. */
     if (unlikely (packed.in_error ()))
