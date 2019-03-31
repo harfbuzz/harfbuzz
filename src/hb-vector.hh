@@ -38,8 +38,20 @@ struct hb_vector_t
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
 
-  HB_NO_COPY_ASSIGN_TEMPLATE (hb_vector_t, Type);
   hb_vector_t ()  { init (); }
+  hb_vector_t (const hb_vector_t &o)
+  {
+    init ();
+    alloc (o.length);
+    hb_iter (o) | hb_sink (this);
+  }
+  hb_vector_t (hb_vector_t &&o)
+  {
+    allocated = o.allocated;
+    length = o.length;
+    arrayZ_ = o.arrayZ_;
+    o.init ();
+  }
   ~hb_vector_t () { fini (); }
 
   unsigned int length;
@@ -69,6 +81,30 @@ struct hb_vector_t
     fini ();
   }
 
+  void reset () { resize (0); }
+
+  hb_vector_t& operator = (const hb_vector_t &o)
+  {
+    reset ();
+    alloc (o.length);
+    hb_iter (o) | hb_sink (this);
+    return *this;
+  }
+  hb_vector_t& operator = (hb_vector_t &&o)
+  {
+    fini ();
+    allocated = o.allocated;
+    length = o.length;
+    arrayZ_ = o.arrayZ_;
+    o.init ();
+    return *this;
+  }
+
+  hb_bytes_t as_bytes () const { return hb_bytes_t ((const char *) arrayZ_,
+						    length * item_size); }
+
+  uint32_t hash () const { return as_bytes ().hash (); }
+
   const Type * arrayZ () const { return arrayZ_; }
         Type * arrayZ ()       { return arrayZ_; }
 
@@ -87,11 +123,15 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
+  Type& tail () { return (*this)[length - 1]; }
+  const Type& tail () const { return (*this)[length - 1]; }
+
   explicit operator bool () const { return length; }
+  unsigned get_size () const { return length * item_size; }
 
   /* Sink interface. */
   template <typename T>
-  hb_vector_t& operator << (const T& v) { push (v); return *this; }
+  hb_vector_t& operator << (T&& v) { push (hb_forward<T> (v)); return *this; }
 
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ(), length); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ(), length); }
@@ -131,10 +171,10 @@ struct hb_vector_t
     return &arrayZ()[length - 1];
   }
   template <typename T>
-  Type *push (const T& v)
+  Type *push (T&& v)
   {
     Type *p = push ();
-    *p = v;
+    *p = hb_forward<T> (v);
     return p;
   }
 
@@ -188,10 +228,10 @@ struct hb_vector_t
     return true;
   }
 
-  void pop ()
+  Type pop ()
   {
-    if (!length) return;
-    length--;
+    if (!length) return Null(Type);
+    return hb_move (arrayZ()[--length]); /* Does this move actually work? */
   }
 
   void remove (unsigned int i)

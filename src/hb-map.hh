@@ -34,6 +34,8 @@
  * hb_hashmap_t
  */
 
+/* TODO if K/V is signed integer, -1 is not a good default.
+ * Don't know how to get to -MAX using bit work. */
 template <typename K, typename V,
 	  K kINVALID = hb_is_pointer (K) ? 0 : (K) -1,
 	  V vINVALID = hb_is_pointer (V) ? 0 : (V) -1>
@@ -46,6 +48,10 @@ struct hb_hashmap_t
   static_assert (hb_is_integer (K) || hb_is_pointer (K), "");
   static_assert (hb_is_integer (V) || hb_is_pointer (V), "");
 
+  /* TODO If key type is a pointer, keep hash in item_t and use to:
+   * 1. avoid rehashing when resizing table, and
+   * 2. compare hash before comparing keys, for speed.
+   */
   struct item_t
   {
     K key;
@@ -82,12 +88,19 @@ struct hb_hashmap_t
   {
     free (items);
     items = nullptr;
+    population = occupancy = 0;
   }
   void fini ()
   {
-    population = occupancy = 0;
     hb_object_fini (this);
     fini_shallow ();
+  }
+
+  void reset ()
+  {
+    /* TODO Keep array? */
+    fini_shallow ();
+    init_shallow ();
   }
 
   bool in_error () const { return !successful; }
@@ -247,6 +260,10 @@ struct hb_hashmap_t
     return prime_mod[shift];
   }
 };
+
+/*
+ * hb_map_t
+ */
 
 struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
