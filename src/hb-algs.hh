@@ -34,6 +34,19 @@
 
 static const struct
 {
+  /* Don't know how to set priority of following.  Doesn't work right now. */
+  //template <typename T>
+  //uint32_t operator () (const T& v) const
+  //{ return hb_deref_pointer (v).hash (); }
+  /* Instead, the following ugly soution: */
+  template <typename T,
+	    hb_enable_if (!hb_is_integer (hb_remove_reference (T)) && !hb_is_pointer (T))>
+  uint32_t operator () (T&& v) const { return v.hash (); }
+
+  template <typename T>
+  uint32_t operator () (const T *v) const
+  { return hb_hash (v); }
+
   template <typename T,
 	    hb_enable_if (hb_is_integer (T))>
   uint32_t operator () (T v) const
@@ -41,11 +54,6 @@ static const struct
     /* Knuth's multiplicative method: */
     return (uint32_t) v * 2654435761u;
   }
-  template <typename T>
-  uint32_t operator () (T *v) const { return hb_hash (*v); }
-  template <typename T,
-	    hb_enable_if (!hb_is_integer (hb_remove_reference (T)) && !hb_is_pointer (T))>
-  uint32_t operator () (T&& v) const { return v.hash (); }
 } hb_hash HB_UNUSED;
 
 static const struct

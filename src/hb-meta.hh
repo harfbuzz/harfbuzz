@@ -63,6 +63,14 @@ template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { valu
 #define hb_remove_pointer(T) typename hb_match_pointer<T>::type
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
+static const struct
+{
+  template <typename T>
+  T operator () (T v) const { return v; }
+  template <typename T>
+  T& operator () (T *v) const { return *v; }
+} hb_deref_pointer HB_UNUSED;
+
 
 /* Void!  For when we need a expression-type of void. */
 struct hb_void_t { typedef void value; };
