@@ -42,7 +42,12 @@ struct hb_serialize_context_t
 {
   typedef unsigned objidx_t;
 
-  struct object_t
+  struct range_t
+  {
+    char *head, *tail;
+  };
+
+  struct object_t : range_t
   {
     void fini () { links.fini (); }
 
@@ -53,16 +58,10 @@ struct hb_serialize_context_t
       objidx_t objidx;
     };
 
-    char *head;
-    unsigned length;
     hb_vector_t<link_t> links;
   };
 
-  struct snapshot_t
-  {
-    char *head, *tail;
-  };
-  snapshot_t snapshot () { snapshot_t s = {head, tail} ; return s; }
+  range_t snapshot () { range_t s = {head, tail} ; return s; }
 
 
   hb_serialize_context_t (void *start_, unsigned int size)
@@ -82,8 +81,8 @@ struct hb_serialize_context_t
     this->tail = this->end;
     this->debug_depth = 0;
 
-    this->current.resize (0);
-    this->packed.resize (0);
+    this->current.reset ();
+    this->packed.reset ();
     this->packed.push ()->head = this->end;
     this->packed_map.reset ();
   }
@@ -119,6 +118,9 @@ struct hb_serialize_context_t
 		     this->start, this->end,
 		     (unsigned) (this->head - this->start),
 		     this->successful ? "successful" : "UNSUCCESSFUL");
+
+    /* TODO Propagate errors. */
+
     assert (current.length == 1);
     return pop_pack ();
   }
@@ -126,7 +128,10 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *push ()
   {
-    current.push (snapshot ());
+    object_t obj;
+    obj.head = head;
+    obj.tail = tail;
+    current.push (obj);
     return start_embed<Type> ();
   }
   void pop_discard ()
@@ -135,23 +140,27 @@ struct hb_serialize_context_t
   }
   objidx_t pop_pack ()
   {
-    snapshot_t snap = current.pop ();
+    object_t obj = current.pop ();
 
-    char *s = snap.head;
-    char *e = head;
-    unsigned l = e - s;
+    unsigned len = head - obj.head;
 
-    tail -= l;
-    memmove (tail, s, l);
+    tail -= len;
+    memmove (tail, obj.head, len);
+    head = obj.head;
 
-    /* TODO... */
-    packed.push ();
+    obj.head = tail;
+    obj.tail = tail + len;
 
-    head = snap.head;
-    return 0;
+    packed.push (obj);
+
+    /* TODO Handle error. */
+    if (unlikely (packed.in_error ()))
+      return 0;
+
+    return packed.length - 1;
   }
 
-  void revert (snapshot_t snap)
+  void revert (range_t snap)
   {
     assert (snap.head <= head);
     assert (tail <= snap.tail);
@@ -274,8 +283,9 @@ struct hb_serialize_context_t
 
   private:
 
-  /* Stack of currently under construction object locations. */
-  hb_vector_t<snapshot_t> current;
+  /* Stack of currently under construction objects. */
+  /* Note.  We store the "end - tail" distance in the length member of these. */
+  hb_vector_t<object_t> current;
 
   /* Stack of packed objects.  Object 0 is always nil object. */
   hb_vector_t<object_t> packed;
