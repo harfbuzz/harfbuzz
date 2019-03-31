@@ -31,6 +31,7 @@
 
 #include "hb.hh"
 #include "hb-blob.hh"
+#include "hb-map.hh"
 
 
 /*
@@ -80,9 +81,10 @@ struct hb_serialize_context_t
     this->tail = this->end;
     this->debug_depth = 0;
 
+    this->current.resize (0);
     this->packed.resize (0);
     this->packed.push ()->bytes.arrayZ = this->end;
-    this->current.resize (0);
+    this->packed_map.reset ();
   }
 
   bool propagate_error (bool e)
@@ -132,6 +134,19 @@ struct hb_serialize_context_t
   }
   objidx_t pop_pack ()
   {
+    snapshot_t snap = current.pop ();
+
+    char *s = snap.head;
+    char *e = head;
+    unsigned l = e - s;
+
+    tail -= l;
+    memmove (tail, s, l);
+
+    /* TODO... */
+    packed.push ();
+
+    head = snap.head;
     return 0;
   }
 
@@ -258,11 +273,14 @@ struct hb_serialize_context_t
 
   private:
 
+  /* Stack of currently under construction object locations. */
+  hb_vector_t<snapshot_t> current;
+
   /* Stack of packed objects.  Object 0 is always nil object. */
   hb_vector_t<object_t> packed;
 
-  /* Stack of currently under construction object locations. */
-  hb_vector_t<snapshot_t> current;
+  /* Map view of packed objects. */
+  hb_hashmap_t<const object_t *, objidx_t> packed_map;
 };
 
 

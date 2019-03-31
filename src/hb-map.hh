@@ -96,6 +96,13 @@ struct hb_hashmap_t
     fini_shallow ();
   }
 
+  void reset ()
+  {
+    /* TODO Keep array? */
+    fini_shallow ();
+    init_shallow ();
+  }
+
   bool in_error () const { return !successful; }
 
   bool resize ()
