@@ -83,6 +83,12 @@ struct hb_serialize_context_t
     this->end = this->start + size;
     reset ();
   }
+  ~hb_serialize_context_t ()
+  {
+    current.fini_deep ();
+    packed.fini_deep ();
+    packed_map.fini ();
+  }
 
   bool in_error () const { return !this->successful; }
 
@@ -158,8 +164,15 @@ struct hb_serialize_context_t
   objidx_t pop_pack ()
   {
     object_t obj = current.pop ();
+    obj.tail = head;
+    unsigned len = obj.tail - obj.head;
 
-    unsigned len = head - obj.head;
+    objidx_t objidx = packed_map.get (&obj);
+    if (objidx)
+    {
+      obj.fini ();
+      return objidx;
+    }
 
     tail -= len;
     memmove (tail, obj.head, len);
@@ -177,7 +190,7 @@ struct hb_serialize_context_t
     if (unlikely (packed.in_error ()))
       return 0;
 
-    objidx_t objidx = packed.length - 1;
+    objidx = packed.length - 1;
 
     packed_map.set (key, objidx);
 
@@ -305,7 +318,6 @@ struct hb_serialize_context_t
   private:
 
   /* Stack of currently under construction objects. */
-  /* Note.  We store the "end - tail" distance in the length member of these. */
   hb_vector_t<object_t> current;
 
   /* Stack of packed objects.  Object 0 is always nil object. */
