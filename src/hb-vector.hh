@@ -87,6 +87,9 @@ struct hb_vector_t
     return arrayZ()[i];
   }
 
+  Type& tail () { return (*this)[length - 1]; }
+  const Type& tail () const { return (*this)[length - 1]; }
+
   explicit operator bool () const { return length; }
 
   /* Sink interface. */
@@ -188,10 +191,10 @@ struct hb_vector_t
     return true;
   }
 
-  void pop ()
+  Type pop ()
   {
-    if (!length) return;
-    length--;
+    if (!length) return Null(Type);
+    return arrayZ()[--length];
   }
 
   void remove (unsigned int i)

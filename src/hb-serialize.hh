@@ -39,6 +39,30 @@
 
 struct hb_serialize_context_t
 {
+  typedef unsigned objidx_t;
+
+  struct object_t
+  {
+    void fini () { links.fini (); }
+
+    struct link_t
+    {
+      bool wide: 1;
+      unsigned offset : 31;
+      objidx_t objidx;
+    };
+
+    hb_bytes_t bytes;
+    hb_vector_t<link_t> links;
+  };
+
+  struct snapshot_t
+  {
+    char *head, *tail;
+  };
+  snapshot_t snapshot () { snapshot_t s = {head, tail} ; return s; }
+
+
   hb_serialize_context_t (void *start_, unsigned int size)
   {
     this->start = (char *) start_;
@@ -56,7 +80,8 @@ struct hb_serialize_context_t
     this->tail = this->end;
     this->debug_depth = 0;
 
-    this->packed.resize (1);
+    this->packed.resize (0);
+    this->packed.push ()->bytes.arrayZ = this->end;
     this->current.resize (0);
   }
 
@@ -81,18 +106,53 @@ struct hb_serialize_context_t
 		     this->start, this->end,
 		     (unsigned long) (this->end - this->start));
 
-    return start_embed<Type> ();
+    assert (!current.length);
+    return push<Type> ();
   }
-  void end_serialize ()
+  objidx_t end_serialize ()
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
-		     "end [%p..%p] serialized %d bytes; %s",
+		     "end [%p..%p] serialized %u bytes; %s",
 		     this->start, this->end,
-		     (int) (this->head - this->start),
+		     (unsigned) (this->head - this->start),
 		     this->successful ? "successful" : "UNSUCCESSFUL");
+    assert (current.length == 1);
+    return pop_pack ();
   }
 
-  unsigned int length () const { return this->head - this->start; }
+  template <typename Type>
+  Type *push ()
+  {
+    current.push (snapshot ());
+    return start_embed<Type> ();
+  }
+  void pop_discard ()
+  {
+    revert (current.pop ());
+  }
+  objidx_t pop_pack ()
+  {
+    return 0;
+  }
+
+  void revert (snapshot_t snap)
+  {
+    assert (snap.head <= head);
+    assert (tail <= snap.tail);
+    head = snap.head;
+    tail = snap.tail;
+    discard_stale_objects ();
+  }
+
+  void discard_stale_objects ()
+  {
+    while (packed.length > 1 &&
+	   packed.tail ().bytes.arrayZ < tail)
+      packed.pop ();
+    assert (packed.tail ().bytes.arrayZ == tail);
+  }
+
+  unsigned int length () const { return this->head - current.tail ().head; }
 
   void align (unsigned int alignment)
   {
@@ -199,28 +259,9 @@ struct hb_serialize_context_t
   private:
 
   /* Stack of packed objects.  Object 0 is always nil object. */
-  struct object_t
-  {
-    void fini () { links.fini (); }
-
-    struct link_t
-    {
-      bool wide: 1;
-      unsigned offset : 31;
-      unsigned objidx;
-    };
-
-    hb_bytes_t bytes;
-    hb_vector_t<link_t> links;
-  };
   hb_vector_t<object_t> packed;
 
   /* Stack of currently under construction object locations. */
-  struct snapshot_t
-  {
-    char *head, *tail;
-  };
-  snapshot_t snapshot () { snapshot_t s = {head, tail} ; return s; }
   hb_vector_t<snapshot_t> current;
 };
 
