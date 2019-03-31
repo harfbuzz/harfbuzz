@@ -55,6 +55,9 @@ struct hb_serialize_context_t
     this->head = this->start;
     this->tail = this->end;
     this->debug_depth = 0;
+
+    this->packed.resize (1);
+    this->current.resize (0);
   }
 
   bool propagate_error (bool e)
@@ -192,11 +195,38 @@ struct hb_serialize_context_t
 			   nullptr, nullptr);
   }
 
-  public:
+  public: /* TODO Make private. */
   char *start, *head, *tail, *end;
   unsigned int debug_depth;
   bool successful;
   bool ran_out_of_room;
+
+  private:
+
+  /* Stack of packed objects.  Object 0 is always nil object. */
+  struct object_t
+  {
+    void fini () { links.fini (); }
+
+    struct link_t
+    {
+      bool wide: 1;
+      unsigned offset : 31;
+      unsigned objidx;
+    };
+
+    hb_bytes_t bytes;
+    hb_vector_t<link_t> links;
+  };
+  hb_vector_t<object_t> packed;
+
+  /* Stack of currently under construction object locations. */
+  struct snapshot_t
+  {
+    char *head, *tail;
+  };
+  snapshot_t snapshot () { snapshot_t s = {head, tail} ; return s; }
+  hb_vector_t<snapshot_t> current;
 };
 
 
