@@ -143,9 +143,13 @@ struct hb_serialize_context_t
     assert (current.length == 1);
 
     /* Only "pack" if there exist other objects... Otherwise, don't bother.
-     * Saves a copy. */
-    if (packed.length > 1)
-      pop_pack ();
+     * Saves a move. */
+    if (packed.length == 1)
+      return;
+
+    pop_pack ();
+
+    link ();
   }
 
   template <typename Type>
@@ -212,6 +216,11 @@ struct hb_serialize_context_t
 	   packed.tail ().head < tail)
       packed.pop ();
     assert (packed.tail ().head == tail);
+  }
+
+  void link ()
+  {
+    // XXX
   }
 
   unsigned int length () const { return this->head - current.tail ().head; }
