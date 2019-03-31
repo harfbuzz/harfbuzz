@@ -45,7 +45,7 @@ static const struct
 
   template <typename T>
   uint32_t operator () (const T *v) const
-  { return hb_hash (v); }
+  { return operator() (v); }
 
   template <typename T,
 	    hb_enable_if (hb_is_integer (T))>

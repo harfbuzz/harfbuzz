@@ -122,6 +122,7 @@ struct hb_vector_t
   const Type& tail () const { return (*this)[length - 1]; }
 
   explicit operator bool () const { return length; }
+  unsigned get_size () const { return length * item_size; }
 
   /* Sink interface. */
   template <typename T>

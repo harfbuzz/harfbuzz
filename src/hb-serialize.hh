@@ -51,6 +51,14 @@ struct hb_serialize_context_t
   {
     void fini () { links.fini (); }
 
+    bool operator == (const object_t &o) const
+    {
+      return (tail - head == o.tail - o.head)
+	  && (links.length != o.links.length)
+	  && 0 == memcmp (head, o.head, tail - head)
+	  && 0 == memcmp (&links, &o.links, links.get_size ());
+    }
+
     struct link_t
     {
       bool wide: 1;
@@ -155,13 +163,17 @@ struct hb_serialize_context_t
     obj.head = tail;
     obj.tail = tail + len;
 
-    packed.push (hb_move (obj));
+    object_t *key = packed.push (hb_move (obj));
 
     /* TODO Handle error. */
     if (unlikely (packed.in_error ()))
       return 0;
 
-    return packed.length - 1;
+    objidx_t objidx = packed.length - 1;
+
+    packed_map.set (key, objidx);
+
+    return objidx;
   }
 
   void revert (range_t snap)
