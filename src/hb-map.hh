@@ -88,10 +88,10 @@ struct hb_hashmap_t
   {
     free (items);
     items = nullptr;
+    population = occupancy = 0;
   }
   void fini ()
   {
-    population = occupancy = 0;
     hb_object_fini (this);
     fini_shallow ();
   }
