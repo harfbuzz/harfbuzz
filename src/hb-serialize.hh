@@ -66,15 +66,10 @@ struct hb_serialize_context_t
   { return this->successful = this->successful && !obj.in_error (); }
   template <typename T> bool propagate_error (const T *obj)
   { return this->successful = this->successful && !obj->in_error (); }
-  template <typename T1, typename T2> bool propagate_error (T1 &o1, T2 &o2)
-  { return propagate_error (o1) && propagate_error (o2); }
-  template <typename T1, typename T2> bool propagate_error (T1 *o1, T2 *o2)
+  template <typename T1, typename T2> bool propagate_error (T1 &&o1, T2 &&o2)
   { return propagate_error (o1) && propagate_error (o2); }
   template <typename T1, typename T2, typename T3>
-  bool propagate_error (T1 &o1, T2 &o2, T3 &o3)
-  { return propagate_error (o1) && propagate_error (o2, o3); }
-  template <typename T1, typename T2, typename T3>
-  bool propagate_error (T1 *o1, T2 *o2, T3 *o3)
+  bool propagate_error (T1 &&o1, T2 &&o2, T3 &&o3)
   { return propagate_error (o1) && propagate_error (o2, o3); }
 
   /* To be called around main operation. */
