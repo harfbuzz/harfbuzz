@@ -53,7 +53,8 @@ struct hb_serialize_context_t
       objidx_t objidx;
     };
 
-    hb_bytes_t bytes;
+    char *head;
+    unsigned length;
     hb_vector_t<link_t> links;
   };
 
@@ -83,7 +84,7 @@ struct hb_serialize_context_t
 
     this->current.resize (0);
     this->packed.resize (0);
-    this->packed.push ()->bytes.arrayZ = this->end;
+    this->packed.push ()->head = this->end;
     this->packed_map.reset ();
   }
 
@@ -162,9 +163,9 @@ struct hb_serialize_context_t
   void discard_stale_objects ()
   {
     while (packed.length > 1 &&
-	   packed.tail ().bytes.arrayZ < tail)
+	   packed.tail ().head < tail)
       packed.pop ();
-    assert (packed.tail ().bytes.arrayZ == tail);
+    assert (packed.tail ().head == tail);
   }
 
   unsigned int length () const { return this->head - current.tail ().head; }
