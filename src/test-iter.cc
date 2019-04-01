@@ -156,8 +156,32 @@ main (int argc, char **argv)
 
   + hb_iter (src)
   | hb_map ([&] (int i) -> int { return 1; })
-  | hb_reduce ([&] (int acc, int cur) -> int { return acc + cur; }, 2)
+  | hb_reduce ([&] (int acc, int value) -> int { return acc; }, 2)
   ;
+
+  unsigned int temp1 = 10;
+  unsigned int temp2 = 0;
+  hb_map_t *result =
+  + hb_iter (src)
+  | hb_map ([&] (int i) -> hb_set_t *
+	    {
+	      hb_set_t *set = hb_set_create ();
+	      for (unsigned int i = 0; i < temp1; ++i)
+	        hb_set_add (set, i);
+	      temp1++;
+	      return set;
+	    })
+  | hb_reduce ([&] (hb_map_t *acc, hb_set_t *value) -> hb_map_t *
+	       {
+		 hb_map_set (acc, temp2++, hb_set_get_population (value));
+		 // This is not a memory managed language, take care!
+		 hb_set_destroy (value);
+		 return acc;
+	       }, hb_map_create ())
+  ;
+  // The result should be something like 0->10, 1->11, ..., 9->19
+  assert (hb_map_get (result, 9) == 19);
+  hb_map_destroy (result);
 
   + hb_iter (src)
   | hb_drain
