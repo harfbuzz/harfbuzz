@@ -495,7 +495,7 @@ struct CmapSubtableLongSegmented
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!groups.serialize (c, group_data.as_array ()))) return_trace (false);
-    return true;
+    return_trace (true);
   }
 
   protected:
@@ -520,13 +520,14 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   bool serialize (hb_serialize_context_t *c,
 		  const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
   {
-    if (unlikely (!c->extend_min (*this))) return false;
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     this->format = 12;
     this->reserved = 0;
     this->length = get_sub_table_size (groups);
 
-    return CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups);
+    return_trace (CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups));
   }
 
   static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
