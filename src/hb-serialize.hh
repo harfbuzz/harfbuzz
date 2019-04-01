@@ -66,7 +66,7 @@ struct hb_serialize_context_t
 
     struct link_t
     {
-      bool wide: 1;
+      bool is_wide: 1;
       unsigned position : 31;
       objidx_t objidx;
     };
@@ -196,6 +196,7 @@ struct hb_serialize_context_t
 
     objidx = packed.length - 1;
 
+    if (0) // XXX
     packed_map.set (key, objidx);
 
     return objidx;
@@ -219,8 +220,27 @@ struct hb_serialize_context_t
   }
 
   template <typename T>
-  void add_link (T &ofs, objidx_t objidx, const void *base)
+  void add_link (T &ofs, objidx_t objidx, const void *base = nullptr)
   {
+    static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
+
+    if (unlikely (!objidx))
+      return;
+
+    unsigned i = current.length - 1;
+    if (!base)
+      base = current[i].head;
+    else
+    {
+      while (i && base < current[i].head)
+        i--;
+      assert (base == current[i].head);
+    }
+
+    auto& link = *current[i].links.push ();
+    link.is_wide = sizeof (T) == 4;
+    link.position = (const char *) &ofs - (const char *) base;
+    link.objidx = objidx;
   }
 
   void link ()
@@ -237,7 +257,7 @@ struct hb_serialize_context_t
 	const object_t &child = packed[link.objidx];
 	unsigned offset = child.head - parent.head;
 
-	if (link.wide)
+	if (link.is_wide)
 	{
 	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + offset));
 	  off = offset;
