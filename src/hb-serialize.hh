@@ -67,7 +67,7 @@ struct hb_serialize_context_t
     struct link_t
     {
       bool wide: 1;
-      unsigned offset : 31;
+      unsigned position : 31;
       objidx_t objidx;
     };
 
@@ -220,7 +220,32 @@ struct hb_serialize_context_t
 
   void link ()
   {
-    // XXX
+    assert (!current.length);
+
+    for (auto obj_it = packed.iter (); obj_it; ++obj_it)
+    {
+      const object_t &parent = *obj_it;
+
+      for (auto link_it = parent.links.iter (); link_it; ++link_it)
+      {
+        const object_t::link_t &link = *link_it;
+	const object_t &child = packed[link.objidx];
+	unsigned offset = child.head - parent.head;
+
+	if (link.wide)
+	{
+	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + offset));
+	  off = offset;
+	  propagate_error (off == offset);
+	}
+	else
+	{
+	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + offset));
+	  off = offset;
+	  propagate_error (off == offset);
+	}
+      }
+    }
   }
 
   unsigned int length () const { return this->head - current.tail ().head; }
