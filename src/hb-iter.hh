@@ -77,7 +77,9 @@ struct hb_iter_t
 	    hb_enable_if (hb_is_reference (T))>
   hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
+  item_t operator * () { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
+  item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
   iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
   iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
   iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
@@ -89,6 +91,8 @@ struct hb_iter_t
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
   template <typename T>
   iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
+  template <typename T>
+  iter_t& operator >> (T &v) const { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
   iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
 
@@ -587,9 +591,9 @@ hb_fill (C& c, const V &v)
 
 template <typename S, typename D>
 inline void
-hb_copy (D&& id, S&& is)
+hb_copy (S&& is, D&& id)
 {
-  hb_iter (id) | hb_sink (is);
+  hb_iter (is) | hb_sink (id);
 }
 
 

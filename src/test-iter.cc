@@ -120,8 +120,8 @@ main (int argc, char **argv)
   hb_iter (src, 2);
 
   hb_fill (t, 42);
-  hb_copy (t, s);
- // hb_copy (t, a.iter ());
+  hb_copy (s, t);
+  hb_copy (a.iter (), t);
 
   test_iterable (v);
   hb_set_t st;
