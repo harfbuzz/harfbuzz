@@ -585,14 +585,11 @@ hb_fill (C& c, const V &v)
     *i = v;
 }
 
-template <typename S, typename D,
-	  hb_enable_if (hb_is_iterator (S) && hb_is_iterator (D))>
-inline bool
-hb_copy (D id, S is)
+template <typename S, typename D>
+inline void
+hb_copy (D&& id, S&& is)
 {
-  for (; id && is; ++id, ++is)
-    *id = *is;
-  return !is;
+  hb_iter (id) | hb_sink (is);
 }
 
 
