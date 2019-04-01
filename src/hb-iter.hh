@@ -348,31 +348,33 @@ static const struct
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 } hb_filter HB_UNUSED;
 
-template <typename Redu, typename TValue>
+template <typename Redu, typename InitT>
 struct hb_reduce_t
 {
-  hb_reduce_t (Redu r, TValue init_value) : r (r), init_value (init_value) {}
+  hb_reduce_t (Redu r, InitT init_value) : r (r), init_value (init_value) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
-  TValue
+	    hb_enable_if (hb_is_iterator (Iter)),
+	    typename AccuT = decltype (hb_declval (Redu) (hb_declval (InitT), hb_declval (typename Iter::item_t)))>
+  AccuT
   operator () (Iter it) const
   {
-    TValue value = init_value;
+    AccuT value = init_value;
     for (; it; ++it)
-      value = r (*it, value);
+      value = r (value, *it);
     return value;
   }
 
   private:
   Redu r;
-  TValue init_value;
+  InitT init_value;
 };
 static const struct
 {
-  template <typename Redu, typename TValue> hb_reduce_t<Redu, TValue>
-  operator () (Redu&& r, TValue init_value) const
-  { return hb_reduce_t<Redu, TValue> (r, init_value); }
+  template <typename Redu, typename InitT>
+  hb_reduce_t<Redu, InitT>
+  operator () (Redu&& r, InitT init_value) const
+  { return hb_reduce_t<Redu, InitT> (r, init_value); }
 } hb_reduce HB_UNUSED;
 
 
