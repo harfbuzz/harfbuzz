@@ -152,7 +152,7 @@ struct hb_serialize_context_t
     link ();
   }
 
-  template <typename Type>
+  template <typename Type = void>
   Type *push ()
   {
     object_t obj;
@@ -216,6 +216,11 @@ struct hb_serialize_context_t
 	   packed.tail ().head < tail)
       packed.pop ();
     assert (packed.tail ().head == tail);
+  }
+
+  template <typename T>
+  void add_link (T &ofs, objidx_t objidx, const void *base)
+  {
   }
 
   void link ()
