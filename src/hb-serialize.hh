@@ -227,6 +227,7 @@ struct hb_serialize_context_t
     if (unlikely (!objidx))
       return;
 
+    assert (current.length);
     unsigned i = current.length - 1;
     if (!base)
       base = current[i].head;
