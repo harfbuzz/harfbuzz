@@ -646,7 +646,7 @@ struct gvar
       for (unsigned int c = 0; c < end_points.length; c++)
       {
 	unsigned int end_point = end_points[c];
-	for (unsigned int i = start_point; i < end_point; i++)
+	for (unsigned int i = start_point; i <= end_point; i++)
 	{
 	  if (deltas[i].flag) continue;
 	  /* search in both directions within the contour for a pair of referenced points */
