@@ -596,6 +596,12 @@ struct gvar
 					     &iterator))
 	return false;
 
+      /* Save original points for inferred delta calculation */
+      contour_point_vector_t orig_points;
+      orig_points.resize (points.length);
+      for (unsigned int i = 0; i < orig_points.length; i++)
+	orig_points[i] = points[i];
+
       contour_point_vector_t	deltas;	/* flag is used to indicate referenced point */
       deltas.resize (points.length);
 
@@ -636,11 +642,6 @@ struct gvar
 	}
 
 	/* infer deltas for unreferenced points */
-	contour_point_vector_t orig_points;
-	orig_points.resize (points.length);
-	for (unsigned int i = 0; i < orig_points.length; i++)
-	  orig_points[i] = points[i];
-
 	unsigned int start_point = 0;
 	for (unsigned int c = 0; c < end_points.length; c++)
 	{
