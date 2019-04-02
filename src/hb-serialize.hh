@@ -224,7 +224,7 @@ struct hb_serialize_context_t
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
-    if (unlikely (!objidx))
+    if (!objidx)
       return;
 
     assert (current.length);
