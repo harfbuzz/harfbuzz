@@ -95,6 +95,28 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
+  bool serialize (hb_serialize_context_t *c, const NameRecord& origin_namerecord, unsigned int *new_offset)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->allocate_size<NameRecord> (NameRecord::static_size)))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for NameRecord: %d.",
+		 NameRecord::static_size);
+      return_trace (false);
+    }
+
+    this->platformID.set (origin_namerecord.platformID);
+    this->encodingID.set (origin_namerecord.encodingID);
+    this->languageID.set (origin_namerecord.languageID);
+    this->nameID.set (origin_namerecord.nameID);
+    this->length.set (origin_namerecord.length);
+    this->offset.set (*new_offset);
+    *new_offset += origin_namerecord.length;
+    
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -158,59 +180,124 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
-  size_t get_subsetted_size(const name *source_name, hb_subset_plan_t *plan, hb_set_t *name_record_ids_to_retain) const
+  size_t get_subsetted_size (const name *source_name,
+                             const hb_subset_plan_t *plan,
+                             hb_vector_t<unsigned int>& name_record_idx_to_retain) const
   {
     size_t result = min_size;
-    result += count * NameRecord::static_size;
 
     hb_face_t *face = plan->source;
     accelerator_t acc;
     acc.init (face);
 
-    for(unsigned int i = 0; i<count; i++)
+    for(unsigned int i = 0; i < count; i++)
     {
-      result += acc.get_name(i).get_size();
-      if(format == 0 && (unsigned int)nameRecordZ[i].nameID <=25)
-      {
-        name_record_ids_to_retain->add(i);
-      }
+      if (format == 0 && (unsigned int) nameRecordZ[i].nameID > 25)
+        continue;
+      result += acc.get_name (i).get_size ();
+      name_record_idx_to_retain.push (i);
     }
 
-    acc.fini();
+    acc.fini ();
+
+    result += name_record_idx_to_retain.length * NameRecord::static_size;
 
     return result;
   }
 
-  void serialize(void *dest, const void *source, size_t dest_size) const
+  bool serialize (hb_serialize_context_t *c,
+                  const name *source_name,
+                  const hb_subset_plan_t *plan,
+                  const hb_vector_t<unsigned int>& name_record_idx_to_retain)
   {
-    memcpy(dest, source, dest_size);
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
+
+    this->format.set (source_name->format);
+    this->count.set (name_record_idx_to_retain.length);
+    this->stringOffset.set (min_size + name_record_idx_to_retain.length * NameRecord::static_size);
+
+    //write new NameRecord
+    unsigned int new_offset = 0;
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      if (unlikely (idx >= source_name->count))
+      {
+        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
+        return_trace (false);
+      }
+
+      const NameRecord &namerec = source_name->nameRecordZ[idx];
+
+      if (!c->start_embed<NameRecord> ()->serialize (c, namerec, &new_offset))
+	return_trace (false);
+    }
+
+    hb_face_t *face = plan->source;
+    accelerator_t acc;
+    acc.init (face);
+
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      unsigned int size = acc.get_name (idx).get_size ();
+      char *new_pos = c->allocate_size<char> (size);
+
+      if (unlikely (new_pos == nullptr))
+      {
+        acc.fini ();
+        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %d.",
+                  size);
+        return_trace (false);
+      }
+      
+      unsigned int origin_offset = source_name->stringOffset + source_name->nameRecordZ[idx].offset;
+      
+      memcpy (new_pos, source_name + origin_offset, size);
+    }
+
+    acc.fini ();
+
+    return_trace (true);
   }
 
-  bool subset(hb_subset_plan_t *plan) const
+  bool subset (hb_subset_plan_t *plan) const
   {
-    hb_set_t *name_record_ids_to_retain = hb_set_create();
-    size_t dest_size = get_subsetted_size(this, plan, name_record_ids_to_retain);
+    hb_vector_t<unsigned int> name_record_idx_to_retain;
+
+    size_t dest_size = get_subsetted_size (this, plan, name_record_idx_to_retain);
     name *dest = (name *) malloc (dest_size);
     if(unlikely (!dest))
     {
-      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for name subset output.",
+      DEBUG_MSG (SUBSET, nullptr, "Unable to alloc %lu for name subset output.",
                 (unsigned long) dest_size);
       return false;
     }
 
-    serialize(dest, this, dest_size);
-    hb_set_destroy(name_record_ids_to_retain);
+    hb_serialize_context_t c (dest, dest_size);
+    name *name_prime = c.start_serialize<name> ();
+    if (!name_prime || !name_prime->serialize (&c, this, plan, name_record_idx_to_retain))
+    {
+      free (dest);
+      DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
+      c.end_serialize ();
+      return false;
+    }
+    c.end_serialize ();
 
-    hb_blob_t *name_prime_blob = hb_blob_create((const char *) dest,
-                                                dest_size,
-                                                HB_MEMORY_MODE_READONLY,
-                                                dest,
-                                                free);
+    hb_blob_t *name_prime_blob = hb_blob_create ((const char *) dest,
+                                                 dest_size,
+                                                 HB_MEMORY_MODE_READONLY,
+                                                 dest,
+                                                 free);
     bool result = plan->add_table (HB_OT_TAG_name, name_prime_blob);
     hb_blob_destroy (name_prime_blob);
 
     return result;
   }
+
   bool sanitize_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
