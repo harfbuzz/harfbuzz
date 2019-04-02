@@ -314,10 +314,10 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
  * hb_ot_layout_get_attach_points:
  * @face: The #hb_face_t to work on
  * @glyph: The #hb_codepoint_t code point to query
- * @start_offset: The offset into the attachment-point array to start returning
- * @point_count: (inout): The number of attachment points to return as input;
- *               The number of attachment points returned in the array as output
- * @point_array: (out): The array of attachment points found for the query
+ * @start_offset: offset of the first attachment point to retrieve
+ * @point_count: (inout) (allow-none): Input = the maximum number of attachment points to return;
+ *               Output = the actual number of attachment points returned (may be zero)
+ * @point_array: (out) (array length=point_count): The array of attachment points found for the query
  *
  * Fetches a list of all attachment points for the specified glyph in the GDEF
  * table of the face. The list returned will begin at the offset provided. 
@@ -344,10 +344,10 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
  * @font: The #hb_font_t to work on
  * @direction: The #hb_direction_t text direction to use
  * @glyph: The #hb_codepoint_t code point to query
- * @start_offset: The offset into the caret array to start returning
- * @caret_count: (inout): The number of caret positions to return as input;
- *               The number of caret positions returned in the array as output
- * @caret_array: (out): The array of caret positions found for the query
+ * @start_offset: offset of the first caret position to retrieve
+ * @caret_count: (inout) (allow-none): Input = the maximum number of caret positions to return;
+ *               Output = the actual number of caret positions returned (may be zero)
+ * @caret_array: (out) (array length=caret_count): The array of caret positions found for the query
  *
  * Fetches a list of the caret positions defined for a ligature glyph in the GDEF
  * table of the font. The list returned will begin at the offset provided.
@@ -425,10 +425,10 @@ get_gsubgpos_table (hb_face_t *face,
  * hb_ot_layout_table_get_script_tags:
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
- * @start_offset: The offset into the script-tag array to start returning
- * @script_count: (inout): The number of script tags to return as input;
- *                The number of script tags returned in the array as output
- * @script_tags: (out): The array of #hb_tag_t script tags found for the query
+ * @start_offset: offset of the first script tag to retrieve
+ * @script_count: (inout) (allow-none): Input = the maximum number of script tags to return;
+ *                Output = the actual number of script tags returned (may be zero)
+ * @script_tags: (out) (array length=script_count): The array of #hb_tag_t script tags found for the query
  *
  * Fetches a list of all scripts enumerated in the specified face's GSUB table
  * or GPOS table. The list returned will begin at the offset provided.
@@ -579,10 +579,10 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
  * hb_ot_layout_table_get_feature_tags:
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
- * @start_offset: The offset into the feature-tag array to start returning
- * @feature_count: (inout): The number of feature tags to return as input;
- *                 The number of feature tags returned in the array as output
- * @feature_tags: (out): Array of feature tags found in the table
+ * @start_offset: offset of the first feature tag to retrieve
+ * @feature_count: (inout) (allow-none): Input = the maximum number of feature tags to return;
+ *                 Output = the actual number of feature tags returned (may be zero)
+ * @feature_tags: (out) (array length=feature_count): Array of feature tags found in the table
  *
  * Fetches a list of all feature tags in the given face's GSUB or GPOS table.
  *
@@ -640,10 +640,10 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
- * @start_offset: The offset into the language-tag array to start returning
- * @language_count: (inout): The number of language tags to return as input;
- *                  The number of language tags returned in the array as output
- * @language_tags: (out): Array of language tags found in the table
+ * @start_offset: offset of the first language tag to retrieve
+ * @language_count: (inout) (allow-none): Input = the maximum number of language tags to return;
+ *                  Output = the actual number of language tags returned (may be zero)
+ * @language_tags: (out) (array length=language_count): Array of language tags found in the table
  *
  * Fetches a list of language tags in the given face's GSUB or GPOS table, underneath
  * the specified script index. The list returned will begin at the offset provided.
@@ -808,10 +808,10 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
- * @start_offset: The offset into the feature-tag array to start returning
- * @feature_count: (inout): The number of feature tags to return as input;
- *                 The number of feature tags returned in the array as output
- * @feature_indexes: (out): The array of feature indexes found for the query
+ * @start_offset: offset of the first feature tag to retrieve
+ * @feature_count: (inout) (allow-none): Input = the maximum number of feature tags to return;
+ *                 Output: the actual number of feature tags returned (may be zero)
+ * @feature_indexes: (out) (array length=feature_count): The array of feature indexes found for the query
  *
  * Fetches a list of all features in the specified face's GSUB table
  * or GPOS table, underneath the specified script and language. The list
@@ -839,10 +839,10 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
- * @start_offset: The offset into the feature-tag array to start returning
- * @feature_count: (inout): The number of feature tags to return as input;
- *                 The number of feature tags returned in the array as output
- * @feature_tags: (out): The array of #hb_tag_t feature tags found for the query
+ * @start_offset: offset of the first feature tag to retrieve
+ * @feature_count: (inout) (allow-none): Input = the maximum number of feature tags to return;
+ *                 Output = the actual number of feature tags returned (may be zero)
+ * @feature_tags: (out) (array length=feature_count): The array of #hb_tag_t feature tags found for the query
  *
  * Fetches a list of all features in the specified face's GSUB table
  * or GPOS table, underneath the specified script and language. The list
@@ -921,10 +921,10 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @feature_index: The index of the requested feature
- * @start_offset: The offset into the lookup array to start returning
- * @lookup_count: (inout): The number of lookups to return as input;
- *                The number of lookups returned in the array as output
- * @lookup_indexes: (out): The array of lookup indexes found for the query
+ * @start_offset: offset of the first lookup to retrieve
+ * @lookup_count: (inout) (allow-none): Input = the maximum number of lookups to return;
+ *                Output = the actual number of lookups returned (may be zero)
+ * @lookup_indexes: (out) (array length=lookup_count): The array of lookup indexes found for the query
  *
  * Fetches a list of all lookups enumerated for the specified feature, in
  * the specified face's GSUB table or GPOS table. The list returned will
@@ -1243,7 +1243,7 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @coords: The variation coordinates to query
  * @num_coords: The number of variation coorinates
- * variations_index: (out): The array of feature variations found for the query
+ * @variations_index: (out): The array of feature variations found for the query
  *
  * Fetches a list of feature variations in the specified face's GSUB table
  * or GPOS table, at the specified variation coordinates.
@@ -1268,10 +1268,10 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @feature_index: The index of the feature to query
  * @variations_index: The index of the feature variation to query
- * @start_offset: The offset into the lookup array to start returning
- * @lookup_count: (inout): The number of lookups to return as input;
- *                The number of lookups returned in the array as output
- * @lookup_indexes: (out): The array of lookups found for the query
+ * @start_offset: offset of the first lookup to retrieve
+ * @lookup_count: (inout) (allow-none): Input = the maximum number of lookups to return;
+ *                Output = the actual number of lookups returned (may be zero)
+ * @lookup_indexes: (out) (array length=lookup_count): The array of lookups found for the query
  *
  * Fetches a list of all lookups enumerated for the specified feature, in
  * the specified face's GSUB table or GPOS table, enabled at the specified
@@ -1353,6 +1353,8 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
  * @font: #hb_font_t to use
  * @buffer: #hb_buffer_t buffer to work upon
  *
+ * Called before substitution lookups are performed, to ensure that glyph
+ * class and other properties are set on the glyphs in the buffer.
  *
  **/
 void
@@ -1498,6 +1500,9 @@ hb_ot_layout_has_positioning (hb_face_t *face)
  * @font: #hb_font_t to use
  * @buffer: #hb_buffer_t buffer to work upon
  *
+ * Called before positioning lookups are performed, to ensure that glyph
+ * attachment types and glyph-attachment chains are set for the glyphs in the buffer.
+ *
  **/
 void
 hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
@@ -1511,6 +1516,8 @@ hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
  * @font: #hb_font_t to use
  * @buffer: #hb_buffer_t buffer to work upon
  *
+ * Called after positioning lookups are performed, to finish glyph advances.
+ *
  **/
 void
 hb_ot_layout_position_finish_advances (hb_font_t *font, hb_buffer_t *buffer)
@@ -1518,6 +1525,14 @@ hb_ot_layout_position_finish_advances (hb_font_t *font, hb_buffer_t *buffer)
   OT::GPOS::position_finish_advances (font, buffer);
 }
 
+/**
+ * hb_ot_layout_position_finish_offsets:
+ * @font: #hb_font_t to use
+ * @buffer: #hb_buffer_t buffer to work upon
+ *
+ * Called after positioning lookups are performed, to finish glyph offsets.
+ *
+ **/
 void
 hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 {
@@ -1531,8 +1546,8 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * @design_size: (out): The design size of the face
  * @subfamily_id: (out): The identifier of the face within the font subfamily
  * @subfamily_name_id: (out): The ‘name’ table name ID of the face within the font subfamily
- * @range_start: (out): The small end of the recommended size range for the face
- * @range_end: (out): The big end of the recommended size range for the face
+ * @range_start: (out): The minimum size of the recommended size range for the face
+ * @range_end: (out): The maximum size of the recommended size range for the face
  *
  * Fetches optical-size feature data (i.e., the `size` feature from GPOS). Note that
  * the subfamily_id and the subfamily name string (accessible via the subfamily_name_id)
@@ -1670,19 +1685,22 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
  * @face: #hb_face_t to work upon
  * @table_tag: table tag to query, "GSUB" or "GPOS".
  * @feature_index: index of feature to query.
- * @start_offset: In case the resulting char_count was equal to its input value, there
- *                is a chance there were more characters on the tag so this API can be
- *                called with an offset till resulting char_count gets to a number
- *                lower than input buffer (or consider using just a bigger buffer for
- *                one shot copying).
- * @char_count: (inout) (allow-none): The count of characters for which this feature
- *              provides glyph variants. (May be zero.)
- * @characters: (out caller-allocates) (array length=char_count): A buffer pointer. The Unicode codepoints
- *              of the characters for which this feature provides glyph variants.
+ * @start_offset: offset of the first character to retrieve
+ * @char_count: (inout) (allow-none): Input = the maximum number of characters to return;
+ *              Output = the actual number of characters returned (may be zero)
+ * @characters: (out caller-allocates) (array length=char_count): A buffer pointer.
+ *              The Unicode codepoints of the characters for which this feature provides
+ *               glyph variants.
  *
- * Fetches characters listed by designer under feature parameters for "Character
- * Variant" ("cvXX") features.
+ * Fetches a list of the characters defined as having a variant under the specified
+ * "Character Variant" ("cvXX") feature tag.
  *
+ * <note>Note: If the char_count output value is equal to its input value, then there
+ *       is a chance there were more characters defined under the feature tag than were
+ *       returned. This function can be called with incrementally larger start_offset
+ *       until the char_count output value is lower than its input value, or the size
+ *       of the characters array can be increased.</note>
+ * 
  * Return value: Number of total sample characters in the cvXX feature.
  *
  * Since: 2.0.0
