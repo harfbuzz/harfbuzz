@@ -260,13 +260,13 @@ struct hb_serialize_context_t
 
 	if (link.is_wide)
 	{
-	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + offset));
+	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + link.position));
 	  off = offset;
 	  propagate_error (off == offset);
 	}
 	else
 	{
-	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + offset));
+	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + link.position));
 	  off = offset;
 	  propagate_error (off == offset);
 	}
