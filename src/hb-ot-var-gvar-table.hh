@@ -614,7 +614,7 @@ struct gvar
 	if (iterator.current_tuple->has_private_points () &&
 	    !GlyphVarData::unpack_points (p, private_indices, checker))
 	  return false;
-	const hb_array_t<unsigned int> &indices = shared_indices.length? shared_indices: private_indices;
+	const hb_array_t<unsigned int> &indices = private_indices.length? private_indices: shared_indices;
 
       	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all? points.length: indices.length;
