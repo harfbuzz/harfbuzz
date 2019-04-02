@@ -174,12 +174,12 @@ main (int argc, char **argv)
   | hb_reduce ([&] (hb_map_t *acc, hb_set_t *value) -> hb_map_t *
 	       {
 		 hb_map_set (acc, temp2++, hb_set_get_population (value));
-		 // This is not a memory managed language, take care!
+		 /* This is not a memory managed language, take care! */
 		 hb_set_destroy (value);
 		 return acc;
 	       }, hb_map_create ())
   ;
-  // The result should be something like 0->10, 1->11, ..., 9->19
+  /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
   
   unsigned int temp3 = 0;
