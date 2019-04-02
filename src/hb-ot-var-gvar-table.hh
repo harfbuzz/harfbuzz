@@ -182,9 +182,9 @@ struct TupleVarHeader
   const Tuple &get_peak_tuple () const
   { return StructAfter<Tuple> (tupleIndex); }
   const Tuple &get_start_tuple (unsigned int axis_count) const
-  { return StructAfter<Tuple> (get_peak_tuple ()[has_peak ()? axis_count: 0]); }
+  { return *(const Tuple *)&get_peak_tuple ()[has_peak ()? axis_count: 0]; }
   const Tuple &get_end_tuple (unsigned int axis_count) const
-  { return StructAfter<Tuple> (get_peak_tuple ()[has_peak ()? (axis_count * 2): 0]); }
+  { return *(const Tuple *)&get_peak_tuple ()[has_peak ()? (axis_count * 2): axis_count]; }
 
   HBUINT16		varDataSize;
   TuppleIndex		tupleIndex;
