@@ -598,8 +598,6 @@ struct gvar
 
       contour_point_vector_t	deltas;	/* flag is used to indicate referenced point */
       deltas.resize (points.length);
-      for (unsigned int i = 0; i < deltas.length; i++)
-      	deltas[i].init ();
 
       do {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, coord_count, shared_tuples.as_array ());
@@ -627,6 +625,8 @@ struct gvar
 	if (!GlyphVarData::unpack_deltas (p, y_deltas, checker))
 	  return false;
 
+	for (unsigned int i = 0; i < deltas.length; i++)
+	  deltas[i].init ();
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
 	  unsigned int pt_index = apply_to_all? i: indices[i];
@@ -634,48 +634,48 @@ struct gvar
 	  deltas[pt_index].x += x_deltas[i] * scalar;
 	  deltas[pt_index].y += y_deltas[i] * scalar;
 	}
-      } while (iterator.move_to_next ());
 
-      /* infer deltas for unreferenced points */
-      contour_point_vector_t orig_points;
-      orig_points.resize (points.length);
-      for (unsigned int i = 0; i < orig_points.length; i++)
-      	orig_points[i] = points[i];
+	/* infer deltas for unreferenced points */
+	contour_point_vector_t orig_points;
+	orig_points.resize (points.length);
+	for (unsigned int i = 0; i < orig_points.length; i++)
+	  orig_points[i] = points[i];
 
-      unsigned int start_point = 0;
-      for (unsigned int c = 0; c < end_points.length; c++)
-      {
-	unsigned int end_point = end_points[c];
-	for (unsigned int i = start_point; i <= end_point; i++)
+	unsigned int start_point = 0;
+	for (unsigned int c = 0; c < end_points.length; c++)
 	{
-	  if (deltas[i].flag) continue;
-	  /* search in both directions within the contour for a pair of referenced points */
-	  unsigned int prev;
-	  for (prev = i;;)
+	  unsigned int end_point = end_points[c];
+	  for (unsigned int i = start_point; i <= end_point; i++)
 	  {
-	    if (prev-- <= start_point) prev = end_point;
-	    if (prev == i || deltas[prev].flag) break;
+	    if (deltas[i].flag) continue;
+	    /* search in both directions within the contour for a pair of referenced points */
+	    unsigned int prev;
+	    for (prev = i;;)
+	    {
+	      if (prev-- <= start_point) prev = end_point;
+	      if (prev == i || deltas[prev].flag) break;
+	    }
+	    if (prev == i) continue;	/* no (previous) referenced point was found */
+	    unsigned int next;
+	    for (next = i;;)
+	    {
+	      if (next++ >= end_point) next = start_point;
+	      if (next == i || deltas[next].flag) break;
+	    }
+	    assert (next != i);
+	    deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	    deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
 	  }
-	  if (prev == i) continue;	/* no (previous) referenced point was found */
-	  unsigned int next;
-	  for (next = i;;)
-	  {
-	    if (next++ >= end_point) next = start_point;
-	    if (next == i || deltas[next].flag) break;
-	  }
-	  assert (next != i);
-	  deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
-	  deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	  start_point = end_point + 1;
 	}
-	start_point = end_point + 1;
-      }
 
-      /* apply accumulated / inferred deltas to points */
-      for (unsigned int i = 0; i < points.length; i++)
-      {
-	points[i].x += deltas[i].x;
-	points[i].y += deltas[i].y;
-      }
+	/* apply specified / inferred deltas to points */
+	for (unsigned int i = 0; i < points.length; i++)
+	{
+	  points[i].x += deltas[i].x;
+	  points[i].y += deltas[i].y;
+	}
+      } while (iterator.move_to_next ());
 
       return true;
     }
