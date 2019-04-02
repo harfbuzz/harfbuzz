@@ -68,6 +68,7 @@ struct hb_serialize_context_t
     {
       bool is_wide: 1;
       unsigned position : 31;
+      int bias;
       objidx_t objidx;
     };
 
@@ -228,19 +229,18 @@ struct hb_serialize_context_t
       return;
 
     assert (current.length);
-    unsigned i = current.length - 1;
-    if (!base)
-      base = current[i].head;
-    else
-    {
-      while (i && base < current[i].head)
-        i--;
-      assert (base == current[i].head);
-    }
+    assert (current.tail ().head <= (const char *) &ofs);
 
-    auto& link = *current[i].links.push ();
+    if (!base)
+      base = current.tail ().head;
+    else
+      assert (current.tail ().head <= (const char *) base);
+
+    /* FUCK.  Check ofs lies within current object? */
+    auto& link = *current.tail ().links.push ();
     link.is_wide = sizeof (T) == 4;
     link.position = (const char *) &ofs - (const char *) base;
+    link.bias = (const char *) base - current.tail ().head;
     link.objidx = objidx;
   }
 
@@ -256,7 +256,7 @@ struct hb_serialize_context_t
       {
         const object_t::link_t &link = *link_it;
 	const object_t &child = packed[link.objidx];
-	unsigned offset = child.head - parent.head;
+	unsigned offset = (child.head - parent.head) - link.bias;
 
 	if (link.is_wide)
 	{
