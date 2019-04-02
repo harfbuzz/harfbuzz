@@ -185,7 +185,7 @@ main (int argc, char **argv)
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) -> int { return ++temp3; })
-  | hb_reduce([&] (float acc, int value) -> float { return acc + value + .05; }, 0)
+  | hb_reduce([&] (float acc, int value) -> float { return acc + value; }, 0)
   ;
   hb_map_destroy (result);
 
