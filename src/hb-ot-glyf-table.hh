@@ -445,14 +445,14 @@ struct glyf
     {
       const GlyphHeader &header = get_header (glyph);
       int h_delta = (int)header.xMin - hmtx_accel.get_side_bearing (glyph);
-      int v_delta = (int)header.yMax - vmtx_accel.get_side_bearing (glyph);
+      int v_orig  = (int)header.yMax + vmtx_accel.get_side_bearing (glyph);
       unsigned int h_adv = hmtx_accel.get_advance (glyph);
       unsigned int v_adv = vmtx_accel.get_advance (glyph);
 
       phantoms[PHANTOM_LEFT].x = h_delta;
       phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
-      phantoms[PHANTOM_TOP].y = v_delta;
-      phantoms[PHANTOM_BOTTOM].y = -v_adv + v_delta;
+      phantoms[PHANTOM_TOP].y = v_orig;
+      phantoms[PHANTOM_BOTTOM].y = -v_adv + v_orig;
     }
 
     /* for a simple glyph, return contour end points, flags, along with coordinate points
@@ -653,7 +653,7 @@ struct glyf
 	 * Shift points horizontally by the updated left side bearing
 	 */
 	contour_point_t delta;
-	delta.init (points[points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
+	delta.init (-points[points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
 	if (delta.x != 0.f) all_points.translate (delta);
       }
 
@@ -901,9 +901,11 @@ struct glyf
 
       const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
 
-      extents->x_bearing = MIN (glyph_header.xMin, glyph_header.xMax);
+      /* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
+      /* extents->x_bearing = MIN (glyph_header.xMin, glyph_header.xMax); */
+      extents->x_bearing = hmtx_accel.get_side_bearing (glyph);
       extents->y_bearing = MAX (glyph_header.yMin, glyph_header.yMax);
-      extents->width     = MAX (glyph_header.xMin, glyph_header.xMax) - extents->x_bearing;
+      extents->width     = MAX (glyph_header.xMin, glyph_header.xMax) - MIN (glyph_header.xMin, glyph_header.xMax);
       extents->height    = MIN (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
 
       return true;
