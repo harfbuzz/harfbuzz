@@ -98,6 +98,17 @@ static const struct
   operator () (const Pair& pair) const { return pair.second; }
 } hb_second HB_UNUSED;
 
+static const struct
+{
+  template <typename T, typename T2> T
+  operator () (const T& a, const T2& b) const { return a <= b ? a : b; }
+} hb_min HB_UNUSED;
+static const struct
+{
+  template <typename T, typename T2> T
+  operator () (const T& a, const T2& b) const { return a >= b ? a : b; }
+} hb_max HB_UNUSED;
+
 
 /*
  * Bithacks.
