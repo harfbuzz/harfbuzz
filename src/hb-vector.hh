@@ -100,11 +100,11 @@ struct hb_vector_t
     return *this;
   }
 
-  hb_bytes_t as_bytes () const { return hb_bytes_t ((const char *) arrayZ_,
-						    length * item_size); }
+  hb_bytes_t as_bytes () const
+  { return hb_bytes_t ((const char *) arrayZ(), length * item_size); }
 
-  bool operator == (const hb_vector_t &o) const { return as_bytes () == o.as_bytes (); }
-  uint32_t hash () const { return as_bytes ().hash (); }
+  bool operator == (const hb_vector_t &o) const { return as_array () == o.as_array (); }
+  uint32_t hash () const { return as_array ().hash (); }
 
   const Type * arrayZ () const { return arrayZ_; }
         Type * arrayZ ()       { return arrayZ_; }
