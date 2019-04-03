@@ -278,10 +278,11 @@ hb_sorted_array (T (&array_)[length_])
 template <typename T>
 uint32_t hb_array_t<T>::hash () const
 {
-  uint32_t h = 0;
-  for (unsigned i = 0; i < length; i++)
-    h ^= hb_hash (arrayZ[i]);
-  return h;
+  return
+  + hb_iter (this)
+  | hb_map (hb_hash)
+  | hb_reduce ([] (uint32_t a, uint32_t b) -> uint32_t { return a * 31 + b; }, 0)
+  ;
 }
 
 typedef hb_array_t<const char> hb_bytes_t;
