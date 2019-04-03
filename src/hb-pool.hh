@@ -39,6 +39,7 @@ struct hb_pool_t
   ~hb_pool_t ()
   {
     next = nullptr;
+
     + hb_iter (chunks)
     | hb_apply ([] (chunk_t *_) { ::free (_); })
     ;
@@ -49,7 +50,7 @@ struct hb_pool_t
     if (unlikely (!next))
     {
       if (unlikely (!chunks.alloc (chunks.length + 1))) return nullptr;
-      chunk_t *chunk = (chunk_t *) malloc (sizeof (chunk_t));
+      chunk_t *chunk = (chunk_t *) calloc (1, sizeof (chunk_t));
       if (unlikely (!chunk)) return nullptr;
       chunks.push (chunk);
       next = chunk->thread ();
@@ -58,7 +59,7 @@ struct hb_pool_t
     T* obj = next;
     next = * ((T**) next);
 
-    *obj = Null (T);
+    memset (obj, 0, sizeof (T));
 
     return obj;
   }
