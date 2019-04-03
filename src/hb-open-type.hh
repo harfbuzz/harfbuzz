@@ -281,19 +281,24 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename T>
-  void serialize_subset (hb_subset_context_t *c, const T &src, const void *base)
+  bool serialize_subset (hb_subset_context_t *c, const T &src, const void *base)
   {
     *this = 0;
-    if (&src == &Null (T))
-      return;
+    if (has_null && &src == &Null (T))
+      return false;
 
     c->serializer->push ();
-    if (src.subset (c))
+
+    bool ret = src.subset (c);
+
+    if (ret || !has_null)
       c->serializer->add_link (*this,
 			       c->serializer->pop_pack (),
 			       base);
     else
       c->serializer->pop_discard ();
+
+    return ret;
   }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
