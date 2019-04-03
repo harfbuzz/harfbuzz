@@ -54,9 +54,9 @@ struct hb_serialize_context_t
     bool operator == (const object_t &o) const
     {
       return (tail - head == o.tail - o.head)
-	  && (links.length != o.links.length)
-	  && 0 == memcmp (head, o.head, tail - head)
-	  && 0 == memcmp (&links, &o.links, links.get_size ());
+	  && (links.length == o.links.length)
+	  && 0 == hb_memcmp (head, o.head, tail - head)
+	  && links.as_bytes () == o.links.as_bytes ();
     }
     uint32_t hash () const
     {
@@ -197,7 +197,6 @@ struct hb_serialize_context_t
 
     objidx = packed.length - 1;
 
-    if (0) // XXX
     packed_map.set (key, objidx);
 
     return objidx;
@@ -217,7 +216,6 @@ struct hb_serialize_context_t
     while (packed.length > 1 &&
 	   packed.tail ().head < tail)
     {
-      if (0) // XXX
       packed_map.del (&packed.tail ());
       packed.pop ();
     }

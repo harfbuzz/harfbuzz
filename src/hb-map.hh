@@ -57,8 +57,10 @@ struct hb_hashmap_t
     K key;
     V value;
 
-    bool operator== (K o) { return hb_deref_pointer (key) == hb_deref_pointer (o); }
-    bool operator== (const item_t &o) { return *this == o.key; }
+    void clear () { key = kINVALID; value = vINVALID; }
+
+    bool operator == (K o) { return hb_deref_pointer (key) == hb_deref_pointer (o); }
+    bool operator == (const item_t &o) { return *this == o.key; }
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
   };
@@ -98,9 +100,7 @@ struct hb_hashmap_t
 
   void reset ()
   {
-    /* TODO Keep array? */
-    fini_shallow ();
-    init_shallow ();
+    clear ();
   }
 
   bool in_error () const { return !successful; }
@@ -117,7 +117,9 @@ struct hb_hashmap_t
       successful = false;
       return false;
     }
-    memset (new_items, 0xFF, (size_t) new_size * sizeof (item_t));
+    + hb_iter (new_items, new_size)
+    | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+    ;
 
     unsigned int old_size = mask + 1;
     item_t *old_items = items;
@@ -168,7 +170,7 @@ struct hb_hashmap_t
   {
     if (unlikely (!items)) return vINVALID;
     unsigned int i = bucket_for (key);
-    return items[i] == key ? items[i].value : vINVALID;
+    return !items[i].is_unused () && items[i] == key ? items[i].value : vINVALID;
   }
 
   void del (K key) { set (key, vINVALID); }
@@ -183,7 +185,11 @@ struct hb_hashmap_t
 
   void clear ()
   {
-    if (items) memset (items, 0xFF, ((size_t) mask + 1) * sizeof (item_t));
+    if (items)
+      + hb_iter (items, mask + 1)
+      | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+      ;
+
     population = occupancy = 0;
   }
 

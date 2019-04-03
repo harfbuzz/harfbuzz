@@ -79,6 +79,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   operator hb_array_t<const Type> () { return hb_array_t<const Type> (arrayZ, length); }
   template <typename T> operator T * () const { return arrayZ; }
 
+  bool operator == (const hb_array_t &o) const;
   uint32_t hash () const;
 
   /*
@@ -276,6 +277,15 @@ hb_sorted_array (T (&array_)[length_])
 { return hb_sorted_array_t<T> (array_); }
 
 template <typename T>
+bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
+{
+  return length == o.length &&
+  + hb_zip (*this, o)
+  | hb_map ([] (hb_pair_t<T&, T&> &&_) -> bool { return _.first == _.second; })
+  | hb_all
+  ;
+}
+template <typename T>
 uint32_t hb_array_t<T>::hash () const
 {
   return
@@ -288,7 +298,7 @@ uint32_t hb_array_t<T>::hash () const
 typedef hb_array_t<const char> hb_bytes_t;
 typedef hb_array_t<const unsigned char> hb_ubytes_t;
 
-/* TODO Specialize hashing for hb_bytes_t and hb_ubytes_t. */
+/* TODO Specialize opeator==/hash() for hb_bytes_t and hb_ubytes_t. */
 //template <>
 //uint32_t hb_array_t<const char>::hash () const { return 0; }
 

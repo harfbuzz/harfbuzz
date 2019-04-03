@@ -103,6 +103,7 @@ struct hb_vector_t
   hb_bytes_t as_bytes () const { return hb_bytes_t ((const char *) arrayZ_,
 						    length * item_size); }
 
+  bool operator == (const hb_vector_t &o) const { return as_bytes () == o.as_bytes (); }
   uint32_t hash () const { return as_bytes ().hash (); }
 
   const Type * arrayZ () const { return arrayZ_; }
