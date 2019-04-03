@@ -172,6 +172,9 @@ struct hb_serialize_context_t
     obj.tail = head;
     unsigned len = obj.tail - obj.head;
 
+    if (!len)
+      return 0;
+
     objidx_t objidx = packed_map.get (&obj);
     if (objidx)
     {
@@ -182,9 +185,6 @@ struct hb_serialize_context_t
     tail -= len;
     memmove (tail, obj.head, len);
     head = obj.head;
-
-    if (!len)
-      return 0;
 
     obj.head = tail;
     obj.tail = tail + len;
