@@ -64,8 +64,8 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
     for (unsigned int i = 0; i < length; i++)
     {
       contour_point_t &p = (*this)[i];
-      float x_ = p.x * matrix[0] + p.y * matrix[1];
-	   p.y = p.x * matrix[2] + p.y * matrix[3];
+      float x_ = p.x * matrix[0] + p.y * matrix[2];
+	   p.y = p.x * matrix[1] + p.y * matrix[3];
       p.x = x_;
     }
   }
