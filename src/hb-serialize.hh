@@ -197,6 +197,7 @@ struct hb_serialize_context_t
 
     objidx = packed.length - 1;
 
+    if (0) // XXX Ouch.  Our hashmap becomes invalid if packed resizes!
     packed_map.set (key, objidx);
 
     return objidx;
