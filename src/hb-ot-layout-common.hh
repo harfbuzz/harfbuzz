@@ -1218,8 +1218,8 @@ struct ClassDefFormat1
       return_trace (true);
     }
 
-    hb_codepoint_t glyph_min = hb_iter (glyphs) | hb_reduce (hb_min, 0xFFFFu);
-    hb_codepoint_t glyph_max = hb_iter (glyphs) | hb_reduce (hb_max, 0u);
+    hb_codepoint_t glyph_min = +glyphs | hb_reduce (hb_min, 0xFFFFu);
+    hb_codepoint_t glyph_max = +glyphs | hb_reduce (hb_max, 0u);
 
     startGlyph = glyph_min;
     classValue.len = glyph_max - glyph_min + 1;
