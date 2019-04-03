@@ -92,14 +92,17 @@ template <bool b> struct hb_bool_tt { enum { value = b }; };
 typedef hb_bool_tt<true> hb_true_t;
 typedef hb_bool_tt<false> hb_false_t;
 
-
 template<bool B, typename T = void>
 struct hb_enable_if {};
-
 template<typename T>
 struct hb_enable_if<true, T> { typedef T type; };
-
 #define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
+
+template <typename T, typename T2>
+struct hb_is_same : hb_false_t {};
+template <typename T>
+struct hb_is_same<T, T> : hb_true_t {};
+#define hb_is_same(T, T2) hb_is_same<T, T2>::value
 
 
 /*
