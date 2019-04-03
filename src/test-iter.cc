@@ -106,9 +106,6 @@ main (int argc, char **argv)
   int dst[20];
   hb_vector_t<int> v;
 
-  hb_iter (v);
-  hb_iter (&v);
-
   array_iter_t<const int> s (src); /* Implicit conversion from static array. */
   array_iter_t<const int> s2 (v); /* Implicit conversion from vector. */
   array_iter_t<int> t (dst);

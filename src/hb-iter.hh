@@ -137,11 +137,6 @@ static const struct
   operator () (T&& c) const
   { return c.iter (); }
 
-  template <typename T>
-  hb_iter_t (T)
-  operator () (T* c) const
-  { return c->iter (); }
-
   /* Specialization for C arrays. */
 
   template <typename Type> inline hb_array_t<Type>
