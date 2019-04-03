@@ -212,7 +212,7 @@ struct hb_is_iterable
   static hb_false_t test (...);
 
   public:
-  enum { value = hb_is_same (decltype (test<T> (0)), hb_true_t) };
+  enum { value = decltype (test<T> (0))::value };
 };
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
