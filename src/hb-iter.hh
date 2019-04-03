@@ -77,7 +77,9 @@ struct hb_iter_t
 	    hb_enable_if (hb_is_reference (T))>
   hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
+  item_t operator * () { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
+  item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
   iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
   iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
   iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
@@ -89,6 +91,8 @@ struct hb_iter_t
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
   template <typename T>
   iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
+  template <typename T>
+  iter_t& operator >> (T &v) const { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
   iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
 
@@ -344,6 +348,36 @@ static const struct
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 } hb_filter HB_UNUSED;
 
+template <typename Redu, typename InitT>
+struct hb_reduce_t
+{
+  hb_reduce_t (Redu r, InitT init_value) : r (r), init_value (init_value) {}
+
+  template <typename Iter,
+	    hb_enable_if (hb_is_iterator (Iter)),
+	    typename AccuT = decltype (hb_declval (Redu) (hb_declval (InitT), hb_declval (typename Iter::item_t)))>
+  AccuT
+  operator () (Iter it) const
+  {
+    AccuT value = init_value;
+    for (; it; ++it)
+      value = r (value, *it);
+    return value;
+  }
+
+  private:
+  Redu r;
+  InitT init_value;
+};
+static const struct
+{
+  template <typename Redu, typename InitT>
+  hb_reduce_t<Redu, InitT>
+  operator () (Redu&& r, InitT init_value) const
+  { return hb_reduce_t<Redu, InitT> (r, init_value); }
+} hb_reduce HB_UNUSED;
+
+
 /* hb_zip() */
 
 template <typename A, typename B>
@@ -585,14 +619,11 @@ hb_fill (C& c, const V &v)
     *i = v;
 }
 
-template <typename S, typename D,
-	  hb_enable_if (hb_is_iterator (S) && hb_is_iterator (D))>
-inline bool
-hb_copy (D id, S is)
+template <typename S, typename D>
+inline void
+hb_copy (S&& is, D&& id)
 {
-  for (; id && is; ++id, ++is)
-    *id = *is;
-  return !is;
+  hb_iter (is) | hb_sink (id);
 }
 
 

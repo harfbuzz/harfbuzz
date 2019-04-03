@@ -132,6 +132,7 @@ HB_BASE_sources = \
 	hb-ot-var-gvar-table.hh \
 	hb-ot-var.cc \
 	hb-ot-vorg-table.hh \
+	hb-pool.hh \
 	hb-sanitize.hh \
 	hb-serialize.hh \
 	hb-set-digest.hh \

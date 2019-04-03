@@ -83,8 +83,10 @@ _subset2 (hb_subset_plan_t *plan)
     }
   retry:
     hb_serialize_context_t serializer ((void *) buf, buf_size);
+    serializer.start_serialize<TableType> ();
     hb_subset_context_t c (plan, &serializer);
     result = table->subset (&c);
+    serializer.end_serialize ();
     if (serializer.ran_out_of_room)
     {
       buf_size += (buf_size >> 1) + 32;

@@ -227,11 +227,18 @@ struct hb_set_t
     return true;
   }
 
+  void reset ()
+  {
+    if (unlikely (hb_object_is_immutable (this)))
+      return;
+    clear ();
+    successful = true;
+  }
+
   void clear ()
   {
     if (unlikely (hb_object_is_immutable (this)))
       return;
-    successful = true;
     population = 0;
     page_map.resize (0);
     pages.resize (0);
