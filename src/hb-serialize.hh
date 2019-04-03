@@ -198,6 +198,7 @@ struct hb_serialize_context_t
     obj->tail = head;
     obj->next = nullptr;
     unsigned len = obj->tail - obj->head;
+    head = obj->head; /* Rewind head. */
 
     if (!len)
     {
@@ -214,7 +215,6 @@ struct hb_serialize_context_t
 
     tail -= len;
     memmove (tail, obj->head, len);
-    head = obj->head;
 
     obj->head = tail;
     obj->tail = tail + len;
