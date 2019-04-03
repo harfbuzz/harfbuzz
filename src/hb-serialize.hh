@@ -216,7 +216,11 @@ struct hb_serialize_context_t
   {
     while (packed.length > 1 &&
 	   packed.tail ().head < tail)
+    {
+      if (0) // XXX
+      packed_map.del (&packed.tail ());
       packed.pop ();
+    }
     assert (packed.tail ().head == tail);
   }
 
