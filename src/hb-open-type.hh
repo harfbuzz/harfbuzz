@@ -287,17 +287,13 @@ struct OffsetTo : Offset<OffsetType, has_null>
     if (&src == &Null (T))
       return;
 
-    //serialize (c->serializer, base);
-
     c->serializer->push ();
-    if (!src.subset (c))
-    {
+    if (src.subset (c))
+      c->serializer->add_link (*this,
+			       c->serializer->pop_pack (),
+			       base);
+    else
       c->serializer->pop_discard ();
-      return;
-    }
-    c->serializer->add_link (*this,
-			     c->serializer->pop_pack (),
-			     base);
   }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
