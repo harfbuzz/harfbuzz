@@ -46,9 +46,15 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   hb_array_t (const hb_array_t<Type> &o) : arrayZ (o.arrayZ), length (o.length) {}
   template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
+
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
 
+  template <typename U = Type, hb_enable_if (hb_is_const (U))>
+  hb_array_t& operator = (const hb_array_t<hb_remove_const (Type)> &o)
+  { arrayZ = o.arrayZ; length = o.length; return *this; }
+  hb_array_t& operator = (const hb_array_t &o)
+  { arrayZ = o.arrayZ; length = o.length; return *this; }
   /*
    * Iterator implementation.
    */
