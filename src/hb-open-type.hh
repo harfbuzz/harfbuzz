@@ -287,16 +287,16 @@ struct OffsetTo : Offset<OffsetType, has_null>
     if (has_null && &src == &Null (T))
       return false;
 
-    c->serializer->push ();
+    auto *s = c->serializer;
+
+    s->push ();
 
     bool ret = src.subset (c);
 
     if (ret || !has_null)
-      c->serializer->add_link (*this,
-			       c->serializer->pop_pack (),
-			       base);
+      s->add_link (*this, s->pop_pack (), base);
     else
-      c->serializer->pop_discard ();
+      s->pop_discard ();
 
     return ret;
   }
