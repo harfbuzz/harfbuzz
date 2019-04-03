@@ -35,14 +35,17 @@ template <typename T, unsigned ChunkLen = 16>
 struct hb_pool_t
 {
   hb_pool_t () : next (nullptr) {}
+  ~hb_pool_t () { fini (); }
 
-  ~hb_pool_t ()
+  void fini ()
   {
     next = nullptr;
 
     + hb_iter (chunks)
     | hb_apply ([] (chunk_t *_) { ::free (_); })
     ;
+
+    chunks.fini ();
   }
 
   T* alloc ()
