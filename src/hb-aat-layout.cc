@@ -79,13 +79,18 @@ AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_)
  * @short_description: Apple Advanced Typography Layout
  * @include: hb-aat.h
  *
- * Functions for querying OpenType Layout features in the font face.
+ * Functions for querying OpenType Layout features in the font face. 
+ *
+ * HarfBuzz supports all of the AAT tables used to implement shaping. Other
+ * AAT tables and their associated features are not supported.
  **/
 
 
 #if !defined(HB_NO_AAT) || defined(HAVE_CORETEXT)
 
-/* Table data courtesy of Apple.  Converted from mnemonics to integers
+/* Mapping from OpenType feature tags to AAT feature names and selectors.
+ *
+ * Table data courtesy of Apple.  Converted from mnemonics to integers
  * when moving to this file. */
 static const hb_aat_feature_mapping_t feature_mappings[] =
 {
@@ -167,6 +172,17 @@ static const hb_aat_feature_mapping_t feature_mappings[] =
   {HB_TAG ('z','e','r','o'), HB_AAT_LAYOUT_FEATURE_TYPE_TYPOGRAPHIC_EXTRAS,      HB_AAT_LAYOUT_FEATURE_SELECTOR_SLASHED_ZERO_ON,                HB_AAT_LAYOUT_FEATURE_SELECTOR_SLASHED_ZERO_OFF},
 };
 
+/** 
+ * hb_aat_layout_find_feature_mapping:
+ * @tag: The requested #hb_tag_t feature tag
+ *
+ * Fetches the AAT feature-and-selector combination that corresponds
+ * to a given OpenType feature tag.
+ *  
+ * Return value: the AAT features and selectors corresponding to the
+ * OpenType feature tag queried
+ *
+ **/
 const hb_aat_feature_mapping_t *
 hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 {
@@ -204,9 +220,15 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 
 /*
  * hb_aat_layout_has_substitution:
- * @face:
+ * @face: #hb_face_t to work upon
  *
- * Returns:
+ * Tests whether the specified face includes any substitutions in the
+ * `morx` table.
+ *
+ * <note>Note: does not examine the `GSUB` table.</note>
+ *
+ * Return value: true if data found, false otherwise
+ *
  * Since: 2.3.0
  */
 hb_bool_t
@@ -265,9 +287,15 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
 
 /*
  * hb_aat_layout_has_positioning:
- * @face:
+ * @face: #hb_face_t to work upon
  *
- * Returns:
+ * Tests whether the specified face includes any positioning information
+ * in the `kerx` table.
+ *
+ * <note>Note: does not examine the `GPOS` table.</note>
+ *
+ * Return value: true if data found, false otherwise
+ *
  * Since: 2.3.0
  */
 hb_bool_t
@@ -292,9 +320,13 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 
 /*
  * hb_aat_layout_has_tracking:
- * @face:
+ * @face:: #hb_face_t to work upon
  *
- * Returns:
+ * Tests whether the specified face includes any tracking information
+ * in the `trak` table.
+ *
+ * Return value: true if data found, false otherwise
+ *
  * Since: 2.3.0
  */
 hb_bool_t
@@ -316,10 +348,11 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
 
 /**
  * hb_aat_layout_get_feature_types:
- * @face: a face object
- * @start_offset: iteration's start offset
- * @feature_count:(inout) (allow-none): buffer size as input, filled size as output
- * @features: (out caller-allocates) (array length=feature_count): features buffer
+ * @face: #hb_face_t to work upon
+ * @start_offset: offset of the first feature type to retrieve
+ * @feature_count: (inout) (allow-none): Input = the maximum number of feature types to return;
+ *                 Output = the actual number of feature types returned (may be zero)
+ * @features: (out caller-allocates) (array length=feature_count): Array of feature types found
  *
  * Return value: Number of all available feature types.
  *
@@ -336,8 +369,8 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
 
 /**
  * hb_aat_layout_feature_type_get_name_id:
- * @face: a face object
- * @feature_type: feature id
+ * @face: #hb_face_t to work upon
+ * @feature_type: 
  *
  * Return value: Name ID index
  *
@@ -357,7 +390,7 @@ hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
  * @start_offset:    iteration's start offset
  * @selector_count: (inout) (allow-none): buffer size as input, filled size as output
  * @selectors: (out caller-allocates) (array length=selector_count): settings buffer
- * @default_index: (out) (allow-none): index of default selector if any
+ * @default_index: (out) (allow-none): index of default selector, if any
  *
  * If upon return, @default_index is set to #HB_AAT_LAYOUT_NO_SELECTOR_INDEX, then
  * the feature type is non-exclusive.  Otherwise, @default_index is the index of
