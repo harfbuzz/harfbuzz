@@ -971,6 +971,49 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
   g_string_append_c (gs, '\n');
 }
 
+static gboolean
+parse_nameids (const char *name G_GNUC_UNUSED,
+               const char *arg,
+               gpointer    data,
+               GError    **error G_GNUC_UNUSED)
+{
+  subset_options_t *subset_opts = (subset_options_t *) data;
+
+  hb_set_t *name_ids = hb_set_create ();
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 10);
+    if (errno || s == p)
+    {
+      hb_set_destroy (name_ids);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                   "Failed parsing nameID values at: '%s'", s);
+      return false;
+    }
+
+    hb_set_add (name_ids, u);
+
+    s = p;
+  }
+
+  hb_set_t *prev = subset_opts->name_ids;
+  subset_opts->name_ids = hb_set_reference (name_ids);
+  hb_set_destroy (prev);
+  hb_set_destroy (name_ids);
+
+  return true;
+}
+
+
 void
 subset_options_t::add_options (option_parser_t *parser)
 {
@@ -980,6 +1023,7 @@ subset_options_t::add_options (option_parser_t *parser)
     {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
     {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
 
     {nullptr}
   };
@@ -989,3 +1033,4 @@ subset_options_t::add_options (option_parser_t *parser)
          "Options subsetting",
          this);
 }
+

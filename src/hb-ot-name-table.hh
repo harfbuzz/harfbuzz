@@ -106,12 +106,12 @@ struct NameRecord
       return_trace (false);
     }
 
-    this->platformID.set (origin_namerecord.platformID);
-    this->encodingID.set (origin_namerecord.encodingID);
-    this->languageID.set (origin_namerecord.languageID);
-    this->nameID.set (origin_namerecord.nameID);
-    this->length.set (origin_namerecord.length);
-    this->offset.set (*new_offset);
+    this->platformID = origin_namerecord.platformID;
+    this->encodingID = origin_namerecord.encodingID;
+    this->languageID = origin_namerecord.languageID;
+    this->nameID = origin_namerecord.nameID;
+    this->length = origin_namerecord.length;
+    this->offset = *new_offset;
     *new_offset += origin_namerecord.length;
     
     return_trace (true);
@@ -194,6 +194,9 @@ struct name
     {
       if (format == 0 && (unsigned int) nameRecordZ[i].nameID > 25)
         continue;
+      if (!hb_set_is_empty (plan->name_ids) &&
+          !hb_set_has (plan->name_ids, source_name->nameRecordZ[i].nameID))
+        continue;
       result += acc.get_name (i).get_size ();
       name_record_idx_to_retain.push (i);
     }
@@ -214,9 +217,9 @@ struct name
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
-    this->format.set (source_name->format);
-    this->count.set (name_record_idx_to_retain.length);
-    this->stringOffset.set (min_size + name_record_idx_to_retain.length * NameRecord::static_size);
+    this->format = source_name->format;
+    this->count = name_record_idx_to_retain.length;
+    this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
 
     //write new NameRecord
     unsigned int new_offset = 0;
@@ -253,9 +256,10 @@ struct name
         return_trace (false);
       }
       
-      unsigned int origin_offset = source_name->stringOffset + source_name->nameRecordZ[idx].offset;
-      
-      memcpy (new_pos, source_name + origin_offset, size);
+      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
+      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
+
+      memcpy (new_pos, source_string_pool + name_record_offset, size);
     }
 
     acc.fini ();
