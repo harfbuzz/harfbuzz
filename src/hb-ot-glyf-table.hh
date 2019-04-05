@@ -621,7 +621,7 @@ struct glyf
 	{
 	  contour_point_vector_t comp_points;
 	  if (unlikely (!get_points_var (composite.current->glyphIndex, coords, coord_count,
-	  				 comp_points))) return false;
+	  				 comp_points, depth))) return false;
 
 	  /* Apply component transformation & translation */
 	  composite.current->transform_points (comp_points);
