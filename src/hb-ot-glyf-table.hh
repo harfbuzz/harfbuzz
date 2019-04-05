@@ -648,6 +648,7 @@ struct glyf
 	} while (composite.move_to_next());
       }
 
+      if (depth == 1)	/* Shift at top level only */
       {
 	/* Undocumented rasterizer behavior:
 	 * Shift points horizontally by the updated left side bearing
