@@ -354,6 +354,8 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
  *                 Output = the actual number of feature types returned (may be zero)
  * @features: (out caller-allocates) (array length=feature_count): Array of feature types found
  *
+ * Fetches a list of the AAT feature types included in the specified face.
+ *
  * Return value: Number of all available feature types.
  *
  * Since: 2.2.0
@@ -370,9 +372,11 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
 /**
  * hb_aat_layout_feature_type_get_name_id:
  * @face: #hb_face_t to work upon
- * @feature_type: 
+ * @feature_type: The #hb_aat_layout_feature_type_t of the requested feature type
  *
- * Return value: Name ID index
+ * Fetches the name ID of the specified feature type in the face's 'name' table.
+ *
+ * Return value: Name ID index of the requested feature type
  *
  * Since: 2.2.0
  */
@@ -385,18 +389,22 @@ hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
 
 /**
  * hb_aat_layout_feature_type_get_selectors:
- * @face:    a face object
- * @feature_type: feature id
- * @start_offset:    iteration's start offset
- * @selector_count: (inout) (allow-none): buffer size as input, filled size as output
- * @selectors: (out caller-allocates) (array length=selector_count): settings buffer
- * @default_index: (out) (allow-none): index of default selector, if any
+ * @face: #hb_face_t to work upon
+ * @feature_type: The #hb_aat_layout_feature_type_t of the requested feature type
+ * @start_offset: offset of the first feature type to retrieve
+ * @selector_count: (inout) (allow-none): Input = the maximum number of selectors to return;
+ *                  Output = the actual number of selectors returned (may be zero)
+ * @selectors: (out caller-allocates) (array length=selector_count): A buffer pointer.
+ *             The selectors available for the feature type queries.
+ * @default_index: (out) (allow-none): The index of the feature's default selector, if any
+ *
+ * Fetches a list of the selectors available for the specified feature in the given face.
  *
  * If upon return, @default_index is set to #HB_AAT_LAYOUT_NO_SELECTOR_INDEX, then
  * the feature type is non-exclusive.  Otherwise, @default_index is the index of
  * the selector that is selected by default.
  *
- * Return value: Number of all available feature selectors.
+ * Return value: Number of all available feature selectors
  *
  * Since: 2.2.0
  */
