@@ -1069,7 +1069,7 @@ resize_and_retry:
     if (false)
     {
       /* Make sure all runs had the expected direction. */
-      bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
+      HB_UNUSED bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
       assert (bool (status_and & kCTRunStatusRightToLeft) == backward);
       assert (bool (status_or  & kCTRunStatusRightToLeft) == backward);
     }
