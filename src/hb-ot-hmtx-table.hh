@@ -221,6 +221,8 @@ struct hmtxvmtx
       var_table.destroy ();
     }
 
+    bool has_data () const { return table.get () != nullptr; }
+
     int get_side_bearing (hb_codepoint_t glyph) const
     {
       if (glyph < num_advances)
@@ -274,7 +276,7 @@ struct hmtxvmtx
       	if (font->num_coords)
       	{
 	  if (var_table.get_blob () != hb_blob_get_empty ())
-	    advance += var_table->get_advance_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+	    advance += roundf (var_table->get_advance_var (glyph, font->coords, font->num_coords)); // TODO Optimize?!
 	  else
 	    advance = get_advance_var_tt (font, glyph, T::tableTag==HB_OT_TAG_vmtx);
 	}

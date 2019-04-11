@@ -54,9 +54,9 @@ test_extents_tt_var (void)
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 0);
-  g_assert_cmpint (extents.y_bearing, ==, 875);
+  g_assert_cmpint (extents.y_bearing, ==, 874);
   g_assert_cmpint (extents.width, ==, 551);
-  g_assert_cmpint (extents.height, ==, -875);
+  g_assert_cmpint (extents.height, ==, -874);
 
   hb_font_destroy (font);
 }
@@ -158,9 +158,78 @@ test_advance_tt_var_anchor (void)
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 50);
-  g_assert_cmpint (extents.y_bearing, ==, 668);
+  g_assert_cmpint (extents.y_bearing, ==, 667);
   g_assert_cmpint (extents.width, ==, 593);
-  g_assert_cmpint (extents.height, ==, -680);
+  g_assert_cmpint (extents.height, ==, -679);
+
+  hb_font_destroy (font);
+}
+
+static void
+test_extents_tt_var_comp (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.modcomp.ttf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_glyph_extents_t  extents;
+  float coords[1] = { 800.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+
+  hb_bool_t result;
+  result = hb_font_get_glyph_extents (font, 2, &extents);	/* Ccedilla, cedilla y-scaled by 0.8, with unscaled component offset */
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 19);
+  g_assert_cmpint (extents.y_bearing, ==, 663);
+  g_assert_cmpint (extents.width, ==, 519);
+  g_assert_cmpint (extents.height, ==, -895);
+
+  result = hb_font_get_glyph_extents (font, 3, &extents);	/* Cacute, acute y-scaled by 0.8, with unscaled component offset (default) */
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 19);
+  g_assert_cmpint (extents.y_bearing, ==, 909);
+  g_assert_cmpint (extents.width, ==, 519);
+  g_assert_cmpint (extents.height, ==, -921);
+
+  result = hb_font_get_glyph_extents (font, 4, &extents);	/* Ccaron, caron y-scaled by 0.8, with scaled component offset */
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 19);
+  g_assert_cmpint (extents.y_bearing, ==, 866);
+  g_assert_cmpint (extents.width, ==, 519);
+  g_assert_cmpint (extents.height, ==, -878);
+
+  hb_font_destroy (font);
+}
+
+static void
+test_advance_tt_var_comp_v (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansVariable-Roman.modcomp.ttf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  float coords[1] = { 800.0f };
+  hb_font_set_var_coords_design (font, coords, 1);
+
+  hb_position_t x, y;
+  hb_font_get_glyph_advance_for_direction(font, 2, HB_DIRECTION_TTB, &x, &y);	/* No VVAR; 'C' in composite Ccedilla determines metrics */
+
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, -991);
+
+  hb_font_get_glyph_origin_for_direction(font, 2, HB_DIRECTION_TTB, &x, &y);
+
+  g_assert_cmpint (x, ==, 292);
+  g_assert_cmpint (y, ==, 1013);
 
   hb_font_destroy (font);
 }
@@ -174,6 +243,8 @@ main (int argc, char **argv)
   hb_test_add (test_advance_tt_var_nohvar);
   hb_test_add (test_advance_tt_var_hvarvvar);
   hb_test_add (test_advance_tt_var_anchor);
+  hb_test_add (test_extents_tt_var_comp);
+  hb_test_add (test_advance_tt_var_comp_v);
 
   return hb_test_run ();
 }
