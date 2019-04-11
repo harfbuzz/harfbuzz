@@ -411,24 +411,10 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 #define HB_DELETE_COPY_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \
   void operator=(const TypeName&) = delete
-#define HB_DELETE_COPY_ASSIGN_TEMPLATE(TypeName, T) \
-  TypeName(const TypeName<T>&) = delete; \
-  void operator=(const TypeName<T>&) = delete
-#define HB_DELETE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
-  TypeName(const TypeName<T1, T2>&) = delete; \
-  void operator=(const TypeName<T1, T2>&) = delete
 #define HB_DELETE_CREATE_COPY_ASSIGN(TypeName) \
   TypeName() = delete; \
   TypeName(const TypeName&) = delete; \
   void operator=(const TypeName&) = delete
-#define HB_DELETE_CREATE_COPY_ASSIGN_TEMPLATE(TypeName, T) \
-  TypeName() = delete; \
-  TypeName(const TypeName<T>&) = delete; \
-  void operator=(const TypeName<T>&) = delete
-#define HB_DELETE_CREATE_COPY_ASSIGN_TEMPLATE2(TypeName, T1, T2) \
-  TypeName() = delete; \
-  TypeName(const TypeName<T1, T2>&) = delete; \
-  void operator=(const TypeName<T1, T2>&) = delete
 
 
 /*
