@@ -202,15 +202,18 @@ struct hb_iter_with_fallback_t :
 
 /* hb_is_iterable() */
 
-template<typename T, typename B>
-struct _hb_is_iterable
-{ enum { value = false }; };
-template<typename T>
-struct _hb_is_iterable<T, hb_bool_tt<true || sizeof (hb_declval (T).iter ())> >
-{ enum { value = true }; };
+template <typename T>
+struct hb_is_iterable
+{
+  private:
+  template <typename U>
+  static auto test (int) -> decltype (hb_declval (U).iter (), hb_true_t ());
+  template <typename>
+  static hb_false_t test (...);
 
-template<typename T>
-struct hb_is_iterable { enum { value = _hb_is_iterable<T, hb_true_t>::value }; };
+  public:
+  enum { value = decltype (test<T> (0))::value };
+};
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
 /* TODO Add hb_is_iterable_of().

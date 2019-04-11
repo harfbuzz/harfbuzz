@@ -30,7 +30,7 @@
  * http://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html
  * https://www.oracle.com/technetwork/articles/servers-storage-dev/standardheaderfiles-453865.html
  */
-#ifndef _POSIX_C_SOURCE
+#if !defined(_POSIX_C_SOURCE) && !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-macros"
 #define _POSIX_C_SOURCE 200809L
