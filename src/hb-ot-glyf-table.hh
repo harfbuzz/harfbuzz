@@ -623,7 +623,7 @@ struct glyf
 	all_points.extend (phantoms);
       }
 
-      if (depth == 1)
+      if (depth == 1)	/* Shift at top level only */
       {
 	/* Undocumented rasterizer behavior:
 	 * Shift points horizontally by the updated left side bearing
