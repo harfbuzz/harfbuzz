@@ -623,16 +623,6 @@ struct glyf
 	all_points.extend (phantoms);
       }
 
-      if (depth == 1)	/* Shift at top level only */
-      {
-	/* Undocumented rasterizer behavior:
-	 * Shift points horizontally by the updated left side bearing
-	 */
-	contour_point_t delta;
-	delta.init (-phantoms[PHANTOM_LEFT].x, 0.f);
-	if (delta.x != 0.f) all_points.translate (delta);
-      }
-
       return true;
     }
 
@@ -642,7 +632,15 @@ struct glyf
 				       contour_point_vector_t *phantoms=nullptr /* OUT */) const
     {
       contour_point_vector_t all_points;
-      if (unlikely (!get_points_var (glyph, coords, coord_count, all_points))) return false;
+      if (unlikely (!get_points_var (glyph, coords, coord_count, all_points) ||
+      		    all_points.length < PHANTOM_COUNT)) return false;
+
+      /* Undocumented rasterizer behavior:
+       * Shift points horizontally by the updated left side bearing
+       */
+      contour_point_t delta;
+      delta.init (-all_points[all_points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
+      if (delta.x != 0.f) all_points.translate (delta);
 
       if (extents != nullptr)
       {
@@ -673,7 +671,6 @@ struct glyf
       }
       if (phantoms != nullptr)
       {
-      	if (unlikely (all_points.length < PHANTOM_COUNT)) return false;
       	for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	  (*phantoms)[i] = all_points[all_points.length - PHANTOM_COUNT + i];
       }
