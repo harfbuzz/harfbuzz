@@ -39,7 +39,7 @@
 
 struct hb_set_t
 {
-  HB_NO_COPY_ASSIGN (hb_set_t);
+  HB_DELETE_COPY_ASSIGN (hb_set_t);
   hb_set_t ()  { init (); }
   ~hb_set_t () { fini (); }
 
