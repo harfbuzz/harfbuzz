@@ -41,7 +41,7 @@ template <typename K, typename V,
 	  V vINVALID = hb_is_pointer (V) ? 0 : (V) -1>
 struct hb_hashmap_t
 {
-  HB_NO_COPY_ASSIGN (hb_hashmap_t);
+  HB_DELETE_COPY_ASSIGN (hb_hashmap_t);
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 

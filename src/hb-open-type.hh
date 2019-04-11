@@ -378,7 +378,7 @@ struct UnsizedArrayOf
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
 
-  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (UnsizedArrayOf, Type);
+  HB_DELETE_CREATE_COPY_ASSIGN (UnsizedArrayOf);
 
   const Type& operator [] (int i_) const
   {
@@ -534,7 +534,7 @@ struct ArrayOf
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
 
-  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOf, Type, LenType);
+  HB_DELETE_CREATE_COPY_ASSIGN (ArrayOf);
 
   const Type& operator [] (int i_) const
   {
@@ -715,7 +715,7 @@ struct HeadlessArrayOf
 {
   static constexpr unsigned item_size = Type::static_size;
 
-  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (HeadlessArrayOf, Type, LenType);
+  HB_DELETE_CREATE_COPY_ASSIGN (HeadlessArrayOf);
 
   const Type& operator [] (int i_) const
   {
@@ -780,7 +780,7 @@ struct HeadlessArrayOf
 template <typename Type, typename LenType=HBUINT16>
 struct ArrayOfM1
 {
-  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE2 (ArrayOfM1, Type, LenType);
+  HB_DELETE_CREATE_COPY_ASSIGN (ArrayOfM1);
 
   const Type& operator [] (int i_) const
   {
@@ -945,7 +945,7 @@ struct VarSizedBinSearchArrayOf
 {
   static constexpr unsigned item_size = Type::static_size;
 
-  HB_NO_CREATE_COPY_ASSIGN_TEMPLATE (VarSizedBinSearchArrayOf, Type);
+  HB_DELETE_CREATE_COPY_ASSIGN (VarSizedBinSearchArrayOf);
 
   bool last_is_terminator () const
   {

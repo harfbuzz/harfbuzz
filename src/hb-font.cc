@@ -1347,8 +1347,10 @@ hb_font_create (hb_face_t *face)
 {
   hb_font_t *font = _hb_font_create (face);
 
+#if !defined(HB_NO_OT_FONT)
   /* Install our in-house, very lightweight, funcs. */
   hb_ot_font_set_funcs (font);
+#endif
 
   return font;
 }
