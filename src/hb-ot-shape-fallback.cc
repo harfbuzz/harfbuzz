@@ -166,6 +166,10 @@ _hb_ot_shape_fallback_mark_position_recategorize_marks (const hb_ot_shape_plan_t
 						        hb_font_t *font HB_UNUSED,
 						        hb_buffer_t  *buffer)
 {
+#if defined(HB_NO_OT_SHAPE_FALLBACK)
+  return;
+#endif
+
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
@@ -434,6 +438,10 @@ _hb_ot_shape_fallback_mark_position (const hb_ot_shape_plan_t *plan,
 				     hb_buffer_t  *buffer,
 				     bool adjust_offsets_when_zeroing)
 {
+#if defined(HB_NO_OT_SHAPE_FALLBACK)
+  return;
+#endif
+
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
   unsigned int start = 0;
@@ -473,6 +481,10 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 			    hb_font_t *font,
 			    hb_buffer_t *buffer)
 {
+#if defined(HB_NO_OT_SHAPE_FALLBACK)
+  return;
+#endif
+
   if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction) ?
       !font->has_glyph_h_kerning_func () :
       !font->has_glyph_v_kerning_func ())
