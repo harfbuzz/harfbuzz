@@ -56,7 +56,7 @@ typedef struct TableRecord
 {
   int cmp (Tag t) const { return -t.cmp (tag); }
 
-  static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
     const TableRecord *a = (const TableRecord *) pa;
     const TableRecord *b = (const TableRecord *) pb;

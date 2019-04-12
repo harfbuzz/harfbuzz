@@ -63,7 +63,8 @@ struct IntType
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
-  static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
+  HB_INTERNAL static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b)
+  { return b->cmp (*a); }
   template <typename Type2>
   int cmp (Type2 a) const
   {

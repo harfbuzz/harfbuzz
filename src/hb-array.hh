@@ -100,7 +100,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       return (int) a.length - (int) length;
     return hb_memcmp (a.arrayZ, arrayZ, get_size ());
   }
-  static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
     hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
     hb_array_t<Type> *b = (hb_array_t<Type> *) pb;

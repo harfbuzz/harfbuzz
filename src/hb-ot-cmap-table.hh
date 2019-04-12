@@ -285,7 +285,7 @@ struct CmapSubtableFormat4
       *glyph = gid;
       return true;
     }
-    static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
     {
       return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph);
     }
@@ -1096,18 +1096,18 @@ struct cmap
 					      hb_codepoint_t *glyph);
 
     template <typename Type>
-    static bool get_glyph_from (const void *obj,
-				hb_codepoint_t codepoint,
-				hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_from (const void *obj,
+					    hb_codepoint_t codepoint,
+					    hb_codepoint_t *glyph)
     {
       const Type *typed_obj = (const Type *) obj;
       return typed_obj->get_glyph (codepoint, glyph);
     }
 
     template <typename Type>
-    static bool get_glyph_from_symbol (const void *obj,
-					      hb_codepoint_t codepoint,
-					      hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_from_symbol (const void *obj,
+						   hb_codepoint_t codepoint,
+						   hb_codepoint_t *glyph)
     {
       const Type *typed_obj = (const Type *) obj;
       if (likely (typed_obj->get_glyph (codepoint, glyph)))

@@ -173,15 +173,15 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  static OffsetTo<Device>& get_device (Value* value)
+  HB_INTERNAL static OffsetTo<Device>& get_device (Value* value)
   { return *CastP<OffsetTo<Device> > (value); }
-  static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
+  HB_INTERNAL static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *CastP<OffsetTo<Device> > (value);
   }
 
-  static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
+  HB_INTERNAL static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *CastP<HBINT16> (value);
@@ -1576,7 +1576,7 @@ struct PosLookup : Lookup
     dispatch (&c);
   }
 
-  static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
+  HB_INTERNAL static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   template <typename context_t>
   static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
