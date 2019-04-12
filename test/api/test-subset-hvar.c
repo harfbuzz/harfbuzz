@@ -91,6 +91,26 @@ test_subset_map_HVAR_retaingids (void)
 }
 
 static void
+test_subset_map_modHVAR (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/SourceSansVariable-Roman-modHVAR.abc.ttf");
+  hb_face_t *face_ac = hb_test_open_font_file ("fonts/SourceSansVariable-Roman-modHVAR.ac.ttf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 'a');
+  hb_set_add (codepoints, 'c');
+  face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('H','V','A','R'));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_ac);
+}
+
+static void
 test_subset_identity_HVAR_noop (void)
 {
   hb_face_t *face_abc = hb_test_open_font_file("fonts/SourceSansVariable-Roman.abc.ttf");
@@ -160,6 +180,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_map_HVAR_noop);
   hb_test_add (test_subset_map_HVAR);
   hb_test_add (test_subset_map_HVAR_retaingids);
+  hb_test_add (test_subset_map_modHVAR);
   hb_test_add (test_subset_identity_HVAR_noop);
   hb_test_add (test_subset_identity_HVAR);
   hb_test_add (test_subset_identity_HVAR_retaingids);

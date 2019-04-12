@@ -1883,7 +1883,11 @@ struct VariationStore
   		  const hb_array_t <hb_bimap_t> &inner_remaps)
   {
     TRACE_SUBSET (this);
-    unsigned int size = min_size + HBUINT32::static_size * inner_remaps.length;
+    unsigned int set_count = 0;
+    for (unsigned int i = 0; i < inner_remaps.length; i++)
+      if (inner_remaps[i].get_count () > 0) set_count++;
+
+    unsigned int size = min_size + HBUINT32::static_size * set_count;
     if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format = 1;
     if (unlikely (!regions.serialize (c, this)
@@ -1892,12 +1896,14 @@ struct VariationStore
     /* TODO: The following code could be simplified when
      * OffsetListOf::subset () can take a custom param to be passed to VarData::serialize ()
      */
-    dataSets.len = inner_remaps.length;
+    dataSets.len = set_count;
+    unsigned int set_index = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
     {
-      if (unlikely (!dataSets[i].serialize (c, this)
+      if (inner_remaps[i].get_count () == 0) continue;
+      if (unlikely (!dataSets[set_index++].serialize (c, this)
 		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i])))
-      	return_trace (false);
+	return_trace (false);
     }
     
     return_trace (true);
