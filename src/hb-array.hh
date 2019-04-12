@@ -86,8 +86,8 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   operator hb_array_t<const Type> () { return hb_array_t<const Type> (arrayZ, length); }
   template <typename T> operator T * () const { return arrayZ; }
 
-  bool operator == (const hb_array_t &o) const;
-  uint32_t hash () const;
+  HB_INTERNAL bool operator == (const hb_array_t &o) const;
+  HB_INTERNAL uint32_t hash () const;
 
   /*
    * Compare, Sort, and Search.

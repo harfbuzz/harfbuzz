@@ -75,12 +75,12 @@ static const struct
 /* std::move and std::forward */
 
 template <typename T>
-hb_remove_reference (T)&& hb_move (T&& t) { return (hb_remove_reference (T)&&) (t); }
+static hb_remove_reference (T)&& hb_move (T&& t) { return (hb_remove_reference (T)&&) (t); }
 
 template <typename T>
-T&& hb_forward (hb_remove_reference (T)& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference (T)& t) { return (T&&) t; }
 template <typename T>
-T&& hb_forward (hb_remove_reference (T)&& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference (T)&& t) { return (T&&) t; }
 
 
 /* Void!  For when we need a expression-type of void. */
