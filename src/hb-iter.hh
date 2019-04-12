@@ -58,8 +58,8 @@ struct hb_iter_t
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
-        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+  HB_INTERNAL const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
+  HB_INTERNAL       iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
   public:
 
   /* TODO:
@@ -67,39 +67,39 @@ struct hb_iter_t
    * an operator and use it, and remove hb_iter_fallback_mixin_t completely. */
 
   /* Operators. */
-  iter_t iter () const { return *thiz(); }
-  iter_t operator + () const { return *thiz(); }
-  explicit operator bool () const { return thiz()->__more__ (); }
-  unsigned len () const { return thiz()->__len__ (); }
+  HB_INTERNAL iter_t iter () const { return *thiz(); }
+  HB_INTERNAL iter_t operator + () const { return *thiz(); }
+  HB_INTERNAL explicit operator bool () const { return thiz()->__more__ (); }
+  HB_INTERNAL unsigned len () const { return thiz()->__len__ (); }
   /* The following can only be enabled if item_t is reference type.  Otherwise
    * it will be returning pointer to temporary rvalue. */
   template <typename T = item_t,
 	    hb_enable_if (hb_is_reference (T))>
-  hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
-  item_t operator * () const { return thiz()->__item__ (); }
-  item_t operator * () { return thiz()->__item__ (); }
-  item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
-  item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
-  iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
-  iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
-  iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
-  iter_t& operator -- () { thiz()->__prev__ (); return *thiz(); }
-  iter_t operator + (unsigned count) const { auto c = thiz()->iter (); c += count; return c; }
-  friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
-  iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
-  iter_t operator - (unsigned count) const { auto c = thiz()->iter (); c -= count; return c; }
-  iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
+  HB_INTERNAL hb_remove_reference (item_t)* operator -> () const { return hb_addressof (**thiz()); }
+  HB_INTERNAL item_t operator * () const { return thiz()->__item__ (); }
+  HB_INTERNAL item_t operator * () { return thiz()->__item__ (); }
+  HB_INTERNAL item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
+  HB_INTERNAL item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
+  HB_INTERNAL iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
+  HB_INTERNAL iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
+  HB_INTERNAL iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
+  HB_INTERNAL iter_t& operator -- () { thiz()->__prev__ (); return *thiz(); }
+  HB_INTERNAL iter_t operator + (unsigned count) const { auto c = thiz()->iter (); c += count; return c; }
+  HB_INTERNAL friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
+  HB_INTERNAL iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
+  HB_INTERNAL iter_t operator - (unsigned count) const { auto c = thiz()->iter (); c -= count; return c; }
+  HB_INTERNAL iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
   template <typename T>
-  iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
+  HB_INTERNAL iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
-  iter_t& operator >> (T &v) const { v = **thiz(); ++*thiz(); return *thiz(); }
+  HB_INTERNAL iter_t& operator >> (T &v) const { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
-  iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
+  HB_INTERNAL iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
 
   protected:
-  hb_iter_t () {}
-  hb_iter_t (const hb_iter_t &o HB_UNUSED) {}
-  void operator = (const hb_iter_t &o HB_UNUSED) {}
+  HB_INTERNAL hb_iter_t () {}
+  HB_INTERNAL hb_iter_t (const hb_iter_t &o HB_UNUSED) {}
+  HB_INTERNAL void operator = (const hb_iter_t &o HB_UNUSED) {}
 };
 
 #define HB_ITER_USING(Name) \
@@ -140,11 +140,11 @@ static const struct
   /* Specialization for C arrays. */
 
   template <typename Type> inline hb_array_t<Type>
-  operator () (Type *array, unsigned int length) const
+  HB_INTERNAL operator () (Type *array, unsigned int length) const
   { return hb_array_t<Type> (array, length); }
 
   template <typename Type, unsigned int length> hb_array_t<Type>
-  operator () (Type (&array)[length]) const
+  HB_INTERNAL operator () (Type (&array)[length]) const
   { return hb_array_t<Type> (array, length); }
 
 } hb_iter HB_UNUSED;
@@ -156,31 +156,31 @@ struct hb_iter_fallback_mixin_t
 {
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
-        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+  HB_INTERNAL const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
+  HB_INTERNAL       iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
   public:
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */
-  item_t __item__ () const { return (*thiz())[0]; }
-  item_t __item_at__ (unsigned i) const { return *(*thiz() + i); }
+  HB_INTERNAL item_t __item__ () const { return (*thiz())[0]; }
+  HB_INTERNAL item_t __item_at__ (unsigned i) const { return *(*thiz() + i); }
 
   /* Termination: Implement __more__(), or __len__() if random-access. */
-  bool __more__ () const { return thiz()->len (); }
-  unsigned __len__ () const
+  HB_INTERNAL bool __more__ () const { return thiz()->len (); }
+  HB_INTERNAL unsigned __len__ () const
   { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
-  void __next__ () { *thiz() += 1; }
-  void __forward__ (unsigned n) { while (n--) ++*thiz(); }
+  HB_INTERNAL void __next__ () { *thiz() += 1; }
+  HB_INTERNAL void __forward__ (unsigned n) { while (n--) ++*thiz(); }
 
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
-  void __prev__ () { *thiz() -= 1; }
-  void __rewind__ (unsigned n) { while (n--) --*thiz(); }
+  HB_INTERNAL void __prev__ () { *thiz() -= 1; }
+  HB_INTERNAL void __rewind__ (unsigned n) { while (n--) --*thiz(); }
 
   protected:
-  hb_iter_fallback_mixin_t () {}
-  hb_iter_fallback_mixin_t (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
-  void operator = (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
+  HB_INTERNAL hb_iter_fallback_mixin_t () {}
+  HB_INTERNAL hb_iter_fallback_mixin_t (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
+  HB_INTERNAL void operator = (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
 };
 
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
@@ -189,11 +189,11 @@ struct hb_iter_with_fallback_t :
   hb_iter_fallback_mixin_t<iter_t, item_t>
 {
   protected:
-  hb_iter_with_fallback_t () {}
-  hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) :
+  HB_INTERNAL hb_iter_with_fallback_t () {}
+  HB_INTERNAL hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) :
     hb_iter_t<iter_t, item_t> (o),
     hb_iter_fallback_mixin_t<iter_t, item_t> (o) {}
-  void operator = (const hb_iter_with_fallback_t &o HB_UNUSED) {}
+  HB_INTERNAL void operator = (const hb_iter_with_fallback_t &o HB_UNUSED) {}
 };
 
 /*
