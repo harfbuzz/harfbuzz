@@ -55,7 +55,7 @@ struct hb_blob_t
   HB_INTERNAL bool try_make_writable_inplace_unix ();
 
   template <typename Type>
-  HB_INTERNAL const Type* as () const
+  const Type* as () const
   {
     return length < hb_null_size (Type) ? &Null(Type) : reinterpret_cast<const Type *> (data);
   }
