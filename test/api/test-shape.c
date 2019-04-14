@@ -41,9 +41,9 @@
 static const char test_data[] = "test\0data";
 
 static hb_position_t
-glyph_h_advance_func (hb_font_t *font, void *font_data,
+glyph_h_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 		      hb_codepoint_t glyph,
-		      void *user_data)
+		      void *user_data HB_UNUSED)
 {
   switch (glyph) {
   case 1: return 10;
@@ -54,10 +54,10 @@ glyph_h_advance_func (hb_font_t *font, void *font_data,
 }
 
 static hb_bool_t
-glyph_func (hb_font_t *font, void *font_data,
-	    hb_codepoint_t unicode, hb_codepoint_t variant_selector,
+glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
+	    hb_codepoint_t unicode,
 	    hb_codepoint_t *glyph,
-	    void *user_data)
+	    void *user_data HB_UNUSED)
 {
   switch (unicode) {
   case 'T': *glyph = 1; return TRUE;
@@ -68,9 +68,9 @@ glyph_func (hb_font_t *font, void *font_data,
 }
 
 static hb_position_t
-glyph_h_kerning_func (hb_font_t *font, void *font_data,
+glyph_h_kerning_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 		      hb_codepoint_t left, hb_codepoint_t right,
-		      void *user_data)
+		      void *user_data HB_UNUSED)
 {
   if (left == 1 && right == 2)
     return -2;
@@ -101,7 +101,7 @@ test_shape (void)
 
   ffuncs = hb_font_funcs_create ();
   hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
-  hb_font_funcs_set_glyph_func (ffuncs, glyph_func, malloc (10), free);
+  hb_font_funcs_set_nominal_glyph_func (ffuncs, glyph_func, malloc (10), free);
   hb_font_funcs_set_glyph_h_kerning_func (ffuncs, glyph_h_kerning_func, NULL, NULL);
   hb_font_set_funcs (font, ffuncs, NULL, NULL);
   hb_font_funcs_destroy (ffuncs);

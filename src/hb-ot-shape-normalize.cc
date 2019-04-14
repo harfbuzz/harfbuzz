@@ -213,17 +213,19 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
 }
 
 static inline void
-handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool short_circuit)
+handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
+				   unsigned int end,
+				   bool short_circuit HB_UNUSED)
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
   for (; buffer->idx < end - 1 && buffer->successful;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
-      /* The next two lines are some ugly lines... But work. */
       if (font->get_variation_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index()))
       {
-	buffer->replace_glyphs (2, 1, &buffer->cur().codepoint);
+	hb_codepoint_t unicode = buffer->cur().codepoint;
+	buffer->replace_glyphs (2, 1, &unicode);
       }
       else
       {
@@ -264,15 +266,6 @@ decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned
     decompose_current_character (c, short_circuit);
 }
 
-static inline void
-decompose_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool might_short_circuit, bool always_short_circuit)
-{
-  if (likely (c->buffer->idx + 1 == end))
-    decompose_current_character (c, might_short_circuit);
-  else
-    decompose_multi_char_cluster (c, end, always_short_circuit);
-}
-
 
 static int
 compare_combining_class (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
@@ -296,7 +289,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference;
   if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
   {
-    if (plan->has_mark)
+    if (plan->has_gpos_mark)
       // https://github.com/harfbuzz/harfbuzz/issues/653#issuecomment-423905920
       //mode = HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;
       mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
@@ -328,45 +321,80 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
   /* First round, decompose */
 
-  buffer->clear_output ();
-  count = buffer->len;
-  for (buffer->idx = 0; buffer->idx < count && buffer->successful;)
+  bool all_simple = true;
   {
-    unsigned int end;
-    for (end = buffer->idx + 1; end < count; end++)
-      if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end]))))
-        break;
+    buffer->clear_output ();
+    count = buffer->len;
+    buffer->idx = 0;
+    do
+    {
+      unsigned int end;
+      for (end = buffer->idx + 1; end < count; end++)
+	if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end]))))
+	  break;
 
-    decompose_cluster (&c, end, might_short_circuit, always_short_circuit);
+      if (end < count)
+	end--; /* Leave one base for the marks to cluster with. */
+
+      /* From idx to end are simple clusters. */
+      if (might_short_circuit)
+      {
+        unsigned int done = font->get_nominal_glyphs (end - buffer->idx,
+						      &buffer->cur().codepoint,
+						      sizeof (buffer->info[0]),
+						      &buffer->cur().glyph_index(),
+						      sizeof (buffer->info[0]));
+	buffer->next_glyphs (done);
+      }
+      while (buffer->idx < end && buffer->successful)
+	decompose_current_character (&c, might_short_circuit);
+
+      if (buffer->idx == count || !buffer->successful)
+	break;
+
+      all_simple = false;
+
+      /* Find all the marks now. */
+      for (end = buffer->idx + 1; end < count; end++)
+	if (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[end])))
+	  break;
+
+      /* idx to end is one non-simple cluster. */
+      decompose_multi_char_cluster (&c, end, always_short_circuit);
+    }
+    while (buffer->idx < count && buffer->successful);
+    buffer->swap_buffers ();
   }
-  buffer->swap_buffers ();
 
 
   /* Second round, reorder (inplace) */
 
-  count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
+  if (!all_simple)
   {
-    if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]) == 0)
-      continue;
+    count = buffer->len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]) == 0)
+	continue;
 
-    unsigned int end;
-    for (end = i + 1; end < count; end++)
-      if (_hb_glyph_info_get_modified_combining_class (&buffer->info[end]) == 0)
-        break;
+      unsigned int end;
+      for (end = i + 1; end < count; end++)
+	if (_hb_glyph_info_get_modified_combining_class (&buffer->info[end]) == 0)
+	  break;
 
-    /* We are going to do a O(n^2).  Only do this if the sequence is short. */
-    if (end - i > HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS) {
+      /* We are going to do a O(n^2).  Only do this if the sequence is short. */
+      if (end - i > HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS) {
+	i = end;
+	continue;
+      }
+
+      buffer->sort (i, end, compare_combining_class);
+
+      if (plan->shaper->reorder_marks)
+	plan->shaper->reorder_marks (plan, buffer, i, end);
+
       i = end;
-      continue;
     }
-
-    buffer->sort (i, end, compare_combining_class);
-
-    if (plan->shaper->reorder_marks)
-      plan->shaper->reorder_marks (plan, buffer, i, end);
-
-    i = end;
   }
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_CGJ)
   {
@@ -385,8 +413,9 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
   /* Third round, recompose */
 
-  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS ||
-      mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT)
+  if (!all_simple &&
+      (mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS ||
+       mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT))
   {
     /* As noted in the comment earlier, we don't try to combine
      * ccc=0 chars with their previous Starter. */

@@ -8,7 +8,8 @@ HarfBuzz release walk-through checklist:
      Document them in NEWS.  All API and API semantic changes should be clearly
      marked as API additions, API changes, or API deletions.  Document
      deprecations.  Ensure all new API / deprecations are in listed correctly in
-     docs/harfbuzz-sections.txt
+     docs/harfbuzz-sections.txt.  If release added new API, add entry for new
+     API index at the end of docs/harfbuzz-docs.xml.
 
      If there's a backward-incompatible API change (including deletions for API
      used anywhere), that's a release blocker.  Do NOT release.
@@ -27,14 +28,18 @@ HarfBuzz release walk-through checklist:
    Otherwise, fix things and commit them separately before making release,
    Note: Check src/hb-version.h and make sure the new version number is
    there.  Sometimes, it does not get updated.  If that's the case,
-   "touch configure.ac" and rebuild.  TODO: debug.
+   "touch configure.ac" and rebuild.  Also check that there is no hb-version.h
+   in your build/src file. Typically it will fail the distcheck if there is.
+   That's what happened to 2.0.0 going out with 1.8.0 hb-version.h...  So, that's
+   a clue.
 
-7. "make release-files".  Enter your GPG password.  This creates a sha256 hash
-   and signs it.
-
-8. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
+7. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
    as well as any REPLACEME changes you made.  The commit message is simply the
    release number.  Eg. "1.4.7"
+
+8. "make dist" again to get a tarball with your new commit in the ChangeLog.  Then
+   "make release-files".  Enter your GPG password.  This creates a sha256 hash
+   and signs it.  Check the size of the three resulting files.
 
 9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
    GPG password again.

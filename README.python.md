@@ -23,7 +23,7 @@ Then make sure you also have GI_TYPELIB_PATH pointing to the resulting
 $prefix/lib/girepository-* directory.
 
 Make sure you have pygobject installed.  Then check that the following
-import works in your Python interpretter:
+import works in your Python interpreter:
 
 ```python
 from gi.repository import HarfBuzz

@@ -195,7 +195,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_finish (fixture_t *fixture, gconstpointer user_data)
+fixture_finish (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 {
   hb_blob_destroy (fixture->blob);
   g_assert_cmpint (fixture->freed, ==, 1);

@@ -1,3 +1,5 @@
 cmap-format12-only files created by ttx & remove all other cmap entries
 
 Inconsolata-Regular.abc.widerc.ttf has the hmtx width of "c" set to 600; everything else is 500. Subsetting out c should reduce numberOfHMetrics to 1.
+
+chromacheck-* fonts are from https://github.com/RoelN/ChromaCheck/tree/master/fonts and licensed under MIT by Roel Nieskens and Google.

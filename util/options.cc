@@ -29,11 +29,9 @@
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
-#ifdef HAVE_OT
 #include <hb-ot.h>
-#endif
 
-struct supported_font_funcs_t {
+static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
@@ -41,9 +39,7 @@ struct supported_font_funcs_t {
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
 #endif
-#ifdef HAVE_OT
   {"ot",	hb_ot_font_set_funcs},
-#endif
 };
 
 
@@ -66,7 +62,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 
 
 static gchar *
-shapers_to_string (void)
+shapers_to_string ()
 {
   GString *shapers = g_string_new (nullptr);
   const char **shaper_list = hb_shape_list_shapers ();
@@ -99,7 +95,7 @@ show_version (const char *name G_GNUC_UNUSED,
 
 
 void
-option_parser_t::add_main_options (void)
+option_parser_t::add_main_options ()
 {
   GOptionEntry entries[] =
   {
@@ -172,9 +168,9 @@ parse_margin (const char *name G_GNUC_UNUSED,
   view_options_t *view_opts = (view_options_t *) data;
   view_options_t::margin_t &m = view_opts->margin;
   switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &m.t, &m.r, &m.b, &m.l)) {
-    case 1: m.r = m.t;
-    case 2: m.b = m.t;
-    case 3: m.l = m.r;
+    case 1: m.r = m.t; HB_FALLTHROUGH;
+    case 2: m.b = m.t; HB_FALLTHROUGH;
+    case 3: m.l = m.r; HB_FALLTHROUGH;
     case 4: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -329,6 +325,7 @@ parse_text (const char *name G_GNUC_UNUSED,
     return false;
   }
 
+  text_opts->text_len = -1;
   text_opts->text = g_strdup (arg);
   return true;
 }
@@ -374,6 +371,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
     s = p;
   }
 
+  text_opts->text_len = gs->len;
   text_opts->text = g_string_free (gs, FALSE);
   return true;
 }
@@ -415,6 +413,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
     {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
     {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
+    {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
     {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF8 byte indices, not char indices",	nullptr},
     {"cluster-level",	0, 0, G_OPTION_ARG_INT,		&this->cluster_level,		"Cluster merging level (default: 0)",	"0/1/2"},
     {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	nullptr},
@@ -433,7 +432,8 @@ shape_options_t::add_options (option_parser_t *parser)
     "    Features can be enabled or disabled, either globally or limited to\n"
     "    specific character ranges.  The format for specifying feature settings\n"
     "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
-    "    and 'inherited' are also accepted, though, not documented below.\n"
+    "    and the global values are also accepted, though not documented below.\n"
+    "    CSS string escapes are not supported."
     "\n"
     "    The range indices refer to the positions between Unicode characters,\n"
     "    unless the --utf8-clusters is provided, in which case range indices\n"
@@ -489,7 +489,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     return true;
   }
   switch (sscanf (arg, "%lf%*[ ,]%lf", &font_opts->font_size_x, &font_opts->font_size_y)) {
-    case 1: font_opts->font_size_y = font_opts->font_size_x;
+    case 1: font_opts->font_size_y = font_opts->font_size_x; HB_FALLTHROUGH;
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -507,7 +507,7 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
 {
   font_options_t *font_opts = (font_options_t *) data;
   switch (sscanf (arg, "%d%*[ ,]%d", &font_opts->x_ppem, &font_opts->y_ppem)) {
-    case 1: font_opts->y_ppem = font_opts->x_ppem;
+    case 1: font_opts->y_ppem = font_opts->x_ppem; HB_FALLTHROUGH;
     case 2: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -639,7 +639,7 @@ output_options_t::add_options (option_parser_t *parser)
 
 
 hb_font_t *
-font_options_t::get_font (void) const
+font_options_t::get_font () const
 {
   if (font)
     return font;
@@ -663,7 +663,7 @@ font_options_t::get_font (void) const
   blob = hb_blob_create_from_file (font_path);
 
   if (blob == hb_blob_get_empty ())
-    fail (false, "No such file or directory");
+    fail (false, "Couldn't read or find %s, or it was empty.", font_path);
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, face_index);
@@ -730,7 +730,11 @@ const char *
 text_options_t::get_line (unsigned int *len)
 {
   if (text) {
-    if (!line) line = text;
+    if (!line)
+    {
+      line = text;
+      line_len = text_len;
+    }
     if (line_len == (unsigned int) -1)
       line_len = strlen (line);
 
@@ -792,7 +796,7 @@ text_options_t::get_line (unsigned int *len)
 
 
 FILE *
-output_options_t::get_file_handle (void)
+output_options_t::get_file_handle ()
 {
   if (fp)
     return fp;
@@ -972,7 +976,11 @@ subset_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
+    {"layout", 0, 0, G_OPTION_ARG_NONE,  &this->keep_layout,   "Keep OpenType Layout tables",   nullptr},
     {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
+    {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
+    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+
     {nullptr}
   };
   parser->add_group (entries,

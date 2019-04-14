@@ -206,6 +206,17 @@ typedef unsigned __int64 uint64_t;
 #define UCDN_SCRIPT_NUSHU 139
 #define UCDN_SCRIPT_SOYOMBO 140
 #define UCDN_SCRIPT_ZANABAZAR_SQUARE 141
+#define UCDN_SCRIPT_DOGRA 142
+#define UCDN_SCRIPT_GUNJALA_GONDI 143
+#define UCDN_SCRIPT_HANIFI_ROHINGYA 144
+#define UCDN_SCRIPT_MAKASAR 145
+#define UCDN_SCRIPT_MEDEFAIDRIN 146
+#define UCDN_SCRIPT_OLD_SOGDIAN 147
+#define UCDN_SCRIPT_SOGDIAN 148
+#define UCDN_SCRIPT_ELYMAIC 149
+#define UCDN_SCRIPT_NANDINAGARI 150
+#define UCDN_SCRIPT_NYIAKENG_PUACHUE_HMONG 151
+#define UCDN_SCRIPT_WANCHO 152
 
 #define UCDN_LINEBREAK_CLASS_OP 0
 #define UCDN_LINEBREAK_CLASS_CL 1
@@ -456,8 +467,6 @@ int ucdn_compat_decompose(uint32_t code, uint32_t *decomposed);
  */
 int ucdn_compose(uint32_t *code, uint32_t a, uint32_t b);
 
-#ifdef __cplusplus
-}
-#endif
+HB_END_HEADER
 
 #endif

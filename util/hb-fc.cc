@@ -72,7 +72,7 @@ hb_fc_get_glyph (hb_font_t *font /*HB_UNUSED*/,
 }
 
 static hb_font_funcs_t *
-_hb_fc_get_font_funcs (void)
+_hb_fc_get_font_funcs ()
 {
   static const hb_font_funcs_t *fc_ffuncs;
 

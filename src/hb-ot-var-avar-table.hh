@@ -42,7 +42,7 @@ namespace OT {
 
 struct AxisValueMap
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -59,7 +59,7 @@ struct AxisValueMap
 
 struct SegmentMaps : ArrayOf<AxisValueMap>
 {
-  inline int map (int value) const
+  int map (int value) const
   {
     /* The following special-cases are not part of OpenType, which requires
      * that at least -1, 0, and +1 must be mapped. But we include these as
@@ -94,14 +94,14 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
   }
 
   public:
-  DEFINE_SIZE_ARRAY (2, arrayZ);
+  DEFINE_SIZE_ARRAY (2, *this);
 };
 
 struct avar
 {
-  static const hb_tag_t tableTag	= HB_OT_TAG_avar;
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_avar;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(version.sanitize (c) &&
@@ -109,7 +109,7 @@ struct avar
 		    c->check_struct (this))))
       return_trace (false);
 
-    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
+    const SegmentMaps *map = &firstAxisSegmentMaps;
     unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -121,11 +121,11 @@ struct avar
     return_trace (true);
   }
 
-  inline void map_coords (int *coords, unsigned int coords_length) const
+  void map_coords (int *coords, unsigned int coords_length) const
   {
     unsigned int count = MIN<unsigned int> (coords_length, axisCount);
 
-    const SegmentMaps *map = axisSegmentMapsZ.arrayZ;
+    const SegmentMaps *map = &firstAxisSegmentMaps;
     for (unsigned int i = 0; i < count; i++)
     {
       coords[i] = map->map (coords[i]);
@@ -140,8 +140,7 @@ struct avar
   HBUINT16	axisCount;	/* The number of variation axes in the font. This
 				 * must be the same number as axisCount in the
 				 * 'fvar' table. */
-  UnsizedArrayOf<SegmentMaps>
-		axisSegmentMapsZ;
+  SegmentMaps   firstAxisSegmentMaps;
 
   public:
   DEFINE_SIZE_MIN (8);

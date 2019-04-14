@@ -1,14 +1,16 @@
 #!/usr/bin/env python
+# flake8: noqa
 
 from __future__ import print_function, division, absolute_import
 
-import io, sys
+import io
+import sys
 
 if len (sys.argv) != 5:
 	print ("usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt", file=sys.stderr)
 	sys.exit (1)
 
-BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
+BLACKLISTED_BLOCKS = ["Thai", "Lao"]
 
 files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 
@@ -46,10 +48,11 @@ defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 # TODO Characters that are not in Unicode Indic files, but used in USE
 data[0][0x034F] = defaults[0]
 data[0][0x2060] = defaults[0]
-data[0][0x20F0] = defaults[0]
 # TODO https://github.com/roozbehp/unicode-data/issues/9
 data[0][0x11C44] = 'Consonant_Placeholder'
 data[0][0x11C45] = 'Consonant_Placeholder'
+# TODO https://github.com/harfbuzz/harfbuzz/pull/1399
+data[0][0x111C8] = 'Consonant_Placeholder'
 for u in range (0xFE00, 0xFE0F + 1):
 	data[0][u] = defaults[0]
 
@@ -168,7 +171,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -197,7 +200,11 @@ def is_CONS_SUB(U, UISC, UGC):
 def is_CONS_WITH_STACKER(U, UISC, UGC):
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
-	return UISC in [Virama, Invisible_Stacker]
+	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
+def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
+	# https://github.com/harfbuzz/harfbuzz/issues/1102
+	# https://github.com/harfbuzz/harfbuzz/issues/1379
+	return U in [0x11046, 0x1134D]
 def is_HALANT_NUM(U, UISC, UGC):
 	return UISC == Number_Joiner
 def is_ZWNJ(U, UISC, UGC):
@@ -248,6 +255,7 @@ use_mapping = {
 	'SUB':	is_CONS_SUB,
 	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
+	'HVM':	is_HALANT_OR_VOWEL_MODIFIER,
 	'HN':	is_HALANT_NUM,
 	'ZWNJ':	is_ZWNJ,
 	'ZWJ':	is_ZWJ,
@@ -281,8 +289,8 @@ use_positions = {
 	'V': {
 		'Abv': [Top, Top_And_Bottom, Top_And_Bottom_And_Right, Top_And_Right],
 		'Blw': [Bottom, Overstruck, Bottom_And_Right],
-		'Pst': [Right],
-		'Pre': [Left, Top_And_Left, Top_And_Left_And_Right, Left_And_Right],
+		'Pst': [Right, Top_And_Left, Top_And_Left_And_Right, Left_And_Right],
+		'Pre': [Left],
 	},
 	'VM': {
 		'Abv': [Top],
@@ -295,6 +303,7 @@ use_positions = {
 		'Blw': [Bottom],
 	},
 	'H': None,
+	'HVM': None,
 	'B': None,
 	'FM': None,
 	'SUB': None,
@@ -307,10 +316,26 @@ def map_to_use(data):
 
 		# Resolve Indic_Syllabic_Category
 
-		# TODO: These don't have UISC assigned in Unicode 8.0, but
-		# have UIPC
-		if U == 0x17DD: UISC = Vowel_Dependent
+		# TODO: These don't have UISC assigned in Unicode 12.0, but have UIPC
 		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
+
+		# Tibetan:
+		# TODO: These don't have UISC assigned in Unicode 12.0, but have UIPC
+		if 0x0F18 <= U <= 0x0F19 or 0x0F3E <= U <= 0x0F3F: UISC = Vowel_Dependent
+		if 0x0F86 <= U <= 0x0F87: UISC = Tone_Mark
+		# Overrides to allow NFC order matching syllable
+		# https://github.com/harfbuzz/harfbuzz/issues/1012
+		if UBlock == 'Tibetan' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
+		# also  https://github.com/harfbuzz/harfbuzz/issues/1012
+		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
+			if UIPC == Top:
+				UIPC = Bottom
+			elif UIPC == Bottom:
+				UIPC = Top
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/627
 		if 0x1BF2 <= U <= 0x1BF3: UISC = Nukta; UIPC = Bottom
@@ -320,16 +345,13 @@ def map_to_use(data):
 		if U == 0x1CED: UISC = Tone_Mark
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/525
-		if U == 0x1A7F: UISC = Consonant_Final; UIPC = Bottom
-
-		# TODO: https://github.com/harfbuzz/harfbuzz/pull/609
-		if U == 0x20F0: UISC = Cantillation_Mark; UIPC = Top
-
-		# TODO: https://github.com/harfbuzz/harfbuzz/pull/626
-		if U == 0xA8B4: UISC = Consonant_Medial
+		if U == 0x1A7F: UISC = Consonant_Final
 
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
 		if U == 0x11134: UISC = Gemination_Mark
+
+		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1399
+		if U == 0x111C9: UISC = Consonant_Final
 
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
@@ -337,34 +359,19 @@ def map_to_use(data):
 
 		# Resolve Indic_Positional_Category
 
-		# TODO: Not in Unicode 8.0 yet, but in spec.
-		if U == 0x1B6C: UIPC = Bottom
-
-		# TODO: These should die, but have UIPC in Unicode 8.0
+		# TODO: These should die, but have UIPC in Unicode 12.0
 		if U in [0x953, 0x954]: UIPC = Not_Applicable
 
-		# TODO: In USE's override list but not in Unicode 11.0
+		# TODO: In USE's override list but not in Unicode 12.0
 		if U == 0x103C: UIPC = Left
 
-		# TODO: These are not in USE's override list that we have, nor are they in Unicode 11.0
+		# TODO: These are not in USE's override list that we have, nor are they in Unicode 12.0
 		if 0xA926 <= U <= 0xA92A: UIPC = Top
-		if U == 0x111CA: UIPC = Bottom
-		if U == 0x11300: UIPC = Top
 		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1037
-		if U == 0x11302: UIPC = Top
-		if U == 0x1133C: UIPC = Bottom
-		if U == 0x1171E: UIPC = Left # Correct?!
-		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
+		#  and https://github.com/harfbuzz/harfbuzz/issues/1631
+		if U in [0x11302, 0x11303, 0x114C1]: UIPC = Top
+		if U == 0x1171E: UIPC = Left
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
-		# https://github.com/roozbehp/unicode-data/issues/8
-		if U == 0x0A51: UIPC = Bottom
-
-		# TODO: https://github.com/harfbuzz/harfbuzz/pull/982
-		if UBlock == 'Chakma' and is_VOWEL (U, UISC, UGC):
-			if UIPC == Top:
-				UIPC = Bottom
-			elif UIPC == Bottom:
-				UIPC = Top
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
 			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
@@ -432,6 +439,8 @@ num = 0
 offset = 0
 starts = []
 ends = []
+print ('#pragma GCC diagnostic push')
+print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
 for k,v in sorted(use_mapping.items()):
 	if k in use_positions and use_positions[k]: continue
 	print ("#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:]))
@@ -440,6 +449,7 @@ for k,v in sorted(use_positions.items()):
 	for suf in v.keys():
 		tag = k + suf
 		print ("#define %s	USE_%s" % (tag, tag))
+print ('#pragma GCC diagnostic pop')
 print ("")
 print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
 for u in uu:

@@ -79,10 +79,6 @@ data = combined
 del combined
 num = len (data)
 
-for u in [0x17CD, 0x17CE, 0x17CF, 0x17D0, 0x17D3]:
-	if data[u][0] == 'Other':
-		data[u][0] = "Vowel_Dependent"
-
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}
 for u in ALLOWED_SINGLES:
@@ -131,6 +127,8 @@ for i in range (2):
 
 what = ["INDIC_SYLLABIC_CATEGORY", "INDIC_MATRA_CATEGORY"]
 what_short = ["ISC", "IMC"]
+print ('#pragma GCC diagnostic push')
+print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
 for i in range (2):
 	print ()
 	vv = sorted (values[i].keys ())
@@ -148,6 +146,7 @@ for i in range (2):
 			(what_short[i], s, what[i], v.upper (),
 			'	'* ((48-1 - len (what[i]) - 1 - len (v)) // 8),
 			values[i][v], v))
+print ('#pragma GCC diagnostic pop')
 print ()
 print ("#define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)")
 print ()

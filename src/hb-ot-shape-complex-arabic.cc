@@ -159,11 +159,6 @@ static const struct arabic_state_table_entry {
 
 
 static void
-flip_joiners (const hb_ot_shape_plan_t *plan,
-	      hb_font_t *font,
-	      hb_buffer_t *buffer);
-
-static void
 arabic_fallback_shape (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer);
@@ -217,28 +212,20 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   }
 
   /* Normally, Unicode says a ZWNJ means "don't ligate".  In Arabic script
-   * however, it says a ZWJ should also mean "don't ligate".  So we convert
-   * a ZWJ to a ZWNJ for GSUB.  We want to revert it back to ZWJ before
-   * GPOS processing though.  So we just flip their roles, and flip back
-   * later.  Note that this makes a ZWNJ into ZWJ for GSUB stage, which
-   * means it would *not* break ligatures.  But since ligatures around
-   * ZWNJ are rare, we don't care.
-   *
-   * Since we don't currently have a way to apply a pause before GPOS
-   * starts, let's just do this dance around a few required GUSB features. */
-  map->add_gsub_pause (flip_joiners);
+   * however, it says a ZWJ should also mean "don't ligate".  So we run
+   * the main ligating features as MANUAL_ZWJ. */
 
-  map->add_feature (HB_TAG('r','l','i','g'), F_GLOBAL | F_HAS_FALLBACK);
+  map->enable_feature (HB_TAG('r','l','i','g'), F_MANUAL_ZWJ | F_HAS_FALLBACK);
 
   if (plan->props.script == HB_SCRIPT_ARABIC)
     map->add_gsub_pause (arabic_fallback_shape);
 
   /* No pause after rclt.  See 98460779bae19e4d64d29461ff154b3527bf8420. */
-  map->enable_feature (HB_TAG('r','c','l','t'));
-  map->enable_feature (HB_TAG('c','a','l','t'));
+  map->enable_feature (HB_TAG('r','c','l','t'), F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('c','a','l','t'), F_MANUAL_ZWJ);
+  map->add_gsub_pause (nullptr);
 
   /* And undo here. */
-  map->add_gsub_pause (flip_joiners);
 
   /* The spec includes 'cswh'.  Earlier versions of Windows
    * used to enable this by default, but testing suggests
@@ -256,8 +243,6 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
 
 struct arabic_shape_plan_t
 {
-  ASSERT_POD ();
-
   /* The "+ 1" in the next array is to accommodate for the "NONE" command,
    * which is not an OpenType feature, but this simplifies the code by not
    * having to do a "if (... < NONE) ..." and just rely on the fact that
@@ -294,7 +279,7 @@ data_destroy_arabic (void *data)
 {
   arabic_shape_plan_t *arabic_plan = (arabic_shape_plan_t *) data;
 
-  arabic_fallback_plan_destroy (arabic_plan->fallback_plan.get ());
+  arabic_fallback_plan_destroy (arabic_plan->fallback_plan);
 
   free (data);
 }
@@ -393,31 +378,22 @@ setup_masks_arabic (const hb_ot_shape_plan_t *plan,
   setup_masks_arabic_plan (arabic_plan, buffer, plan->props.script);
 }
 
-
-static void
-flip_joiners (const hb_ot_shape_plan_t *plan HB_UNUSED,
-	      hb_font_t *font HB_UNUSED,
-	      hb_buffer_t *buffer)
-{
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_is_joiner (&info[i]))
-      _hb_glyph_info_flip_joiners (&info[i]);
-}
-
 static void
 arabic_fallback_shape (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
+#if defined(HB_NO_OT_SHAPE_COMPLEX_ARABIC_FALLBACK)
+  return;
+#endif
+
   const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
 
   if (!arabic_plan->do_fallback)
     return;
 
 retry:
-  arabic_fallback_plan_t *fallback_plan = arabic_plan->fallback_plan.get ();
+  arabic_fallback_plan_t *fallback_plan = arabic_plan->fallback_plan;
   if (unlikely (!fallback_plan))
   {
     /* This sucks.  We need a font to build the fallback plan... */
@@ -442,7 +418,7 @@ retry:
 
 static void
 record_stch (const hb_ot_shape_plan_t *plan,
-	     hb_font_t *font,
+	     hb_font_t *font HB_UNUSED,
 	     hb_buffer_t *buffer)
 {
   const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
@@ -466,7 +442,7 @@ record_stch (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-apply_stch (const hb_ot_shape_plan_t *plan,
+apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    hb_buffer_t              *buffer,
 	    hb_font_t                *font)
 {
@@ -484,9 +460,9 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 
   int sign = font->x_scale < 0 ? -1 : +1;
   unsigned int extra_glyphs_needed = 0; // Set during MEASURE, used during CUT
-  typedef enum { MEASURE, CUT } step_t;
+  enum { MEASURE, CUT } /* step_t */;
 
-  for (step_t step = MEASURE; step <= CUT; step = (step_t) (step + 1))
+  for (unsigned int step = MEASURE; step <= CUT; step = step + 1)
   {
     unsigned int count = buffer->len;
     hb_glyph_info_t *info = buffer->info;
@@ -495,7 +471,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
     unsigned int j = new_len;
     for (unsigned int i = count; i; i--)
     {
-      if (!hb_in_range<unsigned> (info[i - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING))
+      if (!hb_in_range<uint8_t> (info[i - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING))
       {
         if (step == CUT)
 	{
@@ -516,7 +492,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 
       unsigned int end = i;
       while (i &&
-	     hb_in_range<unsigned> (info[i - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING))
+	     hb_in_range<uint8_t> (info[i - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING))
       {
 	i--;
 	hb_position_t width = font->get_glyph_h_advance (info[i].codepoint);
@@ -534,7 +510,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
       unsigned int start = i;
       unsigned int context = i;
       while (context &&
-	     !hb_in_range<unsigned> (info[context - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING) &&
+	     !hb_in_range<uint8_t> (info[context - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING) &&
 	     (_hb_glyph_info_is_default_ignorable (&info[context - 1]) ||
 	      HB_ARABIC_GENERAL_CATEGORY_IS_WORD (_hb_glyph_info_get_general_category (&info[context - 1]))))
       {
@@ -625,7 +601,7 @@ postprocess_glyphs_arabic (const hb_ot_shape_plan_t *plan,
   HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
-/* https://unicode.org/reports/tr53/tr53-1.pdf */
+/* http://www.unicode.org/reports/tr53/ */
 
 static hb_codepoint_t
 modifier_combining_marks[] =
@@ -637,6 +613,7 @@ modifier_combining_marks[] =
   0x06E3u, /* ARABIC SMALL LOW SEEN */
   0x06E7u, /* ARABIC SMALL HIGH YEH */
   0x06E8u, /* ARABIC SMALL HIGH NOON */
+  0x08D3u, /* ARABIC SMALL LOW WAW */
   0x08F3u, /* ARABIC SMALL HIGH WAW */
 };
 
@@ -651,7 +628,7 @@ info_is_mcm (const hb_glyph_info_t &info)
 }
 
 static void
-reorder_marks_arabic (const hb_ot_shape_plan_t *plan,
+reorder_marks_arabic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		      hb_buffer_t              *buffer,
 		      unsigned int              start,
 		      unsigned int              end)
@@ -728,7 +705,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   nullptr, /* decompose */
   nullptr, /* compose */
   setup_masks_arabic,
-  nullptr, /* disable_otl */
+  HB_TAG_NONE, /* gpos_tag */
   reorder_marks_arabic,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   true, /* fallback_position */

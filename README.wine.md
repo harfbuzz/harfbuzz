@@ -1,6 +1,6 @@
 For the development of HarfBuzz, the Microsoft shaping technology, Uniscribe,
 as a widely used and tested shaper is used as more-or-less OpenType reference
-implemenetation and that specially is important where OpenType specification
+implementation and that specially is important where OpenType specification
 is or wasn't that clear. For having access to Uniscribe on Linux/macOS these
 steps are recommended:
 
@@ -27,8 +27,8 @@ steps are recommended:
 Now you can use hb-shape using `wine winbuild/util/hb-shape.exe` but if you like to
 to use the original Uniscribe,
 
-8. Bring a 32bit version of `usp10.dll` for youself from `C:\Windows\SysWOW64\usp10.dll` of your
-   Windows installation (asuming you have a 64-bit installation, otherwise `C:\Windows\System32\usp10.dll`)
+8. Bring a 32bit version of `usp10.dll` for yourself from `C:\Windows\SysWOW64\usp10.dll` of your
+   Windows installation (assuming you have a 64-bit installation, otherwise `C:\Windows\System32\usp10.dll`)
    that it is not a DirectWrite proxy ([for more info](https://en.wikipedia.org/wiki/Uniscribe)).
    Rule of thumb, your `usp10.dll` should have a size more than 500kb, otherwise
    it is designed to work with DirectWrite which Wine can't work with its original one.

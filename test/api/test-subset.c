@@ -32,15 +32,17 @@
 static void
 test_subset_32_tables (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("fonts/oom-6ef8c96d3710262511bcc730dce9c00e722cb653");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/oom-6ef8c96d3710262511bcc730dce9c00e722cb653");
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset != hb_face_get_empty ());
 
@@ -52,15 +54,17 @@ test_subset_32_tables (void)
 static void
 test_subset_no_inf_loop (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("fonts/clusterfuzz-testcase-minimized-hb-subset-fuzzer-5521982557782016");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/clusterfuzz-testcase-minimized-hb-subset-fuzzer-5521982557782016");
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 
@@ -72,15 +76,17 @@ test_subset_no_inf_loop (void)
 static void
 test_subset_crash (void)
 {
-  hb_face_t *face = hb_subset_test_open_font("fonts/crash-4b60576767ee4d9fe1cc10959d89baf73d4e8249");
+  hb_face_t *face = hb_test_open_font_file ("../fuzzing/fonts/crash-4b60576767ee4d9fe1cc10959d89baf73d4e8249");
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+  hb_face_t *subset;
+
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  hb_face_t *subset = hb_subset (face, input);
+  subset = hb_subset (face, input);
   g_assert (subset);
   g_assert (subset == hb_face_get_empty ());
 

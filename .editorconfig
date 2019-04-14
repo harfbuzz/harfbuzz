@@ -7,9 +7,9 @@ end_of_line = lf
 insert_final_newline = true
 
 [*.{c,cc,h,hh}]
+tab_width = 8
 indent_size = 2
 indent_style = space
-tab_width = 8
 
 [*.{py,sh}]
 indent_style = tab

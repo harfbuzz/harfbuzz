@@ -28,6 +28,11 @@ class Test:
 				       self.unicodes(),
 				       font_base_name_parts[1])
 
+	def get_font_extension(self):
+		font_base_name = os.path.basename(self.font_path)
+		font_base_name_parts = os.path.splitext(font_base_name)
+		return font_base_name_parts[1]
+
 # A group of tests to perform on the subsetter. Each test
 # Identifies a font a subsetting profile, and a subset to be cut.
 class SubsetTestSuite:
@@ -47,7 +52,7 @@ class SubsetTestSuite:
 		if not os.path.exists(output_dir):
 			os.mkdir(output_dir)
 		if not os.path.isdir(output_dir):
-			raise Error("%s is not a directory." % output_dir)
+			raise Exception("%s is not a directory." % output_dir)
 
 		return output_dir
 

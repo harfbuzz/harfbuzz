@@ -63,34 +63,31 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 struct hb_unicode_funcs_t
 {
   hb_object_header_t header;
-  ASSERT_POD ();
 
   hb_unicode_funcs_t *parent;
 
-  bool immutable;
-
 #define HB_UNICODE_FUNC_IMPLEMENT(return_type, name) \
-  inline return_type name (hb_codepoint_t unicode) { return func.name (this, unicode, user_data.name); }
+  return_type name (hb_codepoint_t unicode) { return func.name (this, unicode, user_data.name); }
 HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 #undef HB_UNICODE_FUNC_IMPLEMENT
 
-  inline hb_bool_t compose (hb_codepoint_t a, hb_codepoint_t b,
-			    hb_codepoint_t *ab)
+  hb_bool_t compose (hb_codepoint_t a, hb_codepoint_t b,
+		     hb_codepoint_t *ab)
   {
     *ab = 0;
     if (unlikely (!a || !b)) return false;
     return func.compose (this, a, b, ab, user_data.compose);
   }
 
-  inline hb_bool_t decompose (hb_codepoint_t ab,
-			      hb_codepoint_t *a, hb_codepoint_t *b)
+  hb_bool_t decompose (hb_codepoint_t ab,
+		       hb_codepoint_t *a, hb_codepoint_t *b)
   {
     *a = ab; *b = 0;
     return func.decompose (this, ab, a, b, user_data.decompose);
   }
 
-  inline unsigned int decompose_compatibility (hb_codepoint_t  u,
-					       hb_codepoint_t *decomposed)
+  unsigned int decompose_compatibility (hb_codepoint_t  u,
+					hb_codepoint_t *decomposed)
   {
     unsigned int ret = func.decompose_compatibility (this, u, decomposed, user_data.decompose_compatibility);
     if (ret == 1 && u == decomposed[0]) {
@@ -101,27 +98,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return ret;
   }
 
-
-  inline hb_unicode_general_category_t
-  modified_general_category (hb_codepoint_t u)
-  {
-    hb_unicode_general_category_t cat = general_category (u);
-
-    if (unlikely (cat == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL))
-    {
-      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
-       * behave correctly in non-native directionality.  They originally
-       * are MODIFIER_SYMBOL.  Fixes:
-       * https://github.com/harfbuzz/harfbuzz/issues/169
-       */
-      if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1F3FBu, 0x1F3FFu)))
-	cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
-    }
-
-    return cat;
-  }
-
-  inline unsigned int
+  unsigned int
   modified_combining_class (hb_codepoint_t u)
   {
     /* XXX This hack belongs to the Myanmar shaper. */
@@ -140,14 +117,14 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return _hb_modified_combining_class[combining_class (u)];
   }
 
-  static inline hb_bool_t
+  static hb_bool_t
   is_variation_selector (hb_codepoint_t unicode)
   {
     /* U+180B..180D MONGOLIAN FREE VARIATION SELECTORs are handled in the
      * Arabic shaper.  No need to match them here. */
     return unlikely (hb_in_ranges<hb_codepoint_t> (unicode,
-				   0xFE00u, 0xFE0Fu, /* VARIATION SELECTOR-1..16 */
-				   0xE0100u, 0xE01EFu));  /* VARIATION SELECTOR-17..256 */
+						   0xFE00u, 0xFE0Fu, /* VARIATION SELECTOR-1..16 */
+						   0xE0100u, 0xE01EFu));  /* VARIATION SELECTOR-17..256 */
   }
 
   /* Default_Ignorable codepoints:
@@ -187,7 +164,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * E0100..E01EF  # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTOR-256
    * E01F0..E0FFF  # Cn [3600] <reserved-E01F0>..<reserved-E0FFF>
    */
-  static inline hb_bool_t
+  static hb_bool_t
   is_default_ignorable (hb_codepoint_t ch)
   {
     hb_codepoint_t plane = ch >> 16;
@@ -239,7 +216,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     SPACE_PUNCTUATION,
     SPACE_NARROW,
   };
-  static inline space_t
+  static space_t
   space_fallback_type (hb_codepoint_t u)
   {
     switch (u)
@@ -286,7 +263,9 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 
 
-/* Modified combining marks */
+/*
+ * Modified combining marks
+ */
 
 /* Hebrew
  *
@@ -379,9 +358,37 @@ DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | \
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
 
-#define HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK(gen_cat) \
-	(FLAG_UNSAFE (gen_cat) & \
-	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
-	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+
+/*
+ * Ranges, used for bsearch tables.
+ */
+
+struct hb_unicode_range_t
+{
+  static int
+  cmp (const void *_key, const void *_item)
+  {
+    hb_codepoint_t cp = *((hb_codepoint_t *) _key);
+    const hb_unicode_range_t *range = (hb_unicode_range_t *) _item;
+
+    if (cp < range->start)
+      return -1;
+    else if (cp <= range->end)
+      return 0;
+    else
+      return +1;
+  }
+
+  hb_codepoint_t start;
+  hb_codepoint_t end;
+};
+
+/*
+ * Emoji.
+ */
+
+HB_INTERNAL bool
+_hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp);
+
 
 #endif /* HB_UNICODE_HH */

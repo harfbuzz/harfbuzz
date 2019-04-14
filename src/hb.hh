@@ -29,18 +29,145 @@
 #ifndef HB_HH
 #define HB_HH
 
-#define _GNU_SOURCE 1
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
+#if defined(_MSC_VER)
+#pragma warning( disable: 4068 ) /* Unknown pragma */
+#endif
+#if defined(__GNUC__) || defined(__clang__)
+/* Rules:
+ *
+ * - All pragmas are declared GCC even if they are clang ones.  Otherwise GCC
+ *   nags, even though we instruct it to ignore -Wunknown-pragmas. ¯\_(ツ)_/¯
+ *
+ * - Within each category, keep sorted.
+ *
+ * - Warnings whose scope can be expanded in future compiler versions shall
+ *   be declared as "warning".  Otherwise, either ignored or error.
+ */
+
+/* Setup.  Don't sort order within this category. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
+#pragma GCC diagnostic warning "-Wall"
+#pragma GCC diagnostic warning "-Wextra"
+#endif
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#endif
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
+//#pragma GCC diagnostic warning "-Weverything"
+#endif
+
+/* Error.  Should never happen. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR
+#pragma GCC diagnostic error   "-Wc++11-narrowing"
+#pragma GCC diagnostic error   "-Wcast-align"
+#pragma GCC diagnostic error   "-Wcast-function-type"
+#pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic error   "-Wformat-security"
+#pragma GCC diagnostic error   "-Wimplicit-function-declaration"
+#pragma GCC diagnostic error   "-Winit-self"
+#pragma GCC diagnostic error   "-Winjected-class-name"
+#pragma GCC diagnostic error   "-Wmissing-braces"
+#pragma GCC diagnostic error   "-Wmissing-declarations"
+#pragma GCC diagnostic error   "-Wmissing-prototypes"
+#pragma GCC diagnostic error   "-Wnested-externs"
+#pragma GCC diagnostic error   "-Wold-style-definition"
+#pragma GCC diagnostic error   "-Wpointer-arith"
+#pragma GCC diagnostic error   "-Wredundant-decls"
+#pragma GCC diagnostic error   "-Wreorder"
+#pragma GCC diagnostic error   "-Wsign-compare"
+#pragma GCC diagnostic error   "-Wstrict-prototypes"
+#pragma GCC diagnostic error   "-Wstring-conversion"
+#pragma GCC diagnostic error   "-Wswitch-enum"
+#pragma GCC diagnostic error   "-Wtautological-overlap-compare"
+#pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
+#pragma GCC diagnostic error   "-Wunused"
+#pragma GCC diagnostic error   "-Wunused-local-typedefs"
+#pragma GCC diagnostic error   "-Wunused-value"
+#pragma GCC diagnostic error   "-Wunused-variable"
+#pragma GCC diagnostic error   "-Wvla"
+#pragma GCC diagnostic error   "-Wwrite-strings"
+#endif
+
+/* Warning.  To be investigated if happens. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
+#pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
+#pragma GCC diagnostic warning "-Wdisabled-optimization"
+#pragma GCC diagnostic warning "-Wformat=2"
+#pragma GCC diagnostic warning "-Wignored-pragma-optimize"
+#pragma GCC diagnostic warning "-Wlogical-op"
+#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
+#pragma GCC diagnostic warning "-Wmissing-format-attribute"
+#pragma GCC diagnostic warning "-Wundef"
+#endif
+
+/* Ignored currently, but should be fixed at some point. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
+#pragma GCC diagnostic ignored "-Wconversion"			// TODO fix
+#pragma GCC diagnostic ignored "-Wformat-signedness"		// TODO fix
+#pragma GCC diagnostic ignored "-Wshadow"			// TODO fix
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
+#pragma GCC diagnostic ignored "-Wunused-parameter"		// TODO fix
+#endif
+
+/* Ignored intentionally. */
+#ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_IGNORED
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
+
+#endif
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+/*
+ * Following added based on what AC_USE_SYSTEM_EXTENSIONS adds to
+ * config.h.in.  Copied here for the convenience of those embedding
+ * HarfBuzz and not using our build system.
+ */
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# define _ALL_SOURCE 1
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# define _POSIX_PTHREAD_SEMANTICS 1
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# define _TANDEM_SOURCE 1
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# define __EXTENSIONS__ 1
+#endif
+
+#if defined (_MSC_VER) && defined (HB_DLL_EXPORT)
+#define HB_EXTERN __declspec (dllexport) extern
+#endif
+
 #include "hb.h"
 #define HB_H_IN
-#ifdef HAVE_OT
 #include "hb-ot.h"
 #define HB_OT_H_IN
-#endif
+#include "hb-aat.h"
+#define HB_AAT_H_IN
+
+#include "hb-aat.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -88,58 +215,6 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
  * Compiler attributes
  */
 
-#if __cplusplus < 201103L
-
-#ifndef nullptr
-#define nullptr NULL
-#endif
-
-#ifndef constexpr
-#define constexpr const
-#endif
-
-#ifndef static_assert
-#define static_assert(e, msg) \
-	HB_UNUSED typedef int HB_PASTE(static_assertion_failed_at_line_, __LINE__) [(e) ? 1 : -1]
-#endif // static_assert
-
-#ifdef __GNUC__
-#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8))
-#define thread_local __thread
-#endif
-#else
-#define thread_local
-#endif
-
-template <typename T>
-struct _hb_alignof
-{
-  struct s
-  {
-    char c;
-    T t;
-  };
-  static constexpr size_t value = offsetof (s, t);
-};
-#ifndef alignof
-#define alignof(x) (_hb_alignof<x>::value)
-#endif
-
-/* https://github.com/harfbuzz/harfbuzz/issues/1127 */
-#ifndef explicit_operator
-#define explicit_operator
-#endif
-
-#else /* __cplusplus >= 201103L */
-
-/* https://github.com/harfbuzz/harfbuzz/issues/1127 */
-#ifndef explicit_operator
-#define explicit_operator explicit
-#endif
-
-#endif /* __cplusplus < 201103L */
-
-
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
 #define unlikely(expr) (__builtin_expect (!!(expr), 0))
@@ -153,7 +228,7 @@ struct _hb_alignof
 #define __attribute__(x)
 #endif
 
-#if __GNUC__ >= 3
+#if defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_PURE_FUNC	__attribute__((pure))
 #define HB_CONST_FUNC	__attribute__((const))
 #define HB_PRINTF_FUNC(format_idx, arg_idx) __attribute__((__format__ (__printf__, format_idx, arg_idx)))
@@ -162,7 +237,7 @@ struct _hb_alignof
 #define HB_CONST_FUNC
 #define HB_PRINTF_FUNC(format_idx, arg_idx)
 #endif
-#if __GNUC__ >= 4
+#if defined(__GNUC__) && (__GNUC__ >= 4)
 #define HB_UNUSED	__attribute__((unused))
 #elif defined(_MSC_VER) /* https://github.com/harfbuzz/harfbuzz/issues/635 */
 #define HB_UNUSED __pragma(warning(suppress: 4100 4101))
@@ -174,8 +249,10 @@ struct _hb_alignof
 # if !defined(HB_NO_VISIBILITY) && !defined(__MINGW32__) && !defined(__CYGWIN__) && !defined(_MSC_VER) && !defined(__SUNPRO_CC)
 #  define HB_INTERNAL __attribute__((__visibility__("hidden")))
 # elif defined(__MINGW32__)
-   /* We use -export-symbols on mingw32, since it does not support visibility
-    * attribute. */
+   /* We use -export-symbols on mingw32, since it does not support visibility attributes. */
+#  define HB_INTERNAL
+# elif defined (_MSC_VER) && defined (HB_DLL_EXPORT)
+   /* We do not try to export internal symbols on Visual Studio */
 #  define HB_INTERNAL
 #else
 #  define HB_INTERNAL
@@ -183,7 +260,7 @@ struct _hb_alignof
 # endif
 #endif
 
-#if __GNUC__ >= 3
+#if defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_FUNC __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
 #define HB_FUNC __FUNCSIG__
@@ -215,7 +292,7 @@ struct _hb_alignof
 #if defined(__clang__) && __cplusplus >= 201103L
    /* clang's fallthrough annotations are only available starting in C++11. */
 #  define HB_FALLTHROUGH [[clang::fallthrough]]
-#elif __GNUC__ >= 7
+#elif defined(__GNUC__) && (__GNUC__ >= 7)
    /* GNU fallthrough attribute is available from GCC7 */
 #  define HB_FALLTHROUGH __attribute__((fallthrough))
 #elif defined(_MSC_VER)
@@ -229,7 +306,16 @@ struct _hb_alignof
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(__clang__)
+/* Disable certain sanitizer errors. */
+/* https://github.com/harfbuzz/harfbuzz/issues/1247 */
+#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
+#else
+#define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+#endif
+
+
+#ifdef _WIN32
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,
     * though we run on it fine. */
@@ -264,7 +350,7 @@ static int errno = 0; /* Use something better? */
 #  endif
 #endif
 
-#if HAVE_ATEXIT
+#if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
 /* atexit() is only safe to be called from shared libraries on certain
  * platforms.  Whitelist.
  * https://bugs.freedesktop.org/show_bug.cgi?id=82246 */
@@ -296,6 +382,9 @@ static int errno = 0; /* Use something better? */
 #ifdef HB_NO_ATEXIT
 #  undef HB_USE_ATEXIT
 #endif
+#ifndef HB_USE_ATEXIT
+#  define HB_USE_ATEXIT 0
+#endif
 
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
@@ -319,36 +408,13 @@ static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
-
-/* We like our types POD */
-
-#define _ASSERT_TYPE_POD1(_line, _type)	union _type_##_type##_on_line_##_line##_is_not_POD { _type instance; }
-#define _ASSERT_TYPE_POD0(_line, _type)	_ASSERT_TYPE_POD1 (_line, _type)
-#define ASSERT_TYPE_POD(_type)		_ASSERT_TYPE_POD0 (__LINE__, _type)
-
-#ifdef __GNUC__
-# define _ASSERT_INSTANCE_POD1(_line, _instance) \
-	HB_STMT_START { \
-		typedef __typeof__(_instance) _type_##_line; \
-		_ASSERT_TYPE_POD1 (_line, _type_##_line); \
-	} HB_STMT_END
-#else
-# define _ASSERT_INSTANCE_POD1(_line, _instance)	typedef int _assertion_on_line_##_line##_not_tested
-#endif
-# define _ASSERT_INSTANCE_POD0(_line, _instance)	_ASSERT_INSTANCE_POD1 (_line, _instance)
-# define ASSERT_INSTANCE_POD(_instance)			_ASSERT_INSTANCE_POD0 (__LINE__, _instance)
-
-/* Check _assertion in a method environment */
-#define _ASSERT_POD1(_line) \
-	HB_UNUSED inline void _static_assertion_on_line_##_line (void) const \
-	{ _ASSERT_INSTANCE_POD1 (_line, *this); /* Make sure it's POD. */ }
-# define _ASSERT_POD0(_line)	_ASSERT_POD1 (_line)
-# define ASSERT_POD()		_ASSERT_POD0 (__LINE__)
-
-
-#define HB_DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&); \
-  void operator=(const TypeName&)
+#define HB_DELETE_COPY_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete; \
+  void operator=(const TypeName&) = delete
+#define HB_DELETE_CREATE_COPY_ASSIGN(TypeName) \
+  TypeName() = delete; \
+  TypeName(const TypeName&) = delete; \
+  void operator=(const TypeName&) = delete
 
 
 /*
@@ -415,15 +481,18 @@ typedef uint64_t hb_vector_size_impl_t;
 	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
-	}
+	} \
+	static_assert (true, "")
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:
  * (FLAG_UNSAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
  */
-#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned int)(x) < 32) + (1U << (unsigned int)(x)))
-#define FLAG_UNSAFE(x) ((unsigned int)(x) < 32 ? (1U << (unsigned int)(x)) : 0)
+#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 32) + (((uint32_t) 1U) << (unsigned)(x)))
+#define FLAG_UNSAFE(x) ((unsigned)(x) < 32 ? (((uint32_t) 1U) << (unsigned)(x)) : 0)
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
+#define FLAG64(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
+#define FLAG64_UNSAFE(x) ((unsigned)(x) < 64 ? (((uint64_t) 1ULL) << (unsigned)(x)) : 0)
 
 
 /* Size signifying variable-sized array */
@@ -470,13 +539,115 @@ _hb_memalign(void **memptr, size_t alignment, size_t size)
 #endif
 
 
-/* Headers we include for everyone.  Keep sorted.  They express dependency amongst
- * themselves, but no other file should include them.*/
-#include "hb-atomic.hh"
-#include "hb-debug.hh"
-#include "hb-dsalgs.hh"
+/*
+ * Big-endian integers.  Here because fundamental.
+ */
+
+template <typename Type, int Bytes> struct BEInt;
+
+template <typename Type>
+struct BEInt<Type, 1>
+{
+  public:
+  BEInt<Type, 1>& operator = (Type V)
+  {
+    v = V;
+    return *this;
+  }
+  operator Type () const { return v; }
+  private: uint8_t v;
+};
+template <typename Type>
+struct BEInt<Type, 2>
+{
+  public:
+  BEInt<Type, 2>& operator = (Type V)
+  {
+    v[0] = (V >>  8) & 0xFF;
+    v[1] = (V      ) & 0xFF;
+    return *this;
+  }
+  operator Type () const
+  {
+#if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
+    defined(__BYTE_ORDER) && \
+    (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
+    /* Spoon-feed the compiler a big-endian integer with alignment 1.
+     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+    struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    return __builtin_bswap16 (((packed_uint16_t *) this)->v);
+#else /* __BYTE_ORDER == __BIG_ENDIAN */
+    return ((packed_uint16_t *) this)->v;
+#endif
+#endif
+    return (v[0] <<  8)
+         + (v[1]      );
+  }
+  private: uint8_t v[2];
+};
+template <typename Type>
+struct BEInt<Type, 3>
+{
+  public:
+  BEInt<Type, 3>& operator = (Type V)
+  {
+    v[0] = (V >> 16) & 0xFF;
+    v[1] = (V >>  8) & 0xFF;
+    v[2] = (V      ) & 0xFF;
+    return *this;
+  }
+  operator Type () const
+  {
+    return (v[0] << 16)
+         + (v[1] <<  8)
+         + (v[2]      );
+  }
+  private: uint8_t v[3];
+};
+template <typename Type>
+struct BEInt<Type, 4>
+{
+  public:
+  BEInt<Type, 4>& operator = (Type V)
+  {
+    v[0] = (V >> 24) & 0xFF;
+    v[1] = (V >> 16) & 0xFF;
+    v[2] = (V >>  8) & 0xFF;
+    v[3] = (V      ) & 0xFF;
+    return *this;
+  }
+  operator Type () const
+  {
+    return (v[0] << 24)
+         + (v[1] << 16)
+         + (v[2] <<  8)
+         + (v[3]      );
+  }
+  private: uint8_t v[4];
+};
+
+
+/*
+ * For lack of a better place, put Zawgyi script hack here.
+ * https://github.com/harfbuzz/harfbuzz/issues/1162
+ */
+
+#define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
+
+
+/* Headers we include for everyone.  Keep topologically sorted by dependency.
+ * They express dependency amongst themselves, but no other file should include
+ * them directly.*/
+#include "hb-meta.hh"
 #include "hb-mutex.hh"
-#include "hb-null.hh"
-#include "hb-object.hh"
+#include "hb-atomic.hh"	// Requires: hb-meta
+#include "hb-null.hh"	// Requires: hb-meta
+#include "hb-algs.hh"	// Requires: hb-meta hb-null
+#include "hb-iter.hh"	// Requires: hb-meta
+#include "hb-debug.hh"	// Requires: hb-algs hb-atomic
+#include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null
+#include "hb-vector.hh"	// Requires: hb-array hb-null
+#include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 
 #endif /* HB_HH */

@@ -2,31 +2,34 @@
 
 from __future__ import print_function, division, absolute_import
 
-import sys, os, subprocess
-
+import sys, os, subprocess, hashlib, tempfile, shutil
 
 def cmd(command):
-	p = subprocess.Popen (
-		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	p.wait ()
-	print (p.stderr.read ().decode ("utf-8").strip ()) # file=sys.stderr
-	return p.stdout.read ().decode ("utf-8").strip (), p.returncode
-
+	global process
+	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
+	process.stdin.flush ()
+	return process.stdout.readline().decode ("utf-8").strip ()
 
 args = sys.argv[1:]
-if not args or sys.argv[1].find('hb-shape') == -1 or not os.path.exists (sys.argv[1]):
-	print ("""First argument does not seem to point to usable hb-shape.""")
-	sys.exit (1)
-hb_shape, args = args[0], args[1:]
-
-extra_options = "--verify"
-
-fails = 0
 
 reference = False
 if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
+
+if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
+	print ("""First argument does not seem to point to usable hb-shape.""")
+	sys.exit (1)
+hb_shape, args = args[0], args[1:]
+
+process = subprocess.Popen ([hb_shape, '--batch'],
+			    stdin=subprocess.PIPE,
+			    stdout=subprocess.PIPE,
+			    stderr=sys.stdout)
+
+passes = 0
+fails = 0
+skips = 0
 
 if not len (args):
 	args = ['-']
@@ -44,56 +47,95 @@ for filename in args:
 		f = open (filename)
 
 	for line in f:
-		fontfile, options, unicodes, glyphs_expected = line.split (":")
-		cwd = os.path.dirname(filename)
-		fontfile = os.path.normpath (os.path.join (cwd, fontfile))
-
+		comment = False
 		if line.startswith ("#"):
+			comment = True
+			line = line[1:]
+
+			if line.startswith (' '):
+				if not reference:
+					print ("#%s" % line)
+				continue
+
+		line = line.strip ()
+		if not line:
+			continue
+
+		fontfile, options, unicodes, glyphs_expected = line.split (":")
+		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
+			fontfile, expected_hash = fontfile.split('@')
+
+			try:
+				with open (fontfile, 'rb') as ff:
+					actual_hash = hashlib.sha1 (ff.read()).hexdigest ().strip ()
+					if actual_hash != expected_hash:
+						print ('different version of %s found; Expected hash %s, got %s; skipping.' %
+							   (fontfile, expected_hash, actual_hash))
+						skips += 1
+						continue
+			except:
+				print ('%s not found, skip.' % fontfile)
+				skips += 1
+				continue
+		else:
+			cwd = os.path.dirname(filename)
+			fontfile = os.path.normpath (os.path.join (cwd, fontfile))
+
+		extra_options = ["--shaper=ot"]
+		if glyphs_expected != '*':
+			extra_options.append("--verify")
+
+		if comment:
 			if not reference:
-				print ("# %s %s --unicodes %s" % (hb_shape, fontfile, unicodes))
+				print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
 			continue
 
 		if not reference:
-			print ("%s %s %s %s --unicodes %s" %
-					 (hb_shape, fontfile, extra_options, options, unicodes))
+			print ('%s "%s" %s %s --unicodes %s' %
+					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
 
-		glyphs1, returncode = cmd ([hb_shape, "--font-funcs=ft",
-			fontfile, extra_options, "--unicodes",
+		# hack to support fonts with space on run-tests.py, after several other tries...
+		if ' ' in fontfile:
+			new_fontfile = os.path.join (tempfile.gettempdir (), 'tmpfile')
+			shutil.copyfile(fontfile, new_fontfile)
+			fontfile = new_fontfile
+
+		glyphs1 = cmd ([hb_shape, "--font-funcs=ft",
+			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
-		if returncode:
-			print ("hb-shape --font-funcs=ft failed.") # file=sys.stderr
-			fails = fails + 1
-			#continue
-
-		glyphs2, returncode = cmd ([hb_shape, "--font-funcs=ot",
-			fontfile, extra_options, "--unicodes",
+		glyphs2 = cmd ([hb_shape, "--font-funcs=ot",
+			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
-		if returncode:
-			print ("ERROR: hb-shape --font-funcs=ot failed.") # file=sys.stderr
-			fails = fails + 1
-			#continue
-
-		if glyphs1 != glyphs2:
+		if glyphs1 != glyphs2 and glyphs_expected != '*':
 			print ("FT funcs: " + glyphs1) # file=sys.stderr
 			print ("OT funcs: " + glyphs2) # file=sys.stderr
-			fails = fails + 1
+			fails += 1
+		else:
+			passes += 1
 
 		if reference:
 			print (":".join ([fontfile, options, unicodes, glyphs1]))
 			continue
 
-		if glyphs1.strip() != glyphs_expected.strip():
+		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
 			print ("Actual:   " + glyphs1) # file=sys.stderr
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
-			fails = fails + 1
+			fails += 1
+		else:
+			passes += 1
 
-if fails != 0:
-	if not reference:
-		print (str (fails) + " tests failed.") # file=sys.stderr
-	sys.exit (1)
-
-else:
-	if not reference:
+if not reference:
+	print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips)) # file=sys.stderr
+	if not (fails + passes):
+		print ("No tests ran.")
+	elif not (fails + skips):
 		print ("All tests passed.")
+
+if fails:
+	sys.exit (1)
+elif passes:
+	sys.exit (0)
+else:
+	sys.exit (77)

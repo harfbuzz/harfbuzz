@@ -52,6 +52,9 @@ if (HB_BUILD_UTILS)
   set (HB_HAVE_FREETYPE ON)
 endif ()
 
+option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
+option(HB_BUILD_TESTS "Build harfbuzz tests" ON)
+
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
   set (HB_HAVE_GLIB ON)
@@ -87,7 +90,6 @@ include_directories(AFTER
   ${PROJECT_BINARY_DIR}/src
 )
 
-add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_FALLBACK)
 
 # We need PYTHON_EXECUTABLE to be set for running the tests...
@@ -98,10 +100,10 @@ include (CheckFunctionExists)
 include (CheckIncludeFile)
 macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
   foreach (func_name ${ARGN})
-    string(TOUPPER ${func_name} definiton_to_add)
-    check_function_exists(${func_name} HAVE_${definiton_to_add})
-    if (${HAVE_${definiton_to_add}})
-      add_definitions(-DHAVE_${definiton_to_add})
+    string(TOUPPER ${func_name} definition_to_add)
+    check_function_exists(${func_name} HAVE_${definition_to_add})
+    if (${HAVE_${definition_to_add}})
+      add_definitions(-DHAVE_${definition_to_add})
     endif ()
   endforeach ()
 endmacro ()
@@ -166,10 +168,6 @@ extract_make_variable(HB_BASE_headers ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_FALLBACK_sources ${SRCSOURCES})
 add_prefix_to_list(HB_FALLBACK_sources "${PROJECT_SOURCE_DIR}/src/")
-extract_make_variable(HB_OT_sources ${SRCSOURCES})
-add_prefix_to_list(HB_OT_sources "${PROJECT_SOURCE_DIR}/src/")
-extract_make_variable(HB_OT_headers ${SRCSOURCES})
-add_prefix_to_list(HB_OT_headers "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_SUBSET_sources ${SRCSOURCES})
 add_prefix_to_list(HB_SUBSET_sources "${PROJECT_SOURCE_DIR}/src/")
@@ -178,13 +176,10 @@ extract_make_variable(HB_SUBSET_headers ${SRCSOURCES})
 add_prefix_to_list(HB_SUBSET_headers "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
-extract_make_variable(HB_OT_RAGEL_GENERATED_sources ${SRCSOURCES})
 #if (IN_HB_DIST)
   add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
-  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_SOURCE_DIR}/src/")
 #else ()
 #  add_prefix_to_list(HB_BASE_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
-#  add_prefix_to_list(HB_OT_RAGEL_GENERATED_sources "${PROJECT_BINARY_DIR}/src/")
 #endif ()
 
 extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
@@ -210,7 +205,7 @@ set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
 ## Define ragel tasks
 # if (NOT IN_HB_DIST)
-#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources} ${HB_OT_RAGEL_GENERATED_sources})
+#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources})
 #    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
 #    set (target_name ${CMAKE_MATCH_1})
 #    add_custom_command(OUTPUT ${ragel_output}
@@ -244,8 +239,6 @@ set (project_sources
   ${HB_BASE_RAGEL_GENERATED_sources}
 
   ${HB_FALLBACK_sources}
-  ${HB_OT_sources}
-  ${HB_OT_RAGEL_GENERATED_sources}
 )
 
 set (subset_project_sources
@@ -258,7 +251,6 @@ set (project_headers
   #${HB_VERSION_H}
 
   ${HB_BASE_headers}
-  ${HB_OT_headers}
 )
 
 set (subset_project_headers
@@ -359,12 +351,32 @@ if (APPLE AND HB_HAVE_CORETEXT)
   list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-coretext.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
 
-  find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
-  if (APPLICATION_SERVICES_FRAMEWORK)
-    list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
-  endif (APPLICATION_SERVICES_FRAMEWORK)
+  if (HB_IOS)
+    find_library(COREFOUNDATION CoreFoundation)
+    if (COREFOUNDATION)
+      list(APPEND THIRD_PARTY_LIBS ${COREFOUNDATION})
+    endif ()
+    mark_as_advanced(COREFOUNDATION)
 
-  mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
+    find_library(CORETEXT CoreText)
+    if (CORETEXT)
+      list(APPEND THIRD_PARTY_LIBS ${CORETEXT})
+    endif ()
+    mark_as_advanced(CORETEXT)
+
+    find_library(COREGRAPHICS CoreGraphics)
+    if (COREGRAPHICS)
+      list(APPEND THIRD_PARTY_LIBS ${COREGRAPHICS})
+    endif ()
+    mark_as_advanced(COREGRAPHICS)
+  else ()
+    find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
+    if (APPLICATION_SERVICES_FRAMEWORK)
+      list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
+    endif ()
+
+    mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
+  endif ()
 endif ()
 
 if (WIN32 AND HB_HAVE_UNISCRIBE)
@@ -527,18 +539,20 @@ add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_heade
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
 ## Define harfbuzz-subset library
-add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
-add_dependencies(harfbuzz-subset harfbuzz)
-target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
+if (HB_BUILD_SUBSET)
+  add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
+  add_dependencies(harfbuzz-subset harfbuzz)
+  target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
-if (BUILD_SHARED_LIBS)
-  set_target_properties(harfbuzz harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
 endif ()
 
 if (UNIX OR MINGW)
   # Make symbols link locally
   include (CheckCXXCompilerFlag)
-  check_cxx_compiler_flag(-Bsymbolic-functions CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
+  CHECK_CXX_COMPILER_FLAG(-Bsymbolic-functions CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
   if (CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
     link_libraries(-Bsymbolic-functions)
   endif ()
@@ -549,12 +563,22 @@ if (UNIX OR MINGW)
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
-    set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
+    if (HB_BUILD_SUBSET)
+      set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
+    endif ()
 
     # No threadsafe statics as we do it ourselves
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics")
   endif ()
+
+  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+  if (COMPILER_SUPPORTS_CXX11)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  else()
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+  endif()
 endif ()
+
 
 ## Define harfbuzz-gobject library
 if (HB_HAVE_GOBJECT)
@@ -574,7 +598,7 @@ if (HB_HAVE_GOBJECT)
 endif ()
 
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
-  add_definitions("-DHB_EXTERN=__declspec(dllexport) extern")
+  add_definitions("-DHB_DLL_EXPORT")
 endif ()
 
 # On Windows, g-ir-scanner requires a DLL build in order for it to work
@@ -680,6 +704,8 @@ if (HB_HAVE_INTROSPECTION)
       -DHB_H_IN
       -DHB_OT_H
       -DHB_OT_H_IN
+      -DHB_AAT_H
+      -DHB_AAT_H_IN
       -DHB_GOBJECT_H
       -DHB_GOBJECT_H_IN
       -DHB_EXTERN=
@@ -772,6 +798,11 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
   )
   if (HB_BUILD_UTILS)
+    if (WIN32 AND BUILD_SHARED_LIBS)
+      install(TARGETS harfbuzz-subset
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif ()
     install(TARGETS hb-view
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
@@ -811,63 +842,53 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   endif ()
 endif ()
 
-if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
-  endif ()
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color")
-  endif ()
-endif ()
+if (HB_BUILD_TESTS)
+  ## src/ executables
+  foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
+    set (prog_name ${prog})
+    if (${prog_name} STREQUAL "test")
+      # test can not be used as a valid executable name on cmake, lets special case it
+      set (prog_name test-test)
+    endif ()
+    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
+    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
+  endforeach ()
+  set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
 
+  ## Tests
+  if (UNIX OR MINGW)
+    if (BUILD_SHARED_LIBS)
+      # generate harfbuzz.def after build completion
+      add_custom_command(TARGET harfbuzz POST_BUILD
+        COMMAND "${PYTHON_EXECUTABLE}" ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def ${project_headers}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
 
-## src/ executables
-foreach (prog main test test-would-substitute test-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
-  set (prog_name ${prog})
-  if (${prog_name} STREQUAL "test")
-    # test can not be used as a valid executable name on cmake, lets special case it
-    set (prog_name test-test)
-  endif ()
-  add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-  target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-endforeach ()
-set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
+      add_test(NAME check-static-inits.sh
+        COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
+      )
+      add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
+      add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
 
-## Tests
-if (UNIX OR MINGW)
-  if (BUILD_SHARED_LIBS)
-    # generate harfbuzz.def after build completion
-    add_custom_command(TARGET harfbuzz POST_BUILD
-      COMMAND "${PYTHON_EXECUTABLE}" ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def ${project_headers}
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+      set_tests_properties(
+        check-static-inits.sh check-libstdc++.sh check-symbols.sh
+        PROPERTIES
+          ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
+          SKIP_RETURN_CODE 77)
+    endif ()
 
-    add_test(NAME check-static-inits.sh
-      COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
-    )
-    add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-    add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-
+    add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
+    add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh)
+    add_test(NAME check-externs.sh COMMAND ./check-externs.sh)
+    add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
     set_tests_properties(
-      check-static-inits.sh check-libstdc++.sh check-symbols.sh
+      check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
       PROPERTIES
-        ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
         SKIP_RETURN_CODE 77)
   endif ()
 
-  add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
-  add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh)
-  add_test(NAME check-externs.sh COMMAND ./check-externs.sh)
-  add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
-  set_tests_properties(
-    check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
-    PROPERTIES
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
-      SKIP_RETURN_CODE 77)
+  # Needs to come last so that variables defined above are passed to
+  # subdirectories.
+  add_subdirectory(test)
 endif ()
-
-# Needs to come last so that variables defined above are passed to
-# subdirectories.
-add_subdirectory(test)

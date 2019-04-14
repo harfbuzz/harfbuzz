@@ -29,9 +29,7 @@
 
 #include "hb.hh"
 
-
 #include "hb-ot-shape-complex.hh"
-#include "hb-ot-shape.hh" /* XXX Remove */
 
 
 /* buffer var allocations */
@@ -125,7 +123,7 @@ enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_CONSONANT_PRECEDING_REPHA	= OT_Repha,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_PREFIXED		= OT_X, /* Don't care. */
   INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED		= OT_CM,
-  INDIC_SYLLABIC_CATEGORY_CONSONANT_SUCCEEDING_REPHA	= OT_N,
+  INDIC_SYLLABIC_CATEGORY_CONSONANT_SUCCEEDING_REPHA	= OT_CM,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_WITH_STACKER	= OT_CS,
   INDIC_SYLLABIC_CATEGORY_GEMINATION_MARK		= OT_SM, /* https://github.com/harfbuzz/harfbuzz/issues/552 */
   INDIC_SYLLABIC_CATEGORY_INVISIBLE_STACKER		= OT_Coeng,
@@ -366,6 +364,7 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0x0AFBu)) cat = OT_N; /* https://github.com/harfbuzz/harfbuzz/issues/552 */
 
   else if (unlikely (u == 0x0980u)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/issues/538 */
+  else if (unlikely (u == 0x09FCu)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/pull/1613 */
   else if (unlikely (u == 0x0C80u)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/pull/623 */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;

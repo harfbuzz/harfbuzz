@@ -92,14 +92,14 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_finish (fixture_t *fixture, gconstpointer user_data)
+fixture_finish (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 {
   hb_buffer_destroy (fixture->buffer);
 }
 
 
 static void
-test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
+test_buffer_properties (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 {
   hb_buffer_t *b = fixture->buffer;
   hb_unicode_funcs_t *ufuncs;
@@ -294,7 +294,7 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
+test_buffer_positions (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 {
   hb_buffer_t *b = fixture->buffer;
   unsigned int i, len, len2;
@@ -319,7 +319,7 @@ test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
+test_buffer_allocation (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 {
   hb_buffer_t *b = fixture->buffer;
 
@@ -379,14 +379,15 @@ static void
 test_buffer_utf8_conversion (void)
 {
   hb_buffer_t *b;
-  hb_glyph_info_t *glyphs;
-  unsigned int bytes, chars, i, j, len;
+  unsigned int chars, i, j, len;
 
   b = hb_buffer_create ();
   hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
 
   for (i = 0; i < G_N_ELEMENTS (utf8_conversion_tests); i++)
   {
+    unsigned int bytes;
+    hb_glyph_info_t *glyphs;
     const utf8_conversion_test_t *test = &utf8_conversion_tests[i];
     char *escaped;
 

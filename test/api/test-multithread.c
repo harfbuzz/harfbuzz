@@ -23,38 +23,54 @@
  *
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
 #include <pthread.h>
 
 #include <hb.h>
 #include <hb-ft.h>
 #include <hb-ot.h>
 
-const char *text = "طرح‌نَما";
-const char *path =
-#if defined(__linux__)
-		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
-#elif defined(_WIN32) || defined(_WIN64)
-		"C:\\Windows\\Fonts\\tahoma.ttf";
-#elif __APPLE__
-		"/Library/Fonts/Tahoma.ttf";
-#endif
+#include "hb-test.h"
 
-int num_iters = 200;
+static const char *font_path = "fonts/Inconsolata-Regular.abc.ttf";
+static const char *text = "abc";
 
-hb_font_t *font;
+static int num_threads = 30;
+static int num_iters = 200;
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static hb_font_t *font;
+static hb_buffer_t *ref_buffer;
+
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void
-fill_the_buffer(hb_buffer_t *buffer)
+fill_the_buffer (hb_buffer_t *buffer)
 {
-  hb_buffer_add_utf8 (buffer, text, sizeof (text), 0, sizeof (text));
+  hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, NULL, 0);
+}
+
+static void
+validity_check (hb_buffer_t *buffer) {
+  if (hb_buffer_diff (ref_buffer, buffer, (hb_codepoint_t) -1, 0))
+  {
+    fprintf (stderr, "One of the buffers was different from the reference.\n");
+    char out[255];
+
+    hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (ref_buffer),
+				out, sizeof (out), NULL,
+				font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES);
+    fprintf (stderr, "Actual:   %s\n", out);
+
+    hb_buffer_serialize_glyphs (ref_buffer, 0, hb_buffer_get_length (ref_buffer),
+				out, sizeof (out), NULL,
+				font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES);
+    fprintf (stderr, "Expected: %s\n", out);
+
+    exit (1);
+  }
 }
 
 static void *
@@ -70,16 +86,16 @@ thread_func (void *data)
   {
     hb_buffer_clear_contents (buffer);
     fill_the_buffer (buffer);
+    validity_check (buffer);
   }
 
   return 0;
 }
 
-void
-test_body ()
+static void
+test_body (void)
 {
   int i;
-  int num_threads = 30;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
 
@@ -95,37 +111,11 @@ test_body ()
   /* Let them loose! */
   pthread_mutex_unlock (&mutex);
 
-  hb_buffer_t *ref_buffer = hb_buffer_create ();
-  fill_the_buffer (ref_buffer);
-
   for (i = 0; i < num_threads; i++)
   {
     pthread_join (threads[i], NULL);
-    hb_buffer_t *buffer = buffers[i];
-    hb_buffer_diff_flags_t diff = hb_buffer_diff (ref_buffer, buffer, (hb_codepoint_t) -1, 0);
-    if (diff)
-    {
-      fprintf (stderr, "One of the buffers (%d) was different from the reference.\n", i);
-      char out[255];
-
-      hb_buffer_serialize_glyphs (buffer, 0, hb_buffer_get_length (ref_buffer),
-				  out, sizeof (out), NULL,
-				  font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-      fprintf (stderr, "Actual: %s\n", out);
-
-      hb_buffer_serialize_glyphs (ref_buffer, 0, hb_buffer_get_length (ref_buffer),
-				  out, sizeof (out), NULL,
-				  font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-      fprintf (stderr, "Expected: %s\n", out);
-
-      exit (1);
-    }
-    hb_buffer_destroy (buffer);
+    hb_buffer_destroy (buffers[i]);
   }
-
-  hb_buffer_destroy (ref_buffer);
 
   free (buffers);
   free (threads);
@@ -134,18 +124,39 @@ test_body ()
 int
 main (int argc, char **argv)
 {
-  hb_blob_t *blob = hb_blob_create_from_file (path);
-  hb_face_t *face = hb_face_create (blob, 0);
+  hb_test_init (&argc, &argv);
+
+  char *path = argc > 1 && *argv[1] ? argv[1] : (char *) font_path;
+  if (argc > 2)
+    num_threads = atoi (argv[2]);
+  if (argc > 3)
+    num_iters = atoi (argv[3]);
+  if (argc > 4)
+    text = argv[4];
+
+  /* Dummy call to alleviate _guess_segment_properties thread safety-ness
+   * https://github.com/harfbuzz/harfbuzz/issues/1191 */
+  hb_language_get_default ();
+
+  hb_face_t *face = hb_test_open_font_file (path);
   font = hb_font_create (face);
 
-  hb_ft_font_set_funcs (font);
-  test_body ();
+  /* Fill the reference */
+  ref_buffer = hb_buffer_create ();
+  fill_the_buffer (ref_buffer);
+
+  /* Unnecessary, since version 2 it is ot-font by default */
   hb_ot_font_set_funcs (font);
   test_body ();
 
+  /* Test hb-ft in multithread */
+  hb_ft_font_set_funcs (font);
+  test_body ();
+
+  hb_buffer_destroy (ref_buffer);
+
   hb_font_destroy (font);
   hb_face_destroy (face);
-  hb_blob_destroy (blob);
 
   return 0;
 }
