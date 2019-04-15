@@ -43,7 +43,9 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    * Constructors.
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
-  hb_array_t (const hb_array_t<Type> &o) : arrayZ (o.arrayZ), length (o.length) {}
+  hb_array_t (const hb_array_t<Type> &o) :
+    hb_iter_with_fallback_t<hb_array_t<Type>, Type&> (),
+    arrayZ (o.arrayZ), length (o.length) {}
   template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
 
