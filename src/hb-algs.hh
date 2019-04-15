@@ -32,7 +32,7 @@
 #include "hb-null.hh"
 
 
-static const struct
+struct
 {
   /* Don't know how to set priority of following.  Doesn't work right now. */
   //template <typename T>
@@ -54,7 +54,7 @@ static const struct
     /* Knuth's multiplicative method: */
     return (uint32_t) v * 2654435761u;
   }
-} hb_hash HB_UNUSED;
+} static const hb_hash HB_UNUSED;
 
 static const struct
 {
