@@ -260,6 +260,13 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 # endif
 #endif
 
+/* https://github.com/harfbuzz/harfbuzz/issues/1651 */
+#if defined(__clang__) && __clang_major__ < 10
+#define static_const static
+#else
+#define static_const static const
+#endif
+
 #if defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_FUNC __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
