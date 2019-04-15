@@ -1,6 +1,6 @@
 /*
  * Copyright © 2018  Google, Inc.
- * Copyright © 2019  Google, Inc.
+ * Copyright © 2019  Facebook, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
