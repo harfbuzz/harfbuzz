@@ -70,6 +70,9 @@ fails = 0
 valgrind = None
 if os.environ.get('RUN_VALGRIND', ''):
 	valgrind = which ('valgrind')
+	if valgrind is None:
+		print ("""Valgrind requested but not found.""")
+		sys.exit (1)
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
