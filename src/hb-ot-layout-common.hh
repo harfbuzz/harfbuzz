@@ -1687,12 +1687,17 @@ struct VarRegionList
 		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
   }
 
-  bool serialize (hb_serialize_context_t *c, const VarRegionList *src)
+  bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
-    unsigned int size = src->get_size ();
-    if (unlikely (!c->allocate_size<VarRegionList> (size))) return_trace (false);
-    memcpy (this, src, size);
+    VarRegionList *out = c->allocate_min<VarRegionList> ();
+    if (unlikely (!out)) return_trace (false);
+    axisCount = src->axisCount;
+    regionCount = region_map.get_count ();
+    if (unlikely (!c->allocate_size<VarRegionList> (get_size () - min_size))) return_trace (false);
+    for (unsigned int r = 0; r < regionCount; r++)
+      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.to_old (r)], VarRegionAxis::static_size * axisCount);
+
     return_trace (true);
   }
 
@@ -1773,42 +1778,83 @@ struct VarData
 
   bool serialize (hb_serialize_context_t *c,
 		  const VarData *src,
-		  const hb_bimap_t &remap)
+		  const hb_bimap_t &inner_map,
+		  const hb_bimap_t &region_map)
   {
     TRACE_SUBSET (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    itemCount = remap.get_count ();
+    itemCount = inner_map.get_count ();
     
     /* Optimize short count */
-    unsigned int short_count = src->shortCount;
-    for (; short_count > 0; short_count--)
-      for (unsigned int i = 0; i < remap.get_count (); i++)
+    unsigned short ri_count = src->regionIndices.len;
+    enum delta_size_t { kZero=0, kByte, kShort };
+    hb_vector_t<delta_size_t> delta_sz;
+    hb_vector_t<unsigned int> ri_map;	/* maps old index to new index */
+    delta_sz.resize (ri_count);
+    ri_map.resize (ri_count);
+    unsigned int new_short_count = 0;
+    unsigned int r;
+    for (r = 0; r < ri_count; r++)
+    {
+      delta_sz[r] = kZero;
+      for (unsigned int i = 0; i < inner_map.get_count (); i++)
       {
-	unsigned int old = remap.to_old (i);
-	if (unlikely (old >= src->itemCount)) return_trace (false);
-	int16_t delta = src->get_item_delta (old, short_count - 1);
-	if (delta < -128 || 127 < delta) goto found_short;
+	unsigned int old = inner_map.to_old (i);
+	int16_t delta = src->get_item_delta (old, r);
+	if (delta < -128 || 127 < delta)
+	{
+	  delta_sz[r] = kShort;
+	  new_short_count++;
+	  break;
+	}
+	else if (delta != 0)
+	  delta_sz[r] = kByte;
       }
-    
-found_short:
-    shortCount = short_count;
-    regionIndices.len = src->regionIndices.len;
+    }
+    unsigned int short_index = 0;
+    unsigned int byte_index = new_short_count;
+    unsigned int new_ri_count = 0;
+    for (r = 0; r < ri_count; r++)
+      if (delta_sz[r])
+      {
+      	ri_map[r] = (delta_sz[r] == kShort)? short_index++ : byte_index++;
+      	new_ri_count++;
+      }
 
-    unsigned int size = src->regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (get_row_size () * itemCount);
+    shortCount = new_short_count;
+    regionIndices.len = new_ri_count;
+
+    unsigned int size = regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (get_row_size () * itemCount);
     if (unlikely (!c->allocate_size<HBUINT8> (size)))
       return_trace (false);
 
-    memcpy (&regionIndices[0], &src->regionIndices[0], src->regionIndices.get_size ()-HBUINT16::static_size);
+    for (r = 0; r < ri_count; r++)
+      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map.to_new (src->regionIndices[r]);
 
     for (unsigned int i = 0; i < itemCount; i++)
-      for (unsigned int r = 0; r < regionIndices.len; r++)
-      {
-      	hb_codepoint_t	old = remap.to_old (i);
-      	if (unlikely (old >= src->itemCount)) return_trace (false);
-      	set_item_delta (i, r, src->get_item_delta (old, r));
-      }
+    {
+      hb_codepoint_t	old = inner_map.to_old (i);
+      if (unlikely (old >= src->itemCount)) return_trace (false);
+      for (unsigned int r = 0; r < ri_count; r++)
+	if (delta_sz[r]) set_item_delta (i, ri_map[r], src->get_item_delta (old, r));
+    }
 
     return_trace (true);
+  }
+
+  void collect_region_refs (hb_bimap_t &region_map, const hb_bimap_t &inner_map) const
+  {
+    for (unsigned int r = 0; r < regionIndices.len; r++)
+    {
+      unsigned int region = regionIndices[r];
+      if (region_map.has (region)) continue;
+      for (unsigned int i = 0; i < inner_map.get_count (); i++)
+	if (get_item_delta (inner_map.to_old (i), r) != 0)
+	{
+	  region_map.add (region);
+	  break;
+	}
+    }
   }
 
   protected:
@@ -1823,6 +1869,7 @@ found_short:
 
   int16_t get_item_delta (unsigned int item, unsigned int region) const
   {
+    if (unlikely (item >= itemCount || region >= regionIndices.len)) return 0;
     const HBINT8 *p = (const HBINT8 *)get_delta_bytes () + item * get_row_size ();
     if (region < shortCount)
       return ((const HBINT16 *)p)[region];
@@ -1890,8 +1937,14 @@ struct VariationStore
     unsigned int size = min_size + HBUINT32::static_size * set_count;
     if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format = 1;
+
+    hb_bimap_t region_map;
+    for (unsigned int i = 0; i < inner_remaps.length; i++)
+      (src+src->dataSets[i]).collect_region_refs (region_map, inner_remaps[i]);
+    region_map.reorder ();
+
     if (unlikely (!regions.serialize (c, this)
-		    .serialize (c, &(src+src->regions)))) return_trace (false);
+		  .serialize (c, &(src+src->regions), region_map))) return_trace (false);
 
     /* TODO: The following code could be simplified when
      * OffsetListOf::subset () can take a custom param to be passed to VarData::serialize ()
@@ -1902,7 +1955,7 @@ struct VariationStore
     {
       if (inner_remaps[i].get_count () == 0) continue;
       if (unlikely (!dataSets[set_index++].serialize (c, this)
-		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i])))
+		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i], region_map)))
 	return_trace (false);
     }
     
