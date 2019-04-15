@@ -88,7 +88,7 @@ for file in os.listdir (parent_path):
 		failed = True
 
 	if valgrind:
-		text, returncode = cmd ([valgrind, '--error-exitcode=1', hb_shape_fuzzer, path])
+		text, returncode = cmd ([valgrind, '--error-exitcode=1', '--leak-check=full', hb_shape_fuzzer, path])
 		if returncode:
 			print (text)
 			print ('failure on %s' % file)
