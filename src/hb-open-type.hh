@@ -173,9 +173,6 @@ typedef Index NameID;
 template <typename Type, bool has_null=true>
 struct Offset : Type
 {
-  HB_DELETE_COPY_ASSIGN (Offset);
-  Offset () = default;
-
   Offset& operator = (typename Type::type i) { Type::operator= (i); return *this; }
 
   typedef Type type;
@@ -266,6 +263,9 @@ struct _hb_has_null<Type, true>
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
+  HB_DELETE_COPY_ASSIGN (OffsetTo);
+  OffsetTo () = default;
+
   OffsetTo& operator = (typename OffsetType::type i) { OffsetType::operator= (i); return *this; }
 
   const Type& operator () (const void *base) const
@@ -609,10 +609,16 @@ struct ArrayOf
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size.  We just include
      * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize(), ie. they do not
+     * pointed to do have a simple sanitize() as well as an
+     * assignment opreator.  This ensures that they do not
      * reference other structs via offsets.
      */
-    (void) (false && arrayZ[0].sanitize (c));
+    if (false)
+    {
+      arrayZ[0].sanitize (c);
+      Type v;
+      v = arrayZ[0];
+    }
 
     return_trace (true);
   }
