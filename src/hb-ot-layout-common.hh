@@ -583,25 +583,25 @@ struct Feature
      * Adobe tools, only the 'size' feature had FeatureParams defined.
      */
 
-    OffsetTo<FeatureParams> orig_offset = featureParams;
+    if (likely (featureParams.is_null ()))
+      return_trace (true);
+
+    unsigned int orig_offset = featureParams;
     if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
       return_trace (false);
-
-    if (likely (orig_offset.is_null ()))
-      return_trace (true);
 
     if (featureParams == 0 && closure &&
 	closure->tag == HB_TAG ('s','i','z','e') &&
 	closure->list_base && closure->list_base < this)
     {
-      unsigned int new_offset_int = (unsigned int) orig_offset -
+      unsigned int new_offset_int = orig_offset -
 				    (((char *) this) - ((char *) closure->list_base));
 
       OffsetTo<FeatureParams> new_offset;
-      /* Check that it did not overflow. */
+      /* Check that it would not overflow. */
       new_offset = new_offset_int;
       if (new_offset == new_offset_int &&
-	  c->try_set (&featureParams, new_offset) &&
+	  c->try_set (&featureParams, new_offset_int) &&
 	  !featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE))
 	return_trace (false);
     }

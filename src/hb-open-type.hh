@@ -173,6 +173,9 @@ typedef Index NameID;
 template <typename Type, bool has_null=true>
 struct Offset : Type
 {
+  HB_DELETE_COPY_ASSIGN (Offset);
+  Offset () = default;
+
   Offset& operator = (typename Type::type i) { Type::operator= (i); return *this; }
 
   typedef Type type;

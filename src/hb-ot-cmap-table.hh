@@ -904,7 +904,7 @@ struct cmap
     // Write out format 4 sub table
     {
       CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, table);
-      format4_plat3_rec.subtable = format4_plat0_rec.subtable;
+      format4_plat3_rec.subtable = (unsigned int) format4_plat0_rec.subtable;
       subtable.u.format = 4;
 
       CmapSubtableFormat4 &format4 = subtable.u.format4;
