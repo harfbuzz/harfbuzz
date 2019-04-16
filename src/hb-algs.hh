@@ -169,14 +169,14 @@ hb_pair (T1&& a, T2&& b) { return hb_pair_t<T1, T2> (a, b); }
 
 struct
 {
-  template <typename Pair> decltype (hb_declval (Pair).first)
-  operator () (const Pair& pair) const { return pair.first; }
+  template <typename Pair> auto
+  operator () (const Pair& pair) const HB_AUTO_RETURN_EXPR (pair.first)
 } HB_FUNCOBJ (hb_first);
 
 struct
 {
-  template <typename Pair> decltype (hb_declval (Pair).second)
-  operator () (const Pair& pair) const { return pair.second; }
+  template <typename Pair> auto
+  operator () (const Pair& pair) const HB_AUTO_RETURN_EXPR (pair.second)
 } HB_FUNCOBJ (hb_second);
 
 struct
