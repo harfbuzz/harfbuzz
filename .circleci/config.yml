@@ -28,7 +28,7 @@ jobs:
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
-      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
+      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
       - run: make -j4
       - run: make check || .ci/fail.sh
 
@@ -250,7 +250,7 @@ jobs:
     steps:
       - checkout
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
-      - run: echo "#""!""/bin/true" > /usr/bin/ragel && chmod +x /usr/bin/ragel
+      - run: echo '#!/bin/true' > /usr/bin/ragel && chmod +x /usr/bin/ragel
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
       - run: make -j32
 

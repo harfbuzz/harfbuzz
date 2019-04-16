@@ -60,8 +60,10 @@ struct NameRecord
     if (p == 1)
       return _hb_ot_name_language_for_mac_code (l);
 
+#if !defined(HB_NO_NAME_TABLE_AAT)
     if (p == 0)
       return _hb_aat_language_get (face, l);
+#endif
 
     return HB_LANGUAGE_INVALID;
   }

@@ -70,6 +70,9 @@ fails = 0
 valgrind = None
 if os.environ.get('RUN_VALGRIND', ''):
 	valgrind = which ('valgrind')
+	if valgrind is None:
+		print ("""Valgrind requested but not found.""")
+		sys.exit (1)
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
@@ -85,7 +88,7 @@ for file in os.listdir (parent_path):
 		failed = True
 
 	if valgrind:
-		text, returncode = cmd ([valgrind, '--error-exitcode=1', hb_shape_fuzzer, path])
+		text, returncode = cmd ([valgrind, '--error-exitcode=1', '--leak-check=full', hb_shape_fuzzer, path])
 		if returncode:
 			print (text)
 			print ('failure on %s' % file)

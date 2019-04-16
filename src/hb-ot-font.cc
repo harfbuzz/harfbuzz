@@ -184,12 +184,16 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   bool ret = ot_face->sbix->get_extents (font, glyph, extents);
   if (!ret)
     ret = ot_face->glyf->get_extents (font, glyph, extents);
+#if !defined(HB_NO_OT_FONT_CFF)
   if (!ret)
     ret = ot_face->cff1->get_extents (glyph, extents);
   if (!ret)
     ret = ot_face->cff2->get_extents (font, glyph, extents);
+#endif
+#if !defined(HB_NO_OT_FONT_BITMAP)
   if (!ret)
     ret = ot_face->CBDT->get_extents (font, glyph, extents);
+#endif
   // TODO Hook up side-bearings variations.
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);

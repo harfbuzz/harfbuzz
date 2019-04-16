@@ -1194,7 +1194,7 @@ struct SubstLookup : Lookup
   const SubTable& get_subtable (unsigned int i) const
   { return Lookup::get_subtable<SubTable> (i); }
 
-  static bool lookup_type_is_reverse (unsigned int lookup_type)
+  HB_INTERNAL static bool lookup_type_is_reverse (unsigned int lookup_type)
   { return lookup_type == SubTable::ReverseChainSingle; }
 
   bool is_reverse () const
@@ -1252,7 +1252,7 @@ struct SubstLookup : Lookup
       return dispatch (c);
   }
 
-  static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
+  HB_INTERNAL static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   SubTable& serialize_subtable (hb_serialize_context_t *c,
 				       unsigned int i)
@@ -1315,9 +1315,9 @@ struct SubstLookup : Lookup
   }
 
   template <typename context_t>
-  static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
+  HB_INTERNAL static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
 
-  static hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+  HB_INTERNAL static hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
   {
     if (!c->should_visit_lookup (lookup_index))
       return hb_void_t ();

@@ -43,7 +43,9 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    * Constructors.
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
-  hb_array_t (const hb_array_t<Type> &o) : arrayZ (o.arrayZ), length (o.length) {}
+  hb_array_t (const hb_array_t<Type> &o) :
+    hb_iter_with_fallback_t<hb_array_t<Type>, Type&> (),
+    arrayZ (o.arrayZ), length (o.length) {}
   template <typename U = Type, hb_enable_if (hb_is_const (U))>
   hb_array_t (const hb_array_t<hb_remove_const (Type)> &o) : arrayZ (o.arrayZ), length (o.length) {}
 
@@ -86,8 +88,8 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   operator hb_array_t<const Type> () { return hb_array_t<const Type> (arrayZ, length); }
   template <typename T> operator T * () const { return arrayZ; }
 
-  bool operator == (const hb_array_t &o) const;
-  uint32_t hash () const;
+  HB_INTERNAL bool operator == (const hb_array_t &o) const;
+  HB_INTERNAL uint32_t hash () const;
 
   /*
    * Compare, Sort, and Search.
@@ -100,7 +102,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       return (int) a.length - (int) length;
     return hb_memcmp (a.arrayZ, arrayZ, get_size ());
   }
-  static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
     hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
     hb_array_t<Type> *b = (hb_array_t<Type> *) pb;

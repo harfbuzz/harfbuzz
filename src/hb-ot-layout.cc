@@ -138,6 +138,9 @@ bool
 OT::GDEF::is_blacklisted (hb_blob_t *blob,
 			  hb_face_t *face) const
 {
+#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+  return false;
+#endif
   /* The ugly business of blacklisting individual fonts' tables happen here!
    * See this thread for why we finally had to bend in and do this:
    * https://lists.freedesktop.org/archives/harfbuzz/2016-February/005489.html
@@ -381,6 +384,9 @@ bool
 OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face) const
 {
+#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+  return false;
+#endif
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
    * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
    * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
@@ -406,6 +412,9 @@ bool
 OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
+#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+  return false;
+#endif
   return false;
 }
 

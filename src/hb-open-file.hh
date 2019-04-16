@@ -56,7 +56,7 @@ typedef struct TableRecord
 {
   int cmp (Tag t) const { return -t.cmp (tag); }
 
-  static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
     const TableRecord *a = (const TableRecord *) pa;
     const TableRecord *b = (const TableRecord *) pb;
@@ -86,8 +86,8 @@ typedef struct OffsetTable
   const TableRecord& get_table (unsigned int i) const
   { return tables[i]; }
   unsigned int get_table_tags (unsigned int  start_offset,
-				      unsigned int *table_count, /* IN/OUT */
-				      hb_tag_t     *table_tags /* OUT */) const
+			       unsigned int *table_count, /* IN/OUT */
+			       hb_tag_t     *table_tags /* OUT */) const
   {
     if (table_count)
     {

@@ -63,7 +63,8 @@ struct IntType
   operator wide_type () const { return v; }
   bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
-  static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
+  HB_INTERNAL static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b)
+  { return b->cmp (*a); }
   template <typename Type2>
   int cmp (Type2 a) const
   {
@@ -262,6 +263,9 @@ struct _hb_has_null<Type, true>
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
+  HB_DELETE_COPY_ASSIGN (OffsetTo);
+  OffsetTo () = default;
+
   OffsetTo& operator = (typename OffsetType::type i) { OffsetType::operator= (i); return *this; }
 
   const Type& operator () (const void *base) const
@@ -605,10 +609,16 @@ struct ArrayOf
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size.  We just include
      * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize(), ie. they do not
+     * pointed to do have a simple sanitize() as well as an
+     * assignment opreator.  This ensures that they do not
      * reference other structs via offsets.
      */
-    (void) (false && arrayZ[0].sanitize (c));
+    if (false)
+    {
+      arrayZ[0].sanitize (c);
+      Type v;
+      v = arrayZ[0];
+    }
 
     return_trace (true);
   }

@@ -895,20 +895,11 @@ def language_name_intersection (a, b):
 def get_matching_language_name (intersection, candidates):
 	return next (iter (c for c in candidates if not intersection.isdisjoint (get_variant_set (c))))
 
-maximum_tags = 0
 for language, tags in sorted (ot.from_bcp_47.items ()):
 	if language == '' or '-' in language:
 		continue
-	print ('  {\"%s\",\t{' % language, end='')
-	maximum_tags = max (maximum_tags, len (tags))
-	tag_count = len (tags)
 	for i, tag in enumerate (tags, start=1):
-		if i > 1:
-			print ('\t\t ', end='')
-		print (hb_tag (tag), end='')
-		if i == tag_count:
-			print ('}}', end='')
-		print (',\t/* ', end='')
+		print ('  {\"%s\",\t%s},\t/* ' % (language, hb_tag (tag)), end='')
 		bcp_47_name = bcp_47.names.get (language, '')
 		bcp_47_name_candidates = bcp_47_name.split ('\n')
 		intersection = language_name_intersection (bcp_47_name, ot.names[tag])
@@ -922,8 +913,6 @@ for language, tags in sorted (ot.from_bcp_47.items ()):
 		print (' */')
 
 print ('};')
-print ()
-print ('static_assert (HB_OT_MAX_TAGS_PER_LANGUAGE == %iu, "");' % maximum_tags)
 print ()
 
 print ('/**')

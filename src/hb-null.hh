@@ -37,7 +37,7 @@
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
-#define HB_NULL_POOL_SIZE 9880
+#define HB_NULL_POOL_SIZE 384
 
 /* Use SFINAE to sniff whether T has min_size; in which case return T::null_size,
  * otherwise return sizeof(T). */
