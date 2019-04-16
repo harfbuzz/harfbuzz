@@ -48,27 +48,22 @@ struct
 
 struct
 {
-  /* Don't know how to set priority of following.  Doesn't work right now. */
-  //template <typename T>
-  //uint32_t operator () (const T& v) const
-  //{ return hb_deref_pointer (v).hash (); }
-  /* Instead, the following ugly soution: */
-  template <typename T,
-	    hb_enable_if (!hb_is_integer (hb_remove_const<hb_remove_reference<T> >) &&
-			  !hb_is_pointer (T))>
-  uint32_t operator () (T&& v) const { return v.hash (); }
-
-  template <typename T>
-  uint32_t operator () (const T *v) const
-  { return operator() (*v); }
+  private:
+  template <typename T> auto
+  impl (const T& v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_deref_pointer (v).hash ())
 
   template <typename T,
-	    hb_enable_if (hb_is_integer (T))>
-  uint32_t operator () (T v) const
-  {
+	    hb_enable_if (hb_is_integer (T))> auto
+  impl (const T& v, hb_priority<0>) const HB_AUTO_RETURN_EXPR
+  (
     /* Knuth's multiplicative method: */
-    return (uint32_t) v * 2654435761u;
-  }
+    (uint32_t) v * 2654435761u
+  )
+
+  public:
+
+  template <typename T> auto
+  operator () (const T& v) const HB_AUTO_RETURN_EXPR ((uint32_t) impl (v, hb_prioritize))
 } HB_FUNCOBJ (hb_hash);
 
 struct
@@ -96,7 +91,8 @@ struct
   public:
 
   template <typename Appl, typename Val> auto
-  operator () (Appl&& a, Val &&v) const HB_AUTO_RETURN_EXPR (
+  operator () (Appl&& a, Val &&v) const HB_AUTO_RETURN_EXPR
+  (
     impl (hb_forward<Appl> (a),
 	  hb_forward<Val> (v),
 	  hb_prioritize)
@@ -114,7 +110,8 @@ struct
   impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (p.has (v))
 
   template <typename Pred, typename Val> auto
-  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR
+  (
     hb_invoke (hb_forward<Pred> (p),
 	       hb_forward<Val> (v))
   )
@@ -122,7 +119,8 @@ struct
   public:
 
   template <typename Pred, typename Val> auto
-  operator () (Pred&& p, Val &&v) const HB_AUTO_RETURN_EXPR (
+  operator () (Pred&& p, Val &&v) const HB_AUTO_RETURN_EXPR
+  (
     (bool) impl (hb_forward<Pred> (p),
 		 hb_forward<Val> (v),
 		 hb_prioritize)
@@ -140,7 +138,8 @@ struct
   impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (f.get (hb_forward<Val> (v)))
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (
+  impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR
+  (
     hb_invoke (hb_forward<Proj> (f),
 	       hb_forward<Val> (v))
   )
@@ -148,7 +147,8 @@ struct
   public:
 
   template <typename Proj, typename Val> auto
-  operator () (Proj&& f, Val &&v) const HB_AUTO_RETURN_EXPR (
+  operator () (Proj&& f, Val &&v) const HB_AUTO_RETURN_EXPR
+  (
     impl (hb_forward<Proj> (f),
 	  hb_forward<Val> (v),
 	  hb_prioritize)
