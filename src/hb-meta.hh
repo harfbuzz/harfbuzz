@@ -36,8 +36,8 @@
 
 /* Function overloading SFINAE and priority. */
 
-#define HB_AUTO_RETURN_EXPR(E) -> decltype ((E)) { return (E); }
-#define HB_VOID_RETURN_EXPR(E) -> hb_void_tt<decltype ((E))> { (E); }
+#define HB_AUTO_RETURN(E) -> decltype ((E)) { return (E); }
+#define HB_VOID_RETURN(E) -> hb_void_tt<decltype ((E))> { (E); }
 
 template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
 template <>             struct hb_priority<0> {};
@@ -90,10 +90,10 @@ static T&& hb_forward (hb_remove_reference<T>&& t) { return (T&&) t; }
 struct
 {
   template <typename T> auto
-  operator () (T&& v) const HB_AUTO_RETURN_EXPR (hb_forward<T> (v))
+  operator () (T&& v) const HB_AUTO_RETURN (hb_forward<T> (v))
 
   template <typename T> auto
-  operator () (T *v) const HB_AUTO_RETURN_EXPR (*v)
+  operator () (T *v) const HB_AUTO_RETURN (*v)
 
 } HB_FUNCOBJ (hb_deref_pointer);
 
