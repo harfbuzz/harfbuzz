@@ -90,6 +90,13 @@ static T&& hb_forward (hb_remove_reference (T)&& t) { return (T&&) t; }
 /* Void!  For when we need a expression-type of void. */
 struct hb_void_t { typedef void value; };
 
+/* Void meta-function ala std::void_t
+ * https://en.cppreference.com/w/cpp/types/void_t */
+template<typename... Ts>
+struct _hb_make_void { typedef void type; };
+template<typename... Ts>
+using hb_void_tt = typename _hb_make_void<Ts...>::type;
+
 /* Bool!  For when we need to evaluate type-dependent expressions
  * in a template argument. */
 template <bool b> struct hb_bool_tt { enum { value = b }; };
