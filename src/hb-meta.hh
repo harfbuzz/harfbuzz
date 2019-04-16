@@ -56,15 +56,15 @@ template <typename T> static inline T hb_declval ();
 
 template <typename T> struct hb_match_const { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_const<const T> { typedef T type; enum { value = true }; };
-#define hb_remove_const(T) typename hb_match_const<T>::type
+template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 #define hb_is_const(T) hb_match_const<T>::value
 template <typename T> struct hb_match_reference { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_reference<T &> { typedef T type; enum { value = true }; };
-#define hb_remove_reference(T) typename hb_match_reference<T>::type
+template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
 #define hb_is_reference(T) hb_match_reference<T>::value
 template <typename T> struct hb_match_pointer { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { value = true }; };
-#define hb_remove_pointer(T) typename hb_match_pointer<T>::type
+template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
 struct
@@ -79,12 +79,12 @@ struct
 /* std::move and std::forward */
 
 template <typename T>
-static hb_remove_reference (T)&& hb_move (T&& t) { return (hb_remove_reference (T)&&) (t); }
+static hb_remove_reference<T>&& hb_move (T&& t) { return (hb_remove_reference<T>&&) (t); }
 
 template <typename T>
-static T&& hb_forward (hb_remove_reference (T)& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference<T>& t) { return (T&&) t; }
 template <typename T>
-static T&& hb_forward (hb_remove_reference (T)&& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference<T>&& t) { return (T&&) t; }
 
 
 /* Void!  For when we need a expression-type of void. */

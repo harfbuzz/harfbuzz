@@ -748,7 +748,7 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 static void free_static_ft_library ();
 #endif
 
-static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (FT_Library),
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<FT_Library>,
 							     hb_ft_library_lazy_loader_t>
 {
   static FT_Library create ()

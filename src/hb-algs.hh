@@ -42,7 +42,8 @@ struct
   //{ return hb_deref_pointer (v).hash (); }
   /* Instead, the following ugly soution: */
   template <typename T,
-	    hb_enable_if (!hb_is_integer (hb_remove_const (hb_remove_reference (T))) && !hb_is_pointer (T))>
+	    hb_enable_if (!hb_is_integer (hb_remove_const<hb_remove_reference<T> >) &&
+			  !hb_is_pointer (T))>
   uint32_t operator () (T&& v) const { return v.hash (); }
 
   template <typename T>
