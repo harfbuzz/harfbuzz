@@ -36,6 +36,18 @@
 
 struct
 {
+  template <typename T> T
+  operator () (const T& v) const { return v; }
+} HB_FUNCOBJ (hb_identity);
+
+struct
+{
+  template <typename T> bool
+  operator () (const T& v) const { return bool (v); }
+} HB_FUNCOBJ (hb_bool);
+
+struct
+{
   /* Don't know how to set priority of following.  Doesn't work right now. */
   //template <typename T>
   //uint32_t operator () (const T& v) const
@@ -58,19 +70,6 @@ struct
     return (uint32_t) v * 2654435761u;
   }
 } HB_FUNCOBJ (hb_hash);
-
-struct
-{
-  template <typename T> T
-  operator () (const T& v) const { return v; }
-} HB_FUNCOBJ (hb_identity);
-
-struct
-{
-  template <typename T> bool
-  operator () (const T& v) const { return bool (v); }
-} HB_FUNCOBJ (hb_bool);
-
 
 struct
 {
