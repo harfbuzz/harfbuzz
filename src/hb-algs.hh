@@ -181,13 +181,13 @@ struct
 
 struct
 {
-  template <typename T, typename T2> T
-  operator () (const T& a, const T2& b) const { return a <= b ? a : b; }
+  template <typename T, typename T2> auto
+  operator () (const T& a, const T2& b) const HB_AUTO_RETURN_EXPR (a <= b ? a : b)
 } HB_FUNCOBJ (hb_min);
 struct
 {
-  template <typename T, typename T2> T
-  operator () (const T& a, const T2& b) const { return a >= b ? a : b; }
+  template <typename T, typename T2> auto
+  operator () (const T& a, const T2& b) const HB_AUTO_RETURN_EXPR (a >= b ? a : b)
 } HB_FUNCOBJ (hb_max);
 
 
