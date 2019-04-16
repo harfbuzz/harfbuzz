@@ -136,7 +136,7 @@ struct index_map_subset_plan_t
   {
     map_count = 0;
     outer_bit_count = 0;
-    inner_bit_count = 0;
+    inner_bit_count = 1;
     max_inners.init ();
     output_map.init ();
 
@@ -147,17 +147,19 @@ struct index_map_subset_plan_t
       if (im_index == ADV_INDEX)
       {
 	outer_remap.add (0);
-	hb_codepoint_t old_gid;
 	for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
-	  if (plan->old_gid_for_new_gid (gid, &old_gid))
-	    inner_remaps[0].add (old_gid);
+	{
+	  hb_codepoint_t old_gid = gid;
+	  (void)plan->old_gid_for_new_gid (gid, &old_gid);
+	  inner_remaps[0].add (old_gid);
+	}
       }
       return;
     }
 
     unsigned int	last_val = (unsigned int)-1;
     hb_codepoint_t	last_gid = (hb_codepoint_t)-1;
-    hb_codepoint_t	gid = (hb_codepoint_t)index_map.get_map_count ();
+    hb_codepoint_t	gid = MIN((hb_codepoint_t)index_map.get_map_count (), plan->num_output_glyphs ());
 
     outer_bit_count = (index_map.get_width () * 8) - index_map.get_inner_bit_count ();
     max_inners.resize (inner_remaps.length);
@@ -166,9 +168,8 @@ struct index_map_subset_plan_t
     /* Search backwards for a map value different from the last map value */
     for (; gid > 0; gid--)
     {
-      hb_codepoint_t	old_gid;
-      if (!plan->old_gid_for_new_gid (gid - 1, &old_gid))
-      	continue;
+      hb_codepoint_t	old_gid = gid - 1;
+      (void)plan->old_gid_for_new_gid (gid - 1, &old_gid);
 
       unsigned int	v = index_map.map (old_gid);
       if (last_gid == (hb_codepoint_t)-1)
@@ -186,9 +187,8 @@ struct index_map_subset_plan_t
     map_count = last_gid;
     for (gid = 0; gid < map_count; gid++)
     {
-      hb_codepoint_t	old_gid;
-      if (!plan->old_gid_for_new_gid (gid, &old_gid))
-      	continue;
+      hb_codepoint_t	old_gid = gid;
+      (void)plan->old_gid_for_new_gid (gid, &old_gid);
       unsigned int v = index_map.map (old_gid);
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
@@ -224,7 +224,7 @@ struct index_map_subset_plan_t
     output_map.resize (map_count);
     for (hb_codepoint_t gid = 0; gid < output_map.length; gid++)
     {
-      hb_codepoint_t	old_gid = 0;
+      hb_codepoint_t	old_gid = gid;
       (void)plan->old_gid_for_new_gid (gid, &old_gid);
       unsigned int v = input_map->map (old_gid);
       unsigned int outer = v >> 16;
