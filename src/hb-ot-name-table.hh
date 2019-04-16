@@ -95,28 +95,6 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
-  bool serialize (hb_serialize_context_t *c, const NameRecord& origin_namerecord, unsigned int *new_offset)
-  {
-    TRACE_SERIALIZE (this);
-
-    if (unlikely (!c->allocate_size<NameRecord> (NameRecord::static_size)))
-    {
-      DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for NameRecord: %d.",
-		 NameRecord::static_size);
-      return_trace (false);
-    }
-
-    this->platformID = origin_namerecord.platformID;
-    this->encodingID = origin_namerecord.encodingID;
-    this->languageID = origin_namerecord.languageID;
-    this->nameID = origin_namerecord.nameID;
-    this->length = origin_namerecord.length;
-    this->offset = *new_offset;
-    *new_offset += origin_namerecord.length;
-    
-    return_trace (true);
-  }
-
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -208,6 +186,88 @@ struct name
     return result;
   }
 
+  bool serialize_name_record (hb_serialize_context_t *c,
+                              const name *source_name,
+                              const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+  {
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      if (unlikely (idx >= source_name->count))
+      {
+        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
+        return false;
+      }
+
+      c->push<NameRecord> ();
+      if (!c->embed (source_name->nameRecordZ[idx]))
+        return false;
+    }
+
+    return true;
+  }
+
+  bool serialize_strings (hb_serialize_context_t *c,
+                          const name *source_name,
+                          const hb_subset_plan_t *plan,
+                          const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+  {
+    hb_face_t *face = plan->source;
+    accelerator_t acc;
+    acc.init (face);
+
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      unsigned int size = acc.get_name (idx).get_size ();
+
+      c->push<char> ();
+      char *new_pos = c->allocate_size<char> (size);
+      
+      if (unlikely (new_pos == nullptr))
+      {
+        acc.fini ();
+        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %u.",
+                   size);
+        return false;
+      }
+
+      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
+      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
+
+      memcpy (new_pos, source_string_pool + name_record_offset, size);
+    }
+
+    acc.fini ();
+    return true;
+  }
+
+  bool pack_record_and_strings (name *dest_name_unpacked,
+                                hb_serialize_context_t *c, 
+                                unsigned length)
+  {
+    hb_hashmap_t<unsigned, unsigned, -1, 0> id_str_idx_map;
+    for (int i = length-1; i >= 0; i--)
+    {
+      unsigned objidx = c->pop_pack ();
+      id_str_idx_map.set ((unsigned)i, objidx);
+    }
+
+    const void *base = & (dest_name_unpacked->nameRecordZ[length]); 
+    for (int i = length-1; i >= 0; i--)
+    {
+      unsigned str_idx = id_str_idx_map.get ((unsigned)i);
+      NameRecord& namerecord = dest_name_unpacked->nameRecordZ[i];
+      c->add_link<HBUINT16> (namerecord.offset, str_idx, base);
+      c->pop_pack ();
+    }
+
+    if (c->in_error ())
+      return false;
+
+    return true;
+  }
+
   bool serialize (hb_serialize_context_t *c,
                   const name *source_name,
                   const hb_subset_plan_t *plan,
@@ -221,48 +281,15 @@ struct name
     this->count = name_record_idx_to_retain.length;
     this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
 
-    //write new NameRecord
-    unsigned int new_offset = 0;
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      if (unlikely (idx >= source_name->count))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
-        return_trace (false);
-      }
 
-      const NameRecord &namerec = source_name->nameRecordZ[idx];
+    if (!serialize_name_record (c, source_name, name_record_idx_to_retain))
+      return_trace (false);
 
-      if (!c->start_embed<NameRecord> ()->serialize (c, namerec, &new_offset))
-	return_trace (false);
-    }
+    if (!serialize_strings (c, source_name, plan, name_record_idx_to_retain))
+      return_trace (false);
 
-    hb_face_t *face = plan->source;
-    accelerator_t acc;
-    acc.init (face);
-
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      unsigned int size = acc.get_name (idx).get_size ();
-      char *new_pos = c->allocate_size<char> (size);
-
-      if (unlikely (new_pos == nullptr))
-      {
-        acc.fini ();
-        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %d.",
-                  size);
-        return_trace (false);
-      }
-      
-      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
-      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
-
-      memcpy (new_pos, source_string_pool + name_record_offset, size);
-    }
-
-    acc.fini ();
+    if (!pack_record_and_strings (this, c, name_record_idx_to_retain.length))
+      return_trace (false);
 
     return_trace (true);
   }
@@ -289,13 +316,10 @@ struct name
       c.end_serialize ();
       return false;
     }
+
     c.end_serialize ();
 
-    hb_blob_t *name_prime_blob = hb_blob_create ((const char *) dest,
-                                                 dest_size,
-                                                 HB_MEMORY_MODE_READONLY,
-                                                 dest,
-                                                 free);
+    hb_blob_t *name_prime_blob = c.copy_blob ();
     bool result = plan->add_table (HB_OT_TAG_name, name_prime_blob);
     hb_blob_destroy (name_prime_blob);
 
