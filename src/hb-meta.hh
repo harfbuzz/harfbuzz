@@ -92,10 +92,8 @@ struct hb_void_t { typedef void value; };
 
 /* Void meta-function ala std::void_t
  * https://en.cppreference.com/w/cpp/types/void_t */
-template<typename... Ts>
-struct _hb_make_void { typedef void type; };
-template<typename... Ts>
-using hb_void_tt = typename _hb_make_void<Ts...>::type;
+template<typename... Ts> struct _hb_void_tt { typedef void type; };
+template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
 
 /* Bool!  For when we need to evaluate type-dependent expressions
  * in a template argument. */
@@ -103,22 +101,13 @@ template <bool b> struct hb_bool_tt { enum { value = b }; };
 typedef hb_bool_tt<true> hb_true_t;
 typedef hb_bool_tt<false> hb_false_t;
 
-template<bool B, typename T = void>
-struct hb_enable_if {};
-template<typename T>
-struct hb_enable_if<true, T> { typedef T type; };
+template<bool B, typename T = void> struct hb_enable_if {};
+template<typename T>                struct hb_enable_if<true, T> { typedef T type; };
 #define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
 
-template <typename T, typename T2>
-struct hb_is_same : hb_false_t {};
-template <typename T>
-struct hb_is_same<T, T> : hb_true_t {};
+template <typename T, typename T2> struct hb_is_same : hb_false_t {};
+template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
 #define hb_is_same(T, T2) hb_is_same<T, T2>::value
-
-
-/*
- * Meta-functions.
- */
 
 template <typename T> struct hb_is_signed;
 /* https://github.com/harfbuzz/harfbuzz/issues/1535 */
@@ -150,6 +139,15 @@ template <> struct hb_is_integer<unsigned long> { enum { value = true }; };
 template <> struct hb_is_integer<signed long long> { enum { value = true }; };
 template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
 #define hb_is_integer(T) hb_is_integer<T>::value
+
+/* Function overloading SFINAE and priority. */
+
+#define HB_AUTO_RETURN_EXPR(E) -> decltype ((E)) { return (E); }
+#define HB_VOID_RETURN_EXPR(E) -> hb_void_tt<decltype ((E))> { (E); }
+
+template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
+template <>             struct hb_priority<0> {};
+#define hb_prioritize hb_priority<16> ()
 
 
 #endif /* HB_META_HH */

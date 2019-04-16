@@ -30,6 +30,7 @@
 #define HB_ITER_HH
 
 #include "hb.hh"
+#include "hb-algs.hh"
 #include "hb-meta.hh"
 
 
@@ -272,8 +273,8 @@ struct hb_map_iter_t :
 
   typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
-  __item_t__ __item__ () const { return f (*it); }
-  __item_t__ __item_at__ (unsigned i) const { return f (it[i]); }
+  __item_t__ __item__ () const { return hb_get (f, *it); }
+  __item_t__ __item_at__ (unsigned i) const { return hb_get (f, it[i]); }
   bool __more__ () const { return bool (it); }
   unsigned __len__ () const { return it.len (); }
   void __next__ () { ++it; }
@@ -315,7 +316,7 @@ struct hb_filter_iter_t :
 			  typename Iter::item_t>
 {
   hb_filter_iter_t (const Iter& it_, Pred p, Proj f) : it (it_), p (p), f (f)
-  { while (it && !p (f (*it))) ++it; }
+  { while (it && !hb_has (p, hb_get (f, *it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
   static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;

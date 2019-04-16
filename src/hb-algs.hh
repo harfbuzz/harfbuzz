@@ -70,6 +70,52 @@ struct
   operator () (const T& v) const { return bool (v); }
 } HB_FUNCOBJ (hb_bool);
 
+struct
+{
+  private:
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (p->has (v))
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (p.has (v))
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (p (v))
+
+  public:
+
+  template <typename Pred, typename Val> auto
+  operator () (Pred&& p, Val &&v) const HB_AUTO_RETURN_EXPR (
+    (bool) impl (hb_forward<Pred> (p),
+		 hb_forward<Val> (v),
+		 hb_prioritize)
+  )
+} HB_FUNCOBJ (hb_has);
+
+struct
+{
+  private:
+
+  template <typename Proj, typename Val> auto
+  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (f->get (hb_forward<Val> (v)))
+
+  template <typename Proj, typename Val> auto
+  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (f.get (hb_forward<Val> (v)))
+
+  template <typename Proj, typename Val> auto
+  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (f (hb_forward<Val> (v)))
+
+  public:
+
+  template <typename Proj, typename Val> auto
+  operator () (Proj&& f, Val &&v) const HB_AUTO_RETURN_EXPR (
+    impl (hb_forward<Proj> (f),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
+  )
+} HB_FUNCOBJ (hb_get);
+
 template <typename T1, typename T2>
 struct hb_pair_t
 {
