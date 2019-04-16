@@ -258,8 +258,8 @@ struct hb_is_iterator_of { enum {
 
 template <typename Lhs, typename Rhs,
 	  hb_enable_if (hb_is_iterator (Lhs))>
-static inline decltype (hb_declval (Rhs) (hb_declval (Lhs)))
-operator | (Lhs lhs, const Rhs &rhs) { return rhs (lhs); }
+static inline auto
+operator | (Lhs lhs, const Rhs &rhs) HB_AUTO_RETURN (rhs (lhs))
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
