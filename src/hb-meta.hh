@@ -34,6 +34,15 @@
  * C++ template meta-programming & fundamentals used with them.
  */
 
+/* Function overloading SFINAE and priority. */
+
+#define HB_AUTO_RETURN_EXPR(E) -> decltype ((E)) { return (E); }
+#define HB_VOID_RETURN_EXPR(E) -> hb_void_tt<decltype ((E))> { (E); }
+
+template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
+template <>             struct hb_priority<0> {};
+#define hb_prioritize hb_priority<16> ()
+
 #define HB_FUNCOBJ(x) static_const x HB_UNUSED
 
 struct
@@ -67,14 +76,6 @@ template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { valu
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
-struct
-{
-  template <typename T>
-  T operator () (T v) const { return v; }
-  template <typename T>
-  T& operator () (T *v) const { return *v; }
-} HB_FUNCOBJ (hb_deref_pointer);
-
 
 /* std::move and std::forward */
 
@@ -85,6 +86,16 @@ template <typename T>
 static T&& hb_forward (hb_remove_reference<T>& t) { return (T&&) t; }
 template <typename T>
 static T&& hb_forward (hb_remove_reference<T>&& t) { return (T&&) t; }
+
+struct
+{
+  template <typename T> auto
+  operator () (T&& v) const HB_AUTO_RETURN_EXPR (hb_forward<T> (v))
+
+  template <typename T> auto
+  operator () (T *v) const HB_AUTO_RETURN_EXPR (*v)
+
+} HB_FUNCOBJ (hb_deref_pointer);
 
 
 /* Void!  For when we need a expression-type of void. */
@@ -139,15 +150,6 @@ template <> struct hb_is_integer<unsigned long> { enum { value = true }; };
 template <> struct hb_is_integer<signed long long> { enum { value = true }; };
 template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
 #define hb_is_integer(T) hb_is_integer<T>::value
-
-/* Function overloading SFINAE and priority. */
-
-#define HB_AUTO_RETURN_EXPR(E) -> decltype ((E)) { return (E); }
-#define HB_VOID_RETURN_EXPR(E) -> hb_void_tt<decltype ((E))> { (E); }
-
-template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
-template <>             struct hb_priority<0> {};
-#define hb_prioritize hb_priority<16> ()
 
 
 #endif /* HB_META_HH */
