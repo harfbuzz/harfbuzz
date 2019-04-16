@@ -67,35 +67,35 @@ please provide it as the first argument to the tool""")
 print ('hb_shape_fuzzer:', hb_shape_fuzzer)
 fails = 0
 
+libtool = os.environ.get('LIBTOOL')
 valgrind = None
 if os.environ.get('RUN_VALGRIND', ''):
 	valgrind = which ('valgrind')
 	if valgrind is None:
 		print ("""Valgrind requested but not found.""")
 		sys.exit (1)
+	if libtool is None:
+		print ("""Valgrind support is currently autotools only and needs libtool but not found.""")
+
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
 	path = os.path.join(parent_path, file)
 
-	text, returncode = cmd ([hb_shape_fuzzer, path])
-	if text.strip ():
+	if valgrind:
+		text, returncode = cmd (libtool.split(' ') + ['--mode=execute', valgrind + ' --leak-check=full --error-exitcode=1', '--', hb_shape_fuzzer, path])
+	else:
+		text, returncode = cmd ([hb_shape_fuzzer, path])
+		if 'error' in text:
+			returncode = 1
+
+	if not valgrind and text.strip ():
 		print (text)
 
-	failed = False
-	if returncode != 0 or 'error' in text:
+	if returncode != 0:
 		print ('failure on %s' % file)
-		failed = True
-
-	if valgrind:
-		text, returncode = cmd ([valgrind, '--error-exitcode=1', '--leak-check=full', hb_shape_fuzzer, path])
-		if returncode:
-			print (text)
-			print ('failure on %s' % file)
-			failed = True
-
-	if failed:
 		fails = fails + 1
+
 
 if fails:
 	print ("%i shape fuzzer related tests failed." % fails)
