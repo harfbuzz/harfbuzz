@@ -75,7 +75,7 @@ struct
 {
   private:
 
-  // TODO Add overload to for pointer-to-member-function
+  // TODO Add overload to for pointer-to-member and pointer-to-member-function ala std::invoke
 
   template <typename Appl, typename Val> auto
   impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (a (hb_forward<Val> (v)))
