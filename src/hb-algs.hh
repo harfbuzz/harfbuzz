@@ -78,15 +78,15 @@ struct
 
   /* Pointer-to-member-function. */
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a ())
+  impl (Appl&& a, Val &&v, hb_priority<5>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a ())
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a ())
+  impl (Appl&& a, Val &&v, hb_priority<4>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a ())
 
   /* Pointer-to-member. */
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a)
+  impl (Appl&& a, Val &&v, hb_priority<3>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a)
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a)
+  impl (Appl&& a, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a)
 
   /* Operator(). */
   template <typename Appl, typename Val> auto
@@ -141,7 +141,7 @@ struct
   impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (f.get (hb_forward<Val> (v)))
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (
+  impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (
     hb_invoke (hb_forward<Proj> (f),
 	       hb_forward<Val> (v))
   )
