@@ -471,7 +471,7 @@ struct hb_apply_t
   operator () (Iter it) const
   {
     for (; it; ++it)
-      a (*it);
+      (void) hb_invoke (a, *it);
   }
 
   private:

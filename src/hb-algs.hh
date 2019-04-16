@@ -70,6 +70,29 @@ struct
   operator () (const T& v) const { return bool (v); }
 } HB_FUNCOBJ (hb_bool);
 
+
+struct
+{
+  private:
+
+  // TODO Add overload to for pointer-to-member-function
+
+  template <typename Appl, typename Val> auto
+  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (a (hb_forward<Val> (v)))
+
+  template <typename Appl, typename Val> auto
+  impl (Appl&& a, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR ((*a) (hb_forward<Val> (v)))
+
+  public:
+
+  template <typename Appl, typename Val> auto
+  operator () (Appl&& a, Val &&v) const HB_AUTO_RETURN_EXPR (
+    impl (hb_forward<Appl> (a),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
+  )
+} HB_FUNCOBJ (hb_invoke);
+
 struct
 {
   private:
@@ -81,7 +104,10 @@ struct
   impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (p.has (v))
 
   template <typename Pred, typename Val> auto
-  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (p (v))
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (
+    hb_invoke (hb_forward<Pred> (p),
+	       hb_forward<Val> (v))
+  )
 
   public:
 
@@ -104,7 +130,10 @@ struct
   impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (f.get (hb_forward<Val> (v)))
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (f (hb_forward<Val> (v)))
+  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (
+    hb_invoke (hb_forward<Proj> (f),
+	       hb_forward<Val> (v))
+  )
 
   public:
 
@@ -115,6 +144,7 @@ struct
 	  hb_prioritize)
   )
 } HB_FUNCOBJ (hb_get);
+
 
 template <typename T1, typename T2>
 struct hb_pair_t
