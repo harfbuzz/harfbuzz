@@ -198,7 +198,7 @@ lang_matches (const char *lang_str, const char *spec)
 struct LangTag
 {
   char language[4];
-  hb_tag_t tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+  hb_tag_t tag;
 
   int cmp (const char *a) const
   {
@@ -246,6 +246,7 @@ hb_ot_tags_from_language (const char   *lang_str,
 			  hb_tag_t     *tags)
 {
   const char *s;
+  unsigned int tag_idx;
 
   /* Check for matches of multiple subtags. */
   if (hb_ot_tags_from_complex_language (lang_str, limit, count, tags))
@@ -254,7 +255,6 @@ hb_ot_tags_from_language (const char   *lang_str,
   /* Find a language matching in the first component. */
   s = strchr (lang_str, '-');
   {
-    const LangTag *lang_tag;
     if (s && limit - lang_str >= 6)
     {
       const char *extlang_end = strchr (s + 1, '-');
@@ -263,12 +263,18 @@ hb_ot_tags_from_language (const char   *lang_str,
 	  ISALPHA (s[1]))
 	lang_str = s + 1;
     }
-    lang_tag = hb_sorted_array (ot_languages).bsearch (lang_str);
-    if (lang_tag)
+    if (hb_sorted_array (ot_languages).bfind (lang_str, &tag_idx))
     {
       unsigned int i;
-      for (i = 0; i < *count && lang_tag->tags[i] != HB_TAG_NONE; i++)
-	tags[i] = lang_tag->tags[i];
+      while (tag_idx != 0 &&
+	     0 == strcmp (ot_languages[tag_idx].language, ot_languages[tag_idx - 1].language))
+	tag_idx--;
+      for (i = 0;
+	   i < *count &&
+	   tag_idx + i < ARRAY_LENGTH (ot_languages) &&
+	   0 == strcmp (ot_languages[tag_idx + i].language, ot_languages[tag_idx].language);
+	   i++)
+	tags[i] = ot_languages[tag_idx + i].tag;
       *count = i;
       return;
     }
@@ -417,7 +423,7 @@ hb_ot_tag_to_language (hb_tag_t tag)
   }
 
   for (i = 0; i < ARRAY_LENGTH (ot_languages); i++)
-    if (ot_languages[i].tags[0] == tag)
+    if (ot_languages[i].tag == tag)
       return hb_language_from_string (ot_languages[i].language, -1);
 
   /* Else return a custom language in the form of "x-hbotABCD" */
@@ -506,7 +512,7 @@ test_langs_sorted ()
   for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages); i++)
   {
     int c = ot_languages[i].cmp (&ot_languages[i - 1]);
-    if (c >= 0)
+    if (c > 0)
     {
       fprintf (stderr, "ot_languages not sorted at index %d: %s %d %s\n",
 	       i, ot_languages[i-1].language, c, ot_languages[i].language);
