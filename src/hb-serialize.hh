@@ -358,6 +358,24 @@ struct hb_serialize_context_t
     memcpy (ret, &obj, size);
     return ret;
   }
+
+  template <typename Type> auto
+  _copy (const Type &obj, hb_priority<1>) const HB_RETURN (Type *, obj.copy (this))
+
+  template <typename Type> auto
+  _copy (const Type &obj, hb_priority<0>) const -> decltype (&(obj = obj))
+  {
+    Type *ret = this->allocate_size<Type> (sizeof (Type));
+    if (unlikely (!ret)) return nullptr;
+    *ret = obj;
+    return ret;
+  }
+
+  /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
+   * instead of memcpy(). */
+  template <typename Type>
+  Type *copy (const Type &obj) { return _copy (obj, hb_prioritize); }
+
   template <typename Type>
   hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
 
