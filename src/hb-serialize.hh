@@ -272,7 +272,7 @@ struct hb_serialize_context_t
 
     auto& link = *current->links.push ();
     link.is_wide = sizeof (T) == 4;
-    link.position = (const char *) &ofs - (const char *) base;
+    link.position = (const char *) &ofs - current->head;
     link.bias = (const char *) base - current->head;
     link.objidx = objidx;
   }
