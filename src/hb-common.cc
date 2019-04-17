@@ -488,7 +488,7 @@ hb_script_from_string (const char *str, int len)
 
 /**
  * hb_script_to_iso15924_tag:
- * @script: an #hb_script_ to convert.
+ * @script: an #hb_script_t to convert.
  *
  * See hb_script_from_iso15924_tag().
  *
