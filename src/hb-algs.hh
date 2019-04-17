@@ -50,7 +50,7 @@ struct
 {
   private:
   template <typename T> auto
-  impl (const T& v, hb_priority<1>) const HB_AUTO_RETURN (hb_deref_pointer (v).hash ())
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref_pointer (v).hash ())
 
   template <typename T,
 	    hb_enable_if (hb_is_integer (T))> auto
@@ -63,7 +63,7 @@ struct
   public:
 
   template <typename T> auto
-  operator () (const T& v) const HB_AUTO_RETURN ((uint32_t) impl (v, hb_prioritize))
+  operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
 } HB_FUNCOBJ (hb_hash);
 
 struct
@@ -114,11 +114,10 @@ struct
   public:
 
   template <typename Pred, typename Val> auto
-  operator () (Pred&& p, Val &&v) const HB_AUTO_RETURN
-  (
-    (bool) impl (hb_forward<Pred> (p),
-		 hb_forward<Val> (v),
-		 hb_prioritize)
+  operator () (Pred&& p, Val &&v) const HB_RETURN (bool,
+    impl (hb_forward<Pred> (p),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
   )
 } HB_FUNCOBJ (hb_has);
 

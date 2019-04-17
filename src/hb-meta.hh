@@ -34,8 +34,27 @@
  * C++ template meta-programming & fundamentals used with them.
  */
 
+/* Void!  For when we need a expression-type of void. */
+struct hb_void_t { typedef void value; };
+
+/* Void meta-function ala std::void_t
+ * https://en.cppreference.com/w/cpp/types/void_t */
+template<typename... Ts> struct _hb_void_tt { typedef void type; };
+template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
+
+template<typename Head, typename... Ts> struct _hb_head_tt { typedef Head type; };
+template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
+
+/* Bool!  For when we need to evaluate type-dependent expressions
+ * in a template argument. */
+template <bool b> struct hb_bool_tt { enum { value = b }; };
+typedef hb_bool_tt<true> hb_true_t;
+typedef hb_bool_tt<false> hb_false_t;
+
+
 /* Function overloading SFINAE and priority. */
 
+#define HB_RETURN(Ret, E) -> hb_head_tt<Ret, decltype ((E))> { return (E); }
 #define HB_AUTO_RETURN(E) -> decltype ((E)) { return (E); }
 #define HB_VOID_RETURN(E) -> hb_void_tt<decltype ((E))> { (E); }
 
@@ -44,6 +63,7 @@ template <>             struct hb_priority<0> {};
 #define hb_prioritize hb_priority<16> ()
 
 #define HB_FUNCOBJ(x) static_const x HB_UNUSED
+
 
 struct
 {
@@ -97,20 +117,6 @@ struct
 
 } HB_FUNCOBJ (hb_deref_pointer);
 
-
-/* Void!  For when we need a expression-type of void. */
-struct hb_void_t { typedef void value; };
-
-/* Void meta-function ala std::void_t
- * https://en.cppreference.com/w/cpp/types/void_t */
-template<typename... Ts> struct _hb_void_tt { typedef void type; };
-template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
-
-/* Bool!  For when we need to evaluate type-dependent expressions
- * in a template argument. */
-template <bool b> struct hb_bool_tt { enum { value = b }; };
-typedef hb_bool_tt<true> hb_true_t;
-typedef hb_bool_tt<false> hb_false_t;
 
 template<bool B, typename T = void> struct hb_enable_if {};
 template<typename T>                struct hb_enable_if<true, T> { typedef T type; };
