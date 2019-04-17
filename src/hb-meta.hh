@@ -34,7 +34,36 @@
  * C++ template meta-programming & fundamentals used with them.
  */
 
+/* Void!  For when we need a expression-type of void. */
+struct hb_void_t { typedef void value; };
+
+/* Void meta-function ala std::void_t
+ * https://en.cppreference.com/w/cpp/types/void_t */
+template<typename... Ts> struct _hb_void_tt { typedef void type; };
+template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
+
+template<typename Head, typename... Ts> struct _hb_head_tt { typedef Head type; };
+template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
+
+/* Bool!  For when we need to evaluate type-dependent expressions
+ * in a template argument. */
+template <bool b> struct hb_bool_tt { enum { value = b }; };
+typedef hb_bool_tt<true> hb_true_t;
+typedef hb_bool_tt<false> hb_false_t;
+
+
+/* Function overloading SFINAE and priority. */
+
+#define HB_RETURN(Ret, E) -> hb_head_tt<Ret, decltype ((E))> { return (E); }
+#define HB_AUTO_RETURN(E) -> decltype ((E)) { return (E); }
+#define HB_VOID_RETURN(E) -> hb_void_tt<decltype ((E))> { (E); }
+
+template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
+template <>             struct hb_priority<0> {};
+#define hb_prioritize hb_priority<16> ()
+
 #define HB_FUNCOBJ(x) static_const x HB_UNUSED
+
 
 struct
 {
@@ -56,50 +85,38 @@ template <typename T> static inline T hb_declval ();
 
 template <typename T> struct hb_match_const { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_const<const T> { typedef T type; enum { value = true }; };
-#define hb_remove_const(T) typename hb_match_const<T>::type
+template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 #define hb_is_const(T) hb_match_const<T>::value
 template <typename T> struct hb_match_reference { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_reference<T &> { typedef T type; enum { value = true }; };
-#define hb_remove_reference(T) typename hb_match_reference<T>::type
+template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
 #define hb_is_reference(T) hb_match_reference<T>::value
 template <typename T> struct hb_match_pointer { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { value = true }; };
-#define hb_remove_pointer(T) typename hb_match_pointer<T>::type
+template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
-
-struct
-{
-  template <typename T>
-  T operator () (T v) const { return v; }
-  template <typename T>
-  T& operator () (T *v) const { return *v; }
-} HB_FUNCOBJ (hb_deref_pointer);
 
 
 /* std::move and std::forward */
 
 template <typename T>
-static hb_remove_reference (T)&& hb_move (T&& t) { return (hb_remove_reference (T)&&) (t); }
+static hb_remove_reference<T>&& hb_move (T&& t) { return (hb_remove_reference<T>&&) (t); }
 
 template <typename T>
-static T&& hb_forward (hb_remove_reference (T)& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference<T>& t) { return (T&&) t; }
 template <typename T>
-static T&& hb_forward (hb_remove_reference (T)&& t) { return (T&&) t; }
+static T&& hb_forward (hb_remove_reference<T>&& t) { return (T&&) t; }
 
+struct
+{
+  template <typename T> auto
+  operator () (T&& v) const HB_AUTO_RETURN (hb_forward<T> (v))
 
-/* Void!  For when we need a expression-type of void. */
-struct hb_void_t { typedef void value; };
+  template <typename T> auto
+  operator () (T *v) const HB_AUTO_RETURN (*v)
 
-/* Void meta-function ala std::void_t
- * https://en.cppreference.com/w/cpp/types/void_t */
-template<typename... Ts> struct _hb_void_tt { typedef void type; };
-template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
+} HB_FUNCOBJ (hb_deref_pointer);
 
-/* Bool!  For when we need to evaluate type-dependent expressions
- * in a template argument. */
-template <bool b> struct hb_bool_tt { enum { value = b }; };
-typedef hb_bool_tt<true> hb_true_t;
-typedef hb_bool_tt<false> hb_false_t;
 
 template<bool B, typename T = void> struct hb_enable_if {};
 template<typename T>                struct hb_enable_if<true, T> { typedef T type; };
@@ -139,15 +156,6 @@ template <> struct hb_is_integer<unsigned long> { enum { value = true }; };
 template <> struct hb_is_integer<signed long long> { enum { value = true }; };
 template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
 #define hb_is_integer(T) hb_is_integer<T>::value
-
-/* Function overloading SFINAE and priority. */
-
-#define HB_AUTO_RETURN_EXPR(E) -> decltype ((E)) { return (E); }
-#define HB_VOID_RETURN_EXPR(E) -> hb_void_tt<decltype ((E))> { (E); }
-
-template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
-template <>             struct hb_priority<0> {};
-#define hb_prioritize hb_priority<16> ()
 
 
 #endif /* HB_META_HH */

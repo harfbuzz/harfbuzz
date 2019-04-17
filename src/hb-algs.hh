@@ -36,30 +36,6 @@
 
 struct
 {
-  /* Don't know how to set priority of following.  Doesn't work right now. */
-  //template <typename T>
-  //uint32_t operator () (const T& v) const
-  //{ return hb_deref_pointer (v).hash (); }
-  /* Instead, the following ugly soution: */
-  template <typename T,
-	    hb_enable_if (!hb_is_integer (hb_remove_const (hb_remove_reference (T))) && !hb_is_pointer (T))>
-  uint32_t operator () (T&& v) const { return v.hash (); }
-
-  template <typename T>
-  uint32_t operator () (const T *v) const
-  { return operator() (*v); }
-
-  template <typename T,
-	    hb_enable_if (hb_is_integer (T))>
-  uint32_t operator () (T v) const
-  {
-    /* Knuth's multiplicative method: */
-    return (uint32_t) v * 2654435761u;
-  }
-} HB_FUNCOBJ (hb_hash);
-
-struct
-{
   template <typename T> T
   operator () (const T& v) const { return v; }
 } HB_FUNCOBJ (hb_identity);
@@ -70,6 +46,25 @@ struct
   operator () (const T& v) const { return bool (v); }
 } HB_FUNCOBJ (hb_bool);
 
+struct
+{
+  private:
+  template <typename T> auto
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref_pointer (v).hash ())
+
+  template <typename T,
+	    hb_enable_if (hb_is_integer (T))> auto
+  impl (const T& v, hb_priority<0>) const HB_AUTO_RETURN
+  (
+    /* Knuth's multiplicative method: */
+    (uint32_t) v * 2654435761u
+  )
+
+  public:
+
+  template <typename T> auto
+  operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
+} HB_FUNCOBJ (hb_hash);
 
 struct
 {
@@ -77,26 +72,24 @@ struct
 
   /* Pointer-to-member-function. */
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a ())
-  template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a ())
+  impl (Appl&& a, Val &&v, hb_priority<2>) const HB_AUTO_RETURN
+  (hb_forward<Val> (hb_deref_pointer (v)).*a ())
 
   /* Pointer-to-member. */
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v).*a)
-  template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (hb_forward<Val> (v)->*a)
+  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (hb_forward<Val> (hb_deref_pointer (v)).*a)
 
   /* Operator(). */
   template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (a (hb_forward<Val> (v)))
-  template <typename Appl, typename Val> auto
-  impl (Appl&& a, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR ((*a) (hb_forward<Val> (v)))
+  impl (Appl&& a, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
+  (hb_deref_pointer (a) (hb_forward<Val> (v)))
 
   public:
 
   template <typename Appl, typename Val> auto
-  operator () (Appl&& a, Val &&v) const HB_AUTO_RETURN_EXPR (
+  operator () (Appl&& a, Val &&v) const HB_AUTO_RETURN
+  (
     impl (hb_forward<Appl> (a),
 	  hb_forward<Val> (v),
 	  hb_prioritize)
@@ -108,13 +101,12 @@ struct
   private:
 
   template <typename Pred, typename Val> auto
-  impl (Pred&& p, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (p->has (v))
+  impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (hb_deref_pointer (p).has (v))
 
   template <typename Pred, typename Val> auto
-  impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (p.has (v))
-
-  template <typename Pred, typename Val> auto
-  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN_EXPR (
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
+  (
     hb_invoke (hb_forward<Pred> (p),
 	       hb_forward<Val> (v))
   )
@@ -122,10 +114,10 @@ struct
   public:
 
   template <typename Pred, typename Val> auto
-  operator () (Pred&& p, Val &&v) const HB_AUTO_RETURN_EXPR (
-    (bool) impl (hb_forward<Pred> (p),
-		 hb_forward<Val> (v),
-		 hb_prioritize)
+  operator () (Pred&& p, Val &&v) const HB_RETURN (bool,
+    impl (hb_forward<Pred> (p),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
   )
 } HB_FUNCOBJ (hb_has);
 
@@ -134,13 +126,12 @@ struct
   private:
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (f->get (hb_forward<Val> (v)))
+  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (hb_deref_pointer (f).get (hb_forward<Val> (v)))
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN_EXPR (f.get (hb_forward<Val> (v)))
-
-  template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN_EXPR (
+  impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
+  (
     hb_invoke (hb_forward<Proj> (f),
 	       hb_forward<Val> (v))
   )
@@ -148,7 +139,8 @@ struct
   public:
 
   template <typename Proj, typename Val> auto
-  operator () (Proj&& f, Val &&v) const HB_AUTO_RETURN_EXPR (
+  operator () (Proj&& f, Val &&v) const HB_AUTO_RETURN
+  (
     impl (hb_forward<Proj> (f),
 	  hb_forward<Val> (v),
 	  hb_prioritize)
@@ -176,25 +168,25 @@ hb_pair (T1&& a, T2&& b) { return hb_pair_t<T1, T2> (a, b); }
 
 struct
 {
-  template <typename Pair> decltype (hb_declval (Pair).first)
-  operator () (const Pair& pair) const { return pair.first; }
+  template <typename Pair> auto
+  operator () (const Pair& pair) const HB_AUTO_RETURN (pair.first)
 } HB_FUNCOBJ (hb_first);
 
 struct
 {
-  template <typename Pair> decltype (hb_declval (Pair).second)
-  operator () (const Pair& pair) const { return pair.second; }
+  template <typename Pair> auto
+  operator () (const Pair& pair) const HB_AUTO_RETURN (pair.second)
 } HB_FUNCOBJ (hb_second);
 
 struct
 {
-  template <typename T, typename T2> T
-  operator () (const T& a, const T2& b) const { return a <= b ? a : b; }
+  template <typename T, typename T2> auto
+  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a <= b ? a : b)
 } HB_FUNCOBJ (hb_min);
 struct
 {
-  template <typename T, typename T2> T
-  operator () (const T& a, const T2& b) const { return a >= b ? a : b; }
+  template <typename T, typename T2> auto
+  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a >= b ? a : b)
 } HB_FUNCOBJ (hb_max);
 
 

@@ -488,7 +488,7 @@ hb_script_from_string (const char *str, int len)
 
 /**
  * hb_script_to_iso15924_tag:
- * @script: an #hb_script_ to convert.
+ * @script: an #hb_script_t to convert.
  *
  * See hb_script_from_iso15924_tag().
  *
@@ -783,7 +783,7 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 static void free_static_C_locale ();
 #endif
 
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (HB_LOCALE_T),
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_LOCALE_T>,
 							  hb_C_locale_lazy_loader_t>
 {
   static HB_LOCALE_T create ()

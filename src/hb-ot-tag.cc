@@ -426,17 +426,30 @@ hb_ot_tag_to_language (hb_tag_t tag)
     if (ot_languages[i].tag == tag)
       return hb_language_from_string (ot_languages[i].language, -1);
 
-  /* Else return a custom language in the form of "x-hbotABCD" */
+  /* If it's three letters long, assume it's ISO 639-3 and lower-case and use it
+   * (if it's not a registered tag, calling hb_ot_tag_from_language on the
+   * result might not return the same tag as the original tag).
+   * Else return a custom language in the form of "x-hbotABCD". */
   {
-    unsigned char buf[11] = "x-hbot";
+    char buf[11] = "x-hbot";
+    char *str = buf;
     buf[6] = tag >> 24;
     buf[7] = (tag >> 16) & 0xFF;
     buf[8] = (tag >> 8) & 0xFF;
     buf[9] = tag & 0xFF;
     if (buf[9] == 0x20)
+    {
       buf[9] = '\0';
+      if (ISALPHA (buf[6]) && ISALPHA (buf[7]) && ISALPHA (buf[8]))
+      {
+	buf[6] = TOLOWER (buf[6]);
+	buf[7] = TOLOWER (buf[7]);
+	buf[8] = TOLOWER (buf[8]);
+	str += 6;
+      }
+    }
     buf[10] = '\0';
-    return hb_language_from_string ((char *) buf, -1);
+    return hb_language_from_string (str, -1);
   }
 }
 
