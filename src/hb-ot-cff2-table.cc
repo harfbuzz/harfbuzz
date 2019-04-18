@@ -26,6 +26,7 @@
 
 #include "hb-ot-cff2-table.hh"
 #include "hb-cff2-interp-cs.hh"
+#include <limits.h>
 
 using namespace CFF;
 
@@ -34,10 +35,10 @@ struct extents_param_t
   void init ()
   {
     path_open = false;
-    min_x.set_int (2147483647);
-    min_y.set_int (2147483647);
-    max_x.set_int (-2147483648);
-    max_y.set_int (-2147483648);
+    min_x.set_int (INT_MAX);
+    min_y.set_int (INT_MAX);
+    max_x.set_int (INT_MIN);
+    max_y.set_int (INT_MIN);
   }
 
   void start_path ()         { path_open = true; }

@@ -26,6 +26,7 @@
 
 #include "hb-ot-cff1-table.hh"
 #include "hb-cff1-interp-cs.hh"
+#include <limits.h>
 
 using namespace CFF;
 
@@ -165,8 +166,8 @@ struct bounds_t
 {
   void init ()
   {
-    min.set_int (2147483647, 2147483647);
-    max.set_int (-2147483648, -2147483648);
+    min.set_int (INT_MAX, INT_MAX);
+    max.set_int (INT_MIN, INT_MIN);
   }
 
   void update (const point_t &pt)
