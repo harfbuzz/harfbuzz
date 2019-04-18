@@ -34,10 +34,10 @@ struct extents_param_t
   void init ()
   {
     path_open = false;
-    min_x.set_int ((1<<31)-1);
-    min_y.set_int ((1<<31)-1);
-    max_x.set_int (-(1<<31));
-    max_y.set_int (-(1<<31));
+    min_x.set_int (2147483647);
+    min_y.set_int (2147483647);
+    max_x.set_int (-2147483648);
+    max_y.set_int (-2147483648);
   }
 
   void start_path ()         { path_open = true; }
