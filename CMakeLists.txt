@@ -85,10 +85,6 @@ if (HB_CHECK)
   endif ()
 endif ()
 
-# https://github.com/harfbuzz/harfbuzzjs/
-# emcmake cmake -Bwasmbuild -H. -GNinja -DHB_HARFBUZZJS=1 && ninja -Cwasmbuild
-option(HB_HARFBUZZJS "Enable our opinionated harfbuzzjs related build optimization" OFF)
-
 include_directories(AFTER
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_BINARY_DIR}/src
@@ -297,16 +293,6 @@ if (HB_HAVE_GRAPHITE2)
   list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
 
   mark_as_advanced(GRAPHITE2_INCLUDE_DIR GRAPHITE2_LIBRARY)
-endif ()
-
-if (HB_HARFBUZZJS)
-  # we won't need multithread support in harfbuzzjs
-  add_definitions(-DHB_NO_MT)
-
-  add_definitions(-DHB_NO_OPTIONS -DHB_NO_OT_FONT_CFF -DHB_NO_NAME_TABLE_AAT
-    -DHB_NO_OT_FONT_BITMAP -DHB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
-    -DHB_NO_OT_SHAPE_FALLBACK -DHB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
-    -DHB_NO_OT_LAYOUT_BLACKLIST -DHB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS)
 endif ()
 
 if (HB_BUILTIN_UCDN)
@@ -551,27 +537,6 @@ endif ()
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
-
-if (HB_HARFBUZZJS)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -s MODULARIZE=1 \
-    -s NO_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s STRICT=1 \
-    -Oz --closure 1")
-
-  # add_definitions("-DHB_EXTERN=__attribute__((used))")
-  # Alternatively, only the needed calls
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s \"EXPORTED_FUNCTIONS=['_hb_version_string', \
-    '_malloc', '_hb_blob_create', '_hb_face_create', '_hb_font_create', \
-    '_hb_buffer_create', '_hb_buffer_add_utf8', '_hb_buffer_guess_segment_properties', \
-    '_hb_buffer_set_direction', '_hb_shape', '_hb_buffer_serialize_glyphs', \
-    '_hb_buffer_get_length', '_hb_buffer_serialize_glyphs', '_hb_buffer_destroy', \
-    '_hb_font_destroy', '_hb_face_destroy', '_hb_blob_destroy', '_hb_blob_get_length', \
-    '_hb_direction_from_string', '_free']\"")
-
-  # Trick emscripten to create js/wasm from a library
-  add_executable(harfbuzzjs /dev/null)
-
-  target_link_libraries(harfbuzzjs harfbuzz)
-endif ()
 
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
