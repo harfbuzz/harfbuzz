@@ -314,6 +314,23 @@ hb_buffer_get_flags (hb_buffer_t *buffer);
  * @HB_BUFFER_CLUSTER_LEVEL_CHARACTERS: Don't group cluster values.
  * @HB_BUFFER_CLUSTER_LEVEL_DEFAULT: Default cluster level,
  *   equal to @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES.
+ * 
+ * Data type for holding HarfBuzz's clustering behavior options. The cluster level
+ * dictates one aspect of how HarfBuzz will treat non-base characters 
+ * during shaping.
+ *
+ * In @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES, non-base
+ * characters are merged into the cluster of the base character that precedes them.
+ *
+ * In @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS, non-base characters are initially
+ * assigned their own cluster values, which are not merged into preceding base
+ * clusters. This allows HarfBuzz to perform additional operations like reorder
+ * sequences of adjacent marks.
+ *
+ * @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES is the default, because it maintains
+ * backward compatibility with older versions of HarfBuzz. New client programs that
+ * do not need to maintain such backward compatibility are recommended to use
+ * @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS instead of the default.
  *
  * Since: 0.9.42
  */
