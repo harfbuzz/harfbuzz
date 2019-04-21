@@ -156,7 +156,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
  *
  * Makes a writable copy of @blob.
  *
- * Return value: New blob, or nullptr if allocation failed.
+ * Return value: The new blob, or nullptr if allocation failed
  *
  * Since: 1.8.0
  **/
@@ -182,7 +182,7 @@ hb_blob_copy_writable_or_fail (hb_blob_t *blob)
  *
  * See TODO:link object types for more information.
  *
- * Return value: (transfer full): the empty blob.
+ * Return value: (transfer full): The empty blob.
  *
  * Since: 0.9.2
  **/
@@ -234,13 +234,15 @@ hb_blob_destroy (hb_blob_t *blob)
 
 /**
  * hb_blob_set_user_data: (skip)
- * @blob: a blob.
- * @key: key for data to set.
- * @data: data to set.
- * @destroy: callback to call when @data is not needed anymore.
- * @replace: whether to replace an existing data with the same key.
+ * @blob: a blob
+ * @key: The user-data key to set
+ * @data: A pointer to the user data to set
+ * @destroy: A callback to call when @data is not needed anymore
+ * @replace: Whether to replace an existing data with the same key
  *
- * Return value:
+ * Attaches a user-data key/data pair to the specified blob.
+ *
+ * Return value: %true if success, false otherwise
  *
  * Since: 0.9.2
  **/
@@ -256,12 +258,13 @@ hb_blob_set_user_data (hb_blob_t          *blob,
 
 /**
  * hb_blob_get_user_data: (skip)
- * @blob: a blob.
- * @key: key for data to get.
+ * @blob: a blob
+ * @key: The user-data key to query
  *
+ * Fetches the user data associated with the specified key,
+ * attached to the specified font-functions structure.
  *
- *
- * Return value: (transfer none):
+ * Return value: (transfer none): A pointer to the user data
  *
  * Since: 0.9.2
  **/
@@ -275,9 +278,9 @@ hb_blob_get_user_data (hb_blob_t          *blob,
 
 /**
  * hb_blob_make_immutable:
- * @blob: a blob.
+ * @blob: a blob
  *
- *
+ * Makes a blob immutable.
  *
  * Since: 0.9.2
  **/
@@ -294,9 +297,9 @@ hb_blob_make_immutable (hb_blob_t *blob)
  * hb_blob_is_immutable:
  * @blob: a blob.
  *
+ * Tests whether a blob is immutable.
  *
- *
- * Return value: TODO
+ * Return value: %true if @blob is immutable, false otherwise
  *
  * Since: 0.9.2
  **/
@@ -311,9 +314,9 @@ hb_blob_is_immutable (hb_blob_t *blob)
  * hb_blob_get_length:
  * @blob: a blob.
  *
+ * Fetches the length of a blob's data.
  *
- *
- * Return value: the length of blob data in bytes.
+ * Return value: the length of @blob data in bytes.
  *
  * Since: 0.9.2
  **/
@@ -326,9 +329,9 @@ hb_blob_get_length (hb_blob_t *blob)
 /**
  * hb_blob_get_data:
  * @blob: a blob.
- * @length: (out):
+ * @length: (out): The length in bytes of the data retrieved
  *
- *
+ * Fetches the data from a blob.
  *
  * Returns: (transfer none) (array length=length):
  *
@@ -558,7 +561,10 @@ _open_resource_fork (const char *file_name, hb_mapped_file_t *file)
 
 /**
  * hb_blob_create_from_file:
- * @file_name: font filename.
+ * @file_name: A font filename
+ *
+ * Creates a new blob containing the data from the
+ * specified binary font file.
  *
  * Returns: A hb_blob_t pointer with the content of the file
  *
