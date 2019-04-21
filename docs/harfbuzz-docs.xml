@@ -20,11 +20,7 @@
 
       <para>
 	The canonical source-code tree is available at
-        <ulink
-	    url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>
-        and is also available at
-        <ulink
-	    url="http://cgit.freedesktop.org/harfbuzz/">cgit.freedesktop.org/harfbuzz</ulink>.
+        <ulink url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>.
 	See <xref linkend="download" endterm="download.title"/> for
 	release tarballs.
       </para>
