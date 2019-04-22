@@ -46,6 +46,14 @@ hb_face_count (hb_blob_t *blob);
  * hb_face_t
  */
 
+/**
+ * hb_face_t:
+ * @blob: A pointer to the #hb_blob_t that contains the binary blob of a font file
+ * @index: The index (zero-based) into the font file that points to the face
+ *
+ * Data type for holding font faces.
+ *
+ **/
 typedef struct hb_face_t hb_face_t;
 
 HB_EXTERN hb_face_t *
