@@ -121,7 +121,7 @@ struct hb_serialize_context_t
   }
 
   bool propagate_error (bool success)
-  { return this->successful = this->successful && success; }
+  { return this->successful && (success || (err_propagated_error (), false)); }
 
   template <typename T> bool propagate_error (T &&obj)
   { return propagate_error (!hb_deref_pointer (obj).in_error ()); }
@@ -322,8 +322,11 @@ struct hb_serialize_context_t
     return ret;
   }
 
+  /* Following two functions exist to allow setting breakpoint on. */
   void
   err_ran_out_of_room () { this->ran_out_of_room = true; }
+  void
+  err_propagated_error () { this->successful = false; }
 
   template <typename Type>
   Type *allocate_size (unsigned int size)
