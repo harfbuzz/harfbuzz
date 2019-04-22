@@ -209,13 +209,16 @@ template <typename T>
 struct hb_is_iterable
 {
   private:
+
   template <typename U>
-  static auto test (int) -> decltype (hb_declval (U).iter (), hb_true_t ());
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (U).iter (), hb_true_t ());
+
   template <typename>
-  static hb_false_t test (...);
+  static hb_false_t impl (hb_priority<0>);
 
   public:
-  enum { value = decltype (test<T> (0))::value };
+
+  enum { value = decltype (impl<T> (hb_prioritize))::value };
 };
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
