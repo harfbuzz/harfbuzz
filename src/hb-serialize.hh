@@ -120,12 +120,12 @@ struct hb_serialize_context_t
     this->packed.push (nullptr);
   }
 
-  bool propagate_error (bool e)
-  { return this->successful = this->successful && e; }
-  template <typename T> bool propagate_error (const T &obj)
-  { return this->successful = this->successful && !obj.in_error (); }
-  template <typename T> bool propagate_error (const T *obj)
-  { return this->successful = this->successful && !obj->in_error (); }
+  bool propagate_error (bool success)
+  { return this->successful = this->successful && success; }
+
+  template <typename T> bool propagate_error (T &&obj)
+  { return propagate_error (!hb_deref_pointer (obj).in_error ()); }
+
   template <typename T1, typename T2> bool propagate_error (T1 &&o1, T2 &&o2)
   { return propagate_error (o1) && propagate_error (o2); }
   template <typename T1, typename T2, typename T3>
