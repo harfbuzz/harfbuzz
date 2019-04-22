@@ -1155,6 +1155,12 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 
 /**
  * hb_ot_shape_plan_collect_lookups:
+ * @shape_plan: #hb_shape_plan_t to query
+ * @table_tag: GSUB or GPOS
+ * @lookup_indexes: (out): The #hb_set_t set of lookups returned
+ *
+ * Computes the complete set of GSUB or GPOS lookups that are applicable
+ * under a given @shape_plan. 
  *
  * Since: 0.9.7
  **/
@@ -1189,6 +1195,15 @@ add_char (hb_font_t          *font,
 
 /**
  * hb_ot_shape_glyphs_closure:
+ * @font: #hb_font_t to work upon
+ * @buffer: The input buffer to compute from
+ * @features: (array length=num_features): The features enabled on the buffer
+ * @num_features: The number of features enabled on the buffer
+ * @glyphs: (out): The #hb_set_t set of glyphs comprising the transitive closure of the query
+ *
+ * Computes the transitive closure of glyphs needed for a specified
+ * input buffer under the given font and feature list. The closure is
+ * computed as a set, not as a list.
  *
  * Since: 0.9.2
  **/
