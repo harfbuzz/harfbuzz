@@ -47,12 +47,33 @@ test_subset_nameids (void)
   hb_face_destroy (face_expected);
 }
 
+static void
+test_subset_nameids_with_dup_strs (void)
+{
+  hb_face_t *face_origin = hb_test_open_font_file ("fonts/nameID.dup.origin.ttf");
+  hb_face_t *face_expected = hb_test_open_font_file ("fonts/nameID.dup.expected.ttf");
+
+  hb_set_t *name_ids = hb_set_create();
+  hb_face_t *face_subset;
+  hb_set_add (name_ids, 1);
+  hb_set_add (name_ids, 3);
+  face_subset = hb_subset_test_create_subset (face_origin, hb_subset_test_create_input_from_nameids (name_ids));
+  hb_set_destroy (name_ids);
+
+  hb_subset_test_check (face_expected, face_subset, HB_TAG ('n','a','m','e'));
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face_origin);
+  hb_face_destroy (face_expected);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_subset_nameids);
+  hb_test_add (test_subset_nameids_with_dup_strs);
 
   return hb_test_run();
 }

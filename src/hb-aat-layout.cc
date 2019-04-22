@@ -311,14 +311,6 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
   trak.apply (&c);
 }
 
-
-hb_language_t
-_hb_aat_language_get (hb_face_t *face,
-		      unsigned int i)
-{
-  return face->table.ltag->get_language (i);
-}
-
 /**
  * hb_aat_layout_get_feature_types:
  * @face: a face object
