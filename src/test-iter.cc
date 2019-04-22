@@ -181,7 +181,7 @@ main (int argc, char **argv)
   ;
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
-  
+
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) -> int { return ++temp3; })
@@ -196,6 +196,9 @@ main (int argc, char **argv)
   t << 1;
   long vl;
   s >> vl;
+
+  if (0)
+    hb_invoke (main, 0, nullptr);
 
   return 0;
 }
