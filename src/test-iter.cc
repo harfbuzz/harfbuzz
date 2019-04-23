@@ -99,6 +99,12 @@ test_iterable (const Iterable &lst = Null(Iterable))
   test_iterator (lst.iter ());
 }
 
+static char *
+test_func (int a, char **b)
+{
+  return b[a];
+}
+
 int
 main (int argc, char **argv)
 {
@@ -198,7 +204,7 @@ main (int argc, char **argv)
   s >> vl;
 
   if (0)
-    hb_invoke (main, 0, nullptr);
+    hb_invoke (test_func, 0, nullptr);
 
   return 0;
 }
