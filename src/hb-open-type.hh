@@ -284,8 +284,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return * (Type *) Offset<OffsetType>::serialize (c, base);
   }
 
-  template <typename T>
-  bool serialize_subset (hb_subset_context_t *c, const T &src, const void *base)
+  template <typename T, typename ...Ts>
+  bool serialize_subset (hb_subset_context_t *c, const T &src, const void *base, Ts ...ds)
   {
     *this = 0;
     if (has_null && &src == &Null (T))
@@ -295,7 +295,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     s->push ();
 
-    bool ret = src.subset (c);
+    bool ret = src.subset (c, ds...);
 
     if (ret || !has_null)
       s->add_link (*this, s->pop_pack (), base);
@@ -314,39 +314,13 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
 		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c) ||
-		   neuter (c)));
-  }
-  template <typename T1>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (sanitize_shallow (c, base) &&
-		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c, d1) ||
-		   neuter (c)));
-  }
-  template <typename T1, typename T2>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1, T2 d2) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (sanitize_shallow (c, base) &&
-		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2) ||
-		   neuter (c)));
-  }
-  template <typename T1, typename T2, typename T3>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T1 d1, T2 d2, T3 d3) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (sanitize_shallow (c, base) &&
-		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c, d1, d2, d3) ||
+		   StructAtOffset<Type> (base, *this).sanitize (c, ds...) ||
 		   neuter (c)));
   }
 
@@ -430,29 +404,26 @@ struct UnsizedArrayOf
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size.  We just include
      * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize(), ie. they do not
+     * pointed to do have a simple sanitize() as well as an
+     * assignment opreator.  This ensures that they do not
      * reference other structs via offsets.
      */
-    (void) (false && arrayZ[0].sanitize (c));
+    if (false)
+    {
+      arrayZ[0].sanitize (c);
+      Type v;
+      v = arrayZ[0];
+    }
 
     return_trace (true);
   }
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base)))
-	return_trace (false);
-    return_trace (true);
-  }
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base, T user_data) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
+      if (unlikely (!arrayZ[i].sanitize (c, base, ds...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -492,17 +463,12 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
     return this+*p;
   }
 
-
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>::sanitize (c, count, this)));
-  }
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, T user_data) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>::sanitize (c, count, this, user_data)));
+    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>
+		   ::sanitize (c, count, this, ds...)));
   }
 };
 
@@ -622,24 +588,14 @@ struct ArrayOf
 
     return_trace (true);
   }
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base)))
-	return_trace (false);
-    return_trace (true);
-  }
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
+      if (unlikely (!arrayZ[i].sanitize (c, base, ds...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -706,16 +662,11 @@ struct OffsetListOf : OffsetArrayOf<Type>
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace (OffsetArrayOf<Type>::sanitize (c, this));
-  }
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, T user_data) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (OffsetArrayOf<Type>::sanitize (c, this, user_data));
+    return_trace (OffsetArrayOf<Type>::sanitize (c, this, ds...));
   }
 };
 
@@ -763,10 +714,16 @@ struct HeadlessArrayOf
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size.  We just include
      * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize(), ie. they do not
+     * pointed to do have a simple sanitize() as well as an
+     * assignment opreator.  This ensures that they do not
      * reference other structs via offsets.
      */
-    (void) (false && arrayZ[0].sanitize (c));
+    if (false)
+    {
+      arrayZ[0].sanitize (c);
+      Type v;
+      v = arrayZ[0];
+    }
 
     return_trace (true);
   }
@@ -807,14 +764,14 @@ struct ArrayOfM1
   unsigned int get_size () const
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, user_data)))
+      if (unlikely (!arrayZ[i].sanitize (c, base, ds...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -999,31 +956,27 @@ struct VarSizedBinSearchArrayOf
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size.  We just include
      * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize(), ie. they do not
+     * pointed to do have a simple sanitize() as well as an
+     * assignment opreator.  This ensures that they do not
      * reference other structs via offsets.
      */
-    (void) (false && StructAtOffset<Type> (&bytesZ, 0).sanitize (c));
+    if (false)
+    {
+      (*this)[0].sanitize (c);
+      Type v;
+      v = (*this)[0];
+    }
 
     return_trace (true);
   }
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts ...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(*this)[i].sanitize (c, base)))
-	return_trace (false);
-    return_trace (true);
-  }
-  template <typename T>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-    unsigned int count = get_length ();
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(*this)[i].sanitize (c, base, user_data)))
+      if (unlikely (!(*this)[i].sanitize (c, base, ds...)))
 	return_trace (false);
     return_trace (true);
   }
