@@ -85,7 +85,7 @@ struct SingleSubstFormat1
 
   bool serialize (hb_serialize_context_t *c,
 		  hb_sorted_array_t<const GlyphID> glyphs,
-		  int delta)
+		  unsigned delta)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -127,8 +127,8 @@ struct SingleSubstFormat1
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  HBINT16	deltaGlyphID;		/* Add to original GlyphID to get
-					 * substitute GlyphID */
+  HBUINT16	deltaGlyphID;		/* Add to original GlyphID to get
+					 * substitute GlyphID, modulo 0x10000 */
   public:
   DEFINE_SIZE_STATIC (6);
 };
