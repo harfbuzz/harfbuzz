@@ -88,7 +88,6 @@ _subset2 (hb_subset_plan_t *plan)
     serializer.start_serialize<TableType> ();
     hb_subset_context_t c (plan, &serializer);
     result = table->subset (&c);
-    serializer.end_serialize ();
     if (serializer.ran_out_of_room)
     {
       buf_size += (buf_size >> 1) + 32;
@@ -105,6 +104,7 @@ _subset2 (hb_subset_plan_t *plan)
       abort ();
     }
 
+    serializer.end_serialize ();
     if (result)
     {
       hb_blob_t *dest_blob = serializer.copy_blob ();
@@ -160,7 +160,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::hdmx> (plan);
       break;
     case HB_OT_TAG_name:
-      result = _subset<const OT::name> (plan);
+      result = _subset2<const OT::name> (plan);
       break;
     case HB_OT_TAG_head:
       // TODO that won't work well if there is no glyf

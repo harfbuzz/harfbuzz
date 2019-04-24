@@ -158,32 +158,19 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
-  size_t get_subsetted_size (const name *source_name,
+  void get_subsetted_ids (const name *source_name,
                              const hb_subset_plan_t *plan,
                              hb_vector_t<unsigned int>& name_record_idx_to_retain) const
   {
-    size_t result = min_size;
-
-    hb_face_t *face = plan->source;
-    accelerator_t acc;
-    acc.init (face);
-
     for(unsigned int i = 0; i < count; i++)
     {
-      if (format == 0 && (unsigned int) nameRecordZ[i].nameID > 25)
+      if (format == 0 && (unsigned int) source_name->nameRecordZ[i].nameID > 25)
         continue;
       if (!hb_set_is_empty (plan->name_ids) &&
           !hb_set_has (plan->name_ids, source_name->nameRecordZ[i].nameID))
         continue;
-      result += acc.get_name (i).get_size ();
       name_record_idx_to_retain.push (i);
     }
-
-    acc.fini ();
-
-    result += name_record_idx_to_retain.length * NameRecord::static_size;
-
-    return result;
   }
 
   bool serialize_name_record (hb_serialize_context_t *c,
@@ -294,36 +281,22 @@ struct name
     return_trace (true);
   }
 
-  bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_context_t *c) const
   {
+    hb_subset_plan_t *plan = c->plan;
     hb_vector_t<unsigned int> name_record_idx_to_retain;
 
-    size_t dest_size = get_subsetted_size (this, plan, name_record_idx_to_retain);
-    name *dest = (name *) malloc (dest_size);
-    if(unlikely (!dest))
-    {
-      DEBUG_MSG (SUBSET, nullptr, "Unable to alloc %lu for name subset output.",
-                (unsigned long) dest_size);
-      return false;
-    }
+    get_subsetted_ids (this, plan, name_record_idx_to_retain);
 
-    hb_serialize_context_t c (dest, dest_size);
-    name *name_prime = c.start_serialize<name> ();
-    if (!name_prime || !name_prime->serialize (&c, this, plan, name_record_idx_to_retain))
+    hb_serialize_context_t *serializer = c->serializer;
+    name *name_prime = serializer->start_embed<name> ();
+    if (!name_prime || !name_prime->serialize (serializer, this, plan, name_record_idx_to_retain))
     {
-      free (dest);
       DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
-      c.end_serialize ();
       return false;
     }
-
-    c.end_serialize ();
-
-    hb_blob_t *name_prime_blob = c.copy_blob ();
-    bool result = plan->add_table (HB_OT_TAG_name, name_prime_blob);
-    hb_blob_destroy (name_prime_blob);
-
-    return result;
+    
+    return true;
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
