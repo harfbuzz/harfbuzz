@@ -36,6 +36,8 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-maxp-table.hh"
 
+#include "hb-ot-name-language-static.hh"
+
 #ifndef HB_NO_VISIBILITY
 
 hb_vector_size_impl_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (hb_vector_size_impl_t) - 1) / sizeof (hb_vector_size_impl_t)] = {};
