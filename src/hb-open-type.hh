@@ -419,12 +419,12 @@ struct UnsizedArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, hb_forward<Ts> (ds)...)))
+      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -590,13 +590,13 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, hb_forward<Ts> (ds)...)))
+      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -766,13 +766,13 @@ struct ArrayOfM1
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, base, hb_forward<Ts> (ds)...)))
+      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -971,13 +971,13 @@ struct VarSizedBinSearchArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(*this)[i].sanitize (c, base, hb_forward<Ts> (ds)...)))
+      if (unlikely (!(*this)[i].sanitize (c, hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
