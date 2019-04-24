@@ -182,7 +182,8 @@ struct Offset : Type
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
     void *t = c->start_embed<void> ();
-    *this = (char *) t - (char *) base; /* TODO(serialize) Overflow? */
+    unsigned int offset = (char *) t - (char *) base;
+    c->propagate_error ((*this = offset) == offset);
     return t;
   }
 
@@ -548,7 +549,7 @@ struct ArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    len = items_len; /* TODO(serialize) Overflow? */
+    c->propagate_error ((len = items_len) == items_len);
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
@@ -698,7 +699,7 @@ struct HeadlessArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    lenP1 = items.length + 1; /* TODO(serialize) Overflow? */
+    c->propagate_error ((lenP1 = items.length + 1) == items.length + 1);
     if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items.length; i++)
       arrayZ[i] = items[i];
