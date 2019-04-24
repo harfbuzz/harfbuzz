@@ -182,7 +182,7 @@ struct Offset : Type
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
     void *t = c->start_embed<void> ();
-    c->check_assign (*this, (char *) t - (char *) base);
+    c->check_assign (*this, (unsigned) ((char *) t - (char *) base));
     return t;
   }
 
