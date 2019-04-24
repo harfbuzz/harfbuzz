@@ -122,7 +122,7 @@ struct hb_hashmap_t
       return false;
     }
     + hb_iter (new_items, new_size)
-    | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+    | hb_apply (&item_t::clear)
     ;
 
     unsigned int old_size = mask + 1;
@@ -193,7 +193,7 @@ struct hb_hashmap_t
       return;
     if (items)
       + hb_iter (items, mask + 1)
-      | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+      | hb_apply (&item_t::clear)
       ;
 
     population = occupancy = 0;
