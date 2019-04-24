@@ -127,7 +127,8 @@ struct hb_serialize_context_t
   { return propagate_error (!hb_deref_pointer (obj).in_error ()); }
 
   template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
-  { return propagate_error (o1) && propagate_error (os...); }
+  { return propagate_error (hb_forward<T1> (o1)) &&
+	   propagate_error (hb_forward<Ts> (os)...); }
 
   /* To be called around main operation. */
   template <typename Type>
