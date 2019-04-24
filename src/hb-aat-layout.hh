@@ -32,7 +32,6 @@
 #include "hb-ot-shape.hh"
 #include "hb-aat-ltag-table.hh"
 
-
 struct hb_aat_feature_mapping_t
 {
   hb_tag_t otFeatureTag;
