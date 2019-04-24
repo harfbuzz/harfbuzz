@@ -121,7 +121,7 @@ struct hb_serialize_context_t
   }
 
   bool check_success (bool success)
-  { return this->successful && (success || (err_propagated_error (), false)); }
+  { return this->successful && (success || (err_other_error (), false)); }
 
   template <typename T1, typename T2>
   bool check_equal (T1 &&v1, T2 &&v2)
@@ -330,10 +330,8 @@ struct hb_serialize_context_t
   }
 
   /* Following two functions exist to allow setting breakpoint on. */
-  void
-  err_ran_out_of_room () { this->ran_out_of_room = true; }
-  void
-  err_propagated_error () { this->successful = false; }
+  void err_ran_out_of_room () { this->ran_out_of_room = true; }
+  void err_other_error () { this->successful = false; }
 
   template <typename Type>
   Type *allocate_size (unsigned int size)
