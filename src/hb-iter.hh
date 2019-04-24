@@ -129,8 +129,6 @@ struct hb_iter_t
 #define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
 
 
-/* TODO Change to function-object. */
-
 template <typename> struct hb_array_t;
 
 struct
@@ -224,7 +222,6 @@ struct hb_is_iterable
 
 /* TODO Add hb_is_iterable_of().
  * TODO Add random_access / sorted variants. */
-
 
 /* hb_is_iterator() / hb_is_random_access_iterator() / hb_is_sorted_iterator() */
 
