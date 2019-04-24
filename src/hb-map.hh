@@ -34,11 +34,9 @@
  * hb_hashmap_t
  */
 
-/* TODO if K/V is signed integer, -1 is not a good default.
- * Don't know how to get to -MAX using bit work. */
 template <typename K, typename V,
-	  K kINVALID = hb_is_pointer (K) ? 0 : (K) -1,
-	  V vINVALID = hb_is_pointer (V) ? 0 : (V) -1>
+	  K kINVALID = hb_is_pointer (K) ? 0 : hb_is_signed (K) ? hb_int_min (K) : (K) -1,
+	  V vINVALID = hb_is_pointer (V) ? 0 : hb_is_signed (V) ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
   HB_DELETE_COPY_ASSIGN (hb_hashmap_t);

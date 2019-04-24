@@ -138,6 +138,12 @@ template <> struct hb_is_signed<uint32_t> { enum { value = false }; };
 template <> struct hb_is_signed<uint64_t> { enum { value = false }; };
 #define hb_is_signed(T) hb_is_signed<T>::value
 
+template <typename T> struct hb_int_min { static constexpr T value = 0; };
+template <> struct hb_int_min<char> { static constexpr char value = CHAR_MIN; };
+template <> struct hb_int_min<int>  { static constexpr int  value = INT_MIN;  };
+template <> struct hb_int_min<long> { static constexpr long value = LONG_MIN; };
+#define hb_int_min(T) hb_int_min<T>::value
+
 template <bool is_signed> struct hb_signedness_int;
 template <> struct hb_signedness_int<false> { typedef unsigned int value; };
 template <> struct hb_signedness_int<true>  { typedef   signed int value; };

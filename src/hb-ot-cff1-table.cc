@@ -26,7 +26,6 @@
 
 #include "hb-ot-cff1-table.hh"
 #include "hb-cff1-interp-cs.hh"
-#include <limits.h>
 
 using namespace CFF;
 
