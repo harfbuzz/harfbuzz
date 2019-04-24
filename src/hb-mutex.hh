@@ -127,8 +127,6 @@ typedef int hb_mutex_impl_t;
 
 struct hb_mutex_t
 {
-  /* TODO Add tracing. */
-
   hb_mutex_impl_t m;
 
   void init   () { hb_mutex_impl_init   (&m); }
