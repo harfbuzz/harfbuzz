@@ -90,7 +90,7 @@ struct SingleSubstFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
-    deltaGlyphID = delta; /* TODO(serialize) overflow? */
+    c->propagate_error ((deltaGlyphID = delta) == delta);
     return_trace (true);
   }
 
@@ -231,15 +231,14 @@ struct SingleSubst
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
-    unsigned int format = 2;
-    int delta = 0;
+    unsigned format = 2;
+    unsigned delta = 0;
     if (glyphs.length)
     {
       format = 1;
-      /* TODO(serialize) check for wrap-around */
-      delta = substitutes[0] - glyphs[0];
+      delta = (unsigned) (substitutes[0] - glyphs[0]) & 0xFFFF;
       for (unsigned int i = 1; i < glyphs.length; i++)
-	if (delta != (int) (substitutes[i] - glyphs[i])) {
+	if (delta != ((unsigned) (substitutes[i] - glyphs[i]) & 0xFFFF)) {
 	  format = 2;
 	  break;
 	}
