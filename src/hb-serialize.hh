@@ -120,11 +120,19 @@ struct hb_serialize_context_t
     this->packed.push (nullptr);
   }
 
-  bool propagate_error (bool success)
+  bool check_success (bool success)
   { return this->successful && (success || (err_propagated_error (), false)); }
 
+  template <typename T1, typename T2>
+  bool check_equal (T1 &&v1, T2 &&v2)
+  { return check_success (v1 == v2); }
+
+  template <typename T1, typename T2>
+  bool check_assign (T1 &v1, T2 &&v2)
+  { return check_equal (v1 = v2, v2); }
+
   template <typename T> bool propagate_error (T &&obj)
-  { return propagate_error (!hb_deref_pointer (obj).in_error ()); }
+  { return check_success (!hb_deref_pointer (obj).in_error ()); }
 
   template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
   { return propagate_error (hb_forward<T1> (o1)) &&
@@ -170,7 +178,7 @@ struct hb_serialize_context_t
   {
     object_t *obj = object_pool.alloc ();
     if (unlikely (!obj))
-      propagate_error (false);
+      check_success (false);
     else
     {
       obj->head = head;
@@ -293,15 +301,13 @@ struct hb_serialize_context_t
 	{
 	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + link.position));
 	  assert (0 == off);
-	  off = offset;
-	  propagate_error (off == offset);
+	  check_assign (off, offset);
 	}
 	else
 	{
 	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + link.position));
 	  assert (0 == off);
-	  off = offset;
-	  propagate_error (off == offset);
+	  check_assign (off, offset);
 	}
       }
     }
