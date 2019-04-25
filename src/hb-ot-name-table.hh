@@ -187,8 +187,11 @@ struct name
       }
 
       c->push<NameRecord> ();
-      if (!c->embed (source_name->nameRecordZ[idx]))
+
+      NameRecord *p = c->embed<NameRecord> (source_name->nameRecordZ[idx]);
+      if (!p)
         return false;
+      p->offset = 0;
     }
 
     return true;
@@ -233,7 +236,7 @@ struct name
                                 hb_serialize_context_t *c, 
                                 unsigned length)
   {
-    hb_hashmap_t<unsigned, unsigned, -1, 0> id_str_idx_map;
+    hb_hashmap_t<unsigned, unsigned> id_str_idx_map;
     for (int i = length-1; i >= 0; i--)
     {
       unsigned objidx = c->pop_pack ();
