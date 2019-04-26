@@ -211,11 +211,18 @@ struct hb_sorted_array_t :
   static constexpr bool is_sorted_iterator = true;
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
-  hb_sorted_array_t (const hb_array_t<Type> &o) : hb_array_t<Type> (o) {}
-  template <typename U = Type, hb_enable_if (hb_is_const (U))>
-  hb_sorted_array_t (const hb_sorted_array_t<hb_remove_const<Type> > &o) : hb_array_t<Type> (o) {}
   hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}
   template <unsigned int length_> hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
+
+  template <typename U,
+	    hb_enable_if (hb_is_cr_convertible_to(U, Type))>
+  hb_sorted_array_t (const hb_array_t<U> &o) :
+    hb_iter_t<hb_sorted_array_t<Type>, Type&> (),
+    hb_array_t<Type> (o) {}
+  template <typename U,
+	    hb_enable_if (hb_is_cr_convertible_to(U, Type))>
+  hb_sorted_array_t& operator = (const hb_array_t<U> &o)
+  { hb_array_t<Type> (*this) = o; return *this; }
 
   hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
   { return hb_sorted_array_t<Type> (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
