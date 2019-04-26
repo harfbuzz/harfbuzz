@@ -204,6 +204,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->drop_hints = input->drop_hints;
   plan->drop_layout = input->drop_layout;
   plan->desubroutinize = input->desubroutinize;
+  plan->retain_gids = input->retain_gids;
   plan->unicodes = hb_set_create();
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
