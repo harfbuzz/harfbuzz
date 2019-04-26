@@ -225,19 +225,17 @@ struct hb_is_iterable
 
 /* hb_is_iterator() / hb_is_random_access_iterator() / hb_is_sorted_iterator() */
 
-template <typename Iter>
-struct _hb_is_iterator_of
-{
-  char operator () (...) { return 0; }
-  template<typename Item> int operator () (hb_iter_t<Iter, Item> *) { return 0; }
-  template<typename Item> int operator () (hb_iter_t<Iter, const Item> *) { return 0; }
-  template<typename Item> int operator () (hb_iter_t<Iter, Item&> *) { return 0; }
-  template<typename Item> int operator () (hb_iter_t<Iter, const Item&> *) { return 0; }
-  static_assert (sizeof (char) != sizeof (int), "");
-};
+template <typename Iter, typename Item>
+static inline char _hb_is_iterator_of (hb_priority<0>, const void *) { return 0; }
+template <typename Iter,
+	  typename Item,
+	  typename Item2 = typename Iter::item_t,
+	  hb_enable_if (hb_is_cr_convertible_to (Item2, Item))>
+static inline int _hb_is_iterator_of (hb_priority<2>, hb_iter_t<Iter, Item2> *) { return 0; }
+
 template<typename Iter, typename Item>
 struct hb_is_iterator_of { enum {
-  value = sizeof (int) == sizeof (hb_declval (_hb_is_iterator_of<Iter>) (hb_declval (Iter*))) }; };
+  value = sizeof (int) == sizeof (_hb_is_iterator_of<Iter, Item> (hb_prioritize, hb_declval (Iter*))) }; };
 #define hb_is_iterator_of(Iter, Item) hb_is_iterator_of<Iter, Item>::value
 #define hb_is_iterator(Iter) hb_is_iterator_of (Iter, typename Iter::item_t)
 
