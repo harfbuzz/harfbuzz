@@ -47,22 +47,12 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
 
   template <typename U,
-	    hb_enable_if (
-	      hb_is_same (Type, U) ||
-	      hb_is_same (hb_remove_const<Type>, U) ||
-	      hb_is_same (Type, hb_remove_reference<U>) ||
-	      hb_is_same (hb_remove_const<Type>, hb_remove_reference<U>)
-	    )>
+	    hb_enable_if (hb_is_cr_convertible_to(U, Type))>
   hb_array_t (const hb_array_t<U> &o) :
     hb_iter_with_fallback_t<hb_array_t<Type>, Type&> (),
     arrayZ (o.arrayZ), length (o.length) {}
   template <typename U,
-	    hb_enable_if (
-	      hb_is_same (Type, U) ||
-	      hb_is_same (hb_remove_const<Type>, U) ||
-	      hb_is_same (Type, hb_remove_reference<U>) ||
-	      hb_is_same (hb_remove_const<Type>, hb_remove_reference<U>)
-	    )>
+	    hb_enable_if (hb_is_cr_convertible_to(U, Type))>
   hb_array_t& operator = (const hb_array_t<U> &o)
   { arrayZ = o.arrayZ; length = o.length; return *this; }
 
