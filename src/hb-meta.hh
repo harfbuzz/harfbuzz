@@ -96,6 +96,8 @@ template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { valu
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
+template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
+
 
 /* std::move and std::forward */
 
