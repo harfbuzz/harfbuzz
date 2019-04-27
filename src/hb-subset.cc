@@ -68,11 +68,11 @@ template<typename TableType>
 static bool
 _subset2 (hb_subset_plan_t *plan)
 {
+  bool result = true;
   hb_blob_t *source_blob = hb_sanitize_context_t ().reference_table<TableType> (plan->source);
   const TableType *table = source_blob->as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;
-  hb_bool_t result = false;
   if (source_blob->data)
   {
     hb_vector_t<char> buf;
@@ -87,7 +87,7 @@ _subset2 (hb_subset_plan_t *plan)
     hb_serialize_context_t serializer ((void *) buf, buf_size);
     serializer.start_serialize<TableType> ();
     hb_subset_context_t c (plan, &serializer);
-    result = table->subset (&c);
+    bool needed = table->subset (&c);
     if (serializer.ran_out_of_room)
     {
       buf_size += (buf_size >> 1) + 32;
@@ -101,20 +101,21 @@ _subset2 (hb_subset_plan_t *plan)
     }
     serializer.end_serialize ();
 
-    if (serializer.in_error ())
-      abort ();
+    result = !serializer.in_error ();
 
     if (result)
     {
-      hb_blob_t *dest_blob = serializer.copy_blob ();
-      DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
-      result = c.plan->add_table (tag, dest_blob);
-      hb_blob_destroy (dest_blob);
-    }
-    else
-    {
-      DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset table subsetted to empty.", HB_UNTAG (tag));
-      result = true;
+      if (needed)
+      {
+	hb_blob_t *dest_blob = serializer.copy_blob ();
+	DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
+	result = c.plan->add_table (tag, dest_blob);
+	hb_blob_destroy (dest_blob);
+      }
+      else
+      {
+	DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset table subsetted to empty.", HB_UNTAG (tag));
+      }
     }
   }
   else
