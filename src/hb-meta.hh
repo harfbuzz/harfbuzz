@@ -65,6 +65,9 @@ template <>             struct hb_priority<0> {};
 #define HB_FUNCOBJ(x) static_const x HB_UNUSED
 
 
+template <typename T> struct hb_match_identity { typedef T type; };
+template <typename T> using hb_type_identity = typename hb_match_identity<T>::type;
+
 struct
 {
   template <typename T>
@@ -96,6 +99,7 @@ template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { valu
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
+/* TODO Add feature-parity to std::decay. */
 template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
 
 #define hb_is_cr_convertible_to(A, B) ( \
