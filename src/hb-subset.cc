@@ -99,12 +99,11 @@ _subset2 (hb_subset_plan_t *plan)
       }
       goto retry;
     }
-    if (serializer.in_error ())
-    {
-      abort ();
-    }
-
     serializer.end_serialize ();
+
+    if (serializer.in_error ())
+      abort ();
+
     if (result)
     {
       hb_blob_t *dest_blob = serializer.copy_blob ();
