@@ -48,6 +48,12 @@ defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 # TODO Characters that are not in Unicode Indic files, but used in USE
 data[0][0x034F] = defaults[0]
 data[0][0x2060] = defaults[0]
+# TODO https://github.com/harfbuzz/harfbuzz/pull/1685
+data[0][0x1B5B] = 'Consonant_Placeholder'
+data[0][0x1B5C] = 'Consonant_Placeholder'
+data[0][0x1B5F] = 'Consonant_Placeholder'
+data[0][0x1B62] = 'Consonant_Placeholder'
+data[0][0x1B68] = 'Consonant_Placeholder'
 # TODO https://github.com/roozbehp/unicode-data/issues/9
 data[0][0x11C44] = 'Consonant_Placeholder'
 data[0][0x11C45] = 'Consonant_Placeholder'
@@ -171,7 +177,7 @@ def is_BASE(U, UISC, UGC):
 def is_BASE_IND(U, UISC, UGC):
 	#SPEC-DRAFT return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
 	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x104B, 0x104E, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
+		(UGC == Po and not U in [0x104B, 0x104E, 0x1B5B, 0x1B5C, 0x1B5F, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]) or
 		False # SPEC-DRAFT-OUTDATED! U == 0x002D
 		)
 def is_BASE_NUM(U, UISC, UGC):
@@ -228,7 +234,7 @@ def is_REPHA(U, UISC, UGC):
 def is_SYM(U, UISC, UGC):
 	if U == 0x25CC: return False #SPEC-DRAFT
 	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
-	return UGC in [So, Sc]
+	return UGC in [So, Sc] and U not in [0x1B62, 0x1B68]
 def is_SYM_MOD(U, UISC, UGC):
 	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
 def is_VARIATION_SELECTOR(U, UISC, UGC):
