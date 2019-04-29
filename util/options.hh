@@ -446,6 +446,58 @@ struct shape_options_t : option_group_t
 };
 
 
+struct deserialize_options_t : option_group_t
+{
+  deserialize_options_t (option_parser_t *parser)
+  {
+    direction = language = script = nullptr;
+    bot = eot = preserve_default_ignorables = remove_default_ignorables = false;
+    features = nullptr;
+    num_features = 0;
+    shapers = nullptr;
+    utf8_clusters = false;
+    invisible_glyph = 0;
+    cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
+    normalize_glyphs = false;
+    verify = false;
+    num_iterations = 1;
+
+    add_options (parser);
+  }
+  virtual ~deserialize_options_t ()
+  {
+    g_free (direction);
+    g_free (language);
+    g_free (script);
+    free (features);
+    g_strfreev (shapers);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  /* Buffer properties */
+  char *direction;
+  char *language;
+  char *script;
+
+  /* Buffer flags */
+  hb_bool_t bot;
+  hb_bool_t eot;
+  hb_bool_t preserve_default_ignorables;
+  hb_bool_t remove_default_ignorables;
+
+  hb_feature_t *features;
+  unsigned int num_features;
+  char **shapers;
+  hb_bool_t utf8_clusters;
+  hb_codepoint_t invisible_glyph;
+  hb_buffer_cluster_level_t cluster_level;
+  hb_bool_t normalize_glyphs;
+  hb_bool_t verify;
+  unsigned int num_iterations;
+};
+
+
 struct font_options_t : option_group_t
 {
   font_options_t (option_parser_t *parser,

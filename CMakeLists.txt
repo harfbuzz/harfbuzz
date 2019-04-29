@@ -184,6 +184,8 @@ extract_make_variable(HB_BASE_RAGEL_GENERATED_sources ${SRCSOURCES})
 
 extract_make_variable(HB_VIEW_sources ${UTILSOURCES})
 add_prefix_to_list(HB_VIEW_sources "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_RENDER_sources ${UTILSOURCES})
+add_prefix_to_list(HB_RENDER_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_SHAPE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SHAPE_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
@@ -761,6 +763,9 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-view ${HB_VIEW_sources})
   target_link_libraries(hb-view harfbuzz ${CAIRO_LIBRARIESNAMES})
+
+  add_executable(hb-render ${HB_RENDER_sources})
+  target_link_libraries(hb-render harfbuzz ${CAIRO_LIBRARIESNAMES})
 
   add_executable(hb-shape ${HB_SHAPE_sources})
   target_link_libraries(hb-shape harfbuzz)

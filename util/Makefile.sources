@@ -14,6 +14,22 @@ HB_VIEW_sources = \
 	view-cairo.hh \
 	$(NULL)
 
+HB_RENDER_sources = \
+	hb-render.cc \
+	options.cc \
+	options.hh \
+	main-font-text.hh \
+	deserialize-consumer.hh \
+	ansi-print.cc \
+	ansi-print.hh \
+	helper-cairo.cc \
+	helper-cairo.hh \
+	helper-cairo-ansi.cc \
+	helper-cairo-ansi.hh \
+	view-cairo.cc \
+	view-cairo.hh \
+	$(NULL)
+
 HB_SHAPE_sources = \
 	hb-shape.cc \
 	options.cc \

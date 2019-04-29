@@ -41,7 +41,13 @@ hb_view_LDADD = \
 	$(CAIRO_LIBS) \
 	$(CAIRO_FT_LIBS) \
 	$(NULL)
-bin_PROGRAMS += hb-view
+hb_render_SOURCES = $(HB_RENDER_sources)
+hb_render_LDADD = \
+	$(LDADD) \
+	$(CAIRO_LIBS) \
+	$(CAIRO_FT_LIBS) \
+	$(NULL)
+bin_PROGRAMS += hb-view hb-render
 endif # HAVE_CAIRO_FT
 endif # HAVE_FREETYPE
 
