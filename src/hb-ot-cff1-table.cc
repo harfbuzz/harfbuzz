@@ -165,8 +165,8 @@ struct bounds_t
 {
   void init ()
   {
-    min.set_int (0x7FFFFFFF, 0x7FFFFFFF);
-    max.set_int (-0x80000000, -0x80000000);
+    min.set_int (INT_MAX, INT_MAX);
+    max.set_int (INT_MIN, INT_MIN);
   }
 
   void update (const point_t &pt)

@@ -65,6 +65,9 @@ template <>             struct hb_priority<0> {};
 #define HB_FUNCOBJ(x) static_const x HB_UNUSED
 
 
+template <typename T> struct hb_match_identity { typedef T type; };
+template <typename T> using hb_type_identity = typename hb_match_identity<T>::type;
+
 struct
 {
   template <typename T>
@@ -95,6 +98,14 @@ template <typename T> struct hb_match_pointer { typedef T type; enum { value = f
 template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { value = true }; };
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
+
+/* TODO Add feature-parity to std::decay. */
+template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
+
+#define hb_is_cr_convertible_to(A, B) ( \
+	hb_is_same (hb_decay<A>, hb_decay<B>) && \
+	hb_is_const (A) <= hb_is_const (B) && \
+	hb_is_reference (A) >= hb_is_reference (B))
 
 
 /* std::move and std::forward */
@@ -127,16 +138,24 @@ template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
 #define hb_is_same(T, T2) hb_is_same<T, T2>::value
 
 template <typename T> struct hb_is_signed;
-/* https://github.com/harfbuzz/harfbuzz/issues/1535 */
-template <> struct hb_is_signed<int8_t> { enum { value = true }; };
-template <> struct hb_is_signed<int16_t> { enum { value = true }; };
-template <> struct hb_is_signed<int32_t> { enum { value = true }; };
-template <> struct hb_is_signed<int64_t> { enum { value = true }; };
-template <> struct hb_is_signed<uint8_t> { enum { value = false }; };
-template <> struct hb_is_signed<uint16_t> { enum { value = false }; };
-template <> struct hb_is_signed<uint32_t> { enum { value = false }; };
-template <> struct hb_is_signed<uint64_t> { enum { value = false }; };
+template <> struct hb_is_signed<char> { enum { value = CHAR_MIN < 0 }; };
+template <> struct hb_is_signed<signed char> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned char> { enum { value = false }; };
+template <> struct hb_is_signed<signed short> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned short> { enum { value = false }; };
+template <> struct hb_is_signed<signed int> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned int> { enum { value = false }; };
+template <> struct hb_is_signed<signed long> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned long> { enum { value = false }; };
+template <> struct hb_is_signed<signed long long> { enum { value = true }; };
+template <> struct hb_is_signed<unsigned long long> { enum { value = false }; };
 #define hb_is_signed(T) hb_is_signed<T>::value
+
+template <typename T> struct hb_int_min { static constexpr T value = 0; };
+template <> struct hb_int_min<char> { static constexpr char value = CHAR_MIN; };
+template <> struct hb_int_min<int>  { static constexpr int  value = INT_MIN;  };
+template <> struct hb_int_min<long> { static constexpr long value = LONG_MIN; };
+#define hb_int_min(T) hb_int_min<T>::value
 
 template <bool is_signed> struct hb_signedness_int;
 template <> struct hb_signedness_int<false> { typedef unsigned int value; };

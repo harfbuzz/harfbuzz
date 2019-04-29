@@ -65,6 +65,15 @@ hb_subset_test_create_input_from_glyphs (const hb_set_t *glyphs)
   return input;
 }
 
+static inline hb_subset_input_t *
+hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t * input_name_ids  = hb_subset_input_nameid_set (input);
+  hb_set_union (input_name_ids, name_ids);
+  return input;
+}
+
 static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
                               hb_subset_input_t *input)

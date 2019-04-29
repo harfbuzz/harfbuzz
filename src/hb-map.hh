@@ -34,11 +34,9 @@
  * hb_hashmap_t
  */
 
-/* TODO if K/V is signed integer, -1 is not a good default.
- * Don't know how to get to -MAX using bit work. */
 template <typename K, typename V,
-	  K kINVALID = hb_is_pointer (K) ? 0 : (K) -1,
-	  V vINVALID = hb_is_pointer (V) ? 0 : (V) -1>
+	  K kINVALID = hb_is_pointer (K) ? 0 : hb_is_signed (K) ? hb_int_min (K) : (K) -1,
+	  V vINVALID = hb_is_pointer (V) ? 0 : hb_is_signed (V) ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
   HB_DELETE_COPY_ASSIGN (hb_hashmap_t);
@@ -122,7 +120,7 @@ struct hb_hashmap_t
       return false;
     }
     + hb_iter (new_items, new_size)
-    | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+    | hb_apply (&item_t::clear)
     ;
 
     unsigned int old_size = mask + 1;
@@ -193,7 +191,7 @@ struct hb_hashmap_t
       return;
     if (items)
       + hb_iter (items, mask + 1)
-      | hb_apply ([] (item_t &_) { _.clear (); }) /* TODO make pointer-to-methods invokable. */
+      | hb_apply (&item_t::clear)
       ;
 
     population = occupancy = 0;

@@ -28,6 +28,17 @@
 #include "hb-algs.hh"
 
 
+static char *
+test_func (int a, char **b)
+{
+  return b ? b[a] : nullptr;
+}
+
+struct A
+{
+  void a () {}
+};
+
 int
 main (int argc, char **argv)
 {
@@ -45,6 +56,11 @@ main (int argc, char **argv)
   assert (&q != &p);
   q.second = 4;
   assert (i == 4);
+
+  hb_invoke (test_func, 0, nullptr);
+
+  A a;
+  hb_invoke (&A::a, a);
 
   return 0;
 }

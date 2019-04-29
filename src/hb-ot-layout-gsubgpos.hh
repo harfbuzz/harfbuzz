@@ -286,7 +286,7 @@ struct hb_ot_apply_context_t :
     };
 
     may_match_t may_match (const hb_glyph_info_t &info,
-				  const HBUINT16        *glyph_data) const
+			   const HBUINT16        *glyph_data) const
     {
       if (!(info.mask & mask) ||
 	  (syllable && syllable != info.syllable ()))

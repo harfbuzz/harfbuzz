@@ -204,12 +204,14 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->drop_hints = input->drop_hints;
   plan->drop_layout = input->drop_layout;
   plan->desubroutinize = input->desubroutinize;
-  plan->unicodes = hb_set_create();
+  plan->retain_gids = input->retain_gids;
+  plan->unicodes = hb_set_create ();
+  plan->name_ids = hb_set_reference (input->name_ids);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
-  plan->codepoint_to_glyph = hb_map_create();
-  plan->glyph_map = hb_map_create();
-  plan->reverse_glyph_map = hb_map_create();
+  plan->codepoint_to_glyph = hb_map_create ();
+  plan->glyph_map = hb_map_create ();
+  plan->reverse_glyph_map = hb_map_create ();
   plan->_glyphset = _populate_gids_to_retain (face,
                                               input->unicodes,
                                               input->glyphs,
@@ -238,6 +240,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
+  hb_set_destroy (plan->name_ids);
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);

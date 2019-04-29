@@ -120,17 +120,23 @@ struct hb_serialize_context_t
     this->packed.push (nullptr);
   }
 
-  bool propagate_error (bool e)
-  { return this->successful = this->successful && e; }
-  template <typename T> bool propagate_error (const T &obj)
-  { return this->successful = this->successful && !obj.in_error (); }
-  template <typename T> bool propagate_error (const T *obj)
-  { return this->successful = this->successful && !obj->in_error (); }
-  template <typename T1, typename T2> bool propagate_error (T1 &&o1, T2 &&o2)
-  { return propagate_error (o1) && propagate_error (o2); }
-  template <typename T1, typename T2, typename T3>
-  bool propagate_error (T1 &&o1, T2 &&o2, T3 &&o3)
-  { return propagate_error (o1) && propagate_error (o2, o3); }
+  bool check_success (bool success)
+  { return this->successful && (success || (err_other_error (), false)); }
+
+  template <typename T1, typename T2>
+  bool check_equal (T1 &&v1, T2 &&v2)
+  { return check_success (v1 == v2); }
+
+  template <typename T1, typename T2>
+  bool check_assign (T1 &v1, T2 &&v2)
+  { return check_equal (v1 = v2, v2); }
+
+  template <typename T> bool propagate_error (T &&obj)
+  { return check_success (!hb_deref_pointer (obj).in_error ()); }
+
+  template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
+  { return propagate_error (hb_forward<T1> (o1)) &&
+	   propagate_error (hb_forward<Ts> (os)...); }
 
   /* To be called around main operation. */
   template <typename Type>
@@ -172,7 +178,7 @@ struct hb_serialize_context_t
   {
     object_t *obj = object_pool.alloc ();
     if (unlikely (!obj))
-      propagate_error (false);
+      check_success (false);
     else
     {
       obj->head = head;
@@ -272,7 +278,7 @@ struct hb_serialize_context_t
 
     auto& link = *current->links.push ();
     link.is_wide = sizeof (T) == 4;
-    link.position = (const char *) &ofs - (const char *) base;
+    link.position = (const char *) &ofs - current->head;
     link.bias = (const char *) base - current->head;
     link.objidx = objidx;
   }
@@ -294,14 +300,14 @@ struct hb_serialize_context_t
 	if (link.is_wide)
 	{
 	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + link.position));
-	  off = offset;
-	  propagate_error (off == offset);
+	  assert (0 == off);
+	  check_assign (off, offset);
 	}
 	else
 	{
 	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + link.position));
-	  off = offset;
-	  propagate_error (off == offset);
+	  assert (0 == off);
+	  check_assign (off, offset);
 	}
       }
     }
@@ -323,8 +329,9 @@ struct hb_serialize_context_t
     return ret;
   }
 
-  void
-  err_ran_out_of_room () { this->ran_out_of_room = true; }
+  /* Following two functions exist to allow setting breakpoint on. */
+  void err_ran_out_of_room () { this->ran_out_of_room = true; }
+  void err_other_error () { this->successful = false; }
 
   template <typename Type>
   Type *allocate_size (unsigned int size)
@@ -358,6 +365,24 @@ struct hb_serialize_context_t
     memcpy (ret, &obj, size);
     return ret;
   }
+
+  template <typename Type> auto
+  _copy (const Type &obj, hb_priority<1>) const HB_RETURN (Type *, obj.copy (this))
+
+  template <typename Type> auto
+  _copy (const Type &obj, hb_priority<0>) const -> decltype (&(obj = obj))
+  {
+    Type *ret = this->allocate_size<Type> (sizeof (Type));
+    if (unlikely (!ret)) return nullptr;
+    *ret = obj;
+    return ret;
+  }
+
+  /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
+   * instead of memcpy(). */
+  template <typename Type>
+  Type *copy (const Type &obj) { return _copy (obj, hb_prioritize); }
+
   template <typename Type>
   hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
 

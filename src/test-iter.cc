@@ -91,7 +91,7 @@ test_iterator (Iter it)
 }
 
 template <typename Iterable,
-	 hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_enable_if (hb_is_iterable (Iterable))>
 static void
 test_iterable (const Iterable &lst = Null(Iterable))
 {
@@ -127,6 +127,11 @@ main (int argc, char **argv)
   hb_set_t st;
   test_iterable (st);
   hb_sorted_array_t<int> sa;
+  (void) static_cast<hb_iter_t<hb_sorted_array_t<int>, hb_sorted_array_t<int>::item_t>&> (sa);
+  (void) static_cast<hb_iter_t<hb_sorted_array_t<int>, hb_sorted_array_t<int>::__item_t__>&> (sa);
+  (void) static_cast<hb_iter_t<hb_sorted_array_t<int>, int&>&>(sa);
+  (void) static_cast<hb_iter_t<hb_sorted_array_t<int>>&>(sa);
+  (void) static_cast<hb_iter_t<hb_array_t<int>, int&>&> (sa);
   test_iterable (sa);
 
   test_iterable<hb_array_t<int> > ();
@@ -181,7 +186,7 @@ main (int argc, char **argv)
   ;
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
-  
+
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) -> int { return ++temp3; })

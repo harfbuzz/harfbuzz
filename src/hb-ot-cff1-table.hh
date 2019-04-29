@@ -110,7 +110,8 @@ struct Encoding1 {
     {
       if (glyph <= ranges[i].nLeft)
       {
-	return (hb_codepoint_t)ranges[i].first + glyph;
+	hb_codepoint_t code = (hb_codepoint_t) ranges[i].first + glyph;
+	return (likely (code < 0x100) ? code: CFF_UNDEF_CODE);
       }
       glyph -= (ranges[i].nLeft + 1);
     }

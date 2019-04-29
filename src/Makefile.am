@@ -310,9 +310,9 @@ noinst_PROGRAMS = \
 	main \
 	test \
 	test-buffer-serialize \
-	test-name-table \
-	test-size-params \
-	test-would-substitute \
+	test-ot-name \
+	test-gpos-size-params \
+	test-gsub-would-substitute \
 	$(NULL)
 bin_PROGRAMS =
 
@@ -328,17 +328,17 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_name_table_SOURCES = test-name-table.cc
-test_name_table_CPPFLAGS = $(HBCFLAGS)
-test_name_table_LDADD = libharfbuzz.la $(HBLIBS)
+test_ot_name_SOURCES = test-ot-name.cc
+test_ot_name_CPPFLAGS = $(HBCFLAGS)
+test_ot_name_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_size_params_SOURCES = test-size-params.cc
-test_size_params_CPPFLAGS = $(HBCFLAGS)
-test_size_params_LDADD = libharfbuzz.la $(HBLIBS)
+test_gpos_size_params_SOURCES = test-gpos-size-params.cc
+test_gpos_size_params_CPPFLAGS = $(HBCFLAGS)
+test_gpos_size_params_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_would_substitute_SOURCES = test-would-substitute.cc
-test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
-test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
+test_gsub_would_substitute_SOURCES = test-gsub-would-substitute.cc
+test_gsub_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
+test_gsub_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
 if HAVE_FREETYPE
 if HAVE_CAIRO_FT

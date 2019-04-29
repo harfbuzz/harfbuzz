@@ -158,6 +158,150 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
+  void get_subsetted_ids (const name *source_name,
+                             const hb_subset_plan_t *plan,
+                             hb_vector_t<unsigned int>& name_record_idx_to_retain) const
+  {
+    for(unsigned int i = 0; i < count; i++)
+    {
+      if (format == 0 && (unsigned int) source_name->nameRecordZ[i].nameID > 25)
+        continue;
+      if (!hb_set_is_empty (plan->name_ids) &&
+          !hb_set_has (plan->name_ids, source_name->nameRecordZ[i].nameID))
+        continue;
+      name_record_idx_to_retain.push (i);
+    }
+  }
+
+  bool serialize_name_record (hb_serialize_context_t *c,
+                              const name *source_name,
+                              const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+  {
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      if (unlikely (idx >= source_name->count))
+      {
+        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
+        return false;
+      }
+
+      c->push<NameRecord> ();
+
+      NameRecord *p = c->embed<NameRecord> (source_name->nameRecordZ[idx]);
+      if (!p)
+        return false;
+      p->offset = 0;
+    }
+
+    return true;
+  }
+
+  bool serialize_strings (hb_serialize_context_t *c,
+                          const name *source_name,
+                          const hb_subset_plan_t *plan,
+                          const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+  {
+    hb_face_t *face = plan->source;
+    accelerator_t acc;
+    acc.init (face);
+
+    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
+    {
+      unsigned int idx = name_record_idx_to_retain[i];
+      unsigned int size = acc.get_name (idx).get_size ();
+
+      c->push<char> ();
+      char *new_pos = c->allocate_size<char> (size);
+      
+      if (unlikely (new_pos == nullptr))
+      {
+        acc.fini ();
+        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %u.",
+                   size);
+        return false;
+      }
+
+      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
+      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
+
+      memcpy (new_pos, source_string_pool + name_record_offset, size);
+    }
+
+    acc.fini ();
+    return true;
+  }
+
+  bool pack_record_and_strings (name *dest_name_unpacked,
+                                hb_serialize_context_t *c, 
+                                unsigned length)
+  {
+    hb_hashmap_t<unsigned, unsigned> id_str_idx_map;
+    for (int i = length-1; i >= 0; i--)
+    {
+      unsigned objidx = c->pop_pack ();
+      id_str_idx_map.set ((unsigned)i, objidx);
+    }
+
+    const void *base = & (dest_name_unpacked->nameRecordZ[length]); 
+    for (int i = length-1; i >= 0; i--)
+    {
+      unsigned str_idx = id_str_idx_map.get ((unsigned)i);
+      NameRecord& namerecord = dest_name_unpacked->nameRecordZ[i];
+      c->add_link<HBUINT16> (namerecord.offset, str_idx, base);
+      c->pop_pack ();
+    }
+
+    if (c->in_error ())
+      return false;
+
+    return true;
+  }
+
+  bool serialize (hb_serialize_context_t *c,
+                  const name *source_name,
+                  const hb_subset_plan_t *plan,
+                  const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
+
+    this->format = source_name->format;
+    this->count = name_record_idx_to_retain.length;
+    this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
+
+
+    if (!serialize_name_record (c, source_name, name_record_idx_to_retain))
+      return_trace (false);
+
+    if (!serialize_strings (c, source_name, plan, name_record_idx_to_retain))
+      return_trace (false);
+
+    if (!pack_record_and_strings (this, c, name_record_idx_to_retain.length))
+      return_trace (false);
+
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    hb_subset_plan_t *plan = c->plan;
+    hb_vector_t<unsigned int> name_record_idx_to_retain;
+
+    get_subsetted_ids (this, plan, name_record_idx_to_retain);
+
+    hb_serialize_context_t *serializer = c->serializer;
+    name *name_prime = serializer->start_embed<name> ();
+    if (!name_prime || !name_prime->serialize (serializer, this, plan, name_record_idx_to_retain))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
+      return false;
+    }
+    
+    return true;
+  }
+
   bool sanitize_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

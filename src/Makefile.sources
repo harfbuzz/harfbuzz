@@ -86,7 +86,7 @@ HB_BASE_sources = \
 	hb-ot-math-table.hh \
 	hb-ot-math.cc \
 	hb-ot-maxp-table.hh \
-	hb-ot-name-language.cc \
+	hb-ot-name-language-static.hh \
 	hb-ot-name-language.hh \
 	hb-ot-name-table.hh \
 	hb-ot-name.cc \

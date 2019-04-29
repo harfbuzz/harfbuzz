@@ -235,15 +235,6 @@ jobs:
       - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
       - run: make -j32
 
-  crosscompile-notest-freebsd9:
-    docker:
-      - image: donbowman/freebsd-cross-build
-    steps:
-      - checkout
-      - run: apt update && apt install -y pkg-config ragel
-      - run: ./autogen.sh --prefix=/freebsd --host=x86_64-pc-freebsd9
-      - run: make -j32
-
   crosscompile-notest-psvita:
     docker:
       - image: dockcross/base
@@ -327,7 +318,6 @@ workflows:
       # they can't be test thus are without tests
       ## autotools
       - crosscompile-notest-djgpp
-      - crosscompile-notest-freebsd9
       - crosscompile-notest-psvita
 
       ## cmake
