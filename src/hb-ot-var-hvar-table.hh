@@ -130,8 +130,8 @@ struct index_map_subset_plan_t
 
   void init (const DeltaSetIndexMap &index_map,
 	     unsigned int 	    im_index,
-	     hb_bimap_t		    &outer_remap,
-	     hb_vector_t<hb_bimap_t> &inner_remaps,
+	     hb_bimap_t		    &outer_map,
+	     hb_vector_t<hb_bimap_t> &inner_maps,
 	     const hb_subset_plan_t *plan)
   {
     map_count = 0;
@@ -146,12 +146,12 @@ struct index_map_subset_plan_t
        * treat it as an indentity map. */
       if (im_index == ADV_INDEX)
       {
-	outer_remap.add (0);
+	outer_map.add (0);
 	for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
 	{
 	  hb_codepoint_t old_gid = gid;
 	  (void)plan->old_gid_for_new_gid (gid, &old_gid);
-	  inner_remaps[0].add (old_gid);
+	  inner_maps[0].add (old_gid);
 	}
       }
       return;
@@ -162,8 +162,8 @@ struct index_map_subset_plan_t
     hb_codepoint_t	gid = (hb_codepoint_t)MIN(index_map.get_map_count (), plan->num_output_glyphs ());
 
     outer_bit_count = (index_map.get_width () * 8) - index_map.get_inner_bit_count ();
-    max_inners.resize (inner_remaps.length);
-    for (unsigned i = 0; i < inner_remaps.length; i++) max_inners[i] = 0;
+    max_inners.resize (inner_maps.length);
+    for (unsigned i = 0; i < inner_maps.length; i++) max_inners[i] = 0;
 
     /* Search backwards for a map value different from the last map value */
     for (; gid > 0; gid--)
@@ -192,9 +192,9 @@ struct index_map_subset_plan_t
       unsigned int v = index_map.map (old_gid);
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
-      outer_remap.add (outer);
+      outer_map.add (outer);
       if (inner > max_inners[outer]) max_inners[outer] = inner;
-      inner_remaps[outer].add (inner);
+      inner_maps[outer].add (inner);
     }
   }
 
@@ -204,10 +204,10 @@ struct index_map_subset_plan_t
     output_map.fini ();
   }
 
-  void remap (const hb_subset_plan_t *plan,
-	      const DeltaSetIndexMap *input_map,
-	      const hb_bimap_t &outer_remap,
-	      const hb_vector_t<hb_bimap_t> &inner_remaps)
+  void remap (const DeltaSetIndexMap *input_map,
+	      const hb_bimap_t &outer_map,
+	      const hb_vector_t<hb_bimap_t> &inner_maps,
+	      const hb_subset_plan_t *plan)
   {
     /* Leave output_map empty for an identity map */
     /* TODO: if retain_gids, convert identity to a customized map, or not subset varstore? */
@@ -216,8 +216,8 @@ struct index_map_subset_plan_t
 
     for (unsigned int i = 0; i < max_inners.length; i++)
     {
-      if (inner_remaps[i].get_count () == 0) continue;
-      unsigned int bit_count = (max_inners[i]==0)? 1: hb_bit_storage (inner_remaps[i][max_inners[i]]);
+      if (inner_maps[i].get_count () == 0) continue;
+      unsigned int bit_count = (max_inners[i]==0)? 1: hb_bit_storage (inner_maps[i][max_inners[i]]);
       if (bit_count > inner_bit_count) inner_bit_count = bit_count;
     }
 
@@ -228,7 +228,7 @@ struct index_map_subset_plan_t
       (void)plan->old_gid_for_new_gid (gid, &old_gid);
       unsigned int v = input_map->map (old_gid);
       unsigned int outer = v >> 16;
-      output_map[gid] = (outer_remap[outer] << 16) | (inner_remaps[outer][v & 0xFFFF]);
+      output_map[gid] = (outer_map[outer] << 16) | (inner_maps[outer][v & 0xFFFF]);
     }
   }
 
@@ -254,7 +254,7 @@ struct index_map_subset_plan_t
 
 struct hvarvvar_subset_plan_t
 {
-  hvarvvar_subset_plan_t() : inner_remaps (), index_map_plans () {}
+  hvarvvar_subset_plan_t() : inner_maps (), index_map_plans () {}
   ~hvarvvar_subset_plan_t() { fini (); }
 
   void init (const hb_array_t<const DeltaSetIndexMap *> &index_maps,
@@ -264,30 +264,30 @@ struct hvarvvar_subset_plan_t
     index_map_plans.resize (index_maps.length);
 
     var_store = &_var_store;
-    inner_remaps.resize (var_store->get_sub_table_count ());
+    inner_maps.resize (var_store->get_sub_table_count ());
 
-    for (unsigned int i = 0; i < inner_remaps.length; i++)
-      inner_remaps[i].init ();
-
-    for (unsigned int i = 0; i < index_maps.length; i++)
-      index_map_plans[i].init (*index_maps[i], i, outer_remap, inner_remaps, plan);
-
-    outer_remap.reorder ();
-    for (unsigned int i = 0; i < inner_remaps.length; i++)
-      if (inner_remaps[i].get_count () > 0) inner_remaps[i].reorder ();
+    for (unsigned int i = 0; i < inner_maps.length; i++)
+      inner_maps[i].init ();
 
     for (unsigned int i = 0; i < index_maps.length; i++)
-      index_map_plans[i].remap (plan, index_maps[i], outer_remap, inner_remaps);
+      index_map_plans[i].init (*index_maps[i], i, outer_map, inner_maps, plan);
+
+    outer_map.reorder ();
+    for (unsigned int i = 0; i < inner_maps.length; i++)
+      if (inner_maps[i].get_count () > 0) inner_maps[i].reorder ();
+
+    for (unsigned int i = 0; i < index_maps.length; i++)
+      index_map_plans[i].remap (index_maps[i], outer_map, inner_maps, plan);
   }
 
   void fini ()
   {
-    inner_remaps.fini_deep ();
+    inner_maps.fini_deep ();
     index_map_plans.fini_deep ();
   }
 
-  hb_bimap_t			outer_remap;
-  hb_vector_t<hb_bimap_t>	inner_remaps;
+  hb_bimap_t			outer_map;
+  hb_vector_t<hb_bimap_t>	inner_maps;
   hb_vector_t<index_map_subset_plan_t>
   				index_map_plans;
   const VariationStore		*var_store;
@@ -363,7 +363,7 @@ struct HVARVVAR
     out->version.minor = 0;
 
     if (!unlikely (out->varStore.serialize (c->serializer, out)
-		     .serialize (c->serializer, hvar_plan.var_store, hvar_plan.inner_remaps.as_array ())))
+		     .serialize (c->serializer, hvar_plan.var_store, hvar_plan.inner_maps.as_array ())))
       return_trace (false);
 
     return_trace (out->T::serialize_index_maps (c->serializer,
