@@ -54,7 +54,7 @@ data[0][0x1B5C] = 'Consonant_Placeholder'
 data[0][0x1B5F] = 'Consonant_Placeholder'
 data[0][0x1B62] = 'Consonant_Placeholder'
 data[0][0x1B68] = 'Consonant_Placeholder'
-# TODO https://github.com/roozbehp/unicode-data/issues/9
+# TODO https://github.com/harfbuzz/harfbuzz/issues/1035
 data[0][0x11C44] = 'Consonant_Placeholder'
 data[0][0x11C45] = 'Consonant_Placeholder'
 # TODO https://github.com/harfbuzz/harfbuzz/pull/1399
@@ -240,11 +240,11 @@ def is_SYM_MOD(U, UISC, UGC):
 def is_VARIATION_SELECTOR(U, UISC, UGC):
 	return 0xFE00 <= U <= 0xFE0F
 def is_VOWEL(U, UISC, UGC):
-	# https://github.com/roozbehp/unicode-data/issues/6
+	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC == Pure_Killer or
 		(UGC != Lo and UISC in [Vowel, Vowel_Dependent] and U not in [0xAA29]))
 def is_VOWEL_MOD(U, UISC, UGC):
-	# https://github.com/roozbehp/unicode-data/issues/6
+	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
 		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
 
