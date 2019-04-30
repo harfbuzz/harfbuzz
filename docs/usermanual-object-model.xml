@@ -90,7 +90,7 @@
       <listitem>
 	<para>
 	  <emphasis>fonts</emphasis>, which represent instances of a
-	  face will all of their parameters specified.
+	  face with all of their parameters specified.
 	</para>
       </listitem>
       <listitem>
@@ -103,7 +103,10 @@
       <listitem>
 	<para>
 	  <emphasis>shape plans</emphasis>, which store the settings
-	  that HarfBuzz will use when shaping a particular text segment.
+	  that HarfBuzz will use when shaping a particular text
+	  segment. Shape plans are not generally used by client
+	  programs directly, but as we will see in a later chapter,
+	  they are still valuable to understand.
 	</para>
       </listitem>
     </itemizedlist>
@@ -124,9 +127,11 @@
       blob directly from the contents of a file.
     </para>
     <para>
-      Client programs can increase the reference count on an object by
-      calling its <function>reference()</function> method. Whenever a
-      client program is finished with an object, it should call its
+      All objects are created with an initial reference count of
+      <literal>1</literal>. Client programs can increase the reference
+      count on an object by calling its
+      <function>reference()</function> method. Whenever a client
+      program is finished with an object, it should call its 
       corresponding <function>destroy()</function> method. The destroy
       method will decrease the reference count on the object and,
       whenever the reference count reaches zero, it will also destroy
@@ -134,7 +139,9 @@
     </para>
     <para>
       All of HarfBuzz's object-lifecycle-management APIs are
-      thread-safe, even when the object as a whole is not thread-safe .
+      thread-safe (unless you compiled HarfBuzz from source with the
+      <literal>HB_NO_MT</literal> configuration flag), even when the
+      object as a whole is not thread-safe. 
       It is also permissible to <function>reference()</function> or to 
       <function>destroy()</function> the <literal>NULL</literal>
       value.
@@ -152,7 +159,7 @@
       <function>make_immutable()</function> methods to mark an object
       as immutable and <function>is_immutable()</function> methods to
       test whether or not an object is immutable. Attempts to use
-      setter functions on immutable objects will fail; see the API
+      setter functions on immutable objects will fail silently; see the API
       Reference manual for specifics. 
     </para>
     <para>
@@ -161,10 +168,11 @@
       they will need to make a duplicate of the original.
     </para>
     <para>
-      Finally, object constructors (and, indeed, as much of the API as
-      possible) will never return <literal>NULL</literal>.  Instead,
-      if there is an allocation error, each constructor will
-      return an “empty” object singleton.
+      Finally, object constructors (and, indeed, as much of the
+      shaping API as possible) will never return
+      <literal>NULL</literal>.  Instead, if there is an allocation
+      error, each constructor will return an “empty” object
+      singleton.
     </para>
     <para>
       These empty-object singletons are inert and safe (although
@@ -208,8 +216,9 @@
     <para>
       Finally, each <function>set_user_data()</function> method allows
       the client program to set a <literal>replace</literal> Boolean
-      indicating whether or not the <literal>user_data</literal>
-      associated with a key ought to be replaceable. 
+      indicating whether or not the function call should replace any
+      existing <literal>user_data</literal>
+      associated with the specified key.
     </para>
   </section>  
 
