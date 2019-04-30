@@ -930,7 +930,9 @@ _hb_directwrite_font_release (void *data)
 
 /**
  * hb_directwrite_face_create:
- * @font_face:
+ * @font_face: a DirectWrite IDWriteFontFace object.
+ *
+ * Return value: #hb_face_t object corresponding to the given input
  *
  * Since: 2.4.0
  **/
@@ -945,7 +947,9 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 
 /**
 * hb_directwrite_face_get_font_face:
-* @face:
+* @face: a #hb_face_t object
+*
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
 *
 * Since: REPLACEME
 **/
