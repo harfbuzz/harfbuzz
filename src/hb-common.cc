@@ -1162,8 +1162,9 @@ hb_variation_to_string (hb_variation_t *variation,
 
 /**
  * hb_color_get_alpha:
+ * color: a #hb_color_t we are interested in its channels.
  *
- *
+ * Return value: Alpha channel value of the given color
  *
  * Since: REPLACEME
  */
@@ -1175,8 +1176,9 @@ uint8_t
 
 /**
  * hb_color_get_red:
+ * color: a #hb_color_t we are interested in its channels.
  *
- *
+ * Return value: Red channel value of the given color
  *
  * Since: REPLACEME
  */
@@ -1188,8 +1190,9 @@ uint8_t
 
 /**
  * hb_color_get_green:
+ * color: a #hb_color_t we are interested in its channels.
  *
- *
+ * Return value: Green channel value of the given color
  *
  * Since: REPLACEME
  */
@@ -1201,8 +1204,9 @@ uint8_t
 
 /**
  * hb_color_get_blue:
+ * color: a #hb_color_t we are interested in its channels.
  *
- *
+ * Return value: Blue channel value of the given color
  *
  * Since: REPLACEME
  */
