@@ -220,7 +220,7 @@ struct LigGlyph
   {
     if (caret_count)
     {
-      hb_array_t <const OffsetTo<CaretValue> > array = carets.sub_array (start_offset, caret_count);
+      hb_array_t <const OffsetTo<CaretValue>> array = carets.sub_array (start_offset, caret_count);
       unsigned int count = array.length;
       for (unsigned int i = 0; i < count; i++)
 	caret_array[i] = (this+array[i]).get_caret_value (font, direction, glyph_id, var_store);
@@ -296,7 +296,7 @@ struct MarkGlyphSetsFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  ArrayOf<LOffsetTo<Coverage> >
+  ArrayOf<LOffsetTo<Coverage>>
 		coverage;		/* Array of long offsets to mark set
 					 * coverage tables */
   public:

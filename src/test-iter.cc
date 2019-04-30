@@ -56,7 +56,7 @@ struct some_array_t
   typedef array_iter_t<T> iter_t;
   array_iter_t<T> iter () { return array_iter_t<T> (arr); }
   operator array_iter_t<T> () { return iter (); }
-  operator hb_iter_t<array_iter_t<T> > () { return iter (); }
+  operator hb_iter_t<array_iter_t<T>> () { return iter (); }
 
   private:
   hb_array_t<T> arr;
@@ -134,9 +134,9 @@ main (int argc, char **argv)
   (void) static_cast<hb_iter_t<hb_array_t<int>, int&>&> (sa);
   test_iterable (sa);
 
-  test_iterable<hb_array_t<int> > ();
-  test_iterable<hb_sorted_array_t<const int> > ();
-  test_iterable<hb_vector_t<float> > ();
+  test_iterable<hb_array_t<int>> ();
+  test_iterable<hb_sorted_array_t<const int>> ();
+  test_iterable<hb_vector_t<float>> ();
   test_iterable<hb_set_t> ();
   test_iterable<OT::Coverage> ();
 
@@ -144,7 +144,7 @@ main (int argc, char **argv)
 
   hb_any (st);
 
-  hb_array_t<hb_vector_t<int> > pa;
+  hb_array_t<hb_vector_t<int>> pa;
   pa->as_array ();
 
   + hb_iter (src)

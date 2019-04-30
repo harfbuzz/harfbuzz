@@ -969,7 +969,7 @@ struct Chain
   void apply (hb_aat_apply_context_t *c,
 		     hb_mask_t flags) const
   {
-    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types> > (featureZ.as_array (featureCount));
+    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -1031,7 +1031,7 @@ struct Chain
       if (unlikely (!c->buffer->successful)) return;
 
     skip:
-      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
+      subtable = &StructAfter<ChainSubtable<Types>> (*subtable);
       c->set_lookup_index (c->lookup_index + 1);
     }
   }
@@ -1049,13 +1049,13 @@ struct Chain
     if (!c->check_array (featureZ.arrayZ, featureCount))
       return_trace (false);
 
-    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types> > (featureZ.as_array (featureCount));
+    const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
       if (!subtable->sanitize (c))
 	return_trace (false);
-      subtable = &StructAfter<ChainSubtable<Types> > (*subtable);
+      subtable = &StructAfter<ChainSubtable<Types>> (*subtable);
     }
 
     return_trace (true);
@@ -1095,7 +1095,7 @@ struct mortmorx
     for (unsigned int i = 0; i < count; i++)
     {
       map->chain_flags.push (chain->compile_flags (mapper));
-      chain = &StructAfter<Chain<Types> > (*chain);
+      chain = &StructAfter<Chain<Types>> (*chain);
     }
   }
 
@@ -1109,7 +1109,7 @@ struct mortmorx
     {
       chain->apply (c, c->plan->aat_map.chain_flags[i]);
       if (unlikely (!c->buffer->successful)) return;
-      chain = &StructAfter<Chain<Types> > (*chain);
+      chain = &StructAfter<Chain<Types>> (*chain);
     }
   }
 
@@ -1125,7 +1125,7 @@ struct mortmorx
     {
       if (!chain->sanitize (c, version))
 	return_trace (false);
-      chain = &StructAfter<Chain<Types> > (*chain);
+      chain = &StructAfter<Chain<Types>> (*chain);
     }
 
     return_trace (true);

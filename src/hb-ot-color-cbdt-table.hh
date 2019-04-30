@@ -144,7 +144,7 @@ struct IndexSubtableFormat1Or3
   }
 
   IndexSubtableHeader	header;
-  UnsizedArrayOf<Offset<OffsetType> >
+  UnsizedArrayOf<Offset<OffsetType>>
  			offsetArrayZ;
   public:
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);

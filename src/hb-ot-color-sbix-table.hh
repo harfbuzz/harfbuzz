@@ -121,7 +121,7 @@ struct SBIXStrike
   HBUINT16	resolution;	/* The device pixel density (in PPI) for which this
 				 * strike was designed. (E.g., 96 PPI, 192 PPI.) */
   protected:
-  UnsizedArrayOf<LOffsetTo<SBIXGlyph> >
+  UnsizedArrayOf<LOffsetTo<SBIXGlyph>>
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
   public:

@@ -442,7 +442,7 @@ struct UnsizedArrayOf
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
-using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null> >;
+using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null>>;
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
 template <typename Type, typename OffsetType, bool has_null=true>
@@ -628,9 +628,9 @@ using PString = ArrayOf<HBUINT8, HBUINT8>;
 
 /* Array of Offset's */
 template <typename Type>
-using OffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT16> >;
+using OffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT16>>;
 template <typename Type>
-using LOffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT32> >;
+using LOffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT32>>;
 template <typename Type>
 using LOffsetLArrayOf = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32>;
 
@@ -882,7 +882,7 @@ struct BinSearchHeader
 };
 
 template <typename Type, typename LenType=HBUINT16>
-using BinSearchArrayOf = SortedArrayOf<Type, BinSearchHeader<LenType> >;
+using BinSearchArrayOf = SortedArrayOf<Type, BinSearchHeader<LenType>>;
 
 
 struct VarSizedBinSearchHeader

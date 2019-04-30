@@ -447,7 +447,7 @@ struct Axis
   }
 
   protected:
-  OffsetTo<SortedArrayOf<Tag> >
+  OffsetTo<SortedArrayOf<Tag>>
 		baseTagList;	/* Offset to BaseTagList table, from beginning
 				 * of Axis table (may be NULL)
 				 * Array of 4-byte baseline identification tags — must

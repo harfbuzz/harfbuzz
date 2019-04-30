@@ -103,7 +103,7 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : SortedArrayOf<Record<Type> >
+struct RecordArrayOf : SortedArrayOf<Record<Type>>
 {
   const OffsetTo<Type>& get_offset (unsigned int i) const
   { return (*this)[i].offset; }
@@ -649,14 +649,14 @@ struct Lookup
 
   template <typename TSubTable>
   const TSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
+  { return this+CastR<OffsetArrayOf<TSubTable>> (subTable)[i]; }
 
   template <typename TSubTable>
   const OffsetArrayOf<TSubTable>& get_subtables () const
-  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
   template <typename TSubTable>
   OffsetArrayOf<TSubTable>& get_subtables ()
-  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
 
   unsigned int get_size () const
   {
@@ -774,7 +774,7 @@ struct Lookup
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
 
-    if (unlikely (!CastR<OffsetArrayOf<SubTableSanitizeWrapper<TSubTable> > > (subTable)
+    if (unlikely (!CastR<OffsetArrayOf<SubTableSanitizeWrapper<TSubTable>>> (subTable)
 		   .sanitize (c, this, get_type ())))
       return_trace (false);
 

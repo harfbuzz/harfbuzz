@@ -712,18 +712,18 @@ struct KerxSubTableFormat6
   {
     struct Long
     {
-      LNNOffsetTo<Lookup<HBUINT32> >		rowIndexTable;
-      LNNOffsetTo<Lookup<HBUINT32> >		columnIndexTable;
-      LNNOffsetTo<UnsizedArrayOf<FWORD32> >	array;
+      LNNOffsetTo<Lookup<HBUINT32>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT32>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD32>>	array;
     } l;
     struct Short
     {
-      LNNOffsetTo<Lookup<HBUINT16> >		rowIndexTable;
-      LNNOffsetTo<Lookup<HBUINT16> >		columnIndexTable;
-      LNNOffsetTo<UnsizedArrayOf<FWORD> >	array;
+      LNNOffsetTo<Lookup<HBUINT16>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT16>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD>>	array;
     } s;
   } u;
-  LNNOffsetTo<UnsizedArrayOf<FWORD> >	vector;
+  LNNOffsetTo<UnsizedArrayOf<FWORD>>	vector;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };

@@ -387,7 +387,7 @@ struct
 template <typename A, typename B>
 struct hb_zip_iter_t :
   hb_iter_t<hb_zip_iter_t<A, B>,
-	    hb_pair_t<typename A::item_t, typename B::item_t> >
+	    hb_pair_t<typename A::item_t, typename B::item_t>>
 {
   hb_zip_iter_t () {}
   hb_zip_iter_t (const A& a, const B& b) : a (a), b (b) {}
@@ -427,7 +427,7 @@ template <typename Iter,
 	 hb_enable_if (hb_is_iterator (Iter))>
 struct hb_enumerate_iter_t :
   hb_iter_t<hb_enumerate_iter_t<Iter>,
-	    hb_pair_t<unsigned, typename Iter::item_t> >
+	    hb_pair_t<unsigned, typename Iter::item_t>>
 {
   hb_enumerate_iter_t (const Iter& it) : i (0), it (it) {}
 
