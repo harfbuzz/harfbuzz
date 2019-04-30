@@ -174,11 +174,11 @@ struct ValueFormat : HBUINT16
   }
 
   HB_INTERNAL static OffsetTo<Device>& get_device (Value* value)
-  { return *CastP<OffsetTo<Device> > (value); }
+  { return *CastP<OffsetTo<Device>> (value); }
   HB_INTERNAL static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
-    return *CastP<OffsetTo<Device> > (value);
+    return *CastP<OffsetTo<Device>> (value);
   }
 
   HB_INTERNAL static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
@@ -393,7 +393,7 @@ struct AnchorMatrix
 
   HBUINT16	rows;			/* Number of rows */
   protected:
-  UnsizedArrayOf<OffsetTo<Anchor> >
+  UnsizedArrayOf<OffsetTo<Anchor>>
 		matrixZ;		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
   public:

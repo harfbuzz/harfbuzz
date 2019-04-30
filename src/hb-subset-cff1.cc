@@ -912,7 +912,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* top dict INDEX */
   {
     assert (plan.offsets.topDictInfo.offset == (unsigned) (c.head - c.start));
-    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict> > ();
+    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict>> ();
     if (dest == nullptr) return false;
     cff1_top_dict_op_serializer_t topSzr;
     top_dict_modifiers_t  modifier (plan.offsets, plan.topDictModSIDs);

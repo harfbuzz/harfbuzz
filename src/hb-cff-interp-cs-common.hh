@@ -246,7 +246,7 @@ struct path_procs_null_t
   static void flex1 (ENV &env, PARAM& param) {}
 };
 
-template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=path_procs_null_t<ENV, PARAM> >
+template <typename ARG, typename OPSET, typename ENV, typename PARAM, typename PATH=path_procs_null_t<ENV, PARAM>>
 struct cs_opset_t : opset_t<ARG>
 {
   static void process_op (op_code_t op, ENV &env, PARAM& param)

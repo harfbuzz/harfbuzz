@@ -983,7 +983,7 @@ struct ReverseChainSingleSubstFormat1
     if (!(this+coverage).intersects (glyphs))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
 
     unsigned int count;
 
@@ -1004,8 +1004,8 @@ struct ReverseChainSingleSubstFormat1
   {
     if (!intersects (c->glyphs)) return;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID>> (lookahead);
 
     + hb_zip (this+coverage, substitute)
     | hb_filter (*c->glyphs, hb_first)
@@ -1024,12 +1024,12 @@ struct ReverseChainSingleSubstFormat1
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(this+backtrack[i]).add_coverage (c->before))) return;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(this+lookahead[i]).add_coverage (c->after))) return;
 
-    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID>> (lookahead);
     count = substitute.len;
     c->output->add_array (substitute.arrayZ, substitute.len);
   }
@@ -1048,8 +1048,8 @@ struct ReverseChainSingleSubstFormat1
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID>> (lookahead);
 
   unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
@@ -1084,10 +1084,10 @@ struct ReverseChainSingleSubstFormat1
     TRACE_SANITIZE (this);
     if (!(coverage.sanitize (c, this) && backtrack.sanitize (c, this)))
       return_trace (false);
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     if (!lookahead.sanitize (c, this))
       return_trace (false);
-    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID>> (lookahead);
     return_trace (substitute.sanitize (c));
   }
 

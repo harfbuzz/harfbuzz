@@ -664,7 +664,7 @@ struct MathVariants
   /* Array of offsets to MathGlyphConstruction tables - from the beginning of
      the MathVariants table, for shapes growing in vertical/horizontal
      direction. */
-  UnsizedArrayOf<OffsetTo<MathGlyphConstruction> >
+  UnsizedArrayOf<OffsetTo<MathGlyphConstruction>>
  			glyphConstruction;
 
   public:

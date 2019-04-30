@@ -213,7 +213,7 @@ struct name
 
       c->push<char> ();
       char *new_pos = c->allocate_size<char> (size);
-      
+
       if (unlikely (new_pos == nullptr))
       {
         acc.fini ();
@@ -233,7 +233,7 @@ struct name
   }
 
   bool pack_record_and_strings (name *dest_name_unpacked,
-                                hb_serialize_context_t *c, 
+                                hb_serialize_context_t *c,
                                 unsigned length)
   {
     hb_hashmap_t<unsigned, unsigned> id_str_idx_map;
@@ -243,7 +243,7 @@ struct name
       id_str_idx_map.set ((unsigned)i, objidx);
     }
 
-    const void *base = & (dest_name_unpacked->nameRecordZ[length]); 
+    const void *base = & (dest_name_unpacked->nameRecordZ[length]);
     for (int i = length-1; i >= 0; i--)
     {
       unsigned str_idx = id_str_idx_map.get ((unsigned)i);
@@ -298,7 +298,7 @@ struct name
       DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
       return false;
     }
-    
+
     return true;
   }
 
@@ -409,7 +409,7 @@ struct name
   /* We only implement format 0 for now. */
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
-  NNOffsetTo<UnsizedArrayOf<HBUINT8> >
+  NNOffsetTo<UnsizedArrayOf<HBUINT8>>
 		stringOffset;		/* Offset to start of string storage (from start of table). */
   UnsizedArrayOf<NameRecord>
 		nameRecordZ;		/* The name records where count is the number of records. */
