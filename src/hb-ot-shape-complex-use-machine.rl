@@ -107,6 +107,9 @@ complex_syllable_tail =
 	vowel_modifiers
 	final_consonants
 ;
+number_joiner_terminated_cluster_tail = (HN N VS?)* HN;
+numeral_cluster_tail = (HN N VS?)+;
+symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
 virama_terminated_cluster =
 	(R|CS)? (B | GB) VS?
@@ -119,12 +122,12 @@ standard_cluster =
 ;
 broken_cluster =
 	R?
-	complex_syllable_tail
+	(complex_syllable_tail | number_joiner_terminated_cluster_tail | numeral_cluster_tail | symbol_cluster_tail)
 ;
 
-number_joiner_terminated_cluster = N VS? (HN N VS?)* HN;
-numeral_cluster = N VS? (HN N VS?)*;
-symbol_cluster = S VS? SMAbv* SMBlw*;
+number_joiner_terminated_cluster = N VS? number_joiner_terminated_cluster_tail;
+numeral_cluster = N VS? numeral_cluster_tail?;
+symbol_cluster = (S | GB) VS? symbol_cluster_tail?;
 independent_cluster = (IND | O | Rsv | WJ) VS?;
 other = any;
 

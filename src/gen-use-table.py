@@ -47,6 +47,14 @@ defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 
 # TODO Characters that are not in Unicode Indic files, but used in USE
 data[0][0x034F] = defaults[0]
+data[0][0x1B61] = defaults[0]
+data[0][0x1B63] = defaults[0]
+data[0][0x1B64] = defaults[0]
+data[0][0x1B65] = defaults[0]
+data[0][0x1B66] = defaults[0]
+data[0][0x1B67] = defaults[0]
+data[0][0x1B69] = defaults[0]
+data[0][0x1B6A] = defaults[0]
 data[0][0x2060] = defaults[0]
 # TODO https://github.com/harfbuzz/harfbuzz/pull/1685
 data[0][0x1B5B] = 'Consonant_Placeholder'
@@ -222,6 +230,7 @@ def is_Word_Joiner(U, UISC, UGC):
 def is_OTHER(U, UISC, UGC):
 	#SPEC-OUTDATED return UGC == Zs # or any other SCRIPT_COMMON characters
 	return (UISC == Other
+		and not is_SYM(U, UISC, UGC)
 		and not is_SYM_MOD(U, UISC, UGC)
 		and not is_CGJ(U, UISC, UGC)
 		and not is_Word_Joiner(U, UISC, UGC)

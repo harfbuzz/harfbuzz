@@ -319,7 +319,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1B30 */     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPre,  VPre,
   /* 1B40 */  VPst,  VPst,  VAbv,  VAbv,     H,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
   /* 1B50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,    GB,    GB,     O,     O,    GB,
-  /* 1B60 */     O,     O,    GB,     O,     O,     O,     O,     O,    GB,     O,     O, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
+  /* 1B60 */     O,     S,    GB,     S,     S,     S,     S,     S,    GB,     S,     S, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
   /* 1B70 */ SMAbv, SMAbv, SMAbv, SMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sundanese */
