@@ -330,18 +330,20 @@ struct hb_auto_trace_t<0, ret_t>
 				   const char *message,
 				   ...) HB_PRINTF_FUNC(6, 7) {}
 
-  ret_t ret (ret_t v,
-	     const char *func HB_UNUSED = nullptr,
-	     unsigned int line HB_UNUSED = 0) { return v; }
+  template <typename T>
+  T ret (T&& v,
+	 const char *func HB_UNUSED = nullptr,
+	 unsigned int line HB_UNUSED = 0) { return hb_forward<T> (v); }
 };
 
 /* For disabled tracing; optimize out everything.
  * https://github.com/harfbuzz/harfbuzz/pull/605 */
 template <typename ret_t>
 struct hb_no_trace_t {
-  ret_t ret (ret_t v,
-	     const char *func HB_UNUSED = "",
-	     unsigned int line HB_UNUSED = 0) { return v; }
+  template <typename T>
+  T ret (T&& v,
+	 const char *func HB_UNUSED = nullptr,
+	 unsigned int line HB_UNUSED = 0) { return hb_forward<T> (v); }
 };
 
 #define return_trace(RET) return trace.ret (RET, HB_FUNC, __LINE__)
