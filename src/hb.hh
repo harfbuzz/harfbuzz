@@ -343,17 +343,25 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #  if defined(_WIN32_WCE)
      /* Some things not defined on Windows CE. */
 #    define vsnprintf _vsnprintf
-#    define getenv(Name) nullptr
+#    ifndef HB_NO_GETENV
+#      define HB_NO_GETENV
+#    endif
 #    if _WIN32_WCE < 0x800
 #      define setlocale(Category, Locale) "C"
 static int errno = 0; /* Use something better? */
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
-#    define getenv(Name) nullptr
+#    ifndef HB_NO_GETENV
+#      define HB_NO_GETENV
+#    endif
 #  endif
 #  if defined(_MSC_VER) && _MSC_VER < 1900
 #    define snprintf _snprintf
 #  endif
+#endif
+
+#ifdef HB_NO_GETENV
+#define getenv(Name) nullptr
 #endif
 
 #if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
