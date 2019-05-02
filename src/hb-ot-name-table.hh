@@ -106,7 +106,7 @@ struct NameRecord
   HBUINT16	languageID;	/* Language ID. */
   HBUINT16	nameID;		/* Name ID. */
   HBUINT16	length;		/* String length (in bytes). */
-  OffsetTo<UnsizedArrayOf<HBUINT8>>
+  NNOffsetTo<UnsizedArrayOf<HBUINT8>>
 		offset;		/* String offset from start of storage area (in bytes). */
   public:
   DEFINE_SIZE_STATIC (12);
@@ -261,7 +261,7 @@ struct name
   bool serialize (hb_serialize_context_t *c,
                   const name *source_name,
                   const hb_subset_plan_t *plan,
-                  const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+                  const hb_sorted_vector_t<unsigned int>& name_record_idx_to_retain)
   {
     TRACE_SERIALIZE (this);
 
@@ -287,7 +287,7 @@ struct name
   bool subset (hb_subset_context_t *c) const
   {
     hb_subset_plan_t *plan = c->plan;
-    hb_vector_t<unsigned int> name_record_idx_to_retain;
+    hb_sorted_vector_t<unsigned int> name_record_idx_to_retain;
 
     get_subsetted_ids (this, plan, name_record_idx_to_retain);
 
