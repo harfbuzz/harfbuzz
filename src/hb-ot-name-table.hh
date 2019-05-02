@@ -306,11 +306,8 @@ struct name
   {
     TRACE_SANITIZE (this);
     const void *string_pool = (this+stringOffset).arrayZ;
-    unsigned int _count = count;
-    /* Move to run-time?! */
-    for (unsigned int i = 0; i < _count; i++)
-      if (!nameRecordZ[i].sanitize (c, string_pool)) return_trace (false);
-    return_trace (true);
+    /* TODO: Move to run-time?! */
+    return_trace (nameRecordZ.sanitize (c, count, string_pool));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
