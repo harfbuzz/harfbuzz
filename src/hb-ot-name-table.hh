@@ -98,8 +98,7 @@ struct NameRecord
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    /* We can check from base all the way up to the end of string... */
-    return_trace (c->check_struct (this) && c->check_range ((char *) base, (unsigned int) length + offset));
+    return_trace (c->check_struct (this) && offset.sanitize (c, base, length));
   }
 
   HBUINT16	platformID;	/* Platform ID. */
@@ -107,7 +106,8 @@ struct NameRecord
   HBUINT16	languageID;	/* Language ID. */
   HBUINT16	nameID;		/* Name ID. */
   HBUINT16	length;		/* String length (in bytes). */
-  HBUINT16	offset;		/* String offset from start of storage area (in bytes). */
+  OffsetTo<UnsizedArrayOf<HBUINT8>>
+		offset;		/* String offset from start of storage area (in bytes). */
   public:
   DEFINE_SIZE_STATIC (12);
 };
