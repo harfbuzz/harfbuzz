@@ -95,6 +95,16 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
+  NameRecord* copy (hb_serialize_context_t *c,
+		    const void *src_base,
+		    const void *dst_base) const
+  {
+    auto *out = c->embed (this);
+    out->offset = 0;
+    out->offset.serialize_copy (c, src_base + offset, dst_base, length);
+    return out;
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
