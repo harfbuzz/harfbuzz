@@ -401,8 +401,8 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *extend_min (Type &obj) { return extend_size (obj, obj.min_size); }
 
-  template <typename Type>
-  Type *extend (Type &obj) { return extend_size (obj, obj.get_size ()); }
+  template <typename Type, typename ...Ts>
+  Type *extend (Type &obj, Ts &&...ds) { return extend_size (obj, obj.get_size (hb_forward<Ts> (ds)...)); }
 
   /* Output routines. */
   hb_bytes_t copy_bytes () const

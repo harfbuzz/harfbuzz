@@ -409,6 +409,36 @@ struct UnsizedArrayOf
   void qsort (unsigned int len, unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array (len).qsort (start, end); }
 
+  bool serialize (hb_serialize_context_t *c, unsigned int items_len)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend (*this, items_len))) return_trace (false);
+    return_trace (true);
+  }
+  template <typename Iterator,
+	    hb_enable_if (hb_is_iterator_of (Iterator, const Type))>
+  bool serialize (hb_serialize_context_t *c, Iterator items)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned count = items.len ();
+    if (unlikely (!serialize (c, count))) return_trace (false);
+    /* TODO Umm. Just exhaust the iterator instead?  Being extra
+     * cautious right now.. */
+    for (unsigned i = 0; i < count; i++, items++)
+      arrayZ[i] = *items;
+    return_trace (true);
+  }
+
+  UnsizedArrayOf* copy (hb_serialize_context_t *c, unsigned count)
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (*this);
+    if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
+    for (unsigned i = 0; i < count; i++)
+      out->arrayZ[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
+    return_trace (out);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
@@ -578,6 +608,17 @@ struct ArrayOf
     for (unsigned i = 0; i < count; i++, items++)
       arrayZ[i] = *items;
     return_trace (true);
+  }
+
+  ArrayOf* copy (hb_serialize_context_t *c)
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (*this);
+    unsigned count = len;
+    if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
+    for (unsigned i = 0; i < count; i++)
+      out->arrayZ[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
+    return_trace (out);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
