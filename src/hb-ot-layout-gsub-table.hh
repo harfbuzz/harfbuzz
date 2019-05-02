@@ -1170,6 +1170,12 @@ struct SubstLookupSubTable
     }
   }
 
+  /* XXX Remove? */
+  bool subset (hb_subset_context_t *c, unsigned lookup_type) const
+  { return dispatch (c, lookup_type); }
+  bool sanitize (hb_sanitize_context_t *c, unsigned lookup_type) const
+  { return dispatch (c, lookup_type); }
+
   protected:
   union {
   SingleSubst			single;

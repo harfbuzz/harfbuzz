@@ -284,11 +284,11 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return * (Type *) Offset<OffsetType>::serialize (c, base);
   }
 
-  template <typename T, typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c, const T &src, const void *base, Ts &&...ds)
+  template <typename ...Ts>
+  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts &&...ds)
   {
     *this = 0;
-    if (has_null && &src == &Null (T))
+    if (has_null && &src == &Null (Type))
       return false;
 
     auto *s = c->serializer;
@@ -305,11 +305,11 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
-  template <typename T, typename ...Ts>
-  bool serialize_copy (hb_serialize_context_t *c, const T &src, const void *base, Ts &&...ds)
+  template <typename ...Ts>
+  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts &&...ds)
   {
     *this = 0;
-    if (has_null && &src == &Null (T))
+    if (has_null && &src == &Null (Type))
       return false;
 
     c->push ();

@@ -715,23 +715,6 @@ struct Lookup
     return_trace (true);
   }
 
-  /* Older compilers need this to NOT be locally defined in a function. */
-  template <typename TSubTable>
-  struct SubTableSubsetWrapper
-  {
-    SubTableSubsetWrapper (const TSubTable &subtable_,
-			   unsigned int lookup_type_) :
-			     subtable (subtable_),
-			     lookup_type (lookup_type_) {}
-
-    bool subset (hb_subset_context_t *c) const
-    { return subtable.dispatch (c, lookup_type); }
-
-    private:
-    const TSubTable &subtable;
-    unsigned int lookup_type;
-  };
-
   template <typename TSubTable>
   bool subset (hb_subset_context_t *c) const
   {
@@ -746,22 +729,10 @@ struct Lookup
     OffsetArrayOf<TSubTable>& out_subtables = out->get_subtables<TSubTable> ();
     unsigned int count = subTable.len;
     for (unsigned int i = 0; i < count; i++)
-    {
-      SubTableSubsetWrapper<TSubTable> wrapper (this+subtables[i], get_type ());
-
-      out_subtables[i].serialize_subset (c, wrapper, out);
-    }
+      out_subtables[i].serialize_subset (c, this+subtables[i], out, get_type ());
 
     return_trace (true);
   }
-
-  /* Older compilers need this to NOT be locally defined in a function. */
-  template <typename TSubTable>
-  struct SubTableSanitizeWrapper : TSubTable
-  {
-    bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
-    { return this->dispatch (c, lookup_type); }
-  };
 
   template <typename TSubTable>
   bool sanitize (hb_sanitize_context_t *c) const
@@ -774,7 +745,7 @@ struct Lookup
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
 
-    if (unlikely (!CastR<OffsetArrayOf<SubTableSanitizeWrapper<TSubTable>>> (subTable)
+    if (unlikely (!CastR<OffsetArrayOf<TSubTable>> (subTable)
 		   .sanitize (c, this, get_type ())))
       return_trace (false);
 
