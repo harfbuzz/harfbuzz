@@ -99,10 +99,12 @@ struct NameRecord
 		    const void *src_base,
 		    const void *dst_base) const
   {
+    TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
-    out->offset = 0;
+    if (unlikely (!out)) return_trace (nullptr);
+
     out->offset.serialize_copy (c, src_base + offset, dst_base, length);
-    return out;
+    return_trace (out);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -292,6 +294,8 @@ struct name
     + hb_iter (name_record_idx_to_retain)
     | hb_apply ([&] (unsigned _) { c->copy (src_array[_], src_base, dst_base); })
     ;
+ 
+    if (unlikely (c->ran_out_of_room)) return_trace (false);
 
     assert (this->stringOffset == c->length ());
 
