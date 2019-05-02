@@ -1781,7 +1781,7 @@ struct VarData
 		  const hb_bimap_t &inner_map,
 		  const hb_bimap_t &region_map)
   {
-    TRACE_SUBSET (this);
+    TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     itemCount = inner_map.get_count ();
     
@@ -1929,7 +1929,7 @@ struct VariationStore
 		  const VariationStore *src,
   		  const hb_array_t <hb_bimap_t> &inner_remaps)
   {
-    TRACE_SUBSET (this);
+    TRACE_SERIALIZE (this);
     unsigned int set_count = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
       if (inner_remaps[i].get_count () > 0) set_count++;

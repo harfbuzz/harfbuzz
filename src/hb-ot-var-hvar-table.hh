@@ -328,7 +328,7 @@ struct HVARVVAR
   bool serialize_index_maps (hb_serialize_context_t *c,
 			     const hb_array_t<index_map_subset_plan_t> &im_plans)
   {
-    TRACE_SUBSET (this);
+    TRACE_SERIALIZE (this);
     if (im_plans[index_map_subset_plan_t::ADV_INDEX].is_identity ())
       advMap = 0;
     else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::ADV_INDEX])))
@@ -426,7 +426,7 @@ struct VVAR : HVARVVAR {
   bool serialize_index_maps (hb_serialize_context_t *c,
 			     const hb_array_t<index_map_subset_plan_t> &im_plans)
   {
-    TRACE_SUBSET (this);
+    TRACE_SERIALIZE (this);
     if (unlikely (!HVARVVAR::serialize_index_maps (c, im_plans)))
       return_trace (false);
     if (!im_plans[index_map_subset_plan_t::VORG_INDEX].get_map_count ())
