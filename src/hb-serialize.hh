@@ -71,7 +71,7 @@ struct hb_serialize_context_t
     {
       bool is_wide: 1;
       unsigned position : 31;
-      int bias;
+      unsigned bias;
       objidx_t objidx;
     };
 
@@ -324,6 +324,9 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
+  Type *start_embed (const Type &_ HB_UNUSED) const
+  { return start_embed<Type> (); }
+  template <typename Type>
   Type *start_embed (const Type *_ HB_UNUSED = nullptr) const
   {
     Type *ret = reinterpret_cast<Type *> (this->head);
@@ -358,33 +361,36 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  Type *embed (const Type &obj)
+  Type *embed (const Type *obj)
   {
-    unsigned int size = obj.get_size ();
+    unsigned int size = obj->get_size ();
     Type *ret = this->allocate_size<Type> (size);
     if (unlikely (!ret)) return nullptr;
-    memcpy (ret, &obj, size);
+    memcpy (ret, obj, size);
     return ret;
   }
+  template <typename Type>
+  Type *embed (const Type &obj)
+  { return embed (&obj); }
 
   template <typename Type, typename ...Ts> auto
-  _copy (const Type &obj, hb_priority<1>, Ts &&...ds) const HB_RETURN
-  (Type *, obj.copy (this, hb_forward<Ts> (ds)...))
+  _copy (const Type &src, hb_priority<1>, Ts &&...ds) HB_RETURN
+  (Type *, src.copy (this, hb_forward<Ts> (ds)...))
 
   template <typename Type> auto
-  _copy (const Type &obj, hb_priority<0>) const -> decltype (&(obj = obj))
+  _copy (const Type &src, hb_priority<0>) -> decltype (&(src = src))
   {
     Type *ret = this->allocate_size<Type> (sizeof (Type));
     if (unlikely (!ret)) return nullptr;
-    *ret = obj;
+    *ret = src;
     return ret;
   }
 
   /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
    * instead of memcpy(). */
   template <typename Type, typename ...Ts>
-  Type *copy (const Type &obj, Ts &&...ds)
-  { return _copy (obj, hb_prioritize, hb_forward<Ts> (ds)...); }
+  Type *copy (const Type &src, Ts &&...ds)
+  { return _copy (src, hb_prioritize, hb_forward<Ts> (ds)...); }
 
   template <typename Type>
   hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }

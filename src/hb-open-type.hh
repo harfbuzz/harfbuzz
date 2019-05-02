@@ -288,7 +288,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts &&...ds)
   {
     *this = 0;
-    if (has_null && &src == &Null (Type))
+    if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
       return false;
 
     auto *s = c->serializer;
@@ -309,14 +309,16 @@ struct OffsetTo : Offset<OffsetType, has_null>
   bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts &&...ds)
   {
     *this = 0;
-    if (has_null && &src == &Null (Type))
+    if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
       return false;
 
     c->push ();
 
-    c->copy (src, hb_forward<Ts> (ds)...);
+    bool ret = c->copy (src, hb_forward<Ts> (ds)...);
 
     c->add_link (*this, c->pop_pack (), base);
+
+    return ret;
   }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
@@ -429,10 +431,10 @@ struct UnsizedArrayOf
     return_trace (true);
   }
 
-  UnsizedArrayOf* copy (hb_serialize_context_t *c, unsigned count)
+  UnsizedArrayOf* copy (hb_serialize_context_t *c, unsigned count) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (*this);
+    auto *out = c->start_embed (this);
     if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
     for (unsigned i = 0; i < count; i++)
       out->arrayZ[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
@@ -610,10 +612,10 @@ struct ArrayOf
     return_trace (true);
   }
 
-  ArrayOf* copy (hb_serialize_context_t *c)
+  ArrayOf* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (*this);
+    auto *out = c->start_embed (this);
     unsigned count = len;
     if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
     for (unsigned i = 0; i < count; i++)
