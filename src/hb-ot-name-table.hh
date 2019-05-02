@@ -267,7 +267,7 @@ struct name
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
-    this->format = source_name->format;
+    this->format = 0;
     this->count = name_record_idx_to_retain.length;
     this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
 
