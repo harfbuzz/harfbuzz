@@ -305,6 +305,20 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
+  template <typename T>
+  bool serialize_copy (hb_serialize_context_t *c, const T &src, const void *base)
+  {
+    *this = 0;
+    if (has_null && &src == &Null (T))
+      return false;
+
+    c->push ();
+
+    c->copy (src);
+
+    c->add_link (*this, c->pop_pack (), base);
+  }
+
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
