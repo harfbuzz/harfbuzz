@@ -305,8 +305,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
-  template <typename T>
-  bool serialize_copy (hb_serialize_context_t *c, const T &src, const void *base)
+  template <typename T, typename ...Ts>
+  bool serialize_copy (hb_serialize_context_t *c, const T &src, const void *base, Ts &&...ds)
   {
     *this = 0;
     if (has_null && &src == &Null (T))
@@ -314,7 +314,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     c->push ();
 
-    c->copy (src);
+    c->copy (src, hb_forward<Ts> (ds)...);
 
     c->add_link (*this, c->pop_pack (), base);
   }
