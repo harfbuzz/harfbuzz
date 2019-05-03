@@ -30,6 +30,7 @@
 #define HB_OT_SHAPE_COMPLEX_USE_MACHINE_HH
 
 #include "hb.hh"
+#include "hb-ot-shape-complex-machine-index.hh"
 
 %%{
   machine use_syllable_machine;
@@ -47,7 +48,6 @@ B	= 1; # BASE
 IND	= 3; # BASE_IND
 N	= 4; # BASE_NUM
 GB	= 5; # BASE_OTHER
-CGJ	= 6; # CGJ
 #F	= 7; # CONS_FINAL
 #FM	= 8; # CONS_FINAL_MOD
 #M	= 9; # CONS_MED
@@ -63,7 +63,6 @@ Rsv	= 17; # Reserved characters
 R	= 18; # REPHA
 S	= 19; # SYM
 #SM	= 20; # SYM_MOD
-VS	= 21; # VARIATION_SELECTOR
 #V	= 36; # VOWEL
 #VM	= 40; # VOWEL_MOD
 CS	= 43; # CONS_WITH_STACKER
@@ -96,7 +95,7 @@ FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 h = H | HVM | Sk;
 
 # Override: Adhoc ZWJ placement. https://github.com/harfbuzz/harfbuzz/issues/542#issuecomment-353169729
-consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) VS? CMAbv? CMBlw*)*;
+consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) CMAbv? CMBlw*)*;
 # Override: Allow two MBlw. https://github.com/harfbuzz/harfbuzz/issues/376
 medial_consonants = MPre? MAbv? MBlw?.MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
@@ -104,7 +103,7 @@ vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst*;
 final_modifiers = FMAbv* FMBlw* | FMPst?;
 
-complex_syllable_start = (R | CS)? (B | GB) VS?;
+complex_syllable_start = (R | CS)? (B | GB);
 complex_syllable_middle =
 	consonant_modifiers
 	medial_consonants
@@ -117,8 +116,8 @@ complex_syllable_tail =
 	final_consonants
 	final_modifiers
 ;
-number_joiner_terminated_cluster_tail = (HN N VS?)* HN;
-numeral_cluster_tail = (HN N VS?)+;
+number_joiner_terminated_cluster_tail = (HN N)* HN;
+numeral_cluster_tail = (HN N)+;
 symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
 virama_terminated_cluster =
@@ -140,10 +139,10 @@ broken_cluster =
 	(complex_syllable_tail | number_joiner_terminated_cluster_tail | numeral_cluster_tail | symbol_cluster_tail)
 ;
 
-number_joiner_terminated_cluster = N VS? number_joiner_terminated_cluster_tail;
-numeral_cluster = N VS? numeral_cluster_tail?;
-symbol_cluster = (S | GB) VS? symbol_cluster_tail?;
-independent_cluster = (IND | O | Rsv | WJ) VS?;
+number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
+numeral_cluster = N numeral_cluster_tail?;
+symbol_cluster = (S | GB) symbol_cluster_tail?;
+independent_cluster = (IND | O | Rsv | WJ);
 other = any;
 
 main := |*
@@ -163,26 +162,46 @@ main := |*
 
 #define found_syllable(syllable_type) \
   HB_STMT_START { \
-    if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
-    for (unsigned int i = ts; i < te; i++) \
+    if (0) fprintf (stderr, "syllable %d..%d %s\n", (*ts).second.first, (*te).second.first, #syllable_type); \
+    for (unsigned i = (*ts).second.first; i < (*te).second.first; ++i) \
       info[i].syllable() = (syllable_serial << 4) | use_##syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
+static bool
+not_standard_default_ignorable (const hb_glyph_info_t &i)
+{ return !((i.use_category() == USE_O || i.use_category() == USE_Rsv) && _hb_glyph_info_is_default_ignorable (&i)); }
+
 static void
 find_syllables_use (hb_buffer_t *buffer)
 {
-  unsigned int p, pe, eof, ts, te, act;
-  int cs;
   hb_glyph_info_t *info = buffer->info;
+  auto p =
+    + hb_iter (info, buffer->len)
+    | hb_enumerate
+    | hb_filter (not_standard_default_ignorable, hb_second)
+    | hb_filter ([&] (const hb_pair_t<unsigned, const hb_glyph_info_t &> p)
+		 {
+		   if (p.second.use_category() == USE_ZWNJ)
+		     for (unsigned i = p.first + 1; i < buffer->len; ++i)
+		       if (not_standard_default_ignorable (info[i]))
+			 return !_hb_glyph_info_is_unicode_mark (&info[i]);
+		   return true;
+		 })
+    | hb_enumerate
+    | machine_index
+    ;
+  auto pe = p + p.len ();
+  auto eof = +pe;
+  auto ts = +p;
+  auto te = +p;
+  unsigned int act;
+  int cs;
   %%{
     write init;
-    getkey info[p].use_category();
+    getkey (*p).second.second.use_category();
   }%%
-
-  p = 0;
-  pe = eof = buffer->len;
 
   unsigned int syllable_serial = 1;
   %%{
