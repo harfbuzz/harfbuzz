@@ -279,21 +279,17 @@ struct name
 
     this->format = 0;
     this->count = name_record_idx_to_retain.length;
+    this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
 
-    auto snap = c->snapshot ();
-    this->nameRecordZ.serialize (c, this->count);
-    this->stringOffset = c->length ();
-    c->revert (snap);
 
-    auto src_array = source_name->nameRecordZ.as_array (source_name->count);
-    const void *src_base = &(source_name + source_name->stringOffset);
-    const void *dst_base = &(this + this->stringOffset);
+    if (!serialize_name_record (c, source_name, name_record_idx_to_retain))
+      return_trace (false);
 
-    + hb_iter (name_record_idx_to_retain)
-    | hb_apply ([&] (unsigned _) { c->copy (src_array[_], src_base, dst_base); })
-    ;
+    if (!serialize_strings (c, source_name, plan, name_record_idx_to_retain))
+      return_trace (false);
 
-    assert (this->stringOffset == c->length ());
+    if (!pack_record_and_strings (this, c, name_record_idx_to_retain.length))
+      return_trace (false);
 
     return_trace (true);
   }
