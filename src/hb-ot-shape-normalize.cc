@@ -408,7 +408,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
      */
     for (unsigned int i = 1; i + 1 < buffer->len; i++)
       if (buffer->info[i].codepoint == 0x034Fu/*CGJ*/ &&
-	  info_cc(buffer->info[i-1]) <= info_cc(buffer->info[i+1]))
+	  (info_cc(buffer->info[i+1]) == 0 || info_cc(buffer->info[i-1]) <= info_cc(buffer->info[i+1])))
       {
 	_hb_glyph_info_unhide (&buffer->info[i]);
       }
