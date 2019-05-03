@@ -577,6 +577,9 @@ struct gvar
       return (1.f - r) * prev_delta + r * next_delta;
     }
 
+    static unsigned int next_index (unsigned int i, unsigned int start, unsigned int end)
+    { return (i >= end)? start: (i + 1); }
+
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
@@ -646,27 +649,45 @@ struct gvar
 	for (unsigned int c = 0; c < end_points.length; c++)
 	{
 	  unsigned int end_point = end_points[c];
-	  for (unsigned int i = start_point; i <= end_point; i++)
+	  unsigned int i, j;
+
+	  /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
+	  unsigned int unref_count = 0;
+	  for (i = start_point; i <= end_point; i++)
+	    if (!deltas[i].flag) unref_count++;
+	  if (unref_count == 0 || unref_count > end_point - start_point)
+	    goto no_more_gaps;
+
+	  j = start_point;
+	  for (;;)
 	  {
-	    if (deltas[i].flag) continue;
-	    /* search in both directions within the contour for a pair of referenced points */
-	    unsigned int prev;
-	    for (prev = i;;)
-	    {
-	      if (prev-- <= start_point) prev = end_point;
-	      if (prev == i || deltas[prev].flag) break;
+	    /* Locate the next gap of unreferenced points between two referenced points prev and next.
+	     * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
+	     */
+	    unsigned int prev, next;
+	    for (;;) {
+	      i = j;
+	      j = next_index (i, start_point, end_point);
+	      if (deltas[i].flag && !deltas[j].flag) break;
 	    }
-	    if (prev == i) continue;	/* no (previous) referenced point was found */
-	    unsigned int next;
-	    for (next = i;;)
-	    {
-	      if (next++ >= end_point) next = start_point;
-	      if (next == i || deltas[next].flag) break;
+	    prev = j = i;
+	    for (;;) {
+	      i = j;
+	      j = next_index (i, start_point, end_point);
+	      if (!deltas[i].flag && deltas[j].flag) break;
 	    }
-	    assert (next != i);
-	    deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
-	    deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	    next = j;
+	    /* Infer deltas for all unref points in the gap between prev and next */
+	    i = prev;
+	    for (;;) {
+	      i = next_index (i, start_point, end_point);
+	      if (i == next) break;
+	      deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	      deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	      if (--unref_count == 0) goto no_more_gaps;
+	    }
 	  }
+no_more_gaps:
 	  start_point = end_point + 1;
 	}
 
