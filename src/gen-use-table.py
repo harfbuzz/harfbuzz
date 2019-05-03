@@ -51,7 +51,6 @@ for i, f in enumerate (files):
 defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 
 # TODO Characters that are not in Unicode Indic files, but used in USE
-data[0][0x034F] = defaults[0]
 data[0][0x1B61] = defaults[0]
 data[0][0x1B63] = defaults[0]
 data[0][0x1B64] = defaults[0]
@@ -72,8 +71,6 @@ data[0][0x11C44] = 'Consonant_Placeholder'
 data[0][0x11C45] = 'Consonant_Placeholder'
 # TODO https://github.com/harfbuzz/harfbuzz/pull/1399
 data[0][0x111C8] = 'Consonant_Placeholder'
-for u in range (0xFE00, 0xFE0F + 1):
-	data[0][u] = defaults[0]
 
 # Merge data into one dict:
 for i,v in enumerate (defaults):
@@ -194,8 +191,6 @@ def is_BASE_OTHER(U, UISC, UGC):
 	if UISC == Consonant_Placeholder: return True #SPEC-DRAFT
 	#SPEC-DRAFT return U in [0x00A0, 0x00D7, 0x2015, 0x2022, 0x25CC, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 	return U in [0x2015, 0x2022, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
-def is_CGJ(U, UISC, UGC):
-	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
 	return ((UISC == Consonant_Final and UGC != Lo) or
 		UISC == Consonant_Succeeding_Repha)
@@ -234,9 +229,7 @@ def is_OTHER(U, UISC, UGC):
 	return (UISC == Other
 		and not is_SYM(U, UISC, UGC)
 		and not is_SYM_MOD(U, UISC, UGC)
-		and not is_CGJ(U, UISC, UGC)
 		and not is_Word_Joiner(U, UISC, UGC)
-		and not is_VARIATION_SELECTOR(U, UISC, UGC)
 	)
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
@@ -250,8 +243,6 @@ def is_SYM(U, UISC, UGC):
 	return UGC in [So, Sc] and U not in [0x1B62, 0x1B68]
 def is_SYM_MOD(U, UISC, UGC):
 	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
-def is_VARIATION_SELECTOR(U, UISC, UGC):
-	return 0xFE00 <= U <= 0xFE0F
 def is_VOWEL(U, UISC, UGC):
 	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC == Pure_Killer or
@@ -261,12 +252,12 @@ def is_VOWEL_MOD(U, UISC, UGC):
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
 		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
 
+# CGJ and VS are handled in find_syllables
 use_mapping = {
 	'B':	is_BASE,
 	'IND':	is_BASE_IND,
 	'N':	is_BASE_NUM,
 	'GB':	is_BASE_OTHER,
-	'CGJ':	is_CGJ,
 	'F':	is_CONS_FINAL,
 	'FM':	is_CONS_FINAL_MOD,
 	'M':	is_CONS_MED,
@@ -285,7 +276,6 @@ use_mapping = {
 	'S':	is_SYM,
 	'Sk':	is_SAKOT,
 	'SM':	is_SYM_MOD,
-	'VS':	is_VARIATION_SELECTOR,
 	'V':	is_VOWEL,
 	'VM':	is_VOWEL_MOD,
 }

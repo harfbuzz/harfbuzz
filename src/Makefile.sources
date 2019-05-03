@@ -118,6 +118,7 @@ HB_BASE_sources = \
 	hb-ot-shape-complex-indic.hh \
 	hb-ot-shape-complex-khmer.cc \
 	hb-ot-shape-complex-khmer.hh \
+	hb-ot-shape-complex-machine-index.hh \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-myanmar.hh \
 	hb-ot-shape-complex-thai.cc \

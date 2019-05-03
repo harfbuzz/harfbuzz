@@ -49,7 +49,6 @@ enum use_category_t {
   USE_IND	= 3,	/* BASE_IND */
   USE_N		= 4,	/* BASE_NUM */
   USE_GB	= 5,	/* BASE_OTHER */
-  USE_CGJ	= 6,	/* CGJ */
 //  USE_F		= 7,	/* CONS_FINAL */
   USE_FM	= 8,	/* CONS_FINAL_MOD */
 //  USE_M		= 9,	/* CONS_MED */
@@ -65,7 +64,6 @@ enum use_category_t {
   USE_R		= 18,	/* REPHA */
   USE_S		= 19,	/* SYM */
 //  USE_SM	= 20,	/* SYM_MOD */
-  USE_VS	= 21,	/* VARIATION_SELECTOR */
 //  USE_V	= 36,	/* VOWEL */
 //  USE_VM	= 40,	/* VOWEL_MOD */
   USE_CS	= 43,	/* CONS_WITH_STACKER */
