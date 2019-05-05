@@ -251,14 +251,14 @@ struct SingleSubst
     }
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
-    case 2: return_trace (c->dispatch (u.format2));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -440,13 +440,13 @@ struct MultipleSubst
     }
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -614,13 +614,13 @@ struct AlternateSubst
     }
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -945,13 +945,13 @@ struct LigatureSubst
     }
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1113,13 +1113,13 @@ struct ReverseChainSingleSubstFormat1
 
 struct ReverseChainSingleSubst
 {
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1153,19 +1153,19 @@ struct SubstLookupSubTable
     ReverseChainSingle	= 8
   };
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, lookup_type);
     switch (lookup_type) {
-    case Single:		return_trace (u.single.dispatch (c));
-    case Multiple:		return_trace (u.multiple.dispatch (c));
-    case Alternate:		return_trace (u.alternate.dispatch (c));
-    case Ligature:		return_trace (u.ligature.dispatch (c));
-    case Context:		return_trace (u.context.dispatch (c));
-    case ChainContext:		return_trace (u.chainContext.dispatch (c));
-    case Extension:		return_trace (u.extension.dispatch (c));
-    case ReverseChainSingle:	return_trace (u.reverseChainContextSingle.dispatch (c));
+    case Single:		return_trace (u.single.dispatch (c, hb_forward<Ts> (ds)...));
+    case Multiple:		return_trace (u.multiple.dispatch (c, hb_forward<Ts> (ds)...));
+    case Alternate:		return_trace (u.alternate.dispatch (c, hb_forward<Ts> (ds)...));
+    case Ligature:		return_trace (u.ligature.dispatch (c, hb_forward<Ts> (ds)...));
+    case Context:		return_trace (u.context.dispatch (c, hb_forward<Ts> (ds)...));
+    case ChainContext:		return_trace (u.chainContext.dispatch (c, hb_forward<Ts> (ds)...));
+    case Extension:		return_trace (u.extension.dispatch (c, hb_forward<Ts> (ds)...));
+    case ReverseChainSingle:	return_trace (u.reverseChainContextSingle.dispatch (c, hb_forward<Ts> (ds)...));
     default:			return_trace (c->default_return_value ());
     }
   }
@@ -1331,9 +1331,9 @@ struct SubstLookup : Lookup
     return ret;
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
-  { return Lookup::dispatch<SubTable> (c); }
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  { return Lookup::dispatch<SubTable> (c, hb_forward<Ts> (ds)...); }
 
   bool subset (hb_subset_context_t *c) const
   { return Lookup::subset<SubTable> (c); }

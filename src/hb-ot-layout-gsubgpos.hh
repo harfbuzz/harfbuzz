@@ -1763,15 +1763,15 @@ struct ContextFormat3
 
 struct Context
 {
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
-    case 2: return_trace (c->dispatch (u.format2));
-    case 3: return_trace (c->dispatch (u.format3));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 3: return_trace (c->dispatch (u.format3, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2474,15 +2474,15 @@ struct ChainContextFormat3
 
 struct ChainContext
 {
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1));
-    case 2: return_trace (c->dispatch (u.format2));
-    case 3: return_trace (c->dispatch (u.format3));
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 3: return_trace (c->dispatch (u.format3, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2510,12 +2510,12 @@ struct ExtensionFormat1
     return StructAtOffset<typename T::SubTable> (this, offset);
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, format);
     if (unlikely (!c->may_dispatch (this, this))) return_trace (c->no_dispatch_return_value ());
-    return_trace (get_subtable<typename T::SubTable> ().dispatch (c, get_type ()));
+    return_trace (get_subtable<typename T::SubTable> ().dispatch (c, get_type (), hb_forward<Ts> (ds)...));
   }
 
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
@@ -2557,13 +2557,13 @@ struct Extension
     }
   }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (u.format1.dispatch (c));
+    case 1: return_trace (u.format1.dispatch (c, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }

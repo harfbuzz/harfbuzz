@@ -771,17 +771,17 @@ struct KerxSubTable
   unsigned int get_size () const { return u.header.length; }
   unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case 0:	return_trace (c->dispatch (u.format0));
-    case 1:	return_trace (c->dispatch (u.format1));
-    case 2:	return_trace (c->dispatch (u.format2));
-    case 4:	return_trace (c->dispatch (u.format4));
-    case 6:	return_trace (c->dispatch (u.format6));
+    case 0:	return_trace (c->dispatch (u.format0, hb_forward<Ts> (ds)...));
+    case 1:	return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2:	return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 4:	return_trace (c->dispatch (u.format4, hb_forward<Ts> (ds)...));
+    case 6:	return_trace (c->dispatch (u.format6, hb_forward<Ts> (ds)...));
     default:	return_trace (c->default_return_value ());
     }
   }

@@ -682,14 +682,14 @@ struct Lookup
     return flag;
   }
 
-  template <typename TSubTable, typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename TSubTable, typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type);
+      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type, hb_forward<Ts> (ds)...);
       if (c->stop_sublookup_iteration (r))
 	return_trace (r);
     }
