@@ -131,7 +131,7 @@ struct hb_sanitize_context_t :
   bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
   template <typename T>
-  return_t dispatch (const T &obj) { return obj.sanitize (this); }
+  return_t _dispatch (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value () { return true; }
   static return_t no_dispatch_return_value () { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return !r; }

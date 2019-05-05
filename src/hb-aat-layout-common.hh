@@ -807,7 +807,7 @@ struct hb_aat_apply_context_t :
 {
   const char *get_name () { return "APPLY"; }
   template <typename T>
-  return_t dispatch (const T &obj) { return obj.apply (this); }
+  return_t _dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
