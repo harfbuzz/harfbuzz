@@ -47,16 +47,19 @@ struct hb_dispatch_context_t
   typedef Return return_t;
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format HB_UNUSED) { return true; }
-  template <typename T>
-  return_t dispatch (const T &obj) { return _dispatch_impl (obj, hb_prioritize); }
+  template <typename T, typename ...Ts>
+  return_t dispatch (const T &obj, Ts &&...ds)
+  { return _dispatch_impl (obj, hb_prioritize, hb_forward<Ts> (ds)...); }
   static return_t no_dispatch_return_value () { return Context::default_return_value (); }
   static bool stop_sublookup_iteration (const return_t r HB_UNUSED) { return false; }
 
   private:
-  template <typename T>
-  auto _dispatch_impl (const T &obj, hb_priority<1>) HB_AUTO_RETURN (obj.dispatch (thiz ()))
-  template <typename T>
-  Return _dispatch_impl (const T &obj, hb_priority<0>) { return thiz()->_dispatch (obj); }
+  template <typename T, typename ...Ts>
+  auto _dispatch_impl (const T &obj, hb_priority<1>, Ts &&...ds) HB_AUTO_RETURN
+  (obj.dispatch (thiz (), hb_forward<Ts> (ds)...))
+  template <typename T, typename ...Ts>
+  Return _dispatch_impl (const T &obj, hb_priority<0>, Ts &&...ds)
+  { return thiz()->_dispatch (obj, hb_forward<Ts> (ds)...); }
 };
 
 

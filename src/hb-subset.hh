@@ -40,8 +40,9 @@ struct hb_subset_context_t :
        hb_dispatch_context_t<hb_subset_context_t, bool, HB_DEBUG_SUBSET>
 {
   const char *get_name () { return "SUBSET"; }
-  template <typename T>
-  return_t _dispatch (const T &obj) { return obj.subset (this); }
+  template <typename T, typename ...Ts>
+  return_t _dispatch (const T &obj, Ts &&...ds)
+  { return obj.subset (this, hb_forward<Ts> (ds)...); }
   static return_t default_return_value () { return true; }
 
   hb_subset_plan_t *plan;

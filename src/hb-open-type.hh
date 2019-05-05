@@ -295,7 +295,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     s->push ();
 
-    bool ret = src.subset (c, hb_forward<Ts> (ds)...);
+    bool ret = c->dispatch (src, hb_forward<Ts> (ds)...);
 
     if (ret || !has_null)
       s->add_link (*this, s->pop_pack (), base);
@@ -336,7 +336,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
 		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c, hb_forward<Ts> (ds)...) ||
+		   c->dispatch (StructAtOffset<Type> (base, *this), hb_forward<Ts> (ds)...) ||
 		   neuter (c)));
   }
 
@@ -469,7 +469,7 @@ struct UnsizedArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -652,7 +652,7 @@ struct ArrayOf
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -828,7 +828,7 @@ struct ArrayOfM1
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
