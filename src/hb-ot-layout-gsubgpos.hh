@@ -46,7 +46,7 @@ struct hb_intersects_context_t :
 {
   const char *get_name () { return "INTERSECTS"; }
   template <typename T>
-  return_t _dispatch (const T &obj) { return obj.intersects (this->glyphs); }
+  return_t dispatch (const T &obj) { return obj.intersects (this->glyphs); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
@@ -64,7 +64,7 @@ struct hb_closure_context_t :
   const char *get_name () { return "CLOSURE"; }
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t _dispatch (const T &obj) { obj.closure (this); return hb_void_t (); }
+  return_t dispatch (const T &obj) { obj.closure (this); return hb_void_t (); }
   static return_t default_return_value () { return hb_void_t (); }
   void recurse (unsigned int lookup_index)
   {
@@ -128,7 +128,7 @@ struct hb_would_apply_context_t :
 {
   const char *get_name () { return "WOULD_APPLY"; }
   template <typename T>
-  return_t _dispatch (const T &obj) { return obj.would_apply (this); }
+  return_t dispatch (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
@@ -156,7 +156,7 @@ struct hb_collect_glyphs_context_t :
   const char *get_name () { return "COLLECT_GLYPHS"; }
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t _dispatch (const T &obj) { obj.collect_glyphs (this); return hb_void_t (); }
+  return_t dispatch (const T &obj) { obj.collect_glyphs (this); return hb_void_t (); }
   static return_t default_return_value () { return hb_void_t (); }
   void recurse (unsigned int lookup_index)
   {
@@ -235,7 +235,7 @@ struct hb_add_coverage_context_t :
   const char *get_name () { return "GET_COVERAGE"; }
   typedef const Coverage &return_t;
   template <typename T>
-  return_t _dispatch (const T &obj) { return obj.get_coverage (); }
+  return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value () { return Null(Coverage); }
   bool stop_sublookup_iteration (return_t r) const
   {
@@ -438,7 +438,7 @@ struct hb_ot_apply_context_t :
   const char *get_name () { return "APPLY"; }
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t _dispatch (const T &obj) { return obj.apply (this); }
+  return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
@@ -648,7 +648,7 @@ struct hb_get_subtables_context_t :
   /* Dispatch interface. */
   const char *get_name () { return "GET_SUBTABLES"; }
   template <typename T>
-  return_t _dispatch (const T &obj)
+  return_t dispatch (const T &obj)
   {
     hb_applicable_t *entry = array.push();
     entry->init (obj, apply_to<T>);

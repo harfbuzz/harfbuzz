@@ -130,12 +130,22 @@ struct hb_sanitize_context_t :
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
-  template <typename T, typename ...Ts>
-  return_t _dispatch (const T &obj, Ts &&...ds)
-  { return obj.sanitize (this, hb_forward<Ts> (ds)...); }
   static return_t default_return_value () { return true; }
   static return_t no_dispatch_return_value () { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return !r; }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts &&...ds) HB_AUTO_RETURN
+  ( obj.sanitize (this, hb_forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts &&...ds) HB_AUTO_RETURN
+  ( obj.dispatch (this, hb_forward<Ts> (ds)...) )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts &&...ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+
 
   void init (hb_blob_t *b)
   {
