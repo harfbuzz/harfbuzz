@@ -63,7 +63,7 @@ extern HB_INTERNAL hb_atomic_int_t _hb_options;
 static inline hb_options_t
 hb_options ()
 {
-#if defined(HB_NO_OPTIONS)
+#if defined(HB_NO_GETENV)
   return hb_options_t ();
 #endif
   /* Make a local copy, so we can access bitfield threadsafely. */
