@@ -34,7 +34,7 @@ jobs:
 
   distcheck:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:19.04
     steps:
       - checkout
       - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
@@ -203,7 +203,7 @@ jobs:
 
   cmake-gcc:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:19.04
     steps:
       - checkout
       - run: apt update && apt install -y ninja-build binutils cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
