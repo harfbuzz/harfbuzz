@@ -139,8 +139,8 @@ struct
 } HB_FUNCOBJ (hb_ref);
 
 
-template<bool B, typename T = void> struct hb_enable_if {};
-template<typename T>                struct hb_enable_if<true, T> { typedef T type; };
+template <bool B, typename T = void> struct hb_enable_if {};
+template <typename T>                struct hb_enable_if<true, T> { typedef T type; };
 #define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
 
 template <typename T, typename T2> struct hb_is_same : hb_false_t {};
