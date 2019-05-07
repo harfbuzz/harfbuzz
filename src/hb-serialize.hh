@@ -287,26 +287,23 @@ struct hb_serialize_context_t
   {
     assert (!current);
 
-    for (auto obj_it = ++hb_iter (packed); obj_it; ++obj_it)
+    for (const object_t *parent : ++hb_iter (packed))
     {
-      const object_t &parent = **obj_it;
-
-      for (auto link_it = parent.links.iter (); link_it; ++link_it)
+      for (const object_t::link_t &link : parent->links)
       {
-        const object_t::link_t &link = *link_it;
 	const object_t &child = *packed[link.objidx];
-	//assert (link.bias <= parent.tail - parent.head);
-	unsigned offset = (child.head - parent.head) - link.bias;
+	//assert (link.bias <= parent->tail - parent->head);
+	unsigned offset = (child.head - parent->head) - link.bias;
 
 	if (link.is_wide)
 	{
-	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + link.position));
+	  auto &off = * ((BEInt<uint32_t, 4> *) (parent->head + link.position));
 	  assert (0 == off);
 	  check_assign (off, offset);
 	}
 	else
 	{
-	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + link.position));
+	  auto &off = * ((BEInt<uint16_t, 2> *) (parent->head + link.position));
 	  assert (0 == off);
 	  check_assign (off, offset);
 	}
