@@ -331,6 +331,7 @@ struct hb_map_iter_t :
   void __forward__ (unsigned n) { it += n; }
   void __prev__ () { --it; }
   void __rewind__ (unsigned n) { it -= n; }
+  hb_map_iter_t __end__ () const { return hb_map_iter_t (it.end (), f); }
   bool operator != (const hb_map_iter_t& o) const
   { return it != o.it || f != o.f; }
 
@@ -376,6 +377,7 @@ struct hb_filter_iter_t :
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
   void __prev__ () { --it; }
+  hb_filter_iter_t __end__ () const { return hb_filter_iter_t (it.end (), p, f); }
   bool operator != (const hb_filter_iter_t& o) const
   { return it != o.it || p != o.p || f != o.f; }
 

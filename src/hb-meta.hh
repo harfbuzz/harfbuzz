@@ -145,17 +145,19 @@ struct hb_reference_wrapper
   hb_reference_wrapper (const hb_reference_wrapper& o) : v (o.v) {}
   bool operator == (const hb_reference_wrapper& o) const { return v == o.v; }
   bool operator != (const hb_reference_wrapper& o) const { return v != o.v; }
+  operator T () const { return v; }
   T get () const { return v; }
   T v;
 };
 template <typename T>
 struct hb_reference_wrapper<T&>
 {
-  hb_reference_wrapper (T& v) : v (&v) {}
+  hb_reference_wrapper (T& v) : v (hb_addressof (v)) {}
   hb_reference_wrapper (const hb_reference_wrapper& o) : v (o.v) {}
   bool operator == (const hb_reference_wrapper& o) const { return v == o.v; }
   bool operator != (const hb_reference_wrapper& o) const { return v != o.v; }
-  T* get () const { return v; }
+  operator T& () const { return *v; }
+  T& get () const { return *v; }
   T* v;
 };
 
