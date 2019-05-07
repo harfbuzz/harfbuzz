@@ -159,7 +159,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::glyf> (plan);
       break;
     case HB_OT_TAG_hdmx:
-      result = _subset<const OT::hdmx> (plan);
+      result = _subset2<const OT::hdmx> (plan);
       break;
     case HB_OT_TAG_name:
       result = _subset2<const OT::name> (plan);

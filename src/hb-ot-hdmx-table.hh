@@ -157,40 +157,16 @@ struct hdmx
     return_trace (true);
   }
 
-  static size_t get_subsetted_size (const hdmx *source_hdmx, hb_subset_plan_t *plan)
+
+  bool subset (hb_subset_context_t *c) const
   {
-    return min_size + source_hdmx->numRecords * DeviceRecord::get_size (plan->num_output_glyphs ());
-  }
+    TRACE_SUBSET (this);
 
-  bool subset (hb_subset_plan_t *plan) const
-  {
-    size_t dest_size = get_subsetted_size (this, plan);
-    hdmx *dest = (hdmx *) malloc (dest_size);
-    if (unlikely (!dest))
-    {
-      DEBUG_MSG(SUBSET, nullptr, "Unable to alloc %lu for hdmx subset output.", (unsigned long) dest_size);
-      return false;
-    }
+    hdmx *hdmx_prime = c->serializer->start_embed <hdmx> ();
+    if (unlikely (!hdmx_prime)) return_trace (false);
 
-    hb_serialize_context_t c (dest, dest_size);
-    hdmx *hdmx_prime = c.start_serialize<hdmx> ();
-    if (!hdmx_prime || !hdmx_prime->serialize (&c, this, plan))
-    {
-      free (dest);
-      DEBUG_MSG(SUBSET, nullptr, "Failed to serialize write new hdmx.");
-      return false;
-    }
-    c.end_serialize ();
-
-    hb_blob_t *hdmx_prime_blob = hb_blob_create ((const char *) dest,
-						 dest_size,
-						 HB_MEMORY_MODE_READONLY,
-						 dest,
-						 free);
-    bool result = plan->add_table (HB_OT_TAG_hdmx, hdmx_prime_blob);
-    hb_blob_destroy (hdmx_prime_blob);
-
-    return result;
+    hdmx_prime->serialize (c->serializer, this, c->plan);
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
