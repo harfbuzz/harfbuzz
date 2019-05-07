@@ -102,7 +102,6 @@ struct NameRecord
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-
     out->offset.serialize_copy (c, src_base + offset, dst_base, length);
     return_trace (out);
   }
@@ -185,91 +184,6 @@ struct name
     }
   }
 
-  bool serialize_name_record (hb_serialize_context_t *c,
-                              const name *source_name,
-                              const hb_vector_t<unsigned int>& name_record_idx_to_retain)
-  {
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      if (unlikely (idx >= source_name->count))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
-        return false;
-      }
-
-      c->push<NameRecord> ();
-
-      NameRecord *p = c->embed<NameRecord> (source_name->nameRecordZ[idx]);
-      if (!p)
-        return false;
-      p->offset = 0;
-    }
-
-    return true;
-  }
-
-  bool serialize_strings (hb_serialize_context_t *c,
-                          const name *source_name,
-                          const hb_subset_plan_t *plan,
-                          const hb_vector_t<unsigned int>& name_record_idx_to_retain)
-  {
-    hb_face_t *face = plan->source;
-    accelerator_t acc;
-    acc.init (face);
-
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      unsigned int size = acc.get_name (idx).get_size ();
-
-      c->push<char> ();
-      char *new_pos = c->allocate_size<char> (size);
-
-      if (unlikely (new_pos == nullptr))
-      {
-        acc.fini ();
-        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %u.",
-                   size);
-        return false;
-      }
-
-      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
-      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
-
-      memcpy (new_pos, source_string_pool + name_record_offset, size);
-    }
-
-    acc.fini ();
-    return true;
-  }
-
-  bool pack_record_and_strings (name *dest_name_unpacked,
-                                hb_serialize_context_t *c,
-                                unsigned length)
-  {
-    hb_hashmap_t<unsigned, unsigned> id_str_idx_map;
-    for (int i = length-1; i >= 0; i--)
-    {
-      unsigned objidx = c->pop_pack ();
-      id_str_idx_map.set ((unsigned)i, objidx);
-    }
-
-    const void *base = & (dest_name_unpacked->nameRecordZ[length]);
-    for (int i = length-1; i >= 0; i--)
-    {
-      unsigned str_idx = id_str_idx_map.get ((unsigned)i);
-      NameRecord& namerecord = dest_name_unpacked->nameRecordZ[i];
-      c->add_link<HBUINT16> (namerecord.offset, str_idx, base);
-      c->pop_pack ();
-    }
-
-    if (c->in_error ())
-      return false;
-
-    return true;
-  }
-
   bool serialize (hb_serialize_context_t *c,
                   const name *source_name,
                   const hb_subset_plan_t *plan,
@@ -294,7 +208,7 @@ struct name
     + hb_iter (name_record_idx_to_retain)
     | hb_apply ([&] (unsigned _) { c->copy (src_array[_], src_base, dst_base); })
     ;
- 
+
     if (unlikely (c->ran_out_of_room)) return_trace (false);
 
     assert (this->stringOffset == c->length ());
