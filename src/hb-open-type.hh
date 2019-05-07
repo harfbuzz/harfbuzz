@@ -305,6 +305,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
+  /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
   template <typename ...Ts>
   bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts &&...ds)
   {
