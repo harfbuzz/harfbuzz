@@ -374,7 +374,7 @@ struct hb_filter_iter_t :
   static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
-  void __next__ () { do ++it; while (it && !p (f (*it))); }
+  void __next__ () { do ++it; while (it && !hb_has (p, hb_get (f, *it))); }
   void __prev__ () { --it; }
   bool operator != (const hb_filter_iter_t& o) const
   { return it != o.it || p != o.p || f != o.f; }
