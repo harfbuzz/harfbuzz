@@ -393,7 +393,7 @@ struct hb_serialize_context_t
   { return _copy (src, hb_prioritize, hb_forward<Ts> (ds)...); }
 
   template <typename Type>
-  hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
+  hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }
 
   template <typename Type>
   Type *extend_size (Type &obj, unsigned int size)
