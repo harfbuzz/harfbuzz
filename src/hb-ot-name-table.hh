@@ -169,44 +169,34 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
-  void get_subsetted_ids (const name *source_name,
-                             const hb_subset_plan_t *plan,
-                             hb_vector_t<unsigned int>& name_record_idx_to_retain) const
-  {
-    for(unsigned int i = 0; i < count; i++)
-    {
-      if (format == 0 && (unsigned int) source_name->nameRecordZ[i].nameID > 25)
-        continue;
-      if (!hb_set_is_empty (plan->name_ids) &&
-          !hb_set_has (plan->name_ids, source_name->nameRecordZ[i].nameID))
-        continue;
-      name_record_idx_to_retain.push (i);
-    }
-  }
-
   bool serialize (hb_serialize_context_t *c,
                   const name *source_name,
-                  const hb_subset_plan_t *plan,
-                  const hb_sorted_vector_t<unsigned int>& name_record_idx_to_retain)
+                  const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
+    auto src_array = source_name->nameRecordZ.as_array (source_name->count);
+
+    auto it =
+    + src_array
+    | hb_filter (plan->name_ids, &NameRecord::nameID)
+    ;
+
     this->format = 0;
-    this->count = name_record_idx_to_retain.length;
+    this->count = it.len ();
 
     auto snap = c->snapshot ();
     this->nameRecordZ.serialize (c, this->count);
     this->stringOffset = c->length ();
     c->revert (snap);
 
-    auto src_array = source_name->nameRecordZ.as_array (source_name->count);
     const void *src_base = &(source_name + source_name->stringOffset);
     const void *dst_base = &(this + this->stringOffset);
 
-    + hb_iter (name_record_idx_to_retain)
-    | hb_apply ([&] (unsigned _) { c->copy (src_array[_], src_base, dst_base); })
+    + it
+    | hb_apply ([&] (const NameRecord& _) { c->copy (_, src_base, dst_base); })
     ;
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);
@@ -218,20 +208,14 @@ struct name
 
   bool subset (hb_subset_context_t *c) const
   {
+    TRACE_SUBSET (this);
     hb_subset_plan_t *plan = c->plan;
-    hb_sorted_vector_t<unsigned int> name_record_idx_to_retain;
-
-    get_subsetted_ids (this, plan, name_record_idx_to_retain);
 
     hb_serialize_context_t *serializer = c->serializer;
     name *name_prime = serializer->start_embed<name> ();
-    if (!name_prime || !name_prime->serialize (serializer, this, plan, name_record_idx_to_retain))
-    {
-      DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
-      return false;
-    }
-
-    return true;
+    if (unlikely (!name_prime)) return_trace (false);
+    name_prime->serialize (serializer, this, plan);
+    return_trace (name_prime->count);
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
