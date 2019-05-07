@@ -42,6 +42,17 @@
  * copied by value.  If the collection / object being iterated on
  * is writable, then the iterator returns lvalues, otherwise it
  * returns rvalues.
+ *
+ * TODO Document more.
+ *
+ * If iterator implementation implements operator!=, then can be
+ * used in range-based for loop.  That comes free if the iterator
+ * is random-access.  Otherwise, the range-based for loop incurs
+ * one traversal to find end(), which can be avoided if written
+ * as a while-style for loop, or if iterator implements a faster
+ * __end__() method.
+ * TODO When opting in for C++17, address this by changing return
+ * type of .end()?
  */
 
 
@@ -72,10 +83,13 @@ struct hb_iter_t
   /* Operators. */
   iter_t iter () const { return *thiz(); }
   iter_t operator + () const { return *thiz(); }
+  iter_t begin () const { return *thiz(); }
+  iter_t end () const { return thiz()->__end__ (); }
   explicit operator bool () const { return thiz()->__more__ (); }
   unsigned len () const { return thiz()->__len__ (); }
   /* The following can only be enabled if item_t is reference type.  Otherwise
-   * it will be returning pointer to temporary rvalue. */
+   * it will be returning pointer to temporary rvalue.
+   * TODO Use a wrapper return type to fix for non-reference type. */
   template <typename T = item_t,
 	    hb_enable_if (hb_is_reference (T))>
   hb_remove_reference<item_t>* operator -> () const { return hb_addressof (**thiz()); }
@@ -107,6 +121,8 @@ struct hb_iter_t
 
 #define HB_ITER_USING(Name) \
   using item_t = typename Name::item_t; \
+  using Name::begin; \
+  using Name::end; \
   using Name::item_size; \
   using Name::is_iterator; \
   using Name::iter; \
@@ -150,7 +166,6 @@ struct
 
 } HB_FUNCOBJ (hb_iter);
 
-
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
 struct hb_iter_fallback_mixin_t
@@ -177,6 +192,18 @@ struct hb_iter_fallback_mixin_t
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
   void __prev__ () { *thiz() -= 1; }
   void __rewind__ (unsigned n) { while (n--) --*thiz(); }
+
+  /* Range-based for: Implement __end__() if can be done faster,
+   * and operator!=. */
+  iter_t __end__ () const
+  {
+    if (thiz()->is_random_access_iterator)
+      return *thiz() + thiz()->len ();
+    /* Above expression loops twice. Following loops once. */
+    auto it = *thiz();
+    while (it) ++it;
+    return it;
+  }
 
   protected:
   hb_iter_fallback_mixin_t () {}
@@ -250,6 +277,31 @@ struct hb_is_iterator_of { enum {
   hb_is_sorted_iterator_of (Iter, typename Iter::item_t)
 
 
+/* Range-based 'for' for iterables. */
+
+template <typename Iterable,
+	  hb_enable_if (hb_is_iterable (Iterable))>
+static inline auto begin (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).begin ())
+
+template <typename Iterable,
+	  hb_enable_if (hb_is_iterable (Iterable))>
+static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).end ())
+
+/* begin()/end() are NOT looked up non-ADL.  So each namespace must declare them.
+ * Do it for namespace OT. */
+namespace OT {
+
+template <typename Iterable,
+	  hb_enable_if (hb_is_iterable (Iterable))>
+static inline auto begin (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).begin ())
+
+template <typename Iterable,
+	  hb_enable_if (hb_is_iterable (Iterable))>
+static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).end ())
+
+}
+
+
 /*
  * Adaptors, combiners, etc.
  */
@@ -279,6 +331,8 @@ struct hb_map_iter_t :
   void __forward__ (unsigned n) { it += n; }
   void __prev__ () { --it; }
   void __rewind__ (unsigned n) { it -= n; }
+  bool operator != (const hb_map_iter_t& o) const
+  { return it != o.it || f != o.f; }
 
   private:
   Iter it;
@@ -322,6 +376,8 @@ struct hb_filter_iter_t :
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !p (f (*it))); }
   void __prev__ () { --it; }
+  bool operator != (const hb_filter_iter_t& o) const
+  { return it != o.it || p != o.p || f != o.f; }
 
   private:
   Iter it;
@@ -407,6 +463,9 @@ struct hb_zip_iter_t :
   void __forward__ (unsigned n) { a += n; b += n; }
   void __prev__ () { --a; --b; }
   void __rewind__ (unsigned n) { a -= n; b -= n; }
+  hb_zip_iter_t __end__ () const { return hb_zip_iter_t (a.end (), b.end ()); }
+  bool operator != (const hb_zip_iter_t& o) const
+  { return a != o.a || b != o.b; }
 
   private:
   A a;
@@ -442,6 +501,17 @@ struct hb_enumerate_iter_t :
   void __forward__ (unsigned n) { i += n; it += n; }
   void __prev__ () { --i; --it; }
   void __rewind__ (unsigned n) { i -= n; it -= n; }
+  hb_enumerate_iter_t __end__ () const
+  {
+    if (is_random_access_iterator)
+      return *this + this->len ();
+    /* Above expression loops twice. Following loops once. */
+    auto it = *this;
+    while (it) ++it;
+    return it;
+  }
+  bool operator != (const hb_enumerate_iter_t& o) const
+  { return i != o.i || it != o.it; }
 
   private:
   unsigned i;

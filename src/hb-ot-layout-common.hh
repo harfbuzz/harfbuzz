@@ -835,6 +835,8 @@ struct CoverageFormat1
     bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
     hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
+    bool operator != (const iter_t& o) const
+    { return i != o.i || c != o.c; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -987,6 +989,8 @@ struct CoverageFormat2
       j++;
     }
     hb_codepoint_t get_glyph () const { return j; }
+    bool operator != (const iter_t& o) const
+    { return i != o.i || j != o.j || c != o.c; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1134,6 +1138,16 @@ struct Coverage
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
       default:return 0;
+      }
+    }
+    bool operator != (const iter_t& o) const
+    {
+      if (format != o.format) return true;
+      switch (format)
+      {
+      case 1: return u.format1 != o.u.format1;
+      case 2: return u.format2 != o.u.format2;
+      default:return false;
       }
     }
 

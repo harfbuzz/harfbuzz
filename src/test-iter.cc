@@ -43,6 +43,7 @@ struct array_iter_t : hb_iter_with_fallback_t<array_iter_t<T>, T&>
   void __forward__ (unsigned n) { arr += n; }
   void __rewind__ (unsigned n) { arr -= n; }
   unsigned __len__ () const { return arr.length; }
+  bool operator != (const array_iter_t& o) { return arr != o.arr; }
 
   private:
   hb_array_t<T> arr;
@@ -66,12 +67,8 @@ struct some_array_t
 template <typename Iter,
 	  hb_enable_if (hb_is_iterator (Iter))>
 static void
-test_iterator (Iter it)
+test_iterator_non_default_constructable (Iter it)
 {
-  Iter default_constructed;
-
-  assert (!default_constructed);
-
   /* Iterate over a copy of it. */
   for (auto c = it.iter (); c; c++)
     *c;
@@ -79,6 +76,10 @@ test_iterator (Iter it)
   /* Same. */
   for (auto c = +it; c; c++)
     *c;
+
+  /* Range-based for over a copy. */
+  for (auto _ : +it)
+    (void) _;
 
   it += it.len ();
   it = it + 10;
@@ -90,11 +91,25 @@ test_iterator (Iter it)
   static_assert (true || it.is_sorted_iterator, "");
 }
 
+template <typename Iter,
+	  hb_enable_if (hb_is_iterator (Iter))>
+static void
+test_iterator (Iter it)
+{
+  Iter default_constructed;
+  assert (!default_constructed);
+
+  test_iterator_non_default_constructable (it);
+}
+
 template <typename Iterable,
 	  hb_enable_if (hb_is_iterable (Iterable))>
 static void
 test_iterable (const Iterable &lst = Null(Iterable))
 {
+  for (auto _ : lst)
+    (void) _;
+
   // Test that can take iterator from.
   test_iterator (lst.iter ());
 }
@@ -141,6 +156,9 @@ main (int argc, char **argv)
   test_iterable<OT::Coverage> ();
 
   test_iterator (hb_zip (st, v));
+  test_iterator_non_default_constructable (hb_enumerate (st));
+  //test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
+  //test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
 
   hb_any (st);
 

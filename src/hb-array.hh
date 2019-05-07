@@ -80,6 +80,8 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     length -= n;
   }
   unsigned __len__ () const { return length; }
+  bool operator != (const hb_array_t& o) const
+  { return arrayZ != o.arrayZ || length != o.length; }
 
   /* Extra operators.
    */
@@ -223,6 +225,10 @@ struct hb_sorted_array_t :
 	    hb_enable_if (hb_is_cr_convertible_to(U, Type))>
   hb_sorted_array_t& operator = (const hb_array_t<U> &o)
   { hb_array_t<Type> (*this) = o; return *this; }
+
+  /* Iterator implementation. */
+  bool operator != (const hb_sorted_array_t& o) const
+  { return this->arrayZ != o.arrayZ || this->length != o.length; }
 
   hb_sorted_array_t<Type> sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
   { return hb_sorted_array_t<Type> (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
