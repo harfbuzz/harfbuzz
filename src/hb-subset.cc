@@ -76,6 +76,8 @@ _subset2 (hb_subset_plan_t *plan)
   if (source_blob->data)
   {
     hb_vector_t<char> buf;
+    /* TODO Not all tables are glyph-related.  'name' table size for example should not be
+     * affected by number of glyphs.  Accommodate that. */
     unsigned int buf_size = _plan_estimate_subset_table_size (plan, source_blob->length);
     DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
     if (unlikely (!buf.alloc (buf_size)))
