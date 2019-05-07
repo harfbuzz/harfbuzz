@@ -170,8 +170,8 @@ struct name
   { return min_size + count * nameRecordZ.item_size; }
 
   bool serialize (hb_serialize_context_t *c,
-                  const name *source_name,
-                  const hb_subset_plan_t *plan)
+		  const name *source_name,
+		  const hb_set_t *name_ids)
   {
     TRACE_SERIALIZE (this);
 
@@ -181,7 +181,7 @@ struct name
 
     auto it =
     + src_array
-    | hb_filter (plan->name_ids, &NameRecord::nameID)
+    | hb_filter (name_ids, &NameRecord::nameID)
     ;
 
     this->format = 0;
@@ -214,7 +214,7 @@ struct name
     hb_serialize_context_t *serializer = c->serializer;
     name *name_prime = serializer->start_embed<name> ();
     if (unlikely (!name_prime)) return_trace (false);
-    name_prime->serialize (serializer, this, plan);
+    name_prime->serialize (serializer, this, plan->name_ids);
     return_trace (name_prime->count);
   }
 
