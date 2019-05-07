@@ -319,12 +319,12 @@ struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>,
 	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
 {
-  hb_map_iter_t (const Iter& it, Proj f) : it (it), f (f) {}
+  hb_map_iter_t (const Iter& it, Proj f_) : it (it), f (f_) {}
 
   typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
-  __item_t__ __item__ () const { return hb_get (f, *it); }
-  __item_t__ __item_at__ (unsigned i) const { return hb_get (f, it[i]); }
+  __item_t__ __item__ () const { return hb_get (f.get (), *it); }
+  __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
   unsigned __len__ () const { return it.len (); }
   void __next__ () { ++it; }
@@ -336,7 +336,7 @@ struct hb_map_iter_t :
 
   private:
   Iter it;
-  Proj f;
+  hb_reference_wrapper<Proj> f;
 };
 
 template <typename Proj>
@@ -367,22 +367,22 @@ struct hb_filter_iter_t :
   hb_iter_with_fallback_t<hb_filter_iter_t<Iter, Pred, Proj>,
 			  typename Iter::item_t>
 {
-  hb_filter_iter_t (const Iter& it_, Pred p, Proj f) : it (it_), p (p), f (f)
-  { while (it && !hb_has (p, hb_get (f, *it))) ++it; }
+  hb_filter_iter_t (const Iter& it_, Pred p_, Proj f_) : it (it_), p (p_), f (f_)
+  { while (it && !hb_has (p.get (), hb_get (f.get (), *it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
   static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
-  void __next__ () { do ++it; while (it && !hb_has (p, hb_get (f, *it))); }
+  void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
   void __prev__ () { --it; }
   bool operator != (const hb_filter_iter_t& o) const
   { return it != o.it || p != o.p || f != o.f; }
 
   private:
   Iter it;
-  Pred p;
-  Proj f;
+  hb_reference_wrapper<Pred> p;
+  hb_reference_wrapper<Proj> f;
 };
 template <typename Pred, typename Proj>
 struct hb_filter_iter_factory_t

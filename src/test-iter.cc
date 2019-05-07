@@ -157,8 +157,8 @@ main (int argc, char **argv)
 
   test_iterator (hb_zip (st, v));
   test_iterator_non_default_constructable (hb_enumerate (st));
-  //test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
-  //test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
+  test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
+  test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
 
   hb_any (st);
 
