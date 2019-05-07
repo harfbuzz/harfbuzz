@@ -169,20 +169,15 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator_of (Iterator, const NameRecord))>
   bool serialize (hb_serialize_context_t *c,
-		  const name *source_name,
-		  const hb_set_t *name_ids)
+		  Iterator it,
+		  const void *src_string_pool)
   {
     TRACE_SERIALIZE (this);
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
-
-    auto src_array = source_name->nameRecordZ.as_array (source_name->count);
-
-    auto it =
-    + src_array
-    | hb_filter (name_ids, &NameRecord::nameID)
-    ;
 
     this->format = 0;
     this->count = it.len ();
@@ -192,11 +187,10 @@ struct name
     this->stringOffset = c->length ();
     c->revert (snap);
 
-    const void *src_base = &(source_name + source_name->stringOffset);
-    const void *dst_base = &(this + this->stringOffset);
+    const void *dst_string_pool = &(this + this->stringOffset);
 
     + it
-    | hb_apply ([&] (const NameRecord& _) { c->copy (_, src_base, dst_base); })
+    | hb_apply ([&] (const NameRecord& _) { c->copy (_, src_string_pool, dst_string_pool); })
     ;
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);
@@ -209,12 +203,16 @@ struct name
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    hb_subset_plan_t *plan = c->plan;
 
-    hb_serialize_context_t *serializer = c->serializer;
-    name *name_prime = serializer->start_embed<name> ();
+    name *name_prime = c->serializer->start_embed<name> ();
     if (unlikely (!name_prime)) return_trace (false);
-    name_prime->serialize (serializer, this, plan->name_ids);
+
+    auto it =
+    + nameRecordZ.as_array (count)
+    | hb_filter (c->plan->name_ids, &NameRecord::nameID)
+    ;
+
+    name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));
     return_trace (name_prime->count);
   }
 

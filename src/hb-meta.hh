@@ -163,6 +163,8 @@ struct hb_reference_wrapper<T&>
 template <bool B, typename T = void> struct hb_enable_if {};
 template <typename T>                struct hb_enable_if<true, T> { typedef T type; };
 #define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
+/* Concepts/Requires alias: */
+#define hb_requires(Cond) hb_enable_if((Cond))
 
 template <typename T, typename T2> struct hb_is_same : hb_false_t {};
 template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
