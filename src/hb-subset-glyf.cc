@@ -60,7 +60,7 @@ struct loca_data_t
   }
 };
 
-/**
+/*
  * If hints are being dropped find the range which in glyf at which
  * the hinting instructions are located. Add them to the instruction_ranges
  * vector.
