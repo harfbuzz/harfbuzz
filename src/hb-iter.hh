@@ -164,7 +164,8 @@ struct
   operator () (Type (&array)[length]) const
   { return hb_array_t<Type> (array, length); }
 
-} HB_FUNCOBJ (hb_iter);
+}
+HB_FUNCOBJ (hb_iter);
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
@@ -360,7 +361,8 @@ struct
   hb_map_iter_factory_t<Proj>
   operator () (Proj&& f) const
   { return hb_map_iter_factory_t<Proj> (f); }
-} HB_FUNCOBJ (hb_map);
+}
+HB_FUNCOBJ (hb_map);
 
 template <typename Iter, typename Pred, typename Proj,
 	 hb_enable_if (hb_is_iterator (Iter))>
@@ -408,7 +410,8 @@ struct
   hb_filter_iter_factory_t<Pred, Proj>
   operator () (Pred&& p = hb_bool, Proj&& f = hb_identity) const
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
-} HB_FUNCOBJ (hb_filter);
+}
+HB_FUNCOBJ (hb_filter);
 
 template <typename Redu, typename InitT>
 struct hb_reduce_t
@@ -437,7 +440,8 @@ struct
   hb_reduce_t<Redu, InitT>
   operator () (Redu&& r, InitT init_value) const
   { return hb_reduce_t<Redu, InitT> (r, init_value); }
-} HB_FUNCOBJ (hb_reduce);
+}
+HB_FUNCOBJ (hb_reduce);
 
 
 /* hb_zip() */
@@ -480,7 +484,8 @@ struct
   hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
   operator () (A& a, B &b) const
   { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (hb_iter (a), hb_iter (b)); }
-} HB_FUNCOBJ (hb_zip);
+}
+HB_FUNCOBJ (hb_zip);
 
 /* hb_enumerate */
 
@@ -526,7 +531,8 @@ struct
   hb_enumerate_iter_t<hb_iter_t (Iterable)>
   operator () (Iterable& it) const
   { return hb_enumerate_iter_t<hb_iter_t (Iterable)> (hb_iter (it)); }
-} HB_FUNCOBJ (hb_enumerate);
+}
+HB_FUNCOBJ (hb_enumerate);
 
 /* hb_apply() */
 
@@ -556,7 +562,8 @@ struct
   template <typename Appl> hb_apply_t<Appl&>
   operator () (Appl *a) const
   { return hb_apply_t<Appl&> (*a); }
-} HB_FUNCOBJ (hb_apply);
+}
+HB_FUNCOBJ (hb_apply);
 
 /* hb_sink() */
 
@@ -586,7 +593,8 @@ struct
   template <typename Sink> hb_sink_t<Sink&>
   operator () (Sink *s) const
   { return hb_sink_t<Sink&> (*s); }
-} HB_FUNCOBJ (hb_sink);
+}
+HB_FUNCOBJ (hb_sink);
 
 /* hb-drain: hb_sink to void / blackhole / /dev/null. */
 
@@ -600,7 +608,8 @@ struct
     for (; it; ++it)
       (void) *it;
   }
-} HB_FUNCOBJ (hb_drain);
+}
+HB_FUNCOBJ (hb_drain);
 
 /* hb_unzip(): unzip and sink to two sinks. */
 
@@ -635,7 +644,8 @@ struct
   template <typename Sink1, typename Sink2> hb_unzip_t<Sink1&, Sink2&>
   operator () (Sink1 *s1, Sink2 *s2) const
   { return hb_unzip_t<Sink1&, Sink2&> (*s1, *s2); }
-} HB_FUNCOBJ (hb_unzip);
+}
+HB_FUNCOBJ (hb_unzip);
 
 
 /* hb-all, hb-any, hb-none. */
@@ -652,7 +662,8 @@ struct
 	return false;
     return true;
   }
-} HB_FUNCOBJ (hb_all);
+}
+HB_FUNCOBJ (hb_all);
 struct
 {
   template <typename Iterable,
@@ -665,7 +676,8 @@ struct
 	return true;
     return false;
   }
-} HB_FUNCOBJ (hb_any);
+}
+HB_FUNCOBJ (hb_any);
 struct
 {
   template <typename Iterable,
@@ -678,7 +690,8 @@ struct
 	return false;
     return true;
   }
-} HB_FUNCOBJ (hb_none);
+}
+HB_FUNCOBJ (hb_none);
 
 /*
  * Algorithms operating on iterators.

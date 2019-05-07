@@ -81,7 +81,8 @@ struct
 		reinterpret_cast<const volatile char&> (arg)));
 #pragma GCC diagnostic pop
   }
-} HB_FUNCOBJ (hb_addressof);
+}
+HB_FUNCOBJ (hb_addressof);
 
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
@@ -125,8 +126,8 @@ struct
 
   template <typename T> auto
   operator () (T *v) const HB_AUTO_RETURN (*v)
-
-} HB_FUNCOBJ (hb_deref);
+}
+HB_FUNCOBJ (hb_deref);
 
 struct
 {
@@ -135,8 +136,8 @@ struct
 
   template <typename T> auto
   operator () (T& v) const HB_AUTO_RETURN (hb_addressof (v))
-
-} HB_FUNCOBJ (hb_ref);
+}
+HB_FUNCOBJ (hb_ref);
 
 template <typename T>
 struct hb_reference_wrapper

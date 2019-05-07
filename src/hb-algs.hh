@@ -38,13 +38,15 @@ struct
 {
   template <typename T> T
   operator () (const T& v) const { return v; }
-} HB_FUNCOBJ (hb_identity);
+}
+HB_FUNCOBJ (hb_identity);
 
 struct
 {
   template <typename T> bool
   operator () (const T& v) const { return bool (v); }
-} HB_FUNCOBJ (hb_bool);
+}
+HB_FUNCOBJ (hb_bool);
 
 struct
 {
@@ -64,7 +66,8 @@ struct
 
   template <typename T> auto
   operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
-} HB_FUNCOBJ (hb_hash);
+}
+HB_FUNCOBJ (hb_hash);
 
 struct
 {
@@ -94,7 +97,8 @@ struct
 	  hb_prioritize,
 	  hb_forward<Vals> (vs)...)
   )
-} HB_FUNCOBJ (hb_invoke);
+}
+HB_FUNCOBJ (hb_invoke);
 
 struct
 {
@@ -119,7 +123,8 @@ struct
 	  hb_forward<Val> (v),
 	  hb_prioritize)
   )
-} HB_FUNCOBJ (hb_has);
+}
+HB_FUNCOBJ (hb_has);
 
 struct
 {
@@ -145,7 +150,8 @@ struct
 	  hb_forward<Val> (v),
 	  hb_prioritize)
   )
-} HB_FUNCOBJ (hb_get);
+}
+HB_FUNCOBJ (hb_get);
 
 
 template <typename T1, typename T2>
@@ -170,24 +176,28 @@ struct
 {
   template <typename Pair> auto
   operator () (const Pair& pair) const HB_AUTO_RETURN (pair.first)
-} HB_FUNCOBJ (hb_first);
+}
+HB_FUNCOBJ (hb_first);
 
 struct
 {
   template <typename Pair> auto
   operator () (const Pair& pair) const HB_AUTO_RETURN (pair.second)
-} HB_FUNCOBJ (hb_second);
+}
+HB_FUNCOBJ (hb_second);
 
 struct
 {
   template <typename T, typename T2> auto
   operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a <= b ? a : b)
-} HB_FUNCOBJ (hb_min);
+}
+HB_FUNCOBJ (hb_min);
 struct
 {
   template <typename T, typename T2> auto
   operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a >= b ? a : b)
-} HB_FUNCOBJ (hb_max);
+}
+HB_FUNCOBJ (hb_max);
 
 
 /*
