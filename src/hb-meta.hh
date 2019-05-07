@@ -128,6 +128,16 @@ struct
 
 } HB_FUNCOBJ (hb_deref);
 
+struct
+{
+  template <typename T> auto
+  operator () (T&& v) const HB_AUTO_RETURN (hb_forward<T> (v))
+
+  template <typename T> auto
+  operator () (T& v) const HB_AUTO_RETURN (hb_addressof (v))
+
+} HB_FUNCOBJ (hb_ref);
+
 
 template<bool B, typename T = void> struct hb_enable_if {};
 template<typename T>                struct hb_enable_if<true, T> { typedef T type; };
