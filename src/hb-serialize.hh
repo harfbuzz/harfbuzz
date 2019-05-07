@@ -165,7 +165,7 @@ struct hb_serialize_context_t
 
     /* Only "pack" if there exist other objects... Otherwise, don't bother.
      * Saves a move. */
-    if (packed.length == 1)
+    if (packed.length <= 1)
       return;
 
     pop_pack ();
@@ -285,7 +285,10 @@ struct hb_serialize_context_t
 
   void resolve_links ()
   {
+    if (unlikely (in_error ())) return;
+
     assert (!current);
+    assert (packed.length > 1);
 
     for (const object_t *parent : ++hb_iter (packed))
     {
