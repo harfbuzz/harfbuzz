@@ -292,7 +292,7 @@ struct hb_serialize_context_t
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t &child = *packed[link.objidx];
-	//assert (link.bias <= parent->tail - parent->head);
+	assert (link.bias <= parent->tail - parent->head);
 	unsigned offset = (child.head - parent->head) - link.bias;
 
 	if (link.is_wide)
