@@ -132,7 +132,7 @@ struct hb_serialize_context_t
   { return check_equal (v1 = v2, v2); }
 
   template <typename T> bool propagate_error (T &&obj)
-  { return check_success (!hb_deref_pointer (obj).in_error ()); }
+  { return check_success (!hb_deref (obj).in_error ()); }
 
   template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
   { return propagate_error (hb_forward<T1> (o1)) &&

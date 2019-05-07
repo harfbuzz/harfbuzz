@@ -50,7 +50,7 @@ struct
 {
   private:
   template <typename T> auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref_pointer (v).hash ())
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T,
 	    hb_enable_if (hb_is_integer (T))> auto
@@ -73,17 +73,17 @@ struct
   /* Pointer-to-member-function. */
   template <typename Appl, typename Val1, typename ...Vals> auto
   impl (Appl&& a, hb_priority<2>, Val1 &&v1, Vals &&...vs) const HB_AUTO_RETURN
-  ((hb_deref_pointer (hb_forward<Val1> (v1)).*hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
+  ((hb_deref (hb_forward<Val1> (v1)).*hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
 
   /* Pointer-to-member. */
   template <typename Appl, typename Val> auto
   impl (Appl&& a, hb_priority<1>, Val &&v) const HB_AUTO_RETURN
-  ((hb_deref_pointer (hb_forward<Val> (v))).*hb_forward<Appl> (a))
+  ((hb_deref (hb_forward<Val> (v))).*hb_forward<Appl> (a))
 
   /* Operator(). */
   template <typename Appl, typename ...Vals> auto
   impl (Appl&& a, hb_priority<0>, Vals &&...vs) const HB_AUTO_RETURN
-  (hb_deref_pointer (hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
+  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
 
   public:
 
@@ -102,7 +102,7 @@ struct
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
-  (hb_deref_pointer (hb_forward<Pred> (p)).has (v))
+  (hb_deref (hb_forward<Pred> (p)).has (v))
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
@@ -127,7 +127,7 @@ struct
 
   template <typename Proj, typename Val> auto
   impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
-  (hb_deref_pointer (hb_forward<Proj> (f)).get (hb_forward<Val> (v)))
+  (hb_deref (hb_forward<Proj> (f)).get (hb_forward<Val> (v)))
 
   template <typename Proj, typename Val> auto
   impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN

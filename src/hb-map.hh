@@ -57,7 +57,7 @@ struct hb_hashmap_t
 
     void clear () { key = kINVALID; value = vINVALID; }
 
-    bool operator == (K o) { return hb_deref_pointer (key) == hb_deref_pointer (o); }
+    bool operator == (K o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }

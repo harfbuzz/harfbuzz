@@ -126,7 +126,7 @@ struct
   template <typename T> auto
   operator () (T *v) const HB_AUTO_RETURN (*v)
 
-} HB_FUNCOBJ (hb_deref_pointer);
+} HB_FUNCOBJ (hb_deref);
 
 
 template<bool B, typename T = void> struct hb_enable_if {};
