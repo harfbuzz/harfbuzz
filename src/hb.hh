@@ -94,6 +94,7 @@
 /* Warning.  To be investigated if happens. */
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
 #pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
+#pragma GCC diagnostic warning "-Wdeprecated"
 #pragma GCC diagnostic warning "-Wdisabled-optimization"
 #pragma GCC diagnostic warning "-Wformat=2"
 #pragma GCC diagnostic warning "-Wignored-pragma-optimize"
