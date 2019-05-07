@@ -97,21 +97,21 @@ struct hb_iter_t
   item_t operator * () { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
   item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
-  iter_t& operator += (unsigned count) { thiz()->__forward__ (count); return *thiz(); }
-  iter_t& operator ++ () { thiz()->__next__ (); return *thiz(); }
-  iter_t& operator -= (unsigned count) { thiz()->__rewind__ (count); return *thiz(); }
-  iter_t& operator -- () { thiz()->__prev__ (); return *thiz(); }
+  iter_t& operator += (unsigned count) & { thiz()->__forward__ (count); return *thiz(); }
+  iter_t& operator ++ () &  { thiz()->__next__ (); return *thiz(); }
+  iter_t  operator ++ () && { thiz()->__next__ (); return *thiz(); }
+  iter_t& operator -= (unsigned count) & { thiz()->__rewind__ (count); return *thiz(); }
+  iter_t& operator -- () &  { thiz()->__prev__ (); return *thiz(); }
+  iter_t  operator -- () && { thiz()->__prev__ (); return *thiz(); }
   iter_t operator + (unsigned count) const { auto c = thiz()->iter (); c += count; return c; }
   friend iter_t operator + (unsigned count, const iter_t &it) { return it + count; }
   iter_t operator ++ (int) { iter_t c (*thiz()); ++*thiz(); return c; }
   iter_t operator - (unsigned count) const { auto c = thiz()->iter (); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
   template <typename T>
-  iter_t& operator >> (T &v) { v = **thiz(); ++*thiz(); return *thiz(); }
+  iter_t& operator >> (T &v) & { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
-  iter_t& operator >> (T &v) const { v = **thiz(); ++*thiz(); return *thiz(); }
-  template <typename T>
-  iter_t& operator << (const T v) { **thiz() = v; ++*thiz(); return *thiz(); }
+  iter_t& operator << (const T v) & { **thiz() = v; ++*thiz(); return *thiz(); }
 
   protected:
   hb_iter_t () {}
