@@ -290,13 +290,13 @@ struct hb_serialize_context_t
     assert (!current);
     assert (packed.length > 1);
 
-    for (const object_t *parent : ++hb_iter (packed))
+    for (const object_t* parent : ++hb_iter (packed))
     {
       for (const object_t::link_t &link : parent->links)
       {
-	const object_t &child = *packed[link.objidx];
+	const object_t* child = packed[link.objidx];
 	assert (link.bias <= (size_t) (parent->tail - parent->head));
-	unsigned offset = (child.head - parent->head) - link.bias;
+	unsigned offset = (child->head - parent->head) - link.bias;
 
 	if (link.is_wide)
 	{
