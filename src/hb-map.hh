@@ -222,7 +222,6 @@ struct hb_hashmap_t
 	+ iter()
     | hb_map (&hb_pair_t<K, V>::first)
   )
-  // | hb_map ([&] (item_t i) { return i.key; })
 
   protected:
 

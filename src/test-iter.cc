@@ -206,7 +206,7 @@ main (int argc, char **argv)
   | hb_reduce ([&] (int acc, int value) -> int { return acc; }, 2)
   ;
 
-  using map_pair_t = decltype (*hb_iter (m));
+  using map_pair_t = hb_item_type<hb_map_t>;
   + hb_iter (m)
   | hb_map ([] (map_pair_t p) { return p.first * p.second; });
 
