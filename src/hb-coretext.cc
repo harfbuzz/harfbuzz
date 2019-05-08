@@ -55,13 +55,13 @@ coretext_font_size_from_ptem (float ptem)
    * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
    */
   ptem *= 96.f / 72.f;
-  return ptem <= 0.f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem;
+  return (CGFloat) (ptem <= 0.f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem);
 }
 static float
 coretext_font_size_to_ptem (CGFloat size)
 {
-  size *= 72.f / 96.f;
-  return size <= 0.f ? 0 : size;
+  size *= 72. / 96.;
+  return size <= 0 ? 0 : size;
 }
 
 static void
