@@ -36,15 +36,15 @@
 
 struct
 {
-  template <typename T> T
-  operator () (const T& v) const { return v; }
+  template <typename T> auto
+  operator () (T&& v) const HB_AUTO_RETURN ( hb_forward<T> (v) )
 }
 HB_FUNCOBJ (hb_identity);
 
 struct
 {
   template <typename T> bool
-  operator () (const T& v) const { return bool (v); }
+  operator () (T&& v) const { return bool (hb_forward<T> (v)); }
 }
 HB_FUNCOBJ (hb_bool);
 
