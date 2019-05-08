@@ -140,6 +140,7 @@ main (int argc, char **argv)
 
   test_iterable (v);
   hb_set_t st;
+  st << 1 << 15 << 43;
   test_iterable (st);
   hb_sorted_array_t<int> sa;
   (void) static_cast<hb_iter_t<hb_sorted_array_t<int>, hb_sorted_array_t<int>::item_t>&> (sa);
@@ -162,7 +163,14 @@ main (int argc, char **argv)
   test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
   test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
 
-  hb_any (st);
+  assert (true == hb_all (st));
+  assert (false == hb_all (st, 42u));
+  assert (true == hb_any (st));
+  assert (false == hb_any (st, 14));
+  assert (true == hb_any (st, 15));
+  assert (false == hb_none (st));
+  assert (false == hb_none (st, 15));
+  assert (true == hb_none (st, 17));
 
   hb_array_t<hb_vector_t<int>> pa;
   pa->as_array ();

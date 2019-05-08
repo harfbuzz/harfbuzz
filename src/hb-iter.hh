@@ -649,11 +649,15 @@ HB_FUNCOBJ (hb_unzip);
 struct
 {
   template <typename Iterable,
+	    typename Val = bool,
+	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
-  bool operator () (Iterable&& c) const
+  bool operator () (Iterable&& c,
+		    Val v = true,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (!*it)
+      if (!((Val) hb_get (hb_forward<Proj> (f), *it) == v))
 	return false;
     return true;
   }
@@ -662,11 +666,15 @@ HB_FUNCOBJ (hb_all);
 struct
 {
   template <typename Iterable,
+	    typename Val = bool,
+	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
-  bool operator () (Iterable&& c) const
+  bool operator () (Iterable&& c,
+		    Val v = true,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (*it)
+      if (((Val) hb_get (hb_forward<Proj> (f), *it) == v))
 	return true;
     return false;
   }
@@ -675,11 +683,15 @@ HB_FUNCOBJ (hb_any);
 struct
 {
   template <typename Iterable,
+	    typename Val = bool,
+	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
-  bool operator () (Iterable&& c) const
+  bool operator () (Iterable&& c,
+		    Val v = true,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (*it)
+      if (((Val) hb_get (hb_forward<Proj> (f), *it) == v))
 	return false;
     return true;
   }
