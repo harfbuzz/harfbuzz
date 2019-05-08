@@ -427,7 +427,7 @@ struct UnsizedArrayOf
     if (unlikely (!serialize (c, count))) return_trace (false);
     /* TODO Umm. Just exhaust the iterator instead?  Being extra
      * cautious right now.. */
-    for (unsigned i = 0; i < count; i++, items++)
+    for (unsigned i = 0; i < count; i++, ++items)
       arrayZ[i] = *items;
     return_trace (true);
   }
@@ -608,7 +608,7 @@ struct ArrayOf
     if (unlikely (!serialize (c, count))) return_trace (false);
     /* TODO Umm. Just exhaust the iterator instead?  Being extra
      * cautious right now.. */
-    for (unsigned i = 0; i < count; i++, items++)
+    for (unsigned i = 0; i < count; i++, ++items)
       arrayZ[i] = *items;
     return_trace (true);
   }
