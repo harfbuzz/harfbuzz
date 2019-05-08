@@ -74,28 +74,28 @@ struct
   private:
 
   /* Pointer-to-member-function. */
-  template <typename Appl, typename Val1, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<2>, Val1 &&v1, Vals&&... vs) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<Val1> (v1)).*hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
+  template <typename Appl, typename T, typename ...Ts> auto
+  impl (Appl&& a, hb_priority<2>, T &&v, Ts&&... ds) const HB_AUTO_RETURN
+  ((hb_deref (hb_forward<T> (v)).*hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
 
   /* Pointer-to-member. */
-  template <typename Appl, typename Val> auto
-  impl (Appl&& a, hb_priority<1>, Val &&v) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<Val> (v))).*hb_forward<Appl> (a))
+  template <typename Appl, typename T> auto
+  impl (Appl&& a, hb_priority<1>, T &&v) const HB_AUTO_RETURN
+  ((hb_deref (hb_forward<T> (v))).*hb_forward<Appl> (a))
 
   /* Operator(). */
-  template <typename Appl, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<0>, Vals&&... vs) const HB_AUTO_RETURN
-  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
+  template <typename Appl, typename ...Ts> auto
+  impl (Appl&& a, hb_priority<0>, Ts&&... ds) const HB_AUTO_RETURN
+  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
 
   public:
 
-  template <typename Appl, typename ...Vals> auto
-  operator () (Appl&& a, Vals&&... vs) const HB_AUTO_RETURN
+  template <typename Appl, typename ...Ts> auto
+  operator () (Appl&& a, Ts&&... ds) const HB_AUTO_RETURN
   (
     impl (hb_forward<Appl> (a),
 	  hb_prioritize,
-	  hb_forward<Vals> (vs)...)
+	  hb_forward<Ts> (ds)...)
   )
 }
 HB_FUNCOBJ (hb_invoke);
