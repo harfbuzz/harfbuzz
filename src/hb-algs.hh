@@ -100,14 +100,20 @@ struct
   private:
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN
   (hb_deref (hb_forward<Proj> (f)).get (hb_forward<Val> (v)))
+
+  template <typename Proj, typename Val> auto
+  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (
+    hb_invoke (hb_forward<Proj> (f),
+	       hb_forward<Val> (v))
+  )
 
   template <typename Proj, typename Val> auto
   impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
   (
-    hb_invoke (hb_forward<Proj> (f),
-	       hb_forward<Val> (v))
+    hb_forward<Proj> (f)[hb_forward<Val> (v)]
   )
 
   public:
