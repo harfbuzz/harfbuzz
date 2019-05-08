@@ -215,6 +215,14 @@ main (int argc, char **argv)
   using map_key_t = decltype (*m.keys());
   + hb_iter (m.keys ())
   | hb_filter ([] (map_key_t k) { return k < 42; })
+  | hb_drain
+  ;
+
+  m.values ();
+  using map_value_t = decltype (*m.values());
+  + hb_iter (m.values ())
+  | hb_filter ([] (map_value_t k) { return k < 42; })
+  | hb_drain
   ;
 
   unsigned int temp1 = 10;

@@ -216,11 +216,15 @@ struct hb_hashmap_t
     | hb_filter (&item_t::is_real)
     | hb_map (&item_t::get_pair)
   )
-
   auto keys () const HB_AUTO_RETURN
   (
     + iter()
     | hb_map (&hb_pair_t<K, V>::first)
+  )
+  auto values () const HB_AUTO_RETURN
+  (
+    + iter()
+    | hb_map (&hb_pair_t<K, V>::second)
   )
 
   protected:
