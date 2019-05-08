@@ -43,6 +43,13 @@ HB_FUNCOBJ (hb_identity);
 
 struct
 {
+  template <typename T> hb_remove_reference<T>
+  operator () (T&& v) const { return v; }
+}
+HB_FUNCOBJ (hb_rvalue);
+
+struct
+{
   template <typename T> bool
   operator () (T&& v) const { return bool (hb_forward<T> (v)); }
 }
