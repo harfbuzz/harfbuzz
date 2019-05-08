@@ -13,10 +13,10 @@ For bug reports, mailing list, and other information please visit:
 
   http://harfbuzz.org/
 
-For license information, see the file COPYING.
+For license information, see the [COPYING](COPYING).
 
-For build information, see the file BUILD.md.
+For build information, see [BUILD](BUILD.md).
 
-For test execution, see the file TESTING.md.
+For test execution, see [TESTING](TESTING.md).
 
 Documentation: https://harfbuzz.github.io
