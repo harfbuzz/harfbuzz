@@ -615,7 +615,6 @@ struct ArrayOf
   {
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
-    unsigned count = len;
     if (unlikely (!c->extend_min (out))) return_trace (nullptr);
     c->check_assign (out->len, len);
     if (unlikely (!as_array ().copy (c))) return_trace (nullptr);
