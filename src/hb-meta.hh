@@ -71,7 +71,7 @@ template <typename T> using hb_type_identity = typename hb_match_identity<T>::ty
 struct
 {
   template <typename T>
-  T* operator () (const T& arg) const
+  T* operator () (T& arg) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
