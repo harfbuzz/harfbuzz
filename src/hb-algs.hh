@@ -75,7 +75,7 @@ struct
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
-  (hb_deref (hb_forward<Pred> (p)).has (v))
+  (hb_deref (hb_forward<Pred> (p)).has (hb_forward<Val> (v)))
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
@@ -94,6 +94,34 @@ struct
   )
 }
 HB_FUNCOBJ (hb_has);
+
+struct
+{
+  private:
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (
+    hb_has (hb_forward<Pred> (p),
+	    hb_forward<Val> (v))
+  )
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
+  (
+    hb_forward<Pred> (p) == hb_forward<Val> (v)
+  )
+
+  public:
+
+  template <typename Pred, typename Val> auto
+  operator () (Pred&& p, Val &&v) const HB_RETURN (bool,
+    impl (hb_forward<Pred> (p),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
+  )
+}
+HB_FUNCOBJ (hb_match);
 
 struct
 {
