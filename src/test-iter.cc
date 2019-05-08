@@ -210,6 +210,10 @@ main (int argc, char **argv)
   + hb_iter (m)
   | hb_map ([] (map_pair_t p) { return p.first * p.second; });
 
+	using map_key_t = decltype (*m.keys());
+	+ hb_iter (m.keys ())
+	| hb_filter ([] (map_key_t k) { return k < 42; });
+
   unsigned int temp1 = 10;
   unsigned int temp2 = 0;
   hb_map_t *result =
