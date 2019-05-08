@@ -212,7 +212,7 @@ struct LangTag
     p = strchr (b, '-');
     db = p ? (unsigned int) (p - b) : strlen (b);
 
-    return strncmp (a, b, MAX (da, db));
+    return strncmp (a, b, hb_max (da, db));
   }
   int cmp (const LangTag *that) const
   { return cmp (that->language); }

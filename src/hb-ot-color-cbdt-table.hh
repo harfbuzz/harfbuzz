@@ -349,15 +349,15 @@ struct CBLC
     if (unlikely (!count))
       return Null(BitmapSizeTable);
 
-    unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+    unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
     if (!requested_ppem)
       requested_ppem = 1<<30; /* Choose largest strike. */
     unsigned int best_i = 0;
-    unsigned int best_ppem = MAX (sizeTables[0].ppemX, sizeTables[0].ppemY);
+    unsigned int best_ppem = hb_max (sizeTables[0].ppemX, sizeTables[0].ppemY);
 
     for (unsigned int i = 1; i < count; i++)
     {
-      unsigned int ppem = MAX (sizeTables[i].ppemX, sizeTables[i].ppemY);
+      unsigned int ppem = hb_max (sizeTables[i].ppemX, sizeTables[i].ppemY);
       if ((requested_ppem <= ppem && ppem < best_ppem) ||
 	  (requested_ppem > best_ppem && ppem > best_ppem))
       {

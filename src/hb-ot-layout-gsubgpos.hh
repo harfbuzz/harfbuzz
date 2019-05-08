@@ -973,7 +973,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 	if (this_comp == 0)
 	  this_comp = last_num_components;
 	unsigned int new_lig_comp = components_so_far - last_num_components +
-				    MIN (this_comp, last_num_components);
+				    hb_min (this_comp, last_num_components);
 	  _hb_glyph_info_set_lig_props_for_mark (&buffer->cur(), lig_id, new_lig_comp);
       }
       buffer->next_glyph ();
@@ -995,7 +995,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 	if (!this_comp)
 	  break;
 	unsigned int new_lig_comp = components_so_far - last_num_components +
-				    MIN (this_comp, last_num_components);
+				    hb_min (this_comp, last_num_components);
 	_hb_glyph_info_set_lig_props_for_mark (&buffer->info[i], lig_id, new_lig_comp);
       } else
 	break;
@@ -1173,7 +1173,7 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
     else
     {
       /* NOTE: delta is negative. */
-      delta = MAX (delta, (int) next - (int) count);
+      delta = hb_max (delta, (int) next - (int) count);
       next -= delta;
     }
 

@@ -484,7 +484,7 @@ struct AlternateSet
     unsigned int shift = hb_ctz (lookup_mask);
     unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
-    /* If alt_index is MAX, randomize feature if it is the rand feature. */
+    /* If alt_index is MAX_VALUE, randomize feature if it is the rand feature. */
     if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
       alt_index = c->random_number () % count + 1;
 
@@ -792,7 +792,7 @@ struct LigatureSet
     if (unlikely (!ligature.serialize (c, ligatures.length))) return_trace (false);
     for (unsigned int i = 0; i < ligatures.length; i++)
     {
-      unsigned int component_count = MAX<int> (component_count_list[i] - 1, 0);
+      unsigned int component_count = (unsigned) hb_max ((int) component_count_list[i] - 1, 0);
       if (unlikely (!ligature[i].serialize (c, this)
 				.serialize (c,
 					    ligatures[i],

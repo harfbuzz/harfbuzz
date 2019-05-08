@@ -186,6 +186,10 @@ struct
 }
 HB_FUNCOBJ (hb_second);
 
+/* Note.  In min/max, we can use hb_type_identity<T> for second argument.
+ * However, that would silently convert between different-signedness integers.
+ * Instead we accept two different types, such that compiler can err if
+ * comparing integers of different signedness. */
 struct
 {
   template <typename T, typename T2> auto
@@ -408,14 +412,6 @@ static inline unsigned char TOUPPER (unsigned char c)
 { return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
 static inline unsigned char TOLOWER (unsigned char c)
 { return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; }
-
-#undef MIN
-template <typename Type>
-static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
-
-#undef MAX
-template <typename Type>
-static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
 
 static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
 { return (a + (b - 1)) / b; }
@@ -668,7 +664,7 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 {
   /* Pain because we don't know whether s is nul-terminated. */
   char buf[64];
-  len = MIN (ARRAY_LENGTH (buf) - 1, len);
+  len = hb_min (ARRAY_LENGTH (buf) - 1, len);
   strncpy (buf, s, len);
   buf[len] = '\0';
 

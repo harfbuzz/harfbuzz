@@ -921,7 +921,7 @@ struct BinSearchHeader
   {
     len = v;
     assert (len == v);
-    entrySelector = MAX (1u, hb_bit_storage (v)) - 1;
+    entrySelector = hb_max (1u, hb_bit_storage (v)) - 1;
     searchRange = 16 * (1u << entrySelector);
     rangeShift = v * 16 > searchRange
 		 ? 16 * v - searchRange

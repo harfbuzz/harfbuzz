@@ -175,7 +175,7 @@ struct sbix
       if (unlikely (!count))
         return Null(SBIXStrike);
 
-      unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+      unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
       if (!requested_ppem)
         requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
