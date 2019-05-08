@@ -175,7 +175,7 @@ struct hb_sanitize_context_t :
     else
     {
       this->start = obj_start;
-      this->end   = obj_start + hb_min (this->end - obj_start, obj->get_size ());
+      this->end   = obj_start + hb_min (size_t (this->end - obj_start), obj->get_size ());
     }
   }
 
