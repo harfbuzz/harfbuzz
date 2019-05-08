@@ -285,7 +285,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts &&...ds)
+  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts&&... ds)
   {
     *this = 0;
     if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
@@ -307,7 +307,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
   /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
   template <typename ...Ts>
-  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts &&...ds)
+  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts&&... ds)
   {
     *this = 0;
     if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
@@ -332,7 +332,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
@@ -465,7 +465,7 @@ struct UnsizedArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
@@ -511,7 +511,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>
@@ -647,7 +647,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
@@ -721,7 +721,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (OffsetArrayOf<Type>::sanitize (c, this, hb_forward<Ts> (ds)...));
@@ -823,7 +823,7 @@ struct ArrayOfM1
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
@@ -1028,7 +1028,7 @@ struct VarSizedBinSearchArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);

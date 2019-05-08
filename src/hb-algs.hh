@@ -75,7 +75,7 @@ struct
 
   /* Pointer-to-member-function. */
   template <typename Appl, typename Val1, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<2>, Val1 &&v1, Vals &&...vs) const HB_AUTO_RETURN
+  impl (Appl&& a, hb_priority<2>, Val1 &&v1, Vals&&... vs) const HB_AUTO_RETURN
   ((hb_deref (hb_forward<Val1> (v1)).*hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
 
   /* Pointer-to-member. */
@@ -85,13 +85,13 @@ struct
 
   /* Operator(). */
   template <typename Appl, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<0>, Vals &&...vs) const HB_AUTO_RETURN
+  impl (Appl&& a, hb_priority<0>, Vals&&... vs) const HB_AUTO_RETURN
   (hb_deref (hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
 
   public:
 
   template <typename Appl, typename ...Vals> auto
-  operator () (Appl&& a, Vals &&...vs) const HB_AUTO_RETURN
+  operator () (Appl&& a, Vals&&... vs) const HB_AUTO_RETURN
   (
     impl (hb_forward<Appl> (a),
 	  hb_prioritize,

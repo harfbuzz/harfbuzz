@@ -134,7 +134,7 @@ struct hb_serialize_context_t
   template <typename T> bool propagate_error (T &&obj)
   { return check_success (!hb_deref (obj).in_error ()); }
 
-  template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
+  template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts&&... os)
   { return propagate_error (hb_forward<T1> (o1)) &&
 	   propagate_error (hb_forward<Ts> (os)...); }
 
@@ -371,7 +371,7 @@ struct hb_serialize_context_t
   { return embed (hb_addressof (obj)); }
 
   template <typename Type, typename ...Ts> auto
-  _copy (const Type &src, hb_priority<1>, Ts &&...ds) HB_RETURN
+  _copy (const Type &src, hb_priority<1>, Ts&&... ds) HB_RETURN
   (Type *, src.copy (this, hb_forward<Ts> (ds)...))
 
   template <typename Type> auto
@@ -386,10 +386,10 @@ struct hb_serialize_context_t
   /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
    * instead of memcpy(). */
   template <typename Type, typename ...Ts>
-  Type *copy (const Type &src, Ts &&...ds)
+  Type *copy (const Type &src, Ts&&... ds)
   { return _copy (src, hb_prioritize, hb_forward<Ts> (ds)...); }
   template <typename Type, typename ...Ts>
-  Type *copy (const Type *src, Ts &&...ds)
+  Type *copy (const Type *src, Ts&&... ds)
   { return copy (*src, hb_forward<Ts> (ds)...); }
 
   template <typename Type>
@@ -414,10 +414,10 @@ struct hb_serialize_context_t
   Type *extend_min (Type &obj) { return extend_min (hb_addressof (obj)); }
 
   template <typename Type, typename ...Ts>
-  Type *extend (Type *obj, Ts &&...ds)
+  Type *extend (Type *obj, Ts&&... ds)
   { return extend_size (obj, obj->get_size (hb_forward<Ts> (ds)...)); }
   template <typename Type, typename ...Ts>
-  Type *extend (Type &obj, Ts &&...ds)
+  Type *extend (Type &obj, Ts&&... ds)
   { return extend (hb_addressof (obj), hb_forward<Ts> (ds)...); }
 
   /* Output routines. */

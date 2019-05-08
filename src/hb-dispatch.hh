@@ -48,7 +48,7 @@ struct hb_dispatch_context_t
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format HB_UNUSED) { return true; }
   template <typename T, typename ...Ts>
-  return_t dispatch (const T &obj, Ts &&...ds)
+  return_t dispatch (const T &obj, Ts&&... ds)
   { return obj.dispatch (thiz (), hb_forward<Ts> (ds)...); }
   static return_t no_dispatch_return_value () { return Context::default_return_value (); }
   static bool stop_sublookup_iteration (const return_t r HB_UNUSED) { return false; }

@@ -136,14 +136,14 @@ struct hb_sanitize_context_t :
 
   private:
   template <typename T, typename ...Ts> auto
-  _dispatch (const T &obj, hb_priority<1>, Ts &&...ds) HB_AUTO_RETURN
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.sanitize (this, hb_forward<Ts> (ds)...) )
   template <typename T, typename ...Ts> auto
-  _dispatch (const T &obj, hb_priority<0>, Ts &&...ds) HB_AUTO_RETURN
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.dispatch (this, hb_forward<Ts> (ds)...) )
   public:
   template <typename T, typename ...Ts> auto
-  dispatch (const T &obj, Ts &&...ds) HB_AUTO_RETURN
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
   ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
 
 
