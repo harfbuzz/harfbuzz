@@ -28,7 +28,6 @@
 #include "hb-open-type.hh"
 
 #include "hb-subset.hh"
-#include "hb-subset-glyf.hh"
 
 #include "hb-open-file.hh"
 #include "hb-ot-cmap-table.hh"

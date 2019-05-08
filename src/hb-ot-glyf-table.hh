@@ -21,7 +21,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod, Garret Reiger, Roderick Sheeter
  */
 
 #ifndef HB_OT_GLYF_TABLE_HH
@@ -29,7 +29,6 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-head-table.hh"
-#include "hb-subset-glyf.hh"
 
 namespace OT {
 
@@ -111,9 +110,13 @@ struct glyf
     + hb_iota (c->plan->num_output_glyphs ())
     | hb_map ([&] (hb_codepoint_t new_gid) {
       unsigned int start_offset = 0, end_offset = 0;
-      // simple case: empty glyph
+
       hb_codepoint_t old_gid;
+      // should never happen, ALL old gids should be mapped
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid)) return hb_pair (start_offset, end_offset);
+
+      // being empty is perfectly normal
+      if (c->plan->is_empty_glyph (old_gid)) return hb_pair (start_offset, end_offset);
 
       if (unlikely (!(glyf.get_offsets (old_gid, &start_offset, &end_offset) &&
 	glyf.remove_padding (start_offset, &end_offset))))
