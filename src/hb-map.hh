@@ -62,7 +62,7 @@ struct hb_hashmap_t
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
     bool is_real () const { return key != kINVALID && value != vINVALID; }
-    hb_pair_t<K, V> get_pair() const { return hb_pair (key, value); }
+    hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
   };
 
   hb_object_header_t header;
