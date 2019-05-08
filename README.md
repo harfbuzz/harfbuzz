@@ -15,4 +15,8 @@ For bug reports, mailing list, and other information please visit:
 
 For license information, see the file COPYING.
 
+For build information, see the file BUILD.md.
+
+For test execution, see the file TESTING.md.
+
 Documentation: https://harfbuzz.github.io
