@@ -45,3 +45,13 @@ cd harfbuzz
 mkdir buid
 cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
 ```
+## Test with the Fuzzer
+
+```shell
+# push your changs to a branch on googlefonts/harfbuzz
+# In a local copy of oss-fuzz, edit projects/harfbuzz/Dockerfile
+# Change the git clone to pull your branch
+sudo python infra/helper.py build_image harfbuzz
+sudo python infra/helper.py build_fuzzers --sanitizer address harfbuzz
+sudo python infra/helper.py run_fuzzer harfbuzz hb-subset-fuzzer
+```
