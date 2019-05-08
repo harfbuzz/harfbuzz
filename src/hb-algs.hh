@@ -218,9 +218,7 @@ struct hb_pair_t
   hb_pair_t (const pair_t& o) : first (o.first), second (o.second) {}
 
   hb_pair_t<T1, T2> reverse () const
-  {
-    return hb_pair_t<T1, T2> (second, first);
-  }
+  { return hb_pair_t<T1, T2> (second, first); }
 
   bool operator == (const pair_t& o) const { return first == o.first && second == o.second; }
 
