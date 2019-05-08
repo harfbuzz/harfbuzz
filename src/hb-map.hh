@@ -62,6 +62,7 @@ struct hb_hashmap_t
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
     bool is_real () const { return key != kINVALID && value != vINVALID; }
+    hb_pair_t<K, V> get_pair() const { return hb_pair (key, value); }
   };
 
   hb_object_header_t header;
@@ -200,6 +201,16 @@ struct hb_hashmap_t
   bool is_empty () const { return population == 0; }
 
   unsigned int get_population () const { return population; }
+
+  /*
+   * Iterator
+   */
+  auto iter() const HB_AUTO_RETURN
+  (
+    + hb_array_t<item_t> (items, mask + 1)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::get_pair)
+  )
 
   protected:
 
