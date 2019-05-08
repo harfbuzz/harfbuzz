@@ -220,7 +220,6 @@ struct name
   {
     TRACE_SANITIZE (this);
     const void *string_pool = (this+stringOffset).arrayZ;
-    /* TODO: Move to run-time?! */
     return_trace (nameRecordZ.sanitize (c, count, string_pool));
   }
 
@@ -230,7 +229,8 @@ struct name
     return_trace (c->check_struct (this) &&
 		  likely (format == 0 || format == 1) &&
 		  c->check_array (nameRecordZ.arrayZ, count) &&
-		  c->check_range (this, stringOffset));
+		  c->check_range (this, stringOffset) &&
+		  sanitize_records (c));
   }
 
   struct accelerator_t
