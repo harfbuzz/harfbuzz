@@ -177,9 +177,17 @@ main (int argc, char **argv)
   hb_array_t<hb_vector_t<int>> pa;
   pa->as_array ();
 
+  hb_map_t m;
+
+  hb_iter (st);
+  hb_iter (&st);
+
   + hb_iter (src)
-  | hb_map (hb_identity)
+  | hb_map (m)
+  | hb_map (&m)
   | hb_filter ()
+  | hb_filter (st)
+  | hb_filter (&st)
   | hb_filter (hb_bool)
   | hb_filter (hb_bool, hb_identity)
   | hb_sink (st)
@@ -235,6 +243,16 @@ main (int argc, char **argv)
   t << 1;
   long vl;
   s >> vl;
+
+  hb_iota ();
+  assert (hb_iota (9).len () == 9);
+  assert (hb_iota (2, 9).len () == 7);
+  assert (hb_iota (2, 9, 3).len () == 3);
+  assert (hb_iota (2, 8, 3).len () == 2);
+  assert (hb_iota (2, 7, 3).len () == 2);
+  assert (hb_iota (-2, -9, -3).len () == 3);
+  assert (hb_iota (-2, -8, -3).len () == 2);
+  assert (hb_iota (-2, -7, -3).len () == 2);
 
   return 0;
 }

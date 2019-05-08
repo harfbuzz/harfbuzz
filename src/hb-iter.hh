@@ -97,10 +97,12 @@ struct hb_iter_t
   item_t operator * () { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
   item_t operator [] (unsigned i) { return thiz()->__item_at__ (i); }
-  iter_t& operator += (unsigned count) & { thiz()->__forward__ (count); return *thiz(); }
+  iter_t& operator += (unsigned count) &  { thiz()->__forward__ (count); return *thiz(); }
+  iter_t  operator += (unsigned count) && { thiz()->__forward__ (count); return *thiz(); }
   iter_t& operator ++ () &  { thiz()->__next__ (); return *thiz(); }
   iter_t  operator ++ () && { thiz()->__next__ (); return *thiz(); }
-  iter_t& operator -= (unsigned count) & { thiz()->__rewind__ (count); return *thiz(); }
+  iter_t& operator -= (unsigned count) &  { thiz()->__rewind__ (count); return *thiz(); }
+  iter_t  operator -= (unsigned count) && { thiz()->__rewind__ (count); return *thiz(); }
   iter_t& operator -- () &  { thiz()->__prev__ (); return *thiz(); }
   iter_t  operator -- () && { thiz()->__prev__ (); return *thiz(); }
   iter_t operator + (unsigned count) const { auto c = thiz()->iter (); c += count; return c; }
@@ -109,9 +111,13 @@ struct hb_iter_t
   iter_t operator - (unsigned count) const { auto c = thiz()->iter (); c -= count; return c; }
   iter_t operator -- (int) { iter_t c (*thiz()); --*thiz(); return c; }
   template <typename T>
-  iter_t& operator >> (T &v) & { v = **thiz(); ++*thiz(); return *thiz(); }
+  iter_t& operator >> (T &v) &  { v = **thiz(); ++*thiz(); return *thiz(); }
   template <typename T>
-  iter_t& operator << (const T v) & { **thiz() = v; ++*thiz(); return *thiz(); }
+  iter_t  operator >> (T &v) && { v = **thiz(); ++*thiz(); return *thiz(); }
+  template <typename T>
+  iter_t& operator << (const T v) &  { **thiz() = v; ++*thiz(); return *thiz(); }
+  template <typename T>
+  iter_t  operator << (const T v) && { **thiz() = v; ++*thiz(); return *thiz(); }
 
   protected:
   hb_iter_t () {}
@@ -142,7 +148,7 @@ struct hb_iter_t
   static_assert (true, "")
 
 /* Returns iterator type of a type. */
-#define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
+#define hb_iter_t(Iterable) decltype (hb_deref (hb_declval (Iterable)).iter ())
 
 
 template <typename> struct hb_array_t;
@@ -152,7 +158,7 @@ struct
   template <typename T>
   hb_iter_t (T)
   operator () (T&& c) const
-  { return c.iter (); }
+  { return hb_deref (hb_forward<T> (c)).iter (); }
 
   /* Specialization for C arrays. */
 
@@ -310,7 +316,7 @@ static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).
 template <typename Lhs, typename Rhs,
 	  hb_requires (hb_is_iterator (Lhs))>
 static inline auto
-operator | (Lhs lhs, const Rhs &rhs) HB_AUTO_RETURN (rhs (lhs))
+operator | (Lhs&& lhs, Rhs&& rhs) HB_AUTO_RETURN (hb_forward<Rhs> (rhs) (hb_forward<Lhs> (lhs)))
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
@@ -318,11 +324,11 @@ template <typename Iter, typename Proj,
 	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>,
-	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
+	    decltype (hb_get (hb_declval (Proj), *hb_declval (Iter)))>
 {
   hb_map_iter_t (const Iter& it, Proj f_) : it (it), f (f_) {}
 
-  typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
+  typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
@@ -349,7 +355,7 @@ struct hb_map_iter_factory_t
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
   hb_map_iter_t<Iter, Proj>
-  operator () (Iter it) const
+  operator () (Iter it)
   { return hb_map_iter_t<Iter, Proj> (it, f); }
 
   private:
@@ -396,7 +402,7 @@ struct hb_filter_iter_factory_t
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
   hb_filter_iter_t<Iter, Pred, Proj>
-  operator () (Iter it) const
+  operator () (Iter it)
   { return hb_filter_iter_t<Iter, Pred, Proj> (it, p, f); }
 
   private:
@@ -422,7 +428,7 @@ struct hb_reduce_t
 	    hb_requires (hb_is_iterator (Iter)),
 	    typename AccuT = decltype (hb_declval (Redu) (hb_declval (InitT), hb_declval (typename Iter::item_t)))>
   AccuT
-  operator () (Iter it) const
+  operator () (Iter it)
   {
     AccuT value = init_value;
     for (; it; ++it)
@@ -543,7 +549,7 @@ struct hb_apply_t
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
       (void) hb_invoke (a, *it);
@@ -564,6 +570,57 @@ struct
 }
 HB_FUNCOBJ (hb_apply);
 
+/* hb_iota() */
+
+template <typename T, typename S>
+struct hb_iota_iter_t :
+  hb_iter_t<hb_iota_iter_t<T, S>, T>
+{
+  hb_iota_iter_t (T start, T end, S step) : v (start), end (end_for (start, end, step)), step (step) {}
+
+  typedef T __item_t__;
+  static constexpr bool is_random_access_iterator = true;
+  static constexpr bool is_sorted_iterator = true;
+  __item_t__ __item__ () const { return v; }
+  __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
+  bool __more__ () const { return v != end; }
+  unsigned __len__ () const { return (end - v) / step; }
+  void __next__ () { v += step; }
+  void __forward__ (unsigned n) { v += n * step; }
+  void __prev__ () { v -= step; }
+  void __rewind__ (unsigned n) { v -= n * step; }
+  hb_iota_iter_t __end__ () const { hb_iota_iter_t (end, end, step); }
+  bool operator != (const hb_iota_iter_t& o) const
+  { return v != o.v || end != o.end || step != o.step; }
+
+  private:
+  static inline T end_for (T start, T end, S step)
+  {
+    auto res = (end - start) % step;
+    if (!res)
+      return end;
+    end += step - res;
+    return end;
+  }
+
+  private:
+  T v;
+  T end;
+  S step;
+};
+struct
+{
+  template <typename T = unsigned> hb_iota_iter_t<T, unsigned>
+  operator () (T end = (unsigned) -1) const
+  { return hb_iota_iter_t<T, unsigned> (0, end, 1u); }
+
+  template <typename T, typename S = unsigned> hb_iota_iter_t<T, S>
+  operator () (T start, T end, S&& step = 1u) const
+  { return hb_iota_iter_t<T, S> (start, end, step); }
+}
+HB_FUNCOBJ (hb_iota);
+
+
 /* hb_sink() */
 
 template <typename Sink>
@@ -573,7 +630,7 @@ struct hb_sink_t
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
       s << *it;
@@ -613,11 +670,11 @@ HB_FUNCOBJ (hb_drain);
 template <typename Sink1, typename Sink2>
 struct hb_unzip_t
 {
-  hb_unzip_t (Sink1&& s1, Sink2&& s2) : s1 (s1), s2 (s2) {}
+  hb_unzip_t (Sink1 s1, Sink2 s2) : s1 (s1), s2 (s2) {}
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
     {

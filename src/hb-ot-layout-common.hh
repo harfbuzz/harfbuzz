@@ -229,10 +229,10 @@ struct LangSys
    return reqFeatureIndex;;
   }
 
-  bool subset (hb_subset_context_t *c) const
+  LangSys* copy (hb_serialize_context_t *c) const
   {
-    TRACE_SUBSET (this);
-    return_trace (c->serializer->embed (*this));
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (*this));
   }
 
   bool sanitize (hb_sanitize_context_t *c,
@@ -279,10 +279,10 @@ struct Script
     TRACE_SUBSET (this);
     struct Script *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, out);
+    out->defaultLangSys.serialize_copy (c->serializer, this+defaultLangSys, out);
     unsigned int count = langSys.len;
     for (unsigned int i = 0; i < count; i++)
-      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, out);
+      out->langSys.arrayZ[i].offset.serialize_copy (c->serializer, this+langSys[i].offset, out);
     return_trace (true);
   }
 
