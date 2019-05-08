@@ -529,7 +529,7 @@ struct
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   hb_enumerate_iter_t<hb_iter_t (Iterable)>
-  operator () (Iterable& it) const
+  operator () (Iterable&& it) const
   { return hb_enumerate_iter_t<hb_iter_t (Iterable)> (hb_iter (it)); }
 }
 HB_FUNCOBJ (hb_enumerate);
