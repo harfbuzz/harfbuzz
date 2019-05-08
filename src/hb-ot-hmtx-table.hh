@@ -240,7 +240,7 @@ struct hmtxvmtx
 	  return default_advance;
       }
 
-      return table->longMetricZ[MIN (glyph, (uint32_t) num_advances - 1)].advance;
+      return table->longMetricZ[hb_min (glyph, (uint32_t) num_advances - 1)].advance;
     }
 
     unsigned int get_advance (hb_codepoint_t  glyph,

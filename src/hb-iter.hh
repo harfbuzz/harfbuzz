@@ -164,7 +164,8 @@ struct
   operator () (Type (&array)[length]) const
   { return hb_array_t<Type> (array, length); }
 
-} HB_FUNCOBJ (hb_iter);
+}
+HB_FUNCOBJ (hb_iter);
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
@@ -280,11 +281,11 @@ struct hb_is_iterator_of { enum {
 /* Range-based 'for' for iterables. */
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static inline auto begin (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).begin ())
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).end ())
 
 /* begin()/end() are NOT looked up non-ADL.  So each namespace must declare them.
@@ -292,11 +293,11 @@ static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).
 namespace OT {
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static inline auto begin (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).begin ())
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).end ())
 
 }
@@ -307,14 +308,14 @@ static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).
  */
 
 template <typename Lhs, typename Rhs,
-	  hb_enable_if (hb_is_iterator (Lhs))>
+	  hb_requires (hb_is_iterator (Lhs))>
 static inline auto
 operator | (Lhs lhs, const Rhs &rhs) HB_AUTO_RETURN (rhs (lhs))
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
 template <typename Iter, typename Proj,
-	 hb_enable_if (hb_is_iterator (Iter))>
+	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>,
 	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
@@ -346,7 +347,7 @@ struct hb_map_iter_factory_t
   hb_map_iter_factory_t (Proj f) : f (f) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
+	    hb_requires (hb_is_iterator (Iter))>
   hb_map_iter_t<Iter, Proj>
   operator () (Iter it) const
   { return hb_map_iter_t<Iter, Proj> (it, f); }
@@ -360,10 +361,11 @@ struct
   hb_map_iter_factory_t<Proj>
   operator () (Proj&& f) const
   { return hb_map_iter_factory_t<Proj> (f); }
-} HB_FUNCOBJ (hb_map);
+}
+HB_FUNCOBJ (hb_map);
 
 template <typename Iter, typename Pred, typename Proj,
-	 hb_enable_if (hb_is_iterator (Iter))>
+	 hb_requires (hb_is_iterator (Iter))>
 struct hb_filter_iter_t :
   hb_iter_with_fallback_t<hb_filter_iter_t<Iter, Pred, Proj>,
 			  typename Iter::item_t>
@@ -392,7 +394,7 @@ struct hb_filter_iter_factory_t
   hb_filter_iter_factory_t (Pred p, Proj f) : p (p), f (f) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
+	    hb_requires (hb_is_iterator (Iter))>
   hb_filter_iter_t<Iter, Pred, Proj>
   operator () (Iter it) const
   { return hb_filter_iter_t<Iter, Pred, Proj> (it, p, f); }
@@ -403,12 +405,13 @@ struct hb_filter_iter_factory_t
 };
 struct
 {
-  template <typename Pred = decltype ((hb_bool)),
+  template <typename Pred = decltype ((hb_identity)),
 	    typename Proj = decltype ((hb_identity))>
   hb_filter_iter_factory_t<Pred, Proj>
-  operator () (Pred&& p = hb_bool, Proj&& f = hb_identity) const
+  operator () (Pred&& p = hb_identity, Proj&& f = hb_identity) const
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
-} HB_FUNCOBJ (hb_filter);
+}
+HB_FUNCOBJ (hb_filter);
 
 template <typename Redu, typename InitT>
 struct hb_reduce_t
@@ -416,7 +419,7 @@ struct hb_reduce_t
   hb_reduce_t (Redu r, InitT init_value) : r (r), init_value (init_value) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter)),
+	    hb_requires (hb_is_iterator (Iter)),
 	    typename AccuT = decltype (hb_declval (Redu) (hb_declval (InitT), hb_declval (typename Iter::item_t)))>
   AccuT
   operator () (Iter it) const
@@ -437,7 +440,8 @@ struct
   hb_reduce_t<Redu, InitT>
   operator () (Redu&& r, InitT init_value) const
   { return hb_reduce_t<Redu, InitT> (r, init_value); }
-} HB_FUNCOBJ (hb_reduce);
+}
+HB_FUNCOBJ (hb_reduce);
 
 
 /* hb_zip() */
@@ -460,7 +464,7 @@ struct hb_zip_iter_t :
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
   bool __more__ () const { return a && b; }
-  unsigned __len__ () const { return MIN (a.len (), b.len ()); }
+  unsigned __len__ () const { return hb_min (a.len (), b.len ()); }
   void __next__ () { ++a; ++b; }
   void __forward__ (unsigned n) { a += n; b += n; }
   void __prev__ () { --a; --b; }
@@ -476,16 +480,17 @@ struct hb_zip_iter_t :
 struct
 {
   template <typename A, typename B,
-	    hb_enable_if (hb_is_iterable (A) && hb_is_iterable (B))>
+	    hb_requires (hb_is_iterable (A) && hb_is_iterable (B))>
   hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
   operator () (A& a, B &b) const
   { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (hb_iter (a), hb_iter (b)); }
-} HB_FUNCOBJ (hb_zip);
+}
+HB_FUNCOBJ (hb_zip);
 
 /* hb_enumerate */
 
 template <typename Iter,
-	 hb_enable_if (hb_is_iterator (Iter))>
+	 hb_requires (hb_is_iterator (Iter))>
 struct hb_enumerate_iter_t :
   hb_iter_t<hb_enumerate_iter_t<Iter>,
 	    hb_pair_t<unsigned, typename Iter::item_t>>
@@ -522,11 +527,12 @@ struct hb_enumerate_iter_t :
 struct
 {
   template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
+	    hb_requires (hb_is_iterable (Iterable))>
   hb_enumerate_iter_t<hb_iter_t (Iterable)>
-  operator () (Iterable& it) const
+  operator () (Iterable&& it) const
   { return hb_enumerate_iter_t<hb_iter_t (Iterable)> (hb_iter (it)); }
-} HB_FUNCOBJ (hb_enumerate);
+}
+HB_FUNCOBJ (hb_enumerate);
 
 /* hb_apply() */
 
@@ -536,9 +542,8 @@ struct hb_apply_t
   hb_apply_t (Appl a) : a (a) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
-  void
-  operator () (Iter it) const
+	    hb_requires (hb_is_iterator (Iter))>
+  void operator () (Iter it) const
   {
     for (; it; ++it)
       (void) hb_invoke (a, *it);
@@ -556,7 +561,8 @@ struct
   template <typename Appl> hb_apply_t<Appl&>
   operator () (Appl *a) const
   { return hb_apply_t<Appl&> (*a); }
-} HB_FUNCOBJ (hb_apply);
+}
+HB_FUNCOBJ (hb_apply);
 
 /* hb_sink() */
 
@@ -566,9 +572,8 @@ struct hb_sink_t
   hb_sink_t (Sink&& s) : s (s) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
-  void
-  operator () (Iter it) const
+	    hb_requires (hb_is_iterator (Iter))>
+  void operator () (Iter it) const
   {
     for (; it; ++it)
       s << *it;
@@ -586,21 +591,22 @@ struct
   template <typename Sink> hb_sink_t<Sink&>
   operator () (Sink *s) const
   { return hb_sink_t<Sink&> (*s); }
-} HB_FUNCOBJ (hb_sink);
+}
+HB_FUNCOBJ (hb_sink);
 
 /* hb-drain: hb_sink to void / blackhole / /dev/null. */
 
 struct
 {
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
-  void
-  operator () (Iter it) const
+	    hb_requires (hb_is_iterator (Iter))>
+  void operator () (Iter it) const
   {
     for (; it; ++it)
       (void) *it;
   }
-} HB_FUNCOBJ (hb_drain);
+}
+HB_FUNCOBJ (hb_drain);
 
 /* hb_unzip(): unzip and sink to two sinks. */
 
@@ -610,9 +616,8 @@ struct hb_unzip_t
   hb_unzip_t (Sink1&& s1, Sink2&& s2) : s1 (s1), s2 (s2) {}
 
   template <typename Iter,
-	    hb_enable_if (hb_is_iterator (Iter))>
-  void
-  operator () (Iter it) const
+	    hb_requires (hb_is_iterator (Iter))>
+  void operator () (Iter it) const
   {
     for (; it; ++it)
     {
@@ -635,7 +640,8 @@ struct
   template <typename Sink1, typename Sink2> hb_unzip_t<Sink1&, Sink2&>
   operator () (Sink1 *s1, Sink2 *s2) const
   { return hb_unzip_t<Sink1&, Sink2&> (*s1, *s2); }
-} HB_FUNCOBJ (hb_unzip);
+}
+HB_FUNCOBJ (hb_unzip);
 
 
 /* hb-all, hb-any, hb-none. */
@@ -643,49 +649,61 @@ struct
 struct
 {
   template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
-  bool
-  operator () (Iterable&& c) const
+	    typename Pred = decltype ((hb_identity)),
+	    typename Proj = decltype ((hb_identity)),
+	    hb_requires (hb_is_iterable (Iterable))>
+  bool operator () (Iterable&& c,
+		    Pred&& p = hb_identity,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (!*it)
+      if (!hb_match (hb_forward<Pred> (p), hb_get (hb_forward<Proj> (f), *it)))
 	return false;
     return true;
   }
-} HB_FUNCOBJ (hb_all);
+}
+HB_FUNCOBJ (hb_all);
 struct
 {
   template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
-  bool
-  operator () (Iterable&& c) const
+	    typename Pred = decltype ((hb_identity)),
+	    typename Proj = decltype ((hb_identity)),
+	    hb_requires (hb_is_iterable (Iterable))>
+  bool operator () (Iterable&& c,
+		    Pred&& p = hb_identity,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (*it)
+      if (hb_match (hb_forward<Pred> (p), hb_get (hb_forward<Proj> (f), *it)))
 	return true;
     return false;
   }
-} HB_FUNCOBJ (hb_any);
+}
+HB_FUNCOBJ (hb_any);
 struct
 {
   template <typename Iterable,
-	    hb_enable_if (hb_is_iterable (Iterable))>
-  bool
-  operator () (Iterable&& c) const
+	    typename Pred = decltype ((hb_identity)),
+	    typename Proj = decltype ((hb_identity)),
+	    hb_requires (hb_is_iterable (Iterable))>
+  bool operator () (Iterable&& c,
+		    Pred&& p = hb_identity,
+		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
-      if (*it)
+      if (hb_match (hb_forward<Pred> (p), hb_get (hb_forward<Proj> (f), *it)))
 	return false;
     return true;
   }
-} HB_FUNCOBJ (hb_none);
+}
+HB_FUNCOBJ (hb_none);
 
 /*
  * Algorithms operating on iterators.
  */
 
 template <typename C, typename V,
-	  hb_enable_if (hb_is_iterable (C))>
+	  hb_requires (hb_is_iterable (C))>
 inline void
 hb_fill (C& c, const V &v)
 {

@@ -136,14 +136,14 @@ struct hb_sanitize_context_t :
 
   private:
   template <typename T, typename ...Ts> auto
-  _dispatch (const T &obj, hb_priority<1>, Ts &&...ds) HB_AUTO_RETURN
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.sanitize (this, hb_forward<Ts> (ds)...) )
   template <typename T, typename ...Ts> auto
-  _dispatch (const T &obj, hb_priority<0>, Ts &&...ds) HB_AUTO_RETURN
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.dispatch (this, hb_forward<Ts> (ds)...) )
   public:
   template <typename T, typename ...Ts> auto
-  dispatch (const T &obj, Ts &&...ds) HB_AUTO_RETURN
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
   ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
 
 
@@ -175,7 +175,7 @@ struct hb_sanitize_context_t :
     else
     {
       this->start = obj_start;
-      this->end   = obj_start + MIN<uintptr_t> (this->end - obj_start, obj->get_size ());
+      this->end   = obj_start + hb_min (size_t (this->end - obj_start), obj->get_size ());
     }
   }
 
@@ -189,7 +189,7 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
-    this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
+    this->max_ops = hb_max ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
     this->edit_count = 0;
     this->debug_depth = 0;

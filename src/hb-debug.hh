@@ -161,7 +161,7 @@ _hb_debug_msg_va (const char *what,
       VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR;
     fprintf (stderr, "%2u %s" VRBAR "%s",
 	     level,
-	     bars + sizeof (bars) - 1 - MIN ((unsigned int) sizeof (bars) - 1, (unsigned int) (sizeof (VBAR) - 1) * level),
+	     bars + sizeof (bars) - 1 - hb_min ((unsigned int) sizeof (bars) - 1, (unsigned int) (sizeof (VBAR) - 1) * level),
 	     level_dir ? (level_dir > 0 ? DLBAR : ULBAR) : LBAR);
   } else
     fprintf (stderr, "   " VRBAR LBAR);

@@ -110,7 +110,7 @@ struct F2DOT14 : HBINT16
   F2DOT14& operator = (uint16_t i ) { HBINT16::operator= (i); return *this; }
   // 16384 means 1<<14
   float to_float () const  { return ((int32_t) v) / 16384.f; }
-  void set_float (float f) { v = round (f * 16384.f); }
+  void set_float (float f) { v = roundf (f * 16384.f); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
@@ -121,7 +121,7 @@ struct Fixed : HBINT32
   Fixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
-  void set_float (float f) { v = round (f * 65536.f); }
+  void set_float (float f) { v = roundf (f * 65536.f); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -285,7 +285,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts &&...ds)
+  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts&&... ds)
   {
     *this = 0;
     if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
@@ -305,8 +305,9 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
+  /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
   template <typename ...Ts>
-  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts &&...ds)
+  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts&&... ds)
   {
     *this = 0;
     if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
@@ -331,7 +332,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
@@ -418,7 +419,7 @@ struct UnsizedArrayOf
     return_trace (true);
   }
   template <typename Iterator,
-	    hb_enable_if (hb_is_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_iterator_of (Iterator, const Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -464,7 +465,7 @@ struct UnsizedArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
@@ -510,7 +511,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>
@@ -599,7 +600,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename Iterator,
-	    hb_enable_if (hb_is_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_iterator_of (Iterator, const Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -646,7 +647,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
@@ -720,7 +721,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (OffsetArrayOf<Type>::sanitize (c, this, hb_forward<Ts> (ds)...));
@@ -822,7 +823,7 @@ struct ArrayOfM1
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
@@ -879,7 +880,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     return_trace (ret);
   }
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_sorted_iterator_of (Iterator, const Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -920,7 +921,7 @@ struct BinSearchHeader
   {
     len = v;
     assert (len == v);
-    entrySelector = MAX (1u, hb_bit_storage (v)) - 1;
+    entrySelector = hb_max (1u, hb_bit_storage (v)) - 1;
     searchRange = 16 * (1u << entrySelector);
     rangeShift = v * 16 > searchRange
 		 ? 16 * v - searchRange
@@ -1027,7 +1028,7 @@ struct VarSizedBinSearchArrayOf
     return_trace (true);
   }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);

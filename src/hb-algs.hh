@@ -38,13 +38,15 @@ struct
 {
   template <typename T> T
   operator () (const T& v) const { return v; }
-} HB_FUNCOBJ (hb_identity);
+}
+HB_FUNCOBJ (hb_identity);
 
 struct
 {
   template <typename T> bool
   operator () (const T& v) const { return bool (v); }
-} HB_FUNCOBJ (hb_bool);
+}
+HB_FUNCOBJ (hb_bool);
 
 struct
 {
@@ -64,37 +66,8 @@ struct
 
   template <typename T> auto
   operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
-} HB_FUNCOBJ (hb_hash);
-
-struct
-{
-  private:
-
-  /* Pointer-to-member-function. */
-  template <typename Appl, typename Val1, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<2>, Val1 &&v1, Vals &&...vs) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<Val1> (v1)).*hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
-
-  /* Pointer-to-member. */
-  template <typename Appl, typename Val> auto
-  impl (Appl&& a, hb_priority<1>, Val &&v) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<Val> (v))).*hb_forward<Appl> (a))
-
-  /* Operator(). */
-  template <typename Appl, typename ...Vals> auto
-  impl (Appl&& a, hb_priority<0>, Vals &&...vs) const HB_AUTO_RETURN
-  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Vals> (vs)...))
-
-  public:
-
-  template <typename Appl, typename ...Vals> auto
-  operator () (Appl&& a, Vals &&...vs) const HB_AUTO_RETURN
-  (
-    impl (hb_forward<Appl> (a),
-	  hb_prioritize,
-	  hb_forward<Vals> (vs)...)
-  )
-} HB_FUNCOBJ (hb_invoke);
+}
+HB_FUNCOBJ (hb_hash);
 
 struct
 {
@@ -102,7 +75,7 @@ struct
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
-  (hb_deref (hb_forward<Pred> (p)).has (v))
+  (hb_deref (hb_forward<Pred> (p)).has (hb_forward<Val> (v)))
 
   template <typename Pred, typename Val> auto
   impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
@@ -119,21 +92,56 @@ struct
 	  hb_forward<Val> (v),
 	  hb_prioritize)
   )
-} HB_FUNCOBJ (hb_has);
+}
+HB_FUNCOBJ (hb_has);
+
+struct
+{
+  private:
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (
+    hb_has (hb_forward<Pred> (p),
+	    hb_forward<Val> (v))
+  )
+
+  template <typename Pred, typename Val> auto
+  impl (Pred&& p, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
+  (
+    hb_forward<Pred> (p) == hb_forward<Val> (v)
+  )
+
+  public:
+
+  template <typename Pred, typename Val> auto
+  operator () (Pred&& p, Val &&v) const HB_RETURN (bool,
+    impl (hb_forward<Pred> (p),
+	  hb_forward<Val> (v),
+	  hb_prioritize)
+  )
+}
+HB_FUNCOBJ (hb_match);
 
 struct
 {
   private:
 
   template <typename Proj, typename Val> auto
-  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  impl (Proj&& f, Val &&v, hb_priority<2>) const HB_AUTO_RETURN
   (hb_deref (hb_forward<Proj> (f)).get (hb_forward<Val> (v)))
+
+  template <typename Proj, typename Val> auto
+  impl (Proj&& f, Val &&v, hb_priority<1>) const HB_AUTO_RETURN
+  (
+    hb_invoke (hb_forward<Proj> (f),
+	       hb_forward<Val> (v))
+  )
 
   template <typename Proj, typename Val> auto
   impl (Proj&& f, Val &&v, hb_priority<0>) const HB_AUTO_RETURN
   (
-    hb_invoke (hb_forward<Proj> (f),
-	       hb_forward<Val> (v))
+    hb_forward<Proj> (f)[hb_forward<Val> (v)]
   )
 
   public:
@@ -145,7 +153,8 @@ struct
 	  hb_forward<Val> (v),
 	  hb_prioritize)
   )
-} HB_FUNCOBJ (hb_get);
+}
+HB_FUNCOBJ (hb_get);
 
 
 template <typename T1, typename T2>
@@ -170,24 +179,52 @@ struct
 {
   template <typename Pair> auto
   operator () (const Pair& pair) const HB_AUTO_RETURN (pair.first)
-} HB_FUNCOBJ (hb_first);
+}
+HB_FUNCOBJ (hb_first);
 
 struct
 {
   template <typename Pair> auto
   operator () (const Pair& pair) const HB_AUTO_RETURN (pair.second)
-} HB_FUNCOBJ (hb_second);
+}
+HB_FUNCOBJ (hb_second);
 
+/* Note.  In min/max impl, we can use hb_type_identity<T> for second argument.
+ * However, that would silently convert between different-signedness integers.
+ * Instead we accept two different types, such that compiler can err if
+ * comparing integers of different signedness. */
 struct
 {
+  private:
   template <typename T, typename T2> auto
-  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a <= b ? a : b)
-} HB_FUNCOBJ (hb_min);
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  (hb_forward<T> (a) <= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
+
+  public:
+  template <typename T> auto
+  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
+
+  template <typename T, typename... Ts> auto
+  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
+  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
+}
+HB_FUNCOBJ (hb_min);
 struct
 {
+  private:
   template <typename T, typename T2> auto
-  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a >= b ? a : b)
-} HB_FUNCOBJ (hb_max);
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  (hb_forward<T> (a) >= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
+
+  public:
+  template <typename T> auto
+  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
+
+  template <typename T, typename... Ts> auto
+  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
+  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
+}
+HB_FUNCOBJ (hb_max);
 
 
 /*
@@ -398,14 +435,6 @@ static inline unsigned char TOUPPER (unsigned char c)
 { return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
 static inline unsigned char TOLOWER (unsigned char c)
 { return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; }
-
-#undef MIN
-template <typename Type>
-static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
-
-#undef MAX
-template <typename Type>
-static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
 
 static inline unsigned int DIV_CEIL (const unsigned int a, unsigned int b)
 { return (a + (b - 1)) / b; }
@@ -658,7 +687,7 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 {
   /* Pain because we don't know whether s is nul-terminated. */
   char buf[64];
-  len = MIN (ARRAY_LENGTH (buf) - 1, len);
+  len = hb_min (ARRAY_LENGTH (buf) - 1, len);
   strncpy (buf, s, len);
   buf[len] = '\0';
 

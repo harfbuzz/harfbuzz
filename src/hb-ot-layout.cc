@@ -1735,7 +1735,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
   unsigned int len = 0;
   if (char_count && characters && start_offset < cv_params.characters.len)
   {
-    len = MIN (cv_params.characters.len - start_offset, *char_count);
+    len = hb_min (cv_params.characters.len - start_offset, *char_count);
     for (unsigned int i = 0; i < len; ++i)
       characters[i] = cv_params.characters[start_offset + i];
   }

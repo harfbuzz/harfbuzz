@@ -967,7 +967,7 @@ retry:
     vis_clusters[i] = (uint32_t) -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphs_len; i++)
     if (vis_clusters[i] == (uint32_t) -1)

@@ -294,7 +294,7 @@ setup_rphf_mask (const hb_ot_shape_plan_t *plan,
 
   foreach_syllable (buffer, start, end)
   {
-    unsigned int limit = info[start].use_category() == USE_R ? 1 : MIN (3u, end - start);
+    unsigned int limit = info[start].use_category() == USE_R ? 1 : hb_min (3u, end - start);
     for (unsigned int i = start; i < start + limit; i++)
       info[i].mask |= mask;
   }

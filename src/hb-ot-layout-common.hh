@@ -683,7 +683,7 @@ struct Lookup
   }
 
   template <typename TSubTable, typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
@@ -797,7 +797,7 @@ struct CoverageFormat1
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+	    hb_requires (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -866,7 +866,7 @@ struct CoverageFormat2
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+	    hb_requires (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1030,7 +1030,7 @@ struct Coverage
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+	    hb_requires (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1984,10 +1984,10 @@ struct FeatureVariations
     return (this+record.substitutions).find_substitute (feature_index);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  FeatureVariations* copy (hb_serialize_context_t *c) const
   {
-    TRACE_SUBSET (this);
-    return_trace (c->serializer->embed (*this));
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (*this));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

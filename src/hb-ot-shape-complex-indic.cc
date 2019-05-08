@@ -645,7 +645,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   /* Reorder characters */
 
   for (unsigned int i = start; i < base; i++)
-    info[i].indic_position() = MIN (POS_PRE_C, (indic_position_t) info[i].indic_position());
+    info[i].indic_position() = hb_min (POS_PRE_C, (indic_position_t) info[i].indic_position());
 
   if (base < end)
     info[base].indic_position() = POS_BASE_C;
@@ -801,7 +801,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	  unsigned int j = start + info[i].syllable();
 	  while (j != i)
 	  {
-	    max = MAX (max, j);
+	    max = hb_max (max, j);
 	    unsigned int next = start + info[j].syllable();
 	    info[j].syllable() = 255; /* So we don't process j later again. */
 	    j = next;
@@ -1231,14 +1231,14 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 	  /* Note: this merge_clusters() is intentionally *after* the reordering.
 	   * Indic matra reordering is special and tricky... */
-	  buffer->merge_clusters (new_pos, MIN (end, base + 1));
+	  buffer->merge_clusters (new_pos, hb_min (end, base + 1));
 
 	  new_pos--;
 	}
     } else {
       for (unsigned int i = start; i < base; i++)
 	if (info[i].indic_position () == POS_PRE_M) {
-	  buffer->merge_clusters (i, MIN (end, base + 1));
+	  buffer->merge_clusters (i, hb_min (end, base + 1));
 	  break;
 	}
     }

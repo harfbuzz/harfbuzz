@@ -188,12 +188,12 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 	  feature_infos[j].default_value = feature_infos[i].default_value;
 	} else {
 	  feature_infos[j].flags &= ~F_GLOBAL;
-	  feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
+	  feature_infos[j].max_value = hb_max (feature_infos[j].max_value, feature_infos[i].max_value);
 	  /* Inherit default_value from j */
 	}
 	feature_infos[j].flags |= (feature_infos[i].flags & F_HAS_FALLBACK);
-	feature_infos[j].stage[0] = MIN (feature_infos[j].stage[0], feature_infos[i].stage[0]);
-	feature_infos[j].stage[1] = MIN (feature_infos[j].stage[1], feature_infos[i].stage[1]);
+	feature_infos[j].stage[0] = hb_min (feature_infos[j].stage[0], feature_infos[i].stage[0]);
+	feature_infos[j].stage[1] = hb_min (feature_infos[j].stage[1], feature_infos[i].stage[1]);
       }
     feature_infos.shrink (j + 1);
   }
@@ -213,7 +213,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
       bits_needed = 0;
     else
       /* Limit bits per feature. */
-      bits_needed = MIN(HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
+      bits_needed = hb_min (HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
 
     if (!info->max_value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
       continue; /* Feature disabled, or not enough bits. */

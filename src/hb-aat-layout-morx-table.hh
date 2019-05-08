@@ -88,7 +88,7 @@ struct RearrangementSubtable
 	start = buffer->idx;
 
       if (flags & MarkLast)
-	end = MIN (buffer->idx + 1, buffer->len);
+	end = hb_min (buffer->idx + 1, buffer->len);
 
       if ((flags & Verb) && start < end)
       {
@@ -117,14 +117,14 @@ struct RearrangementSubtable
 	};
 
 	unsigned int m = map[flags & Verb];
-	unsigned int l = MIN<unsigned int> (2, m >> 4);
-	unsigned int r = MIN<unsigned int> (2, m & 0x0F);
+	unsigned int l = hb_min (2u, m >> 4);
+	unsigned int r = hb_min (2u, m & 0x0F);
 	bool reverse_l = 3 == (m >> 4);
 	bool reverse_r = 3 == (m & 0x0F);
 
 	if (end - start >= l + r)
 	{
-	  buffer->merge_clusters (start, MIN (buffer->idx + 1, buffer->len));
+	  buffer->merge_clusters (start, hb_min (buffer->idx + 1, buffer->len));
 	  buffer->merge_clusters (start, end);
 
 	  hb_glyph_info_t *info = buffer->info;
@@ -261,13 +261,13 @@ struct ContextualSubtable
       }
       if (replacement)
       {
-	buffer->unsafe_to_break (mark, MIN (buffer->idx + 1, buffer->len));
+	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
 	buffer->info[mark].codepoint = *replacement;
 	ret = true;
       }
 
       replacement = nullptr;
-      unsigned int idx = MIN (buffer->idx, buffer->len - 1);
+      unsigned int idx = hb_min (buffer->idx, buffer->len - 1);
       if (Types::extended)
       {
 	if (entry.data.currentIndex != 0xFFFF)
@@ -337,9 +337,9 @@ struct ContextualSubtable
       const EntryData &data = entries[i].data;
 
       if (data.markIndex != 0xFFFF)
-	num_lookups = MAX<unsigned int> (num_lookups, 1 + data.markIndex);
+	num_lookups = hb_max (num_lookups, 1 + data.markIndex);
       if (data.currentIndex != 0xFFFF)
-	num_lookups = MAX<unsigned int> (num_lookups, 1 + data.currentIndex);
+	num_lookups = hb_max (num_lookups, 1 + data.currentIndex);
     }
 
     return_trace (substitutionTables.sanitize (c, this, num_lookups));
@@ -744,7 +744,7 @@ struct InsertionSubtable
 
 	buffer->move_to (end + count);
 
-	buffer->unsafe_to_break_from_outbuffer (mark, MIN (buffer->idx + 1, buffer->len));
+	buffer->unsafe_to_break_from_outbuffer (mark, hb_min (buffer->idx + 1, buffer->len));
       }
 
       if (flags & SetMark)
@@ -884,7 +884,7 @@ struct ChainSubtable
   };
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);

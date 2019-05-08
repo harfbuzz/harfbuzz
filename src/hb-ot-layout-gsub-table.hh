@@ -252,7 +252,7 @@ struct SingleSubst
   }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -441,7 +441,7 @@ struct MultipleSubst
   }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -484,7 +484,7 @@ struct AlternateSet
     unsigned int shift = hb_ctz (lookup_mask);
     unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
-    /* If alt_index is MAX, randomize feature if it is the rand feature. */
+    /* If alt_index is MAX_VALUE, randomize feature if it is the rand feature. */
     if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
       alt_index = c->random_number () % count + 1;
 
@@ -615,7 +615,7 @@ struct AlternateSubst
   }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -792,7 +792,7 @@ struct LigatureSet
     if (unlikely (!ligature.serialize (c, ligatures.length))) return_trace (false);
     for (unsigned int i = 0; i < ligatures.length; i++)
     {
-      unsigned int component_count = MAX<int> (component_count_list[i] - 1, 0);
+      unsigned int component_count = (unsigned) hb_max ((int) component_count_list[i] - 1, 0);
       if (unlikely (!ligature[i].serialize (c, this)
 				.serialize (c,
 					    ligatures[i],
@@ -946,7 +946,7 @@ struct LigatureSubst
   }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1114,7 +1114,7 @@ struct ReverseChainSingleSubstFormat1
 struct ReverseChainSingleSubst
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1154,7 +1154,7 @@ struct SubstLookupSubTable
   };
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, lookup_type);
     switch (lookup_type) {
@@ -1332,7 +1332,7 @@ struct SubstLookup : Lookup
   }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   { return Lookup::dispatch<SubTable> (c, hb_forward<Ts> (ds)...); }
 
   bool subset (hb_subset_context_t *c) const

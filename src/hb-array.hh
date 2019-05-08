@@ -143,7 +143,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   }
   void qsort (unsigned int start, unsigned int end)
   {
-    end = MIN (end, length);
+    end = hb_min (end, length);
     assert (start <= end);
     if (likely (start < end))
       ::qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
@@ -166,7 +166,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     else
       count -= start_offset;
     if (seg_count)
-      count = *seg_count = MIN (count, *seg_count);
+      count = *seg_count = hb_min (count, *seg_count);
     return hb_array_t<Type> (arrayZ + start_offset, count);
   }
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const

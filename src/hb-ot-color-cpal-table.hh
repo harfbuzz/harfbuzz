@@ -144,7 +144,7 @@ struct CPAL
     {
       hb_array_t<const BGRAColor> segment_colors = palette_colors.sub_array (start_offset, *color_count);
       /* Always return numColors colors per palette even if it has out-of-bounds start index. */
-      unsigned int count = MIN<unsigned int> (MAX<int> (numColors - start_offset, 0), *color_count);
+      unsigned int count = hb_min ((unsigned) hb_max ((int) (numColors - start_offset), 0), *color_count);
       *color_count = count;
       for (unsigned int i = 0; i < count; i++)
         colors[i] = segment_colors[i]; /* Bound-checked read. */

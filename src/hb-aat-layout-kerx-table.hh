@@ -251,7 +251,7 @@ struct KerxSubTableFormat1
 
       if (Format1EntryT::performAction (entry) && depth)
       {
-	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
+	unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
 	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
@@ -772,7 +772,7 @@ struct KerxSubTable
   unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);

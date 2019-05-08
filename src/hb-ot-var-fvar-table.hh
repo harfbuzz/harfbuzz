@@ -120,10 +120,10 @@ struct fvar
     const AxisRecord &axis = get_axes ()[axis_index];
     info->tag = axis.axisTag;
     info->name_id =  axis.axisNameID;
-    info->default_value = axis.defaultValue / 65536.;
+    info->default_value = axis.defaultValue / 65536.f;
     /* Ensure order, to simplify client math. */
-    info->min_value = MIN<float> (info->default_value, axis.minValue / 65536.);
-    info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
+    info->min_value = hb_min (info->default_value, axis.minValue / 65536.f);
+    info->max_value = hb_max (info->default_value, axis.maxValue / 65536.f);
   }
 
   void get_axis_info (unsigned int axis_index,
@@ -134,10 +134,10 @@ struct fvar
     info->tag = axis.axisTag;
     info->name_id =  axis.axisNameID;
     info->flags = (hb_ot_var_axis_flags_t) (unsigned int) axis.flags;
-    info->default_value = axis.defaultValue / 65536.;
+    info->default_value = axis.defaultValue / 65536.f;
     /* Ensure order, to simplify client math. */
-    info->min_value = MIN<float> (info->default_value, axis.minValue / 65536.);
-    info->max_value = MAX<float> (info->default_value, axis.maxValue / 65536.);
+    info->min_value = hb_min (info->default_value, axis.minValue / 65536.f);
+    info->max_value = hb_max (info->default_value, axis.maxValue / 65536.f);
     info->reserved = 0;
   }
 
@@ -149,12 +149,12 @@ struct fvar
     {
       /* TODO Rewrite as hb_array_t<>::sub-array() */
       unsigned int count = axisCount;
-      start_offset = MIN (start_offset, count);
+      start_offset = hb_min (start_offset, count);
 
       count -= start_offset;
       axes_array += start_offset;
 
-      count = MIN (count, *axes_count);
+      count = hb_min (count, *axes_count);
       *axes_count = count;
 
       for (unsigned int i = 0; i < count; i++)
@@ -171,12 +171,12 @@ struct fvar
     {
       /* TODO Rewrite as hb_array_t<>::sub-array() */
       unsigned int count = axisCount;
-      start_offset = MIN (start_offset, count);
+      start_offset = hb_min (start_offset, count);
 
       count -= start_offset;
       axes_array += start_offset;
 
-      count = MIN (count, *axes_count);
+      count = hb_min (count, *axes_count);
       *axes_count = count;
 
       for (unsigned int i = 0; i < count; i++)
@@ -223,7 +223,7 @@ struct fvar
     hb_ot_var_axis_info_t axis;
     get_axis_info (axis_index, &axis);
 
-    v = MAX (MIN (v, axis.max_value), axis.min_value); /* Clamp. */
+    v = hb_max (hb_min (v, axis.max_value), axis.min_value); /* Clamp. */
 
     if (v == axis.default_value)
       return 0;

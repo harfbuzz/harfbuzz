@@ -65,7 +65,7 @@ struct some_array_t
 
 
 template <typename Iter,
-	  hb_enable_if (hb_is_iterator (Iter))>
+	  hb_requires (hb_is_iterator (Iter))>
 static void
 test_iterator_non_default_constructable (Iter it)
 {
@@ -92,7 +92,7 @@ test_iterator_non_default_constructable (Iter it)
 }
 
 template <typename Iter,
-	  hb_enable_if (hb_is_iterator (Iter))>
+	  hb_requires (hb_is_iterator (Iter))>
 static void
 test_iterator (Iter it)
 {
@@ -103,7 +103,7 @@ test_iterator (Iter it)
 }
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static void
 test_iterable (const Iterable &lst = Null(Iterable))
 {
@@ -140,6 +140,7 @@ main (int argc, char **argv)
 
   test_iterable (v);
   hb_set_t st;
+  st << 1 << 15 << 43;
   test_iterable (st);
   hb_sorted_array_t<int> sa;
   (void) static_cast<hb_iter_t<hb_sorted_array_t<int>, hb_sorted_array_t<int>::item_t>&> (sa);
@@ -157,10 +158,21 @@ main (int argc, char **argv)
 
   test_iterator (hb_zip (st, v));
   test_iterator_non_default_constructable (hb_enumerate (st));
+  test_iterator_non_default_constructable (hb_enumerate (hb_iter (st)));
+  test_iterator_non_default_constructable (hb_enumerate (hb_iter (st) + 1));
   test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
   test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
 
-  hb_any (st);
+  assert (true == hb_all (st));
+  assert (false == hb_all (st, 42u));
+  assert (true == hb_any (st));
+  assert (false == hb_any (st, 14u));
+  assert (true == hb_any (st, 14u, [] (unsigned _) { return _ - 1u; }));
+  assert (true == hb_any (st, [] (unsigned _) { return _ == 15u; }));
+  assert (true == hb_any (st, 15u));
+  assert (false == hb_none (st));
+  assert (false == hb_none (st, 15u));
+  assert (true == hb_none (st, 17u));
 
   hb_array_t<hb_vector_t<int>> pa;
   pa->as_array ();

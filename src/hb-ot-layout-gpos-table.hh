@@ -446,8 +446,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     glyph_anchor.get_anchor (c, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = buffer->cur_pos();
-    o.x_offset = round (base_x - mark_x);
-    o.y_offset = round (base_y - mark_y);
+    o.x_offset = roundf (base_x - mark_x);
+    o.y_offset = roundf (base_y - mark_y);
     o.attach_type() = ATTACH_TYPE_MARK;
     o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
@@ -577,7 +577,7 @@ struct SinglePosFormat2
 struct SinglePos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -908,7 +908,7 @@ struct PairPosFormat2
 struct PairPos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -993,32 +993,32 @@ struct CursivePosFormat1
     /* Main-direction adjustment */
     switch (c->direction) {
       case HB_DIRECTION_LTR:
-	pos[i].x_advance  = round (exit_x) + pos[i].x_offset;
+	pos[i].x_advance  = roundf (exit_x) + pos[i].x_offset;
 
-	d = round (entry_x) + pos[j].x_offset;
+	d = roundf (entry_x) + pos[j].x_offset;
 	pos[j].x_advance -= d;
 	pos[j].x_offset  -= d;
 	break;
       case HB_DIRECTION_RTL:
-	d = round (exit_x) + pos[i].x_offset;
+	d = roundf (exit_x) + pos[i].x_offset;
 	pos[i].x_advance -= d;
 	pos[i].x_offset  -= d;
 
-	pos[j].x_advance  = round (entry_x) + pos[j].x_offset;
+	pos[j].x_advance  = roundf (entry_x) + pos[j].x_offset;
 	break;
       case HB_DIRECTION_TTB:
-	pos[i].y_advance  = round (exit_y) + pos[i].y_offset;
+	pos[i].y_advance  = roundf (exit_y) + pos[i].y_offset;
 
-	d = round (entry_y) + pos[j].y_offset;
+	d = roundf (entry_y) + pos[j].y_offset;
 	pos[j].y_advance -= d;
 	pos[j].y_offset  -= d;
 	break;
       case HB_DIRECTION_BTT:
-	d = round (exit_y) + pos[i].y_offset;
+	d = roundf (exit_y) + pos[i].y_offset;
 	pos[i].y_advance -= d;
 	pos[i].y_offset  -= d;
 
-	pos[j].y_advance  = round (entry_y);
+	pos[j].y_advance  = roundf (entry_y);
 	break;
       case HB_DIRECTION_INVALID:
       default:
@@ -1093,7 +1093,7 @@ struct CursivePosFormat1
 struct CursivePos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1209,7 +1209,7 @@ struct MarkBasePosFormat1
 struct MarkBasePos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1287,7 +1287,7 @@ struct MarkLigPosFormat1
     unsigned int mark_id = _hb_glyph_info_get_lig_id (&buffer->cur());
     unsigned int mark_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
     if (lig_id && lig_id == mark_id && mark_comp > 0)
-      comp_index = MIN (comp_count, _hb_glyph_info_get_lig_comp (&buffer->cur())) - 1;
+      comp_index = hb_min (comp_count, _hb_glyph_info_get_lig_comp (&buffer->cur())) - 1;
     else
       comp_index = comp_count - 1;
 
@@ -1334,7 +1334,7 @@ struct MarkLigPosFormat1
 struct MarkLigPos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1456,7 +1456,7 @@ struct MarkMarkPosFormat1
 struct MarkMarkPos
 {
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
@@ -1508,7 +1508,7 @@ struct PosLookupSubTable
   };
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, lookup_type);
     switch (lookup_type) {
@@ -1582,7 +1582,7 @@ struct PosLookup : Lookup
   static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
 
   template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts &&...ds) const
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   { return Lookup::dispatch<SubTable> (c, hb_forward<Ts> (ds)...); }
 
   bool subset (hb_subset_context_t *c) const
