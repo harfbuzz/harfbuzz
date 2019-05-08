@@ -210,16 +210,16 @@ struct hb_hashmap_t
   /*
    * Iterator
    */
-  auto iter() const HB_AUTO_RETURN
+  auto iter () const HB_AUTO_RETURN
   (
     + hb_array (items, mask + 1)
     | hb_filter (&item_t::is_real)
     | hb_map (&item_t::get_pair)
   )
 
-  auto keys() const HB_AUTO_RETURN
+  auto keys () const HB_AUTO_RETURN
   (
-	+ iter()
+    + iter()
     | hb_map (&hb_pair_t<K, V>::first)
   )
 
@@ -233,9 +233,9 @@ struct hb_hashmap_t
     while (!items[i].is_unused ())
     {
       if (items[i] == key)
-        return i;
+	return i;
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
-        tombstone = i;
+	tombstone = i;
       i = (i + ++step) & mask;
     }
     return tombstone == (unsigned) -1 ? i : tombstone;

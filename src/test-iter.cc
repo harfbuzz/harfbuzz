@@ -208,11 +208,14 @@ main (int argc, char **argv)
 
   using map_pair_t = hb_item_type<hb_map_t>;
   + hb_iter (m)
-  | hb_map ([] (map_pair_t p) { return p.first * p.second; });
+  | hb_map ([] (map_pair_t p) { return p.first * p.second; })
+  ;
 
-	using map_key_t = decltype (*m.keys());
-	+ hb_iter (m.keys ())
-	| hb_filter ([] (map_key_t k) { return k < 42; });
+  m.keys ();
+  using map_key_t = decltype (*m.keys());
+  + hb_iter (m.keys ())
+  | hb_filter ([] (map_key_t k) { return k < 42; })
+  ;
 
   unsigned int temp1 = 10;
   unsigned int temp2 = 0;
