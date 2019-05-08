@@ -186,20 +186,38 @@ struct
 }
 HB_FUNCOBJ (hb_second);
 
-/* Note.  In min/max, we can use hb_type_identity<T> for second argument.
+/* Note.  In min/max impl, we can use hb_type_identity<T> for second argument.
  * However, that would silently convert between different-signedness integers.
  * Instead we accept two different types, such that compiler can err if
  * comparing integers of different signedness. */
 struct
 {
+  private:
   template <typename T, typename T2> auto
-  operator () (T&& a, T2&& b) const HB_AUTO_RETURN (a <= b ? a : b)
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN (a <= b ? a : b)
+
+  public:
+  template <typename T> auto
+  operator () (T&& a) const HB_AUTO_RETURN (a)
+
+  template <typename T, typename... Ts> auto
+  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
+  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
 }
 HB_FUNCOBJ (hb_min);
 struct
 {
+  private:
   template <typename T, typename T2> auto
-  operator () (T&& a, T2&& b) const HB_AUTO_RETURN (a >= b ? a : b)
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN (a >= b ? a : b)
+
+  public:
+  template <typename T> auto
+  operator () (T&& a) const HB_AUTO_RETURN (a)
+
+  template <typename T, typename... Ts> auto
+  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
+  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
 }
 HB_FUNCOBJ (hb_max);
 

@@ -62,5 +62,13 @@ main (int argc, char **argv)
   A a;
   hb_invoke (&A::a, a);
 
+  assert (1 == hb_min (3, 8, 1, 2));
+  assert (8 == hb_max (3, 8, 1, 2));
+
+  int x = 1, y = 2;
+  int &z = hb_min (x, y);
+  z = 3;
+  assert (x == 3);
+
   return 0;
 }
