@@ -212,36 +212,4 @@ template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
 #define hb_is_integer(T) hb_is_integer<T>::value
 
 
-struct
-{
-  private:
-
-  /* Pointer-to-member-function. */
-  template <typename Appl, typename T, typename ...Ts> auto
-  impl (Appl&& a, hb_priority<2>, T &&v, Ts&&... ds) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<T> (v)).*hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
-
-  /* Pointer-to-member. */
-  template <typename Appl, typename T> auto
-  impl (Appl&& a, hb_priority<1>, T &&v) const HB_AUTO_RETURN
-  ((hb_deref (hb_forward<T> (v))).*hb_forward<Appl> (a))
-
-  /* Operator(). */
-  template <typename Appl, typename ...Ts> auto
-  impl (Appl&& a, hb_priority<0>, Ts&&... ds) const HB_AUTO_RETURN
-  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
-
-  public:
-
-  template <typename Appl, typename ...Ts> auto
-  operator () (Appl&& a, Ts&&... ds) const HB_AUTO_RETURN
-  (
-    impl (hb_forward<Appl> (a),
-	  hb_prioritize,
-	  hb_forward<Ts> (ds)...)
-  )
-}
-HB_FUNCOBJ (hb_invoke);
-
-
 #endif /* HB_META_HH */
