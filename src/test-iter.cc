@@ -179,6 +179,9 @@ main (int argc, char **argv)
 
   hb_map_t m;
 
+  hb_iter (st);
+  hb_iter (&st);
+
   + hb_iter (src)
   | hb_map (m)
   | hb_map (&m)

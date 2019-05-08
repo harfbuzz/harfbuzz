@@ -148,7 +148,7 @@ struct hb_iter_t
   static_assert (true, "")
 
 /* Returns iterator type of a type. */
-#define hb_iter_t(Iterable) decltype (hb_declval (Iterable).iter ())
+#define hb_iter_t(Iterable) decltype (hb_deref (hb_declval (Iterable)).iter ())
 
 
 template <typename> struct hb_array_t;
@@ -158,7 +158,7 @@ struct
   template <typename T>
   hb_iter_t (T)
   operator () (T&& c) const
-  { return c.iter (); }
+  { return hb_deref (hb_forward<T> (c)).iter (); }
 
   /* Specialization for C arrays. */
 
