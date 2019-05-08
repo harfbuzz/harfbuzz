@@ -166,11 +166,13 @@ main (int argc, char **argv)
   assert (true == hb_all (st));
   assert (false == hb_all (st, 42u));
   assert (true == hb_any (st));
-  assert (false == hb_any (st, 14));
-  assert (true == hb_any (st, 15));
+  assert (false == hb_any (st, 14u));
+  assert (true == hb_any (st, 14u, [] (unsigned _) { return _ - 1u; }));
+  assert (true == hb_any (st, [] (unsigned _) { return _ == 15u; }));
+  assert (true == hb_any (st, 15u));
   assert (false == hb_none (st));
-  assert (false == hb_none (st, 15));
-  assert (true == hb_none (st, 17));
+  assert (false == hb_none (st, 15u));
+  assert (true == hb_none (st, 17u));
 
   hb_array_t<hb_vector_t<int>> pa;
   pa->as_array ();
