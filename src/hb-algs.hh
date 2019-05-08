@@ -163,11 +163,12 @@ struct
 {
   private:
   template <typename T, typename T2> auto
-  impl (T&& a, T2&& b) const HB_AUTO_RETURN (a <= b ? a : b)
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  (hb_forward<T> (a) <= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
 
   public:
   template <typename T> auto
-  operator () (T&& a) const HB_AUTO_RETURN (a)
+  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
 
   template <typename T, typename... Ts> auto
   operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
@@ -178,11 +179,12 @@ struct
 {
   private:
   template <typename T, typename T2> auto
-  impl (T&& a, T2&& b) const HB_AUTO_RETURN (a >= b ? a : b)
+  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  (hb_forward<T> (a) >= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
 
   public:
   template <typename T> auto
-  operator () (T&& a) const HB_AUTO_RETURN (a)
+  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
 
   template <typename T, typename... Ts> auto
   operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
