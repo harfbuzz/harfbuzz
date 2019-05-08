@@ -66,6 +66,9 @@ main (int argc, char **argv)
   assert (8 == hb_max (3, 8, 1, 2));
 
   int x = 1, y = 2;
+  hb_min (x, 3);
+  hb_min (3, x, 4);
+  hb_min (3, x, 4 + 3);
   int &z = hb_min (x, y);
   z = 3;
   assert (x == 3);
