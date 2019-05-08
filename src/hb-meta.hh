@@ -93,6 +93,7 @@ template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 #define hb_is_const(T) hb_match_const<T>::value
 template <typename T> struct hb_match_reference { typedef T type; enum { value = false }; };
 template <typename T> struct hb_match_reference<T &> { typedef T type; enum { value = true }; };
+template <typename T> struct hb_match_reference<T &&> { typedef T type; enum { value = true }; };
 template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
 #define hb_is_reference(T) hb_match_reference<T>::value
 template <typename T> struct hb_match_pointer { typedef T type; enum { value = false }; };
