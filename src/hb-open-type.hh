@@ -436,9 +436,7 @@ struct UnsizedArrayOf
   {
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
-    if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
-    for (unsigned i = 0; i < count; i++)
-      out->arrayZ[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
+    if (unlikely (!as_array (count).copy (c))) return_trace (nullptr);
     return_trace (out);
   }
 
@@ -618,9 +616,9 @@ struct ArrayOf
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
     unsigned count = len;
-    if (unlikely (!out->serialize (c, count))) return_trace (nullptr);
-    for (unsigned i = 0; i < count; i++)
-      out->arrayZ[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
+    if (unlikely (!c->extend_min (out))) return_trace (nullptr);
+    c->check_assign (out->len, len);
+    if (unlikely (!as_array ().copy (c))) return_trace (nullptr);
     return_trace (out);
   }
 
