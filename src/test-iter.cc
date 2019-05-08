@@ -65,7 +65,7 @@ struct some_array_t
 
 
 template <typename Iter,
-	  hb_enable_if (hb_is_iterator (Iter))>
+	  hb_requires (hb_is_iterator (Iter))>
 static void
 test_iterator_non_default_constructable (Iter it)
 {
@@ -92,7 +92,7 @@ test_iterator_non_default_constructable (Iter it)
 }
 
 template <typename Iter,
-	  hb_enable_if (hb_is_iterator (Iter))>
+	  hb_requires (hb_is_iterator (Iter))>
 static void
 test_iterator (Iter it)
 {
@@ -103,7 +103,7 @@ test_iterator (Iter it)
 }
 
 template <typename Iterable,
-	  hb_enable_if (hb_is_iterable (Iterable))>
+	  hb_requires (hb_is_iterable (Iterable))>
 static void
 test_iterable (const Iterable &lst = Null(Iterable))
 {
