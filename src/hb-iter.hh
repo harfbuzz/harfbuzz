@@ -570,6 +570,57 @@ struct
 }
 HB_FUNCOBJ (hb_apply);
 
+/* hb_iota() */
+
+template <typename T, typename S>
+struct hb_iota_iter_t :
+  hb_iter_t<hb_iota_iter_t<T, S>, T>
+{
+  hb_iota_iter_t (T start, T end, S step) : v (start), end (end_for (start, end, step)), step (step) {}
+
+  typedef T __item_t__;
+  static constexpr bool is_random_access_iterator = true;
+  static constexpr bool is_sorted_iterator = true;
+  __item_t__ __item__ () const { return v; }
+  __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
+  bool __more__ () const { return v != end; }
+  unsigned __len__ () const { return (end - v) / step; }
+  void __next__ () { v += step; }
+  void __forward__ (unsigned n) { v += n * step; }
+  void __prev__ () { v -= step; }
+  void __rewind__ (unsigned n) { v -= n * step; }
+  hb_iota_iter_t __end__ () const { hb_iota_iter_t (end, end, step); }
+  bool operator != (const hb_iota_iter_t& o) const
+  { return v != o.v || end != o.end || step != o.step; }
+
+  private:
+  static inline T end_for (T start, T end, S step)
+  {
+    auto res = (end - start) % step;
+    if (!res)
+      return end;
+    end += step - res;
+    return end;
+  }
+
+  private:
+  T v;
+  T end;
+  S step;
+};
+struct
+{
+  template <typename T = unsigned> hb_iota_iter_t<T, unsigned>
+  operator () (T end = (unsigned) -1) const
+  { return hb_iota_iter_t<T, unsigned> (0, end, 1u); }
+
+  template <typename T, typename S = unsigned> hb_iota_iter_t<T, S>
+  operator () (T start, T end, S&& step = 1u) const
+  { return hb_iota_iter_t<T, S> (start, end, step); }
+}
+HB_FUNCOBJ (hb_iota);
+
+
 /* hb_sink() */
 
 template <typename Sink>

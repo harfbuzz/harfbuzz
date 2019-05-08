@@ -236,5 +236,15 @@ main (int argc, char **argv)
   long vl;
   s >> vl;
 
+  hb_iota ();
+  assert (hb_iota (9).len () == 9);
+  assert (hb_iota (2, 9).len () == 7);
+  assert (hb_iota (2, 9, 3).len () == 3);
+  assert (hb_iota (2, 8, 3).len () == 2);
+  assert (hb_iota (2, 7, 3).len () == 2);
+  assert (hb_iota (-2, -9, -3).len () == 3);
+  assert (hb_iota (-2, -8, -3).len () == 2);
+  assert (hb_iota (-2, -7, -3).len () == 2);
+
   return 0;
 }
