@@ -218,13 +218,15 @@ struct hb_hashmap_t
   )
   auto keys () const HB_AUTO_RETURN
   (
-    + iter()
-    | hb_map (&hb_pair_t<K, V>::first)
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::key)
   )
   auto values () const HB_AUTO_RETURN
   (
-    + iter()
-    | hb_map (&hb_pair_t<K, V>::second)
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::value)
   )
 
   protected:
