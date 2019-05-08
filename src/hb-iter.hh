@@ -569,7 +569,7 @@ HB_FUNCOBJ (hb_apply);
 template <typename Sink>
 struct hb_sink_t
 {
-  hb_sink_t (Sink&& s) : s (s) {}
+  hb_sink_t (Sink s) : s (s) {}
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>

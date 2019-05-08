@@ -186,6 +186,10 @@ main (int argc, char **argv)
   ;
 
   + hb_iter (src)
+  | hb_sink (hb_array (dst))
+  ;
+
+  + hb_iter (src)
   | hb_apply (&st)
   ;
 
