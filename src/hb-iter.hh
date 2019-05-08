@@ -147,16 +147,18 @@ struct hb_iter_t
   using Name::operator <<; \
   static_assert (true, "")
 
-/* Returns iterator type of a type. */
-#define hb_iter_t(Iterable) decltype (hb_deref (hb_declval (Iterable)).iter ())
+/* Returns iterator / item type of a type. */
+template <typename Iterable>
+using hb_iter_type = decltype (hb_deref (hb_declval (Iterable)).iter ());
+template <typename Iterable>
+using hb_item_type = decltype (*hb_deref (hb_declval (Iterable)).iter ());
 
 
 template <typename> struct hb_array_t;
 
 struct
 {
-  template <typename T>
-  hb_iter_t (T)
+  template <typename T> hb_iter_type<T>
   operator () (T&& c) const
   { return hb_deref (hb_forward<T> (c)).iter (); }
 
@@ -487,9 +489,9 @@ struct
 {
   template <typename A, typename B,
 	    hb_requires (hb_is_iterable (A) && hb_is_iterable (B))>
-  hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)>
+  hb_zip_iter_t<hb_iter_type<A>, hb_iter_type<B>>
   operator () (A& a, B &b) const
-  { return hb_zip_iter_t<hb_iter_t (A), hb_iter_t (B)> (hb_iter (a), hb_iter (b)); }
+  { return hb_zip_iter_t<hb_iter_type<A>, hb_iter_type<B>> (hb_iter (a), hb_iter (b)); }
 }
 HB_FUNCOBJ (hb_zip);
 
@@ -534,9 +536,9 @@ struct
 {
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
-  hb_enumerate_iter_t<hb_iter_t (Iterable)>
+  hb_enumerate_iter_t<hb_iter_type<Iterable>>
   operator () (Iterable&& it) const
-  { return hb_enumerate_iter_t<hb_iter_t (Iterable)> (hb_iter (it)); }
+  { return hb_enumerate_iter_t<hb_iter_type<Iterable>> (hb_iter (it)); }
 }
 HB_FUNCOBJ (hb_enumerate);
 
