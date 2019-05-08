@@ -283,7 +283,7 @@ struct glyf
 
     /* based on FontTools _g_l_y_f.py::trim */
     bool remove_padding (unsigned int start_offset,
-				unsigned int *end_offset) const
+			 unsigned int *end_offset) const
     {
       if (*end_offset - start_offset < GlyphHeader::static_size) return true;
 
