@@ -142,7 +142,7 @@ struct CmapSubtableFormat4
 	for (unsigned int j = 0; j < num_codepoints; j++)
 	{
 	  hb_codepoint_t cp = segments[i].start_code + j;
-	  hb_codepoint_t new_gid;
+	  hb_codepoint_t new_gid = 0;
 	  if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
 	    return_trace (false);
 	  glyph_id_array[j] = new_gid;
@@ -183,7 +183,7 @@ struct CmapSubtableFormat4
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (plan->unicodes->next (&cp)) {
-      hb_codepoint_t new_gid;
+      hb_codepoint_t new_gid = 0;
       if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
@@ -542,7 +542,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (plan->unicodes->next (&cp)) {
-      hb_codepoint_t new_gid;
+      hb_codepoint_t new_gid = 0;
       if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);

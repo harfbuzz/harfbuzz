@@ -160,7 +160,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
 
   void callSubr (const biased_subrs_t<SUBRS>& biasedSubrs, cs_type_t type)
   {
-    unsigned int subr_num;
+    unsigned int subr_num = 0;
 
     if (unlikely (!popSubrNum (biasedSubrs, subr_num)
 		 || callStack.get_count () >= kMaxCallLimit))
