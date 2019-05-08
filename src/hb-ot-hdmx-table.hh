@@ -44,7 +44,8 @@ struct DeviceRecord
   static unsigned int get_size (unsigned count)
   { return hb_ceil_to_4 (min_size + count * HBUINT8::static_size); }
 
-  template<typename Iterator>
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c, unsigned pixelSize, Iterator it)
   {
     TRACE_SERIALIZE (this);
@@ -94,7 +95,8 @@ struct hdmx
     return StructAtOffset<DeviceRecord> (&this->firstDeviceRecord, i * sizeDeviceRecord);
   }
 
-  template<typename Iterator>
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c, unsigned version, Iterator it)
   {
     TRACE_SERIALIZE (this);
@@ -103,14 +105,13 @@ struct hdmx
 
     this->version = version;
     this->numRecords = it.len ();
-    this->sizeDeviceRecord =
-      it ? DeviceRecord::get_size ((*it).second.len ()) : DeviceRecord::get_size (0);
+    this->sizeDeviceRecord = DeviceRecord::get_size (it ? (*it).second.len () : 0);
 
-    using pair_t = decltype (*it);
     + it
-    | hb_apply ([&] (const pair_t& _) {
+    | hb_apply ([&] (const hb_item_type<Iterator>& _) {
 		  c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second);
-		});
+		})
+    ;
 
     return_trace (c->successful);
   }
@@ -125,21 +126,24 @@ struct hdmx
 
     auto it =
     + hb_iota ((unsigned) numRecords)
-    | hb_map ([&] (unsigned _) {
+    | hb_map ([&] (unsigned _)
+	{
 	  const DeviceRecord *device_record =
 	    &StructAtOffset<DeviceRecord> (&firstDeviceRecord,
 					   _ * sizeDeviceRecord);
 	  auto row =
 	    + hb_iota (c->plan->num_output_glyphs ())
 	    | hb_map (c->plan->reverse_glyph_map)
-	    | hb_map ([=] (hb_codepoint_t _) {
+	    | hb_map ([=] (hb_codepoint_t _)
+		      {
 			if (c->plan->is_empty_glyph (_))
 			  return Null(HBUINT8);
 			return device_record->widthsZ.as_array (get_num_glyphs ()) [_];
 		      })
 	    ;
 	  return hb_pair ((unsigned) device_record->pixelSize, +row);
-	      });
+	})
+    ;
 
     hdmx_prime->serialize (c->serializer, version, it);
     return_trace (true);
