@@ -371,7 +371,7 @@ struct hb_serialize_context_t
   }
   template <typename Type>
   Type *embed (const Type &obj)
-  { return embed (&obj); }
+  { return embed (hb_addressof (obj)); }
 
   template <typename Type, typename ...Ts> auto
   _copy (const Type &src, hb_priority<1>, Ts &&...ds) HB_RETURN
