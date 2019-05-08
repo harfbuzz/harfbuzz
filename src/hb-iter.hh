@@ -405,10 +405,10 @@ struct hb_filter_iter_factory_t
 };
 struct
 {
-  template <typename Pred = decltype ((hb_bool)),
+  template <typename Pred = decltype ((hb_identity)),
 	    typename Proj = decltype ((hb_identity))>
   hb_filter_iter_factory_t<Pred, Proj>
-  operator () (Pred&& p = hb_bool, Proj&& f = hb_identity) const
+  operator () (Pred&& p = hb_identity, Proj&& f = hb_identity) const
   { return hb_filter_iter_factory_t<Pred, Proj> (p, f); }
 }
 HB_FUNCOBJ (hb_filter);
@@ -649,11 +649,11 @@ HB_FUNCOBJ (hb_unzip);
 struct
 {
   template <typename Iterable,
-	    typename Pred = decltype ((hb_bool)),
+	    typename Pred = decltype ((hb_identity)),
 	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
   bool operator () (Iterable&& c,
-		    Pred&& p = hb_bool,
+		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
@@ -666,11 +666,11 @@ HB_FUNCOBJ (hb_all);
 struct
 {
   template <typename Iterable,
-	    typename Pred = decltype ((hb_bool)),
+	    typename Pred = decltype ((hb_identity)),
 	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
   bool operator () (Iterable&& c,
-		    Pred&& p = hb_bool,
+		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
@@ -683,11 +683,11 @@ HB_FUNCOBJ (hb_any);
 struct
 {
   template <typename Iterable,
-	    typename Pred = decltype ((hb_bool)),
+	    typename Pred = decltype ((hb_identity)),
 	    typename Proj = decltype ((hb_identity)),
 	    hb_requires (hb_is_iterable (Iterable))>
   bool operator () (Iterable&& c,
-		    Pred&& p = hb_bool,
+		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
     for (auto it = hb_iter (c); it; ++it)
