@@ -193,13 +193,13 @@ HB_FUNCOBJ (hb_second);
 struct
 {
   template <typename T, typename T2> auto
-  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a <= b ? a : b)
+  operator () (T&& a, T2&& b) const HB_AUTO_RETURN (a <= b ? a : b)
 }
 HB_FUNCOBJ (hb_min);
 struct
 {
   template <typename T, typename T2> auto
-  operator () (const T& a, const T2& b) const HB_AUTO_RETURN (a >= b ? a : b)
+  operator () (T&& a, T2&& b) const HB_AUTO_RETURN (a >= b ? a : b)
 }
 HB_FUNCOBJ (hb_max);
 
