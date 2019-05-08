@@ -324,11 +324,11 @@ template <typename Iter, typename Proj,
 	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj>,
-	    decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t)))>
+	    decltype (hb_get (hb_declval (Proj), *hb_declval (Iter)))>
 {
   hb_map_iter_t (const Iter& it, Proj f_) : it (it), f (f_) {}
 
-  typedef decltype (hb_declval (Proj) (hb_declval (typename Iter::item_t))) __item_t__;
+  typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
