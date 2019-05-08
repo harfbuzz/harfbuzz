@@ -446,8 +446,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     glyph_anchor.get_anchor (c, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = buffer->cur_pos();
-    o.x_offset = round (base_x - mark_x);
-    o.y_offset = round (base_y - mark_y);
+    o.x_offset = roundf (base_x - mark_x);
+    o.y_offset = roundf (base_y - mark_y);
     o.attach_type() = ATTACH_TYPE_MARK;
     o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
@@ -993,32 +993,32 @@ struct CursivePosFormat1
     /* Main-direction adjustment */
     switch (c->direction) {
       case HB_DIRECTION_LTR:
-	pos[i].x_advance  = round (exit_x) + pos[i].x_offset;
+	pos[i].x_advance  = roundf (exit_x) + pos[i].x_offset;
 
-	d = round (entry_x) + pos[j].x_offset;
+	d = roundf (entry_x) + pos[j].x_offset;
 	pos[j].x_advance -= d;
 	pos[j].x_offset  -= d;
 	break;
       case HB_DIRECTION_RTL:
-	d = round (exit_x) + pos[i].x_offset;
+	d = roundf (exit_x) + pos[i].x_offset;
 	pos[i].x_advance -= d;
 	pos[i].x_offset  -= d;
 
-	pos[j].x_advance  = round (entry_x) + pos[j].x_offset;
+	pos[j].x_advance  = roundf (entry_x) + pos[j].x_offset;
 	break;
       case HB_DIRECTION_TTB:
-	pos[i].y_advance  = round (exit_y) + pos[i].y_offset;
+	pos[i].y_advance  = roundf (exit_y) + pos[i].y_offset;
 
-	d = round (entry_y) + pos[j].y_offset;
+	d = roundf (entry_y) + pos[j].y_offset;
 	pos[j].y_advance -= d;
 	pos[j].y_offset  -= d;
 	break;
       case HB_DIRECTION_BTT:
-	d = round (exit_y) + pos[i].y_offset;
+	d = roundf (exit_y) + pos[i].y_offset;
 	pos[i].y_advance -= d;
 	pos[i].y_offset  -= d;
 
-	pos[j].y_advance  = round (entry_y);
+	pos[j].y_advance  = roundf (entry_y);
 	break;
       case HB_DIRECTION_INVALID:
       default:

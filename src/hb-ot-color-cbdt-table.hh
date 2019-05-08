@@ -442,12 +442,12 @@ struct CBDT
       }
 
       /* Convert to font units. */
-      double x_scale = upem / (double) strike.ppemX;
-      double y_scale = upem / (double) strike.ppemY;
-      extents->x_bearing = round (extents->x_bearing * x_scale);
-      extents->y_bearing = round (extents->y_bearing * y_scale);
-      extents->width = round (extents->width * x_scale);
-      extents->height = round (extents->height * y_scale);
+      float x_scale = upem / (float) strike.ppemX;
+      float y_scale = upem / (float) strike.ppemY;
+      extents->x_bearing = roundf (extents->x_bearing * x_scale);
+      extents->y_bearing = roundf (extents->y_bearing * y_scale);
+      extents->width = roundf (extents->width * x_scale);
+      extents->height = roundf (extents->height * y_scale);
 
       return true;
     }

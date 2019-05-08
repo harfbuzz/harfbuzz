@@ -133,8 +133,8 @@ struct TrackData
       if (size_table[size_index].to_float () >= csspx)
         break;
 
-    return round (interpolate_at (size_index ? size_index - 1 : 0, csspx,
-				  *trackTableEntry, base));
+    return roundf (interpolate_at (size_index ? size_index - 1 : 0, csspx,
+				   *trackTableEntry, base));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const

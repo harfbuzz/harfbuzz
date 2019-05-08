@@ -110,7 +110,7 @@ struct F2DOT14 : HBINT16
   F2DOT14& operator = (uint16_t i ) { HBINT16::operator= (i); return *this; }
   // 16384 means 1<<14
   float to_float () const  { return ((int32_t) v) / 16384.f; }
-  void set_float (float f) { v = round (f * 16384.f); }
+  void set_float (float f) { v = roundf (f * 16384.f); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
@@ -121,7 +121,7 @@ struct Fixed : HBINT32
   Fixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
-  void set_float (float f) { v = round (f * 65536.f); }
+  void set_float (float f) { v = roundf (f * 65536.f); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
