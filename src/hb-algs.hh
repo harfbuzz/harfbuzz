@@ -36,15 +36,22 @@
 
 struct
 {
-  template <typename T> T
-  operator () (const T& v) const { return v; }
+  template <typename T> auto
+  operator () (T&& v) const HB_AUTO_RETURN ( hb_forward<T> (v) )
 }
 HB_FUNCOBJ (hb_identity);
 
 struct
 {
+  template <typename T> hb_remove_reference<T>
+  operator () (T&& v) const { return v; }
+}
+HB_FUNCOBJ (hb_rvalue);
+
+struct
+{
   template <typename T> bool
-  operator () (const T& v) const { return bool (v); }
+  operator () (T&& v) const { return bool (hb_forward<T> (v)); }
 }
 HB_FUNCOBJ (hb_bool);
 
@@ -68,6 +75,38 @@ struct
   operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
 }
 HB_FUNCOBJ (hb_hash);
+
+
+struct
+{
+  private:
+
+  /* Pointer-to-member-function. */
+  template <typename Appl, typename T, typename ...Ts> auto
+  impl (Appl&& a, hb_priority<2>, T &&v, Ts&&... ds) const HB_AUTO_RETURN
+  ((hb_deref (hb_forward<T> (v)).*hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
+
+  /* Pointer-to-member. */
+  template <typename Appl, typename T> auto
+  impl (Appl&& a, hb_priority<1>, T &&v) const HB_AUTO_RETURN
+  ((hb_deref (hb_forward<T> (v))).*hb_forward<Appl> (a))
+
+  /* Operator(). */
+  template <typename Appl, typename ...Ts> auto
+  impl (Appl&& a, hb_priority<0>, Ts&&... ds) const HB_AUTO_RETURN
+  (hb_deref (hb_forward<Appl> (a)) (hb_forward<Ts> (ds)...))
+
+  public:
+
+  template <typename Appl, typename ...Ts> auto
+  operator () (Appl&& a, Ts&&... ds) const HB_AUTO_RETURN
+  (
+    impl (hb_forward<Appl> (a),
+	  hb_prioritize,
+	  hb_forward<Ts> (ds)...)
+  )
+}
+HB_FUNCOBJ (hb_invoke);
 
 struct
 {

@@ -62,6 +62,7 @@ struct hb_hashmap_t
     bool is_unused () const    { return key == kINVALID; }
     bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
     bool is_real () const { return key != kINVALID && value != vINVALID; }
+    hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
   };
 
   hb_object_header_t header;
@@ -206,6 +207,30 @@ struct hb_hashmap_t
 
   unsigned int get_population () const { return population; }
 
+  /*
+   * Iterator
+   */
+  auto iter () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::get_pair)
+  )
+  auto keys () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::key)
+    | hb_map (hb_rvalue)
+  )
+  auto values () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::value)
+    | hb_map (hb_rvalue)
+  )
+
   protected:
 
   unsigned int bucket_for (K key) const
@@ -216,9 +241,9 @@ struct hb_hashmap_t
     while (!items[i].is_unused ())
     {
       if (items[i] == key)
-        return i;
+	return i;
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
-        tombstone = i;
+	tombstone = i;
       i = (i + ++step) & mask;
     }
     return tombstone == (unsigned) -1 ? i : tombstone;

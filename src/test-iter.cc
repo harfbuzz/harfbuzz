@@ -161,7 +161,7 @@ main (int argc, char **argv)
   test_iterator_non_default_constructable (hb_enumerate (hb_iter (st)));
   test_iterator_non_default_constructable (hb_enumerate (hb_iter (st) + 1));
   test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
-  test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_identity));
+  test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_rvalue));
 
   assert (true == hb_all (st));
   assert (false == hb_all (st, 42u));
@@ -204,6 +204,25 @@ main (int argc, char **argv)
   + hb_iter (src)
   | hb_map ([&] (int i) -> int { return 1; })
   | hb_reduce ([&] (int acc, int value) -> int { return acc; }, 2)
+  ;
+
+  using map_pair_t = hb_item_type<hb_map_t>;
+  + hb_iter (m)
+  | hb_map ([] (map_pair_t p) { return p.first * p.second; })
+  ;
+
+  m.keys ();
+  using map_key_t = decltype (*m.keys());
+  + hb_iter (m.keys ())
+  | hb_filter ([] (map_key_t k) { return k < 42; })
+  | hb_drain
+  ;
+
+  m.values ();
+  using map_value_t = decltype (*m.values());
+  + hb_iter (m.values ())
+  | hb_filter ([] (map_value_t k) { return k < 42; })
+  | hb_drain
   ;
 
   unsigned int temp1 = 10;
