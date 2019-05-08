@@ -207,10 +207,17 @@ struct hb_hashmap_t
    */
   auto iter() const HB_AUTO_RETURN
   (
-    + hb_array_t<item_t> (items, mask + 1)
+    + hb_array (items, mask + 1)
     | hb_filter (&item_t::is_real)
     | hb_map (&item_t::get_pair)
   )
+
+  auto keys() const HB_AUTO_RETURN
+  (
+  	+ iter()
+    | hb_map (&hb_pair_t<K, V>::first)
+  )
+  // | hb_map ([&] (item_t i) { return i.key; })
 
   protected:
 
