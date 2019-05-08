@@ -81,24 +81,52 @@ struct glyf
     return_trace (true);
   }
 
-  bool subset (hb_subset_plan_t *plan) const
+  template <typename Iterator>
+  bool serialize(hb_serialize_context_t *c,
+		 Iterator it)
   {
-    hb_blob_t *glyf_prime = nullptr;
-    hb_blob_t *loca_prime = nullptr;
+    TRACE_SERIALIZE (this);
 
-    bool success = true;
-    bool use_short_loca = false;
-    if (hb_subset_glyf_and_loca (plan, &use_short_loca, &glyf_prime, &loca_prime)) {
-      success = success && plan->add_table (HB_OT_TAG_glyf, glyf_prime);
-      success = success && plan->add_table (HB_OT_TAG_loca, loca_prime);
-      success = success && _add_head_and_set_loca_version (plan, use_short_loca);
-    } else {
-      success = false;
-    }
-    hb_blob_destroy (loca_prime);
-    hb_blob_destroy (glyf_prime);
+    // TODO actually copy glyph
+    // TODO worry about instructions
+    // TODO capture dest locations for loca
 
-    return success;
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+
+    glyf *glyf_prime = c->serializer->start_embed <glyf> ();
+    if (unlikely (!glyf_prime)) return_trace (false);
+
+    OT::glyf::accelerator_t glyf;
+    glyf.init (c->plan->source);
+
+    // stream new-gids => pair of start/end offsets
+    // can now copy glyph from <prev>=>end
+    // TODO(instructions)
+    auto it =
+    + hb_iota (c->plan->num_output_glyphs ())
+    | hb_map ([&] (hb_codepoint_t new_gid) {
+      unsigned int start_offset = 0, end_offset = 0;
+      // simple case: empty glyph
+      hb_codepoint_t old_gid;
+      if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid)) return hb_pair (start_offset, end_offset);
+
+      if (unlikely (!(glyf.get_offsets (old_gid, &start_offset, &end_offset) &&
+	glyf.remove_padding (start_offset, &end_offset))))
+      {
+	// TODO signal irreversible error
+	return hb_pair (start_offset, end_offset);
+      }
+      return hb_pair (start_offset, end_offset);
+    });
+
+    glyf_prime->serialize (c->serializer, it);
+
+    return_trace (true);
   }
 
   static bool
