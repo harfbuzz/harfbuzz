@@ -316,7 +316,7 @@ static inline auto end (Iterable&& iterable) HB_AUTO_RETURN (hb_iter (iterable).
 template <typename Lhs, typename Rhs,
 	  hb_requires (hb_is_iterator (Lhs))>
 static inline auto
-operator | (Lhs lhs, const Rhs &rhs) HB_AUTO_RETURN (rhs (lhs))
+operator | (Lhs&& lhs, Rhs&& rhs) HB_AUTO_RETURN (hb_forward<Rhs> (rhs) (hb_forward<Lhs> (lhs)))
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
@@ -355,7 +355,7 @@ struct hb_map_iter_factory_t
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
   hb_map_iter_t<Iter, Proj>
-  operator () (Iter it) const
+  operator () (Iter it)
   { return hb_map_iter_t<Iter, Proj> (it, f); }
 
   private:
@@ -402,7 +402,7 @@ struct hb_filter_iter_factory_t
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
   hb_filter_iter_t<Iter, Pred, Proj>
-  operator () (Iter it) const
+  operator () (Iter it)
   { return hb_filter_iter_t<Iter, Pred, Proj> (it, p, f); }
 
   private:
@@ -428,7 +428,7 @@ struct hb_reduce_t
 	    hb_requires (hb_is_iterator (Iter)),
 	    typename AccuT = decltype (hb_declval (Redu) (hb_declval (InitT), hb_declval (typename Iter::item_t)))>
   AccuT
-  operator () (Iter it) const
+  operator () (Iter it)
   {
     AccuT value = init_value;
     for (; it; ++it)
@@ -549,7 +549,7 @@ struct hb_apply_t
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
       (void) hb_invoke (a, *it);
@@ -579,7 +579,7 @@ struct hb_sink_t
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
       s << *it;
@@ -619,11 +619,11 @@ HB_FUNCOBJ (hb_drain);
 template <typename Sink1, typename Sink2>
 struct hb_unzip_t
 {
-  hb_unzip_t (Sink1&& s1, Sink2&& s2) : s1 (s1), s2 (s2) {}
+  hb_unzip_t (Sink1 s1, Sink2 s2) : s1 (s1), s2 (s2) {}
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  void operator () (Iter it) const
+  void operator () (Iter it)
   {
     for (; it; ++it)
     {
