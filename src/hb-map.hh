@@ -181,7 +181,12 @@ struct hb_hashmap_t
   static constexpr V SENTINEL = vINVALID;
   typedef V value_t;
   value_t operator [] (K k) const { return get (k); }
-  bool has (K k) const { return (*this)[k] != SENTINEL; }
+  bool has (K k, V *vp = nullptr) const
+  {
+    V v = (*this)[k];
+    if (vp) *vp = v;
+    return v != SENTINEL;
+  }
   /* Projection. */
   V operator () (K k) const { return get (k); }
 
