@@ -153,36 +153,36 @@ _populate_gids_to_retain (hb_face_t *face,
 }
 
 static void
-_create_old_gid_to_new_gid_map (const hb_face_t                   *face,
-                                bool                               retain_gids,
-				hb_set_t                          *all_gids_to_retain,
-                                hb_map_t                          *glyph_map, /* OUT */
-                                hb_map_t                          *reverse_glyph_map, /* OUT */
-                                unsigned int                      *num_glyphs /* OUT */)
+_create_old_gid_to_new_gid_map (const hb_face_t *face,
+                                bool             retain_gids,
+				const hb_set_t  *all_gids_to_retain,
+                                hb_map_t        *glyph_map, /* OUT */
+                                hb_map_t        *reverse_glyph_map, /* OUT */
+                                unsigned int    *num_glyphs /* OUT */)
 {
-  hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-  unsigned int length = 0;
-  for (unsigned int i = 0; all_gids_to_retain->next (&gid); i++) {
-    if (!retain_gids)
-    {
-      glyph_map->set (gid, i);
-      reverse_glyph_map->set (i, gid);
-    }
-    else
-    {
-      glyph_map->set (gid, gid);
-      reverse_glyph_map->set (gid, gid);
-    }
-    ++length;
-  }
-  if (!retain_gids || length == 0)
+  if (!retain_gids)
   {
-    *num_glyphs = length;
-  }
-  else
-  {
+    + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
+    | hb_sink (reverse_glyph_map)
+    ;
+    *num_glyphs = reverse_glyph_map->get_population ();
+  } else {
+    + hb_iter (all_gids_to_retain)
+    | hb_map ([=] (hb_codepoint_t _) {
+		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
+	      })
+    | hb_sink (reverse_glyph_map);
+    ;
+
+    // TODO(grieger): Should we discard glyphs past the max glyph to keep?
+    // *num_glyphs = + hb_iter (all_gids_to_retain) | hb_reduce (hb_max, 0);
     *num_glyphs = face->get_num_glyphs ();
   }
+
+  + reverse_glyph_map->iter ()
+  | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
+  | hb_sink (glyph_map)
+  ;
 }
 
 /**
