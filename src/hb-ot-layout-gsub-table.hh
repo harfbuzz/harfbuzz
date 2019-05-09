@@ -34,10 +34,14 @@
 
 namespace OT {
 
+typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> hb_codepoint_pair_t;
 
+template<typename Iterator,
+    hb_requires (hb_is_sorted_source_of (Iterator,
+                                         const hb_codepoint_pair_t))>
 static inline void SingleSubst_serialize (hb_serialize_context_t *c,
-					  hb_sorted_array_t<const GlyphID> glyphs,
-					  hb_array_t<const GlyphID> substitutes);
+					  Iterator it);
+
 
 struct SingleSubstFormat1
 {
@@ -83,8 +87,11 @@ struct SingleSubstFormat1
     return_trace (true);
   }
 
+  template<typename Iterator,
+      hb_requires (hb_is_sorted_source_of (Iterator,
+                                           hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_sorted_array_t<const GlyphID> glyphs,
+		  Iterator glyphs,
 		  unsigned delta)
   {
     TRACE_SERIALIZE (this);
@@ -100,20 +107,18 @@ struct SingleSubstFormat1
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    hb_sorted_vector_t<GlyphID> from;
-    hb_vector_t<GlyphID> to;
     hb_codepoint_t delta = deltaGlyphID;
 
+    auto it =
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
-    | hb_map ([&] (hb_codepoint_t g) -> hb_pair_t<hb_codepoint_t, hb_codepoint_t>
-	      { return hb_pair<hb_codepoint_t, hb_codepoint_t> (glyph_map[g],
-								glyph_map[(g + delta) & 0xFFFF]); })
-    | hb_unzip (from, to);
+    | hb_map_retains_sorting ([&] (hb_codepoint_t g) {
+                                return hb_codepoint_pair_t (glyph_map[g],
+                                                            glyph_map[(g + delta) & 0xFFFF]); })
+    ;
 
-    c->serializer->propagate_error (from, to);
-    SingleSubst_serialize (c->serializer, from, to);
-    return_trace (from.length);
+    SingleSubst_serialize (c->serializer, it);
+    return_trace (it.len ());
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -174,11 +179,21 @@ struct SingleSubstFormat2
     return_trace (true);
   }
 
+  template<typename Iterator,
+      hb_requires (hb_is_sorted_source_of (Iterator,
+                                           const hb_codepoint_pair_t))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_sorted_array_t<const GlyphID> glyphs,
-		  hb_array_t<const GlyphID> substitutes)
+		  Iterator it)
   {
     TRACE_SERIALIZE (this);
+    auto substitutes =
+      + it
+      | hb_map (hb_second)
+      ;
+    auto glyphs =
+      + it
+      | hb_map_retains_sorting (hb_first)
+      ;
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!substitute.serialize (c, substitutes))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
@@ -191,18 +206,15 @@ struct SingleSubstFormat2
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    hb_sorted_vector_t<GlyphID> from;
-    hb_vector_t<GlyphID> to;
-
+    auto it =
     + hb_zip (this+coverage, substitute)
     | hb_filter (glyphset, hb_first)
-    | hb_map ([&] (hb_pair_t<hb_codepoint_t, const GlyphID &> p) -> hb_pair_t<hb_codepoint_t, hb_codepoint_t>
-	      { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
-    | hb_unzip (from, to);
+    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const GlyphID &> p) -> hb_codepoint_pair_t
+                              { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
+    ;
 
-    c->serializer->propagate_error (from, to);
-    SingleSubst_serialize (c->serializer, from, to);
-    return_trace (from.length);
+    SingleSubst_serialize (c->serializer, it);
+    return_trace (it.len ());
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -225,28 +237,33 @@ struct SingleSubstFormat2
 
 struct SingleSubst
 {
+
+  template<typename Iterator,
+      hb_requires (hb_is_sorted_source_of (Iterator,
+                                           const hb_codepoint_pair_t))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_sorted_array_t<const GlyphID> glyphs,
-		  hb_array_t<const GlyphID> substitutes)
+		  Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned format = 2;
     unsigned delta = 0;
-    if (glyphs.length)
+    if (glyphs.len ())
     {
       format = 1;
-      delta = (unsigned) (substitutes[0] - glyphs[0]) & 0xFFFF;
-      for (unsigned int i = 1; i < glyphs.length; i++)
-	if (delta != ((unsigned) (substitutes[i] - glyphs[i]) & 0xFFFF)) {
-	  format = 2;
-	  break;
-	}
+      auto get_delta = [=] (hb_codepoint_pair_t _) {
+			 return (unsigned) (_.second - _.first) & 0xFFFF;
+		       };
+      delta = get_delta (*glyphs);
+      if (!hb_all (++(+glyphs), delta, get_delta)) format = 2;
     }
     u.format = format;
     switch (u.format) {
-    case 1: return_trace (u.format1.serialize (c, glyphs, delta));
-    case 2: return_trace (u.format2.serialize (c, glyphs, substitutes));
+    case 1: return_trace (u.format1.serialize (c,
+                                               + glyphs
+                                               | hb_map_retains_sorting (hb_first),
+                                               delta));
+    case 2: return_trace (u.format2.serialize (c, glyphs));
     default:return_trace (false);
     }
   }
@@ -271,11 +288,13 @@ struct SingleSubst
   } u;
 };
 
+template<typename Iterator,
+    	 hb_requires (hb_is_sorted_source_of (Iterator,
+                                              const hb_codepoint_pair_t))>
 static inline void
 SingleSubst_serialize (hb_serialize_context_t *c,
-		       hb_sorted_array_t<const GlyphID> glyphs,
-		       hb_array_t<const GlyphID> substitutes)
-{ c->start_embed<SingleSubst> ()->serialize (c, glyphs, substitutes); }
+		       Iterator it)
+{ c->start_embed<SingleSubst> ()->serialize (c, it); }
 
 struct Sequence
 {
@@ -1264,7 +1283,9 @@ struct SubstLookup : Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);
-    return_trace (serialize_subtable (c, 0).u.single.serialize (c, glyphs, substitutes));
+
+    return_trace (serialize_subtable (c, 0).u.single
+		  .serialize (c, hb_zip (glyphs, substitutes)));
   }
 
   bool serialize_multiple (hb_serialize_context_t *c,
