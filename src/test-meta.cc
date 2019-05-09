@@ -32,51 +32,51 @@ int
 main (int argc, char **argv)
 {
 
-  static_assert (hb_is_convertible (void, void));
-  static_assert (hb_is_convertible (void, const void));
-  static_assert (hb_is_convertible (const void, void));
+  static_assert (hb_is_convertible (void, void), "");
+  static_assert (hb_is_convertible (void, const void), "");
+  static_assert (hb_is_convertible (const void, void), "");
 
-  static_assert (hb_is_convertible (int,  int));
-  static_assert (hb_is_convertible (char, int));
-  static_assert (hb_is_convertible (long, int));
+  static_assert (hb_is_convertible (int,  int), "");
+  static_assert (hb_is_convertible (char, int), "");
+  static_assert (hb_is_convertible (long, int), "");
 
-  static_assert (hb_is_convertible (int, int));
+  static_assert (hb_is_convertible (int, int), "");
 
-  static_assert (hb_is_convertible (const int, int));
-  static_assert (hb_is_convertible (int, const int));
-  static_assert (hb_is_convertible (const int, const int));
+  static_assert (hb_is_convertible (const int, int), "");
+  static_assert (hb_is_convertible (int, const int), "");
+  static_assert (hb_is_convertible (const int, const int), "");
 
-  static_assert (hb_is_convertible (int&, int));
-  static_assert (!hb_is_convertible (int, int&));
+  static_assert (hb_is_convertible (int&, int), "");
+  static_assert (!hb_is_convertible (int, int&), "");
 
-  static_assert (hb_is_convertible (int, const int&));
-  static_assert (!hb_is_convertible (const int, int&));
-  static_assert (hb_is_convertible (const int, const int&));
-  static_assert (hb_is_convertible (int&, const int));
-  static_assert (hb_is_convertible (const int&, int));
-  static_assert (hb_is_convertible (const int&, const int));
-  static_assert (hb_is_convertible (const int&, const int));
+  static_assert (hb_is_convertible (int, const int&), "");
+  static_assert (!hb_is_convertible (const int, int&), "");
+  static_assert (hb_is_convertible (const int, const int&), "");
+  static_assert (hb_is_convertible (int&, const int), "");
+  static_assert (hb_is_convertible (const int&, int), "");
+  static_assert (hb_is_convertible (const int&, const int), "");
+  static_assert (hb_is_convertible (const int&, const int), "");
 
   struct X {};
 
-  static_assert (hb_is_convertible (const X &, const X));
-  static_assert (hb_is_convertible (X &, const X));
-  static_assert (hb_is_convertible (X &, const X &));
-  static_assert (hb_is_convertible (X, const X &));
-  static_assert (hb_is_convertible (const X, const X &));
-  static_assert (!hb_is_convertible (const X, X &));
-  static_assert (!hb_is_convertible (X, X &));
-  static_assert (hb_is_convertible (X &, X &));
+  static_assert (hb_is_convertible (const X &, const X), "");
+  static_assert (hb_is_convertible (X &, const X), "");
+  static_assert (hb_is_convertible (X &, const X &), "");
+  static_assert (hb_is_convertible (X, const X &), "");
+  static_assert (hb_is_convertible (const X, const X &), "");
+  static_assert (!hb_is_convertible (const X, X &), "");
+  static_assert (!hb_is_convertible (X, X &), "");
+  static_assert (hb_is_convertible (X &, X &), "");
 
-  static_assert (hb_is_convertible (int&, long));
-  static_assert (!hb_is_convertible (int&, long&));
+  static_assert (hb_is_convertible (int&, long), "");
+  static_assert (!hb_is_convertible (int&, long&), "");
 
-  static_assert (hb_is_convertible (int *, int *));
-  static_assert (hb_is_convertible (int *, const int *));
-  static_assert (!hb_is_convertible (const int *, int *));
-  static_assert (!hb_is_convertible (int *, long *));
-  static_assert (hb_is_convertible (int *, void *));
-  static_assert (!hb_is_convertible (void *, int *));
+  static_assert (hb_is_convertible (int *, int *), "");
+  static_assert (hb_is_convertible (int *, const int *), "");
+  static_assert (!hb_is_convertible (const int *, int *), "");
+  static_assert (!hb_is_convertible (int *, long *), "");
+  static_assert (hb_is_convertible (int *, void *), "");
+  static_assert (!hb_is_convertible (void *, int *), "");
 
   return 0;
 }
