@@ -137,7 +137,7 @@ struct hb_is_convertible
   static hb_true_t impl2 (hb_conditional<to_void, int, To>);
 
   template <typename T>
-  static auto impl (hb_priority<1>) HB_AUTO_RETURN ( impl2 (hb_declval (T)) )
+  static auto impl (hb_priority<1>) -> decltype (impl2 (hb_declval (T)));
   template <typename T>
   static hb_false_t impl (hb_priority<0>);
   public:
