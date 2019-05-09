@@ -578,36 +578,36 @@ template <typename T, typename S>
 struct hb_iota_iter_t :
   hb_iter_t<hb_iota_iter_t<T, S>, T>
 {
-  hb_iota_iter_t (T start, T end, S step) : v (start), end (end_for (start, end, step)), step (step) {}
+  hb_iota_iter_t (T start, T end_, S step) : v (start), end_ (end__for (start, end_, step)), step (step) {}
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
   static constexpr bool is_sorted_iterator = true;
   __item_t__ __item__ () const { return v; }
   __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
-  bool __more__ () const { return v != end; }
-  unsigned __len__ () const { return (end - v) / step; }
+  bool __more__ () const { return v != end_; }
+  unsigned __len__ () const { return (end_ - v) / step; }
   void __next__ () { v += step; }
   void __forward__ (unsigned n) { v += n * step; }
   void __prev__ () { v -= step; }
   void __rewind__ (unsigned n) { v -= n * step; }
-  hb_iota_iter_t __end__ () const { hb_iota_iter_t (end, end, step); }
+  hb_iota_iter_t __end___ () const { hb_iota_iter_t (end_, end_, step); }
   bool operator != (const hb_iota_iter_t& o) const
-  { return v != o.v || end != o.end || step != o.step; }
+  { return v != o.v || end_ != o.end_ || step != o.step; }
 
   private:
-  static inline T end_for (T start, T end, S step)
+  static inline T end__for (T start, T end_, S step)
   {
-    auto res = (end - start) % step;
+    auto res = (end_ - start) % step;
     if (!res)
-      return end;
-    end += step - res;
-    return end;
+      return end_;
+    end_ += step - res;
+    return end_;
   }
 
   private:
   T v;
-  T end;
+  T end_;
   S step;
 };
 struct
