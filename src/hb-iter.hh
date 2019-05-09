@@ -531,7 +531,7 @@ template <typename T, typename S>
 struct hb_counter_iter_t :
   hb_iter_t<hb_counter_iter_t<T, S>, T>
 {
-  hb_counter_iter_t (T start, T end_, S step) : v (start), end_ (end__for (start, end_, step)), step (step) {}
+  hb_counter_iter_t (T start, T end_, S step) : v (start), end_ (end_for (start, end_, step)), step (step) {}
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
@@ -549,8 +549,10 @@ struct hb_counter_iter_t :
   { return v != o.v || end_ != o.end_ || step != o.step; }
 
   private:
-  static inline T end__for (T start, T end_, S step)
+  static inline T end_for (T start, T end_, S step)
   {
+    if (!step)
+      return end_;
     auto res = (end_ - start) % step;
     if (!res)
       return end_;
