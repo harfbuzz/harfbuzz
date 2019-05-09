@@ -52,6 +52,18 @@ typedef hb_bool_tt<true> hb_true_t;
 typedef hb_bool_tt<false> hb_false_t;
 
 
+/* Basic type SFINAE. */
+
+template <bool B, typename T = void> struct hb_enable_if {};
+template <typename T>                struct hb_enable_if<true, T> { typedef T type; };
+#define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
+/* Concepts/Requires alias: */
+#define hb_requires(Cond) hb_enable_if((Cond))
+
+template <typename T, typename T2> struct hb_is_same : hb_false_t {};
+template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
+#define hb_is_same(T, T2) hb_is_same<T, T2>::value
+
 /* Function overloading SFINAE and priority. */
 
 #define HB_RETURN(Ret, E) -> hb_head_tt<Ret, decltype ((E))> { return (E); }
@@ -110,6 +122,40 @@ template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
 	hb_is_reference (A) >= hb_is_reference (B))
 
 
+
+template<bool B, class T, class F>
+struct _hb_conditional { typedef T type; };
+template<class T, class F>
+struct _hb_conditional<false, T, F> { typedef F type; };
+template<bool B, class T, class F>
+using hb_conditional = typename _hb_conditional<B, T, F>::type;
+
+
+template <typename From, typename To>
+struct hb_is_convertible
+{
+  private:
+  static constexpr bool   from_void = hb_is_same (void, hb_decay<From>);
+  static constexpr bool     to_void = hb_is_same (void, hb_decay<To>  );
+  static constexpr bool either_void = from_void || to_void;
+  static constexpr bool   both_void = from_void && to_void;
+
+  static hb_true_t impl2 (hb_conditional<to_void, int, To>);
+
+  template <typename T>
+  static auto impl (hb_priority<1>) HB_AUTO_RETURN ( impl2 (hb_declval (T)) )
+  template <typename T>
+  static hb_false_t impl (hb_priority<0>);
+  public:
+  static constexpr bool value = both_void ||
+		       (!either_void &&
+			decltype (impl<hb_conditional<from_void, int, From>> (hb_prioritize))::value);
+};
+
+
+#define hb_is_convertible(From,To) hb_is_convertible<From, To>::value
+
+
 /* std::move and std::forward */
 
 template <typename T>
@@ -161,16 +207,6 @@ struct hb_reference_wrapper<T&>
   T* v;
 };
 
-
-template <bool B, typename T = void> struct hb_enable_if {};
-template <typename T>                struct hb_enable_if<true, T> { typedef T type; };
-#define hb_enable_if(Cond) typename hb_enable_if<(Cond)>::type* = nullptr
-/* Concepts/Requires alias: */
-#define hb_requires(Cond) hb_enable_if((Cond))
-
-template <typename T, typename T2> struct hb_is_same : hb_false_t {};
-template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
-#define hb_is_same(T, T2) hb_is_same<T, T2>::value
 
 template <typename T> struct hb_is_signed;
 template <> struct hb_is_signed<char>			{ static constexpr bool value = CHAR_MIN < 0;	};
