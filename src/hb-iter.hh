@@ -479,7 +479,7 @@ struct hb_zip_iter_t :
   void __rewind__ (unsigned n) { a -= n; b -= n; }
   hb_zip_iter_t __end__ () const { return hb_zip_iter_t (a.end (), b.end ()); }
   bool operator != (const hb_zip_iter_t& o) const
-  { return a != o.a || b != o.b; }
+  { return a != o.a && b != o.b; }
 
   private:
   A a;
