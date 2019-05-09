@@ -419,7 +419,7 @@ struct UnsizedArrayOf
     return_trace (true);
   }
   template <typename Iterator,
-	    hb_requires (hb_is_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_source_of (Iterator, Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -598,7 +598,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename Iterator,
-	    hb_requires (hb_is_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_source_of (Iterator, Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -877,14 +877,13 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     return_trace (ret);
   }
   template <typename Iterator,
-	    hb_requires (hb_is_sorted_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_sorted_source_of (Iterator, Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     bool ret = ArrayOf<Type, LenType>::serialize (c, items);
     return_trace (ret);
   }
-
 
   template <typename T>
   Type &bsearch (const T &x, Type &not_found = Crap (Type))

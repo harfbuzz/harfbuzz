@@ -237,6 +237,21 @@ struct hb_iter_with_fallback_t :
  * Meta-programming predicates.
  */
 
+/* hb_is_iterator() / hb_is_iterator_of() */
+
+template<typename Iter, typename Item>
+struct hb_is_iterator_of
+{
+  template <typename Item2 = Item>
+  static hb_true_t impl (hb_priority<2>, hb_iter_t<Iter, hb_type_identity<Item2>> *);
+  static hb_false_t impl (hb_priority<0>, const void *);
+
+  public:
+  static constexpr bool value = decltype (impl (hb_prioritize, hb_declval (Iter*)))::value;
+};
+#define hb_is_iterator_of(Iter, Item) hb_is_iterator_of<Iter, Item>::value
+#define hb_is_iterator(Iter) hb_is_iterator_of (Iter, typename Iter::item_t)
+
 /* hb_is_iterable() */
 
 template <typename T>
@@ -251,39 +266,41 @@ struct hb_is_iterable
   static hb_false_t impl (hb_priority<0>);
 
   public:
-
-  enum { value = decltype (impl<T> (hb_prioritize))::value };
+  static constexpr bool value = decltype (impl<T> (hb_prioritize))::value;
 };
 #define hb_is_iterable(Iterable) hb_is_iterable<Iterable>::value
 
-/* TODO Add hb_is_iterable_of().
- * TODO Add random_access / sorted variants. */
-
-/* hb_is_iterator() / hb_is_random_access_iterator() / hb_is_sorted_iterator() */
-
-template <typename Iter, typename Item>
-static inline char _hb_is_iterator_of (hb_priority<0>, const void *) { return 0; }
-template <typename Iter,
-	  typename Item,
-	  typename Item2 = typename Iter::item_t,
-	  hb_enable_if (hb_is_convertible (Item2, Item))>
-static inline int _hb_is_iterator_of (hb_priority<2>, hb_iter_t<Iter, Item2> *) { return 0; }
+/* hb_is_source_of() / hb_is_sink_of() */
 
 template<typename Iter, typename Item>
-struct hb_is_iterator_of { enum {
-  value = sizeof (int) == sizeof (_hb_is_iterator_of<Iter, Item> (hb_prioritize, hb_declval (Iter*))) }; };
-#define hb_is_iterator_of(Iter, Item) hb_is_iterator_of<Iter, Item>::value
-#define hb_is_iterator(Iter) hb_is_iterator_of (Iter, typename Iter::item_t)
+struct hb_is_source_of
+{
+  private:
+  template <typename Iter2 = Iter,
+	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, const Item &))>
+  static hb_true_t impl (hb_priority<2>);
+  static hb_false_t impl (hb_priority<0>);
 
-#define hb_is_random_access_iterator_of(Iter, Item) \
-  hb_is_iterator_of (Iter, Item) && Iter::is_random_access_iterator
-#define hb_is_random_access_iterator(Iter) \
-  hb_is_random_access_iterator_of (Iter, typename Iter::item_t)
+  public:
+  static constexpr bool value = decltype (impl (hb_prioritize))::value;
+};
+#define hb_is_source_of(Iter, Item) hb_is_source_of<Iter, Item>::value
 
-#define hb_is_sorted_iterator_of(Iter, Item) \
-  hb_is_iterator_of (Iter, Item) && Iter::is_sorted_iterator
-#define hb_is_sorted_iterator(Iter) \
-  hb_is_sorted_iterator_of (Iter, typename Iter::item_t)
+template<typename Iter, typename Item>
+struct hb_is_sink_of
+{
+  private:
+  static auto impl (hb_priority<2>) -> decltype (hb_declval (Iter) << hb_declval (Item), hb_true_t ());
+  static hb_false_t impl (hb_priority<0>);
+
+  public:
+  static constexpr bool value = decltype (impl (hb_prioritize))::value;
+};
+#define hb_is_sink_of(Iter, Item) hb_is_sink_of<Iter, Item>::value
+
+/* This is commonly used, so define: */
+#define hb_is_sorted_source_of(Iter, Item) \
+	(hb_is_source_of(Iter, Item) && Iter::is_sorted_iterator)
 
 
 /* Range-based 'for' for iterables. */
