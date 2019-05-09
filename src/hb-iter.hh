@@ -266,7 +266,7 @@ static inline char _hb_is_iterator_of (hb_priority<0>, const void *) { return 0;
 template <typename Iter,
 	  typename Item,
 	  typename Item2 = typename Iter::item_t,
-	  hb_enable_if (hb_is_cr_convertible_to (Item2, Item))>
+	  hb_enable_if (hb_is_convertible (Item2, Item))>
 static inline int _hb_is_iterator_of (hb_priority<2>, hb_iter_t<Iter, Item2> *) { return 0; }
 
 template<typename Iter, typename Item>

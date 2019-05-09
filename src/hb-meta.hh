@@ -116,10 +116,10 @@ template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::ty
 /* TODO Add feature-parity to std::decay. */
 template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
 
-#define hb_is_cr_convertible_to(A, B) ( \
-	hb_is_same (hb_decay<A>, hb_decay<B>) && \
-	hb_is_const (A) <= hb_is_const (B) && \
-	hb_is_reference (A) >= hb_is_reference (B))
+#define hb_is_cr_convertible(From, To) ( \
+	hb_is_same (hb_decay<From>, hb_decay<To>) && \
+	hb_is_const (From) <= hb_is_const (To) && \
+	hb_is_reference (From) >= hb_is_reference (To))
 
 
 
