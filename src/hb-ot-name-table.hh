@@ -170,7 +170,7 @@ struct name
   { return min_size + count * nameRecordZ.item_size; }
 
   template <typename Iterator,
-	    hb_requires (hb_is_iterator_of (Iterator, const NameRecord))>
+	    hb_requires (hb_is_iterator_of (Iterator, const NameRecord &))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
 		  const void *src_string_pool)

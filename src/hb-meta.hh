@@ -157,8 +157,6 @@ struct hb_is_convertible
 		       (!either_void &&
 			decltype (impl<hb_conditional<from_void, int, From>> (hb_prioritize))::value);
 };
-
-
 #define hb_is_convertible(From,To) hb_is_convertible<From, To>::value
 
 
