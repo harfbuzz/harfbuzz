@@ -536,7 +536,7 @@ struct hb_counter_iter_t :
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
   static constexpr bool is_sorted_iterator = true;
-  __item_t__ __item__ () const { return v; }
+  __item_t__ __item__ () const { return +v; }
   __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
   bool __more__ () const { return v != end_; }
   unsigned __len__ () const { return (end_ - v) / step; }
