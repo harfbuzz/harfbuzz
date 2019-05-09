@@ -82,8 +82,10 @@ test_iterator_non_default_constructable (Iter it)
     (void) _;
 
   it += it.len ();
-  it = it + 10;
-  it = 10 + it;
+  if (0)
+    it = it + 10;
+  if (0)
+    it = 10 + it;
 
   assert (*it == it[0]);
 
