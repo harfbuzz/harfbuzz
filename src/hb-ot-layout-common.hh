@@ -804,7 +804,7 @@ struct CoverageFormat1
   }
 
   template <typename Iterator,
-	    hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -873,7 +873,7 @@ struct CoverageFormat2
   }
 
   template <typename Iterator,
-	    hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -1043,7 +1043,7 @@ struct Coverage
   }
 
   template <typename Iterator,
-	    hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
