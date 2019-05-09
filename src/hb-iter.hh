@@ -490,57 +490,10 @@ struct
   template <typename A, typename B,
 	    hb_requires (hb_is_iterable (A) && hb_is_iterable (B))>
   hb_zip_iter_t<hb_iter_type<A>, hb_iter_type<B>>
-  operator () (A& a, B &b) const
+  operator () (A&& a, B&& b) const
   { return hb_zip_iter_t<hb_iter_type<A>, hb_iter_type<B>> (hb_iter (a), hb_iter (b)); }
 }
 HB_FUNCOBJ (hb_zip);
-
-/* hb_enumerate */
-
-template <typename Iter,
-	 hb_requires (hb_is_iterator (Iter))>
-struct hb_enumerate_iter_t :
-  hb_iter_t<hb_enumerate_iter_t<Iter>,
-	    hb_pair_t<unsigned, typename Iter::item_t>>
-{
-  hb_enumerate_iter_t (const Iter& it) : i (0), it (it) {}
-
-  typedef hb_pair_t<unsigned, typename Iter::item_t> __item_t__;
-  static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
-  static constexpr bool is_sorted_iterator = true;
-  __item_t__ __item__ () const { return __item_t__ (+i, *it); }
-  __item_t__ __item_at__ (unsigned j) const { return __item_t__ (i + j, it[j]); }
-  bool __more__ () const { return bool (it); }
-  unsigned __len__ () const { return it.len (); }
-  void __next__ () { ++i; ++it; }
-  void __forward__ (unsigned n) { i += n; it += n; }
-  void __prev__ () { --i; --it; }
-  void __rewind__ (unsigned n) { i -= n; it -= n; }
-  hb_enumerate_iter_t __end__ () const
-  {
-    if (is_random_access_iterator)
-      return *this + this->len ();
-    /* Above expression loops twice. Following loops once. */
-    auto it = *this;
-    while (it) ++it;
-    return it;
-  }
-  bool operator != (const hb_enumerate_iter_t& o) const
-  { return i != o.i || it != o.it; }
-
-  private:
-  unsigned i;
-  Iter it;
-};
-struct
-{
-  template <typename Iterable,
-	    hb_requires (hb_is_iterable (Iterable))>
-  hb_enumerate_iter_t<hb_iter_type<Iterable>>
-  operator () (Iterable&& it) const
-  { return hb_enumerate_iter_t<hb_iter_type<Iterable>> (hb_iter (it)); }
-}
-HB_FUNCOBJ (hb_enumerate);
 
 /* hb_apply() */
 
@@ -628,6 +581,18 @@ struct
   { return hb_counter_iter_t<T, S> (start, end, step); }
 }
 HB_FUNCOBJ (hb_range);
+
+/* hb_enumerate */
+
+struct
+{
+  template <typename Iterable,
+	    typename Index = unsigned,
+	    hb_requires (hb_is_iterable (Iterable))>
+  auto operator () (Iterable&& it, Index start = 0u) const HB_AUTO_RETURN
+  ( hb_zip (hb_iota (start), it) )
+}
+HB_FUNCOBJ (hb_enumerate);
 
 
 /* hb_sink() */
