@@ -180,7 +180,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   hb_array_t copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
-    auto* out = c->template start_embed (arrayZ);
+    auto* out = c->start_embed (arrayZ);
     if (unlikely (!c->extend_size (out, get_size ()))) return_trace (hb_array_t ());
     for (unsigned i = 0; i < length; i++)
       out[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
