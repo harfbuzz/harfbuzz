@@ -572,13 +572,13 @@ struct
 }
 HB_FUNCOBJ (hb_apply);
 
-/* hb_iota() */
+/* hb_iota()/hb_range() */
 
 template <typename T, typename S>
-struct hb_iota_iter_t :
-  hb_iter_t<hb_iota_iter_t<T, S>, T>
+struct hb_counter_iter_t :
+  hb_iter_t<hb_counter_iter_t<T, S>, T>
 {
-  hb_iota_iter_t (T start, T end_, S step) : v (start), end_ (end__for (start, end_, step)), step (step) {}
+  hb_counter_iter_t (T start, T end_, S step) : v (start), end_ (end__for (start, end_, step)), step (step) {}
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
@@ -591,8 +591,8 @@ struct hb_iota_iter_t :
   void __forward__ (unsigned n) { v += n * step; }
   void __prev__ () { v -= step; }
   void __rewind__ (unsigned n) { v -= n * step; }
-  hb_iota_iter_t __end___ () const { hb_iota_iter_t (end_, end_, step); }
-  bool operator != (const hb_iota_iter_t& o) const
+  hb_counter_iter_t __end___ () const { hb_counter_iter_t (end_, end_, step); }
+  bool operator != (const hb_counter_iter_t& o) const
   { return v != o.v || end_ != o.end_ || step != o.step; }
 
   private:
@@ -612,15 +612,22 @@ struct hb_iota_iter_t :
 };
 struct
 {
-  template <typename T = unsigned> hb_iota_iter_t<T, unsigned>
-  operator () (T end = (unsigned) -1) const
-  { return hb_iota_iter_t<T, unsigned> (0, end, 1u); }
-
-  template <typename T, typename S = unsigned> hb_iota_iter_t<T, S>
-  operator () (T start, T end, S&& step = 1u) const
-  { return hb_iota_iter_t<T, S> (start, end, step); }
+  template <typename T = unsigned, typename S = unsigned> hb_counter_iter_t<T, S>
+  operator () (T start = 0u, S&& step = 1u) const
+  { return hb_counter_iter_t<T, S> (start, hb_int_max (T), step); }
 }
 HB_FUNCOBJ (hb_iota);
+struct
+{
+  template <typename T = unsigned> hb_counter_iter_t<T, unsigned>
+  operator () (T end = (unsigned) -1) const
+  { return hb_counter_iter_t<T, unsigned> (0, end, 1u); }
+
+  template <typename T, typename S = unsigned> hb_counter_iter_t<T, S>
+  operator () (T start, T end, S&& step = 1u) const
+  { return hb_counter_iter_t<T, S> (start, end, step); }
+}
+HB_FUNCOBJ (hb_range);
 
 
 /* hb_sink() */
