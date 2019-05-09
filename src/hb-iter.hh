@@ -544,7 +544,7 @@ struct hb_counter_iter_t :
   void __forward__ (unsigned n) { v += n * step; }
   void __prev__ () { v -= step; }
   void __rewind__ (unsigned n) { v -= n * step; }
-  hb_counter_iter_t __end___ () const { hb_counter_iter_t (end_, end_, step); }
+  hb_counter_iter_t __end__ () const { hb_counter_iter_t (end_, end_, step); }
   bool operator != (const hb_counter_iter_t& o) const
   { return v != o.v || end_ != o.end_ || step != o.step; }
 
