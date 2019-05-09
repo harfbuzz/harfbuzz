@@ -54,7 +54,7 @@
  * hb_ot_var_has_data:
  * @face: The #hb_face_t to work on
  *
- * Tests whether a face includes any OpenType variation data in the 'fvar' table.
+ * Tests whether a face includes any OpenType variation data in the `fvar` table.
  *
  * Return value: true if data found, false otherwise
  *
@@ -95,7 +95,7 @@ hb_ot_var_get_axis_count (hb_face_t *face)
  * at the offset provided.
  *
  * Since: 1.4.2
- * Deprecated: 2.2.0 - use #hb_ot_var_get_axis_infos instead
+ * Deprecated: 2.2.0: use hb_ot_var_get_axis_infos() instead
  **/
 unsigned int
 hb_ot_var_get_axes (hb_face_t        *face,
@@ -200,7 +200,7 @@ hb_ot_var_get_named_instance_count (hb_face_t *face)
  * @face: The #hb_face_t to work on
  * @instance_index: The index of the named instance to query
  *
- * Fetches the 'name' table Name ID that provides display names for
+ * Fetches the `name` table Name ID that provides display names for
  * the "Subfamily name" defined for the given named instance in the face.
  *
  * Return value: the Name ID found for the Subfamily name
@@ -219,7 +219,7 @@ hb_ot_var_named_instance_get_subfamily_name_id (hb_face_t   *face,
  * @face: The #hb_face_t to work on
  * @instance_index: The index of the named instance to query
  *
- * Fetches the 'name' table Name ID that provides display names for
+ * Fetches the `name` table Name ID that provides display names for
  * the "PostScript name" defined for the given named instance in the face.
  *
  * Return value: the Name ID found for the PostScript name
