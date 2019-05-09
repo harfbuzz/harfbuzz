@@ -567,7 +567,7 @@ struct
 {
   template <typename T = unsigned, typename S = unsigned> hb_counter_iter_t<T, S>
   operator () (T start = 0u, S&& step = 1u) const
-  { return hb_counter_iter_t<T, S> (start, hb_int_max (T), step); }
+  { return hb_counter_iter_t<T, S> (start, step >= 0 ? hb_int_max (T) : hb_int_min (T), step); }
 }
 HB_FUNCOBJ (hb_iota);
 struct
