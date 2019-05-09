@@ -44,7 +44,8 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    */
   hb_array_t () : arrayZ (nullptr), length (0) {}
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
-  template <unsigned int length_> hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
+  template <unsigned int length_>
+  hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
 
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
@@ -225,7 +226,8 @@ struct hb_sorted_array_t :
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}
-  template <unsigned int length_> hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
+  template <unsigned int length_>
+  hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
 
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
