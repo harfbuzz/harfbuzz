@@ -539,7 +539,7 @@ struct hb_counter_iter_t :
   __item_t__ __item__ () const { return +v; }
   __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
   bool __more__ () const { return v != end_; }
-  unsigned __len__ () const { return (end_ - v) / step; }
+  unsigned __len__ () const { return !step ? UINT_MAX : (end_ - v) / step; }
   void __next__ () { v += step; }
   void __forward__ (unsigned n) { v += n * step; }
   void __prev__ () { v -= step; }
