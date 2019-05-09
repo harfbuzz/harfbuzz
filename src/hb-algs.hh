@@ -36,17 +36,28 @@
 
 struct
 {
+  /* Note.  This is dangerous in that if it's passed an rvalue, it returns rvalue-reference. */
   template <typename T> auto
   operator () (T&& v) const HB_AUTO_RETURN ( hb_forward<T> (v) )
 }
 HB_FUNCOBJ (hb_identity);
-
 struct
 {
+  /* Like identity(), but only retains lvalue-references.  Rvalues are returned as rvalues. */
+  template <typename T> T&
+  operator () (T& v) const { return v; }
+
   template <typename T> hb_remove_reference<T>
   operator () (T&& v) const { return v; }
 }
-HB_FUNCOBJ (hb_rvalue);
+HB_FUNCOBJ (hb_lidentity);
+struct
+{
+  /* Like identity(), but always returns rvalue. */
+  template <typename T> hb_remove_reference<T>
+  operator () (T&& v) const { return v; }
+}
+HB_FUNCOBJ (hb_ridentity);
 
 struct
 {

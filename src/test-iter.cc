@@ -164,7 +164,7 @@ main (int argc, char **argv)
   test_iterator_non_default_constructable (hb_enumerate (hb_iter (st)));
   test_iterator_non_default_constructable (hb_enumerate (hb_iter (st) + 1));
   test_iterator_non_default_constructable (hb_iter (st) | hb_filter ());
-  test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_rvalue));
+  test_iterator_non_default_constructable (hb_iter (st) | hb_map (hb_lidentity));
 
   assert (true == hb_all (st));
   assert (false == hb_all (st, 42u));
