@@ -47,7 +47,7 @@ template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
 
 /* Bool!  For when we need to evaluate type-dependent expressions
  * in a template argument. */
-template <bool b> struct hb_bool_tt { enum { value = b }; };
+template <bool b> struct hb_bool_tt { static constexpr bool value = b; };
 typedef hb_bool_tt<true> hb_true_t;
 typedef hb_bool_tt<false> hb_false_t;
 
@@ -87,17 +87,17 @@ HB_FUNCOBJ (hb_addressof);
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
 
-template <typename T> struct hb_match_const { typedef T type; enum { value = false }; };
-template <typename T> struct hb_match_const<const T> { typedef T type; enum { value = true }; };
+template <typename T> struct hb_match_const		{ typedef T type; static constexpr bool value = false; };
+template <typename T> struct hb_match_const<const T>	{ typedef T type; static constexpr bool value = true;  };
 template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 #define hb_is_const(T) hb_match_const<T>::value
-template <typename T> struct hb_match_reference { typedef T type; enum { value = false }; };
-template <typename T> struct hb_match_reference<T &> { typedef T type; enum { value = true }; };
-template <typename T> struct hb_match_reference<T &&> { typedef T type; enum { value = true }; };
+template <typename T> struct hb_match_reference		{ typedef T type; static constexpr bool value = false; };
+template <typename T> struct hb_match_reference<T &>	{ typedef T type; static constexpr bool value = true;  };
+template <typename T> struct hb_match_reference<T &&>	{ typedef T type; static constexpr bool value = true;  };
 template <typename T> using hb_remove_reference = typename hb_match_reference<T>::type;
 #define hb_is_reference(T) hb_match_reference<T>::value
-template <typename T> struct hb_match_pointer { typedef T type; enum { value = false }; };
-template <typename T> struct hb_match_pointer<T *> { typedef T type; enum { value = true }; };
+template <typename T> struct hb_match_pointer		{ typedef T type; static constexpr bool value = false; };
+template <typename T> struct hb_match_pointer<T *>	{ typedef T type; static constexpr bool value = true;  };
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
 #define hb_is_pointer(T) hb_match_pointer<T>::value
 
@@ -173,42 +173,63 @@ template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
 #define hb_is_same(T, T2) hb_is_same<T, T2>::value
 
 template <typename T> struct hb_is_signed;
-template <> struct hb_is_signed<char> { enum { value = CHAR_MIN < 0 }; };
-template <> struct hb_is_signed<signed char> { enum { value = true }; };
-template <> struct hb_is_signed<unsigned char> { enum { value = false }; };
-template <> struct hb_is_signed<signed short> { enum { value = true }; };
-template <> struct hb_is_signed<unsigned short> { enum { value = false }; };
-template <> struct hb_is_signed<signed int> { enum { value = true }; };
-template <> struct hb_is_signed<unsigned int> { enum { value = false }; };
-template <> struct hb_is_signed<signed long> { enum { value = true }; };
-template <> struct hb_is_signed<unsigned long> { enum { value = false }; };
-template <> struct hb_is_signed<signed long long> { enum { value = true }; };
-template <> struct hb_is_signed<unsigned long long> { enum { value = false }; };
+template <> struct hb_is_signed<char>			{ static constexpr bool value = CHAR_MIN < 0;	};
+template <> struct hb_is_signed<signed char>		{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<unsigned char>		{ static constexpr bool value = false;		};
+template <> struct hb_is_signed<signed short>		{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<unsigned short>		{ static constexpr bool value = false;		};
+template <> struct hb_is_signed<signed int>		{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<unsigned int>		{ static constexpr bool value = false;		};
+template <> struct hb_is_signed<signed long>		{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<unsigned long>		{ static constexpr bool value = false;		};
+template <> struct hb_is_signed<signed long long>	{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<unsigned long long>	{ static constexpr bool value = false;		};
 #define hb_is_signed(T) hb_is_signed<T>::value
 
-template <typename T> struct hb_int_min { static constexpr T value = 0; };
-template <> struct hb_int_min<char> { static constexpr char value = CHAR_MIN; };
-template <> struct hb_int_min<int>  { static constexpr int  value = INT_MIN;  };
-template <> struct hb_int_min<long> { static constexpr long value = LONG_MIN; };
+template <typename T> struct hb_int_min;
+template <> struct hb_int_min<char>			{ static constexpr char			value = CHAR_MIN;	};
+template <> struct hb_int_min<signed char>		{ static constexpr signed char		value = SCHAR_MIN;	};
+template <> struct hb_int_min<unsigned char>		{ static constexpr unsigned char	value = 0;		};
+template <> struct hb_int_min<signed short>		{ static constexpr signed short		value = SHRT_MIN;	};
+template <> struct hb_int_min<unsigned short>		{ static constexpr unsigned short	value = 0;		};
+template <> struct hb_int_min<signed int>		{ static constexpr signed int		value = INT_MIN;	};
+template <> struct hb_int_min<unsigned int>		{ static constexpr unsigned int		value = 0;		};
+template <> struct hb_int_min<signed long>		{ static constexpr signed long		value = LONG_MIN;	};
+template <> struct hb_int_min<unsigned long>		{ static constexpr unsigned long	value = 0;		};
+template <> struct hb_int_min<signed long long>		{ static constexpr signed long long	value = LLONG_MIN;	};
+template <> struct hb_int_min<unsigned long long>	{ static constexpr unsigned long long	value = 0;		};
 #define hb_int_min(T) hb_int_min<T>::value
+template <typename T> struct hb_int_max;
+template <> struct hb_int_max<char>			{ static constexpr char			value = CHAR_MAX;	};
+template <> struct hb_int_max<signed char>		{ static constexpr signed char		value = SCHAR_MAX;	};
+template <> struct hb_int_max<unsigned char>		{ static constexpr unsigned char	value = UCHAR_MAX;	};
+template <> struct hb_int_max<signed short>		{ static constexpr signed short		value = SHRT_MAX;	};
+template <> struct hb_int_max<unsigned short>		{ static constexpr unsigned short	value = USHRT_MAX;	};
+template <> struct hb_int_max<signed int>		{ static constexpr signed int		value = INT_MAX;	};
+template <> struct hb_int_max<unsigned int>		{ static constexpr unsigned int		value = UINT_MAX;	};
+template <> struct hb_int_max<signed long>		{ static constexpr signed long		value = LONG_MAX;	};
+template <> struct hb_int_max<unsigned long>		{ static constexpr unsigned long	value = ULONG_MAX;	};
+template <> struct hb_int_max<signed long long>		{ static constexpr signed long long	value = LLONG_MAX;	};
+template <> struct hb_int_max<unsigned long long>	{ static constexpr unsigned long long	value = ULLONG_MAX;	};
+#define hb_int_max(T) hb_int_max<T>::value
 
 template <bool is_signed> struct hb_signedness_int;
 template <> struct hb_signedness_int<false> { typedef unsigned int value; };
 template <> struct hb_signedness_int<true>  { typedef   signed int value; };
 #define hb_signedness_int(T) hb_signedness_int<T>::value
 
-template <typename T> struct hb_is_integer { enum { value = false }; };
-template <> struct hb_is_integer<char> { enum { value = true }; };
-template <> struct hb_is_integer<signed char> { enum { value = true }; };
-template <> struct hb_is_integer<unsigned char> { enum { value = true }; };
-template <> struct hb_is_integer<signed short> { enum { value = true }; };
-template <> struct hb_is_integer<unsigned short> { enum { value = true }; };
-template <> struct hb_is_integer<signed int> { enum { value = true }; };
-template <> struct hb_is_integer<unsigned int> { enum { value = true }; };
-template <> struct hb_is_integer<signed long> { enum { value = true }; };
-template <> struct hb_is_integer<unsigned long> { enum { value = true }; };
-template <> struct hb_is_integer<signed long long> { enum { value = true }; };
-template <> struct hb_is_integer<unsigned long long> { enum { value = true }; };
+template <typename T> struct hb_is_integer		{ static constexpr bool value = false;};
+template <> struct hb_is_integer<char> 			{ static constexpr bool value = true; };
+template <> struct hb_is_integer<signed char> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integer<unsigned char> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integer<signed short> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integer<unsigned short> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integer<signed int> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integer<unsigned int> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integer<signed long> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integer<unsigned long> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integer<signed long long> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integer<unsigned long long> 	{ static constexpr bool value = true; };
 #define hb_is_integer(T) hb_is_integer<T>::value
 
 
