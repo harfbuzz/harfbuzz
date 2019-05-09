@@ -190,7 +190,7 @@ struct hb_iter_fallback_mixin_t
   item_t __item_at__ (unsigned i) const { return *(*thiz() + i); }
 
   /* Termination: Implement __more__(), or __len__() if random-access. */
-  bool __more__ () const { return thiz()->len (); }
+  bool __more__ () const { return bool (thiz()->len ()); }
   unsigned __len__ () const
   { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
 
@@ -471,7 +471,7 @@ struct hb_zip_iter_t :
     B::is_sorted_iterator;
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
-  bool __more__ () const { return a && b; }
+  bool __more__ () const { return bool (a) && bool (b); }
   unsigned __len__ () const { return hb_min (a.len (), b.len ()); }
   void __next__ () { ++a; ++b; }
   void __forward__ (unsigned n) { a += n; b += n; }
