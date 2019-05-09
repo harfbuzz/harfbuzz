@@ -217,6 +217,11 @@ struct hb_pair_t
   hb_pair_t (T1 a, T2 b) : first (a), second (b) {}
   hb_pair_t (const pair_t& o) : first (o.first), second (o.second) {}
 
+  template <typename Q1, typename Q2,
+	    hb_enable_if (hb_is_convertible (T1, Q1) &&
+			  hb_is_convertible (T2, T2))>
+  operator hb_pair_t<Q1, Q2> () { return hb_pair_t<Q1, Q2> (first, second); }
+
   hb_pair_t<T1, T2> reverse () const
   { return hb_pair_t<T1, T2> (second, first); }
 
