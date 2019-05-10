@@ -5,18 +5,18 @@ Values defined in `hb-debug.hh`.
 
 ```shell
 # quick sanity check
-time (make CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
-  && make -C test/api check || cat test/api/test-suite.log)
+time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
+  && {make -j4 -C test/api check || cat test/api/test-suite.log})
 
-# slower santiy check
-time (make CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
-   && make -C src check \
-   && make -C test/api check \
-   && make -C test/subset check)
+# slower sanity check
+time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
+   && make -j4 -C src check \
+   && make -j4 -C test/api check \
+   && make -j4 -C test/subset check)
 
 # confirm you didn't break anything else
-time (make CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
-  && make check)
+time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
+  && make -j4 check)
 
 # often catches files you didn't add, e.g. test fonts to EXTRA_DIST
 make distcheck
