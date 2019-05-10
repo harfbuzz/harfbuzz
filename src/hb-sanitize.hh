@@ -211,6 +211,8 @@ struct hb_sanitize_context_t :
     this->start = this->end = nullptr;
   }
 
+  unsigned get_edit_count () { return edit_count; }
+
   bool check_range (const void *base,
 		    unsigned int len) const
   {
