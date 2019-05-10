@@ -103,7 +103,7 @@ struct glyf
     TRACE_SERIALIZE (this);
     // pad glyphs to 2-byte boundaries to permit short loca
     HBUINT8 pad;
-
+    pad = 0;
     + it
     | hb_apply ( [&] (hb_bytes_t glyph) {
       glyph.copy(c);
@@ -160,7 +160,7 @@ struct glyf
 
     // TODO whats the right way to serialize loca?
     // _subset2 will think these bytes are part of glyf if we write to serializer
-    bool use_short_loca = glyf_padded_size > 131070;
+    bool use_short_loca = glyf_padded_size <= 131070;
     unsigned int loca_prime_size = (c->plan->num_output_glyphs () + 1) * (use_short_loca ? 2 : 4);
     char *loca_prime_data = (char *) calloc(1, loca_prime_size);
 
