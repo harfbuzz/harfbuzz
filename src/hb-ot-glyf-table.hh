@@ -80,20 +80,35 @@ struct glyf
     return_trace (true);
   }
 
+  template<typename Iterator, typename EntryType>
+  static void
+  _write_loca (Iterator it, unsigned size_denom, char * loca_data)
+  {
+    unsigned int offset = 0;
+    + it
+    | hb_apply ([&] (hb_bytes_t _) {
+      offset += _.length / size_denom;
+      EntryType *entry = (EntryType *) loca_data;
+      *entry = offset;
+      loca_data += entry->get_size();
+    });
+    EntryType *entry = (EntryType *) loca_data;
+    *entry = offset;
+  }
+
   template <typename Iterator>
   bool serialize(hb_serialize_context_t *c,
 		 Iterator it)
   {
     TRACE_SERIALIZE (this);
-
     // pad glyphs to 2-byte boundaries to permit short loca
     HBUINT8 pad;
+
     + it
     | hb_apply ( [&] (hb_bytes_t glyph) {
       glyph.copy(c);
-      if (glyph.length % 2) c->extend(pad);
+      if (glyph.length % 2) c->embed(pad);
     });
-
     return_trace (true);
   }
 
@@ -107,53 +122,68 @@ struct glyf
     OT::glyf::accelerator_t glyf;
     glyf.init (c->plan->source);
 
-    // stream new-gids => glyph to keep
-    // if dropping hints the glyph to keep doesn't have them anymore
+    // make an iterator of per-glyph hb_bytes_t.
+    // unpadded, hints removed if that was requested.
+    unsigned int glyf_padded_size = 0; //
     auto it =
-    + hb_iota (c->plan->num_output_glyphs ())
+    + hb_range (c->plan->num_output_glyphs ())
     | hb_map ([&] (hb_codepoint_t new_gid) {
       hb_codepoint_t old_gid;
-      // should never happen fail, ALL old gids should be mapped
+
+      // should never fail, ALL old gids should be mapped
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid)) return hb_bytes_t ();
 
       unsigned int start_offset, end_offset;
       if (unlikely (!(glyf.get_offsets (old_gid, &start_offset, &end_offset) &&
 	glyf.remove_padding (start_offset, &end_offset))))
       {
-	// TODO signal irreversible error
+	// TODO signal fatal error
 	return hb_bytes_t ();
       }
       hb_bytes_t glyph ((const char *) this, end_offset - start_offset);
 
       // if dropping hints, find hints region and subtract it
       if (c->plan->drop_hints) {
-        unsigned int instruction_length;
-        if (!glyf.get_instruction_length (glyph, &instruction_length))
-        {
-          // TODO signal irreversible failure
-          return hb_bytes_t ();
-        }
-        glyph = hb_bytes_t (&glyph, glyph.length - instruction_length);
+	unsigned int instruction_length;
+	if (!glyf.get_instruction_length (glyph, &instruction_length))
+	{
+	  // TODO signal fatal error
+	  return hb_bytes_t ();
+	}
+	glyph = hb_bytes_t (&glyph, glyph.length - instruction_length);
       }
-
+      glyf_padded_size += glyph.length + glyph.length % 2;
       return glyph;
     });
 
     glyf_prime->serialize (c->serializer, it);
 
-    // we know enough to write loca
-    // TODO calculate size, do we need two or four byte loca entries
-    unsigned int offset = 0;
-    HBUINT16 loca_entry;
-    loca *loca_prime = c->serializer->start_embed <loca> ();
-    + hb_enumerate (it)
-    | hb_apply ([&] (hb_pair_t<unsigned, hb_bytes_t> p) {
-      offset += p.second.length;
-      loca_entry = offset / 2;
-      c->serializer->embed(loca_entry);
-    });
-    // one for the road
-    c->serializer->embed(loca_entry);
+    // TODO whats the right way to serialize loca?
+    // _subset2 will think these bytes are part of glyf if we write to serializer
+    bool use_short_loca = glyf_padded_size > 131070;
+    unsigned int loca_prime_size = (c->plan->num_output_glyphs () + 1) * (use_short_loca ? 2 : 4);
+    char *loca_prime_data = (char *) calloc(1, loca_prime_size);
+
+    if (use_short_loca)
+    {
+      _write_loca <decltype (it), HBUINT16> (it, 2, loca_prime_data);
+    }
+    else
+    {
+      _write_loca <decltype (it), HBUINT32> (it, 1, loca_prime_data);
+    }
+
+    hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
+                                            loca_prime_size,
+                                            HB_MEMORY_MODE_READONLY,
+                                            loca_prime_data,
+                                            free);
+    if (unlikely (! (c->plan->add_table (HB_OT_TAG_loca, loca_blob)
+                  && _add_head_and_set_loca_version(c->plan, use_short_loca))))
+    {
+      // TODO signal fatal error
+      return false;
+    }
 
     return_trace (true);
   }
