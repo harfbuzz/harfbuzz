@@ -147,6 +147,13 @@ struct hb_is_convertible
 };
 #define hb_is_convertible(From,To) hb_is_convertible<From, To>::value
 
+template <typename Base, typename Derived>
+struct hb_is_base_of
+{
+  static constexpr bool value = hb_is_convertible (hb_decay<Derived> *, hb_decay<Base> *);
+};
+#define hb_is_base_of(Base,Derived) hb_is_base_of<Base, Derived>::value
+
 template <typename From, typename To>
 struct hb_is_cr_convertible
 {
