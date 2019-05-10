@@ -2504,7 +2504,7 @@ struct ExtensionFormat1
 
   template <typename X>
   const X& get_subtable () const
-  { return this + (LOffsetTo<typename T::SubTable>&) extensionOffset; }
+  { return this + CastR<LOffsetTo<typename T::SubTable>> (extensionOffset); }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
