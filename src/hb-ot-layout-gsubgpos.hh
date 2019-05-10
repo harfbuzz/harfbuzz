@@ -2671,7 +2671,7 @@ struct GSUBGPOS
     /* TODO Use intersects() to count how many subtables survive? */
     CastR<OffsetTo<TLookupList>> (out->lookupList)
       .serialize_subset (c,
-			 this+CastR<const OffsetTo<TLookupList>> (lookupList),
+			 this+CastR<OffsetTo<TLookupList>> (lookupList),
 			 out);
 
     if (version.to_int () >= 0x00010001u)
