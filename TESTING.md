@@ -6,7 +6,7 @@ Values defined in `hb-debug.hh`.
 ```shell
 # quick sanity check
 time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
-  && {make -j4 -C test/api check || cat test/api/test-suite.log})
+  && (make -j4 -C test/api check || cat test/api/test-suite.log))
 
 # slower sanity check
 time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
@@ -20,6 +20,13 @@ time (make -j4 CPPFLAGS='-DHB_DEBUG_SUBSET=100' \
 
 # often catches files you didn't add, e.g. test fonts to EXTRA_DIST
 make distcheck
+```
+
+### Run tests with asan
+
+```shell
+./configure CC=clang CXX=clang++ CPPFLAGS=-fsanitize=address LDFLAGS=-fsanitize=address
+# make/run tests as usual
 ```
 
 ### Debug with GDB
