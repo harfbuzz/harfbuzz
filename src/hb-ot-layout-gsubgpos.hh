@@ -2504,11 +2504,7 @@ struct ExtensionFormat1
 
   template <typename X>
   const X& get_subtable () const
-  {
-    unsigned int offset = extensionOffset;
-    if (unlikely (!offset)) return Null(typename T::SubTable);
-    return StructAtOffset<typename T::SubTable> (this, offset);
-  }
+  { return this + (LOffsetTo<typename T::SubTable>&) extensionOffset; }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -2523,7 +2519,6 @@ struct ExtensionFormat1
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  extensionOffset != 0 &&
 		  extensionLookupType != T::SubTable::Extension);
   }
 
@@ -2532,7 +2527,7 @@ struct ExtensionFormat1
   HBUINT16	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
 					 * extension subtable). */
-  HBUINT32	extensionOffset;	/* Offset to the extension subtable,
+  Offset32	extensionOffset;	/* Offset to the extension subtable,
 					 * of lookup type subtable. */
   public:
   DEFINE_SIZE_STATIC (8);
