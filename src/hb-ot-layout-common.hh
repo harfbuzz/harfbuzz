@@ -762,7 +762,6 @@ struct Lookup
 	  return_trace (false);
     }
     return_trace (true);
-    return_trace (true);
   }
 
   private:
