@@ -884,30 +884,36 @@ struct CoverageFormat2
       rangeRecord.len = 0;
       return_trace (true);
     }
-    /* TODO(iter) Port to non-random-access iterator interface. */
-    unsigned int count = glyphs.len ();
 
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < count; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i])
-	num_ranges++;
-    rangeRecord.len = num_ranges;
-    if (unlikely (!c->extend (rangeRecord))) return_trace (false);
+    /* TODO(iter) Write more efficiently? */
 
-    unsigned int range = 0;
-    rangeRecord[range].start = glyphs[0];
-    rangeRecord[range].value = 0;
-    for (unsigned int i = 1; i < count; i++)
+    unsigned num_ranges = 0;
+    hb_codepoint_t last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
     {
-      if (glyphs[i - 1] + 1 != glyphs[i])
-      {
-	rangeRecord[range].end = glyphs[i - 1];
-	range++;
-	rangeRecord[range].start = glyphs[i];
-	rangeRecord[range].value = i;
-      }
+      if (last + 1 != g)
+        num_ranges++;
+      last = g;
     }
-    rangeRecord[range].end = glyphs[count - 1];
+
+    if (unlikely (!rangeRecord.serialize (c, num_ranges))) return_trace (false);
+
+    unsigned count = 0;
+    unsigned range = (unsigned) -1;
+    last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
+    {
+      if (last + 1 != g)
+      {
+        range++;
+	rangeRecord[range].start = g;
+	rangeRecord[range].value = count;
+      }
+      rangeRecord[range].end = g;
+      last = g;
+      count++;
+    }
+
     return_trace (true);
   }
 
