@@ -648,15 +648,18 @@ struct Lookup
   unsigned int get_subtable_count () const { return subTable.len; }
 
   template <typename TSubTable>
-  const TSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<TSubTable>> (subTable)[i]; }
-
-  template <typename TSubTable>
   const OffsetArrayOf<TSubTable>& get_subtables () const
   { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
   template <typename TSubTable>
   OffsetArrayOf<TSubTable>& get_subtables ()
   { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
+
+  template <typename TSubTable>
+  const TSubTable& get_subtable (unsigned int i) const
+  { return this+get_subtables<TSubTable> ()[i]; }
+  template <typename TSubTable>
+  TSubTable& get_subtable (unsigned int i)
+  { return this+get_subtables<TSubTable> ()[i]; }
 
   unsigned int get_size () const
   {
@@ -745,8 +748,7 @@ struct Lookup
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
 
-    if (unlikely (!CastR<OffsetArrayOf<TSubTable>> (subTable)
-		   .sanitize (c, this, get_type ())))
+    if (unlikely (!get_subtables<TSubTable> ().sanitize (c, this, get_type ())))
       return_trace (false);
 
     if (unlikely (get_type () == TSubTable::Extension))
