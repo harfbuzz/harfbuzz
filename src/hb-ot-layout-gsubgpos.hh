@@ -849,7 +849,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 	if (ligbase == LIGBASE_NOT_CHECKED)
 	{
 	  bool found = false;
-	  const hb_glyph_info_t *out = buffer->out_info;
+	  const auto *out = buffer->out_info;
 	  unsigned int j = buffer->out_len;
 	  while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
 	  {
@@ -2661,7 +2661,7 @@ struct GSUBGPOS
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct GSUBGPOS *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
     out->scriptList.serialize_subset (c, this+scriptList, out);

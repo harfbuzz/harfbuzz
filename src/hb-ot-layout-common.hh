@@ -138,7 +138,7 @@ struct RecordListOf : RecordArrayOf<Type>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct RecordListOf<Type> *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
@@ -277,7 +277,7 @@ struct Script
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Script *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     out->defaultLangSys.serialize_copy (c->serializer, this+defaultLangSys, out);
     unsigned int count = langSys.len;
@@ -559,7 +559,7 @@ struct Feature
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Feature *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     out->featureParams = 0; /* TODO(subset) FeatureParams. */
     return_trace (true);
@@ -722,7 +722,7 @@ struct Lookup
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Lookup *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
     /* Subset the actual subtables. */
