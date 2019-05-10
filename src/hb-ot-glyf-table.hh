@@ -182,9 +182,11 @@ struct glyf
                   && _add_head_and_set_loca_version(c->plan, use_short_loca))))
     {
       // TODO signal fatal error
+      hb_blob_destroy (loca_blob);
       return false;
     }
 
+    hb_blob_destroy (loca_blob);
     return_trace (true);
   }
 
