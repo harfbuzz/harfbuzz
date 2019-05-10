@@ -1224,7 +1224,7 @@ struct ClassDefFormat1
     hb_codepoint_t glyph_max = +glyphs | hb_reduce (hb_max, 0u);
 
     startGlyph = glyph_min;
-    classValue.len = glyph_max - glyph_min + 1;
+    c->check_assign (classValue.len, glyph_max - glyph_min + 1);
     if (unlikely (!c->extend (classValue))) return_trace (false);
 
     for (unsigned int i = 0; i < glyphs.length; i++)
