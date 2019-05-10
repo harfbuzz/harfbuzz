@@ -279,6 +279,8 @@ struct hb_is_source_of
   template <typename Iter2 = Iter,
 	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, const Item &))>
   static hb_true_t impl (hb_priority<2>);
+  template <typename Iter2 = Iter>
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) >> hb_declval (Item &), hb_true_t ());
   static hb_false_t impl (hb_priority<0>);
 
   public:
@@ -290,7 +292,11 @@ template<typename Iter, typename Item>
 struct hb_is_sink_of
 {
   private:
-  static auto impl (hb_priority<2>) -> decltype (hb_declval (Iter) << hb_declval (Item), hb_true_t ());
+  template <typename Iter2 = Iter,
+	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, Item &))>
+  static hb_true_t impl (hb_priority<2>);
+  template <typename Iter2 = Iter>
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) << hb_declval (Item), hb_true_t ());
   static hb_false_t impl (hb_priority<0>);
 
   public:
