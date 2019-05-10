@@ -1043,12 +1043,16 @@ struct Coverage
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    /* TODO(iter) Port to non-random-access iterator interface. */
-    unsigned int count = glyphs.len ();
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < count; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i])
-	num_ranges++;
+    unsigned count = 0;
+    unsigned num_ranges = 0;
+    hb_codepoint_t last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
+    {
+      if (last + 1 != g)
+        num_ranges++;
+      last = g;
+      count++;
+    }
     u.format = count * 2 < num_ranges * 3 ? 1 : 2;
 
     switch (u.format)
