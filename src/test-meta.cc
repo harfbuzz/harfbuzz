@@ -27,9 +27,6 @@
 #include "hb.hh"
 #include "hb-meta.hh"
 
-#include <type_traits>
-
-
 int
 main (int argc, char **argv)
 {
