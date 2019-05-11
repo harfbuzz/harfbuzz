@@ -50,7 +50,7 @@
 #define HB_NO_GETENV
 #define HB_NO_MATH
 #define HB_NO_NAME
-#define HB_NO_OT_LAYOUT_UNUSED
+#define HB_NO_LAYOUT_UNUSED
 #endif
 
 #ifdef HB_MINI
