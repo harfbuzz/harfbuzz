@@ -196,6 +196,8 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_post:
       result = _subset<const OT::post> (plan);
       break;
+
+#ifndef HB_NO_SUBSET_CFF
     case HB_OT_TAG_cff1:
       result = _subset<const OT::cff1> (plan);
       break;
@@ -205,6 +207,7 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_VORG:
       result = _subset<const OT::VORG> (plan);
       break;
+#endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
     case HB_OT_TAG_GDEF:
