@@ -116,7 +116,14 @@ hb_ot_math_get_glyph_italics_correction (hb_font_t *font,
  * Fetches a top-accent-attachment value (if one exists) for the specified
  * glyph index.
  *
- * Return value: the top accent attachment of the glyph or 0
+ * For any glyph that does not have a top-accent-attachment value - that is,
+ * a glyph not covered by the `MathTopAccentAttachment` table (or, when
+ * @font has no `MathTopAccentAttachment` table or no `MATH` table, any
+ * glyph) - the function synthesizes a value, returning the position at
+ * one-half the glyph's advance width.
+ *
+ * Return value: the top accent attachment of the glyph or 0.5 * the advance
+ *               width of @glyph
  *
  * Since: 1.3.3
  **/
@@ -180,7 +187,7 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  * hb_ot_math_get_glyph_variants:
  * @font: #hb_font_t to work upon
  * @glyph: The index of the glyph to stretch
- * @direction: The direction of the stretching (H or V)
+ * @direction: The direction of the stretching (horizontal or vertical)
  * @start_offset: offset of the first variant to retrieve
  * @variants_count: (inout): Input = the maximum number of variants to return;
  *                           Output = the actual number of variants returned
@@ -190,8 +197,10 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  * direction. The corresponding list of size variants is returned as a list of
  * #hb_ot_math_glyph_variant_t structs.
  *
- * <note>Note that only the value of #HB_DIRECTION_IS_HORIZONTAL is considered
- * from the @direction parameter.</note>
+ * <note>The @direction parameter is only used to select between horizontal
+ * or vertical directions for the construction. Even though all #hb_direction_t
+ * values are accepted, only the result of #HB_DIRECTION_IS_HORIZONTAL is
+ * considered.</note> 
  *
  * Return value: the total number of size variants available or zero
  *
@@ -214,14 +223,16 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 /**
  * hb_ot_math_get_min_connector_overlap:
  * @font: #hb_font_t to work upon
- * @direction: direction of the stretching (H or V)
+ * @direction: direction of the stretching (horizontal or vertical)
  *
  * Fetches the MathVariants table for the specified font and returns the
  * minimum overlap of connecting glyphs that are required to draw a glyph
  * assembly in the specified direction.
  *
- * <note>Note that only the value of #HB_DIRECTION_IS_HORIZONTAL is considered
- * from the @direction parameter.</note>
+ * <note>The @direction parameter is only used to select between horizontal
+ * or vertical directions for the construction. Even though all #hb_direction_t
+ * values are accepted, only the result of #HB_DIRECTION_IS_HORIZONTAL is
+ * considered.</note> 
  *
  * Return value: requested minimum connector overlap or zero
  *
@@ -238,7 +249,7 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
  * hb_ot_math_get_glyph_assembly:
  * @font: #hb_font_t to work upon
  * @glyph: The index of the glyph to stretch
- * @direction: direction of the stretching (H or V)
+ * @direction: direction of the stretching (horizontal or vertical)
  * @start_offset: offset of the first glyph part to retrieve
  * @parts_count: (inout): Input = maximum number of glyph parts to return;
  *               Output = actual number of parts returned
@@ -250,8 +261,10 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
  * used to draw the glyph and an italics-correction value (if one is defined
  * in the font).
  *
- * <note>Note that only the value of #HB_DIRECTION_IS_HORIZONTAL is considered
- * from the @direction parameter.</note>
+ * <note>The @direction parameter is only used to select between horizontal
+ * or vertical directions for the construction. Even though all #hb_direction_t
+ * values are accepted, only the result of #HB_DIRECTION_IS_HORIZONTAL is
+ * considered.</note> 
  *
  * Return value: the total number of parts in the glyph assembly
  *
