@@ -433,7 +433,7 @@ struct hb_filter_iter_t :
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
-  void __prev__ () { --it; }
+  void __prev__ () { do --it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
   hb_filter_iter_t __end__ () const { return hb_filter_iter_t (it.end (), p, f); }
   bool operator != (const hb_filter_iter_t& o) const
   { return it != o.it || p != o.p || f != o.f; }
