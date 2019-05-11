@@ -48,9 +48,8 @@
 
 #ifdef HB_MINI
 #define HB_NO_AAT
-#define HB_NO_FALLBACK
+#define HB_NO_LEGACY
 #endif
-
 
 /* Closure. */
 
@@ -67,12 +66,15 @@
 #define HB_NO_SUBSET_CFF
 #endif
 
-#ifdef HB_NO_FALLBACK
+#ifdef HB_NO_LEGACY
+#define HB_NO_OT_LAYOUT_BLACKLIST
+#define HB_NO_OT_SHAPE_FALLBACK
+#endif
+
+#ifdef HB_NO_OT_SHAPE_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_ARABIC_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
-#define HB_NO_OT_SHAPE_FALLBACK
-#define HB_NO_OT_SHAPE_FALLBACK
 #endif
 
 
