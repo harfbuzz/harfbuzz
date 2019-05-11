@@ -29,6 +29,7 @@
 #ifndef HB_HH
 #define HB_HH
 
+
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
 #ifdef _MSC_VER
 #pragma warning( disable: 4068 ) /* Unknown pragma */
@@ -129,9 +130,9 @@
 #endif
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+
+#include "hb-config.hh"
+
 
 /*
  * Following added based on what AC_USE_SYSTEM_EXTENSIONS adds to
