@@ -38,6 +38,7 @@
 #ifdef HB_TINY
 #define HB_LEAN
 #define HB_MINI
+//#define HB_NO_MT /* Let user choose */
 #endif
 
 #ifdef HB_LEAN
