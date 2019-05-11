@@ -228,6 +228,25 @@ struct hb_reference_wrapper<T&>
 };
 
 
+template <typename T> struct hb_is_integral		{ static constexpr bool value = false;};
+template <> struct hb_is_integral<char> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integral<signed char> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integral<unsigned char> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<signed short> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<unsigned short> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<signed int> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integral<unsigned int> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<signed long> 		{ static constexpr bool value = true; };
+template <> struct hb_is_integral<unsigned long> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<signed long long> 	{ static constexpr bool value = true; };
+template <> struct hb_is_integral<unsigned long long> 	{ static constexpr bool value = true; };
+
+template <typename T> struct hb_is_floating_point	{ static constexpr bool value = false;};
+template <> struct hb_is_floating_point<float> 		{ static constexpr bool value = true; };
+template <> struct hb_is_floating_point<double> 	{ static constexpr bool value = true; };
+template <> struct hb_is_floating_point<long double> 	{ static constexpr bool value = true; };
+
+#define hb_is_integral(T) hb_is_integral<T>::value
 template <typename T> struct hb_is_signed;
 template <> struct hb_is_signed<char>			{ static constexpr bool value = CHAR_MIN < 0;	};
 template <> struct hb_is_signed<signed char>		{ static constexpr bool value = true;		};
@@ -276,20 +295,6 @@ template <bool is_signed> struct hb_signedness_int;
 template <> struct hb_signedness_int<false> { typedef unsigned int value; };
 template <> struct hb_signedness_int<true>  { typedef   signed int value; };
 #define hb_signedness_int(T) hb_signedness_int<T>::value
-
-template <typename T> struct hb_is_integral		{ static constexpr bool value = false;};
-template <> struct hb_is_integral<char> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed char> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned char> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed short> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned short> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed int> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned int> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed long> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned long> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed long long> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned long long> 	{ static constexpr bool value = true; };
-#define hb_is_integral(T) hb_is_integral<T>::value
 
 
 #endif /* HB_META_HH */
