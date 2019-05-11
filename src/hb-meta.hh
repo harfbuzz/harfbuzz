@@ -292,10 +292,5 @@ template <> struct hb_int_max<signed long long>		{ static constexpr signed long 
 template <> struct hb_int_max<unsigned long long>	{ static constexpr unsigned long long	value = ULLONG_MAX;	};
 #define hb_int_max(T) hb_int_max<T>::value
 
-template <bool is_signed> struct hb_signedness_int;
-template <> struct hb_signedness_int<false> { typedef unsigned int value; };
-template <> struct hb_signedness_int<true>  { typedef   signed int value; };
-#define hb_signedness_int(T) hb_signedness_int<T>::value
-
 
 #endif /* HB_META_HH */

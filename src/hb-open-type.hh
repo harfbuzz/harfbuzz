@@ -57,7 +57,7 @@ template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
-  typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
+  typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
   IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
   operator wide_type () const { return v; }
