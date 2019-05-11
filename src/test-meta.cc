@@ -115,6 +115,10 @@ main (int argc, char **argv)
   static_assert (hb_is_trivially_move_constructible (Y), "");
   static_assert (hb_is_trivially_destructible (Y), "");
 
+  static_assert (hb_is_trivially_copyable (int), "");
+  static_assert (hb_is_trivially_copyable (X), "");
+  static_assert (hb_is_trivially_copyable (Y), "");
+
   /* TODO Add more meaningful tests. */
 
   return 0;

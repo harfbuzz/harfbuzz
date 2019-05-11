@@ -378,5 +378,16 @@ template <typename T>
 using hb_is_trivially_move_assignable= hb_is_move_assignable<hb_trivial<T>>;
 #define hb_is_trivially_move_assignable(T) hb_is_trivially_move_assignable<T>::value
 
+template <typename T>
+using hb_is_trivially_copyable= hb_bool_constant<
+  hb_is_trivially_destructible (T) &&
+  (!hb_is_move_assignable (T) || hb_is_trivially_move_assignable (T)) &&
+  (!hb_is_move_constructible (T) || hb_is_trivially_move_constructible (T)) &&
+  (!hb_is_copy_assignable (T) || hb_is_trivially_copy_assignable (T)) &&
+  (!hb_is_copy_constructible (T) || hb_is_trivially_copy_constructible (T)) &&
+  true
+>;
+#define hb_is_trivially_copyable(T) hb_is_trivially_copyable<T>::value
+
 
 #endif /* HB_META_HH */
