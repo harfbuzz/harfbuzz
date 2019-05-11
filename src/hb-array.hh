@@ -42,20 +42,20 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   /*
    * Constructors.
    */
-  hb_array_t () : arrayZ (nullptr), length (0) {}
-  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
+  hb_array_t () : arrayZ (nullptr), length (0), backwards_length (0) {}
+  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_), backwards_length (0) {}
   template <unsigned int length_>
-  hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
+  hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_), backwards_length (0) {}
 
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   hb_array_t (const hb_array_t<U> &o) :
     hb_iter_with_fallback_t<hb_array_t<Type>, Type&> (),
-    arrayZ (o.arrayZ), length (o.length) {}
+    arrayZ (o.arrayZ), length (o.length), backwards_length (o.backwards_length) {}
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   hb_array_t& operator = (const hb_array_t<U> &o)
-  { arrayZ = o.arrayZ; length = o.length; return *this; }
+  { arrayZ = o.arrayZ; length = o.length; backwards_length = o.backwards_length; return *this; }
 
   /*
    * Iterator implementation.
@@ -72,17 +72,20 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     if (unlikely (n > length))
       n = length;
     length -= n;
+    backwards_length += n;
     arrayZ += n;
   }
   void __rewind__ (unsigned n)
   {
-    if (unlikely (n > length))
-      n = length;
-    length -= n;
+    if (unlikely (n > backwards_length))
+      n = backwards_length;
+    length += n;
+    backwards_length -= n;
+    arrayZ -= n;
   }
   unsigned __len__ () const { return length; }
   bool operator != (const hb_array_t& o) const
-  { return arrayZ != o.arrayZ || length != o.length; }
+  { return arrayZ != o.arrayZ || length != o.length || backwards_length != o.backwards_length; }
 
   /* Extra operators.
    */
@@ -199,6 +202,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   public:
   Type *arrayZ;
   unsigned int length;
+  unsigned int backwards_length;
 };
 template <typename T> inline hb_array_t<T>
 hb_array (T *array, unsigned int length)
