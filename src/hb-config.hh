@@ -45,6 +45,7 @@
 #define HB_NO_ATEXIT
 #define HB_NO_BITMAP
 #define HB_NO_CFF
+#define HB_NO_COLOR
 #define HB_NO_GETENV
 #define HB_NO_MATH
 #define HB_NO_OT_LAYOUT_UNUSED

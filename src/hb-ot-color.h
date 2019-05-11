@@ -110,7 +110,7 @@ HB_EXTERN unsigned int
 hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      hb_codepoint_t       glyph,
 			      unsigned int         start_offset,
-			      unsigned int        *count, /* IN/OUT.  May be NULL. */
+			      unsigned int        *layer_count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */);
 
 /*
