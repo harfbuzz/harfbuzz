@@ -512,6 +512,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   return false;
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_table_choose_script:
  * @face: #hb_face_t to work upon
@@ -533,6 +534,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   for (t = script_tags; *t; t++);
   return hb_ot_layout_table_select_script (face, table_tag, t - script_tags, script_tags, script_index, chosen_script);
 }
+#endif
 
 /**
  * hb_ot_layout_table_select_script:
@@ -684,6 +686,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 }
 
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_script_find_language:
  * @face: #hb_face_t to work upon
@@ -697,6 +700,8 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
  *
  * Return value: true if the language tag is found, false otherwise
  *
+ * Since: ??
+ * Deprecated: ??
  **/
 hb_bool_t
 hb_ot_layout_script_find_language (hb_face_t    *face,
@@ -712,6 +717,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 					      &language_tag,
 					      language_index);
 }
+#endif
 
 
 /**
@@ -727,7 +733,6 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  * or GPOS table, underneath the specified script index.
  *
  * Return value: true if the language tag is found, false otherwise
- *
  *
  * Since: 2.0.0
  **/

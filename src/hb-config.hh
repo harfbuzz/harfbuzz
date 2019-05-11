@@ -41,6 +41,7 @@
 #endif
 
 #ifdef HB_LEAN
+#define HB_DISABLE_DEPRECATED
 #define HB_NO_BITMAP
 #define HB_NO_CFF
 #define HB_NO_MATH
@@ -53,6 +54,12 @@
 #endif
 
 /* Closure. */
+
+#ifdef HB_DISABLE_DEPRECATED
+#define HB_IF_NOT_DEPRECATED(x)
+#else
+#define HB_IF_NOT_DEPRECATED(x) x
+#endif
 
 #ifdef HB_NO_AAT
 #define HB_NO_SHAPE_AAT
