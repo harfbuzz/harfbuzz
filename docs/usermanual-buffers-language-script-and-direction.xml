@@ -235,6 +235,10 @@
       hb_buffer_set_replacement_codepoint(buf, replacement);
     </programlisting>
     <para>
+      passing in the replacement Unicode code point as the
+      <parameter>replacement</parameter> parameter.
+    </para>
+    <para>
       The invisible glyph is used to replace all output glyphs that
       are invisible. By default, the standard space character
       <literal>U+0020</literal> is used; you can replace this (for
@@ -242,8 +246,13 @@
       spaces) with 
     </para>
     <programlisting language="C">
-      hb_buffer_set_invisible_glyph(buf, replacement);
+      hb_buffer_set_invisible_glyph(buf, replacement_glyph);
     </programlisting>
+    <para>
+      Do note that in the <parameter>replacement_glyph</parameter>
+      parameter, you must provide the glyph ID of the replacement you
+      wish to use, not the Unicode code point.
+    </para>
     <para>
       HarfBuzz supports a few additional flags you might want to set
       on your buffer under certain circumstances. The
@@ -262,8 +271,9 @@
       property designates control characters and other non-printing
       code points, such as joiners and variation selectors. Normally
       HarfBuzz replaces them in the output buffer with zero-width
-      space glyphs; setting this flag causes them to be printed,
-      which can be helpful for troubleshooting. 
+      space glyphs (using the "invisible glyph" property discussed
+      above); setting this flag causes them to be printed, which can
+      be helpful for troubleshooting.
     </para>
     <para>
       Conversely, setting the
@@ -315,7 +325,8 @@
     <para>
       In addition, you can mark your <literal>unicode_funcs</literal>
       as immutable by calling
-      <function>hb_unicode_funcs_make_immutable (ufuncs)</function>. This is especially useful if your code is a
+      <function>hb_unicode_funcs_make_immutable (ufuncs)</function>.
+      This is especially useful if your code is a
       library or framework that will have its own client programs. By
       marking your Unicode function choices as immutable, you prevent
       your own client programs from changing the
