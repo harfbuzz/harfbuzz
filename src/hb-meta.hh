@@ -221,25 +221,38 @@ struct hb_reference_wrapper<T&>
 };
 
 
-template <typename T> struct hb_is_integral		{ static constexpr bool value = false;};
-template <> struct hb_is_integral<char> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed char> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned char> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed short> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned short> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed int> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned int> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed long> 		{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned long> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<signed long long> 	{ static constexpr bool value = true; };
-template <> struct hb_is_integral<unsigned long long> 	{ static constexpr bool value = true; };
-
-template <typename T> struct hb_is_floating_point	{ static constexpr bool value = false;};
-template <> struct hb_is_floating_point<float> 		{ static constexpr bool value = true; };
-template <> struct hb_is_floating_point<double> 	{ static constexpr bool value = true; };
-template <> struct hb_is_floating_point<long double> 	{ static constexpr bool value = true; };
-
+template <typename T>
+using hb_is_integral = hb_bool_constant<
+  hb_is_same (hb_decay<T>, char) ||
+  hb_is_same (hb_decay<T>, signed char) ||
+  hb_is_same (hb_decay<T>, unsigned char) ||
+  hb_is_same (hb_decay<T>, signed int) ||
+  hb_is_same (hb_decay<T>, unsigned int) ||
+  hb_is_same (hb_decay<T>, signed short) ||
+  hb_is_same (hb_decay<T>, unsigned short) ||
+  hb_is_same (hb_decay<T>, signed long) ||
+  hb_is_same (hb_decay<T>, unsigned long) ||
+  hb_is_same (hb_decay<T>, signed long long) ||
+  hb_is_same (hb_decay<T>, unsigned long long) ||
+  false
+>;
 #define hb_is_integral(T) hb_is_integral<T>::value
+template <typename T>
+using hb_is_floating_point = hb_bool_constant<
+  hb_is_same (hb_decay<T>, float) ||
+  hb_is_same (hb_decay<T>, double) ||
+  hb_is_same (hb_decay<T>, long double) ||
+  false
+>;
+#define hb_is_floating_point(T) hb_is_floating_point<T>::value
+template <typename T>
+using hb_is_arithmetic = hb_bool_constant<
+  hb_is_integral (T) ||
+  hb_is_floating_point (T) ||
+  false
+>;
+#define hb_is_arighmetic(T) hb_is_arighmetic<T>::value
+
 template <typename T> struct hb_is_signed;
 template <> struct hb_is_signed<char>			{ static constexpr bool value = CHAR_MIN < 0;	};
 template <> struct hb_is_signed<signed char>		{ static constexpr bool value = true;		};
