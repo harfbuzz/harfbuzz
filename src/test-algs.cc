@@ -28,6 +28,17 @@
 #include "hb-algs.hh"
 
 
+static char *
+test_func (int a, char **b)
+{
+  return b ? b[a] : nullptr;
+}
+
+struct A
+{
+  void a () {}
+};
+
 int
 main (int argc, char **argv)
 {
@@ -45,6 +56,25 @@ main (int argc, char **argv)
   assert (&q != &p);
   q.second = 4;
   assert (i == 4);
+
+  hb_invoke (test_func, 0, nullptr);
+
+  A a;
+  hb_invoke (&A::a, a);
+
+  assert (1 == hb_min (3, 8, 1, 2));
+  assert (8 == hb_max (3, 8, 1, 2));
+
+  int x = 1, y = 2;
+  hb_min (x, 3);
+  hb_min (3, x, 4);
+  hb_min (3, x, 4 + 3);
+  int &z = hb_min (x, y);
+  z = 3;
+  assert (x == 3);
+
+  hb_pair_t<const int*, int> xp = hb_pair_t<int *, long> (nullptr, 0);
+  xp = hb_pair_t<int *, double> (nullptr, 1);
 
   return 0;
 }

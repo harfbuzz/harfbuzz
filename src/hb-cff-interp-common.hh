@@ -691,7 +691,7 @@ struct opset_t
 
       case OpCode_TwoByteNegInt0: case OpCode_TwoByteNegInt1:
       case OpCode_TwoByteNegInt2: case OpCode_TwoByteNegInt3:
-	env.argStack.push_int ((int16_t)(-(op - OpCode_TwoByteNegInt0) * 256 - env.str_ref[0] - 108));
+	env.argStack.push_int ((-(int16_t)(op - OpCode_TwoByteNegInt0) * 256 - env.str_ref[0] - 108));
 	env.str_ref.inc ();
 	break;
 

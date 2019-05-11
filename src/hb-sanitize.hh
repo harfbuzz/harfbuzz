@@ -130,11 +130,22 @@ struct hb_sanitize_context_t :
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value () { return true; }
   static return_t no_dispatch_return_value () { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return !r; }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.sanitize (this, hb_forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.dispatch (this, hb_forward<Ts> (ds)...) )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+
 
   void init (hb_blob_t *b)
   {
@@ -164,7 +175,7 @@ struct hb_sanitize_context_t :
     else
     {
       this->start = obj_start;
-      this->end   = obj_start + MIN<uintptr_t> (this->end - obj_start, obj->get_size ());
+      this->end   = obj_start + hb_min (size_t (this->end - obj_start), obj->get_size ());
     }
   }
 
@@ -178,7 +189,7 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
-    this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
+    this->max_ops = hb_max ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
 			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
     this->edit_count = 0;
     this->debug_depth = 0;
@@ -199,6 +210,8 @@ struct hb_sanitize_context_t :
     this->blob = nullptr;
     this->start = this->end = nullptr;
   }
+
+  unsigned get_edit_count () { return edit_count; }
 
   bool check_range (const void *base,
 		    unsigned int len) const

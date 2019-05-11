@@ -283,7 +283,7 @@ struct active_feature_t {
   OPENTYPE_FEATURE_RECORD rec;
   unsigned int order;
 
-  static int cmp (const void *pa, const void *pb) {
+  HB_INTERNAL static int cmp (const void *pa, const void *pb) {
     const active_feature_t *a = (const active_feature_t *) pa;
     const active_feature_t *b = (const active_feature_t *) pb;
     return a->rec.tagFeature < b->rec.tagFeature ? -1 : a->rec.tagFeature > b->rec.tagFeature ? 1 :
@@ -300,7 +300,7 @@ struct feature_event_t {
   bool start;
   active_feature_t feature;
 
-  static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
     const feature_event_t *a = (const feature_event_t *) pa;
     const feature_event_t *b = (const feature_event_t *) pb;
@@ -698,7 +698,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ ());
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
 
@@ -889,8 +889,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -930,8 +930,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,
@@ -967,7 +967,7 @@ retry:
     vis_clusters[i] = (uint32_t) -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphs_len; i++)
     if (vis_clusters[i] == (uint32_t) -1)

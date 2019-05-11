@@ -60,7 +60,7 @@ struct loca_data_t
   }
 };
 
-/**
+/*
  * If hints are being dropped find the range which in glyf at which
  * the hinting instructions are located. Add them to the instruction_ranges
  * vector.
@@ -108,7 +108,7 @@ _calculate_glyf_and_loca_prime_size (const OT::glyf::accelerator_t &glyf,
   hb_codepoint_t next_glyph = HB_SET_VALUE_INVALID;
   while (plan->glyphset ()->next (&next_glyph))
   {
-    unsigned int start_offset, end_offset;
+    unsigned int start_offset = 0, end_offset = 0;
     if (unlikely (!(glyf.get_offsets (next_glyph, &start_offset, &end_offset) &&
 		    glyf.remove_padding (start_offset, &end_offset))))
     {
@@ -211,7 +211,7 @@ _write_glyf_and_loca_prime (const hb_subset_plan_t        *plan,
     }
 
 
-    unsigned int start_offset, end_offset;
+    unsigned int start_offset = 0, end_offset = 0;
     if (unlikely (!(glyf.get_offsets (old_gid, &start_offset, &end_offset) &&
 		    glyf.remove_padding (start_offset, &end_offset))))
       end_offset = start_offset = 0;

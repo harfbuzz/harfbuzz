@@ -55,13 +55,13 @@ coretext_font_size_from_ptem (float ptem)
    * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
    */
   ptem *= 96.f / 72.f;
-  return ptem <= 0.f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem;
+  return (CGFloat) (ptem <= 0.f ? HB_CORETEXT_DEFAULT_FONT_SIZE : ptem);
 }
 static float
 coretext_font_size_to_ptem (CGFloat size)
 {
-  size *= 72.f / 96.f;
-  return size <= 0.f ? 0 : size;
+  size *= 72. / 96.;
+  return size <= 0 ? 0 : size;
 }
 
 static void
@@ -410,7 +410,7 @@ struct active_feature_t {
   feature_record_t rec;
   unsigned int order;
 
-  static int cmp (const void *pa, const void *pb) {
+  HB_INTERNAL static int cmp (const void *pa, const void *pb) {
     const active_feature_t *a = (const active_feature_t *) pa;
     const active_feature_t *b = (const active_feature_t *) pb;
     return a->rec.feature < b->rec.feature ? -1 : a->rec.feature > b->rec.feature ? 1 :
@@ -428,7 +428,7 @@ struct feature_event_t {
   bool start;
   active_feature_t feature;
 
-  static int cmp (const void *pa, const void *pb) {
+  HB_INTERNAL static int cmp (const void *pa, const void *pb) {
     const feature_event_t *a = (const feature_event_t *) pa;
     const feature_event_t *b = (const feature_event_t *) pb;
     return a->index < b->index ? -1 : a->index > b->index ? 1 :
@@ -598,7 +598,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ ());
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
   }
@@ -771,7 +771,7 @@ resize_and_retry:
 	      feature.start < chars_len && feature.start < feature.end)
 	  {
 	    CFRange feature_range = CFRangeMake (feature.start,
-	                                         MIN (feature.end, chars_len) - feature.start);
+	                                         hb_min (feature.end, chars_len) - feature.start);
 	    if (feature.value)
 	      CFAttributedStringRemoveAttribute (attr_string, feature_range, kCTKernAttributeName);
 	    else
@@ -1116,7 +1116,7 @@ resize_and_retry:
 	unsigned int cluster = info[count - 1].cluster;
 	for (unsigned int i = count - 1; i > 0; i--)
 	{
-	  cluster = MIN (cluster, info[i - 1].cluster);
+	  cluster = hb_min (cluster, info[i - 1].cluster);
 	  info[i - 1].cluster = cluster;
 	}
       }
@@ -1125,7 +1125,7 @@ resize_and_retry:
 	unsigned int cluster = info[0].cluster;
 	for (unsigned int i = 1; i < count; i++)
 	{
-	  cluster = MIN (cluster, info[i].cluster);
+	  cluster = hb_min (cluster, info[i].cluster);
 	  info[i].cluster = cluster;
 	}
       }

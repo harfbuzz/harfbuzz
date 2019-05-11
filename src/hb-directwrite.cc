@@ -778,7 +778,7 @@ retry_getglyphs:
   {
     uint32_t *p =
       &vis_clusters[log_clusters[buffer->info[i].utf16_index ()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphCount; i++)
     if (vis_clusters[i] == (uint32_t) -1)
@@ -930,7 +930,9 @@ _hb_directwrite_font_release (void *data)
 
 /**
  * hb_directwrite_face_create:
- * @font_face:
+ * @font_face: a DirectWrite IDWriteFontFace object.
+ *
+ * Return value: #hb_face_t object corresponding to the given input
  *
  * Since: 2.4.0
  **/
@@ -945,7 +947,9 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 
 /**
 * hb_directwrite_face_get_font_face:
-* @face:
+* @face: a #hb_face_t object
+*
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
 *
 * Since: REPLACEME
 **/

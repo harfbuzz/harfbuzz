@@ -58,7 +58,7 @@ struct loca
   public:
   DEFINE_SIZE_MIN (0); /* In reality, this is UNBOUNDED() type; but since we always
 			* check the size externally, allow Null() object of it by
-			* defining it MIN() instead. */
+			* defining it _MIN instead. */
 };
 
 
@@ -241,7 +241,7 @@ struct glyf
       loca_table = hb_sanitize_context_t ().reference_table<loca> (face);
       glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
 
-      num_glyphs = MAX (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
+      num_glyphs = hb_max (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
     }
 
     void fini ()
@@ -283,7 +283,7 @@ struct glyf
 
     /* based on FontTools _g_l_y_f.py::trim */
     bool remove_padding (unsigned int start_offset,
-				unsigned int *end_offset) const
+			 unsigned int *end_offset) const
     {
       if (*end_offset - start_offset < GlyphHeader::static_size) return true;
 
@@ -451,10 +451,10 @@ struct glyf
 
       const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
 
-      extents->x_bearing = MIN (glyph_header.xMin, glyph_header.xMax);
-      extents->y_bearing = MAX (glyph_header.yMin, glyph_header.yMax);
-      extents->width     = MAX (glyph_header.xMin, glyph_header.xMax) - extents->x_bearing;
-      extents->height    = MIN (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
+      extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax);
+      extents->y_bearing = hb_max (glyph_header.yMin, glyph_header.yMax);
+      extents->width     = hb_max (glyph_header.xMin, glyph_header.xMax) - extents->x_bearing;
+      extents->height    = hb_min (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
 
       return true;
     }
@@ -471,7 +471,7 @@ struct glyf
   public:
   DEFINE_SIZE_MIN (0); /* In reality, this is UNBOUNDED() type; but since we always
 			* check the size externally, allow Null() object of it by
-			* defining it MIN() instead. */
+			* defining it _MIN instead. */
 };
 
 struct glyf_accelerator_t : glyf::accelerator_t {};

@@ -183,7 +183,7 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
 
       case OpCode_return:
 	param.current_parsed_str->set_parsed ();
-	env.returnFromSubr ();
+	env.return_from_subr ();
 	param.set_current_str (env, false);
 	break;
 
@@ -213,7 +213,7 @@ struct cff2_cs_opset_subr_subset_t : cff2_cs_opset_t<cff2_cs_opset_subr_subset_t
 				 cff2_biased_subrs_t& subrs, hb_set_t *closure)
   {
     byte_str_ref_t    str_ref = env.str_ref;
-    env.callSubr (subrs, type);
+    env.call_subr (subrs, type);
     param.current_parsed_str->add_call_op (op, str_ref, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env, true);
@@ -571,7 +571,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   return true;
 }
 
-static bool
+static inline bool
 _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
 		const char		      *data,
 		hb_subset_plan_t		*plan,

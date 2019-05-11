@@ -249,7 +249,7 @@ struct STAT
 				 * in the 'fvar' table. In all fonts, must
 				 * be greater than zero if axisValueCount
 				 * is greater than zero. */
-  LNNOffsetTo<UnsizedArrayOf<StatAxisRecord> >
+  LNNOffsetTo<UnsizedArrayOf<StatAxisRecord>>
 		designAxesOffset;
 				/* Offset in bytes from the beginning of
 				 * the STAT table to the start of the design
@@ -257,7 +257,7 @@ struct STAT
 				 * set to zero; if designAxisCount is greater
 				 * than zero, must be greater than zero. */
   HBUINT16	axisValueCount;	/* The number of axis value tables. */
-  LNNOffsetTo<UnsizedArrayOf<OffsetTo<AxisValue> > >
+  LNNOffsetTo<UnsizedArrayOf<OffsetTo<AxisValue>>>
 		offsetToAxisValueOffsets;
 				/* Offset in bytes from the beginning of
 				 * the STAT table to the start of the design

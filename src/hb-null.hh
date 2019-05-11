@@ -37,7 +37,7 @@
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 
-#define HB_NULL_POOL_SIZE 9880
+#define HB_NULL_POOL_SIZE 384
 
 /* Use SFINAE to sniff whether T has min_size; in which case return T::null_size,
  * otherwise return sizeof(T). */
@@ -46,16 +46,13 @@
  * https://stackoverflow.com/questions/7776448/sfinae-tried-with-bool-gives-compiler-error-template-argument-tvalue-invol
  */
 
-template <typename T, typename B>
-struct _hb_null_size
-{ enum { value = sizeof (T) }; };
+template <typename T, typename>
+struct _hb_null_size : hb_integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_null_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
-{ enum { value = T::null_size }; };
+struct _hb_null_size<T, hb_void_t<decltype (T::min_size)>> : hb_integral_constant<unsigned, T::null_size> {};
 
 template <typename T>
-struct hb_null_size
-{ enum { value = _hb_null_size<T, hb_true_t>::value }; };
+using hb_null_size = _hb_null_size<T, void>;
 #define hb_null_size(T) hb_null_size<T>::value
 
 /* These doesn't belong here, but since is copy/paste from above, put it here. */
@@ -63,16 +60,12 @@ struct hb_null_size
 /* hb_static_size (T)
  * Returns T::static_size if T::min_size is defined, or sizeof (T) otherwise. */
 
-template <typename T, typename B>
-struct _hb_static_size
-{ enum { value = sizeof (T) }; };
+template <typename T, typename>
+struct _hb_static_size : hb_integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_static_size<T, hb_bool_tt<true || sizeof (T::min_size)> >
-{ enum { value = T::static_size }; };
-
+struct _hb_static_size<T, hb_void_t<decltype (T::min_size)>> : hb_integral_constant<unsigned, T::static_size> {};
 template <typename T>
-struct hb_static_size
-{ enum { value = _hb_static_size<T, hb_true_t>::value }; };
+using hb_static_size = _hb_static_size<T, void>;
 #define hb_static_size(T) hb_static_size<T>::value
 
 
@@ -95,7 +88,7 @@ struct Null {
 template <typename QType>
 struct NullHelper
 {
-  typedef hb_remove_const (hb_remove_reference (QType)) Type;
+  typedef hb_remove_const<hb_remove_reference<QType>> Type;
   static const Type & get_null () { return Null<Type>::get_null (); }
 };
 #define Null(Type) NullHelper<Type>::get_null ()
@@ -148,7 +141,7 @@ static inline Type& Crap () {
 template <typename QType>
 struct CrapHelper
 {
-  typedef hb_remove_const (hb_remove_reference (QType)) Type;
+  typedef hb_remove_const<hb_remove_reference<QType>> Type;
   static Type & get_crap () { return Crap<Type> (); }
 };
 #define Crap(Type) CrapHelper<Type>::get_crap ()
@@ -171,7 +164,7 @@ struct CrapOrNullHelper<const Type> {
 template <typename P>
 struct hb_nonnull_ptr_t
 {
-  typedef hb_remove_pointer (P) T;
+  typedef hb_remove_pointer<P> T;
 
   hb_nonnull_ptr_t (T *v_ = nullptr) : v (v_) {}
   T * operator = (T *v_)   { return v = v_; }

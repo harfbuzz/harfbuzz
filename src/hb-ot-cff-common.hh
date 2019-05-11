@@ -167,7 +167,7 @@ struct CFFIndex
     byteArray.resize (buffArray.length);
     for (unsigned int i = 0; i < byteArray.length; i++)
     {
-      byteArray[i] = byte_str_t (buffArray[i].arrayZ (), buffArray[i].length);
+      byteArray[i] = byte_str_t (buffArray[i].arrayZ, buffArray[i].length);
     }
     bool result = this->serialize (c, offSize_, byteArray);
     byteArray.fini ();

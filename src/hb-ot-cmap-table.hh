@@ -93,7 +93,7 @@ struct CmapSubtableFormat4
     this->length = get_sub_table_size (segments);
 
     this->segCountX2 = segments.length * 2;
-    this->entrySelector = MAX (1u, hb_bit_storage (segments.length)) - 1;
+    this->entrySelector = hb_max (1u, hb_bit_storage (segments.length)) - 1;
     this->searchRange = 2 * (1u << this->entrySelector);
     this->rangeShift = segments.length * 2 > this->searchRange
 		       ? 2 * segments.length - this->searchRange
@@ -142,7 +142,7 @@ struct CmapSubtableFormat4
 	for (unsigned int j = 0; j < num_codepoints; j++)
 	{
 	  hb_codepoint_t cp = segments[i].start_code + j;
-	  hb_codepoint_t new_gid;
+	  hb_codepoint_t new_gid = 0;
 	  if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
 	    return_trace (false);
 	  glyph_id_array[j] = new_gid;
@@ -183,7 +183,7 @@ struct CmapSubtableFormat4
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (plan->unicodes->next (&cp)) {
-      hb_codepoint_t new_gid;
+      hb_codepoint_t new_gid = 0;
       if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
@@ -285,7 +285,7 @@ struct CmapSubtableFormat4
       *glyph = gid;
       return true;
     }
-    static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
     {
       return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph);
     }
@@ -348,7 +348,7 @@ struct CmapSubtableFormat4
       /* Some broken fonts have too long of a "length" value.
        * If that is the case, just change the value to truncate
        * the subtable at the end of the blob. */
-      uint16_t new_length = (uint16_t) MIN ((uintptr_t) 65535,
+      uint16_t new_length = (uint16_t) hb_min ((uintptr_t) 65535,
 					    (uintptr_t) (c->end -
 							 (char *) this));
       if (!c->try_set (&length, new_length))
@@ -478,7 +478,7 @@ struct CmapSubtableLongSegmented
   {
     for (unsigned int i = 0; i < this->groups.len; i++) {
       out->add_range (this->groups[i].startCharCode,
-		      MIN ((hb_codepoint_t) this->groups[i].endCharCode,
+		      hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
 			   (hb_codepoint_t) HB_UNICODE_MAX));
     }
   }
@@ -542,7 +542,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (plan->unicodes->next (&cp)) {
-      hb_codepoint_t new_gid;
+      hb_codepoint_t new_gid = 0;
       if (unlikely (!plan->new_gid_for_codepoint (cp, &new_gid)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "Unable to find new gid for %04x", cp);
@@ -623,7 +623,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
     for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t first = arrayZ[i].startUnicodeValue;
-      hb_codepoint_t last = MIN ((hb_codepoint_t) (first + arrayZ[i].additionalCount),
+      hb_codepoint_t last = hb_min ((hb_codepoint_t) (first + arrayZ[i].additionalCount),
 				 (hb_codepoint_t) HB_UNICODE_MAX);
       out->add_range (first, last);
     }
@@ -904,7 +904,7 @@ struct cmap
     // Write out format 4 sub table
     {
       CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, table);
-      format4_plat3_rec.subtable = format4_plat0_rec.subtable;
+      format4_plat3_rec.subtable = (unsigned int) format4_plat0_rec.subtable;
       subtable.u.format = 4;
 
       CmapSubtableFormat4 &format4 = subtable.u.format4;
@@ -1096,18 +1096,18 @@ struct cmap
 					      hb_codepoint_t *glyph);
 
     template <typename Type>
-    static bool get_glyph_from (const void *obj,
-				hb_codepoint_t codepoint,
-				hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_from (const void *obj,
+					    hb_codepoint_t codepoint,
+					    hb_codepoint_t *glyph)
     {
       const Type *typed_obj = (const Type *) obj;
       return typed_obj->get_glyph (codepoint, glyph);
     }
 
     template <typename Type>
-    static bool get_glyph_from_symbol (const void *obj,
-					      hb_codepoint_t codepoint,
-					      hb_codepoint_t *glyph)
+    HB_INTERNAL static bool get_glyph_from_symbol (const void *obj,
+						   hb_codepoint_t codepoint,
+						   hb_codepoint_t *glyph)
     {
       const Type *typed_obj = (const Type *) obj;
       if (likely (typed_obj->get_glyph (codepoint, glyph)))

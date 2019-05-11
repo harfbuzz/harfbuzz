@@ -155,7 +155,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   hb_blob_make_immutable (parent);
 
   blob = hb_blob_create (parent->data + offset,
-			 MIN (length, parent->length - offset),
+			 hb_min (length, parent->length - offset),
 			 HB_MEMORY_MODE_READONLY,
 			 hb_blob_reference (parent),
 			 _hb_blob_destroy);

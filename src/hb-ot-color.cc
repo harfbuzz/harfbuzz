@@ -70,6 +70,9 @@
 hb_bool_t
 hb_ot_color_has_palettes (hb_face_t *face)
 {
+#ifdef HB_NO_COLOR
+  return false;
+#endif
   return face->table.CPAL->has_data ();
 }
 
@@ -86,6 +89,9 @@ hb_ot_color_has_palettes (hb_face_t *face)
 unsigned int
 hb_ot_color_palette_get_count (hb_face_t *face)
 {
+#ifdef HB_NO_COLOR
+  return 0;
+#endif
   return face->table.CPAL->get_palette_count ();
 }
 
@@ -109,6 +115,9 @@ hb_ot_name_id_t
 hb_ot_color_palette_get_name_id (hb_face_t *face,
 				 unsigned int palette_index)
 {
+#ifdef HB_NO_COLOR
+  return HB_OT_NAME_ID_INVALID;
+#endif
   return face->table.CPAL->get_palette_name_id (palette_index);
 }
 
@@ -131,6 +140,9 @@ hb_ot_name_id_t
 hb_ot_color_palette_color_get_name_id (hb_face_t *face,
 				       unsigned int color_index)
 {
+#ifdef HB_NO_COLOR
+  return HB_OT_NAME_ID_INVALID;
+#endif
   return face->table.CPAL->get_color_name_id (color_index);
 }
 
@@ -149,6 +161,9 @@ hb_ot_color_palette_flags_t
 hb_ot_color_palette_get_flags (hb_face_t *face,
 			       unsigned int palette_index)
 {
+#ifdef HB_NO_COLOR
+  return HB_OT_COLOR_PALETTE_FLAG_DEFAULT;
+#endif
   return face->table.CPAL->get_palette_flags (palette_index);
 }
 
@@ -180,6 +195,11 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 				unsigned int  *colors_count  /* IN/OUT.  May be NULL. */,
 				hb_color_t    *colors        /* OUT.     May be NULL. */)
 {
+#ifdef HB_NO_COLOR
+  if (colors_count)
+    *colors_count = 0;
+  return 0;
+#endif
   return face->table.CPAL->get_palette_colors (palette_index, start_offset, colors_count, colors);
 }
 
@@ -201,6 +221,9 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face)
 {
+#ifdef HB_NO_COLOR
+  return false;
+#endif
   return face->table.COLR->has_data ();
 }
 
@@ -209,9 +232,9 @@ hb_ot_color_has_layers (hb_face_t *face)
  * @face: #hb_face_t to work upon
  * @glyph: The glyph index to query
  * @start_offset: offset of the first layer to retrieve
- * @count: (inout) (optional): Input = the maximum number of layers to return;
+ * @layer_count: (inout) (optional): Input = the maximum number of layers to return;
  *         Output = the actual number of layers returned (may be zero)
- * @layers: (out) (array length=count) (nullable): The array of layers found
+ * @layers: (out) (array length=layer_count) (nullable): The array of layers found
  *
  * Fetches a list of all color layers for the specified glyph index in the specified
  * face. The list returned will begin at the offset provided.
@@ -224,10 +247,15 @@ unsigned int
 hb_ot_color_glyph_get_layers (hb_face_t           *face,
 			      hb_codepoint_t       glyph,
 			      unsigned int         start_offset,
-			      unsigned int        *count, /* IN/OUT.  May be NULL. */
+			      unsigned int        *layer_count, /* IN/OUT.  May be NULL. */
 			      hb_ot_color_layer_t *layers /* OUT.     May be NULL. */)
 {
-  return face->table.COLR->get_glyph_layers (glyph, start_offset, count, layers);
+#ifdef HB_NO_COLOR
+  if (layer_count)
+    *layer_count = 0;
+  return 0;
+#endif
+  return face->table.COLR->get_glyph_layers (glyph, start_offset, layer_count, layers);
 }
 
 
@@ -248,6 +276,9 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
 hb_bool_t
 hb_ot_color_has_svg (hb_face_t *face)
 {
+#ifdef HB_NO_COLOR
+  return false;
+#endif
   return face->table.SVG->has_data ();
 }
 
@@ -265,6 +296,9 @@ hb_ot_color_has_svg (hb_face_t *face)
 hb_blob_t *
 hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
+#ifdef HB_NO_COLOR
+  return hb_blob_get_empty ();
+#endif
   return face->table.SVG->reference_blob_for_glyph (glyph);
 }
 
@@ -286,6 +320,9 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 hb_bool_t
 hb_ot_color_has_png (hb_face_t *face)
 {
+#ifdef HB_NO_COLOR
+  return false;
+#endif
   return face->table.CBDT->has_data () || face->table.sbix->has_data ();
 }
 
@@ -305,6 +342,10 @@ hb_ot_color_has_png (hb_face_t *face)
 hb_blob_t *
 hb_ot_color_glyph_reference_png (hb_font_t *font, hb_codepoint_t  glyph)
 {
+#ifdef HB_NO_COLOR
+  return hb_blob_get_empty ();
+#endif
+
   hb_blob_t *blob = hb_blob_get_empty ();
 
   if (font->face->table.sbix->has_data ())

@@ -351,7 +351,7 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
       case OpCode_return:
 	param.current_parsed_str->add_op (op, env.str_ref);
 	param.current_parsed_str->set_parsed ();
-	env.returnFromSubr ();
+	env.return_from_subr ();
 	param.set_current_str (env, false);
 	break;
 
@@ -382,7 +382,7 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
 				 cff1_biased_subrs_t& subrs, hb_set_t *closure)
   {
     byte_str_ref_t    str_ref = env.str_ref;
-    env.callSubr (subrs, type);
+    env.call_subr (subrs, type);
     param.current_parsed_str->add_call_op (op, str_ref, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env, true);
@@ -912,7 +912,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* top dict INDEX */
   {
     assert (plan.offsets.topDictInfo.offset == (unsigned) (c.head - c.start));
-    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict> > ();
+    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict>> ();
     if (dest == nullptr) return false;
     cff1_top_dict_op_serializer_t topSzr;
     top_dict_modifiers_t  modifier (plan.offsets, plan.topDictModSIDs);
@@ -1064,7 +1064,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   return true;
 }
 
-static bool
+static inline bool
 _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 		const char		*data,
 		hb_subset_plan_t	*plan,

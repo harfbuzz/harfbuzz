@@ -54,6 +54,9 @@ hb_subset_input_unicode_set (hb_subset_input_t *subset_input);
 HB_EXTERN hb_set_t *
 hb_subset_input_glyph_set (hb_subset_input_t *subset_input);
 
+HB_EXTERN hb_set_t *
+hb_subset_input_nameid_set (hb_subset_input_t *subset_input);
+
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
 				hb_bool_t drop_hints);

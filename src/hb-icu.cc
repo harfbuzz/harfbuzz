@@ -236,7 +236,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   /* We don't ifdef-out the fallback code such that compiler always
    * sees it and makes sure it's compilable. */
 
-  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
+  UChar utf16[2], normalized[2 * 19/*HB_UNICODE_MAX_DECOMPOSITION_LEN*/ + 1];
   unsigned int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;

@@ -202,6 +202,7 @@ _hb_graphite2_shaper_font_data_destroy (hb_graphite2_font_data_t *data HB_UNUSED
 {
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_graphite2_font_get_gr_font:
  *
@@ -213,6 +214,7 @@ hb_graphite2_font_get_gr_font (hb_font_t *font HB_UNUSED)
 {
   return nullptr;
 }
+#endif
 
 
 /*
