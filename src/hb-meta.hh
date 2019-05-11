@@ -265,30 +265,30 @@ using hb_is_unsigned = hb_conditional<hb_is_arithmetic (T),
 #define hb_is_unsigned(T) hb_is_unsigned<T>::value
 
 template <typename T> struct hb_int_min;
-template <> struct hb_int_min<char>			{ static constexpr char			value = CHAR_MIN;	};
-template <> struct hb_int_min<signed char>		{ static constexpr signed char		value = SCHAR_MIN;	};
-template <> struct hb_int_min<unsigned char>		{ static constexpr unsigned char	value = 0;		};
-template <> struct hb_int_min<signed short>		{ static constexpr signed short		value = SHRT_MIN;	};
-template <> struct hb_int_min<unsigned short>		{ static constexpr unsigned short	value = 0;		};
-template <> struct hb_int_min<signed int>		{ static constexpr signed int		value = INT_MIN;	};
-template <> struct hb_int_min<unsigned int>		{ static constexpr unsigned int		value = 0;		};
-template <> struct hb_int_min<signed long>		{ static constexpr signed long		value = LONG_MIN;	};
-template <> struct hb_int_min<unsigned long>		{ static constexpr unsigned long	value = 0;		};
-template <> struct hb_int_min<signed long long>		{ static constexpr signed long long	value = LLONG_MIN;	};
-template <> struct hb_int_min<unsigned long long>	{ static constexpr unsigned long long	value = 0;		};
+template <> struct hb_int_min<char>			: hb_integral_constant<char,			CHAR_MIN>	{};
+template <> struct hb_int_min<signed char>		: hb_integral_constant<signed char,		SCHAR_MIN>	{};
+template <> struct hb_int_min<unsigned char>		: hb_integral_constant<unsigned char,		0>		{};
+template <> struct hb_int_min<signed short>		: hb_integral_constant<signed short,		SHRT_MIN>	{};
+template <> struct hb_int_min<unsigned short>		: hb_integral_constant<unsigned short,		0>		{};
+template <> struct hb_int_min<signed int>		: hb_integral_constant<signed int,		INT_MIN>	{};
+template <> struct hb_int_min<unsigned int>		: hb_integral_constant<unsigned int,		0>		{};
+template <> struct hb_int_min<signed long>		: hb_integral_constant<signed long,		LONG_MIN>	{};
+template <> struct hb_int_min<unsigned long>		: hb_integral_constant<unsigned long,		0>		{};
+template <> struct hb_int_min<signed long long>		: hb_integral_constant<signed long long,	LLONG_MIN>	{};
+template <> struct hb_int_min<unsigned long long>	: hb_integral_constant<unsigned long long,	0>		{};
 #define hb_int_min(T) hb_int_min<T>::value
 template <typename T> struct hb_int_max;
-template <> struct hb_int_max<char>			{ static constexpr char			value = CHAR_MAX;	};
-template <> struct hb_int_max<signed char>		{ static constexpr signed char		value = SCHAR_MAX;	};
-template <> struct hb_int_max<unsigned char>		{ static constexpr unsigned char	value = UCHAR_MAX;	};
-template <> struct hb_int_max<signed short>		{ static constexpr signed short		value = SHRT_MAX;	};
-template <> struct hb_int_max<unsigned short>		{ static constexpr unsigned short	value = USHRT_MAX;	};
-template <> struct hb_int_max<signed int>		{ static constexpr signed int		value = INT_MAX;	};
-template <> struct hb_int_max<unsigned int>		{ static constexpr unsigned int		value = UINT_MAX;	};
-template <> struct hb_int_max<signed long>		{ static constexpr signed long		value = LONG_MAX;	};
-template <> struct hb_int_max<unsigned long>		{ static constexpr unsigned long	value = ULONG_MAX;	};
-template <> struct hb_int_max<signed long long>		{ static constexpr signed long long	value = LLONG_MAX;	};
-template <> struct hb_int_max<unsigned long long>	{ static constexpr unsigned long long	value = ULLONG_MAX;	};
+template <> struct hb_int_max<char>			: hb_integral_constant<char,			CHAR_MAX>	{};
+template <> struct hb_int_max<signed char>		: hb_integral_constant<signed char,		SCHAR_MAX>	{};
+template <> struct hb_int_max<unsigned char>		: hb_integral_constant<unsigned char,		UCHAR_MAX>	{};
+template <> struct hb_int_max<signed short>		: hb_integral_constant<signed short,		SHRT_MAX>	{};
+template <> struct hb_int_max<unsigned short>		: hb_integral_constant<unsigned short,		USHRT_MAX>	{};
+template <> struct hb_int_max<signed int>		: hb_integral_constant<signed int,		INT_MAX>	{};
+template <> struct hb_int_max<unsigned int>		: hb_integral_constant<unsigned int,		UINT_MAX>	{};
+template <> struct hb_int_max<signed long>		: hb_integral_constant<signed long,		LONG_MAX>	{};
+template <> struct hb_int_max<unsigned long>		: hb_integral_constant<unsigned long,		ULONG_MAX>	{};
+template <> struct hb_int_max<signed long long>		: hb_integral_constant<signed long long,	LLONG_MAX>	{};
+template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigned long long,	ULLONG_MAX>	{};
 #define hb_int_max(T) hb_int_max<T>::value
 
 
