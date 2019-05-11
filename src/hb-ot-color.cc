@@ -192,7 +192,7 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
  * hb_ot_color_has_layers:
  * @face: #hb_face_t to work upon
  *
- * Tests whether a face includes any COLR color layers.
+ * Tests whether a face includes any `COLR` color layers.
  *
  * Return value: true if data found, false otherwise
  *
