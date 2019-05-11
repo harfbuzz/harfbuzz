@@ -27,6 +27,8 @@
 #include "hb.hh"
 #include "hb-meta.hh"
 
+#include <type_traits>
+
 int
 main (int argc, char **argv)
 {
@@ -57,6 +59,7 @@ main (int argc, char **argv)
   static_assert (hb_is_convertible (const int&, const int), "");
 
   struct X {};
+  struct Y : X {};
 
   static_assert (hb_is_convertible (const X &, const X), "");
   static_assert (hb_is_convertible (X &, const X), "");
@@ -76,8 +79,6 @@ main (int argc, char **argv)
   static_assert (!hb_is_convertible (int *, long *), "");
   static_assert (hb_is_convertible (int *, void *), "");
   static_assert (!hb_is_convertible (void *, int *), "");
-
-  struct Y : X {};
 
   static_assert (hb_is_base_of (void, void), "");
   static_assert (hb_is_base_of (void, int), "");
@@ -112,6 +113,8 @@ main (int argc, char **argv)
   static_assert (hb_is_trivially_copy_constructible (Y), "");
   static_assert (hb_is_trivially_move_constructible (X), "");
   static_assert (hb_is_trivially_move_constructible (Y), "");
+  static_assert (hb_is_trivially_destructible (Y), "");
+
   /* TODO Add more meaningful tests. */
 
   return 0;
