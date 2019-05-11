@@ -44,6 +44,7 @@
 #define HB_NO_BITMAP
 #define HB_NO_CFF
 #define HB_NO_MATH
+#define HB_NO_OT_LAYOUT_UNUSED
 #endif
 
 #ifdef HB_MINI
