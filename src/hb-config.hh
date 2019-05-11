@@ -36,9 +36,14 @@
 
 
 #ifdef HB_TINY
+#define HB_LEAN
 #define HB_MINI
+#endif
+
+#ifdef HB_LEAN
 #define HB_NO_BITMAP
 #define HB_NO_CFF
+#define HB_NO_MATH
 #endif
 
 #ifdef HB_MINI
