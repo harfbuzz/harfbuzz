@@ -58,7 +58,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 static bool
 _hb_apply_morx (hb_face_t *face)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return false;
 #endif
 
@@ -87,7 +87,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
   script_zero_marks = shaper->zero_width_marks != HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
   script_fallback_mark_positioning = shaper->fallback_position;
 
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (apply_morx)
     shaper = &_hb_ot_complex_shaper_default;
 #endif
@@ -100,7 +100,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, key);
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (apply_morx)
     aat_map.compile (plan.aat_map);
 #endif
@@ -140,13 +140,13 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 
   if (0)
     ;
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   else if (hb_options ().aat && hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 #endif
   else if (!apply_morx && !disable_gpos && hb_ot_layout_has_positioning (face))
     plan.apply_gpos = true;
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 #endif
@@ -216,7 +216,7 @@ void
 hb_ot_shape_plan_t::substitute (hb_font_t   *font,
 				hb_buffer_t *buffer) const
 {
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (unlikely (apply_morx))
     hb_aat_layout_substitute (this, font, buffer);
   else
@@ -230,7 +230,7 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
 {
   if (this->apply_gpos)
     map.position (this, font, buffer);
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   else if (this->apply_kerx)
     hb_aat_layout_position (this, font, buffer);
 #endif
@@ -239,7 +239,7 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
   else
     _hb_ot_shape_fallback_kern (this, font, buffer);
 
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (this->apply_trak)
     hb_aat_layout_track (this, font, buffer);
 #endif
@@ -338,7 +338,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 		      feature->value);
   }
 
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (planner->apply_morx)
   {
     hb_aat_map_builder_t *aat_map = &planner->aat_map;
@@ -783,7 +783,7 @@ static inline void
 hb_ot_substitute_post (const hb_ot_shape_context_t *c)
 {
   hb_ot_hide_default_ignorables (c->buffer, c->font);
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (c->plan->apply_morx)
     hb_aat_layout_remove_deleted_glyphs (c->buffer);
 #endif
@@ -920,7 +920,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
   /* Finish off.  Has to follow a certain order. */
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c->buffer);
-#ifndef HB_NO_AAT
+#ifndef HB_NO_SHAPE_AAT
   if (c->plan->apply_morx)
     hb_aat_layout_zero_width_deleted_glyphs (c->buffer);
 #endif

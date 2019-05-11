@@ -33,4 +33,22 @@
 
 
 
+
+
+/* Closure. */
+
+#ifdef HB_NO_AAT
+#define HB_NO_SHAPE_AAT
+#endif
+
+#ifdef HB_NO_BITMAP
+#define HB_NO_OT_FONT_BITMAP
+#endif
+
+#ifdef HB_NO_CFF
+#define HB_NO_OT_FONT_CFF
+#define HB_NO_SUBSET_CFF
+#endif
+
+
 #endif /* HB_CONFIG_HH */

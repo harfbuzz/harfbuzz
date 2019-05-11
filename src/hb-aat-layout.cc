@@ -135,7 +135,7 @@ static const hb_aat_feature_mapping_t feature_mappings[] =
 const hb_aat_feature_mapping_t *
 hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return nullptr;
 #endif
 
@@ -189,7 +189,7 @@ void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 			   hb_aat_map_t *map)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -219,7 +219,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 hb_bool_t
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return false;
 #endif
 
@@ -232,7 +232,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
 			  hb_buffer_t *buffer)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -258,7 +258,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
 void
 hb_aat_layout_zero_width_deleted_glyphs (hb_buffer_t *buffer)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -279,7 +279,7 @@ is_deleted_glyph (const hb_glyph_info_t *info)
 void
 hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -296,7 +296,7 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
 hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return false;
 #endif
 
@@ -308,7 +308,7 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -331,7 +331,7 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return false;
 #endif
 
@@ -343,7 +343,7 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
 		     hb_font_t *font,
 		     hb_buffer_t *buffer)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -370,7 +370,7 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
 				 unsigned int                 *feature_count, /* IN/OUT.  May be NULL. */
 				 hb_aat_layout_feature_type_t *features       /* OUT.     May be NULL. */)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   if (feature_count)
     *feature_count = 0;
   return 0;
@@ -392,7 +392,7 @@ hb_ot_name_id_t
 hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
 					hb_aat_layout_feature_type_t  feature_type)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return HB_OT_NAME_ID_INVALID;
 #endif
 
@@ -424,7 +424,7 @@ hb_aat_layout_feature_type_get_selector_infos (hb_face_t                        
 					       hb_aat_layout_feature_selector_info_t *selectors,      /* OUT.     May be NULL. */
 					       unsigned int                          *default_index   /* OUT.     May be NULL. */)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   if (selector_count)
     *selector_count = 0;
   return 0;

@@ -34,7 +34,7 @@
 void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
 					unsigned int value)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
@@ -57,7 +57,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
 void
 hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 {
-#ifdef HB_NO_AAT
+#ifdef HB_NO_SHAPE_AAT
   return;
 #endif
 
