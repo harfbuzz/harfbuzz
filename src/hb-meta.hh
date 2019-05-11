@@ -162,14 +162,11 @@ using hb_is_base_of = hb_is_convertible<hb_decay<Derived> *, hb_decay<Base> *>;
 #define hb_is_base_of(Base,Derived) hb_is_base_of<Base, Derived>::value
 
 template <typename From, typename To>
-struct hb_is_cr_convertible
-{
-  public:
-  static constexpr bool value =
-    hb_is_same (hb_decay<From>, hb_decay<To>) &&
-    (!hb_is_const (From) || hb_is_const (To)) &&
-    (!hb_is_reference (To) || hb_is_const (To) || hb_is_reference (To));
-};
+using hb_is_cr_convertible = hb_bool_constant<
+  hb_is_same (hb_decay<From>, hb_decay<To>) &&
+  (!hb_is_const (From) || hb_is_const (To)) &&
+  (!hb_is_reference (To) || hb_is_const (To) || hb_is_reference (To))
+>;
 #define hb_is_cr_convertible(From,To) hb_is_cr_convertible<From, To>::value
 
 /* std::move and std::forward */
