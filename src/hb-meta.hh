@@ -240,6 +240,9 @@ template <> struct hb_is_signed<signed long>		{ static constexpr bool value = tr
 template <> struct hb_is_signed<unsigned long>		{ static constexpr bool value = false;		};
 template <> struct hb_is_signed<signed long long>	{ static constexpr bool value = true;		};
 template <> struct hb_is_signed<unsigned long long>	{ static constexpr bool value = false;		};
+template <> struct hb_is_signed<float>			{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<double>			{ static constexpr bool value = true;		};
+template <> struct hb_is_signed<long double>		{ static constexpr bool value = true;		};
 #define hb_is_signed(T) hb_is_signed<T>::value
 
 template <typename T> struct hb_int_min;
