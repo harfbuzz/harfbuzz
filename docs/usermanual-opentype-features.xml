@@ -167,13 +167,20 @@
       "discretionary" ligatures in the font:
     </para>
     <programlisting language="C">
-      unsigned int num_features = 1;
-      hb_feature_t userfeatures[num_features];
+      hb_feature_t userfeatures[1];
       userfeatures[0].tag = HB_TAG('d','l','i','g');
       userfeatures[0].value = 1;
-      userfeatures[0].start = 0;
-      userfeatures[0].end = (unsigned int) -1;
+      userfeatures[0].start = HB_FEATURE_GLOBAL_START;
+      userfeatures[0].end = HB_FEATURE_GLOBAL_END;
     </programlisting>
+    <para>
+      <literal>HB_FEATURE_GLOBAL_END</literal> and
+      <literal>HB_FEATURE_GLOBAL_END</literal> are macros we can use
+      to indicate that the features will be applied to the entire
+      buffer. We could also have used a literal <literal>0</literal>
+      for the start and a <literal>-1</literal> to indicate the end of
+      the buffer (or have selected other start and end positions, if needed).
+    </para>
     <para>
       When we pass the <varname>userfeatures</varname> array to
       <function>hb_shape()</function>, any discretionary ligature
