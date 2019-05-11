@@ -30,6 +30,7 @@
 #if 0 /* Make test happy. */
 #include "hb.hh"
 #endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -94,6 +95,11 @@
 #define HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS
+#endif
+
+
+#ifdef HAVE_CONFIG_OVERRIDE_H
+#include "config-override.h"
 #endif
 
 
