@@ -47,15 +47,12 @@
  */
 
 template <typename T, typename B>
-struct _hb_null_size
-{ enum { value = sizeof (T) }; };
+struct _hb_null_size : hb_integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_null_size<T, hb_bool_constant<true || sizeof (T::min_size)>>
-{ enum { value = T::null_size }; };
+struct _hb_null_size<T, hb_bool_constant<true || sizeof (T::min_size)>> : hb_integral_constant<unsigned, T::null_size> {};
 
 template <typename T>
-struct hb_null_size
-{ enum { value = _hb_null_size<T, hb_true_type>::value }; };
+using hb_null_size = _hb_null_size<T, hb_true_type>;
 #define hb_null_size(T) hb_null_size<T>::value
 
 /* These doesn't belong here, but since is copy/paste from above, put it here. */
@@ -64,15 +61,11 @@ struct hb_null_size
  * Returns T::static_size if T::min_size is defined, or sizeof (T) otherwise. */
 
 template <typename T, typename B>
-struct _hb_static_size
-{ enum { value = sizeof (T) }; };
+struct _hb_static_size : hb_integral_constant<unsigned, sizeof (T)> {};
 template <typename T>
-struct _hb_static_size<T, hb_bool_constant<true || sizeof (T::min_size)>>
-{ enum { value = T::static_size }; };
-
+struct _hb_static_size<T, hb_bool_constant<true || sizeof (T::min_size)>> : hb_integral_constant<unsigned, T::static_size> {};
 template <typename T>
-struct hb_static_size
-{ enum { value = _hb_static_size<T, hb_true_type>::value }; };
+using hb_static_size = _hb_static_size<T, hb_true_type>;
 #define hb_static_size(T) hb_static_size<T>::value
 
 
