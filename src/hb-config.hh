@@ -27,6 +27,9 @@
 #ifndef HB_CONFIG_HH
 #define HB_CONFIG_HH
 
+#if 0 /* Make test happy. */
+#include "hb.hh"
+#endif
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
