@@ -37,10 +37,9 @@
 /* Void!  For when we need a expression-type of void. */
 struct hb_empty_t {};
 
-/* Void meta-function ala std::void_t
- * https://en.cppreference.com/w/cpp/types/void_t */
-template<typename... Ts> struct _hb_void_tt { typedef void type; };
-template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
+/* https://en.cppreference.com/w/cpp/types/void_t */
+template<typename... Ts> struct _hb_void_t { typedef void type; };
+template<typename... Ts> using hb_void_t = typename _hb_void_t<Ts...>::type;
 
 template<typename Head, typename... Ts> struct _hb_head_tt { typedef Head type; };
 template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
@@ -67,7 +66,7 @@ template <typename T>              struct hb_is_same<T, T> : hb_true_type {};
 
 #define HB_RETURN(Ret, E) -> hb_head_tt<Ret, decltype ((E))> { return (E); }
 #define HB_AUTO_RETURN(E) -> decltype ((E)) { return (E); }
-#define HB_VOID_RETURN(E) -> hb_void_tt<decltype ((E))> { (E); }
+#define HB_VOID_RETURN(E) -> hb_void_t<decltype ((E))> { (E); }
 
 template <unsigned Pri> struct hb_priority : hb_priority<Pri - 1> {};
 template <>             struct hb_priority<0> {};
