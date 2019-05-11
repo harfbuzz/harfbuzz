@@ -32,7 +32,7 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff1-table.hh"
 
-static void
+static inline void
 _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 		       hb_codepoint_t gid,
 		       hb_set_t *gids_to_retain)
@@ -53,7 +53,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
   }
 }
 
-static void
+static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
            hb_codepoint_t gid,
            hb_set_t *gids_to_retain)
@@ -66,7 +66,7 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
   }
 }
 
-static void
+static inline void
 _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 {
   hb_set_t lookup_indices;
@@ -81,7 +81,7 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 					   gids_to_retain);
 }
 
-static void
+static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
 		      unsigned int num_glyphs)
 {
@@ -126,9 +126,11 @@ _populate_gids_to_retain (hb_face_t *face,
     initial_gids_to_retain->add (gid);
   }
 
+#ifndef HB_NO_SUBSET_LAYOUT
   if (close_over_gsub)
     // Add all glyphs needed for GSUB substitutions.
     _gsub_closure (face, initial_gids_to_retain);
+#endif
 
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
@@ -137,13 +139,14 @@ _populate_gids_to_retain (hb_face_t *face,
   while (initial_gids_to_retain->next (&gid))
   {
     _add_gid_and_children (glyf, gid, all_gids_to_retain);
+#ifndef HB_NO_SUBSET_CFF
     if (cff.is_valid ())
       _add_cff_seac_components (cff, gid, all_gids_to_retain);
+#endif
   }
   hb_set_destroy (initial_gids_to_retain);
 
   _remove_invalid_gids (all_gids_to_retain, face->get_num_glyphs ());
-
 
   cff.fini ();
   glyf.fini ();
