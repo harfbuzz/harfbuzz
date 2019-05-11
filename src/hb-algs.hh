@@ -73,7 +73,7 @@ struct
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T,
-	    hb_enable_if (hb_is_integer (T))> auto
+	    hb_enable_if (hb_is_integral (T))> auto
   impl (const T& v, hb_priority<0>) const HB_AUTO_RETURN
   (
     /* Knuth's multiplicative method: */
