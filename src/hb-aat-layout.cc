@@ -79,7 +79,7 @@ AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_)
  * @short_description: Apple Advanced Typography Layout
  * @include: hb-aat.h
  *
- * Functions for querying OpenType Layout features in the font face. 
+ * Functions for querying AAT Layout features in the font face. 
  *
  * HarfBuzz supports all of the AAT tables used to implement shaping. Other
  * AAT tables and their associated features are not supported.
@@ -223,7 +223,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
  * @face: #hb_face_t to work upon
  *
  * Tests whether the specified face includes any substitutions in the
- * `morx` table.
+ * `morx` or `mort` tables.
  *
  * <note>Note: does not examine the `GSUB` table.</note>
  *
@@ -374,9 +374,9 @@ hb_aat_layout_get_feature_types (hb_face_t                    *face,
  * @face: #hb_face_t to work upon
  * @feature_type: The #hb_aat_layout_feature_type_t of the requested feature type
  *
- * Fetches the name ID of the specified feature type in the face's 'name' table.
+ * Fetches the name ID of the specified feature type in the face's `name` table.
  *
- * Return value: Name ID index of the requested feature type
+ * Return value: Name ID of the requested feature type
  *
  * Since: 2.2.0
  */
