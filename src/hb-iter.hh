@@ -243,8 +243,8 @@ template<typename Iter, typename Item>
 struct hb_is_iterator_of
 {
   template <typename Item2 = Item>
-  static hb_true_t impl (hb_priority<2>, hb_iter_t<Iter, hb_type_identity<Item2>> *);
-  static hb_false_t impl (hb_priority<0>, const void *);
+  static hb_true_type impl (hb_priority<2>, hb_iter_t<Iter, hb_type_identity<Item2>> *);
+  static hb_false_type impl (hb_priority<0>, const void *);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize, hb_declval (Iter*)))::value;
@@ -260,10 +260,10 @@ struct hb_is_iterable
   private:
 
   template <typename U>
-  static auto impl (hb_priority<1>) -> decltype (hb_declval (U).iter (), hb_true_t ());
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (U).iter (), hb_true_type ());
 
   template <typename>
-  static hb_false_t impl (hb_priority<0>);
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl<T> (hb_prioritize))::value;
@@ -278,10 +278,10 @@ struct hb_is_source_of
   private:
   template <typename Iter2 = Iter,
 	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, const Item &))>
-  static hb_true_t impl (hb_priority<2>);
+  static hb_true_type impl (hb_priority<2>);
   template <typename Iter2 = Iter>
-  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) >> hb_declval (Item &), hb_true_t ());
-  static hb_false_t impl (hb_priority<0>);
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) >> hb_declval (Item &), hb_true_type ());
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize))::value;
@@ -294,10 +294,10 @@ struct hb_is_sink_of
   private:
   template <typename Iter2 = Iter,
 	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, Item &))>
-  static hb_true_t impl (hb_priority<2>);
+  static hb_true_type impl (hb_priority<2>);
   template <typename Iter2 = Iter>
-  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) << hb_declval (Item), hb_true_t ());
-  static hb_false_t impl (hb_priority<0>);
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) << hb_declval (Item), hb_true_type ());
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize))::value;

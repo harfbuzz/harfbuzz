@@ -45,11 +45,10 @@ template<typename... Ts> using hb_void_tt = typename _hb_void_tt<Ts...>::type;
 template<typename Head, typename... Ts> struct _hb_head_tt { typedef Head type; };
 template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
 
-/* Bool!  For when we need to evaluate type-dependent expressions
- * in a template argument. */
-template <bool b> struct hb_bool_constant { static constexpr bool value = b; };
-typedef hb_bool_constant<true> hb_true_t;
-typedef hb_bool_constant<false> hb_false_t;
+template <typename T, T v> struct hb_integral_constant { static constexpr T value = v; };
+template <bool b> using hb_bool_constant = hb_integral_constant<bool, b>;
+using hb_true_type = hb_bool_constant<true>;
+using hb_false_type = hb_bool_constant<false>;
 
 
 /* Basic type SFINAE. */
@@ -60,8 +59,8 @@ template <typename T>                struct hb_enable_if<true, T> { typedef T ty
 /* Concepts/Requires alias: */
 #define hb_requires(Cond) hb_enable_if((Cond))
 
-template <typename T, typename T2> struct hb_is_same : hb_false_t {};
-template <typename T>              struct hb_is_same<T, T> : hb_true_t {};
+template <typename T, typename T2> struct hb_is_same : hb_false_type {};
+template <typename T>              struct hb_is_same<T, T> : hb_true_type {};
 #define hb_is_same(T, T2) hb_is_same<T, T2>::value
 
 /* Function overloading SFINAE and priority. */
@@ -145,12 +144,12 @@ struct hb_is_convertible
   static constexpr bool either_void = from_void || to_void;
   static constexpr bool   both_void = from_void && to_void;
 
-  static hb_true_t impl2 (hb_conditional<to_void, int, To>);
+  static hb_true_type impl2 (hb_conditional<to_void, int, To>);
 
   template <typename T>
   static auto impl (hb_priority<1>) -> decltype (impl2 (hb_declval (T)));
   template <typename T>
-  static hb_false_t impl (hb_priority<0>);
+  static hb_false_type impl (hb_priority<0>);
   public:
   static constexpr bool value = both_void ||
 		       (!either_void &&

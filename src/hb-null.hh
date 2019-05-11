@@ -55,7 +55,7 @@ struct _hb_null_size<T, hb_bool_constant<true || sizeof (T::min_size)>>
 
 template <typename T>
 struct hb_null_size
-{ enum { value = _hb_null_size<T, hb_true_t>::value }; };
+{ enum { value = _hb_null_size<T, hb_true_type>::value }; };
 #define hb_null_size(T) hb_null_size<T>::value
 
 /* These doesn't belong here, but since is copy/paste from above, put it here. */
@@ -72,7 +72,7 @@ struct _hb_static_size<T, hb_bool_constant<true || sizeof (T::min_size)>>
 
 template <typename T>
 struct hb_static_size
-{ enum { value = _hb_static_size<T, hb_true_t>::value }; };
+{ enum { value = _hb_static_size<T, hb_true_type>::value }; };
 #define hb_static_size(T) hb_static_size<T>::value
 
 
