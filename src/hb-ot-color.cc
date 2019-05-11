@@ -94,7 +94,7 @@ hb_ot_color_palette_get_count (hb_face_t *face)
  * @face: #hb_face_t to work upon
  * @palette_index: The index of the color palette 
  *
- * Fetches the 'name' table Name ID that provides display names for
+ * Fetches the `name` table Name ID that provides display names for
  * a CPAL color palette. 
  *
  * Palette display names can be generic (e.g., "Default") or provide
