@@ -167,7 +167,7 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * colors. If @colors is NULL, the function will just return the number
  * of total colors without storing any actual colors; this can be used
  * for allocating a buffer of suitable size before calling
- * #hb_ot_color_palette_get_colors() a second time.
+ * hb_ot_color_palette_get_colors() a second time.
  *
  * Return value: the total number of colors in the palette
  *
