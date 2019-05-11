@@ -61,7 +61,7 @@
  * hb_ot_color_has_palettes:
  * @face: #hb_face_t to work upon
  *
- * Tests whether a face includes a CPAL color-palette table.
+ * Tests whether a face includes a `CPAL` color-palette table.
  *
  * Return value: true if data found, false otherwise
  *
