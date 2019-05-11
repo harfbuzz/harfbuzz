@@ -345,16 +345,24 @@ operator | (Lhs&& lhs, Rhs&& rhs) HB_AUTO_RETURN (hb_forward<Rhs> (rhs) (hb_forw
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
-template <typename Iter, typename Proj,
+enum sorted_t {
+  NOT_SORTED,
+  RETAINS_SORTING,
+  SORTED,
+};
+
+template <typename Iter, typename Proj, sorted_t Sorted,
 	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
-  hb_iter_t<hb_map_iter_t<Iter, Proj>,
+  hb_iter_t<hb_map_iter_t<Iter, Proj, Sorted>,
 	    decltype (hb_get (hb_declval (Proj), *hb_declval (Iter)))>
 {
   hb_map_iter_t (const Iter& it, Proj f_) : it (it), f (f_) {}
 
   typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
+  static constexpr bool is_sorted_iterator =
+    Sorted == SORTED ? true : Sorted == RETAINS_SORTING ? Iter::is_sorted_iterator : false;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
@@ -372,16 +380,16 @@ struct hb_map_iter_t :
   hb_reference_wrapper<Proj> f;
 };
 
-template <typename Proj>
+template <typename Proj, sorted_t Sorted>
 struct hb_map_iter_factory_t
 {
   hb_map_iter_factory_t (Proj f) : f (f) {}
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  hb_map_iter_t<Iter, Proj>
+  hb_map_iter_t<Iter, Proj, Sorted>
   operator () (Iter it)
-  { return hb_map_iter_t<Iter, Proj> (it, f); }
+  { return hb_map_iter_t<Iter, Proj, Sorted> (it, f); }
 
   private:
   Proj f;
@@ -389,11 +397,27 @@ struct hb_map_iter_factory_t
 struct
 {
   template <typename Proj>
-  hb_map_iter_factory_t<Proj>
+  hb_map_iter_factory_t<Proj, NOT_SORTED>
   operator () (Proj&& f) const
-  { return hb_map_iter_factory_t<Proj> (f); }
+  { return hb_map_iter_factory_t<Proj, NOT_SORTED> (f); }
 }
 HB_FUNCOBJ (hb_map);
+struct
+{
+  template <typename Proj>
+  hb_map_iter_factory_t<Proj, SORTED>
+  operator () (Proj&& f) const
+  { return hb_map_iter_factory_t<Proj, RETAINS_SORTING> (f); }
+}
+HB_FUNCOBJ (hb_map_retains_sorting);
+struct
+{
+  template <typename Proj>
+  hb_map_iter_factory_t<Proj, SORTED>
+  operator () (Proj&& f) const
+  { return hb_map_iter_factory_t<Proj, SORTED> (f); }
+}
+HB_FUNCOBJ (hb_map_sorted);
 
 template <typename Iter, typename Pred, typename Proj,
 	 hb_requires (hb_is_iterator (Iter))>
