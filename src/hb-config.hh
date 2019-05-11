@@ -32,7 +32,16 @@
 #endif
 
 
+#ifdef HB_TINY
+#define HB_MINI
+#define HB_NO_BITMAP
+#define HB_NO_CFF
+#endif
 
+#ifdef HB_MINI
+#define HB_NO_AAT
+#define HB_NO_FALLBACK
+#endif
 
 
 /* Closure. */
@@ -48,6 +57,14 @@
 #ifdef HB_NO_CFF
 #define HB_NO_OT_FONT_CFF
 #define HB_NO_SUBSET_CFF
+#endif
+
+#ifdef HB_NO_FALLBACK
+#define HB_NO_OT_SHAPE_COMPLEX_ARABIC_FALLBACK
+#define HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
+#define HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
+#define HB_NO_OT_SHAPE_FALLBACK
+#define HB_NO_OT_SHAPE_FALLBACK
 #endif
 
 
