@@ -218,7 +218,7 @@ do_thai_pua_shaping (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		     hb_buffer_t              *buffer,
 		     hb_font_t                *font)
 {
-#if defined(HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK)
+#ifdef HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
   return;
 #endif
 

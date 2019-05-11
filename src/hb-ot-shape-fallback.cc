@@ -166,7 +166,7 @@ _hb_ot_shape_fallback_mark_position_recategorize_marks (const hb_ot_shape_plan_t
 						        hb_font_t *font HB_UNUSED,
 						        hb_buffer_t  *buffer)
 {
-#if defined(HB_NO_OT_SHAPE_FALLBACK)
+#ifdef HB_NO_OT_SHAPE_FALLBACK
   return;
 #endif
 
@@ -438,7 +438,7 @@ _hb_ot_shape_fallback_mark_position (const hb_ot_shape_plan_t *plan,
 				     hb_buffer_t  *buffer,
 				     bool adjust_offsets_when_zeroing)
 {
-#if defined(HB_NO_OT_SHAPE_FALLBACK)
+#ifdef HB_NO_OT_SHAPE_FALLBACK
   return;
 #endif
 
@@ -481,7 +481,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
 			    hb_font_t *font,
 			    hb_buffer_t *buffer)
 {
-#if defined(HB_NO_OT_SHAPE_FALLBACK)
+#ifdef HB_NO_OT_SHAPE_FALLBACK
   return;
 #endif
 
