@@ -251,24 +251,19 @@ using hb_is_arithmetic = hb_bool_constant<
   hb_is_floating_point (T) ||
   false
 >;
-#define hb_is_arighmetic(T) hb_is_arighmetic<T>::value
+#define hb_is_arithmetic(T) hb_is_arithmetic<T>::value
 
-template <typename T> struct hb_is_signed;
-template <> struct hb_is_signed<char>			{ static constexpr bool value = CHAR_MIN < 0;	};
-template <> struct hb_is_signed<signed char>		{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<unsigned char>		{ static constexpr bool value = false;		};
-template <> struct hb_is_signed<signed short>		{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<unsigned short>		{ static constexpr bool value = false;		};
-template <> struct hb_is_signed<signed int>		{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<unsigned int>		{ static constexpr bool value = false;		};
-template <> struct hb_is_signed<signed long>		{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<unsigned long>		{ static constexpr bool value = false;		};
-template <> struct hb_is_signed<signed long long>	{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<unsigned long long>	{ static constexpr bool value = false;		};
-template <> struct hb_is_signed<float>			{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<double>			{ static constexpr bool value = true;		};
-template <> struct hb_is_signed<long double>		{ static constexpr bool value = true;		};
+
+template <typename T>
+using hb_is_signed = hb_conditional<hb_is_arithmetic (T),
+				    hb_bool_constant<(T) -1 < (T) 0>,
+				    hb_false_type>;
 #define hb_is_signed(T) hb_is_signed<T>::value
+template <typename T>
+using hb_is_unsigned = hb_conditional<hb_is_arithmetic (T),
+				      hb_bool_constant<(T) 0 < (T) -1>,
+				      hb_false_type>;
+#define hb_is_unsigned(T) hb_is_unsigned<T>::value
 
 template <typename T> struct hb_int_min;
 template <> struct hb_int_min<char>			{ static constexpr char			value = CHAR_MIN;	};
