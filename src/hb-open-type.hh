@@ -445,20 +445,8 @@ struct UnsizedArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
 
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
+    static_assert ((hb_void_t<decltype (hb_declval (Type).sanitize (c))> (), true), "");
+    static_assert (hb_is_trivially_copyable (Type), "");
 
     return_trace (true);
   }
@@ -626,20 +614,8 @@ struct ArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
 
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
+    static_assert ((hb_void_t<decltype (hb_declval (Type).sanitize (c))> (), true), "");
+    static_assert (hb_is_trivially_copyable (Type), "");
 
     return_trace (true);
   }
@@ -765,20 +741,8 @@ struct HeadlessArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
 
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
+    static_assert ((hb_void_t<decltype (hb_declval (Type).sanitize (c))> (), true), "");
+    static_assert (hb_is_trivially_copyable (Type), "");
 
     return_trace (true);
   }
@@ -1006,20 +970,8 @@ struct VarSizedBinSearchArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
 
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      (*this)[0].sanitize (c);
-      Type v;
-      v = (*this)[0];
-    }
+    static_assert ((hb_void_t<decltype (hb_declval (Type).sanitize (c))> (), true), "");
+    static_assert (hb_is_trivially_copyable (Type), "");
 
     return_trace (true);
   }
