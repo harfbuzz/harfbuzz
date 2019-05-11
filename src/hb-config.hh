@@ -49,7 +49,7 @@
 #define HB_NO_COLOR
 #define HB_NO_GETENV
 #define HB_NO_MATH
-#define HB_NO_OT_NAME_LANGUAGE
+#define HB_NO_NAME
 #define HB_NO_OT_LAYOUT_UNUSED
 #endif
 
@@ -83,6 +83,10 @@
 #ifdef HB_NO_LEGACY
 #define HB_NO_OT_LAYOUT_BLACKLIST
 #define HB_NO_OT_SHAPE_FALLBACK
+#endif
+
+#ifdef HB_NO_NAME
+#define HB_NO_OT_NAME_LANGUAGE
 #endif
 
 #ifdef HB_NO_OT_SHAPE_FALLBACK
