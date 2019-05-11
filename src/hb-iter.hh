@@ -196,11 +196,11 @@ struct hb_iter_fallback_mixin_t
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { *thiz() += 1; }
-  void __forward__ (unsigned n) { while (n--) ++*thiz(); }
+  void __forward__ (unsigned n) { while (*thiz() && n--) ++*thiz(); }
 
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
   void __prev__ () { *thiz() -= 1; }
-  void __rewind__ (unsigned n) { while (n--) --*thiz(); }
+  void __rewind__ (unsigned n) { while (*thiz() && n--) --*thiz(); }
 
   /* Range-based for: Implement __end__() if can be done faster,
    * and operator!=. */
