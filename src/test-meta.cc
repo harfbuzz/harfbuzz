@@ -119,6 +119,10 @@ main (int argc, char **argv)
   static_assert (hb_is_trivially_copyable (X), "");
   static_assert (hb_is_trivially_copyable (Y), "");
 
+  static_assert (hb_is_trivial (int), "");
+  static_assert (hb_is_trivial (X), "");
+  static_assert (hb_is_trivial (Y), "");
+
   /* TODO Add more meaningful tests. */
 
   return 0;

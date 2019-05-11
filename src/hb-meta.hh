@@ -389,5 +389,12 @@ using hb_is_trivially_copyable= hb_bool_constant<
 >;
 #define hb_is_trivially_copyable(T) hb_is_trivially_copyable<T>::value
 
+template <typename T>
+using hb_is_trivial= hb_bool_constant<
+  hb_is_trivially_copyable (T) &&
+  hb_is_trivially_default_constructible (T)
+>;
+#define hb_is_trivial(T) hb_is_trivial<T>::value
+
 
 #endif /* HB_META_HH */
