@@ -47,9 +47,9 @@ template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
 
 /* Bool!  For when we need to evaluate type-dependent expressions
  * in a template argument. */
-template <bool b> struct hb_bool_tt { static constexpr bool value = b; };
-typedef hb_bool_tt<true> hb_true_t;
-typedef hb_bool_tt<false> hb_false_t;
+template <bool b> struct hb_bool_constant { static constexpr bool value = b; };
+typedef hb_bool_constant<true> hb_true_t;
+typedef hb_bool_constant<false> hb_false_t;
 
 
 /* Basic type SFINAE. */
