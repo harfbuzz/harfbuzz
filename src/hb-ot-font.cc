@@ -183,7 +183,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   bool ret = false;
 
 #if !defined(HB_NO_OT_FONT_BITMAP) && !defined(HB_NO_COLOR)
-  if (!ret) ot_face->sbix->get_extents (font, glyph, extents);
+  if (!ret) ret = ot_face->sbix->get_extents (font, glyph, extents);
 #endif
   if (!ret) ret = ot_face->glyf->get_extents (glyph, extents);
 #ifndef HB_NO_OT_FONT_CFF
