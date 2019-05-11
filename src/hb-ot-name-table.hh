@@ -51,6 +51,7 @@ struct NameRecord
 {
   hb_language_t language (hb_face_t *face) const
   {
+#ifndef HB_NO_OT_NAME_LANGUAGE
     unsigned int p = platformID;
     unsigned int l = languageID;
 
@@ -60,11 +61,12 @@ struct NameRecord
     if (p == 1)
       return _hb_ot_name_language_for_mac_code (l);
 
-#ifndef HB_NO_NAME_TABLE_AAT
+#ifndef HB_NO_OT_NAME_LANGUAGE_AAT
     if (p == 0)
       return _hb_aat_language_get (face, l);
 #endif
 
+#endif
     return HB_LANGUAGE_INVALID;
   }
 

@@ -430,6 +430,9 @@ _hb_ot_name_language_for (unsigned int code,
 			  const hb_ot_language_map_t *array,
 			  unsigned int len)
 {
+#ifdef HB_NO_OT_NAME_LANGUAGE
+  return HB_LANGUAGE_INVALID;
+#endif
   const hb_ot_language_map_t *entry = (const hb_ot_language_map_t *)
 				      hb_bsearch (&code,
 						  array,
