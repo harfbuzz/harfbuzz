@@ -698,7 +698,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ ());
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
 
@@ -889,8 +889,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -930,8 +930,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,
