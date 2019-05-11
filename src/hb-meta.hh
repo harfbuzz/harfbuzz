@@ -35,7 +35,7 @@
  */
 
 /* Void!  For when we need a expression-type of void. */
-struct hb_void_t { typedef void value; };
+struct hb_void_t {};
 
 /* Void meta-function ala std::void_t
  * https://en.cppreference.com/w/cpp/types/void_t */
