@@ -292,4 +292,77 @@ template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigne
 #define hb_int_max(T) hb_int_max<T>::value
 
 
+template <typename T, typename, typename ...Ts>
+struct _hb_is_constructible : hb_false_type {};
+template <typename T, typename ...Ts>
+struct _hb_is_constructible<T, hb_void_t<decltype (T (hb_declval (Ts)...))>, Ts...> : hb_true_type {};
+template <typename T, typename ...Ts>
+using hb_is_constructible = _hb_is_constructible<T, void, Ts...>;
+#define hb_is_constructible(...) hb_is_constructible<__VA_ARGS__>::value
+
+template <typename T>
+using hb_is_default_constructible = hb_is_constructible<T>;
+#define hb_is_default_constructible(T) hb_is_default_constructible<T>::value
+
+template <typename T>
+using hb_is_copy_constructible = hb_is_constructible<T, hb_add_lvalue_reference<hb_add_const<T>>>;
+#define hb_is_copy_constructible(T) hb_is_copy_constructible<T>::value
+
+template <typename T>
+using hb_is_move_constructible = hb_is_constructible<T, hb_add_rvalue_reference<hb_add_const<T>>>;
+#define hb_is_move_constructible(T) hb_is_move_constructible<T>::value
+
+template <typename T, typename U, typename>
+struct _hb_is_assignable : hb_false_type {};
+template <typename T, typename U>
+struct _hb_is_assignable<T, U, hb_void_t<decltype (hb_declval (T) = hb_declval (U))>> : hb_true_type {};
+template <typename T, typename U>
+using hb_is_assignable = _hb_is_assignable<T, U, void>;
+#define hb_is_assignable(T,U) hb_is_assignable<T, U>::value
+
+template <typename T>
+using hb_is_copy_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
+					       hb_add_lvalue_reference<hb_add_const<T>>>;
+#define hb_is_copy_assignable(T) hb_is_copy_assignable<T>::value
+
+template <typename T>
+using hb_is_move_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
+					       hb_add_rvalue_reference<T>>;
+#define hb_is_move_assignable(T) hb_is_move_assignable<T>::value
+
+/* Trivial versions. */
+
+template <typename T> union hb_trivial { T value; };
+
+/* Don't know how to do the following. */
+//template <typename T, typename ...Ts>
+//using hb_is_trivially_constructible= hb_is_constructible<hb_trivial<T>, hb_trivial<Ts>...>;
+//#define hb_is_trivially_constructible(...) hb_is_trivially_constructible<__VA_ARGS__>::value
+
+template <typename T>
+using hb_is_trivially_default_constructible= hb_is_default_constructible<hb_trivial<T>>;
+#define hb_is_trivially_default_constructible(T) hb_is_trivially_default_constructible<T>::value
+
+template <typename T>
+using hb_is_trivially_copy_constructible= hb_is_copy_constructible<hb_trivial<T>>;
+#define hb_is_trivially_copy_constructible(T) hb_is_trivially_copy_constructible<T>::value
+
+template <typename T>
+using hb_is_trivially_move_constructible= hb_is_move_constructible<hb_trivial<T>>;
+#define hb_is_trivially_move_constructible(T) hb_is_trivially_move_constructible<T>::value
+
+/* Don't know how to do the following. */
+//template <typename T, typename U>
+//using hb_is_trivially_assignable= hb_is_assignable<hb_trivial<T>, hb_trivial<U>>;
+//#define hb_is_trivially_assignable(T,U) hb_is_trivially_assignable<T, U>::value
+
+template <typename T>
+using hb_is_trivially_copy_assignable= hb_is_copy_assignable<hb_trivial<T>>;
+#define hb_is_trivially_copy_assignable(T) hb_is_trivially_copy_assignable<T>::value
+
+template <typename T>
+using hb_is_trivially_move_assignable= hb_is_move_assignable<hb_trivial<T>>;
+#define hb_is_trivially_move_assignable(T) hb_is_trivially_move_assignable<T>::value
+
+
 #endif /* HB_META_HH */
