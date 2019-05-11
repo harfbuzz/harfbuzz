@@ -152,7 +152,7 @@ hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
  * @kern: The #hb_ot_math_kern_t from which to retrieve the value
  * @correction_height: the correction height to use to determine the kerning.
  *
- * Fetches the MathKern table for the specified font, glyph index, and
+ * Fetches the math kerning (cut-ins) value for the specified font, glyph index, and
  * @kern. 
  *
  * If the MathKern table is found, the function examines it to find a height
