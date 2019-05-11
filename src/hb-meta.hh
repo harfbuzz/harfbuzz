@@ -41,8 +41,8 @@ struct hb_empty_t {};
 template<typename... Ts> struct _hb_void_t { typedef void type; };
 template<typename... Ts> using hb_void_t = typename _hb_void_t<Ts...>::type;
 
-template<typename Head, typename... Ts> struct _hb_head_tt { typedef Head type; };
-template<typename... Ts> using hb_head_tt = typename _hb_head_tt<Ts...>::type;
+template<typename Head, typename... Ts> struct _hb_head_t { typedef Head type; };
+template<typename... Ts> using hb_head_t = typename _hb_head_t<Ts...>::type;
 
 template <typename T, T v> struct hb_integral_constant { static constexpr T value = v; };
 template <bool b> using hb_bool_constant = hb_integral_constant<bool, b>;
@@ -64,7 +64,7 @@ template <typename T>              struct hb_is_same<T, T> : hb_true_type {};
 
 /* Function overloading SFINAE and priority. */
 
-#define HB_RETURN(Ret, E) -> hb_head_tt<Ret, decltype ((E))> { return (E); }
+#define HB_RETURN(Ret, E) -> hb_head_t<Ret, decltype ((E))> { return (E); }
 #define HB_AUTO_RETURN(E) -> decltype ((E)) { return (E); }
 #define HB_VOID_RETURN(E) -> hb_void_t<decltype ((E))> { (E); }
 
