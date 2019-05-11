@@ -117,7 +117,7 @@ hb_ot_color_palette_get_name_id (hb_face_t *face,
  * @face: #hb_face_t to work upon
  * @color_index: The index of the color
  *
- * Fetches the 'name' table Name ID that provides display names for
+ * Fetches the `name` table Name ID that provides display names for
  * the specificed color in a face's CPAL color palette. 
  *
  * Display names can be generic (e.g., "Background") or specific
