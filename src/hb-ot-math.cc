@@ -97,7 +97,7 @@ hb_ot_math_get_constant (hb_font_t *font,
  * Fetches an italics-correction value (if one exists) for the specified
  * glyph index.
  *
- * Return value: the italics correction of the glyph or 0
+  * Return value: the italics correction of the glyph or zero
  *
  * Since: 1.3.3
  **/
