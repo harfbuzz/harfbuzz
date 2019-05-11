@@ -292,6 +292,15 @@ template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigne
 #define hb_int_max(T) hb_int_max<T>::value
 
 
+
+template <typename T, typename>
+struct _hb_is_destructible : hb_false_type {};
+template <typename T>
+struct _hb_is_destructible<T, hb_void_t<decltype (hb_declval (T).~T ())>> : hb_true_type {};
+template <typename T>
+using hb_is_destructible = _hb_is_destructible<T, void>;
+#define hb_is_destructible(T) hb_is_destructible<T>::value
+
 template <typename T, typename, typename ...Ts>
 struct _hb_is_constructible : hb_false_type {};
 template <typename T, typename ...Ts>
@@ -333,6 +342,11 @@ using hb_is_move_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
 /* Trivial versions. */
 
 template <typename T> union hb_trivial { T value; };
+
+/* Don't know how to do the following. */
+//template <typename T>
+//using hb_is_trivially_destructible= hb_is_destructible<hb_trivial<T>>;
+//#define hb_is_trivially_destructible(T) hb_is_trivially_destructible<T>::value
 
 /* Don't know how to do the following. */
 //template <typename T, typename ...Ts>
