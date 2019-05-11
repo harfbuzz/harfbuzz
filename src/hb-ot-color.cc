@@ -48,7 +48,7 @@
  *
  * Functions for fetching color-font information from OpenType font faces.
  *
- * HarfBuzz supports COLR/CPAL, sbix, CBDT, and SVG color fonts.
+ * HarfBuzz supports `COLR`/`CPAL`, `sbix`, `CBDT`, and `SVG` color fonts.
  **/
 
 
@@ -95,7 +95,7 @@ hb_ot_color_palette_get_count (hb_face_t *face)
  * @palette_index: The index of the color palette 
  *
  * Fetches the `name` table Name ID that provides display names for
- * a CPAL color palette. 
+ * a `CPAL` color palette. 
  *
  * Palette display names can be generic (e.g., "Default") or provide
  * specific, themed names (e.g., "Spring", "Summer", "Fall", and "Winter").
@@ -159,7 +159,7 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * @start_offset: offset of the first color to retrieve
  * @color_count: (inout) (optional): Input = the maximum number of colors to return;
  *               Output = the actual number of colors returned (may be zero)
- * @colors: (array length=color_count) (out) (optional): The array of #hb_color_t records found
+ * @colors: (out) (array length=color_count) (nullable): The array of #hb_color_t records found
  *
  * Fetches a list of the colors in a color palette.
  *
@@ -211,7 +211,7 @@ hb_ot_color_has_layers (hb_face_t *face)
  * @start_offset: offset of the first layer to retrieve
  * @count: (inout) (optional): Input = the maximum number of layers to return;
  *         Output = the actual number of layers returned (may be zero)
- * @layers: (array length=count) (out) (optional): The array of layers found
+ * @layers: (out) (array length=count) (nullable): The array of layers found
  *
  * Fetches a list of all color layers for the specified glyph index in the specified
  * face. The list returned will begin at the offset provided.
@@ -239,7 +239,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
  * hb_ot_color_has_svg:
  * @face: #hb_face_t to work upon.
  *
- * Tests whether a face includes any SVG glyph images.
+ * Tests whether a face includes any `SVG` glyph images.
  *
  * Return value: true if data found, false otherwise.
  *
@@ -277,7 +277,7 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
  * hb_ot_color_has_png:
  * @face: #hb_face_t to work upon
  *
- * Tests whether a face has PNG glyph images (either in CBDT or sbix tables).
+ * Tests whether a face has PNG glyph images (either in `CBDT` or `sbix` tables).
  *
  * Return value: true if data found, false otherwise
  *
@@ -292,7 +292,7 @@ hb_ot_color_has_png (hb_face_t *face)
 /**
  * hb_ot_color_glyph_reference_png:
  * @font: #hb_font_t to work upon
- * @glyph: a glyph index.
+ * @glyph: a glyph index
  *
  * Fetches the PNG image for a glyph. This function takes a font object, not a face object,
  * as input. To get an optimally sized PNG blob, the UPEM value must be set on the @font
