@@ -571,7 +571,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
   return true;
 }
 
-static bool
+static inline bool
 _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
 		const char		      *data,
 		hb_subset_plan_t		*plan,
