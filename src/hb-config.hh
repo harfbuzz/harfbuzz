@@ -50,9 +50,10 @@
 #define HB_NO_CFF
 #define HB_NO_COLOR
 #define HB_NO_GETENV
+#define HB_NO_LAYOUT_UNUSED
 #define HB_NO_MATH
 #define HB_NO_NAME
-#define HB_NO_LAYOUT_UNUSED
+#define HB_NO_SUBSET_LAYOUT
 #endif
 
 #ifdef HB_MINI
