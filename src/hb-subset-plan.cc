@@ -53,6 +53,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
   }
 }
 
+#ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
            hb_codepoint_t gid,
@@ -65,6 +66,7 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
     hb_set_add (gids_to_retain, accent_gid);
   }
 }
+#endif
 
 static inline void
 _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
