@@ -27,6 +27,8 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-cff1-interp-cs.hh"
 
+#ifndef HB_NO_CFF
+
 using namespace CFF;
 
 /* SID to code */
@@ -388,3 +390,5 @@ bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_code
   }
   return false;
 }
+
+#endif

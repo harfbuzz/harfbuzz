@@ -32,6 +32,8 @@
 #include "hb-subset-cff-common.hh"
 #include "hb-cff1-interp-cs.hh"
 
+#ifndef HB_NO_SUBSET_CFF
+
 using namespace CFF;
 
 struct remap_sid_t : remap_t
@@ -1118,3 +1120,5 @@ hb_subset_cff1 (hb_subset_plan_t *plan,
 
   return result;
 }
+
+#endif

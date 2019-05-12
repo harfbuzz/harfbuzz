@@ -32,6 +32,8 @@
 #include "hb-subset-cff-common.hh"
 #include "hb-cff2-interp-cs.hh"
 
+#ifndef HB_NO_SUBSET_CFF
+
 using namespace CFF;
 
 struct cff2_sub_table_offsets_t : cff_sub_table_offsets_t
@@ -626,3 +628,5 @@ hb_subset_cff2 (hb_subset_plan_t *plan,
 
   return result;
 }
+
+#endif
