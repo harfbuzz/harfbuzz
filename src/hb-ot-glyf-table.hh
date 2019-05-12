@@ -107,7 +107,7 @@ struct glyf
 		 const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
-    // pad glyphs to 2-byte boundaries to permit short loca
+
     HBUINT8 pad;
     pad = 0;
     + it
@@ -124,10 +124,14 @@ struct glyf
       }
 
       _fix_component_gids (plan, dest_glyph);
+      if (plan->drop_hints)
+      {
+        // we copied the glyph w/o instructions, just need to zero instruction length
+        _zero_instruction_length (dest_glyph);
+      }
     });
 
     // Things old impl did we now don't:
-    // TODO set instruction length to 0 where appropriate
     // TODO _remove_composite_instruction_flag
 
     return_trace (true);
@@ -145,6 +149,9 @@ struct glyf
 
     // make an iterator of per-glyph hb_bytes_t.
     // unpadded, hints removed if that was requested.
+
+    // TODO log shows we redo a bunch of the work here; should sink this at end?
+
     auto glyphs =
     + hb_range (c->plan->num_output_glyphs ())
     | hb_map ([&] (hb_codepoint_t new_gid) {
@@ -163,15 +170,16 @@ struct glyf
       }
       hb_bytes_t glyph (((const char *) this) + start_offset, end_offset - start_offset);
 
-      // if dropping hints, find hints region and subtract it
-      unsigned int instruction_length = 0;
+      // if dropping hints, find hints region and chop it off the end
       if (c->plan->drop_hints) {
+	unsigned int instruction_length = 0;
 	if (!glyf.get_instruction_length (glyph, &instruction_length))
 	{
 	  // TODO signal fatal error
 	  DEBUG_MSG(SUBSET, nullptr, "Unable to read instruction length for new_gid %d", new_gid);
 	  return hb_bytes_t ();
 	}
+	DEBUG_MSG(SUBSET, nullptr, "new_gid %d drop %d instruction bytes from %d byte glyph", new_gid, instruction_length, glyph.length);
 	glyph = hb_bytes_t (&glyph, glyph.length - instruction_length);
       }
 
@@ -230,6 +238,18 @@ struct glyf
 	  continue;
         ((OT::glyf::CompositeGlyphHeader *) iterator.current)->glyphIndex = new_gid;
       } while (iterator.move_to_next ());
+    }
+  }
+
+  static void
+  _zero_instruction_length (hb_bytes_t glyph)
+  {
+    const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (&glyph, 0);
+    int16_t num_contours = (int16_t) glyph_header.numberOfContours;
+    if (num_contours > 0)
+    {
+      const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph, GlyphHeader::static_size + 2 * num_contours);
+      (HBUINT16 &) instruction_length = 0;
     }
   }
 
@@ -517,17 +537,18 @@ struct glyf
 				 unsigned int * length /* OUT */) const
     {
       /* Empty glyph; no instructions. */
-      if (glyph.get_size() < GlyphHeader::static_size)
+      if (glyph.length < GlyphHeader::static_size)
       {
 	*length = 0;
-	return true;
+	// only 0 byte glyphs are healthy when missing GlyphHeader
+	return glyph.length == 0;
       }
-      unsigned int start = glyph.length;
-      unsigned int end = glyph.length;
       const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (&glyph, 0);
       int16_t num_contours = (int16_t) glyph_header.numberOfContours;
       if (num_contours < 0)
       {
+	unsigned int start = glyph.length;
+	unsigned int end = glyph.length;
 	CompositeGlyphHeader::Iterator composite_it;
 	if (unlikely (!CompositeGlyphHeader::get_iterator (&glyph, glyph.length, &composite_it))) return false;
 	const CompositeGlyphHeader *last;
@@ -542,6 +563,7 @@ struct glyf
 	  DEBUG_MSG(SUBSET, nullptr, "Invalid instruction offset, %d is outside %d byte buffer", start, glyph.length);
 	  return false;
 	}
+	*length = end - start;
       }
       else
       {
@@ -552,16 +574,14 @@ struct glyf
 	  return false;
 	}
 
-	const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (glyf_table, instruction_length_offset);
-	unsigned int start = instruction_length_offset + 2;
-	unsigned int end = start + (uint16_t) instruction_length;
-	if (unlikely (end > glyph.length)) // Out of bounds of the current glyph
+	const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
+	if (unlikely (instruction_length_offset + instruction_length > glyph.length)) // Out of bounds of the current glyph
 	{
 	  DEBUG_MSG(SUBSET, nullptr, "The instructions array overruns the glyph's boundaries.");
 	  return false;
 	}
+	*length = (uint16_t) instruction_length;
       }
-      *length = end - start;
       return true;
     }
 
