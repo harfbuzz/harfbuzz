@@ -926,7 +926,7 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
    * should just chain.  Only if not in compatibility mode that is... */
 
 #ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
-  const HB_UNUSED indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   if (indic_plan->uniscribe_bug_compatible)
   {
     /* For dotted-circle, this is what Uniscribe does:
