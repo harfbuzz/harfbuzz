@@ -45,6 +45,7 @@
 #ifdef HB_LEAN
 #define HB_DISABLE_DEPRECATED
 #define HB_NO_ATEXIT
+#define HB_NO_BUFFER_SERIALIZE
 #define HB_NO_BITMAP
 #define HB_NO_CFF
 #define HB_NO_COLOR
