@@ -192,7 +192,7 @@ struct hb_iter_fallback_mixin_t
   /* Termination: Implement __more__(), or __len__() if random-access. */
   bool __more__ () const { return bool (thiz()->len ()); }
   unsigned __len__ () const
-  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
+  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; } return l; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { *thiz() += 1; }

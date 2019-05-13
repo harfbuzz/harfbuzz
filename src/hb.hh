@@ -67,6 +67,7 @@
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
 #pragma GCC diagnostic error   "-Wdouble-promotion"
+#pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
