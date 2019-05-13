@@ -691,7 +691,7 @@ struct hb_set_t
    */
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
-    static constexpr bool is_sorted_iterator = true;
+    static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::STRICTLY_SORTED;
     iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
       s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
 

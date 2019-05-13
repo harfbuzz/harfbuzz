@@ -55,6 +55,12 @@
  * type of .end()?
  */
 
+enum hb_sortedness_t
+{
+  NOT_SORTED = 0,
+  SORTED,
+  STRICTLY_SORTED,
+};
 
 /*
  * Base classes for iterators.
@@ -68,7 +74,7 @@ struct hb_iter_t
   static constexpr unsigned item_size = hb_static_size (Item);
   static constexpr bool is_iterator = true;
   static constexpr bool is_random_access_iterator = false;
-  static constexpr bool is_sorted_iterator = false;
+  static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::NOT_SORTED;
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -361,9 +367,9 @@ struct hb_map_iter_t :
 
   typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
-  static constexpr bool is_sorted_iterator =
-    Sorted == hb_function_sortedness_t::SORTED ? true
-    : Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator : false;
+  static constexpr hb_sortedness_t is_sorted_iterator =
+    Sorted == hb_function_sortedness_t::SORTED ? hb_sortedness_t::SORTED
+    : Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator : hb_sortedness_t::NOT_SORTED;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
@@ -430,7 +436,7 @@ struct hb_filter_iter_t :
   { while (it && !hb_has (p.get (), hb_get (f.get (), *it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
-  static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
+  static constexpr hb_sortedness_t is_sorted_iterator = Iter::is_sorted_iterator;
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
@@ -514,9 +520,15 @@ struct hb_zip_iter_t :
   static constexpr bool is_random_access_iterator =
     A::is_random_access_iterator &&
     B::is_random_access_iterator;
-  static constexpr bool is_sorted_iterator =
-    A::is_sorted_iterator &&
-    B::is_sorted_iterator;
+  static constexpr hb_sortedness_t is_sorted_iterator =
+    (A::is_sorted_iterator == hb_sortedness_t::NOT_SORTED ||
+     B::is_sorted_iterator == hb_sortedness_t::NOT_SORTED) ?
+    hb_sortedness_t::NOT_SORTED :
+    (A::is_sorted_iterator == hb_sortedness_t::STRICTLY_SORTED ||
+     B::is_sorted_iterator == hb_sortedness_t::STRICTLY_SORTED) ?
+    hb_sortedness_t::STRICTLY_SORTED :
+    hb_sortedness_t::SORTED;
+
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
   bool __more__ () const { return bool (a) && bool (b); }
@@ -583,7 +595,7 @@ struct hb_counter_iter_t :
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
-  static constexpr bool is_sorted_iterator = true;
+  static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::STRICTLY_SORTED;
   __item_t__ __item__ () const { return +v; }
   __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
   bool __more__ () const { return v != end_; }
