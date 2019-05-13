@@ -31,6 +31,8 @@
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-var-fvar-table.hh"
+#include "hb-ot-stat-table.hh"
 
 static inline void
 _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
@@ -192,6 +194,29 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   ;
 }
 
+static void
+_nameid_closure (hb_face_t           *face,
+                 hb_set_t            *nameids)
+{
+  hb_tag_t table_tags[32];
+  unsigned count = ARRAY_LENGTH (table_tags);
+  hb_face_get_table_tags (face, 0, &count, table_tags);
+  for (unsigned int i = 0; i < count; i++)
+  {
+    hb_tag_t tag = table_tags[i];
+    switch (tag) {
+      case HB_OT_TAG_STAT:
+        face->table.STAT->collect_name_ids (nameids);
+        break;
+      case HB_OT_TAG_fvar:
+        face->table.fvar->collect_name_ids (nameids);
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 /**
  * hb_subset_plan_create:
  * Computes a plan for subsetting the supplied face according
@@ -217,6 +242,7 @@ hb_subset_plan_create (hb_face_t           *face,
   /* TODO Clean this up... */
   if (hb_set_is_empty (plan->name_ids))
     hb_set_add_range (plan->name_ids, 0, 0x7FFF);
+  _nameid_closure (face, plan->name_ids);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create ();
