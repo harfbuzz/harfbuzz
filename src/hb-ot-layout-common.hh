@@ -226,7 +226,7 @@ struct LangSys
   {
     if (reqFeatureIndex == 0xFFFFu)
       return Index::NOT_FOUND_INDEX;
-   return reqFeatureIndex;;
+   return reqFeatureIndex;
   }
 
   LangSys* copy (hb_serialize_context_t *c) const
