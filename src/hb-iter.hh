@@ -345,13 +345,13 @@ operator | (Lhs&& lhs, Rhs&& rhs) HB_AUTO_RETURN (hb_forward<Rhs> (rhs) (hb_forw
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
-enum sorted_t {
+enum  class hb_function_sortedness_t {
   NOT_SORTED,
   RETAINS_SORTING,
   SORTED,
 };
 
-template <typename Iter, typename Proj, sorted_t Sorted,
+template <typename Iter, typename Proj, hb_function_sortedness_t Sorted,
 	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
   hb_iter_t<hb_map_iter_t<Iter, Proj, Sorted>,
@@ -362,7 +362,8 @@ struct hb_map_iter_t :
   typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
   static constexpr bool is_sorted_iterator =
-    Sorted == SORTED ? true : Sorted == RETAINS_SORTING ? Iter::is_sorted_iterator : false;
+    Sorted == hb_function_sortedness_t::SORTED ? true
+    : Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator : false;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
@@ -380,7 +381,7 @@ struct hb_map_iter_t :
   hb_reference_wrapper<Proj> f;
 };
 
-template <typename Proj, sorted_t Sorted>
+template <typename Proj, hb_function_sortedness_t Sorted>
 struct hb_map_iter_factory_t
 {
   hb_map_iter_factory_t (Proj f) : f (f) {}
@@ -397,25 +398,25 @@ struct hb_map_iter_factory_t
 struct
 {
   template <typename Proj>
-  hb_map_iter_factory_t<Proj, NOT_SORTED>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::NOT_SORTED>
   operator () (Proj&& f) const
-  { return hb_map_iter_factory_t<Proj, NOT_SORTED> (f); }
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::NOT_SORTED> (f); }
 }
 HB_FUNCOBJ (hb_map);
 struct
 {
   template <typename Proj>
-  hb_map_iter_factory_t<Proj, SORTED>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::RETAINS_SORTING>
   operator () (Proj&& f) const
-  { return hb_map_iter_factory_t<Proj, RETAINS_SORTING> (f); }
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::RETAINS_SORTING> (f); }
 }
 HB_FUNCOBJ (hb_map_retains_sorting);
 struct
 {
   template <typename Proj>
-  hb_map_iter_factory_t<Proj, SORTED>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::SORTED>
   operator () (Proj&& f) const
-  { return hb_map_iter_factory_t<Proj, SORTED> (f); }
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::SORTED> (f); }
 }
 HB_FUNCOBJ (hb_map_sorted);
 
