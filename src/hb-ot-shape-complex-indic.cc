@@ -276,6 +276,8 @@ struct indic_shape_plan_t
   bool is_old_spec;
 #ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
   bool uniscribe_bug_compatible;
+#else
+  static constexpr bool uniscribe_bug_compatible = false;
 #endif
   mutable hb_atomic_int_t virama_glyph;
 
@@ -925,7 +927,6 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
   /* We treat placeholder/dotted-circle as if they are consonants, so we
    * should just chain.  Only if not in compatibility mode that is... */
 
-#ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   if (indic_plan->uniscribe_bug_compatible)
   {
@@ -935,7 +936,6 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
     if (buffer->info[end - 1].indic_category() == OT_DOTTEDCIRCLE)
       return;
   }
-#endif
 
   initial_reordering_consonant_syllable (plan, face, buffer, start, end);
 }
@@ -1375,7 +1375,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
        * Uniscribe doesn't do this.
        * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
        */
-#ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
       if (!indic_plan->uniscribe_bug_compatible &&
 	  unlikely (is_halant (info[new_reph_pos])))
       {
@@ -1385,7 +1384,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    new_reph_pos--;
 	  }
       }
-#endif
 
       goto reph_move;
     }
@@ -1485,7 +1483,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   /*
    * Finish off the clusters and go home!
    */
-#ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
   if (indic_plan->uniscribe_bug_compatible)
   {
     switch ((hb_tag_t) plan->props.script)
@@ -1503,7 +1500,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	break;
     }
   }
-#endif
 }
 
 
@@ -1602,7 +1598,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
      */
 
 
-#ifndef HB_NO_UNISCRIBE_BUG_COMPATIBLE
     const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;
     hb_codepoint_t glyph;
     if (indic_plan->uniscribe_bug_compatible ||
@@ -1614,7 +1609,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
       *b = ab;
       return true;
     }
-#endif
   }
 
   return (bool) c->unicode->decompose (ab, a, b);
