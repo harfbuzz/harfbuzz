@@ -303,7 +303,7 @@ EXTRA_DIST += \
 # We decided to add ragel-generated files to git...
 #MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
 $(srcdir)/%.hh: $(srcdir)/%.rl
-	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -T1 -o "$*.hh" "$*.rl") \
+	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
 
 noinst_PROGRAMS = \
