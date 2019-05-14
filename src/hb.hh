@@ -468,16 +468,6 @@ typedef uint64_t hb_vector_size_impl_t;
 #endif
 
 
-/* HB_NDEBUG disables some sanity checks that are very safe to disable and
- * should be disabled in production systems.  If NDEBUG is defined, enable
- * HB_NDEBUG; but if it's desirable that normal assert()s (which are very
- * light-weight) to be enabled, then HB_DEBUG can be defined to disable
- * the costlier checks. */
-#ifdef NDEBUG
-#define HB_NDEBUG 1
-#endif
-
-
 /* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */

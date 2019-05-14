@@ -40,10 +40,14 @@
 #define HB_LEAN
 #define HB_MINI
 #define HB_NO_MT
+#ifndef NDEBUG
+#define NDEBUG
+#endif
 #endif
 
 #ifdef HB_LEAN
 #define HB_DISABLE_DEPRECATED
+#define HB_NDEBUG
 #define HB_NO_ATEXIT
 #define HB_NO_BUFFER_SERIALIZE
 #define HB_NO_BITMAP
@@ -101,6 +105,12 @@
 #define HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_THAI_FALLBACK
 #define HB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS
+#endif
+
+#ifdef NDEBUG
+#ifndef HB_NDEBUG
+#define HB_NDEBUG
+#endif
 #endif
 
 
