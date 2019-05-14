@@ -599,9 +599,9 @@ struct CFF1StringIndex : CFF1Index
   }
 
   /* in parallel to above */
-  unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const remap_t &sidmap) const
+  unsigned int calculate_serialized_size (unsigned int &offSize_ /*OUT*/, const remap_t &sidmap) const
   {
-    offSize = 0;
+    offSize_ = 0;
     if ((count == 0) || (sidmap.get_count () == 0))
       return count.static_size;
 
@@ -610,8 +610,8 @@ struct CFF1StringIndex : CFF1Index
       if (sidmap[i] != CFF_UNDEF_CODE)
 	dataSize += length_at (i);
 
-    offSize = calcOffSize(dataSize);
-    return CFF1Index::calculate_serialized_size (offSize, sidmap.get_count (), dataSize);
+    offSize_ = calcOffSize(dataSize);
+    return CFF1Index::calculate_serialized_size (offSize_, sidmap.get_count (), dataSize);
   }
 };
 
