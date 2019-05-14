@@ -68,6 +68,7 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
 }
 #endif
 
+#ifndef HB_NO_SUBSET_LAYOUT
 static inline void
 _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 {
@@ -82,6 +83,7 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 					   &lookup_indices,
 					   gids_to_retain);
 }
+#endif
 
 static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
