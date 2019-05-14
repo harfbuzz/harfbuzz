@@ -55,6 +55,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features);
 
+#ifndef HB_NO_SHAPE_AAT
 static inline bool
 _hb_apply_morx (hb_face_t *face)
 {
@@ -69,6 +70,7 @@ _hb_apply_morx (hb_face_t *face)
 					       0, nullptr, nullptr)) &&
 	 hb_aat_layout_has_substitution (face);
 }
+#endif
 
 hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *face,
 					      const hb_segment_properties_t *props) :
