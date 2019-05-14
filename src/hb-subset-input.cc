@@ -45,6 +45,7 @@ hb_subset_input_create_or_fail ()
   input->unicodes = hb_set_create ();
   input->glyphs = hb_set_create ();
   input->name_ids = hb_set_create ();
+  hb_set_add_range (input->name_ids, 0, 6);
   input->drop_tables = hb_set_create ();
   input->drop_hints = false;
   input->desubroutinize = false;

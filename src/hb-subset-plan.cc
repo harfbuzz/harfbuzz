@@ -234,12 +234,8 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->retain_gids = input->retain_gids;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_reference (input->name_ids);
-  plan->drop_tables = hb_set_reference (input->drop_tables);
-
-  /* TODO Clean this up... */
-  if (hb_set_is_empty (plan->name_ids))
-    hb_set_add_range (plan->name_ids, 0, 0x7FFF);
   _nameid_closure (face, plan->name_ids);
+  plan->drop_tables = hb_set_reference (input->drop_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
