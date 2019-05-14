@@ -29,7 +29,7 @@
 #include "hb-subset-input.hh"
 
 static gboolean
-parse_nameids (const char *name G_GNUC_UNUSED,
+parse_nameids (const char *name,
                const char *arg,
                gpointer    data,
                GError    **error G_GNUC_UNUSED)
@@ -37,7 +37,19 @@ parse_nameids (const char *name G_GNUC_UNUSED,
   subset_options_t *subset_opts = (subset_options_t *) data;
   hb_set_t *name_ids = subset_opts->input->name_ids;
 
-  hb_set_clear (name_ids);
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (name_ids);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+      hb_set_del_range (name_ids, 0, 0x7FFF);
+    else 
+      hb_set_add_range (name_ids, 0, 0x7FFF);
+    return true;
+  }
 
   char *s = (char *) arg;
   char *p;
@@ -59,7 +71,12 @@ parse_nameids (const char *name G_GNUC_UNUSED,
       return false;
     }
 
-    hb_set_add (name_ids, u);
+    if (last_name_char != '-')
+    {
+      hb_set_add (name_ids, u);
+    } else {
+      hb_set_del (name_ids, u);
+    }
 
     s = p;
   }

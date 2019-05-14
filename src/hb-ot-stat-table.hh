@@ -289,7 +289,7 @@ struct STAT
     ;
 
     + get_axis_value_offsets ()
-    | hb_map (hb_add (this))
+    | hb_map (hb_add (&(this + offsetToAxisValueOffsets)))
     | hb_map (&AxisValue::get_value_name_id)
     | hb_sink (nameids_to_retain)
     ;

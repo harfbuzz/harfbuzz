@@ -863,6 +863,7 @@ struct cmap
     if (unlikely (!CmapSubtableFormat4::create_sub_table_plan (plan, &cmap_plan->format4_segments)))
       return false;
 
+    if (!find_subtable (12)) return true;
     return CmapSubtableFormat12::create_sub_table_plan (plan, &cmap_plan->format12_groups);
   }
 
@@ -881,8 +882,7 @@ struct cmap
 
     table->version = 0;
 
-    if (unlikely (!table->encodingRecord.serialize (&c, /* numTables */ 3)))
-      return false;
+    if (unlikely (!table->encodingRecord.serialize (&c, /* numTables */ cmap_subset_plan.format12_groups ? 3 : 2))) return false;
 
     // TODO(grieger): Convert the below to a for loop
 
@@ -897,9 +897,12 @@ struct cmap
     format4_plat3_rec.encodingID = 1; // Unicode BMP
 
     // Format 12 Encoding Record
-    EncodingRecord &format12_rec = table->encodingRecord[2];
-    format12_rec.platformID = 3; // Windows
-    format12_rec.encodingID = 10; // Unicode UCS-4
+    if (cmap_subset_plan.format12_groups)
+    {
+      EncodingRecord &format12_rec = table->encodingRecord[2];
+      format12_rec.platformID = 3; // Windows
+      format12_rec.encodingID = 10; // Unicode UCS-4
+    }
 
     // Write out format 4 sub table
     {
@@ -913,7 +916,9 @@ struct cmap
     }
 
     // Write out format 12 sub table.
+    if (cmap_subset_plan.format12_groups)
     {
+      EncodingRecord &format12_rec = table->encodingRecord[2];
       CmapSubtable &subtable = format12_rec.subtable.serialize (&c, table);
       subtable.u.format = 12;
 
@@ -1152,6 +1157,18 @@ struct cmap
       return nullptr;
 
     return &(this+result.subtable);
+  }
+
+  bool find_subtable (unsigned format) const
+  {
+    auto it =
+    + hb_iter (encodingRecord)
+    | hb_map (&EncodingRecord::subtable)
+    | hb_map (hb_add (this))
+    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == format; })
+    ;
+
+    return it.len ();
   }
 
   public:

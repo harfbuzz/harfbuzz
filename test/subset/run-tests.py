@@ -66,7 +66,8 @@ def run_test(test, should_check_ots):
 	cli_args = [hb_subset,
 		    "--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
-		    "--unicodes=%s" % test.unicodes ()]
+		    "--unicodes=%s" % test.unicodes (),
+		    "--drop-tables+=DSIG,GPOS,GSUB,GDEF,gvar,avar,MVAR,HVAR"]
 	cli_args.extend (test.get_profile_flags ())
 	print (' '.join (cli_args))
 	_, return_code = cmd (cli_args)
