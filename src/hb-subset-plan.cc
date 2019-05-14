@@ -176,7 +176,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     | hb_map ([=] (hb_codepoint_t _) {
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
 	      })
-    | hb_sink (reverse_glyph_map);
+    | hb_sink (reverse_glyph_map)
     ;
 
     // TODO(grieger): Should we discard glyphs past the max glyph to keep?
