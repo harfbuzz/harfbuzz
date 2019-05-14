@@ -97,12 +97,12 @@ struct CFFIndex
   unsigned int offset_array_size () const
   { return calculate_offset_array_size (offSize, count); }
 
-  static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
+  static unsigned int calculate_serialized_size (unsigned int offSize_, unsigned int count, unsigned int dataSize)
   {
     if (count == 0)
       return COUNT::static_size;
     else
-      return min_size + calculate_offset_array_size (offSize, count) + dataSize;
+      return min_size + calculate_offset_array_size (offSize_, count) + dataSize;
   }
 
   bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
