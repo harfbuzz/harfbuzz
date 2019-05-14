@@ -521,13 +521,8 @@ struct hb_zip_iter_t :
     A::is_random_access_iterator &&
     B::is_random_access_iterator;
   static constexpr hb_sortedness_t is_sorted_iterator =
-    (A::is_sorted_iterator == hb_sortedness_t::NOT_SORTED ||
-     B::is_sorted_iterator == hb_sortedness_t::NOT_SORTED) ?
-    hb_sortedness_t::NOT_SORTED :
-    (A::is_sorted_iterator == hb_sortedness_t::STRICTLY_SORTED ||
-     B::is_sorted_iterator == hb_sortedness_t::STRICTLY_SORTED) ?
-    hb_sortedness_t::STRICTLY_SORTED :
-    hb_sortedness_t::SORTED;
+    A::is_sorted_iterator == hb_sortedness_t::SORTED ?
+    B::is_sorted_iterator : A::is_sorted_iterator;
 
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
