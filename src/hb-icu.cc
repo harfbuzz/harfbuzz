@@ -49,7 +49,8 @@
  * Functions for using HarfBuzz with the ICU library to provide Unicode data.
  **/
 
-/* ICU doesn't do-while(0) around their statements.  Ouch! */
+/* ICU doesn't do-while(0) around their statements.  Ugh!
+ * https://unicode-org.atlassian.net/browse/CLDR-13027 */
 #define HB_ICU_STMT(S) do { S } while (0)
 
 hb_script_t
