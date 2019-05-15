@@ -765,30 +765,44 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
-struct HbOpOr
+struct hb_bitwise_or
 {
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a | b; }
-};
-struct HbOpAnd
+  template <typename T>
+  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
+}
+HB_FUNCOBJ (hb_bitwise_or);
+struct hb_bitwise_and
 {
   static constexpr bool passthru_left = false;
   static constexpr bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & b; }
-};
-struct HbOpMinus
-{
-  static constexpr bool passthru_left = true;
-  static constexpr bool passthru_right = false;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a & ~b; }
-};
-struct HbOpXor
+  template <typename T>
+  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
+}
+HB_FUNCOBJ (hb_bitwise_and);
+struct hb_bitwise_xor
 {
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T> static void process (T &o, const T &a, const T &b) { o = a ^ b; }
-};
+  template <typename T>
+  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
+}
+HB_FUNCOBJ (hb_bitwise_xor);
+struct hb_bitwise_sub
+{
+  static constexpr bool passthru_left = true;
+  static constexpr bool passthru_right = false;
+  template <typename T>
+  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
+}
+HB_FUNCOBJ (hb_bitwise_sub);
+struct hb_bitwise_neg
+{
+  template <typename T>
+  auto operator () (const T &a) const HB_AUTO_RETURN (~a)
+}
+HB_FUNCOBJ (hb_bitwise_neg);
 
 
 /* Compiler-assisted vectorization. */
@@ -804,26 +818,26 @@ struct hb_vector_size_t
 
   void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
 
-  template <class Op>
-  hb_vector_size_t process (const hb_vector_size_t &o) const
+  template <typename Op>
+  hb_vector_size_t process (const Op& op, const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
 #if HB_VECTOR_SIZE
     if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
       for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	Op::process (r.u.vec[i], u.vec[i], o.u.vec[i]);
+	r.u.vec[i] = op (u.vec[i], o.u.vec[i]);
     else
 #endif
       for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-	Op::process (r.u.v[i], u.v[i], o.u.v[i]);
+	r.u.v[i] = op (u.v[i], o.u.v[i]);
     return r;
   }
   hb_vector_size_t operator | (const hb_vector_size_t &o) const
-  { return process<HbOpOr> (o); }
+  { return process (hb_bitwise_or, o); }
   hb_vector_size_t operator & (const hb_vector_size_t &o) const
-  { return process<HbOpAnd> (o); }
+  { return process (hb_bitwise_and, o); }
   hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
-  { return process<HbOpXor> (o); }
+  { return process (hb_bitwise_xor, o); }
   hb_vector_size_t operator ~ () const
   {
     hb_vector_size_t r;
