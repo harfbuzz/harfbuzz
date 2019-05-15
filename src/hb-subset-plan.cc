@@ -181,9 +181,11 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     | hb_sink (reverse_glyph_map)
     ;
 
-    // TODO(grieger): Should we discard glyphs past the max glyph to keep?
-    // *num_glyphs = + hb_iter (all_gids_to_retain) | hb_reduce (hb_max, 0);
-    *num_glyphs = face->get_num_glyphs ();
+    unsigned max_glyph =
+    + hb_iter (all_gids_to_retain)
+    | hb_reduce (hb_max, 0)
+    ;
+    *num_glyphs = max_glyph + 1;
   }
 
   + reverse_glyph_map->iter ()
