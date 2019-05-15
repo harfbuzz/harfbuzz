@@ -279,10 +279,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return StructAtOffset<Type> (base, *this);
   }
 
-  template <typename Base>
-  friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset (base); }
-  template <typename Base>
-  friend Type& operator + (Base &base, OffsetTo &offset) { return offset (base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+  friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset ((const void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (Base, void *))>
+  friend Type& operator + (Base &&base, OffsetTo &offset) { return offset ((void *) base); }
 
   Type& serialize (hb_serialize_context_t *c, const void *base)
   {
