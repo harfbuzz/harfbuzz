@@ -226,6 +226,11 @@ struct hb_pair_t
   { return hb_pair_t<T1, T2> (second, first); }
 
   bool operator == (const pair_t& o) const { return first == o.first && second == o.second; }
+  bool operator != (const pair_t& o) const { return !(*this == o); }
+  bool operator < (const pair_t& o) const { return first < o.first || (first == o.first && second < o.second); }
+  bool operator >= (const pair_t& o) const { return !(*this < o); }
+  bool operator > (const pair_t& o) const { return first > o.first || (first == o.first && second > o.second); }
+  bool operator <= (const pair_t& o) const { return !(*this > o); }
 
   T1 first;
   T2 second;
