@@ -103,6 +103,7 @@ struct hb_vector_t
   { return hb_bytes_t ((const char *) arrayZ, length * item_size); }
 
   bool operator == (const hb_vector_t &o) const { return as_array () == o.as_array (); }
+  bool operator != (const hb_vector_t &o) const { return !(*this == o); }
   uint32_t hash () const { return as_array ().hash (); }
 
   Type& operator [] (int i_)

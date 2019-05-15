@@ -84,8 +84,13 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     arrayZ -= n;
   }
   unsigned __len__ () const { return length; }
+  /* Ouch. The operator== compares the contents of the array.  For range-based for loops,
+   * it's best if we can just compare arrayZ, though comparing contents is still fast,
+   * but also would require that Type has operator==.  As such, we optimize this operator
+   * for range-based for loop and just compare arrayZ.  No need to compare length, as we
+   * assume we're only compared to .end(). */
   bool operator != (const hb_array_t& o) const
-  { return arrayZ != o.arrayZ || length != o.length || backwards_length != o.backwards_length; }
+  { return arrayZ != o.arrayZ; }
 
   /* Extra operators.
    */
