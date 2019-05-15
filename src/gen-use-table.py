@@ -197,15 +197,15 @@ def is_BASE_OTHER(U, UISC, UGC):
 def is_CGJ(U, UISC, UGC):
 	return U == 0x034F
 def is_CONS_FINAL(U, UISC, UGC):
-	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
 	return ((UISC == Consonant_Final and UGC != Lo) or
-		UISC == Consonant_Initial_Postfixed or
 		UISC == Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
 	#SPEC-DRAFT return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
 	return  UISC == Syllable_Modifier
 def is_CONS_MED(U, UISC, UGC):
-	return UISC == Consonant_Medial and UGC != Lo
+	# Consonant_Initial_Postfixed is new in Unicode 11; not in the spec.
+	return (UISC == Consonant_Medial and UGC != Lo or
+		UISC == Consonant_Initial_Postfixed)
 def is_CONS_MOD(U, UISC, UGC):
 	return UISC in [Nukta, Gemination_Mark, Consonant_Killer]
 def is_CONS_SUB(U, UISC, UGC):
