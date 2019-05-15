@@ -258,7 +258,7 @@ struct STAT
 			  designAxesOffset.sanitize (c, this, designAxisCount) &&
 			  offsetToAxisValueOffsets.sanitize (c, this, axisValueCount, &(this+offsetToAxisValueOffsets))));
   }
-  
+
   bool has_data () const { return version.to_int (); }
 
   unsigned get_design_axis_count () const { return designAxisCount; }

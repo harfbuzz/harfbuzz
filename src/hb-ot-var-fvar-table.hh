@@ -259,8 +259,8 @@ struct fvar
   }
 
   unsigned int get_instance_coords (unsigned int  instance_index,
-					   unsigned int *coords_length, /* IN/OUT */
-					   float        *coords         /* OUT */) const
+				    unsigned int *coords_length, /* IN/OUT */
+				    float        *coords         /* OUT */) const
   {
     const InstanceRecord *instance = get_instance (instance_index);
     if (unlikely (!instance))
