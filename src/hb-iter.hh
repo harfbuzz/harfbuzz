@@ -378,7 +378,7 @@ struct hb_map_iter_t :
   void __rewind__ (unsigned n) { it -= n; }
   hb_map_iter_t __end__ () const { return hb_map_iter_t (it.end (), f); }
   bool operator != (const hb_map_iter_t& o) const
-  { return it != o.it || f != o.f; }
+  { return it != o.it; }
 
   private:
   Iter it;
@@ -441,7 +441,7 @@ struct hb_filter_iter_t :
   void __prev__ () { do --it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
   hb_filter_iter_t __end__ () const { return hb_filter_iter_t (it.end (), p, f); }
   bool operator != (const hb_filter_iter_t& o) const
-  { return it != o.it || p != o.p || f != o.f; }
+  { return it != o.it; }
 
   private:
   Iter it;
@@ -553,6 +553,8 @@ struct hb_zip_iter_t :
   void __prev__ () { --a; --b; }
   void __rewind__ (unsigned n) { a -= n; b -= n; }
   hb_zip_iter_t __end__ () const { return hb_zip_iter_t (a.end (), b.end ()); }
+  /* Note, we should stop if ANY of the iters reaches end.  As such two compare
+   * unequal if both items are unequal, NOT if either is unequal. */
   bool operator != (const hb_zip_iter_t& o) const
   { return a != o.a && b != o.b; }
 
@@ -621,7 +623,7 @@ struct hb_counter_iter_t :
   void __rewind__ (unsigned n) { v -= n * step; }
   hb_counter_iter_t __end__ () const { return hb_counter_iter_t (end_, end_, step); }
   bool operator != (const hb_counter_iter_t& o) const
-  { return v != o.v || end_ != o.end_ || step != o.step; }
+  { return v != o.v; }
 
   private:
   static inline T end_for (T start, T end_, S step)
