@@ -765,14 +765,6 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
-struct hb_bitwise_or
-{
-  static constexpr bool passthru_left = true;
-  static constexpr bool passthru_right = true;
-  template <typename T>
-  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
-}
-HB_FUNCOBJ (hb_bitwise_or);
 struct hb_bitwise_and
 {
   static constexpr bool passthru_left = false;
@@ -781,6 +773,14 @@ struct hb_bitwise_and
   auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
+struct hb_bitwise_or
+{
+  static constexpr bool passthru_left = true;
+  static constexpr bool passthru_right = true;
+  template <typename T>
+  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
+}
+HB_FUNCOBJ (hb_bitwise_or);
 struct hb_bitwise_xor
 {
   static constexpr bool passthru_left = true;
@@ -797,12 +797,28 @@ struct hb_bitwise_sub
   auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
 HB_FUNCOBJ (hb_bitwise_sub);
-struct hb_bitwise_neg
-{
-  template <typename T>
-  auto operator () (const T &a) const HB_AUTO_RETURN (~a)
-}
-HB_FUNCOBJ (hb_bitwise_neg);
+
+struct
+{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b) }
+HB_FUNCOBJ (hb_add);
+struct
+{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b) }
+HB_FUNCOBJ (hb_sub);
+struct
+{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a * b) }
+HB_FUNCOBJ (hb_mul);
+struct
+{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a / b) }
+HB_FUNCOBJ (hb_div);
+struct
+{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a % b) }
+HB_FUNCOBJ (hb_mod);
+struct
+{ template <typename T> auto operator () (const T &a) const HB_AUTO_RETURN (+a) }
+HB_FUNCOBJ (hb_pos);
+struct
+{ template <typename T> auto operator () (const T &a) const HB_AUTO_RETURN (-a) }
+HB_FUNCOBJ (hb_neg);
 
 
 /* Compiler-assisted vectorization. */
