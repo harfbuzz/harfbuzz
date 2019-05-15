@@ -203,8 +203,8 @@ main (int argc, char **argv)
   ;
 
   + hb_iter (src)
-  | hb_map ([&] (int i) -> int { return 1; })
-  | hb_reduce ([&] (int acc, int value) -> int { return acc; }, 2)
+  | hb_map ([&] (int i) { return 1; })
+  | hb_reduce ([&] (int acc, int value) { return acc; }, 2)
   ;
 
   using map_pair_t = hb_item_type<hb_map_t>;
@@ -251,8 +251,8 @@ main (int argc, char **argv)
 
   unsigned int temp3 = 0;
   + hb_iter(src)
-  | hb_map([&] (int i) -> int { return ++temp3; })
-  | hb_reduce([&] (float acc, int value) -> float { return acc + value; }, 0)
+  | hb_map([&] (int i) { return ++temp3; })
+  | hb_reduce([&] (float acc, int value) { return acc + value; }, 0)
   ;
   hb_map_destroy (result);
 

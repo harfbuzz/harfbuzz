@@ -708,7 +708,7 @@ static inline bool intersects_array (const hb_set_t *glyphs,
 {
   return
   + hb_iter (values, count)
-  | hb_map ([&] (const HBUINT16 &_) -> bool { return intersects_func (glyphs, _, intersects_data); })
+  | hb_map ([&] (const HBUINT16 &_) { return intersects_func (glyphs, _, intersects_data); })
   | hb_any
   ;
 }
@@ -1371,7 +1371,7 @@ struct RuleSet
   {
     return
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<Rule> &_) -> bool { return (this+_).intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const OffsetTo<Rule> &_) { return (this+_).intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -1399,7 +1399,7 @@ struct RuleSet
   {
     return
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<Rule> &_) -> bool { return (this+_).would_apply (c, lookup_context); })
+    | hb_map ([&] (const OffsetTo<Rule> &_) { return (this+_).would_apply (c, lookup_context); })
     | hb_any
     ;
   }
@@ -1410,7 +1410,7 @@ struct RuleSet
     TRACE_APPLY (this);
     return_trace (
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<Rule> &_) -> bool { return (this+_).apply (c, lookup_context); })
+    | hb_map ([&] (const OffsetTo<Rule> &_) { return (this+_).apply (c, lookup_context); })
     | hb_any
     )
     ;
@@ -1444,7 +1444,7 @@ struct ContextFormat1
     + hb_zip (this+coverage, ruleSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([&] (const OffsetTo<RuleSet> &_) -> bool { return (this+_).intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const OffsetTo<RuleSet> &_) { return (this+_).intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -2022,7 +2022,7 @@ struct ChainRuleSet
   {
     return
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<ChainRule> &_) -> bool { return (this+_).intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const OffsetTo<ChainRule> &_) { return (this+_).intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -2046,7 +2046,7 @@ struct ChainRuleSet
   {
     return
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<ChainRule> &_) -> bool { return (this+_).would_apply (c, lookup_context); })
+    | hb_map ([&] (const OffsetTo<ChainRule> &_) { return (this+_).would_apply (c, lookup_context); })
     | hb_any
     ;
   }
@@ -2056,7 +2056,7 @@ struct ChainRuleSet
     TRACE_APPLY (this);
     return_trace (
     + hb_iter (rule)
-    | hb_map ([&] (const OffsetTo<ChainRule> &_) -> bool { return (this+_).apply (c, lookup_context); })
+    | hb_map ([&] (const OffsetTo<ChainRule> &_) { return (this+_).apply (c, lookup_context); })
     | hb_any
     )
     ;
@@ -2089,7 +2089,7 @@ struct ChainContextFormat1
     + hb_zip (this+coverage, ruleSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([&] (const OffsetTo<ChainRuleSet> &_) -> bool { return (this+_).intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const OffsetTo<ChainRuleSet> &_) { return (this+_).intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }

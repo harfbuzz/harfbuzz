@@ -290,12 +290,12 @@ struct fvar
     ;
 
     + hb_range ((unsigned) instanceCount)
-    | hb_map ([&] (const unsigned _) -> unsigned { return get_instance_subfamily_name_id (_); })
+    | hb_map ([&] (const unsigned _) { return get_instance_subfamily_name_id (_); })
     | hb_sink (nameids)
     ;
 
     + hb_range ((unsigned) instanceCount)
-    | hb_map ([&] (const unsigned _) -> unsigned { return get_instance_postscript_name_id (_); })
+    | hb_map ([&] (const unsigned _) { return get_instance_postscript_name_id (_); })
     | hb_sink (nameids)
     ;
   }

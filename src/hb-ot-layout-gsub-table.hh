@@ -48,7 +48,7 @@ struct SingleSubstFormat1
   {
     + hb_iter (this+coverage)
     | hb_filter (*c->glyphs)
-    | hb_map ([&] (hb_codepoint_t g) -> hb_codepoint_t { return (g + deltaGlyphID) & 0xFFFFu; })
+    | hb_map ([&] (hb_codepoint_t g) { return (g + deltaGlyphID) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
   }
@@ -58,7 +58,7 @@ struct SingleSubstFormat1
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
 
     + hb_iter (this+coverage)
-    | hb_map ([&] (hb_codepoint_t g) -> hb_codepoint_t { return (g + deltaGlyphID) & 0xFFFFu; })
+    | hb_map ([&] (hb_codepoint_t g) { return (g + deltaGlyphID) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
   }
@@ -741,7 +741,7 @@ struct LigatureSet
   {
     return
     + hb_iter (ligature)
-    | hb_map ([&] (const OffsetTo<Ligature> &_) -> bool { return (this+_).intersects (glyphs); })
+    | hb_map ([&] (const OffsetTo<Ligature> &_) { return (this+_).intersects (glyphs); })
     | hb_any
     ;
   }
@@ -764,7 +764,7 @@ struct LigatureSet
   {
     return
     + hb_iter (ligature)
-    | hb_map ([&] (const OffsetTo<Ligature> &_) -> bool { return (this+_).would_apply (c); })
+    | hb_map ([&] (const OffsetTo<Ligature> &_) { return (this+_).would_apply (c); })
     | hb_any
     ;
   }

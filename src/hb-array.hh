@@ -319,7 +319,7 @@ bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
 {
   return length == o.length &&
   + hb_zip (*this, o)
-  | hb_map ([] (hb_pair_t<T&, T&> &&_) -> bool { return _.first == _.second; })
+  | hb_map ([] (hb_pair_t<T&, T&> &&_) { return _.first == _.second; })
   | hb_all
   ;
 }
@@ -329,7 +329,7 @@ uint32_t hb_array_t<T>::hash () const
   return
   + hb_iter (*this)
   | hb_map (hb_hash)
-  | hb_reduce ([] (uint32_t a, uint32_t b) -> uint32_t { return a * 31 + b; }, 0)
+  | hb_reduce ([] (uint32_t a, uint32_t b) { return a * 31 + b; }, 0)
   ;
 }
 

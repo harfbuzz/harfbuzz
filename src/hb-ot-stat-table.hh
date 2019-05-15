@@ -289,7 +289,7 @@ struct STAT
     ;
 
     + get_axis_value_offsets ()
-    | hb_map ([&] (const OffsetTo<AxisValue>& _) -> const AxisValue* { return hb_addressof (this + _); })
+    | hb_map ([&] (const OffsetTo<AxisValue>& _) { return hb_addressof (this + _); })
     | hb_map (&AxisValue::get_value_name_id)
     | hb_sink (nameids_to_retain)
     ;
