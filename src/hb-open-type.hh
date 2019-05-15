@@ -279,6 +279,15 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return StructAtOffset<Type> (base, *this);
   }
 
+  template <typename Base>
+  friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset (base); }
+  template <typename Base>
+  friend const Type& operator + (const OffsetTo &offset, const Base &base) { return offset (base); }
+  template <typename Base>
+  friend Type& operator + (Base &base, OffsetTo &offset) { return offset (base); }
+  template <typename Base>
+  friend Type& operator + (OffsetTo &offset, Base &base) { return offset (base); }
+
   Type& serialize (hb_serialize_context_t *c, const void *base)
   {
     return * (Type *) Offset<OffsetType>::serialize (c, base);
@@ -356,15 +365,6 @@ template <typename Type, typename OffsetType=HBUINT16>
 using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
 template <typename Type>
 using LNNOffsetTo = LOffsetTo<Type, false>;
-
-template <typename Base, typename Type, typename OffsetType, bool has_null>
-static inline const Type& operator + (const Base *base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Base, typename Type, typename OffsetType, bool has_null>
-static inline const Type& operator + (const OffsetTo<Type, OffsetType, has_null> &offset, const Base *base) { return offset (base); }
-template <typename Base, typename Type, typename OffsetType, bool has_null>
-static inline Type& operator + (Base *base, OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Base, typename Type, typename OffsetType, bool has_null>
-static inline Type& operator + (OffsetTo<Type, OffsetType, has_null> &offset, Base *base) { return offset (base); }
 
 
 /*
