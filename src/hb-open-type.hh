@@ -357,13 +357,13 @@ using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
 template <typename Type>
 using LNNOffsetTo = LOffsetTo<Type, false>;
 
-template <typename Type, typename OffsetType=HBUINT16, bool has_null=true, typename Base>
+template <typename Base, typename Type, typename OffsetType, bool has_null>
 static inline const Type& operator + (const Base *base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Type, typename OffsetType=HBUINT16, bool has_null=true, typename Base>
+template <typename Base, typename Type, typename OffsetType, bool has_null>
 static inline const Type& operator + (const OffsetTo<Type, OffsetType, has_null> &offset, const Base *base) { return offset (base); }
-template <typename Type, typename OffsetType=HBUINT16, bool has_null=true, typename Base>
+template <typename Base, typename Type, typename OffsetType, bool has_null>
 static inline Type& operator + (Base *base, OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Type, typename OffsetType=HBUINT16, bool has_null=true, typename Base>
+template <typename Base, typename Type, typename OffsetType, bool has_null>
 static inline Type& operator + (OffsetTo<Type, OffsetType, has_null> &offset, Base *base) { return offset (base); }
 
 
