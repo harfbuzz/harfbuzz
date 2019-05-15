@@ -226,7 +226,7 @@ struct hb_sorted_array_t :
   typedef hb_iter_t<hb_sorted_array_t<Type>, Type&> iter_base_t;
   HB_ITER_USING (iter_base_t);
   static constexpr bool is_random_access_iterator = true;
-  static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::SORTED;
+  static constexpr bool is_sorted_iterator = true;
 
   hb_sorted_array_t () : hb_array_t<Type> () {}
   hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}

@@ -55,13 +55,6 @@
  * type of .end()?
  */
 
-enum hb_sortedness_t
-{
-  NOT_SORTED = 0,
-  SORTED,
-  STRICTLY_SORTED,
-};
-
 /*
  * Base classes for iterators.
  */
@@ -74,7 +67,7 @@ struct hb_iter_t
   static constexpr unsigned item_size = hb_static_size (Item);
   static constexpr bool is_iterator = true;
   static constexpr bool is_random_access_iterator = false;
-  static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::NOT_SORTED;
+  static constexpr bool is_sorted_iterator = false;
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
@@ -367,9 +360,10 @@ struct hb_map_iter_t :
 
   typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
-  static constexpr hb_sortedness_t is_sorted_iterator =
-    Sorted == hb_function_sortedness_t::SORTED ? hb_sortedness_t::SORTED
-    : Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator : hb_sortedness_t::NOT_SORTED;
+  static constexpr bool is_sorted_iterator =
+    Sorted == hb_function_sortedness_t::SORTED ? true :
+    Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator :
+    false;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
@@ -436,7 +430,7 @@ struct hb_filter_iter_t :
   { while (it && !hb_has (p.get (), hb_get (f.get (), *it))) ++it; }
 
   typedef typename Iter::item_t __item_t__;
-  static constexpr hb_sortedness_t is_sorted_iterator = Iter::is_sorted_iterator;
+  static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
@@ -520,9 +514,31 @@ struct hb_zip_iter_t :
   static constexpr bool is_random_access_iterator =
     A::is_random_access_iterator &&
     B::is_random_access_iterator;
-  static constexpr hb_sortedness_t is_sorted_iterator =
-    A::is_sorted_iterator == hb_sortedness_t::SORTED ?
-    B::is_sorted_iterator : A::is_sorted_iterator;
+  /* Note.  The following categorization is only valid if A is strictly sorted,
+   * ie. does NOT have duplicates.  Previously I tried to categorize sortedness
+   * more granularly, see commits:
+   *
+   *   513762849a683914fc266a17ddf38f133cccf072
+   *   4d3cf2adb669c345cc43832d11689271995e160a
+   *
+   * However, that was not enough, since hb_sorted_array_t, hb_sorted_vector_t,
+   * SortedArrayOf, etc all needed to be updated to add more variants.  At that
+   * point I saw it not worth the effort, and instead we now deem all sorted
+   * collections as essentially strictly-sorted for the purposes of zip.
+   *
+   * The above assumption is not as bad as it sounds.  Our "sorted" comes with
+   * no guarantees.  It's just a contract, put in place to help you remember,
+   * and think about, whether an iterator you receive is expected to be
+   * sorted or not.  As such, it's not perfect by definition, and should not
+   * be treated so.  The inaccuracy here just errs in the direction of being
+   * more permissive, so your code compiles instead of erring on the side of
+   * marking your zipped iterator unsorted in which case your code won't
+   * compile.
+   *
+   * This semantical limitation does NOT affect logic in any other place I
+   * know of as of this writing.
+   */
+  static constexpr bool is_sorted_iterator = A::is_sorted_iterator;
 
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
@@ -590,7 +606,7 @@ struct hb_counter_iter_t :
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
-  static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::STRICTLY_SORTED;
+  static constexpr bool is_sorted_iterator = true;
   __item_t__ __item__ () const { return +v; }
   __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
   bool __more__ () const { return v != end_; }

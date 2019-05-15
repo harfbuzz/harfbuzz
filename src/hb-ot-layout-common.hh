@@ -1115,7 +1115,7 @@ struct Coverage
 
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
-    static constexpr hb_sortedness_t is_sorted_iterator = hb_sortedness_t::STRICTLY_SORTED;
+    static constexpr bool is_sorted_iterator = true;
     iter_t (const Coverage &c_ = Null(Coverage))
     {
       memset (this, 0, sizeof (*this));
