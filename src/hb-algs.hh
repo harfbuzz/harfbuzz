@@ -286,15 +286,15 @@ hb_pair (T1&& a, T2&& b) { return hb_pair_t<T1, T2> (a, b); }
 
 struct
 {
-  template <typename Pair> auto
-  operator () (const Pair& pair) const HB_AUTO_RETURN (pair.first)
+  template <typename Pair> typename Pair::first_t
+  operator () (const Pair& pair) const { return pair.first; }
 }
 HB_FUNCOBJ (hb_first);
 
 struct
 {
-  template <typename Pair> auto
-  operator () (const Pair& pair) const HB_AUTO_RETURN (pair.second)
+  template <typename Pair> typename Pair::second_t
+  operator () (const Pair& pair) const { return pair.second; }
 }
 HB_FUNCOBJ (hb_second);
 
