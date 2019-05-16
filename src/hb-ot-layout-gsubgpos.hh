@@ -1546,7 +1546,7 @@ struct ContextFormat2
 
     return
     + hb_enumerate (ruleSet)
-    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<RuleSet> &> p) -> bool
+    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<RuleSet> &> p)
 	      { return class_def.intersects_class (glyphs, p.first) &&
 		       (this+p.second).intersects (glyphs, lookup_context); })
     | hb_any
@@ -1567,7 +1567,7 @@ struct ContextFormat2
 
     return
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _) -> bool
+    | hb_filter ([&] (unsigned _)
 		 { return class_def.intersects_class (c->glyphs, _); },
 		 hb_first)
     | hb_map (hb_second)
@@ -2193,9 +2193,9 @@ struct ChainContextFormat2
 
     return
     + hb_enumerate (ruleSet)
-    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<ChainRuleSet> &> p) -> bool
-		   { return input_class_def.intersects_class (glyphs, p.first) &&
-			    (this+p.second).intersects (glyphs, lookup_context); })
+    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<ChainRuleSet> &> p)
+	      { return input_class_def.intersects_class (glyphs, p.first) &&
+		       (this+p.second).intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -2217,7 +2217,7 @@ struct ChainContextFormat2
 
     return
     + hb_enumerate (ruleSet)
-    | hb_filter ([&] (unsigned _) -> bool
+    | hb_filter ([&] (unsigned _)
 		 { return input_class_def.intersects_class (c->glyphs, _); },
 		 hb_first)
     | hb_map (hb_second)

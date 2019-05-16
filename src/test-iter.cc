@@ -203,8 +203,8 @@ main (int argc, char **argv)
   ;
 
   + hb_iter (src)
-  | hb_map ([&] (int i) { return 1; })
-  | hb_reduce ([&] (int acc, int value) { return acc; }, 2)
+  | hb_map ([] (int i) { return 1; })
+  | hb_reduce ([=] (int acc, int value) { return acc; }, 2)
   ;
 
   using map_pair_t = hb_item_type<hb_map_t>;

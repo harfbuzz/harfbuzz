@@ -46,9 +46,10 @@ struct SingleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
+    unsigned d = deltaGlyphID;
     + hb_iter (this+coverage)
     | hb_filter (*c->glyphs)
-    | hb_map ([&] (hb_codepoint_t g) { return (g + deltaGlyphID) & 0xFFFFu; })
+    | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
   }
@@ -56,9 +57,9 @@ struct SingleSubstFormat1
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
-
+    unsigned d = deltaGlyphID;
     + hb_iter (this+coverage)
-    | hb_map ([&] (hb_codepoint_t g) { return (g + deltaGlyphID) & 0xFFFFu; })
+    | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
   }
@@ -351,7 +352,7 @@ struct MultipleSubstFormat1
     + hb_zip (this+coverage, sequence)
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<Sequence> &_) { (this+_).closure (c); })
+    | hb_apply ([c, this] (const OffsetTo<Sequence> &_) { (this+_).closure (c); })
     ;
   }
 
@@ -360,7 +361,7 @@ struct MultipleSubstFormat1
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     + hb_zip (this+coverage, sequence)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<Sequence> &_) { (this+_).collect_glyphs (c); })
+    | hb_apply ([c, this] (const OffsetTo<Sequence> &_) { (this+_).collect_glyphs (c); })
     ;
   }
 
@@ -525,7 +526,7 @@ struct AlternateSubstFormat1
   {
     + hb_zip (this+coverage, alternateSet)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<AlternateSet> &_) { (this+_).closure (c); })
+    | hb_apply ([c, this] (const OffsetTo<AlternateSet> &_) { (this+_).closure (c); })
     ;
   }
 
@@ -534,7 +535,7 @@ struct AlternateSubstFormat1
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
     + hb_zip (this+coverage, alternateSet)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<AlternateSet> &_) { (this+_).collect_glyphs (c); })
+    | hb_apply ([c, this] (const OffsetTo<AlternateSet> &_) { (this+_).collect_glyphs (c); })
     ;
   }
 
@@ -741,7 +742,7 @@ struct LigatureSet
   {
     return
     + hb_iter (ligature)
-    | hb_map ([&] (const OffsetTo<Ligature> &_) { return (this+_).intersects (glyphs); })
+    | hb_map ([this, glyphs] (const OffsetTo<Ligature> &_) { return (this+_).intersects (glyphs); })
     | hb_any
     ;
   }
@@ -749,14 +750,14 @@ struct LigatureSet
   void closure (hb_closure_context_t *c) const
   {
     + hb_iter (ligature)
-    | hb_apply ([&] (const OffsetTo<Ligature> &_) { (this+_).closure (c); })
+    | hb_apply ([this, c] (const OffsetTo<Ligature> &_) { (this+_).closure (c); })
     ;
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     + hb_iter (ligature)
-    | hb_apply ([&] (const OffsetTo<Ligature> &_) { (this+_).collect_glyphs (c); })
+    | hb_apply ([this, c] (const OffsetTo<Ligature> &_) { (this+_).collect_glyphs (c); })
     ;
   }
 
@@ -764,7 +765,7 @@ struct LigatureSet
   {
     return
     + hb_iter (ligature)
-    | hb_map ([&] (const OffsetTo<Ligature> &_) { return (this+_).would_apply (c); })
+    | hb_map ([this, c] (const OffsetTo<Ligature> &_) { return (this+_).would_apply (c); })
     | hb_any
     ;
   }
@@ -825,7 +826,7 @@ struct LigatureSubstFormat1
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([&] (const OffsetTo<LigatureSet> &_) -> bool
+    | hb_map ([this, glyphs] (const OffsetTo<LigatureSet> &_)
 	      { return (this+_).intersects (glyphs); })
     | hb_any
     ;
@@ -836,7 +837,7 @@ struct LigatureSubstFormat1
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<LigatureSet> &_) { (this+_).closure (c); })
+    | hb_apply ([this, c] (const OffsetTo<LigatureSet> &_) { (this+_).closure (c); })
     ;
   }
 
@@ -846,7 +847,7 @@ struct LigatureSubstFormat1
 
     + hb_zip (this+coverage, ligatureSet)
     | hb_map (hb_second)
-    | hb_apply ([&] (const OffsetTo<LigatureSet> &_) { (this+_).collect_glyphs (c); })
+    | hb_apply ([this, c] (const OffsetTo<LigatureSet> &_) { (this+_).collect_glyphs (c); })
     ;
   }
 

@@ -177,7 +177,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     *num_glyphs = reverse_glyph_map->get_population ();
   } else {
     + hb_iter (all_gids_to_retain)
-    | hb_map ([=] (hb_codepoint_t _) {
+    | hb_map ([] (hb_codepoint_t _) {
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
 	      })
     | hb_sink (reverse_glyph_map)
