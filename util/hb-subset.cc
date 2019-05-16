@@ -94,6 +94,7 @@ struct subset_consumer_t
     hb_subset_input_set_retain_gids (input, subset_options.retain_gids);
     hb_subset_input_set_desubroutinize (input, subset_options.desubroutinize);
     hb_set_set (hb_subset_input_nameid_set (input), subset_options.name_ids);
+    hb_set_set (hb_subset_input_drop_tables_set (input), subset_options.drop_tables);
 
     hb_face_t *face = hb_font_get_face (font);
 
