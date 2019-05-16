@@ -47,8 +47,11 @@ struct hb_subset_plan_t
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
 
-  //name_ids we would like to retain
+  // name_ids we would like to retain
   hb_set_t *name_ids;
+
+  // Tables which should be dropped.
+  hb_set_t *drop_tables;
 
   // The glyph subset
   hb_map_t *codepoint_to_glyph;

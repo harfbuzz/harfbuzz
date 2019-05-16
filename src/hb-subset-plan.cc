@@ -241,6 +241,8 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->retain_gids = input->retain_gids;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_reference (input->name_ids);
+  plan->drop_tables = hb_set_reference (input->drop_tables);
+
   /* TODO Clean this up... */
   if (hb_set_is_empty (plan->name_ids))
     hb_set_add_range (plan->name_ids, 0, 0x7FFF);
@@ -279,6 +281,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
   hb_set_destroy (plan->unicodes);
   hb_set_destroy (plan->name_ids);
+  hb_set_destroy (plan->drop_tables);
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);

@@ -237,6 +237,9 @@ _subset_table (hb_subset_plan_t *plan,
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
+  if (plan->drop_tables->has (tag))
+    return true;
+
   switch (tag) {
     case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
     case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
