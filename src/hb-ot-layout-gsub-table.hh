@@ -112,8 +112,8 @@ struct SingleSubstFormat1
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
     | hb_map_retains_sorting ([&] (hb_codepoint_t g) {
-                                return hb_codepoint_pair_t (glyph_map[g],
-                                                            glyph_map[(g + delta) & 0xFFFF]); })
+				return hb_codepoint_pair_t (glyph_map[g],
+							    glyph_map[(g + delta) & 0xFFFF]); })
     ;
 
     bool ret = bool (it);
@@ -210,7 +210,7 @@ struct SingleSubstFormat2
     + hb_zip (this+coverage, substitute)
     | hb_filter (glyphset, hb_first)
     | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const GlyphID &> p) -> hb_codepoint_pair_t
-                              { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
+			      { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
     ;
 
     bool ret = bool (it);
@@ -261,9 +261,9 @@ struct SingleSubst
     u.format = format;
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c,
-                                               + glyphs
-                                               | hb_map_retains_sorting (hb_first),
-                                               delta));
+					       + glyphs
+					       | hb_map_retains_sorting (hb_first),
+					       delta));
     case 2: return_trace (u.format2.serialize (c, glyphs));
     default:return_trace (false);
     }
@@ -662,7 +662,7 @@ struct Ligature
     unsigned int count = component.lenP1;
     for (unsigned int i = 1; i < count; i++)
       if (!glyphs->has (component[i]))
-        return false;
+	return false;
     return true;
   }
 
@@ -1018,12 +1018,12 @@ struct ReverseChainSingleSubstFormat1
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
       if (!(this+backtrack[i]).intersects (glyphs))
-        return false;
+	return false;
 
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
       if (!(this+lookahead[i]).intersects (glyphs))
-        return false;
+	return false;
 
     return true;
   }
@@ -1084,7 +1084,7 @@ struct ReverseChainSingleSubstFormat1
 			 backtrack.len, (HBUINT16 *) backtrack.arrayZ,
 			 match_coverage, this,
 			 &start_index) &&
-        match_lookahead (c,
+	match_lookahead (c,
 			 lookahead.len, (HBUINT16 *) lookahead.arrayZ,
 			 match_coverage, this,
 			 1, &end_index))
@@ -1287,8 +1287,8 @@ struct SubstLookup : Lookup
 
   bool serialize_single (hb_serialize_context_t *c,
 			 uint32_t lookup_props,
-		         hb_sorted_array_t<const GlyphID> glyphs,
-		         hb_array_t<const GlyphID> substitutes)
+			 hb_sorted_array_t<const GlyphID> glyphs,
+			 hb_array_t<const GlyphID> substitutes)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);
