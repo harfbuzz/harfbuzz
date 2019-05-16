@@ -213,17 +213,17 @@ jobs:
       - run: CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
       - run: ninja -Cbuild install
 
-  cmake-oracledeveloperstudio:
-    docker:
-      - image: fedora
-    steps:
-      - checkout
-      - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
-      - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
-      - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
-      - run: make -Cbuild -j32
-      - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
-      - run: make -Cbuild install
+  #cmake-oracledeveloperstudio:
+  #  docker:
+  #    - image: fedora
+  #  steps:
+  #    - checkout
+  #    - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
+  #    - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
+  #    - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
+  #    - run: make -Cbuild -j32
+  #    - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
+  #    - run: make -Cbuild install
 
   crosscompile-notest-djgpp:
     docker:
@@ -253,12 +253,12 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  crosscompile-cmake-notest-browser-asmjs:
+  crosscompile-cmake-notest-browser-asmjs-hb_tiny:
     docker:
       - image: dockcross/browser-asmjs
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja
+      - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY"
       - run: ninja -Cbuild
 
   crosscompile-cmake-notest-linux-arm64:
@@ -322,7 +322,7 @@ workflows:
 
       ## cmake
       - crosscompile-cmake-notest-android-arm
-      - crosscompile-cmake-notest-browser-asmjs
+      - crosscompile-cmake-notest-browser-asmjs-hb_tiny
       - crosscompile-cmake-notest-linux-arm64
       - crosscompile-cmake-notest-linux-mips
       #- crosscompile-cmake-notest-windows-x64

@@ -128,9 +128,13 @@ struct KernSubTable
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
     case 0:	return_trace (c->dispatch (u.format0));
+#ifndef HB_NO_SHAPE_AAT
     case 1:	return_trace (u.header.apple ? c->dispatch (u.format1, hb_forward<Ts> (ds)...) : c->default_return_value ());
+#endif
     case 2:	return_trace (c->dispatch (u.format2));
+#ifndef HB_NO_SHAPE_AAT
     case 3:	return_trace (u.header.apple ? c->dispatch (u.format3, hb_forward<Ts> (ds)...) : c->default_return_value ());
+#endif
     default:	return_trace (c->default_return_value ());
     }
   }
@@ -278,7 +282,9 @@ struct kern
   {
     switch (get_type ()) {
     case 0: return u.ot.has_state_machine ();
+#ifndef HB_NO_SHAPE_AAT
     case 1: return u.aat.has_state_machine ();
+#endif
     default:return false;
     }
   }
@@ -287,7 +293,9 @@ struct kern
   {
     switch (get_type ()) {
     case 0: return u.ot.has_cross_stream ();
+#ifndef HB_NO_SHAPE_AAT
     case 1: return u.aat.has_cross_stream ();
+#endif
     default:return false;
     }
   }
@@ -296,7 +304,9 @@ struct kern
   {
     switch (get_type ()) {
     case 0: return u.ot.get_h_kerning (left, right);
+#ifndef HB_NO_SHAPE_AAT
     case 1: return u.aat.get_h_kerning (left, right);
+#endif
     default:return 0;
     }
   }
@@ -311,7 +321,9 @@ struct kern
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
     case 0:	return_trace (c->dispatch (u.ot, hb_forward<Ts> (ds)...));
+#ifndef HB_NO_SHAPE_AAT
     case 1:	return_trace (c->dispatch (u.aat, hb_forward<Ts> (ds)...));
+#endif
     default:	return_trace (c->default_return_value ());
     }
   }
@@ -328,7 +340,9 @@ struct kern
   HBUINT32		version32;
   HBUINT16		major;
   KernOT		ot;
+#ifndef HB_NO_SHAPE_AAT
   KernAAT		aat;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (4, version32);

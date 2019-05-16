@@ -530,12 +530,12 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  { \
+  do { \
     unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
     assert (_consumed <= scratch_size); \
     scratch += _consumed; \
     scratch_size -= _consumed; \
-  }
+  } while (0)
 
 #define utf16_index() var1.u32
 

@@ -32,6 +32,8 @@
 #include "hb-subset-cff-common.hh"
 #include "hb-cff1-interp-cs.hh"
 
+#ifndef HB_NO_SUBSET_CFF
+
 using namespace CFF;
 
 struct remap_sid_t : remap_t
@@ -394,8 +396,8 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
 
 struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs, const OT::cff1::accelerator_subset_t, cff1_cs_interp_env_t, cff1_cs_opset_subr_subset_t, OpCode_endchar>
 {
-  cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc, const hb_subset_plan_t *plan)
-    : subr_subsetter_t (acc, plan) {}
+  cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc_, const hb_subset_plan_t *plan_)
+    : subr_subsetter_t (acc_, plan_) {}
 
   static void finalize_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
   {
@@ -1064,7 +1066,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   return true;
 }
 
-static bool
+static inline bool
 _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 		const char		*data,
 		hb_subset_plan_t	*plan,
@@ -1118,3 +1120,5 @@ hb_subset_cff1 (hb_subset_plan_t *plan,
 
   return result;
 }
+
+#endif

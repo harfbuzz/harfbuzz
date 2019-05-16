@@ -63,7 +63,7 @@ extern HB_INTERNAL hb_atomic_int_t _hb_options;
 static inline hb_options_t
 hb_options ()
 {
-#if defined(HB_NO_GETENV)
+#ifdef HB_NO_GETENV
   return hb_options_t ();
 #endif
   /* Make a local copy, so we can access bitfield threadsafely. */
@@ -249,8 +249,8 @@ struct hb_printer_t<bool> {
 };
 
 template <>
-struct hb_printer_t<hb_void_t> {
-  const char *print (hb_void_t) { return ""; }
+struct hb_printer_t<hb_empty_t> {
+  const char *print (hb_empty_t) { return ""; }
 };
 
 
@@ -266,7 +266,7 @@ static inline void _hb_warn_no_return (bool returned)
   }
 }
 template <>
-/*static*/ inline void _hb_warn_no_return<hb_void_t> (bool returned HB_UNUSED)
+/*static*/ inline void _hb_warn_no_return<hb_empty_t> (bool returned HB_UNUSED)
 {}
 
 template <int max_level, typename ret_t>

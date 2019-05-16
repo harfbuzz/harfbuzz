@@ -163,7 +163,8 @@ static int hangul_pair_decompose(uint32_t code, uint32_t *a, uint32_t *b)
 
 static int hangul_pair_compose(uint32_t *code, uint32_t a, uint32_t b)
 {
-    if (a >= SBASE && a < (SBASE + SCOUNT) && b >= TBASE && b < (TBASE + TCOUNT)) {
+    if (a >= SBASE && a < (SBASE + SCOUNT) && b > TBASE && b < (TBASE + TCOUNT) &&
+	!((a - SBASE) % TCOUNT)) {
         /* LV,T */
         *code = a + (b - TBASE);
         return 3;

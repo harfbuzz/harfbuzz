@@ -51,6 +51,7 @@ struct NameRecord
 {
   hb_language_t language (hb_face_t *face) const
   {
+#ifndef HB_NO_OT_NAME_LANGUAGE
     unsigned int p = platformID;
     unsigned int l = languageID;
 
@@ -60,11 +61,12 @@ struct NameRecord
     if (p == 1)
       return _hb_ot_name_language_for_mac_code (l);
 
-#if !defined(HB_NO_NAME_TABLE_AAT)
+#ifndef HB_NO_OT_NAME_LANGUAGE_AAT
     if (p == 0)
       return _hb_aat_language_get (face, l);
 #endif
 
+#endif
     return HB_LANGUAGE_INVALID;
   }
 
@@ -190,7 +192,7 @@ struct name
     const void *dst_string_pool = &(this + this->stringOffset);
 
     + it
-    | hb_apply ([&] (const NameRecord& _) { c->copy (_, src_string_pool, dst_string_pool); })
+    | hb_apply ([=] (const NameRecord& _) { c->copy (_, src_string_pool, dst_string_pool); })
     ;
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);

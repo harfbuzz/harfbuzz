@@ -94,7 +94,7 @@ HB_EXTERN hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face);
 
 /**
- * hb_ot_layout_get_glyph_class:
+ * hb_ot_layout_glyph_class_t:
  * @HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED: Glyphs not matching the other classifications
  * @HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH: Spacing, single characters, capable of accepting marks
  * @HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE: Glyphs that represent ligation of multiple characters

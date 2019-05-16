@@ -43,8 +43,8 @@ struct hb_hashmap_t
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 
-  static_assert (hb_is_integer (K) || hb_is_pointer (K), "");
-  static_assert (hb_is_integer (V) || hb_is_pointer (V), "");
+  static_assert (hb_is_integral (K) || hb_is_pointer (K), "");
+  static_assert (hb_is_integral (V) || hb_is_pointer (V), "");
 
   /* TODO If key type is a pointer, keep hash in item_t and use to:
    * 1. avoid rehashing when resizing table, and

@@ -29,8 +29,9 @@
 #ifndef HB_HH
 #define HB_HH
 
+
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #pragma warning( disable: 4068 ) /* Unknown pragma */
 #endif
 #if defined(__GNUC__) || defined(__clang__)
@@ -66,6 +67,7 @@
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
 #pragma GCC diagnostic error   "-Wdouble-promotion"
+#pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
@@ -129,9 +131,9 @@
 #endif
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+
+#include "hb-config.hh"
+
 
 /*
  * Following added based on what AC_USE_SYSTEM_EXTENSIONS adds to
@@ -203,7 +205,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #define realloc hb_realloc_impl
 #define free hb_free_impl
 
-#if defined(hb_memalign_impl)
+#ifdef hb_memalign_impl
 extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #define posix_memalign hb_memalign_impl
 #else
@@ -315,7 +317,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
-#if defined(__clang__)
+#ifdef __clang__
 /* Disable certain sanitizer errors. */
 /* https://github.com/harfbuzz/harfbuzz/issues/1247 */
 #define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
@@ -445,12 +447,12 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
  *
  * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
  */
-#if !defined(HB_VECTOR_SIZE)
+#ifndef HB_VECTOR_SIZE
 #  define HB_VECTOR_SIZE 0
 #endif
 
 /* The `vector_size' attribute was introduced in gcc 3.1. */
-#if !defined(HB_VECTOR_SIZE)
+#ifndef HB_VECTOR_SIZE
 #  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
 #    define HB_VECTOR_SIZE 128
 #  else
@@ -463,16 +465,6 @@ static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64
 typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
 #else
 typedef uint64_t hb_vector_size_impl_t;
-#endif
-
-
-/* HB_NDEBUG disables some sanity checks that are very safe to disable and
- * should be disabled in production systems.  If NDEBUG is defined, enable
- * HB_NDEBUG; but if it's desirable that normal assert()s (which are very
- * light-weight) to be enabled, then HB_DEBUG can be defined to disable
- * the costlier checks. */
-#ifdef NDEBUG
-#define HB_NDEBUG 1
 #endif
 
 

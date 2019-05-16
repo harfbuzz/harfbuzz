@@ -108,7 +108,7 @@ struct hdmx
     this->sizeDeviceRecord = DeviceRecord::get_size (it ? (*it).second.len () : 0);
 
     + it
-    | hb_apply ([&] (const hb_item_type<Iterator>& _) {
+    | hb_apply ([c] (const hb_item_type<Iterator>& _) {
 		  c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second);
 		})
     ;
@@ -126,7 +126,7 @@ struct hdmx
 
     auto it =
     + hb_range ((unsigned) numRecords)
-    | hb_map ([&] (unsigned _)
+    | hb_map ([c, this] (unsigned _)
 	{
 	  const DeviceRecord *device_record =
 	    &StructAtOffset<DeviceRecord> (&firstDeviceRecord,

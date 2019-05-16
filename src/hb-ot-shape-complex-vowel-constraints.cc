@@ -34,7 +34,7 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 				       hb_buffer_t              *buffer,
 				       hb_font_t                *font HB_UNUSED)
 {
-#if defined(HB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS)
+#ifdef HB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS
   return;
 #endif
   if (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE)

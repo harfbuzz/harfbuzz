@@ -31,8 +31,10 @@
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-var-fvar-table.hh"
+#include "hb-ot-stat-table.hh"
 
-static void
+static inline void
 _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 		       hb_codepoint_t gid,
 		       hb_set_t *gids_to_retain)
@@ -53,7 +55,8 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
   }
 }
 
-static void
+#ifndef HB_NO_SUBSET_CFF
+static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
            hb_codepoint_t gid,
            hb_set_t *gids_to_retain)
@@ -65,8 +68,10 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
     hb_set_add (gids_to_retain, accent_gid);
   }
 }
+#endif
 
-static void
+#ifndef HB_NO_SUBSET_LAYOUT
+static inline void
 _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 {
   hb_set_t lookup_indices;
@@ -80,8 +85,9 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 					   &lookup_indices,
 					   gids_to_retain);
 }
+#endif
 
-static void
+static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
 		      unsigned int num_glyphs)
 {
@@ -126,9 +132,11 @@ _populate_gids_to_retain (hb_face_t *face,
     initial_gids_to_retain->add (gid);
   }
 
+#ifndef HB_NO_SUBSET_LAYOUT
   if (close_over_gsub)
     // Add all glyphs needed for GSUB substitutions.
     _gsub_closure (face, initial_gids_to_retain);
+#endif
 
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
@@ -137,13 +145,14 @@ _populate_gids_to_retain (hb_face_t *face,
   while (initial_gids_to_retain->next (&gid))
   {
     _add_gid_and_children (glyf, gid, all_gids_to_retain);
+#ifndef HB_NO_SUBSET_CFF
     if (cff.is_valid ())
       _add_cff_seac_components (cff, gid, all_gids_to_retain);
+#endif
   }
   hb_set_destroy (initial_gids_to_retain);
 
   _remove_invalid_gids (all_gids_to_retain, face->get_num_glyphs ());
-
 
   cff.fini ();
   glyf.fini ();
@@ -168,21 +177,46 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     *num_glyphs = reverse_glyph_map->get_population ();
   } else {
     + hb_iter (all_gids_to_retain)
-    | hb_map ([=] (hb_codepoint_t _) {
+    | hb_map ([] (hb_codepoint_t _) {
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
 	      })
-    | hb_sink (reverse_glyph_map);
+    | hb_sink (reverse_glyph_map)
     ;
 
-    // TODO(grieger): Should we discard glyphs past the max glyph to keep?
-    // *num_glyphs = + hb_iter (all_gids_to_retain) | hb_reduce (hb_max, 0);
-    *num_glyphs = face->get_num_glyphs ();
+    unsigned max_glyph =
+    + hb_iter (all_gids_to_retain)
+    | hb_reduce (hb_max, 0)
+    ;
+    *num_glyphs = max_glyph + 1;
   }
 
   + reverse_glyph_map->iter ()
   | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
+}
+
+static void
+_nameid_closure (hb_face_t           *face,
+                 hb_set_t            *nameids)
+{
+  hb_tag_t table_tags[32];
+  unsigned count = ARRAY_LENGTH (table_tags);
+  hb_face_get_table_tags (face, 0, &count, table_tags);
+  for (unsigned int i = 0; i < count; i++)
+  {
+    hb_tag_t tag = table_tags[i];
+    switch (tag) {
+      case HB_OT_TAG_STAT:
+        face->table.STAT->collect_name_ids (nameids);
+        break;
+      case HB_OT_TAG_fvar:
+        face->table.fvar->collect_name_ids (nameids);
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 /**
@@ -210,6 +244,7 @@ hb_subset_plan_create (hb_face_t           *face,
   /* TODO Clean this up... */
   if (hb_set_is_empty (plan->name_ids))
     hb_set_add_range (plan->name_ids, 0, 0x7FFF);
+  _nameid_closure (face, plan->name_ids);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
   plan->codepoint_to_glyph = hb_map_create ();

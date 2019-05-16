@@ -439,7 +439,7 @@ struct GDEF
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct GDEF *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
     out->glyphClassDef.serialize_subset (c, this+glyphClassDef, out);

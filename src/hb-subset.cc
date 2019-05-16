@@ -195,6 +195,8 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_post:
       result = _subset<const OT::post> (plan);
       break;
+
+#ifndef HB_NO_SUBSET_CFF
     case HB_OT_TAG_cff1:
       result = _subset<const OT::cff1> (plan);
       break;
@@ -204,8 +206,9 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_VORG:
       result = _subset<const OT::VORG> (plan);
       break;
+#endif
 
-#if !defined(HB_NO_SUBSET_LAYOUT)
+#ifndef HB_NO_SUBSET_LAYOUT
     case HB_OT_TAG_GDEF:
       result = _subset2<const OT::GDEF> (plan);
       break;
@@ -246,7 +249,7 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
     case HB_OT_TAG_GDEF:
     case HB_OT_TAG_GPOS:
     case HB_OT_TAG_GSUB:
-#if defined(HB_NO_SUBSET_LAYOUT)
+#ifdef HB_NO_SUBSET_LAYOUT
       return true;
 #endif
       return plan->drop_layout;

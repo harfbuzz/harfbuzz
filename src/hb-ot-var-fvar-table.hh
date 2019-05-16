@@ -114,6 +114,7 @@ struct fvar
 
   unsigned int get_axis_count () const { return axisCount; }
 
+#ifndef HB_DISABLE_DEPRECATED
   void get_axis_deprecated (unsigned int axis_index,
 				   hb_ot_var_axis_t *info) const
   {
@@ -125,6 +126,7 @@ struct fvar
     info->min_value = hb_min (info->default_value, axis.minValue / 65536.f);
     info->max_value = hb_max (info->default_value, axis.maxValue / 65536.f);
   }
+#endif
 
   void get_axis_info (unsigned int axis_index,
 		      hb_ot_var_axis_info_t *info) const
@@ -141,6 +143,7 @@ struct fvar
     info->reserved = 0;
   }
 
+#ifndef HB_DISABLE_DEPRECATED
   unsigned int get_axes_deprecated (unsigned int      start_offset,
 				    unsigned int     *axes_count /* IN/OUT */,
 				    hb_ot_var_axis_t *axes_array /* OUT */) const
@@ -162,6 +165,7 @@ struct fvar
     }
     return axisCount;
   }
+#endif
 
   unsigned int get_axis_infos (unsigned int           start_offset,
 			       unsigned int          *axes_count /* IN/OUT */,
@@ -185,6 +189,7 @@ struct fvar
     return axisCount;
   }
 
+#ifndef HB_DISABLE_DEPRECATED
   bool find_axis_deprecated (hb_tag_t tag,
 			     unsigned int *axis_index,
 			     hb_ot_var_axis_t *info) const
@@ -203,6 +208,7 @@ struct fvar
       *axis_index = HB_OT_VAR_NO_AXIS_INDEX;
     return false;
   }
+#endif
 
   bool find_axis_info (hb_tag_t tag,
 		       hb_ot_var_axis_info_t *info) const
@@ -253,8 +259,8 @@ struct fvar
   }
 
   unsigned int get_instance_coords (unsigned int  instance_index,
-					   unsigned int *coords_length, /* IN/OUT */
-					   float        *coords         /* OUT */) const
+				    unsigned int *coords_length, /* IN/OUT */
+				    float        *coords         /* OUT */) const
   {
     const InstanceRecord *instance = get_instance (instance_index);
     if (unlikely (!instance))
@@ -273,6 +279,27 @@ struct fvar
     }
     return axisCount;
   }
+
+  void collect_name_ids (hb_set_t *nameids) const
+  {
+    if (!has_data ()) return;
+
+    + get_axes ()
+    | hb_map (&AxisRecord::axisNameID)
+    | hb_sink (nameids)
+    ;
+
+    + hb_range ((unsigned) instanceCount)
+    | hb_map ([this] (const unsigned _) { return get_instance_subfamily_name_id (_); })
+    | hb_sink (nameids)
+    ;
+
+    + hb_range ((unsigned) instanceCount)
+    | hb_map ([this] (const unsigned _) { return get_instance_postscript_name_id (_); })
+    | hb_sink (nameids)
+    ;
+  }
+
 
   protected:
   hb_array_t<const AxisRecord> get_axes () const

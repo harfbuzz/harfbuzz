@@ -70,7 +70,7 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
 
   bool found = (bool) c->unicode->compose (a, b, ab);
 
-#if defined(HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK)
+#ifdef HB_NO_OT_SHAPE_COMPLEX_HEBREW_FALLBACK
   return found;
 #endif
 

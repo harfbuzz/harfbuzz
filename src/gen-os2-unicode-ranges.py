@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # -*- coding: utf-8 -*-
 
 # Generates the code for a sorted unicode range array as used in hb-ot-os2-unicode-ranges.hh

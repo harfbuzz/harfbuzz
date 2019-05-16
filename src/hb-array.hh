@@ -42,20 +42,20 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   /*
    * Constructors.
    */
-  hb_array_t () : arrayZ (nullptr), length (0) {}
-  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
+  hb_array_t () : arrayZ (nullptr), length (0), backwards_length (0) {}
+  hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_), backwards_length (0) {}
   template <unsigned int length_>
-  hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_) {}
+  hb_array_t (Type (&array_)[length_]) : arrayZ (array_), length (length_), backwards_length (0) {}
 
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   hb_array_t (const hb_array_t<U> &o) :
     hb_iter_with_fallback_t<hb_array_t<Type>, Type&> (),
-    arrayZ (o.arrayZ), length (o.length) {}
+    arrayZ (o.arrayZ), length (o.length), backwards_length (o.backwards_length) {}
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   hb_array_t& operator = (const hb_array_t<U> &o)
-  { arrayZ = o.arrayZ; length = o.length; return *this; }
+  { arrayZ = o.arrayZ; length = o.length; backwards_length = o.backwards_length; return *this; }
 
   /*
    * Iterator implementation.
@@ -72,17 +72,25 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     if (unlikely (n > length))
       n = length;
     length -= n;
+    backwards_length += n;
     arrayZ += n;
   }
   void __rewind__ (unsigned n)
   {
-    if (unlikely (n > length))
-      n = length;
-    length -= n;
+    if (unlikely (n > backwards_length))
+      n = backwards_length;
+    length += n;
+    backwards_length -= n;
+    arrayZ -= n;
   }
   unsigned __len__ () const { return length; }
+  /* Ouch. The operator== compares the contents of the array.  For range-based for loops,
+   * it's best if we can just compare arrayZ, though comparing contents is still fast,
+   * but also would require that Type has operator==.  As such, we optimize this operator
+   * for range-based for loop and just compare arrayZ.  No need to compare length, as we
+   * assume we're only compared to .end(). */
   bool operator != (const hb_array_t& o) const
-  { return arrayZ != o.arrayZ || length != o.length; }
+  { return arrayZ != o.arrayZ; }
 
   /* Extra operators.
    */
@@ -199,6 +207,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   public:
   Type *arrayZ;
   unsigned int length;
+  unsigned int backwards_length;
 };
 template <typename T> inline hb_array_t<T>
 hb_array (T *array, unsigned int length)
@@ -315,7 +324,7 @@ bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
 {
   return length == o.length &&
   + hb_zip (*this, o)
-  | hb_map ([] (hb_pair_t<T&, T&> &&_) -> bool { return _.first == _.second; })
+  | hb_map ([] (hb_pair_t<T&, T&> &&_) { return _.first == _.second; })
   | hb_all
   ;
 }
@@ -325,7 +334,7 @@ uint32_t hb_array_t<T>::hash () const
   return
   + hb_iter (*this)
   | hb_map (hb_hash)
-  | hb_reduce ([] (uint32_t a, uint32_t b) -> uint32_t { return a * 31 + b; }, 0)
+  | hb_reduce ([] (uint32_t a, uint32_t b) { return a * 31 + b; }, 0)
   ;
 }
 

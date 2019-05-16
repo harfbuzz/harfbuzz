@@ -55,7 +55,6 @@
  * type of .end()?
  */
 
-
 /*
  * Base classes for iterators.
  */
@@ -120,9 +119,11 @@ struct hb_iter_t
   iter_t  operator << (const T v) && { **thiz() = v; ++*thiz(); return *thiz(); }
 
   protected:
-  hb_iter_t () {}
-  hb_iter_t (const hb_iter_t &o HB_UNUSED) {}
-  void operator = (const hb_iter_t &o HB_UNUSED) {}
+  hb_iter_t () = default;
+  hb_iter_t (const hb_iter_t &o HB_UNUSED) = default;
+  hb_iter_t (hb_iter_t &&o HB_UNUSED) = default;
+  hb_iter_t& operator = (const hb_iter_t &o HB_UNUSED) = default;
+  hb_iter_t& operator = (hb_iter_t &&o HB_UNUSED) = default;
 };
 
 #define HB_ITER_USING(Name) \
@@ -192,15 +193,15 @@ struct hb_iter_fallback_mixin_t
   /* Termination: Implement __more__(), or __len__() if random-access. */
   bool __more__ () const { return bool (thiz()->len ()); }
   unsigned __len__ () const
-  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; }; return l; }
+  { iter_t c (*thiz()); unsigned l = 0; while (c) { c++; l++; } return l; }
 
   /* Advancing: Implement __next__(), or __forward__() if random-access. */
   void __next__ () { *thiz() += 1; }
-  void __forward__ (unsigned n) { while (n--) ++*thiz(); }
+  void __forward__ (unsigned n) { while (*thiz() && n--) ++*thiz(); }
 
   /* Rewinding: Implement __prev__() or __rewind__() if bidirectional. */
   void __prev__ () { *thiz() -= 1; }
-  void __rewind__ (unsigned n) { while (n--) --*thiz(); }
+  void __rewind__ (unsigned n) { while (*thiz() && n--) --*thiz(); }
 
   /* Range-based for: Implement __end__() if can be done faster,
    * and operator!=. */
@@ -215,9 +216,11 @@ struct hb_iter_fallback_mixin_t
   }
 
   protected:
-  hb_iter_fallback_mixin_t () {}
-  hb_iter_fallback_mixin_t (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
-  void operator = (const hb_iter_fallback_mixin_t &o HB_UNUSED) {}
+  hb_iter_fallback_mixin_t () = default;
+  hb_iter_fallback_mixin_t (const hb_iter_fallback_mixin_t &o HB_UNUSED) = default;
+  hb_iter_fallback_mixin_t (hb_iter_fallback_mixin_t &&o HB_UNUSED) = default;
+  hb_iter_fallback_mixin_t& operator = (const hb_iter_fallback_mixin_t &o HB_UNUSED) = default;
+  hb_iter_fallback_mixin_t& operator = (hb_iter_fallback_mixin_t &&o HB_UNUSED) = default;
 };
 
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
@@ -226,11 +229,11 @@ struct hb_iter_with_fallback_t :
   hb_iter_fallback_mixin_t<iter_t, item_t>
 {
   protected:
-  hb_iter_with_fallback_t () {}
-  hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) :
-    hb_iter_t<iter_t, item_t> (o),
-    hb_iter_fallback_mixin_t<iter_t, item_t> (o) {}
-  void operator = (const hb_iter_with_fallback_t &o HB_UNUSED) {}
+  hb_iter_with_fallback_t () = default;
+  hb_iter_with_fallback_t (const hb_iter_with_fallback_t &o HB_UNUSED) = default;
+  hb_iter_with_fallback_t (hb_iter_with_fallback_t &&o HB_UNUSED) = default;
+  hb_iter_with_fallback_t& operator = (const hb_iter_with_fallback_t &o HB_UNUSED) = default;
+  hb_iter_with_fallback_t& operator = (hb_iter_with_fallback_t &&o HB_UNUSED) = default;
 };
 
 /*
@@ -243,8 +246,8 @@ template<typename Iter, typename Item>
 struct hb_is_iterator_of
 {
   template <typename Item2 = Item>
-  static hb_true_t impl (hb_priority<2>, hb_iter_t<Iter, hb_type_identity<Item2>> *);
-  static hb_false_t impl (hb_priority<0>, const void *);
+  static hb_true_type impl (hb_priority<2>, hb_iter_t<Iter, hb_type_identity<Item2>> *);
+  static hb_false_type impl (hb_priority<0>, const void *);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize, hb_declval (Iter*)))::value;
@@ -260,10 +263,10 @@ struct hb_is_iterable
   private:
 
   template <typename U>
-  static auto impl (hb_priority<1>) -> decltype (hb_declval (U).iter (), hb_true_t ());
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (U).iter (), hb_true_type ());
 
   template <typename>
-  static hb_false_t impl (hb_priority<0>);
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl<T> (hb_prioritize))::value;
@@ -277,9 +280,11 @@ struct hb_is_source_of
 {
   private:
   template <typename Iter2 = Iter,
-	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, const Item &))>
-  static hb_true_t impl (hb_priority<2>);
-  static hb_false_t impl (hb_priority<0>);
+	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, hb_add_lvalue_reference<hb_add_const<Item>>))>
+  static hb_true_type impl (hb_priority<2>);
+  template <typename Iter2 = Iter>
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) >> hb_declval (Item &), hb_true_type ());
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize))::value;
@@ -290,8 +295,12 @@ template<typename Iter, typename Item>
 struct hb_is_sink_of
 {
   private:
-  static auto impl (hb_priority<2>) -> decltype (hb_declval (Iter) << hb_declval (Item), hb_true_t ());
-  static hb_false_t impl (hb_priority<0>);
+  template <typename Iter2 = Iter,
+	    hb_enable_if (hb_is_convertible (typename Iter2::item_t, hb_add_lvalue_reference<Item>))>
+  static hb_true_type impl (hb_priority<2>);
+  template <typename Iter2 = Iter>
+  static auto impl (hb_priority<1>) -> decltype (hb_declval (Iter2) << hb_declval (Item), hb_true_type ());
+  static hb_false_type impl (hb_priority<0>);
 
   public:
   static constexpr bool value = decltype (impl (hb_prioritize))::value;
@@ -339,16 +348,26 @@ operator | (Lhs&& lhs, Rhs&& rhs) HB_AUTO_RETURN (hb_forward<Rhs> (rhs) (hb_forw
 
 /* hb_map(), hb_filter(), hb_reduce() */
 
-template <typename Iter, typename Proj,
+enum  class hb_function_sortedness_t {
+  NOT_SORTED,
+  RETAINS_SORTING,
+  SORTED,
+};
+
+template <typename Iter, typename Proj, hb_function_sortedness_t Sorted,
 	 hb_requires (hb_is_iterator (Iter))>
 struct hb_map_iter_t :
-  hb_iter_t<hb_map_iter_t<Iter, Proj>,
+  hb_iter_t<hb_map_iter_t<Iter, Proj, Sorted>,
 	    decltype (hb_get (hb_declval (Proj), *hb_declval (Iter)))>
 {
   hb_map_iter_t (const Iter& it, Proj f_) : it (it), f (f_) {}
 
   typedef decltype (hb_get (hb_declval (Proj), *hb_declval (Iter))) __item_t__;
   static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
+  static constexpr bool is_sorted_iterator =
+    Sorted == hb_function_sortedness_t::SORTED ? true :
+    Sorted == hb_function_sortedness_t::RETAINS_SORTING ? Iter::is_sorted_iterator :
+    false;
   __item_t__ __item__ () const { return hb_get (f.get (), *it); }
   __item_t__ __item_at__ (unsigned i) const { return hb_get (f.get (), it[i]); }
   bool __more__ () const { return bool (it); }
@@ -359,23 +378,23 @@ struct hb_map_iter_t :
   void __rewind__ (unsigned n) { it -= n; }
   hb_map_iter_t __end__ () const { return hb_map_iter_t (it.end (), f); }
   bool operator != (const hb_map_iter_t& o) const
-  { return it != o.it || f != o.f; }
+  { return it != o.it; }
 
   private:
   Iter it;
   hb_reference_wrapper<Proj> f;
 };
 
-template <typename Proj>
+template <typename Proj, hb_function_sortedness_t Sorted>
 struct hb_map_iter_factory_t
 {
   hb_map_iter_factory_t (Proj f) : f (f) {}
 
   template <typename Iter,
 	    hb_requires (hb_is_iterator (Iter))>
-  hb_map_iter_t<Iter, Proj>
+  hb_map_iter_t<Iter, Proj, Sorted>
   operator () (Iter it)
-  { return hb_map_iter_t<Iter, Proj> (it, f); }
+  { return hb_map_iter_t<Iter, Proj, Sorted> (it, f); }
 
   private:
   Proj f;
@@ -383,11 +402,27 @@ struct hb_map_iter_factory_t
 struct
 {
   template <typename Proj>
-  hb_map_iter_factory_t<Proj>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::NOT_SORTED>
   operator () (Proj&& f) const
-  { return hb_map_iter_factory_t<Proj> (f); }
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::NOT_SORTED> (f); }
 }
 HB_FUNCOBJ (hb_map);
+struct
+{
+  template <typename Proj>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::RETAINS_SORTING>
+  operator () (Proj&& f) const
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::RETAINS_SORTING> (f); }
+}
+HB_FUNCOBJ (hb_map_retains_sorting);
+struct
+{
+  template <typename Proj>
+  hb_map_iter_factory_t<Proj, hb_function_sortedness_t::SORTED>
+  operator () (Proj&& f) const
+  { return hb_map_iter_factory_t<Proj, hb_function_sortedness_t::SORTED> (f); }
+}
+HB_FUNCOBJ (hb_map_sorted);
 
 template <typename Iter, typename Pred, typename Proj,
 	 hb_requires (hb_is_iterator (Iter))>
@@ -403,10 +438,10 @@ struct hb_filter_iter_t :
   __item_t__ __item__ () const { return *it; }
   bool __more__ () const { return bool (it); }
   void __next__ () { do ++it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
-  void __prev__ () { --it; }
+  void __prev__ () { do --it; while (it && !hb_has (p.get (), hb_get (f.get (), *it))); }
   hb_filter_iter_t __end__ () const { return hb_filter_iter_t (it.end (), p, f); }
   bool operator != (const hb_filter_iter_t& o) const
-  { return it != o.it || p != o.p || f != o.f; }
+  { return it != o.it; }
 
   private:
   Iter it;
@@ -483,9 +518,32 @@ struct hb_zip_iter_t :
   static constexpr bool is_random_access_iterator =
     A::is_random_access_iterator &&
     B::is_random_access_iterator;
-  static constexpr bool is_sorted_iterator =
-    A::is_sorted_iterator &&
-    B::is_sorted_iterator;
+  /* Note.  The following categorization is only valid if A is strictly sorted,
+   * ie. does NOT have duplicates.  Previously I tried to categorize sortedness
+   * more granularly, see commits:
+   *
+   *   513762849a683914fc266a17ddf38f133cccf072
+   *   4d3cf2adb669c345cc43832d11689271995e160a
+   *
+   * However, that was not enough, since hb_sorted_array_t, hb_sorted_vector_t,
+   * SortedArrayOf, etc all needed to be updated to add more variants.  At that
+   * point I saw it not worth the effort, and instead we now deem all sorted
+   * collections as essentially strictly-sorted for the purposes of zip.
+   *
+   * The above assumption is not as bad as it sounds.  Our "sorted" comes with
+   * no guarantees.  It's just a contract, put in place to help you remember,
+   * and think about, whether an iterator you receive is expected to be
+   * sorted or not.  As such, it's not perfect by definition, and should not
+   * be treated so.  The inaccuracy here just errs in the direction of being
+   * more permissive, so your code compiles instead of erring on the side of
+   * marking your zipped iterator unsorted in which case your code won't
+   * compile.
+   *
+   * This semantical limitation does NOT affect logic in any other place I
+   * know of as of this writing.
+   */
+  static constexpr bool is_sorted_iterator = A::is_sorted_iterator;
+
   __item_t__ __item__ () const { return __item_t__ (*a, *b); }
   __item_t__ __item_at__ (unsigned i) const { return __item_t__ (a[i], b[i]); }
   bool __more__ () const { return bool (a) && bool (b); }
@@ -495,6 +553,8 @@ struct hb_zip_iter_t :
   void __prev__ () { --a; --b; }
   void __rewind__ (unsigned n) { a -= n; b -= n; }
   hb_zip_iter_t __end__ () const { return hb_zip_iter_t (a.end (), b.end ()); }
+  /* Note, we should stop if ANY of the iters reaches end.  As such two compare
+   * unequal if both items are unequal, NOT if either is unequal. */
   bool operator != (const hb_zip_iter_t& o) const
   { return a != o.a && b != o.b; }
 
@@ -563,7 +623,7 @@ struct hb_counter_iter_t :
   void __rewind__ (unsigned n) { v -= n * step; }
   hb_counter_iter_t __end__ () const { return hb_counter_iter_t (end_, end_, step); }
   bool operator != (const hb_counter_iter_t& o) const
-  { return v != o.v || end_ != o.end_ || step != o.step; }
+  { return v != o.v; }
 
   private:
   static inline T end_for (T start, T end_, S step)

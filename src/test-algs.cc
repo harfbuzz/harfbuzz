@@ -62,19 +62,30 @@ main (int argc, char **argv)
   A a;
   hb_invoke (&A::a, a);
 
-  assert (1 == hb_min (3, 8, 1, 2));
-  assert (8 == hb_max (3, 8, 1, 2));
+  assert (1 == hb_min (8, 1));
+  assert (8 == hb_max (8, 1));
 
   int x = 1, y = 2;
   hb_min (x, 3);
-  hb_min (3, x, 4);
-  hb_min (3, x, 4 + 3);
+  hb_min (3, x);
+  hb_min (x, 4 + 3);
   int &z = hb_min (x, y);
   z = 3;
   assert (x == 3);
 
   hb_pair_t<const int*, int> xp = hb_pair_t<int *, long> (nullptr, 0);
   xp = hb_pair_t<int *, double> (nullptr, 1);
+  xp = hb_pair_t<const int*, int> (nullptr, 1);
+
+  assert (3 == hb_partial (hb_min, 3) (4));
+  assert (3 == hb_partial<1> (hb_min, 4) (3));
+
+  auto M0 = hb_partial<2> (hb_max, 0);
+  assert (M0 (-2) == 0);
+  assert (M0 (+2) == 2);
+
+  assert (hb_add (2) (5) == 7);
+  assert (hb_add (5) (2) == 7);
 
   return 0;
 }

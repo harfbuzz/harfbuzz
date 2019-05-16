@@ -598,7 +598,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       } else {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ ());
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
   }
@@ -608,7 +608,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
 #define ALLOCATE_ARRAY(Type, name, len, on_no_room) \
   Type *name = (Type *) scratch; \
-  { \
+  do { \
     unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
     if (unlikely (_consumed > scratch_size)) \
     { \
@@ -617,7 +617,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     } \
     scratch += _consumed; \
     scratch_size -= _consumed; \
-  }
+  } while (0)
 
   ALLOCATE_ARRAY (UniChar, pchars, buffer->len * 2, /*nothing*/);
   unsigned int chars_len = 0;

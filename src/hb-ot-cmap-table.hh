@@ -518,25 +518,25 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
 
   bool serialize (hb_serialize_context_t *c,
-		  const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
+		  const hb_sorted_vector_t<CmapSubtableLongGroup> &groups_data)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
     this->format = 12;
     this->reserved = 0;
-    this->length = get_sub_table_size (groups);
+    this->length = get_sub_table_size (groups_data);
 
-    return_trace (CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups));
+    return_trace (CmapSubtableLongSegmented<CmapSubtableFormat12>::serialize (c, groups_data));
   }
 
-  static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups)
+  static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups_data)
   {
-    return 16 + 12 * groups.length;
+    return 16 + 12 * groups_data.length;
   }
 
   static bool create_sub_table_plan (const hb_subset_plan_t *plan,
-				     hb_sorted_vector_t<CmapSubtableLongGroup> *groups)
+				     hb_sorted_vector_t<CmapSubtableLongGroup> *groups_out)
   {
     CmapSubtableLongGroup *group = nullptr;
 
@@ -551,7 +551,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
       if (!group || !_is_gid_consecutive (group, cp, new_gid))
       {
-	group = groups->push ();
+	group = groups_out->push ();
 	group->startCharCode = cp;
 	group->endCharCode = cp;
 	group->glyphID = new_gid;
@@ -560,8 +560,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     }
 
     DEBUG_MSG(SUBSET, nullptr, "cmap");
-    for (unsigned int i = 0; i < groups->length; i++) {
-      CmapSubtableLongGroup& group = (*groups)[i];
+    for (unsigned int i = 0; i < groups_out->length; i++) {
+      CmapSubtableLongGroup& group = (*groups_out)[i];
       DEBUG_MSG(SUBSET, nullptr, "  %d: U+%04X-U+%04X, gid %d-%d", i, (uint32_t) group.startCharCode, (uint32_t) group.endCharCode, (uint32_t) group.glyphID, (uint32_t) group.glyphID + ((uint32_t) group.endCharCode - (uint32_t) group.startCharCode));
     }
 

@@ -138,7 +138,7 @@ bool
 OT::GDEF::is_blacklisted (hb_blob_t *blob,
 			  hb_face_t *face) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   /* The ugly business of blacklisting individual fonts' tables happen here!
@@ -335,6 +335,12 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
+#ifdef HB_NO_LAYOUT_UNUSED
+  if (point_count)
+    *point_count = 0;
+  return 0;
+#endif
+
   return face->table.GDEF->table->get_attach_points (glyph,
 						     start_offset,
 						     point_count,
@@ -364,6 +370,12 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
+#ifdef HB_NO_LAYOUT_UNUSED
+  if (caret_count)
+    *caret_count = 0;
+  return 0;
+#endif
+
   unsigned int result_caret_count = 0;
   unsigned int result = font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, &result_caret_count, caret_array);
   if (result)
@@ -384,7 +396,7 @@ bool
 OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
@@ -412,7 +424,7 @@ bool
 OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   return false;
@@ -500,6 +512,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   return false;
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_table_choose_script:
  * @face: #hb_face_t to work upon
@@ -521,6 +534,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   for (t = script_tags; *t; t++);
   return hb_ot_layout_table_select_script (face, table_tag, t - script_tags, script_tags, script_index, chosen_script);
 }
+#endif
 
 /**
  * hb_ot_layout_table_select_script:
@@ -672,6 +686,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 }
 
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_script_find_language:
  * @face: #hb_face_t to work upon
@@ -685,6 +700,8 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
  *
  * Return value: true if the language tag is found, false otherwise
  *
+ * Since: ??
+ * Deprecated: ??
  **/
 hb_bool_t
 hb_ot_layout_script_find_language (hb_face_t    *face,
@@ -700,6 +717,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 					      &language_tag,
 					      language_index);
 }
+#endif
 
 
 /**
@@ -715,7 +733,6 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  * or GPOS table, underneath the specified script index.
  *
  * Return value: true if the language tag is found, false otherwise
- *
  *
  * Since: 2.0.0
  **/

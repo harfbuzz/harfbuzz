@@ -57,7 +57,7 @@ template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
-  typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
+  typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
   IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
   operator wide_type () const { return v; }
@@ -279,6 +279,19 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return StructAtOffset<Type> (base, *this);
   }
 
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+  friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset ((const void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+  friend const Type& operator + (const OffsetTo &offset, const Base &base) { return offset ((const void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (Base, void *))>
+  friend Type& operator + (Base &&base, OffsetTo &offset) { return offset ((void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (Base, void *))>
+  friend Type& operator + (OffsetTo &offset, Base &&base) { return offset ((void *) base); }
+
   Type& serialize (hb_serialize_context_t *c, const void *base)
   {
     return * (Type *) Offset<OffsetType>::serialize (c, base);
@@ -356,11 +369,6 @@ template <typename Type, typename OffsetType=HBUINT16>
 using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
 template <typename Type>
 using LNNOffsetTo = LOffsetTo<Type, false>;
-
-template <typename Base, typename OffsetType, bool has_null, typename Type>
-static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Base, typename OffsetType, bool has_null, typename Type>
-static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
 
 
 /*
@@ -440,33 +448,12 @@ struct UnsizedArrayOf
     return_trace (out);
   }
 
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
-    return_trace (true);
-  }
   template <typename ...Ts>
   bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
@@ -621,33 +608,12 @@ struct ArrayOf
     return_trace (out);
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
-    return_trace (true);
-  }
   template <typename ...Ts>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
@@ -760,26 +726,16 @@ struct HeadlessArrayOf
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
+    unsigned int count = lenP1 ? lenP1 - 1 : 0;
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+	return_trace (false);
     return_trace (true);
   }
 
@@ -1001,33 +957,12 @@ struct VarSizedBinSearchArrayOf
   unsigned int get_size () const
   { return header.static_size + header.nUnits * header.unitSize; }
 
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      (*this)[0].sanitize (c);
-      Type v;
-      v = (*this)[0];
-    }
-
-    return_trace (true);
-  }
   template <typename ...Ts>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, hb_forward<Ts> (ds)...)))

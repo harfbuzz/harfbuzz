@@ -27,6 +27,8 @@
 #include "hb-ot-cff2-table.hh"
 #include "hb-cff2-interp-cs.hh"
 
+#ifndef HB_NO_OT_FONT_CFF
+
 using namespace CFF;
 
 struct extents_param_t
@@ -99,6 +101,11 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 					   hb_codepoint_t glyph,
 					   hb_glyph_extents_t *extents) const
 {
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return true;
+#endif
+
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int num_coords;
@@ -134,3 +141,5 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
   return true;
 }
+
+#endif

@@ -67,17 +67,6 @@ glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
   return FALSE;
 }
 
-static hb_position_t
-glyph_h_kerning_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
-		      hb_codepoint_t left, hb_codepoint_t right,
-		      void *user_data HB_UNUSED)
-{
-  if (left == 1 && right == 2)
-    return -2;
-
-  return 0;
-}
-
 static const char TesT[] = "TesT";
 
 static void
@@ -102,7 +91,6 @@ test_shape (void)
   ffuncs = hb_font_funcs_create ();
   hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
   hb_font_funcs_set_nominal_glyph_func (ffuncs, glyph_func, malloc (10), free);
-  hb_font_funcs_set_glyph_h_kerning_func (ffuncs, glyph_h_kerning_func, NULL, NULL);
   hb_font_set_funcs (font, ffuncs, NULL, NULL);
   hb_font_funcs_destroy (ffuncs);
 
@@ -118,8 +106,8 @@ test_shape (void)
 
   {
     const hb_codepoint_t output_glyphs[] = {1, 2, 3, 1};
-    const hb_position_t output_x_advances[] = {9, 5, 5, 10};
-    const hb_position_t output_x_offsets[] = {0, -1, 0, 0};
+    const hb_position_t output_x_advances[] = {10, 6, 5, 10};
+    const hb_position_t output_x_offsets[] = {0, 0, 0, 0};
     unsigned int i;
     g_assert_cmpint (len, ==, 4);
     for (i = 0; i < len; i++) {
