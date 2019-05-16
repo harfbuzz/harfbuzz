@@ -37,8 +37,8 @@ namespace OT {
 typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> hb_codepoint_pair_t;
 
 template<typename Iterator,
-    hb_requires (hb_is_sorted_source_of (Iterator,
-                                         const hb_codepoint_pair_t))>
+	 hb_requires (hb_is_sorted_source_of (Iterator,
+					      const hb_codepoint_pair_t))>
 static inline void SingleSubst_serialize (hb_serialize_context_t *c,
 					  Iterator it);
 
@@ -89,8 +89,8 @@ struct SingleSubstFormat1
   }
 
   template<typename Iterator,
-      hb_requires (hb_is_sorted_source_of (Iterator,
-                                           hb_codepoint_t))>
+	   hb_requires (hb_is_sorted_source_of (Iterator,
+						hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator glyphs,
 		  unsigned delta)
@@ -181,8 +181,8 @@ struct SingleSubstFormat2
   }
 
   template<typename Iterator,
-      hb_requires (hb_is_sorted_source_of (Iterator,
-                                           const hb_codepoint_pair_t))>
+	   hb_requires (hb_is_sorted_source_of (Iterator,
+						const hb_codepoint_pair_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
@@ -240,8 +240,8 @@ struct SingleSubst
 {
 
   template<typename Iterator,
-      hb_requires (hb_is_sorted_source_of (Iterator,
-                                           const hb_codepoint_pair_t))>
+	   hb_requires (hb_is_sorted_source_of (Iterator,
+						const hb_codepoint_pair_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator glyphs)
   {
