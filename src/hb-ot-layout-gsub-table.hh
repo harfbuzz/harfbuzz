@@ -116,8 +116,9 @@ struct SingleSubstFormat1
                                                             glyph_map[(g + delta) & 0xFFFF]); })
     ;
 
+    bool ret = bool (it);
     SingleSubst_serialize (c->serializer, it);
-    return_trace (it.len ());
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -212,8 +213,9 @@ struct SingleSubstFormat2
                               { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
     ;
 
+    bool ret = bool (it);
     SingleSubst_serialize (c->serializer, it);
-    return_trace (it.len ());
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
