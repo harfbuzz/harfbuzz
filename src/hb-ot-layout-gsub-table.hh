@@ -36,9 +36,7 @@ namespace OT {
 
 typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> hb_codepoint_pair_t;
 
-template<typename Iterator,
-	 hb_requires (hb_is_sorted_source_of (Iterator,
-					      const hb_codepoint_pair_t))>
+template<typename Iterator>
 static inline void SingleSubst_serialize (hb_serialize_context_t *c,
 					  Iterator it);
 
