@@ -77,5 +77,12 @@ main (int argc, char **argv)
   xp = hb_pair_t<int *, double> (nullptr, 1);
   xp = hb_pair_t<const int*, int> (nullptr, 1);
 
+  assert (3 == hb_bind0 (hb_min, 3) (4));
+  assert (3 == hb_bind0 (hb_min, 4) (3));
+
+  auto M0 = hb_bind1 (hb_max, 0);
+  assert (M0 (-2) == 0);
+  assert (M0 (+2) == 2);
+
   return 0;
 }

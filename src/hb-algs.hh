@@ -119,6 +119,60 @@ struct
 }
 HB_FUNCOBJ (hb_invoke);
 
+enum class hb_bind_pos_t
+{
+  _0,
+  _1,
+};
+template <typename Appl, hb_bind_pos_t P, typename V>
+struct hb_binder_t
+{
+  hb_binder_t (Appl a, V v) : a (a), v (v) {}
+
+  template <typename ...Ts,
+	    hb_bind_pos_t PP = P,
+	    hb_enable_if (PP == hb_bind_pos_t::_0)> auto
+  operator () (Ts&& ...ds) -> decltype (hb_invoke (hb_declval (Appl),
+						   hb_declval (V),
+						   hb_declval (Ts)...))
+  {
+    return hb_invoke (hb_forward<Appl> (a),
+		      hb_forward<V> (v),
+		      hb_forward<Ts> (ds)...);
+  }
+  template <typename T0, typename ...Ts,
+	    hb_bind_pos_t PP = P,
+	    hb_enable_if (PP == hb_bind_pos_t::_1)> auto
+  operator () (T0&& d0, Ts&& ...ds) -> decltype (hb_invoke (hb_declval (Appl),
+							    hb_declval (T0),
+							    hb_declval (V),
+							    hb_declval (Ts)...))
+  {
+    return hb_invoke (hb_forward<Appl> (a),
+		      hb_forward<T0> (d0),
+		      hb_forward<V> (v),
+		      hb_forward<Ts> (ds)...);
+  }
+
+  private:
+  hb_reference_wrapper<Appl> a;
+  V v;
+};
+struct
+{
+  template <typename Appl, typename V> auto
+  operator () (Appl&& a, V&& v) const HB_AUTO_RETURN
+  (( hb_binder_t<Appl, hb_bind_pos_t::_0, V> (a, v) ))
+}
+HB_FUNCOBJ (hb_bind0);
+struct
+{
+  template <typename Appl, typename V> auto
+  operator () (Appl&& a, V&& v) const HB_AUTO_RETURN
+  (( hb_binder_t<Appl, hb_bind_pos_t::_1, V> (a, v) ))
+}
+HB_FUNCOBJ (hb_bind1);
+
 struct
 {
   private:
