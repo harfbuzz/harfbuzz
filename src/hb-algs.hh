@@ -119,19 +119,14 @@ struct
 }
 HB_FUNCOBJ (hb_invoke);
 
-enum class hb_bind_pos_t
-{
-  _0,
-  _1,
-};
-template <typename Appl, hb_bind_pos_t P, typename V>
+template <unsigned Pos, typename Appl, typename V>
 struct hb_binder_t
 {
   hb_binder_t (Appl a, V v) : a (a), v (v) {}
 
   template <typename ...Ts,
-	    hb_bind_pos_t PP = P,
-	    hb_enable_if (PP == hb_bind_pos_t::_0)> auto
+	    unsigned P = Pos,
+	    hb_enable_if (P == 0)> auto
   operator () (Ts&& ...ds) -> decltype (hb_invoke (hb_declval (Appl),
 						   hb_declval (V),
 						   hb_declval (Ts)...))
@@ -141,8 +136,8 @@ struct hb_binder_t
 		      hb_forward<Ts> (ds)...);
   }
   template <typename T0, typename ...Ts,
-	    hb_bind_pos_t PP = P,
-	    hb_enable_if (PP == hb_bind_pos_t::_1)> auto
+	    unsigned P = Pos,
+	    hb_enable_if (P == 1)> auto
   operator () (T0&& d0, Ts&& ...ds) -> decltype (hb_invoke (hb_declval (Appl),
 							    hb_declval (T0),
 							    hb_declval (V),
@@ -158,20 +153,15 @@ struct hb_binder_t
   hb_reference_wrapper<Appl> a;
   V v;
 };
-struct
-{
-  template <typename Appl, typename V> auto
-  operator () (Appl&& a, V&& v) const HB_AUTO_RETURN
-  (( hb_binder_t<Appl, hb_bind_pos_t::_0, V> (a, v) ))
-}
-HB_FUNCOBJ (hb_bind0);
-struct
-{
-  template <typename Appl, typename V> auto
-  operator () (Appl&& a, V&& v) const HB_AUTO_RETURN
-  (( hb_binder_t<Appl, hb_bind_pos_t::_1, V> (a, v) ))
-}
-HB_FUNCOBJ (hb_bind1);
+template <unsigned Pos=0, typename Appl, typename V>
+auto hb_bind (Appl&& a, V&& v) HB_AUTO_RETURN
+(( hb_binder_t<Pos, Appl, V> (a, v) ))
+
+#define HB_PARTIALIZE(Pos) \
+  template <typename _T> \
+  auto operator () (_T&& _v) const HB_AUTO_RETURN (hb_bind<Pos> (this, hb_forward<_T> (_v))) \
+  static_assert (true, "")
+
 
 struct
 {
@@ -834,7 +824,12 @@ struct hb_bitwise_sub
 HB_FUNCOBJ (hb_bitwise_sub);
 
 struct
-{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b) }
+{
+  HB_PARTIALIZE(0);
+
+  template <typename T, typename T2>
+  auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b)
+}
 HB_FUNCOBJ (hb_add);
 struct
 { template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b) }
