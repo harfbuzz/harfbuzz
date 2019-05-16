@@ -45,6 +45,7 @@ hb_subset_input_create_or_fail ()
   input->unicodes = hb_set_create ();
   input->glyphs = hb_set_create ();
   input->name_ids = hb_set_create ();
+  input->drop_tables = hb_set_create ();
   input->drop_hints = false;
   input->drop_layout = true;
   input->desubroutinize = false;
@@ -83,6 +84,7 @@ hb_subset_input_destroy (hb_subset_input_t *subset_input)
   hb_set_destroy (subset_input->unicodes);
   hb_set_destroy (subset_input->glyphs);
   hb_set_destroy (subset_input->name_ids);
+  hb_set_destroy (subset_input->drop_tables);
 
   free (subset_input);
 }
@@ -115,6 +117,12 @@ HB_EXTERN hb_set_t *
 hb_subset_input_nameid_set (hb_subset_input_t *subset_input)
 {
   return subset_input->name_ids;
+}
+
+HB_EXTERN hb_set_t *
+hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
+{
+  return subset_input->drop_tables;
 }
 
 HB_EXTERN void
