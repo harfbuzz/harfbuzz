@@ -25,6 +25,11 @@ make distcheck
 ### Run tests with asan
 
 ```shell
+# For nice symbols tell asan how to symoblize. Note that it doesn't like versioned copies like llvm-symbolizer-3.8
+# export ASAN_SYMBOLIZER_PATH=path to version-less llvm-symbolizer
+# ex
+export ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-3.8/bin/llvm-symbolizer
+
 ./configure CC=clang CXX=clang++ CPPFLAGS=-fsanitize=address LDFLAGS=-fsanitize=address
 # make/run tests as usual
 ```
