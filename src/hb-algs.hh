@@ -153,7 +153,7 @@ struct hb_binder_t
   hb_reference_wrapper<Appl> a;
   V v;
 };
-template <unsigned Pos=0, typename Appl, typename V>
+template <unsigned Pos, typename Appl, typename V>
 auto hb_bind (Appl&& a, V&& v) HB_AUTO_RETURN
 (( hb_binder_t<Pos, Appl, V> (a, v) ))
 
@@ -790,64 +790,82 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 }
 
 
+/* Operators. */
+
 struct hb_bitwise_and
-{
+{ HB_PARTIALIZE(1);
   static constexpr bool passthru_left = false;
   static constexpr bool passthru_right = false;
-  template <typename T>
-  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
+  template <typename T> auto
+   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
 struct hb_bitwise_or
-{
+{ HB_PARTIALIZE(1);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T>
-  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
+  template <typename T> auto
+   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
 }
 HB_FUNCOBJ (hb_bitwise_or);
 struct hb_bitwise_xor
-{
+{ HB_PARTIALIZE(1);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T>
-  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
+  template <typename T> auto
+   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
 }
 HB_FUNCOBJ (hb_bitwise_xor);
 struct hb_bitwise_sub
-{
+{ HB_PARTIALIZE(1);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = false;
-  template <typename T>
-  auto operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
+  template <typename T> auto
+   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
 HB_FUNCOBJ (hb_bitwise_sub);
 
 struct
-{
-  HB_PARTIALIZE(0);
-
-  template <typename T, typename T2>
-  auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b)
+{ HB_PARTIALIZE(1);
+  template <typename T, typename T2> auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b)
 }
 HB_FUNCOBJ (hb_add);
 struct
-{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b) }
+{ HB_PARTIALIZE(1);
+  template <typename T, typename T2> auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b)
+}
 HB_FUNCOBJ (hb_sub);
 struct
-{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a * b) }
+{ HB_PARTIALIZE(1);
+  template <typename T, typename T2> auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a * b)
+}
 HB_FUNCOBJ (hb_mul);
 struct
-{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a / b) }
+{ HB_PARTIALIZE(1);
+  template <typename T, typename T2> auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a / b)
+}
 HB_FUNCOBJ (hb_div);
 struct
-{ template <typename T, typename T2> auto operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a % b) }
+{ HB_PARTIALIZE(1);
+  template <typename T, typename T2> auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a % b)
+}
 HB_FUNCOBJ (hb_mod);
 struct
-{ template <typename T> auto operator () (const T &a) const HB_AUTO_RETURN (+a) }
+{
+  template <typename T> auto
+  operator () (const T &a) const HB_AUTO_RETURN (+a)
+}
 HB_FUNCOBJ (hb_pos);
 struct
-{ template <typename T> auto operator () (const T &a) const HB_AUTO_RETURN (-a) }
+{
+  template <typename T> auto
+  operator () (const T &a) const HB_AUTO_RETURN (-a)
+}
 HB_FUNCOBJ (hb_neg);
 
 
