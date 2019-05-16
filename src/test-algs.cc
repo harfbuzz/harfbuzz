@@ -75,6 +75,7 @@ main (int argc, char **argv)
 
   hb_pair_t<const int*, int> xp = hb_pair_t<int *, long> (nullptr, 0);
   xp = hb_pair_t<int *, double> (nullptr, 1);
+  xp = hb_pair_t<const int*, int> (nullptr, 1);
 
   return 0;
 }
