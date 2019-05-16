@@ -678,6 +678,7 @@ struct subset_options_t : option_group_t
     retain_gids = false;
     desubroutinize = false;
     name_ids = hb_set_create ();
+    drop_tables = hb_set_create();
 
     add_options (parser);
   }
@@ -685,6 +686,7 @@ struct subset_options_t : option_group_t
   virtual ~subset_options_t ()
   {
     hb_set_destroy (name_ids);
+    hb_set_destroy (drop_tables);
   }
 
 
@@ -695,6 +697,7 @@ struct subset_options_t : option_group_t
   hb_bool_t retain_gids;
   hb_bool_t desubroutinize;
   hb_set_t *name_ids;
+  hb_set_t *drop_tables;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */

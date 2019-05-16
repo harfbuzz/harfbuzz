@@ -31,6 +31,8 @@
 #endif
 #include <hb-ot.h>
 
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
 static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
@@ -352,7 +354,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
   while (s && *s)
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
+    while (*s && strchr (DELIMITERS, *s))
       s++;
     if (!*s)
       break;
@@ -985,7 +987,7 @@ parse_nameids (const char *name G_GNUC_UNUSED,
 
   while (s && *s)
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
+    while (*s && strchr (DELIMITERS, *s))
       s++;
     if (!*s)
       break;
@@ -1013,6 +1015,43 @@ parse_nameids (const char *name G_GNUC_UNUSED,
   return true;
 }
 
+static gboolean
+parse_drop_tables (const char *name G_GNUC_UNUSED,
+                   const char *arg,
+                   gpointer    data,
+                   GError    **error G_GNUC_UNUSED)
+{
+  subset_options_t *subset_opts = (subset_options_t *) data;
+
+  hb_set_clear (subset_opts->drop_tables);
+  char *s = (char *) arg;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    char *p = s;
+    while (*p && !strchr (", ", *p))
+      p++;
+
+    if ((p - s) > 4) // Table tags are at most 4 bytes.
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                   "Failed parsing table tag values at: '%s'", s);
+      return false;
+    }
+
+    hb_tag_t tag = hb_tag_from_string (s, p -s);
+    hb_set_add (subset_opts->drop_tables, tag);
+    s = p;
+  }
+
+  return true;
+}
+
 
 void
 subset_options_t::add_options (option_parser_t *parser)
@@ -1024,6 +1063,7 @@ subset_options_t::add_options (option_parser_t *parser)
     {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"drop-tables", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
 
     {nullptr}
   };
@@ -1033,4 +1073,3 @@ subset_options_t::add_options (option_parser_t *parser)
          "Options subsetting",
          this);
 }
-
