@@ -120,9 +120,9 @@ struct
 HB_FUNCOBJ (hb_invoke);
 
 template <unsigned Pos, typename Appl, typename V>
-struct hb_binder_t
+struct hb_partial_t
 {
-  hb_binder_t (Appl a, V v) : a (a), v (v) {}
+  hb_partial_t (Appl a, V v) : a (a), v (v) {}
 
   static_assert (Pos > 0, "");
 
@@ -155,13 +155,13 @@ struct hb_binder_t
   hb_reference_wrapper<Appl> a;
   V v;
 };
-template <unsigned Pos, typename Appl, typename V>
-auto hb_bind (Appl&& a, V&& v) HB_AUTO_RETURN
-(( hb_binder_t<Pos, Appl, V> (a, v) ))
+template <unsigned Pos=1, typename Appl, typename V>
+auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
+(( hb_partial_t<Pos, Appl, V> (a, v) ))
 
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
-  auto operator () (_T&& _v) const HB_AUTO_RETURN (hb_bind<Pos> (this, hb_forward<_T> (_v))) \
+  auto operator () (_T&& _v) const HB_AUTO_RETURN (hb_partial<Pos> (this, hb_forward<_T> (_v))) \
   static_assert (true, "")
 
 
