@@ -259,34 +259,16 @@ HB_FUNCOBJ (hb_second);
  * comparing integers of different signedness. */
 struct
 {
-  private:
   template <typename T, typename T2> auto
-  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  operator () (T&& a, T2&& b) const HB_AUTO_RETURN
   (hb_forward<T> (a) <= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
-
-  public:
-  template <typename T> auto
-  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
-
-  template <typename T, typename... Ts> auto
-  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
-  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
 }
 HB_FUNCOBJ (hb_min);
 struct
 {
-  private:
   template <typename T, typename T2> auto
-  impl (T&& a, T2&& b) const HB_AUTO_RETURN
+  operator () (T&& a, T2&& b) const HB_AUTO_RETURN
   (hb_forward<T> (a) >= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
-
-  public:
-  template <typename T> auto
-  operator () (T&& a) const HB_AUTO_RETURN (hb_forward<T> (a))
-
-  template <typename T, typename... Ts> auto
-  operator () (T&& a, Ts&& ...ds) const HB_AUTO_RETURN
-  (impl (hb_forward<T> (a), (*this) (hb_forward<Ts> (ds)...)))
 }
 HB_FUNCOBJ (hb_max);
 
