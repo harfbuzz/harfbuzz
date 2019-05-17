@@ -28,6 +28,7 @@
 #define HB_SET_HH
 
 #include "hb.hh"
+#include "hb-machinery.hh"
 
 
 /*
