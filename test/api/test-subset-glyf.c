@@ -339,8 +339,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_noop);
   hb_test_add (test_subset_glyf);
   hb_test_add (test_subset_glyf_with_input_glyphs);
-  //hb_test_add (test_subset_glyf_strip_hints_simple);
-  //hb_test_add (test_subset_glyf_strip_hints_composite);
+  hb_test_add (test_subset_glyf_strip_hints_simple);
+  hb_test_add (test_subset_glyf_strip_hints_composite);
   hb_test_add (test_subset_glyf_strip_hints_invalid);
   hb_test_add (test_subset_glyf_with_components);
   hb_test_add (test_subset_glyf_with_gsub);
