@@ -249,35 +249,14 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
     case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
       return plan->drop_hints;
 
+#ifdef HB_NO_SUBSET_LAYOUT
     // Drop Layout Tables if requested.
     case HB_OT_TAG_GDEF:
     case HB_OT_TAG_GPOS:
     case HB_OT_TAG_GSUB:
-#ifdef HB_NO_SUBSET_LAYOUT
       return true;
 #endif
-      return plan->drop_layout;
 
-    // Drop these tables below by default, list pulled
-    // from fontTools:
-    case HB_TAG ('B', 'A', 'S', 'E'):
-    case HB_TAG ('J', 'S', 'T', 'F'):
-    case HB_TAG ('D', 'S', 'I', 'G'):
-    case HB_TAG ('E', 'B', 'D', 'T'):
-    case HB_TAG ('E', 'B', 'L', 'C'):
-    case HB_TAG ('E', 'B', 'S', 'C'):
-    case HB_TAG ('S', 'V', 'G', ' '):
-    case HB_TAG ('P', 'C', 'L', 'T'):
-    case HB_TAG ('L', 'T', 'S', 'H'):
-    // Graphite tables:
-    case HB_TAG ('F', 'e', 'a', 't'):
-    case HB_TAG ('G', 'l', 'a', 't'):
-    case HB_TAG ('G', 'l', 'o', 'c'):
-    case HB_TAG ('S', 'i', 'l', 'f'):
-    case HB_TAG ('S', 'i', 'l', 'l'):
-    // Colour
-    case HB_TAG ('s', 'b', 'i', 'x'):
-      return true;
     default:
       return false;
   }

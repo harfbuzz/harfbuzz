@@ -236,7 +236,6 @@ hb_subset_plan_create (hb_face_t           *face,
   hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
 
   plan->drop_hints = input->drop_hints;
-  plan->drop_layout = input->drop_layout;
   plan->desubroutinize = input->desubroutinize;
   plan->retain_gids = input->retain_gids;
   plan->unicodes = hb_set_create ();
@@ -255,7 +254,7 @@ hb_subset_plan_create (hb_face_t           *face,
   plan->_glyphset = _populate_gids_to_retain (face,
                                               input->unicodes,
                                               input->glyphs,
-                                              !plan->drop_layout,
+                                              !input->drop_tables->has (HB_OT_TAG_GSUB),
                                               plan->unicodes,
                                               plan->codepoint_to_glyph);
 
