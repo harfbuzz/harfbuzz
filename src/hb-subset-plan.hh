@@ -40,7 +40,6 @@ struct hb_subset_plan_t
   hb_object_header_t header;
 
   bool drop_hints : 1;
-  bool drop_layout : 1;
   bool desubroutinize : 1;
   bool retain_gids : 1;
 
