@@ -320,7 +320,11 @@ use_positions = {
 	'H': None,
 	'HVM': None,
 	'B': None,
-	'FM': None,
+	'FM': {
+		'Abv': [Top],
+		'Blw': [Bottom],
+		'Pst': [Not_Applicable],
+	},
 	'SUB': None,
 }
 
@@ -359,14 +363,8 @@ def map_to_use(data):
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
 
-		# TODO: https://github.com/harfbuzz/harfbuzz/issues/525
-		if U == 0x1A7F: UISC = Consonant_Final
-
 		# TODO: https://github.com/harfbuzz/harfbuzz/issues/1105
 		if U == 0x11134: UISC = Gemination_Mark
-
-		# TODO: https://github.com/harfbuzz/harfbuzz/pull/1399
-		if U == 0x111C9: UISC = Consonant_Final
 
 		values = [k for k,v in items if v(U,UISC,UGC)]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)

@@ -49,7 +49,7 @@ N	= 4; # BASE_NUM
 GB	= 5; # BASE_OTHER
 CGJ	= 6; # CGJ
 #F	= 7; # CONS_FINAL
-FM	= 8; # CONS_FINAL_MOD
+#FM	= 8; # CONS_FINAL_MOD
 #M	= 9; # CONS_MED
 #CM	= 10; # CONS_MOD
 SUB	= 11; # CONS_SUB
@@ -66,6 +66,8 @@ S	= 19; # SYM
 VS	= 21; # VARIATION_SELECTOR
 #V	= 36; # VOWEL
 #VM	= 40; # VOWEL_MOD
+CS	= 43; # CONS_WITH_STACKER
+HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
 
 FAbv	= 24; # CONS_FINAL_ABOVE
 FBlw	= 25; # CONS_FINAL_BELOW
@@ -86,9 +88,9 @@ VMPst	= 39; # VOWEL_MOD_POST
 VMPre	= 23; # VOWEL_MOD_PRE
 SMAbv	= 41; # SYM_MOD_ABOVE
 SMBlw	= 42; # SYM_MOD_BELOW
-CS	= 43; # CONS_WITH_STACKER
-
-HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
+FMAbv	= 45; # CONS_FINAL_MOD	UIPC = Top
+FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
+FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
 h = H | HVM; # https://github.com/harfbuzz/harfbuzz/issues/1102
 
@@ -98,7 +100,8 @@ consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) VS? CMAbv? CMBlw*)*;
 medial_consonants = MPre? MAbv? MBlw?.MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
 vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
-final_consonants = FAbv* FBlw* FPst* FM?;
+final_consonants = FAbv* FBlw* FPst*;
+final_modifiers = FMAbv* FMBlw* | FMPst?;
 
 complex_syllable_tail =
 	consonant_modifiers
@@ -106,6 +109,7 @@ complex_syllable_tail =
 	dependent_vowels
 	vowel_modifiers
 	final_consonants
+	final_modifiers
 ;
 number_joiner_terminated_cluster_tail = (HN N VS?)* HN;
 numeral_cluster_tail = (HN N VS?)+;
