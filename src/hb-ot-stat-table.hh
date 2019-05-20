@@ -186,7 +186,7 @@ struct AxisValue
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (c->check_struct (this)))
+    if (unlikely (!c->check_struct (this)))
       return_trace (false);
 
     switch (u.format)
