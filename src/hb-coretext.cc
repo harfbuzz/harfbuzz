@@ -293,13 +293,32 @@ _hb_coretext_shaper_face_data_destroy (hb_coretext_face_data_t *data)
   CFRelease ((CGFontRef) data);
 }
 
+/**
+ * hb_coretext_face_create:
+ * @cg_font: The CGFontRef to work upon
+ *
+ * Creates an #hb_face_t face object from the specified
+ * CGFontRef.
+ *
+ * Return value: the new #hb_face_t face object
+ *
+ * Since: 0.9.10
+ */
 hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font)
 {
   return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), _hb_cg_font_release);
 }
 
-/*
+/**
+ * hb_coretext_face_get_cg_font:
+ * @face: The #hb_face_t to work upon
+ *
+ * Fetches the CGFontRef associated with an #hb_face_t
+ * face object
+ *
+ * Return value: the CGFontRef found
+ *
  * Since: 0.9.10
  */
 CGFontRef
@@ -365,10 +384,17 @@ retry:
   return font->data.coretext;
 }
 
-
-/*
+/**
+ * hb_coretext_font_create:
+ * @ct_font: The CTFontRef to work upon
+ *
+ * Creates an #hb_font_t font object from the specified
+ * CTFontRef.
+ *
+ * Return value: the new #hb_font_t font object
+ *
  * Since: 1.7.2
- */
+ **/
 hb_font_t *
 hb_coretext_font_create (CTFontRef ct_font)
 {
@@ -389,6 +415,17 @@ hb_coretext_font_create (CTFontRef ct_font)
   return font;
 }
 
+/**
+ * hb_coretext_face_get_ct_font:
+ * @font: #hb_font_t to work upon
+ *
+ * Fetches the CTFontRef associated with the specified
+ * #hb_font_t font object.
+ *
+ * Return value: the CTFontRef found
+ *
+ * Since: 0.9.10
+ */
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
