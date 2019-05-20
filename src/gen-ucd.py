@@ -2,7 +2,7 @@
 
 from __future__ import print_function, division, absolute_import
 
-import io, os.path, sys
+import io, os.path, sys, re
 
 if len (sys.argv) != 2:
 	print ("usage: ./gen-ucd ucdxml-file", file=sys.stderr)
@@ -50,6 +50,18 @@ for _ in ('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',
           'Mc', 'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf',
           'Pi', 'Po', 'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',):
     gc_order[_]
+
+sc_order = packTab.AutoMapping()
+sc_array = []
+sc_re = re.compile(" (HB_SCRIPT_[_A-Z]*).*HB_TAG [(]'(.)','(.)','(.)','(.)'[)]")
+for line in open('hb-common.h'):
+    m = sc_re.search (line)
+    if not m: continue
+    name = m.group(1)
+    tag = ''.join(m.group(i) for i in range(2, 6))
+    i = sc_order[tag]
+    assert i == len(sc_array)
+    sc_array.append(name)
 
 DEFAULT = 1
 COMPACT = 3
