@@ -576,7 +576,7 @@ struct CFF1StringIndex : CFF1Index
     TRACE_SERIALIZE (this);
     if (unlikely ((strings.count == 0) || (sidmap.get_count () == 0)))
     {
-      if (!unlikely (c->extend_min (this->count)))
+      if (unlikely (!c->extend_min (this->count)))
 	return_trace (false);
       count = 0;
       return_trace (true);
