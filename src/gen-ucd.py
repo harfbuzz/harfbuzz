@@ -29,18 +29,46 @@ dm1 = set(v[0] for i,v in dm.items() if len(v) == 1)
 dmx = set(v for v in dm.values() if len(v) not in (1,2))
 assert not dmx
 
-print(len(sorted(gc_set)))
-print(len(sorted(gc_ccc_non0)))
-print(len(sorted(gc_bmg_non0)))
-print("GC, CCC, and BMG fit in one byte. Compress together.")
-print()
+#print(len(sorted(gc_set)))
+#print(len(sorted(gc_ccc_non0)))
+#print(len(sorted(gc_bmg_non0)))
+#print("GC, CCC, and BMG fit in one byte. Compress together.")
+#print()
 
-print(len(sorted(sc_set)))
-print("SC fits in one byte.  Compress separately.")
-print()
+#print(len(sorted(sc_set)))
+#print("SC fits in one byte.  Compress separately.")
+#print()
 
-print(len(dm))
-print(len(dm1), min(dm1), max(dm1))
-print(len(dm2))
-#print(sorted(dm2diff))
-print(len(sorted(set(v // 512 for v in dm1))))
+#print(len(dm))
+#print(len(dm1), min(dm1), max(dm1))
+#print(len(dm2))
+##print(sorted(dm2diff))
+#print(len(sorted(set(v // 512 for v in dm1))))
+
+
+DEFAULT = 1
+COMPACT = 3
+print()
+print('#include <stdint.h>')
+for compression in (DEFAULT, COMPACT):
+    print()
+    if compression == DEFAULT:
+        print('#ifdef HB_OPTIMIZE_SIZE')
+    else:
+        print('#else')
+    print()
+
+    code = packTab.Code('_hb_ucd')
+
+    packTab.pack_table(gc, 'Cn', compression=compression).genCode(code, 'gc')
+    packTab.pack_table(ccc, 0, compression=compression).genCode(code, 'ccc')
+    packTab.pack_table(bmg, 0, compression=compression).genCode(code, 'bmg')
+    packTab.pack_table(sc, 'Zzzz', compression=compression).genCode(code, 'sc')
+
+    code.print_c(linkage='static inline')
+
+
+    if compression != DEFAULT:
+        print()
+        print('#endif')
+    print()
