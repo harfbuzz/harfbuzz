@@ -45,6 +45,11 @@ assert not dmx
 ##print(sorted(dm2diff))
 #print(len(sorted(set(v // 512 for v in dm1))))
 
+gc_order = packTab.AutoMapping()
+for _ in ('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',
+          'Mc', 'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf',
+          'Pi', 'Po', 'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',):
+    gc_order[_]
 
 DEFAULT = 1
 COMPACT = 3
@@ -60,7 +65,7 @@ for compression in (DEFAULT, COMPACT):
 
     code = packTab.Code('_hb_ucd')
 
-    packTab.pack_table(gc, 'Cn', compression=compression).genCode(code, 'gc')
+    packTab.pack_table(gc, 'Cn', mapping=gc_order, compression=compression).genCode(code, 'gc')
     packTab.pack_table(ccc, 0, compression=compression).genCode(code, 'ccc')
     packTab.pack_table(bmg, 0, compression=compression).genCode(code, 'bmg')
     packTab.pack_table(sc, 'Zzzz', compression=compression).genCode(code, 'sc')
