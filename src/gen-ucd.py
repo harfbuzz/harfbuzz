@@ -67,6 +67,11 @@ DEFAULT = 1
 COMPACT = 3
 print()
 print('#include <stdint.h>')
+print()
+code = packTab.Code('_hb_ucd')
+sc_array, _, _ = code.addArray('hb_script_t', 'sc_map', sc_array)
+code.print_c(linkage='static inline')
+
 for compression in (DEFAULT, COMPACT):
     print()
     if compression == DEFAULT:
@@ -80,7 +85,7 @@ for compression in (DEFAULT, COMPACT):
     packTab.pack_table(gc, 'Cn', mapping=gc_order, compression=compression).genCode(code, 'gc')
     packTab.pack_table(ccc, 0, compression=compression).genCode(code, 'ccc')
     packTab.pack_table(bmg, 0, compression=compression).genCode(code, 'bmg')
-    packTab.pack_table(sc, 'Zzzz', compression=compression).genCode(code, 'sc')
+    packTab.pack_table(sc, 'Zzzz', mapping=sc_order, compression=compression).genCode(code, 'sc')
 
     code.print_c(linkage='static inline')
 
