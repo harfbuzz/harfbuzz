@@ -65,6 +65,7 @@ struct hb_subset_plan_t
 
   unsigned int _num_output_glyphs;
   hb_set_t *_glyphset;
+  hb_set_t *_glyphset_gsub;
 
  public:
 
@@ -75,6 +76,15 @@ struct hb_subset_plan_t
   glyphset () const
   {
     return _glyphset;
+  }
+
+  /*
+   * The set of input glyph ids which will be retained in the subset.
+   */
+  inline const hb_set_t *
+  glyphset_gsub () const
+  {
+    return _glyphset_gsub;
   }
 
   /*
