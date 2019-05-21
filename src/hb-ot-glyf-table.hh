@@ -81,21 +81,23 @@ struct glyf
   }
 
   template<typename Iterator,
-      hb_requires (hb_is_source_of (Iterator, unsigned int))>
-  static void
+	   hb_requires (hb_is_source_of (Iterator, unsigned int))>
+  static bool
   _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
   {
     unsigned int max_offset =
     + padded_offsets
     | hb_reduce (hb_max, 0);
     bool use_short_loca = max_offset <= 131070;
-    unsigned int loca_prime_size = (padded_offsets.len () + 1) * (use_short_loca ? 2 : 4);
+    unsigned int loca_prime_size = padded_offsets.len () * (use_short_loca ? 2 : 4);
     char *loca_prime_data = (char *) calloc(1, loca_prime_size);
 
+    if (unlikely (!loca_prime_data)) return false;
+
     if (use_short_loca)
-      _write_loca <decltype (padded_offsets), HBUINT16> (padded_offsets, 1, loca_prime_data);
+      _write_loca <decltype (padded_offsets), HBUINT16> (padded_offsets, 1, hb_array_t<HBUINT16> ((HBUINT16*) loca_prime_data, padded_offsets.len ()));
     else
-      _write_loca <decltype (padded_offsets), HBUINT32> (padded_offsets, 0, loca_prime_data);
+      _write_loca <decltype (padded_offsets), HBUINT32> (padded_offsets, 0, hb_array_t<HBUINT32> ((HBUINT32*) loca_prime_data, padded_offsets.len ()));
 
     hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
 					    loca_prime_size,
@@ -107,14 +109,15 @@ struct glyf
     _add_head_and_set_loca_version(plan, use_short_loca);
 
     hb_blob_destroy (loca_blob);
+    return true;
   }
 
-  template<typename Iterator, typename EntryType,
-      hb_requires (hb_is_source_of (Iterator, unsigned int))>
+  template<typename IteratorIn, typename EntryType, typename IteratorOut,
+	   hb_requires (hb_is_source_of (IteratorIn, unsigned int)),
+	   hb_requires (hb_is_source_of (IteratorOut, EntryType))>
   static void
-  _write_loca (Iterator it, unsigned right_shift, char * dest)
+  _write_loca (IteratorIn it, unsigned right_shift, IteratorOut dest)
   {
-    hb_array_t<EntryType> entries ((EntryType *) dest, it.len () + 1);
     unsigned int offset = 0;
     + it
     | hb_map ([&] (unsigned int padded_size) {
@@ -123,10 +126,7 @@ struct glyf
       offset += padded_size;
       return result;
     })
-    | hb_sink ( hb_iter (entries));
-    // one bonus element so loca[numGlyphs] - loca[numGlyphs -1] is size of last glyph
-    entries.arrayZ[entries.length - 1] = offset >> right_shift;
-    DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", (int16_t) entries.arrayZ[entries.length - 1]);
+    | hb_sink (dest);
   }
 
   // requires source of SubsetGlyph complains the identifier isn't declared
@@ -163,9 +163,10 @@ struct glyf
     | hb_map ([&] (const SubsetGlyph& _) { return _.padded_size(); })
     | hb_sink (padded_offsets);
 
-    _add_loca_and_head (c->plan, hb_iter (padded_offsets));
+    // loca ends with a final entry == last offset (+0)
+    padded_offsets << 0;
 
-    return_trace (true);
+    return_trace (c->serializer->check_success (_add_loca_and_head (c->plan, hb_iter (padded_offsets))));
   }
 
   template <typename SubsetGlyph>
