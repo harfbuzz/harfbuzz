@@ -148,28 +148,11 @@ struct glyf
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
     if (unlikely (!glyf_prime)) return_trace (false);
 
-    OT::glyf::accelerator_t glyf;
-    glyf.init (c->plan->source);
-
     // Byte region(s) per glyph to output
     // unpadded, hints removed if so requested
     // If we fail to process a glyph we produce an empty (0-length) glyph
     hb_vector_t<SubsetGlyph> glyphs;
-    + hb_range (c->plan->num_output_glyphs ())
-    | hb_map ([&] (hb_codepoint_t new_gid) {
-      SubsetGlyph subset_glyph;
-      subset_glyph.new_gid = new_gid;
-
-      // should never fail: all old gids should be mapped
-      if (!c->plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid)) return subset_glyph;
-
-      subset_glyph.source_glyph = glyf.bytes_for_glyph ((const char *) this, subset_glyph.old_gid);
-      if (c->plan->drop_hints) subset_glyph.drop_hints (glyf);
-      else subset_glyph.dest_start = subset_glyph.source_glyph;
-
-      return subset_glyph;
-    })
-    | hb_sink (glyphs);
+    _populate_subset_glyphs (c->plan, &glyphs);
 
     glyf_prime->serialize (c->serializer, hb_iter (glyphs), c->plan);
 
@@ -181,6 +164,33 @@ struct glyf
     _add_loca_and_head (c->plan, hb_iter (padded_offsets));
 
     return_trace (true);
+  }
+
+  template <typename SubsetGlyph>
+  void
+  _populate_subset_glyphs (const hb_subset_plan_t * plan,
+                           hb_vector_t<SubsetGlyph> * glyphs /* OUT */) const
+  {
+    OT::glyf::accelerator_t glyf;
+    glyf.init (plan->source);
+
+    + hb_range (plan->num_output_glyphs ())
+    | hb_map ([&] (hb_codepoint_t new_gid) {
+      SubsetGlyph subset_glyph;
+      subset_glyph.new_gid = new_gid;
+
+      // should never fail: all old gids should be mapped
+      if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid)) return subset_glyph;
+
+      subset_glyph.source_glyph = glyf.bytes_for_glyph ((const char *) this, subset_glyph.old_gid);
+      if (plan->drop_hints) subset_glyph.drop_hints (glyf);
+      else subset_glyph.dest_start = subset_glyph.source_glyph;
+
+      return subset_glyph;
+    })
+    | hb_sink (glyphs);
+
+    glyf.fini();
   }
 
   static void
