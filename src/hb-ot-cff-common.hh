@@ -132,7 +132,7 @@ struct CFFIndex
       if (unlikely (!c->extend_min (*this))) return_trace (false);
       this->count = byteArray.length;
       this->offSize = offSize_;
-      if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
+      if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
 	return_trace (false);
 
       /* serialize indices */
@@ -277,7 +277,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = dataArrayLen;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
       return_trace (false);
 
     /* serialize indices */
@@ -479,7 +479,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = fontDicts.length;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
       return_trace (false);
 
     /* serialize font dict offsets */
@@ -516,7 +516,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = fdCount;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
       return_trace (false);
 
     /* serialize font dict offsets */

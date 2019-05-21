@@ -137,7 +137,9 @@ test_subset_glyf_with_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_subset_input_set_drop_layout (input, false);
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -164,7 +166,9 @@ test_subset_glyf_without_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_subset_input_set_drop_layout (input, true);
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 

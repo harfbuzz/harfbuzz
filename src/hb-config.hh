@@ -43,6 +43,9 @@
 #ifndef NDEBUG
 #define NDEBUG
 #endif
+#ifndef __OPTIMIZE_SIZE__
+#define __OPTIMIZE_SIZE__
+#endif
 #endif
 
 #ifdef HB_LEAN
@@ -113,6 +116,11 @@
 #endif
 #endif
 
+#ifdef __OPTIMIZE_SIZE__
+#ifndef HB_OPTIMIZE_SIZE
+#define HB_OPTIMIZE_SIZE
+#endif
+#endif
 
 #ifdef HAVE_CONFIG_OVERRIDE_H
 #include "config-override.h"

@@ -28,6 +28,7 @@
 #define HB_SET_HH
 
 #include "hb.hh"
+#include "hb-machinery.hh"
 
 
 /*
@@ -308,7 +309,7 @@ struct hb_set_t
       {
 	page->add (g);
 
-	array = (const T *) ((const char *) array + stride);
+	array = &StructAtOffsetUnaligned<T> (array, stride);
 	count--;
       }
       while (count && (g = *array, start <= g && g < end));
