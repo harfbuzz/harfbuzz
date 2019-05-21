@@ -56,6 +56,10 @@ for line in open('hb-common.h'):
     assert i == len(sc_array)
     sc_array.append(name)
 
+# TODO Currently if gc_order or sc_order do not capture all values, we get in
+# trouble because they silently add new values.  We should be able to "freeze"
+# them, or just do the mapping ourselves.
+
 DEFAULT = 1
 COMPACT = 3
 print()
