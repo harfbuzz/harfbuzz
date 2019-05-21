@@ -24,6 +24,8 @@ make distcheck
 
 ### Run tests with asan
 
+**NOTE**: this sometimes yields harder to read results than the full fuzzer
+
 ```shell
 # For nice symbols tell asan how to symoblize. Note that it doesn't like versioned copies like llvm-symbolizer-3.8
 # export ASAN_SYMBOLIZER_PATH=path to version-less llvm-symbolizer
@@ -63,7 +65,11 @@ cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAIL
 # push your changs to a branch on googlefonts/harfbuzz
 # In a local copy of oss-fuzz, edit projects/harfbuzz/Dockerfile
 # Change the git clone to pull your branch
+
+# Do this periodically
 sudo python infra/helper.py build_image harfbuzz
+
+# Do these to update/run
 sudo python infra/helper.py build_fuzzers --sanitizer address harfbuzz
 sudo python infra/helper.py run_fuzzer harfbuzz hb-subset-fuzzer
 ```
