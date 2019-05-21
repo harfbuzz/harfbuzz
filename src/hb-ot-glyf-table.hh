@@ -80,7 +80,8 @@ struct glyf
     return_trace (true);
   }
 
-  template<typename Iterator>
+  template<typename Iterator,
+      hb_requires (hb_is_source_of (Iterator, unsigned int))>
   static void
   _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
   {
@@ -92,9 +93,9 @@ struct glyf
     char *loca_prime_data = (char *) calloc(1, loca_prime_size);
 
     if (use_short_loca)
-      _write_loca <decltype (padded_offsets), HBUINT16> (padded_offsets, 2, loca_prime_data);
+      _write_loca <decltype (padded_offsets), HBUINT16> (padded_offsets, 1, loca_prime_data);
     else
-      _write_loca <decltype (padded_offsets), HBUINT32> (padded_offsets, 1, loca_prime_data);
+      _write_loca <decltype (padded_offsets), HBUINT32> (padded_offsets, 0, loca_prime_data);
 
     hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
 					    loca_prime_size,
@@ -108,26 +109,27 @@ struct glyf
     hb_blob_destroy (loca_blob);
   }
 
-  template<typename Iterator, typename EntryType>
+  template<typename Iterator, typename EntryType,
+      hb_requires (hb_is_source_of (Iterator, unsigned int))>
   static void
-  _write_loca (Iterator it, unsigned size_denom, char * dest)
+  _write_loca (Iterator it, unsigned right_shift, char * dest)
   {
-    // write loca[0] through loca[numGlyphs-1]
-    EntryType * loca_start = (EntryType *) dest;
-    EntryType * loca_current = loca_start;
+    hb_array_t<EntryType> entries ((EntryType *) dest, it.len () + 1);
     unsigned int offset = 0;
     + it
-    | hb_apply ([&] (unsigned int padded_size) {
-      DEBUG_MSG(SUBSET, nullptr, "loca entry %ld offset %d", loca_current - loca_start, offset);
-      *loca_current = offset / size_denom;
+    | hb_map ([&] (unsigned int padded_size) {
+      unsigned int result = offset >> right_shift;
+      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d shifted %d", offset, result);
       offset += padded_size;
-      loca_current++;
-    });
+      return result;
+    })
+    | hb_sink ( hb_iter (entries));
     // one bonus element so loca[numGlyphs] - loca[numGlyphs -1] is size of last glyph
-    DEBUG_MSG(SUBSET, nullptr, "loca entry %ld offset %d", loca_current - loca_start, offset);
-    *loca_current = offset / size_denom;
+    entries.arrayZ[entries.length - 1] = offset >> right_shift;
+    DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", (int16_t) entries.arrayZ[entries.length - 1]);
   }
 
+  // requires source of SubsetGlyph complains the identifier isn't declared
   template <typename Iterator>
   bool serialize(hb_serialize_context_t *c,
 		 Iterator it,
@@ -169,7 +171,7 @@ struct glyf
   template <typename SubsetGlyph>
   void
   _populate_subset_glyphs (const hb_subset_plan_t * plan,
-                           hb_vector_t<SubsetGlyph> * glyphs /* OUT */) const
+			   hb_vector_t<SubsetGlyph> * glyphs /* OUT */) const
   {
     OT::glyf::accelerator_t glyf;
     glyf.init (plan->source);
@@ -311,6 +313,7 @@ struct glyf
       return size;
     }
 
+    // TODO rewrite using new iterator framework if possible
     struct Iterator
     {
       const char *glyph_start;
