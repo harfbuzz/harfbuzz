@@ -87,17 +87,6 @@ HBSOURCES += $(HB_CORETEXT_sources)
 HBHEADERS += $(HB_CORETEXT_headers)
 endif
 
-if HAVE_UCDN
-SUBDIRS += hb-ucdn
-HBCFLAGS += -I$(srcdir)/hb-ucdn
-HBLIBS   += hb-ucdn/libhb-ucdn.la
-HBSOURCES += $(HB_UCDN_sources)
-hb-ucdn/libhb-ucdn.la: ucdn
-ucdn:
-	@$(MAKE) $(AM_MAKEFLAGS) -C hb-ucdn
-endif
-DIST_SUBDIRS += hb-ucdn
-
 
 BUILT_SOURCES += \
 	hb-version.h

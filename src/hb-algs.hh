@@ -34,6 +34,14 @@
 #include "hb-null.hh"
 
 
+/* Encodes three unsigned integers in one 64-bit number.  If the inputs have more than 21 bits,
+ * values will be truncated / overlap, and might not decode exactly. */
+#define HB_CODEPOINT_ENCODE3(x,y,z) (((uint64_t) (x) << 42) | ((uint64_t) (y) << 21) | (uint64_t) (z))
+#define HB_CODEPOINT_DECODE3_1(v) ((hb_codepoint_t) ((v) >> 42))
+#define HB_CODEPOINT_DECODE3_2(v) ((hb_codepoint_t) ((v) >> 21) & 0x1FFFFFu)
+#define HB_CODEPOINT_DECODE3_3(v) ((hb_codepoint_t) (v) & 0x1FFFFFu)
+
+
 struct
 {
   /* Note.  This is dangerous in that if it's passed an rvalue, it returns rvalue-reference. */

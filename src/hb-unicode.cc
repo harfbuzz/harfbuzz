@@ -127,15 +127,15 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 #endif
 
 
+extern "C" hb_unicode_funcs_t *hb_ucd_get_unicode_funcs ();
 extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs ();
 extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs ();
-extern "C" hb_unicode_funcs_t *hb_ucdn_get_unicode_funcs ();
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default ()
 {
-#if !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_UCDN)
-  return hb_ucdn_get_unicode_funcs ();
+#if !defined(HB_NO_UNICODE_FUNCS) && !defined(HB_NO_UCD)
+  return hb_ucd_get_unicode_funcs ();
 #elif !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_GLIB)
   return hb_glib_get_unicode_funcs ();
 #elif !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_ICU) && defined(HAVE_ICU_BUILTIN)
@@ -148,7 +148,7 @@ hb_unicode_funcs_get_default ()
 
 #if !defined(HB_NO_UNICODE_FUNCS) && defined(HB_UNICODE_FUNCS_NIL)
 #error "Could not find any Unicode functions implementation, you have to provide your own"
-#error "Consider building hb-ucdn.c.  If you absolutely want to build without any, check the code."
+#error "Consider building hb-ucd.cc.  If you absolutely want to build without any, check the code."
 #endif
 
 /**

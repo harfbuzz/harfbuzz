@@ -145,6 +145,8 @@ HB_BASE_sources = \
 	hb-shaper.hh \
 	hb-static.cc \
 	hb-string-array.hh \
+	hb-ucd-table.hh \
+	hb-ucd.cc \
 	hb-unicode-emoji-table.hh \
 	hb-unicode.cc \
 	hb-unicode.hh \
@@ -223,9 +225,6 @@ HB_DIRECTWRITE_headers = hb-directwrite.h
 
 HB_UNISCRIBE_sources = hb-uniscribe.cc
 HB_UNISCRIBE_headers = hb-uniscribe.h
-
-# Additional supplemental sources
-HB_UCDN_sources  = hb-ucdn.cc
 
 # Sources for libharfbuzz-gobject and libharfbuzz-icu
 HB_ICU_sources = hb-icu.cc
