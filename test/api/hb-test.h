@@ -175,7 +175,7 @@ static inline void hb_test_assert_blobs_equal (hb_blob_t *expected_blob, hb_blob
   g_assert_cmpint(expected_length, ==, actual_length);
   if (memcmp (raw_expected, raw_actual, expected_length) != 0)
   {
-    for (int i = 0; i < expected_length; i++)
+    for (unsigned int i = 0; i < expected_length; i++)
     {
       int expected = *(raw_expected + i);
       int actual = *(raw_actual + i);
