@@ -104,11 +104,11 @@ struct glyf
 					    loca_prime_data,
 					    free);
 
-    plan->add_table (HB_OT_TAG_loca, loca_blob);
-    _add_head_and_set_loca_version(plan, use_short_loca);
+    bool result = plan->add_table (HB_OT_TAG_loca, loca_blob)
+		  && _add_head_and_set_loca_version(plan, use_short_loca);
 
     hb_blob_destroy (loca_blob);
-    return true;
+    return result;
   }
 
   template<typename EntryType, typename IteratorIn, typename IteratorOut,
