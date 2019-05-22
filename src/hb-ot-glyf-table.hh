@@ -85,23 +85,22 @@ struct glyf
   static bool
   _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
   {
-    unsigned int max_offset =
-    + padded_offsets
-    | hb_reduce (hb_max, 0);
-    bool use_short_loca = max_offset <= 131070;
-    unsigned int loca_prime_size = padded_offsets.len () * (use_short_loca ? 2 : 4);
-    char *loca_prime_data = (char *) calloc(1, loca_prime_size);
+    unsigned int max_offset = + padded_offsets | hb_reduce (hb_max, 0);
+    unsigned num_offsets = padded_offsets.len () + 1;
+    bool use_short_loca = max_offset < 0x1FFFF;
+    unsigned entry_size = use_short_loca ? 2 : 4;
+    char *loca_prime_data = (char *) calloc(entry_size, num_offsets);
 
     if (unlikely (!loca_prime_data)) return false;
 
     if (use_short_loca)
-      _write_loca <decltype (padded_offsets), HBUINT16> (padded_offsets, 1, hb_array_t<HBUINT16> ((HBUINT16*) loca_prime_data, padded_offsets.len ()));
+      _write_loca<HBUINT16> (padded_offsets, 1, hb_array_t<HBUINT16> ((HBUINT16*) loca_prime_data, num_offsets));
     else
-      _write_loca <decltype (padded_offsets), HBUINT32> (padded_offsets, 0, hb_array_t<HBUINT32> ((HBUINT32*) loca_prime_data, padded_offsets.len ()));
+      _write_loca<HBUINT32> (padded_offsets, 0, hb_array_t<HBUINT32> ((HBUINT32*) loca_prime_data, num_offsets));
 
     hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
-					    loca_prime_size,
-					    HB_MEMORY_MODE_READONLY,
+					    entry_size * num_offsets,
+					    HB_MEMORY_MODE_WRITABLE,
 					    loca_prime_data,
 					    free);
 
@@ -112,21 +111,24 @@ struct glyf
     return true;
   }
 
-  template<typename IteratorIn, typename EntryType, typename IteratorOut,
+  template<typename EntryType, typename IteratorIn, typename IteratorOut,
 	   hb_requires (hb_is_source_of (IteratorIn, unsigned int)),
-	   hb_requires (hb_is_source_of (IteratorOut, EntryType))>
+	   hb_requires (hb_is_sink_of (IteratorOut, EntryType))>
   static void
   _write_loca (IteratorIn it, unsigned right_shift, IteratorOut dest)
   {
     unsigned int offset = 0;
     + it
-    | hb_map ([&] (unsigned int padded_size) {
-      unsigned int result = offset >> right_shift;
-      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d shifted %d", offset, result);
+    | hb_map ([=, &offset] (unsigned int padded_size) {
+      unsigned result = offset >> right_shift;
+      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
       offset += padded_size;
       return result;
     })
-    | hb_sink (dest);
+    | hb_sink (dest)
+    ;
+    DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
+    dest << (offset >> right_shift);
   }
 
   // requires source of SubsetGlyph complains the identifier isn't declared
@@ -138,7 +140,8 @@ struct glyf
     TRACE_SERIALIZE (this);
 
     + it
-    | hb_apply ( [&] (const SubsetGlyph& _) { _.serialize (c, plan); });
+    | hb_apply ([=] (const SubsetGlyph& _) { _.serialize (c, plan); })
+    ;
 
     return_trace (true);
   }
@@ -148,7 +151,7 @@ struct glyf
     TRACE_SUBSET (this);
 
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
-    if (unlikely (!glyf_prime)) return_trace (false);
+    if (unlikely (!c->serializer->check_success (glyf_prime))) return_trace (false);
 
     // Byte region(s) per glyph to output
     // unpadded, hints removed if so requested
@@ -158,15 +161,12 @@ struct glyf
 
     glyf_prime->serialize (c->serializer, hb_iter (glyphs), c->plan);
 
-    hb_vector_t<unsigned int> padded_offsets;
+    auto padded_offsets =
     + hb_iter (glyphs)
-    | hb_map ([&] (const SubsetGlyph& _) { return _.padded_size(); })
-    | hb_sink (padded_offsets);
+    | hb_map (&SubsetGlyph::padded_size)
+    ;
 
-    // loca ends with a final entry == last offset (+0)
-    padded_offsets << 0;
-
-    return_trace (c->serializer->check_success (_add_loca_and_head (c->plan, hb_iter (padded_offsets))));
+    return_trace (c->serializer->check_success (_add_loca_and_head (c->plan, padded_offsets)));
   }
 
   template <typename SubsetGlyph>
@@ -191,7 +191,8 @@ struct glyf
 
       return subset_glyph;
     })
-    | hb_sink (glyphs);
+    | hb_sink (glyphs)
+    ;
 
     glyf.fini();
   }
