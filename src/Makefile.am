@@ -258,6 +258,7 @@ GENERATORS = \
 	gen-indic-table.py \
 	gen-os2-unicode-ranges.py \
 	gen-tag-table.py \
+	gen-ucd-table.py \
 	gen-use-table.py \
 	gen-vowel-constraints.py \
 	$(NULL)
