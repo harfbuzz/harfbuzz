@@ -254,6 +254,10 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
     case HB_OT_TAG_GDEF:
     case HB_OT_TAG_GPOS:
     case HB_OT_TAG_GSUB:
+    case HB_TAG ('m', 'o', 'r', 'x'):
+    case HB_TAG ('m', 'o', 'r', 't'):
+    case HB_TAG ('k', 'e', 'r', 'x'):
+    case HB_TAG ('k', 'e', 'r', 'n'):
       return true;
 #endif
 
