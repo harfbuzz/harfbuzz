@@ -56,6 +56,10 @@ hb_subset_input_create_or_fail ()
     HB_TAG ('G', 'S', 'U', 'B'),
     HB_TAG ('G', 'P', 'O', 'S'),
     HB_TAG ('G', 'D', 'E', 'F'),
+    HB_TAG ('m', 'o', 'r', 'x'),
+    HB_TAG ('m', 'o', 'r', 't'),
+    HB_TAG ('k', 'e', 'r', 'x'),
+    HB_TAG ('k', 'e', 'r', 'n'),
 
     // Copied from fontTools:
     HB_TAG ('B', 'A', 'S', 'E'),
