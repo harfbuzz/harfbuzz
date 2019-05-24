@@ -1166,7 +1166,7 @@ hb_variation_to_string (hb_variation_t *variation,
  *
  * Return value: Alpha channel value of the given color
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 uint8_t
 (hb_color_get_alpha) (hb_color_t color)
@@ -1180,7 +1180,7 @@ uint8_t
  *
  * Return value: Red channel value of the given color
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 uint8_t
 (hb_color_get_red) (hb_color_t color)
@@ -1194,7 +1194,7 @@ uint8_t
  *
  * Return value: Green channel value of the given color
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 uint8_t
 (hb_color_get_green) (hb_color_t color)
@@ -1208,7 +1208,7 @@ uint8_t
  *
  * Return value: Blue channel value of the given color
  *
- * Since: REPLACEME
+ * Since: 2.1.0
  */
 uint8_t
 (hb_color_get_blue) (hb_color_t color)
