@@ -205,5 +205,8 @@ hb_ucd_get_unicode_funcs ();
 hb_unicode_funcs_t *
 hb_ucd_get_unicode_funcs ()
 {
+#ifdef HB_NO_UCD
+  return hb_unicode_funcs_get_empty ();
+#endif
   return static_ucd_funcs.get_unconst ();
 }
