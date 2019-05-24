@@ -300,12 +300,13 @@
       decomposing code points.
     </para>
     <para>
-      At build time, HarfBuzz looks first for the GLib library. If
-      it is found, HarfBuzz will use GLib's Unicode functions by
-      default. If there is no GLib, HarfBuzz will look for the
-      International Components for Unicode (ICU) library. If neither
-      GLib nor ICU is found, HarfBuzz will fall back to its own
-      internal, lightweight set of Unicode functions instead.
+      HarfBuzz includes its own internal, lightweight set of Unicode
+      functions. At build time, it is also possible to compile support
+      for some other options, such as the Unicode functions provided
+      by GLib or the International Components for Unicode (ICU)
+      library. Generally, this option is only of interest for client
+      programs that have specific integration requirements or that do
+      a significant amount of customization.
     </para>
     <para>
       If your program has access to other Unicode functions, however,
