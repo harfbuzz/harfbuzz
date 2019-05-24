@@ -8,6 +8,9 @@ if len (sys.argv) != 2:
 	print("usage: ./gen-ucd-table ucd.nonunihan.grouped.xml", file=sys.stderr)
 	sys.exit(1)
 
+
+# https://github.com/harfbuzz/packtab
+# https://github.com/harfbuzz/youseedy
 import youseedy, packTab
 
 ucdxml = youseedy.load_ucdxml(sys.argv[1])
