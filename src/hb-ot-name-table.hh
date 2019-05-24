@@ -186,7 +186,7 @@ struct name
 
     auto snap = c->snapshot ();
     this->nameRecordZ.serialize (c, this->count);
-    this->stringOffset = c->length ();
+    if (unlikely (!c->check_assign (this->stringOffset, c->length ()))) return_trace (false);
     c->revert (snap);
 
     const void *dst_string_pool = &(this + this->stringOffset);
