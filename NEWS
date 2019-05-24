@@ -1,3 +1,17 @@
+Overview of changes leading to 2.5.0
+Friday, May 24, 2019
+====================================
+- This release does not include much functional changes, but includes major internal
+  code-base changes.  We now require C++11.  Support for gcc 4.8 and earlier has been
+  dropped.
+- New hb-config.hh facility for compiling smaller library for embedded and web usecases.
+- New Unicode Character Databse implementation that is half the size of previously-used
+  UCDN.
+- Subsetter improvements.
+- Improved documentation, thanks to Nathan Willis.
+- Misc shaping fixes.
+
+
 Overview of changes leading to 2.4.0
 Monday, March 25, 2019
 ====================================

@@ -71,7 +71,7 @@ dist-clear-sticky-bits:
 	chmod -R a-s $(distdir)
 
 
-tar_file = $(PACKAGE_TARNAME)-$(VERSION).tar.bz2
+tar_file = $(PACKAGE_TARNAME)-$(VERSION).tar.xz
 sha256_file = $(tar_file).sha256
 gpg_file = $(sha256_file).asc
 $(sha256_file): $(tar_file)
