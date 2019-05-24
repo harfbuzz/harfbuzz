@@ -300,21 +300,6 @@ AM_CONDITIONAL(HAVE_ICU_BUILTIN, $have_icu && test "x$with_icu" = "xbuiltin")
 
 dnl ===========================================================================
 
-AC_ARG_WITH(ucdn,
-	[AS_HELP_STRING([--with-ucdn=@<:@yes/no@:>@],
-			[Use builtin UCDN library @<:@default=yes@:>@])],,
-	[with_ucdn=yes])
-have_ucdn=false
-if test "x$with_ucdn" = "xyes"; then
-	have_ucdn=true
-fi
-if $have_ucdn; then
-	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
-fi
-AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
-
-dnl ==========================================================================
-
 AC_ARG_WITH(graphite2,
 	[AS_HELP_STRING([--with-graphite2=@<:@yes/no/auto@:>@],
 			[Use the graphite2 library @<:@default=no@:>@])],,
@@ -497,7 +482,6 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/harfbuzz-config.cmake
-src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
@@ -525,7 +509,7 @@ AC_MSG_NOTICE([
 Build configuration:
 
 Unicode callbacks (you want at least one):
-	Builtin (UCDN):		${have_ucdn}
+	Builtin			true
 	Glib:			${have_glib}
 	ICU:			${have_icu}
 
