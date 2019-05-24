@@ -71,6 +71,8 @@ struct hb_subset_plan_t
 
   /*
    * The set of input glyph ids which will be retained in the subset.
+   * Does NOT include ids kept due to retain_gids. You probably want to use
+   * glyph_map/reverse_glyph_map.
    */
   inline const hb_set_t *
   glyphset () const
