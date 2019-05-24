@@ -89,14 +89,14 @@ struct glyf
     unsigned num_offsets = padded_offsets.len () + 1;
     bool use_short_loca = max_offset < 0x1FFFF;
     unsigned entry_size = use_short_loca ? 2 : 4;
-    char *loca_prime_data = (char *) calloc(entry_size, num_offsets);
+    char *loca_prime_data = (char *) calloc (entry_size, num_offsets);
 
     if (unlikely (!loca_prime_data)) return false;
 
     if (use_short_loca)
-      _write_loca<HBUINT16> (padded_offsets, 1, hb_array_t<HBUINT16> ((HBUINT16*) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, 1, hb_array_t<HBUINT16> ((HBUINT16*) loca_prime_data, num_offsets));
     else
-      _write_loca<HBUINT32> (padded_offsets, 0, hb_array_t<HBUINT32> ((HBUINT32*) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, 0, hb_array_t<HBUINT32> ((HBUINT32*) loca_prime_data, num_offsets));
 
     hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
 					    entry_size * num_offsets,
@@ -111,24 +111,22 @@ struct glyf
     return result;
   }
 
-  template<typename EntryType, typename IteratorIn, typename IteratorOut,
+  template<typename IteratorIn, typename IteratorOut,
 	   hb_requires (hb_is_source_of (IteratorIn, unsigned int)),
-	   hb_requires (hb_is_sink_of (IteratorOut, EntryType))>
+	   hb_requires (hb_is_sink_of (IteratorOut, unsigned))>
   static void
   _write_loca (IteratorIn it, unsigned right_shift, IteratorOut dest)
   {
     unsigned int offset = 0;
+    dest << 0;
     + it
     | hb_map ([=, &offset] (unsigned int padded_size) {
-      unsigned result = offset >> right_shift;
-      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
       offset += padded_size;
-      return result;
+      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
+      return offset >> right_shift;
     })
     | hb_sink (dest)
     ;
-    DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
-    dest << (offset >> right_shift);
   }
 
   // requires source of SubsetGlyph complains the identifier isn't declared
