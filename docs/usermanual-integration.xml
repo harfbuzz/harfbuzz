@@ -19,7 +19,7 @@
     text-rendering pipeline, and will discuss the APIs available to
     integrate HarfBuzz with contemporary Linux, Mac, and Windows
     software. It will also show how HarfBuzz integrates with popular
-    external libaries like FreeType and International Components for
+    external libraries like FreeType and International Components for
     Unicode (ICU) and describe the HarfBuzz language bindings for
     Python.
   </para>
@@ -203,7 +203,7 @@
     <programlisting language="C">
       #include &lt;hb-ft.h&gt;
       ...
-      FT_New_Face(ft_library, font_path, index, &face);
+      FT_New_Face(ft_library, font_path, index, &amp;face);
       FT_Set_Char_Size(face, 0, 1000, 0, 0);
       hb_font_t *font = hb_ft_font_create(face);
     </programlisting>
@@ -303,18 +303,118 @@
   <section id="integration-uniscribe">
     <title>Uniscribe integration</title>
     <para>
-      
+      If your client program is running on Windows, HarfBuzz can
+      integrate with the Uniscribe engine.
     </para>
     <para>
-      
+      Overall, the Uniscribe API covers a broader set of typographic
+      layout functions than HarfBuzz implements, but HarfBuzz's
+      shaping API can serve as a drop-in replacement for the shaping
+      functionality. In fact, one of HarfBuzz's design goals is to
+      accurately reproduce the same output for shaping a given text
+      segment that Uniscribe produces &mdash; even to the point of
+      duplicating known shaping bugs or deviations from the
+      specification &mdash; so you can be sure that your users'
+      documents with their existing fonts will not be affected by
+      switching to HarfBuzz.
     </para>
     <para>
+      At a basic level, HarfBuzz's <function>hb_shape()</function>
+      function replaces both the <ulink url=""><function>ScriptShape()</function></ulink>
+      and <ulink url="https://docs.microsoft.com/en-us/windows/desktop/api/Usp10/nf-usp10-scriptplace"><function>ScriptPlace()</function></ulink> functions from
+      Uniscribe. 
+    </para>
+    <para>
+      However, whereas <function>ScriptShape()</function> returns the
+      glyphs and clusters for a shaped sequence and
+      <function>ScriptPlace()</function> returns the advances and
+      offsets for those glyphs, <function>hb_shape()</function>
+      handles both. After <function>hb_shape()</function> shapes a
+      buffer, the output glyph IDs and cluster IDs are returned as
+      an array of <structname>hb_glyph_info_t</structname> structures, and the
+      glyph advances and offsets are returned as an array of
+      <structname>hb_glyph_position_t</structname> structures. 
+    </para>
+    <para>
+      Your client program only needs to ensure that it coverts
+      correctly between HarfBuzz's low-level data types (such as
+      <type>hb_position_t</type>) and Windows's corresponding types
+      (such as <type>GOFFSET</type> and <type>ABC</type>). Be sure you
+      read the <xref linkend="buffers-language-script-and-direction"
+      /> 
+      chapter for a full explanation of how HarfBuzz input buffers are
+      used, and see <xref linkend="shaping-buffer-output" /> for the
+      details of what <function>hb_shape()</function> returns in the
+      output buffer when shaping is complete. 
+    </para>
+    <para>
+      Although <function>hb_shape()</function> itself is functionally
+      equivalent to Uniscribe's shaping routines, there are two
+      additional HarfBuzz functions you may want to use to integrate
+      the libraries in your code. Both are used to link HarfBuzz font
+      objects to the equivalent Windows structures.
+    </para>
+    <para>
+      The <function>hb_uniscribe_font_get_logfontw()</function>
+      function takes a <type>hb_font_t</type> font object and returns
+      a pointer to the <ulink
+      url="https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-logfontw"><type>LOGFONTW</type></ulink>
+      "logical font" that corresponds to it. A <type>LOGFONTW</type>
+      structure holds font-wide attributes, including metrics, size,
+      and style information.
+    </para>
       
+SCRIPT_CACHE holds context, including LOGFONT      https://docs.microsoft.com/en-us/windows/desktop/Intl/script-cache
+      https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-logfontw
+
+    <para>
+      The <function>hb_uniscribe_font_get_hfont()</function> function
+      also takes a <type>hb_font_t</type> font object, but it returns
+      an <type>HFONT</type> &mdash; a handle to the underlying logical
+      font &mdash; instead.
+    </para>
+    <para>
+      <type>LOGFONTW</type>s and <type>HFONT</type>s are both needed
+      by other Uniscribe functions.
+    </para>
+    <para>
+      As a final note, you may notice a reference to an optional
+      <literal>uniscribe</literal> shaper back-end in the <xref
+      linkend="configuration" /> section of the HarfBuzz manual. This
+      option is not a Uniscribe-integration facility.
+    </para>
+    <para>
+      Instead, it is a internal code path used in the
+      <command>hb-shape</command> command-line utility, which hands
+      shaping functionality over to Uniscribe entirely, when run on a
+      Windows system. That allows testing HarfBuzz's native output
+      against the Uniscribe engine, for tracking compatibility and
+      debugging.
+    </para>
+    <para>
+      Because this back-end is only used when testing HarfBuzz
+      functionality, it is disabled by default when building the
+      HarfBuzz binaries.
     </para>
   </section>
-  
+   
   <section id="integration-coretext">
     <title>CoreText integration</title>
+    <para>
+      
+    </para>
+    <para>
+      
+    </para>
+    <para>
+      
+    </para>
+    <para>
+      
+    </para>
+    <para>
+      
+    </para>
     <para>
       
     </para>
