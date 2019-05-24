@@ -500,14 +500,57 @@
   <section id="integration-icu">
     <title>ICU integration</title>
     <para>
-      
+      Although HarfBuzz includes its own Unicode-data functions, it
+      also provides integration APIs for using the International
+      Components for Unicode (ICU) library as a source of Unicode data
+      on any supported platform.
+    </para>
+    <para>
+      The principle integration point with ICU is the
+      <type>hb_unicode_funcs_t</type> Unicode-functions structure
+      attached to a buffer. This structure holds the virtual methods
+      used for retrieving Unicode character properties, such as
+      General Category, Script, Combining Class, decomposition
+      mappings, and mirroring information.
+    </para>
+    <para>
+      To use ICU in your client program, you need to call
+      <function>hb_icu_get_unicode_funcs()</function>, which creates a
+      Unicode-functions structure populated with the ICU function for
+      each included method. Subsequently, you can attach the
+      Unicode-functions structure to your buffer:
+    </para>
+    <programlisting language="C">
+      hb_unicode_funcs_t *icufunctions;
+      icufunctions = hb_icu_get_unicode_funcs();
+      hb_buffer_set_unicode_funcs(buf, icufunctions);
+    </programlisting>
+    <para>
+      and ICU will be used for Unicode-data access.
+    </para>
+    <para>
+      HarfBuzz also supplies a pair of functions
+      (<function>hb_icu_script_from_script()</function> and
+      <function>hb_icu_script_to_script()</function>) for converting
+      between ICU's and HarfBuzz's internal enumerations of Unicode
+      scripts. The <function>hb_icu_script_from_script()</function>
+      function converts from a HarfBuzz <type>hb_script_t</type> to an
+      ICU <type>UScriptCode</type>. The
+      <function>hb_icu_script_to_script()</function> function does the
+      reverse: converting from a <type>UScriptCode</type> identifier
+      to a <type>hb_script_t</type>.
+    </para>
+    <para>
+      By default, ICU support is included when compiling HarfBuzz from
+      source. The build system will look for the ICU library and link
+      to it if it is found. You can also build HarfBuzz with it own,
+      internal copy of ICU, by specifying the
+      <literal>--with-icu=builtin</literal> compile-time option.
     </para>
     <para>
       
     </para>
-    <para>
-      
-    </para>
+
   </section>
   
   <section id="integration-python">
