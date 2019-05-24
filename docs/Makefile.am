@@ -82,6 +82,7 @@ content_files=	\
 	usermanual-opentype-features.xml \
 	usermanual-clusters.xml \
 	usermanual-utilities.xml \
+	usermanual-integration.xml \
 	version.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
