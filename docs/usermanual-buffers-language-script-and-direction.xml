@@ -302,7 +302,9 @@
     <para>
       At build time, HarfBuzz looks first for the GLib library. If
       it is found, HarfBuzz will use GLib's Unicode functions by
-      default. If there is no GLib, HarfBuzz will fall back to its own
+      default. If there is no GLib, HarfBuzz will look for the
+      International Components for Unicode (ICU) library. If neither
+      GLib nor ICU is found, HarfBuzz will fall back to its own
       internal, lightweight set of Unicode functions instead.
     </para>
     <para>
