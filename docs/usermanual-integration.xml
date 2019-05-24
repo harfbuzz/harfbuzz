@@ -547,32 +547,43 @@
       internal copy of ICU, by specifying the
       <literal>--with-icu=builtin</literal> compile-time option.
     </para>
-    <para>
-      
-    </para>
 
   </section>
   
   <section id="integration-python">
     <title>Python bindings</title>
     <para>
-      
+      As noted in the <xref linkend="integration-glib" /> section,
+      HarfBuzz uses a feature called <ulink
+      url="https://wiki.gnome.org/Projects/GObjectIntrospection">GObject
+      Introspection</ulink> (GI) to provide bindings for Python.
     </para>
     <para>
-      
+      At compile time, the GI scanner analyzes the HarfBuzz C source
+      and builds metadata objects connecting the language bindings to
+      the C library. Your Python code can then use the HarfBuzz binary
+      through its Python interface.
     </para>
     <para>
-      
+      HarfBuzz's Python bindings support Python 2 and Python 3. To use
+      them, you will need to have the <literal>pygobject</literal>
+      package installed. Then you should import
+      <literal>HarfBuzz</literal> from
+      <literal>gi.repository</literal>: 
     </para>
-  </section>
-  
-  <section id="integration-">
-    <title></title>
+    <programlisting language="Python">
+      from gi.repository import HarfBuzz
+    </programlisting>
     <para>
-      
+      and you can call HarfBuzz functions from Python. Sample code can
+      be found in the <filename>sample.py</filename> script in the
+      HarfBuzz <filename>src</filename> directory.
     </para>
     <para>
-      
+      Do note, however, that the Python API is subject to change
+      without advance notice. GI allows the bindings to be
+      automatically updated, which is one of its advantages, but you
+      may need to update your Python code.
     </para>
   </section>
   
