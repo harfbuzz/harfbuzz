@@ -48,8 +48,8 @@ HarfBuzz release walk-through checklist:
 
    a. Put contents of [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ) on your `~/.local/i686-w64-mingw32`,
 
-   b. Run `../mingw32.sh --with-uniscribe` script to configure harfbuzz with mingw
-   in a subdirector (eg. winbuild/),
+   b. Run `../mingw32.sh` script to configure harfbuzz with mingw in a subdirectory
+      (eg. winbuild/),
 
    c. make
 

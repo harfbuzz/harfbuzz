@@ -20,7 +20,7 @@ steps are recommended:
 
 5. `NOCONFIGURE=1 ./autogen.sh && mkdir winbuild && cd winbuild`
 
-6. `../mingw32.sh --with-uniscribe && cd ..`
+6. `../mingw32.sh && cd ..`
 
 7. `make -Cwinbuild`
 
