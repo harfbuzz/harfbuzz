@@ -10,11 +10,11 @@ if len (sys.argv) != 2:
 
 
 # https://github.com/harfbuzz/packtab
-# https://github.com/harfbuzz/youseedy
-import youseedy, packTab
+import packTab
+import packTab.ucdxml
 
-ucdxml = youseedy.load_ucdxml(sys.argv[1])
-ucd = youseedy.ucdxml_get_repertoire(ucdxml)
+ucdxml = packTab.ucdxml.load_ucdxml(sys.argv[1])
+ucd = packTab.ucdxml.ucdxml_get_repertoire(ucdxml)
 
 
 gc = [u['gc'] for u in ucd]
