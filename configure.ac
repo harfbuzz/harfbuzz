@@ -134,9 +134,7 @@ AC_MSG_RESULT([$hb_os_win32])
 AM_CONDITIONAL(OS_WIN32, test "$hb_os_win32" = "yes")
 
 have_pthread=false
-if test "$hb_os_win32" = no; then
-	AX_PTHREAD([have_pthread=true])
-fi
+AX_PTHREAD([have_pthread=true])
 if $have_pthread; then
 	AC_DEFINE(HAVE_PTHREAD, 1, [Have POSIX threads])
 fi
