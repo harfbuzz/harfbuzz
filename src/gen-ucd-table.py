@@ -88,9 +88,9 @@ print('#include "hb.hh"')
 print()
 
 code = packTab.Code('_hb_ucd')
-sc_array, _, _ = code.addArray('hb_script_t', 'sc_map', sc_array)
-dm1_array, _, _ = code.addArray('hb_codepoint_t', 'dm1_map', dm1_array)
-dm2_array, _, _ = code.addArray('uint64_t', 'dm2_map', dm2_array)
+sc_array, _ = code.addArray('hb_script_t', 'sc_map', sc_array)
+dm1_array, _ = code.addArray('hb_codepoint_t', 'dm1_map', dm1_array)
+dm2_array, _ = code.addArray('uint64_t', 'dm2_map', dm2_array)
 code.print_c(linkage='static inline')
 
 for compression in (DEFAULT, COMPACT):
