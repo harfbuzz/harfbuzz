@@ -205,10 +205,10 @@ jobs:
       - run: mkdir winbuild64 && cd winbuild64 && ../mingw64.sh && make -j32 && make dist-win && cp harfbuzz-*-win64.zip harfbuzz-win64.zip
       - store_artifacts:
           path: winbuild32/harfbuzz-win32.zip
-          destination: win32
+          destination: harfbuzz-win32.zip
       - store_artifacts:
           path: winbuild64/harfbuzz-win64.zip
-          destination: win64
+          destination: harfbuzz-win64.zip
 
   cmake-gcc:
     docker:
