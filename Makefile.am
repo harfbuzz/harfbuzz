@@ -10,7 +10,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	harfbuzz.doap \
 	README.python.md \
-	README.wine.md \
+	README.mingw.md \
 	BUILD.md \
 	RELEASING.md \
 	CMakeLists.txt \
