@@ -192,14 +192,22 @@ jobs:
       - run: make -j32
       - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
-  fedora-O0-debug-outoftreebuild:
+  fedora-O0-debug-outoftreebuild-mingw:
     docker:
       - image: fedora
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python || true
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python wine mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: mkdir build && cd build && ../configure && make && (make check || ../.ci/fail.sh)
+      - run: mkdir build && cd build && ../configure && make -j32 && (make check || ../.ci/fail.sh)
+      - run: mkdir winbuild32 && cd winbuild32 && ../mingw32.sh --without-icu && make -j32
+      - run: mkdir winbuild64 && cd winbuild64 && ../mingw64.sh --without-icu && make -j32
+      - store_artifacts:
+          path: winbuild32/util
+          destination: win32
+      - store_artifacts:
+          path: winbuild64/util
+          destination: win64
 
   cmake-gcc:
     docker:
@@ -308,7 +316,7 @@ workflows:
       - clang-msan
       - clang-tsan
       - clang-ubsan
-      - fedora-O0-debug-outoftreebuild
+      - fedora-O0-debug-outoftreebuild-mingw
 
       # cmake based builds
       - cmake-gcc
