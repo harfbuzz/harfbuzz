@@ -66,15 +66,15 @@
     <para>
       The algorithms
       used for complex scripts can be quite involved; HarfBuzz tries
-      to be 100% compatible with the OpenType Layout specification
+      to be compatible with the OpenType Layout specification
       and, wherever there is any ambiguity, HarfBuzz attempts to replicate the
       output of Microsoft's Uniscribe engine. See the <ulink
       url="https://docs.microsoft.com/en-us/typography/script-development/standard">Microsoft
-      Typeography pages</ulink> for more detail.
+      Typography pages</ulink> for more detail.
     </para>
     <para>
-      In general, though, all that you need to know if that
-      <function>hb-shape()</function> returns the results of shaping
+      In general, though, all that you need to know is that
+      <function>hb_shape()</function> returns the results of shaping
       in the same buffer that you provided. The buffer's content type
       will now be set to
       <literal>HB_BUFFER_CONTENT_TYPE_GLYPHS</literal>, indicating
@@ -194,7 +194,10 @@
       Just like we enabled the <literal>dlig</literal> feature by
       setting its <parameter>value</parameter> to
       <literal>1</literal>, you would disable a feature by setting its
-      <parameter>value</parameter> to <literal>0</literal>.
+      <parameter>value</parameter> to <literal>0</literal>. Some
+      features can take other <parameter>value</parameter> settings;
+      be sure you read the full specification of each feature tag to
+      understand what it does and how to control it.
     </para>
   </section>
 
@@ -212,7 +215,7 @@
       mix of tables, or one of the tables might simply be broken for
       the script you need to shape. So, sometimes, you might not
       want to rely on HarfBuzz's process for deciding what to do, and
-      just tell hb-shape what you want it to try.
+      just tell <function>hb_shape()</function> what you want it to try.
     </para>
     <para>
       <function>hb_shape_full()</function> is an alternate shaping
@@ -243,7 +246,7 @@
     <para>
       Internally, HarfBuzz uses a structure called a shape plan to
       track its decisions about how to shape the contents of a
-      buffer. The hb-shape function builds up the shape plan by
+      buffer. The <function>hb_shape()</function> function builds up the shape plan by
       examining segment properties and by inspecting the contents of
       the font.
     </para>

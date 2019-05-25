@@ -215,7 +215,7 @@
       bottom-to-top (<literal>HB_DIRECTION_BTT</literal>).  For the
       script property, HarfBuzz uses identifiers based on the
       <ulink
-      url="https://unicode.org/iso15924/">ISO-15924
+      url="https://unicode.org/iso15924/">ISO 15924
       standard</ulink>. For languages, HarfBuzz uses tags based on the
       <ulink url="https://tools.ietf.org/html/bcp47">IETF BCP 47</ulink> standard.
     </para>
