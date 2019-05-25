@@ -216,7 +216,7 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 
 #define HB_ATOMIC_INT_NIL 1 /* Warn that fallback implementation is in use. */
 
-#define _hb_memory_barrier()
+#define _hb_memory_barrier()			do {} while (0)
 
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
