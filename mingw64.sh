@@ -20,4 +20,4 @@ export PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig:/usr/$target/sys-roo
 export PKG_CONFIG_PATH=$HOME/.local/$target/share/pkgconfig:/usr/$target/sys-root/mingw/share/pkgconfig/
 export PATH=$HOME/.local/$target/bin:/usr/$target/sys-root/mingw/bin:/usr/$target/bin:$PATH
 
-../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target --with-uniscribe "$@"
+../configure --build=`../config.guess` --host=$target --prefix=$HOME/.local/$target --with-uniscribe --without-icu "$@"
