@@ -48,7 +48,7 @@ HarfBuzz release walk-through checklist:
 
    a. Build Win32 binaries.  See [README.mingw.md](README.mingw.md).
 
-   b. TODO.
+   b. Run "make dist-win" to build Win32 bundle.
 
 11. Copy all artefacts to users.freedesktop.org and move them into
     `/srv/www.freedesktop.org/www/software/harfbuzz/release` There should be four
