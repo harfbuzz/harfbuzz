@@ -9,12 +9,18 @@ SUBDIRS = src util test docs
 EXTRA_DIST = \
 	autogen.sh \
 	harfbuzz.doap \
-	README.python.md \
+	README.md \
 	README.mingw.md \
+	README.python.md \
 	BUILD.md \
 	RELEASING.md \
+	TESTING.md \
 	CMakeLists.txt \
 	replace-enum-strings.cmake \
+	mingw-configure.sh \
+	mingw-ldd.py \
+	mingw32.sh \
+	mingw64.sh \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
