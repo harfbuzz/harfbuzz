@@ -33,6 +33,7 @@
 #define Rsv	USE_Rsv	/* Reserved */
 #define S	USE_S	/* SYM */
 #define SUB	USE_SUB	/* CONS_SUB */
+#define Sk	USE_Sk	/* SAKOT */
 #define VS	USE_VS	/* VARIATION_SELECTOR */
 #define WJ	USE_WJ	/* Word_Joiner */
 #define ZWJ	USE_ZWJ	/* ZWJ */
@@ -305,7 +306,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 1A30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1A50 */     B,     B,     B,     B,     B,  MPre,  MBlw,   SUB,  FAbv,  FAbv,  MAbv,   SUB,   SUB,   SUB,   SUB,     O,
-  /* 1A60 */     H,  VPst,  VAbv,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VBlw,  VPst,  VPre,  VPre,
+  /* 1A60 */    Sk,  VPst,  VAbv,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VBlw,  VPst,  VPre,  VPre,
   /* 1A70 */  VPre,  VPre,  VPre,  VAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,  VAbv, FMAbv, FMAbv,     O,     O, FMBlw,
   /* 1A80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
   /* 1A90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
@@ -822,6 +823,7 @@ hb_use_get_category (hb_codepoint_t u)
 #undef Rsv
 #undef S
 #undef SUB
+#undef Sk
 #undef VS
 #undef WJ
 #undef ZWJ

@@ -246,6 +246,7 @@ data_destroy_use (void *data)
 enum syllable_type_t {
   independent_cluster,
   virama_terminated_cluster,
+  sakot_terminated_cluster,
   standard_cluster,
   number_joiner_terminated_cluster,
   numeral_cluster,
@@ -337,6 +338,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
 	break;
 
       case virama_terminated_cluster:
+      case sakot_terminated_cluster:
       case standard_cluster:
       case number_joiner_terminated_cluster:
       case numeral_cluster:
@@ -443,6 +445,7 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
   /* Only a few syllable types need reordering. */
   if (unlikely (!(FLAG_UNSAFE (syllable_type) &
 		  (FLAG (virama_terminated_cluster) |
+		   FLAG (sakot_terminated_cluster) |
 		   FLAG (standard_cluster) |
 		   FLAG (broken_cluster) |
 		   0))))

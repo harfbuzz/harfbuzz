@@ -68,6 +68,7 @@ VS	= 21; # VARIATION_SELECTOR
 #VM	= 40; # VOWEL_MOD
 CS	= 43; # CONS_WITH_STACKER
 HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
+Sk	= 48; # SAKOT
 
 FAbv	= 24; # CONS_FINAL_ABOVE
 FBlw	= 25; # CONS_FINAL_BELOW
@@ -92,7 +93,7 @@ FMAbv	= 45; # CONS_FINAL_MOD	UIPC = Top
 FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
 FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
-h = H | HVM; # https://github.com/harfbuzz/harfbuzz/issues/1102
+h = H | HVM | Sk;
 
 # Override: Adhoc ZWJ placement. https://github.com/harfbuzz/harfbuzz/issues/542#issuecomment-353169729
 consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) VS? CMAbv? CMBlw*)*;
@@ -103,11 +104,16 @@ vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst*;
 final_modifiers = FMAbv* FMBlw* | FMPst?;
 
-complex_syllable_tail =
+complex_syllable_start = (R | CS)? (B | GB) VS?;
+complex_syllable_middle =
 	consonant_modifiers
 	medial_consonants
 	dependent_vowels
 	vowel_modifiers
+	(Sk B)*
+;
+complex_syllable_tail =
+	complex_syllable_middle
 	final_consonants
 	final_modifiers
 ;
@@ -116,12 +122,17 @@ numeral_cluster_tail = (HN N VS?)+;
 symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
 virama_terminated_cluster =
-	(R|CS)? (B | GB) VS?
+	complex_syllable_start
 	consonant_modifiers
 	ZWJ?.h.ZWJ?
 ;
+sakot_terminated_cluster =
+	complex_syllable_start
+	complex_syllable_middle
+	Sk
+;
 standard_cluster =
-	(R|CS)? (B | GB) VS?
+	complex_syllable_start
 	complex_syllable_tail
 ;
 broken_cluster =
@@ -138,6 +149,7 @@ other = any;
 main := |*
 	independent_cluster			=> { found_syllable (independent_cluster); };
 	virama_terminated_cluster		=> { found_syllable (virama_terminated_cluster); };
+	sakot_terminated_cluster		=> { found_syllable (sakot_terminated_cluster); };
 	standard_cluster			=> { found_syllable (standard_cluster); };
 	number_joiner_terminated_cluster	=> { found_syllable (number_joiner_terminated_cluster); };
 	numeral_cluster				=> { found_syllable (numeral_cluster); };

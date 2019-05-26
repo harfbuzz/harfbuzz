@@ -73,6 +73,8 @@ enum use_category_t {
   /* https://github.com/harfbuzz/harfbuzz/issues/1102 */
   USE_HVM	= 44,	/* HALANT_OR_VOWEL_MODIFIER */
 
+  USE_Sk	= 48,	/* SAKOT */
+
   USE_FAbv	= 24,	/* CONS_FINAL_ABOVE */
   USE_FBlw	= 25,	/* CONS_FINAL_BELOW */
   USE_FPst	= 26,	/* CONS_FINAL_POST */
