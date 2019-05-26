@@ -214,7 +214,9 @@ def is_CONS_SUB(U, UISC, UGC):
 def is_CONS_WITH_STACKER(U, UISC, UGC):
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UGC):
-	return UISC in [Virama, Invisible_Stacker] and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
+	return (UISC in [Virama, Invisible_Stacker]
+		and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC)
+		and not is_SAKOT(U, UISC, UGC))
 def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC):
 	# https://github.com/harfbuzz/harfbuzz/issues/1102
 	# https://github.com/harfbuzz/harfbuzz/issues/1379
@@ -240,6 +242,8 @@ def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
+def is_SAKOT(U, UISC, UGC):
+	return U == 0x1A60
 def is_SYM(U, UISC, UGC):
 	if U == 0x25CC: return False #SPEC-DRAFT
 	#SPEC-DRAFT return UGC in [So, Sc] or UISC == Symbol_Letter
@@ -279,6 +283,7 @@ use_mapping = {
 	'Rsv':	is_Reserved,
 	'R':	is_REPHA,
 	'S':	is_SYM,
+	'Sk':	is_SAKOT,
 	'SM':	is_SYM_MOD,
 	'VS':	is_VARIATION_SELECTOR,
 	'V':	is_VOWEL,
