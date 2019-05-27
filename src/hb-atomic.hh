@@ -227,7 +227,7 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-#define _hb_memory_barrier()
+#define _hb_memory_barrier()			do {} while (0)
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
