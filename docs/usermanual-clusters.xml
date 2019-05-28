@@ -158,7 +158,7 @@
     <para>
       For left-to-right scripts (LTR) and top-to-bottom scripts (TTB),
       HarfBuzz will preserve the monotonic property: client programs
-      are guaranteed that monotonically increasing initial clulster
+      are guaranteed that monotonically increasing initial cluster
       values will be returned as monotonically increasing final
       cluster values.
     </para>
@@ -167,7 +167,7 @@
       the directionality of the buffer itself is reversed for final
       output as a matter of design. Therefore, HarfBuzz inverts the
       monotonic property: client programs are guaranteed that
-      monotonically increasing initial clulster values will be
+      monotonically increasing initial cluster values will be
       returned as monotonically <emphasis>decreasing</emphasis> final
       cluster values.
     </para>
