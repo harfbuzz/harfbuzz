@@ -442,16 +442,16 @@ struct GDEF
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->glyphClassDef.serialize_subset (c, this+glyphClassDef, out);
-    out->attachList = 0;//TODO(subset) serialize_subset (c, this+attachList, out);
-    out->ligCaretList = 0;//TODO(subset) serialize_subset (c, this+ligCaretList, out);
-    out->markAttachClassDef.serialize_subset (c, this+markAttachClassDef, out);
+    out->glyphClassDef.serialize_subset (c, glyphClassDef, this, out);
+    out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this, out);
+    out->ligCaretList = 0;//TODO(subset) serialize_subset (c, ligCaretList, this, out);
+    out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, out);
 
     if (version.to_int () >= 0x00010002u)
-      out->markGlyphSetsDef = 0;// TODO(subset) serialize_subset (c, this+markGlyphSetsDef, out);
+      out->markGlyphSetsDef = 0;// TODO(subset) serialize_subset (c, markGlyphSetsDef, this, out);
 
     if (version.to_int () >= 0x00010003u)
-      out->varStore = 0;// TODO(subset) serialize_subset (c, this+varStore, out);
+      out->varStore = 0;// TODO(subset) serialize_subset (c, varStore, this, out);
 
     return_trace (true);
   }

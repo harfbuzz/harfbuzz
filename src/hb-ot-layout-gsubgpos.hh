@@ -2684,14 +2684,15 @@ struct GSUBGPOS
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->scriptList.serialize_subset (c, this+scriptList, out);
-    out->featureList.serialize_subset (c, this+featureList, out);
+    out->scriptList.serialize_subset (c, scriptList, this, out);
+    out->featureList.serialize_subset (c, featureList, this, out);
 
     typedef OffsetListOf<TLookup> TLookupList;
     /* TODO Use intersects() to count how many subtables survive? */
     CastR<OffsetTo<TLookupList>> (out->lookupList)
       .serialize_subset (c,
-			 this+CastR<OffsetTo<TLookupList>> (lookupList),
+			 CastR<OffsetTo<TLookupList>> (lookupList),
+			 this,
 			 out);
 
     if (version.to_int () >= 0x00010001u)

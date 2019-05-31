@@ -298,20 +298,24 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c, const Type &src, const void *base, Ts&&... ds)
+  bool serialize_subset (hb_subset_context_t *c,
+			 const OffsetTo& src,
+			 const void *src_base,
+			 const void *dst_base,
+			 Ts&&... ds)
   {
     *this = 0;
-    if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
+    if (src.is_null ())
       return false;
 
     auto *s = c->serializer;
 
     s->push ();
 
-    bool ret = c->dispatch (src, hb_forward<Ts> (ds)...);
+    bool ret = c->dispatch (src_base+src, hb_forward<Ts> (ds)...);
 
     if (ret || !has_null)
-      s->add_link (*this, s->pop_pack (), base);
+      s->add_link (*this, s->pop_pack (), dst_base);
     else
       s->pop_discard ();
 
@@ -683,7 +687,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->arrayZ[i].serialize_subset (c, (*this)[i], out);
+      out->arrayZ[i].serialize_subset (c, this->arrayZ[i], this, out);
     return_trace (true);
   }
 
