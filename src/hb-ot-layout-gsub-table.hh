@@ -87,8 +87,7 @@ struct SingleSubstFormat1
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_sorted_source_of (Iterator,
-						hb_codepoint_t))>
+	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator glyphs,
 		  unsigned delta)
@@ -339,8 +338,10 @@ struct Sequence
     return_trace (true);
   }
 
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const GlyphID> subst)
+		  Iterator subst)
   {
     TRACE_SERIALIZE (this);
     return_trace (substitute.serialize (c, subst));
@@ -515,8 +516,10 @@ struct AlternateSet
     return_trace (true);
   }
 
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const GlyphID> alts)
+		  Iterator alts)
   {
     TRACE_SERIALIZE (this);
     return_trace (alternates.serialize (c, alts));
@@ -729,9 +732,11 @@ struct Ligature
     return_trace (true);
   }
 
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
 		  GlyphID ligature,
-		  hb_array_t<const GlyphID> components /* Starting from second */)
+		  Iterator components /* Starting from second */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
