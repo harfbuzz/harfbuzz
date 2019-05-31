@@ -320,17 +320,21 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
   /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
   template <typename ...Ts>
-  bool serialize_copy (hb_serialize_context_t *c, const Type &src, const void *base, Ts&&... ds)
+  bool serialize_copy (hb_serialize_context_t *c,
+		       const OffsetTo& src,
+		       const void *src_base,
+		       const void *dst_base,
+		       Ts&&... ds)
   {
     *this = 0;
-    if (has_null && &src == _hb_has_null<Type, has_null>::get_null ())
+    if (src.is_null ())
       return false;
 
     c->push ();
 
-    bool ret = c->copy (src, hb_forward<Ts> (ds)...);
+    bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
 
-    c->add_link (*this, c->pop_pack (), base);
+    c->add_link (*this, c->pop_pack (), dst_base);
 
     return ret;
   }

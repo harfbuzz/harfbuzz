@@ -279,10 +279,10 @@ struct Script
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    out->defaultLangSys.serialize_copy (c->serializer, this+defaultLangSys, out);
+    out->defaultLangSys.serialize_copy (c->serializer, defaultLangSys, this, out);
     unsigned int count = langSys.len;
     for (unsigned int i = 0; i < count; i++)
-      out->langSys.arrayZ[i].offset.serialize_copy (c->serializer, this+langSys[i].offset, out);
+      out->langSys.arrayZ[i].offset.serialize_copy (c->serializer, langSys[i].offset, this, out);
     return_trace (true);
   }
 

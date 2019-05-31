@@ -2695,7 +2695,7 @@ struct GSUBGPOS
 			 out);
 
     if (version.to_int () >= 0x00010001u)
-     out->featureVars.serialize_copy (c->serializer, this+featureVars, out);
+     out->featureVars.serialize_copy (c->serializer, featureVars, this, out);
 
     return_trace (true);
   }
