@@ -85,13 +85,15 @@ struct glyf
   static bool
   _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
   {
-    unsigned int max_offset = + padded_offsets | hb_reduce (hb_max, 0);
+    unsigned max_offset = + padded_offsets | hb_reduce(hb_add, 0);
     unsigned num_offsets = padded_offsets.len () + 1;
     bool use_short_loca = max_offset < 0x1FFFF;
     unsigned entry_size = use_short_loca ? 2 : 4;
     char *loca_prime_data = (char *) calloc (entry_size, num_offsets);
 
     if (unlikely (!loca_prime_data)) return false;
+
+    DEBUG_MSG(SUBSET, nullptr, "loca entry_size %d num_offsets %d max_offset %d size %d", entry_size, num_offsets, max_offset, entry_size * num_offsets);
 
     if (use_short_loca)
       _write_loca (padded_offsets, 1, hb_array ((HBUINT16*) loca_prime_data, num_offsets));
@@ -164,6 +166,7 @@ struct glyf
     | hb_map (&SubsetGlyph::padded_size)
     ;
 
+    if (c->serializer->in_error ()) return_trace (false);
     return_trace (c->serializer->check_success (_add_loca_and_head (c->plan, padded_offsets)));
   }
 
