@@ -607,15 +607,15 @@ template <typename ...Ts>
 static inline void *
 hb_bsearch (const void *key, const void *base,
 	    size_t nmemb, size_t size,
-	    int (*compar)(const void *_key, const void *_item, Ts... args),
-	    Ts... args)
+	    int (*compar)(const void *_key, const void *_item, Ts... _ds),
+	    Ts... ds)
 {
   int min = 0, max = (int) nmemb - 1;
   while (min <= max)
   {
     int mid = (min + max) / 2;
     const void *p = (const void *) (((const char *) base) + (mid * size));
-    int c = compar (key, p, args...);
+    int c = compar (key, p, ds...);
     if (c < 0)
       max = mid - 1;
     else if (c > 0)
