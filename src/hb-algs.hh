@@ -173,7 +173,7 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
   (hb_partial<Pos> ( \
 		    /* The following ugly line is a hacky replacement for "this". */ \
 		    /* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
-		    &*this, \
+		    (true?this:nullptr), \
 		    hb_forward<_T> (_v))) \
   static_assert (true, "")
 
