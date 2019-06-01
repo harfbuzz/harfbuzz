@@ -807,7 +807,7 @@ struct hb_bitwise_and
   static constexpr bool passthru_left = false;
   static constexpr bool passthru_right = false;
   template <typename T> auto
-   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
 struct hb_bitwise_or
@@ -815,7 +815,7 @@ struct hb_bitwise_or
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
   template <typename T> auto
-   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
 }
 HB_FUNCOBJ (hb_bitwise_or);
 struct hb_bitwise_xor
@@ -823,7 +823,7 @@ struct hb_bitwise_xor
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
   template <typename T> auto
-   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
 }
 HB_FUNCOBJ (hb_bitwise_xor);
 struct hb_bitwise_sub
@@ -831,7 +831,7 @@ struct hb_bitwise_sub
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = false;
   template <typename T> auto
-   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
 HB_FUNCOBJ (hb_bitwise_sub);
 
