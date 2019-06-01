@@ -951,7 +951,7 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 *
 * Return value: DirectWrite IDWriteFontFace object corresponding to the given input
 *
-* Since: REPLACEME
+* Since: 2.5.0
 **/
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)
