@@ -139,11 +139,11 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
   return nullptr;
 #endif
 
-  return (const hb_aat_feature_mapping_t *) bsearch (&tag,
-						     feature_mappings,
-						     ARRAY_LENGTH (feature_mappings),
-						     sizeof (feature_mappings[0]),
-						     hb_aat_feature_mapping_t::cmp);
+  return (const hb_aat_feature_mapping_t *) hb_bsearch (&tag,
+							feature_mappings,
+							ARRAY_LENGTH (feature_mappings),
+							sizeof (feature_mappings[0]),
+							hb_aat_feature_mapping_t::cmp);
 }
 
 

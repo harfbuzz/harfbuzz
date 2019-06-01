@@ -603,40 +603,19 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 /*
  * Sort and search.
  */
-
+template <typename ...Ts>
 static inline void *
 hb_bsearch (const void *key, const void *base,
 	    size_t nmemb, size_t size,
-	    int (*compar)(const void *_key, const void *_item))
+	    int (*compar)(const void *_key, const void *_item, Ts... args),
+	    Ts... args)
 {
   int min = 0, max = (int) nmemb - 1;
   while (min <= max)
   {
     int mid = (min + max) / 2;
     const void *p = (const void *) (((const char *) base) + (mid * size));
-    int c = compar (key, p);
-    if (c < 0)
-      max = mid - 1;
-    else if (c > 0)
-      min = mid + 1;
-    else
-      return (void *) p;
-  }
-  return nullptr;
-}
-
-static inline void *
-hb_bsearch_r (const void *key, const void *base,
-	      size_t nmemb, size_t size,
-	      int (*compar)(const void *_key, const void *_item, void *_arg),
-	      void *arg)
-{
-  int min = 0, max = (int) nmemb - 1;
-  while (min <= max)
-  {
-    int mid = ((unsigned int) min + (unsigned int) max) / 2;
-    const void *p = (const void *) (((const char *) base) + (mid * size));
-    int c = compar (key, p, arg);
+    int c = compar (key, p, args...);
     if (c < 0)
       max = mid - 1;
     else if (c > 0)
