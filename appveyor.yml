@@ -2,11 +2,13 @@ platform: x64
 
 environment:
   matrix:
+
     - compiler: msvc
       generator: Visual Studio 14
       platform: Win32
       configuration: Debug
       triplet: x86-windows
+
     - compiler: msvc
       generator: Visual Studio 14 Win64
       platform: x64
@@ -20,32 +22,34 @@ environment:
 
 
     # Build only
-    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-    #   compiler: msvc2
-    #   generator: Visual Studio 12
-    #   platform: Win32
-    #   configuration: Release
-    #   triplet: x86-windows
 
-    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    #   compiler: msvc2
-    #   generator: Visual Studio 15
-    #   platform: Win32
-    #   configuration: Release
-    #   triplet: x86-windows
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+      compiler: msvc2
+      generator: Visual Studio 12
+      platform: Win32
+      configuration: Release
+      triplet: x86-windows
 
-    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    #   compiler: msvc2
-    #   generator: Visual Studio 16
-    #   platform: Win32
-    #   configuration: Release
-    #   triplet: x86-windows
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      compiler: msvc2
+      generator: Visual Studio 15
+      platform: Win32
+      configuration: Release
+      triplet: x86-windows
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      compiler: msvc2
+      generator: Visual Studio 16
+      platform: Win32
+      configuration: Release
+      triplet: x86-windows
 
 
     - compiler: msys2
       MINGW_PREFIX: /mingw64
       MINGW_CHOST: x86_64-w64-mingw32
       MSYS2_ARCH: x86_64
+
     - compiler: msys2
       MINGW_PREFIX: /mingw32
       MINGW_CHOST: i686-w64-mingw32
