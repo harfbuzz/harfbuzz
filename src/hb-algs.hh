@@ -167,15 +167,21 @@ template <unsigned Pos=1, typename Appl, typename V>
 auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
 (( hb_partial_t<Pos, Appl, V> (a, v) ))
 
+/* The following hacky replacement version is to make Visual Stuiod build:. */ \
+/* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
+#ifdef _MSC_VER
+#define HB_PARTIALIZE(Pos) \
+  template <typename _T> \
+  decltype(auto) operator () (_T&& _v) const \
+  { return hb_partial<Pos> (this, hb_forward<_T> (_v)); } \
+  static_assert (true, "")
+#else
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
   auto operator () (_T&& _v) const HB_AUTO_RETURN \
-  (hb_partial<Pos> ( \
-		    /* The following ugly line is a hacky replacement for "this". */ \
-		    /* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
-		    (true?this:nullptr), \
-		    hb_forward<_T> (_v))) \
+  (hb_partial<Pos> (this, hb_forward<_T> (_v))) \
   static_assert (true, "")
+#endif
 
 
 struct
