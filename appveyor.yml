@@ -23,12 +23,12 @@ environment:
 
     # Build only
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      compiler: msvc2
-      generator: Visual Studio 12
-      platform: Win32
-      configuration: Release
-      triplet: x86-windows
+    #- APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    #  compiler: msvc2
+    #  generator: Visual Studio 12
+    #  platform: Win32
+    #  configuration: Release
+    #  triplet: x86-windows
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       compiler: msvc2
