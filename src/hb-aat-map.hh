@@ -66,7 +66,7 @@ struct hb_aat_map_builder_t
     hb_aat_layout_feature_selector_t  setting;
     unsigned  seq; /* For stable sorting only. */
 
-    HB_INTERNAL static int cmp (const void *pa, const void *pb)
+    HB_INTERNAL static int cmp (const void *pa, const void *pb, void *arg HB_UNUSED)
     {
       const feature_info_t *a = (const feature_info_t *) pa;
       const feature_info_t *b = (const feature_info_t *) pb;

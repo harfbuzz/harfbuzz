@@ -287,7 +287,8 @@ struct active_feature_t {
   OPENTYPE_FEATURE_RECORD rec;
   unsigned int order;
 
-  HB_INTERNAL static int cmp (const void *pa, const void *pb) {
+  HB_INTERNAL static int cmp (const void *pa, const void *pb, void *arg HB_UNUSED)
+  {
     const active_feature_t *a = (const active_feature_t *) pa;
     const active_feature_t *b = (const active_feature_t *) pb;
     return a->rec.tagFeature < b->rec.tagFeature ? -1 : a->rec.tagFeature > b->rec.tagFeature ? 1 :
@@ -296,7 +297,7 @@ struct active_feature_t {
 	   0;
   }
   bool operator== (const active_feature_t *f)
-  { return cmp (this, f) == 0; }
+  { return cmp (this, f, nullptr) == 0; }
 };
 
 struct feature_event_t {
@@ -304,13 +305,13 @@ struct feature_event_t {
   bool start;
   active_feature_t feature;
 
-  HB_INTERNAL static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb, void *arg HB_UNUSED)
   {
     const feature_event_t *a = (const feature_event_t *) pa;
     const feature_event_t *b = (const feature_event_t *) pb;
     return a->index < b->index ? -1 : a->index > b->index ? 1 :
 	   a->start < b->start ? -1 : a->start > b->start ? 1 :
-	   active_feature_t::cmp (&a->feature, &b->feature);
+	   active_feature_t::cmp (&a->feature, &b->feature, nullptr);
   }
 };
 

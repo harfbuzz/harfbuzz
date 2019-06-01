@@ -266,7 +266,7 @@ struct hb_vector_t
     return nullptr;
   }
 
-  void qsort (int (*cmp)(const void*, const void*))
+  void qsort (int (*cmp)(const void*, const void*, void*))
   { as_array ().qsort (cmp); }
   void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array ().qsort (start, end); }

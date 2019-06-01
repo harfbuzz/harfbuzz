@@ -144,7 +144,7 @@ _hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
 }
 
 static int
-_hb_ot_name_entry_cmp (const void *pa, const void *pb)
+_hb_ot_name_entry_cmp (const void *pa, const void *pb, void *arg HB_UNUSED)
 {
   /* Compare by name_id, then language, then score, then index. */
 

@@ -112,7 +112,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       return (int) a.length - (int) length;
     return hb_memcmp (a.arrayZ, arrayZ, get_size ());
   }
-  HB_INTERNAL static int cmp (const void *pa, const void *pb)
+  HB_INTERNAL static int cmp (const void *pa, const void *pb, void *arg HB_UNUSED)
   {
     hb_array_t<Type> *a = (hb_array_t<Type> *) pa;
     hb_array_t<Type> *b = (hb_array_t<Type> *) pb;
@@ -138,16 +138,16 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     return not_found;
   }
 
-  hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
+  hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*, void *))
   {
     if (likely (length))
-      ::qsort (arrayZ, length, this->item_size, cmp_);
+      hb_qsort (arrayZ, length, this->item_size, cmp_, nullptr);
     return hb_sorted_array_t<Type> (*this);
   }
   hb_sorted_array_t<Type> qsort ()
   {
     if (likely (length))
-      ::qsort (arrayZ, length, this->item_size, Type::cmp);
+      hb_qsort (arrayZ, length, this->item_size, Type::cmp, nullptr);
     return hb_sorted_array_t<Type> (*this);
   }
   void qsort (unsigned int start, unsigned int end)
@@ -155,7 +155,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     end = hb_min (end, length);
     assert (start <= end);
     if (likely (start < end))
-      ::qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
+      hb_qsort (arrayZ + start, end - start, this->item_size, Type::cmp, nullptr);
   }
 
   /*
