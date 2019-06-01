@@ -169,7 +169,12 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
 
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
-  auto operator () (_T&& _v) const HB_AUTO_RETURN (hb_partial<Pos> (this, hb_forward<_T> (_v))) \
+  auto operator () (_T&& _v) const HB_AUTO_RETURN \
+  (hb_partial<Pos> ( \
+		    /* The following ugly line is a hack hacky replacement for "this". */ \
+		    /* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
+		    const_cast<const hb_decay<decltype (*this)> *> (this), \
+		    hb_forward<_T> (_v))) \
   static_assert (true, "")
 
 
