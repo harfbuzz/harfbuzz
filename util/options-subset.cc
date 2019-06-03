@@ -115,7 +115,7 @@ parse_drop_tables (const char *name,
     else
       hb_set_del (drop_tables, tag);
 
-    s = strtok(NULL, ", ");
+    s = strtok(nullptr, ", ");
   }
 
   return true;
