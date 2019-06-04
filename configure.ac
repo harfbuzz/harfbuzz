@@ -453,22 +453,6 @@ fi
 
 dnl ===========================================================================
 
-AC_CACHE_CHECK([for Solaris atomic operations], hb_cv_have_solaris_atomic_ops, [
-	hb_cv_have_solaris_atomic_ops=false
-	AC_TRY_LINK([
-		#include <atomic.h>
-		/* This requires Solaris Studio 12.2 or newer: */
-		#include <mbarrier.h>
-		void memory_barrier (void) { __machine_rw_barrier (); }
-		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
-		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
-		], [], hb_cv_have_solaris_atomic_ops=true
-	)
-])
-if $hb_cv_have_solaris_atomic_ops; then
-	AC_DEFINE(HAVE_SOLARIS_ATOMIC_OPS, 1, [Have Solaris __machine_*_barrier and atomic_* operations])
-fi
-
 if test "$os_win32" = no && ! $have_pthread; then
 	AC_CHECK_HEADERS(sched.h)
 	AC_SEARCH_LIBS(sched_yield,rt,AC_DEFINE(HAVE_SCHED_YIELD, 1, [Have sched_yield]))
