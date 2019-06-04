@@ -170,6 +170,8 @@ struct post
       hb_bytes_t st (name, len);
       const uint16_t *gid = (const uint16_t *) hb_bsearch (hb_addressof (st), gids, count,
 							   sizeof (gids[0]), cmp_key, (void *) this);
+      free(gids);
+
       if (gid)
       {
 	*glyph = *gid;
