@@ -56,11 +56,11 @@ struct CFF2FDSelect
     TRACE_SANITIZE (this);
 
     return_trace (likely (c->check_struct (this) && (format == 0 || format == 3 || format == 4) &&
-			  (format == 0)?
+			  ((format == 0)?
 			  u.format0.sanitize (c, fdcount):
 			    ((format == 3)?
 			    u.format3.sanitize (c, fdcount):
-			    u.format4.sanitize (c, fdcount))));
+			    u.format4.sanitize (c, fdcount)))));
   }
 
   bool serialize (hb_serialize_context_t *c, const CFF2FDSelect &src, unsigned int num_glyphs)
