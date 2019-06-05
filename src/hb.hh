@@ -183,7 +183,14 @@
 #include <stdarg.h>
 
 #if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+#ifdef __MINGW32_VERSION
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#else
 #include <intrin.h>
+#endif
 #endif
 
 #define HB_PASTE1(a,b) a##b

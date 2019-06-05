@@ -400,7 +400,7 @@ hb_bit_storage (T v)
     return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
 #endif
 
-#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || (defined(__MINGW32__) && (__GNUC__ < 4))
   if (sizeof (T) <= sizeof (unsigned int))
   {
     unsigned long where;
@@ -474,7 +474,7 @@ hb_ctz (T v)
     return __builtin_ctzll (v);
 #endif
 
-#if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1500) || (defined(__MINGW32__) && (__GNUC__ < 4))
   if (sizeof (T) <= sizeof (unsigned int))
   {
     unsigned long where;
