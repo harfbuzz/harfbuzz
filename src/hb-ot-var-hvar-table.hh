@@ -159,7 +159,7 @@ struct index_map_subset_plan_t
 
     unsigned int	last_val = (unsigned int)-1;
     hb_codepoint_t	last_gid = (hb_codepoint_t)-1;
-    hb_codepoint_t	gid = (hb_codepoint_t)MIN(index_map.get_map_count (), plan->num_output_glyphs ());
+    hb_codepoint_t	gid = (hb_codepoint_t) hb_min (index_map.get_map_count (), plan->num_output_glyphs ());
 
     outer_bit_count = (index_map.get_width () * 8) - index_map.get_inner_bit_count ();
     max_inners.resize (inner_maps.length);

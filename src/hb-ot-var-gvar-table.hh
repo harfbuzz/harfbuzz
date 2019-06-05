@@ -164,7 +164,7 @@ struct TupleVarHeader
 	else
 	{ if (peak != end) scalar *= (float)(end - v) / (end - peak); }
       }
-      else if (!v || v < MIN (0, peak) || v > MAX (0, peak)) return 0.f;
+      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) return 0.f;
       else
       	scalar *= (float)v / peak;
     }
@@ -567,9 +567,9 @@ struct gvar
 
       if (prev_val == next_val)
       	return (prev_delta == next_delta)? prev_delta: 0.f;
-      else if (target_val <= MIN (prev_val, next_val))
+      else if (target_val <= hb_min (prev_val, next_val))
       	return (prev_val < next_val) ? prev_delta: next_delta;
-      else if (target_val >= MAX (prev_val, next_val))
+      else if (target_val >= hb_max (prev_val, next_val))
       	return (prev_val > next_val)? prev_delta: next_delta;
 
       /* linear interpolation */

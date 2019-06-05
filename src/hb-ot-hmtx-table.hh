@@ -139,7 +139,7 @@ struct hmtxvmtx
 	  if (c->plan->old_gid_for_new_gid (_, &old_gid))
             return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
           else
-	    return hb_pair (0u, 0u);
+	    return hb_pair (0u, 0);
 	})
     ;
 

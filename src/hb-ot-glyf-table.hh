@@ -691,10 +691,10 @@ struct glyf
 
       void add (const contour_point_t &p)
       {
-      	min.x = MIN (min.x, p.x);
-      	min.y = MIN (min.y, p.y);
-      	max.x = MAX (max.x, p.x);
-      	max.y = MAX (max.y, p.y);
+      	min.x = hb_min (min.x, p.x);
+      	min.y = hb_min (min.y, p.y);
+      	max.x = hb_max (max.x, p.x);
+      	max.y = hb_max (max.y, p.y);
       }
 
       bool empty () const { return (min.x >= max.x) || (min.y >= max.y); }
