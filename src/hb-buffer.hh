@@ -347,7 +347,13 @@ struct hb_buffer_t
 
   HB_INTERNAL void sort (unsigned int start, unsigned int end, int(*compar)(const hb_glyph_info_t *, const hb_glyph_info_t *));
 
-  bool messaging () { return unlikely (message_func); }
+  bool messaging ()
+  {
+#ifdef HB_NO_BUFFER_MESSAGE
+    return false;
+#endif
+    return unlikely (message_func);
+  }
   bool message (hb_font_t *font, const char *fmt, ...) HB_PRINTF_FUNC(3, 4)
   {
     if (!messaging ())
