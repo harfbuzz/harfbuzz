@@ -16,9 +16,15 @@ trySubset (hb_face_t *face,
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_subset_input_set_drop_hints (input, drop_hints);
-  hb_subset_input_set_drop_layout (input, drop_layout);
   hb_subset_input_set_retain_gids (input, retain_gids);
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+
+  if (!drop_layout)
+  {
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'S', 'U', 'B'));
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'P', 'O', 'S'));
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'D', 'E', 'F'));
+  }
 
   for (int i = 0; i < text_length; i++)
   {
@@ -47,7 +53,7 @@ trySubset (hb_face_t *face,
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
-				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
 
   /* Just test this API here quickly. */

@@ -31,6 +31,7 @@ HB_BASE_sources = \
 	hb-cff1-interp-cs.hh \
 	hb-cff2-interp-cs.hh \
 	hb-common.cc \
+	hb-config.hh \
 	hb-debug.hh \
 	hb-dispatch.hh \
 	hb-face.cc \
@@ -147,6 +148,8 @@ HB_BASE_sources = \
 	hb-shaper.hh \
 	hb-static.cc \
 	hb-string-array.hh \
+	hb-ucd-table.hh \
+	hb-ucd.cc \
 	hb-unicode-emoji-table.hh \
 	hb-unicode.cc \
 	hb-unicode.hh \
@@ -226,9 +229,6 @@ HB_DIRECTWRITE_headers = hb-directwrite.h
 HB_UNISCRIBE_sources = hb-uniscribe.cc
 HB_UNISCRIBE_headers = hb-uniscribe.h
 
-# Additional supplemental sources
-HB_UCDN_sources  = hb-ucdn.cc
-
 # Sources for libharfbuzz-gobject and libharfbuzz-icu
 HB_ICU_sources = hb-icu.cc
 HB_ICU_headers = hb-icu.h
@@ -244,9 +244,6 @@ HB_SUBSET_sources = \
 	hb-subset-cff1.hh \
 	hb-subset-cff2.cc \
 	hb-subset-cff2.hh \
-	hb-subset-glyf.cc \
-	hb-subset-glyf.hh \
-	hb-subset-glyf.hh \
 	hb-subset-input.cc \
 	hb-subset-input.hh \
 	hb-subset-plan.cc \

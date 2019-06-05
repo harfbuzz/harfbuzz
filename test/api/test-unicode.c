@@ -755,6 +755,10 @@ test_unicode_normalization (gconstpointer user_data)
   g_assert (hb_unicode_compose (uf, 0xCE20, 0x11B8, &ab) && ab == 0xCE31);
   g_assert (hb_unicode_compose (uf, 0x110E, 0x1173, &ab) && ab == 0xCE20);
 
+  g_assert (!hb_unicode_compose (uf, 0xAC00, 0x11A7, &ab));
+  g_assert (hb_unicode_compose (uf, 0xAC00, 0x11A8, &ab) && ab == 0xAC01);
+  g_assert (!hb_unicode_compose (uf, 0xAC01, 0x11A8, &ab));
+
 
   /* Test decompose() */
 

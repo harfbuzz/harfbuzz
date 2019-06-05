@@ -138,7 +138,7 @@ bool
 OT::GDEF::is_blacklisted (hb_blob_t *blob,
 			  hb_face_t *face) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   /* The ugly business of blacklisting individual fonts' tables happen here!
@@ -158,84 +158,82 @@ OT::GDEF::is_blacklisted (hb_blob_t *blob,
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279693
    *     https://bugzilla.mozilla.org/show_bug.cgi?id=1279875
    */
-#define ENCODE(x,y,z) (((uint64_t) (x) << 48) | ((uint64_t) (y) << 24) | (uint64_t) (z))
-  switch ENCODE(blob->length,
-		face->table.GSUB->table.get_length (),
-		face->table.GPOS->table.get_length ())
+  switch HB_CODEPOINT_ENCODE3(blob->length,
+			      face->table.GSUB->table.get_length (),
+			      face->table.GPOS->table.get_length ())
   {
     /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
-    case ENCODE (442, 2874, 42038):
+    case HB_CODEPOINT_ENCODE3 (442, 2874, 42038):
     /* sha1sum:37fc8c16a0894ab7b749e35579856c73c840867b Windows 7? timesbi.ttf */
-    case ENCODE (430, 2874, 40662):
+    case HB_CODEPOINT_ENCODE3 (430, 2874, 40662):
     /* sha1sum:19fc45110ea6cd3cdd0a5faca256a3797a069a80 Windows 7 timesi.ttf */
-    case ENCODE (442, 2874, 39116):
+    case HB_CODEPOINT_ENCODE3 (442, 2874, 39116):
     /* sha1sum:6d2d3c9ed5b7de87bc84eae0df95ee5232ecde26 Windows 7 timesbi.ttf */
-    case ENCODE (430, 2874, 39374):
+    case HB_CODEPOINT_ENCODE3 (430, 2874, 39374):
     /* sha1sum:8583225a8b49667c077b3525333f84af08c6bcd8 OS X 10.11.3 Times New Roman Italic.ttf */
-    case ENCODE (490, 3046, 41638):
+    case HB_CODEPOINT_ENCODE3 (490, 3046, 41638):
     /* sha1sum:ec0f5a8751845355b7c3271d11f9918a966cb8c9 OS X 10.11.3 Times New Roman Bold Italic.ttf */
-    case ENCODE (478, 3046, 41902):
+    case HB_CODEPOINT_ENCODE3 (478, 3046, 41902):
     /* sha1sum:96eda93f7d33e79962451c6c39a6b51ee893ce8c  tahoma.ttf from Windows 8 */
-    case ENCODE (898, 12554, 46470):
+    case HB_CODEPOINT_ENCODE3 (898, 12554, 46470):
     /* sha1sum:20928dc06014e0cd120b6fc942d0c3b1a46ac2bc  tahomabd.ttf from Windows 8 */
-    case ENCODE (910, 12566, 47732):
+    case HB_CODEPOINT_ENCODE3 (910, 12566, 47732):
     /* sha1sum:4f95b7e4878f60fa3a39ca269618dfde9721a79e  tahoma.ttf from Windows 8.1 */
-    case ENCODE (928, 23298, 59332):
+    case HB_CODEPOINT_ENCODE3 (928, 23298, 59332):
     /* sha1sum:6d400781948517c3c0441ba42acb309584b73033  tahomabd.ttf from Windows 8.1 */
-    case ENCODE (940, 23310, 60732):
+    case HB_CODEPOINT_ENCODE3 (940, 23310, 60732):
     /* tahoma.ttf v6.04 from Windows 8.1 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
-    case ENCODE (964, 23836, 60072):
+    case HB_CODEPOINT_ENCODE3 (964, 23836, 60072):
     /* tahomabd.ttf v6.04 from Windows 8.1 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
-    case ENCODE (976, 23832, 61456):
+    case HB_CODEPOINT_ENCODE3 (976, 23832, 61456):
     /* sha1sum:e55fa2dfe957a9f7ec26be516a0e30b0c925f846  tahoma.ttf from Windows 10 */
-    case ENCODE (994, 24474, 60336):
+    case HB_CODEPOINT_ENCODE3 (994, 24474, 60336):
     /* sha1sum:7199385abb4c2cc81c83a151a7599b6368e92343  tahomabd.ttf from Windows 10 */
-    case ENCODE (1006, 24470, 61740):
+    case HB_CODEPOINT_ENCODE3 (1006, 24470, 61740):
     /* tahoma.ttf v6.91 from Windows 10 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
-    case ENCODE (1006, 24576, 61346):
+    case HB_CODEPOINT_ENCODE3 (1006, 24576, 61346):
     /* tahomabd.ttf v6.91 from Windows 10 x64, see https://bugzilla.mozilla.org/show_bug.cgi?id=1279925 */
-    case ENCODE (1018, 24572, 62828):
+    case HB_CODEPOINT_ENCODE3 (1018, 24572, 62828):
     /* sha1sum:b9c84d820c49850d3d27ec498be93955b82772b5  tahoma.ttf from Windows 10 AU */
-    case ENCODE (1006, 24576, 61352):
+    case HB_CODEPOINT_ENCODE3 (1006, 24576, 61352):
     /* sha1sum:2bdfaab28174bdadd2f3d4200a30a7ae31db79d2  tahomabd.ttf from Windows 10 AU */
-    case ENCODE (1018, 24572, 62834):
+    case HB_CODEPOINT_ENCODE3 (1018, 24572, 62834):
     /* sha1sum:b0d36cf5a2fbe746a3dd277bffc6756a820807a7  Tahoma.ttf from Mac OS X 10.9 */
-    case ENCODE (832, 7324, 47162):
+    case HB_CODEPOINT_ENCODE3 (832, 7324, 47162):
     /* sha1sum:12fc4538e84d461771b30c18b5eb6bd434e30fba  Tahoma Bold.ttf from Mac OS X 10.9 */
-    case ENCODE (844, 7302, 45474):
+    case HB_CODEPOINT_ENCODE3 (844, 7302, 45474):
     /* sha1sum:eb8afadd28e9cf963e886b23a30b44ab4fd83acc  himalaya.ttf from Windows 7 */
-    case ENCODE (180, 13054, 7254):
+    case HB_CODEPOINT_ENCODE3 (180, 13054, 7254):
     /* sha1sum:73da7f025b238a3f737aa1fde22577a6370f77b0  himalaya.ttf from Windows 8 */
-    case ENCODE (192, 12638, 7254):
+    case HB_CODEPOINT_ENCODE3 (192, 12638, 7254):
     /* sha1sum:6e80fd1c0b059bbee49272401583160dc1e6a427  himalaya.ttf from Windows 8.1 */
-    case ENCODE (192, 12690, 7254):
+    case HB_CODEPOINT_ENCODE3 (192, 12690, 7254):
     /* 8d9267aea9cd2c852ecfb9f12a6e834bfaeafe44  cantarell-fonts-0.0.21/otf/Cantarell-Regular.otf */
     /* 983988ff7b47439ab79aeaf9a45bd4a2c5b9d371  cantarell-fonts-0.0.21/otf/Cantarell-Oblique.otf */
-    case ENCODE (188, 248, 3852):
+    case HB_CODEPOINT_ENCODE3 (188, 248, 3852):
     /* 2c0c90c6f6087ffbfea76589c93113a9cbb0e75f  cantarell-fonts-0.0.21/otf/Cantarell-Bold.otf */
     /* 55461f5b853c6da88069ffcdf7f4dd3f8d7e3e6b  cantarell-fonts-0.0.21/otf/Cantarell-Bold-Oblique.otf */
-    case ENCODE (188, 264, 3426):
+    case HB_CODEPOINT_ENCODE3 (188, 264, 3426):
     /* d125afa82a77a6475ac0e74e7c207914af84b37a padauk-2.80/Padauk.ttf RHEL 7.2 */
-    case ENCODE (1058, 47032, 11818):
+    case HB_CODEPOINT_ENCODE3 (1058, 47032, 11818):
     /* 0f7b80437227b90a577cc078c0216160ae61b031 padauk-2.80/Padauk-Bold.ttf RHEL 7.2*/
-    case ENCODE (1046, 47030, 12600):
+    case HB_CODEPOINT_ENCODE3 (1046, 47030, 12600):
     /* d3dde9aa0a6b7f8f6a89ef1002e9aaa11b882290 padauk-2.80/Padauk.ttf Ubuntu 16.04 */
-    case ENCODE (1058, 71796, 16770):
+    case HB_CODEPOINT_ENCODE3 (1058, 71796, 16770):
     /* 5f3c98ccccae8a953be2d122c1b3a77fd805093f padauk-2.80/Padauk-Bold.ttf Ubuntu 16.04 */
-    case ENCODE (1046, 71790, 17862):
+    case HB_CODEPOINT_ENCODE3 (1046, 71790, 17862):
     /* 6c93b63b64e8b2c93f5e824e78caca555dc887c7 padauk-2.80/Padauk-book.ttf */
-    case ENCODE (1046, 71788, 17112):
+    case HB_CODEPOINT_ENCODE3 (1046, 71788, 17112):
     /* d89b1664058359b8ec82e35d3531931125991fb9 padauk-2.80/Padauk-bookbold.ttf */
-    case ENCODE (1058, 71794, 17514):
+    case HB_CODEPOINT_ENCODE3 (1058, 71794, 17514):
     /* 824cfd193aaf6234b2b4dc0cf3c6ef576c0d00ef padauk-3.0/Padauk-book.ttf */
-    case ENCODE (1330, 109904, 57938):
+    case HB_CODEPOINT_ENCODE3 (1330, 109904, 57938):
     /* 91fcc10cf15e012d27571e075b3b4dfe31754a8a padauk-3.0/Padauk-bookbold.ttf */
-    case ENCODE (1330, 109904, 58972):
+    case HB_CODEPOINT_ENCODE3 (1330, 109904, 58972):
     /* sha1sum: c26e41d567ed821bed997e937bc0c41435689e85  Padauk.ttf
      *  "Padauk Regular" "Version 2.5", see https://crbug.com/681813 */
-    case ENCODE (1004, 59092, 14836):
+    case HB_CODEPOINT_ENCODE3 (1004, 59092, 14836):
       return true;
-#undef ENCODE
   }
   return false;
 }
@@ -335,6 +333,12 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
+#ifdef HB_NO_LAYOUT_UNUSED
+  if (point_count)
+    *point_count = 0;
+  return 0;
+#endif
+
   return face->table.GDEF->table->get_attach_points (glyph,
 						     start_offset,
 						     point_count,
@@ -364,6 +368,12 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
+#ifdef HB_NO_LAYOUT_UNUSED
+  if (caret_count)
+    *caret_count = 0;
+  return 0;
+#endif
+
   unsigned int result_caret_count = 0;
   unsigned int result = font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, &result_caret_count, caret_array);
   if (result)
@@ -384,7 +394,7 @@ bool
 OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
@@ -412,7 +422,7 @@ bool
 OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
-#if defined(HB_NO_OT_LAYOUT_BLACKLIST)
+#ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
   return false;
@@ -500,6 +510,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   return false;
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_table_choose_script:
  * @face: #hb_face_t to work upon
@@ -521,6 +532,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   for (t = script_tags; *t; t++);
   return hb_ot_layout_table_select_script (face, table_tag, t - script_tags, script_tags, script_index, chosen_script);
 }
+#endif
 
 /**
  * hb_ot_layout_table_select_script:
@@ -672,6 +684,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 }
 
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_ot_layout_script_find_language:
  * @face: #hb_face_t to work upon
@@ -685,6 +698,8 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
  *
  * Return value: true if the language tag is found, false otherwise
  *
+ * Since: ??
+ * Deprecated: ??
  **/
 hb_bool_t
 hb_ot_layout_script_find_language (hb_face_t    *face,
@@ -700,6 +715,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 					      &language_tag,
 					      language_index);
 }
+#endif
 
 
 /**
@@ -715,7 +731,6 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  * or GPOS table, underneath the specified script index.
  *
  * Return value: true if the language tag is found, false otherwise
- *
  *
  * Since: 2.0.0
  **/
@@ -1735,7 +1750,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
   unsigned int len = 0;
   if (char_count && characters && start_offset < cv_params.characters.len)
   {
-    len = MIN (cv_params.characters.len - start_offset, *char_count);
+    len = hb_min (cv_params.characters.len - start_offset, *char_count);
     for (unsigned int i = 0; i < len; ++i)
       characters[i] = cv_params.characters[start_offset + i];
   }

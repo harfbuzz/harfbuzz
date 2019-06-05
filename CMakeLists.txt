@@ -35,7 +35,6 @@ endif ()
 ## HarfBuzz build configurations
 option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
 option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
-option(HB_BUILTIN_UCDN "Use HarfBuzz provided UCDN" ON)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
 option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
 if (APPLE)
@@ -70,7 +69,6 @@ option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and
 if (HB_CHECK)
   set (BUILD_SHARED_LIBS ON)
   set (HB_BUILD_UTILS ON)
-  set (HB_BUILTIN_UCDN ON)
   set (HB_HAVE_ICU)
   set (HB_HAVE_GLIB ON)
   #set (HB_HAVE_GOBJECT ON)
@@ -160,7 +158,6 @@ endfunction ()
 
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/util/Makefile.sources UTILSOURCES)
-file(READ ${PROJECT_SOURCE_DIR}/src/hb-ucdn/Makefile.sources UCDNSOURCES)
 
 extract_make_variable(HB_BASE_sources ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/")
@@ -190,9 +187,6 @@ extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SUBSET_CLI_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/")
-
-extract_make_variable(LIBHB_UCDN_sources ${UCDNSOURCES})
-add_prefix_to_list(LIBHB_UCDN_sources "${PROJECT_SOURCE_DIR}/src/hb-ucdn/")
 
 
 file(READ configure.ac CONFIGUREAC)
@@ -293,14 +287,6 @@ if (HB_HAVE_GRAPHITE2)
   list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
 
   mark_as_advanced(GRAPHITE2_INCLUDE_DIR GRAPHITE2_LIBRARY)
-endif ()
-
-if (HB_BUILTIN_UCDN)
-  include_directories(src/hb-ucdn)
-  add_definitions(-DHAVE_UCDN)
-
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ucdn.cc)
-  list(APPEND project_extra_sources ${LIBHB_UCDN_sources})
 endif ()
 
 if (HB_HAVE_GLIB)

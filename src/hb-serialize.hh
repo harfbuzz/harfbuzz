@@ -71,7 +71,7 @@ struct hb_serialize_context_t
     {
       bool is_wide: 1;
       unsigned position : 31;
-      int bias;
+      unsigned bias;
       objidx_t objidx;
     };
 
@@ -132,9 +132,9 @@ struct hb_serialize_context_t
   { return check_equal (v1 = v2, v2); }
 
   template <typename T> bool propagate_error (T &&obj)
-  { return check_success (!hb_deref_pointer (obj).in_error ()); }
+  { return check_success (!hb_deref (obj).in_error ()); }
 
-  template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts &&...os)
+  template <typename T1, typename... Ts> bool propagate_error (T1 &&o1, Ts&&... os)
   { return propagate_error (hb_forward<T1> (o1)) &&
 	   propagate_error (hb_forward<Ts> (os)...); }
 
@@ -165,7 +165,7 @@ struct hb_serialize_context_t
 
     /* Only "pack" if there exist other objects... Otherwise, don't bother.
      * Saves a move. */
-    if (packed.length == 1)
+    if (packed.length <= 1)
       return;
 
     pop_pack ();
@@ -285,27 +285,28 @@ struct hb_serialize_context_t
 
   void resolve_links ()
   {
+    if (unlikely (in_error ())) return;
+
     assert (!current);
+    assert (packed.length > 1);
 
-    for (auto obj_it = ++hb_iter (packed); obj_it; ++obj_it)
+    for (const object_t* parent : ++hb_iter (packed))
     {
-      const object_t &parent = **obj_it;
-
-      for (auto link_it = parent.links.iter (); link_it; ++link_it)
+      for (const object_t::link_t &link : parent->links)
       {
-        const object_t::link_t &link = *link_it;
-	const object_t &child = *packed[link.objidx];
-	unsigned offset = (child.head - parent.head) - link.bias;
+	const object_t* child = packed[link.objidx];
+	assert (link.bias <= (size_t) (parent->tail - parent->head));
+	unsigned offset = (child->head - parent->head) - link.bias;
 
 	if (link.is_wide)
 	{
-	  auto &off = * ((BEInt<uint32_t, 4> *) (parent.head + link.position));
+	  auto &off = * ((BEInt<uint32_t, 4> *) (parent->head + link.position));
 	  assert (0 == off);
 	  check_assign (off, offset);
 	}
 	else
 	{
-	  auto &off = * ((BEInt<uint16_t, 2> *) (parent.head + link.position));
+	  auto &off = * ((BEInt<uint16_t, 2> *) (parent->head + link.position));
 	  assert (0 == off);
 	  check_assign (off, offset);
 	}
@@ -322,12 +323,12 @@ struct hb_serialize_context_t
       allocate_size<void> (alignment - l);
   }
 
+  template <typename Type = void>
+  Type *start_embed (const Type *obj HB_UNUSED = nullptr) const
+  { return reinterpret_cast<Type *> (this->head); }
   template <typename Type>
-  Type *start_embed (const Type *_ HB_UNUSED = nullptr) const
-  {
-    Type *ret = reinterpret_cast<Type *> (this->head);
-    return ret;
-  }
+  Type *start_embed (const Type &obj) const
+  { return start_embed (hb_addressof (obj)); }
 
   /* Following two functions exist to allow setting breakpoint on. */
   void err_ran_out_of_room () { this->ran_out_of_room = true; }
@@ -357,50 +358,67 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  Type *embed (const Type &obj)
+  Type *embed (const Type *obj)
   {
-    unsigned int size = obj.get_size ();
+    unsigned int size = obj->get_size ();
     Type *ret = this->allocate_size<Type> (size);
     if (unlikely (!ret)) return nullptr;
-    memcpy (ret, &obj, size);
+    memcpy (ret, obj, size);
     return ret;
   }
+  template <typename Type>
+  Type *embed (const Type &obj)
+  { return embed (hb_addressof (obj)); }
+
+  template <typename Type, typename ...Ts> auto
+  _copy (const Type &src, hb_priority<1>, Ts&&... ds) HB_RETURN
+  (Type *, src.copy (this, hb_forward<Ts> (ds)...))
 
   template <typename Type> auto
-  _copy (const Type &obj, hb_priority<1>) const HB_RETURN (Type *, obj.copy (this))
-
-  template <typename Type> auto
-  _copy (const Type &obj, hb_priority<0>) const -> decltype (&(obj = obj))
+  _copy (const Type &src, hb_priority<0>) -> decltype (&(src = src))
   {
     Type *ret = this->allocate_size<Type> (sizeof (Type));
     if (unlikely (!ret)) return nullptr;
-    *ret = obj;
+    *ret = src;
     return ret;
   }
 
   /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
    * instead of memcpy(). */
-  template <typename Type>
-  Type *copy (const Type &obj) { return _copy (obj, hb_prioritize); }
+  template <typename Type, typename ...Ts>
+  Type *copy (const Type &src, Ts&&... ds)
+  { return _copy (src, hb_prioritize, hb_forward<Ts> (ds)...); }
+  template <typename Type, typename ...Ts>
+  Type *copy (const Type *src, Ts&&... ds)
+  { return copy (*src, hb_forward<Ts> (ds)...); }
 
   template <typename Type>
-  hb_serialize_context_t &operator << (const Type &obj) { embed (obj); return *this; }
+  hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }
 
+  template <typename Type>
+  Type *extend_size (Type *obj, unsigned int size)
+  {
+    assert (this->start <= (char *) obj);
+    assert ((char *) obj <= this->head);
+    assert ((char *) obj + size >= this->head);
+    if (unlikely (!this->allocate_size<Type> (((char *) obj) + size - this->head))) return nullptr;
+    return reinterpret_cast<Type *> (obj);
+  }
   template <typename Type>
   Type *extend_size (Type &obj, unsigned int size)
-  {
-    assert (this->start <= (char *) &obj);
-    assert ((char *) &obj <= this->head);
-    assert ((char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return nullptr;
-    return reinterpret_cast<Type *> (&obj);
-  }
+  { return extend_size (hb_addressof (obj), size); }
 
   template <typename Type>
-  Type *extend_min (Type &obj) { return extend_size (obj, obj.min_size); }
-
+  Type *extend_min (Type *obj) { return extend_size (obj, obj->min_size); }
   template <typename Type>
-  Type *extend (Type &obj) { return extend_size (obj, obj.get_size ()); }
+  Type *extend_min (Type &obj) { return extend_min (hb_addressof (obj)); }
+
+  template <typename Type, typename ...Ts>
+  Type *extend (Type *obj, Ts&&... ds)
+  { return extend_size (obj, obj->get_size (hb_forward<Ts> (ds)...)); }
+  template <typename Type, typename ...Ts>
+  Type *extend (Type &obj, Ts&&... ds)
+  { return extend (hb_addressof (obj), hb_forward<Ts> (ds)...); }
 
   /* Output routines. */
   hb_bytes_t copy_bytes () const

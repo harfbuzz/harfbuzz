@@ -33,11 +33,12 @@
       <xi:include href="usermanual-install-harfbuzz.xml"/>
       <xi:include href="usermanual-getting-started.xml"/>
       <xi:include href="usermanual-shaping-concepts.xml"/>
+      <xi:include href="usermanual-object-model.xml"/>
       <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
       <xi:include href="usermanual-fonts-and-faces.xml"/>
-      <xi:include href="usermanual-clusters.xml"/>
       <xi:include href="usermanual-opentype-features.xml"/>
-      <xi:include href="usermanual-glyph-information.xml"/>
+      <xi:include href="usermanual-clusters.xml"/>
+      <xi:include href="usermanual-utilities.xml"/>
   </part>
 
   <part>

@@ -10,6 +10,7 @@ EXTRA_DIST += \
 	expected/basics \
 	expected/full-font \
 	expected/japanese \
+	expected/layout \
 	fonts \
 	profiles \
 	$(NULL)

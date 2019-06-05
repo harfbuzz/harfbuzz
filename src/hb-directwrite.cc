@@ -530,12 +530,12 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  { \
+  do { \
     unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
     assert (_consumed <= scratch_size); \
     scratch += _consumed; \
     scratch_size -= _consumed; \
-  }
+  } while (0)
 
 #define utf16_index() var1.u32
 
@@ -778,7 +778,7 @@ retry_getglyphs:
   {
     uint32_t *p =
       &vis_clusters[log_clusters[buffer->info[i].utf16_index ()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphCount; i++)
     if (vis_clusters[i] == (uint32_t) -1)
@@ -930,7 +930,9 @@ _hb_directwrite_font_release (void *data)
 
 /**
  * hb_directwrite_face_create:
- * @font_face:
+ * @font_face: a DirectWrite IDWriteFontFace object.
+ *
+ * Return value: #hb_face_t object corresponding to the given input
  *
  * Since: 2.4.0
  **/
@@ -945,9 +947,11 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 
 /**
 * hb_directwrite_face_get_font_face:
-* @face:
+* @face: a #hb_face_t object
 *
-* Since: REPLACEME
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
+*
+* Since: 2.5.0
 **/
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)

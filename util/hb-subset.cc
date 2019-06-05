@@ -43,7 +43,7 @@ struct subset_consumer_t
              const font_options_t *font_opts)
   {
     font = hb_font_reference (font_opts->get_font ());
-    input = hb_subset_input_create_or_fail ();
+    input = hb_subset_input_reference (subset_options.input);
   }
 
   void consume_line (const char   *text,
@@ -89,12 +89,6 @@ struct subset_consumer_t
 
   void finish (const font_options_t *font_opts)
   {
-    hb_subset_input_set_drop_layout (input, !subset_options.keep_layout);
-    hb_subset_input_set_drop_hints (input, subset_options.drop_hints);
-    hb_subset_input_set_retain_gids (input, subset_options.retain_gids);
-    hb_subset_input_set_desubroutinize (input, subset_options.desubroutinize);
-    hb_set_set (hb_subset_input_nameid_set (input), subset_options.name_ids);
-
     hb_face_t *face = hb_font_get_face (font);
 
     hb_face_t *new_face = hb_subset (face, input);

@@ -576,7 +576,7 @@ struct CFF1StringIndex : CFF1Index
     TRACE_SERIALIZE (this);
     if (unlikely ((strings.count == 0) || (sidmap.get_count () == 0)))
     {
-      if (!unlikely (c->extend_min (this->count)))
+      if (unlikely (!c->extend_min (this->count)))
 	return_trace (false);
       count = 0;
       return_trace (true);
@@ -599,9 +599,9 @@ struct CFF1StringIndex : CFF1Index
   }
 
   /* in parallel to above */
-  unsigned int calculate_serialized_size (unsigned int &offSize /*OUT*/, const hb_bimap_t &sidmap) const
+  unsigned int calculate_serialized_size (unsigned int &offSize_ /*OUT*/, const hb_bimap_t &sidmap) const
   {
-    offSize = 0;
+    offSize_ = 0;
     if ((count == 0) || (sidmap.get_count () == 0))
       return count.static_size;
 
@@ -610,8 +610,8 @@ struct CFF1StringIndex : CFF1Index
       if (sidmap[i] != HB_MAP_VALUE_INVALID)
 	dataSize += length_at (i);
 
-    offSize = calcOffSize(dataSize);
-    return CFF1Index::calculate_serialized_size (offSize, sidmap.get_count (), dataSize);
+    offSize_ = calcOffSize(dataSize);
+    return CFF1Index::calculate_serialized_size (offSize_, sidmap.get_count (), dataSize);
   }
 };
 

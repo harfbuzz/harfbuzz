@@ -97,12 +97,12 @@ struct CFFIndex
   unsigned int offset_array_size () const
   { return calculate_offset_array_size (offSize, count); }
 
-  static unsigned int calculate_serialized_size (unsigned int offSize, unsigned int count, unsigned int dataSize)
+  static unsigned int calculate_serialized_size (unsigned int offSize_, unsigned int count, unsigned int dataSize)
   {
     if (count == 0)
       return COUNT::static_size;
     else
-      return min_size + calculate_offset_array_size (offSize, count) + dataSize;
+      return min_size + calculate_offset_array_size (offSize_, count) + dataSize;
   }
 
   bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
@@ -132,7 +132,7 @@ struct CFFIndex
       if (unlikely (!c->extend_min (*this))) return_trace (false);
       this->count = byteArray.length;
       this->offSize = offSize_;
-      if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
+      if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
 	return_trace (false);
 
       /* serialize indices */
@@ -167,7 +167,7 @@ struct CFFIndex
     byteArray.resize (buffArray.length);
     for (unsigned int i = 0; i < byteArray.length; i++)
     {
-      byteArray[i] = byte_str_t (buffArray[i].arrayZ (), buffArray[i].length);
+      byteArray[i] = byte_str_t (buffArray[i].arrayZ, buffArray[i].length);
     }
     bool result = this->serialize (c, offSize_, byteArray);
     byteArray.fini ();
@@ -277,7 +277,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = dataArrayLen;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
       return_trace (false);
 
     /* serialize indices */
@@ -428,7 +428,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = fontDicts.length;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (fontDicts.length + 1))))
       return_trace (false);
 
     /* serialize font dict offsets */
@@ -465,7 +465,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     this->count = fdCount;
     this->offSize = offSize_;
-    if (!unlikely (c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (fdCount + 1))))
       return_trace (false);
 
     /* serialize font dict offsets */
@@ -604,9 +604,9 @@ struct FDSelect {
     TRACE_SANITIZE (this);
 
     return_trace (likely (c->check_struct (this) && (format == 0 || format == 3) &&
-			  (format == 0)?
+			  ((format == 0)?
 			  u.format0.sanitize (c, fdcount):
-			  u.format3.sanitize (c, fdcount)));
+			  u.format3.sanitize (c, fdcount))));
   }
 
   bool serialize (hb_serialize_context_t *c, const FDSelect &src, unsigned int num_glyphs)

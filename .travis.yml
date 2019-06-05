@@ -1,5 +1,5 @@
 # Build Configuration for Travis
-dist: trusty
+dist: xenial
 
 language: cpp
 

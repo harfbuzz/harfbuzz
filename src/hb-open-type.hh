@@ -57,7 +57,7 @@ template <typename Type, unsigned int Size>
 struct IntType
 {
   typedef Type type;
-  typedef typename hb_signedness_int (hb_is_signed (Type)) wide_type;
+  typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
   IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
   operator wide_type () const { return v; }
@@ -110,7 +110,7 @@ struct F2DOT14 : HBINT16
   F2DOT14& operator = (uint16_t i ) { HBINT16::operator= (i); return *this; }
   // 16384 means 1<<14
   float to_float () const  { return ((int32_t) v) / 16384.f; }
-  void set_float (float f) { v = round (f * 16384.f); }
+  void set_float (float f) { v = roundf (f * 16384.f); }
   public:
   DEFINE_SIZE_STATIC (2);
 };
@@ -121,7 +121,7 @@ struct Fixed : HBINT32
   Fixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
-  void set_float (float f) { v = round (f * 65536.f); }
+  void set_float (float f) { v = roundf (f * 65536.f); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
@@ -279,28 +279,66 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return StructAtOffset<Type> (base, *this);
   }
 
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+  friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset ((const void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+  friend const Type& operator + (const OffsetTo &offset, const Base &base) { return offset ((const void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (Base, void *))>
+  friend Type& operator + (Base &&base, OffsetTo &offset) { return offset ((void *) base); }
+  template <typename Base,
+	    hb_enable_if (hb_is_convertible (Base, void *))>
+  friend Type& operator + (OffsetTo &offset, Base &&base) { return offset ((void *) base); }
+
   Type& serialize (hb_serialize_context_t *c, const void *base)
   {
     return * (Type *) Offset<OffsetType>::serialize (c, base);
   }
 
-  template <typename T, typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c, const T &src, const void *base, Ts &&...ds)
+  template <typename ...Ts>
+  bool serialize_subset (hb_subset_context_t *c,
+			 const OffsetTo& src,
+			 const void *src_base,
+			 const void *dst_base,
+			 Ts&&... ds)
   {
     *this = 0;
-    if (has_null && &src == &Null (T))
+    if (src.is_null ())
       return false;
 
     auto *s = c->serializer;
 
     s->push ();
 
-    bool ret = src.subset (c, hb_forward<Ts> (ds)...);
+    bool ret = c->dispatch (src_base+src, hb_forward<Ts> (ds)...);
 
     if (ret || !has_null)
-      s->add_link (*this, s->pop_pack (), base);
+      s->add_link (*this, s->pop_pack (), dst_base);
     else
       s->pop_discard ();
+
+    return ret;
+  }
+
+  /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
+  template <typename ...Ts>
+  bool serialize_copy (hb_serialize_context_t *c,
+		       const OffsetTo& src,
+		       const void *src_base,
+		       const void *dst_base,
+		       Ts&&... ds)
+  {
+    *this = 0;
+    if (src.is_null ())
+      return false;
+
+    c->push ();
+
+    bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
+
+    c->add_link (*this, c->pop_pack (), dst_base);
 
     return ret;
   }
@@ -315,12 +353,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
 		  (this->is_null () ||
-		   StructAtOffset<Type> (base, *this).sanitize (c, hb_forward<Ts> (ds)...) ||
+		   c->dispatch (StructAtOffset<Type> (base, *this), hb_forward<Ts> (ds)...) ||
 		   neuter (c)));
   }
 
@@ -339,11 +377,6 @@ template <typename Type, typename OffsetType=HBUINT16>
 using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
 template <typename Type>
 using LNNOffsetTo = LOffsetTo<Type, false>;
-
-template <typename Base, typename OffsetType, bool has_null, typename Type>
-static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
-template <typename Base, typename OffsetType, bool has_null, typename Type>
-static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType, has_null> &offset) { return offset (base); }
 
 
 /*
@@ -395,35 +428,42 @@ struct UnsizedArrayOf
   void qsort (unsigned int len, unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array (len).qsort (start, end); }
 
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend (*this, items_len))) return_trace (false);
     return_trace (true);
   }
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, Type))>
+  bool serialize (hb_serialize_context_t *c, Iterator items)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned count = items.len ();
+    if (unlikely (!serialize (c, count))) return_trace (false);
+    /* TODO Umm. Just exhaust the iterator instead?  Being extra
+     * cautious right now.. */
+    for (unsigned i = 0; i < count; i++, ++items)
+      arrayZ[i] = *items;
+    return_trace (true);
+  }
+
+  UnsizedArrayOf* copy (hb_serialize_context_t *c, unsigned count) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!as_array (count).copy (c))) return_trace (nullptr);
+    return_trace (out);
+  }
+
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -442,7 +482,7 @@ struct UnsizedArrayOf
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
-using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null> >;
+using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null>>;
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
 template <typename Type, typename OffsetType, bool has_null=true>
@@ -464,7 +504,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>
@@ -553,7 +593,7 @@ struct ArrayOf
     return_trace (true);
   }
   template <typename Iterator,
-	    hb_enable_if (hb_is_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_source_of (Iterator, Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
@@ -561,41 +601,30 @@ struct ArrayOf
     if (unlikely (!serialize (c, count))) return_trace (false);
     /* TODO Umm. Just exhaust the iterator instead?  Being extra
      * cautious right now.. */
-    for (unsigned i = 0; i < count; i++, items++)
+    for (unsigned i = 0; i < count; i++, ++items)
       arrayZ[i] = *items;
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  ArrayOf* copy (hb_serialize_context_t *c) const
   {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
-    return_trace (true);
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!c->extend_min (out))) return_trace (nullptr);
+    c->check_assign (out->len, len);
+    if (unlikely (!as_array ().copy (c))) return_trace (nullptr);
+    return_trace (out);
   }
+
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -628,9 +657,9 @@ using PString = ArrayOf<HBUINT8, HBUINT8>;
 
 /* Array of Offset's */
 template <typename Type>
-using OffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT16> >;
+using OffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT16>>;
 template <typename Type>
-using LOffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT32> >;
+using LOffsetArrayOf = ArrayOf<OffsetTo<Type, HBUINT32>>;
 template <typename Type>
 using LOffsetLArrayOf = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32>;
 
@@ -658,12 +687,12 @@ struct OffsetListOf : OffsetArrayOf<Type>
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->arrayZ[i].serialize_subset (c, (*this)[i], out);
+      out->arrayZ[i].serialize_subset (c, this->arrayZ[i], this, out);
     return_trace (true);
   }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (OffsetArrayOf<Type>::sanitize (c, this, hb_forward<Ts> (ds)...));
@@ -705,26 +734,16 @@ struct HeadlessArrayOf
     return_trace (true);
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  template <typename ...Ts>
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      arrayZ[0].sanitize (c);
-      Type v;
-      v = arrayZ[0];
-    }
-
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
+    unsigned int count = lenP1 ? lenP1 - 1 : 0;
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+	return_trace (false);
     return_trace (true);
   }
 
@@ -765,13 +784,13 @@ struct ArrayOfM1
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!arrayZ[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -822,14 +841,13 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
     return_trace (ret);
   }
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const Type))>
+	    hb_requires (hb_is_sorted_source_of (Iterator, Type))>
   bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     bool ret = ArrayOf<Type, LenType>::serialize (c, items);
     return_trace (ret);
   }
-
 
   template <typename T>
   Type &bsearch (const T &x, Type &not_found = Crap (Type))
@@ -863,7 +881,7 @@ struct BinSearchHeader
   {
     len = v;
     assert (len == v);
-    entrySelector = MAX (1u, hb_bit_storage (v)) - 1;
+    entrySelector = hb_max (1u, hb_bit_storage (v)) - 1;
     searchRange = 16 * (1u << entrySelector);
     rangeShift = v * 16 > searchRange
 		 ? 16 * v - searchRange
@@ -882,7 +900,7 @@ struct BinSearchHeader
 };
 
 template <typename Type, typename LenType=HBUINT16>
-using BinSearchArrayOf = SortedArrayOf<Type, BinSearchHeader<LenType> >;
+using BinSearchArrayOf = SortedArrayOf<Type, BinSearchHeader<LenType>>;
 
 
 struct VarSizedBinSearchHeader
@@ -947,33 +965,12 @@ struct VarSizedBinSearchArrayOf
   unsigned int get_size () const
   { return header.static_size + header.nUnits * header.unitSize; }
 
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return_trace (false);
-
-    /* Note: for structs that do not reference other structs,
-     * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size.  We just include
-     * a small unreachable expression to make sure the structs
-     * pointed to do have a simple sanitize() as well as an
-     * assignment opreator.  This ensures that they do not
-     * reference other structs via offsets.
-     */
-    if (false)
-    {
-      (*this)[0].sanitize (c);
-      Type v;
-      v = (*this)[0];
-    }
-
-    return_trace (true);
-  }
   template <typename ...Ts>
-  bool sanitize (hb_sanitize_context_t *c, Ts &&...ds) const
+  bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
+    if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, hb_forward<Ts> (ds)...)))

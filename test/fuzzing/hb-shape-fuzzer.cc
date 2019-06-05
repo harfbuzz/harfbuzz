@@ -10,7 +10,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
-				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
   hb_font_t *font = hb_font_create (face);
   hb_ot_font_set_funcs (font);
@@ -21,7 +21,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     hb_buffer_t *buffer = hb_buffer_create ();
     hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
     hb_buffer_guess_segment_properties (buffer);
-    hb_shape (font, buffer, NULL, 0);
+    hb_shape (font, buffer, nullptr, 0);
     hb_buffer_destroy (buffer);
   }
 
@@ -34,7 +34,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
   hb_buffer_guess_segment_properties (buffer);
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape (font, buffer, nullptr, 0);
   hb_buffer_destroy (buffer);
 
   /* Misc calls on face. */

@@ -524,7 +524,7 @@ hb_buffer_t::merge_clusters_impl (unsigned int start,
   unsigned int cluster = info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN<unsigned int> (cluster, info[i].cluster);
+    cluster = hb_min (cluster, info[i].cluster);
 
   /* Extend end */
   while (end < len && info[end - 1].cluster == info[end].cluster)
@@ -555,7 +555,7 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   unsigned int cluster = out_info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN<unsigned int> (cluster, out_info[i].cluster);
+    cluster = hb_min (cluster, out_info[i].cluster);
 
   /* Extend start */
   while (start && out_info[start - 1].cluster == out_info[start].cluster)
@@ -2026,7 +2026,10 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 bool
 hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
 {
+#ifdef HB_NO_BUFFER_MESSAGE
+  return false;
+#endif
   char buf[100];
-  vsnprintf (buf, sizeof (buf),  fmt, ap);
+  vsnprintf (buf, sizeof (buf), fmt, ap);
   return (bool) this->message_func (this, font, buf, this->message_data);
 }

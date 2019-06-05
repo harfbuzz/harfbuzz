@@ -34,7 +34,7 @@ jobs:
 
   distcheck:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:19.04
     steps:
       - checkout
       - run: apt update && apt install -y ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
@@ -192,18 +192,27 @@ jobs:
       - run: make -j32
       - run: make check || .ci/fail.sh | asan_symbolize | c++filt
 
-  fedora-O0-debug-outoftreebuild:
+  fedora-O0-debug-outoftreebuild-mingw:
     docker:
       - image: fedora
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python || true
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python wine mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" NOCONFIGURE=1 ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-      - run: mkdir build && cd build && ../configure && make && (make check || ../.ci/fail.sh)
+      - run: mkdir build && cd build && ../configure && make -j32 && (make check || ../.ci/fail.sh)
+      - run: pip install pefile
+      - run: mkdir winbuild32 && cd winbuild32 && ../mingw32.sh && make -j32 && make dist-win && cp harfbuzz-*-win32.zip harfbuzz-win32.zip
+      - run: mkdir winbuild64 && cd winbuild64 && ../mingw64.sh && make -j32 && make dist-win && cp harfbuzz-*-win64.zip harfbuzz-win64.zip
+      - store_artifacts:
+          path: winbuild32/harfbuzz-win32.zip
+          destination: harfbuzz-win32.zip
+      - store_artifacts:
+          path: winbuild64/harfbuzz-win64.zip
+          destination: harfbuzz-win64.zip
 
   cmake-gcc:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:19.04
     steps:
       - checkout
       - run: apt update && apt install -y ninja-build binutils cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
@@ -213,17 +222,17 @@ jobs:
       - run: CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
       - run: ninja -Cbuild install
 
-  cmake-oracledeveloperstudio:
-    docker:
-      - image: fedora
-    steps:
-      - checkout
-      - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
-      - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
-      - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_BUILTIN_UCDN=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
-      - run: make -Cbuild -j32
-      - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
-      - run: make -Cbuild install
+  #cmake-oracledeveloperstudio:
+  #  docker:
+  #    - image: fedora
+  #  steps:
+  #    - checkout
+  #    - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
+  #    - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
+  #    - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
+  #    - run: make -Cbuild -j32
+  #    - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
+  #    - run: make -Cbuild install
 
   crosscompile-notest-djgpp:
     docker:
@@ -253,12 +262,12 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja
       - run: ninja -Cbuild
 
-  crosscompile-cmake-notest-browser-asmjs:
+  crosscompile-cmake-notest-browser-asmjs-hb_tiny:
     docker:
       - image: dockcross/browser-asmjs
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja
+      - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY"
       - run: ninja -Cbuild
 
   crosscompile-cmake-notest-linux-arm64:
@@ -308,7 +317,7 @@ workflows:
       - clang-msan
       - clang-tsan
       - clang-ubsan
-      - fedora-O0-debug-outoftreebuild
+      - fedora-O0-debug-outoftreebuild-mingw
 
       # cmake based builds
       - cmake-gcc
@@ -322,7 +331,7 @@ workflows:
 
       ## cmake
       - crosscompile-cmake-notest-android-arm
-      - crosscompile-cmake-notest-browser-asmjs
+      - crosscompile-cmake-notest-browser-asmjs-hb_tiny
       - crosscompile-cmake-notest-linux-arm64
       - crosscompile-cmake-notest-linux-mips
       #- crosscompile-cmake-notest-windows-x64
