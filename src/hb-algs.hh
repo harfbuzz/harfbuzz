@@ -167,13 +167,38 @@ template <unsigned Pos=1, typename Appl, typename V>
 auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
 (( hb_partial_t<Pos, Appl, V> (a, v) ))
 
-/* The following hacky replacement version is to make Visual Stuiod build:. */ \
-/* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
+/* The following, HB_PARTIALIZE, macro uses a particular corner-case
+ * of C++11 that is not particularly well-supported by all compilers.
+ * What's happening is that it's using "this" in a trailing return-type
+ * via decltype().  Broken compilers deduce the type of "this" pointer
+ * in that context differently from what it resolves to in the body
+ * of the function.
+ *
+ * One probable cause of this is that at the time of trailing return
+ * type declaration, "this" points to an incomplete type, whereas in
+ * the function body the type is complete.  That doesn't justify the
+ * error in any way, but is probably what's happening.
+ *
+ * In the case of MSVC, we get around this by using C++14 "decltype(auto)"
+ * which deduces the type from the actual return statement.  For gcc 4.8
+ * we use "this+0" instead of "this" which produces an rvalue that seems
+ * to do be deduces as the same type with this particular compiler.  Note
+ * that "this+0" is illegal in the trailing decltype position since at
+ * that point this points to incomplete type!  But seems to do the trick.
+ */
 #ifdef _MSC_VER
+/* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
   decltype(auto) operator () (_T&& _v) const \
   { return hb_partial<Pos> (this, hb_forward<_T> (_v)); } \
+  static_assert (true, "")
+#elif defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ <= 8)
+/* https://github.com/harfbuzz/harfbuzz/issues/1724 */
+#define HB_PARTIALIZE(Pos) \
+  template <typename _T> \
+  auto operator () (_T&& _v) const HB_AUTO_RETURN \
+  (hb_partial<Pos> (this+0, hb_forward<_T> (_v))) \
   static_assert (true, "")
 #else
 #define HB_PARTIALIZE(Pos) \
