@@ -193,7 +193,7 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
   decltype(auto) operator () (_T&& _v) const \
   { return hb_partial<Pos> (this, hb_forward<_T> (_v)); } \
   static_assert (true, "")
-#elif defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ <= 8)
+#elif !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ <= 8)
 /* https://github.com/harfbuzz/harfbuzz/issues/1724 */
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
