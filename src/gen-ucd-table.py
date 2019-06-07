@@ -31,14 +31,15 @@ ce = {i for i,u in enumerate(ucd) if u['Comp_Ex'] == 'Y'}
 
 assert not any(v for v in dm.values() if len(v) not in (1,2))
 dm1 = sorted(set(v for v in dm.values() if len(v) == 1))
-dm1_array = ['0x%04Xu' % v for v in dm1]
+dm1_u16_array = ['0x%04Xu' % v for v in dm1 if v[0] <= 0xFFFF]
+dm1_u32_array = ['0x%04Xu' % v for v in dm1 if v[0] >  0xFFFF]
 dm1_order = {v:i+1 for i,v in enumerate(dm1)}
 dm2 = sorted((v, i) for i,v in dm.items() if len(v) == 2)
 dm2 = [("HB_CODEPOINT_ENCODE3 (0x%04Xu, 0x%04Xu, 0x%04Xu)" %
         (v+(i if i not in ce and not ccc[i] else 0,)), v)
        for v,i in dm2]
 dm2_array = [s for s,v in dm2]
-l = 1 + len(dm1_array)
+l = 1 + len(dm1_u16_array) + len(dm1_u32_array)
 dm2_order = {v[1]:i+l for i,v in enumerate(dm2)}
 dm_order = {None: 0}
 dm_order.update(dm1_order)
@@ -89,7 +90,8 @@ print()
 
 code = packTab.Code('_hb_ucd')
 sc_array, _ = code.addArray('hb_script_t', 'sc_map', sc_array)
-dm1_array, _ = code.addArray('hb_codepoint_t', 'dm1_map', dm1_array)
+dm1_16_array, _ = code.addArray('uint16_t', 'dm1_u16_map', dm1_u16_array)
+dm1_32_array, _ = code.addArray('uint32_t', 'dm1_u32_map', dm1_u32_array)
 dm2_array, _ = code.addArray('uint64_t', 'dm2_map', dm2_array)
 code.print_c(linkage='static inline')
 
