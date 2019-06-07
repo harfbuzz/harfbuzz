@@ -157,7 +157,7 @@ struct post
 
 	for (unsigned int i = 0; i < count; i++)
 	  gids[i] = i;
-	hb_sort_r (gids, count, sizeof (gids[0]), cmp_gids, (void *) this);
+	hb_qsort (gids, count, sizeof (gids[0]), cmp_gids, (void *) this);
 
 	if (unlikely (!gids_sorted_by_name.cmpexch (nullptr, gids)))
 	{
