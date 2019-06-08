@@ -1040,7 +1040,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
       bool result;
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-      unsigned int  subroffset = (plan.offsets.localSubrsInfos[i].size > 0)? priv_size: 0;
+      unsigned int subroffset = (plan.offsets.localSubrsInfos[i].size > 0) ? priv_size : 0;
       result = pd->serialize (&c, acc.privateDicts[i], privSzr, subroffset);
       if (unlikely (!result))
       {

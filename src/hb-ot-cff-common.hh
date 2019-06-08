@@ -82,22 +82,14 @@ struct str_buff_vec_t : hb_vector_t<str_buff_t>
 template <typename COUNT>
 struct CFFIndex
 {
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (likely ((count.sanitize (c) && count == 0) || /* empty INDEX */
-			  (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
-			   c->check_array (offsets, offSize, count + 1) &&
-			   c->check_array ((const HBUINT8*)data_base (), 1, max_offset () - 1))));
-  }
-
   static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)
   { return offSize * (count + 1); }
 
   unsigned int offset_array_size () const
   { return calculate_offset_array_size (offSize, count); }
 
-  static unsigned int calculate_serialized_size (unsigned int offSize_, unsigned int count, unsigned int dataSize)
+  static unsigned int calculate_serialized_size (unsigned int offSize_, unsigned int count,
+						 unsigned int dataSize)
   {
     if (count == 0)
       return COUNT::static_size;
@@ -199,11 +191,11 @@ struct CFFIndex
 
   unsigned int length_at (unsigned int index) const
   {
-	if (likely ((offset_at (index + 1) >= offset_at (index)) &&
-		    (offset_at (index + 1) <= offset_at (count))))
-	  return offset_at (index + 1) - offset_at (index);
-	else
-	  return 0;
+    if (likely ((offset_at (index + 1) >= offset_at (index)) &&
+	        (offset_at (index + 1) <= offset_at (count))))
+      return offset_at (index + 1) - offset_at (index);
+    else
+      return 0;
   }
 
   const unsigned char *data_base () const
@@ -216,12 +208,12 @@ struct CFFIndex
     if (likely (index < count))
       return byte_str_t (data_base () + offset_at (index) - 1, length_at (index));
     else
-      return Null(byte_str_t);
+      return Null (byte_str_t);
   }
 
   unsigned int get_size () const
   {
-    if (this != &Null(CFFIndex))
+    if (this != &Null (CFFIndex))
     {
       if (count > 0)
 	return min_size + offset_array_size () + (offset_at (count) - 1);
@@ -230,6 +222,15 @@ struct CFFIndex
     }
     else
       return 0;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely ((count.sanitize (c) && count == 0) || /* empty INDEX */
+			  (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
+			   c->check_array (offsets, offSize, count + 1) &&
+			   c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1))));
   }
 
   protected:
@@ -245,10 +246,10 @@ struct CFFIndex
   }
 
   public:
-  COUNT     count;	/* Number of object data. Note there are (count+1) offsets */
-  HBUINT8   offSize;      /* The byte size of each offset in the offsets array. */
-  HBUINT8   offsets[VAR]; /* The array of (count + 1) offsets into objects array (1-base). */
-  /* HBUINT8 data[VAR];      Object data */
+  COUNT		count;		/* Number of object data. Note there are (count+1) offsets */
+  HBUINT8	offSize;	/* The byte size of each offset in the offsets array. */
+  HBUINT8	offsets[VAR];	/* The array of (count + 1) offsets into objects array (1-base). */
+  /* HBUINT8 data[VAR];	Object data */
   public:
   DEFINE_SIZE_ARRAY (COUNT::static_size + HBUINT8::static_size, offsets);
 };
@@ -293,7 +294,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     /* serialize data */
     for (unsigned int i = 0; i < dataArrayLen; i++)
     {
-      TYPE  *dest = c->start_embed<TYPE> ();
+      TYPE *dest = c->start_embed<TYPE> ();
       if (unlikely (dest == nullptr ||
 		    !dest->serialize (c, dataArray[i], param1, param2)))
 	return_trace (false);
@@ -310,7 +311,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
 						 const PARAM &param)
   {
     /* determine offset size */
-    unsigned int  totalDataSize = 0;
+    unsigned int totalDataSize = 0;
     for (unsigned int i = 0; i < dataArrayLen; i++)
     {
       unsigned int dataSize = TYPE::calculate_serialized_size (dataArray[i], param);
@@ -334,10 +335,9 @@ struct Dict : UnsizedByteStr
   {
     TRACE_SERIALIZE (this);
     for (unsigned int i = 0; i < dictval.get_count (); i++)
-    {
       if (unlikely (!opszr.serialize (c, dictval[i], param)))
 	return_trace (false);
-    }
+
     return_trace (true);
   }
 
@@ -391,14 +391,10 @@ struct Dict : UnsizedByteStr
   { return serialize_int_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
 
   static bool serialize_offset4_op (hb_serialize_context_t *c, op_code_t op, int value)
-  {
-    return serialize_uint4_op (c, op, value);
-  }
+  { return serialize_uint4_op (c, op, value); }
 
   static bool serialize_offset2_op (hb_serialize_context_t *c, op_code_t op, int value)
-  {
-    return serialize_uint2_op (c, op, value);
-  }
+  { return serialize_uint2_op (c, op, value); }
 };
 
 struct TopDict : Dict {};
@@ -483,7 +479,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
       return_trace (false);
 
     /* serialize font dict offsets */
-    unsigned int  offset = 1;
+    unsigned int offset = 1;
     unsigned int fid = 0;
     for (; fid < fontDicts.length; fid++)
     {
@@ -575,9 +571,7 @@ struct FDSelect0 {
   }
 
   hb_codepoint_t get_fd (hb_codepoint_t glyph) const
-  {
-    return (hb_codepoint_t)fds[glyph];
-  }
+  { return (hb_codepoint_t) fds[glyph]; }
 
   unsigned int get_size (unsigned int num_glyphs) const
   { return HBUINT8::static_size * num_glyphs; }
@@ -588,7 +582,8 @@ struct FDSelect0 {
 };
 
 template <typename GID_TYPE, typename FD_TYPE>
-struct FDSelect3_4_Range {
+struct FDSelect3_4_Range
+{
   bool sanitize (hb_sanitize_context_t *c, const void * /*nullptr*/, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
@@ -597,12 +592,13 @@ struct FDSelect3_4_Range {
 
   GID_TYPE    first;
   FD_TYPE     fd;
-
+  public:
   DEFINE_SIZE_STATIC (GID_TYPE::static_size + FD_TYPE::static_size);
 };
 
 template <typename GID_TYPE, typename FD_TYPE>
-struct FDSelect3_4 {
+struct FDSelect3_4
+{
   unsigned int get_size () const
   { return GID_TYPE::static_size * 2 + ranges.get_size (); }
 
@@ -614,10 +610,8 @@ struct FDSelect3_4 {
       return_trace (false);
 
     for (unsigned int i = 1; i < nRanges (); i++)
-    {
       if (unlikely (ranges[i - 1].first >= ranges[i].first))
-	  return_trace (false);
-    }
+	return_trace (false);
 
     if (unlikely (!sentinel().sanitize (c) || (sentinel() != c->get_num_glyphs ())))
       return_trace (false);
@@ -649,17 +643,8 @@ struct FDSelect3_4 {
 typedef FDSelect3_4<HBUINT16, HBUINT8> FDSelect3;
 typedef FDSelect3_4_Range<HBUINT16, HBUINT8> FDSelect3_Range;
 
-struct FDSelect {
-  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
-  {
-    TRACE_SANITIZE (this);
-
-    return_trace (likely (c->check_struct (this) && (format == 0 || format == 3) &&
-			  ((format == 0)?
-			  u.format0.sanitize (c, fdcount):
-			  u.format3.sanitize (c, fdcount))));
-  }
-
+struct FDSelect
+{
   bool serialize (hb_serialize_context_t *c, const FDSelect &src, unsigned int num_glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -675,30 +660,46 @@ struct FDSelect {
 
   unsigned int get_size (unsigned int num_glyphs) const
   {
-    unsigned int size = format.static_size;
-    if (format == 0)
-      size += u.format0.get_size (num_glyphs);
-    else
-      size += u.format3.get_size ();
-    return size;
+    switch (format)
+    {
+    case 0: return format.static_size + u.format0.get_size (num_glyphs);
+    case 3: return format.static_size + u.format3.get_size ();
+    default:return 0;
+    }
   }
 
   hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
-    if (this == &Null(FDSelect))
+    if (this == &Null (FDSelect))
       return 0;
-    if (format == 0)
-      return u.format0.get_fd (glyph);
-    else
-      return u.format3.get_fd (glyph);
+    switch (format)
+    {
+    case 0: return u.format0.get_fd (glyph);
+    case 3: return u.format3.get_fd (glyph);
+    default:return 0;
+    }
   }
 
-  HBUINT8       format;
-  union {
-    FDSelect0   format0;
-    FDSelect3   format3;
-  } u;
+  bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (this)))
+      return_trace (false);
 
+    switch (format)
+    {
+    case 0: return_trace (u.format0.sanitize (c, fdcount));
+    case 3: return_trace (u.format3.sanitize (c, fdcount));
+    default:return_trace (false);
+    }
+  }
+
+  HBUINT8	format;
+  union {
+  FDSelect0	format0;
+  FDSelect3	format3;
+  } u;
+  public:
   DEFINE_SIZE_MIN (1);
 };
 
