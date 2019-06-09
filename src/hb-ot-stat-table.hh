@@ -191,10 +191,10 @@ struct AxisValue
 
     switch (u.format)
     {
-    case 1:  return_trace (likely (u.format1.sanitize (c)));
-    case 2:  return_trace (likely (u.format2.sanitize (c)));
-    case 3:  return_trace (likely (u.format3.sanitize (c)));
-    case 4:  return_trace (likely (u.format4.sanitize (c)));
+    case 1:  return_trace (u.format1.sanitize (c));
+    case 2:  return_trace (u.format2.sanitize (c));
+    case 3:  return_trace (u.format3.sanitize (c));
+    case 4:  return_trace (u.format4.sanitize (c));
     default: return_trace (true);
     }
   }
