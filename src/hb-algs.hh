@@ -667,9 +667,9 @@ Parameters:
   compar is the comparison function
   arg (optional) is a pointer to be passed to the comparison function
 
-void hb_sort(void *base, size_t nel, size_t width,
-             int (*compar)(const void *_a, const void *_b, [void *_arg]),
-             [void *arg]);
+void hb_qsort(void *base, size_t nel, size_t width,
+              int (*compar)(const void *_a, const void *_b, [void *_arg]),
+              [void *arg]);
 */
 
 #define SORT_R_SWAP(a,b,tmp) ((tmp) = (a), (a) = (b), (b) = (tmp))
