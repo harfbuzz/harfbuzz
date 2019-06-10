@@ -181,10 +181,9 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
  *
  * In the case of MSVC, we get around this by using C++14 "decltype(auto)"
  * which deduces the type from the actual return statement.  For gcc 4.8
- * we use "this+0" instead of "this" which produces an rvalue that seems
- * to do be deduces as the same type with this particular compiler.  Note
- * that "this+0" is illegal in the trailing decltype position since at
- * that point this points to incomplete type!  But seems to do the trick.
+ * we use "+this" instead of "this" which produces an rvalue that seems
+ * to be deduced as the same type with this particular compiler, and seem
+ * to be fine as default code path as well.
  */
 #ifdef _MSC_VER
 /* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
@@ -193,18 +192,12 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
   decltype(auto) operator () (_T&& _v) const \
   { return hb_partial<Pos> (this, hb_forward<_T> (_v)); } \
   static_assert (true, "")
-#elif !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ <= 8)
+#else
 /* https://github.com/harfbuzz/harfbuzz/issues/1724 */
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
   auto operator () (_T&& _v) const HB_AUTO_RETURN \
-  (hb_partial<Pos> (this+0, hb_forward<_T> (_v))) \
-  static_assert (true, "")
-#else
-#define HB_PARTIALIZE(Pos) \
-  template <typename _T> \
-  auto operator () (_T&& _v) const HB_AUTO_RETURN \
-  (hb_partial<Pos> (this, hb_forward<_T> (_v))) \
+  (hb_partial<Pos> (+this, hb_forward<_T> (_v))) \
   static_assert (true, "")
 #endif
 
