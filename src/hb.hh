@@ -515,20 +515,6 @@ typedef uint64_t hb_vector_size_impl_t;
 #define VAR 1
 
 
-/* fallback for round() */
-static inline double
-_hb_round (double x)
-{
-  if (x >= 0)
-    return floor (x + 0.5);
-  else
-    return ceil (x - 0.5);
-}
-#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
-#define round(x) _hb_round(x)
-#endif
-
-
 /* fallback for posix_memalign() */
 static inline int
 _hb_memalign(void **memptr, size_t alignment, size_t size)
