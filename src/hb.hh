@@ -372,10 +372,6 @@ static int errno = 0; /* Use something better? */
 #  endif
 #endif
 
-#ifdef HB_NO_SETLOCALE
-#define setlocale(Category, Locale) "C"
-#endif
-
 #ifdef HB_NO_GETENV
 #define getenv(Name) nullptr
 #endif

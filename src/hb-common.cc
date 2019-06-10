@@ -35,6 +35,9 @@
 #include <xlocale.h>
 #endif
 
+#ifdef HB_NO_SETLOCALE
+#define setlocale(Category, Locale) "C"
+#endif
 
 /**
  * SECTION:hb-common
