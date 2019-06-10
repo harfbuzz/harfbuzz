@@ -186,11 +186,27 @@ auto hb_partial (Appl&& a, V&& v) HB_AUTO_RETURN
  * that "this+0" is illegal in the trailing decltype position since at
  * that point this points to incomplete type!  But seems to do the trick.
  */
+#ifdef _MSC_VER
+/* https://github.com/harfbuzz/harfbuzz/issues/1730 */ \
+#define HB_PARTIALIZE(Pos) \
+  template <typename _T> \
+  decltype(auto) operator () (_T&& _v) const \
+  { return hb_partial<Pos> (this, hb_forward<_T> (_v)); } \
+  static_assert (true, "")
+#elif !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ <= 8)
+/* https://github.com/harfbuzz/harfbuzz/issues/1724 */
 #define HB_PARTIALIZE(Pos) \
   template <typename _T> \
   auto operator () (_T&& _v) const HB_AUTO_RETURN \
-  (hb_partial<Pos> (+this, hb_forward<_T> (_v))) \
+  (hb_partial<Pos> (this+0, hb_forward<_T> (_v))) \
   static_assert (true, "")
+#else
+#define HB_PARTIALIZE(Pos) \
+  template <typename _T> \
+  auto operator () (_T&& _v) const HB_AUTO_RETURN \
+  (hb_partial<Pos> (this, hb_forward<_T> (_v))) \
+  static_assert (true, "")
+#endif
 
 
 struct
