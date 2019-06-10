@@ -56,7 +56,7 @@ jobs:
       - run: make -j32
       - run: make check || .ci/fail.sh
       - run: make clean
-      - run: CFLAGS="-Os -D__OPTIMIZE_SIZE__" CXXFLAGS="-Os -DHB_NO_MMAP -D__OPTIMIZE_SIZE__" ./autogen.sh
+      - run: CFLAGS="-Os -DHB_OPTIMIZE_SIZE" CXXFLAGS="-Os -DHB_NO_MMAP -DHB_OPTIMIZE_SIZE" ./autogen.sh
       - run: make -j32
       - run: make check || .ci/fail.sh
 
