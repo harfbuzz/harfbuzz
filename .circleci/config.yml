@@ -45,7 +45,7 @@ jobs:
       - run: rm -rf harfbuzz-*
       - run: make distdir && cd harfbuzz-* && cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test && ninja -Cbuild install
 
-  alpine-O3-NOMMAP:
+  alpine-O3-Os-NOMMAP:
     docker:
       - image: alpine
     steps:
@@ -53,6 +53,10 @@ jobs:
       - run: apk update && apk add ragel make pkgconfig libtool autoconf automake gettext gcc g++ glib-dev freetype-dev cairo-dev python
       # C??FLAGS are not needed for a regular build
       - run: CFLAGS="-O3" CXXFLAGS="-O3 -DHB_NO_MMAP" ./autogen.sh
+      - run: make -j32
+      - run: make check || .ci/fail.sh
+      - run: make clean
+      - run: CFLAGS="-Os -D__OPTIMIZE_SIZE__" CXXFLAGS="-Os -DHB_NO_MMAP -D__OPTIMIZE_SIZE__" ./autogen.sh
       - run: make -j32
       - run: make check || .ci/fail.sh
 
@@ -307,7 +311,7 @@ workflows:
       - distcheck
 
       # autotools based builds
-      - alpine-O3-NOMMAP
+      - alpine-O3-Os-NOMMAP
       - archlinux-py3-all
       #- void-notest
       - gcc-valgrind
