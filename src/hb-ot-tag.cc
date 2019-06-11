@@ -145,7 +145,9 @@ hb_ot_all_tags_from_script (hb_script_t   script,
   hb_tag_t new_tag = hb_ot_new_tag_from_script (script);
   if (unlikely (new_tag != HB_OT_TAG_DEFAULT_SCRIPT))
   {
-    tags[i++] = new_tag | '3';
+    /* HB_SCRIPT_MYANMAR maps to 'mym2', but there is no 'mym3'. */
+    if (new_tag != HB_TAG('m','y','m','2'))
+      tags[i++] = new_tag | '3';
     if (*count > i)
       tags[i++] = new_tag;
   }
