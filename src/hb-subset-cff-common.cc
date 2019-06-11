@@ -226,7 +226,7 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
 						fdselect_ranges);
 
     default:
-      assert(false);
+      return_trace (false);
   }
 
   return_trace (true);
