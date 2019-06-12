@@ -204,7 +204,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::cff2> (plan);
       break;
     case HB_OT_TAG_VORG:
-      result = _subset<const OT::VORG> (plan);
+      result = _subset2<const OT::VORG> (plan);
       break;
 #endif
 
