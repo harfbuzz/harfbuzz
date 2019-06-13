@@ -160,6 +160,8 @@ struct shape_options_t : option_group_t
     invisible_glyph = 0;
     cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
     normalize_glyphs = false;
+    reverse = false;
+    reverse_clusters = false;
     verify = false;
     num_iterations = 1;
 
@@ -248,6 +250,12 @@ struct shape_options_t : option_group_t
 
     if (normalize_glyphs)
       hb_buffer_normalize_glyphs (buffer);
+
+    if (reverse)
+      hb_buffer_reverse (buffer);
+
+    if (reverse_clusters)
+      hb_buffer_reverse_clusters (buffer);
 
     if (verify && !verify_buffer (buffer, text_buffer, font, error))
       goto fail;
@@ -442,6 +450,8 @@ struct shape_options_t : option_group_t
   hb_codepoint_t invisible_glyph;
   hb_buffer_cluster_level_t cluster_level;
   hb_bool_t normalize_glyphs;
+  hb_bool_t reverse;
+  hb_bool_t reverse_clusters;
   hb_bool_t verify;
   unsigned int num_iterations;
 };
