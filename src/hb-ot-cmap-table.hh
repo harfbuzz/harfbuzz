@@ -848,11 +848,16 @@ struct cmap
     size_t final_size () const
     {
       return 4 // header
-	  +  8 * 3 // 3 EncodingRecord
+	  +  8 * num_enc_records
 	  +  CmapSubtableFormat4::get_sub_table_size (this->format4_segments)
 	  +  CmapSubtableFormat12::get_sub_table_size (this->format12_groups);
     }
 
+    unsigned int num_enc_records;
+    bool has_unicode_bmp;
+    bool has_unicode_ucs4;
+    bool has_ms_bmp;
+    bool has_ms_ucs4;
     hb_sorted_vector_t<CmapSubtableFormat4::segment_plan> format4_segments;
     hb_sorted_vector_t<CmapSubtableLongGroup> format12_groups;
   };
@@ -860,6 +865,12 @@ struct cmap
   bool _create_plan (const hb_subset_plan_t *plan,
 		     subset_plan *cmap_plan) const
   {
+    cmap_plan->has_unicode_bmp = find_subtable (0, 3);
+    cmap_plan->has_unicode_ucs4 = find_subtable (0, 4);
+    cmap_plan->has_ms_bmp = find_subtable (3, 1);
+    cmap_plan->has_ms_ucs4 = find_subtable (3, 10);
+    cmap_plan->num_enc_records = cmap_plan->has_unicode_bmp + cmap_plan->has_unicode_ucs4 + cmap_plan->has_ms_bmp + cmap_plan->has_ms_ucs4;
+  
     if (unlikely (!CmapSubtableFormat4::create_sub_table_plan (plan, &cmap_plan->format4_segments)))
       return false;
 
@@ -882,32 +893,60 @@ struct cmap
 
     table->version = 0;
 
-    if (unlikely (!table->encodingRecord.serialize (&c, /* numTables */ cmap_subset_plan.format12_groups ? 3 : 2))) return false;
+    if (unlikely (!table->encodingRecord.serialize (&c, cmap_subset_plan.num_enc_records))) return false;
 
     // TODO(grieger): Convert the below to a for loop
+    int enc_index = 0;
+    int unicode_bmp_index = 0;
+    int unicode_ucs4_index = 0;
+    int ms_bmp_index = 0;
+    int ms_ucs4_index = 0;
 
     // Format 4, Plat 0 Encoding Record
-    EncodingRecord &format4_plat0_rec = table->encodingRecord[0];
-    format4_plat0_rec.platformID = 0; // Unicode
-    format4_plat0_rec.encodingID = 3;
+    if (cmap_subset_plan.has_unicode_bmp)
+    {
+      unicode_bmp_index = enc_index;
+      EncodingRecord &format4_plat0_rec = table->encodingRecord[enc_index++];
+      format4_plat0_rec.platformID = 0; // Unicode
+      format4_plat0_rec.encodingID = 3;
+    }
+
+    // Format 12, Plat 0 Encoding Record
+    if (cmap_subset_plan.has_unicode_ucs4)
+    {
+      unicode_ucs4_index = enc_index;
+      EncodingRecord &format12_rec = table->encodingRecord[enc_index++];
+      format12_rec.platformID = 0; // Unicode
+      format12_rec.encodingID = 4; // Unicode UCS-4
+    }
 
     // Format 4, Plat 3 Encoding Record
-    EncodingRecord &format4_plat3_rec = table->encodingRecord[1];
-    format4_plat3_rec.platformID = 3; // Windows
-    format4_plat3_rec.encodingID = 1; // Unicode BMP
-
-    // Format 12 Encoding Record
-    if (cmap_subset_plan.format12_groups)
+    if (cmap_subset_plan.has_ms_bmp)
     {
-      EncodingRecord &format12_rec = table->encodingRecord[2];
+      ms_bmp_index = enc_index;
+      EncodingRecord &format4_plat3_rec = table->encodingRecord[enc_index++];
+      format4_plat3_rec.platformID = 3; // Windows
+      format4_plat3_rec.encodingID = 1; // Unicode BMP
+    }
+
+    // Format 12, Plat 3 Encoding Record
+    if (cmap_subset_plan.has_ms_ucs4)
+    {
+      ms_ucs4_index = enc_index;
+      EncodingRecord &format12_rec = table->encodingRecord[enc_index++];
       format12_rec.platformID = 3; // Windows
       format12_rec.encodingID = 10; // Unicode UCS-4
     }
 
     // Write out format 4 sub table
     {
-      CmapSubtable &subtable = format4_plat0_rec.subtable.serialize (&c, table);
-      format4_plat3_rec.subtable = (unsigned int) format4_plat0_rec.subtable;
+      if (unlikely (!cmap_subset_plan.has_unicode_bmp && !cmap_subset_plan.has_ms_bmp)) return false;
+      EncodingRecord &format4_rec = cmap_subset_plan.has_unicode_bmp?
+				     table->encodingRecord[unicode_bmp_index]:
+				     table->encodingRecord[ms_bmp_index];
+      CmapSubtable &subtable = format4_rec.subtable.serialize (&c, table);
+      if (cmap_subset_plan.has_unicode_bmp && cmap_subset_plan.has_ms_bmp)
+      	table->encodingRecord[ms_bmp_index].subtable = (unsigned int) format4_rec.subtable;
       subtable.u.format = 4;
 
       CmapSubtableFormat4 &format4 = subtable.u.format4;
@@ -918,8 +957,14 @@ struct cmap
     // Write out format 12 sub table.
     if (cmap_subset_plan.format12_groups)
     {
-      EncodingRecord &format12_rec = table->encodingRecord[2];
+      if (unlikely (!cmap_subset_plan.has_unicode_ucs4 && !cmap_subset_plan.has_ms_ucs4)) return false;
+      EncodingRecord &format12_rec = cmap_subset_plan.has_unicode_ucs4?
+				     table->encodingRecord[unicode_ucs4_index]:
+				     table->encodingRecord[ms_ucs4_index];
+
       CmapSubtable &subtable = format12_rec.subtable.serialize (&c, table);
+      if (cmap_subset_plan.has_unicode_ucs4 && cmap_subset_plan.has_ms_ucs4)
+      	table->encodingRecord[ms_ucs4_index].subtable = (unsigned int) format12_rec.subtable;
       subtable.u.format = 12;
 
       CmapSubtableFormat12 &format12 = subtable.u.format12;
