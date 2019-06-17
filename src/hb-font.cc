@@ -336,7 +336,6 @@ hb_font_get_glyph_v_origin_default (hb_font_t *font,
   return ret;
 }
 
-#ifndef HB_DISABLE_DEPRECATED
 static hb_position_t
 hb_font_get_glyph_h_kerning_nil (hb_font_t *font HB_UNUSED,
 				 void *font_data HB_UNUSED,
@@ -356,6 +355,7 @@ hb_font_get_glyph_h_kerning_default (hb_font_t *font,
   return font->parent_scale_x_distance (font->parent->get_glyph_h_kerning (left_glyph, right_glyph));
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 static hb_position_t
 hb_font_get_glyph_v_kerning_nil (hb_font_t *font HB_UNUSED,
 				 void *font_data HB_UNUSED,
@@ -927,7 +927,6 @@ hb_font_get_glyph_v_origin (hb_font_t *font,
   return font->get_glyph_v_origin (glyph, x, y);
 }
 
-#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_get_glyph_h_kerning:
  * @font: a font.
@@ -947,6 +946,7 @@ hb_font_get_glyph_h_kerning (hb_font_t *font,
   return font->get_glyph_h_kerning (left_glyph, right_glyph);
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_get_glyph_v_kerning:
  * @font: a font.
@@ -958,6 +958,7 @@ hb_font_get_glyph_h_kerning (hb_font_t *font,
  * Return value: 
  *
  * Since: 0.9.2
+ * Deprecated: 2.0.0
  **/
 hb_position_t
 hb_font_get_glyph_v_kerning (hb_font_t *font,
@@ -1175,7 +1176,6 @@ hb_font_subtract_glyph_origin_for_direction (hb_font_t *font,
   return font->subtract_glyph_origin_for_direction (glyph, direction, x, y);
 }
 
-#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_get_glyph_kerning_for_direction:
  * @font: a font.
@@ -1197,7 +1197,6 @@ hb_font_get_glyph_kerning_for_direction (hb_font_t *font,
 {
   return font->get_glyph_kerning_for_direction (first_glyph, second_glyph, direction, x, y);
 }
-#endif
 
 /**
  * hb_font_get_glyph_extents_for_origin:

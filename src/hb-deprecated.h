@@ -165,6 +165,29 @@ hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 				    hb_codepoint_t     *decomposed);
 
 
+typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
+
+/**
+ * hb_font_funcs_set_glyph_v_kerning_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 0.9.2
+ * Deprecated: 2.0.0
+ **/
+HB_EXTERN void
+hb_font_funcs_set_glyph_v_kerning_func (hb_font_funcs_t *ffuncs,
+					hb_font_get_glyph_v_kerning_func_t func,
+					void *user_data, hb_destroy_func_t destroy);
+
+HB_EXTERN hb_position_t
+hb_font_get_glyph_v_kerning (hb_font_t *font,
+			     hb_codepoint_t top_glyph, hb_codepoint_t bottom_glyph);
+
 #endif
 
 HB_END_DECLS
