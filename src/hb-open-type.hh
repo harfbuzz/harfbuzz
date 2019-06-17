@@ -59,11 +59,11 @@ struct IntType
   typedef Type type;
   typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
-  IntType<Type, Size>& operator = (wide_type i) { v = i; return *this; }
+  IntType& operator = (wide_type i) { v = i; return *this; }
   operator wide_type () const { return v; }
-  bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
-  bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
-  HB_INTERNAL static int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b)
+  bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
+  bool operator != (const IntType &o) const { return !(*this == o); }
+  HB_INTERNAL static int cmp (const IntType *a, const IntType *b)
   { return b->cmp (*a); }
   template <typename Type2>
   int cmp (Type2 a) const
