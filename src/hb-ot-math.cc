@@ -28,9 +28,6 @@
 
 #ifndef HB_NO_MATH
 
-#include "hb-open-type.hh"
-
-#include "hb-ot-face.hh"
 #include "hb-ot-math-table.hh"
 
 

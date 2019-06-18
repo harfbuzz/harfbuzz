@@ -30,7 +30,6 @@
 
 #include "hb-ot-name-table.hh"
 
-#include "hb-ot-face.hh"
 #include "hb-utf.hh"
 
 
