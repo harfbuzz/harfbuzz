@@ -311,6 +311,7 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 }
 
 
+#ifndef HB_NO_LAYOUT_UNUSED
 /**
  * hb_ot_layout_get_attach_points:
  * @face: The #hb_face_t to work on
@@ -333,19 +334,11 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
-#ifdef HB_NO_LAYOUT_UNUSED
-  if (point_count)
-    *point_count = 0;
-  return 0;
-#endif
-
   return face->table.GDEF->table->get_attach_points (glyph,
 						     start_offset,
 						     point_count,
 						     point_array);
 }
-
-
 /**
  * hb_ot_layout_get_ligature_carets:
  * @font: The #hb_font_t to work on
@@ -368,12 +361,6 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
-#ifdef HB_NO_LAYOUT_UNUSED
-  if (caret_count)
-    *caret_count = 0;
-  return 0;
-#endif
-
   unsigned int result_caret_count = 0;
   unsigned int result = font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, &result_caret_count, caret_array);
   if (result)
@@ -384,6 +371,7 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
     result = font->face->table.lcar->get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
   return result;
 }
+#endif
 
 
 /*
