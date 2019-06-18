@@ -44,6 +44,7 @@ HB_BASE_sources = \
 	hb-machinery.hh \
 	hb-map.cc \
 	hb-map.hh \
+	hb-bimap.hh \
 	hb-meta.hh \
 	hb-mutex.hh \
 	hb-null.hh \
