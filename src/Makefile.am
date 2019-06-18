@@ -424,6 +424,7 @@ HarfBuzz_0_0_gir_CFLAGS = \
 	-DHB_AAT_H_IN \
 	-DHB_GOBJECT_H \
 	-DHB_GOBJECT_H_IN \
+	-DHAVE_GOBJECT \
 	-DHB_EXTERN= \
 	$(NULL)
 HarfBuzz_0_0_gir_LIBS = \

@@ -23,6 +23,9 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_DIRECTWRITE
+
 #include "hb-shaper-impl.hh"
 
 #include <DWrite_1.h>
@@ -958,3 +961,6 @@ hb_directwrite_face_get_font_face (hb_face_t *face)
 {
   return face->data.directwrite->fontFace;
 }
+
+
+#endif

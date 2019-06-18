@@ -25,6 +25,9 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_UNISCRIBE
+
 #include "hb-shaper-impl.hh"
 
 #include <windows.h>
@@ -1023,3 +1026,4 @@ retry:
 }
 
 
+#endif

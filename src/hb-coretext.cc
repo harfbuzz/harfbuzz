@@ -27,6 +27,9 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_CORETEXT
+
 #include "hb-shaper-impl.hh"
 
 #include "hb-coretext.h"
@@ -1148,3 +1151,6 @@ fail:
 
   return ret;
 }
+
+
+#endif

@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_FREETYPE
+
 #include "hb-ft.h"
 
 #include "hb-font.hh"
@@ -877,3 +879,6 @@ hb_ft_font_set_funcs (hb_font_t *font)
   _hb_ft_font_set_funcs (font, ft_face, true);
   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
 }
+
+
+#endif
