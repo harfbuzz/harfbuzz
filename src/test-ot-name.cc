@@ -43,7 +43,9 @@ main (int argc, char **argv)
   hb_blob_destroy (blob);
   blob = nullptr;
 
-  unsigned int count;
+  unsigned int count = 0;
+
+#ifndef HB_NO_NAME
   const hb_ot_name_entry_t *entries = hb_ot_name_list_names (face, &count);
 
   for (unsigned int i = 0; i < count; i++)
@@ -62,6 +64,7 @@ main (int argc, char **argv)
 
     printf ("%s\n", buf);
   }
+#endif
 
   hb_face_destroy (face);
 
