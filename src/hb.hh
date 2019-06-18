@@ -359,7 +359,6 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #      define HB_NO_GETENV
 #    endif
 #    if _WIN32_WCE < 0x800
-#      define HB_NO_SETLOCALE
 static int errno = 0; /* Use something better? */
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)

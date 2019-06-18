@@ -35,10 +35,6 @@
 #include <xlocale.h>
 #endif
 
-#ifdef HB_NO_SETLOCALE
-#define setlocale(Category, Locale) "C"
-#endif
-
 /**
  * SECTION:hb-common
  * @title: hb-common
@@ -413,7 +409,12 @@ hb_language_get_default ()
   hb_language_t language = default_language;
   if (unlikely (language == HB_LANGUAGE_INVALID))
   {
-    language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);
+#ifdef HAVE_SETLOCALE
+    const char *locale = setlocale (LC_CTYPE, nullptr);
+#else
+    const char *locale = "C";
+#endif
+    language = hb_language_from_string (locale, -1);
     (void) default_language.cmpexch (HB_LANGUAGE_INVALID, language);
   }
 
