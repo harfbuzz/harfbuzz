@@ -679,7 +679,7 @@ resize_and_retry:
     old_scratch_used = scratch - old_scratch;
 
     if (unlikely (!buffer->ensure (buffer->allocated * 2)))
-      FAIL ("Buffer resize failed");
+      FAIL ("Buffer resize failed")
 
     /* Adjust scratch, pchars, and log_cluster arrays.  This is ugly, but really the
      * cleanest way to do without completely restructuring the rest of this shaper. */
@@ -694,14 +694,14 @@ resize_and_retry:
 						     pchars, chars_len,
 						     kCFAllocatorNull);
     if (unlikely (!string_ref))
-      FAIL ("CFStringCreateWithCharactersNoCopy failed");
+      FAIL ("CFStringCreateWithCharactersNoCopy failed")
 
     /* Create an attributed string, populate it, and create a line from it, then release attributed string. */
     {
       CFMutableAttributedStringRef attr_string = CFAttributedStringCreateMutable (kCFAllocatorDefault,
 										  chars_len);
       if (unlikely (!attr_string))
-	FAIL ("CFAttributedStringCreateMutable failed");
+	FAIL ("CFAttributedStringCreateMutable failed")
       CFAttributedStringReplaceString (attr_string, CFRangeMake (0, 0), string_ref);
       if (HB_DIRECTION_IS_VERTICAL (buffer->props.direction))
       {
@@ -724,7 +724,7 @@ resize_and_retry:
 	if (unlikely (!lang))
         {
 	  CFRelease (attr_string);
-	  FAIL ("CFStringCreateWithCStringNoCopy failed");
+	  FAIL ("CFStringCreateWithCStringNoCopy failed")
         }
 	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 					kCTLanguageAttributeName, lang);
@@ -799,19 +799,19 @@ resize_and_retry:
       if (unlikely (!options))
       {
         CFRelease (attr_string);
-        FAIL ("CFDictionaryCreate failed");
+        FAIL ("CFDictionaryCreate failed")
       }
 
       CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedStringAndOptions (attr_string, options);
       CFRelease (options);
       CFRelease (attr_string);
       if (unlikely (!typesetter))
-	FAIL ("CTTypesetterCreateWithAttributedStringAndOptions failed");
+	FAIL ("CTTypesetterCreateWithAttributedStringAndOptions failed")
 
       line = CTTypesetterCreateLine (typesetter, CFRangeMake(0, 0));
       CFRelease (typesetter);
       if (unlikely (!line))
-	FAIL ("CTTypesetterCreateLine failed");
+	FAIL ("CTTypesetterCreateLine failed")
     }
 
     CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
@@ -1003,7 +1003,7 @@ resize_and_retry:
 	  info->cluster = log_clusters[string_indices[j]];
 	  info++;
 	}
-	SCRATCH_RESTORE();
+	SCRATCH_RESTORE()
       }
       {
         /* Setup positions.
@@ -1051,7 +1051,7 @@ resize_and_retry:
 	    info++;
 	  }
 	}
-	SCRATCH_RESTORE();
+	SCRATCH_RESTORE()
 	advances_so_far += run_advance;
       }
 #undef SCRATCH_RESTORE
