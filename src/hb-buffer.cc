@@ -1993,6 +1993,7 @@ hb_buffer_diff (hb_buffer_t *buffer,
  * Debugging.
  */
 
+#ifndef HB_NO_BUFFER_MESSAGE
 /**
  * hb_buffer_set_message_func:
  * @buffer: an #hb_buffer_t.
@@ -2030,3 +2031,4 @@ hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
   vsnprintf (buf, sizeof (buf), fmt, ap);
   return (bool) this->message_func (this, font, buf, this->message_data);
 }
+#endif
