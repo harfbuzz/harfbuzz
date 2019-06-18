@@ -980,7 +980,7 @@ resize_and_retry:
 
 #define SCRATCH_RESTORE() \
   scratch_size = scratch_size_saved; \
-  scratch = scratch_saved;
+  scratch = scratch_saved
 
       { /* Setup glyphs */
         SCRATCH_SAVE();
