@@ -161,8 +161,6 @@ extract_make_variable(HB_BASE_sources ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_BASE_headers ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/")
-extract_make_variable(HB_FALLBACK_sources ${SRCSOURCES})
-add_prefix_to_list(HB_FALLBACK_sources "${PROJECT_SOURCE_DIR}/src/")
 
 extract_make_variable(HB_SUBSET_sources ${SRCSOURCES})
 add_prefix_to_list(HB_SUBSET_sources "${PROJECT_SOURCE_DIR}/src/")
@@ -229,8 +227,6 @@ set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 set (project_sources
   ${HB_BASE_sources}
   ${HB_BASE_RAGEL_GENERATED_sources}
-
-  ${HB_FALLBACK_sources}
 )
 
 set (subset_project_sources
