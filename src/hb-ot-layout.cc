@@ -385,6 +385,8 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
+
+#ifndef HB_NO_SHAPE_AAT
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
    * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
    * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
@@ -402,6 +404,7 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
   if (unlikely (face->table.OS2->achVendID == HB_TAG ('M','U','T','F') &&
 		face->table.morx->has_data ()))
     return true;
+#endif
 
   return false;
 }
