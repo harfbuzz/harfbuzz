@@ -1021,7 +1021,7 @@ struct hb_vector_size_t
   hb_vector_size_t operator ~ () const
   {
     hb_vector_size_t r;
-#if HB_VECTOR_SIZE && 0
+#if HB_VECTOR_SIZE
     if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
       for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
 	r.u.vec[i] = ~u.vec[i];
