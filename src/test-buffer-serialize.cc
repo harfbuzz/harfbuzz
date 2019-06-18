@@ -37,6 +37,10 @@
 int
 main (int argc, char **argv)
 {
+  bool ret = true;
+
+#ifndef HB_NO_BUFFER_SERIALIZE
+
   if (argc != 2) {
     fprintf (stderr, "usage: %s font-file\n", argv[0]);
     exit (1);
@@ -59,7 +63,6 @@ main (int argc, char **argv)
   hb_buffer_t *buf;
   buf = hb_buffer_create ();
 
-  bool ret = true;
   char line[BUFSIZ], out[BUFSIZ];
   while (fgets (line, sizeof(line), stdin) != nullptr)
   {
@@ -84,6 +87,8 @@ main (int argc, char **argv)
   hb_buffer_destroy (buf);
 
   hb_font_destroy (font);
+
+#endif
 
   return !ret;
 }
