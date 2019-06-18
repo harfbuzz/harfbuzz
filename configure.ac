@@ -136,14 +136,6 @@ AM_CONDITIONAL(HAVE_PTHREAD, $have_pthread)
 
 dnl ==========================================================================
 
-have_fallback=true
-if $have_fallback; then
-	AC_DEFINE(HAVE_FALLBACK, 1, [Have simple TrueType Layout backend])
-fi
-AM_CONDITIONAL(HAVE_FALLBACK, $have_fallback)
-
-dnl ===========================================================================
-
 AC_ARG_WITH(glib,
 	[AS_HELP_STRING([--with-glib=@<:@yes/no/auto@:>@],
 			[Use glib @<:@default=auto@:>@])],,

@@ -88,8 +88,6 @@ include_directories(AFTER
   ${PROJECT_BINARY_DIR}/src
 )
 
-add_definitions(-DHAVE_FALLBACK)
-
 # We need PYTHON_EXECUTABLE to be set for running the tests...
 include (FindPythonInterp)
 
