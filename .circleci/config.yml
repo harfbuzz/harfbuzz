@@ -82,7 +82,7 @@ jobs:
   #    - run: xbps-install -Suy freetype gettext gcc glib graphite pkg-config ragel libtool autoconf automake make
   #    - run: ./autogen.sh && make -j32 && make check
 
-  clang-O3-O0:
+  clang-O3-O0-and-nobuildsystem:
     docker:
       - image: ubuntu:18.10
     steps:
@@ -97,6 +97,7 @@ jobs:
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
+      - run: make clean && cd src && clang++ -c hb-*.cc
 
   gcc-valgrind:
     docker:
@@ -315,7 +316,7 @@ workflows:
       - archlinux-py3-all
       #- void-notest
       - gcc-valgrind
-      - clang-O3-O0
+      - clang-O3-O0-and-nobuildsystem
       - clang-everything
       - clang-asan
       - clang-msan
