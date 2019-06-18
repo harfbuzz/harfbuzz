@@ -152,13 +152,12 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   if (!plan.apply_kerx && !has_gpos_kern)
   {
     /* Apparently Apple applies kerx if GPOS kern was not applied. */
-    if (0)
-      ;
 #ifndef HB_NO_SHAPE_AAT
-    else if (hb_aat_layout_has_positioning (face))
+    if (hb_aat_layout_has_positioning (face))
       plan.apply_kerx = true;
+    else
 #endif
-    else if (hb_ot_layout_has_kerning (face))
+    if (hb_ot_layout_has_kerning (face))
       plan.apply_kern = true;
   }
 
@@ -220,9 +219,11 @@ void
 hb_ot_shape_plan_t::substitute (hb_font_t   *font,
 				hb_buffer_t *buffer) const
 {
+#ifndef HB_NO_SHAPE_AAT
   if (unlikely (apply_morx))
     hb_aat_layout_substitute (this, font, buffer);
   else
+#endif
     map.substitute (this, font, buffer);
 }
 
@@ -232,15 +233,19 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
 {
   if (this->apply_gpos)
     map.position (this, font, buffer);
+#ifndef HB_NO_SHAPE_AAT
   else if (this->apply_kerx)
     hb_aat_layout_position (this, font, buffer);
+#endif
   else if (this->apply_kern)
     hb_ot_layout_kern (this, font, buffer);
   else
     _hb_ot_shape_fallback_kern (this, font, buffer);
 
+#ifndef HB_NO_SHAPE_AAT
   if (this->apply_trak)
     hb_aat_layout_track (this, font, buffer);
+#endif
 }
 
 
@@ -336,6 +341,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 		      feature->value);
   }
 
+#ifndef HB_NO_SHAPE_AAT
   if (planner->apply_morx)
   {
     hb_aat_map_builder_t *aat_map = &planner->aat_map;
@@ -345,6 +351,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       aat_map->add_feature (feature->tag, feature->value);
     }
   }
+#endif
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
@@ -779,8 +786,10 @@ static inline void
 hb_ot_substitute_post (const hb_ot_shape_context_t *c)
 {
   hb_ot_hide_default_ignorables (c->buffer, c->font);
+#ifndef HB_NO_SHAPE_AAT
   if (c->plan->apply_morx)
     hb_aat_layout_remove_deleted_glyphs (c->buffer);
+#endif
 
   if (c->plan->shaper->postprocess_glyphs)
     c->plan->shaper->postprocess_glyphs (c->plan, c->buffer, c->font);
@@ -914,8 +923,10 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
   /* Finish off.  Has to follow a certain order. */
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c->buffer);
+#ifndef HB_NO_SHAPE_AAT
   if (c->plan->apply_morx)
     hb_aat_layout_zero_width_deleted_glyphs (c->buffer);
+#endif
   hb_ot_layout_position_finish_offsets (c->font, c->buffer);
 
   /* The nil glyph_h_origin() func returns 0, so no need to apply it. */
