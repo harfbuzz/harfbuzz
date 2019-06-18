@@ -1932,11 +1932,6 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 }
 
 #if 0
-static const OT::BASE& _get_base (hb_face_t *face)
-{
-  return *face->table.BASE;
-}
-
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
@@ -1945,9 +1940,8 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_tag_t                 language_tag,
 			   hb_position_t           *coord        /* OUT.  May be NULL. */)
 {
-  const OT::BASE &base = _get_base (font->face);
-  bool result = base.get_baseline (font, baseline, direction, script_tag,
-				   language_tag, coord);
+  bool result = font->face->table.BASE->get_baseline (font, baseline, direction, script_tag,
+						      language_tag, coord);
 
   /* TODO: Simulate https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
   if (!result && coord) *coord = 0;
