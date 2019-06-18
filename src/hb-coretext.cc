@@ -652,7 +652,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     DEBUG_MSG (CORETEXT, nullptr, __VA_ARGS__); \
     ret = false; \
     goto fail; \
-  } HB_STMT_END;
+  } HB_STMT_END
 
   bool ret = true;
   CFStringRef string_ref = nullptr;

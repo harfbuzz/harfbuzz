@@ -724,7 +724,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, nullptr, __VA_ARGS__); \
     return false; \
-  } HB_STMT_END;
+  } HB_STMT_END
 
   HRESULT hr;
 

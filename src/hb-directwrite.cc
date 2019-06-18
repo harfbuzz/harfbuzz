@@ -176,7 +176,7 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   HB_STMT_START { \
     DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
     return nullptr; \
-  } HB_STMT_END;
+  } HB_STMT_END
 
   if (FAILED (hr))
     FAIL ("Failed to load font file from data!");
