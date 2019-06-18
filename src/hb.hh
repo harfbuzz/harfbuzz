@@ -435,38 +435,6 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   void operator=(const TypeName&) = delete
 
 
-/*
- * Compiler-assisted vectorization parameters.
- */
-
-/*
- * Disable vectorization for now.  To correctly use them, we should
- * use posix_memalign() to allocate in hb_vector_t.  Otherwise, can
- * cause misaligned access.
- *
- * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
- */
-#ifndef HB_VECTOR_SIZE
-#  define HB_VECTOR_SIZE 0
-#endif
-
-/* The `vector_size' attribute was introduced in gcc 3.1. */
-#ifndef HB_VECTOR_SIZE
-#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#    define HB_VECTOR_SIZE 128
-#  else
-#    define HB_VECTOR_SIZE 0
-#  endif
-#endif
-static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)), "HB_VECTOR_SIZE is not power of 2.");
-static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64.");
-#if HB_VECTOR_SIZE
-typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
-#else
-typedef uint64_t hb_vector_size_impl_t;
-#endif
-
-
 /* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */
