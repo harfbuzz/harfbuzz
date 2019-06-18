@@ -72,7 +72,8 @@
 #define HB_NO_LEGACY
 #endif
 
-/* Closure. */
+
+/* Closure of options. */
 
 #ifdef HB_DISABLE_DEPRECATED
 #define HB_IF_NOT_DEPRECATED(x)
