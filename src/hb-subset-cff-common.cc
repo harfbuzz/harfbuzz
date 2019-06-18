@@ -24,6 +24,10 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_SUBSET_CFF
+
 #include "hb-ot-cff-common.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-subset-cff-common.hh"
@@ -223,3 +227,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
     return_trace (false);
   }
 }
+
+
+#endif
