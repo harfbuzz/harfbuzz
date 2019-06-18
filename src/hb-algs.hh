@@ -940,6 +940,12 @@ struct hb_bitwise_sub
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
 HB_FUNCOBJ (hb_bitwise_sub);
+struct
+{
+  template <typename T> auto
+  operator () (const T &a) const HB_AUTO_RETURN (~a)
+}
+HB_FUNCOBJ (hb_bitwise_neg);
 
 struct
 { HB_PARTIALIZE(2);
@@ -999,6 +1005,20 @@ struct hb_vector_size_t
   void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
 
   template <typename Op>
+  hb_vector_size_t process (const Op& op) const
+  {
+    hb_vector_size_t r;
+#if HB_VECTOR_SIZE
+    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
+      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
+	r.u.vec[i] = op (u.vec[i]);
+    else
+#endif
+      for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
+	r.u.v[i] = op (u.v[i]);
+    return r;
+  }
+  template <typename Op>
   hb_vector_size_t process (const Op& op, const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
@@ -1019,18 +1039,7 @@ struct hb_vector_size_t
   hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process (hb_bitwise_xor, o); }
   hb_vector_size_t operator ~ () const
-  {
-    hb_vector_size_t r;
-#if HB_VECTOR_SIZE
-    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	r.u.vec[i] = ~u.vec[i];
-    else
-#endif
-    for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-      r.u.v[i] = ~u.v[i];
-    return r;
-  }
+  { return process (hb_bitwise_neg); }
 
   private:
   static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
