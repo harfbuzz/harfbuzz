@@ -23,7 +23,10 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.h"
+#include "hb.hh"
+
+#ifndef HB_NO_COLOR
+
 #include "hb-ot.h"
 
 #include "hb-ft.h"
@@ -334,3 +337,7 @@ main (int argc, char **argv)
 
   return 0;
 }
+
+#else
+int main (int argc, char **argv) { return 0; }
+#endif
