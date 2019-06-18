@@ -211,14 +211,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #define calloc hb_calloc_impl
 #define realloc hb_realloc_impl
 #define free hb_free_impl
-
-#ifdef hb_memalign_impl
-extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
-#define posix_memalign hb_memalign_impl
-#else
-#undef HAVE_POSIX_MEMALIGN
-#endif
-
 #endif
 
 
@@ -513,32 +505,6 @@ typedef uint64_t hb_vector_size_impl_t;
 
 /* Size signifying variable-sized array */
 #define VAR 1
-
-
-/* fallback for posix_memalign() */
-static inline int
-_hb_memalign(void **memptr, size_t alignment, size_t size)
-{
-  if (unlikely (0 != (alignment & (alignment - 1)) ||
-		!alignment ||
-		0 != (alignment & (sizeof (void *) - 1))))
-    return EINVAL;
-
-  char *p = (char *) malloc (size + alignment - 1);
-  if (unlikely (!p))
-    return ENOMEM;
-
-  size_t off = (size_t) p & (alignment - 1);
-  if (off)
-    p += alignment - off;
-
-  *memptr = (void *) p;
-
-  return 0;
-}
-#if !defined(posix_memalign) && !defined(HAVE_POSIX_MEMALIGN)
-#define posix_memalign _hb_memalign
-#endif
 
 
 /*
