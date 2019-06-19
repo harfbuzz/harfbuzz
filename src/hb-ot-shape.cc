@@ -317,10 +317,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
 
+#ifndef HB_NO_SHAPE_AAT
   /* Tracking.  We enable dummy feature here just to allow disabling
    * AAT 'trak' table using features.
    * https://github.com/harfbuzz/harfbuzz/issues/1303 */
   map->enable_feature (HB_TAG ('t','r','a','k'), F_HAS_FALLBACK);
+#endif
 
   map->enable_feature (HB_TAG ('H','A','R','F'));
 
