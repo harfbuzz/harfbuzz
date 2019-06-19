@@ -62,6 +62,7 @@
  * kern
  */
 
+#ifndef HB_NO_OT_KERN
 /**
  * hb_ot_layout_has_kerning:
  * @face: The #hb_face_t to work on
@@ -78,7 +79,6 @@ hb_ot_layout_has_kerning (hb_face_t *face)
   return face->table.kern->has_data ();
 }
 
-
 /**
  * hb_ot_layout_has_machine_kerning:
  * @face: The #hb_face_t to work on
@@ -94,7 +94,6 @@ hb_ot_layout_has_machine_kerning (hb_face_t *face)
 {
   return face->table.kern->has_state_machine ();
 }
-
 
 /**
  * hb_ot_layout_has_cross_kerning:
@@ -128,6 +127,7 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
 
   kern.apply (&c);
 }
+#endif
 
 
 /*

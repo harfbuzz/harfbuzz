@@ -101,6 +101,7 @@
 
 #ifdef HB_NO_LEGACY
 #define HB_NO_FALLBACK_SHAPE
+#define HB_NO_OT_KERN
 #define HB_NO_OT_LAYOUT_BLACKLIST
 #define HB_NO_OT_SHAPE_FALLBACK
 #endif

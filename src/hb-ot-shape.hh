@@ -80,7 +80,11 @@ struct hb_ot_shape_plan_t
   bool adjust_mark_positioning_when_zeroing : 1;
 
   bool apply_gpos : 1;
+#ifndef HB_NO_OT_KERN
   bool apply_kern : 1;
+#else
+  static constexpr bool apply_kern = false;
+#endif
 #ifndef HB_NO_SHAPE_AAT
   bool apply_kerx : 1;
   bool apply_morx : 1;

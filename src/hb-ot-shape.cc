@@ -157,18 +157,28 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
       plan.apply_kerx = true;
     else
 #endif
+#ifndef HB_NO_OT_KERN
     if (hb_ot_layout_has_kerning (face))
       plan.apply_kern = true;
+#endif
   }
 
   plan.zero_marks = script_zero_marks &&
 		    !plan.apply_kerx &&
-		    (!plan.apply_kern || !hb_ot_layout_has_machine_kerning (face));
+		    (!plan.apply_kern
+#ifndef HB_NO_OT_KERN
+		     || !hb_ot_layout_has_machine_kerning (face)
+#endif
+		    );
   plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
   plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&
 					      !plan.apply_kerx &&
-					      (!plan.apply_kern || !hb_ot_layout_has_cross_kerning (face));
+					      (!plan.apply_kern
+#ifndef HB_NO_OT_KERN
+					       || !hb_ot_layout_has_cross_kerning (face)
+#endif
+					      );
 
   plan.fallback_mark_positioning = plan.adjust_mark_positioning_when_zeroing &&
 				   script_fallback_mark_positioning;
@@ -237,8 +247,10 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
   else if (this->apply_kerx)
     hb_aat_layout_position (this, font, buffer);
 #endif
+#ifndef HB_NO_OT_KERN
   else if (this->apply_kern)
     hb_ot_layout_kern (this, font, buffer);
+#endif
   else
     _hb_ot_shape_fallback_kern (this, font, buffer);
 

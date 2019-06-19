@@ -50,7 +50,6 @@ HB_OT_TABLE (OT, head)
 HB_OT_ACCELERATOR (OT, cmap)
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_ACCELERATOR (OT, post)
-HB_OT_TABLE (OT, kern)
 HB_OT_ACCELERATOR (OT, name)
 HB_OT_TABLE (OT, OS2)
 HB_OT_TABLE (OT, STAT)
@@ -72,6 +71,11 @@ HB_OT_TABLE (OT, VORG)
 HB_OT_TABLE (OT, fvar)
 HB_OT_TABLE (OT, avar)
 HB_OT_TABLE (OT, MVAR)
+
+/* Legacy kern. */
+#ifndef HB_NO_OT_KERN
+HB_OT_TABLE (OT, kern)
+#endif
 
 /* OpenType shaping. */
 HB_OT_ACCELERATOR (OT, GDEF)
