@@ -101,10 +101,13 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   if (apply_morx)
     aat_map.compile (plan.aat_map);
 
+#ifndef HB_NO_OT_SHAPE_FRACTIONS
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
   plan.numr_mask = plan.map.get_1_mask (HB_TAG ('n','u','m','r'));
   plan.dnom_mask = plan.map.get_1_mask (HB_TAG ('d','n','o','m'));
   plan.has_frac = plan.frac_mask || (plan.numr_mask && plan.dnom_mask);
+#endif
+
   plan.rtlm_mask = plan.map.get_1_mask (HB_TAG ('r','t','l','m'));
   hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (props.direction) ?
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
@@ -309,10 +312,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
+#ifndef HB_NO_OT_SHAPE_FRACTIONS
   /* Automatic fractions. */
   map->add_feature (HB_TAG ('f','r','a','c'));
   map->add_feature (HB_TAG ('n','u','m','r'));
   map->add_feature (HB_TAG ('d','n','o','m'));
+#endif
 
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
@@ -590,6 +595,10 @@ hb_ot_mirror_chars (const hb_ot_shape_context_t *c)
 static inline void
 hb_ot_shape_setup_masks_fraction (const hb_ot_shape_context_t *c)
 {
+#ifdef HB_NO_OT_SHAPE_FRACTIONS
+  return;
+#endif
+
   if (!(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII) ||
       !c->plan->has_frac)
     return;
