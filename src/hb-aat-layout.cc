@@ -43,8 +43,8 @@
  * hb_aat_apply_context_t
  */
 
-/* Note: This context is used for kerning, even without AAT, hence the code location
- * before HB_NO_AAT conditional below. */
+/* Note: This context is used for kerning, even without AAT, hence the condition. */
+#if !defined(HB_NO_AAT) || !defined(HB_NO_OT_KERN)
 
 AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (const hb_ot_shape_plan_t *plan_,
 						     hb_font_t *font_,
@@ -71,6 +71,8 @@ AAT::hb_aat_apply_context_t::~hb_aat_apply_context_t ()
 void
 AAT::hb_aat_apply_context_t::set_ankr_table (const AAT::ankr *ankr_table_)
 { ankr_table = ankr_table_; }
+
+#endif
 
 
 #ifndef HB_NO_AAT
