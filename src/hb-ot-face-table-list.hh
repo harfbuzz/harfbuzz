@@ -28,9 +28,9 @@
  * Facebook Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_FACE_TABLE_LIST_HH
-#define HB_FACE_TABLE_LIST_HH
-#endif /* HB_FACE_TABLE_LIST_HH */ /* Dummy header guards */
+#ifndef HB_OT_FACE_TABLE_LIST_HH
+#define HB_OT_FACE_TABLE_LIST_HH
+#endif /* HB_OT_FACE_TABLE_LIST_HH */ /* Dummy header guards */
 
 #ifndef HB_OT_ACCELERATOR
 #define HB_OT_ACCELERATOR(Namespace, Type) HB_OT_TABLE (Namespace, Type)
