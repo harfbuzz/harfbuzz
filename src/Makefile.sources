@@ -64,6 +64,7 @@ HB_BASE_sources = \
 	hb-ot-color.cc \
 	hb-ot-face.cc \
 	hb-ot-face.hh \
+	hb-ot-face-table-list.hh \
 	hb-ot-font.cc \
 	hb-ot-gasp-table.hh \
 	hb-ot-glyf-table.hh \
