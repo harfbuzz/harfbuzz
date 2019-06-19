@@ -305,6 +305,10 @@ parse_private_use_subtag (const char     *private_use_subtag,
 			  const char     *prefix,
 			  unsigned char (*normalize) (unsigned char))
 {
+#ifdef HB_NO_LANGUAGE_PRIVATE_SUBTAG
+  return false;
+#endif
+
   if (!(private_use_subtag && count && tags && *count)) return false;
 
   const char *s = strstr (private_use_subtag, prefix);
