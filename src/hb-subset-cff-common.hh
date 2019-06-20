@@ -563,7 +563,7 @@ struct subr_remap_t : hb_inc_bimap_t
 
   int biased_num (unsigned int old_num) const
   {
-    hb_codepoint_t new_num = forward (old_num);
+    hb_codepoint_t new_num = get (old_num);
     return (int)new_num - bias;
   }
 
@@ -761,7 +761,7 @@ struct subr_subsetter_t
       return false;
     for (unsigned int old_num = 0; old_num < subrs.length; old_num++)
     {
-      hb_codepoint_t new_num = remap.forward (old_num);
+      hb_codepoint_t new_num = remap[old_num];
       if (new_num != CFF_UNDEF_CODE)
       {
 	if (unlikely (!encode_str (subrs[old_num], fd, buffArray[new_num])))

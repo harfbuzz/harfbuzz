@@ -47,9 +47,13 @@ struct hb_bimap_t
     back_map.fini ();
   }
 
-  /* returns HB_MAP_VALUE_INVALID if unmapped */
-  hb_codepoint_t forward (hb_codepoint_t lhs) const { return forw_map[lhs]; }
-  hb_codepoint_t backward (hb_codepoint_t rhs) const { return back_map[rhs]; }
+  void reset ()
+  {
+    forw_map.reset ();
+    back_map.reset ();
+  }
+
+  bool in_error () const { return forw_map.in_error () || back_map.in_error (); }
 
   void set (hb_codepoint_t lhs, hb_codepoint_t rhs)
   {
@@ -57,12 +61,16 @@ struct hb_bimap_t
     back_map.set (rhs, lhs);
   }
 
-  /* Create an identity map. */
-  bool identity (unsigned int size)
+  hb_codepoint_t get (hb_codepoint_t lhs) const { return forw_map.get (lhs); }
+  hb_codepoint_t backward (hb_codepoint_t rhs) const { return back_map[rhs]; }
+
+  hb_codepoint_t operator [] (hb_codepoint_t lhs) const { return get (lhs); }
+  bool has (hb_codepoint_t lhs, hb_codepoint_t *vp = nullptr) const { return forw_map.has (lhs, vp); }
+
+  void del (hb_codepoint_t lhs)
   {
-    clear ();
-    for (hb_codepoint_t i = 0; i < size; i++) set (i, i);
-    return forw_map.successful && back_map.successful;
+    back_map.del (get (lhs));
+    forw_map.del (lhs);
   }
 
   void clear ()
@@ -71,11 +79,7 @@ struct hb_bimap_t
     back_map.clear ();
   }
 
-  void reset ()
-  {
-    forw_map.reset ();
-    back_map.reset ();
-  }
+  bool is_empty () const { return get_population () == 0; }
 
   unsigned int get_population () const { return forw_map.get_population (); }
 
@@ -101,7 +105,13 @@ struct hb_inc_bimap_t : hb_bimap_t
     return rhs;
   }
 
-  bool has (hb_codepoint_t lhs) const { return forw_map.has (lhs); }
+  /* Create an identity map. */
+  bool identity (unsigned int size)
+  {
+    clear ();
+    for (hb_codepoint_t i = 0; i < size; i++) set (i, i);
+    return !in_error ();
+  }
 
   protected:
   static int cmp_id (const void* a, const void* b)

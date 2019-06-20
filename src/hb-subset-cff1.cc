@@ -54,7 +54,7 @@ struct remap_sid_t : hb_inc_bimap_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (forward (unoffset_sid (sid)));
+      return offset_sid (get (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -1038,7 +1038,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
-      unsigned int priv_size = plan.fontdicts_mod[plan.fdmap.forward (i)].privateDictInfo.size;
+      unsigned int priv_size = plan.fontdicts_mod[plan.fdmap[i]].privateDictInfo.size;
       bool result;
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
