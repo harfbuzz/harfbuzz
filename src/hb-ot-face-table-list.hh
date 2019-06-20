@@ -54,7 +54,9 @@ HB_OT_TABLE (OT, OS2)
 #ifndef HB_NO_NAME
 HB_OT_ACCELERATOR (OT, name)
 #endif
+#ifndef HB_NO_STAT
 HB_OT_TABLE (OT, STAT)
+#endif
 
 /* Vertical layout. */
 HB_OT_ACCELERATOR (OT, vmtx)

@@ -201,9 +201,11 @@ _nameid_closure (hb_face_t           *face,
   {
     hb_tag_t tag = table_tags[i];
     switch (tag) {
+#ifndef HB_NO_STAT
       case HB_OT_TAG_STAT:
         face->table.STAT->collect_name_ids (nameids);
         break;
+#endif
       case HB_OT_TAG_fvar:
         face->table.fvar->collect_name_ids (nameids);
         break;

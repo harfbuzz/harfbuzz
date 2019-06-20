@@ -66,6 +66,7 @@
 #define HB_NO_OPEN
 #define HB_NO_SETLOCALE
 #define HB_NO_OT_SHAPE_FRACTIONS
+#define HB_NO_STAT
 #define HB_NO_SUBSET_LAYOUT
 #endif
 
