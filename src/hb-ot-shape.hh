@@ -74,10 +74,18 @@ struct hb_ot_shape_plan_t
 #endif
   hb_mask_t rtlm_mask;
   hb_mask_t kern_mask;
+#ifndef HB_NO_SHAPE_AAT
   hb_mask_t trak_mask;
+#else
+  static constexpr hb_mask_t trak_mask = 0;
+#endif
 
   bool requested_kerning : 1;
+#ifndef HB_NO_SHAPE_AAT
   bool requested_tracking : 1;
+#else
+  static constexpr bool requested_tracking = false;
+#endif
 #ifndef HB_NO_OT_SHAPE_FRACTIONS
   bool has_frac : 1;
 #else

@@ -112,10 +112,12 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   hb_tag_t kern_tag = HB_DIRECTION_IS_HORIZONTAL (props.direction) ?
 		      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n');
   plan.kern_mask = plan.map.get_mask (kern_tag);
+#ifndef HB_NO_SHAPE_AAT
   plan.trak_mask = plan.map.get_mask (HB_TAG ('t','r','a','k'));
+  plan.requested_tracking = !!plan.trak_mask;
+#endif
 
   plan.requested_kerning = !!plan.kern_mask;
-  plan.requested_tracking = !!plan.trak_mask;
   bool has_gpos_kern = plan.map.get_feature_index (1, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
 		      plan.shaper->gpos_tag != plan.map.chosen_script[1];
