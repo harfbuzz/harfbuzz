@@ -26,6 +26,8 @@
 
 #include "hb.hh"
 
+#ifndef HB_NO_OT_FONT
+
 #include "hb-ot.h"
 
 #include "hb-font.hh"
@@ -317,3 +319,6 @@ hb_ot_font_set_funcs (hb_font_t *font)
 		     &font->face->table,
 		     nullptr);
 }
+
+
+#endif
