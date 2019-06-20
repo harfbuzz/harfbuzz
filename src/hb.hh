@@ -66,6 +66,7 @@
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic error   "-Wembedded-directive"
 #pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"

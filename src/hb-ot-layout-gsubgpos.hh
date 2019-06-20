@@ -2721,15 +2721,19 @@ struct GSUBGPOS
   {
     TRACE_SANITIZE (this);
     typedef OffsetListOf<TLookup> TLookupList;
-    return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
-		  scriptList.sanitize (c, this) &&
-		  featureList.sanitize (c, this) &&
-		  CastR<OffsetTo<TLookupList>> (lookupList).sanitize (c, this) &&
+    if (unlikely (!(version.sanitize (c) &&
+		    likely (version.major == 1) &&
+		    scriptList.sanitize (c, this) &&
+		    featureList.sanitize (c, this) &&
+		    CastR<OffsetTo<TLookupList>> (lookupList).sanitize (c, this))))
+      return_trace (false);
+
 #ifndef HB_NO_VAR
-		  (version.to_int () < 0x00010001u || featureVars.sanitize (c, this)) &&
+    if (unlikely (!(version.to_int () < 0x00010001u || featureVars.sanitize (c, this))))
+      return_trace (false);
 #endif
-		  true);
+
+    return_trace (true);
   }
 
   template <typename T>
