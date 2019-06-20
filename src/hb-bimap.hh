@@ -62,7 +62,7 @@ struct hb_bimap_t
   }
 
   hb_codepoint_t get (hb_codepoint_t lhs) const { return forw_map.get (lhs); }
-  hb_codepoint_t backward (hb_codepoint_t rhs) const { return back_map[rhs]; }
+  hb_codepoint_t backward (hb_codepoint_t rhs) const { return back_map.get (rhs); }
 
   hb_codepoint_t operator [] (hb_codepoint_t lhs) const { return get (lhs); }
   bool has (hb_codepoint_t lhs, hb_codepoint_t *vp = nullptr) const { return forw_map.has (lhs, vp); }
