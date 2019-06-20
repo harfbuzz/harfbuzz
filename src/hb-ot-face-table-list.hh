@@ -74,9 +74,11 @@ HB_OT_TABLE (OT, VORG)
 #endif
 
 /* OpenType variations. */
+#ifndef HB_NO_VAR
 HB_OT_TABLE (OT, fvar)
 HB_OT_TABLE (OT, avar)
 HB_OT_TABLE (OT, MVAR)
+#endif
 
 /* Legacy kern. */
 #ifndef HB_NO_OT_KERN

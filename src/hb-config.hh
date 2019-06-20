@@ -69,6 +69,7 @@
 #define HB_NO_OT_SHAPE_FRACTIONS
 #define HB_NO_STAT
 #define HB_NO_SUBSET_LAYOUT
+#define HB_NO_VAR
 #endif
 
 #ifdef HB_MINI

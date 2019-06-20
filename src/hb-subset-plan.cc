@@ -197,7 +197,9 @@ _nameid_closure (hb_face_t           *face,
 #ifndef HB_NO_STAT
   face->table.STAT->collect_name_ids (nameids);
 #endif
+#ifndef HB_NO_VAR
   face->table.fvar->collect_name_ids (nameids);
+#endif
 }
 
 /**
