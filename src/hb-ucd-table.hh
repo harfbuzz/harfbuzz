@@ -10,7 +10,6 @@
 #ifndef HB_UCD_TABLE_HH
 #define HB_UCD_TABLE_HH
 
-
 #include "hb.hh"
 
 static const hb_script_t
