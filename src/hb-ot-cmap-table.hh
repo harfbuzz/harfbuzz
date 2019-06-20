@@ -756,10 +756,12 @@ struct CmapSubtable
 		  hb_codepoint_t *glyph) const
   {
     switch (u.format) {
+#ifndef HB_NO_CMAP_LEGACY_SUBTABLES
     case  0: return u.format0 .get_glyph (codepoint, glyph);
-    case  4: return u.format4 .get_glyph (codepoint, glyph);
     case  6: return u.format6 .get_glyph (codepoint, glyph);
     case 10: return u.format10.get_glyph (codepoint, glyph);
+#endif
+    case  4: return u.format4 .get_glyph (codepoint, glyph);
     case 12: return u.format12.get_glyph (codepoint, glyph);
     case 13: return u.format13.get_glyph (codepoint, glyph);
     case 14:
@@ -769,10 +771,12 @@ struct CmapSubtable
   void collect_unicodes (hb_set_t *out) const
   {
     switch (u.format) {
+#ifndef HB_NO_CMAP_LEGACY_SUBTABLES
     case  0: u.format0 .collect_unicodes (out); return;
-    case  4: u.format4 .collect_unicodes (out); return;
     case  6: u.format6 .collect_unicodes (out); return;
     case 10: u.format10.collect_unicodes (out); return;
+#endif
+    case  4: u.format4 .collect_unicodes (out); return;
     case 12: u.format12.collect_unicodes (out); return;
     case 13: u.format13.collect_unicodes (out); return;
     case 14:
@@ -785,10 +789,12 @@ struct CmapSubtable
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     switch (u.format) {
+#ifndef HB_NO_CMAP_LEGACY_SUBTABLES
     case  0: return_trace (u.format0 .sanitize (c));
-    case  4: return_trace (u.format4 .sanitize (c));
     case  6: return_trace (u.format6 .sanitize (c));
     case 10: return_trace (u.format10.sanitize (c));
+#endif
+    case  4: return_trace (u.format4 .sanitize (c));
     case 12: return_trace (u.format12.sanitize (c));
     case 13: return_trace (u.format13.sanitize (c));
     case 14: return_trace (u.format14.sanitize (c));
@@ -799,10 +805,12 @@ struct CmapSubtable
   public:
   union {
   HBUINT16		format;		/* Format identifier */
+#ifndef HB_NO_CMAP_LEGACY_SUBTABLES
   CmapSubtableFormat0	format0;
-  CmapSubtableFormat4	format4;
   CmapSubtableFormat6	format6;
   CmapSubtableFormat10	format10;
+#endif
+  CmapSubtableFormat4	format4;
   CmapSubtableFormat12	format12;
   CmapSubtableFormat13	format13;
   CmapSubtableFormat14	format14;
