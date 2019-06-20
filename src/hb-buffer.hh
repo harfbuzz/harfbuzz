@@ -359,6 +359,9 @@ struct hb_buffer_t
   }
   bool message (hb_font_t *font, const char *fmt, ...) HB_PRINTF_FUNC(3, 4)
   {
+#ifdef HB_NO_BUFFER_MESSAGE
+   return true;
+#else
     if (!messaging ())
       return true;
     va_list ap;
@@ -366,6 +369,7 @@ struct hb_buffer_t
     bool ret = message_impl (font, fmt, ap);
     va_end (ap);
     return ret;
+#endif
   }
   HB_INTERNAL bool message_impl (hb_font_t *font, const char *fmt, va_list ap) HB_PRINTF_FUNC(3, 0);
 
