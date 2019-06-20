@@ -1203,6 +1203,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 }
 
 
+#ifndef HB_NO_LAYOUT_COLLECT_GLYPHS
 /**
  * hb_ot_layout_lookup_collect_glyphs:
  * @face: #hb_face_t to work upon
@@ -1249,6 +1250,7 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
     }
   }
 }
+#endif
 
 
 /* Variations support */
