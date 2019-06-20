@@ -50,8 +50,10 @@ HB_OT_TABLE (OT, head)
 HB_OT_ACCELERATOR (OT, cmap)
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_ACCELERATOR (OT, post)
-HB_OT_ACCELERATOR (OT, name)
 HB_OT_TABLE (OT, OS2)
+#ifndef HB_NO_NAME
+HB_OT_ACCELERATOR (OT, name)
+#endif
 HB_OT_TABLE (OT, STAT)
 
 /* Vertical layout. */
