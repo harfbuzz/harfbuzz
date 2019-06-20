@@ -105,8 +105,8 @@ The pre-defined configurations are:
   * `HB_MINI`: Disables shaping of AAT as well as legacy fonts.  Ie. it produces
     a capable OpenType shaper only.
 
-  * `HB_LEAN`: Disables various non-shaping functionality in the library.  See
-    the definition for details.
+  * `HB_LEAN`: Disables various non-shaping functionality in the library, as well
+    as esoteric or rarely-used shaping features.  See the definition for details.
 
   * `HB_TINY`: Enables both `HB_MINI` and `HB_LEAN` configurations, as well as
     disabling thread-safety and debugging, and use size-optimized data tables.
