@@ -1557,6 +1557,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 
+#ifndef HB_NO_LAYOUT_FEATURE_PARAMS
 /**
  * hb_ot_layout_get_size_params:
  * @face: #hb_face_t to work upon
@@ -1619,8 +1620,6 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 
   return false;
 }
-
-
 /**
  * hb_ot_layout_feature_get_name_ids:
  * @face: #hb_face_t to work upon
@@ -1695,8 +1694,6 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
   if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
   return false;
 }
-
-
 /**
  * hb_ot_layout_feature_get_characters:
  * @face: #hb_face_t to work upon
@@ -1750,6 +1747,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
   if (char_count) *char_count = len;
   return cv_params.characters.len;
 }
+#endif
 
 
 /*

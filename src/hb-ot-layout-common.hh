@@ -499,6 +499,9 @@ struct FeatureParams
 {
   bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
   {
+#ifdef HB_NO_LAYOUT_FEATURE_PARAMS
+    return true;
+#endif
     TRACE_SANITIZE (this);
     if (tag == HB_TAG ('s','i','z','e'))
       return_trace (u.size.sanitize (c));
@@ -509,26 +512,26 @@ struct FeatureParams
     return_trace (true);
   }
 
+#ifndef HB_NO_LAYOUT_FEATURE_PARAMS
   const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null (FeatureParamsSize);
   }
-
   const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return u.stylisticSet;
     return Null (FeatureParamsStylisticSet);
   }
-
   const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
       return u.characterVariants;
     return Null (FeatureParamsCharacterVariants);
   }
+#endif
 
   private:
   union {
