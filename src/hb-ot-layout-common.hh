@@ -2166,8 +2166,10 @@ struct Device
   {
     switch (u.b.format)
     {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
+#endif
 #ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_x_delta (font, store);
@@ -2181,7 +2183,9 @@ struct Device
     switch (u.b.format)
     {
     case 1: case 2: case 3:
+#ifndef HB_NO_HINTING
       return u.hinting.get_y_delta (font);
+#endif
 #ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_y_delta (font, store);
@@ -2196,8 +2200,10 @@ struct Device
     TRACE_SANITIZE (this);
     if (!u.b.format.sanitize (c)) return_trace (false);
     switch (u.b.format) {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
+#endif
 #ifndef HB_NO_VAR
     case 0x8000:
       return_trace (u.variation.sanitize (c));
