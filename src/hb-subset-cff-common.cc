@@ -114,7 +114,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 
     /* update each font dict index stored as "code" in fdselect_ranges */
     for (unsigned int i = 0; i < fdselect_ranges.length; i++)
-      fdselect_ranges[i].code = fdmap.forward (fdselect_ranges[i].code);
+      fdselect_ranges[i].code = fdmap[fdselect_ranges[i].code];
   }
 
   /* determine which FDSelect format is most compact */

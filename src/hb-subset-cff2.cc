@@ -542,7 +542,7 @@ static inline bool _write_cff2 (const cff2_subset_plan &plan,
     {
       PrivateDict  *pd = c.start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
-      unsigned int priv_size = plan.privateDictInfos[plan.fdmap.forward (i)].size;
+      unsigned int priv_size = plan.privateDictInfos[plan.fdmap[i]].size;
       bool result;
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */

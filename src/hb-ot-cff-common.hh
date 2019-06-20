@@ -482,7 +482,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
       if (fdmap.has (i))
       {
 	FontDict *dict = c->start_embed<FontDict> ();
-	if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap.forward (i)])))
+	if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]])))
 	  return_trace (false);
       }
     return_trace (true);

@@ -611,7 +611,7 @@ struct CFF1StringIndex : CFF1Index
       return_trace (false);
     for (unsigned int i = 0; i < strings.count; i++)
     {
-      hb_codepoint_t  j = sidmap.forward (i);
+      hb_codepoint_t  j = sidmap[i];
       if (j != CFF_UNDEF_CODE)
 	bytesArray[j] = strings[i];
     }
@@ -630,7 +630,7 @@ struct CFF1StringIndex : CFF1Index
 
     unsigned int dataSize = 0;
     for (unsigned int i = 0; i < count; i++)
-      if (sidmap.forward (i) != CFF_UNDEF_CODE)
+      if (sidmap[i] != CFF_UNDEF_CODE)
 	dataSize += length_at (i);
 
     offSize_ = calcOffSize(dataSize);
