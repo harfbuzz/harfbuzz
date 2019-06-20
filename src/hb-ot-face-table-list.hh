@@ -47,7 +47,9 @@
 
 /* OpenType fundamentals. */
 HB_OT_TABLE (OT, head)
+#if !defined(HB_NO_FACE_COLLECT_UNICODES) || !defined(HB_NO_OT_FONT)
 HB_OT_ACCELERATOR (OT, cmap)
+#endif
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_TABLE (OT, OS2)
 #ifndef HB_NO_OT_FONT_GLYPH_NAMES
