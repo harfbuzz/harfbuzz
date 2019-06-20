@@ -58,6 +58,7 @@
 #define HB_NO_CFF
 #define HB_NO_COLOR
 #define HB_NO_GETENV
+#define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_LANGUAGE_PRIVATE_SUBTAG
 #define HB_NO_LAYOUT_UNUSED
 #define HB_NO_MATH
