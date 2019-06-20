@@ -98,8 +98,10 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, key);
+#ifndef HB_NO_SHAPE_AAT
   if (apply_morx)
     aat_map.compile (plan.aat_map);
+#endif
 
 #ifndef HB_NO_OT_SHAPE_FRACTIONS
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));
@@ -201,7 +203,9 @@ hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
 			   const hb_shape_plan_key_t     *key)
 {
   map.init ();
+#ifndef HB_NO_SHAPE_AAT
   aat_map.init ();
+#endif
 
   hb_ot_shape_planner_t planner (face,
 				 &key->props);
@@ -229,7 +233,9 @@ hb_ot_shape_plan_t::fini ()
     shaper->data_destroy (const_cast<void *> (data));
 
   map.fini ();
+#ifndef HB_NO_SHAPE_AAT
   aat_map.fini ();
+#endif
 }
 
 void
