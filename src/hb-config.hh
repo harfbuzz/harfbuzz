@@ -40,6 +40,7 @@
 #define HB_LEAN
 #define HB_MINI
 #define HB_NO_MT
+#define HB_NO_UCD_UNASSIGNED
 #ifndef NDEBUG
 #define NDEBUG
 #endif

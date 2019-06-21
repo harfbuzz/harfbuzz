@@ -72,6 +72,7 @@ for line in open('hb-common.h'):
 
 DEFAULT = 1
 COMPACT = 3
+SLOPPY  = 5
 
 
 logging.info('Generating output...')
@@ -105,14 +106,31 @@ datasets = [
     ('dm', dm, None, dm_order),
 ]
 
-for compression in (DEFAULT, COMPACT):
+for compression in (DEFAULT, COMPACT, SLOPPY):
     logging.info('  Compression=%d:' % compression)
     print()
     if compression == DEFAULT:
         print('#ifndef HB_OPTIMIZE_SIZE')
+    elif compression == COMPACT:
+        print('#elif !defined(HB_NO_UCD_UNASSIGNED)')
     else:
         print('#else')
     print()
+
+    if compression == SLOPPY:
+        for i in range(len(gc)):
+            if (i % 128) and gc[i] == 'Cn':
+                gc[i] = gc[i - 1]
+        for i in range(len(gc) - 2, -1, -1):
+            if ((i + 1) % 128) and gc[i] == 'Cn':
+                gc[i] = gc[i + 1]
+        for i in range(len(sc)):
+            if (i % 128) and sc[i] == 'Zzzz':
+                sc[i] = sc[i - 1]
+        for i in range(len(sc) - 2, -1, -1):
+            if ((i + 1) % 128) and sc[i] == 'Zzzz':
+                sc[i] = sc[i + 1]
+
 
     code = packTab.Code('_hb_ucd')
 
@@ -123,11 +141,10 @@ for compression in (DEFAULT, COMPACT):
 
     code.print_c(linkage='static inline')
 
-
-    if compression != DEFAULT:
-        print()
-        print('#endif')
     print()
+
+print('#endif')
+print()
 
 print()
 print("#endif /* HB_UCD_TABLE_HH */")

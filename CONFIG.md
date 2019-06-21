@@ -109,7 +109,8 @@ The pre-defined configurations are:
     as esoteric or rarely-used shaping features.  See the definition for details.
 
   * `HB_TINY`: Enables both `HB_MINI` and `HB_LEAN` configurations, as well as
-    disabling thread-safety and debugging, and use size-optimized data tables.
+    disabling thread-safety and debugging, and use even more size-optimized data
+    tables.
 
 
 ## Tailoring configuration
