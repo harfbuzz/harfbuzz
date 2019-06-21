@@ -487,6 +487,7 @@ hb_blob_t::try_make_writable ()
  * Mmap
  */
 
+#ifndef HB_NO_OPEN
 #ifdef HAVE_MMAP
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -543,10 +544,6 @@ _hb_mapped_file_destroy (void *file_)
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
 {
-#ifdef HB_NO_OPEN
-  return hb_blob_get_empty ();
-#endif
-
   /* Adopted from glib's gmappedfile.c with Matthias Clasen and
      Allison Lortie permission but changed a lot to suit our need. */
 #if defined(HAVE_MMAP) && !defined(HB_NO_MMAP)
@@ -680,3 +677,4 @@ fread_fail_without_close:
   free (data);
   return hb_blob_get_empty ();
 }
+#endif /* !HB_NO_OPEN */
