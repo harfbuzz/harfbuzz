@@ -25,7 +25,9 @@
 
 #include "hb.hh"
 
-#ifndef HB_NO_COLOR
+#include <cairo.h>
+
+#if !defined(HB_NO_COLOR) && defined(CAIRO_HAS_SVG_SURFACE)
 
 #include "hb-ot.h"
 
@@ -35,7 +37,6 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#include <cairo.h>
 #include <cairo-ft.h>
 #include <cairo-svg.h>
 
