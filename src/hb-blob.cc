@@ -677,4 +677,10 @@ fread_fail_without_close:
   free (data);
   return hb_blob_get_empty ();
 }
-#endif /* !HB_NO_OPEN */
+#else /* !HB_NO_OPEN */
+hb_blob_t *
+hb_blob_create_from_file (const char *file_name)
+{
+  return hb_blob_get_empty ();
+}
+#endif
