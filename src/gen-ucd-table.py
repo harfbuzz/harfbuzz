@@ -38,13 +38,22 @@ assert all((v[0] >> 16) in (0,2) for v in dm1)
 dm1_p0_array = ['0x%04Xu' % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 0]
 dm1_p2_array = ['0x%04Xu' % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 2]
 dm1_order = {v:i+1 for i,v in enumerate(dm1)}
-dm2 = sorted((v, i) for i,v in dm.items() if len(v) == 2)
-dm2 = [("HB_CODEPOINT_ENCODE3 (0x%04Xu, 0x%04Xu, 0x%04Xu)" %
-        (v+(i if i not in ce and not ccc[i] else 0,)), v)
-       for v,i in dm2]
-dm2_array = [s for s,v in dm2]
+
+dm2 = sorted((v+(i if i not in ce and not ccc[i] else 0,), v)
+             for i,v in dm.items() if len(v) == 2)
+
+filt = lambda v: ((v[0] & 0xFFFFF800) == 0x0000 and
+                  (v[1] & 0xFFFFFF80) == 0x0300 and
+                  (v[2] & 0xFFF0C000) == 0x0000)
+dm2_u32_array = [v for v in dm2 if filt(v[0])]
+dm2_u64_array = [v for v in dm2 if not filt(v[0])]
+assert dm2_u32_array + dm2_u64_array == dm2
+dm2_u32_array = ["HB_CODEPOINT_ENCODE3_11_7_14 (0x%04Xu, 0x%04Xu, 0x%04Xu)" % v[0] for v in dm2_u32_array]
+dm2_u64_array = ["HB_CODEPOINT_ENCODE3 (0x%04Xu, 0x%04Xu, 0x%04Xu)" % v[0] for v in dm2_u64_array]
+
 l = 1 + len(dm1_p0_array) + len(dm1_p2_array)
 dm2_order = {v[1]:i+l for i,v in enumerate(dm2)}
+
 dm_order = {None: 0}
 dm_order.update(dm1_order)
 dm_order.update(dm2_order)
@@ -96,7 +105,8 @@ code = packTab.Code('_hb_ucd')
 sc_array, _ = code.addArray('hb_script_t', 'sc_map', sc_array)
 dm1_p0_array, _ = code.addArray('uint16_t', 'dm1_p0_map', dm1_p0_array)
 dm1_p2_array, _ = code.addArray('uint16_t', 'dm1_p2_map', dm1_p2_array)
-dm2_array, _ = code.addArray('uint64_t', 'dm2_map', dm2_array)
+dm2_u32_array, _ = code.addArray('uint32_t', 'dm2_u32_map', dm2_u32_array)
+dm2_u64_array, _ = code.addArray('uint64_t', 'dm2_u64_map', dm2_u64_array)
 code.print_c(linkage='static inline')
 
 datasets = [
