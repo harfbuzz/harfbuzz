@@ -1,3 +1,10 @@
+Overview of changes leading to 2.5.3
+Wednesday, June 26, 2019
+====================================
+- Fix UCD script data for Unicode 10+ scripts.  This was broken since 2.5.0.
+- More optimizations for HB_TINY.
+
+
 Overview of changes leading to 2.5.2
 Thursday, June 20, 2019
 ====================================
