@@ -93,7 +93,7 @@
 
 #ifdef HB_NO_AAT
 #define HB_NO_OT_NAME_LANGUAGE_AAT
-#define HB_NO_SHAPE_AAT
+#define HB_NO_AAT_SHAPE
 #endif
 
 #ifdef HB_NO_BITMAP

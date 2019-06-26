@@ -392,7 +392,7 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
   return false;
 #endif
 
-#ifndef HB_NO_SHAPE_AAT
+#ifndef HB_NO_AAT_SHAPE
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
    * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
    * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
