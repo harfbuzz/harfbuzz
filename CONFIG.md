@@ -90,8 +90,8 @@ without loss of functionality by defining `HB_NO_OT_FONT`.
 
 Most HarfBuzz clients use it for the main shaper, called "ot".  However, it
 is legitimate to want to compile HarfBuzz with only another backend, eg.
-CoreText, for example for an iOS app.  For that, you want `HB_NO_OT_SHAPE`,
-or more generally `HB_NO_OT`.
+CoreText, for example for an iOS app.  For that, you want `HB_NO_OT_SHAPE`.
+If you are going down that route, check if you want `HB_NO_OT`.
 
 This is very rarely what you need.  Make sure you understand exactly what you
 are doing.
