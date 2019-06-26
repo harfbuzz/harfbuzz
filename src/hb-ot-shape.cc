@@ -479,7 +479,7 @@ hb_set_unicode_props (hb_buffer_t *buffer)
     {
 	_hb_glyph_info_set_continuation (&info[i]);
     }
-#ifndef HB_NO_EMOJI
+#ifndef HB_NO_EMOJI_SEQUENCES
     else if (unlikely (_hb_glyph_info_is_zwj (&info[i])))
     {
       _hb_glyph_info_set_continuation (&info[i]);

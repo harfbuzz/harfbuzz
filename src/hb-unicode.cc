@@ -572,7 +572,7 @@ _hb_modified_combining_class[256] =
 /*
  * Emoji
  */
-#ifndef HB_NO_EMOJI
+#ifndef HB_NO_EMOJI_SEQUENCES
 
 #include "hb-unicode-emoji-table.hh"
 
