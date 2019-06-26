@@ -28,6 +28,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_LAYOUT
+
 #include "hb-open-type.hh"
 #include "hb-ot-layout.hh"
 #include "hb-ot-face.hh"
@@ -1998,5 +2002,8 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_tag_t                 script_tag,
 			   hb_tag_t                 language_tag,
 			   hb_position_t           *coord        /* OUT.  May be NULL. */);
+
+#endif
+
 
 #endif

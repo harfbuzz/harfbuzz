@@ -123,6 +123,7 @@
 
 #ifdef HB_NO_OT
 #define HB_NO_OT_FONT
+#define HB_NO_OT_LAYOUT
 #define HB_NO_OT_SHAPE
 #endif
 
