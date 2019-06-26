@@ -570,6 +570,7 @@ _hb_modified_combining_class[256] =
 /*
  * Emoji
  */
+#ifndef HB_NO_EMOJI
 
 #include "hb-unicode-emoji-table.hh"
 
@@ -581,3 +582,4 @@ _hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp)
 		     sizeof (hb_unicode_range_t),
 		     hb_unicode_range_t::cmp);
 }
+#endif
