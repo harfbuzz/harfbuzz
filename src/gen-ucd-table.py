@@ -58,13 +58,14 @@ dm_order = {None: 0}
 dm_order.update(dm1_order)
 dm_order.update(dm2_order)
 
-gc_order = packTab.AutoMapping()
-for _ in ('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',
-          'Mc', 'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf',
-          'Pi', 'Po', 'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',):
-    gc_order[_]
+gc_order = dict()
+for i,v in enumerate(('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',
+                      'Mc', 'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf',
+                      'Pi', 'Po', 'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',)):
+    gc_order[i] = v
+    gc_order[v] = i
 
-sc_order = packTab.AutoMapping()
+sc_order = dict()
 sc_array = []
 sc_re = re.compile(r"\b(HB_SCRIPT_[_A-Z]*).*HB_TAG [(]'(.)','(.)','(.)','(.)'[)]")
 for line in open('hb-common.h'):
@@ -72,13 +73,10 @@ for line in open('hb-common.h'):
     if not m: continue
     name = m.group(1)
     tag = ''.join(m.group(i) for i in range(2, 6))
-    i = sc_order[tag]
-    assert i == len(sc_array)
+    i = len(sc_array)
+    sc_order[tag] = i
+    sc_order[i] = tag
     sc_array.append(name)
-
-# TODO Currently if gc_order or sc_order do not capture all values, we get in
-# trouble because they silently add new values.  We should be able to "freeze"
-# them, or just do the mapping ourselves.
 
 DEFAULT = 1
 COMPACT = 3
