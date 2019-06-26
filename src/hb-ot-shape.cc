@@ -30,6 +30,10 @@
 
 #ifndef HB_NO_OT_SHAPE
 
+#ifdef HB_NO_OT_LAYOUT
+#error "Cannot compile 'ot' shaper with HB_NO_OT_LAYOUT."
+#endif
+
 #include "hb-shaper-impl.hh"
 
 #include "hb-ot-shape.hh"
