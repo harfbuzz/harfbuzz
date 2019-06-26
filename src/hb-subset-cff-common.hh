@@ -648,9 +648,8 @@ struct subr_subsetter_t
     parsed_global_subrs.init (acc.globalSubrs->count);
     parsed_local_subrs.resize (acc.fdCount);
     for (unsigned int i = 0; i < acc.fdCount; i++)
-    {
       parsed_local_subrs[i].init (acc.privateDicts[i].localSubrs->count);
-    }
+
     if (unlikely (!closures.valid))
       return false;
 

@@ -33,7 +33,8 @@ namespace CFF {
 
 using namespace OT;
 
-enum cs_type_t {
+enum cs_type_t
+{
   CSType_CharString,
   CSType_GlobalSubr,
   CSType_LocalSubr
@@ -47,7 +48,6 @@ struct call_context_t
     type = type_;
     subr_num = subr_num_;
   }
-
   void fini () {}
 
   byte_str_ref_t  str_ref;
@@ -62,10 +62,10 @@ struct call_stack_t : stack_t<call_context_t, kMaxCallLimit> {};
 template <typename SUBRS>
 struct biased_subrs_t
 {
-  void init (const SUBRS *subrs_)
+  void init (const SUBRS &subrs_)
   {
-    subrs = subrs_;
-    unsigned int  nSubrs = get_count ();
+    subrs = &subrs_;
+    unsigned int nSubrs = get_count ();
     if (nSubrs < 1240)
       bias = 107;
     else if (nSubrs < 33900)
@@ -76,20 +76,19 @@ struct biased_subrs_t
 
   void fini () {}
 
-  unsigned int get_count () const { return (subrs == nullptr) ? 0 : subrs->count; }
+  unsigned int get_count () const { return subrs->count; }
   unsigned int get_bias () const  { return bias; }
 
   byte_str_t operator [] (unsigned int index) const
   {
-    if (unlikely ((subrs == nullptr) || index >= subrs->count))
-      return Null(byte_str_t);
-    else
-      return (*subrs)[index];
+    if (unlikely (index >= subrs->count))
+      return Null (byte_str_t);
+    return (*subrs)[index];
   }
 
   protected:
   unsigned int  bias;
-  const SUBRS   *subrs;
+  const SUBRS	*subrs;
 };
 
 struct point_t
@@ -111,14 +110,14 @@ struct point_t
   void move (const number_t &dx, const number_t &dy) { move_x (dx); move_y (dy); }
   void move (const point_t &d) { move_x (d.x); move_y (d.y); }
 
-  number_t  x;
-  number_t  y;
+  number_t x;
+  number_t y;
 };
 
 template <typename ARG, typename SUBRS>
 struct cs_interp_env_t : interp_env_t<ARG>
 {
-  void init (const byte_str_t &str, const SUBRS *globalSubrs_, const SUBRS *localSubrs_)
+  void init (const byte_str_t &str, const SUBRS &globalSubrs_, const SUBRS &localSubrs_)
   {
     interp_env_t<ARG>::init (str);
 
@@ -143,16 +142,14 @@ struct cs_interp_env_t : interp_env_t<ARG>
   }
 
   bool in_error () const
-  {
-    return callStack.in_error () || SUPER::in_error ();
-  }
+  { return callStack.in_error () || SUPER::in_error (); }
 
   bool pop_subr_num (const biased_subrs_t<SUBRS>& biasedSubrs, unsigned int &subr_num)
   {
     subr_num = 0;
     int n = SUPER::argStack.pop_int ();
     n += biasedSubrs.get_bias ();
-    if (unlikely ((n < 0) || ((unsigned int)n >= biasedSubrs.get_count ())))
+    if (unlikely ((n < 0) || ((unsigned int) n >= biasedSubrs.get_count ())))
       return false;
 
     subr_num = (unsigned int)n;
@@ -172,7 +169,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
     context.str_ref = SUPER::str_ref;
     callStack.push (context);
 
-    context.init ( biasedSubrs[subr_num], type, subr_num);
+    context.init (biasedSubrs[subr_num], type, subr_num);
     SUPER::str_ref = context.str_ref;
   }
 
@@ -201,7 +198,7 @@ struct cs_interp_env_t : interp_env_t<ARG>
   const number_t &get_y () const { return pt.y; }
   const point_t &get_pt () const { return pt; }
 
-  void moveto (const point_t &pt_ ) { pt = pt_; }
+  void moveto (const point_t &pt_) { pt = pt_; }
 
   public:
   call_context_t   context;
@@ -399,8 +396,7 @@ struct cs_opset_t : opset_t<ARG>
     OPSET::flush_args_and_op (op, env, param);
   }
 
-  static void check_width (op_code_t op, ENV &env, PARAM& param)
-  {}
+  static void check_width (op_code_t op, ENV &env, PARAM& param) {}
 
   static void process_post_move (op_code_t op, ENV &env, PARAM& param)
   {
@@ -428,14 +424,10 @@ struct cs_opset_t : opset_t<ARG>
     env.pop_n_args (env.argStack.get_count ());
   }
 
-  static void flush_op (op_code_t op, ENV &env, PARAM& param)
-  {
-  }
+  static void flush_op (op_code_t op, ENV &env, PARAM& param) {}
 
   static void flush_hintmask (op_code_t op, ENV &env, PARAM& param)
-  {
-    OPSET::flush_args_and_op (op, env, param);
-  }
+  { OPSET::flush_args_and_op (op, env, param); }
 
   static bool is_number_op (op_code_t op)
   {

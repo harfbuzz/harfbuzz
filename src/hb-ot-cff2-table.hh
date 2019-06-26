@@ -256,7 +256,7 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
   {
     dict_values_t<VAL>::init ();
     subrsOffset = 0;
-    localSubrs = &Null(CFF2Subrs);
+    localSubrs = nullptr;
     ivs = 0;
   }
   void fini () { dict_values_t<VAL>::fini (); }
@@ -272,9 +272,10 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
     return size;
   }
 
-  unsigned int      subrsOffset;
-  const CFF2Subrs   *localSubrs;
-  unsigned int      ivs;
+  unsigned int	subrsOffset;
+  unsigned int	ivs;
+  hb_nonnull_ptr_t<const CFF2Subrs>
+		localSubrs;
 };
 
 typedef cff2_private_dict_values_base_t<op_str_t> cff2_private_dict_values_subset_t;
@@ -491,9 +492,7 @@ struct cff2
 	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
 	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset);
-	if (privateDicts[i].localSubrs != &Null(CFF2Subrs) &&
-	  unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
-	{ fini (); return; }
+	if (unlikely (!privateDicts[i].localSubrs->sanitize (&sc))) { fini (); return; }
       }
     }
 

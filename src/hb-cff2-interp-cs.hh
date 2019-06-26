@@ -82,7 +82,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
   void init (const byte_str_t &str, ACC &acc, unsigned int fd,
 		    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
-    SUPER::init (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs);
+    SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
 
     coords = coords_;
     num_coords = num_coords_;
@@ -90,7 +90,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     seen_blend = false;
     seen_vsindex_ = false;
     scalars.init ();
-    do_blend = (coords != nullptr) && num_coords && (varStore != &Null(CFF2VariationStore));
+    do_blend = (coords != nullptr) && num_coords && (varStore != &Null (CFF2VariationStore));
     set_ivs (acc.privateDicts[fd].ivs);
   }
 
@@ -119,9 +119,9 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     return arg;
   }
 
-  const blend_arg_t& pop_arg ()
+  const blend_arg_t &pop_arg ()
   {
-    blend_arg_t  &arg = argStack.pop ();
+    blend_arg_t &arg = argStack.pop ();
     blend_arg (arg);
     return arg;
   }
@@ -159,7 +159,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
   unsigned int get_region_count () const { return region_count; }
   void	 set_region_count (unsigned int region_count_) { region_count = region_count_; }
   unsigned int get_ivs () const { return ivs; }
-  void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
+  void  set_ivs (unsigned int ivs_) { ivs = ivs_; }
   bool	 seen_vsindex () const { return seen_vsindex_; }
 
   protected:

@@ -55,7 +55,8 @@ typedef Subrs<HBUINT16>    CFF1Subrs;
 struct CFF1FDSelect : FDSelect {};
 
 /* Encoding */
-struct Encoding0 {
+struct Encoding0
+{
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -67,9 +68,7 @@ struct Encoding0 {
     assert (glyph > 0);
     glyph--;
     if (glyph < nCodes ())
-    {
-      return (hb_codepoint_t)codes[glyph];
-    }
+      return (hb_codepoint_t) codes[glyph];
     else
       return CFF_UNDEF_CODE;
   }
@@ -77,7 +76,7 @@ struct Encoding0 {
   HBUINT8 &nCodes () { return codes.len; }
   HBUINT8 nCodes () const { return codes.len; }
 
-  ArrayOf<HBUINT8, HBUINT8> codes;
+  PString codes;
 
   DEFINE_SIZE_ARRAY_SIZED (1, codes);
 };
@@ -126,7 +125,8 @@ struct Encoding1 {
   DEFINE_SIZE_ARRAY_SIZED (1, ranges);
 };
 
-struct SuppEncoding {
+struct SuppEncoding
+{
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -880,7 +880,7 @@ struct cff1_private_dict_values_base_t : dict_values_t<VAL>
   {
     dict_values_t<VAL>::init ();
     subrsOffset = 0;
-    localSubrs = &Null(CFF1Subrs);
+    localSubrs = nullptr;
   }
   void fini () { dict_values_t<VAL>::fini (); }
 
@@ -895,8 +895,9 @@ struct cff1_private_dict_values_base_t : dict_values_t<VAL>
     return size;
   }
 
-  unsigned int      subrsOffset;
-  const CFF1Subrs    *localSubrs;
+  unsigned int	subrsOffset;
+  hb_nonnull_ptr_t<const CFF1Subrs>
+		localSubrs;
 };
 
 typedef cff1_private_dict_values_base_t<op_str_t> cff1_private_dict_values_subset_t;
@@ -1120,9 +1121,7 @@ struct cff1
 	  if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
 	  priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
-	  if (priv->localSubrs != &Null(CFF1Subrs) &&
-	      unlikely (!priv->localSubrs->sanitize (&sc)))
-	  { fini (); return; }
+	  if (unlikely (!priv->localSubrs->sanitize (&sc))) { fini (); return; }
 	}
       }
       else  /* non-CID */
@@ -1138,9 +1137,7 @@ struct cff1
 	if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
 	priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
-	if (priv->localSubrs != &Null(CFF1Subrs) &&
-	    unlikely (!priv->localSubrs->sanitize (&sc)))
-	{ fini (); return; }
+	if (unlikely (!priv->localSubrs->sanitize (&sc))) { fini (); return; }
       }
     }
 
@@ -1225,7 +1222,7 @@ struct cff1
 
     bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
-    hb_codepoint_t  glyph_to_code (hb_codepoint_t glyph) const
+    hb_codepoint_t glyph_to_code (hb_codepoint_t glyph) const
     {
       if (encoding != &Null(Encoding))
 	return encoding->get_code (glyph);

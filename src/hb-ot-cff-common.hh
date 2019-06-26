@@ -41,7 +41,7 @@ using namespace OT;
 /* utility macro */
 template<typename Type>
 static inline const Type& StructAtOffsetOrNull(const void *P, unsigned int offset)
-{ return offset? (* reinterpret_cast<const Type*> ((const char *) P + offset)): Null(Type); }
+{ return offset ? (* reinterpret_cast<const Type*> ((const char *) P + offset)) : Null(Type); }
 
 inline unsigned int calcOffSize(unsigned int dataSize)
 {
@@ -214,21 +214,19 @@ struct CFFIndex
 
   unsigned int get_size () const
   {
-    if (this != &Null (CFFIndex))
-    {
-      if (count > 0)
-	return min_size + offset_array_size () + (offset_at (count) - 1);
-      else
-	return count.static_size;  /* empty CFFIndex contains count only */
-    }
+    if (this == &Null (CFFIndex)) return 0;
+
+    if (count > 0)
+      return min_size + offset_array_size () + (offset_at (count) - 1);
     else
-      return 0;
+      return count.static_size;  /* empty CFFIndex contains count only */
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely ((count.sanitize (c) && count == 0) || /* empty INDEX */
+    return_trace (likely ((this == &Null (CFFIndex<COUNT>)) ||
+			  (c->check_struct (this) && count == 0 && offSize == 0) || /* empty INDEX */
 			  (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
 			   c->check_array (offsets, offSize, count + 1) &&
 			   c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1))));
@@ -622,6 +620,7 @@ struct FDSelect
   {
     if (this == &Null (FDSelect))
       return 0;
+
     switch (format)
     {
     case 0: return u.format0.get_fd (glyph);
