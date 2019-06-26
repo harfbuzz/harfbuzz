@@ -32,6 +32,10 @@
 
 #ifndef HB_NO_OT_LAYOUT
 
+#ifdef HB_NO_OT_TAG
+#error "Cannot compile hb-ot-layout.cc with HB_NO_OT_TAG."
+#endif
+
 #include "hb-open-type.hh"
 #include "hb-ot-layout.hh"
 #include "hb-ot-face.hh"

@@ -28,6 +28,10 @@
 
 #ifdef HAVE_UNISCRIBE
 
+#ifdef HB_NO_OT_TAG
+#error "Cannot compile 'uniscribe' shaper with HB_NO_OT_TAG."
+#endif
+
 #include "hb-shaper-impl.hh"
 
 #include <windows.h>
