@@ -66,7 +66,7 @@ for _ in ('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',
 
 sc_order = packTab.AutoMapping()
 sc_array = []
-sc_re = re.compile(" (HB_SCRIPT_[_A-Z]*).*HB_TAG [(]'(.)','(.)','(.)','(.)'[)]")
+sc_re = re.compile(r"\b(HB_SCRIPT_[_A-Z]*).*HB_TAG [(]'(.)','(.)','(.)','(.)'[)]")
 for line in open('hb-common.h'):
     m = sc_re.search (line)
     if not m: continue
