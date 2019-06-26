@@ -453,6 +453,7 @@ hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 #endif
 
 
+#ifndef HB_NO_OT_SHAPE
 /* See hb-unicode.hh for details. */
 const uint8_t
 _hb_modified_combining_class[256] =
@@ -565,6 +566,7 @@ _hb_modified_combining_class[256] =
   241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
   255, /* HB_UNICODE_COMBINING_CLASS_INVALID */
 };
+#endif
 
 
 /*
