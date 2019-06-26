@@ -28,6 +28,9 @@
 #define HB_SHAPER_LIST_HH
 #endif /* HB_SHAPER_LIST_HH */ /* Dummy header guards */
 
+#ifndef HB_NO_SHAPER
+
+
 /* v--- Add new shapers in the right place here. */
 
 #ifdef HAVE_GRAPHITE2
@@ -51,4 +54,7 @@ HB_SHAPER_IMPLEMENT (coretext)
 
 #ifndef HB_NO_FALLBACK_SHAPE
 HB_SHAPER_IMPLEMENT (fallback) /* <--- This should be last. */
+#endif
+
+
 #endif
