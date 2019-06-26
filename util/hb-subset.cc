@@ -53,6 +53,13 @@ struct subset_consumer_t
   {
     // TODO(Q1) does this only get called with at least 1 codepoint?
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+    if (0 == strcmp (text, "*"))
+    {
+      hb_face_t *face = hb_font_get_face (font);
+      hb_face_collect_unicodes (face, codepoints);
+      return;
+    }
+
     gchar *c = (gchar *)text;
     do {
       gunichar cp = g_utf8_get_char(c);
