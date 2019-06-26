@@ -26,6 +26,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_SHAPE
+
 #include "hb-shaper-impl.hh"
 
 #include "hb-ot-shape.hh"
@@ -1146,3 +1150,6 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   hb_shape_plan_destroy (shape_plan);
 }
+
+
+#endif
