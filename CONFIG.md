@@ -40,7 +40,11 @@ Finally, if you are making a static library build or otherwise linking the
 library into your app, make sure your linker removes unused functions.  This
 can be tricky and differ from environment to environment, but you definitely
 want to make sure this happens.  Otherwise, every unused public function will
-be adding unneeded bytes to your binary.
+be adding unneeded bytes to your binary.  The following pointers might come
+handy:
+
+ * https://lwn.net/Articles/741494/ (all of the four-part series)
+ * https://elinux.org/images/2/2d/ELC2010-gc-sections_Denys_Vlasenko.pdf
 
 Combining the above three build options should already shrink your library a lot.
 The rest of this file shows you ways to shrink the library even further at the
