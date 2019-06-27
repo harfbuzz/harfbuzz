@@ -157,6 +157,27 @@ static const test_pair_t combining_class_tests_more[] =
   /* Unicode-6.0 character additions */
   {   0x135D, 230 },
 
+  /* Unicode-6.1 character additions */
+  {   0xA674, 230 },
+
+  /* Unicode-7.0 character additions */
+  {   0x1AB0, 230 },
+
+  /* Unicode-8.0 character additions */
+  {   0xA69E, 230 },
+
+  /* Unicode-9.0 character additions */
+  {  0x1E000, 230 },
+
+  /* Unicode-10.0 character additions */
+  {   0x1DF6, 232 },
+
+  /* Unicode-11.0 character additions */
+  {   0x07FD, 220 },
+
+  /* Unicode-12.0 character additions */
+  {   0x0EBA,   9 },
+
   { 0x111111, 0 }
 };
 
@@ -204,6 +225,36 @@ static const test_pair_t general_category_tests_more[] =
   /* Unicode-6.0 character additions */
   {   0x0620, HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER },
 
+  /* Unicode-6.1 character additions */
+  {   0x058F, HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL },
+
+  /* Unicode-6.2 character additions */
+  {   0x20BA, HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL },
+
+  /* Unicode-6.3 character additions */
+  {   0x061C, HB_UNICODE_GENERAL_CATEGORY_FORMAT },
+
+  /* Unicode-7.0 character additions */
+  {   0x058D, HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL },
+
+  /* Unicode-8.0 character additions */
+  {   0x08E3, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK },
+
+  /* Unicode-9.0 character additions */
+  {   0x08D4, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK },
+
+  /* Unicode-10.0 character additions */
+  {   0x09FD, HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION },
+
+  /* Unicode-11.0 character additions */
+  {   0x0560, HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER },
+
+  /* Unicode-12.0 character additions */
+  {   0x0C77, HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION },
+
+  /* Unicode-12.1 character additions */
+  {   0x32FF, HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL },
+
   { 0x111111, HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED }
 };
 
@@ -242,7 +293,12 @@ static const test_pair_t mirroring_tests[] =
 };
 static const test_pair_t mirroring_tests_more[] =
 {
-  /* No new mirroring characters have been encoded in recent Unicode versions. */
+  /* Unicode-6.1 character additions */
+  {   0x27CB, 0x27CD },
+
+  /* Unicode-11.0 character additions */
+  {   0x2BFE, 0x221F },
+
   { 0x111111, 0x111111 }
 };
 
@@ -342,8 +398,10 @@ static const test_pair_t script_tests_more[] =
   /* Unicode-5.2 additions */
   {  0x10B00, HB_SCRIPT_AVESTAN },
   {   0xA6A0, HB_SCRIPT_BAMUM },
+  {   0x1400, HB_SCRIPT_CANADIAN_ABORIGINAL },
   {  0x13000, HB_SCRIPT_EGYPTIAN_HIEROGLYPHS },
   {  0x10840, HB_SCRIPT_IMPERIAL_ARAMAIC },
+  {   0x1CED, HB_SCRIPT_INHERITED },
   {  0x10B60, HB_SCRIPT_INSCRIPTIONAL_PAHLAVI },
   {  0x10B40, HB_SCRIPT_INSCRIPTIONAL_PARTHIAN },
   {   0xA980, HB_SCRIPT_JAVANESE },
@@ -361,9 +419,85 @@ static const test_pair_t script_tests_more[] =
   {  0x11000, HB_SCRIPT_BRAHMI },
   {   0x0840, HB_SCRIPT_MANDAIC },
 
-  /* Unicode-5.2 character additions */
-  {   0x1CED, HB_SCRIPT_INHERITED },
-  {   0x1400, HB_SCRIPT_CANADIAN_ABORIGINAL },
+  /* Unicode-6.1 additions */
+  {  0x10980, HB_SCRIPT_MEROITIC_HIEROGLYPHS },
+  {  0x109A0, HB_SCRIPT_MEROITIC_CURSIVE },
+  {  0x110D0, HB_SCRIPT_SORA_SOMPENG },
+  {  0x11100, HB_SCRIPT_CHAKMA },
+  {  0x11180, HB_SCRIPT_SHARADA },
+  {  0x11680, HB_SCRIPT_TAKRI },
+  {  0x16F00, HB_SCRIPT_MIAO },
+
+  /* Unicode-6.2 additions */
+  {   0x20BA, HB_SCRIPT_COMMON },
+
+  /* Unicode-6.3 additions */
+  {   0x2066, HB_SCRIPT_COMMON },
+
+  /* Unicode-7.0 additions */
+  {   0x10350, HB_SCRIPT_OLD_PERMIC },
+  {   0x10500, HB_SCRIPT_ELBASAN },
+  {   0x10530, HB_SCRIPT_CAUCASIAN_ALBANIAN },
+  {   0x10600, HB_SCRIPT_LINEAR_A },
+  {   0x10860, HB_SCRIPT_PALMYRENE },
+  {   0x10880, HB_SCRIPT_NABATAEAN },
+  {   0x10A80, HB_SCRIPT_OLD_NORTH_ARABIAN },
+  {   0x10AC0, HB_SCRIPT_MANICHAEAN },
+  {   0x10B80, HB_SCRIPT_PSALTER_PAHLAVI },
+  {   0x11150, HB_SCRIPT_MAHAJANI },
+  {   0x11200, HB_SCRIPT_KHOJKI },
+  {   0x112B0, HB_SCRIPT_KHUDAWADI },
+  {   0x11300, HB_SCRIPT_GRANTHA },
+  {   0x11480, HB_SCRIPT_TIRHUTA },
+  {   0x11580, HB_SCRIPT_SIDDHAM },
+  {   0x11600, HB_SCRIPT_MODI },
+  {   0x118A0, HB_SCRIPT_WARANG_CITI },
+  {   0x11AC0, HB_SCRIPT_PAU_CIN_HAU },
+  {   0x16A40, HB_SCRIPT_MRO },
+  {   0x16AD0, HB_SCRIPT_BASSA_VAH },
+  {   0x16B00, HB_SCRIPT_PAHAWH_HMONG },
+  {   0x1BC00, HB_SCRIPT_DUPLOYAN },
+  {   0x1E800, HB_SCRIPT_MENDE_KIKAKUI },
+
+  /* Unicode-8.0 additions */
+  {   0x108E0, HB_SCRIPT_HATRAN },
+  {   0x10C80, HB_SCRIPT_OLD_HUNGARIAN },
+  {   0x11280, HB_SCRIPT_MULTANI },
+  {   0x11700, HB_SCRIPT_AHOM },
+  {   0x14400, HB_SCRIPT_ANATOLIAN_HIEROGLYPHS },
+  {   0x1D800, HB_SCRIPT_SIGNWRITING },
+
+  /* Unicode-9.0 additions */
+  {   0x104B0, HB_SCRIPT_OSAGE },
+  {   0x11400, HB_SCRIPT_NEWA },
+  {   0x11C00, HB_SCRIPT_BHAIKSUKI },
+  {   0x11C70, HB_SCRIPT_MARCHEN },
+  {   0x17000, HB_SCRIPT_TANGUT },
+  {   0x1E900, HB_SCRIPT_ADLAM },
+
+  /* Unicode-10.0 additions */
+  {   0x11A00, HB_SCRIPT_ZANABAZAR_SQUARE },
+  {   0x11A50, HB_SCRIPT_SOYOMBO },
+  {   0x11D00, HB_SCRIPT_MASARAM_GONDI },
+  {   0x1B170, HB_SCRIPT_NUSHU },
+
+  /* Unicode-11.0 additions */
+  {   0x10D00, HB_SCRIPT_HANIFI_ROHINGYA },
+  {   0x10F00, HB_SCRIPT_OLD_SOGDIAN },
+  {   0x10F30, HB_SCRIPT_SOGDIAN },
+  {   0x11800, HB_SCRIPT_DOGRA },
+  {   0x11D60, HB_SCRIPT_GUNJALA_GONDI },
+  {   0x11EE0, HB_SCRIPT_MAKASAR },
+  {   0x16E40, HB_SCRIPT_MEDEFAIDRIN },
+
+  /* Unicode-12.0 additions */
+  {   0x10FE0, HB_SCRIPT_ELYMAIC },
+  {   0x119A0, HB_SCRIPT_NANDINAGARI },
+  {   0x1E100, HB_SCRIPT_NYIAKENG_PUACHUE_HMONG },
+  {   0x1E2C0, HB_SCRIPT_WANCHO },
+
+  /* Unicode-12.1 additions */
+  {   0x32FF, HB_SCRIPT_COMMON },
 
   { 0x111111, HB_SCRIPT_UNKNOWN }
 };
