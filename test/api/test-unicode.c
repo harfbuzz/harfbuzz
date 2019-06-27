@@ -547,7 +547,7 @@ static const property_t properties[] =
 #undef PROPERTY
 
 static void
-test_unicode_properties (gconstpointer user_data)
+test_unicode_properties (gconstpointer user_data, hb_bool_t lenient)
 {
   hb_unicode_funcs_t *uf = (hb_unicode_funcs_t *) user_data;
   unsigned int i, j;
@@ -571,15 +571,29 @@ test_unicode_properties (gconstpointer user_data)
     tests = p->tests_more;
     for (j = 0; j < p->num_tests_more; j++) {
       g_test_message ("Test %s more #%d: U+%04X", p->name, j, tests[j].unicode);
-      if (p->getter (uf, tests[j].unicode) != tests[j].value) {
-	g_test_message ("Soft fail: Received %x, expected %x", p->getter (uf, tests[j].unicode), tests[j].value);
-        failed = TRUE;
+      if (lenient) {
+	if (p->getter (uf, tests[j].unicode) != tests[j].value) {
+	  g_test_message ("Soft fail: Received %x, expected %x", p->getter (uf, tests[j].unicode), tests[j].value);
+	  failed = TRUE;
+	}
       }
+      else
+	g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, tests[j].value);
     }
   }
 
   if (failed)
     g_test_message ("Some property tests failed.  You probably have an old version of one of the libraries used.");
+}
+static void
+test_unicode_properties_lenient (gconstpointer user_data)
+{
+  test_unicode_properties (user_data, TRUE);
+}
+static void
+test_unicode_properties_strict (gconstpointer user_data)
+{
+  test_unicode_properties (user_data, FALSE);
 }
 
 static hb_codepoint_t
@@ -663,7 +677,7 @@ test_unicode_chainup (void)
 
   g_assert (!hb_unicode_funcs_is_immutable (uf2));
   hb_unicode_funcs_make_immutable (uf2);
-  test_unicode_properties (uf2);
+  test_unicode_properties_strict (uf2);
 
   hb_unicode_funcs_destroy (uf2);
 
@@ -934,16 +948,16 @@ main (int argc, char **argv)
   hb_test_add (test_unicode_properties_nil);
   hb_test_add (test_unicode_properties_empty);
 
-  hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_properties);
+  hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_properties_strict);
   hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_normalization);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_default, "default", test_unicode_script_roundtrip);
 #ifdef HAVE_GLIB
-  hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_properties);
+  hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_properties_lenient);
   hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_normalization);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_glib,    "glib",    test_unicode_script_roundtrip);
 #endif
 #ifdef HAVE_ICU
-  hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),              "icu",     test_unicode_properties);
+  hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),              "icu",     test_unicode_properties_lenient);
   hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),              "icu",     test_unicode_normalization);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_icu,     "icu",     test_unicode_script_roundtrip);
 #endif
