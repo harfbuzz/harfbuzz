@@ -53,19 +53,19 @@ print ()
 print ('#include "hb-unicode.hh"')
 print ()
 
-for typ,s in ranges.items():
+for typ, s in ranges.items():
 	if typ != "Extended_Pictographic": continue
 
-        arr = dict()
-        for start,end in s:
-            for i in range(start,end):
-                arr[i] = 1
+	arr = dict()
+	for start,end in s:
+		for i in range(start,end):
+			arr[i] = 1
 
-        sol = packTab.pack_table(arr, 0, compression=3)
-        code = packTab.Code('_hb_emoji')
-        sol.genCode(code, 'is_'+typ)
-        code.print_c(linkage='static inline')
-        print()
+	sol = packTab.pack_table(arr, 0, compression=3)
+	code = packTab.Code('_hb_emoji')
+	sol.genCode(code, 'is_'+typ)
+	code.print_c(linkage='static inline')
+	print()
 
 print ()
 print ("#endif /* HB_UNICODE_EMOJI_TABLE_HH */")
