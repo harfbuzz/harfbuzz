@@ -92,6 +92,7 @@ struct CFF2FDSelect
   bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
+    if (this == &Null (CFF2FDSelect)) return_trace (true);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
 
@@ -456,16 +457,12 @@ struct cff2
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
       fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset);
 
-      if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
-	  (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
-	  (globalSubrs == &Null(CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
-	  (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
-	  (((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
-      { fini (); return; }
+      if (unlikely (!varStore->sanitize (&sc) || !charStrings->sanitize (&sc) ||
+		    !globalSubrs->sanitize (&sc) || !fdArray->sanitize (&sc) ||
+		    !fdSelect->sanitize (&sc, fdArray->count))) { fini (); return; }
 
       num_glyphs = charStrings->count;
-      if (num_glyphs != sc.get_num_glyphs ())
-      { fini (); return; }
+      if (num_glyphs != sc.get_num_glyphs ()) { fini (); return; }
 
       fdCount = fdArray->count;
       privateDicts.resize (fdCount);
@@ -491,9 +488,7 @@ struct cff2
 	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
 	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset);
-	if (privateDicts[i].localSubrs != &Null(CFF2Subrs) &&
-	  unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
-	{ fini (); return; }
+	if (unlikely (!privateDicts[i].localSubrs->sanitize (&sc))) { fini (); return; }
       }
     }
 

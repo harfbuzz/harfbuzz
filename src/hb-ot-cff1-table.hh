@@ -288,6 +288,7 @@ struct Encoding
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    if (this == &Null (Encoding)) return_trace (true);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
 
@@ -569,6 +570,7 @@ struct Charset
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    if (this == &Null (Charset)) return_trace (true);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
 
@@ -1056,7 +1058,7 @@ struct cff1
       else
       {
 	charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
-	if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc))) { fini (); return; }
+	if (!charset->sanitize (&sc)) { fini (); return; }
       }
 
       fdCount = 1;
@@ -1064,16 +1066,16 @@ struct cff1
       {
 	fdArray = &StructAtOffsetOrNull<CFF1FDArray> (cff, topDict.FDArrayOffset);
 	fdSelect = &StructAtOffsetOrNull<CFF1FDSelect> (cff, topDict.FDSelectOffset);
-	if (unlikely ((fdArray == &Null(CFF1FDArray)) || !fdArray->sanitize (&sc) ||
-	    (fdSelect == &Null(CFF1FDSelect)) || !fdSelect->sanitize (&sc, fdArray->count)))
+	if (unlikely (!fdArray->sanitize (&sc) ||
+		      !fdSelect->sanitize (&sc, fdArray->count)))
 	{ fini (); return; }
 
 	fdCount = fdArray->count;
       }
       else
       {
-	fdArray = &Null(CFF1FDArray);
-	fdSelect = &Null(CFF1FDSelect);
+	fdArray = &Null (CFF1FDArray);
+	fdSelect = &Null (CFF1FDSelect);
       }
 
       stringIndex = &StructAtOffset<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
@@ -1081,13 +1083,11 @@ struct cff1
       { fini (); return; }
 
       globalSubrs = &StructAtOffset<CFF1Subrs> (stringIndex, stringIndex->get_size ());
-      if ((globalSubrs != &Null (CFF1Subrs)) && !globalSubrs->sanitize (&sc))
-      { fini (); return; }
+      if (!globalSubrs->sanitize (&sc)) { fini (); return; }
 
       charStrings = &StructAtOffsetOrNull<CFF1CharStrings> (cff, topDict.charStringsOffset);
 
-      if ((charStrings == &Null(CFF1CharStrings)) || unlikely (!charStrings->sanitize (&sc)))
-      { fini (); return; }
+      if (unlikely (!charStrings->sanitize (&sc))) { fini (); return; }
 
       num_glyphs = charStrings->count;
       if (num_glyphs != sc.get_num_glyphs ())
@@ -1120,9 +1120,7 @@ struct cff1
 	  if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
 	  priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
-	  if (priv->localSubrs != &Null(CFF1Subrs) &&
-	      unlikely (!priv->localSubrs->sanitize (&sc)))
-	  { fini (); return; }
+	  if (unlikely (!priv->localSubrs->sanitize (&sc))) { fini (); return; }
 	}
       }
       else  /* non-CID */
@@ -1138,9 +1136,7 @@ struct cff1
 	if (unlikely (!priv_interp.interpret (*priv))) { fini (); return; }
 
 	priv->localSubrs = &StructAtOffsetOrNull<CFF1Subrs> (&privDictStr, priv->subrsOffset);
-	if (priv->localSubrs != &Null(CFF1Subrs) &&
-	    unlikely (!priv->localSubrs->sanitize (&sc)))
-	{ fini (); return; }
+	if (unlikely (!priv->localSubrs->sanitize (&sc))) { fini (); return; }
       }
     }
 
@@ -1218,7 +1214,7 @@ struct cff1
 	if (!is_predef_encoding ())
 	{
 	  encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
-	  if (unlikely ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))) { fini (); return; }
+	  if (unlikely (!encoding->sanitize (&sc))) { fini (); return; }
 	}
       }
     }
