@@ -374,7 +374,7 @@ dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
 
-COMPILED_TESTS = test-algs test-iter test-meta test-ot-tag test-unicode-ranges
+COMPILED_TESTS = test-algs test-iter test-meta test-ot-tag test-unicode-ranges test-bimap
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
 check_PROGRAMS += $(COMPILED_TESTS)
@@ -399,6 +399,10 @@ test_ot_tag_LDADD = $(COMPILED_TESTS_LDADD)
 test_unicode_ranges_SOURCES = test-unicode-ranges.cc
 test_unicode_ranges_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_unicode_ranges_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_bimap_SOURCES = test-bimap.cc hb-static.cc
+test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_bimap_LDADD = $(COMPILED_TESTS_LDADD)
 
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
