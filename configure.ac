@@ -376,7 +376,7 @@ if test "x$with_directwrite" = "xyes" -a "x$have_directwrite" != "xtrue"; then
 fi
 if $have_directwrite; then
 	DIRECTWRITE_CXXFLAGS=
-	DIRECTWRITE_LIBS="-ldwrite"
+	DIRECTWRITE_LIBS=
 	AC_SUBST(DIRECTWRITE_CXXFLAGS)
 	AC_SUBST(DIRECTWRITE_LIBS)
 	AC_DEFINE(HAVE_DIRECTWRITE, 1, [Have DirectWrite library])
