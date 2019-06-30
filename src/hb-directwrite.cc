@@ -33,6 +33,13 @@
 #include "hb-directwrite.h"
 
 
+/* Declare object creator for dynamic support of DWRITE */
+typedef HRESULT (* WINAPI t_DWriteCreateFactory)(
+  DWRITE_FACTORY_TYPE factoryType,
+  REFIID              iid,
+  IUnknown            **factory
+);
+
 /*
  * hb-directwrite uses new/delete syntatically but as we let users
  * to override malloc/free, we will redefine new/delete so users
@@ -138,6 +145,7 @@ public:
 
 struct hb_directwrite_face_data_t
 {
+  HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
   DWriteFontFileStream *fontFileStream;
@@ -153,12 +161,33 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return nullptr;
 
-  // TODO: factory and fontFileLoader should be cached separately
-  IDWriteFactory* dwriteFactory;
-  DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-		       (IUnknown**) &dwriteFactory);
+#define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
+    return nullptr; \
+  } HB_STMT_END
+
+  data->dwrite_dll = LoadLibrary(TEXT("DWRITE"));
+  if (data->dwrite_dll == NULL)
+    FAIL ("Cannot find DWrite.DLL");
+
+  t_DWriteCreateFactory p_DWriteCreateFactory;
+
+  p_DWriteCreateFactory = (t_DWriteCreateFactory)
+	GetProcAddress(data->dwrite_dll, "DWriteCreateFactory");
+  if (p_DWriteCreateFactory == NULL)
+    FAIL ("Cannot find DWriteCreateFactory().");
 
   HRESULT hr;
+
+  // TODO: factory and fontFileLoader should be cached separately
+  IDWriteFactory* dwriteFactory;
+  hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+		       (IUnknown**) &dwriteFactory);
+
+  if (hr != S_OK)
+    FAIL ("Failed to run DWriteCreateFactory().");
+
   hb_blob_t *blob = hb_face_reference_blob (face);
   DWriteFontFileStream *fontFileStream;
   fontFileStream = new DWriteFontFileStream ((uint8_t *) hb_blob_get_data (blob, nullptr),
@@ -171,12 +200,6 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   uint64_t fontFileKey = 0;
   hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
 						     fontFileLoader, &fontFile);
-
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-    return nullptr; \
-  } HB_STMT_END
 
   if (FAILED (hr))
     FAIL ("Failed to load font file from data!");
@@ -224,6 +247,8 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
     delete data->fontFileStream;
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
+  if (data->dwrite_dll != NULL)
+    FreeLibrary(data->dwrite_dll);
   if (data)
     delete data;
 }
