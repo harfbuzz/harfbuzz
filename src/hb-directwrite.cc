@@ -173,8 +173,18 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
 
   t_DWriteCreateFactory p_DWriteCreateFactory;
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
   p_DWriteCreateFactory = (t_DWriteCreateFactory)
 	GetProcAddress(data->dwrite_dll, "DWriteCreateFactory");
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
   if (p_DWriteCreateFactory == NULL)
     FAIL ("Cannot find DWriteCreateFactory().");
 
