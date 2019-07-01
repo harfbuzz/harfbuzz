@@ -167,8 +167,8 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
     return nullptr; \
   } HB_STMT_END
 
-  data->dwrite_dll = LoadLibrary(TEXT("DWRITE"));
-  if (data->dwrite_dll == NULL)
+  data->dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
+  if (unlikely (!data->dwrite_dll))
     FAIL ("Cannot find DWrite.DLL");
 
   t_DWriteCreateFactory p_DWriteCreateFactory;
@@ -179,13 +179,13 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
 #endif
 
   p_DWriteCreateFactory = (t_DWriteCreateFactory)
-	GetProcAddress(data->dwrite_dll, "DWriteCreateFactory");
+			  GetProcAddress (data->dwrite_dll, "DWriteCreateFactory");
 
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 
-  if (p_DWriteCreateFactory == NULL)
+  if (unlikely (!p_DWriteCreateFactory))
     FAIL ("Cannot find DWriteCreateFactory().");
 
   HRESULT hr;
@@ -193,9 +193,9 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   // TODO: factory and fontFileLoader should be cached separately
   IDWriteFactory* dwriteFactory;
   hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-		       (IUnknown**) &dwriteFactory);
+			      (IUnknown**) &dwriteFactory);
 
-  if (hr != S_OK)
+  if (unlikely (hr != S_OK))
     FAIL ("Failed to run DWriteCreateFactory().");
 
   hb_blob_t *blob = hb_face_reference_blob (face);
@@ -257,8 +257,8 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
     delete data->fontFileStream;
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
-  if (data->dwrite_dll != NULL)
-    FreeLibrary(data->dwrite_dll);
+  if (data->dwrite_dll)
+    FreeLibrary (data->dwrite_dll);
   if (data)
     delete data;
 }
