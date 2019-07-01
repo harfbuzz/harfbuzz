@@ -28,7 +28,7 @@
 
 #include "hb-shaper-impl.hh"
 
-#include <DWrite_1.h>
+#include <dwrite_1.h>
 
 #include "hb-directwrite.h"
 
