@@ -31,6 +31,10 @@
 #include <usp10.h>
 #include <rpc.h>
 
+#ifndef E_NOT_SUFFICIENT_BUFFER
+#define E_NOT_SUFFICIENT_BUFFER HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER)
+#endif
+
 #include "hb-uniscribe.h"
 
 #include "hb-open-file.hh"

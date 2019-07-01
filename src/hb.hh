@@ -66,7 +66,6 @@
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
-#pragma GCC diagnostic error   "-Wdouble-promotion"
 #pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
@@ -99,6 +98,7 @@
 #pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
 #pragma GCC diagnostic warning "-Wdeprecated"
 #pragma GCC diagnostic warning "-Wdisabled-optimization"
+#pragma GCC diagnostic warning "-Wdouble-promotion"
 #pragma GCC diagnostic warning "-Wformat=2"
 #pragma GCC diagnostic warning "-Wignored-pragma-optimize"
 #pragma GCC diagnostic warning "-Wlogical-op"
@@ -183,7 +183,14 @@
 #include <stdarg.h>
 
 #if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+#ifdef __MINGW32_VERSION
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#else
 #include <intrin.h>
+#endif
 #endif
 
 #define HB_PASTE1(a,b) a##b
@@ -352,7 +359,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #      define HB_NO_GETENV
 #    endif
 #    if _WIN32_WCE < 0x800
-#      define setlocale(Category, Locale) "C"
+#      define HB_NO_SETLOCALE
 static int errno = 0; /* Use something better? */
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
@@ -506,20 +513,6 @@ typedef uint64_t hb_vector_size_impl_t;
 
 /* Size signifying variable-sized array */
 #define VAR 1
-
-
-/* fallback for round() */
-static inline double
-_hb_round (double x)
-{
-  if (x >= 0)
-    return floor (x + 0.5);
-  else
-    return ceil (x - 0.5);
-}
-#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
-#define round(x) _hb_round(x)
-#endif
 
 
 /* fallback for posix_memalign() */

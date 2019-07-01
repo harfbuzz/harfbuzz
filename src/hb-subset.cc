@@ -183,7 +183,7 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset2<const OT::vmtx> (plan);
       break;
     case HB_OT_TAG_maxp:
-      result = _subset<const OT::maxp> (plan);
+      result = _subset2<const OT::maxp> (plan);
       break;
     case HB_OT_TAG_loca:
       DEBUG_MSG(SUBSET, nullptr, "skip loca handled by glyf");
@@ -192,10 +192,10 @@ _subset_table (hb_subset_plan_t *plan,
       result = _subset<const OT::cmap> (plan);
       break;
     case HB_OT_TAG_OS2:
-      result = _subset<const OT::OS2> (plan);
+      result = _subset2<const OT::OS2> (plan);
       break;
     case HB_OT_TAG_post:
-      result = _subset<const OT::post> (plan);
+      result = _subset2<const OT::post> (plan);
       break;
 
 #ifndef HB_NO_SUBSET_CFF

@@ -148,13 +148,19 @@ hb_ucd_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   if (likely (!i)) return false;
   i--;
 
-  if (i < ARRAY_LENGTH (_hb_ucd_dm1_map))
+  if (i < ARRAY_LENGTH (_hb_ucd_dm1_u16_map) + ARRAY_LENGTH (_hb_ucd_dm1_u32_map))
   {
-    *a = _hb_ucd_dm1_map[i];
+    if (i < ARRAY_LENGTH (_hb_ucd_dm1_u16_map))
+      *a = _hb_ucd_dm1_u16_map[i];
+    else
+    {
+      i -= ARRAY_LENGTH (_hb_ucd_dm1_u16_map);
+      *a = _hb_ucd_dm1_u32_map[i];
+    }
     *b = 0;
     return true;
   }
-  i -= ARRAY_LENGTH (_hb_ucd_dm1_map);
+  i -= ARRAY_LENGTH (_hb_ucd_dm1_u16_map) + ARRAY_LENGTH (_hb_ucd_dm1_u32_map);
 
   uint64_t v = _hb_ucd_dm2_map[i];
   *a = HB_CODEPOINT_DECODE3_1 (v);
