@@ -126,8 +126,6 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 }
 #endif
 
-
-extern "C" hb_unicode_funcs_t *hb_ucd_get_unicode_funcs ();
 extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs ();
 extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs ();
 

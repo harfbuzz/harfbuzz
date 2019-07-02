@@ -395,4 +395,7 @@ HB_INTERNAL bool
 _hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp);
 
 
+extern "C" HB_INTERNAL hb_unicode_funcs_t *hb_ucd_get_unicode_funcs ();
+
+
 #endif /* HB_UNICODE_HH */
