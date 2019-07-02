@@ -308,6 +308,7 @@ hb.cc: Makefile.sources
 	for f in $(HB_BASE_sources); do echo '#include "'$$f'"'; done | \
 	grep '[.]cc"' > $(srcdir)/hb.cc \
 	|| ($(RM) $(srcdir)/hb.cc; false)
+EXTRA_DIST += hb.cc
 
 noinst_PROGRAMS = \
 	main \
