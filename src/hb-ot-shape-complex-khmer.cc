@@ -69,23 +69,23 @@ khmer_features[] =
  * Must be in the same order as the khmer_features array.
  */
 enum {
-  PREF,
-  BLWF,
-  ABVF,
-  PSTF,
-  CFAR,
+  KHMER_PREF,
+  KHMER_BLWF,
+  KHMER_ABVF,
+  KHMER_PSTF,
+  KHMER_CFAR,
 
-  _PRES,
-  _ABVS,
-  _BLWS,
-  _PSTS,
+  _KHMER_PRES,
+  _KHMER_ABVS,
+  _KHMER_BLWS,
+  _KHMER_PSTS,
 
-  _DIST,
-  _ABVM,
-  _BLWM,
+  _KHMER_DIST,
+  _KHMER_ABVM,
+  _KHMER_BLWM,
 
   KHMER_NUM_FEATURES,
-  KHMER_BASIC_FEATURES = _PRES, /* Don't forget to update this! */
+  KHMER_BASIC_FEATURES = _KHMER_PRES, /* Don't forget to update this! */
 };
 
 static void
@@ -252,7 +252,9 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
   /* Setup masks. */
   {
     /* Post-base */
-    hb_mask_t mask = khmer_plan->mask_array[BLWF] | khmer_plan->mask_array[ABVF] | khmer_plan->mask_array[PSTF];
+    hb_mask_t mask = khmer_plan->mask_array[KHMER_BLWF] |
+		     khmer_plan->mask_array[KHMER_ABVF] |
+		     khmer_plan->mask_array[KHMER_PSTF];
     for (unsigned int i = start + 1; i < end; i++)
       info[i].mask  |= mask;
   }
@@ -279,7 +281,7 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
       if (info[i + 1].khmer_category() == OT_Ra)
       {
 	for (unsigned int j = 0; j < 2; j++)
-	  info[i + j].mask |= khmer_plan->mask_array[PREF];
+	  info[i + j].mask |= khmer_plan->mask_array[KHMER_PREF];
 
 	/* Move the Coeng,Ro sequence to the start. */
 	buffer->merge_clusters (start, i + 2);
@@ -295,9 +297,9 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	 * U+1784,U+17D2,U+179A,U+17D2,U+1782
 	 * U+1784,U+17D2,U+1782,U+17D2,U+179A
 	 */
-	if (khmer_plan->mask_array[CFAR])
+	if (khmer_plan->mask_array[KHMER_CFAR])
 	  for (unsigned int j = i + 2; j < end; j++)
-	    info[j].mask |= khmer_plan->mask_array[CFAR];
+	    info[j].mask |= khmer_plan->mask_array[KHMER_CFAR];
 
 	num_coengs = 2; /* Done. */
       }

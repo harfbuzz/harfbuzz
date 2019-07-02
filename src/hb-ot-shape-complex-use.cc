@@ -59,7 +59,7 @@ use_basic_features[] =
   HB_TAG('c','j','c','t'),
 };
 static const hb_tag_t
-use_arabic_features[] =
+use_topographical_features[] =
 {
   HB_TAG('i','s','o','l'),
   HB_TAG('i','n','i','t'),
@@ -71,13 +71,13 @@ use_arabic_features[] =
   HB_TAG('f','i','n','2'),
   HB_TAG('f','i','n','3'),
 };
-/* Same order as use_arabic_features.  Don't need Syriac stuff.*/
+/* Same order as use_topographical_features.  Don't need Syriac stuff.*/
 enum joining_form_t {
-  ISOL,
-  INIT,
-  MEDI,
-  FINA,
-  _NONE
+  USE_ISOL,
+  USE_INIT,
+  USE_MEDI,
+  USE_FINA,
+  _USE_NONE
 };
 static const hb_tag_t
 use_other_features[] =
@@ -152,8 +152,8 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (_hb_clear_syllables);
 
   /* "Topographical features" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (use_arabic_features); i++)
-    map->add_feature (use_arabic_features[i]);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (use_topographical_features); i++)
+    map->add_feature (use_topographical_features[i]);
   map->add_gsub_pause (nullptr);
 
   /* "Standard typographic presentation" */
@@ -305,11 +305,11 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   if (use_plan->arabic_plan)
     return;
 
-  static_assert ((INIT < 4 && ISOL < 4 && MEDI < 4 && FINA < 4), "");
+  static_assert ((USE_INIT < 4 && USE_ISOL < 4 && USE_MEDI < 4 && USE_FINA < 4), "");
   hb_mask_t masks[4], all_masks = 0;
   for (unsigned int i = 0; i < 4; i++)
   {
-    masks[i] = plan->map.get_1_mask (use_arabic_features[i]);
+    masks[i] = plan->map.get_1_mask (use_topographical_features[i]);
     if (masks[i] == plan->map.get_global_mask ())
       masks[i] = 0;
     all_masks |= masks[i];
@@ -319,7 +319,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_mask_t other_masks = ~all_masks;
 
   unsigned int last_start = 0;
-  joining_form_t last_form = _NONE;
+  joining_form_t last_form = _USE_NONE;
   hb_glyph_info_t *info = buffer->info;
   foreach_syllable (buffer, start, end)
   {
@@ -330,7 +330,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_symbol_cluster:
       case use_non_cluster:
 	/* These don't join.  Nothing to do. */
-	last_form = _NONE;
+	last_form = _USE_NONE;
 	break;
 
       case use_virama_terminated_cluster:
@@ -340,18 +340,18 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_numeral_cluster:
       case use_broken_cluster:
 
-	bool join = last_form == FINA || last_form == ISOL;
+	bool join = last_form == USE_FINA || last_form == USE_ISOL;
 
 	if (join)
 	{
 	  /* Fixup previous syllable's form. */
-	  last_form = last_form == FINA ? MEDI : INIT;
+	  last_form = last_form == USE_FINA ? USE_MEDI : USE_INIT;
 	  for (unsigned int i = last_start; i < start; i++)
 	    info[i].mask = (info[i].mask & other_masks) | masks[last_form];
 	}
 
 	/* Form for this syllable. */
-	last_form = join ? FINA : ISOL;
+	last_form = join ? USE_FINA : USE_ISOL;
 	for (unsigned int i = start; i < end; i++)
 	  info[i].mask = (info[i].mask & other_masks) | masks[last_form];
 

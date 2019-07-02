@@ -144,31 +144,31 @@ indic_features[] =
  * Must be in the same order as the indic_features array.
  */
 enum {
-  _NUKT,
-  _AKHN,
-  RPHF,
-  _RKRF,
-  PREF,
-  BLWF,
-  ABVF,
-  HALF,
-  PSTF,
-  _VATU,
-  _CJCT,
+  _INDIC_NUKT,
+  _INDIC_AKHN,
+  INDIC_RPHF,
+  _INDIC_RKRF,
+  INDIC_PREF,
+  INDIC_BLWF,
+  INDIC_ABVF,
+  INDIC_HALF,
+  INDIC_PSTF,
+  _INDIC_VATU,
+  _INDIC_CJCT,
 
-  INIT,
-  _PRES,
-  _ABVS,
-  _BLWS,
-  _PSTS,
-  _HALN,
+  INDIC_INIT,
+  _INDIC_PRES,
+  _INDIC_ABVS,
+  _INDIC_BLWS,
+  _INDIC_PSTS,
+  _INDIC_HALN,
 
-  _DIST,
-  _ABVM,
-  _BLWM,
+  _INDIC_DIST,
+  _INDIC_ABVM,
+  _INDIC_BLWM,
 
   INDIC_NUM_FEATURES,
-  INDIC_BASIC_FEATURES = INIT, /* Don't forget to update this! */
+  INDIC_BASIC_FEATURES = INDIC_INIT, /* Don't forget to update this! */
 };
 
 static void
@@ -467,7 +467,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *    and has more than one consonant, Ra is excluded from candidates for
      *    base consonants. */
     unsigned int limit = start;
-    if (indic_plan->mask_array[RPHF] &&
+    if (indic_plan->mask_array[INDIC_RPHF] &&
 	start + 3 <= end &&
 	(
 	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
@@ -803,13 +803,13 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     /* Reph */
     for (unsigned int i = start; i < end && info[i].indic_position() == POS_RA_TO_BECOME_REPH; i++)
-      info[i].mask |= indic_plan->mask_array[RPHF];
+      info[i].mask |= indic_plan->mask_array[INDIC_RPHF];
 
     /* Pre-base */
-    mask = indic_plan->mask_array[HALF];
+    mask = indic_plan->mask_array[INDIC_HALF];
     if (!indic_plan->is_old_spec &&
 	indic_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
-      mask |= indic_plan->mask_array[BLWF];
+      mask |= indic_plan->mask_array[INDIC_BLWF];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
     /* Base */
@@ -817,7 +817,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     if (base < end)
       info[base].mask |= mask;
     /* Post-base */
-    mask = indic_plan->mask_array[BLWF] | indic_plan->mask_array[ABVF] | indic_plan->mask_array[PSTF];
+    mask = indic_plan->mask_array[INDIC_BLWF] |
+	   indic_plan->mask_array[INDIC_ABVF] |
+	   indic_plan->mask_array[INDIC_PSTF];
     for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
   }
@@ -849,13 +851,13 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	  (i + 2 == base ||
 	   info[i+2].indic_category() != OT_ZWJ))
       {
-	info[i  ].mask |= indic_plan->mask_array[BLWF];
-	info[i+1].mask |= indic_plan->mask_array[BLWF];
+	info[i  ].mask |= indic_plan->mask_array[INDIC_BLWF];
+	info[i+1].mask |= indic_plan->mask_array[INDIC_BLWF];
       }
   }
 
   unsigned int pref_len = 2;
-  if (indic_plan->mask_array[PREF] && base + pref_len < end)
+  if (indic_plan->mask_array[INDIC_PREF] && base + pref_len < end)
   {
     /* Find a Halant,Ra sequence and mark it for pre-base-reordering processing. */
     for (unsigned int i = base + 1; i + pref_len - 1 < end; i++) {
@@ -865,7 +867,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       if (indic_plan->pref.would_substitute (glyphs, pref_len, face))
       {
 	for (unsigned int j = 0; j < pref_len; j++)
-	  info[i++].mask |= indic_plan->mask_array[PREF];
+	  info[i++].mask |= indic_plan->mask_array[INDIC_PREF];
 	break;
       }
     }
@@ -886,7 +888,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
 	/* A ZWNJ disables HALF. */
 	if (non_joiner)
-	  info[j].mask &= ~indic_plan->mask_array[HALF];
+	  info[j].mask &= ~indic_plan->mask_array[INDIC_HALF];
 
       } while (j > start && !is_consonant (info[j]));
     }
@@ -1053,7 +1055,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    * syllable.
    */
 
-  bool try_pref = !!indic_plan->mask_array[PREF];
+  bool try_pref = !!indic_plan->mask_array[INDIC_PREF];
 
   /* Find base again */
   unsigned int base;
@@ -1063,7 +1065,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       if (try_pref && base + 1 < end)
       {
 	for (unsigned int i = base + 1; i < end; i++)
-	  if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
+	  if ((info[i].mask & indic_plan->mask_array[INDIC_PREF]) != 0)
 	  {
 	    if (!(_hb_glyph_info_substituted (&info[i]) &&
 		  _hb_glyph_info_ligated_and_didnt_multiply (&info[i])))
@@ -1385,7 +1387,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   if (try_pref && base + 1 < end) /* Otherwise there can't be any pre-base-reordering Ra. */
   {
     for (unsigned int i = base + 1; i < end; i++)
-      if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
+      if ((info[i].mask & indic_plan->mask_array[INDIC_PREF]) != 0)
       {
 	/*       1. Only reorder a glyph produced by substitution during application
 	 *          of the <pref> feature. (Note that a font may shape a Ra consonant with
@@ -1448,7 +1450,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     if (!start ||
 	!(FLAG_UNSAFE (_hb_glyph_info_get_general_category (&info[start - 1])) &
 	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
-      info[start].mask |= indic_plan->mask_array[INIT];
+      info[start].mask |= indic_plan->mask_array[INDIC_INIT];
     else
       buffer->unsafe_to_break (start - 1, start + 1);
   }
