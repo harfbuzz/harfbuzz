@@ -64,7 +64,14 @@ enum indic_category_t {
   OT_Ra = 16,
   OT_CM = 17,  /* Consonant-Medial. */
   OT_Symbol = 18, /* Avagraha, etc that take marks (SM,A,VD). */
-  OT_CS = 19
+  OT_CS = 19,
+
+  /* The following are used by Khmer & Myanmar shapers.  Defined
+   * here for them to share. */
+  OT_VAbv    = 26,
+  OT_VBlw    = 27,
+  OT_VPre    = 28,
+  OT_VPst    = 29,
 };
 
 #define MEDIAL_FLAGS (FLAG (OT_CM))

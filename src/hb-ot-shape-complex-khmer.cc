@@ -318,10 +318,10 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
-			     hb_face_t *face,
-			     hb_buffer_t *buffer,
-			     unsigned int start, unsigned int end)
+reorder_syllable_khmer (const hb_ot_shape_plan_t *plan,
+			hb_face_t *face,
+			hb_buffer_t *buffer,
+			unsigned int start, unsigned int end)
 {
   khmer_syllable_type_t syllable_type = (khmer_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type)
@@ -337,9 +337,9 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		       hb_font_t *font,
-		       hb_buffer_t *buffer)
+insert_dotted_circles_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			     hb_font_t *font,
+			     hb_buffer_t *buffer)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
     return;
@@ -404,10 +404,10 @@ reorder_khmer (const hb_ot_shape_plan_t *plan,
 	       hb_font_t *font,
 	       hb_buffer_t *buffer)
 {
-  insert_dotted_circles (plan, font, buffer);
+  insert_dotted_circles_khmer (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
-    initial_reordering_syllable (plan, font->face, buffer, start, end);
+    reorder_syllable_khmer (plan, font->face, buffer, start, end);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, khmer_category);
 }

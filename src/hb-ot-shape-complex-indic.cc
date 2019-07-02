@@ -392,9 +392,9 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
 
 static void
-update_consonant_positions (const hb_ot_shape_plan_t *plan,
-			    hb_font_t         *font,
-			    hb_buffer_t       *buffer)
+update_consonant_positions_indic (const hb_ot_shape_plan_t *plan,
+				  hb_font_t         *font,
+				  hb_buffer_t       *buffer)
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
@@ -917,10 +917,10 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
-			     hb_face_t *face,
-			     hb_buffer_t *buffer,
-			     unsigned int start, unsigned int end)
+initial_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
+				   hb_face_t *face,
+				   hb_buffer_t *buffer,
+				   unsigned int start, unsigned int end)
 {
   indic_syllable_type_t syllable_type = (indic_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type)
@@ -942,9 +942,9 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		       hb_font_t *font,
-		       hb_buffer_t *buffer)
+insert_dotted_circles_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			     hb_font_t *font,
+			     hb_buffer_t *buffer)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
     return;
@@ -1009,17 +1009,17 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
 			  hb_buffer_t *buffer)
 {
-  update_consonant_positions (plan, font, buffer);
-  insert_dotted_circles (plan, font, buffer);
+  update_consonant_positions_indic (plan, font, buffer);
+  insert_dotted_circles_indic (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
-    initial_reordering_syllable (plan, font->face, buffer, start, end);
+    initial_reordering_syllable_indic (plan, font->face, buffer, start, end);
 }
 
 static void
-final_reordering_syllable (const hb_ot_shape_plan_t *plan,
-			   hb_buffer_t *buffer,
-			   unsigned int start, unsigned int end)
+final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
+				 hb_buffer_t *buffer,
+				 unsigned int start, unsigned int end)
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
@@ -1488,7 +1488,7 @@ final_reordering_indic (const hb_ot_shape_plan_t *plan,
   if (unlikely (!count)) return;
 
   foreach_syllable (buffer, start, end)
-    final_reordering_syllable (plan, buffer, start, end);
+    final_reordering_syllable_indic (plan, buffer, start, end);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);

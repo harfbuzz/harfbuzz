@@ -412,7 +412,7 @@ record_pref_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static inline bool
-is_halant (const hb_glyph_info_t &info)
+is_halant_use (const hb_glyph_info_t &info)
 {
   return (info.use_category() == USE_H || info.use_category() == USE_HVM) &&
 	 !_hb_glyph_info_ligated (&info);
@@ -458,7 +458,7 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
     for (unsigned int i = start + 1; i < end; i++)
     {
       bool is_post_base_glyph = (FLAG64_UNSAFE (info[i].use_category()) & POST_BASE_FLAGS64) ||
-				is_halant (info[i]);
+				is_halant_use (info[i]);
       if (is_post_base_glyph || i == end - 1)
       {
 	/* If we hit a post-base glyph, move before it; otherwise move to the
@@ -482,7 +482,7 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
   for (unsigned int i = start; i < end; i++)
   {
     uint32_t flag = FLAG_UNSAFE (info[i].use_category());
-    if (is_halant (info[i]))
+    if (is_halant_use (info[i]))
     {
       /* If we hit a halant, move after it; otherwise move to the beginning, and
        * shift things in between forward. */
@@ -502,9 +502,9 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		       hb_font_t *font,
-		       hb_buffer_t *buffer)
+insert_dotted_circles_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			   hb_font_t *font,
+			   hb_buffer_t *buffer)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
     return;
@@ -564,7 +564,7 @@ reorder_use (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
-  insert_dotted_circles (plan, font, buffer);
+  insert_dotted_circles_use (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
     reorder_syllable_use (buffer, start, end);

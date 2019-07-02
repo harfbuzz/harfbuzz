@@ -294,9 +294,9 @@ reorder_syllable_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		       hb_font_t *font,
-		       hb_buffer_t *buffer)
+insert_dotted_circles_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			       hb_font_t *font,
+			       hb_buffer_t *buffer)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
     return;
@@ -355,7 +355,7 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer)
 {
-  insert_dotted_circles (plan, font, buffer);
+  insert_dotted_circles_myanmar (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
     reorder_syllable_myanmar (plan, font->face, buffer, start, end);
