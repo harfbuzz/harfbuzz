@@ -89,17 +89,13 @@ enum {
 };
 
 static void
-setup_syllables (const hb_ot_shape_plan_t *plan,
-		 hb_font_t *font,
-		 hb_buffer_t *buffer);
+setup_syllables_khmer (const hb_ot_shape_plan_t *plan,
+		       hb_font_t *font,
+		       hb_buffer_t *buffer);
 static void
-reorder (const hb_ot_shape_plan_t *plan,
-	 hb_font_t *font,
-	 hb_buffer_t *buffer);
-static void
-clear_syllables (const hb_ot_shape_plan_t *plan,
-		 hb_font_t *font,
-		 hb_buffer_t *buffer);
+reorder_khmer (const hb_ot_shape_plan_t *plan,
+	       hb_font_t *font,
+	       hb_buffer_t *buffer);
 
 static void
 collect_features_khmer (hb_ot_shape_planner_t *plan)
@@ -107,8 +103,8 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   hb_ot_map_builder_t *map = &plan->map;
 
   /* Do this before any lookups have been applied. */
-  map->add_gsub_pause (setup_syllables);
-  map->add_gsub_pause (reorder);
+  map->add_gsub_pause (setup_syllables_khmer);
+  map->add_gsub_pause (reorder_khmer);
 
   /* Testing suggests that Uniscribe does NOT pause between basic
    * features.  Test with KhmerUI.ttf and the following three
@@ -127,7 +123,7 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
   for (; i < KHMER_BASIC_FEATURES; i++)
     map->add_feature (khmer_features[i]);
 
-  map->add_gsub_pause (clear_syllables);
+  map->add_gsub_pause (_hb_clear_syllables);
 
   for (; i < KHMER_NUM_FEATURES; i++)
     map->add_feature (khmer_features[i]);
@@ -153,32 +149,6 @@ override_features_khmer (hb_ot_shape_planner_t *plan)
 }
 
 
-struct would_substitute_feature_t
-{
-  void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)
-  {
-    zero_context = zero_context_;
-    map->get_stage_lookups (0/*GSUB*/,
-			    map->get_feature_stage (0/*GSUB*/, feature_tag),
-			    &lookups, &count);
-  }
-
-  bool would_substitute (const hb_codepoint_t *glyphs,
-			 unsigned int          glyphs_count,
-			 hb_face_t            *face) const
-  {
-    for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_lookup_would_substitute (face, lookups[i].index, glyphs, glyphs_count, zero_context))
-	return true;
-    return false;
-  }
-
-  private:
-  const hb_ot_map_t::lookup_map_t *lookups;
-  unsigned int count;
-  bool zero_context;
-};
-
 struct khmer_shape_plan_t
 {
   bool get_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
@@ -202,7 +172,7 @@ struct khmer_shape_plan_t
 
   mutable hb_codepoint_t virama_glyph;
 
-  would_substitute_feature_t pref;
+  hb_indic_would_substitute_feature_t pref;
 
   hb_mask_t mask_array[KHMER_NUM_FEATURES];
 };
@@ -232,10 +202,10 @@ data_destroy_khmer (void *data)
 }
 
 
-enum syllable_type_t {
-  consonant_syllable,
-  broken_cluster,
-  non_khmer_cluster,
+enum khmer_syllable_type_t {
+  khmer_consonant_syllable,
+  khmer_broken_cluster,
+  khmer_non_khmer_cluster,
 };
 
 #include "hb-ot-shape-complex-khmer-machine.hh"
@@ -257,11 +227,11 @@ setup_masks_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static void
-setup_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		 hb_font_t *font HB_UNUSED,
-		 hb_buffer_t *buffer)
+setup_syllables_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		       hb_font_t *font HB_UNUSED,
+		       hb_buffer_t *buffer)
 {
-  find_syllables (buffer);
+  find_syllables_khmer (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
 }
@@ -351,15 +321,15 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 			     hb_buffer_t *buffer,
 			     unsigned int start, unsigned int end)
 {
-  syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
+  khmer_syllable_type_t syllable_type = (khmer_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type)
   {
-    case broken_cluster: /* We already inserted dotted-circles, so just call the consonant_syllable. */
-    case consonant_syllable:
+    case khmer_broken_cluster: /* We already inserted dotted-circles, so just call the consonant_syllable. */
+    case khmer_consonant_syllable:
      reorder_consonant_syllable (plan, face, buffer, start, end);
      break;
 
-    case non_khmer_cluster:
+    case khmer_non_khmer_cluster:
       break;
   }
 }
@@ -378,7 +348,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if ((info[i].syllable() & 0x0F) == broken_cluster)
+    if ((info[i].syllable() & 0x0F) == khmer_broken_cluster)
     {
       has_broken_syllables = true;
       break;
@@ -403,8 +373,8 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   while (buffer->idx < buffer->len && buffer->successful)
   {
     unsigned int syllable = buffer->cur().syllable();
-    syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
-    if (unlikely (last_syllable != syllable && syllable_type == broken_cluster))
+    khmer_syllable_type_t syllable_type = (khmer_syllable_type_t) (syllable & 0x0F);
+    if (unlikely (last_syllable != syllable && syllable_type == khmer_broken_cluster))
     {
       last_syllable = syllable;
 
@@ -428,9 +398,9 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static void
-reorder (const hb_ot_shape_plan_t *plan,
-	 hb_font_t *font,
-	 hb_buffer_t *buffer)
+reorder_khmer (const hb_ot_shape_plan_t *plan,
+	       hb_font_t *font,
+	       hb_buffer_t *buffer)
 {
   insert_dotted_circles (plan, font, buffer);
 
@@ -438,17 +408,6 @@ reorder (const hb_ot_shape_plan_t *plan,
     initial_reordering_syllable (plan, font->face, buffer, start, end);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, khmer_category);
-}
-
-static void
-clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		 hb_font_t *font HB_UNUSED,
-		 hb_buffer_t *buffer)
-{
-  hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    info[i].syllable() = 0;
 }
 
 
