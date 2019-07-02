@@ -303,6 +303,12 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
 
+hb.cc: Makefile.sources
+	$(AM_V_GEN) \
+	for f in $(HB_BASE_sources); do echo '#include "'$$f'"'; done | \
+	grep '[.]cc"' > $(srcdir)/hb.cc \
+	|| ($(RM) $(srcdir)/hb.cc; false)
+
 noinst_PROGRAMS = \
 	main \
 	test \
