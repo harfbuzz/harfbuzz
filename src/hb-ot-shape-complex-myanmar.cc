@@ -36,7 +36,7 @@
  */
 
 static const hb_tag_t
-basic_features[] =
+myanmar_basic_features[] =
 {
   /*
    * Basic features.
@@ -48,7 +48,7 @@ basic_features[] =
   HB_TAG('p','s','t','f'),
 };
 static const hb_tag_t
-other_features[] =
+myanmar_other_features[] =
 {
   /*
    * Other features.
@@ -60,7 +60,7 @@ other_features[] =
   HB_TAG('p','s','t','s'),
 };
 static const hb_tag_t
-positioning_features[] =
+myanmar_positioning_features[] =
 {
   /*
    * Positioning features.
@@ -104,19 +104,19 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
 
   map->add_gsub_pause (reorder_myanmar);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH (myanmar_basic_features); i++)
   {
-    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
+    map->enable_feature (myanmar_basic_features[i], F_MANUAL_ZWJ);
     map->add_gsub_pause (nullptr);
   }
 
   map->add_gsub_pause (_hb_clear_syllables);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (myanmar_other_features); i++)
+    map->enable_feature (myanmar_other_features[i], F_MANUAL_ZWJ);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
-    map->enable_feature (positioning_features[i]);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (myanmar_positioning_features); i++)
+    map->enable_feature (myanmar_positioning_features[i]);
 }
 
 static void
@@ -274,10 +274,10 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 }
 
 static void
-initial_reordering_syllable (const hb_ot_shape_plan_t *plan HB_UNUSED,
-			     hb_face_t *face HB_UNUSED,
-			     hb_buffer_t *buffer,
-			     unsigned int start, unsigned int end)
+reorder_syllable_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
+			  hb_face_t *face HB_UNUSED,
+			  hb_buffer_t *buffer,
+			  unsigned int start, unsigned int end)
 {
   myanmar_syllable_type_t syllable_type = (myanmar_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type) {
@@ -358,7 +358,7 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
   insert_dotted_circles (plan, font, buffer);
 
   foreach_syllable (buffer, start, end)
-    initial_reordering_syllable (plan, font->face, buffer, start, end);
+    reorder_syllable_myanmar (plan, font->face, buffer, start, end);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_position);

@@ -44,7 +44,7 @@
  */
 
 static const hb_tag_t
-basic_features[] =
+use_basic_features[] =
 {
   /*
    * Basic features.
@@ -59,7 +59,7 @@ basic_features[] =
   HB_TAG('c','j','c','t'),
 };
 static const hb_tag_t
-arabic_features[] =
+use_arabic_features[] =
 {
   HB_TAG('i','s','o','l'),
   HB_TAG('i','n','i','t'),
@@ -71,7 +71,7 @@ arabic_features[] =
   HB_TAG('f','i','n','2'),
   HB_TAG('f','i','n','3'),
 };
-/* Same order as arabic_features.  Don't need Syriac stuff.*/
+/* Same order as use_arabic_features.  Don't need Syriac stuff.*/
 enum joining_form_t {
   ISOL,
   INIT,
@@ -80,7 +80,7 @@ enum joining_form_t {
   _NONE
 };
 static const hb_tag_t
-other_features[] =
+use_other_features[] =
 {
   /*
    * Other features.
@@ -94,7 +94,7 @@ other_features[] =
   HB_TAG('p','s','t','s'),
 };
 static const hb_tag_t
-positioning_features[] =
+use_positioning_features[] =
 {
   /*
    * Positioning features.
@@ -145,24 +145,24 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (record_pref_use);
 
   /* "Orthographic unit shaping group" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
-    map->enable_feature (basic_features[i], F_MANUAL_ZWJ);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (use_basic_features); i++)
+    map->enable_feature (use_basic_features[i], F_MANUAL_ZWJ);
 
   map->add_gsub_pause (reorder_use);
   map->add_gsub_pause (_hb_clear_syllables);
 
   /* "Topographical features" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (arabic_features); i++)
-    map->add_feature (arabic_features[i]);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (use_arabic_features); i++)
+    map->add_feature (use_arabic_features[i]);
   map->add_gsub_pause (nullptr);
 
   /* "Standard typographic presentation" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
-    map->enable_feature (other_features[i], F_MANUAL_ZWJ);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (use_other_features); i++)
+    map->enable_feature (use_other_features[i], F_MANUAL_ZWJ);
 
   /* "Positional feature application" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (positioning_features); i++)
-    map->enable_feature (positioning_features[i]);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (use_positioning_features); i++)
+    map->enable_feature (use_positioning_features[i]);
 }
 
 struct use_shape_plan_t
@@ -309,7 +309,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_mask_t masks[4], all_masks = 0;
   for (unsigned int i = 0; i < 4; i++)
   {
-    masks[i] = plan->map.get_1_mask (arabic_features[i]);
+    masks[i] = plan->map.get_1_mask (use_arabic_features[i]);
     if (masks[i] == plan->map.get_global_mask ())
       masks[i] = 0;
     all_masks |= masks[i];
