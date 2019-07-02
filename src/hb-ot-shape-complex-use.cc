@@ -65,13 +65,8 @@ use_topographical_features[] =
   HB_TAG('i','n','i','t'),
   HB_TAG('m','e','d','i'),
   HB_TAG('f','i','n','a'),
-  /* The spec doesn't specify these but we apply anyway, since our Arabic shaper
-   * does.  These are only used in Syriac spec. */
-  HB_TAG('m','e','d','2'),
-  HB_TAG('f','i','n','2'),
-  HB_TAG('f','i','n','3'),
 };
-/* Same order as use_topographical_features.  Don't need Syriac stuff.*/
+/* Same order as use_topographical_features. */
 enum joining_form_t {
   USE_ISOL,
   USE_INIT,
