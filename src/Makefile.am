@@ -305,10 +305,18 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 
 harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
-	for f in $(HB_BASE_sources); do echo '#include "'$$f'"'; done | \
+	for f in \
+		$(HB_BASE_sources) \
+		$(HB_GLIB_sources) \
+		$(HB_FT_sources) \
+		$(HB_GRAPHITE2_sources) \
+		$(HB_UNISCRIBE_sources) \
+		$(HB_DIRECTWRITE_sources) \
+		$(HB_CORETEXT_sources) \
+		; do echo '#include "'$$f'"'; done | \
 	grep '[.]cc"' > $(srcdir)/harfbuzz.cc \
 	|| ($(RM) $(srcdir)/harfbuzz.cc; false)
-EXTRA_DIST += harfbuzz.cc
+BUILT_SOURCES += harfbuzz.cc
 
 noinst_PROGRAMS = \
 	main \
