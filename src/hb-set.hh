@@ -448,6 +448,8 @@ struct hb_set_t
 
     dirty ();
 
+    constexpr bool passthru_left  = op (0, 0) || op (1, 0);
+    constexpr bool passthru_right = op (0, 0) || op (0, 1);
     unsigned int na = pages.length;
     unsigned int nb = other->pages.length;
     unsigned int next_page = na;
@@ -464,20 +466,20 @@ struct hb_set_t
       }
       else if (page_map[a].major < other->page_map[b].major)
       {
-        if (Op::passthru_left)
+        if (passthru_left)
 	  count++;
         a++;
       }
       else
       {
-        if (Op::passthru_right)
+        if (passthru_right)
 	  count++;
         b++;
       }
     }
-    if (Op::passthru_left)
+    if (passthru_left)
       count += na - a;
-    if (Op::passthru_right)
+    if (passthru_right)
       count += nb - b;
 
     if (count > pages.length)
@@ -501,7 +503,7 @@ struct hb_set_t
       else if (page_map[a - 1].major > other->page_map[b - 1].major)
       {
 	a--;
-	if (Op::passthru_left)
+	if (passthru_left)
 	{
 	  count--;
 	  page_map[count] = page_map[a];
@@ -510,7 +512,7 @@ struct hb_set_t
       else
       {
 	b--;
-	if (Op::passthru_right)
+	if (passthru_right)
 	{
 	  count--;
 	  page_map[count].major = other->page_map[b].major;
@@ -519,14 +521,14 @@ struct hb_set_t
 	}
       }
     }
-    if (Op::passthru_left)
+    if (passthru_left)
       while (a)
       {
 	a--;
 	count--;
 	page_map[count] = page_map [a];
       }
-    if (Op::passthru_right)
+    if (passthru_right)
       while (b)
       {
 	b--;
