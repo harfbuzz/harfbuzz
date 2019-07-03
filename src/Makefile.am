@@ -303,12 +303,12 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
 
-hb.cc: Makefile.sources
+harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
 	for f in $(HB_BASE_sources); do echo '#include "'$$f'"'; done | \
-	grep '[.]cc"' > $(srcdir)/hb.cc \
-	|| ($(RM) $(srcdir)/hb.cc; false)
-EXTRA_DIST += hb.cc
+	grep '[.]cc"' > $(srcdir)/harfbuzz.cc \
+	|| ($(RM) $(srcdir)/harfbuzz.cc; false)
+EXTRA_DIST += harfbuzz.cc
 
 noinst_PROGRAMS = \
 	main \
