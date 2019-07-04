@@ -57,7 +57,7 @@ struct call_context_t
 
 /* call stack */
 const unsigned int kMaxCallLimit = 10;
-struct call_stack_t : stack_t<call_context_t, kMaxCallLimit> {};
+struct call_stack_t : cff_stack_t<call_context_t, kMaxCallLimit> {};
 
 template <typename SUBRS>
 struct biased_subrs_t
