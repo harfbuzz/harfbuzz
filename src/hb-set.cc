@@ -524,7 +524,7 @@ hb_set_next_range (const hb_set_t *set,
  * @last: (out): output last codepoint in the range.
  *
  * Gets the previous consecutive range of numbers in @set that
- * are greater than current value of @last.
+ * are less than current value of @first.
  *
  * Set @first to %HB_SET_VALUE_INVALID to get started.
  *
