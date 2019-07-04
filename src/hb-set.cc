@@ -479,7 +479,7 @@ hb_set_next (const hb_set_t *set,
  * @set: a set.
  * @codepoint: (inout):
  *
- * Gets the previous number in @set that is slower than current value of @codepoint.
+ * Gets the previous number in @set that is lower than current value of @codepoint.
  *
  * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
  *
