@@ -264,7 +264,7 @@ jobs:
       - image: dockcross/android-arm
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja
+      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
       - run: ninja -Cbuild
 
   crosscompile-cmake-notest-browser-asmjs-hb_tiny:
@@ -272,7 +272,7 @@ jobs:
       - image: dockcross/browser-asmjs
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY"
+      - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY" -DHB_BUILD_TESTS=OFF
       - run: ninja -Cbuild
 
   crosscompile-cmake-notest-linux-arm64:
@@ -280,7 +280,7 @@ jobs:
       - image: dockcross/linux-arm64
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja
+      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
       - run: ninja -Cbuild
 
   crosscompile-cmake-notest-linux-mips:
@@ -288,7 +288,7 @@ jobs:
       - image: dockcross/linux-mips
     steps:
       - checkout
-      - run: cmake -Bbuild -H. -GNinja
+      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
       - run: ninja -Cbuild
 
   #crosscompile-cmake-notest-windows-x64:
