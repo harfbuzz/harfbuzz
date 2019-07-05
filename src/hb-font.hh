@@ -609,9 +609,11 @@ struct hb_font_t
 
   hb_position_t em_scale (int16_t v, int scale)
   {
-    int upem = face->get_upem ();
+    signed upem = face->get_upem ();
+    signed upem2 = upem >> 1;
     int64_t scaled = v * (int64_t) scale;
-    scaled += scaled >= 0 ? upem/2 : -upem/2; /* Round. */
+
+    scaled += scaled >= 0 ? upem2 : -upem2; /* Round. */
     return (hb_position_t) (scaled / upem);
   }
   hb_position_t em_scalef (float v, int scale)
