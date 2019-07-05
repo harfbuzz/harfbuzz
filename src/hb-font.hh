@@ -107,8 +107,10 @@ struct hb_font_t
   hb_font_t *parent;
   hb_face_t *face;
 
-  int x_scale;
-  int y_scale;
+  int32_t x_scale;
+  int32_t y_scale;
+  int64_t x_mult;
+  int64_t y_mult;
 
   unsigned int x_ppem;
   unsigned int y_ppem;
@@ -605,6 +607,13 @@ struct hb_font_t
     }
 
     return false;
+  }
+
+  void mults_changed ()
+  {
+    signed upem = face->get_upem ();
+    x_mult = ((int64_t) x_scale << 16) / upem;
+    y_mult = ((int64_t) y_scale << 16) / upem;
   }
 
   hb_position_t em_scale (int16_t v, int scale)
