@@ -12,6 +12,8 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 TESTS =
 check_PROGRAMS =
 
+EXTRA_DIST += harfbuzz.cc
+
 # Convenience targets:
 lib: $(BUILT_SOURCES) libharfbuzz.la
 libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
