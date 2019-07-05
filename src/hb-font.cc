@@ -1601,6 +1601,7 @@ hb_font_set_face (hb_font_t *font,
 
   hb_face_t *old = font->face;
 
+  hb_face_make_immutable (face);
   font->face = hb_face_reference (face);
 
   hb_face_destroy (old);
