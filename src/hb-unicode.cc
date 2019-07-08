@@ -126,16 +126,17 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 }
 #endif
 
+extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs ();
+extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs ();
+
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default ()
 {
 #if !defined(HB_NO_UNICODE_FUNCS) && !defined(HB_NO_UCD)
   return hb_ucd_get_unicode_funcs ();
 #elif !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_GLIB)
-  extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs ();
   return hb_glib_get_unicode_funcs ();
 #elif !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_ICU) && defined(HAVE_ICU_BUILTIN)
-  extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs ();
   return hb_icu_get_unicode_funcs ();
 #else
 #define HB_UNICODE_FUNCS_NIL 1
