@@ -594,10 +594,10 @@ struct Charset
 struct CFF1StringIndex : CFF1Index
 {
   bool serialize (hb_serialize_context_t *c, const CFF1StringIndex &strings,
-		  unsigned int offSize_, const hb_bimap_t &sidmap)
+		  unsigned int offSize_, const hb_inc_bimap_t &sidmap)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely ((strings.count == 0) || (sidmap.get_count () == 0)))
+    if (unlikely ((strings.count == 0) || (sidmap.get_population () == 0)))
     {
       if (unlikely (!c->extend_min (this->count)))
 	return_trace (false);
@@ -607,7 +607,7 @@ struct CFF1StringIndex : CFF1Index
 
     byte_str_array_t bytesArray;
     bytesArray.init ();
-    if (!bytesArray.resize (sidmap.get_count ()))
+    if (!bytesArray.resize (sidmap.get_population ()))
       return_trace (false);
     for (unsigned int i = 0; i < strings.count; i++)
     {
@@ -622,10 +622,10 @@ struct CFF1StringIndex : CFF1Index
   }
 
   /* in parallel to above */
-  unsigned int calculate_serialized_size (unsigned int &offSize_ /*OUT*/, const hb_bimap_t &sidmap) const
+  unsigned int calculate_serialized_size (unsigned int &offSize_ /*OUT*/, const hb_inc_bimap_t &sidmap) const
   {
     offSize_ = 0;
-    if ((count == 0) || (sidmap.get_count () == 0))
+    if ((count == 0) || (sidmap.get_population () == 0))
       return count.static_size;
 
     unsigned int dataSize = 0;
@@ -634,7 +634,7 @@ struct CFF1StringIndex : CFF1Index
 	dataSize += length_at (i);
 
     offSize_ = calcOffSize(dataSize);
-    return CFF1Index::calculate_serialized_size (offSize_, sidmap.get_count (), dataSize);
+    return CFF1Index::calculate_serialized_size (offSize_, sidmap.get_population (), dataSize);
   }
 };
 

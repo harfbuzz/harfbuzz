@@ -267,6 +267,13 @@ struct AnchorFormat2
 		   float *x, float *y) const
   {
     hb_font_t *font = c->font;
+
+#ifdef HB_NO_HINTING
+    *x = font->em_fscale_x (xCoordinate);
+    *y = font->em_fscale_y (yCoordinate);
+    return;
+#endif
+
     unsigned int x_ppem = font->x_ppem;
     unsigned int y_ppem = font->y_ppem;
     hb_position_t cx = 0, cy = 0;
@@ -1730,13 +1737,13 @@ struct GPOS_accelerator_t : GPOS::accelerator_t {};
 
 /* Out-of-class implementation for methods recursing */
 
+#ifndef HB_NO_OT_LAYOUT
 template <typename context_t>
 /*static*/ inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
 }
-
 /*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
@@ -1749,6 +1756,7 @@ template <typename context_t>
   c->set_lookup_props (saved_lookup_props);
   return ret;
 }
+#endif
 
 
 } /* namespace OT */

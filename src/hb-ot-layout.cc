@@ -28,6 +28,14 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_LAYOUT
+
+#ifdef HB_NO_OT_TAG
+#error "Cannot compile hb-ot-layout.cc with HB_NO_OT_TAG."
+#endif
+
 #include "hb-open-type.hh"
 #include "hb-ot-layout.hh"
 #include "hb-ot-face.hh"
@@ -62,6 +70,7 @@
  * kern
  */
 
+#ifndef HB_NO_OT_KERN
 /**
  * hb_ot_layout_has_kerning:
  * @face: The #hb_face_t to work on
@@ -78,7 +87,6 @@ hb_ot_layout_has_kerning (hb_face_t *face)
   return face->table.kern->has_data ();
 }
 
-
 /**
  * hb_ot_layout_has_machine_kerning:
  * @face: The #hb_face_t to work on
@@ -94,7 +102,6 @@ hb_ot_layout_has_machine_kerning (hb_face_t *face)
 {
   return face->table.kern->has_state_machine ();
 }
-
 
 /**
  * hb_ot_layout_has_cross_kerning:
@@ -128,6 +135,7 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
 
   kern.apply (&c);
 }
+#endif
 
 
 /*
@@ -311,6 +319,7 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 }
 
 
+#ifndef HB_NO_LAYOUT_UNUSED
 /**
  * hb_ot_layout_get_attach_points:
  * @face: The #hb_face_t to work on
@@ -333,19 +342,11 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
-#ifdef HB_NO_LAYOUT_UNUSED
-  if (point_count)
-    *point_count = 0;
-  return 0;
-#endif
-
   return face->table.GDEF->table->get_attach_points (glyph,
 						     start_offset,
 						     point_count,
 						     point_array);
 }
-
-
 /**
  * hb_ot_layout_get_ligature_carets:
  * @font: The #hb_font_t to work on
@@ -368,22 +369,19 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  hb_position_t  *caret_array /* OUT */)
 {
-#ifdef HB_NO_LAYOUT_UNUSED
-  if (caret_count)
-    *caret_count = 0;
-  return 0;
-#endif
-
   unsigned int result_caret_count = 0;
   unsigned int result = font->face->table.GDEF->table->get_lig_carets (font, direction, glyph, start_offset, &result_caret_count, caret_array);
   if (result)
   {
     if (caret_count) *caret_count = result_caret_count;
   }
+#ifndef HB_NO_AAT
   else
     result = font->face->table.lcar->get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
+#endif
   return result;
 }
+#endif
 
 
 /*
@@ -397,6 +395,8 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
+
+#ifndef HB_NO_AAT_SHAPE
   /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
    * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
    * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
@@ -414,6 +414,7 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
   if (unlikely (face->table.OS2->achVendID == HB_TAG ('M','U','T','F') &&
 		face->table.morx->has_data ()))
     return true;
+#endif
 
   return false;
 }
@@ -1210,6 +1211,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 }
 
 
+#ifndef HB_NO_LAYOUT_COLLECT_GLYPHS
 /**
  * hb_ot_layout_lookup_collect_glyphs:
  * @face: #hb_face_t to work upon
@@ -1256,6 +1258,7 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
     }
   }
 }
+#endif
 
 
 /* Variations support */
@@ -1564,6 +1567,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 
+#ifndef HB_NO_LAYOUT_FEATURE_PARAMS
 /**
  * hb_ot_layout_get_size_params:
  * @face: #hb_face_t to work upon
@@ -1626,8 +1630,6 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 
   return false;
 }
-
-
 /**
  * hb_ot_layout_feature_get_name_ids:
  * @face: #hb_face_t to work upon
@@ -1702,8 +1704,6 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
   if (first_param_id) *first_param_id = HB_OT_NAME_ID_INVALID;
   return false;
 }
-
-
 /**
  * hb_ot_layout_feature_get_characters:
  * @face: #hb_face_t to work upon
@@ -1757,6 +1757,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
   if (char_count) *char_count = len;
   return cv_params.characters.len;
 }
+#endif
 
 
 /*
@@ -1941,11 +1942,6 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 }
 
 #if 0
-static const OT::BASE& _get_base (hb_face_t *face)
-{
-  return *face->table.BASE;
-}
-
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_ot_layout_baseline_t  baseline,
@@ -1954,9 +1950,8 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_tag_t                 language_tag,
 			   hb_position_t           *coord        /* OUT.  May be NULL. */)
 {
-  const OT::BASE &base = _get_base (font->face);
-  bool result = base.get_baseline (font, baseline, direction, script_tag,
-				   language_tag, coord);
+  bool result = font->face->table.BASE->get_baseline (font, baseline, direction, script_tag,
+						      language_tag, coord);
 
   /* TODO: Simulate https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags#ideographic-em-box */
   if (!result && coord) *coord = 0;
@@ -2011,5 +2006,8 @@ hb_ot_layout_get_baseline (hb_font_t               *font,
 			   hb_tag_t                 script_tag,
 			   hb_tag_t                 language_tag,
 			   hb_position_t           *coord        /* OUT.  May be NULL. */);
+
+#endif
+
 
 #endif

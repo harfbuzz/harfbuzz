@@ -66,6 +66,7 @@
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic error   "-Wembedded-directive"
 #pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
@@ -211,14 +212,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #define calloc hb_calloc_impl
 #define realloc hb_realloc_impl
 #define free hb_free_impl
-
-#ifdef hb_memalign_impl
-extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
-#define posix_memalign hb_memalign_impl
-#else
-#undef HAVE_POSIX_MEMALIGN
-#endif
-
 #endif
 
 
@@ -443,38 +436,6 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   void operator=(const TypeName&) = delete
 
 
-/*
- * Compiler-assisted vectorization parameters.
- */
-
-/*
- * Disable vectorization for now.  To correctly use them, we should
- * use posix_memalign() to allocate in hb_vector_t.  Otherwise, can
- * cause misaligned access.
- *
- * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
- */
-#ifndef HB_VECTOR_SIZE
-#  define HB_VECTOR_SIZE 0
-#endif
-
-/* The `vector_size' attribute was introduced in gcc 3.1. */
-#ifndef HB_VECTOR_SIZE
-#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#    define HB_VECTOR_SIZE 128
-#  else
-#    define HB_VECTOR_SIZE 0
-#  endif
-#endif
-static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)), "HB_VECTOR_SIZE is not power of 2.");
-static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64.");
-#if HB_VECTOR_SIZE
-typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
-#else
-typedef uint64_t hb_vector_size_impl_t;
-#endif
-
-
 /* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */
@@ -513,32 +474,6 @@ typedef uint64_t hb_vector_size_impl_t;
 
 /* Size signifying variable-sized array */
 #define VAR 1
-
-
-/* fallback for posix_memalign() */
-static inline int
-_hb_memalign(void **memptr, size_t alignment, size_t size)
-{
-  if (unlikely (0 != (alignment & (alignment - 1)) ||
-		!alignment ||
-		0 != (alignment & (sizeof (void *) - 1))))
-    return EINVAL;
-
-  char *p = (char *) malloc (size + alignment - 1);
-  if (unlikely (!p))
-    return ENOMEM;
-
-  size_t off = (size_t) p & (alignment - 1);
-  if (off)
-    p += alignment - off;
-
-  *memptr = (void *) p;
-
-  return 0;
-}
-#if !defined(posix_memalign) && !defined(HAVE_POSIX_MEMALIGN)
-#define posix_memalign _hb_memalign
-#endif
 
 
 /*

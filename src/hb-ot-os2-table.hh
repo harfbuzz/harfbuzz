@@ -164,8 +164,9 @@ struct OS2
   void _update_unicode_ranges (const hb_set_t *codepoints,
 			       HBUINT32 ulUnicodeRange[4]) const
   {
+    HBUINT32	newBits[4];
     for (unsigned int i = 0; i < 4; i++)
-      ulUnicodeRange[i] = 0;
+      newBits[i] = 0;
 
     hb_codepoint_t cp = HB_SET_VALUE_INVALID;
     while (codepoints->next (&cp)) {
@@ -175,16 +176,19 @@ struct OS2
 	unsigned int block = bit / 32;
 	unsigned int bit_in_block = bit % 32;
 	unsigned int mask = 1 << bit_in_block;
-	ulUnicodeRange[block] = ulUnicodeRange[block] | mask;
+	newBits[block] = newBits[block] | mask;
       }
       if (cp >= 0x10000 && cp <= 0x110000)
       {
 	/* the spec says that bit 57 ("Non Plane 0") implies that there's
 	   at least one codepoint beyond the BMP; so I also include all
 	   the non-BMP codepoints here */
-	ulUnicodeRange[1] = ulUnicodeRange[1] | (1 << 25);
+	newBits[1] = newBits[1] | (1 << 25);
       }
     }
+
+    for (unsigned int i = 0; i < 4; i++)
+      ulUnicodeRange[i] = ulUnicodeRange[i] & newBits[i]; // set bits only if set in the original
   }
 
   static void find_min_and_max_codepoint (const hb_set_t *codepoints,

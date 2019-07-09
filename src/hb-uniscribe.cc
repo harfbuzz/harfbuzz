@@ -25,6 +25,13 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_UNISCRIBE
+
+#ifdef HB_NO_OT_TAG
+#error "Cannot compile 'uniscribe' shaper with HB_NO_OT_TAG."
+#endif
+
 #include "hb-shaper-impl.hh"
 
 #include <windows.h>
@@ -721,7 +728,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, nullptr, __VA_ARGS__); \
     return false; \
-  } HB_STMT_END;
+  } HB_STMT_END
 
   HRESULT hr;
 
@@ -1023,3 +1030,4 @@ retry:
 }
 
 
+#endif

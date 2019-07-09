@@ -483,7 +483,13 @@ struct hb_ot_apply_context_t :
 			iter_input (), iter_context (),
 			font (font_), face (font->face), buffer (buffer_),
 			recurse_func (nullptr),
-			gdef (*face->table.GDEF->table),
+			gdef (
+#ifndef HB_NO_OT_LAYOUT
+			      *face->table.GDEF->table
+#else
+			      Null(GDEF)
+#endif
+			     ),
 			var_store (gdef.get_var_store ()),
 			direction (buffer_->props.direction),
 			lookup_mask (1),
@@ -2661,11 +2667,17 @@ struct GSUBGPOS
 
   bool find_variations_index (const int *coords, unsigned int num_coords,
 			      unsigned int *index) const
-  { return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
-	   .find_index (coords, num_coords, index); }
+  {
+#ifdef HB_NOVAR
+    return false;
+#endif
+    return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
+	    .find_index (coords, num_coords, index);
+  }
   const Feature& get_feature_variation (unsigned int feature_index,
 					unsigned int variations_index) const
   {
+#ifndef HB_NO_VAR
     if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
 	version.to_int () >= 0x00010001u)
     {
@@ -2674,6 +2686,7 @@ struct GSUBGPOS
       if (feature)
 	return *feature;
     }
+#endif
     return get_feature (feature_index);
   }
 
@@ -2695,8 +2708,10 @@ struct GSUBGPOS
 			 this,
 			 out);
 
+#ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)
      out->featureVars.serialize_copy (c->serializer, featureVars, this, out);
+#endif
 
     return_trace (true);
   }
@@ -2712,12 +2727,19 @@ struct GSUBGPOS
   {
     TRACE_SANITIZE (this);
     typedef OffsetListOf<TLookup> TLookupList;
-    return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
-		  scriptList.sanitize (c, this) &&
-		  featureList.sanitize (c, this) &&
-		  CastR<OffsetTo<TLookupList>> (lookupList).sanitize (c, this) &&
-		  (version.to_int () < 0x00010001u || featureVars.sanitize (c, this)));
+    if (unlikely (!(version.sanitize (c) &&
+		    likely (version.major == 1) &&
+		    scriptList.sanitize (c, this) &&
+		    featureList.sanitize (c, this) &&
+		    CastR<OffsetTo<TLookupList>> (lookupList).sanitize (c, this))))
+      return_trace (false);
+
+#ifndef HB_NO_VAR
+    if (unlikely (!(version.to_int () < 0x00010001u || featureVars.sanitize (c, this))))
+      return_trace (false);
+#endif
+
+    return_trace (true);
   }
 
   template <typename T>

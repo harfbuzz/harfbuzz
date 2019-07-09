@@ -9,7 +9,9 @@ EXTRA_DIST += \
 	$(TESTS) \
 	expected/basics \
 	expected/full-font \
+	expected/cff-full-font \
 	expected/japanese \
+	expected/cff-japanese \
 	expected/layout \
 	fonts \
 	profiles \

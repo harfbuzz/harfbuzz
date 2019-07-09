@@ -40,6 +40,7 @@
 #define HB_LEAN
 #define HB_MINI
 #define HB_NO_MT
+#define HB_NO_UCD_UNASSIGNED
 #ifndef NDEBUG
 #define NDEBUG
 #endif
@@ -57,14 +58,23 @@
 #define HB_NO_BITMAP
 #define HB_NO_CFF
 #define HB_NO_COLOR
+#define HB_NO_FACE_COLLECT_UNICODES
 #define HB_NO_GETENV
+#define HB_NO_HINTING
+#define HB_NO_LANGUAGE_PRIVATE_SUBTAG
+#define HB_NO_LAYOUT_FEATURE_PARAMS
+#define HB_NO_LAYOUT_COLLECT_GLYPHS
 #define HB_NO_LAYOUT_UNUSED
 #define HB_NO_MATH
 #define HB_NO_MMAP
 #define HB_NO_NAME
 #define HB_NO_OPEN
 #define HB_NO_SETLOCALE
+#define HB_NO_OT_FONT_GLYPH_NAMES
+#define HB_NO_OT_SHAPE_FRACTIONS
+#define HB_NO_STAT
 #define HB_NO_SUBSET_LAYOUT
+#define HB_NO_VAR
 #endif
 
 #ifdef HB_MINI
@@ -72,7 +82,8 @@
 #define HB_NO_LEGACY
 #endif
 
-/* Closure. */
+
+/* Closure of options. */
 
 #ifdef HB_DISABLE_DEPRECATED
 #define HB_IF_NOT_DEPRECATED(x)
@@ -82,7 +93,7 @@
 
 #ifdef HB_NO_AAT
 #define HB_NO_OT_NAME_LANGUAGE_AAT
-#define HB_NO_SHAPE_AAT
+#define HB_NO_AAT_SHAPE
 #endif
 
 #ifdef HB_NO_BITMAP
@@ -99,12 +110,26 @@
 #endif
 
 #ifdef HB_NO_LEGACY
+#define HB_NO_CMAP_LEGACY_SUBTABLES
+#define HB_NO_FALLBACK_SHAPE
+#define HB_NO_OT_KERN
 #define HB_NO_OT_LAYOUT_BLACKLIST
 #define HB_NO_OT_SHAPE_FALLBACK
 #endif
 
 #ifdef HB_NO_NAME
 #define HB_NO_OT_NAME_LANGUAGE
+#endif
+
+#ifdef HB_NO_OT
+#define HB_NO_OT_FONT
+#define HB_NO_OT_LAYOUT
+#define HB_NO_OT_TAG
+#define HB_NO_OT_SHAPE
+#endif
+
+#ifdef HB_NO_OT_SHAPE
+#define HB_NO_AAT_SHAPE
 #endif
 
 #ifdef HB_NO_OT_SHAPE_FALLBACK

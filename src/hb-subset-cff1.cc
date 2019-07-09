@@ -24,24 +24,27 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_SUBSET_CFF
+
 #include "hb-open-type.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-set.h"
+#include "hb-bimap.hh"
 #include "hb-subset-cff1.hh"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff1-interp-cs.hh"
 
-#ifndef HB_NO_SUBSET_CFF
-
 using namespace CFF;
 
-struct remap_sid_t : hb_bimap_t
+struct remap_sid_t : hb_inc_bimap_t
 {
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
-      return offset_sid (hb_bimap_t::add (unoffset_sid (sid)));
+      return offset_sid (hb_inc_bimap_t::add (unoffset_sid (sid)));
     else
       return sid;
   }
@@ -51,7 +54,7 @@ struct remap_sid_t : hb_bimap_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (hb_bimap_t::operator [] (unoffset_sid (sid)));
+      return offset_sid (get (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -579,6 +582,8 @@ struct cff_subset_plan {
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
   {
+    sidmap.reset ();
+
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
@@ -677,7 +682,7 @@ struct cff_subset_plan {
       /* SIDs for name strings in dicts are added before glyph names so they fit in 16-bit int range */
       if (unlikely (!collect_sids_in_dicts (acc)))
 	return false;
-      if (unlikely (sidmap.get_count () > 0x8000))	/* assumption: a dict won't reference that many strings */
+      if (unlikely (sidmap.get_population () > 0x8000))	/* assumption: a dict won't reference that many strings */
       	return false;
       if (subset_charset)
 	offsets.charsetInfo.size = plan_subset_charset (acc, plan);
@@ -852,7 +857,7 @@ struct cff_subset_plan {
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to CFF_UNDEF_CODE if excluded from subset */
-  hb_bimap_t   fdmap;
+  hb_inc_bimap_t   fdmap;
 
   str_buff_vec_t		subset_charstrings;
   str_buff_vec_t		subset_globalsubrs;
@@ -1117,5 +1122,6 @@ hb_subset_cff1 (hb_subset_plan_t *plan,
 
   return result;
 }
+
 
 #endif

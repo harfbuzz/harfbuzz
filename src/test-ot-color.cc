@@ -23,7 +23,16 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.h"
+#include "hb.hh"
+
+#include <cairo.h>
+
+#ifdef HB_NO_OPEN
+#define hb_blob_create_from_file(x)  hb_blob_get_empty ()
+#endif
+
+#if !defined(HB_NO_COLOR) && defined(CAIRO_HAS_SVG_SURFACE)
+
 #include "hb-ot.h"
 
 #include "hb-ft.h"
@@ -32,7 +41,6 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#include <cairo.h>
 #include <cairo-ft.h>
 #include <cairo-svg.h>
 
@@ -334,3 +342,7 @@ main (int argc, char **argv)
 
   return 0;
 }
+
+#else
+int main (int argc, char **argv) { return 0; }
+#endif

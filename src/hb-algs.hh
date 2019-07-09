@@ -41,35 +41,40 @@
 #define HB_CODEPOINT_DECODE3_2(v) ((hb_codepoint_t) ((v) >> 21) & 0x1FFFFFu)
 #define HB_CODEPOINT_DECODE3_3(v) ((hb_codepoint_t) (v) & 0x1FFFFFu)
 
+/* Custom encoding used by hb-ucd. */
+#define HB_CODEPOINT_ENCODE3_11_7_14(x,y,z) (((uint32_t) ((x) & 0x07FFu) << 21) | (((uint32_t) (y) & 0x007Fu) << 14) | (uint32_t) ((z) & 0x3FFFu))
+#define HB_CODEPOINT_DECODE3_11_7_14_1(v) ((hb_codepoint_t) ((v) >> 21))
+#define HB_CODEPOINT_DECODE3_11_7_14_2(v) ((hb_codepoint_t) (((v) >> 14) & 0x007Fu) | 0x0300)
+#define HB_CODEPOINT_DECODE3_11_7_14_3(v) ((hb_codepoint_t) (v) & 0x3FFFu)
 
 struct
 {
   /* Note.  This is dangerous in that if it's passed an rvalue, it returns rvalue-reference. */
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (T&& v) const HB_AUTO_RETURN ( hb_forward<T> (v) )
 }
 HB_FUNCOBJ (hb_identity);
 struct
 {
   /* Like identity(), but only retains lvalue-references.  Rvalues are returned as rvalues. */
-  template <typename T> T&
+  template <typename T> constexpr T&
   operator () (T& v) const { return v; }
 
-  template <typename T> hb_remove_reference<T>
+  template <typename T> constexpr hb_remove_reference<T>
   operator () (T&& v) const { return v; }
 }
 HB_FUNCOBJ (hb_lidentity);
 struct
 {
   /* Like identity(), but always returns rvalue. */
-  template <typename T> hb_remove_reference<T>
+  template <typename T> constexpr hb_remove_reference<T>
   operator () (T&& v) const { return v; }
 }
 HB_FUNCOBJ (hb_ridentity);
 
 struct
 {
-  template <typename T> bool
+  template <typename T> constexpr bool
   operator () (T&& v) const { return bool (hb_forward<T> (v)); }
 }
 HB_FUNCOBJ (hb_bool);
@@ -77,11 +82,11 @@ HB_FUNCOBJ (hb_bool);
 struct
 {
   private:
-  template <typename T> auto
+  template <typename T> constexpr auto
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T,
-	    hb_enable_if (hb_is_integral (T))> auto
+	    hb_enable_if (hb_is_integral (T))> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_AUTO_RETURN
   (
     /* Knuth's multiplicative method: */
@@ -90,7 +95,7 @@ struct
 
   public:
 
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T& v) const HB_RETURN (uint32_t, impl (v, hb_prioritize))
 }
 HB_FUNCOBJ (hb_hash);
@@ -323,14 +328,14 @@ hb_pair (T1&& a, T2&& b) { return hb_pair_t<T1, T2> (a, b); }
 
 struct
 {
-  template <typename Pair> typename Pair::first_t
+  template <typename Pair> constexpr typename Pair::first_t
   operator () (const Pair& pair) const { return pair.first; }
 }
 HB_FUNCOBJ (hb_first);
 
 struct
 {
-  template <typename Pair> typename Pair::second_t
+  template <typename Pair> constexpr typename Pair::second_t
   operator () (const Pair& pair) const { return pair.second; }
 }
 HB_FUNCOBJ (hb_second);
@@ -341,14 +346,14 @@ HB_FUNCOBJ (hb_second);
  * comparing integers of different signedness. */
 struct
 {
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (T&& a, T2&& b) const HB_AUTO_RETURN
   (hb_forward<T> (a) <= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
 }
 HB_FUNCOBJ (hb_min);
 struct
 {
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (T&& a, T2&& b) const HB_AUTO_RETURN
   (hb_forward<T> (a) >= hb_forward<T2> (b) ? hb_forward<T> (a) : hb_forward<T2> (b))
 }
@@ -912,7 +917,7 @@ struct hb_bitwise_and
 { HB_PARTIALIZE(2);
   static constexpr bool passthru_left = false;
   static constexpr bool passthru_right = false;
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
@@ -920,7 +925,7 @@ struct hb_bitwise_or
 { HB_PARTIALIZE(2);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
 }
 HB_FUNCOBJ (hb_bitwise_or);
@@ -928,7 +933,7 @@ struct hb_bitwise_xor
 { HB_PARTIALIZE(2);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = true;
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
 }
 HB_FUNCOBJ (hb_bitwise_xor);
@@ -936,50 +941,56 @@ struct hb_bitwise_sub
 { HB_PARTIALIZE(2);
   static constexpr bool passthru_left = true;
   static constexpr bool passthru_right = false;
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
 HB_FUNCOBJ (hb_bitwise_sub);
+struct
+{
+  template <typename T> constexpr auto
+  operator () (const T &a) const HB_AUTO_RETURN (~a)
+}
+HB_FUNCOBJ (hb_bitwise_neg);
 
 struct
 { HB_PARTIALIZE(2);
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a + b)
 }
 HB_FUNCOBJ (hb_add);
 struct
 { HB_PARTIALIZE(2);
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b)
 }
 HB_FUNCOBJ (hb_sub);
 struct
 { HB_PARTIALIZE(2);
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a * b)
 }
 HB_FUNCOBJ (hb_mul);
 struct
 { HB_PARTIALIZE(2);
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a / b)
 }
 HB_FUNCOBJ (hb_div);
 struct
 { HB_PARTIALIZE(2);
-  template <typename T, typename T2> auto
+  template <typename T, typename T2> constexpr auto
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a % b)
 }
 HB_FUNCOBJ (hb_mod);
 struct
 {
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a) const HB_AUTO_RETURN (+a)
 }
 HB_FUNCOBJ (hb_pos);
 struct
 {
-  template <typename T> auto
+  template <typename T> constexpr auto
   operator () (const T &a) const HB_AUTO_RETURN (-a)
 }
 HB_FUNCOBJ (hb_neg);
@@ -988,28 +999,29 @@ HB_FUNCOBJ (hb_neg);
 /* Compiler-assisted vectorization. */
 
 /* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))),
- * using vectorized operations if HB_VECTOR_SIZE is set to **bit** numbers (eg 128).
- * Define that to 0 to disable. */
+ * basically a fixed-size bitset. */
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
 {
-  elt_t& operator [] (unsigned int i) { return u.v[i]; }
-  const elt_t& operator [] (unsigned int i) const { return u.v[i]; }
+  elt_t& operator [] (unsigned int i) { return v[i]; }
+  const elt_t& operator [] (unsigned int i) const { return v[i]; }
 
   void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
 
   template <typename Op>
+  hb_vector_size_t process (const Op& op) const
+  {
+    hb_vector_size_t r;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      r.v[i] = op (v[i]);
+    return r;
+  }
+  template <typename Op>
   hb_vector_size_t process (const Op& op, const hb_vector_size_t &o) const
   {
     hb_vector_size_t r;
-#if HB_VECTOR_SIZE
-    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	r.u.vec[i] = op (u.vec[i], o.u.vec[i]);
-    else
-#endif
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-	r.u.v[i] = op (u.v[i], o.u.v[i]);
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      r.v[i] = op (v[i], o.v[i]);
     return r;
   }
   hb_vector_size_t operator | (const hb_vector_size_t &o) const
@@ -1019,27 +1031,11 @@ struct hb_vector_size_t
   hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process (hb_bitwise_xor, o); }
   hb_vector_size_t operator ~ () const
-  {
-    hb_vector_size_t r;
-#if HB_VECTOR_SIZE && 0
-    if (HB_VECTOR_SIZE && 0 == (byte_size * 8) % HB_VECTOR_SIZE)
-      for (unsigned int i = 0; i < ARRAY_LENGTH (u.vec); i++)
-	r.u.vec[i] = ~u.vec[i];
-    else
-#endif
-    for (unsigned int i = 0; i < ARRAY_LENGTH (u.v); i++)
-      r.u.v[i] = ~u.v[i];
-    return r;
-  }
+  { return process (hb_bitwise_neg); }
 
   private:
-  static_assert (byte_size / sizeof (elt_t) * sizeof (elt_t) == byte_size, "");
-  union {
-    elt_t v[byte_size / sizeof (elt_t)];
-#if HB_VECTOR_SIZE
-    hb_vector_size_impl_t vec[byte_size / sizeof (hb_vector_size_impl_t)];
-#endif
-  } u;
+  static_assert (0 == byte_size % sizeof (elt_t), "");
+  elt_t v[byte_size / sizeof (elt_t)];
 };
 
 

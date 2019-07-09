@@ -24,10 +24,12 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
-#include "hb-ot-cff1-table.hh"
-#include "hb-cff1-interp-cs.hh"
+#include "hb.hh"
 
 #ifndef HB_NO_CFF
+
+#include "hb-ot-cff1-table.hh"
+#include "hb-cff1-interp-cs.hh"
 
 using namespace CFF;
 
@@ -208,7 +210,7 @@ struct bounds_t
   point_t max;
 };
 
-struct extents_param_t
+struct cff1_extents_param_t
 {
   void init (const OT::cff1::accelerator_t *_cff)
   {
@@ -227,15 +229,15 @@ struct extents_param_t
   const OT::cff1::accelerator_t *cff;
 };
 
-struct cff1_path_procs_extents_t : path_procs_t<cff1_path_procs_extents_t, cff1_cs_interp_env_t, extents_param_t>
+struct cff1_path_procs_extents_t : path_procs_t<cff1_path_procs_extents_t, cff1_cs_interp_env_t, cff1_extents_param_t>
 {
-  static void moveto (cff1_cs_interp_env_t &env, extents_param_t& param, const point_t &pt)
+  static void moveto (cff1_cs_interp_env_t &env, cff1_extents_param_t& param, const point_t &pt)
   {
     param.end_path ();
     env.moveto (pt);
   }
 
-  static void line (cff1_cs_interp_env_t &env, extents_param_t& param, const point_t &pt1)
+  static void line (cff1_cs_interp_env_t &env, cff1_extents_param_t& param, const point_t &pt1)
   {
     if (!param.is_path_open ())
     {
@@ -246,7 +248,7 @@ struct cff1_path_procs_extents_t : path_procs_t<cff1_path_procs_extents_t, cff1_
     param.bounds.update (env.get_pt ());
   }
 
-  static void curve (cff1_cs_interp_env_t &env, extents_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  static void curve (cff1_cs_interp_env_t &env, cff1_extents_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   {
     if (!param.is_path_open ())
     {
@@ -263,9 +265,9 @@ struct cff1_path_procs_extents_t : path_procs_t<cff1_path_procs_extents_t, cff1_
 
 static bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, bounds_t &bounds, bool in_seac=false);
 
-struct cff1_cs_opset_extents_t : cff1_cs_opset_t<cff1_cs_opset_extents_t, extents_param_t, cff1_path_procs_extents_t>
+struct cff1_cs_opset_extents_t : cff1_cs_opset_t<cff1_cs_opset_extents_t, cff1_extents_param_t, cff1_path_procs_extents_t>
 {
-  static void process_seac (cff1_cs_interp_env_t &env, extents_param_t& param)
+  static void process_seac (cff1_cs_interp_env_t &env, cff1_extents_param_t& param)
   {
     unsigned int  n = env.argStack.get_count ();
     point_t delta;
@@ -294,11 +296,11 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, boun
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
-  cff1_cs_interpreter_t<cff1_cs_opset_extents_t, extents_param_t> interp;
+  cff1_cs_interpreter_t<cff1_cs_opset_extents_t, cff1_extents_param_t> interp;
   const byte_str_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
-  extents_param_t  param;
+  cff1_extents_param_t  param;
   param.init (cff);
   if (unlikely (!interp.interpret (param))) return false;
   bounds = param.bounds;
@@ -390,5 +392,6 @@ bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_code
   }
   return false;
 }
+
 
 #endif

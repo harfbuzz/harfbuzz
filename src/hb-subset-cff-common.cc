@@ -24,6 +24,10 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_SUBSET_CFF
+
 #include "hb-ot-cff-common.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-subset-cff-common.hh"
@@ -44,13 +48,13 @@ using namespace CFF;
 
 bool
 hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
-			    unsigned int fdCount,
-			    const FDSelect &src, /* IN */
-			    unsigned int &subset_fd_count /* OUT */,
-			    unsigned int &subset_fdselect_size /* OUT */,
-			    unsigned int &subset_fdselect_format /* OUT */,
-			    hb_vector_t<code_pair_t> &fdselect_ranges /* OUT */,
-			    hb_bimap_t &fdmap /* OUT */)
+			     unsigned int fdCount,
+			     const FDSelect &src, /* IN */
+			     unsigned int &subset_fd_count /* OUT */,
+			     unsigned int &subset_fdselect_size /* OUT */,
+			     unsigned int &subset_fdselect_format /* OUT */,
+			     hb_vector_t<code_pair_t> &fdselect_ranges /* OUT */,
+			     hb_inc_bimap_t &fdmap /* OUT */)
 {
   subset_fd_count = 0;
   subset_fdselect_size = 0;
@@ -97,11 +101,14 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
     }
     else
     {
-      hb_codepoint_t  fd = CFF_UNDEF_CODE;
+      /* create a fdmap */
+      fdmap.reset ();
+
+      hb_codepoint_t fd = CFF_UNDEF_CODE;
       while (set->next (&fd))
 	fdmap.add (fd);
       hb_set_destroy (set);
-      if (unlikely (fdmap.get_count () != subset_fd_count))
+      if (unlikely (fdmap.get_population () != subset_fd_count))
       	return false;
     }
 
@@ -216,3 +223,6 @@ hb_serialize_cff_fdselect (hb_serialize_context_t *c,
     return_trace (false);
   }
 }
+
+
+#endif

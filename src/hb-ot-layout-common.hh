@@ -500,6 +500,9 @@ struct FeatureParams
 {
   bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
   {
+#ifdef HB_NO_LAYOUT_FEATURE_PARAMS
+    return true;
+#endif
     TRACE_SANITIZE (this);
     if (tag == HB_TAG ('s','i','z','e'))
       return_trace (u.size.sanitize (c));
@@ -510,26 +513,26 @@ struct FeatureParams
     return_trace (true);
   }
 
+#ifndef HB_NO_LAYOUT_FEATURE_PARAMS
   const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null (FeatureParamsSize);
   }
-
   const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return u.stylisticSet;
     return Null (FeatureParamsStylisticSet);
   }
-
   const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
       return u.characterVariants;
     return Null (FeatureParamsCharacterVariants);
   }
+#endif
 
   private:
   union {
@@ -1695,10 +1698,10 @@ struct VarRegionList
     VarRegionList *out = c->allocate_min<VarRegionList> ();
     if (unlikely (!out)) return_trace (false);
     axisCount = src->axisCount;
-    regionCount = region_map.get_count ();
+    regionCount = region_map.get_population ();
     if (unlikely (!c->allocate_size<VarRegionList> (get_size () - min_size))) return_trace (false);
     for (unsigned int r = 0; r < regionCount; r++)
-      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.to_old (r)], VarRegionAxis::static_size * axisCount);
+      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.backward (r)], VarRegionAxis::static_size * axisCount);
 
     return_trace (true);
   }
@@ -1760,11 +1763,11 @@ struct VarData
                     float *scalars /*OUT */,
                     unsigned int num_scalars) const
   {
-    assert (num_scalars == regionIndices.len);
-   for (unsigned int i = 0; i < num_scalars; i++)
-   {
-     scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
-   }
+    unsigned count = hb_min (num_scalars, regionIndices.len);
+    for (unsigned int i = 0; i < count; i++)
+      scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
+    for (unsigned int i = count; i < num_scalars; i++)
+      scalars[i] = 0.f;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1785,7 +1788,7 @@ struct VarData
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    itemCount = inner_map.get_count ();
+    itemCount = inner_map.get_population ();
     
     /* Optimize short count */
     unsigned short ri_count = src->regionIndices.len;
@@ -1799,9 +1802,9 @@ struct VarData
     for (r = 0; r < ri_count; r++)
     {
       delta_sz[r] = kZero;
-      for (unsigned int i = 0; i < inner_map.get_count (); i++)
+      for (unsigned int i = 0; i < inner_map.get_population (); i++)
       {
-	unsigned int old = inner_map.to_old (i);
+	unsigned int old = inner_map.backward (i);
 	int16_t delta = src->get_item_delta (old, r);
 	if (delta < -128 || 127 < delta)
 	{
@@ -1831,11 +1834,11 @@ struct VarData
       return_trace (false);
 
     for (r = 0; r < ri_count; r++)
-      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map.to_new (src->regionIndices[r]);
+      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
 
     for (unsigned int i = 0; i < itemCount; i++)
     {
-      hb_codepoint_t	old = inner_map.to_old (i);
+      hb_codepoint_t	old = inner_map.backward (i);
       if (unlikely (old >= src->itemCount)) return_trace (false);
       for (unsigned int r = 0; r < ri_count; r++)
 	if (delta_sz[r]) set_item_delta (i, ri_map[r], src->get_item_delta (old, r));
@@ -1844,14 +1847,14 @@ struct VarData
     return_trace (true);
   }
 
-  void collect_region_refs (hb_bimap_t &region_map, const hb_bimap_t &inner_map) const
+  void collect_region_refs (hb_inc_bimap_t &region_map, const hb_bimap_t &inner_map) const
   {
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
       unsigned int region = regionIndices[r];
       if (region_map.has (region)) continue;
-      for (unsigned int i = 0; i < inner_map.get_count (); i++)
-	if (get_item_delta (inner_map.to_old (i), r) != 0)
+      for (unsigned int i = 0; i < inner_map.get_population (); i++)
+	if (get_item_delta (inner_map.backward (i), r) != 0)
 	{
 	  region_map.add (region);
 	  break;
@@ -1902,8 +1905,12 @@ struct VariationStore
   float get_delta (unsigned int outer, unsigned int inner,
 		   const int *coords, unsigned int coord_count) const
   {
+#ifdef HB_NO_VAR
+    return 0.f;
+#endif
+
     if (unlikely (outer >= dataSets.len))
-      return 0.;
+      return 0.f;
 
     return (this+dataSets[outer]).get_delta (inner,
 					     coords, coord_count,
@@ -1920,6 +1927,10 @@ struct VariationStore
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
+#ifdef HB_NO_VAR
+    return true;
+#endif
+
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  format == 1 &&
@@ -1929,21 +1940,21 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-  		  const hb_array_t <hb_bimap_t> &inner_remaps)
+  		  const hb_array_t <hb_inc_bimap_t> &inner_remaps)
   {
     TRACE_SERIALIZE (this);
     unsigned int set_count = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
-      if (inner_remaps[i].get_count () > 0) set_count++;
+      if (inner_remaps[i].get_population () > 0) set_count++;
 
     unsigned int size = min_size + HBUINT32::static_size * set_count;
     if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format = 1;
 
-    hb_bimap_t region_map;
+    hb_inc_bimap_t region_map;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
       (src+src->dataSets[i]).collect_region_refs (region_map, inner_remaps[i]);
-    region_map.reorder ();
+    region_map.sort ();
 
     if (unlikely (!regions.serialize (c, this)
 		  .serialize (c, &(src+src->regions), region_map))) return_trace (false);
@@ -1955,7 +1966,7 @@ struct VariationStore
     unsigned int set_index = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
     {
-      if (inner_remaps[i].get_count () == 0) continue;
+      if (inner_remaps[i].get_population () == 0) continue;
       if (unlikely (!dataSets[set_index++].serialize (c, this)
 		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i], region_map)))
 	return_trace (false);
@@ -1972,6 +1983,12 @@ struct VariationStore
 		    float *scalars /*OUT*/,
 		    unsigned int num_scalars) const
   {
+#ifdef HB_NO_VAR
+    for (unsigned i = 0; i < num_scalars; i++)
+      scalars[i] = 0.f;
+    return;
+#endif
+
     (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
                                       &scalars[0], num_scalars);
   }
@@ -2316,10 +2333,14 @@ struct Device
   {
     switch (u.b.format)
     {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_x_delta (font, store);
+#endif
     default:
       return 0;
     }
@@ -2329,9 +2350,13 @@ struct Device
     switch (u.b.format)
     {
     case 1: case 2: case 3:
+#ifndef HB_NO_HINTING
       return u.hinting.get_y_delta (font);
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_y_delta (font, store);
+#endif
     default:
       return 0;
     }
@@ -2342,10 +2367,14 @@ struct Device
     TRACE_SANITIZE (this);
     if (!u.b.format.sanitize (c)) return_trace (false);
     switch (u.b.format) {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return_trace (u.variation.sanitize (c));
+#endif
     default:
       return_trace (true);
     }
@@ -2355,7 +2384,9 @@ struct Device
   union {
   DeviceHeader		b;
   HintingDevice		hinting;
+#ifndef HB_NO_VAR
   VariationDevice	variation;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (6, b);
